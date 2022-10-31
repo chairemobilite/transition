@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Default props 1`] = `
+<ul
+  className="_list-container"
+>
+  test
+</ul>
+`;
+
+exports[`With classname 1`] = `
+<ul
+  className="_list-container myClass"
+>
+  test
+</ul>
+`;

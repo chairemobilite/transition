@@ -1,0 +1,170 @@
+{
+    "version": 0.6,
+    "generator": "Overpass API 0.7.56.8 7d656e78",
+    "osm3s": {
+        "timestamp_osm_base": "2021-01-11T19:36:03Z",
+        "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": [
+        {
+            "type": "node",
+            "id": 1,
+            "lat": 45.535667,
+            "lon": -73.613688
+        },
+        {
+            "type": "node",
+            "id": 2,
+            "lat": 45.535198,
+            "lon": -73.614149
+        },
+        {
+            "type": "node",
+            "id": 3,
+            "lat": 45.535021,
+            "lon": -73.613725
+        },
+        {
+            "type": "node",
+            "id": 4,
+            "lat": 45.53548,
+            "lon": -73.613269
+        },
+        {
+            "type": "node",
+            "id": 5,
+            "lat": 45.535585,
+            "lon": -73.613633
+        },
+        {
+            "type": "node",
+            "id": 6,
+            "lat": 45.535453,
+            "lon": -73.613756
+        },
+        {
+            "type": "node",
+            "id": 7,
+            "lat": 45.535412,
+            "lon": -73.613644,
+            "tags": {
+                "entrance": "home"
+            }
+        },
+        {
+            "type": "node",
+            "id": 8,
+            "lat": 45.535382,
+            "lon": -73.613558
+        },
+        {
+            "type": "node",
+            "id": 9,
+            "lat": 45.53545,
+            "lon": -73.613488
+        },
+        {
+            "type": "node",
+            "id": 10,
+            "lat": 45.535487,
+            "lon": -73.613579
+        },
+        {
+            "type": "node",
+            "id": 11,
+            "lat": 45.535513,
+            "lon": -73.613553,
+            "tags": {
+                "entrance": "home"
+            }
+        },
+        {
+            "type": "node",
+            "id": 12,
+            "lat": 45.53554,
+            "lon": -73.61352
+        },
+        {
+            "type": "node",
+            "id": 13,
+            "lat": 45.535228,
+            "lon": -73.613988
+        },
+        {
+            "type": "node",
+            "id": 14,
+            "lat": 45.535176,
+            "lon": -73.613843,
+            "tags": {
+                "entrance": "home"
+            }
+        },
+        {
+            "type": "node",
+            "id": 15,
+            "lat": 45.53513,
+            "lon": -73.613752
+        },
+        {
+            "type": "node",
+            "id": 16,
+            "lat": 45.535254,
+            "lon": -73.613677
+        },
+        {
+            "type": "node",
+            "id": 17,
+            "lat": 45.535326,
+            "lon": -73.613854
+        },
+        {
+            "type": "way",
+            "id": 1,
+            "nodes": [
+                1,
+                2,
+                3,
+                4,
+                1
+            ],
+            "tags": {
+                "flats": "8",
+                "landuse": "residential"
+            }
+        },
+        {
+            "type": "way",
+            "id": 2,
+            "nodes": [
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                5
+            ],
+            "tags": {
+                "building:flats": "3"
+            }
+        },
+        {
+            "type": "way",
+            "id": 3,
+            "nodes": [
+                13,
+                14,
+                15,
+                16,
+                17,
+                13
+            ],
+            "tags": {
+                "amenity": "retirement_home",
+                "building:flats": 3
+            }
+        }
+    ]
+}

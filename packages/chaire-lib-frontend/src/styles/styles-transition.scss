@@ -1,0 +1,21 @@
+@import url("https://fonts.googleapis.com/css?family=Lato:300,300i,400,400i,700,700i,900,900i");
+
+@import './settings';
+@import './base';
+
+@import './main';
+@import './buttons';
+@import './header';
+@import './footer';
+@import './form';
+@import './modal';
+@import '~mapbox-gl/dist/mapbox-gl.css';
+@import '~font-awesome/css/font-awesome.min.css';
+@import './mapbox-gl-custom';
+@import './collapsible';
+@import './dashboard';
+@import './leftMenu';
+@import './widgets';
+@import './datepicker';
+@import '~react-tabs/style/react-tabs.css';
+@import './react-tabs';

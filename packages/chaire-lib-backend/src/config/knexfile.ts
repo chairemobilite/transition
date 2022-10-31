@@ -1,0 +1,32 @@
+/*
+ * Copyright 2022, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
+require('chaire-lib-common/lib/config/shared/dotenv.config'); // dotenv is required to get the connection strings
+import config from './server.config';
+if (
+    !process.env['PG_CONNECTION_STRING_PREFIX'] ||
+    !process.env.NODE_ENV ||
+    !process.env[`PG_DATABASE_${process.env.NODE_ENV.toUpperCase()}`]
+)
+    throw 'database is not set';
+
+export default {
+    client: 'pg',
+    connection:
+        process.env['PG_CONNECTION_STRING_PREFIX'] + process.env[`PG_DATABASE_${process.env.NODE_ENV.toUpperCase()}`],
+    searchPath: [process.env.PG_DATABASE_SCHEMA || config.projectShortname || 'public', 'public'],
+    migrations: {
+        directory: __dirname + '/../../../migrations'
+    },
+    onUpdateTrigger: function(table) {
+        return `
+      CREATE TRIGGER ${table}_updated_at
+      BEFORE UPDATE ON ${table}
+      FOR EACH ROW
+      EXECUTE PROCEDURE ${process.env.PG_DATABASE_SCHEMA || config.projectShortname}.on_update_timestamp();
+    `;
+    }
+};

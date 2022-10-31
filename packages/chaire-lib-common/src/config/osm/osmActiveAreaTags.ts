@@ -1,0 +1,113 @@
+/*
+ * Copyright 2022, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
+export default {
+    tags: {
+        landuse: [
+            'cemetery',
+            'quarry',
+            'recreation_ground',
+            'winter_sports',
+            'religious',
+            'landfill',
+            'churchyard',
+            'depot',
+            'tourism',
+            'leisure'
+        ],
+        amenity: [
+            'school',
+            'college',
+            'university',
+            'healthcare',
+            'hospital',
+            'kindergarten',
+            'bus_station',
+            'fuel',
+            'taxi',
+            'embassy',
+            'monastery',
+            'marketplace',
+            'place_of_worship',
+            'prison',
+            'public_bath'
+        ],
+        leisure: [
+            'beach_resort',
+            'bandstand',
+            'dog_park',
+            'fitness_station',
+            'garden',
+            'golf_course',
+            'horse_riding',
+            'ice_rink',
+            'marina',
+            'miniature_golf',
+            'outdoor_seating',
+            'park',
+            'pitch',
+            'playground',
+            'resort',
+            'sauna',
+            'slipway',
+            'sports_centre',
+            'stadium',
+            'summer_camp',
+            'swimming_area',
+            'swimming_pool',
+            'track',
+            'water_park',
+            'wildlife_hide',
+            'trampoline_park'
+        ],
+        historic: [
+            'aircraft',
+            'aqueduct',
+            'archaeological_site',
+            'battlefield',
+            'building',
+            'cannon',
+            'castle',
+            'castle_wall',
+            'church',
+            'city_gate',
+            'citywalls',
+            'farm',
+            'fort',
+            'locomotive',
+            'manor',
+            'memorial',
+            'monastery',
+            'monument',
+            'optical_telegraph',
+            'pillory',
+            'railway_car',
+            'ruins',
+            'ship',
+            'tank',
+            'tower'
+        ],
+        man_made: [
+            'communications_tower',
+            'lighthouse',
+            'monitoring_station',
+            'obelisk',
+            'observatory',
+            'petroleum_well',
+            'pumping_station',
+            'silo',
+            'telescope',
+            'tower',
+            'wastewater_plant',
+            'watermill',
+            'water_tower',
+            'water_works',
+            'windmill',
+            'works'
+        ],
+        military: ['airfield', 'bunker', 'checkpoint', 'naval_base', 'obstacle_course', 'range', 'training_area']
+    }
+};

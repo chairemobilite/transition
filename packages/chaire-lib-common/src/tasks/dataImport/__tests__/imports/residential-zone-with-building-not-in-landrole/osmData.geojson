@@ -1,0 +1,107 @@
+{
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "properties": {
+            "shape": "Polygon",
+            "name": "residential-zone-with-building-count-matches",
+            "landuse": "residential",
+            "flats": "8",
+            "id": "way/1"
+        },
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-73.613688, 45.535667],
+                    [-73.614149, 45.535198],
+                    [-73.613725, 45.535021],
+                    [-73.613269, 45.53548],
+                    [-73.613688, 45.535667]
+                ]
+            ]
+        },
+        "id": "way/1"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "shape": "Polygon",
+            "name": "residential-zone-with-building-count-matches",
+            "building:flats": 3
+        },
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-73.613633, 45.535585],
+                    [-73.613756, 45.535453],
+                    [-73.613644, 45.535412],
+                    [-73.613558, 45.535382],
+                    [-73.613488, 45.53545],
+                    [-73.613579, 45.535487],
+                    [-73.613553, 45.535513],
+                    [-73.61352, 45.53554],
+                    [-73.613633, 45.535585]
+                ]
+            ]
+        },
+        "id": "way/2"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "shape": "Polygon",
+            "name": "residential-zone-with-building-count-matches",
+            "amenity": "retirement_home",
+            "building:flats": 3
+        },
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-73.613988, 45.535228],
+                    [-73.613752, 45.53513],
+                    [-73.613677, 45.535254],
+                    [-73.613854, 45.535326],
+                    [-73.613988, 45.535228]
+                ]
+            ]
+        },
+        "id": "way/3"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "shape": "Marker",
+            "name": "residential-zone-with-building-count-matches",
+            "entrance": "home"
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613644, 45.535412]
+        },
+        "id": "node/7"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "shape": "Marker",
+            "name": "residential-zone-with-building-count-matches",
+            "entrance": "home"
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613553, 45.535513]
+        },
+        "id": "node/11"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "shape": "Marker",
+            "name": "residential-zone-with-building-count-matches",
+            "entrance": "other"
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613843, 45.535176]
+        },
+        "id": "node/14"
+    }]
+}

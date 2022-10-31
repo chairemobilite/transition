@@ -1,0 +1,381 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`All props 1`] = `
+<div
+  className="tr__form-input-radio-group-container _input-proxy"
+>
+  <div
+    className="tr__form-input-radio-container"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={false}
+      className="tr__form-input-radio apptr__input _input-radio"
+      id="RadioWidgetId_test1"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="test1"
+    />
+    <label
+      htmlFor="RadioWidgetId_test1"
+      onClick={[Function]}
+    >
+      <span>
+        something:test1
+      </span>
+    </label>
+  </div>
+  <div
+    className="tr__form-input-radio-container checked"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={true}
+      className="tr__form-input-radio apptr__input _input-radio"
+      id="RadioWidgetId_test2"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="test2"
+    />
+    <label
+      htmlFor="RadioWidgetId_test2"
+      onClick={[Function]}
+    >
+      <span>
+        something:test2
+      </span>
+    </label>
+  </div>
+  <div
+    className="tr__form-input-radio-container"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={false}
+      className="tr__form-input-radio apptr__input _input-radio"
+      id="RadioWidgetId_test3"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="test3"
+    />
+    <label
+      htmlFor="RadioWidgetId_test3"
+      onClick={[Function]}
+    >
+      <span>
+        something:test3
+      </span>
+    </label>
+  </div>
+</div>
+`;
+
+exports[`Boolean choices 1`] = `
+<div
+  className="tr__form-input-radio-group-container _input-proxy"
+>
+  <div
+    className="tr__form-input-radio-container"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={false}
+      className="tr__form-input-radio apptr__input _input-radio"
+      id="RadioWidgetId_true"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="true"
+    />
+    <label
+      htmlFor="RadioWidgetId_true"
+      onClick={[Function]}
+    >
+      <span>
+        true
+      </span>
+    </label>
+  </div>
+  <div
+    className="tr__form-input-radio-container checked"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={true}
+      className="tr__form-input-radio apptr__input _input-radio"
+      id="RadioWidgetId_false"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="false"
+    />
+    <label
+      htmlFor="RadioWidgetId_false"
+      onClick={[Function]}
+    >
+      <span>
+        false
+      </span>
+    </label>
+  </div>
+</div>
+`;
+
+exports[`Default props 1`] = `
+<div
+  className="tr__form-input-radio-group-container _input-proxy"
+/>
+`;
+
+exports[`Disabled 1`] = `
+<div
+  className="tr__form-input-radio-group-container _input-proxy"
+>
+  <div
+    className="tr__form-input-radio-container"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={false}
+      className="tr__form-input-radio apptr__input _input-radio"
+      disabled={true}
+      id="RadioWidgetId_test1"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="test1"
+    />
+    <label
+      htmlFor="RadioWidgetId_test1"
+      onClick={[Function]}
+    >
+      <span>
+        test1
+      </span>
+    </label>
+  </div>
+  <div
+    className="tr__form-input-radio-container checked"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={true}
+      className="tr__form-input-radio apptr__input _input-radio"
+      disabled={true}
+      id="RadioWidgetId_test2"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="test2"
+    />
+    <label
+      htmlFor="RadioWidgetId_test2"
+      onClick={[Function]}
+    >
+      <span>
+        test2
+      </span>
+    </label>
+  </div>
+  <div
+    className="tr__form-input-radio-container"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={false}
+      className="tr__form-input-radio apptr__input _input-radio"
+      disabled={true}
+      id="RadioWidgetId_test3"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="test3"
+    />
+    <label
+      htmlFor="RadioWidgetId_test3"
+      onClick={[Function]}
+    >
+      <span>
+        test3
+      </span>
+    </label>
+  </div>
+</div>
+`;
+
+exports[`On same line 1`] = `
+<div
+  className="tr__form-input-radio-group-container _input-proxy"
+>
+  <div
+    className="tr__form-input-radio-container"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={false}
+      className="tr__form-input-radio apptr__input _input-radio"
+      id="RadioWidgetId_test1"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="test1"
+    />
+    <label
+      htmlFor="RadioWidgetId_test1"
+      onClick={[Function]}
+    >
+      <span>
+        test1
+      </span>
+    </label>
+  </div>
+  <div
+    className="tr__form-input-radio-container"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={false}
+      className="tr__form-input-radio apptr__input _input-radio"
+      id="RadioWidgetId_test2"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="test2"
+    />
+    <label
+      htmlFor="RadioWidgetId_test2"
+      onClick={[Function]}
+    >
+      <span>
+        test2
+      </span>
+    </label>
+  </div>
+  <div
+    className="tr__form-input-radio-container"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={false}
+      className="tr__form-input-radio apptr__input _input-radio"
+      id="RadioWidgetId_test3"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="test3"
+    />
+    <label
+      htmlFor="RadioWidgetId_test3"
+      onClick={[Function]}
+    >
+      <span>
+        test3
+      </span>
+    </label>
+  </div>
+</div>
+`;
+
+exports[`On same line 2`] = `
+<div
+  className="tr__form-input-radio-group-container _input-proxy no-wrap"
+>
+  <div
+    className="tr__form-input-radio-container"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={false}
+      className="tr__form-input-radio apptr__input _input-radio"
+      id="RadioWidgetId_test1"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="test1"
+    />
+    <label
+      htmlFor="RadioWidgetId_test1"
+      onClick={[Function]}
+    >
+      <span>
+        test1
+      </span>
+    </label>
+  </div>
+  <div
+    className="tr__form-input-radio-container"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={false}
+      className="tr__form-input-radio apptr__input _input-radio"
+      id="RadioWidgetId_test2"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="test2"
+    />
+    <label
+      htmlFor="RadioWidgetId_test2"
+      onClick={[Function]}
+    >
+      <span>
+        test2
+      </span>
+    </label>
+  </div>
+  <div
+    className="tr__form-input-radio-container"
+    onClick={[Function]}
+  >
+    <input
+      autoComplete="none"
+      checked={false}
+      className="tr__form-input-radio apptr__input _input-radio"
+      id="RadioWidgetId_test3"
+      name="RadioWidgetId"
+      onChange={[Function]}
+      onClick={[Function]}
+      type="radio"
+      value="test3"
+    />
+    <label
+      htmlFor="RadioWidgetId_test3"
+      onClick={[Function]}
+    >
+      <span>
+        test3
+      </span>
+    </label>
+  </div>
+</div>
+`;

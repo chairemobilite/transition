@@ -1,0 +1,536 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Boolean Checkboxes All props 1`] = `
+<div
+  className="tr__form-input-checkbox-group-container"
+>
+  <div
+    className="tr__form-input-checkbox-group-column no-wrap"
+  >
+    <div
+      className="tr__form-input-checkbox-container checked"
+      onClick={[Function]}
+    >
+      <div
+        className="label-input-container"
+      >
+        <input
+          checked={true}
+          className="_input-checkbox"
+          disabled={false}
+          id="SelectWidgetId_true"
+          name="SelectWidgetId"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="checkbox"
+          value="true"
+        />
+        <label
+          htmlFor="SelectWidgetId_true"
+          onClick={[Function]}
+        >
+          <span>
+            testLabel
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Boolean Checkboxes Default props 1`] = `
+<div
+  className="tr__form-input-checkbox-group-container"
+>
+  <div
+    className="tr__form-input-checkbox-group-column no-wrap"
+  >
+    <div
+      className="tr__form-input-checkbox-container"
+      onClick={[Function]}
+    >
+      <div
+        className="label-input-container"
+      >
+        <input
+          checked={false}
+          className="_input-checkbox"
+          disabled={false}
+          id="SelectWidgetId_true"
+          name="SelectWidgetId"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="checkbox"
+          value="true"
+        />
+        <label
+          htmlFor="SelectWidgetId_true"
+          onClick={[Function]}
+        >
+          <span>
+            Yes
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Boolean Checkboxes Disabled 1`] = `
+<div
+  className="tr__form-input-checkbox-group-container"
+>
+  <div
+    className="tr__form-input-checkbox-group-column no-wrap"
+  >
+    <div
+      className="tr__form-input-checkbox-container"
+      onClick={[Function]}
+    >
+      <div
+        className="label-input-container"
+      >
+        <input
+          checked={false}
+          className="_input-checkbox"
+          disabled={true}
+          id="SelectWidgetId_true"
+          name="SelectWidgetId"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="checkbox"
+          value="true"
+        />
+        <label
+          htmlFor="SelectWidgetId_true"
+          onClick={[Function]}
+        >
+          <span>
+            Yes
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Checkboxes All props 1`] = `
+<div
+  className="tr__form-input-checkbox-group-container"
+>
+  <div
+    className="tr__form-input-checkbox-group-column no-wrap"
+  >
+    <div
+      className="tr__form-input-checkbox-container"
+      onClick={[Function]}
+    >
+      <div
+        className="label-input-container"
+      >
+        <input
+          checked={false}
+          className="_input-checkbox"
+          disabled={false}
+          id="SelectWidgetId_test1"
+          name="SelectWidgetId"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="checkbox"
+          value="test1"
+        />
+        <label
+          htmlFor="SelectWidgetId_test1"
+          onClick={[Function]}
+        >
+          <span>
+            something:test1
+          </span>
+        </label>
+      </div>
+    </div>
+    <div
+      className="tr__form-input-checkbox-container checked"
+      onClick={[Function]}
+    >
+      <div
+        className="label-input-container"
+      >
+        <input
+          checked={true}
+          className="_input-checkbox"
+          disabled={false}
+          id="SelectWidgetId_test2"
+          name="SelectWidgetId"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="checkbox"
+          value="test2"
+        />
+        <label
+          htmlFor="SelectWidgetId_test2"
+          onClick={[Function]}
+        >
+          <span>
+            label for test2
+          </span>
+        </label>
+      </div>
+    </div>
+    <div
+      className="tr__form-input-checkbox-container"
+      onClick={[Function]}
+    >
+      <div
+        className="label-input-container"
+      >
+        <input
+          checked={false}
+          className="_input-checkbox"
+          disabled={false}
+          id="SelectWidgetId_test3"
+          name="SelectWidgetId"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="checkbox"
+          value="test3"
+        />
+        <label
+          htmlFor="SelectWidgetId_test3"
+          onClick={[Function]}
+        >
+          <span>
+            label for test3
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Checkboxes Default props 1`] = `
+<div
+  className="tr__form-input-checkbox-group-container"
+>
+  <div
+    className="tr__form-input-checkbox-group-column no-wrap"
+  />
+</div>
+`;
+
+exports[`Checkboxes Disabled 1`] = `
+<div
+  className="tr__form-input-checkbox-group-container"
+>
+  <div
+    className="tr__form-input-checkbox-group-column no-wrap"
+  >
+    <div
+      className="tr__form-input-checkbox-container"
+      onClick={[Function]}
+    >
+      <div
+        className="label-input-container"
+      >
+        <input
+          checked={false}
+          className="_input-checkbox"
+          disabled={true}
+          id="SelectWidgetId_test1"
+          name="SelectWidgetId"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="checkbox"
+          value="test1"
+        />
+        <label
+          htmlFor="SelectWidgetId_test1"
+          onClick={[Function]}
+        >
+          <span>
+            main:test1
+          </span>
+        </label>
+      </div>
+    </div>
+    <div
+      className="tr__form-input-checkbox-container checked"
+      onClick={[Function]}
+    >
+      <div
+        className="label-input-container"
+      >
+        <input
+          checked={true}
+          className="_input-checkbox"
+          disabled={true}
+          id="SelectWidgetId_test2"
+          name="SelectWidgetId"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="checkbox"
+          value="test2"
+        />
+        <label
+          htmlFor="SelectWidgetId_test2"
+          onClick={[Function]}
+        >
+          <span>
+            label for test2
+          </span>
+        </label>
+      </div>
+    </div>
+    <div
+      className="tr__form-input-checkbox-container"
+      onClick={[Function]}
+    >
+      <div
+        className="label-input-container"
+      >
+        <input
+          checked={false}
+          className="_input-checkbox"
+          disabled={true}
+          id="SelectWidgetId_test3"
+          name="SelectWidgetId"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="checkbox"
+          value="test3"
+        />
+        <label
+          htmlFor="SelectWidgetId_test3"
+          onClick={[Function]}
+        >
+          <span>
+            label for test3
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Checkboxes With columns 1`] = `
+<div
+  className="tr__form-input-checkbox-group-container"
+>
+  <div
+    className="tr__form-input-checkbox-group-column"
+  >
+    <div
+      className="tr__form-input-checkbox-container"
+      onClick={[Function]}
+    >
+      <div
+        className="label-input-container"
+      >
+        <input
+          checked={false}
+          className="_input-checkbox"
+          disabled={false}
+          id="SelectWidgetId_test1"
+          name="SelectWidgetId"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="checkbox"
+          value="test1"
+        />
+        <label
+          htmlFor="SelectWidgetId_test1"
+          onClick={[Function]}
+        >
+          <span>
+            main:test1
+          </span>
+        </label>
+      </div>
+    </div>
+    <div
+      className="tr__form-input-checkbox-container"
+      onClick={[Function]}
+    >
+      <div
+        className="label-input-container"
+      >
+        <input
+          checked={false}
+          className="_input-checkbox"
+          disabled={false}
+          id="SelectWidgetId_test2"
+          name="SelectWidgetId"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="checkbox"
+          value="test2"
+        />
+        <label
+          htmlFor="SelectWidgetId_test2"
+          onClick={[Function]}
+        >
+          <span>
+            label for test2
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+  <div
+    className="tr__form-input-checkbox-group-column"
+  >
+    <div
+      className="tr__form-input-checkbox-container"
+      onClick={[Function]}
+    >
+      <div
+        className="label-input-container"
+      >
+        <input
+          checked={false}
+          className="_input-checkbox"
+          disabled={false}
+          id="SelectWidgetId_test3"
+          name="SelectWidgetId"
+          onChange={[Function]}
+          onClick={[Function]}
+          type="checkbox"
+          value="test3"
+        />
+        <label
+          htmlFor="SelectWidgetId_test3"
+          onClick={[Function]}
+        >
+          <span>
+            label for test3
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Checkboxes allow select all 1`] = `
+<div
+  className="apptr__form-input-container"
+>
+  <div
+    className="tr__form-input-checkbox-group-column"
+  >
+    <div
+      className="label-input-container"
+    >
+      <input
+        className="_input-checkbox"
+        id="SelectWidgetId_selectAll"
+        name="SelectWidgetId"
+        onClick={[Function]}
+        type="button"
+        value="main:SelectAll"
+      />
+    </div>
+  </div>
+  <div
+    className="tr__form-input-checkbox-group-container"
+  >
+    <div
+      className="tr__form-input-checkbox-group-column"
+    >
+      <div
+        className="tr__form-input-checkbox-container"
+        onClick={[Function]}
+      >
+        <div
+          className="label-input-container"
+        >
+          <input
+            checked={false}
+            className="_input-checkbox"
+            disabled={false}
+            id="SelectWidgetId_test1"
+            name="SelectWidgetId"
+            onChange={[Function]}
+            onClick={[Function]}
+            type="checkbox"
+            value="test1"
+          />
+          <label
+            htmlFor="SelectWidgetId_test1"
+            onClick={[Function]}
+          >
+            <span>
+              main:test1
+            </span>
+          </label>
+        </div>
+      </div>
+      <div
+        className="tr__form-input-checkbox-container"
+        onClick={[Function]}
+      >
+        <div
+          className="label-input-container"
+        >
+          <input
+            checked={false}
+            className="_input-checkbox"
+            disabled={false}
+            id="SelectWidgetId_test2"
+            name="SelectWidgetId"
+            onChange={[Function]}
+            onClick={[Function]}
+            type="checkbox"
+            value="test2"
+          />
+          <label
+            htmlFor="SelectWidgetId_test2"
+            onClick={[Function]}
+          >
+            <span>
+              label for test2
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div
+      className="tr__form-input-checkbox-group-column"
+    >
+      <div
+        className="tr__form-input-checkbox-container"
+        onClick={[Function]}
+      >
+        <div
+          className="label-input-container"
+        >
+          <input
+            checked={false}
+            className="_input-checkbox"
+            disabled={false}
+            id="SelectWidgetId_test3"
+            name="SelectWidgetId"
+            onChange={[Function]}
+            onClick={[Function]}
+            type="checkbox"
+            value="test3"
+          />
+          <label
+            htmlFor="SelectWidgetId_test3"
+            onClick={[Function]}
+          >
+            <span>
+              label for test3
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

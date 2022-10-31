@@ -1,0 +1,65 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`All props 1`] = `
+<input
+  autoComplete="none"
+  className="apptr__form-input-string apptr__input apptr__input-string"
+  id="StringWidgetId"
+  maxLength={100}
+  name="StringWidgetId"
+  onChange={[Function]}
+  pattern="[0-9]{1,2}"
+  type="number"
+  value="test"
+/>
+`;
+
+exports[`Autocomplete choices 1`] = `
+Array [
+  <input
+    id="StringWidgetId"
+    list="datalist_for_StringWidgetId"
+    maxLength={255}
+    name="StringWidgetId"
+    onChange={[Function]}
+    value=""
+  />,
+  <datalist
+    id="datalist_for_StringWidgetId"
+  >
+    <option>
+      test
+    </option>
+    <option>
+      test1
+    </option>
+  </datalist>,
+]
+`;
+
+exports[`Default props 1`] = `
+<input
+  autoComplete="none"
+  className="apptr__form-input-string apptr__input apptr__input-string"
+  id="StringWidgetId"
+  maxLength={255}
+  name="StringWidgetId"
+  onChange={[Function]}
+  type="text"
+  value=""
+/>
+`;
+
+exports[`Disabled 1`] = `
+<input
+  autoComplete="none"
+  className="apptr__form-input-string apptr__input apptr__input-string"
+  disabled={true}
+  id="StringWidgetId"
+  maxLength={255}
+  name="StringWidgetId"
+  onChange={[Function]}
+  type="text"
+  value=""
+/>
+`;

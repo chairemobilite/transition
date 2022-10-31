@@ -1,0 +1,58 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`All props 1`] = `
+<textarea
+  autoComplete="none"
+  className="tr__form-input-textarea apptr__input _input-textarea"
+  disabled={false}
+  id="textAreaWidgetId"
+  maxLength={100}
+  name="textAreaWidgetId"
+  onChange={[MockFunction]}
+  placeholder="placeholder"
+  rows={10}
+  value="test"
+/>
+`;
+
+exports[`Default props 1`] = `
+<textarea
+  autoComplete="none"
+  className="tr__form-input-textarea apptr__input _input-textarea"
+  disabled={false}
+  id="textAreaWidgetId"
+  maxLength={2000}
+  name="textAreaWidgetId"
+  rows={5}
+  value=""
+/>
+`;
+
+exports[`Disabled 1`] = `
+<textarea
+  autoComplete="none"
+  className="tr__form-input-textarea apptr__input _input-textarea"
+  disabled={true}
+  id="textAreaWidgetId"
+  maxLength={2000}
+  name="textAreaWidgetId"
+  onChange={[MockFunction]}
+  rows={5}
+  value=""
+/>
+`;
+
+exports[`Placeholder 1`] = `
+<textarea
+  autoComplete="none"
+  className="tr__form-input-textarea apptr__input _input-textarea"
+  disabled={false}
+  id="textAreaWidgetId"
+  maxLength={100}
+  name="textAreaWidgetId"
+  onChange={[MockFunction]}
+  placeholder="placeholder"
+  rows={10}
+  value=""
+/>
+`;

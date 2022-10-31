@@ -1,0 +1,20 @@
+{
+    "type":"FeatureCollection",
+    "features":[
+        {
+            "type":"Feature",
+            "id":"way/3",
+            "geometry":{"type":"Point","coordinates":[-73.61381775000001,45.5352345]},
+            "properties":{
+                "entrance_type":"centroid",
+                "osm_poi_id":"way/3",
+                "category":"social",
+                "category_detailed":"social",
+                "shape":"Polygon",
+                "name":"residential-zone-with-building-count-matches",
+                "amenity":"retirement_home",
+                "building:flats":3
+            }
+        }
+    ]
+}

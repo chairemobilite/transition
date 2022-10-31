@@ -1,0 +1,77 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Basic wrapper 1`] = `
+<div
+  className="apptr__form-input-container _two-columns"
+>
+  <label>
+    Test
+  </label>
+  <input
+    id="test"
+  />
+</div>
+`;
+
+exports[`Wrapper in one column 1`] = `
+<div
+  className="apptr__form-input-container"
+>
+  <label>
+    Test
+  </label>
+  <input
+    id="test"
+  />
+</div>
+`;
+
+exports[`Wrapper in one column and small 1`] = `
+<div
+  className="apptr__form-input-container _small-inputs"
+>
+  <label>
+    Test
+  </label>
+  <input
+    id="test"
+  />
+</div>
+`;
+
+exports[`Wrapper with help 1`] = `
+<div
+  className="apptr__form-input-container _two-columns"
+>
+  <label>
+    Test
+  </label>
+  <input
+    id="test"
+  />
+  <div
+    className="_flex-break"
+  />
+  <p
+    className="_em _pale _small _help"
+  >
+    My help text
+  </p>
+</div>
+`;
+
+exports[`Wrapper with small box and multiple children 1`] = `
+<div
+  className="apptr__form-input-container _two-columns _small-inputs"
+>
+  <label>
+    Test
+  </label>
+  <input
+    id="test"
+  />
+  <input
+    id="test2"
+  />
+</div>
+`;

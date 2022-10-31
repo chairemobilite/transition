@@ -1,0 +1,75 @@
+.tr__left-menu-container {
+  width: 100%;
+  //border: 1px solid red;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  //display: relative;
+  .tr__left-menu-element {
+    width: 100%;
+    //border: 1px solid blue;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    //display: absolute;
+    z-index: 20;
+    button {
+      color: $text-active-color;
+      font-weight: 700;
+      font-size: $font-size-medium;
+      border: none;
+      background: none;
+      display: flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      text-decoration: none;
+      align-items: center;
+      overflow: hidden;
+      max-width: 4rem;
+      width: 4rem;
+      //min-width: 4rem;
+      //top: 0;
+      height: 4rem;
+      //left: 0;
+      padding: 0;
+      margin: 0;
+      text-align: left;
+
+      .tr__left-menu-button-name {
+        margin-left: 1rem;
+        margin-right: 1rem;
+        display: flex;
+        height: 4rem;
+        align-items: center;
+      }
+
+      .tr__left-menu-button-icon {
+        display: flex;
+        height: 4rem;
+        padding: 0.4rem;
+        width: 4rem;
+      }
+
+      ._icon {
+        height: 100%;
+        //width: 100%;
+        //border: 1px solid red;
+      }
+
+      &:hover {
+        background: $overlay-dark;
+        max-width: inherit;
+        width: inherit;
+      }
+      &.active {
+        background: $overlay-active;
+      }
+      &:focus {
+        border: none;
+        background: $overlay-active;
+        outline: none;
+      }
+    }
+
+  }
+}

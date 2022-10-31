@@ -1,0 +1,99 @@
+import _get from 'lodash.get';
+import _set from 'lodash.set';
+import _cloneDeep from 'lodash.clonedeep';
+import { unparse } from 'papaparse';
+
+import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { objectsToCache } from '../../../../queries/transition/transitLines.cache.queries';
+
+type GtfsData = {
+    agency: {[key: string]: any}[],
+    routes: {[key: string]: any}[],
+    calendar: {[key: string]: any}[],
+    shapes: {[key: string]: any}[],
+    //trips: {[key: string]: any}[],
+    //stop_times: {[key: string]: any}[],
+    stops: {[key: string]: any}[]
+};
+
+export default class GtfsExporterPreparer {
+
+    _selectedAgencies: string[];
+    _filename: string;
+    _isPrepared: false;
+
+    constructor(selectedAgencies: string[], filename: string) {
+        this._isPrepared = false;
+        this._selectedAgencies = selectedAgencies;
+        this._filename = filename;
+    }
+
+    async prepare() {
+        // TODO: implement this method
+        let nodeIdsUsed: string[] = []; // all the node ids used in all schedules for the selected agencies
+        let serviceIdsUsed: string[] = []; // all the service ids used in all schedules for the selected agencies
+        let pathIdsUsed: string[] = [];
+
+        const agencyCollection = serviceLocator.collectionManager.get('agencies');
+        const lineCollection = serviceLocator.collectionManager.get('lines');
+        const pathCollection = serviceLocator.collectionManager.get('paths');
+        const serviceCollection = serviceLocator.collectionManager.get('service');
+        const nodeCollection = serviceLocator.collectionManager.get('nodes');
+
+        const gtfsData: GtfsData = {
+            agency: [],
+            routes: [],
+            calendar: [],
+            shapes: [],
+            //trips: [],
+            //stop_times: [],
+            stops: []
+        }
+
+        // stop_times and trips are written to csv file sequentially to reduce memory footprint
+
+
+        const selectedAgencyIds = this._selectedAgencies;
+
+        for (let agencyI = 0, countAgencies = selectedAgencyIds.length; agencyI < countAgencies; agencyI++) {
+            const agency = agencyCollection.getById(selectedAgencyIds[agencyI]);
+            gtfsData.agency.push(agency.toGtfs(true));
+
+            const lines = agency.getLines();
+            for (let lineI = 0, countLines = lines.length; lineI < countLines; lineI++) {
+                const line = lines[lineI];
+                gtfsData.routes.push(line.toGtfs(true));
+
+
+
+                await line.refreshSchedules(serviceLocator.socketEventManager);
+                const schedules = line.getSchedules();
+
+                for (const serviceId in schedules) {
+                    serviceIdsUsed.push(serviceId);
+                    const schedule = schedules[serviceId];
+                    const scheduleGtfsData = schedule.toGtfs(line.id);
+                    nodeIdsUsed.push(...scheduleGtfsData.nodeIds);
+                    pathIdsUsed.push(...scheduleGtfsData.pathIds);
+                    gtfsData.trips.push(...scheduleGtfsData.trips);
+                    gtfsData.stop_times.push(...scheduleGtfsData.stopTimes);
+                }
+
+
+            }
+
+            
+        }
+
+        this.set('isPrepared', true);
+        return;
+    }
+
+    public isPrepared() {
+        return this.get('isPrepared', false);
+    }
+
+}

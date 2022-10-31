@@ -1,0 +1,377 @@
+This file contains code from the original NodeCollection class that are not used in Transition for reasons mentioned above each method, but that might need to be brought back at some point.
+The functions are kept here to not be forgotten in the history rewrite to come when open sourcing the code
+
+   // TODO: This is not used, as valhalla does not work, but keeping it here so we can bring it back, but NOT IN THIS FILE!
+    updateNodesAccessibilityMap = async (socket, eventManager, mode = 'walking', durationsMinutes = [5,10,15,20]): Promise<void> => {
+  
+      durationsMinutes = [5];
+      if (eventManager)
+      {
+        eventManager.emit('progress', { name: "UpdateNodesAccessibilityMap", progress: 0.0 });
+      }
+  
+      return new Promise((resolve, reject) => {
+  
+        let   countNodes                         = 5000; //this.features.length;
+        let   i                                  = 0;
+        const polygonsByDurationIndex            = [];
+        const geojsonsByDurationIndex            = [];
+        const colorsByDurationIndex              = [];
+        durationsMinutes.forEach(function(durationMinute) {
+          geojsonsByDurationIndex.push([]);
+          /*polygonsByDurationIndex.push({
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "MultiPolygon",
+              coordinates: []
+            }
+          });*/
+        });
+  
+        const promiseProducer = async () => {
+          if (i < countNodes)
+          {
+            const nodeGeojson = this.features[i];
+            const node        = new Node(nodeGeojson.properties, false);
+            const nodeIndex   = i;
+            i++;
+            const response = await node.getIsochroneGeojson(socket, mode, durationsMinutes);
+                if (response && response.geojson && response.geojson.features && response.geojson.features.length === durationsMinutes.length)
+                {
+                  response.geojson.features.forEach(function(geojsonForDuration, durationIndex) {
+                    if (geojsonForDuration.geometry && GJV.valid(geojsonForDuration))
+                    {
+                      if (!colorsByDurationIndex[durationIndex]) // set default color
+                      {
+                        //polygonsByDurationIndex[durationIndex].properties.color = geojsonForDuration.properties.color;
+                        colorsByDurationIndex[durationIndex] = geojsonForDuration.properties.color;
+                      }
+                      let rewindedGeojson = null;
+                      try {
+                        rewindedGeojson = rewind(geojsonForDuration, false);
+                        geojsonsByDurationIndex[durationIndex].push(rewindedGeojson);
+                      }
+                      catch(error) {
+                        console.error(error);
+                        console.log(node.get('id'), JSON.stringify(geojsonForDuration));
+                      }
+                      // verify if there are hole(s):
+                      /*if (!geojsonForDuration.geometry.coordinates || geojsonForDuration.geometry.coordinates.length === 0)
+                      {
+                        console.log(node.get('id'), geojsonForDuration.geometry);
+                      }*/
+                      //if (geojsonForDuration.geometry.coordinates[0] && geojsonForDuration.geometry.coordinates[0][0] && Array.isArray(geojsonForDuration.geometry.coordinates[0][0][0]))
+                      //{
+                        //console.log(geojsonForDuration.geometry.coordinates);
+                      //geojsonForDuration.geometry.coordinates = [geojsonForDuration.geometry.coordinates];
+                      //}
+                      //console.log(`generated ${mode} accessibility map for node ${nodeIndex + 1}/${countNodes} durationIndex ${durationIndex} (${geojsonForDuration.geometry.type})`);
+  
+                      //polygonsByDurationIndex[durationIndex].geometry.coordinates.push(geojsonForDuration.geometry.coordinates);
+                    }
+                    else
+                    {
+                      console.log(`could not generate ${mode} accessibility map with duration ${durationsMinutes[durationIndex]} minutes for node ${nodeIndex + 1}/${countNodes} (id: ${node.get('id')})`);
+                    }
+                  });
+                  console.log(`generated ${mode} accessibility map for node ${nodeIndex + 1}/${countNodes}`);
+                }
+                else
+                {
+                  console.log(`could not generate ${mode} accessibility map for node ${nodeIndex + 1}/${countNodes} (id: ${node.get('id')})`);
+                }
+                if (eventManager)
+                {
+                  eventManager.emit('progress', { name: "UpdateNodesAccessibilityMap", progress: ((nodeIndex + 1) / countNodes) });
+                }
+
+          } else
+          {
+            return null;
+          }
+        };
+  
+        const promisePool = new PromisePool(promiseProducer, 10);
+        
+        promisePool.start().then(function() {
+          
+          geojsonsByDurationIndex.forEach(function(geojsonsForDuration, durationIndex) {
+            const polygonsCollection               = turfFeatureCollection(geojsonsForDuration);
+            //const multiPolygon                     = turfCombine(polygonsCollection);
+            //multiPolygon.properties.color          = colorsByDurationIndex[durationIndex];
+            polygonsByDurationIndex[durationIndex] = polygonsCollection;
+          });
+  
+          const geojson = polygonsByDurationIndex[0];
+          console.log('complete');
+          //console.log(geojson);
+          const saveParams = {
+            fileName: `nodesAccessibilityMap_${mode}.json`,
+            data    : geojson
+          };
+          if(socket)
+          {
+            socket.emit('cache.saveDataToJsonFile', saveParams, function(cachePath) {
+              if (cachePath)
+              {
+                if (eventManager)
+                {
+                  eventManager.emit('progress', { name: "UpdateNodesAccessibilityMap", progress: 1.0 });
+                }
+                resolve({ geojson });
+              }
+              else
+              {
+                console.log('could not save cache data to json file');
+                resolve({
+                  error: 'could not save cache data to json file'
+                });
+              }
+            });
+          }
+          else
+          {
+            if (saveParams.data && saveParams.fileName)
+            {
+              saveParams.data = JSON.stringify(saveParams.data);
+              const saveToFile = require('../../../queries/transition/default.cache.queries').saveToFile;
+              saveToFile(saveParams).then(function(response) {
+                console.log('cache.saveDataToJson: successfully saved cache data');
+                resolve({ geojson });
+              });
+            }
+            else
+            {
+              console.log('could not save cache data to json file');
+              resolve({
+                error: 'could not save cache data to json file'
+              });
+            }
+          }
+          
+        }, function (error) {
+          console.log('Some promise rejected: ' + error.message, error);
+        });
+      
+      }.bind(this));
+    }
+    
+    // TODO Not called anywhere, but looks like there was some heavy work done here.
+    updateUnionNodesAccessibilityMap(socket, eventManager, mode = 'walking', durationsMinutes = [5,10,15,20]) {
+  
+      durationsMinutes = [5,10];
+      if (eventManager)
+      {
+        eventManager.emit('progress', { name: "UpdateNodesAccessibilityMap", progress: 0.0 });
+      }
+  
+      return new Promise(function(resolve, reject) {
+  
+        let   countNodes                         = this.features.length;
+        let   i                                  = 0;
+        const polygonsByDurationIndex            = [];
+        const polygonsCoordinatesByDurationIndex = [];
+        const batchCompleteByDurationIndex       = [];
+        const colorsByDurationIndex              = [];
+        let   polyTreePolygonByDurationIndex     = [];
+        const clippersByDurationIndex            = [];
+        durationsMinutes.forEach(function(durationMinute) {
+          polygonsByDurationIndex.push({
+            type: "Feature",
+            properties: {},
+            geometry: {
+              type: "MultiPolygon",
+              coordinates: []
+            }
+          });
+          polygonsCoordinatesByDurationIndex.push(null);
+          batchCompleteByDurationIndex.push(false);
+          clippersByDurationIndex.push(new ClipperLib.Clipper());
+        });
+  
+        const clipperScale = 1000000; // JsClipper uses integer for coordinates, so we need to scale.
+  
+        const promiseProducer = function() {
+          if (i < countNodes)
+          {
+            const nodeGeojson = this.features[i];
+            const node        = new Node(nodeGeojson.properties, false, null);
+            const nodeIndex   = i;
+            i++;
+            return new Promise(function(resolve, reject) {
+              node.getIsochroneGeojson(socket, mode, durationsMinutes).then(function(response) {
+                if (response && response.geojson && response.geojson.features && response.geojson.features.length === durationsMinutes.length)
+                {
+                  response.geojson.features.forEach(function(geojsonForDuration, durationIndex) {
+                    if (geojsonForDuration.geometry)
+                    {
+                      const clipper = clippersByDurationIndex[durationIndex];
+                      if (!colorsByDurationIndex[durationIndex]) // set default color
+                      {
+                        colorsByDurationIndex[durationIndex] = geojsonForDuration.properties.color;
+                      }
+                      let nodePolygonXYCoordinates = geojsonCoordinatesToXY(geojsonForDuration.geometry.coordinates, clipperScale);
+                      if (nodeIndex === 0)
+                      {
+                        clipper.AddPaths(nodePolygonXYCoordinates, ClipperLib.PolyType.ptSubject, true);
+                      }
+                      else
+                      {
+                        clipper.AddPaths(nodePolygonXYCoordinates, ClipperLib.PolyType.ptClip, true);
+                      }
+                      //batchCompleteByDurationIndex[durationIndex] = false;
+                      /*if (i % 100 === 0)
+                      {
+                        let path1 = polygonsCoordinatesByDurationIndex[durationIndex] ? polygonsCoordinatesByDurationIndex[durationIndex] : nodePolygonXYCoordinates;
+                        clipper.AddPaths(path1, ClipperLib.PolyType.ptSubject, true);  // true means closed path
+                        let solutionPolyTree   = new ClipperLib.PolyTree();
+                        const succeeded        = clipper.Execute(ClipperLib.ClipType.ctUnion, solutionPolyTree, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
+                        const solutionPaths    = ClipperLib.Clipper.PolyTreeToPaths(solutionPolyTree);
+                        polyTreePolygonByDurationIndex[durationIndex]     = solutionPolyTree;
+                        polygonsCoordinatesByDurationIndex[durationIndex] = solutionPaths;
+                        batchCompleteByDurationIndex[durationIndex] = true;
+                        clipper.Clear();
+                        
+                      }*/
+  
+                    }
+                    else
+                    {
+                      console.log(`could not generate ${mode} accessibility map with duration ${durationsMinutes[durationIndex]} minutes for node ${nodeIndex + 1}/${countNodes} (id: ${node.get('id')})`);
+                    }
+                  }.bind(this));
+                  console.log(`generated ${mode} accessibility map for node ${nodeIndex + 1}/${countNodes}`);
+                }
+                else
+                {
+                  console.log(`could not generate ${mode} accessibility map for node ${nodeIndex + 1}/${countNodes} (id: ${node.get('id')})`);
+                }
+                if (eventManager)
+                {
+                  eventManager.emit('progress', { name: "UpdateNodesAccessibilityMap", progress: ((nodeIndex + 1) / countNodes) });
+                }
+                resolve();
+              }.bind(this));
+            }.bind(this));
+          }
+          else
+          {
+            return null;
+          }
+        }.bind(this);
+  
+        const promisePool = new PromisePool(promiseProducer, 20);
+        
+        promisePool.start().then(function() {
+        
+          durationsMinutes.forEach(function(durationMinutes, durationIndex) {
+            console.log('index', durationIndex);
+            const clipper = clippersByDurationIndex[durationIndex];
+            //if (batchCompleteByDurationIndex[durationIndex] === false)
+            //{
+              //console.log('remainder for index ' + durationIndex, polygonCoordinates.length);
+              //let path1 = polygonCoordinates;
+              //clipper.AddPaths(path1, ClipperLib.PolyType.ptSubject, true);  // true means closed path
+              let solutionPolyTree   = new ClipperLib.PolyTree();
+              const succeeded        = clipper.Execute(ClipperLib.ClipType.ctUnion, solutionPolyTree, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
+              //const solutionPaths    = ClipperLib.Clipper.PolyTreeToPaths(solutionPolyTree);
+              polyTreePolygonByDurationIndex[durationIndex]     = solutionPolyTree;
+              clipper.Clear();
+            //}
+  
+            const multiPolygonCoordinates = [];
+  
+            if (polyTreePolygonByDurationIndex[durationIndex] && polyTreePolygonByDurationIndex[durationIndex].ChildCount() > 0)
+            {
+              const exPolygons = ClipperLib.JS.PolyTreeToExPolygons(polyTreePolygonByDurationIndex[durationIndex]);
+              exPolygons.forEach(function(childPolygon, childIndex) {
+                multiPolygonCoordinates[childIndex] = [childPolygon.outer];
+                childPolygon.holes.forEach(function(hole) {
+                  multiPolygonCoordinates[childIndex].push(hole);
+                });
+              });
+                /*if (!childPolygon.IsHole())
+                {
+                  multiPolygonCoordinates[childIndex][0] = childPolygon.Contour();
+                }
+                else
+                {
+                  console.log('hole', childIndex, childPolygon.Contour());
+                  if (multiPolygonCoordinates[childIndex].length >= 1) // already added ring
+                  {
+                    multiPolygonCoordinates[childIndex].push(childPolygon.Contour()); // add hole
+                  }
+                  else
+                  {
+                    multiPolygonCoordinates[childIndex][1] = childPolygon.Contour(); //  insert hole and wait for ring
+                  }
+                }
+              });*/
+              //console.log('multiPolygonCoordinates', durationIndex, JSON.stringify(multiPolygonCoordinates));
+            }
+            console.log(durationIndex, 'calculated');
+            /*if (!Array.isArray(polygonCoordinates[0][0]))
+            {
+              polygonCoordinates = [polygonCoordinates];
+            }*/
+            polygonsByDurationIndex[durationIndex].geometry.coordinates = xYCoordinatesToGeojson(multiPolygonCoordinates, clipperScale);
+            polygonsByDurationIndex[durationIndex].properties = {
+              id   : durationIndex + 1,
+              color: colorsByDurationIndex[durationIndex]
+            };
+          });
+  
+          const geojson = turfFeatureCollection(polygonsByDurationIndex);
+          console.log('complete');
+          console.log(geojson);
+          const saveParams = {
+            fileName: `nodesAccessibilityMap_${mode}.json`,
+            data    : geojson
+          };
+          if(socket)
+          {
+            socket.emit('cache.saveDataToJsonFile', saveParams, function(cachePath) {
+              if (cachePath)
+              {
+                if (eventManager)
+                {
+                  eventManager.emit('progress', { name: "UpdateNodesAccessibilityMap", progress: 1.0 });
+                }
+                resolve({ geojson });
+              }
+              else
+              {
+                console.log('could not save cache data to json file');
+                resolve({
+                  error: 'could not save cache data to json file'
+                });
+              }
+            });
+          }
+          else
+          {
+            if (saveParams.data && saveParams.fileName)
+            {
+              saveParams.data = JSON.stringify(saveParams.data);
+              const saveToFile = require('../../../queries/transition/default.cache.queries').saveToFile;
+              saveToFile(saveParams).then(function(response) {
+                console.log('cache.saveDataToJson: successfully saved cache data');
+                resolve({ geojson });
+              });
+            }
+            else
+            {
+              console.log('could not save cache data to json file');
+              resolve({
+                error: 'could not save cache data to json file'
+              });
+            }
+          }
+          
+        }, function (error) {
+          console.log('Some promise rejected: ' + error.message, error);
+        });
+      
+      }.bind(this));
+    }

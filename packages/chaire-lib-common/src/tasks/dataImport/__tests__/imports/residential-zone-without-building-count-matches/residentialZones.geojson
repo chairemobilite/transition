@@ -1,0 +1,57 @@
+{
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "properties": {
+            "name": "residential-zone-without-building-count-matches",
+            "landuse": "residential",
+            "flats": 8,
+            "id": "way/1",
+            "flats_from_osm": 0
+        },
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [-73.613688, 45.535667],
+                    [-73.614149, 45.535198],
+                    [-73.613725, 45.535021],
+                    [-73.613269, 45.53548],
+                    [-73.613688, 45.535667]
+                ]
+            ]
+        },
+        "id": "way/1"
+    },
+    {
+        "type": "Feature",
+        "properties": {
+            "type": "multipolygon",
+            "name": "residential-zone-with-building-count-matches",
+            "landuse": "residential",
+            "flats": 30,
+            "id": "relation/1",
+            "flats_from_osm": 0
+        },
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [ -73.61324, 45.53546 ],
+                    [ -73.61369, 45.535 ],
+                    [ -73.61325, 45.53482 ],
+                    [ -73.61282, 45.53528 ],
+                    [ -73.61324, 45.53546 ]
+                ],
+                [
+                    [ -73.61321, 45.53532 ],
+                    [ -73.61308, 45.53529 ],
+                    [ -73.61329, 45.53501 ],
+                    [ -73.61345, 45.53506 ],
+                    [ -73.61321, 45.53532 ]
+                ]
+            ]
+        },
+        "id": "way/1"
+    }]
+}

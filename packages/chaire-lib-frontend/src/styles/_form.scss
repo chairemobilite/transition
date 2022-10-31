@@ -1,0 +1,375 @@
+label, .apptr__form__label-standalone {
+  padding: $xxxxs-size $xs-size;
+  font-size: $font-size-small;
+  font-weight: 500;
+  //width: 100%;
+  color: $label;
+
+  &._flex {
+    display: flex;
+  }
+
+}
+
+input, ._input {
+  background: $input-background;
+  font-size: $font-size-small;
+  border: 1px solid $border-white;
+  color: $input;
+  font-weight: 700;
+  padding: $xxxxs-size $xs-size;
+  width: 100%;
+  border-radius: 1.2rem;
+
+  &._blank {
+    background: none;
+    border: none;
+  }
+
+}
+
+input:disabled, textarea:disabled {
+  font-style: oblique;
+  color: $input-disabled;
+  border-style: dashed;
+}
+
+select:disabled {
+  font-style: oblique;
+  color: $input-disabled;
+  opacity: 0.5;
+}
+
+input:focus, textarea:focus {
+  border-radius: 1.2rem;
+  outline: none;
+  border-color: $blue;
+  box-shadow: 0 0 0.5rem $blue;
+}
+
+textarea, ._input-textarea {
+  width: 100%;
+  font-weight: 700;
+  color: $input;
+  padding: $xs-size $xs-size;
+  font-size: $font-size-small;
+  resize: vertical;
+  border-radius: 1.2rem;
+  min-height: 2rem;
+
+  &._black {
+    background: $input-background;
+    border: 1px solid $border-white;
+  }
+}
+
+select {
+  font-size: $sm-size;
+  background: $input-background;
+  color: $input;
+  font-weight: 700;
+  text-overflow: ellipsis;
+}
+
+._input-multiselect {
+  font-size: $sm-size;
+  background: $input-background;
+  color: $input;
+  font-weight: 700;
+  /*.react-select__control {
+    min-height: 2rem !important;
+    background-color: $input-background;
+  }*/
+  /*.react-select__multi-value {
+    background: rgba(0,0,0,1.0);
+    color: $input !important;
+  }*/
+  /*.react-select__menu {
+    background-color: $input-background;
+  }*/
+}
+
+.react-select__single-value, .react-select__input {
+    color: $input !important;
+}
+
+
+.apptr__form-auth {
+  max-width: 40rem;
+  min-width: $min-width;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.apptr__form-container {
+    padding: 1rem 1rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.tr__form__input-string {
+  font-size: $font-size-medium;
+  background-color: rgba(0,0,0,1.0);
+  color: rgba(255,255,255,0.6);
+  font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: $xxxs-size;
+  width: 100%;
+}
+
+.apptr__footer-link-container {
+  text-align: center;
+}
+
+.tr__form__parent-errors-container {
+  color: $error;
+  font-style: oblique;
+}
+
+.tr__form-section {
+  padding:   $xs-size;
+  font-size: $font-size-medium;
+  
+  &._flex-column {
+    width: 10rem;
+  }
+}
+
+._two-columns {
+  flex-direction: row;
+  justify-content: center;
+  align-items: stretch;
+  flex-wrap: wrap;
+
+  ._flex-break {
+    height: 0;
+    flex-basis: 100%;
+  }
+
+  ._help {
+    padding-top: 0;
+    margin-top: 0;
+    padding-bottom: 0.3rem;
+    margin-bottom: 2.5rem;
+    width: 100%;
+    justify-content: flex-start;
+    text-align: right;
+  }
+
+}
+
+.apptr__form-input-container {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  margin-bottom: $xxs-size;
+  flex-wrap: wrap;
+
+  &._two-columns {
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    //max-width: 35rem;
+
+    input, ._input, ._input-proxy {
+      flex: 1;
+      align-self: flex-start;
+    }
+
+    label, .apptr__form__label-standalone, ._label-proxy {
+      flex: 1;
+      padding: $xxxxs-size $xs-size;
+      text-align: right;
+    }
+
+    &._small-inputs {
+      input, ._input, ._input-proxy {
+        flex: 1;
+      }
+  
+      label, .apptr__form__label-standalone, ._label-proxy {
+        flex: 2;
+      }
+    }
+
+    &._osc2ar {
+      ::placeholder {
+        font-style: italic;
+      }
+    }
+  }
+}
+
+.tr__form-input-radio-group-container, .tr__form-input-checkbox-group-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+
+  
+  &.no-wrap {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  label, .apptr__form__label-standalone {
+    width: 100% !important;
+    text-align: left !important;
+    margin: 0 0 0 0.5rem !important;
+    font-weight: 700 !important;
+    padding: 0 !important;
+  }
+
+  ._input-radio, ._input-checkbox {
+    width: inherit !important;
+    text-align: left;
+    padding: 0 0.2rem;
+    margin: 0;
+    background: rgba(0,0,0,1.0);
+  }
+
+  .tr__form-input-radio-container, .tr__form-input-checkbox-container {
+    display: flex;
+    //padding: 0;
+    align-items: center;
+    align-content: stretch;
+    justify-content: left;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 0.1rem 0.5rem;
+    margin-right: 0.3rem;
+    margin-bottom: 0.3rem;
+    border-radius: 1.5rem;
+    text-align: left;
+    line-height: 1.05;
+
+    &.checked {
+      background: rgba(255,255,255,0.15);
+      label, .apptr__form__label-standalone {
+        color: $input;
+      }
+    }
+  }
+
+}
+
+.tr__form-buttons-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: right;
+  margin: $xs-size 0;
+  padding: 0 $xs-size;
+  
+  &._left {
+    justify-content: flex-start;
+  }
+
+  &._center {
+    justify-content: center;
+  }
+
+}
+
+._input-color {
+  border: 1px solid rgba(255,255,255,0.8);
+  border-radius: 2px;
+  input {
+    background-color: rgba(0,0,0,0.1);
+  }
+}
+
+
+.apptr__form-input-container:last-child {
+  margin-bottom: 0;
+}
+
+.apptr__form-errors-container {
+  padding: $xs-size;
+  color: $red;
+  p {
+    margin-bottom: 0.2rem;
+  }
+}
+
+.apptr__form-warning-message {
+  color: $orange;
+}
+
+table._statistics {
+  font-size: $font-size-small;
+  th._header {
+    padding-top: 1rem;
+    padding-left: 0;
+    font-weight: 700;
+  }
+  th {
+    padding-left: 1rem;
+    text-align: right;
+    font-weight: 300;
+    max-width: 50%;
+    margin-right: 0.5rem;
+  }
+  td {
+    text-align: left;
+    font-weight: 300;
+    color: $text-active-color;
+  }
+}
+
+table._schedule {
+  width: 100%;
+  font-size: $font-size-small;
+  th {
+    text-align: right;
+    font-weight: 700;
+    width: 50%;
+  }
+  td {
+    text-align: right;
+    font-weight: 300;
+    color: $text-active-color;
+  }
+}
+
+.tr__form-filter-box {
+  background-color: $overlay-white;
+  border-color: $overlay-dark;
+  padding: 1rem;
+
+  ._link {
+    color: $link-default-color;
+    text-align: left !important;
+    margin: 0 0 0 0.5rem !important;
+    font-weight: 700 !important;
+    font-size: 1.6rem;
+    padding: 0 !important;
+  }
+}
+
+.tr__form-dayPicker {
+  justify-content: center;
+  margin: 5px auto;
+  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  .dayPickerOption {
+
+    input[type=checkbox] {
+      display: none;
+    }
+    input[type=checkbox]:checked ~ label {
+      background-color: #216ba5;
+      color: #fff;
+      font-weight: 500;
+    }
+    label {
+      color: rgba(137, 200, 255, 0.85);
+      cursor: pointer;
+      padding: 3px;
+    }
+  }
+}

@@ -1,0 +1,36 @@
+
+//The link which when clicked opens the collapsable area
+.Collapsible__trigger {
+
+  display: block;
+  //font-weight: 400;
+  text-decoration: none;
+  //color: $grey;
+  position: relative;
+  border: none;
+  padding: 0.3rem;
+  padding-left: 2.6rem;
+  background: $section-heading-backgroud;
+
+  &:before {
+    font-family: 'FontAwesome';
+    font-size: larger;
+    content: '\f107';
+    position: absolute;
+    left: 0.8rem;
+    top: 0.2rem;
+    display: block;
+    transition: transform 300ms;
+  }
+
+  &.is-open {
+    &:before {
+      transform: rotateZ(180deg);
+    }
+  }
+
+  &.is-disabled {
+    opacity: 0.5;
+    background-color: grey;
+  }
+}
