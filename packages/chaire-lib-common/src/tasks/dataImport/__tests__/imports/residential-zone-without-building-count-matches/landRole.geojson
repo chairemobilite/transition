@@ -1,0 +1,95 @@
+{
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "properties": {
+            "name": "residential-zone-without-building-count-matches",
+            "valeur_totale": 500000,
+            "superficie_etages": 1000,
+            "building:flats": 1
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613473, 45.535416]
+        },
+        "id": "landRole1"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "name": "residential-zone-without-building-count-matches",
+            "valeur_totale": 400000,
+            "superficie_etages": 1000,
+            "building:flats": 1
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613575, 45.535318]
+        },
+        "id": "landRole2"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "name": "residential-zone-without-building-count-matches",
+            "valeur_totale": 800000,
+            "superficie_etages": 2000,
+            "building:flats": 2
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613832, 45.535326]
+        },
+        "id": "landRole3"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "name": "residential-zone-without-building-count-matches",
+            "valeur_totale": 550000,
+            "superficie_etages": 1000,
+            "building:flats": 1
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613961, 45.535247]
+        },
+        "id": "landRole4"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "name": "residential-zone-without-building-count-matches",
+            "valeur_totale": 500000,
+            "superficie_etages": 1000,
+            "building:flats": 1
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613704, 45.535213]
+        },
+        "id": "landRole5"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "name": "residential-zone-without-building-count-matches",
+            "valeur_totale": 500000,
+            "superficie_etages": 1000,
+            "building:flats": 1
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613784, 45.535153]
+        },
+        "id": "landRole6"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "name": "residential-zone-without-building-count-matches",
+            "valeur_totale": 50000,
+            "superficie_etages": 1000,
+            "building:flats": 1
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613693, 45.535416]
+        },
+        "id": "landRole7"
+    }]
+}

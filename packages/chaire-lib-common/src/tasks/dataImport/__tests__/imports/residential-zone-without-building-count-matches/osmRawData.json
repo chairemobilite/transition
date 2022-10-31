@@ -1,0 +1,89 @@
+{
+    "version": 0.6,
+    "generator": "Overpass API 0.7.56.8 7d656e78",
+    "osm3s": {
+        "timestamp_osm_base": "2021-01-11T19:36:03Z",
+        "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": [
+        {
+            "type": "node",
+            "id": 1,
+            "lat": 45.535667,
+            "lon": -73.613688
+        },
+        {
+            "type": "node",
+            "id": 2,
+            "lat": 45.535198,
+            "lon": -73.614149
+        },
+        {
+            "type": "node",
+            "id": 3,
+            "lat": 45.535021,
+            "lon": -73.613725
+        },
+        {
+            "type": "node",
+            "id": 4,
+            "lat": 45.53548,
+            "lon": -73.613269
+        },
+        {
+            "type": "way",
+            "id": 1,
+            "nodes": [
+                1,
+                2,
+                3,
+                4,
+                1
+            ],
+            "tags": {
+                "flats": "8",
+                "landuse": "residential"
+            }
+        },
+        {
+            "type": "way",
+            "id": 4,
+            "nodes": [
+                100,
+                101,
+                102,
+                103,
+                100
+            ],
+            "tags": {
+
+            }
+        },
+        {
+            "type": "way",
+            "id": 5,
+            "nodes": [
+                110,
+                111,
+                112,
+                113,
+                110
+            ],
+            "tags": {
+
+            }
+        },
+        {
+            "type":"relation",
+            "id":1,
+            "members":[
+                { "type":"way", "ref": 4, "role":"outer"},
+                { "type":"way", "ref": 5, "role":"inner"}
+            ],
+            "tags": {
+                "flats": "30",
+                "landuse": "residential"
+            }
+        }
+    ]
+}

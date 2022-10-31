@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 100 100"
+   version="1.1"
+   id="svg3888"
+   sodipodi:docname="restart_routing_red.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <metadata
+     id="metadata3892">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>restart_routing_black</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="640"
+     inkscape:window-height="480"
+     id="namedview3890"
+     showgrid="false"
+     inkscape:zoom="2.36"
+     inkscape:cx="50"
+     inkscape:cy="50"
+     inkscape:window-x="1134"
+     inkscape:window-y="214"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg3888" />
+  <defs
+     id="defs3879">
+    <style
+       id="style3877">.cls-1{opacity:0.75;}</style>
+  </defs>
+  <title
+     id="title3881">restart_routing_black</title>
+  <g
+     id="restart_routing"
+     style="fill:#FFFB78">
+    <g
+       id="black"
+       style="fill:#FFFB78">
+      <path
+         d="M76.68,60.62H60A5.56,5.56,0,0,1,60,49.5H76.68S93.36,30.9,93.36,21.69a16.69,16.69,0,1,0-33.37,0c0,4.43,3.86,11,7.87,16.69H60a16.69,16.69,0,1,0,0,33.37H76.68a5.57,5.57,0,0,1,0,11.13H36.61A120.54,120.54,0,0,1,28.39,94H76.68a16.69,16.69,0,0,0,0-33.38Zm0-44.5a5.57,5.57,0,1,1-5.57,5.57A5.56,5.56,0,0,1,76.68,16.12Z"
+         id="path3883"
+         style="fill:#FFFB78" />
+      <path
+         id="black-2"
+         data-name="black"
+         class="cls-1"
+         d="M35.09,15.05a13.34,13.34,0,0,0-9.21-3.63A13.48,13.48,0,0,0,12.82,21.59a1,1,0,0,1-.93.73H7.29a1,1,0,0,1-1-1.13A19.89,19.89,0,0,1,39.63,10.51l2.86-2.87A1.93,1.93,0,0,1,45.78,9V19.76a1.93,1.93,0,0,1-1.93,1.92H33.1a1.93,1.93,0,0,1-1.36-3.29ZM7.92,28.1H18.68A1.92,1.92,0,0,1,20,31.38l-3.35,3.35A13.48,13.48,0,0,0,39,28.19a1,1,0,0,1,.93-.74h4.59a1,1,0,0,1,1,1.14A19.89,19.89,0,0,1,12.15,39.27L9.29,42.13A1.93,1.93,0,0,1,6,40.77V30A1.92,1.92,0,0,1,7.92,28.1Z"
+         style="fill:#FFFB78" />
+    </g>
+  </g>
+</svg>

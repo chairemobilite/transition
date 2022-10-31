@@ -1,0 +1,108 @@
+{
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "properties": {
+            "from_landrole": true,
+            "retirement_home": false,
+            "land_value": 500000,
+            "area": 1000
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613473, 45.535416]
+        },
+        "id": "landRole1"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "from_landrole": true,
+            "retirement_home": false,
+            "land_value": 400000,
+            "area": 1000
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613575, 45.535318]
+        },
+        "id": "landRole2"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "from_landrole": true,
+            "retirement_home": false,
+            "land_value": 400000,
+            "area": 1000
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613832, 45.535326]
+        },
+        "id": "landRole3"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "from_landrole": true,
+            "retirement_home": false,
+            "land_value": 400000,
+            "area": 1000
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613832, 45.535326]
+        },
+        "id": "landRole3"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "from_landrole": true,
+            "retirement_home": false,
+            "land_value": 550000,
+            "area": 1000
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613961, 45.535247]
+        },
+        "id": "landRole4"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "from_landrole": true,
+            "retirement_home": false,
+            "land_value": 500000,
+            "area": 1000
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613704, 45.535213]
+        },
+        "id": "landRole5"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "from_landrole": true,
+            "retirement_home": false,
+            "land_value": 500000,
+            "area": 1000
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613784, 45.535153]
+        },
+        "id": "landRole6"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "from_landrole": true,
+            "retirement_home": false,
+            "land_value": 50000,
+            "area": 1000
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613693, 45.535416]
+        },
+        "id": "landRole7"
+    }]
+}

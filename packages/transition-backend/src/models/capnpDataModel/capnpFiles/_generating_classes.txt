@@ -1,0 +1,11 @@
+# call from transition parent directory: those capnp files must match exactly the ones from trRouting!
+# Because of a problem with @types/yargs 12.0.9, you need to run capnpc from outside the transition directory:
+
+# Old command:
+#yarn capnpc-js src/models/transition/capnp/*.capnp && sed -i "" 's/\.capnp/\.capnp.js/g' src/models/transition/capnp/*.capnp.js
+
+# Sometimes, waiting for the command to terminate compiles those schema in .js
+# and .d.ts directly in the source directory, doing ctrl-C once the .ts files are
+# present seems to fix this. The .ts files can be moved to the parent directory
+
+capnpc -o ts src/models/capnpDataModel/capnpFiles/*.capnp

@@ -1,0 +1,5027 @@
+{
+    "version": 0.6,
+    "generator": "Overpass API 0.7.56.8 7d656e78",
+    "osm3s": {
+      "timestamp_osm_base": "2021-02-17T14:52:03Z",
+      "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": [
+  
+  {
+    "type": "node",
+    "id": 549240509,
+    "lat": 45.9093460,
+    "lon": -72.4530239,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 2,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 1148691063,
+    "lat": 45.9097232,
+    "lon": -72.4528129,
+    "timestamp": "2016-03-22T00:24:04Z",
+    "version": 2,
+    "changeset": 37989164,
+    "user": "PierZen",
+    "uid": 226516,
+    "tags": {
+      "addr:city": "Saint-Cyrille-de-Wendover",
+      "addr:housenumber": "2025",
+      "addr:street": "Route 122",
+      "source": "NRCan-CanVec-7.0"
+    }
+  },
+  {
+    "type": "node",
+    "id": 1148697815,
+    "lat": 45.9095507,
+    "lon": -72.4525220,
+    "timestamp": "2016-03-22T00:24:12Z",
+    "version": 2,
+    "changeset": 37989164,
+    "user": "PierZen",
+    "uid": 226516,
+    "tags": {
+      "addr:city": "Saint-Cyrille-de-Wendover",
+      "addr:housenumber": "2050",
+      "addr:street": "Route 122",
+      "source": "NRCan-CanVec-7.0"
+    }
+  },
+  {
+    "type": "node",
+    "id": 1148867937,
+    "lat": 45.9094830,
+    "lon": -72.4526043,
+    "timestamp": "2016-03-22T00:24:07Z",
+    "version": 2,
+    "changeset": 37989164,
+    "user": "PierZen",
+    "uid": 226516,
+    "tags": {
+      "addr:city": "Saint-Cyrille-de-Wendover",
+      "addr:housenumber": "2040",
+      "addr:street": "Route 122",
+      "source": "NRCan-CanVec-7.0"
+    }
+  },
+  {
+    "type": "node",
+    "id": 1148911209,
+    "lat": 45.9093888,
+    "lon": -72.4532202,
+    "timestamp": "2016-03-22T00:24:01Z",
+    "version": 2,
+    "changeset": 37989164,
+    "user": "PierZen",
+    "uid": 226516,
+    "tags": {
+      "addr:city": "Drummondville",
+      "addr:housenumber": "2015",
+      "addr:street": "Route 122",
+      "source": "NRCan-CanVec-7.0"
+    }
+  },
+  {
+    "type": "node",
+    "id": 1148912676,
+    "lat": 45.9093507,
+    "lon": -72.4527653,
+    "timestamp": "2016-03-22T00:23:59Z",
+    "version": 2,
+    "changeset": 37989164,
+    "user": "PierZen",
+    "uid": 226516,
+    "tags": {
+      "addr:city": "Saint-Cyrille-de-Wendover",
+      "addr:housenumber": "2010",
+      "addr:street": "Route 122",
+      "source": "NRCan-CanVec-7.0"
+    }
+  },
+  {
+    "type": "node",
+    "id": 1148915282,
+    "lat": 45.9092881,
+    "lon": -72.4527580,
+    "timestamp": "2011-02-12T11:33:31Z",
+    "version": 1,
+    "changeset": 7263122,
+    "user": "canvec_fsteggink",
+    "uid": 404518,
+    "tags": {
+      "addr:city": "Drummondville",
+      "addr:housenumber": "40",
+      "addr:street": "3e rang de Simpson",
+      "source": "NRCan-CanVec-7.0"
+    }
+  },
+  {
+    "type": "node",
+    "id": 5360197828,
+    "lat": 45.9096017,
+    "lon": -72.4527135,
+    "timestamp": "2018-01-25T04:41:59Z",
+    "version": 1,
+    "changeset": 55730429,
+    "user": "DannyMcD",
+    "uid": 5789626
+  },
+  {
+    "type": "node",
+    "id": 5360197833,
+    "lat": 45.9093464,
+    "lon": -72.4530252,
+    "timestamp": "2018-01-25T04:41:59Z",
+    "version": 1,
+    "changeset": 55730429,
+    "user": "DannyMcD",
+    "uid": 5789626
+  },
+  {
+    "type": "node",
+    "id": 6135266995,
+    "lat": 45.9092682,
+    "lon": -72.4528786,
+    "timestamp": "2020-06-03T18:52:57Z",
+    "version": 3,
+    "changeset": 86150058,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797713,
+    "lat": 45.9096861,
+    "lon": -72.4528456,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797714,
+    "lat": 45.9098689,
+    "lon": -72.4526397,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797715,
+    "lat": 45.9099477,
+    "lon": -72.4527842,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797716,
+    "lat": 45.9098662,
+    "lon": -72.4528760,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797717,
+    "lat": 45.9098805,
+    "lon": -72.4529022,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797718,
+    "lat": 45.9098373,
+    "lon": -72.4529509,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797719,
+    "lat": 45.9098220,
+    "lon": -72.4529230,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797720,
+    "lat": 45.9097640,
+    "lon": -72.4529884,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797721,
+    "lat": 45.9101657,
+    "lon": -72.4536734,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797722,
+    "lat": 45.9101064,
+    "lon": -72.4535639,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797725,
+    "lat": 45.9096157,
+    "lon": -72.4531708,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797726,
+    "lat": 45.9097662,
+    "lon": -72.4530072,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797727,
+    "lat": 45.9098562,
+    "lon": -72.4531783,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797728,
+    "lat": 45.9098301,
+    "lon": -72.4532067,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797729,
+    "lat": 45.9098935,
+    "lon": -72.4533274,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797730,
+    "lat": 45.9097902,
+    "lon": -72.4534396,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797731,
+    "lat": 45.9097288,
+    "lon": -72.4533228,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797732,
+    "lat": 45.9097077,
+    "lon": -72.4533456,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797733,
+    "lat": 45.9098426,
+    "lon": -72.4536103,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797734,
+    "lat": 45.9100008,
+    "lon": -72.4534417,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797735,
+    "lat": 45.9100521,
+    "lon": -72.4535410,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797736,
+    "lat": 45.9098938,
+    "lon": -72.4537096,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797737,
+    "lat": 45.9096873,
+    "lon": -72.4530928,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "entrance": "shop"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7589797738,
+    "lat": 45.9097650,
+    "lon": -72.4533917,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "entrance": "home"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7589797739,
+    "lat": 45.9101030,
+    "lon": -72.4536041,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797740,
+    "lat": 45.9096426,
+    "lon": -72.4527694,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797741,
+    "lat": 45.9095280,
+    "lon": -72.4527987,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797742,
+    "lat": 45.9096608,
+    "lon": -72.4530470,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797743,
+    "lat": 45.9095744,
+    "lon": -72.4531645,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "access": "private",
+      "barrier": "gate"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7589797744,
+    "lat": 45.9095867,
+    "lon": -72.4530289,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797745,
+    "lat": 45.9096271,
+    "lon": -72.4529843,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797746,
+    "lat": 45.9099465,
+    "lon": -72.4522850,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797753,
+    "lat": 45.9092743,
+    "lon": -72.4531098,
+    "timestamp": "2020-06-03T18:52:57Z",
+    "version": 2,
+    "changeset": 86150058,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "highway": "traffic_signals",
+      "traffic_signals": "signal",
+      "traffic_signals:direction": "backward"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7589797754,
+    "lat": 45.9094219,
+    "lon": -72.4529300,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "highway": "traffic_signals",
+      "traffic_signals": "signal",
+      "traffic_signals:direction": "forward"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7589797755,
+    "lat": 45.9092845,
+    "lon": -72.4529086,
+    "timestamp": "2020-06-03T18:52:57Z",
+    "version": 2,
+    "changeset": 86150058,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "highway": "traffic_signals",
+      "traffic_signals": "signal",
+      "traffic_signals:direction": "forward"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7589797756,
+    "lat": 45.9096414,
+    "lon": -72.4527958,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797757,
+    "lat": 45.9095722,
+    "lon": -72.4528814,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797758,
+    "lat": 45.9094374,
+    "lon": -72.4530419,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797759,
+    "lat": 45.9094891,
+    "lon": -72.4531220,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797760,
+    "lat": 45.9095497,
+    "lon": -72.4531514,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797761,
+    "lat": 45.9096054,
+    "lon": -72.4531809,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797762,
+    "lat": 45.9095710,
+    "lon": -72.4532009,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797763,
+    "lat": 45.9097856,
+    "lon": -72.4535742,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797764,
+    "lat": 45.9099290,
+    "lon": -72.4534223,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797765,
+    "lat": 45.9097701,
+    "lon": -72.4536366,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797766,
+    "lat": 45.9095579,
+    "lon": -72.4538603,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797767,
+    "lat": 45.9093457,
+    "lon": -72.4534494,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797768,
+    "lat": 45.9094358,
+    "lon": -72.4536095,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797769,
+    "lat": 45.9096635,
+    "lon": -72.4533617,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797770,
+    "lat": 45.9094358,
+    "lon": -72.4531079,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797771,
+    "lat": 45.9098151,
+    "lon": -72.4536048,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797772,
+    "lat": 45.9099757,
+    "lon": -72.4534458,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797773,
+    "lat": 45.9099053,
+    "lon": -72.4533198,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797774,
+    "lat": 45.9097121,
+    "lon": -72.4534462,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797775,
+    "lat": 45.9096873,
+    "lon": -72.4534694,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797776,
+    "lat": 45.9096054,
+    "lon": -72.4541092,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797777,
+    "lat": 45.9097021,
+    "lon": -72.4531173,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "name": "Michel Automobiles",
+      "second_hand": "only",
+      "shop": "car"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7589797778,
+    "lat": 45.9098217,
+    "lon": -72.4525485,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797779,
+    "lat": 45.9098594,
+    "lon": -72.4526286,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797780,
+    "lat": 45.9098184,
+    "lon": -72.4526734,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797781,
+    "lat": 45.9097594,
+    "lon": -72.4527369,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797782,
+    "lat": 45.9097703,
+    "lon": -72.4527507,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797783,
+    "lat": 45.9097717,
+    "lon": -72.4526993,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589797784,
+    "lat": 45.9097428,
+    "lon": -72.4526459,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857585,
+    "lat": 45.9097066,
+    "lon": -72.4525795,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857586,
+    "lat": 45.9097895,
+    "lon": -72.4527292,
+    "timestamp": "2021-01-28T12:04:16Z",
+    "version": 2,
+    "changeset": 98294984,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "entrance": "home"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7589857587,
+    "lat": 45.9097954,
+    "lon": -72.4524705,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857588,
+    "lat": 45.9102010,
+    "lon": -72.4532103,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857589,
+    "lat": 45.9100937,
+    "lon": -72.4533281,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857590,
+    "lat": 45.9102215,
+    "lon": -72.4532174,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857595,
+    "lat": 45.9101448,
+    "lon": -72.4535208,
+    "timestamp": "2021-01-28T12:04:16Z",
+    "version": 2,
+    "changeset": 98294984,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "entrance": "home"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7589857596,
+    "lat": 45.9101691,
+    "lon": -72.4533787,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857597,
+    "lat": 45.9102106,
+    "lon": -72.4533331,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857598,
+    "lat": 45.9101052,
+    "lon": -72.4534446,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857599,
+    "lat": 45.9098635,
+    "lon": -72.4525014,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857604,
+    "lat": 45.9102051,
+    "lon": -72.4537685,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857605,
+    "lat": 45.9099024,
+    "lon": -72.4525698,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857606,
+    "lat": 45.9097971,
+    "lon": -72.4530484,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857607,
+    "lat": 45.9100657,
+    "lon": -72.4535363,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857608,
+    "lat": 45.9099875,
+    "lon": -72.4528209,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857609,
+    "lat": 45.9099048,
+    "lon": -72.4529250,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857610,
+    "lat": 45.9098920,
+    "lon": -72.4529600,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857611,
+    "lat": 45.9098907,
+    "lon": -72.4530080,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857612,
+    "lat": 45.9098997,
+    "lon": -72.4530505,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857613,
+    "lat": 45.9099241,
+    "lon": -72.4531132,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857614,
+    "lat": 45.9099459,
+    "lon": -72.4531557,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857622,
+    "lat": 45.9102325,
+    "lon": -72.4523565,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857634,
+    "lat": 45.9102348,
+    "lon": -72.4523283,
+    "timestamp": "2021-01-28T12:04:16Z",
+    "version": 2,
+    "changeset": 98294984,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "entrance": "shop"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7589857653,
+    "lat": 45.9100819,
+    "lon": -72.4523123,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857654,
+    "lat": 45.9099654,
+    "lon": -72.4524566,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857655,
+    "lat": 45.9101717,
+    "lon": -72.4528173,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857656,
+    "lat": 45.9099396,
+    "lon": -72.4524715,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857657,
+    "lat": 45.9099139,
+    "lon": -72.4524715,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857658,
+    "lat": 45.9098924,
+    "lon": -72.4524529,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857659,
+    "lat": 45.9098530,
+    "lon": -72.4523998,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857691,
+    "lat": 45.9102153,
+    "lon": -72.4528266,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857692,
+    "lat": 45.9101272,
+    "lon": -72.4529160,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857693,
+    "lat": 45.9099390,
+    "lon": -72.4525948,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857694,
+    "lat": 45.9100017,
+    "lon": -72.4525201,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857704,
+    "lat": 45.9101955,
+    "lon": -72.4523221,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857705,
+    "lat": 45.9101329,
+    "lon": -72.4523974,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857707,
+    "lat": 45.9102182,
+    "lon": -72.4528879,
+    "timestamp": "2021-01-28T12:04:16Z",
+    "version": 2,
+    "changeset": 98294984,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857708,
+    "lat": 45.9102182,
+    "lon": -72.4528497,
+    "timestamp": "2021-01-28T12:04:16Z",
+    "version": 2,
+    "changeset": 98294984,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857709,
+    "lat": 45.9102329,
+    "lon": -72.4528286,
+    "timestamp": "2021-01-28T12:04:16Z",
+    "version": 2,
+    "changeset": 98294984,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857723,
+    "lat": 45.9101108,
+    "lon": -72.4529354,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857919,
+    "lat": 45.9101568,
+    "lon": -72.4537949,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857920,
+    "lat": 45.9100725,
+    "lon": -72.4537183,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857921,
+    "lat": 45.9100384,
+    "lon": -72.4536721,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857922,
+    "lat": 45.9099209,
+    "lon": -72.4537957,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857923,
+    "lat": 45.9096118,
+    "lon": -72.4541209,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857924,
+    "lat": 45.9096412,
+    "lon": -72.4541722,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857925,
+    "lat": 45.9099737,
+    "lon": -72.4538223,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857926,
+    "lat": 45.9098228,
+    "lon": -72.4539811,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857927,
+    "lat": 45.9098904,
+    "lon": -72.4539515,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857928,
+    "lat": 45.9099698,
+    "lon": -72.4538722,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857929,
+    "lat": 45.9099518,
+    "lon": -72.4539277,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857930,
+    "lat": 45.9099163,
+    "lon": -72.4539476,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857931,
+    "lat": 45.9098566,
+    "lon": -72.4539663,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857932,
+    "lat": 45.9095997,
+    "lon": -72.4542123,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857933,
+    "lat": 45.9092847,
+    "lon": -72.4536343,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7589857934,
+    "lat": 45.9094273,
+    "lon": -72.4537860,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7590230747,
+    "lat": 45.9092555,
+    "lon": -72.4529759,
+    "timestamp": "2020-06-03T18:52:57Z",
+    "version": 1,
+    "changeset": 86150058,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7590230748,
+    "lat": 45.9092988,
+    "lon": -72.4529355,
+    "timestamp": "2020-06-03T18:52:57Z",
+    "version": 1,
+    "changeset": 86150058,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "bicycle": "yes",
+      "crossing": "unmarked",
+      "highway": "crossing"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7606126479,
+    "lat": 45.9092710,
+    "lon": -72.4524729,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606126480,
+    "lat": 45.9093645,
+    "lon": -72.4523568,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606126481,
+    "lat": 45.9094843,
+    "lon": -72.4525561,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606126482,
+    "lat": 45.9093908,
+    "lon": -72.4526721,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606126483,
+    "lat": 45.9093926,
+    "lon": -72.4526247,
+    "timestamp": "2021-01-28T12:04:16Z",
+    "version": 2,
+    "changeset": 98294984,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "name": "Auto Place",
+      "operator": "Mécanique générale R. Martel et fils",
+      "shop": "car_repair"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7606126484,
+    "lat": 45.9094095,
+    "lon": -72.4526490,
+    "timestamp": "2021-01-28T12:04:16Z",
+    "version": 2,
+    "changeset": 98294984,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "entrance": "shop"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7606148485,
+    "lat": 45.9094443,
+    "lon": -72.4526058,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "amenity": "parking_entrance"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7606148486,
+    "lat": 45.9094677,
+    "lon": -72.4525767,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "amenity": "parking_entrance"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7606148487,
+    "lat": 45.9094724,
+    "lon": -72.4526197,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148488,
+    "lat": 45.9095582,
+    "lon": -72.4527616,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148490,
+    "lat": 45.9093353,
+    "lon": -72.4527574,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148491,
+    "lat": 45.9092538,
+    "lon": -72.4528546,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148492,
+    "lat": 45.9094110,
+    "lon": -72.4528275,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148493,
+    "lat": 45.9094498,
+    "lon": -72.4528955,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148494,
+    "lat": 45.9093489,
+    "lon": -72.4527700,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148495,
+    "lat": 45.9095246,
+    "lon": -72.4525537,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148496,
+    "lat": 45.9093703,
+    "lon": -72.4522915,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148497,
+    "lat": 45.9093594,
+    "lon": -72.4522824,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148498,
+    "lat": 45.9093467,
+    "lon": -72.4522833,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148499,
+    "lat": 45.9093215,
+    "lon": -72.4522956,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148500,
+    "lat": 45.9092888,
+    "lon": -72.4523237,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148510,
+    "lat": 45.9093094,
+    "lon": -72.4523060,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148516,
+    "lat": 45.9094056,
+    "lon": -72.4527010,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148517,
+    "lat": 45.9095204,
+    "lon": -72.4526991,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148518,
+    "lat": 45.9093708,
+    "lon": -72.4528778,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148519,
+    "lat": 45.9093155,
+    "lon": -72.4527810,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148520,
+    "lat": 45.9094245,
+    "lon": -72.4526780,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148521,
+    "lat": 45.9093123,
+    "lon": -72.4528753,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148522,
+    "lat": 45.9093261,
+    "lon": -72.4528885,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148523,
+    "lat": 45.9093444,
+    "lon": -72.4528926,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148524,
+    "lat": 45.9093622,
+    "lon": -72.4528860,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148525,
+    "lat": 45.9096330,
+    "lon": -72.4525562,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148526,
+    "lat": 45.9095301,
+    "lon": -72.4523520,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148527,
+    "lat": 45.9094798,
+    "lon": -72.4524259,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148570,
+    "lat": 45.9094935,
+    "lon": -72.4522874,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148572,
+    "lat": 45.9096985,
+    "lon": -72.4523182,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148573,
+    "lat": 45.9096216,
+    "lon": -72.4524083,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148574,
+    "lat": 45.9095804,
+    "lon": -72.4523358,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148575,
+    "lat": 45.9095447,
+    "lon": -72.4523777,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148576,
+    "lat": 45.9095631,
+    "lon": -72.4523561,
+    "timestamp": "2021-01-28T12:04:16Z",
+    "version": 2,
+    "changeset": 98294984,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "entrance": "home"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7606148577,
+    "lat": 45.9095745,
+    "lon": -72.4524023,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148578,
+    "lat": 45.9096834,
+    "lon": -72.4526080,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148584,
+    "lat": 45.9098815,
+    "lon": -72.4523648,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7606148605,
+    "lat": 45.9096528,
+    "lon": -72.4525872,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7795277698,
+    "lat": 45.9100277,
+    "lon": -72.4531792,
+    "timestamp": "2020-08-07T19:41:02Z",
+    "version": 1,
+    "changeset": 89107122,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795277699,
+    "lat": 45.9100884,
+    "lon": -72.4532643,
+    "timestamp": "2020-08-07T19:41:02Z",
+    "version": 1,
+    "changeset": 89107122,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795277700,
+    "lat": 45.9100733,
+    "lon": -72.4530242,
+    "timestamp": "2020-08-07T19:41:02Z",
+    "version": 1,
+    "changeset": 89107122,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795277701,
+    "lat": 45.9100505,
+    "lon": -72.4528933,
+    "timestamp": "2020-08-07T19:41:02Z",
+    "version": 1,
+    "changeset": 89107122,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795277702,
+    "lat": 45.9099730,
+    "lon": -72.4527514,
+    "timestamp": "2020-08-07T19:41:02Z",
+    "version": 1,
+    "changeset": 89107122,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795277703,
+    "lat": 45.9099290,
+    "lon": -72.4526619,
+    "timestamp": "2020-08-07T19:41:02Z",
+    "version": 1,
+    "changeset": 89107122,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795277704,
+    "lat": 45.9097589,
+    "lon": -72.4523803,
+    "timestamp": "2020-08-07T19:41:02Z",
+    "version": 1,
+    "changeset": 89107122,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795277705,
+    "lat": 45.9097209,
+    "lon": -72.4523127,
+    "timestamp": "2020-08-07T19:41:02Z",
+    "version": 1,
+    "changeset": 89107122,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795277706,
+    "lat": 45.9096693,
+    "lon": -72.4524633,
+    "timestamp": "2020-08-07T19:41:02Z",
+    "version": 1,
+    "changeset": 89107122,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795277707,
+    "lat": 45.9099123,
+    "lon": -72.4531923,
+    "timestamp": "2020-08-07T19:41:02Z",
+    "version": 1,
+    "changeset": 89107122,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795277708,
+    "lat": 45.9099685,
+    "lon": -72.4532993,
+    "timestamp": "2020-08-07T19:41:02Z",
+    "version": 1,
+    "changeset": 89107122,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795277709,
+    "lat": 45.9100581,
+    "lon": -72.4534586,
+    "timestamp": "2020-08-07T19:41:02Z",
+    "version": 1,
+    "changeset": 89107122,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795486385,
+    "lat": 45.9094411,
+    "lon": -72.4522775,
+    "timestamp": "2020-08-07T21:56:01Z",
+    "version": 1,
+    "changeset": 89110506,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795604101,
+    "lat": 45.9092674,
+    "lon": -72.4523510,
+    "timestamp": "2020-08-07T23:48:37Z",
+    "version": 1,
+    "changeset": 89112177,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389
+  },
+  {
+    "type": "node",
+    "id": 7795607408,
+    "lat": 45.9099651,
+    "lon": -72.4530430,
+    "timestamp": "2020-08-07T23:51:56Z",
+    "version": 1,
+    "changeset": 89112218,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "node",
+    "id": 7795607409,
+    "lat": 45.9099845,
+    "lon": -72.4529252,
+    "timestamp": "2020-08-07T23:51:56Z",
+    "version": 1,
+    "changeset": 89112218,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "tags": {
+      "natural": "tree"
+    }
+  },
+  {
+    "type": "way",
+    "id": 43517175,
+    "timestamp": "2020-11-14T23:58:54Z",
+    "version": 24,
+    "changeset": 94125371,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      549241686,
+      7596600455,
+      7596600425,
+      7596600456,
+      7596600457,
+      549241680,
+      7596600458,
+      7804559204,
+      7804559188,
+      549241549,
+      7804579771,
+      7804603144,
+      7804602697,
+      7804603096,
+      7804603104,
+      7804603038,
+      549241548,
+      3475336371,
+      7807724997,
+      7807438916,
+      549241557,
+      7807990623,
+      7807724485,
+      7807724489,
+      7807990609,
+      7807724518,
+      7807724543,
+      549241556,
+      7807989286,
+      7807724558,
+      549241567,
+      549241453,
+      7807989356,
+      1148916418,
+      549241689,
+      549241695,
+      549241691,
+      549240428,
+      7805136866,
+      549240429,
+      549240430,
+      7795701555,
+      7805107611,
+      549240498,
+      7795701529,
+      549240499,
+      549240510,
+      7606334915,
+      7606334901,
+      7606334913,
+      549240501,
+      549240507,
+      1148691508,
+      7607130893,
+      7606181592,
+      7606181585,
+      7607130911,
+      7607130909,
+      7606148507,
+      7607124973,
+      7606148491,
+      6135266995,
+      7589797755,
+      7590230748,
+      549240509
+    ],
+    "tags": {
+      "highway": "tertiary",
+      "lanes": "2",
+      "maxspeed": "50",
+      "name": "3e Rang de Simpson",
+      "sidewalk": "no",
+      "source": "Geobase_Import_2009"
+    }
+  },
+  {
+    "type": "way",
+    "id": 99321922,
+    "timestamp": "2011-02-12T12:33:08Z",
+    "version": 1,
+    "changeset": 7263928,
+    "user": "canvec_fsteggink",
+    "uid": 404518,
+    "nodes": [
+      1148691063,
+      1148832549
+    ],
+    "tags": {
+      "addr:interpolation": "odd",
+      "source": "NRCan-CanVec-7.0"
+    }
+  },
+  {
+    "type": "way",
+    "id": 99329182,
+    "timestamp": "2011-02-12T12:58:49Z",
+    "version": 1,
+    "changeset": 7263928,
+    "user": "canvec_fsteggink",
+    "uid": 404518,
+    "nodes": [
+      1148915282,
+      1148793692
+    ],
+    "tags": {
+      "addr:interpolation": "even",
+      "source": "NRCan-CanVec-7.0"
+    }
+  },
+  {
+    "type": "way",
+    "id": 99331458,
+    "timestamp": "2011-02-12T13:06:25Z",
+    "version": 1,
+    "changeset": 7263928,
+    "user": "canvec_fsteggink",
+    "uid": 404518,
+    "nodes": [
+      1148896540,
+      1148997858,
+      1148951510,
+      1148856015,
+      1148754296,
+      1148862538,
+      1148911209
+    ],
+    "tags": {
+      "addr:interpolation": "odd",
+      "source": "NRCan-CanVec-7.0"
+    }
+  },
+  {
+    "type": "way",
+    "id": 99334986,
+    "timestamp": "2011-02-12T13:23:10Z",
+    "version": 1,
+    "changeset": 7263928,
+    "user": "canvec_fsteggink",
+    "uid": 404518,
+    "nodes": [
+      1148912676,
+      1148867937
+    ],
+    "tags": {
+      "addr:interpolation": "even",
+      "source": "NRCan-CanVec-7.0"
+    }
+  },
+  {
+    "type": "way",
+    "id": 99338018,
+    "timestamp": "2011-02-12T13:34:30Z",
+    "version": 1,
+    "changeset": 7263928,
+    "user": "canvec_fsteggink",
+    "uid": 404518,
+    "nodes": [
+      1148697815,
+      1148793175
+    ],
+    "tags": {
+      "addr:interpolation": "even",
+      "source": "NRCan-CanVec-7.0"
+    }
+  },
+  {
+    "type": "way",
+    "id": 550742519,
+    "timestamp": "2020-08-07T23:48:37Z",
+    "version": 6,
+    "changeset": 89112177,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      549240509,
+      7589797753,
+      7607124975,
+      7607130916,
+      7795604006,
+      7607130923,
+      7590198527,
+      7607130945,
+      7590198528,
+      519570197,
+      7590198529,
+      7590198530,
+      7590198531,
+      6135266989,
+      7590198533
+    ],
+    "tags": {
+      "highway": "primary",
+      "lanes": "2",
+      "maxspeed": "70",
+      "name": "Boulevard de l'Université",
+      "ref": "122",
+      "routing:bicycle": "use_sidepath",
+      "sidewalk": "no"
+    }
+  },
+  {
+    "type": "way",
+    "id": 555601130,
+    "timestamp": "2018-01-25T04:42:15Z",
+    "version": 1,
+    "changeset": 55730429,
+    "user": "DannyMcD",
+    "uid": 5789626,
+    "nodes": [
+      5360198141,
+      5360197854,
+      5360197845,
+      5360197824,
+      5360197834,
+      5360197830,
+      5360197619,
+      5360197851,
+      5360197836,
+      5360197862,
+      5360197840,
+      5360197843,
+      5360197839,
+      5360197822,
+      5360197615,
+      5360197852,
+      5360197827,
+      5360197847,
+      5360197829,
+      5360197833,
+      5360197828,
+      5360197865,
+      5360197864,
+      5360197835,
+      5360197832,
+      5360197860,
+      5360197844,
+      5360197850,
+      5360197842,
+      5360197849,
+      5360197616,
+      5360197846,
+      5360197825,
+      5360197831,
+      5360197861,
+      5360197617
+    ]
+  },
+  {
+    "type": "way",
+    "id": 812592064,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797713,
+      7589797782,
+      7589857586,
+      7589797714,
+      7589797715,
+      7589797716,
+      7589797717,
+      7589797718,
+      7589797719,
+      7589797720,
+      7589797713
+    ],
+    "tags": {
+      "building": "apartments",
+      "building:flats": "3",
+      "building:floor_area": "465.5"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592065,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797721,
+      7589797722,
+      7589857595,
+      7589857594,
+      7589797723,
+      7589797724,
+      7589797721
+    ],
+    "tags": {
+      "building": "semidetached_house",
+      "building:flats": "2",
+      "building:floor_area": "145"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592066,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797725,
+      7589797737,
+      7589797726,
+      7589797727,
+      7589797728,
+      7589797729,
+      7589797730,
+      7589797738,
+      7589797731,
+      7589797732,
+      7589797725
+    ]
+  },
+  {
+    "type": "way",
+    "id": 812592067,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797733,
+      7589797734,
+      7589797735,
+      7589797736,
+      7589797733
+    ]
+  },
+  {
+    "type": "way",
+    "id": 812592068,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797739,
+      7589857607,
+      7589857606,
+      7589797720,
+      7589797713,
+      7589797740,
+      7589857936,
+      7589857935,
+      7589857934,
+      7589797776,
+      7589857923,
+      7589857922,
+      7589857921,
+      7589797739
+    ],
+    "tags": {
+      "flats": "1",
+      "landuse": "commercial"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592069,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797741,
+      7589797757,
+      7589797745,
+      7589797742
+    ],
+    "tags": {
+      "highway": "service",
+      "motor_vehicle": "customers"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592070,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797743,
+      7589797744,
+      7589797745
+    ],
+    "tags": {
+      "highway": "service",
+      "motor_vehicle": "customers"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592071,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797742,
+      7589797737
+    ],
+    "tags": {
+      "access": "customers",
+      "bicycle": "customers",
+      "footway": "access_aisle",
+      "highway": "footway",
+      "motor_vehicle": "no"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592073,
+    "timestamp": "2021-01-21T00:53:20Z",
+    "version": 4,
+    "changeset": 97865831,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797752,
+      7607131258,
+      7589797747,
+      7590230750,
+      7590230745,
+      6135266995
+    ],
+    "tags": {
+      "bicycle": "designated",
+      "foot": "designated",
+      "highway": "cycleway",
+      "name": "Boulevard de l'Université",
+      "segregated": "no",
+      "surface": "asphalt"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592074,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797726,
+      7589797756,
+      7589797757,
+      7589797758,
+      7589797759,
+      7589797760,
+      7589797743,
+      7589797761,
+      7589797725,
+      7589797726
+    ],
+    "tags": {
+      "access": "customers",
+      "amenity": "parking"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592075,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797743,
+      7589797762,
+      7589797769,
+      7589797774,
+      7589797763
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592076,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797763,
+      7589797764
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service",
+      "surface": "unpaved"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592077,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797763,
+      7589797765,
+      7589797766
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service",
+      "surface": "unpaved"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592078,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797762,
+      7589797767,
+      7589797768,
+      7589797769
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service",
+      "service": "parking_aisle"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592079,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797770,
+      7589857935,
+      7589857934,
+      7589797776,
+      7589857923,
+      7589857922,
+      7589797771,
+      7589797772,
+      7589797773,
+      7589797729,
+      7589797730,
+      7589797738,
+      7589797731,
+      7589797732,
+      7589797725,
+      7589797761,
+      7589797760,
+      7589797759,
+      7589797770
+    ],
+    "tags": {
+      "access": "private",
+      "amenity": "parking"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592080,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797738,
+      7589797774
+    ],
+    "tags": {
+      "access": "private",
+      "bicycle": "private",
+      "highway": "footway",
+      "motor_vehicle": "no"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592081,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797775,
+      7589857934,
+      7589797776
+    ],
+    "tags": {
+      "barrier": "fence"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592082,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797713,
+      7589797740,
+      7589797784,
+      7589797778,
+      7589797779,
+      7589797780,
+      7589797781,
+      7589797782,
+      7589797713
+    ],
+    "tags": {
+      "access": "private",
+      "amenity": "parking"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592083,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797783,
+      7589797784,
+      7589857585
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service",
+      "service": "driveway"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592084,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589797783,
+      7589857586
+    ],
+    "tags": {
+      "access": "private",
+      "bicycle": "private",
+      "highway": "footway",
+      "motor_vehicle": "no"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592085,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857587,
+      7589857608,
+      7589857588,
+      7589857589
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service",
+      "service": "driveway"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592086,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857588,
+      7589857590,
+      7589857591,
+      7589857592,
+      7589857593
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service",
+      "service": "driveway"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592087,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857596,
+      7589857597,
+      7589857592
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service",
+      "service": "driveway"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592088,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857594,
+      7589857597
+    ],
+    "tags": {
+      "access": "private",
+      "bicycle": "private",
+      "highway": "footway",
+      "motor_vehicle": "no"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592089,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857595,
+      7589857598,
+      7589857596
+    ],
+    "tags": {
+      "access": "private",
+      "bicycle": "private",
+      "highway": "footway",
+      "motor_vehicle": "no"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592090,
+    "timestamp": "2020-06-09T15:34:43Z",
+    "version": 2,
+    "changeset": 86416024,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857599,
+      7589857605,
+      7589857723,
+      7589857600,
+      7589857601,
+      7589857602,
+      7589857603,
+      7589857604,
+      7589797739,
+      7589857607,
+      7589857606,
+      7589797720,
+      7589797713,
+      7589797740,
+      7589857599
+    ],
+    "tags": {
+      "flats": "5",
+      "landuse": "residential",
+      "residential": "rural"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592091,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857600,
+      7589857723,
+      7589857605
+    ],
+    "tags": {
+      "barrier": "hedge"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592092,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857606,
+      7589857607
+    ],
+    "tags": {
+      "barrier": "hedge"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592093,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857608,
+      7589857609,
+      7589857610,
+      7589857611,
+      7589857612,
+      7589857613,
+      7589857614
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service",
+      "service": "driveway"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592094,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857615,
+      7589857616,
+      7589857617,
+      7589857618,
+      7589857619,
+      7589857620,
+      7589857621,
+      7589857634,
+      7589857622,
+      7589857623,
+      7589857624,
+      7589857625,
+      7589857697,
+      7589857626,
+      7589857627,
+      7589857628,
+      7589857699,
+      7589857629,
+      7589857630,
+      7589857631,
+      7589857632,
+      7589857633,
+      7589857615
+    ]
+  },
+  {
+    "type": "way",
+    "id": 812592095,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857636,
+      7589857653,
+      7589857705,
+      7589857637,
+      7589857638,
+      7589857639,
+      7589857665,
+      7589857703,
+      7589857640
+    ],
+    "tags": {
+      "highway": "service",
+      "motor_vehicle": "customers"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592097,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857652,
+      7589857651,
+      7589857695,
+      7589857653
+    ],
+    "tags": {
+      "highway": "service",
+      "motor_vehicle": "customers"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592098,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857653,
+      7589857654,
+      7589857656,
+      7589857657,
+      7589857658,
+      7589857659
+    ],
+    "tags": {
+      "highway": "service",
+      "motor_vehicle": "customers"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592099,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857654,
+      7589857694,
+      7589857655
+    ],
+    "tags": {
+      "highway": "service",
+      "motor_vehicle": "customers",
+      "service": "parking_aisle"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592105,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857682,
+      7589857685,
+      7589857686,
+      7589857687,
+      7589857688,
+      7589857689,
+      7589857714,
+      7589857690,
+      7589857691,
+      7589857692,
+      7589857693,
+      7589857694,
+      7589857654,
+      7589857653,
+      7589857695,
+      7589857704,
+      7589857696,
+      7589857697,
+      7589857626,
+      7589857698,
+      7589857628,
+      7589857699,
+      7589857700,
+      7589857701,
+      7589857702,
+      7589857703,
+      7589857665,
+      7589857682
+    ],
+    "tags": {
+      "access": "customers",
+      "amenity": "parking"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592106,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857634,
+      7589857704,
+      7589857705
+    ],
+    "tags": {
+      "access": "customers",
+      "bicycle": "customers",
+      "footway": "access_aisle",
+      "highway": "footway",
+      "motor_vehicle": "no"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592107,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857704,
+      7589857695
+    ],
+    "tags": {
+      "access": "customers",
+      "bicycle": "customers",
+      "footway": "access_aisle",
+      "highway": "footway",
+      "motor_vehicle": "no"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592108,
+    "timestamp": "2021-01-28T12:04:16Z",
+    "version": 2,
+    "changeset": 98294984,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857706,
+      7589857707,
+      7589857708,
+      7589857709,
+      7589857716,
+      7589857710,
+      7589857711,
+      7589857712,
+      7589857713,
+      7589857706
+    ],
+    "tags": {
+      "access": "customers",
+      "amenity": "shelter",
+      "building": "yes",
+      "shelter_type": "picnic_shelter"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592111,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857601,
+      7589857717,
+      7589857970,
+      7589857718,
+      7589857719,
+      7589857720,
+      7589857721,
+      7589857722,
+      7589857683,
+      7589857682,
+      7589857685,
+      7589857686,
+      7589857687,
+      7589857688,
+      7589857715,
+      7589857691,
+      7589857692,
+      7589857723,
+      7589857600,
+      7589857601
+    ],
+    "tags": {
+      "landuse": "grass"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592116,
+    "timestamp": "2021-01-28T12:04:16Z",
+    "version": 4,
+    "changeset": 98294984,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857902,
+      7606148627,
+      8371431379,
+      7589857652,
+      7606148556,
+      7606148538,
+      7606148603,
+      7589857636,
+      7589797746,
+      7606148584,
+      7589857659,
+      7589857587,
+      7589857585,
+      7606148578,
+      7606148488,
+      7589797741,
+      7606148493,
+      7589797754,
+      549240509
+    ],
+    "tags": {
+      "highway": "primary",
+      "lanes": "2",
+      "maxspeed": "70",
+      "name": "Route 122",
+      "ref": "122",
+      "sidewalk": "no"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592117,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857602,
+      7589857915,
+      7589857916,
+      7589857944,
+      7589857943,
+      7589857917,
+      7589857918,
+      7589857919,
+      7589857920,
+      7589857925,
+      7589857928,
+      7589857929,
+      7589857930,
+      7589857927,
+      7589857931,
+      7589857926,
+      7589857924,
+      7589857932,
+      7589857933,
+      7589857937,
+      7589857938,
+      7589857939,
+      7589857936,
+      7589857935,
+      7589857934,
+      7589857923,
+      7589857922,
+      7589857921,
+      7589797739,
+      7589857604,
+      7589857603,
+      7589857602
+    ],
+    "tags": {
+      "natural": "scrub"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592119,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857944,
+      7589857940,
+      7589857942,
+      7589857941,
+      7589736467,
+      7589736466,
+      7589736465,
+      7589736464,
+      7589736463,
+      7589736462,
+      7589736461,
+      7589736460,
+      7589736459,
+      7589736458,
+      7589736457,
+      7589736456,
+      7589736455,
+      7589736454,
+      7589736453,
+      7589736452,
+      7589736451,
+      7589736450,
+      7589736588,
+      7589736587,
+      7589736586,
+      7589736585,
+      7589736584,
+      7589857945,
+      7589857946,
+      7589857939,
+      7589857938,
+      7589857937,
+      7589857933,
+      7589857932,
+      7589857924,
+      7589857926,
+      7589857931,
+      7589857927,
+      7589857930,
+      7589857929,
+      7589857928,
+      7589857925,
+      7589857920,
+      7589857919,
+      7589857918,
+      7589857917,
+      7589857943,
+      7589857944
+    ],
+    "tags": {
+      "landuse": "farmland"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812592128,
+    "timestamp": "2020-06-03T19:55:06Z",
+    "version": 2,
+    "changeset": 86151872,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7589857891,
+      7589857967,
+      7589857968,
+      7589857964,
+      7589857599,
+      7589857605,
+      7589857723,
+      7589857600,
+      7589857601,
+      7589857717,
+      7589857970,
+      7589857971,
+      7589857880,
+      7589857885,
+      7589857886,
+      7589857887,
+      7589857888,
+      7590278717,
+      7589857889,
+      7589857890,
+      7589857891
+    ],
+    "tags": {
+      "landuse": "commercial"
+    }
+  },
+  {
+    "type": "way",
+    "id": 812633823,
+    "timestamp": "2021-01-28T12:04:16Z",
+    "version": 2,
+    "changeset": 98294984,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7590230746,
+      7590230747,
+      7590230748
+    ],
+    "tags": {
+      "crossing": "unmarked",
+      "footway": "crossing",
+      "highway": "footway",
+      "name": "Boulevard de l'Université"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255640,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606126479,
+      7606126480,
+      7606126481,
+      7606148486,
+      7606148485,
+      7606126484,
+      7606126482,
+      7606126479
+    ],
+    "tags": {
+      "building": "commercial"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255641,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148486,
+      7606148487,
+      7606148485
+    ],
+    "tags": {
+      "highway": "service",
+      "motor_vehicle": "customers"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255642,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148487,
+      7606148517,
+      7606148488
+    ],
+    "tags": {
+      "highway": "service",
+      "motor_vehicle": "customers"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255643,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148489,
+      7606148515,
+      7606148490,
+      7606148519,
+      7606148491
+    ],
+    "tags": {
+      "highway": "service",
+      "motor_vehicle": "customers"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255644,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148490,
+      7606148494,
+      7606148492,
+      7606148493
+    ],
+    "tags": {
+      "highway": "service",
+      "motor_vehicle": "customers"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255645,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148487,
+      7606148520,
+      7606148516,
+      7606148494
+    ],
+    "tags": {
+      "highway": "service",
+      "motor_vehicle": "customers"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255646,
+    "timestamp": "2020-08-07T23:48:37Z",
+    "version": 2,
+    "changeset": 89112177,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148487,
+      7606148495,
+      7606148496,
+      7606148497,
+      7606148498,
+      7606148499,
+      7606148510,
+      7606148500,
+      7795604101,
+      7606148501,
+      7606148502,
+      7606148503,
+      7606148504,
+      7606148489,
+      7606148505,
+      7606148506,
+      7606148507
+    ],
+    "tags": {
+      "highway": "service",
+      "motor_vehicle": "customers",
+      "surface": "unpaved"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255647,
+    "timestamp": "2020-08-07T23:48:37Z",
+    "version": 2,
+    "changeset": 89112177,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148508,
+      7606148509,
+      7606148510,
+      7606148500,
+      7795604101,
+      7606148501,
+      7606148502,
+      7606148503,
+      7606148511,
+      7606148512,
+      7606148513,
+      7606148514,
+      7606148508
+    ],
+    "tags": {
+      "access": "private",
+      "amenity": "parking",
+      "surface": "unpaved"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255648,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606126479,
+      7606148515,
+      7606148490,
+      7606148494,
+      7606148516,
+      7606126482,
+      7606126479
+    ],
+    "tags": {
+      "access": "customers",
+      "amenity": "parking"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255649,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148487,
+      7606148517,
+      7606148492,
+      7606148518,
+      7606148519,
+      7606148490,
+      7606148494,
+      7606148516,
+      7606148520,
+      7606148487
+    ],
+    "tags": {
+      "access": "customers",
+      "amenity": "parking"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255650,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606126484,
+      7606148520
+    ],
+    "tags": {
+      "access": "customers",
+      "bicycle": "customers",
+      "footway": "access_aisle",
+      "highway": "footway",
+      "motor_vehicle": "no"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255651,
+    "timestamp": "2020-08-07T23:48:37Z",
+    "version": 3,
+    "changeset": 89112177,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148521,
+      7606148522,
+      7606148523,
+      7606148524,
+      7606148518,
+      7606148492,
+      7606148517,
+      7606148525,
+      7606148575,
+      7606148526,
+      7606148527,
+      7795604096,
+      7606148606,
+      7606148529,
+      7606148530,
+      7606148531,
+      7795604095,
+      7606148521
+    ],
+    "tags": {
+      "landuse": "commercial"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255661,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148570,
+      7606148571,
+      7606148572,
+      7606148573,
+      7606148574,
+      7606148576,
+      7606148575,
+      7606148526,
+      7606148570
+    ],
+    "tags": {
+      "building": "detached"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255662,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148577,
+      7606148578
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service",
+      "service": "driveway"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255663,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148577,
+      7606148576
+    ],
+    "tags": {
+      "access": "private",
+      "bicycle": "private",
+      "highway": "footway",
+      "motor_vehicle": "no"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255665,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148583,
+      7606148587,
+      7606148584
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service",
+      "service": "driveway"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255668,
+    "timestamp": "2020-06-09T15:15:01Z",
+    "version": 1,
+    "changeset": 86415364,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148597,
+      7589797746
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service",
+      "service": "driveway"
+    }
+  },
+  {
+    "type": "way",
+    "id": 814255673,
+    "timestamp": "2020-08-07T23:48:37Z",
+    "version": 4,
+    "changeset": 89112177,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7606148569,
+      7606148605,
+      7606148525,
+      7606148575,
+      7606148526,
+      7606148527,
+      7795604096,
+      7606148606,
+      7606148607,
+      7606181583,
+      7606148608,
+      7606148609,
+      7795277738,
+      6732805755,
+      7795277737,
+      7606148610,
+      7795277728,
+      7795277727,
+      7606148611,
+      7795277719,
+      7795277729,
+      7606148700,
+      7795277748,
+      7606148612,
+      7606148549,
+      7606148533,
+      7606148552,
+      7606148551,
+      7606148568,
+      7606148547,
+      7606148569
+    ],
+    "tags": {
+      "flats": "11",
+      "landuse": "residential",
+      "residential": "rural"
+    }
+  },
+  {
+    "type": "way",
+    "id": 835156663,
+    "timestamp": "2020-08-07T23:48:37Z",
+    "version": 1,
+    "changeset": 89112177,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "nodes": [
+      7795604100,
+      7795604101
+    ],
+    "tags": {
+      "access": "private",
+      "highway": "service",
+      "surface": "unpaved"
+    }
+  },
+  {
+    "type": "relation",
+    "id": 4556085,
+    "timestamp": "2020-12-13T23:43:38Z",
+    "version": 73,
+    "changeset": 95774466,
+    "user": "Arno1801",
+    "uid": 10581042,
+    "members": [
+      {
+        "type": "way",
+        "ref": 336922118,
+        "role": "west"
+      },
+      {
+        "type": "way",
+        "ref": 796976829,
+        "role": "west"
+      },
+      {
+        "type": "way",
+        "ref": 27592134,
+        "role": "west"
+      },
+      {
+        "type": "way",
+        "ref": 796976830,
+        "role": "east"
+      },
+      {
+        "type": "way",
+        "ref": 546186037,
+        "role": "east"
+      },
+      {
+        "type": "way",
+        "ref": 27592131,
+        "role": "east"
+      },
+      {
+        "type": "way",
+        "ref": 316476129,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 316476127,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 316632566,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 845149665,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 467058906,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 467058905,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 467058903,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 467058904,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 467058902,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 27718728,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43521778,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 317458276,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 27718729,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 27718731,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 317458279,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 27634837,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 334969565,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 334969562,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 838658073,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43519741,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43519782,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 326991244,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 474244461,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 838658072,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 334631678,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 334631681,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 334631682,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 334631683,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 838658071,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43516207,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 334631690,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 814260494,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 812592115,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 812592116,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 550742519,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 812633812,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 812633810,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 812633811,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 550742518,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 812633808,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 812633807,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 547494864,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 813961107,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 813739479,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 813961112,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 813961113,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 813961117,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 243927406,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 813961121,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 813961123,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 813961128,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 813961129,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 813961133,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 550742499,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43516559,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 814169033,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 815113134,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 547450391,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 478272551,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 815421911,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 815421913,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 815421914,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 815421910,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 815423233,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43515112,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 815421909,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 754938264,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 816599416,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 816588429,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537635,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 815423232,
+        "role": "east"
+      },
+      {
+        "type": "way",
+        "ref": 481589025,
+        "role": "east"
+      },
+      {
+        "type": "way",
+        "ref": 553503891,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 817277848,
+        "role": "west"
+      },
+      {
+        "type": "way",
+        "ref": 493838360,
+        "role": "west"
+      },
+      {
+        "type": "way",
+        "ref": 817277851,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 799248760,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 824154845,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 816586127,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 828844983,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 828844982,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43536914,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537667,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 816588424,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 827473420,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 816704946,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 827473419,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 832230165,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 816704876,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 832230161,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 832230614,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 832217819,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 816704875,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 832217820,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537375,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 822525474,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43536931,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537690,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537436,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43536544,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 830140882,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43536637,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537566,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 831409711,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537092,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537543,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 478283977,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 478283976,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537338,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43536574,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 884546419,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 884546418,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 884546420,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757893387,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757893403,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757893402,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537323,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537679,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537497,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909385,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909384,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909383,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 884533664,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909380,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43537193,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 884533665,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 316749928,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909377,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909376,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909371,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909370,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909373,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909372,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909375,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909374,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909369,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909368,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909367,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909366,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909365,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909364,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909363,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 43148691,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909360,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909359,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909362,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909361,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909358,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 757909357,
+        "role": ""
+      },
+      {
+        "type": "way",
+        "ref": 474918621,
+        "role": "both"
+      }
+    ],
+    "tags": {
+      "is_in:state": "QC",
+      "name": "R 122",
+      "network": "CA:QC:R",
+      "ref": "122",
+      "route": "road",
+      "type": "route",
+      "wikipedia": "fr:Route 122 (Québec)"
+    }
+  },
+  {
+    "type": "relation",
+    "id": 7932209,
+    "timestamp": "2018-05-26T13:42:30Z",
+    "version": 3,
+    "changeset": 59294319,
+    "user": "YanikB",
+    "uid": 1766935,
+    "members": [
+      {
+        "type": "way",
+        "ref": 555601126,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 563114040,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 555601142,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 555601138,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 555601111,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 555601109,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 555601105,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 555601100,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 555601131,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 555601130,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 555601093,
+        "role": "outer"
+      },
+      {
+        "type": "node",
+        "ref": 4552747380,
+        "role": "admin_centre"
+      }
+    ],
+    "tags": {
+      "admin_level": "8",
+      "boundary": "administrative",
+      "name": "Drummondville",
+      "type": "boundary",
+      "wikidata": "Q141940"
+    }
+  },
+  {
+    "type": "relation",
+    "id": 7932213,
+    "timestamp": "2018-04-12T00:31:13Z",
+    "version": 2,
+    "changeset": 58020734,
+    "user": "YanikB",
+    "uid": 1766935,
+    "members": [
+      {
+        "type": "way",
+        "ref": 555601097,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 555601094,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 555601130,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 555601098,
+        "role": "outer"
+      },
+      {
+        "type": "node",
+        "ref": 1148896147,
+        "role": "admin_centre"
+      }
+    ],
+    "tags": {
+      "admin_level": "8",
+      "boundary": "administrative",
+      "name": "Saint-Cyrille-de-Wendover",
+      "type": "boundary",
+      "wikidata": "Q3462025"
+    }
+  },
+  {
+    "type": "relation",
+    "id": 11167914,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "members": [
+      {
+        "type": "way",
+        "ref": 812592067,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 812592066,
+        "role": "outer"
+      }
+    ],
+    "tags": {
+      "building": "commercial",
+      "building:flats": "1",
+      "type": "multipolygon"
+    }
+  },
+  {
+    "type": "relation",
+    "id": 11167915,
+    "timestamp": "2020-06-03T15:41:17Z",
+    "version": 1,
+    "changeset": 86143912,
+    "user": "ChaireMobiliteKaligrafy",
+    "uid": 549389,
+    "members": [
+      {
+        "type": "way",
+        "ref": 812592129,
+        "role": "outer"
+      },
+      {
+        "type": "way",
+        "ref": 812592094,
+        "role": "outer"
+      }
+    ],
+    "tags": {
+      "building": "commercial",
+      "type": "multipolygon"
+    }
+  }
+  
+    ]
+  }
+  

@@ -1,0 +1,171 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Active section change 1`] = `
+<withI18nextTranslation(BottomPanel)
+  activeSection="test"
+  contributions={
+    Array [
+      Object {
+        "create": [Function],
+        "id": "testBottomPanel",
+        "placement": "bottomPanel",
+        "section": "test",
+      },
+      Object {
+        "create": [Function],
+        "id": "mainBottomPanel",
+        "placement": "bottomPanel",
+      },
+      Object {
+        "create": [Function],
+        "id": "fooBottomPanel",
+        "placement": "bottomPanel",
+        "section": "foo",
+      },
+    ]
+  }
+>
+  <BottomPanel
+    activeSection="test"
+    contributions={
+      Array [
+        Object {
+          "create": [Function],
+          "id": "testBottomPanel",
+          "placement": "bottomPanel",
+          "section": "test",
+        },
+        Object {
+          "create": [Function],
+          "id": "mainBottomPanel",
+          "placement": "bottomPanel",
+        },
+        Object {
+          "create": [Function],
+          "id": "fooBottomPanel",
+          "placement": "bottomPanel",
+          "section": "foo",
+        },
+      ]
+    }
+    i18n={Object {}}
+    t={[Function]}
+    tReady={false}
+  >
+    <section
+      id="tr__bottom-panel"
+    >
+      <div>
+        test
+      </div>
+      <div>
+        Should always be there
+      </div>
+    </section>
+  </BottomPanel>
+</withI18nextTranslation(BottomPanel)>
+`;
+
+exports[`Active section change 2`] = `
+<withI18nextTranslation(BottomPanel)
+  activeSection="other"
+  contributions={
+    Array [
+      Object {
+        "create": [Function],
+        "id": "testBottomPanel",
+        "placement": "bottomPanel",
+        "section": "test",
+      },
+      Object {
+        "create": [Function],
+        "id": "mainBottomPanel",
+        "placement": "bottomPanel",
+      },
+      Object {
+        "create": [Function],
+        "id": "fooBottomPanel",
+        "placement": "bottomPanel",
+        "section": "foo",
+      },
+    ]
+  }
+>
+  <BottomPanel
+    activeSection="other"
+    contributions={
+      Array [
+        Object {
+          "create": [Function],
+          "id": "testBottomPanel",
+          "placement": "bottomPanel",
+          "section": "test",
+        },
+        Object {
+          "create": [Function],
+          "id": "mainBottomPanel",
+          "placement": "bottomPanel",
+        },
+        Object {
+          "create": [Function],
+          "id": "fooBottomPanel",
+          "placement": "bottomPanel",
+          "section": "foo",
+        },
+      ]
+    }
+    i18n={Object {}}
+    t={[Function]}
+    tReady={false}
+  >
+    <section
+      id="tr__bottom-panel"
+    >
+      <div>
+        Should always be there
+      </div>
+    </section>
+  </BottomPanel>
+</withI18nextTranslation(BottomPanel)>
+`;
+
+exports[`One active section with contribution 1`] = `
+<section
+  id="tr__bottom-panel"
+>
+  <div>
+    test
+  </div>
+  <div>
+    Should always be there
+  </div>
+</section>
+`;
+
+exports[`One active section with contribution and props 1`] = `
+<section
+  id="tr__bottom-panel"
+>
+  <div>
+    Should always be there
+  </div>
+  <div
+    activeSection="foo"
+    i18n={Object {}}
+    t={[Function]}
+    tReady={false}
+  >
+    Foo section, with props
+  </div>
+</section>
+`;
+
+exports[`active section without contribution 1`] = `
+<section
+  id="tr__bottom-panel"
+>
+  <div>
+    Should always be there
+  </div>
+</section>
+`;

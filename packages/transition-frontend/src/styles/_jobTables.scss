@@ -1,0 +1,70 @@
+.table {
+    border-spacing: 0;
+    font-size: 1.6rem;
+
+    .thead {
+        overflow-y: auto;
+        overflow-x: hidden;
+        font-weight: 500;
+    }
+
+    .tbody {
+        overflow-y: scroll;
+        overflow-x: hidden;
+    }
+
+    .tr {
+        :last-child {
+            .td {
+                border-bottom: 0;
+            }
+        }
+        border-bottom: 1px solid black;
+    }
+
+    .status_pending {
+        background-color: $button-grey;
+        color: $input-background;
+        font-weight: 500;
+    }
+
+    .status_completed {
+        background-color: $button-green;
+        color: $input-background;
+        font-weight: 500;
+    }
+
+    .status_inProgress {
+        background-color: $button-blue;
+        color: $input-background;
+        font-weight: 500;
+    }
+
+    .status_failed {
+        background-color: $button-red;
+        color: $input-background;
+        font-weight: 500;
+    }
+
+    .status_cancelled {
+        background-color: $button-grey;
+        color: $input-background;
+        font-weight: 500;
+    }
+
+    .th,
+    .td {
+        margin: 0;
+        padding: 0.5rem;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        border-right: 1px solid black;
+
+        position: relative;
+
+        :last-child {
+            border-right: 0;
+        }
+
+    }
+}

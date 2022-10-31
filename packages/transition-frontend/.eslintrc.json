@@ -1,0 +1,3 @@
+{
+    "extends": "../../../configs/react.eslintrc.json"
+  }

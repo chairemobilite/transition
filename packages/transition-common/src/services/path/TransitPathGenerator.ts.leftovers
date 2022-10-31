@@ -1,0 +1,85 @@
+/** This file contains methods previously in the Path class, but not used in
+transition, unless a certain pathGeneratorEnabled configuration is enabled.
+
+They are kept here for now so they can be turned into a utility later */
+
+generate(generator = null) {
+
+        if (generator) {
+            generator.updatePath(this);
+        }
+        else {
+            generator = new ODProximityLineGenerator({
+                oneWay: true,
+                path: this,
+                direction: this.get('direction'),
+                routingMode: this.getData('routingMode'),
+                routingEngine: this.getData('routingEngine'),
+                terminalNodeIds: this.getData('generator.keepExistingTerminals', false) && this.countNodes() >= 2 ? [this.get('nodes')[0], this.get('nodes')[this.countNodes() - 1]] : undefined,
+                maxTemporalTortuosity: this.getData('generator.maxTemporalTortuosity', Preferences.current.transit.paths.generator.defaultMaxTemporalTortuosity),
+                terminalsMinDistanceMeters: this.getData('generator.minDistanceBetweenTerminalsKm', Preferences.current.transit.paths.generator.defaultMinDistanceBetweenTerminalsKm) * 1000,
+                interNodesDistanceMeters: this.getData('generator.averageInterNodesDistanceMeters', Preferences.current.transit.paths.generator.defaultAvgInterNodesDistanceMeters),
+            });
+        }
+
+        return new Promise(function (resolve, reject) {
+            generator.generate().then(function (generatedPath) {
+                if (generatedPath.isComplete()) {
+                    const generatedPathAttributes = generatedPath.attributes;
+                    const generatedPathData = _cloneDeep(generatedPath.attributes.data);
+                    delete generatedPathAttributes.data;
+                    delete generatedPathAttributes.integer_id;
+                    this.attributes = Object.assign(this.attributes, generatedPathAttributes);
+                    this.attributes.data = Object.assign(this.attributes.data || {}, generatedPathData);
+                    this.updateHistory();
+                    resolve({ generator });
+                }
+                else {
+                    reject(new TrError(
+                        `Cannot generate path (error: no solution found)`,
+                        'PGEN0001',
+                        "TransitPathCannotGenerate"
+                    ));
+                }
+            }.bind(this));
+        }.bind(this));
+
+    }
+
+    suggestNode(generator) {
+
+        if (!generator) {
+            generator = new ODProximityLineGenerator({
+                oneWay: true,
+                path: this,
+                direction: this.get('direction'),
+                routingMode: this.getData('routingMode'),
+                routingEngine: this.getData('routingEngine'),
+                terminalNodeIds: this.getData('generator.keepExistingTerminals', false) && this.countNodes() >= 2 ? [this.get('nodes')[0], this.get('nodes')[this.countNodes() - 1]] : undefined,
+                maxTemporalTortuosity: this.getData('generator.maxTemporalTortuosity', Preferences.current.transit.paths.generator.defaultMaxTemporalTortuosity),
+                terminalsMinDistanceMeters: this.getData('generator.minDistanceBetweenTerminalsKm', Preferences.current.transit.paths.generator.defaultMinDistanceBetweenTerminalsKm) * 1000,
+                interNodesDistanceMeters: this.getData('generator.averageInterNodesDistanceMeters', Preferences.current.transit.paths.generator.defaultAvgInterNodesDistanceMeters),
+            });
+        }
+        generator.updatePath(this);
+
+        return new Promise((resolve, reject) => {
+            generator.suggestNode().then((generatedPath) => {
+                if (generatedPath.isComplete()) {
+                    const generatedPathAttributes = generatedPath.attributes;
+                    const generatedPathData = _cloneDeep(generatedPath.attributes.data);
+                    this.attributes = Object.assign(this.attributes, generatedPathAttributes);
+                    this.attributes.data = Object.assign(this.attributes.data || {}, generatedPathData);
+                    this.updateHistory();
+                    resolve({ generator });
+                }
+                else {
+                    reject(new TrError(
+                        `Cannot suggest node to add to path (error: no solution found)`,
+                        'PGEN0002',
+                        "TransitPathCannotSuggestNode"
+                    ));
+                }
+            });
+        });
+    }

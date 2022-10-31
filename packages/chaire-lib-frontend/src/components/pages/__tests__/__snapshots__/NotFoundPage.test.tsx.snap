@@ -1,0 +1,55 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Should correctly render NotFound page 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "/",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <withI18nextTranslation(NotFoundPage)>
+      <NotFoundPage
+        i18n={Object {}}
+        t={[Function]}
+        tReady={false}
+      >
+        <div>
+          404 - 
+          <Link
+            to="/"
+          >
+            <LinkAnchor
+              href="/"
+              navigate={[Function]}
+            >
+              <a
+                href="/"
+                onClick={[Function]}
+              >
+                BackToHomePage
+              </a>
+            </LinkAnchor>
+          </Link>
+        </div>
+      </NotFoundPage>
+    </withI18nextTranslation(NotFoundPage)>
+  </Router>
+</BrowserRouter>
+`;

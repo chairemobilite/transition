@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`All props 1`] = `
+<input
+  accept="*.zip"
+  autoComplete="none"
+  className="tr__form-input-file apptr__input _input-file"
+  id="fileWidgetId"
+  name="fileWidgetId"
+  onChange={[MockFunction]}
+  type="file"
+/>
+`;
+
+exports[`Default props 1`] = `
+<input
+  autoComplete="none"
+  className="tr__form-input-file apptr__input _input-file"
+  id="fileWidgetId"
+  name="fileWidgetId"
+  type="file"
+/>
+`;
+
+exports[`Disabled 1`] = `
+<input
+  accept="*.zip"
+  autoComplete="none"
+  className="tr__form-input-file apptr__input _input-file"
+  disabled={true}
+  id="fileWidgetId"
+  name="fileWidgetId"
+  onChange={[MockFunction]}
+  type="file"
+/>
+`;

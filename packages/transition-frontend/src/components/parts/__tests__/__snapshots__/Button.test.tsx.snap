@@ -1,0 +1,216 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`All props 1`] = `
+Array [
+  <li
+    className="_list _active"
+    onClick={[MockFunction]}
+  >
+    test
+    <span
+      className="_list-group _right"
+      title="main:Edit"
+    >
+      <span
+        className="_list-element"
+      >
+        <img
+          alt="main:Edit"
+          className="_icon-alone"
+          src="/dist/images/icons/interface/edit_white.svg"
+        />
+      </span>
+    </span>
+    <span
+      className="_list-group _right"
+      onClick={[MockFunction]}
+      title="duplicate"
+    >
+      <span
+        className="_list-element"
+      >
+        <img
+          alt="duplicate"
+          className="_icon"
+          src="/dist/images/icons/interface/copy_white.svg"
+        />
+      </span>
+    </span>
+    <span
+      className="_list-group _right"
+      onClick={[Function]}
+      title="main:Delete"
+    >
+      <span
+        className="_list-element"
+      >
+        <img
+          alt="main:Delete"
+          className="_icon-alone"
+          src="/dist/images/icons/interface/delete_white.svg"
+        />
+      </span>
+    </span>
+  </li>,
+  <li
+    className="_clear"
+  />,
+]
+`;
+
+exports[`Flush action buttons 1`] = `
+Array [
+  <li
+    className="_list _active"
+    onClick={[MockFunction]}
+  >
+    test
+    <span
+      className="_list-group _flush-right _right"
+      title="main:Edit"
+    >
+      <span
+        className="_list-element"
+      >
+        <img
+          alt="main:Edit"
+          className="_icon-alone"
+          src="/dist/images/icons/interface/edit_white.svg"
+        />
+      </span>
+    </span>
+    <span
+      className="_list-group _right"
+      onClick={[MockFunction]}
+      title="duplicate"
+    >
+      <span
+        className="_list-element"
+      >
+        <img
+          alt="duplicate"
+          className="_icon"
+          src="/dist/images/icons/interface/copy_white.svg"
+        />
+      </span>
+    </span>
+    <span
+      className="_list-group _right"
+      onClick={[Function]}
+      title="main:Delete"
+    >
+      <span
+        className="_list-element"
+      >
+        <img
+          alt="main:Delete"
+          className="_icon-alone"
+          src="/dist/images/icons/interface/delete_white.svg"
+        />
+      </span>
+    </span>
+  </li>,
+  <li
+    className="_clear"
+  />,
+]
+`;
+
+exports[`Flush action buttons, just delete 1`] = `
+Array [
+  <li
+    className="_list _active"
+  >
+    test
+    <span
+      className="_list-group _flush-right _right"
+      onClick={[Function]}
+      title="main:Delete"
+    >
+      <span
+        className="_list-element"
+      >
+        <img
+          alt="main:Delete"
+          className="_icon-alone"
+          src="/dist/images/icons/interface/delete_white.svg"
+        />
+      </span>
+    </span>
+  </li>,
+  <li
+    className="_clear"
+  />,
+]
+`;
+
+exports[`Minimal props 1`] = `
+Array [
+  <li
+    className="_list _active"
+  >
+    test
+  </li>,
+  <li
+    className="_clear"
+  />,
+]
+`;
+
+exports[`Not selected, with altText 1`] = `
+Array [
+  <li
+    className="_list"
+    onClick={[MockFunction]}
+  >
+    test
+    <span
+      className="_list-group _right"
+      title="select"
+    >
+      <span
+        className="_list-element"
+      >
+        <img
+          alt="select"
+          className="_icon-alone"
+          src="/dist/images/icons/interface/edit_white.svg"
+        />
+      </span>
+    </span>
+    <span
+      className="_list-group _right"
+      onClick={[MockFunction]}
+      title="duplicate"
+    >
+      <span
+        className="_list-element"
+      >
+        <img
+          alt="duplicate"
+          className="_icon"
+          src="/dist/images/icons/interface/copy_white.svg"
+        />
+      </span>
+    </span>
+    <span
+      className="_list-group _right"
+      onClick={[Function]}
+      title="delete"
+    >
+      <span
+        className="_list-element"
+      >
+        <img
+          alt="delete"
+          className="_icon-alone"
+          src="/dist/images/icons/interface/delete_white.svg"
+        />
+      </span>
+    </span>
+  </li>,
+  <li
+    className="_clear"
+  />,
+]
+`;

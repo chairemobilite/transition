@@ -1,0 +1,25 @@
+[{
+    "title1": "obj1.1",
+    "title2": "obj1.2",
+    "bar": {
+        "subbar1": 3,
+        "subbar2": "2"
+    }
+},
+
+{
+    "title1": "obj2.1",
+    "title2": "obj2.2",
+    "foo": ["arr1", "arr2"]
+},
+{
+    shouldHaveQuote: "2"
+},
+{
+    "title1": "obj4.1",
+    "title2": "obj4.2",
+    "bar": {
+        "subbar1": 3,
+        "subbar2": "2"
+    }
+}]

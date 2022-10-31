@@ -1,0 +1,4 @@
+lib/
+node_modules/
+**/__tests__
+jestSetup.ts

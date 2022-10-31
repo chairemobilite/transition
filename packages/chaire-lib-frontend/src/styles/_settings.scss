@@ -1,0 +1,74 @@
+// Colors
+$background-color:   rgb(29, 31, 33);
+$text-default-color: rgba(216, 239, 253, 0.7);
+$text-active-color:  rgba(216, 239, 253,1.0);
+$link-default-color: rgba(80, 195, 253, 0.7);
+$link-active-color:  rgba(140, 217, 255, 0.8);
+$overlay-white:      rgba(216, 239, 253, 0.05);
+$overlay-dark:       rgb(3, 7, 12);
+$overlay-active:     rgb(0, 46, 114);
+$border-white:       rgba(255,255,255,0.2);
+
+$input: rgba(164, 213, 255, 0.85);
+$input-disabled: rgba(163, 179, 193, 0.85);
+$blue: rgba(0, 143, 214, 1.0);
+$blue-semi-transparent: rgba(0, 143, 214, 0.5);
+$blue-very-transparent: rgba(0, 143, 214, 0.2);
+$dark-blue: rgba(51, 90, 124, 1.0);
+$radio: rgba(73, 64, 44, 0.7);
+$label: rgba(207, 224, 232, 0.85);
+$error: rgba(206, 93, 93, 1.0);
+$red: rgba(206, 93, 93, 1.0);
+$dark-red: rgba(130, 43, 43, 1.0);
+$orange: rgba(240, 122, 26, 1.0);
+$green: rgba(131, 170, 39, 1.0);
+$dark-green: rgba(70, 100, 9, 1.0);
+
+// Button colors
+$button-green: #468024;
+$button-green-gradient-top: #9bc95f;
+$button-green-gradient-bottom: #5f8f38;
+$button-green-border: #e2f0cc;
+$button-red: #921617;
+$button-red-gradient-top: #d97a5f;
+$button-red-gradient-bottom: #b9312e;
+$button-red-border: #ecdcd8;
+$button-blue: #264d9b;
+$button-blue-gradient-top: #6486bd;
+$button-blue-gradient-bottom: #42578d;
+$button-blue-border: #d1dbe5;
+$button-grey: #5c5c5c;
+$button-grey-gradient-top: #8b8b8b;
+$button-grey-gradient-bottom: #595959;
+$button-grey-border: #dfdfdf;
+
+// Form colors
+$input-background: rgba(0,0,0,1.0);
+$invalid-background: rgba(36, 2, 2, 1.0);
+$invalid-border: rgba(214, 77, 77, 0.9);
+
+// Panel colors
+$section-heading-backgroud: rgba(51, 90, 124, 0.3);
+
+// Font Size
+$font-size-xlarge:  2.6rem;
+$font-size-large:  2.2rem;
+$font-size-medium-large: 1.9rem;
+$font-size-medium: 1.7rem;
+$font-size-small:  1.6rem;
+$font-size-xsmall:  1.5rem;
+$font-size-xxsmall:  1.4rem;
+
+// Spacing
+$xxxxs-size: 0.1rem;
+$xxxs-size: 0.2rem;
+$xxs-size: 0.4rem;
+$xs-size: 0.8rem;
+$s-size: 1.2rem;
+$sm-size: 1.4rem;
+$m-size: 1.6rem;
+$l-size: 3.2rem;
+$xl-size: 4.8rem;
+$desktop-breakpoint: 40rem;
+$modal-breakpoint: 25rem;
+$min-width: 320px;

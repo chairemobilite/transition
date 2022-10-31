@@ -1,0 +1,55 @@
+{
+    "type": "FeatureCollection",
+    "features": [{
+        "type": "Feature",
+        "properties": {
+            "entrance": ["home"],
+            "building:flats": 1,
+            "zone_id": "way/1",
+            "building_id": "way/2",
+            "entrance_type": "entrance",
+            "retirement_home": false,
+            "from_landrole": false,
+            "area": 242.66835859963368
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613644, 45.535412]
+        },
+        "id": "node/7"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "entrance": ["home"],
+            "building:flats": 2,
+            "zone_id": "way/1",
+            "building_id": "way/2",
+            "entrance_type": "entrance",
+            "retirement_home": false,
+            "from_landrole": false,
+            "area": 242.66835859963368
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613553, 45.535513]
+        },
+        "id": "node/11"
+    }, {
+        "type": "Feature",
+        "properties": {
+            "entrance": ["other"],
+            "building:flats": 3,
+            "zone_id": "way/1",
+            "building_id": "way/3",
+            "entrance_type": "entrance",
+            "retirement_home": true,
+            "from_landrole": false,
+            "area": 276.0667297772118
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-73.613843, 45.535176]
+        },
+        "id": "node/14"
+    }]
+}

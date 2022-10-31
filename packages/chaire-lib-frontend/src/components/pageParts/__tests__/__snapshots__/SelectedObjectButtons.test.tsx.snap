@@ -1,0 +1,649 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Test with delete button 1`] = `
+<div
+  className="tr__form-buttons-container"
+>
+  <span
+    title="main:Back"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button blue large"
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-arrow-left fa-w-14 _icon-alone"
+          data-icon="arrow-left"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 448 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M257.5 445.1l-22.2 22.2c-9.4 9.4-24.6 9.4-33.9 0L7 273c-9.4-9.4-9.4-24.6 0-33.9L201.4 44.7c9.4-9.4 24.6-9.4 33.9 0l22.2 22.2c9.5 9.5 9.3 25-.4 34.3L136.6 216H424c13.3 0 24 10.7 24 24v32c0 13.3-10.7 24-24 24H136.6l120.5 114.8c9.8 9.3 10 24.8.4 34.3z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Undo"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button grey large disabled"
+        disabled={true}
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-undo-alt fa-w-16 _icon-alone"
+          data-icon="undo-alt"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 512 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M255.545 8c-66.269.119-126.438 26.233-170.86 68.685L48.971 40.971C33.851 25.851 8 36.559 8 57.941V192c0 13.255 10.745 24 24 24h134.059c21.382 0 32.09-25.851 16.971-40.971l-41.75-41.75c30.864-28.899 70.801-44.907 113.23-45.273 92.398-.798 170.283 73.977 169.484 169.442C423.236 348.009 349.816 424 256 424c-41.127 0-79.997-14.678-110.63-41.556-4.743-4.161-11.906-3.908-16.368.553L89.34 422.659c-4.872 4.872-4.631 12.815.482 17.433C133.798 479.813 192.074 504 256 504c136.966 0 247.999-111.033 248-247.998C504.001 119.193 392.354 7.755 255.545 8z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Redo"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button grey large disabled"
+        disabled={true}
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-redo-alt fa-w-16 _icon-alone"
+          data-icon="redo-alt"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 512 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M256.455 8c66.269.119 126.437 26.233 170.859 68.685l35.715-35.715C478.149 25.851 504 36.559 504 57.941V192c0 13.255-10.745 24-24 24H345.941c-21.382 0-32.09-25.851-16.971-40.971l41.75-41.75c-30.864-28.899-70.801-44.907-113.23-45.273-92.398-.798-170.283 73.977-169.484 169.442C88.764 348.009 162.184 424 256 424c41.127 0 79.997-14.678 110.629-41.556 4.743-4.161 11.906-3.908 16.368.553l39.662 39.662c4.872 4.872 4.631 12.815-.482 17.433C378.202 479.813 319.926 504 256 504 119.034 504 8.001 392.967 8 256.002 7.999 119.193 119.646 7.755 256.455 8z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Save"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button green large"
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-check-circle fa-w-16 _icon-alone"
+          data-icon="check-circle"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 512 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M504 256c0 136.967-111.033 248-248 248S8 392.967 8 256 119.033 8 256 8s248 111.033 248 248zM227.314 387.314l184-184c6.248-6.248 6.248-16.379 0-22.627l-22.627-22.627c-6.248-6.249-16.379-6.249-22.628 0L216 308.118l-70.059-70.059c-6.248-6.248-16.379-6.248-22.628 0l-22.627 22.627c-6.248 6.248-6.248 16.379 0 22.627l104 104c6.249 6.249 16.379 6.249 22.628.001z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Delete"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button red large"
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-trash-alt fa-w-14 _icon-alone"
+          data-icon="trash-alt"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 448 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M32 464a48 48 0 0 0 48 48h288a48 48 0 0 0 48-48V128H32zm272-256a16 16 0 0 1 32 0v224a16 16 0 0 1-32 0zm-96 0a16 16 0 0 1 32 0v224a16 16 0 0 1-32 0zm-96 0a16 16 0 0 1 32 0v224a16 16 0 0 1-32 0zM432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+</div>
+`;
+
+exports[`Test with save button 1`] = `
+<div
+  className="tr__form-buttons-container"
+>
+  <span
+    title="main:Back"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button blue large"
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-arrow-left fa-w-14 _icon-alone"
+          data-icon="arrow-left"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 448 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M257.5 445.1l-22.2 22.2c-9.4 9.4-24.6 9.4-33.9 0L7 273c-9.4-9.4-9.4-24.6 0-33.9L201.4 44.7c9.4-9.4 24.6-9.4 33.9 0l22.2 22.2c9.5 9.5 9.3 25-.4 34.3L136.6 216H424c13.3 0 24 10.7 24 24v32c0 13.3-10.7 24-24 24H136.6l120.5 114.8c9.8 9.3 10 24.8.4 34.3z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Undo"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button grey large disabled"
+        disabled={true}
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-undo-alt fa-w-16 _icon-alone"
+          data-icon="undo-alt"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 512 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M255.545 8c-66.269.119-126.438 26.233-170.86 68.685L48.971 40.971C33.851 25.851 8 36.559 8 57.941V192c0 13.255 10.745 24 24 24h134.059c21.382 0 32.09-25.851 16.971-40.971l-41.75-41.75c30.864-28.899 70.801-44.907 113.23-45.273 92.398-.798 170.283 73.977 169.484 169.442C423.236 348.009 349.816 424 256 424c-41.127 0-79.997-14.678-110.63-41.556-4.743-4.161-11.906-3.908-16.368.553L89.34 422.659c-4.872 4.872-4.631 12.815.482 17.433C133.798 479.813 192.074 504 256 504c136.966 0 247.999-111.033 248-247.998C504.001 119.193 392.354 7.755 255.545 8z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Redo"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button grey large disabled"
+        disabled={true}
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-redo-alt fa-w-16 _icon-alone"
+          data-icon="redo-alt"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 512 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M256.455 8c66.269.119 126.437 26.233 170.859 68.685l35.715-35.715C478.149 25.851 504 36.559 504 57.941V192c0 13.255-10.745 24-24 24H345.941c-21.382 0-32.09-25.851-16.971-40.971l41.75-41.75c-30.864-28.899-70.801-44.907-113.23-45.273-92.398-.798-170.283 73.977-169.484 169.442C88.764 348.009 162.184 424 256 424c41.127 0 79.997-14.678 110.629-41.556 4.743-4.161 11.906-3.908 16.368.553l39.662 39.662c4.872 4.872 4.631 12.815-.482 17.433C378.202 479.813 319.926 504 256 504 119.034 504 8.001 392.967 8 256.002 7.999 119.193 119.646 7.755 256.455 8z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Save"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button green large"
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-check-circle fa-w-16 _icon-alone"
+          data-icon="check-circle"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 512 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M504 256c0 136.967-111.033 248-248 248S8 392.967 8 256 119.033 8 256 8s248 111.033 248 248zM227.314 387.314l184-184c6.248-6.248 6.248-16.379 0-22.627l-22.627-22.627c-6.248-6.249-16.379-6.249-22.628 0L216 308.118l-70.059-70.059c-6.248-6.248-16.379-6.248-22.628 0l-22.627 22.627c-6.248 6.248-6.248 16.379 0 22.627l104 104c6.249 6.249 16.379 6.249 22.628.001z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Delete"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button red large"
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-trash-alt fa-w-14 _icon-alone"
+          data-icon="trash-alt"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 448 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M32 464a48 48 0 0 0 48 48h288a48 48 0 0 0 48-48V128H32zm272-256a16 16 0 0 1 32 0v224a16 16 0 0 1-32 0zm-96 0a16 16 0 0 1 32 0v224a16 16 0 0 1-32 0zm-96 0a16 16 0 0 1 32 0v224a16 16 0 0 1-32 0zM432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+</div>
+`;
+
+exports[`Test without delete button 1`] = `
+<div
+  className="tr__form-buttons-container"
+>
+  <span
+    title="main:Back"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button blue large"
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-arrow-left fa-w-14 _icon-alone"
+          data-icon="arrow-left"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 448 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M257.5 445.1l-22.2 22.2c-9.4 9.4-24.6 9.4-33.9 0L7 273c-9.4-9.4-9.4-24.6 0-33.9L201.4 44.7c9.4-9.4 24.6-9.4 33.9 0l22.2 22.2c9.5 9.5 9.3 25-.4 34.3L136.6 216H424c13.3 0 24 10.7 24 24v32c0 13.3-10.7 24-24 24H136.6l120.5 114.8c9.8 9.3 10 24.8.4 34.3z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Undo"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button grey large disabled"
+        disabled={true}
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-undo-alt fa-w-16 _icon-alone"
+          data-icon="undo-alt"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 512 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M255.545 8c-66.269.119-126.438 26.233-170.86 68.685L48.971 40.971C33.851 25.851 8 36.559 8 57.941V192c0 13.255 10.745 24 24 24h134.059c21.382 0 32.09-25.851 16.971-40.971l-41.75-41.75c30.864-28.899 70.801-44.907 113.23-45.273 92.398-.798 170.283 73.977 169.484 169.442C423.236 348.009 349.816 424 256 424c-41.127 0-79.997-14.678-110.63-41.556-4.743-4.161-11.906-3.908-16.368.553L89.34 422.659c-4.872 4.872-4.631 12.815.482 17.433C133.798 479.813 192.074 504 256 504c136.966 0 247.999-111.033 248-247.998C504.001 119.193 392.354 7.755 255.545 8z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Redo"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button grey large disabled"
+        disabled={true}
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-redo-alt fa-w-16 _icon-alone"
+          data-icon="redo-alt"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 512 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M256.455 8c66.269.119 126.437 26.233 170.859 68.685l35.715-35.715C478.149 25.851 504 36.559 504 57.941V192c0 13.255-10.745 24-24 24H345.941c-21.382 0-32.09-25.851-16.971-40.971l41.75-41.75c-30.864-28.899-70.801-44.907-113.23-45.273-92.398-.798-170.283 73.977-169.484 169.442C88.764 348.009 162.184 424 256 424c41.127 0 79.997-14.678 110.629-41.556 4.743-4.161 11.906-3.908 16.368.553l39.662 39.662c4.872 4.872 4.631 12.815-.482 17.433C378.202 479.813 319.926 504 256 504 119.034 504 8.001 392.967 8 256.002 7.999 119.193 119.646 7.755 256.455 8z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Save"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button green large"
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-check-circle fa-w-16 _icon-alone"
+          data-icon="check-circle"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 512 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M504 256c0 136.967-111.033 248-248 248S8 392.967 8 256 119.033 8 256 8s248 111.033 248 248zM227.314 387.314l184-184c6.248-6.248 6.248-16.379 0-22.627l-22.627-22.627c-6.248-6.249-16.379-6.249-22.628 0L216 308.118l-70.059-70.059c-6.248-6.248-16.379-6.248-22.628 0l-22.627 22.627c-6.248 6.248-6.248 16.379 0 22.627l104 104c6.249 6.249 16.379 6.249 22.628.001z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+</div>
+`;
+
+exports[`Test without save button 1`] = `
+<div
+  className="tr__form-buttons-container"
+>
+  <span
+    title="main:Back"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button blue large"
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-arrow-left fa-w-14 _icon-alone"
+          data-icon="arrow-left"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 448 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M257.5 445.1l-22.2 22.2c-9.4 9.4-24.6 9.4-33.9 0L7 273c-9.4-9.4-9.4-24.6 0-33.9L201.4 44.7c9.4-9.4 24.6-9.4 33.9 0l22.2 22.2c9.5 9.5 9.3 25-.4 34.3L136.6 216H424c13.3 0 24 10.7 24 24v32c0 13.3-10.7 24-24 24H136.6l120.5 114.8c9.8 9.3 10 24.8.4 34.3z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Undo"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button grey large disabled"
+        disabled={true}
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-undo-alt fa-w-16 _icon-alone"
+          data-icon="undo-alt"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 512 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M255.545 8c-66.269.119-126.438 26.233-170.86 68.685L48.971 40.971C33.851 25.851 8 36.559 8 57.941V192c0 13.255 10.745 24 24 24h134.059c21.382 0 32.09-25.851 16.971-40.971l-41.75-41.75c30.864-28.899 70.801-44.907 113.23-45.273 92.398-.798 170.283 73.977 169.484 169.442C423.236 348.009 349.816 424 256 424c-41.127 0-79.997-14.678-110.63-41.556-4.743-4.161-11.906-3.908-16.368.553L89.34 422.659c-4.872 4.872-4.631 12.815.482 17.433C133.798 479.813 192.074 504 256 504c136.966 0 247.999-111.033 248-247.998C504.001 119.193 392.354 7.755 255.545 8z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Redo"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button grey large disabled"
+        disabled={true}
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-redo-alt fa-w-16 _icon-alone"
+          data-icon="redo-alt"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 512 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M256.455 8c66.269.119 126.437 26.233 170.859 68.685l35.715-35.715C478.149 25.851 504 36.559 504 57.941V192c0 13.255-10.745 24-24 24H345.941c-21.382 0-32.09-25.851-16.971-40.971l41.75-41.75c-30.864-28.899-70.801-44.907-113.23-45.273-92.398-.798-170.283 73.977-169.484 169.442C88.764 348.009 162.184 424 256 424c41.127 0 79.997-14.678 110.629-41.556 4.743-4.161 11.906-3.908 16.368.553l39.662 39.662c4.872 4.872 4.631 12.815-.482 17.433C378.202 479.813 319.926 504 256 504 119.034 504 8.001 392.967 8 256.002 7.999 119.193 119.646 7.755 256.455 8z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+  <span
+    title="main:Delete"
+  >
+    <div
+      className="center"
+      style={Object {}}
+    >
+      <button
+        className="button red large"
+        onClick={[Function]}
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          className="svg-inline--fa fa-trash-alt fa-w-14 _icon-alone"
+          data-icon="trash-alt"
+          data-prefix="fas"
+          focusable="false"
+          role="img"
+          style={Object {}}
+          viewBox="0 0 448 512"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M32 464a48 48 0 0 0 48 48h288a48 48 0 0 0 48-48V128H32zm272-256a16 16 0 0 1 32 0v224a16 16 0 0 1-32 0zm-96 0a16 16 0 0 1 32 0v224a16 16 0 0 1-32 0zm-96 0a16 16 0 0 1 32 0v224a16 16 0 0 1-32 0zM432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16z"
+            fill="currentColor"
+            style={Object {}}
+          />
+        </svg>
+         
+        
+      </button>
+    </div>
+  </span>
+</div>
+`;

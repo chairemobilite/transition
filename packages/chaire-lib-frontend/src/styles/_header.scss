@@ -1,0 +1,33 @@
+header {
+  width: 100%;
+  background: $overlay-white;
+  border-bottom: 1px solid $border-white;
+
+  .header__content {
+    font-size: $font-size-small;
+    align-items: flex-end;
+    display: flex;
+    justify-content: space-between;
+    padding: $xxs-size;
+    h1 {
+      opacity: 0.6;
+      margin: 0;
+      font-size: $font-size-small;
+      font-weight: 300;
+    }
+    ul {
+      padding: 0;
+      list-style: none;
+    }
+    li {
+      display: flex;
+    }
+
+  }
+
+  .header__title {
+    //color: $dark-blue;
+    text-decoration: none;
+  }
+  
+}

@@ -1,0 +1,25 @@
+.tr__widgets__container {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 2rem;
+  align-items: flex-start;
+}
+
+.tr__widget__container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 25rem;
+  min-height: 10rem;
+  border-radius: 3rem;
+  background-color: rgba(0,0,0,0.8);
+  border: 0.4rem solid rgba(255,255,255,0.1);
+  flex-direction: column;
+  padding: 2rem;
+  margin: 0.5rem;
+}
+
+.tr__widget__big-value {
+  font-size: 200%;
+  font-weight: bold;
+}

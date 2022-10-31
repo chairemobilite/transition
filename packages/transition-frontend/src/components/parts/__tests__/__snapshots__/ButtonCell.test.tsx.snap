@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Flush align, one child 1`] = `
+<span
+  className="_list-group _flush-right _right"
+>
+  <span
+    className="_list-element"
+  >
+    test
+  </span>
+</span>
+`;
+
+exports[`Left align, one child 1`] = `
+<span
+  className="_list-group _left"
+>
+  <span
+    className="_list-element"
+  >
+    test
+  </span>
+</span>
+`;
+
+exports[`More complex children, onClick 1`] = `
+<span
+  className="_list-group _left"
+  onClick={[MockFunction]}
+  title="title"
+>
+  <span
+    className="_list-element"
+  >
+    <h2>
+      test
+    </h2>
+    other text
+  </span>
+</span>
+`;
+
+exports[`Rigth align, one child 1`] = `
+<span
+  className="_list-group _right"
+>
+  <span
+    className="_list-element"
+  >
+    test
+  </span>
+</span>
+`;

@@ -1,0 +1,395 @@
+/*
+ * Copyright 2022, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
+import { TransitRouting, TransitRoutingAttributes } from '../TransitRouting';
+import GeoJSON from 'geojson';
+import { minutesToSeconds } from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import each from 'jest-each';
+import { TestUtils } from 'chaire-lib-common/lib/test';
+
+const MAX_MAX_ACCESS_EGRESS = minutesToSeconds(40) as number;
+const MAX_MAX_TRANSFER_TIME = minutesToSeconds(20) as number;
+const MIN_MIN_WAITING_TIME = minutesToSeconds(1) as number;
+
+let attributes: TransitRoutingAttributes;
+let transitRouting: TransitRouting;
+let errors: string[];
+let msgErrors = {
+    departureAndArrivalTimeAreBlank: 'transit:transitRouting:errors:DepartureAndArrivalTimeAreBlank',
+    departureAndArrivalTimeAreBothNotBlank: 'transit:transitRouting:errors:DepartureAndArrivalTimeAreBothNotBlank',
+    scenarioIsMissing: 'transit:transitRouting:errors:ScenarioIsMissing',
+    accessEgressTravelTimeSecondsTooLarge: 'transit:transitRouting:errors:AccessEgressTravelTimeSecondsTooLarge',
+    maxAccessEgressNoNegative: 'transit:transitRouting:errors:AccessEgressTravelTimeSecondsNoNegative',
+    transferTravelTimeSecondsTooLarge: 'transit:transitRouting:errors:TransferTravelTimeSecondsTooLarge',
+    transferTravelTimeSecondsNoNegative: 'transit:transitRouting:errors:TransferTravelTimeSecondsNoNegative',
+    minimumWaitingTimeSecondsMustBeAtLeast1Minute: 'transit:transitRouting:errors:MinimumWaitingTimeSecondsMustBeAtLeast1Minute',
+    routingModesIsEmpty: 'transit:transitRouting:errors:RoutingModesIsEmpty'
+};
+
+beforeEach(function () {
+    const routing = new TransitRouting({});
+    const batchRoutingQueries = routing.getAttributes().savedForBatch;
+    attributes = {
+        id: '000',
+        is_frozen: false,
+        data: {},
+        savedForBatch: batchRoutingQueries
+    };
+
+    transitRouting = new TransitRouting(attributes, true);
+});
+
+describe('origin destination function', () => {
+    test('no origin destination', () => {
+        expect(transitRouting.hasOrigin()).toEqual(false);
+        expect(transitRouting.hasDestination()).toEqual(false);
+        expect(transitRouting.originLat()).toEqual(null);
+        expect(transitRouting.originLon()).toEqual(null);
+        expect(transitRouting.destinationLat()).toEqual(null);
+        expect(transitRouting.destinationLon()).toEqual(null);
+    });
+
+    test('set origin destination', () => {
+        let originGeojson: GeoJSON.Position = [-73, 46];
+        let destinationGeojson: GeoJSON.Position = [-74, 45];
+
+        transitRouting.setOrigin(originGeojson);
+        transitRouting.setDestination(destinationGeojson);
+
+        expect(transitRouting.hasOrigin()).toEqual(true);
+        expect(transitRouting.hasDestination()).toEqual(true);
+        expect(transitRouting.originLat()).toEqual(originGeojson[1]);
+        expect(transitRouting.originLon()).toEqual(originGeojson[0]);
+        expect(transitRouting.destinationLat()).toEqual(destinationGeojson[1]);
+        expect(transitRouting.destinationLon()).toEqual(destinationGeojson[0]);
+    });
+});
+
+describe('Validate function', () => {
+    const objtestIsBlank = {
+        attributes: {
+            routingModes: ['transit']
+        },
+        isValid: false,
+        errors: [msgErrors.departureAndArrivalTimeAreBlank, msgErrors.scenarioIsMissing]
+    };
+
+    const objtestIsNotBlank = {
+        attributes: {
+            routingModes: ['transit'],
+            scenarioId: '0',
+            departureTimeSecondsSinceMidnight: 0,
+            arrivalTimeSecondsSinceMidnight: 0
+        },
+        isValid: false,
+        errors: [msgErrors.departureAndArrivalTimeAreBothNotBlank]
+    };
+
+    const objtestMaxAccessEgressNoNegative = {
+        attributes: {
+            routingModes: ['transit'],
+            odTripUuid: '868d633f-34e0-4b61-a9cc-61f0512000c3',
+            scenarioId: '0',
+            maxAccessEgressTravelTimeSeconds: -1
+        },
+        isValid: false,
+        errors: [msgErrors.maxAccessEgressNoNegative]
+    };
+
+    const objtestMaxAccessEgressTooLarge = {
+        attributes: {
+            routingModes: ['transit'],
+            odTripUuid: '868d633f-34e0-4b61-a9cc-61f0512000c3',
+            scenarioId: '0',
+            maxAccessEgressTravelTimeSeconds: MAX_MAX_ACCESS_EGRESS + 1
+        },
+        isValid: false,
+        errors: [msgErrors.accessEgressTravelTimeSecondsTooLarge]
+    };
+
+    const objtestMaxTransferTimeNoNegative = {
+        attributes: {
+            routingModes: ['transit'],
+            odTripUuid: '868d633f-34e0-4b61-a9cc-61f0512000c3',
+            scenarioId: '0',
+            maxTransferTravelTimeSeconds: -1
+        },
+        isValid: false,
+        errors: [msgErrors.transferTravelTimeSecondsNoNegative]
+    };
+
+    const objtestMaxTransferTimeTooLarge = {
+        attributes: {
+            routingModes: ['transit'],
+            odTripUuid: '868d633f-34e0-4b61-a9cc-61f0512000c3',
+            scenarioId: '0',
+            maxTransferTravelTimeSeconds: MAX_MAX_TRANSFER_TIME + 1
+        },
+        isValid: false,
+        errors: [msgErrors.transferTravelTimeSecondsTooLarge]
+    };
+
+    const objtestMinWaitingTimeAtLeast1Minute = {
+        attributes: {
+            routingModes: ['transit'],
+            odTripUuid: '868d633f-34e0-4b61-a9cc-61f0512000c3',
+            scenarioId: '0',
+            minWaitingTimeSeconds: MIN_MIN_WAITING_TIME - 1
+        },
+        isValid: false,
+        errors: [msgErrors.minimumWaitingTimeSecondsMustBeAtLeast1Minute]
+    };
+
+    const objtestValidateMaxMaxAccessEgressAndMaxMaxTransferTime = {
+        attributes: {
+            routingModes: ['transit'],
+            odTripUuid: '868d633f-34e0-4b61-a9cc-61f0512000c3',
+            scenarioId: '0',
+            departureTimeSecondsSinceMidnight: 0,
+            arrivalTimeSecondsSinceMidnight: 0,
+            maxAccessEgressTravelTimeSeconds: MAX_MAX_ACCESS_EGRESS,
+            maxTransferTravelTimeSeconds: MAX_MAX_TRANSFER_TIME,
+            minWaitingTimeSeconds: MIN_MIN_WAITING_TIME,
+        },
+        isValid: true,
+        errors: []
+    };
+
+    const objtestValidateMinMaxAccessEgressAndMinMaxTransferTime = {
+        attributes: {
+            routingModes: ['transit'],
+            odTripUuid: '868d633f-34e0-4b61-a9cc-61f0512000c3',
+            scenarioId: '0',
+            departureTimeSecondsSinceMidnight: 0,
+            arrivalTimeSecondsSinceMidnight: 0,
+            maxAccessEgressTravelTimeSeconds: 0,
+            maxTransferTravelTimeSeconds: 0,
+            minWaitingTimeSeconds: MIN_MIN_WAITING_TIME
+        },
+        isValid: true,
+        errors: []
+    };
+
+    const objtestValidateonlyWalking = {
+        attributes: {
+            routingModes: ['walking']
+        },
+        isValid: true,
+        errors: []
+    };
+
+    const objtestValidateEmptyRoutingModes = {
+        attributes: {
+            routingModes: []
+        },
+        isValid: false,
+        errors: [msgErrors.routingModesIsEmpty]
+    };
+
+    each([
+        ['is blank', objtestIsBlank],
+        ['is not blank', objtestIsNotBlank],
+        ['maxAccessEgress no negative', objtestMaxAccessEgressNoNegative],
+        ['maxAccessEgress too large', objtestMaxAccessEgressTooLarge],
+        ['maxTransferTime no negative', objtestMaxTransferTimeNoNegative],
+        ['maxTransferTime too large', objtestMaxTransferTimeTooLarge],
+        ['minWaitingTime at least 1 minute', objtestMinWaitingTimeAtLeast1Minute],
+        ['validate max maxAccessEgress and max maxTransferTime', objtestValidateMaxMaxAccessEgressAndMaxMaxTransferTime],
+        ['validate min maxAccessEgress and min maxTransferTime', objtestValidateMinMaxAccessEgressAndMinMaxTransferTime],
+        ['validate without transit routing mode', objtestValidateonlyWalking],
+        ['routing modes is not empty', objtestValidateEmptyRoutingModes],
+    ]).test('%s', (nameTest, objTest) => {
+        const allAttributes = Object.assign(attributes, objTest.attributes);
+        transitRouting.setAttributes(allAttributes);
+
+        expect(transitRouting.validate()).toEqual(objTest.isValid);
+
+        errors = transitRouting.getErrors();
+
+        expect(errors.length).toEqual(objTest.errors.length);
+
+        expect(errors).toEqual(objTest.errors);
+    })
+});
+
+describe('GeoJSON function', () => {
+    test('pathToGeojson empty', () => {
+        let pathToGeojson = transitRouting.pathToGeojson();
+
+        expect(pathToGeojson.type).toEqual('FeatureCollection');
+        expect(pathToGeojson.features).toEqual([]);
+    });
+
+    test('valid pathToGeojson', () => {
+        let attrPathGeojson: GeoJSON.FeatureCollection = {
+            'type': 'FeatureCollection',
+            'features': [
+                {
+                    'type': 'Feature',
+                    'properties': {
+                        'shortname': 'saintJerome',
+                        'code': '11430',
+                        'name': 'Saint-Jérôme',
+                        'internalId': 140
+                    },
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [
+                            -73.999116574088,
+                            45.7731786028551
+                        ]
+                    }
+                },
+                {
+                    'type': 'Feature',
+                    'properties': {
+                        'shortname': 'blainville',
+                        'code': '11410',
+                        'name': 'Blainville',
+                        'internalId': 138
+                    },
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [
+                            -73.8661597194296,
+                            45.672417585119
+                        ]
+                    }
+                }
+            ]
+        };
+
+        attributes.pathGeojson = attrPathGeojson;
+        transitRouting.setAttributes(attributes);
+
+        let pathToGeojson = transitRouting.pathToGeojson();
+
+        expect(pathToGeojson).toEqual(attrPathGeojson);
+        expect(pathToGeojson.type).toEqual('FeatureCollection');
+        expect(pathToGeojson.features).toEqual(attrPathGeojson.features);
+    });
+
+    test('walkingOnlyPathToGeojson empty', () => {
+        let pathToGeojson = transitRouting.pathToGeojson();
+
+        expect(pathToGeojson.type).toEqual('FeatureCollection');
+        expect(pathToGeojson.features).toEqual([]);
+    });
+
+    test('walkingOnlyPathToGeojson valide', () => {
+        let attrPathGeojson: GeoJSON.FeatureCollection = {
+            'type': 'FeatureCollection',
+            'features': [
+                {
+                    'type': 'Feature',
+                    'properties': {
+                        'shortname': 'saintJerome',
+                        'code': '11430',
+                        'name': 'Saint-Jérôme',
+                        'internalId': 140
+                    },
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [
+                            -73.999116574088,
+                            45.7731786028551
+                        ]
+                    }
+                },
+                {
+                    'type': 'Feature',
+                    'properties': {
+                        'shortname': 'blainville',
+                        'code': '11410',
+                        'name': 'Blainville',
+                        'internalId': 138
+                    },
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': [
+                            -73.8661597194296,
+                            45.672417585119
+                        ]
+                    }
+                }
+            ]
+        };
+
+        attributes.walkingOnlyPathGeojson = attrPathGeojson;
+        transitRouting.setAttributes(attributes);
+
+        let pathToGeojson = transitRouting.walkingOnlyPathToGeojson();
+
+        expect(pathToGeojson).toEqual(pathToGeojson);
+        expect(pathToGeojson.type).toEqual('FeatureCollection');
+        expect(pathToGeojson.features).toEqual(attrPathGeojson.features);
+    });
+});
+
+describe('Test add elements for batch', () => {
+    const orig1: [number, number] = [-73, 45];
+    const dest1: [number, number] = [-73.4, 45.4];
+    const element1 = {
+        departureTimeSecondsSinceMidnight: 28800,
+        originGeojson: TestUtils.makePoint(orig1),
+        destinationGeojson: TestUtils.makePoint(dest1)
+    };
+    const element2 = {
+        departureTimeSecondsSinceMidnight: 28800,
+        originGeojson: TestUtils.makePoint([orig1[0] + 0.1, orig1[1] + 0.1]),
+        destinationGeojson: TestUtils.makePoint([orig1[0] + 0.2, orig1[1] + 0.2])
+    };
+    const duplicate = {
+        departureTimeSecondsSinceMidnight: 28800,
+        originGeojson: TestUtils.makePoint(orig1),
+        destinationGeojson: TestUtils.makePoint(dest1)
+    };
+    const otherTime = {
+        departureTimeSecondsSinceMidnight: 38800,
+        originGeojson: TestUtils.makePoint(orig1),
+        destinationGeojson: TestUtils.makePoint(dest1)
+    };
+    const otherTypeOfTime = {
+        arrivalTimeSecondsSinceMidnight: 28800,
+        originGeojson: TestUtils.makePoint(orig1),
+        destinationGeojson: TestUtils.makePoint(dest1)
+    };
+
+    test('Test add valid element', () => {
+        const routing = new TransitRouting({});
+        const batchRoutingQueries = routing.getAttributes().savedForBatch;
+        routing.addElementForBatch(element1);
+        expect(batchRoutingQueries.length).toEqual(1);
+
+        routing.addElementForBatch(element2);
+        expect(batchRoutingQueries.length).toEqual(2);
+
+        routing.addElementForBatch(otherTime);
+        expect(batchRoutingQueries.length).toEqual(3);
+
+        routing.addElementForBatch(otherTypeOfTime);
+        expect(batchRoutingQueries.length).toEqual(4);
+        expect(batchRoutingQueries).toContainEqual(element1);
+        expect(batchRoutingQueries).toContainEqual(element2);
+        expect(batchRoutingQueries).toContainEqual(otherTime);
+        expect(batchRoutingQueries).toContainEqual(otherTypeOfTime);
+    });
+
+    test('Test duplicate element', () => {
+        const routing = new TransitRouting({});
+        const batchRoutingQueries = routing.getAttributes().savedForBatch;
+        routing.addElementForBatch(element1);
+        expect(batchRoutingQueries.length).toEqual(1);
+
+        routing.addElementForBatch(element2);
+        expect(batchRoutingQueries.length).toEqual(2);
+
+        routing.addElementForBatch(duplicate);
+        expect(batchRoutingQueries.length).toEqual(2);
+        expect(batchRoutingQueries).toContainEqual(element1);
+        expect(batchRoutingQueries).toContainEqual(element2);
+    });
+});
