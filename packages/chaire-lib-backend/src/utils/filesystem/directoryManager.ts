@@ -26,7 +26,6 @@ const getSize = (absolutePath: string): number => {
 };
 
 export class DirectoryManager {
-    private _rootDirectory: string;
     private _projectDirectory: string;
     private _gtfsDirectory: string;
     private _osrmDirectory: string;
@@ -35,7 +34,6 @@ export class DirectoryManager {
     private _userDataDirectory: string;
 
     constructor(projectDirectory: string, projectShortname: string) {
-        this._rootDirectory = path.normalize(`${__dirname}/../../../../../../`);
         this._projectDirectory = path.normalize(`${projectDirectory}`);
         this._gtfsDirectory = path.normalize(`${this._projectDirectory}/gtfs`);
         this._osrmDirectory = path.normalize(`${this._projectDirectory}/osrm`);
@@ -44,16 +42,6 @@ export class DirectoryManager {
         // we repeat the project shortname in the path to make it easier to move around and archive for trRouting:
         this._transitCacheDirectory = path.normalize(`${this._projectDirectory}/cache/transit/${projectShortname}`);
         this._userDataDirectory = path.normalize(`${this._projectDirectory}/userData`);
-    }
-
-    /**
-     * Absolute path to the root directory of the application
-     *
-     * @readonly
-     * @memberof DirectoryManager
-     */
-    get rootDirectory() {
-        return this._rootDirectory;
     }
 
     /**

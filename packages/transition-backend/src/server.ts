@@ -64,5 +64,5 @@ if (!useSSL) {
 }
 
 // Register server translations
-registerTranslationDir(join(__dirname, '../../../../locales/transition/'));
+registerTranslationDir(join(__dirname, '../../../locales/'));
 addTranslationNamespace('transit');

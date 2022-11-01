@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 /* eslint-disable node/no-unpublished-require */
-const baseConfig = require('../../../jest.config.base');
+const baseConfig = require('../../tests/jest.config.base');
 
 // There is capnp cache tests to run in this package, the rust server should be started by the following commands:
 // `cd /services/json2capnp`

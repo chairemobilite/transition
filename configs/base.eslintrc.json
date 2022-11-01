@@ -1,0 +1,38 @@
+{
+    "extends": [
+        "./gts.eslintrc.json",
+        "plugin:@typescript-eslint/recommended" // Uses the recommended rules from the @typescript-eslint/eslint-plugin
+    ],
+    "rules": {
+        "prettier/prettier": "off",   // We'll use prettier-eslint to format before running eslint, that's the way to go to have allman braces AND prettier formatting
+        "@typescript-eslint/no-var-requires": "warn",
+        "arrow-parens": ["error", "always"],
+        "brace-style": ["warn", "1tbs", { "allowSingleLine": true }],
+        "constructor-super": "warn",
+        "node/no-missing-require": ["error", {
+            "tryExtensions": [".js", ".json", ".node", ".ts"]
+        }],
+        "indent": ["warn", 4, {"VariableDeclarator": 0}],
+        "linebreak-style": ["error", "unix"],
+        "no-dupe-keys": "warn",
+        "no-empty": "warn",
+        "no-empty-function": "error",
+        "no-unexpected-multiline": "warn",
+        "no-constant-condition": "warn",
+        "no-this-before-super": "warn",
+        "no-import-assign": "warn",
+        "no-irregular-whitespace": "warn",
+        "no-trailing-spaces": "error",
+        "no-const-assign": "warn",
+        "no-mixed-spaces-and-tabs": "warn",
+        "no-useless-escape": "warn",
+        "no-cond-assign": "warn",
+        "no-dupe-else-if": "warn",
+        "no-unused-vars": "off",
+        "@typescript-eslint/no-unused-vars": ["warn", { "vars": "all", "args": "after-used", "argsIgnorePattern": "^_", "ignoreRestSiblings": false }],
+        "object-curly-spacing": ["warn", "always"],
+        "semi": ["error", "always"],
+        "quotes": ["warn", "single"]
+    }
+}
+  

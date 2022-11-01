@@ -9,8 +9,7 @@ import path from 'path';
 
 import { fileManager } from '../fileManager';
 
-const rootDirectory = path.normalize(`${__dirname}/../../../../../../../`);
-const projectDirectoryPath = path.normalize(`${rootDirectory}projects/test`);
+const projectDirectoryPath = path.normalize(`${__dirname}/../../../../../../tests/runtime/`);
 const projectRelativeDirectoryTestPath = 'test/recursive/directory';
 const projectRelativeFileDirectoryTestPath = 'test/recursive/directory/foo';
 const projectRelativeFileTestPath = 'test/recursive/directory/foo/bar.txt';
@@ -48,12 +47,11 @@ describe('Utils:Filesystem', function () {
     // directories:
 
     test('Base directories', function () {
-        expect(fileManager.directoryManager.rootDirectory).toEqual(rootDirectory);
         expect(fileManager.directoryManager.projectDirectory).toEqual(projectDirectoryPath);
-        expect(fileManager.directoryManager.gtfsDirectory).toEqual(projectDirectoryPath + '/gtfs');
-        expect(fileManager.directoryManager.cacheDirectory).toEqual(projectDirectoryPath + '/cache');
-        expect(fileManager.directoryManager.osrmDirectory).toEqual(projectDirectoryPath + '/osrm');
-        expect(fileManager.directoryManager.transitCacheDirectory).toEqual(projectDirectoryPath + '/cache/transit/test');
+        expect(fileManager.directoryManager.gtfsDirectory).toEqual(path.normalize(projectDirectoryPath + '/gtfs'));
+        expect(fileManager.directoryManager.cacheDirectory).toEqual(path.normalize(projectDirectoryPath + '/cache'));
+        expect(fileManager.directoryManager.osrmDirectory).toEqual(path.normalize(projectDirectoryPath + '/osrm'));
+        expect(fileManager.directoryManager.transitCacheDirectory).toEqual(path.normalize(projectDirectoryPath + '/cache/transit/test'));
     });
 
     test('directory manager should create the test project directory and return the absolute path', function () {

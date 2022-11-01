@@ -79,9 +79,13 @@ services/json2capnp/testData
 .vscode/restore-terminals.json
 
 # custom
+public/dist/
+public/index.html
 packages/**/lib
 packages/**/node_modules
 packages/transition/backend/file/
+tests/runtime
+tests/test
 
 #example apps
 examples/**/runtime

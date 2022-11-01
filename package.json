@@ -1,0 +1,47 @@
+{
+    "private": true,
+    "name": "transition",
+    "workspaces": [
+        "packages/chaire-lib-common",
+        "packages/chaire-lib-backend",
+        "packages/chaire-lib-frontend",
+        "packages/transition-common",
+        "packages/transition-backend",
+        "packages/transition-frontend"
+    ],
+    "scripts": {
+        "create-project": "yarn workspace transition-legacy run create-project",
+        "setup": "yarn workspace chaire-lib-backend run setup",
+        "setup-test": "yarn workspace chaire-lib-backend run setup-test",
+        "migrate": "knex migrate:latest",
+        "migrate-test": "cross-env NODE_ENV=test knex migrate:latest",
+        "clean": "yarn workspaces run clean",
+        "compile": "yarn workspaces run compile",
+        "compile:dev": "yarn wsrun compile:dev",
+        "create-user": "yarn workspace chaire-lib-backend run create-user",
+        "build:dev": "yarn workspace transition-legacy run build:dev",
+        "build:prod": "yarn workspace transition-legacy run build:prod",
+        "build:transition:dev": "yarn workspace transition-frontend run build:dev",
+        "build:transition:prod": "yarn workspace transition-frontend run build:prod",
+        "start:debug": "yarn workspace transition-legacy run start:debug",
+        "start": "yarn workspace transition-legacy run start",
+        "start:tracing": "yarn workspace transition-legacy run start:tracing",
+        "start:transition": "yarn workspace transition-backend run start",
+        "start:transition:tracing": "yarn workspace transition-backend run start:tracing",
+        "start:json2capnp": "cd services/json2capnp && cargo run --release",
+        "test": "yarn workspaces run test",
+        "test:unit": "yarn workspaces run test:unit",
+        "test:sequential": "yarn workspaces run test:sequential",
+        "test:ui": "yarn workspaces run test:ui",
+        "lint": "yarn workspaces run lint",
+        "format": "yarn workspaces run format",
+        "list-tasks": "yarn workspace transition-legacy run list-tasks",
+        "table-schema": "yarn workspace transition-legacy run table-schema",
+        "generate-migration": "knex migrate:make"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "wsrun": "^5.2.4"
+    }
+}
+  

@@ -12,12 +12,14 @@ import { fileManager } from '../filesystem/fileManager';
 import { getOsrmDirectoryPathForMode, defaultDirectoryPrefix, getDirectoryPrefix } from './OSRMServicePath';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
-const defaultImportOsmFilePath = fileManager.directoryManager.getAbsolutePath('imports/network.osm');
-
 //TODO set type for parameters instead of any
 //TODO set type for Promise return (in all the file)
-const extract = function(parameters = {} as any): Promise<any> {
-    const osmFilePath = parameters.osmFilePath || defaultImportOsmFilePath;
+const extract = function(parameters: {
+    osmFilePath: string;
+    directoryPrefix?: string;
+    mode?: RoutingMode;
+}): Promise<any> {
+    const osmFilePath = parameters.osmFilePath;
     const fileExtension = path.extname(osmFilePath);
     //console.log(osmFilePath, fileExtension);
     const mode = parameters.mode || 'walking';
@@ -178,8 +180,8 @@ const contract = function(parameters = {} as any): Promise<any> {
 };
 
 const prepare = async function(
+    osmFilePath: string,
     modes: RoutingMode[] | RoutingMode = ['walking', 'cycling', 'driving', 'bus_urban', 'bus_suburb'],
-    osmFilePath = defaultImportOsmFilePath,
     directoryPrefix = defaultDirectoryPrefix
 ): Promise<any> {
     if (!Array.isArray(modes)) {
@@ -192,8 +194,8 @@ const prepare = async function(
         fileManager.directoryManager.createDirectoryIfNotExistsAbsolute(osrmDirectoryPath);
 
         const extractResult = await extract({
-            mode: mode,
-            osmFilePath: osmFilePath,
+            mode,
+            osmFilePath,
             directoryPrefix
         });
         if (extractResult.status !== 'extracted') {

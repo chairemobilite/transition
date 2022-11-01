@@ -1,0 +1,38 @@
+{
+    "extends": [
+        "./base.eslintrc.json",
+        "plugin:react/recommended" // Uses the recommended rules from the @typescript-eslint/eslint-plugin
+    ],
+    "env": {
+        "browser": true,
+        "es2020": true,
+        "node": true
+    },
+    "rules": {
+        "react/prop-types": "warn",
+        "react/no-string-refs": "warn",
+        "react/no-unescaped-entities": "warn",
+        "react/display-name": "warn"
+    },
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "ecmaVersion": 11,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "react"
+    ],
+    "settings": {
+        "react": {
+          "createClass": "createReactClass", // Regex for Component Factory to use,
+                                             // default to "createReactClass"
+          "pragma": "React",  // Pragma to use, default to "React"
+          "version": "detect" // React version. "detect" automatically picks the version you have installed.
+                               // You can also use `16.0`, `16.3`, etc, if you want to override the detected value.
+                               // default to latest and warns if missing
+                               // It will default to "detect" in the future
+        }
+    }
+}
