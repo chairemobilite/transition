@@ -9,16 +9,12 @@ import path from 'path';
 import config, { setProjectConfiguration } from 'chaire-lib-common/lib/config/shared/project.config';
 import fs from 'fs';
 
+// TODO Add a default path for the project configuration file. Now, it fails
 if (typeof process.env.PROJECT_CONFIG !== 'string') {
-    console.error(
-        'You must set the PROJECT_CONFIG environment variable in the .env file with the path to the config file.'
-    );
+    throw 'You must set the PROJECT_CONFIG environment variable in the .env file with the path to the config file.';
 }
 
-const projectConfigFile =
-    typeof process.env.PROJECT_CONFIG === 'string'
-        ? process.env.PROJECT_CONFIG.replace('${rootDir}', `${__dirname}/../../../../../`)
-        : `${__dirname}/../../../../../projects/${process.env.PROJECT_SHORTNAME}/config.js`;
+const projectConfigFile = process.env.PROJECT_CONFIG.replace('${rootDir}', `${__dirname}/../../../../`);
 
 const configFileNormalized = path.normalize(projectConfigFile);
 if (!fs.existsSync(configFileNormalized)) {
@@ -27,8 +23,8 @@ if (!fs.existsSync(configFileNormalized)) {
 
 // Initialize default server side configuration
 setProjectConfiguration({
-    // The following fields are for legacy support, and initialize data to their previous values
-    projectDirectory: path.normalize(`${__dirname}/../../../../../projects/${process.env.PROJECT_SHORTNAME}`)
+    // Initialize runtime directory at the root of the repo
+    projectDirectory: path.normalize(`${__dirname}/../../../../runtime/`)
 });
 
 try {
@@ -36,7 +32,7 @@ try {
     // Default project directory is `runtime` at the root of the repo
     if (configFromFile.projectDirectory === undefined && configFromFile.projectShortname !== undefined) {
         configFromFile.projectDirectory = path.normalize(
-            `${__dirname}/../../../../../runtime/${configFromFile.projectShortname}`
+            `${__dirname}/../../../../runtime/${configFromFile.projectShortname}`
         );
     }
     setProjectConfiguration(configFromFile);

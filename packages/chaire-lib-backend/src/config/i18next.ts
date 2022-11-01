@@ -76,7 +76,7 @@ const initializeI18n = () => {
         debug: false,
         backend: {
             loadPath: getTranslationPath,
-            addPath: join(__dirname, '../../../../../locales/{{lng}}/{{ns}}.missing.json')
+            addPath: join(__dirname, '../../../../locales/{{lng}}/{{ns}}.missing.json')
         }
     });
     initialized = true;

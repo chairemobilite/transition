@@ -158,7 +158,7 @@ export class PrepareOsmNetworkData implements GenericTask {
 
             console.log(`osrm data for mode ${mode} is being prepared.`);
 
-            const result = await OSRMServicePreparation.prepare(mode, osmRawDataFile, prefix);
+            const result = await OSRMServicePreparation.prepare(osmRawDataFile, mode, prefix);
             if (result.status === 'prepared') {
                 console.log(`osrm data for mode ${mode} is ready for routing.`);
             } else {

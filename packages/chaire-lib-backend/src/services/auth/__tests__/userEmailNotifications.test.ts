@@ -13,7 +13,7 @@ import { sendConfirmationEmail, resetPasswordEmail, sendEmail } from '../userEma
 import UserModel from '../user';
 import { registerTranslationDir } from '../../../config/i18next';
 
-registerTranslationDir(__dirname + '/../../../../../../../locales/transition/');
+registerTranslationDir(__dirname + '/../../../../../../locales/');
 
 // Need to mock the db to fetch admins
 jest.mock('../../../config/shared/db.config', () => {

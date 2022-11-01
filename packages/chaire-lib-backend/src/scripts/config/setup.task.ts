@@ -10,9 +10,9 @@ import knex from 'knex';
 
 // These files should not be published, they are for application preparation and should never be called by actual app
 // eslint-disable-next-line node/no-unpublished-require
-const knexRoot = knex(require('../../../../../../knexfile.root'));
+const knexRoot = knex(require('./knexfile.root'));
 // eslint-disable-next-line node/no-unpublished-require
-const knexPublic = knex(require('../../../../../../knexfile.public'));
+const knexPublic = knex(require('./knexfile.public'));
 
 const databaseName = process.env[`PG_DATABASE_${(process.env.NODE_ENV || 'development').toUpperCase()}`];
 const createExtensionsAndSchemaQuery = `

@@ -4,6 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import path from 'path';
 var mockSpawn = require('mock-spawn');
 
 var osrmSpawn = mockSpawn();
@@ -23,6 +24,8 @@ import OSRMService from '../../osrm/OSRMService';
 //mockKill.mockImplementation((pid, signal?) => {console.log(`Fake killing process ${pid}`); return true;});
 //global.process.kill = mockKill;
 jest.setTimeout(30000);
+
+const existingOsmFilePath = path.normalize(`${__dirname}/../../../../../../tests/files/osm_network_data.osm`);
 
 beforeAll(function(done) {
   directoryManager.emptyDirectory('osrm');
@@ -57,6 +60,7 @@ describe('OSRM Service Manager', function() {
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, '[info] finished preprocessing' /* stdout */));
 
     const extractResult = await OSRMServicePreparation.extract({
+      osmFilePath: existingOsmFilePath, 
       mode: 'walking'
     });
     expect(extractResult.status).toBe('extracted');
@@ -71,7 +75,7 @@ describe('OSRM Service Manager', function() {
     expect(contractResult.status).toBe('contracted');
     expect(osrmSpawn.calls[1].command).toBe('osrm-contract');
 
-    const prepareResult = await OSRMServicePreparation.prepare(['walking']) ;
+    const prepareResult = await OSRMServicePreparation.prepare(existingOsmFilePath, ['walking']) ;
     expect(prepareResult.status).toBe('prepared');
     expect(osrmSpawn.calls[2].command).toBe('osrm-extract');
     expect(osrmSpawn.calls[2].args).toEqual(args0);
@@ -92,7 +96,7 @@ describe('OSRM Service Manager', function() {
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, '[info] To prepare the data for routing, run:' /* stdout */));
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, '[info] finished preprocessing' /* stdout */));
 
-    const prepareResult = await OSRMServicePreparation.prepare();
+    const prepareResult = await OSRMServicePreparation.prepare(existingOsmFilePath);
     expect(prepareResult.status).toBe('prepared');
     expect(osrmSpawn.calls[0].command).toBe('osrm-extract');
     expect(osrmSpawn.calls[1].command).toBe('osrm-contract');
@@ -112,7 +116,7 @@ describe('OSRM Service Manager', function() {
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, '[info] To prepare the data for routing, run:' /* stdout */));
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, '[info] finished preprocessing' /* stdout */));
 
-    const prepareResult = await OSRMServicePreparation.prepare(['walking'], directoryManager.getAbsolutePath('imports/network2.osm'), 'custom');
+    const prepareResult = await OSRMServicePreparation.prepare(existingOsmFilePath, ['walking'], 'custom');
     expect(prepareResult.status).toBe('prepared');
 
     expect(osrmSpawn.calls.length).toBe(2);
@@ -130,7 +134,7 @@ describe('OSRM Service Manager', function() {
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, '[info] To prepare the data for routing, run:' /* stdout */));
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, '[info] finished preprocessing' /* stdout */));
 
-    const prepareResult = await OSRMServicePreparation.prepare(['walking'], undefined, '');
+    const prepareResult = await OSRMServicePreparation.prepare(existingOsmFilePath, ['walking'], '');
     expect(prepareResult.status).toBe('prepared');
 
     expect(osrmSpawn.calls.length).toBe(2);
@@ -147,7 +151,7 @@ describe('OSRM Service Manager', function() {
 
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, null, "[error] Input file not found"));
 
-    const prepareResult = await OSRMServicePreparation.prepare(['walking'], directoryManager.getAbsolutePath('imports/network_does_not_exist.osm'), '');
+    const prepareResult = await OSRMServicePreparation.prepare(directoryManager.getAbsolutePath('imports/osm_network_data2.osm'), ['walking'], '');
     expect(prepareResult.status).toBe('error');
     expect(osrmSpawn.calls[0].command).toBe('osrm-extract');
 
@@ -159,7 +163,7 @@ describe('OSRM Service Manager', function() {
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, '[info] finished preprocessing' /* stdout */));
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, 'running and waiting for requests' /* stdout */));
     
-    const prepareResult = await OSRMServicePreparation.prepare(['walking']);
+    const prepareResult = await OSRMServicePreparation.prepare(existingOsmFilePath, ['walking']);
     expect(prepareResult.status).toBe('prepared');
 
     const osrmServerStatus = await OSRMProcessManager.start({
@@ -181,7 +185,7 @@ describe('OSRM Service Manager', function() {
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, null, 'required files are missing, cannot continue'));
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, null, 'required files are missing, cannot continue'));
 
-    const prepareResult = await OSRMServicePreparation.prepare(['walking']);
+    const prepareResult = await OSRMServicePreparation.prepare(existingOsmFilePath, ['walking']);
     expect(prepareResult.status).toBe('prepared');
 
     // Make sure the list of osrms to auto-start is longer than 1

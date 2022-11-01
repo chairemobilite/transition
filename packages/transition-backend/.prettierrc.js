@@ -5,5 +5,5 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 module.exports = {
-  ...require('../../../configs/base.prettierrc')
+  ...require('../../configs/base.prettierrc')
 }

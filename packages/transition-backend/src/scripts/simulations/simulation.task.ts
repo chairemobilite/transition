@@ -14,7 +14,7 @@ import taskWrapper from 'chaire-lib-backend/lib/tasks/taskWrapper';
 import OSRMProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 
 addTranslationNamespace('transit');
-registerTranslationDir(__dirname + '/../../../../../../locales/transition/');
+registerTranslationDir(__dirname + '/../../../../../locales/');
 
 const run = async () => {
     // Prepare socket routes to be able to use them

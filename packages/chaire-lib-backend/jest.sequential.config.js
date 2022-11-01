@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 /* eslint-disable node/no-unpublished-require */
-const baseConfig = require('../../../jest.config.base');
+const baseConfig = require('../../tests/jest.config.base');
 
 // Run the db and integration tests
 module.exports = {
