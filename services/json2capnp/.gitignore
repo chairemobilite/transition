@@ -1,0 +1,6 @@
+/target
+# exclude everything in every folder
+/test/**/*.*
+
+# include only .gitkeep files
+!/test/**/*.gitkeep
