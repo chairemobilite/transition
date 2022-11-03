@@ -1,0 +1,47 @@
+# Example docker-compose file to run the Transition app in one container and a second one for PostGis
+#
+# Use the official postgis image for the DB, with the default username and password
+# The DB data live in a docker volume. You can adapt to have it live in a specific location
+# To run with an existing DB, change the PG_CONNECTION_STRING_PREFIX and drop the postgres service
+# and related volume
+#
+# It use the application configuration that was in the .env file that was built in the application image
+# It used "testtransition" as the application image, you can adapt to your prefered image name.
+
+version: "3.7"
+# docker-compose version 1.22 is required for this version
+
+
+services:
+  transition-www:
+    image: testtransition
+    ports:
+      - 8080:8080
+    environment:
+      PG_CONNECTION_STRING_PREFIX: postgres://postgres:pass@postgres:5432/
+    depends_on:
+      - postgres
+    #HACK, needed for running trRouting. See https://github.com/kaligrafy/trRouting/issues/23
+    tty: true
+    volumes:
+      # Fine-tune these paths to the target container's runtime directories. It should match what is in the `projectDirectory` in the `config.js` file
+      - transition-project-import:/app/examples/runtime/imports
+      - transition-project-osrm:/app/examples/runtime/osrm
+      # TODO Remove this once the cache is actually a cache
+      - transition-project-cache:/app/examples/runtime/cache
+
+  postgres:
+    image: postgis/postgis
+    volumes:
+      - transition-postgis-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: pass
+
+volumes:
+  transition-postgis-data:
+  # Holding osrm import data in docker volumes. You can change them to be mount bind
+  # to use a specific location of your local filesystem
+  transition-project-import:
+  transition-project-osrm:
+  # Caching is actually data storage
+  transition-project-cache:
