@@ -69,8 +69,6 @@ stats.json
 
 # rust
 **/*.rs.bk
-libraries/json2capnp/target
-libraries/json2capnp/testData
 services/json2capnp/target
 services/json2capnp/testData
 
