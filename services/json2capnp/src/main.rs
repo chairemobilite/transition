@@ -6,8 +6,6 @@
  *
  */
 
-use dotenv;
-use home;
 use rouille::Request;
 use rouille::Response;
 use std::fs;
@@ -61,15 +59,9 @@ fn main() {
 
     println!("Starting json2capnp server...");
 
-    // setup dotenv:
-    let my_env_path = home::home_dir()
-        .and_then(|a| Some(a.join("/../../../.env")))
-        .unwrap();
-    dotenv::from_path(my_env_path.as_path()).ok();
-    let project_shortname = dotenv::var("PROJECT_SHORTNAME").unwrap();
-    let project_cache_directory_path_str = cache_directory.unwrap_or(format!(
-        "../../projects/{}/cache/{}", project_shortname, project_shortname
-    ));
+    // TODO For now, the project cache directory must be set on the command line. It can come from config when config is json or yml (#415)
+    let project_shortname = "default";
+    let project_cache_directory_path_str = cache_directory.unwrap_or_else(|| { panic!("Cache directory must be set on the command line (eg cargo run -- 2000 path/to/cache/dir)") } );
     println!("Using {} as cache directory",
         project_cache_directory_path_str
     );
