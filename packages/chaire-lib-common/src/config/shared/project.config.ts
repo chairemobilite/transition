@@ -50,7 +50,7 @@ export type ProjectConfiguration<AdditionalConfig> = {
 const projectConfig: ProjectConfiguration<any> = {
     mapDefaultCenter: { lon: -73.6131, lat: 45.5041 },
     separateAdminLoginPage: false,
-    projectShortname: process.env.PROJECT_SHORTNAME,
+    projectShortname: 'default',
     userDiskQuota: '1gb',
     maxFileUploadMB: 256,
     maxParallelCalculators: 1
