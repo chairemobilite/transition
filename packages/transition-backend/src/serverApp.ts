@@ -32,10 +32,14 @@ export const setupServer = (app: Express) => {
         throw 'Project short name is not set';
     }
 
+    // Public directory from which files are served
+    const publicDirectory = path.join(__dirname, '..', '..', '..', 'public');
+    const publicDistDirectory = path.join(publicDirectory, 'dist', projectShortname);
+    // Local path where locales are stored
+    const localeDirectory = path.join(__dirname, '..', '..', '..', 'locales');
+
     // FIXME Why this dir?
-    directoryManager.createDirectoryIfNotExistsAbsolute(
-        path.join(__dirname, '..', '..', '..', '..', 'public', 'dist', projectShortname)
-    );
+    directoryManager.createDirectoryIfNotExistsAbsolute(publicDistDirectory);
     directoryManager.createDirectoryIfNotExistsAbsolute(config.projectDirectory);
     directoryManager.createDirectoryIfNotExists('logs');
     directoryManager.createDirectoryIfNotExists('imports');
@@ -49,18 +53,11 @@ export const setupServer = (app: Express) => {
     directoryManager.createDirectoryIfNotExists('userData');
 
     const indexPath = path.join(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        '..',
-        'public',
-        'dist',
-        projectShortname,
-        `index-transition-${projectShortname}${process.env.NODE_ENV === 'test' ? '_test' : ''}.html`
+        publicDistDirectory,
+        `index-${projectShortname}${process.env.NODE_ENV === 'test' ? '_test' : ''}.html`
     );
-    const publicPath = express.static(path.join(__dirname, '..', '..', '..', '..', 'public', 'dist', projectShortname));
-    const localePath = express.static(path.join(__dirname, '..', '..', '..', '..', 'locales', 'transition'));
+    const publicPath = express.static(publicDistDirectory);
+    const localePath = express.static(localeDirectory);
 
     const KnexSessionStore = KnexConnection(expressSession);
     const sessionStore = new KnexSessionStore({
@@ -93,7 +90,7 @@ export const setupServer = (app: Express) => {
     app.use(passport.initialize());
     app.use(passport.session());
     app.use(requestIp.mw()); // to get users ip addresses
-    app.use(favicon(path.join(__dirname, '..', '..', '..', '..', 'public', 'favicon.ico')));
+    app.use(favicon(path.join(publicDirectory, 'favicon.ico')));
 
     app.set('trust proxy', true); // allow nginx or other proxy server to send request ip address
 
@@ -123,21 +120,7 @@ export const setupServer = (app: Express) => {
         const filename = req.params.file;
         const userId = (req.user as UserAttributes).id;
         if (fileManager.fileExistsAbsolute(`${directoryManager.userDataDirectory}/${userId}/exports/${filename}`)) {
-            res.sendFile(
-                path.join(
-                    __dirname,
-                    '..',
-                    '..',
-                    '..',
-                    '..',
-                    'projects',
-                    projectShortname,
-                    'userData',
-                    String(userId),
-                    'exports',
-                    filename
-                )
-            );
+            res.sendFile(path.join(directoryManager.userDataDirectory, String(userId), 'exports', filename));
         } else {
             res.status(404).json({ status: 'FileDoesNotExist' });
         }
@@ -150,21 +133,7 @@ export const setupServer = (app: Express) => {
         const jobId = req.params.jobId;
         const userId = (req.user as UserAttributes).id;
         if (fileManager.fileExistsAbsolute(`${directoryManager.userDataDirectory}/${userId}/${jobId}/${filename}`)) {
-            res.sendFile(
-                path.join(
-                    __dirname,
-                    '..',
-                    '..',
-                    '..',
-                    '..',
-                    'projects',
-                    projectShortname,
-                    'userData',
-                    String(userId),
-                    String(jobId),
-                    filename
-                )
-            );
+            res.sendFile(path.join(directoryManager.userDataDirectory, String(userId), String(jobId), filename));
         } else {
             res.status(404).json({ status: 'FileDoesNotExist' });
         }

@@ -12,12 +12,12 @@ const CopyWebpackPlugin       = require('copy-webpack-plugin');
 const HtmlWebpackPlugin       = require('html-webpack-plugin');
 const { CleanWebpackPlugin }  = require("clean-webpack-plugin");
 const CompressionPlugin       = require('compression-webpack-plugin');
+require('chaire-lib-common/lib/config/shared/dotenv.config');
 
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development';
 }
 
-require('dotenv').config({ path: path.join(__dirname, '../../..', '.env') });
 const configuration = require('chaire-lib-backend/lib/config/server.config');
 const config = configuration.default ? configuration.default : configuration;
 
@@ -27,24 +27,26 @@ module.exports = (env) => {
   const isProduction = env === 'production';
   console.log('process.env.NODE_ENV', process.env.NODE_ENV);
 
-  const projectDir = `../../../projects/${config.projectShortname}/`;
-  const bundleOutputPath = path.join(__dirname, '..', '..', '..', 'public', 'dist', config.projectShortname);
+  // Public directory from which files are served
+  const publicDirectory = path.join(__dirname, '..', '..', 'public');
+  const bundleOutputPath = path.join(publicDirectory, 'dist', config.projectShortname);
+  // Local path where locales are stored
+  const localeDirectory = path.join(__dirname, '..', '..', 'locales');
+
   const languages = config.languages || ['fr', 'en'];
   const languagesFilter = `/${languages.join("|")}/`;
 
-  const customStylesFilePath  = `${projectDir}styles/styles.scss`;
-  const customLocalesFilePath = `${projectDir}locales`;
+  // TODO Custom styles and locales should be set in config (#419, #420)
+  const customStylesFilePath  = `${config.projectDir}/styles/styles.scss`;
+  const customLocalesFilePath = `${config.projectDir}/locales`;
   const entryFileName =  './lib/app-transition.js';
   const entry                 = fs.existsSync('./'+customStylesFilePath) ? [entryFileName, './'+customStylesFilePath] : [entryFileName];
   const includeDirectories    = [
     path.join(__dirname, 'lib'),
 
     path.join(__dirname, 'lib', entryFileName),
-    path.join(__dirname, '..', '..', '..', 'locales')
+    localeDirectory
   ];
-
-  includeDirectories.push(path.join(__dirname, '..', '..', '..', 'projects', config.projectShortname));
-
 
   return {
 
@@ -128,8 +130,8 @@ module.exports = (env) => {
         cleanAfterEveryBuildPatterns: ['**/*', '!images/**', '!*.html'],
       }),
       new HtmlWebpackPlugin({
-        filename: path.join(`index-transition-${config.projectShortname}${env === 'test' ? `_${env}` : ''}.html`),
-        template: path.join(__dirname, '..', '..', '..', 'public', 'transition.html'),
+        filename: path.join(`index-${config.projectShortname}${env === 'test' ? `_${env}` : ''}.html`),
+        template: path.join(publicDirectory, 'index.html'),
       }),
       new MiniCssExtractPlugin({
         filename: isProduction ? `transition-${config.projectShortname}-styles.[contenthash].css` : `transition-${config.projectShortname}-styles.dev.css`
@@ -175,12 +177,6 @@ module.exports = (env) => {
               from: "**/*",
               to: "",
               noErrorOnMissing: true
-            },
-            {
-              context: path.join(__dirname, '..', '..', '..', 'projects', config.projectShortname, 'assets'),
-              from: "**/*",
-              to: "",
-              noErrorOnMissing: true
             }
           ]
         }
@@ -192,7 +188,7 @@ module.exports = (env) => {
     },
     devtool: isProduction ? 'cheap-source-map' : 'eval-source-map',
     devServer: {
-      contentBase: path.join(__dirname, '..', '..', '..', 'public'),
+      contentBase: publicDirectory,
       historyApiFallback: true,
       publicPath: '/dist/' + config.projectShortname
     }
