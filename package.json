@@ -31,8 +31,7 @@
         "test:ui": "yarn workspaces run test:ui",
         "lint": "yarn workspaces run lint",
         "format": "yarn workspaces run format",
-        "list-tasks": "yarn workspace transition-legacy run list-tasks",
-        "table-schema": "yarn workspace transition-legacy run table-schema",
+        "list-tasks": "yarn workspace transition-backend run list-tasks",
         "generate-migration": "knex migrate:make"
     },
     "dependencies": {},
