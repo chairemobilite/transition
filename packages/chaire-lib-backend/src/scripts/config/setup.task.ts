@@ -8,11 +8,10 @@ import 'chaire-lib-common/lib/config/shared/dotenv.config'; // Unused, but must 
 import config from '../../config/server.config';
 import knex from 'knex';
 
-// These files should not be published, they are for application preparation and should never be called by actual app
-// eslint-disable-next-line node/no-unpublished-require
-const knexRoot = knex(require('./knexfile.root'));
-// eslint-disable-next-line node/no-unpublished-require
-const knexPublic = knex(require('./knexfile.public'));
+import knexRootCfg from './knexfile.root';
+import knexPublicCfg from './knexfile.public';
+const knexRoot = knex(knexRootCfg);
+const knexPublic = knex(knexPublicCfg);
 
 const databaseName = process.env[`PG_DATABASE_${(process.env.NODE_ENV || 'development').toUpperCase()}`];
 const createExtensionsAndSchemaQuery = `
