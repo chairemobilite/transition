@@ -10,7 +10,6 @@
         "packages/transition-frontend"
     ],
     "scripts": {
-        "create-project": "yarn workspace transition-legacy run create-project",
         "setup": "yarn workspace chaire-lib-backend run setup",
         "setup-test": "yarn workspace chaire-lib-backend run setup-test",
         "migrate": "knex migrate:latest",
