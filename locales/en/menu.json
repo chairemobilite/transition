@@ -3,5 +3,6 @@
     "home": "Home",
     "login": "Login",
     "logout": "Logout",
-    "User": "Connected"
+    "User": "Connected",
+    "Reset":"Reset session"
 }

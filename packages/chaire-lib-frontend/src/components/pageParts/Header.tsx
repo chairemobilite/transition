@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import moment from 'moment-business-days';
 
-import { startLogout } from '../../actions/Auth';
+import { startLogout, resetUserProfile } from '../../actions/Auth';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
 import { FrontendUser } from '../../services/auth/user';
 import { History } from 'history';
@@ -19,6 +19,7 @@ export interface HeaderProps extends WithTranslation {
     user: FrontendUser;
     path: any;
     startLogout: () => void;
+    resetUserProfile: () => void;
     appName: string;
     history: History;
 }
@@ -71,6 +72,16 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
                             {props.t('menu:logout')}
                         </button>
                     )}
+                    {props.user && config.showLogout !== false && (
+                        <button
+                            type="button"
+                            className="menu-button"
+                            key={'header__nav-reset'}
+                            onClick={props.resetUserProfile}
+                        >
+                            {props.t('menu:Reset')}
+                        </button>
+                    )}
                     {config.languages.map((language) => {
                         return props.i18n.language !== language ? (
                             <button
@@ -101,7 +112,8 @@ const mapStateToProps = (state) => {
 };
 
 const mapDispatchToProps = (dispatch, props: Omit<HeaderProps, 'startLogout'>) => ({
-    startLogout: () => dispatch(startLogout(props.history))
+    startLogout: () => dispatch(startLogout(props.history)),
+    resetUserProfile: () => dispatch(resetUserProfile(props.history))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(withTranslation('menu')(Header));
