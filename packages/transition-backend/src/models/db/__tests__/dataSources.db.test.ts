@@ -117,6 +117,16 @@ describe(`${objectName}`, () => {
 
     });
 
+    test('should find by name', async() => {
+        // By shortname
+        const object = await dbQueries.findByName(newObjectAttributes2.shortname);
+        expect(object).toEqual(expect.objectContaining(newObjectAttributes2));
+
+        // By name
+        const object2 = await dbQueries.findByName(newObjectAttributes2.name);
+        expect(object2).toEqual(expect.objectContaining(newObjectAttributes2));
+    });
+
     test('should read collection from database', async() => {
         
         const _collection = await dbQueries.collection();
