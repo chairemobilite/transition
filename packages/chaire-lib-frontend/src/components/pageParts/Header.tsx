@@ -23,6 +23,18 @@ export interface HeaderProps extends WithTranslation {
     history: History;
 }
 
+interface UserProps {
+    user: FrontendUser;
+}
+
+const User: React.FunctionComponent<UserProps & WithTranslation> = (props: UserProps & WithTranslation) => (
+    <div className="menu-button" key={'header__nav-username'}>
+        {props.user.showUserInfo && (props.user.username || props.user.email || props.t('menu:User'))}
+    </div>
+);
+
+const TranslatableUser = withTranslation('menu')(User);
+
 const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
     const appTitle = config.appTitle;
     const title = config.title[props.i18n.language];
@@ -77,6 +89,7 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
                             ''
                         );
                     })}
+                    {props.user && <TranslatableUser user={props.user} />}
                 </nav>
             </div>
         </header>

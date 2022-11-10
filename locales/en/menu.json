@@ -1,1 +1,7 @@
-{"dashboard":"Dashboard","home":"Home","login":"Login","logout":"Logout"}
+{
+    "dashboard": "Dashboard",
+    "home": "Home",
+    "login": "Login",
+    "logout": "Logout",
+    "User": "Connected"
+}

@@ -17,18 +17,24 @@ export type PermUser = {
     isAuthorized: (permissions: Permission) => boolean;
     is_admin: boolean;
     pages: UserPages[];
+    showUserInfo: boolean;
 };
 
 export type FrontendUser = BaseUser & PermUser;
 
-export const toFrontendUser = (user: BaseUser, pages: UserPages[] = []): FrontendUser => {
+export const toFrontendUser = (
+    user: BaseUser,
+    pages: UserPages[] = [],
+    showUserInfoPerm?: Permission
+): FrontendUser => {
     const ability = deserializeRules(user);
-    const authFunction = (permissions: { [subject: string]: string | string[] }) => isAuthorized(ability, permissions);
+    const authFunction = (permissions: Permission) => isAuthorized(ability, permissions);
     const userPages = pages.filter((page) => authFunction(page.permissions));
     return {
         isAuthorized: authFunction,
         is_admin: authFunction({ all: 'manage' }),
         pages: userPages,
+        showUserInfo: showUserInfoPerm !== undefined ? authFunction(showUserInfoPerm) : true,
         ...user
     };
 };

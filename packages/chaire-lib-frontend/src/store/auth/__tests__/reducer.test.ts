@@ -13,7 +13,8 @@ const testUser = {
     serializedPermissions: [],
     isAuthorized: jest.fn(),
     is_admin: false,
-    pages: []
+    pages: [],
+    showUserInfo: true
 }
 
 test('Test a login status', () => {

@@ -10,9 +10,17 @@ import { toFrontendUser } from '../services/auth/user';
 import { AuthAction, AuthActionTypes } from '../store/auth';
 import { History, Location } from 'history';
 
+// Required permissions to show user information in the header menu. For some basic user roles, like anonymous users, user information may not be wanted.
+let showUserInfoPerm:
+    | {
+          [subject: string]: string | string[];
+      }
+    | undefined = undefined;
+export const setShowUserInfoPerm = (perms: { [subject: string]: string | string[] }) => (showUserInfoPerm = perms);
+
 export const login = (user: BaseUser | null, isAuthenticated = false, register = false, login = false): AuthAction => ({
     type: AuthActionTypes.LOGIN,
-    user: user ? toFrontendUser(user, appConfiguration.pages) : user,
+    user: user ? toFrontendUser(user, appConfiguration.pages, showUserInfoPerm) : user,
     isAuthenticated,
     register,
     login
