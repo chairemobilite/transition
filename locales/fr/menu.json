@@ -2,5 +2,6 @@
     "dashboard": "Tableau de bord",
     "home": "Accueil",
     "login": "Se connecter",
-    "logout": "Quitter"
+    "logout": "Quitter",
+    "User": "Connecté"
 }
