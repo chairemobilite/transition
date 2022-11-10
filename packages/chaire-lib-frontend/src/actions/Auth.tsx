@@ -9,6 +9,8 @@ import appConfiguration from '../config/application.config';
 import { toFrontendUser } from '../services/auth/user';
 import { AuthAction, AuthActionTypes } from '../store/auth';
 import { History, Location } from 'history';
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 // Required permissions to show user information in the header menu. For some basic user roles, like anonymous users, user information may not be wanted.
 let showUserInfoPerm:
@@ -330,6 +332,26 @@ export const startAnonymousLogin = (history: History, location: Location, callba
         } catch (err) {
             dispatch(login(null, false, false, true));
             console.log('Error logging in.', err);
+        }
+    };
+};
+
+export const resetUserProfile = (history: History) => {
+    return async (dispatch) => {
+        try {
+            // reset user pref on server
+            const response = await fetch('/reset_user_preferences', { credentials: 'include' });
+            // reset localStorage
+            window.localStorage.clear();
+            // reload preferences from server
+            await Preferences.load(serviceLocator.socketEventManager, serviceLocator.eventManager);
+
+            if (response.status === 200) {
+                const defaultPath = appConfiguration.homePage;
+                history.push(defaultPath);
+            }
+        } catch (err) {
+            console.log('Error reset user.', err);
         }
     };
 };

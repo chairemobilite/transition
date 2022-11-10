@@ -179,6 +179,28 @@ export default function(app: express.Express) {
         }
     });
 
+    app.get('/reset_user_preferences', async (req, res) => {
+        if (req.isAuthenticated() && req.user) {
+            const _user = new User({ ...req.user });
+            _user.set('preferences', {});
+            try {
+                await _user.save();
+                return res.status(200).json({
+                    status: 'success'
+                });
+            } catch (error) {
+                console.log(error);
+                return res.status(200).json({
+                    status: 'error',
+                    error
+                });
+            }
+        } else {
+            console.log('not logged in!');
+            return res.status(401).json({ status: 'Unauthorized' });
+        }
+    });
+
     app.post('/forgot', async (req, res) => {
         const token = crypto.randomBytes(20).toString('hex');
         try {
