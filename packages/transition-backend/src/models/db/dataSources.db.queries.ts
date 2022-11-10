@@ -51,6 +51,27 @@ const collection = async (type?: DataSourceType): Promise<DataSourceAttributes[]
     }
 };
 
+/**
+ * Find a single data source by its name or shortname
+ *
+ * @param name Name or shortname of the data source to find
+ * @returns The data source attributes if found or undefined otherwise
+ */
+const findByName = async (name: string): Promise<DataSourceAttributes | undefined> => {
+    try {
+        const dataSources = await knex(tableName)
+            .where('name', name)
+            .orWhere('shortname', name);
+        return dataSources.length > 0 ? dataSources[0] : undefined;
+    } catch (error) {
+        throw new TrError(
+            `cannot query data sources by name of a database error (knex error: ${error})`,
+            'DBQDSC0003',
+            'DataSourceCouldNotQueryByNameBecauseDatabaseError'
+        );
+    }
+};
+
 export default {
     exists: exists.bind(null, knex, tableName),
     read: read.bind(null, knex, tableName, undefined, '*'),
@@ -70,5 +91,6 @@ export default {
     deleteMultiple: deleteMultiple.bind(null, knex, tableName),
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
-    collection
+    collection,
+    findByName
 };
