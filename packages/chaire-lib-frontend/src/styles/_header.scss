@@ -18,6 +18,8 @@ header {
     ul {
       padding: 0;
       list-style: none;
+      display: flex;
+      margin: 0;
     }
     li {
       display: flex;
@@ -28,6 +30,17 @@ header {
   .header__title {
     //color: $dark-blue;
     text-decoration: none;
+  }
+
+  .menu {
+    background: $overlay-dark;
+    position: absolute;
+    list-style-type: none;
+    margin-top: 30px;
+    padding: 20px;
+    right: 0;
+    border: 1px solid $border-white;
+    z-index: 1000;
   }
   
 }

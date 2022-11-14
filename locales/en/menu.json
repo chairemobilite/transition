@@ -4,5 +4,7 @@
     "login": "Login",
     "logout": "Logout",
     "User": "Connected",
-    "Reset":"Reset session"
+    "Reset": "Reset session",
+    "ResetUserPrefsTitle": "Reset all user preferences and configuration to their default values?",
+    "ResetUserPrefsConfirm": "Reset preferences"
 }
