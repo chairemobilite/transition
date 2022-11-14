@@ -4,5 +4,7 @@
     "login": "Se connecter",
     "logout": "Quitter",
     "User": "Connecté",
-    "Reset":"Réinitialiser la session"
+    "Reset":"Réinitialiser la session",
+    "ResetUserPrefsTitle": "Réinitialiser les préférences à leur valeur par défaut?",
+    "ResetUserPrefsConfirm": "Réinitialiser les préférences"
 }
