@@ -12,8 +12,8 @@
     "scripts": {
         "setup": "yarn workspace chaire-lib-backend run setup",
         "setup-test": "yarn workspace chaire-lib-backend run setup-test",
-        "migrate": "knex migrate:latest",
-        "migrate-test": "cross-env NODE_ENV=test knex migrate:latest",
+        "migrate": "yarn workspace chaire-lib-backend run migrate && yarn workspace transition-backend run migrate",
+        "migrate-test": "yarn workspace chaire-lib-backend run migrate-test && yarn workspace transition-backend run migrate-test",
         "clean": "yarn workspaces run clean",
         "compile": "yarn workspaces run compile",
         "compile:dev": "yarn wsrun compile:dev",
