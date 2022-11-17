@@ -13,6 +13,8 @@ import knexPublicCfg from './knexfile.public';
 const knexRoot = knex(knexRootCfg);
 const knexPublic = knex(knexPublicCfg);
 
+
+
 const databaseName = process.env[`PG_DATABASE_${(process.env.NODE_ENV || 'development').toUpperCase()}`];
 const createExtensionsAndSchemaQuery = `
   CREATE EXTENSION IF NOT EXISTS "plpgsql"   SCHEMA public;
@@ -21,6 +23,7 @@ const createExtensionsAndSchemaQuery = `
   CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA public;
   CREATE SCHEMA    IF NOT EXISTS "${process.env.PG_DATABASE_SCHEMA || config.projectShortname}";
   DROP OPERATOR CLASS IF EXISTS public._uuid_ops USING gin CASCADE;
+  DROP OPERATOR FAMILY IF EXISTS public._uuid_ops USING gin CASCADE;
   CREATE OPERATOR CLASS public._uuid_ops DEFAULT 
     FOR TYPE _uuid USING gin AS 
     OPERATOR 1 &&(anyarray, anyarray), 
@@ -48,6 +51,13 @@ knexRoot('pg_catalog.pg_database')
                 await knexRoot.raw(`CREATE DATABASE ${databaseName}`);
             }
             knexRoot.destroy();
+            /*createExtensionsAndSchemaQueryArr.forEach(async (query) => {
+                try {
+                    await knexPublic.raw(query);
+                } catch(error){
+                    console.log('An error occurred when creating the database or the schema:', query, error);
+                }
+            })*/
             await knexPublic.raw(createExtensionsAndSchemaQuery);
             knexPublic.destroy();
         } catch (error) {
