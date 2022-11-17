@@ -26,6 +26,7 @@
         "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write && eslint --fix ."
     },
     "dependencies": {
+        "@babel/cli": "^7.19.3",
         "@casl/ability": "^5.4.3",
         "@zeit/fetch-retry": "^5.0.1",
         "bcryptjs": "^2.4.3",
