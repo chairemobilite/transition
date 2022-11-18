@@ -9,7 +9,7 @@ import glob from 'glob';
 import util from 'util';
 import fs from 'fs-extra';
 
-import 'chaire-lib-common/lib/config/shared/dotenv.config';
+import '../../config/dotenv.config';
 import config from '../../config/server.config';
 
 // Recursively get size in bytes of a file or directory

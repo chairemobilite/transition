@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import 'chaire-lib-common/lib/config/shared/dotenv.config';
+import 'chaire-lib-backend/lib/config/dotenv.config';
 
 import prepareSocketRoutes from '../prepareProcessRoutes';
 import { registerTranslationDir, addTranslationNamespace } from 'chaire-lib-backend/lib/config/i18next';

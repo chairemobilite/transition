@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import 'chaire-lib-common/lib/config/shared/dotenv.config';
+import '../config/dotenv.config';
 
 // Just make sure the config is initialized in the task, so tasks that are in common workspaces can have the right config
 import '../config/server.config';
