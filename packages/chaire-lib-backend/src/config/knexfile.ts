@@ -31,6 +31,6 @@ export default {
     migrations: {
         directory: __dirname + '/../models/db/migrations',
         tableName: 'knex_migrations_lib',
-        loadExtensions: [`.js`],
+        loadExtensions: ['.js']
     }
 };
