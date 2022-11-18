@@ -13,8 +13,6 @@ import knexPublicCfg from './knexfile.public';
 const knexRoot = knex(knexRootCfg);
 const knexPublic = knex(knexPublicCfg);
 
-
-
 const databaseName = process.env[`PG_DATABASE_${(process.env.NODE_ENV || 'development').toUpperCase()}`];
 const createExtensionsAndSchemaQuery = `
   CREATE EXTENSION IF NOT EXISTS "plpgsql"   SCHEMA public;
