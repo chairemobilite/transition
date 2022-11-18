@@ -7,7 +7,7 @@ This folder contains an example configuration file, as well as necessary files t
 2. Update the .env file and set the `PROJECT_CONFIG` to point to the config file in this directory
 
 ```
-PROJECT_CONFIG=${rootDir}/examples/transition/config.js
+PROJECT_CONFIG=</path/to/this/repo>/examples/transition/config.js
 ```
 
 3. Follow the [installations instructions](../../README.md#installation) at the root of this repo to setup the database and create users
@@ -17,12 +17,12 @@ PROJECT_CONFIG=${rootDir}/examples/transition/config.js
 5. Get and prepare the road network for `osrm` to route. This step is optional, but required to create new lines that properly follow the road network. The first line will download the Open Street Map network data from the overpass API. The second line will prepare the data for the `osrm` servers. Data is prepared differently for different modes of tranportation. Selecting `driving` and `walking` are mandatory modes, as `driving` is the default mode for vehicles and `walking` is required to calculate access, transfer and egress times from transit.
 
 ```shell
-yarn babel-node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/downloadOsmNetworkData.task.js --polygon-file examples/transition/polygon_rtl_area.geojson
+yarn babel-node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/downloadOsmNetworkData.task.js --polygon-file examples/polygon_rtl_area.geojson
 
 yarn babel-node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/prepareOsmNetworkData.task.js
 ```
 
-6. Start the nodejs server with `yarn start`.
+6. Start the nodejs server with `yarn start:demo`.
 
 7. Navigate to `http://localhost:8080` and log into the application.
 
