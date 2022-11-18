@@ -21,6 +21,7 @@
         "build:dev": "yarn workspace transition-frontend run build:dev",
         "build:prod": "yarn workspace transition-frontend run build:prod",
         "start": "yarn workspace transition-backend run start",
+        "start:demo": "PROJECT_CONFIG=${PWD}/examples/config.js yarn workspace transition-backend run start",
         "start:debug": "yarn workspace transition-backend run start:debug",
         "start:tracing": "yarn workspace transition-backend run start:tracing",
         "start:json2capnp": "cd services/json2capnp && cargo run --release",
