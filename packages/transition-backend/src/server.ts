@@ -8,7 +8,7 @@
 import fs from 'fs';
 import { join } from 'path';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import _dotenv from 'chaire-lib-common/lib/config/shared/dotenv.config';
+import _dotenv from 'chaire-lib-backend/lib/config/dotenv.config';
 import { setupServer } from './serverApp';
 import setupSocketServerApp from './socketServerApp';
 import yargs from 'yargs/yargs';

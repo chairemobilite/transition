@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import 'chaire-lib-common/lib/config/shared/dotenv.config';
+import '../../config/dotenv.config';
 
 // TODO Typesafe the connection when refactoring knex files (#426)
 export default {

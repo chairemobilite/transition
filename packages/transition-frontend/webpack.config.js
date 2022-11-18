@@ -12,7 +12,7 @@ const CopyWebpackPlugin       = require('copy-webpack-plugin');
 const HtmlWebpackPlugin       = require('html-webpack-plugin');
 const { CleanWebpackPlugin }  = require("clean-webpack-plugin");
 const CompressionPlugin       = require('compression-webpack-plugin');
-require('chaire-lib-common/lib/config/shared/dotenv.config');
+require('chaire-lib-backend/lib/config/dotenv.config');
 
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development';

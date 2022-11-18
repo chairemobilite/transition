@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 // FIXME Need to make sure it is imported. Really? It was imported in server.ts it should be enough
-import _dotenv from 'chaire-lib-common/lib/config/shared/dotenv.config';
+import _dotenv from 'chaire-lib-backend/lib/config/dotenv.config';
 // FIXME Need to make sure it is imported. Really? Any component using this should import it
 import _project from 'chaire-lib-backend/lib/config/server.config';
 import passport from 'chaire-lib-backend/lib/config/auth';
