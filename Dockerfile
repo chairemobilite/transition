@@ -13,7 +13,7 @@ RUN cargo build
 
 
 # Build Node app
-FROM node:16-buster
+FROM node:16-bullseye
 WORKDIR /app
 # Install all the json package dependencies in an intermediary image. To do so, we copy each package.json files
 # and run yarn install which will download all the listed packages in the image.
@@ -48,11 +48,14 @@ COPY --from=json2capnpbuild /app/services/json2capnp/target/debug/json2capnp ser
 
 # Copy in trRouting and osrm binaries
 # For trRouting
-RUN apt-get update && apt-get -y --no-install-recommends install capnproto libboost-regex1.67.0 libboost-filesystem1.67.0 libboost-iostreams1.67.0 libboost-thread1.67.0 libboost-date-time1.67.0 libboost-serialization1.67.0 libboost-program-options1.67.0
+RUN apt-get update && apt-get -y --no-install-recommends install capnproto libboost-regex1.74.0 libboost-filesystem1.74.0 libboost-iostreams1.74.0 libboost-thread1.74.0 libboost-date-time1.74.0 libboost-serialization1.74.0 libboost-program-options1.74.0 libspdlog1
+
 # For OSRM
-RUN apt-get -y --no-install-recommends install libboost-chrono1.67.0  libtbb2 liblua5.2-0
+# libtbb12 us only available in bookworm or later copy it from the osrm image
+COPY --from=greenscientist/osrm-backend:bullseye /usr/local/lib/libtbb* /usr/local/lib/
+RUN apt-get -y --no-install-recommends install libboost-chrono1.74.0 liblua5.4-0
 COPY --from=chairemobilite/trrouting:latest /usr/local/bin/trRouting /usr/local/bin/
-COPY --from=greenscientist/osrm-backend:buster /usr/local/bin/osrm-* /usr/local/bin/
+COPY --from=greenscientist/osrm-backend:bullseye /usr/local/bin/osrm-* /usr/local/bin/
 
 #From OSRM dockerfile, make sure tools work
 RUN /usr/local/bin/osrm-extract --help && \
