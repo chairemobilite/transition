@@ -78,7 +78,7 @@ services/json2capnp/testData
 
 # custom
 public/dist/
-packages/**/lib
+packages/*/lib
 packages/**/node_modules
 packages/transition/backend/file/
 tests/runtime
