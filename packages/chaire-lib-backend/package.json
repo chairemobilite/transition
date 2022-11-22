@@ -65,6 +65,7 @@
         "moment": "^2.29.4",
         "node-fetch": "^2.6.7",
         "nodemailer": "^6.6.1",
+        "opentelemetry-instrumentation-socket.io": "^0.23.1",
         "p-queue": "^6.6.2",
         "passport": "^0.4.1",
         "passport-auth-token": "^1.0.1",
