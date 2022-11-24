@@ -119,7 +119,10 @@ const contract = function(parameters = {} as any): Promise<any> {
     return new Promise((resolve, reject) => {
         console.log(`osrm: contracting osrm data for mode ${mode} from directory ${osrmDirectoryPath}`);
 
-        const osrmProcess = spawn('osrm-contract', ['*.osrm'], {
+        // contract parameter need to match the prefix of the osm file passed to extract
+        // in our case it's the mode name. The .osrm is not generated in the latest osrm-extract
+        // but the name is still accepted as a base path
+        const osrmProcess = spawn('osrm-contract', [`${mode}.osrm`], {
             shell: true,
             detached: false,
             cwd: osrmDirectoryPath
