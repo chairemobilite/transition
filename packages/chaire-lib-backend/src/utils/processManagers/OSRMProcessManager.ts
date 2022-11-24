@@ -118,6 +118,13 @@ const configureAllOsrmServers = async function(startServers = true): Promise<voi
     }
 };
 
+function getOsrmRoutedStartArgs(osrmDirectory: string, mode: string, port: string): string[] {
+    return [
+        osrmDirectory + `/${mode}.osrm`,
+        `--max-table-size=100000 --max-matching-size=1000 --max-trip-size=1000 --max-viaroute-size=10000 -p${port}`
+    ];
+}
+
 //TODO set type for parameters instead of any
 //TODO set type for Promise return (in all the file)
 const start = function(parameters = {} as any): Promise<any> {
@@ -129,10 +136,7 @@ const start = function(parameters = {} as any): Promise<any> {
 
     return new Promise((resolve, reject) => {
         const command = 'osrm-routed';
-        const commandArgs = [
-            osrmDirectoryPath + '/*.osrm',
-            `--max-table-size=100000 --max-matching-size=1000 --max-trip-size=1000 --max-viaroute-size=10000 -p${port}`
-        ];
+        const commandArgs = getOsrmRoutedStartArgs(osrmDirectoryPath, mode, port);
         const waitString = 'running and waiting for requests';
 
         resolve(ProcessManager.startProcess(serviceName, tagName, command, commandArgs, waitString, true));
@@ -159,10 +163,7 @@ const restart = function(parameters): Promise<any> {
 
     return new Promise((resolve, reject) => {
         const command = 'osrm-routed';
-        const commandArgs = [
-            osrmDirectoryPath + '/*.osrm',
-            `--max-table-size=100000 --max-matching-size=1000 --max-trip-size=1000 --max-viaroute-size=10000 -p${port}`
-        ];
+        const commandArgs = getOsrmRoutedStartArgs(osrmDirectoryPath, mode, port);
         const waitString = 'running and waiting for requests';
 
         resolve(
