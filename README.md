@@ -28,10 +28,6 @@ For Ubuntu users: [complete step-by-step development environment setup procedure
 * Optionally `yarn create-user`: Run this task to create a new user in the database. The user will be able to login to the web interface. This command can be run entirely in a non-interactive mode with the following parameters: `yarn create-user --username <username> --email <email> --password <clearTextPassword> [--first_name <firstName> --last_name <lastName> --[no-]admin --[no-]valid --[no-]confirmed --prefs <jsonStringOfPreferences>]`. For example, to create and administrator user with the english language as preference, run the following command `yarn create-user --username admin --email admin@example.org --password MyAdminPassword --admin --prefs '{ "lang": "en" }'`
 
 
-### For testing:
-* `yarn setup-test`: Same as `yarn setup`, but for the TEST environment. It should be run before running the database tests.
-* `yarn migrate-test`: Same as `yarn migrate`, but for the TEST environment. It should be run before running the database tests.
-
 ## Build and start
 
 **An example configuration and geographical area can be found in [the examples](examples/) directory.**
@@ -88,34 +84,7 @@ You can also run the app this way with:
 
 ## Contributing
 
-### Coding guidelines
-
-To ensure consistency throughout the code base, we use `prettier` and `eslint` to automatically format the code files. Since code formatting in javascript/typescript is opinionated, the coding rules are described in the configs/ directory. The base rules are taken from the [google GTS project](https://github.com/google/gts) and some were added.
-
-To automatically format code files in a workspace, simply run `yarn format` before a commit.
-
-Unfamiliar with the review process? Read [The ABC of a Pull Request](docs/ABC_of_pull_requests.md).
-
-### Debugging
-
-The `.vscode/launch.json.example` file contains various vscode launch configuration that can be used to debug the server, the browsers or units tests. You can copy it in a `.vscode/launch.json` file and edit them for each developer's need and specific configuration.
-
-### Inspecting the frontend bundle
-
-Once in a while, developers should examine the size and content of the frontend bundle, to see if any low-hanging fruit optimization is possible. One possible way to do so is with the `webpack-bundle-analyzer` plugin. One can locally add the plugin as a dev dependency in the workspace doing the webpack `yarn add --dev webpack-bundle-analyzer`. And in the webpack.config.js file, add the following code:
-
-```
-[...]
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-[...]
-return {
-    [...]
-    plugins: {
-        new BundleAnalyzerPlugin(),
-        [...]
-    }
-}
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## License
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fchairemobilite%2Ftransition.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fchairemobilite%2Ftransition?ref=badge_large)
