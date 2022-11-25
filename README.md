@@ -13,41 +13,87 @@ For Ubuntu users: [complete step-by-step development environment setup procedure
 ## Non-Node Dependencies
 
 * PostgreSQL 10+ with PostGIS
-* [OSRM](https://github.com/Project-OSRM/osrm-backend/)
-* [trRouting](https://github.com/chairemobilite/trRouting/)
+* [OSRM](https://github.com/Project-OSRM/osrm-backend/): It is the routing engine used by Transition, to calculate the routes for various modes: for example walking, cycling, driving, bus in urban setting, suburban bus, etc.
+* [trRouting](https://github.com/chairemobilite/trRouting/): An open source routing engine to calculate the route between an origin and a destination, or to calculate accessibility from/to a point, using public transit network. It is the main engine used for public transit simulations.
 * yarn: [debian/ubuntu](https://classic.yarnpkg.com/en/docs/install/#debian-stable) [macos](https://classic.yarnpkg.com/en/docs/install/#mac-stable)
-* Rust (it is used to run the json2capnp cache service which makes the application much faster if there's a lot of transit data)
+* Rust: It is used to run the json2capnp cache service which makes the application much faster if there's a lot of transit data.
 
 ## Installation
 
-* Install Node and Yarn
+* Install dependencies:
+
+For Ubuntu 20.04 or 22.04 users, use:
+```
+sudo apt-get install postgresql postgis lua5.3 liblua5.3-dev \
+capnproto libcapnp-dev postgresql-postgis postgresql-postgis-scripts rustc cargo
+```
 * Create a `.env` file in the project root directory (you can copy the `.env.example` file) and setup the project
 * `yarn install` or just `yarn`: Will download the packages required by the application
+* `yarn compile`: Convert the typescript files to javascript
 * `yarn setup`: Run this command to setup the database for the current project
 * `yarn migrate`: Update the database schema with latest changes. This can be run whenever the source code is updated
 * Optionally `yarn create-user`: Run this task to create a new user in the database. The user will be able to login to the web interface. This command can be run entirely in a non-interactive mode with the following parameters: `yarn create-user --username <username> --email <email> --password <clearTextPassword> [--first_name <firstName> --last_name <lastName> --[no-]admin --[no-]valid --[no-]confirmed --prefs <jsonStringOfPreferences>]`. For example, to create and administrator user with the english language as preference, run the following command `yarn create-user --username admin --email admin@example.org --password MyAdminPassword --admin --prefs '{ "lang": "en" }'`
 
 
-## Build and start
+## Getting started
 
 **An example configuration and geographical area can be found in [the examples](examples/) directory.**
 
-* `yarn compile`: Convert the typescript files to javascript
-* Download and prepare the road network: Route calculations for transit route, walking access or egress to transit stops, etc require a routing engine (`osrm`), which itself requires the road network from Open Street map. The following commands will download and prepare the road network data for use with osrm. You first need a geojson polygon file to define the area for which to get the data.
+### Create a config file
 
-```shell
-yarn babel-node --max-old-space-size=4096 transition-app/chaire-lib/backend/lib/scripts/osrm/downloadOsmNetworkData.task.js --polygon-file path/to/polygon_area.geojson
+Create a `config.js` file with the project's configuration. See the [config file in the examples directory](examples/config.js) for an example configuration.
 
-yarn babel-node --max-old-space-size=4096 transition-app/chaire-lib/backend/lib/scripts/osrm/prepareOsmNetworkData.task.js
+The main options to configure are the `mapDefaultCenter` which is usually around the center of the area that will be served by the instance of Transition and the `projectDirectory`, which is the local path where runtime files, user data, local osrm files, log files, etc. will be stored.
+
+The example config file contains preferences to run the `osrm` servers for each mode locally. They are started when Transition starts. To use external osrm server, the configuration can be updated as follows, for example for the walking mode:
+
+```
+[...]
+walking: {
+    port: 5001,
+    host: https://external.osrm-server,
+    autoStart: false,
+    enabled: true
+[...]
 ```
 
-* Optionally `yarn compile:dev` (keep running in the background to watch changes in the typescript code in all workspaces)
-* `yarn build:dev` or `yarn build:prod` (keep running in the background if you want to watch changes in the code): Create the html application that will be run on the browser
-* Optionally `yarn start:json2capnp -- 2000 /absolute/path/to/cache/directory/` to start the rust server to run the json2capnp cache service. This is required if the `defaultPreferences:json2capnp:enabled` preference is set to `true` in the `config.js` file (`true` is the default, to not use the rust server, set the value to `false` under the default preferences).
-* Start the nodejs server with one of these alternative in a new shell:
-  * `yarn start`: Normal operation
-  * `yarn start:debug`: Debug mode
-  * `yarn start:tracing` Start the nodejs server with an OpenTelemetry config defined in a `tracing.js` file (placed in the root directory). See https://github.com/open-telemetry/opentelemetry-js/blob/main/getting-started/README.md#initialize-a-global-tracer for an example. 
+### Download and prepare the road network
+
+Route calculations for transit route, walking access or egress to transit stops, etc require a routing engine (`osrm`), which itself requires the road network from Open Street map. The following commands will download and prepare the road network data for use with osrm. 
+
+But first, a geojson polygon file is required to specify the area for which to download and process the road network. To easily create a polygon, [geojson.io](https://geojson.io) can be used, which can then be copy-pasted to a file.
+
+```shell
+yarn node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/downloadOsmNetworkData.task.js --polygon-file examples/polygon_rtl_area.geojson
+
+yarn node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/prepareOsmNetworkData.task.js
+```
+
+### Create the client application
+
+Run `yarn build:dev` or `yarn build:prod` to create the html client application that will be run on the browser. 
+
+The `prod` version is minified, while the `dev` version lhas greater size but allows to more easily debug the application.
+
+### Start the json2capnp cache server
+
+*Optional*
+
+Run `yarn start:json2capnp -- 2000 /absolute/path/to/cache/directory/` to start the rust server to run the json2capnp cache service. 
+
+This is required if the `defaultPreferences:json2capnp:enabled` preference is set to `true` in the `config.js` file (`true` is the default, to not use the rust server, set the value to `false` under the default preferences).
+
+### Start the nodejs server
+
+Use one of these alternative start command:
+
+* `yarn start`: Start the server, with normal operation
+* `yarn start:debug`: Start the server with extra debugging information
+* `yarn start:tracing` Start the nodejs server with an OpenTelemetry config defined in a `tracing.js` file (placed in the root directory). See https://github.com/open-telemetry/opentelemetry-js/blob/main/getting-started/README.md#initialize-a-global-tracer for an example. 
+
+### Open the application
+
+Open your browser and navigate to `http://localhost:8080` to access the Transition login page.
 
 
 ## Using Docker
@@ -70,10 +116,15 @@ On the first run, you'll need to run the the DB setup commands. See the Installa
 
 To load OSRM Data:
 Copy a geojson polygon
+
 #TODO Maybe the whole projects directory should be in a volume
-docker cp /path/to/my/random_polygon.geojson transition_transition-www_1:/app/projects/demo_transition/imports/polygon.geojson
-### TODO ADD  downloadosmtask....
-docker exec -it transition_transition-www_1 yarn babel-node --max-old-space-size=4096 /app/src/tasks/transition/osrm/prepareOsmNetworkData.task.js
+```shell
+docker cp /path/to/my/random_polygon.geojson transition_transition-www_1:/app/examples/runtime/imports/polygon.geojson
+
+docker exec -it transition_transition-www_1 yarn node --max-old-space-size=4096 /app/packages/chaire-lib-backend/lib/scripts/osrm/downloadOsmNetworkData.task.js --polygon-file /app/examples/runtime/imports/polygon.geojson
+
+docker exec -it transition_transition-www_1 yarn node --max-old-space-size=4096 /app/packages/chaire-lib-backend/lib/scripts/osrm/prepareOsmNetworkData.task.js
+```
 
 ### Running development commands
 During development, you can run command in the docker image and use your local code.
