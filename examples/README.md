@@ -17,9 +17,9 @@ PROJECT_CONFIG=</path/to/this/repo>/examples/transition/config.js
 5. Get and prepare the road network for `osrm` to route. This step is optional, but required to create new lines that properly follow the road network. The first line will download the Open Street Map network data from the overpass API. The second line will prepare the data for the `osrm` servers. Data is prepared differently for different modes of tranportation. Selecting `driving` and `walking` are mandatory modes, as `driving` is the default mode for vehicles and `walking` is required to calculate access, transfer and egress times from transit.
 
 ```shell
-yarn babel-node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/downloadOsmNetworkData.task.js --polygon-file examples/polygon_rtl_area.geojson
+yarn node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/downloadOsmNetworkData.task.js --polygon-file examples/polygon_rtl_area.geojson
 
-yarn babel-node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/prepareOsmNetworkData.task.js
+yarn node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/prepareOsmNetworkData.task.js
 ```
 
 6. Start the nodejs server with `yarn start:demo`.
