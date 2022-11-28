@@ -37,7 +37,7 @@ const run = async function() {
         }
     ]);
 
-    console.log(`yarn babel-node --max-old-space-size=${taskAnswers.memoryNeeded} ${taskAnswers.taskFilepath}`);
+    console.log(`yarn node --max-old-space-size=${taskAnswers.memoryNeeded} ${taskAnswers.taskFilepath}`);
 
     return;
 };

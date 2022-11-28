@@ -20,11 +20,9 @@
   },
   "dependencies": {
     "@alienfast/i18next-loader": "^1.1.4",
-    "@babel/core": "^7.10.3",
     "@mapbox/polyline": "^1.1.1",
     "@turf/turf": "^6.3.0",
     "@types/node": "^17.0.38",
-    "babel-loader": "^8.1.0",
     "chaire-lib-common": "^0.2.2",
     "child_process": "^1.0.2",
     "css-loader": "^3.6.0",
@@ -75,8 +73,6 @@
     "yargs": "^16.1.1"
   },
   "devDependencies": {
-    "@babel/plugin-transform-regenerator": "^7.10.1",
-    "@babel/plugin-transform-runtime": "^7.10.1",
     "@turf/transform-translate": "^5.1.5",
     "@types/geojson": "^7946.0.7",
     "@types/geokdbush": "^1.1.2",
@@ -99,7 +95,6 @@
     "@types/p-queue": "^3.2.1",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
-    "babel-runtime": "^6.26.0",
     "cross-env": "^7.0.2",
     "dotenv": "^8.2.0",
     "eslint": "^7.32.0",
