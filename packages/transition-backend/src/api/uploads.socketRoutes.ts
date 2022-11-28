@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import fs from 'fs';
-import unzipper from 'unzipper';
+import JSZip from 'jszip';
 import SocketIO from 'socket.io';
 
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
@@ -20,29 +20,38 @@ import linesImporter from '../services/importers/LinesImporter';
 import pathsImporter from '../services/importers/PathsImporter';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 
-const gtfsImportFunction = (socket: SocketIO.Socket, absoluteUserDir: string, filePath: string) => {
-    const gtfsFilesDirectoryPath = `${absoluteUserDir}/gtfs/gtfs`;
+const gtfsImportFunction = async (socket: SocketIO.Socket, absoluteUserDir: string, filePath: string) => {
+    const gtfsFilesDirectoryPath = `${absoluteUserDir}/gtfs/gtfs/`;
     // gtfs zip file
     //const gtfsDirectoryPath = fileUploader.options.uploadDirectory;
     directoryManager.createDirectoryIfNotExistsAbsolute(gtfsFilesDirectoryPath);
     directoryManager.emptyDirectoryAbsolute(gtfsFilesDirectoryPath);
 
-    //let   numberOfEntriesProcessed = 0;
-    const extracter = unzipper.Extract({ path: gtfsFilesDirectoryPath });
-    extracter.on('error', (err) => {
-        console.error('Error importing gtfs file', err);
-        socket.emit('gtfsImporter.gtfsUploadError', 'error importing gtfs file ' + err.toString());
-    });
-    fs.createReadStream(filePath)
-        .pipe(extracter)
-        .on('close', async () => {
-            console.log('GTFS zip file upload Complete.');
-            socket.emit('gtfsImporter.gtfsFileUnzipped');
-
-            const importData = await GtfsImportPreparation.prepare(gtfsFilesDirectoryPath);
-            socket.emit('gtfsImporter.gtfsFilePrepared', importData);
-            console.log('GTFS zip file prepared');
+    // TODO: Consider moving to an `extract` method if this is needed anywhere else
+    try {
+        const zipData = fs.readFileSync(filePath);
+        const zip = new JSZip();
+        const zipFileContent = await zip.loadAsync(zipData);
+        const filePromises = Object.keys(zipFileContent.files).map(async (filename) => {
+            const fileInfo = zip.file(filename);
+            if (fileInfo === null) {
+                return;
+            }
+            const content = await fileInfo.async('nodebuffer');
+            const dest = gtfsFilesDirectoryPath + filename;
+            fs.writeFileSync(dest, content);
         });
+        Promise.all(filePromises);
+        console.log('GTFS zip file upload Complete.');
+        socket.emit('gtfsImporter.gtfsFileUnzipped');
+
+        const importData = await GtfsImportPreparation.prepare(gtfsFilesDirectoryPath);
+        socket.emit('gtfsImporter.gtfsFilePrepared', importData);
+        console.log('GTFS zip file prepared');
+    } catch (err) {
+        console.error('Error importing gtfs file', err);
+        socket.emit('gtfsImporter.gtfsUploadError', 'error importing gtfs file ' + String(err));
+    }
 };
 
 const importerByObjectName = {
