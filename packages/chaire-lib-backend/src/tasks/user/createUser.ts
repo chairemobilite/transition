@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import prompt, { RevalidatorSchema } from 'prompt';
+import inquirer from 'inquirer';
 import validator from 'validator';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -37,13 +37,15 @@ export class CreateUser implements GenericTask {
     private existingEmails: string[] = [];
     private existingUsernames: string[] = [];
 
-    private validateUsername = (username: string): boolean => {
-        return validator.matches(username, /^[a-zA-Z0-9_\-]+$/) && this.existingUsernames.indexOf(username) <= -1;
-    };
+    private validateUsername = (username: string): boolean | string =>
+        validator.matches(username, /^[a-zA-Z0-9_\-]+$/) && this.existingUsernames.indexOf(username) <= -1
+            ? true
+            : 'Username must be composed of digits, letters, underscores or dashes and must be unique.';
 
-    private validateEmail = (email: string): boolean => {
-        return validator.isEmail(email) && this.existingEmails.indexOf(email) <= -1;
-    };
+    private validateEmail = (email: string): boolean | string =>
+        validator.isEmail(email) && this.existingEmails.indexOf(email) <= -1
+            ? true
+            : 'Email is invalid or the email is already used.';
 
     private callPrompt = async (options: {
         defaultAdmin: boolean;
@@ -51,59 +53,55 @@ export class CreateUser implements GenericTask {
         defaultConfirmed: boolean;
         preferences: any;
     }): Promise<void> => {
-        prompt.start();
+        const answers = await inquirer.prompt([
+            {
+                type: 'input',
+                name: 'username',
+                message: 'username',
+                validate: this.validateUsername
+            },
+            {
+                type: 'input',
+                name: 'email',
+                message: 'email',
+                validate: this.validateEmail
+            },
+            {
+                type: 'password',
+                name: 'password',
+                message: 'password',
+                validate: (pwd: string) =>
+                    pwd.match(/^.{8,}$/) !== null ? true : 'Password must have at least 8 characters.'
+            },
+            {
+                type: 'input',
+                name: 'first_name',
+                default: ''
+            },
+            {
+                type: 'input',
+                name: 'last_name',
+                default: ''
+            },
+            {
+                name: 'is_admin',
+                type: 'confirm',
+                default: options.defaultAdmin
+            },
+            {
+                name: 'is_valid',
+                type: 'confirm',
+                default: options.defaultValid
+            },
+            {
+                name: 'is_confirmed',
+                type: 'confirm',
+                default: options.defaultConfirmed
+            }
+        ]);
 
-        return new Promise((resolve, reject) => {
-            const promptSchema = [
-                {
-                    name: 'username',
-                    conform: this.validateUsername,
-                    message: 'Username must be composed of digits, letters, underscores or dashes and must be unique.',
-                    required: true
-                } as RevalidatorSchema,
-                {
-                    name: 'email',
-                    conform: this.validateEmail,
-                    message: 'Email is invalid or the email is already used.',
-                    required: true
-                } as RevalidatorSchema,
-                {
-                    name: 'password',
-                    pattern: /^.{8,}$/,
-                    message: 'Password must have at least 8 characters.',
-                    hidden: true,
-                    required: true,
-                    replace: '*'
-                } as RevalidatorSchema,
-                { name: 'first_name' } as RevalidatorSchema,
-                { name: 'last_name' } as RevalidatorSchema,
-                {
-                    name: 'is_admin',
-                    type: 'boolean',
-                    default: options.defaultAdmin
-                } as RevalidatorSchema,
-                {
-                    name: 'is_valid',
-                    type: 'boolean',
-                    default: options.defaultValid
-                } as RevalidatorSchema,
-                {
-                    name: 'is_confirmed',
-                    type: 'boolean',
-                    default: options.defaultConfirmed
-                } as RevalidatorSchema
-            ];
-
-            prompt.get(promptSchema, async (err, result) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                const user = { ...result, preferences: options.preferences };
-                await this.createUser(user);
-                resolve();
-            });
-        });
+        const user = { ...answers, preferences: options.preferences };
+        await this.createUser(user);
     };
 
     private async createUserFromData(user: any) {
