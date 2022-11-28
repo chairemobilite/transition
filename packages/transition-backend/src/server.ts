@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-//require('@babel/register');
 import fs from 'fs';
 import { join } from 'path';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

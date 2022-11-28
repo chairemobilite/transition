@@ -50,7 +50,7 @@
             ],
             "runtimeExecutable": "yarn",
             "runtimeArgs": [
-                "babel-node",
+                "node",
                 "--max-old-space-size=4096",
                 "packages/transition-backend/lib/scripts/cache/recreateCache.task.js"
             ],
