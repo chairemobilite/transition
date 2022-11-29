@@ -31,7 +31,6 @@
     "@types/node": "^17.0.38",
     "@types/react": "^16.9.0",
     "@types/react-dom": "^16.9.0",
-    "babel-loader": "^8.1.0",
     "bcryptjs": "^2.4.3",
     "bookshelf": "^1.2.0",
     "bookshelf-json-columns": "^3.0.0",
@@ -78,8 +77,6 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.10.4",
-    "@babel/preset-react": "^7.10.4",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^10.4.7",
     "@types/geojson": "^7946.0.7",
