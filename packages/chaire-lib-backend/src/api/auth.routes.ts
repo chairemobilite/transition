@@ -126,11 +126,15 @@ export default function(app: express.Express) {
     });
 
     app.get('/logout', (req, res) => {
-        req.logout();
-        req.session.destroy(() => {
-            return res.status(200).json({
-                loggedOut: true,
-                status: 'Logout successful!'
+        req.logout({}, (err) => {
+            if (err !== undefined) {
+                console.error(`Error logging out: ${err}. Will destroy session anyway.`);
+            }
+            req.session.destroy(() => {
+                return res.status(200).json({
+                    loggedOut: true,
+                    status: 'Logout successful!'
+                });
             });
         });
     });
