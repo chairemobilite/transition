@@ -64,14 +64,6 @@ module.exports = (env) => {
     module: {
       rules: [
         {
-          loader: 'babel-loader',
-          test: /\.js$/,
-          options: {
-            presets: ['@babel/preset-env', '@babel/preset-react']//,
-          },
-          include: includeDirectories
-        },
-        {
           test: /\.tsx?$/,
           use: 'ts-loader',
           exclude: /node_modules/,
