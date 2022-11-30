@@ -18,11 +18,11 @@ jobs:
     env:
       PROJECT_CONFIG: ${{ github.workspace }}/examples/config.js
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: copy env file
       run: cp .env.example .env
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
     - name: Install
@@ -39,7 +39,7 @@ jobs:
   code-lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Install
       run: yarn install
     - name: Compile
@@ -51,7 +51,7 @@ jobs:
     name: Json2capnp
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
