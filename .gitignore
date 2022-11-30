@@ -84,5 +84,8 @@ packages/transition/backend/file/
 tests/runtime
 tests/test
 
+# node profiling data
+profilingData*
+
 #example apps
 examples/runtime
