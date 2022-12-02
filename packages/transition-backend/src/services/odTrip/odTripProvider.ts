@@ -28,6 +28,7 @@ export interface OdTripOptions {
     timeAttributeDepartureOrArrival: 'arrival' | 'departure';
     timeFormat: string;
     timeAttribute: string;
+    debug?: boolean;
 }
 
 const extractOdTrip = (
@@ -149,12 +150,14 @@ export const parseOdTripsFromCsv = async (
             try {
                 const odTrip = extractOdTrip(line, options, projections);
 
-                console.log(
-                    `line ${rowNumber} new odTrip ${odTrip.attributes.id} ${
-                        odTrip.attributes.timeType === 'departure' ? 'dts=' : 'ats='
-                    }${odTrip.attributes.timeOfTrip}
-                           `
-                );
+                if (options.debug) {
+                    console.log(
+                        `line ${rowNumber} new odTrip ${odTrip.attributes.id} ${
+                            odTrip.attributes.timeType === 'departure' ? 'dts=' : 'ats='
+                        }${odTrip.attributes.timeOfTrip}
+                            `
+                    );
+                }
 
                 odTrips.push(odTrip);
             } catch (error) {

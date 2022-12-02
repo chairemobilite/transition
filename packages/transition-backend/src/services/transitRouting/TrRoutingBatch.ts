@@ -158,12 +158,18 @@ export const batchRoute = async (
 
             const promiseQueue = new pQueue({ concurrency: poolOfTrRoutingPorts.length });
 
+            // Log progress at most for each 1% progress
+            const logInterval = Math.ceil(odTripsCount / 100);
             const odTripTask = async ({ odTrip, odTripIndex }: { odTrip: BaseOdTrip; odTripIndex: number }) => {
                 const trRoutingPort = poolOfTrRoutingPorts.pop();
                 try {
                     if (trRoutingPort === undefined) {
                         throw 'TrRoutingBatch: No available routing port. This should not happen';
                     }
+                    if ((odTripIndex + 1) % logInterval === 0) {
+                        console.log(`Routing odTrip ${odTripIndex + 1}/${odTripsCount}`);
+                    }
+
                     const routingResult = await routeOdTrip(odTrip, {
                         trRoutingPort,
                         odTripIndex: odTripIndex,
@@ -225,7 +231,7 @@ export const batchRoute = async (
             };
 
             const benchmarkStart = performance.now();
-            for (let odTripIndex = 0; odTripIndex < odTrips.length; odTripIndex++) {
+            for (let odTripIndex = 0; odTripIndex < odTripsCount; odTripIndex++) {
                 promiseQueue.add(async () => {
                     // Assert the job is not cancelled, otherwise clear the queue and let the job exit
                     if (isCancelled()) {

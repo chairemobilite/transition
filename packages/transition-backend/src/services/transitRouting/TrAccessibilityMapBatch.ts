@@ -115,6 +115,8 @@ export const batchAccessibilityMap = async (
 
         const promiseQueue = new pQueue({ concurrency: poolOfTrRoutingPorts.length });
 
+        // Log progress at most for each 1% progress
+        const logInterval = Math.ceil(locationsCount / 100);
         const accessMapLocationTask = async ({
             location,
             locationIndex
@@ -126,6 +128,9 @@ export const batchAccessibilityMap = async (
             try {
                 if (trRoutingPort === undefined) {
                     throw 'TrRoutingBatch: No available routing port. This should not happen';
+                }
+                if ((locationIndex + 1) % logInterval === 0) {
+                    console.log(`Calculating accessibility map ${locationIndex + 1}/${locationsCount}`);
                 }
 
                 const calculationAttributes = _cloneDeep(accessMapAttributes);

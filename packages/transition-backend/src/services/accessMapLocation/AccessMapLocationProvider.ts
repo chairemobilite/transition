@@ -26,6 +26,7 @@ export interface accessMapLocationOptions {
     timeAttributeDepartureOrArrival: 'arrival' | 'departure';
     timeFormat: string;
     timeAttribute: string;
+    debug?: boolean;
 }
 
 const extractLocation = (
@@ -122,12 +123,14 @@ export const parseLocationsFromCsv = async (
             try {
                 const location = extractLocation(line, options, projections);
 
-                console.log(
-                    `line ${rowNumber} new location ${location.id} ${
-                        location.timeType === 'departure' ? 'dts=' : 'ats='
-                    }${location.timeOfTrip}
-                           `
-                );
+                if (options.debug) {
+                    console.log(
+                        `line ${rowNumber} new location ${location.id} ${
+                            location.timeType === 'departure' ? 'dts=' : 'ats='
+                        }${location.timeOfTrip}
+                            `
+                    );
+                }
 
                 locations.push(location);
             } catch (error) {

@@ -94,12 +94,6 @@ const routeOdTrip = async function(
             false
         );
 
-        console.log(
-            `odTrip ${parameters.odTripIndex + 1}/${parameters.odTripsCount} transit routed @port ${
-                parameters.trRoutingPort
-            }`
-        );
-
         let features: GeoJSON.Feature[] | undefined = undefined;
         if (parameters.withGeometries === true) {
             features = await generateShapeGeojsons(
