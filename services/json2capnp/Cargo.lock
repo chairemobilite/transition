@@ -159,9 +159,9 @@ checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
 name = "capnp"
-version = "0.14.0"
+version = "0.14.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee33f13b9419d35f9ae6e0ee2e5ef6bd059a4d0da2fda16a88ddaf57dfe9acca"
+checksum = "2dca085c2c7d9d65ad749d450b19b551efaa8e3476a439bdca07aca8533097f3"
 
 [[package]]
 name = "cc"
