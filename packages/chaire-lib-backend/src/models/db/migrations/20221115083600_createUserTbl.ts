@@ -7,20 +7,11 @@ export async function up(knex: Knex): Promise<unknown> {
     }
     await knex.schema.createTable('users', (table: Knex.TableBuilder) => {
         table.increments();
-        table
-            .uuid('uuid')
-            .notNullable()
-            .defaultTo(knex.raw('gen_random_uuid()'));
-        table
-            .string('username')
-            .unique()
-            .index();
+        table.uuid('uuid').notNullable().defaultTo(knex.raw('gen_random_uuid()'));
+        table.string('username').unique().index();
         table.text('password');
         table.string('generated_password');
-        table
-            .string('email')
-            .unique()
-            .index();
+        table.string('email').unique().index();
         table.string('first_name');
         table.string('last_name');
         table.boolean('is_valid').index();

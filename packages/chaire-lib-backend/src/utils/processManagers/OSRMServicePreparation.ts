@@ -14,7 +14,7 @@ import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
 //TODO set type for parameters instead of any
 //TODO set type for Promise return (in all the file)
-const extract = function(parameters: {
+const extract = function (parameters: {
     osmFilePath: string;
     directoryPrefix?: string;
     mode?: RoutingMode;
@@ -112,7 +112,7 @@ const extract = function(parameters: {
 };
 
 //TODO set type for parameters instead of any
-const contract = function(parameters = {} as any): Promise<any> {
+const contract = function (parameters = {} as any): Promise<any> {
     const mode = parameters.mode || 'walking';
     const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, parameters.directoryPrefix);
 
@@ -182,7 +182,7 @@ const contract = function(parameters = {} as any): Promise<any> {
     });
 };
 
-const prepare = async function(
+const prepare = async function (
     osmFilePath: string,
     modes: RoutingMode[] | RoutingMode = ['walking', 'cycling', 'driving', 'bus_urban', 'bus_suburb'],
     directoryPrefix = defaultDirectoryPrefix

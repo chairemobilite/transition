@@ -75,7 +75,7 @@ export type PointOfInterest = GeoJSON.Feature<GeoJSON.Point, NonResidentialEntra
  * @param properties The properties of the feature for which to check if it is a
  * retirement home
  */
-const isRetirementHome = function(properties: { [name: string]: any }): boolean {
+const isRetirementHome = function (properties: { [name: string]: any }): boolean {
     // (amenity=retirement_home or amenity=social_facility with
     // social_facility:for=senior) (can be both:
     // amenity=retirement_home;social_facility)
@@ -96,7 +96,7 @@ const isRetirementHome = function(properties: { [name: string]: any }): boolean 
  * @param properties The properties of the feature for which to check if it is a
  * park
  */
-const isPark = function(properties: { [name: string]: any }): boolean {
+const isPark = function (properties: { [name: string]: any }): boolean {
     const leisure = (properties['leisure'] || '').split(';');
     if (leisure.includes('park')) {
         return true;
@@ -109,7 +109,7 @@ const isPark = function(properties: { [name: string]: any }): boolean {
  * @param properties The properties of the feature for which to check if it is a
  * playground
  */
-const isPlayground = function(properties: { [name: string]: any }): boolean {
+const isPlayground = function (properties: { [name: string]: any }): boolean {
     const leisure = (properties['leisure'] || '').split(';');
     if (leisure.includes('playground')) {
         return true;
@@ -122,7 +122,7 @@ const isPlayground = function(properties: { [name: string]: any }): boolean {
  * @param properties The properties of the feature for which to check if it is a
  * sport pitch
  */
-const isSportPitch = function(properties: { [name: string]: any }): boolean {
+const isSportPitch = function (properties: { [name: string]: any }): boolean {
     const leisure = (properties['leisure'] || '').split(';');
     if (leisure.includes('pitch')) {
         return true;
@@ -135,7 +135,7 @@ const isSportPitch = function(properties: { [name: string]: any }): boolean {
  * @param properties The properties of the feature for which to check if it is a
  * school
  */
-const isSchool = function(properties: { [name: string]: any }): boolean {
+const isSchool = function (properties: { [name: string]: any }): boolean {
     const amenities = (properties['amenity'] || '').split(';');
     if (amenities.includes('school')) {
         return true;
@@ -148,7 +148,7 @@ const isSchool = function(properties: { [name: string]: any }): boolean {
  * @param properties The properties of the feature for which to check if it is a
  * college
  */
-const isCollege = function(properties: { [name: string]: any }): boolean {
+const isCollege = function (properties: { [name: string]: any }): boolean {
     const amenities = (properties['amenity'] || '').split(';');
     if (amenities.includes('college')) {
         return true;
@@ -161,7 +161,7 @@ const isCollege = function(properties: { [name: string]: any }): boolean {
  * @param properties The properties of the feature for which to check if it is a
  * university
  */
-const isUniversity = function(properties: { [name: string]: any }): boolean {
+const isUniversity = function (properties: { [name: string]: any }): boolean {
     const amenities = (properties['university'] || '').split(';');
     if (amenities.includes('university')) {
         return true;
@@ -174,7 +174,7 @@ const isUniversity = function(properties: { [name: string]: any }): boolean {
  * @param properties The properties of the feature for which to check if it is a
  * commercial building
  */
-const isCommercialBuilding = function(properties: { [name: string]: any }): boolean {
+const isCommercialBuilding = function (properties: { [name: string]: any }): boolean {
     const buildings = (properties['building'] || '').split(';');
     if (buildings.includes('commercial') || buildings.includes('retail')) {
         return true;
@@ -187,7 +187,7 @@ const isCommercialBuilding = function(properties: { [name: string]: any }): bool
  * @param properties The properties of the feature for which to check if it is an
  * industrial building
  */
-const isIndustrialBuilding = function(properties: { [name: string]: any }): boolean {
+const isIndustrialBuilding = function (properties: { [name: string]: any }): boolean {
     const buildings = (properties['building'] || '').split(';');
     if (buildings.includes('industrial')) {
         return true;
@@ -200,7 +200,7 @@ const isIndustrialBuilding = function(properties: { [name: string]: any }): bool
  * @param properties The properties of the feature for which to check if it is a
  * religious area
  */
-const isReligiousArea = function(properties: { [name: string]: any }): boolean {
+const isReligiousArea = function (properties: { [name: string]: any }): boolean {
     const landuses = (properties['landuse'] || '').split(';');
     if (landuses.includes('religious')) {
         return true;
@@ -213,7 +213,7 @@ const isReligiousArea = function(properties: { [name: string]: any }): boolean {
  * @param properties The properties of the feature for which to check if it is a
  * residential area
  */
-const isResidentialArea = function(properties: { [name: string]: any }): boolean {
+const isResidentialArea = function (properties: { [name: string]: any }): boolean {
     const landuses = (properties['landuse'] || '').split(';');
     if (landuses.includes('residential')) {
         return true;
@@ -226,7 +226,7 @@ const isResidentialArea = function(properties: { [name: string]: any }): boolean
  * @param properties The properties of the feature for which to check if it is a
  * commercial area
  */
-const isCommercialArea = function(properties: { [name: string]: any }): boolean {
+const isCommercialArea = function (properties: { [name: string]: any }): boolean {
     const landuses = (properties['landuse'] || '').split(';');
     if (landuses.includes('commercial') || landuses.includes('retail')) {
         return true;
@@ -239,7 +239,7 @@ const isCommercialArea = function(properties: { [name: string]: any }): boolean 
  * @param properties The properties of the feature for which to check if it is an
  * industrial area
  */
-const isIndustrialArea = function(properties: { [name: string]: any }): boolean {
+const isIndustrialArea = function (properties: { [name: string]: any }): boolean {
     const landuses = (properties['landuse'] || '').split(';');
     if (landuses.includes('industrial')) {
         return true;
@@ -251,7 +251,7 @@ const isIndustrialArea = function(properties: { [name: string]: any }): boolean 
  * Get the building or POI (node) category
  * @param properties The properties of the feature for which to check for the category
  */
-const getCategory = function(properties: { [name: string]: any }): string | null {
+const getCategory = function (properties: { [name: string]: any }): string | null {
     return null;
 };
 
@@ -259,7 +259,7 @@ const getCategory = function(properties: { [name: string]: any }): string | null
  * Get the building or POI (node) detailed category
  * @param properties The properties of the feature for which to check for the category
  */
-const getCategoryDetailed = function(properties: { [name: string]: any }): string | null {
+const getCategoryDetailed = function (properties: { [name: string]: any }): string | null {
     return null;
 };
 

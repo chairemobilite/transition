@@ -44,10 +44,9 @@ class LineAndNumberOfVehiclesGenerationLogger extends GenerationLogger {
             }
             fileManager.writeFile(
                 csvFilePath,
-                `${generation.getGenerationNumber()},${bestCandidateAsString},${bestCandidate.getScenario()?.getId() ||
-                    ''},${serializedBestCandidate.numberOfVehicles},${
-                    serializedBestCandidate.numberOfLines
-                },${methods
+                `${generation.getGenerationNumber()},${bestCandidateAsString},${
+                    bestCandidate.getScenario()?.getId() || ''
+                },${serializedBestCandidate.numberOfVehicles},${serializedBestCandidate.numberOfLines},${methods
                     .map((method) => bestResults[method].fitness)
                     .join(',')},${bestCandidateLinesWithNbVehiclesStrings.join('|')}\n`,
                 { flag: 'a' }

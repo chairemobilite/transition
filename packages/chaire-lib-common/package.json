@@ -16,7 +16,7 @@
     "test:sequential": "echo 'no tests to run for this workspace'",
     "test:ui": "echo 'no tests to run for this workspace'",
     "lint": "eslint .",
-    "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write && eslint --fix ."
+    "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write"
   },
   "dependencies": {
     "@alienfast/i18next-loader": "^1.1.4",
@@ -86,16 +86,16 @@
     "@types/osrm": "^5.22.0",
     "@types/papaparse": "^5.2.6",
     "@types/uuid": "^8.3.0",
-    "@typescript-eslint/eslint-plugin": "^5.4.0",
-    "@typescript-eslint/parser": "^5.4.0",
+    "@typescript-eslint/eslint-plugin": "^5.45.1",
+    "@typescript-eslint/parser": "^5.45.1",
     "cross-env": "^7.0.2",
     "dotenv": "^8.2.0",
-    "eslint": "^7.32.0",
+    "eslint": "^8.29.0",
     "eslint-plugin-node": "^11.1.0",
     "jest": "^27.3.1",
     "jest-each": "^27.3.1",
     "jest-fetch-mock": "^3.0.3",
-    "prettier-eslint-cli": "^5.0.1",
+    "prettier-eslint-cli": "^7.1.0",
     "ts-jest": "^27.0.7",
     "ts-loader": "^7.0.5"
   }

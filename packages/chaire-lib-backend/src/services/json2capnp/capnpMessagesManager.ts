@@ -8,14 +8,14 @@
 
 // TODO Type those functions
 
-const writePackedMessageToStream = function(writeStream, message) {
+const writePackedMessageToStream = function (writeStream, message) {
     const arrayBuffer = message.toPackedArrayBuffer();
     // Because streams can't handle ArrayBuffers
     const buffer = Buffer.from(arrayBuffer);
     writeStream.write(buffer);
 };
 
-const readToEndOfStream = function(readStream) {
+const readToEndOfStream = function (readStream) {
     return new Promise((resolve, reject) => {
         let result = new Uint8Array();
         readStream.on('close', () => {

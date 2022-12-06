@@ -254,25 +254,23 @@ export const updateTransferableNodesWithAffected = async (
             if (id !== node.getId() && !nodeIdsToUpdate.includes(id)) nodeIdsToUpdate.push(id);
         });
 
-        const affectedNodesUpdatePromises = nodeIdsToUpdate.map(
-            async (id): Promise<void> => {
-                updated.push(id);
-                const featureToUpdate = nodeCollection.getById(id);
-                if (!featureToUpdate) {
-                    console.error(
-                        'Node with id ' + id + ' was or is transferable, but it does not exist in the collection'
-                    );
-                    return;
-                }
-                const nodeToUpdate = nodeCollection.newObject(featureToUpdate, false, collectionManager);
-                nodeToUpdate.startEditing();
-                await updateTransferableNodes(nodeToUpdate, nodeCollection);
-                if (!nodeToUpdate.hasChanged() && !nodeToUpdate.isNew()) {
-                    return;
-                }
-                modifiedNodes.push(nodeToUpdate);
+        const affectedNodesUpdatePromises = nodeIdsToUpdate.map(async (id): Promise<void> => {
+            updated.push(id);
+            const featureToUpdate = nodeCollection.getById(id);
+            if (!featureToUpdate) {
+                console.error(
+                    'Node with id ' + id + ' was or is transferable, but it does not exist in the collection'
+                );
+                return;
             }
-        );
+            const nodeToUpdate = nodeCollection.newObject(featureToUpdate, false, collectionManager);
+            nodeToUpdate.startEditing();
+            await updateTransferableNodes(nodeToUpdate, nodeCollection);
+            if (!nodeToUpdate.hasChanged() && !nodeToUpdate.isNew()) {
+                return;
+            }
+            modifiedNodes.push(nodeToUpdate);
+        });
         await Promise.all(affectedNodesUpdatePromises);
         return modifiedNodes;
     } catch (error) {

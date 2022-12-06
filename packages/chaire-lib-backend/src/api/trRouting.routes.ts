@@ -36,6 +36,6 @@ router.get('/summary', async (req, res) => {
     }
 });
 
-export default function(app: express.Express) {
+export default function (app: express.Express) {
     app.use('/trRouting', router);
 }

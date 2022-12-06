@@ -367,10 +367,8 @@ export class TransitAccessibilityMapCalculator {
                 }).geometry.coordinates
             ];
 
-            const {
-                accessiblePlacesCountByCategory,
-                accessiblePlacesCountByDetailedCategory
-            } = result.getAccessibilityStatsForDuration(duration, nodeCollection);
+            const { accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory } =
+                result.getAccessibilityStatsForDuration(duration, nodeCollection);
 
             // include starting/ending location circle:
             const travelTimesByNodeId = result.getTraveTimesByNodeId();

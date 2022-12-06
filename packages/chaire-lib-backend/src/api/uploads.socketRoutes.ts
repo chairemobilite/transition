@@ -22,7 +22,7 @@ type ObjectImporter =
           type: 'importOnly';
       };
 
-export default function(
+export default function (
     socket: SocketIO.Socket,
     absoluteUserDir: string,
     importerByObjectName: { [object: string]: ObjectImporter },

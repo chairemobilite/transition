@@ -21,7 +21,7 @@ import schedulesDbQueries from '../models/db/transitSchedules.db.queries';
  * @export
  * @param {EventEmitter} socket The socket to register the routes to
  */
-export default function(socket: EventEmitter) {
+export default function (socket: EventEmitter) {
     // TODO: In the long term, this socket route should not exist at all.
     // Complete updates should not have to be run and should be done
     // automatically when updating and/or at a smaller scale.
@@ -46,22 +46,25 @@ export default function(socket: EventEmitter) {
     });
 
     // get paths associated with nodes (will return an object with node id as key and array of path ids as values)
-    socket.on('transitNodes.getAssociatedPathIdsByNodeId', async (
-        nodeIds: string[] /* uuids */,
-        callback?: (status: Status.Status<{ [key: string]: string[] }>) => void
-    ) => {
-        try {
-            const pathIdsByNodeId = await nodesDbQueries.getAssociatedPathIds(nodeIds);
-            if (typeof callback === 'function') {
-                callback(Status.createOk(pathIdsByNodeId));
-            }
-        } catch (error) {
-            console.error(`An error occurred while getting nodes associated path ids: ${error}`);
-            if (typeof callback === 'function') {
-                callback(Status.createError('Error getting nodes associated path ids'));
+    socket.on(
+        'transitNodes.getAssociatedPathIdsByNodeId',
+        async (
+            nodeIds: string[] /* uuids */,
+            callback?: (status: Status.Status<{ [key: string]: string[] }>) => void
+        ) => {
+            try {
+                const pathIdsByNodeId = await nodesDbQueries.getAssociatedPathIds(nodeIds);
+                if (typeof callback === 'function') {
+                    callback(Status.createOk(pathIdsByNodeId));
+                }
+            } catch (error) {
+                console.error(`An error occurred while getting nodes associated path ids: ${error}`);
+                if (typeof callback === 'function') {
+                    callback(Status.createError('Error getting nodes associated path ids'));
+                }
             }
         }
-    });
+    );
 
     socket.on(
         'transitSchedules.getForLine',

@@ -12,7 +12,7 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import placesDbQueries from '../models/db/places.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
-export default function(socket: EventEmitter) {
+export default function (socket: EventEmitter) {
     socket.on('place.update', async (id, attributes, callback) => {
         try {
             const updatedId = await placesDbQueries.update(id, attributes);

@@ -20,7 +20,8 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 /**
  * A collection of transit paths
  */
-export class PathCollection extends GenericMapObjectCollection<GeoJSON.LineString, PathAttributes, Path>
+export class PathCollection
+    extends GenericMapObjectCollection<GeoJSON.LineString, PathAttributes, Path>
     implements Progressable {
     protected static displayName = 'PathCollection';
     protected static socketPrefix = 'transitPaths';

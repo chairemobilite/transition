@@ -11,11 +11,11 @@ import { RoutingMode, routingModes } from 'chaire-lib-common/lib/config/routingM
 import osrmService from '../osrm/OSRMService';
 import OSRMMode from '../osrm/OSRMMode';
 
-const getServiceName = function(mode: RoutingMode = 'walking', port: number | null = 5000) {
+const getServiceName = function (mode: RoutingMode = 'walking', port: number | null = 5000) {
     return `osrmMode__${mode}__port${port}`;
 };
 
-const routingModeIsAvailable = async function(routingMode: RoutingMode): Promise<boolean> {
+const routingModeIsAvailable = async function (routingMode: RoutingMode): Promise<boolean> {
     const osrmServerPrefs = Preferences.get('osrmRouting', {});
     if (
         osrmServerPrefs.modes[routingMode] &&
@@ -41,7 +41,7 @@ const routingModeIsAvailable = async function(routingMode: RoutingMode): Promise
     }
 };
 
-const availableRoutingModes = async function(): Promise<RoutingMode[]> {
+const availableRoutingModes = async function (): Promise<RoutingMode[]> {
     const availableRoutingModes: RoutingMode[] = [];
     const osrmServerPrefs = Preferences.get('osrmRouting', {});
     for (const routingMode in osrmServerPrefs.modes) {
@@ -71,7 +71,7 @@ function errorConfiguringMode(mode: RoutingMode, message: string) {
 /* Will read the configuration file and configure the system to use
  all the OSRM mode described. Will either start the necessary process
  or attempt to connect to external ones */
-const configureAllOsrmServers = async function(startServers = true): Promise<void> {
+const configureAllOsrmServers = async function (startServers = true): Promise<void> {
     const osrmServerPrefs = Preferences.get('osrmRouting', {});
     for (const routingModeStr in osrmServerPrefs.modes) {
         const routingMode = routingModeStr as RoutingMode;
@@ -127,7 +127,7 @@ function getOsrmRoutedStartArgs(osrmDirectory: string, mode: string, port: strin
 
 //TODO set type for parameters instead of any
 //TODO set type for Promise return (in all the file)
-const start = function(parameters = {} as any): Promise<any> {
+const start = function (parameters = {} as any): Promise<any> {
     const mode = parameters.mode || 'walking';
     const port = parameters.port || Preferences.get(`osrmRouting.${mode}.port`);
     const serviceName = getServiceName(mode, port);
@@ -143,7 +143,7 @@ const start = function(parameters = {} as any): Promise<any> {
     });
 };
 
-const stop = function(parameters): Promise<any> {
+const stop = function (parameters): Promise<any> {
     const mode = parameters.mode || 'walking';
     const port = parameters.port || Preferences.get(`osrmRouting.${mode}.port`);
     const serviceName = getServiceName(mode, port);
@@ -154,7 +154,7 @@ const stop = function(parameters): Promise<any> {
     });
 };
 
-const restart = function(parameters): Promise<any> {
+const restart = function (parameters): Promise<any> {
     const mode = parameters.mode || 'walking';
     const port = parameters.port || Preferences.get(`osrmRouting.${mode}.port`);
     const serviceName = getServiceName(mode, port);

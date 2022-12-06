@@ -245,7 +245,7 @@ class Toolbar extends React.Component<LayoutSectionProps, TransitionToolbarState
                         <MenuItem
                             title={this.props.t('transit:transitPath:HidePaths')}
                             className="tr__top-menu-button"
-                            onClick={function() {
+                            onClick={function () {
                                 serviceLocator.eventManager.emit('map.hideLayer', 'transitPaths');
                             }}
                         >
@@ -261,7 +261,7 @@ class Toolbar extends React.Component<LayoutSectionProps, TransitionToolbarState
                         <MenuItem
                             title={this.props.t('transit:transitPath:ShowPaths')}
                             className="tr__top-menu-button"
-                            onClick={function() {
+                            onClick={function () {
                                 serviceLocator.eventManager.emit('map.showLayer', 'transitPaths');
                             }}
                         >
@@ -277,7 +277,7 @@ class Toolbar extends React.Component<LayoutSectionProps, TransitionToolbarState
                         <MenuItem
                             title={this.props.t('transit:transitNode:HideNodes')}
                             className="tr__top-menu-button"
-                            onClick={function() {
+                            onClick={function () {
                                 serviceLocator.eventManager.emit('map.hideLayer', 'transitNodes');
                             }}
                         >
@@ -293,7 +293,7 @@ class Toolbar extends React.Component<LayoutSectionProps, TransitionToolbarState
                         <MenuItem
                             title={this.props.t('transit:transitNode:ShowNodes')}
                             className="tr__top-menu-button"
-                            onClick={function() {
+                            onClick={function () {
                                 serviceLocator.eventManager.emit('map.showLayer', 'transitNodes');
                             }}
                         >
@@ -311,7 +311,7 @@ class Toolbar extends React.Component<LayoutSectionProps, TransitionToolbarState
                         <MenuItem
                             title={this.props.t('od:HideAggregatedOD')}
                             className="tr__top-menu-button"
-                            onClick={function() {
+                            onClick={function () {
                                 serviceLocator.eventManager.emit('map.hideLayer', 'aggregatedOD');
                             }}
                         >
@@ -328,7 +328,7 @@ class Toolbar extends React.Component<LayoutSectionProps, TransitionToolbarState
                         <MenuItem
                             title={this.props.t('od:ShowAggregatedOD')}
                             className="tr__top-menu-button"
-                            onClick={function() {
+                            onClick={function () {
                                 serviceLocator.eventManager.emit('map.showLayer', 'aggregatedOD');
                             }}
                         >

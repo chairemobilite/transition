@@ -12,7 +12,7 @@ import EventManager from 'chaire-lib-common/lib/services/events/EventManager';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 
 // Prepare a node process that is not the main server with the proper socket routes and events.
-export default function() {
+export default function () {
     serviceLocator.addService('socketEventManager', new EventManager(new EventEmitter()));
     // TODO We shouldn't need to have those. Classes called by the tasks should not use those, but they do
     serviceLocator.addService('eventManager', new EventManager(new EventEmitter()));

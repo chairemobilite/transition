@@ -19,7 +19,7 @@ import { SimulationRunAttributes } from 'transition-common/lib/services/simulati
  * @export
  * @param {EventEmitter} socket The socket to register the routes to
  */
-export default function(socket: EventEmitter) {
+export default function (socket: EventEmitter) {
     socket.on('simulation.create', async (attributes: SimulationAttributes, callback) => {
         try {
             const returning = await simulationDbQueries.create(attributes);

@@ -19,7 +19,7 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const preparationProgressName = 'GTFSExporterPreparation';
 
-const quotesFct = function(value: unknown) {
+const quotesFct = function (value: unknown) {
     return typeof value === 'string' && value.includes(',');
 };
 

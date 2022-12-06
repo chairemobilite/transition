@@ -119,9 +119,9 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         const maxNumberOfVehicles = this.options.simulationRun.attributes.data.simulationParameters.nbOfVehicles;
         const scenario = new Scenario(
             {
-                name: `SimRun_${maxNumberOfVehicles}veh${
-                    lines.length
-                }lines_${this.options.simulationRun.getId().substring(0, 8)}_${this.chromosome.name}`,
+                name: `SimRun_${maxNumberOfVehicles}veh${lines.length}lines_${this.options.simulationRun
+                    .getId()
+                    .substring(0, 8)}_${this.chromosome.name}`,
                 services,
                 simulation_id: this.options.simulationRun.attributes.simulation_id
             },

@@ -417,7 +417,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                                 icon={faSyncAlt}
                                                 iconClass="_icon"
                                                 label={this.props.t('transit:transitSchedule:GenerateSchedule')}
-                                                onClick={function() {
+                                                onClick={function () {
                                                     schedule.generateForPeriod(periodShortname).then((response) => {
                                                         if (response.trips) {
                                                             schedule.set(`periods[${i}].trips`, response.trips);
@@ -439,7 +439,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                             icon={faTrash}
                                             iconClass="_icon"
                                             label={this.props.t('transit:transitSchedule:RemoveSchedule')}
-                                            onClick={function() {
+                                            onClick={function () {
                                                 schedule.set(`periods[${i}].trips`, []);
                                                 serviceLocator.selectedObjectsManager.update('schedule', schedule);
                                             }}

@@ -386,7 +386,7 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
                                     iconPath={'/dist/images/icons/transit/schedule_white.svg'}
                                     iconClass="_icon"
                                     label={this.props.t('transit:transitSchedule:Schedules')}
-                                    onClick={function() {
+                                    onClick={function () {
                                         serviceLocator.eventManager.emit('fullSizePanel.show');
                                     }.bind(this)}
                                 />
@@ -426,8 +426,8 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
                 )}
 
                 {!line.isNew() &&
-                isFrozen !== true &&
-                canCreateNewPath && ( // new path
+                    isFrozen !== true &&
+                    canCreateNewPath && ( // new path
                     <div className="tr__form-buttons-container">
                         <Button
                             color="blue"

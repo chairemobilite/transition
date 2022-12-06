@@ -35,7 +35,7 @@ const defaultFailureCallback = (err, _req: Request, res: Response, _next) => {
     });
 };
 
-export default function(app: express.Express) {
+export default function (app: express.Express) {
     app.get(
         '/googlelogin',
         passport.authenticate('google', { scope: 'https://www.googleapis.com/auth/userinfo.email' })

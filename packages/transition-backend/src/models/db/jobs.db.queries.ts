@@ -66,10 +66,7 @@ const collection = async (
             return { jobs: [], totalCount };
         }
 
-        const jobsQuery = knex
-            .select()
-            .from(tableName)
-            .orderBy(sort.field, sort.direction);
+        const jobsQuery = knex.select().from(tableName).orderBy(sort.field, sort.direction);
         addWhere(jobsQuery);
         if (options.pageSize > 0) {
             jobsQuery.limit(options.pageSize).offset(options.pageIndex * options.pageSize);
@@ -87,9 +84,7 @@ const collection = async (
 
 const exists = async (id: number): Promise<boolean> => {
     try {
-        const rows = await knex(tableName)
-            .count('*')
-            .where('id', id);
+        const rows = await knex(tableName).count('*').where('id', id);
 
         const count = rows.length > 0 ? rows[0].count : 0;
         if (count) {
@@ -112,9 +107,7 @@ const exists = async (id: number): Promise<boolean> => {
 
 const read = async (id: number): Promise<JobAttributes<JobDataType>> => {
     try {
-        const rows = await knex(tableName)
-            .select('*')
-            .where('id', id);
+        const rows = await knex(tableName).select('*').where('id', id);
 
         if (rows.length !== 1) {
             throw new TrError(
@@ -123,7 +116,7 @@ const read = async (id: number): Promise<JobAttributes<JobDataType>> => {
                 'DatabaseCannotReadBecauseObjectDoesNotExist'
             );
         } else {
-            const _newObject = attributesParser((rows[0] as unknown) as JobAttributes<JobDataType>);
+            const _newObject = attributesParser(rows[0] as unknown as JobAttributes<JobDataType>);
             return _newObject;
         }
     } catch (error) {
@@ -137,9 +130,7 @@ const read = async (id: number): Promise<JobAttributes<JobDataType>> => {
 
 const create = async (job: Omit<JobAttributes<JobDataType>, 'id'>): Promise<number> => {
     try {
-        const returningArray = await knex(tableName)
-            .insert(job)
-            .returning('id');
+        const returningArray = await knex(tableName).insert(job).returning('id');
         return returningArray[0];
     } catch (error) {
         throw new TrError(
@@ -162,10 +153,7 @@ const update = async (
     attributes: Partial<Pick<JobAttributes<JobDataType>, 'status' | 'data' | 'resources'>>
 ): Promise<number> => {
     try {
-        const returningArray = await knex(tableName)
-            .update(attributes)
-            .where('id', id)
-            .returning('id');
+        const returningArray = await knex(tableName).update(attributes).where('id', id).returning('id');
         return returningArray[0];
     } catch (error) {
         throw new TrError(
@@ -178,9 +166,7 @@ const update = async (
 
 const deleteRecord = async (id: number) => {
     try {
-        await knex(tableName)
-            .where('id', id)
-            .del();
+        await knex(tableName).where('id', id).del();
         return id;
     } catch (error) {
         throw new TrError(

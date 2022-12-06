@@ -9,14 +9,8 @@ export async function up(knex: Knex): Promise<unknown> {
     }
     await knex.schema.createTable(tableName, (table: Knex.TableBuilder) => {
         table.increments();
-        table
-            .integer('user_id')
-            .notNullable()
-            .index();
-        table
-            .foreign('user_id')
-            .references('users.id')
-            .onDelete('CASCADE');
+        table.integer('user_id').notNullable().index();
+        table.foreign('user_id').references('users.id').onDelete('CASCADE');
         table.string('name');
         table
             .enu(

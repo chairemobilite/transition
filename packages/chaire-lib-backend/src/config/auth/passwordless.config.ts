@@ -70,7 +70,7 @@ const getOrCreateUserWithEmail = async (destination: string): Promise<UserModel>
     }
 };
 
-export default function(passport: PassportStatic) {
+export default function (passport: PassportStatic) {
     // TODO Manage the language
     const magicLogin = new MagicLoginStrategy({
         // Used to encrypt the authentication token. Needs to be long, unique and (duh) secret.

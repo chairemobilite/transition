@@ -16,9 +16,9 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { EventEmitter } from 'events';
 import Node from 'transition-common/lib/services/nodes/Node';
 
-const events = function(eventManager: EventEmitter) {
+const events = function (eventManager: EventEmitter) {
     return {
-        'path.hoverNode': function(node: Node, nodeTitle = node.toString(false)) {
+        'path.hoverNode': function (node: Node, nodeTitle = node.toString(false)) {
             const popup = new Popup({
                 offset: 10,
                 anchor: 'bottom'
@@ -41,7 +41,7 @@ const events = function(eventManager: EventEmitter) {
             eventManager.emit('map.addPopup', nodeId, popup);
         },
 
-        'path.unhoverNode': function(nodeId: string) {
+        'path.unhoverNode': function (nodeId: string) {
             if (
                 serviceLocator &&
                 serviceLocator.keyboardManager &&
@@ -56,14 +56,14 @@ const events = function(eventManager: EventEmitter) {
 };
 
 export default {
-    addEvents: function(eventManager: EventEmitter) {
+    addEvents: function (eventManager: EventEmitter) {
         const _events = events(eventManager);
         for (const eventName in _events) {
             eventManager.on(eventName, _events[eventName]);
         }
     },
 
-    removeEvents: function(eventManager: EventEmitter) {
+    removeEvents: function (eventManager: EventEmitter) {
         const _events = events(eventManager);
         for (const eventName in _events) {
             eventManager.off(eventName, _events[eventName]);

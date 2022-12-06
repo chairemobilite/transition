@@ -11,7 +11,7 @@ import { faInfoCircle } from '@fortawesome/free-solid-svg-icons/faInfoCircle';
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 
-const TransitPathNodeHelp: React.FunctionComponent<WithTranslation> = function(props: WithTranslation) {
+const TransitPathNodeHelp: React.FunctionComponent<WithTranslation> = function (props: WithTranslation) {
     const [showHelp, setShowHelp] = useState(false);
     return (
         <span

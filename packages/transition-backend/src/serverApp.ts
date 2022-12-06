@@ -78,7 +78,7 @@ export const setupServer = (app: Express) => {
     app.use(
         morgan('combined', {
             // do not log if nolog=true is part of the url params:
-            skip: function(req) {
+            skip: function (req) {
                 return req.url.indexOf('nolog=true') !== -1;
             }
         })

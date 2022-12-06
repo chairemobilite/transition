@@ -20,9 +20,7 @@ const read = async (userId: number) => {
     }
 
     try {
-        const rows = await knex('users')
-            .select('preferences')
-            .where('id', userId);
+        const rows = await knex('users').select('preferences').where('id', userId);
         if (rows.length !== 1) {
             throw new TrError(
                 `Cannot find user with id ${userId} in database`,
@@ -57,10 +55,7 @@ const update = async (userId: number, valuesByPath: { [pref: string]: unknown })
         for (const path in valuesByPath) {
             _set(preferences, path, valuesByPath[path]);
         }
-        const idArray = await knex('users')
-            .update({ preferences })
-            .where('id', userId)
-            .returning('id');
+        const idArray = await knex('users').update({ preferences }).where('id', userId).returning('id');
         return idArray[0];
     } catch (error) {
         if (TrError.isTrError(error)) {

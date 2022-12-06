@@ -28,7 +28,7 @@ import { PlaceAttributes } from 'transition-common/lib/services/places/Place';
 const tableName = 'tr_places';
 const st = knexPostgis(knex);
 
-const attributesCleaner = function(attributes: Partial<PlaceAttributes>): { [key: string]: any } {
+const attributesCleaner = function (attributes: Partial<PlaceAttributes>): { [key: string]: any } {
     const _attributes: any = _cloneDeep(attributes);
     if (_attributes.geography) {
         _attributes.geography = st.geomFromGeoJSON(JSON.stringify(_attributes.geography));

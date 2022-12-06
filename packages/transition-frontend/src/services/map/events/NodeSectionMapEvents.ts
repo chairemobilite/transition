@@ -16,7 +16,7 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
 /* This file encapsulates map events specific for the 'nodes' section */
 
-const getRoadLabelAround = function(map: MapboxGL.Map, e: MapboxGL.MapMouseEvent, squareRadiusMeters = 100) {
+const getRoadLabelAround = function (map: MapboxGL.Map, e: MapboxGL.MapMouseEvent, squareRadiusMeters = 100) {
     const searchLatitude = e.lngLat.toArray()[1];
     const mapZoom = map.getZoom();
     const searchSquareRadiusInPixels = metersToPixels(squareRadiusMeters, searchLatitude, mapZoom); // in fact it will be a square

@@ -13,7 +13,7 @@ import * as lineCacheQueries from '../models/capnpCache/transitLines.cache.queri
 import linesDbQueries from '../models/db/transitLines.db.queries';
 import Line from 'transition-common/lib/services/line/Line';
 
-export default function(socket: EventEmitter) {
+export default function (socket: EventEmitter) {
     socket.on(
         'cache.saveAll',
         async (

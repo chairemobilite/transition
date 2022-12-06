@@ -94,7 +94,7 @@ export default abstract class GenericDataImportTask implements GenericTask {
                 choices: dataSourcesChoices
             },
             {
-                when: function(answers) {
+                when: function (answers) {
                     return answers.dataSourceId === GenericDataImportTask.NEW_DATA_SOURCE_ID;
                 },
                 type: 'input',
@@ -103,7 +103,7 @@ export default abstract class GenericDataImportTask implements GenericTask {
                 validate
             },
             {
-                when: function(answers) {
+                when: function (answers) {
                     return answers.dataSourceId === GenericDataImportTask.NEW_DATA_SOURCE_ID;
                 },
                 type: 'input',

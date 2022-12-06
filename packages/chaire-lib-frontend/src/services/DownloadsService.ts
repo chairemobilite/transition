@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-const generateJsonDownloadUrl = function(json) {
+const generateJsonDownloadUrl = function (json) {
     if (JSON && URL && Blob) {
         const jsonStr = JSON.stringify(json);
         const blob = new Blob([jsonStr], { type: 'text/json;charset=utf-8' });
@@ -14,7 +14,7 @@ const generateJsonDownloadUrl = function(json) {
     }
 };
 
-const generateCsvDownloadUrl = function(csv, withBom = false) {
+const generateCsvDownloadUrl = function (csv, withBom = false) {
     if (URL && Blob) {
         const blobContent = withBom ? ['\ufeff', csv] : [csv];
         const blob = new Blob(blobContent, { type: 'text/csv;charset=utf-8' });
@@ -24,7 +24,7 @@ const generateCsvDownloadUrl = function(csv, withBom = false) {
     }
 };
 
-const downloadUrl = function(url, filename) {
+const downloadUrl = function (url, filename) {
     if (url && typeof window !== 'undefined' && window.document) {
         // must use the dom
         const link = window.document.createElement('a');
@@ -40,19 +40,19 @@ export default {
     generateJsonDownloadUrl,
     generateCsvDownloadUrl,
 
-    downloadJson: function(json, filename) {
+    downloadJson: function (json, filename) {
         downloadUrl(generateJsonDownloadUrl(json), filename);
     },
 
-    downloadJsonFromBlob: function(jsonBlobUrl, filename) {
+    downloadJsonFromBlob: function (jsonBlobUrl, filename) {
         downloadUrl(jsonBlobUrl, filename);
     },
 
-    downloadCsv: function(csv, filename, withBom = false) {
+    downloadCsv: function (csv, filename, withBom = false) {
         downloadUrl(generateCsvDownloadUrl(csv, withBom), filename);
     },
 
-    downloadCsvFromBlob: function(csvBlobUrl, filename) {
+    downloadCsvFromBlob: function (csvBlobUrl, filename) {
         downloadUrl(csvBlobUrl, filename);
     }
 };

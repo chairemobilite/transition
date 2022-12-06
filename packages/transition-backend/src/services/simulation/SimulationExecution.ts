@@ -54,7 +54,7 @@ const loadServerData = async (
     return { lines, agencies, services };
 };
 
-const prepareCacheDirectory = function(simulationRun: SimulationRun) {
+const prepareCacheDirectory = function (simulationRun: SimulationRun) {
     const projectRelativeCacheDirectoryPath = simulationRun.getProjectRelativeCacheDirectoryPath();
 
     // TODO: make sure we copy every files, even new files like stations and stops.

@@ -59,9 +59,7 @@ const collection = async (type?: DataSourceType): Promise<DataSourceAttributes[]
  */
 const findByName = async (name: string): Promise<DataSourceAttributes | undefined> => {
     try {
-        const dataSources = await knex(tableName)
-            .where('name', name)
-            .orWhere('shortname', name);
+        const dataSources = await knex(tableName).where('name', name).orWhere('shortname', name);
         return dataSources.length > 0 ? dataSources[0] : undefined;
     } catch (error) {
         throw new TrError(

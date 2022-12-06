@@ -53,9 +53,11 @@ export const batchRoute = async (
     absoluteBaseDirectory: string,
     progressEmitter: EventEmitter,
     isCancelled: () => boolean
-): Promise<TransitBatchCalculationResult & {
-    files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
-}> => {
+): Promise<
+    TransitBatchCalculationResult & {
+        files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
+    }
+> => {
     console.log('TrRoutingService batchRoute Parameters', parameters);
 
     // TODO Extract this somewhere, or allow configurable name

@@ -19,7 +19,7 @@ interface newUserParams {
     confirmationToken?: string;
 }
 
-export const saveNewUser = async function(params: newUserParams): Promise<UserModel | null> {
+export const saveNewUser = async function (params: newUserParams): Promise<UserModel | null> {
     const userPassword = params.password;
     const user = new UserModel({
         username: params.username || null,

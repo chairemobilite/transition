@@ -30,7 +30,7 @@ import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/direct
 
 // TODO The socket routes should validate parameters as even typescript cannot guarantee the types over the network
 // TODO Add more unit tests as the called methods are cleaned up
-export default function(socket: EventEmitter, userId?: number) {
+export default function (socket: EventEmitter, userId?: number) {
     socket.on('service.osrmRouting.routingModeIsAvailable', async (parameters, callback) => {
         callback(await osrmProcessManager.routingModeIsAvailable(parameters.mode));
     });

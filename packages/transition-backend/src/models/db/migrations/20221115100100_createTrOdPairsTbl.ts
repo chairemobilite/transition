@@ -8,19 +8,11 @@ export async function up(knex: Knex): Promise<unknown> {
         return;
     }
     await knex.schema.createTable(tableName, (table: Knex.TableBuilder) => {
-        table
-            .uuid('id')
-            .unique()
-            .notNullable()
-            .defaultTo(knex.raw('gen_random_uuid()'))
-            .primary();
+        table.uuid('id').unique().notNullable().defaultTo(knex.raw('gen_random_uuid()')).primary();
         table.specificType('integer_id', 'serial').index(); // unique per data source uuid
         table.string('internal_id');
         table.uuid('data_source_id').index();
-        table
-            .foreign('data_source_id')
-            .references('tr_data_sources.id')
-            .onDelete('CASCADE');
+        table.foreign('data_source_id').references('tr_data_sources.id').onDelete('CASCADE');
         table.integer('time_of_trip');
         table.integer('time_type');
         table.specificType('origin_geography', 'geography(POINT)');

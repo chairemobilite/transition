@@ -23,7 +23,7 @@
         "test:sequential": "cross-env NODE_ENV=test jest --config=jest.sequential.config.js --runInBand",
         "test:ui": "echo 'no tests to run for this workspace'",
         "lint": "eslint .",
-        "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write && eslint --fix ."
+        "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write"
     },
     "dependencies": {
         "@casl/ability": "^5.4.3",
@@ -103,10 +103,10 @@
         "@types/stream-chain": "^2.0.1",
         "@types/stream-json": "^1.7.1",
         "@types/validator": "^13.6.6",
-        "@typescript-eslint/eslint-plugin": "^5.4.0",
-        "@typescript-eslint/parser": "^5.4.0",
+        "@typescript-eslint/eslint-plugin": "^5.45.1",
+        "@typescript-eslint/parser": "^5.45.1",
         "cross-env": "^7.0.2",
-        "eslint": "^7.32.0",
+        "eslint": "^8.29.0",
         "eslint-plugin-node": "^11.1.0",
         "jest": "^27.3.1",
         "jest-each": "^27.3.1",
@@ -114,7 +114,7 @@
         "mock-knex": "^0.4.9",
         "mock-spawn": "^0.2.6",
         "nodemailer-mock": "^1.5.8",
-        "prettier-eslint-cli": "^5.0.1",
+        "prettier-eslint-cli": "^7.1.0",
         "supertest": "^6.1.3",
         "supertest-session": "^4.1.0",
         "ts-jest": "^27.0.7"

@@ -626,9 +626,8 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     getDistancesForNodeIdsWithRoutingRadiusTooSmallForPathShape(
         nodeCollection = this._collectionManager?.get('nodes')
     ): { [key: string]: number } {
-        const nodesDistancesFromAndDiffWithNodesRoutingRadii = this.getNodesDistancesFromPathWithNodesRoutingRadii(
-            nodeCollection
-        );
+        const nodesDistancesFromAndDiffWithNodesRoutingRadii =
+            this.getNodesDistancesFromPathWithNodesRoutingRadii(nodeCollection);
         const nodeIdsWithRoutingRadiusTooSmallForPathShape = {};
         for (let i = 0, count = nodesDistancesFromAndDiffWithNodesRoutingRadii.length; i < count; i++) {
             if (

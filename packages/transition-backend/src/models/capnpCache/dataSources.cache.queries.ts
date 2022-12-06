@@ -18,7 +18,7 @@ import { DataSource_Type, DataSource as CacheObject } from '../capnpDataModel/da
 import { boolToInt8, int8ToBool } from 'chaire-lib-backend/lib/utils/json2capnp/CapnpConversionUtils';
 import { _emptyStringToNull } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
-const collectionToCache = function(collection: DataSourceCollection, cachePathDirectory?: string) {
+const collectionToCache = function (collection: DataSourceCollection, cachePathDirectory?: string) {
     return defaultCollectionToCache({
         collection,
         cacheName: 'dataSources',
@@ -27,7 +27,7 @@ const collectionToCache = function(collection: DataSourceCollection, cachePathDi
         maxNumberOfObjectsPerFile: 1000,
         CacheCollection,
         CollectionClass: DataSourceCollection,
-        capnpParser: function(object: DataSource, cacheObject: CacheObject) {
+        capnpParser: function (object: DataSource, cacheObject: CacheObject) {
             const attributes = object.getAttributes();
 
             cacheObject.setUuid(attributes.id);
@@ -41,7 +41,7 @@ const collectionToCache = function(collection: DataSourceCollection, cachePathDi
     });
 };
 
-const collectionFromCache = function(cachePathDirectory?: string) {
+const collectionFromCache = function (cachePathDirectory?: string) {
     return defaultCollectionFromCache({
         collection: new DataSourceCollection([], {}),
         CollectionClass: DataSourceCollection,
@@ -49,14 +49,14 @@ const collectionFromCache = function(cachePathDirectory?: string) {
         cachePathDirectory,
         pluralizedCollectionName: 'DataSources',
         CacheCollection,
-        parser: function(object) {
+        parser: function (object) {
             if (object.attributes) {
                 return new DataSource(object.attributes, false);
             } else {
                 return new DataSource(object, false);
             }
         },
-        capnpParser: function(cacheObject: CacheObject) {
+        capnpParser: function (cacheObject: CacheObject) {
             return new DataSource(
                 {
                     id: cacheObject.getUuid(),

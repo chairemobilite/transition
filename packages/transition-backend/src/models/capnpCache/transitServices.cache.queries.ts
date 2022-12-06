@@ -17,7 +17,7 @@ import {
 import { boolToInt8, int8ToBool } from 'chaire-lib-backend/lib/utils/json2capnp/CapnpConversionUtils';
 import { _emptyStringToNull } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
-const collectionToCache = function(collection: ServiceCollection, cachePathDirectory?: string) {
+const collectionToCache = function (collection: ServiceCollection, cachePathDirectory?: string) {
     return defaultCollectionToCache({
         collection,
         cacheName: 'services',
@@ -26,7 +26,7 @@ const collectionToCache = function(collection: ServiceCollection, cachePathDirec
         maxNumberOfObjectsPerFile: 1000,
         CacheCollection,
         CollectionClass: ServiceCollection,
-        capnpParser: function(object: Service, cacheObject: CacheObject) {
+        capnpParser: function (object: Service, cacheObject: CacheObject) {
             const attributes = object.getAttributes();
 
             cacheObject.setUuid(attributes.id);
@@ -68,7 +68,7 @@ const collectionToCache = function(collection: ServiceCollection, cachePathDirec
     });
 };
 
-const collectionFromCache = function(cachePathDirectory?: string) {
+const collectionFromCache = function (cachePathDirectory?: string) {
     return defaultCollectionFromCache({
         collection: new ServiceCollection([], {}),
         CollectionClass: ServiceCollection,
@@ -76,14 +76,14 @@ const collectionFromCache = function(cachePathDirectory?: string) {
         cachePathDirectory,
         pluralizedCollectionName: 'Services',
         CacheCollection,
-        parser: function(object) {
+        parser: function (object) {
             if (object.attributes) {
                 return new Service(object.attributes, false);
             } else {
                 return new Service(object, false);
             }
         },
-        capnpParser: function(cacheObject: CacheObject) {
+        capnpParser: function (cacheObject: CacheObject) {
             return new Service(
                 {
                     id: cacheObject.getUuid(),

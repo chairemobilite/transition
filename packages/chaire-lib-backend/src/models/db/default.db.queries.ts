@@ -12,7 +12,7 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 // TODO Move these to a generic class, so we can use identical types for U and T in generic methods.
 
-const stringifyDataSourceIds = function(dataSourceIds: string[]): string[] {
+const stringifyDataSourceIds = function (dataSourceIds: string[]): string[] {
     if (dataSourceIds && !Array.isArray(dataSourceIds)) {
         dataSourceIds = [dataSourceIds];
     }
@@ -32,9 +32,7 @@ const exists = async (knex: Knex, tableName: string, id: string): Promise<boolea
         );
     }
     try {
-        const rows = await knex(tableName)
-            .count('*')
-            .where('id', id);
+        const rows = await knex(tableName).count('*').where('id', id);
 
         const count = rows.length > 0 ? rows[0].count : 0;
         if (count) {
@@ -65,9 +63,7 @@ const create = async <T extends GenericAttributes, U>(
     try {
         const _newObject = parser ? parser(newObject) : newObject;
 
-        const returningArray = await knex(tableName)
-            .insert(_newObject)
-            .returning(returning);
+        const returningArray = await knex(tableName).insert(_newObject).returning(returning);
         return returningArray[0];
     } catch (error) {
         throw new TrError(
@@ -126,9 +122,7 @@ const read = async <T extends GenericAttributes, U>(
                 'DatabaseCannotReadBecauseIdIsMissingOrInvalid'
             );
         }
-        const rows = await knex(tableName)
-            .select(knex.raw(query))
-            .where('id', id);
+        const rows = await knex(tableName).select(knex.raw(query)).where('id', id);
 
         if (rows.length !== 1) {
             throw new TrError(
@@ -137,7 +131,7 @@ const read = async <T extends GenericAttributes, U>(
                 'DatabaseCannotReadBecauseObjectDoesNotExist'
             );
         } else {
-            const _newObject = parser ? parser((rows[0] as unknown) as U) : (rows[0] as T);
+            const _newObject = parser ? parser(rows[0] as unknown as U) : (rows[0] as T);
             return _newObject;
         }
     } catch (error) {
@@ -167,10 +161,7 @@ const update = async <T extends GenericAttributes, U>(
         }
         const _attributes = parser ? parser(attributes) : attributes;
 
-        const returningArray = await knex(tableName)
-            .update(_attributes)
-            .where('id', id)
-            .returning(returning);
+        const returningArray = await knex(tableName).update(_attributes).where('id', id).returning(returning);
         return returningArray[0];
     } catch (error) {
         throw new TrError(
@@ -223,9 +214,7 @@ const deleteRecord = async (knex: Knex, tableName: string, id: string) => {
                 'ObjectCannotDeleteBecauseIdIsMissingOrInvalid'
             );
         }
-        await knex(tableName)
-            .where('id', id)
-            .del();
+        await knex(tableName).where('id', id).del();
         return id;
     } catch (error) {
         throw new TrError(
@@ -236,7 +225,7 @@ const deleteRecord = async (knex: Knex, tableName: string, id: string) => {
     }
 };
 
-const deleteMultiple = function(knex: Knex, tableName: string, ids: string[]): Promise<string[]> {
+const deleteMultiple = function (knex: Knex, tableName: string, ids: string[]): Promise<string[]> {
     return new Promise((resolve, reject) => {
         return knex(tableName)
             .whereIn('id', ids)
@@ -259,9 +248,7 @@ const deleteMultiple = function(knex: Knex, tableName: string, ids: string[]): P
 
 const deleteForDataSourceId = async (knex: Knex, tableName: string, dataSourceId: string): Promise<string> => {
     try {
-        await knex(tableName)
-            .where('data_source_id', dataSourceId)
-            .del();
+        await knex(tableName).where('data_source_id', dataSourceId).del();
         return dataSourceId;
     } catch (error) {
         throw new TrError(
@@ -286,7 +273,7 @@ const truncate = async (knex: Knex, tableName: string): Promise<string> => {
     }
 };
 
-const destroy = function(
+const destroy = function (
     knex: Knex,
     callback: () => void = () => {
         /* nothing to do */

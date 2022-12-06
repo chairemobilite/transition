@@ -23,10 +23,13 @@ interface StatsRowProps extends WithTranslation {
 const StatsRowBase: React.FunctionComponent<StatsRowProps> = (props: StatsRowProps) => {
     const value = props.value !== null && props.value !== undefined ? props.value : props.defaultValue || '?';
     const pathStatFormula = pathStatsFormula[props.variable];
-    const { translatableString, latexExpression, unit = undefined } =
-        typeof pathStatFormula === 'string'
-            ? { translatableString: `variable:${props.variable}`, latexExpression: props.variable }
-            : pathStatFormula;
+    const {
+        translatableString,
+        latexExpression,
+        unit = undefined
+    } = typeof pathStatFormula === 'string'
+        ? { translatableString: `variable:${props.variable}`, latexExpression: props.variable }
+        : pathStatFormula;
     return (
         <tr>
             <th>{props.t(translatableString)}</th>
@@ -111,8 +114,9 @@ const TransitPathStatistics: React.FunctionComponent<PathStatsProps> = (props: P
                 <SimpleRow header={props.t('transit:transitPath:Speeds')} isHeader={true} />
                 <SimpleRow
                     header={props.t('transit:transitPath:ExcludingDwellTimes')}
-                    value={`${Math.round((pathData.averageSpeedWithoutDwellTimesMetersPerSecond || 0) * 3.6 * 100) /
-                        100} km/h`}
+                    value={`${
+                        Math.round((pathData.averageSpeedWithoutDwellTimesMetersPerSecond || 0) * 3.6 * 100) / 100
+                    } km/h`}
                 />
                 <SimpleRow
                     header={props.t('transit:transitPath:OperatingSpeed')}

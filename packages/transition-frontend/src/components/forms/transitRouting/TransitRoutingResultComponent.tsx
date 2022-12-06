@@ -166,10 +166,10 @@ const TransitRoutingResults: React.FunctionComponent<TransitRoutingResultsProps>
                             <tr>
                                 <th>{props.t('transit:transitRouting:results:LostTimeAtArrivalIfNonOptimised')}</th>
                                 <td
-                                    title={`${(props.request.arrivalTimeSecondsSinceMidnight ||
-                                        path.arrivalTimeSeconds) - path.arrivalTimeSeconds} ${props.t(
-                                        'main:secondAbbr'
-                                    )}.`}
+                                    title={`${
+                                        (props.request.arrivalTimeSecondsSinceMidnight || path.arrivalTimeSeconds) -
+                                        path.arrivalTimeSeconds
+                                    } ${props.t('main:secondAbbr')}.`}
                                 >
                                     {secondsToMinutes(
                                         (props.request.arrivalTimeSecondsSinceMidnight || path.arrivalTimeSeconds) -

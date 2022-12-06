@@ -6,7 +6,7 @@
  */
 // TODO: import old code from transition-legacy
 
-export const geojsonToPolyBoundary = function(
+export const geojsonToPolyBoundary = function (
     geojson: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature
 ): string | false {
     let geojsonPolygonGeom;
@@ -38,17 +38,17 @@ export const geojsonToPolyBoundary = function(
     return polyBoundaryArray.join(' ');
 };
 
-export const metersToMapboxPixelsAtMaxZoom = function(meters, latitude) {
+export const metersToMapboxPixelsAtMaxZoom = function (meters, latitude) {
     return meters / 0.075 / Math.cos((latitude * Math.PI) / 180);
 };
 
-const metersPerPixel = function(latitude: number, zoom: number) {
+const metersPerPixel = function (latitude: number, zoom: number) {
     const earthCircumference = 40075017;
     const latitudeRadians = latitude * (Math.PI / 180);
     return (earthCircumference * Math.cos(latitudeRadians)) / Math.pow(2, zoom + 8);
 };
 
-export const metersToPixels = function(meters: number, latitude: number, zoom: number) {
+export const metersToPixels = function (meters: number, latitude: number, zoom: number) {
     if (Math.abs(latitude) > 90) {
         return Number.NaN;
     }

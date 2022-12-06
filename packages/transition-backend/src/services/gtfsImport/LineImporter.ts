@@ -57,7 +57,7 @@ export class LineImporter implements GtfsObjectImporter<LineImportData, Line> {
                 lines.push({
                     line: {
                         agency_id: actualAgencyId,
-                        route_type: parseInt((route_type as unknown) as string),
+                        route_type: parseInt(route_type as unknown as string),
                         ...rest
                     }
                 });

@@ -25,7 +25,7 @@ interface SimulationListProps extends WithTranslation {
 const SimulationList: React.FunctionComponent<SimulationListProps> = (props: SimulationListProps) => {
     const [showModal, setShowModal] = useState(false);
 
-    const newSimulation = function() {
+    const newSimulation = function () {
         const defaultColor = Preferences.get('transit.simulations.defaultColor', '#0086FF');
         const newSimulation = new Simulation({ color: defaultColor }, true, serviceLocator.collectionManager);
         newSimulation.startEditing();

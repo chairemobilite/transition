@@ -378,18 +378,18 @@ const defaultPreferences: PreferencesModel = {
         classes: ['LineAndNumberOfVehiclesGASimulation'],
         geneticAlgorithms: {
             fitnessSorters: {
-                maximize: function(fitnessA: number, fitnessB: number) {
+                maximize: function (fitnessA: number, fitnessB: number) {
                     return fitnessB - fitnessA; // descendant (more chance to select candidates with high fitness)
                 },
-                minimize: function(fitnessA: number, fitnessB: number) {
+                minimize: function (fitnessA: number, fitnessB: number) {
                     return fitnessA - fitnessB; // ascendent (more chance to select candidates with low fitness)
                 }
             },
             odTripFitnessFunctions: {
-                travelTimeCost: function(odTrip) {
+                travelTimeCost: function (odTrip) {
                     return (10 * odTrip.travelTimeSeconds) / 3600 + odTrip.initialLostTimeAtDepartureSeconds / 3600;
                 },
-                travelTimeWithTransferPenalty: function(odTrip) {
+                travelTimeWithTransferPenalty: function (odTrip) {
                     return (
                         (10 * (odTrip.travelTimeSeconds + odTrip.numberOfTransfers * 300)) / 3600 +
                         odTrip.initialLostTimeAtDepartureSeconds / 3600
@@ -397,7 +397,7 @@ const defaultPreferences: PreferencesModel = {
                 }
             },
             nonRoutableOdTripFitnessFunctions: {
-                taxi: function(odTrip) {
+                taxi: function (odTrip) {
                     //return 10;
                     if (odTrip.onlyDrivingTravelTimeSeconds && odTrip.onlyDrivingTravelTimeSeconds > 0) {
                         return 3.5 + (87.5 * odTrip.onlyDrivingTravelTimeSeconds) / 3600; // taxi at 50km/h
@@ -410,13 +410,13 @@ const defaultPreferences: PreferencesModel = {
                 }
             },
             fitnessFunctions: {
-                hourlyUserPlusOperatingCosts: function(stats) {
+                hourlyUserPlusOperatingCosts: function (stats) {
                     return stats.usersHourlyCost + stats.operatingHourlyCost;
                 },
-                hourlyUserCosts: function(stats) {
+                hourlyUserCosts: function (stats) {
                     return stats.usersHourlyCost;
                 },
-                hourlyOperatingCosts: function(stats) {
+                hourlyOperatingCosts: function (stats) {
                     return stats.operatingHourlyCost;
                 }
             }
@@ -541,7 +541,7 @@ const defaultPreferences: PreferencesModel = {
             defaultWalkingSpeedMps: 5 / 3.6,
             maxTransferWalkingTravelTimeSeconds: 15 * 60, // more than that would be quite unrealistic
             maxAccessEgressWalkingTravelTimeSeconds: 20 * 60,
-            weightCalculation: function(odTripExpansionFactor, walkingTravelTimeSeconds) {
+            weightCalculation: function (odTripExpansionFactor, walkingTravelTimeSeconds) {
                 return odTripExpansionFactor / Math.exp(Math.pow(walkingTravelTimeSeconds / 60, 1.6) / 50);
             }
         },

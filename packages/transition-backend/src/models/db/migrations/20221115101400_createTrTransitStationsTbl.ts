@@ -8,26 +8,15 @@ export async function up(knex: Knex): Promise<unknown> {
         return;
     }
     await knex.schema.createTable(tableName, (table: Knex.TableBuilder) => {
-        table
-            .uuid('id')
-            .unique()
-            .notNullable()
-            .defaultTo(knex.raw('gen_random_uuid()'))
-            .primary();
-        table
-            .specificType('integer_id', 'serial')
-            .unique()
-            .index();
+        table.uuid('id').unique().notNullable().defaultTo(knex.raw('gen_random_uuid()')).primary();
+        table.specificType('integer_id', 'serial').unique().index();
         table.string('internal_id').index();
         table.specificType('geography', 'geography(POINT)');
         table.specificType('area_geography', 'geography(POLYGON)');
         table.string('code').index();
         table.string('name').index();
         table.string('color');
-        table
-            .boolean('is_enabled')
-            .index()
-            .defaultTo(true);
+        table.boolean('is_enabled').index().defaultTo(true);
         table.text('description');
         table.json('data');
         table.timestamp('created_at').defaultTo(knex.raw('NOW()'));

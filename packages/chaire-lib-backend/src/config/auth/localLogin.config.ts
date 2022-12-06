@@ -53,7 +53,7 @@ const sendEmailIfRequired = async (
     done(null, false, { message: 'UnconfirmedUser' });
 };
 
-export default function(passport: PassportStatic) {
+export default function (passport: PassportStatic) {
     passport.use(
         'local-login',
         new LocalStrategy.Strategy(

@@ -27,7 +27,7 @@ import { BaseOdTripAttributes } from 'transition-common/lib/services/odTrip/Base
 const tableName = 'tr_od_pairs';
 const st = knexPostgis(knex);
 
-const attributesCleaner = function(attributes: Partial<BaseOdTripAttributes>): { [key: string]: any } {
+const attributesCleaner = function (attributes: Partial<BaseOdTripAttributes>): { [key: string]: any } {
     const {
         id,
         integer_id,

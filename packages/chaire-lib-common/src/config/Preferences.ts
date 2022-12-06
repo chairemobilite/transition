@@ -80,16 +80,16 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         }
         for (let i = 0, count = lineModesArray.length; i < count; i++) {
             const mode = lineModesArray[i];
-            const defaultAcceleration = this.getAttributes().transit.lines.lineModesDefaultValues[mode]
-                .defaultAcceleration;
-            const defaultDeceleration = this.getAttributes().transit.lines.lineModesDefaultValues[mode]
-                .defaultDeceleration;
-            const defaultRunningSpeedKmH = this.getAttributes().transit.lines.lineModesDefaultValues[mode]
-                .defaultRunningSpeedKmH;
-            const defaultDwellTimeSeconds = this.getAttributes().transit.lines.lineModesDefaultValues[mode]
-                .defaultDwellTimeSeconds;
-            const maxRunningSpeedKmH = this.getAttributes().transit.lines.lineModesDefaultValues[mode]
-                .maxRunningSpeedKmH;
+            const defaultAcceleration =
+                this.getAttributes().transit.lines.lineModesDefaultValues[mode].defaultAcceleration;
+            const defaultDeceleration =
+                this.getAttributes().transit.lines.lineModesDefaultValues[mode].defaultDeceleration;
+            const defaultRunningSpeedKmH =
+                this.getAttributes().transit.lines.lineModesDefaultValues[mode].defaultRunningSpeedKmH;
+            const defaultDwellTimeSeconds =
+                this.getAttributes().transit.lines.lineModesDefaultValues[mode].defaultDwellTimeSeconds;
+            const maxRunningSpeedKmH =
+                this.getAttributes().transit.lines.lineModesDefaultValues[mode].maxRunningSpeedKmH;
             if (_isNumber(defaultRunningSpeedKmH) && (defaultRunningSpeedKmH <= 0 || defaultRunningSpeedKmH > 500)) {
                 this.errors.push('transit:transitPath:errors:DefaultRunningSpeedIsInvalid');
                 this._isValid = false;

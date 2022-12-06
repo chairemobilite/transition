@@ -8,18 +8,10 @@ export async function up(knex: Knex): Promise<unknown> {
         return;
     }
     await knex.schema.createTable(tableName, (table: Knex.TableBuilder) => {
-        table
-            .uuid('id')
-            .unique()
-            .notNullable()
-            .defaultTo(knex.raw('gen_random_uuid()'))
-            .primary();
+        table.uuid('id').unique().notNullable().defaultTo(knex.raw('gen_random_uuid()')).primary();
         table.string('name').index();
         table.string('color');
-        table
-            .boolean('is_enabled')
-            .index()
-            .defaultTo(true);
+        table.boolean('is_enabled').index().defaultTo(true);
         table.text('description');
         table.specificType('only_agencies', 'uuid[]');
         table.specificType('only_lines', 'uuid[]');
@@ -42,10 +34,7 @@ export async function up(knex: Knex): Promise<unknown> {
         table.timestamp('updated_at');
         table.boolean('is_frozen').index();
         table.uuid('simulation_id').index();
-        table
-            .foreign('simulation_id')
-            .references('tr_simulations.id')
-            .onDelete('CASCADE');
+        table.foreign('simulation_id').references('tr_simulations.id').onDelete('CASCADE');
     });
     return knex.raw(onUpdateTrigger(tableName));
 }

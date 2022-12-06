@@ -9,7 +9,7 @@ import _isEmpty from 'lodash.isempty';
 import _isFinite from 'lodash.isfinite';
 import _isDate from 'lodash.isdate';
 
-const _isBlank = function(value) {
+const _isBlank = function (value) {
     return (
         value === undefined ||
         value === null ||
@@ -19,14 +19,14 @@ const _isBlank = function(value) {
     );
 };
 
-const _emptyStringToNull = function(str) {
+const _emptyStringToNull = function (str) {
     if (str === '') {
         return null;
     }
     return str;
 };
 
-const _toInteger = function(
+const _toInteger = function (
     value: number | string | null | undefined,
     defaultValue: number | null = null
 ): number | null {
@@ -39,7 +39,7 @@ const _toInteger = function(
             : Math.trunc(defaultValue);
 };
 
-const _toFloat = function(
+const _toFloat = function (
     value: number | string | null | undefined,
     defaultValue: number | null = null
 ): number | null {
@@ -47,7 +47,7 @@ const _toFloat = function(
     return _isFinite(number) ? number : defaultValue;
 };
 
-const _toBool = function(
+const _toBool = function (
     value: string | boolean | null | undefined,
     defaultValue: boolean | null = null
 ): boolean | null {
@@ -61,7 +61,7 @@ const _toBool = function(
 
 // split array in any number of slices:
 // Thanks to https://stackoverflow.com/a/8189268
-const _chunkify = function(a: unknown[], n = 2, balanced = true): unknown[][] {
+const _chunkify = function (a: unknown[], n = 2, balanced = true): unknown[][] {
     const len = a.length;
     const initialN = n;
     if (n < 2 || len === 0) {
@@ -102,7 +102,7 @@ const _chunkify = function(a: unknown[], n = 2, balanced = true): unknown[][] {
 };
 
 // returns true for trueish values, false for falseish values and null otherwise. Will accept upper and lowercase values as same
-const _booleish = function(value: unknown): boolean | null {
+const _booleish = function (value: unknown): boolean | null {
     const lowercaseValue =
         typeof value === 'string' ? value.toLowerCase() : Array.isArray(value) ? '' : String(value).toLowerCase();
     return ['y', 'yes', 'true', 't', '1', 'on'].includes(lowercaseValue)

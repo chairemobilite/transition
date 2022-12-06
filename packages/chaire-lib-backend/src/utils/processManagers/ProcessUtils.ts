@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-const isPidRunning = function(pid: number): boolean {
+const isPidRunning = function (pid: number): boolean {
     // Inspired by is-running module
     try {
         process.kill(pid, 0);

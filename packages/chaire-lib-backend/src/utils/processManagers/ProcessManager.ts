@@ -15,7 +15,7 @@ const PID_DIRECTORY = 'pids';
 
 directoryManager.createDirectoryIfNotExists(PID_DIRECTORY);
 
-const getServiceRunningPid = async function(serviceName: string, cleanUpStale = true): Promise<number | null> {
+const getServiceRunningPid = async function (serviceName: string, cleanUpStale = true): Promise<number | null> {
     const pidFilename = `${PID_DIRECTORY}/${serviceName}.pid`;
 
     if (fileManager.fileExists(pidFilename)) {
@@ -50,17 +50,17 @@ const getServiceRunningPid = async function(serviceName: string, cleanUpStale = 
     }
 };
 
-const isServiceRunning = async function(serviceName: string, cleanUpStale = true): Promise<boolean> {
+const isServiceRunning = async function (serviceName: string, cleanUpStale = true): Promise<boolean> {
     const pid = await getServiceRunningPid(serviceName, cleanUpStale);
 
     return pid !== null;
 };
 
-const getLoggerName = function(tagName: string, serviceName: string) {
+const getLoggerName = function (tagName: string, serviceName: string) {
     return `${tagName}Logger_${serviceName}_`;
 };
 
-const setupLogger = function(tagName: string, serviceName: string) {
+const setupLogger = function (tagName: string, serviceName: string) {
     const loggerName = getLoggerName(tagName, serviceName);
     serviceLocator.addService(
         loggerName,
@@ -80,7 +80,7 @@ const setupLogger = function(tagName: string, serviceName: string) {
     return loggerName;
 };
 
-const startProcess = async function(
+const startProcess = async function (
     serviceName: string,
     tagName: string,
     command: string,
@@ -96,7 +96,7 @@ const startProcess = async function(
         getServiceRunningPid(serviceName).then((pid) => {
             console.log(`Starting ${tagName} service ${serviceName} with current pid ${pid}`);
 
-            const doStart = function() {
+            const doStart = function () {
                 // If we reached this point, we don't have a process running or it was stopped
 
                 const loggerName = setupLogger(tagName, serviceName);
@@ -192,7 +192,7 @@ const startProcess = async function(
     });
 };
 
-const stopProcess = async function(serviceName: string, tagName: string): Promise<any> {
+const stopProcess = async function (serviceName: string, tagName: string): Promise<any> {
     return new Promise((resolve) => {
         // Check if we have a process running for that serviceName
         // TODO Should be an await instead of then but need to rework the promise to make it work
@@ -205,7 +205,7 @@ const stopProcess = async function(serviceName: string, tagName: string): Promis
 
                     let i = 0;
 
-                    const waitForExit = function() {
+                    const waitForExit = function () {
                         if (!ProcessUtils.isPidRunning(pid)) {
                             const pidFilename = `${PID_DIRECTORY}/${serviceName}.pid`;
                             fileManager.deleteFile(pidFilename);

@@ -26,7 +26,7 @@ import { AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
 
 const tableName = 'tr_transit_agencies';
 
-const attributesCleaner = function(attributes: Partial<AgencyAttributes>): Partial<AgencyAttributes> {
+const attributesCleaner = function (attributes: Partial<AgencyAttributes>): Partial<AgencyAttributes> {
     const _attributes = _cloneDeep(attributes);
     delete _attributes.line_ids;
     delete _attributes.unit_ids;
