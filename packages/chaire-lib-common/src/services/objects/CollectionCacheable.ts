@@ -23,7 +23,7 @@ export default {
      * entire collection will be saved to cache
      * @returns
      */
-    saveCache: async function(collection: GenericCollection<any>, socket, customCollection?) {
+    saveCache: async function (collection: GenericCollection<any>, socket, customCollection?) {
         const socketPrefix = collection.socketPrefix;
         return new Promise((resolve, reject) => {
             socket.emit(
@@ -56,7 +56,7 @@ export default {
      * @param socket The socket on which to call
      * @returns
      */
-    loadCache: async function<T extends GenericCollection<any>>(collection: T, socket): Promise<T> {
+    loadCache: async function <T extends GenericCollection<any>>(collection: T, socket): Promise<T> {
         const socketPrefix = collection.socketPrefix;
         return new Promise((resolve, reject) => {
             socket.emit(

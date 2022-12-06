@@ -8,28 +8,14 @@ export async function up(knex: Knex): Promise<unknown> {
         return;
     }
     await knex.schema.createTable(tableName, (table: Knex.TableBuilder) => {
-        table
-            .uuid('id')
-            .unique()
-            .notNullable()
-            .defaultTo(knex.raw('gen_random_uuid()'))
-            .primary();
-        table
-            .specificType('integer_id', 'serial')
-            .unique()
-            .index();
+        table.uuid('id').unique().notNullable().defaultTo(knex.raw('gen_random_uuid()')).primary();
+        table.specificType('integer_id', 'serial').unique().index();
         table.string('internal_id').index();
         table.string('direction').index(); // outbound, inbound, loop or other
         table.uuid('line_id').index();
-        table
-            .foreign('line_id')
-            .references('tr_transit_lines.id')
-            .onDelete('CASCADE');
+        table.foreign('line_id').references('tr_transit_lines.id').onDelete('CASCADE');
         table.string('name').index();
-        table
-            .boolean('is_enabled')
-            .index()
-            .defaultTo(true);
+        table.boolean('is_enabled').index().defaultTo(true);
         table.specificType('geography', 'geography(LINESTRING)');
         table.specificType('nodes', 'uuid[]');
         table.specificType('stops', 'uuid[]');

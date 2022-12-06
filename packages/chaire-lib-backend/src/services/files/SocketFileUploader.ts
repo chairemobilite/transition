@@ -41,7 +41,7 @@ const createSocketIoFile = (
 
     return new SocketIOFile(socket, {
         uploadDir: allOptions.uploadDirs,
-        rename: function(filename, fileInfo) {
+        rename: function (filename, fileInfo) {
             console.log('file info', fileInfo);
             // TODO Type of data is wrong, it is any[], not an object as assumed here
             if (fileInfo.data && (fileInfo.data as any).filename) {

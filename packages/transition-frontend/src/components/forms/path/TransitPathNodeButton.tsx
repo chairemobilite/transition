@@ -36,17 +36,17 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
     const segments = path.attributes.data.segments || [];
     const nodeGeographyError = props.nodeGeographyError;
 
-    const onSelectPathNode = function(e: React.MouseEvent) {
+    const onSelectPathNode = function (e: React.MouseEvent) {
         e.stopPropagation();
         serviceLocator.eventManager.emit('map.setCenter', node.attributes.geography.coordinates);
     };
 
-    const onHoverPathNode = function(e: React.MouseEvent) {
+    const onHoverPathNode = function (e: React.MouseEvent) {
         e.stopPropagation();
         serviceLocator.eventManager.emit('path.hoverNode', node, nodeTitle);
     };
 
-    const onUnhoverPathNode = function(e: React.MouseEvent) {
+    const onUnhoverPathNode = function (e: React.MouseEvent) {
         e.stopPropagation();
         serviceLocator.eventManager.emit('path.unhoverNode', nodeId);
     };

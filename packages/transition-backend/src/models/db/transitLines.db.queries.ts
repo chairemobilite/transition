@@ -29,7 +29,7 @@ const tableName = 'tr_transit_lines';
 const joinedTable = 'tr_transit_paths';
 const joinedScheduleTable = 'tr_transit_schedules';
 
-const attributesCleaner = function(attributes: Partial<LineAttributes>): Partial<LineAttributes> {
+const attributesCleaner = function (attributes: Partial<LineAttributes>): Partial<LineAttributes> {
     const _attributes = _cloneDeep(attributes);
     delete _attributes.path_ids;
     delete _attributes.service_ids;
@@ -50,7 +50,7 @@ const attributesParser = (dbAttributes: {
     Object.keys(rest).forEach(
         (key) => (dbAttributes[key] = dbAttributes[key] !== null ? dbAttributes[key] : undefined)
     );
-    return (dbAttributes as unknown) as LineAttributes;
+    return dbAttributes as unknown as LineAttributes;
 };
 
 const collection = async (lineIds?: string[]) => {
@@ -63,7 +63,7 @@ const collection = async (lineIds?: string[]) => {
         // informative on the path count.
         // TODO Return the count instead of the array of path and service ids?
         const query = knex(`${tableName} as l`)
-            .leftJoin(`${joinedTable} as p`, function() {
+            .leftJoin(`${joinedTable} as p`, function () {
                 this.on('l.id', 'p.line_id');
             })
             .leftJoin(`${joinedScheduleTable} as sched`, 'l.id', 'sched.line_id')

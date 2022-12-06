@@ -8,12 +8,7 @@ export async function up(knex: Knex): Promise<unknown> {
         return;
     }
     await knex.schema.createTable(tableName, (table: Knex.TableBuilder) => {
-        table
-            .uuid('id')
-            .unique()
-            .notNullable()
-            .defaultTo(knex.raw('gen_random_uuid()'))
-            .primary();
+        table.uuid('id').unique().notNullable().defaultTo(knex.raw('gen_random_uuid()')).primary();
         table.string('shortname').index();
         table.string('name').index();
         table.text('description').index();

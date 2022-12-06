@@ -12,7 +12,7 @@ import { EventEmitter } from 'events';
 import allPreferences from 'chaire-lib-common/lib/config/Preferences';
 import preferencesQueries from '../models/db/preferences.db.queries';
 
-export default function(socket: EventEmitter, userId: number) {
+export default function (socket: EventEmitter, userId: number) {
     socket.on('preferences.read', async (callback) => {
         try {
             const preferences = await preferencesQueries.read(userId);

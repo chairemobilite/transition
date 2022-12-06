@@ -22,7 +22,7 @@ import { startPool } from './tasks/serverWorkerPool';
 
 const socketWildCard = socketMiddleWare();
 
-const setupSocketServerApp = async function(server, session) {
+const setupSocketServerApp = async function (server, session) {
     // Start the worker pool for worker threads
     startPool();
 

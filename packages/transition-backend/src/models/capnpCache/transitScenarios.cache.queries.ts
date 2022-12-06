@@ -26,7 +26,7 @@ const collectionToCache = async (collection: ScenarioCollection, cachePathDirect
         maxNumberOfObjectsPerFile: 1000,
         CacheCollection,
         CollectionClass: ScenarioCollection,
-        capnpParser: function(object: Scenario, cacheObject: CacheObject) {
+        capnpParser: function (object: Scenario, cacheObject: CacheObject) {
             const attributes = object.getAttributes();
 
             cacheObject.setUuid(attributes.id);
@@ -104,7 +104,7 @@ const collectionToCache = async (collection: ScenarioCollection, cachePathDirect
     });
 };
 
-const collectionFromCache = function(cachePathDirectory?: string) {
+const collectionFromCache = function (cachePathDirectory?: string) {
     return defaultCollectionFromCache({
         collection: new ScenarioCollection([], {}),
         CollectionClass: ScenarioCollection,
@@ -112,14 +112,14 @@ const collectionFromCache = function(cachePathDirectory?: string) {
         cachePathDirectory,
         pluralizedCollectionName: 'Scenarios',
         CacheCollection,
-        parser: function(object) {
+        parser: function (object) {
             if (object.attributes) {
                 return new Scenario(object.attributes, false);
             } else {
                 return new Scenario(object, false);
             }
         },
-        capnpParser: function(cacheObject: CacheObject) {
+        capnpParser: function (cacheObject: CacheObject) {
             return new Scenario(
                 {
                     id: cacheObject.getUuid(),

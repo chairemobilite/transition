@@ -37,7 +37,7 @@ import {
 // TODO Revisit some lodash extension functions to limit the types once all
 // consumers are in typescript, we'll know if some of the expected types are
 // wrong
-const importParser = function(cacheObject: CacheObjectClass) {
+const importParser = function (cacheObject: CacheObjectClass) {
     const attributes: Partial<LineAttributes> = {
         id: cacheObject.getUuid(),
         mode: _emptyStringToNull(cacheObject.getMode()),
@@ -138,7 +138,7 @@ const importParser = function(cacheObject: CacheObjectClass) {
     return new Line(attributes, false);
 };
 
-const exportParser = function(object: Line, cacheObject: CacheObjectClass) {
+const exportParser = function (object: Line, cacheObject: CacheObjectClass) {
     const attributes = object.getAttributes();
 
     const schedules: ScheduleAttributes[] = [];
@@ -243,7 +243,7 @@ const exportParser = function(object: Line, cacheObject: CacheObjectClass) {
     }
 };
 
-const deleteObjectCache = function(objectId: string, cachePathDirectory?: string) {
+const deleteObjectCache = function (objectId: string, cachePathDirectory?: string) {
     return defaultDeleteObjectCache({
         cacheName: 'line',
         cachePathDirectory: cachePathDirectory ? `${cachePathDirectory}/lines` : 'lines',
@@ -251,7 +251,7 @@ const deleteObjectCache = function(objectId: string, cachePathDirectory?: string
     });
 };
 
-const deleteObjectsCache = function(objectIds: string[], cachePathDirectory?: string) {
+const deleteObjectsCache = function (objectIds: string[], cachePathDirectory?: string) {
     return defaultDeleteObjectsCache({
         cacheName: 'line',
         cachePathDirectory: cachePathDirectory ? `${cachePathDirectory}/lines` : 'lines',
@@ -259,7 +259,7 @@ const deleteObjectsCache = function(objectIds: string[], cachePathDirectory?: st
     });
 };
 
-const objectToCache = function(object: Line, cachePathDirectory?: string) {
+const objectToCache = function (object: Line, cachePathDirectory?: string) {
     return defaultObjectToCache({
         cacheName: 'line',
         cachePathDirectory: cachePathDirectory ? `${cachePathDirectory}/lines` : 'lines',
@@ -270,14 +270,14 @@ const objectToCache = function(object: Line, cachePathDirectory?: string) {
     });
 };
 
-const objectsToCache = function(objects: Line[], cachePathDirectory?: string) {
+const objectsToCache = function (objects: Line[], cachePathDirectory?: string) {
     return defaultObjectsToCache(objectToCache, {
         cachePathDirectory,
         objects
     });
 };
 
-const objectFromCache = function(lineId: string, cachePathDirectory?: string) {
+const objectFromCache = function (lineId: string, cachePathDirectory?: string) {
     return defaultObjectFromCache({
         cacheName: 'line',
         cachePathDirectory: cachePathDirectory ? `${cachePathDirectory}/lines` : 'lines',
@@ -288,7 +288,7 @@ const objectFromCache = function(lineId: string, cachePathDirectory?: string) {
     });
 };
 
-const collectionToCache = function(collection, cachePathDirectory?: string) {
+const collectionToCache = function (collection, cachePathDirectory?: string) {
     return defaultCollectionToCache({
         collection,
         cacheName: 'lines',
@@ -297,12 +297,12 @@ const collectionToCache = function(collection, cachePathDirectory?: string) {
         maxNumberOfObjectsPerFile: 1000,
         CollectionClass: LineCollection,
         CacheCollection,
-        parser: function(object: Line) {
+        parser: function (object: Line) {
             const attributes = object.getAttributes();
 
             return attributes;
         },
-        capnpParser: function(object: Line, cacheObject: CacheObjectClass) {
+        capnpParser: function (object: Line, cacheObject: CacheObjectClass) {
             const attributes = object.getAttributes();
 
             cacheObject.setUuid(attributes.id);
@@ -323,7 +323,7 @@ const collectionToCache = function(collection, cachePathDirectory?: string) {
     });
 };
 
-const collectionFromCache = function(cachePathDirectory?: string) {
+const collectionFromCache = function (cachePathDirectory?: string) {
     return defaultCollectionFromCache({
         cacheName: 'lines',
         cachePathDirectory,
@@ -331,14 +331,14 @@ const collectionFromCache = function(cachePathDirectory?: string) {
         pluralizedCollectionName: 'Lines',
         CollectionClass: LineCollection,
         CacheCollection,
-        parser: function(object) {
+        parser: function (object) {
             if (object.attributes) {
                 return new Line(object.attributes, false);
             } else {
                 return new Line(object, false);
             }
         },
-        capnpParser: function(cacheObject: CacheObjectClass) {
+        capnpParser: function (cacheObject: CacheObjectClass) {
             return new Line(
                 {
                     id: cacheObject.getUuid(),

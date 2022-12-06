@@ -475,6 +475,6 @@ export const setupObjectSocketRoutes = (
 };
 
 // Add operations on object socket routes for each object of Transition
-export default function(socket: EventEmitter) {
+export default function (socket: EventEmitter) {
     setupObjectSocketRoutes(socket, transitClassesConfig);
 }

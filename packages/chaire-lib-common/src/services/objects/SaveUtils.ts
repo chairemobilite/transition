@@ -12,7 +12,7 @@ import { GenericObject } from '../../utils/objects/GenericObject';
 
 export default {
     // TODO Type the response
-    delete: function(
+    delete: function (
         object: GenericObject<any>,
         socket,
         socketPrefix,
@@ -46,14 +46,14 @@ export default {
         });
     },
 
-    deleteInMemory: function(object: GenericObject<any>, collection) {
+    deleteInMemory: function (object: GenericObject<any>, collection) {
         object.setDeleted();
         if (collection) {
             collection.removeById(object.getAttributes().id);
         }
     },
 
-    saveInMemory: function(object: GenericObject<any>, collection) {
+    saveInMemory: function (object: GenericObject<any>, collection) {
         if (object.isNew()) {
             object.setNew(false);
             if (collection) {
@@ -69,7 +69,7 @@ export default {
     },
 
     // TODO Type the response
-    save: function(
+    save: function (
         object: GenericObject<any>,
         socket: EventEmitter,
         socketPrefix: string,

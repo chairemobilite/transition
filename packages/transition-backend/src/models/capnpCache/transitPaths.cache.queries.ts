@@ -23,7 +23,7 @@ import {
 import { _emptyStringToNull } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { PathCollection as CacheCollection, Path as CacheObject } from '../capnpDataModel/pathCollection.capnp';
 
-const collectionToCache = function(collection: PathCollection, cachePathDirectory?: string) {
+const collectionToCache = function (collection: PathCollection, cachePathDirectory?: string) {
     return defaultCollectionToCache({
         collection,
         cacheName: 'paths',
@@ -32,7 +32,7 @@ const collectionToCache = function(collection: PathCollection, cachePathDirector
         maxNumberOfObjectsPerFile: 20000,
         CacheCollection,
         CollectionClass: PathCollection,
-        capnpParser: function(object: GeoJSON.Feature<GeoJSON.LineString, PathAttributes>, cacheObject: CacheObject) {
+        capnpParser: function (object: GeoJSON.Feature<GeoJSON.LineString, PathAttributes>, cacheObject: CacheObject) {
             const attributes = object.properties;
             const geography = attributes.geography || object.geometry;
 
@@ -85,7 +85,7 @@ const collectionToCache = function(collection: PathCollection, cachePathDirector
     });
 };
 
-const collectionFromCache = function(cachePathDirectory?: string) {
+const collectionFromCache = function (cachePathDirectory?: string) {
     return defaultCollectionFromCache({
         collection: new PathCollection([], {}),
         cacheName: 'paths',
@@ -93,7 +93,7 @@ const collectionFromCache = function(cachePathDirectory?: string) {
         pluralizedCollectionName: 'Paths',
         CollectionClass: PathCollection,
         CacheCollection,
-        capnpParser: function(cacheObject: CacheObject) {
+        capnpParser: function (cacheObject: CacheObject) {
             const geography = cacheObject.getGeography();
             let geojsonGeometry = null;
             if (geography) {

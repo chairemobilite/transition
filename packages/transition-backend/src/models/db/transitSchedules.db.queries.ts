@@ -31,13 +31,13 @@ const scheduleTable = 'tr_transit_schedules';
 const periodTable = 'tr_transit_schedule_periods';
 const tripTable = 'tr_transit_schedule_trips';
 
-const scheduleAttributesCleaner = function(attributes: Partial<ScheduleAttributes>): Partial<ScheduleAttributes> {
+const scheduleAttributesCleaner = function (attributes: Partial<ScheduleAttributes>): Partial<ScheduleAttributes> {
     const _attributes = _cloneDeep(attributes);
     delete _attributes.periods;
     return _attributes;
 };
 
-const schedulePeriodsAttributesCleaner = function(attributes: Partial<SchedulePeriod>): { [key: string]: any } {
+const schedulePeriodsAttributesCleaner = function (attributes: Partial<SchedulePeriod>): { [key: string]: any } {
     const {
         id,
         schedule_id,
@@ -66,14 +66,9 @@ const schedulePeriodsAttributesCleaner = function(attributes: Partial<SchedulePe
     };
 };
 
-const schedulePeriodsAttributesParser = function(attributes: any): SchedulePeriod {
-    const {
-        period_start_at_seconds,
-        period_end_at_seconds,
-        custom_start_at_seconds,
-        custom_end_at_seconds,
-        ...rest
-    } = attributes;
+const schedulePeriodsAttributesParser = function (attributes: any): SchedulePeriod {
+    const { period_start_at_seconds, period_end_at_seconds, custom_start_at_seconds, custom_end_at_seconds, ...rest } =
+        attributes;
     return {
         ...rest,
         start_at_hour: period_start_at_seconds >= 0 ? period_start_at_seconds / 3600 : null,
@@ -84,7 +79,7 @@ const schedulePeriodsAttributesParser = function(attributes: any): SchedulePerio
     };
 };
 
-const scheduleTripsAttributesCleaner = function(attributes: Partial<SchedulePeriodTrip>): { [key: string]: any } {
+const scheduleTripsAttributesCleaner = function (attributes: Partial<SchedulePeriodTrip>): { [key: string]: any } {
     const _attributes = _cloneDeep(attributes) as any;
     delete _attributes.unitReadyAt;
     delete _attributes.unitDirection;
@@ -97,7 +92,7 @@ const scheduleTripsAttributesCleaner = function(attributes: Partial<SchedulePeri
     return _attributes;
 };
 
-const scheduleTripsAttributesParser = function(attributes: any): SchedulePeriodTrip {
+const scheduleTripsAttributesParser = function (attributes: any): SchedulePeriodTrip {
     const { node_departure_time_seconds, node_arrival_time_seconds, ...rest } = attributes;
     return {
         ...rest,
@@ -106,7 +101,7 @@ const scheduleTripsAttributesParser = function(attributes: any): SchedulePeriodT
     };
 };
 
-const createFromTrip = async function(periodTrip: SchedulePeriodTrip, scheduleId: string, periodId: string) {
+const createFromTrip = async function (periodTrip: SchedulePeriodTrip, scheduleId: string, periodId: string) {
     if (!periodTrip.id) {
         periodTrip.id = uuidV4();
     }
@@ -120,7 +115,7 @@ const createFromTrip = async function(periodTrip: SchedulePeriodTrip, scheduleId
     return id;
 };
 
-const createFromPeriod = async function(periodSchedule: SchedulePeriod, schedule_id: string) {
+const createFromPeriod = async function (periodSchedule: SchedulePeriod, schedule_id: string) {
     if (!periodSchedule.id) {
         periodSchedule.id = uuidV4();
     }
@@ -137,7 +132,7 @@ const createFromPeriod = async function(periodSchedule: SchedulePeriod, schedule
 };
 
 // create all needed inserts from scheduleData (from scheduleByServiceId[serviceId])
-const createFromScheduleData = async function(scheduleData: ScheduleAttributes) {
+const createFromScheduleData = async function (scheduleData: ScheduleAttributes) {
     const id = await create(knex, scheduleTable, scheduleAttributesCleaner, scheduleData, 'id');
     for (let i = 0; i < scheduleData.periods.length; i++) {
         await createFromPeriod(scheduleData.periods[i], id);
@@ -145,7 +140,7 @@ const createFromScheduleData = async function(scheduleData: ScheduleAttributes) 
     return id;
 };
 
-const updateFromTrip = async function(periodTrip: Partial<SchedulePeriodTrip>) {
+const updateFromTrip = async function (periodTrip: Partial<SchedulePeriodTrip>) {
     if (!periodTrip.id || !periodTrip.schedule_id || !periodTrip.schedule_period_id) {
         throw 'Missing trip, schedule or period id for trip, cannot update';
     }
@@ -153,7 +148,7 @@ const updateFromTrip = async function(periodTrip: Partial<SchedulePeriodTrip>) {
     return id;
 };
 
-const updateFromPeriod = async function(periodSchedule: Partial<SchedulePeriod>) {
+const updateFromPeriod = async function (periodSchedule: Partial<SchedulePeriod>) {
     if (!periodSchedule.id || !periodSchedule.schedule_id) {
         throw 'Missing schedule or period id for period, cannot update';
     }
@@ -184,7 +179,7 @@ const updateFromPeriod = async function(periodSchedule: Partial<SchedulePeriod>)
     return id;
 };
 
-const updateFromScheduleData = async function(scheduleId: string, scheduleData: ScheduleAttributes) {
+const updateFromScheduleData = async function (scheduleId: string, scheduleData: ScheduleAttributes) {
     const id = await update(knex, scheduleTable, scheduleAttributesCleaner, scheduleId, scheduleData, 'id');
     const periodIds = await getPeriodIdsForSchedule(id);
     const currentPeriods: string[] = [];
@@ -203,39 +198,31 @@ const updateFromScheduleData = async function(scheduleId: string, scheduleData: 
     return id;
 };
 
-const save = async function(scheduleData: ScheduleAttributes) {
+const save = async function (scheduleData: ScheduleAttributes) {
     const scheduleExists = await exists(knex, scheduleTable, scheduleData.id);
     return scheduleExists
         ? await updateFromScheduleData(scheduleData.id, scheduleData)
         : await createFromScheduleData(scheduleData);
 };
 
-const getPeriodIdsForSchedule = async function(schedule_id: string) {
-    const rows = await knex(periodTable)
-        .select(knex.raw('id'))
-        .where('schedule_id', schedule_id);
+const getPeriodIdsForSchedule = async function (schedule_id: string) {
+    const rows = await knex(periodTable).select(knex.raw('id')).where('schedule_id', schedule_id);
     // TODO Figure out if we can type this, examples like https://github.com/bkonkle/node-knex-typescript-example/blob/master/src/users/UserData.ts seem to cast the return value to an interface first
     return rows.map((row) => (row as any).id);
 };
 
-const getTripIdsForPeriod = async function(period_id: string) {
-    const rows = await knex(tripTable)
-        .select(knex.raw('id'))
-        .where('schedule_period_id', period_id);
+const getTripIdsForPeriod = async function (period_id: string) {
+    const rows = await knex(tripTable).select(knex.raw('id')).where('schedule_period_id', period_id);
     return rows.map((row) => (row as any).id);
 };
 
-const getScheduleIdsForLine = async function(line_id: string) {
-    const rows = await knex(scheduleTable)
-        .select(knex.raw('id'))
-        .where('line_id', line_id);
+const getScheduleIdsForLine = async function (line_id: string) {
+    const rows = await knex(scheduleTable).select(knex.raw('id')).where('line_id', line_id);
     return rows.map((row) => (row as any).id);
 };
 
-const readScheduleTrips = async function(period_id: string) {
-    const rows = await knex(tripTable)
-        .select(knex.raw('*'))
-        .where('schedule_period_id', period_id);
+const readScheduleTrips = async function (period_id: string) {
+    const rows = await knex(tripTable).select(knex.raw('*')).where('schedule_period_id', period_id);
     const trips: SchedulePeriodTrip[] = [];
     for (let i = 0; i < rows.length; i++) {
         trips.push(scheduleTripsAttributesParser(rows[i]));
@@ -243,10 +230,8 @@ const readScheduleTrips = async function(period_id: string) {
     return trips;
 };
 
-const readSchedulePeriods = async function(id: string) {
-    const rows = await knex(periodTable)
-        .select(knex.raw('*'))
-        .where('schedule_id', id);
+const readSchedulePeriods = async function (id: string) {
+    const rows = await knex(periodTable).select(knex.raw('*')).where('schedule_id', id);
     const periods: SchedulePeriod[] = [];
     for (let i = 0; i < rows.length; i++) {
         const period = schedulePeriodsAttributesParser(rows[i]);
@@ -257,35 +242,35 @@ const readSchedulePeriods = async function(id: string) {
     return periods;
 };
 
-const readScheduleData = async function(id: string) {
+const readScheduleData = async function (id: string) {
     const schedule = (await read(knex, scheduleTable, undefined, '*', id)) as ScheduleAttributes;
     schedule.periods = await readSchedulePeriods(id);
     schedule.periods.sort((a, b) => a.start_at_hour - b.start_at_hour);
     return schedule;
 };
 
-const readForLine = async function(lineId: string) {
+const readForLine = async function (lineId: string) {
     // TODO Read objects independently. It would be possible to make it all in one query to DB if performance becomes problematic
     const scheduleIds = await getScheduleIdsForLine(lineId);
     return await Promise.all(scheduleIds.map(readScheduleData));
 };
 
-const deleteSchedulePeriod = async function(id: string) {
+const deleteSchedulePeriod = async function (id: string) {
     return await deleteRecord(knex, periodTable, id);
 };
 
-const deleteSchedulePeriodTrip = async function(id: string) {
+const deleteSchedulePeriodTrip = async function (id: string) {
     return await deleteRecord(knex, tripTable, id);
 };
 
-const deleteScheduleData = async function(id: string) {
+const deleteScheduleData = async function (id: string) {
     return await deleteRecord(knex, scheduleTable, id);
 };
 
 const getCollectionSubquery = () => {
     // Get the complete collection from DB, with trips aggregated
     const subquery = knex(`${periodTable} as p`)
-        .leftJoin(`${tripTable} as trip`, function() {
+        .leftJoin(`${tripTable} as trip`, function () {
             this.on('p.id', 'trip.schedule_period_id');
         })
         .select(
@@ -297,7 +282,7 @@ const getCollectionSubquery = () => {
         .groupByRaw('p.id, trip.schedule_period_id')
         .as('periods');
     return knex(`${scheduleTable} as sched`)
-        .leftJoin(subquery, function() {
+        .leftJoin(subquery, function () {
             this.on('sched.id', 'periods.schedule_id');
         })
         .select(
@@ -310,7 +295,7 @@ const getCollectionSubquery = () => {
 };
 
 const dbRowToScheduleAttributes = (row: any): ScheduleAttributes => {
-    const schedule = (row as unknown) as ScheduleAttributes;
+    const schedule = row as unknown as ScheduleAttributes;
     // Clean attributes
     if (schedule.periods && schedule.periods[0]) {
         schedule.periods = schedule.periods.map((period) => {
@@ -329,18 +314,16 @@ const dbRowToScheduleAttributes = (row: any): ScheduleAttributes => {
     return schedule;
 };
 
-const readForLines = async function(lineIds: string[]): Promise<ScheduleAttributes[]> {
+const readForLines = async function (lineIds: string[]): Promise<ScheduleAttributes[]> {
     if (lineIds.length === 0) {
         // Empty line array, return empty
         return [];
     }
-    const collection = await getCollectionSubquery()
-        .whereIn('sched.line_id', lineIds)
-        .orderByRaw('sched.line_id');
+    const collection = await getCollectionSubquery().whereIn('sched.line_id', lineIds).orderByRaw('sched.line_id');
     return collection.map(dbRowToScheduleAttributes);
 };
 
-const collection = async function() {
+const collection = async function () {
     const collection = await getCollectionSubquery().orderByRaw('sched.line_id');
 
     return collection.map(dbRowToScheduleAttributes);

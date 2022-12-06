@@ -13,11 +13,11 @@ const defaultDirectoryPrefix = process.env.OSRM_DIRECTORY_PREFIX
     ? process.env.OSRM_DIRECTORY_PREFIX
     : Preferences.get('osrmRouting.directoryPrefix', '');
 
-const getDirectoryPrefix = function(directoryPrefix = defaultDirectoryPrefix) {
+const getDirectoryPrefix = function (directoryPrefix = defaultDirectoryPrefix) {
     return !_isBlank(directoryPrefix) ? directoryPrefix + '_' : '';
 };
 
-const getOsrmDirectoryPathForMode = function(mode: RoutingMode, directoryPrefix = defaultDirectoryPrefix) {
+const getOsrmDirectoryPathForMode = function (mode: RoutingMode, directoryPrefix = defaultDirectoryPrefix) {
     const directoryPrefixPrefix = getDirectoryPrefix(directoryPrefix);
     let osrmDirectoryPath = `osrm/${directoryPrefixPrefix}${mode}`;
 

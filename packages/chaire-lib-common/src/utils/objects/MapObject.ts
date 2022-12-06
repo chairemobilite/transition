@@ -16,9 +16,10 @@ export interface MapObjectAttributes<M extends GeoJSON.GeometryObject> extends G
 /**
  * An object that can be rendered as a feature on map
  */
-export class MapObject<M extends GeoJSON.GeometryObject, T extends MapObjectAttributes<M>> extends ObjectWithHistory<
-    T
-> {
+export class MapObject<
+    M extends GeoJSON.GeometryObject,
+    T extends MapObjectAttributes<M>
+> extends ObjectWithHistory<T> {
     // TODO: we should inject collections directly and remove this attribute
     protected _collectionManager;
 

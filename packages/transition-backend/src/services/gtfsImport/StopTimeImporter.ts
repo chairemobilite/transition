@@ -110,8 +110,8 @@ implements GtfsObjectPreparator<StopTime | Omit<StopTime, 'arrivalTimeSeconds' |
         stopTime: StopTime | Omit<StopTime, 'arrivalTimeSeconds' | 'departureTimeSeconds'>
     ): stopTime is StopTime => {
         return (
-            ((stopTime as unknown) as StopTime).arrivalTimeSeconds !== undefined &&
-            ((stopTime as unknown) as StopTime).departureTimeSeconds !== undefined
+            (stopTime as unknown as StopTime).arrivalTimeSeconds !== undefined &&
+            (stopTime as unknown as StopTime).departureTimeSeconds !== undefined
         );
     };
 
@@ -139,9 +139,9 @@ implements GtfsObjectPreparator<StopTime | Omit<StopTime, 'arrivalTimeSeconds' |
             for (let segmentIndex = startIndex + 1; segmentIndex < stopIndex; segmentIndex++) {
                 (stopTimes[segmentIndex] as StopTime).arrivalTimeSeconds =
                     (stopTimes[segmentIndex - 1] as StopTime).departureTimeSeconds + interpolationDelta;
-                (stopTimes[segmentIndex] as StopTime).departureTimeSeconds = (stopTimes[
-                    segmentIndex
-                ] as StopTime).arrivalTimeSeconds;
+                (stopTimes[segmentIndex] as StopTime).departureTimeSeconds = (
+                    stopTimes[segmentIndex] as StopTime
+                ).arrivalTimeSeconds;
             }
         }
         return stopTimes as StopTime[];

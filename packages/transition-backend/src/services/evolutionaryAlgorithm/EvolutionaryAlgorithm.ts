@@ -132,14 +132,8 @@ export class EvolutionaryAlgorithm implements SimulationAlgorithm<EvolutionAlgor
     ): Promise<boolean> => {
         const randomGenerator = this.simulationRun.getRandomGenerator();
         // Get the agencies data
-        const {
-            agencies,
-            lineCollection,
-            linesToKeep,
-            lineServices,
-            services,
-            nonSimulatedServices
-        } = await this.prepareData(collections);
+        const { agencies, lineCollection, linesToKeep, lineServices, services, nonSimulatedServices } =
+            await this.prepareData(collections);
 
         const populationSize = randomInRange(
             [this.options.populationSizeMin, this.options.populationSizeMax],

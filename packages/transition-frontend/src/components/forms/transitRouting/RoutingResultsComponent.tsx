@@ -38,7 +38,7 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
         routingModesResultsTabs.push(
             <Tab
                 key={selectedRoutingModes[i]}
-                onSelect={function(index, lastIndex, e) {
+                onSelect={function (index, lastIndex, e) {
                     if (index !== lastIndex) {
                         // check if selection changed
                         setSelectedRoutingMode(selectedRoutingModes[i]);

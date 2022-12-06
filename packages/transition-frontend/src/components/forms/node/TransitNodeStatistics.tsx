@@ -87,8 +87,9 @@ const TransitNodeStatistics: React.FunctionComponent<NodeStatsProps> = (props: N
         <table className="_statistics">
             <tbody>
                 <SingleColumn
-                    header={`${props.t('transit:transitNode:AssociatedPaths')} • ${associatedPathIds?.length ||
-                        0} ${props.t('transit:transitPath:paths')} • ${countUniqLines} ${props.t(
+                    header={`${props.t('transit:transitNode:AssociatedPaths')} • ${
+                        associatedPathIds?.length || 0
+                    } ${props.t('transit:transitPath:paths')} • ${countUniqLines} ${props.t(
                         'transit:transitLine:lines'
                     )}`}
                     values={pathValues}

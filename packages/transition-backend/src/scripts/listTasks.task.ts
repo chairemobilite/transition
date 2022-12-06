@@ -10,7 +10,7 @@ import { listTasks } from './listTasks';
 import inquirer from 'inquirer';
 import path from 'path';
 
-const run = async function() {
+const run = async function () {
     const tasksFilePaths = listTasks();
     if (tasksFilePaths.length === 0) {
         console.log('There are no tasks to run');

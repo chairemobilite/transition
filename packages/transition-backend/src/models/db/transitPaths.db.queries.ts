@@ -34,7 +34,7 @@ const scenariosServicesTableName = 'tr_transit_scenario_services';
 const st = knexPostgis(knex);
 
 // TODO Type the return values
-const attributesCleaner = function(attributes: Partial<PathAttributes>): { [key: string]: any } {
+const attributesCleaner = function (attributes: Partial<PathAttributes>): { [key: string]: any } {
     const _attributes: any = _cloneDeep(attributes);
     if (_attributes.geography) {
         _attributes.geography = st.geomFromGeoJSON(JSON.stringify(attributes.geography));
@@ -244,9 +244,7 @@ const deleteForLines = async (lineIds: string[]): Promise<string[]> => {
                 'TransitPathsCannotDeleteBecauseLineIdsIsMissingOrInvalid'
             );
         }
-        const numberOfDeleteObjects = await knex('tr_transit_paths')
-            .whereIn('line_id', lineIds)
-            .del();
+        const numberOfDeleteObjects = await knex('tr_transit_paths').whereIn('line_id', lineIds).del();
         if (numberOfDeleteObjects >= 0) {
             return lineIds;
         }

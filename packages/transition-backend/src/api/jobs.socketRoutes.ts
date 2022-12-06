@@ -20,7 +20,7 @@ import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/direct
  * @param {EventEmitter} socket The socket to register the routes to
  * @param {number} userId The ID of the connected user
  */
-export default function(socket: EventEmitter, userId: number) {
+export default function (socket: EventEmitter, userId: number) {
     socket.on(
         JobsConstants.LIST_JOBS,
         async (

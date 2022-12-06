@@ -221,12 +221,12 @@ const getMaxBufferSize = (feature: GeoJSON.Feature, featuresToSplit: GeoJSON.Fea
             minDistance = Math.min(
                 minDistance,
                 turf.distance(
-                    turf.pointOnFeature(featuresToSplit[splitSubset[i]] as turf.AllGeoJSON) as GeoJSON.Feature<
-                        GeoJSON.Point
-                    >,
-                    turf.pointOnFeature(featuresToSplit[splitSubset[j]] as turf.AllGeoJSON) as GeoJSON.Feature<
-                        GeoJSON.Point
-                    >
+                    turf.pointOnFeature(
+                        featuresToSplit[splitSubset[i]] as turf.AllGeoJSON
+                    ) as GeoJSON.Feature<GeoJSON.Point>,
+                    turf.pointOnFeature(
+                        featuresToSplit[splitSubset[j]] as turf.AllGeoJSON
+                    ) as GeoJSON.Feature<GeoJSON.Point>
                 ) * 1000
             );
         }

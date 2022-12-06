@@ -13,7 +13,7 @@ import _isFinite from 'lodash.isfinite';
  * @param value The string or number value to convert to integer.
  * @returns An integer, only if the whole value parses to an integer
  */
-export const parseIntOrNull = function(value: string | number = ''): number | null {
+export const parseIntOrNull = function (value: string | number = ''): number | null {
     if (typeof value === 'number') {
         return Math.floor(value) === value && _isFinite(value) ? value : null;
     }
@@ -27,7 +27,7 @@ export const parseIntOrNull = function(value: string | number = ''): number | nu
  * @param value The string or number value to convert to float.
  * @returns A float, only if the value is finite
  */
-export const parseFloatOrNull = function(value: string | number = ''): number | null {
+export const parseFloatOrNull = function (value: string | number = ''): number | null {
     if (typeof value === 'number') {
         return _isFinite(value) ? value : null;
     }
@@ -35,7 +35,7 @@ export const parseFloatOrNull = function(value: string | number = ''): number | 
     return _isFinite(value) ? value : null;
 };
 
-export const roundToDecimals = function(number: string | number, numberOfDecimals = 1) {
+export const roundToDecimals = function (number: string | number, numberOfDecimals = 1) {
     if (!Number.isInteger(numberOfDecimals)) {
         return null;
     }
@@ -44,7 +44,7 @@ export const roundToDecimals = function(number: string | number, numberOfDecimal
     return _isFinite(nb) ? Math.round(factor * nb) / factor : null;
 };
 
-export const median = function(array: number[]): number {
+export const median = function (array: number[]): number {
     if (array.length === 0) {
         return NaN;
     }
@@ -87,7 +87,7 @@ export const permutationsWithRepetition = <T>(arr: T[], len: number, except: T[]
     const permutations: T[][] = [];
 
     // Increment the counter array, starting from the end
-    const increment = function(i: number) {
+    const increment = function (i: number) {
         if (counter[i] === base - 1) {
             // Counter already at the last element, increment previous one
             counter[i] = 0;
@@ -129,7 +129,7 @@ export const permutationsWithRepetition = <T>(arr: T[], len: number, except: T[]
  * @param increment The increment for the next value
  * @returns An array of sequential numbers
  */
-export const sequentialArray = function(n: number, startAt = 0, increment = 1): number[] {
+export const sequentialArray = function (n: number, startAt = 0, increment = 1): number[] {
     if (!Number.isInteger(n) || n < 0) {
         throw 'sequentialArray: Size of the array must be a positive integer';
     }

@@ -23,10 +23,12 @@ const TransitRoutingStepRideButton: React.FunctionComponent<TransitRoutingStepRi
 ) => {
     const pathAttribs = serviceLocator.collectionManager.get('paths').getById(props.boardingStep.pathUuid).properties;
     const lineAttribs = serviceLocator.collectionManager.get('lines').getById(pathAttribs.line_id).attributes;
-    const boardingNodeAttribs = serviceLocator.collectionManager.get('nodes').getById(props.boardingStep.nodeUuid)
-        .properties;
-    const alightingNodeAttribs = serviceLocator.collectionManager.get('nodes').getById(props.alightingStep.nodeUuid)
-        .properties;
+    const boardingNodeAttribs = serviceLocator.collectionManager
+        .get('nodes')
+        .getById(props.boardingStep.nodeUuid).properties;
+    const alightingNodeAttribs = serviceLocator.collectionManager
+        .get('nodes')
+        .getById(props.alightingStep.nodeUuid).properties;
 
     // TODO tahini: Original code was using the objects, they are not yet in typescript so we'll use the attributes for now
     /*

@@ -24,7 +24,7 @@ import { ServiceAttributes } from 'transition-common/lib/services/service/Servic
 const tableName = 'tr_transit_services';
 
 // TODO Type the return values
-const attributesCleaner = function(attributes: Partial<ServiceAttributes>): { [key: string]: any } {
+const attributesCleaner = function (attributes: Partial<ServiceAttributes>): { [key: string]: any } {
     const _attributes: any = _cloneDeep(attributes);
     delete _attributes.scheduled_lines;
     return _attributes;
@@ -40,7 +40,7 @@ const attributesParser = (dbAttributes: {
     Object.keys(rest).forEach(
         (key) => (dbAttributes[key] = dbAttributes[key] !== null ? dbAttributes[key] : undefined)
     );
-    return (dbAttributes as unknown) as ServiceAttributes;
+    return dbAttributes as unknown as ServiceAttributes;
 };
 
 const collection = async () => {

@@ -79,14 +79,14 @@ const SelectedObjectButtons: React.FunctionComponent<SelectedObjectButtonsProps<
     const deleteAction = props.deleteAction ? props.deleteAction : props.onDelete;
     const saveAction = props.saveAction
         ? props.saveAction
-        : function() {
+        : function () {
             if (!isSaveable(object)) {
                 console.error(
                     'The object to save is not saveable. The default save will not work on them. You may specify a saveAction props to customize how to save the object'
                 );
                 return;
             }
-            const saveableObject = (object as unknown) as Saveable;
+            const saveableObject = object as unknown as Saveable;
             if (isFrozen === true && object.wasFrozen()) {
                 serviceLocator.selectedObjectsManager.deselect(objectSingularName);
                 return true;

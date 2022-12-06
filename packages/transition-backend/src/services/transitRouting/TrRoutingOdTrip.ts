@@ -53,7 +53,7 @@ interface RouteOdTripParameters {
     pathCollection?: PathCollection;
 }
 
-const routeOdTrip = async function(
+const routeOdTrip = async function (
     odTrip: BaseOdTrip,
     parameters: RouteOdTripParameters
 ): Promise<{ csv?: string[]; csvDetailed?: string[]; geometries?: GeoJSON.Feature[]; result?: TransitRoutingResult }> {

@@ -83,7 +83,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         // TODO Handle the cancellation
         await this.save();
         return execJob('task', [this.attributes.id], {
-            on: function(payload) {
+            on: function (payload) {
                 progressEmitter.emit(payload.event, payload.data);
             }
         });

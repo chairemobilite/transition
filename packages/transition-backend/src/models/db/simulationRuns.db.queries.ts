@@ -30,7 +30,7 @@ import scenarioDbQueries from './transitScenarios.db.queries';
 const tableName = 'tr_simulation_runs';
 const runToScenarioTableName = 'tr_simulation_run_scenario';
 
-const attributesCleaner = function(attributes: Partial<SimulationRunAttributes>) {
+const attributesCleaner = function (attributes: Partial<SimulationRunAttributes>) {
     const _attributes: any = _cloneDeep(attributes);
     delete _attributes.is_frozen;
     return _attributes;
@@ -164,12 +164,9 @@ const deleteSimulationRunScenarios = async (
                 .whereIn('scenario_id', innerQuery)
                 .groupBy('scenario_id')
                 .as('scCount');
-            scenariosToDelete = (
-                await knex
-                    .select('scenario_id')
-                    .from(countScenariosQuery)
-                    .where('count', 1)
-            ).map((simulationScenario) => simulationScenario.scenario_id);
+            scenariosToDelete = (await knex.select('scenario_id').from(countScenariosQuery).where('count', 1)).map(
+                (simulationScenario) => simulationScenario.scenario_id
+            );
         }
 
         // Delete the scenarios from the simulation_run_scenario table

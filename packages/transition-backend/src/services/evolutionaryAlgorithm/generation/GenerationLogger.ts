@@ -41,8 +41,9 @@ class GenerationLogger {
             }
             fileManager.writeFile(
                 csvFilePath,
-                `${generation.getGenerationNumber()},${bestCandidateAsString},${bestCandidate.getScenario()?.getId() ||
-                    ''},${methods.map((method) => bestResults[method].fitness).join(',')}\n`,
+                `${generation.getGenerationNumber()},${bestCandidateAsString},${
+                    bestCandidate.getScenario()?.getId() || ''
+                },${methods.map((method) => bestResults[method].fitness).join(',')}\n`,
                 { flag: 'a' }
             );
         }

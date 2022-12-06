@@ -15,7 +15,11 @@ import pointInPolygon from 'point-in-polygon-hao';
  *    inside the polygon, default: false (points on boundary are considered
  *    inside the polygon by default)
  */
-export default function(point: GeoJSON.Point, polygon: GeoJSON.Polygon | GeoJSON.MultiPolygon, ignoreBoundary = false) {
+export default function (
+    point: GeoJSON.Point,
+    polygon: GeoJSON.Polygon | GeoJSON.MultiPolygon,
+    ignoreBoundary = false
+) {
     const pointCoordinates = point.coordinates;
     // normalize to multipolygon:
     const polygonCoordinates = polygon.type === 'Polygon' ? [polygon.coordinates] : polygon.coordinates;

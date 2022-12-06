@@ -25,14 +25,14 @@ interface AgencyListProps extends WithTranslation {
 }
 
 const TransitAgencyList: React.FunctionComponent<AgencyListProps> = (props: AgencyListProps) => {
-    const newAgency = function() {
+    const newAgency = function () {
         const defaultColor = Preferences.get('transit.agencies.defaultColor', '#0086FF');
         const newAgency = new Agency({ color: defaultColor }, true, serviceLocator.collectionManager);
         newAgency.startEditing();
         serviceLocator.selectedObjectsManager.select('agency', newAgency);
     };
 
-    const newLine = function() {
+    const newLine = function () {
         const defaultColor = Preferences.get('transit.lines.defaultColor', '#0086FF');
         const newLine = new Line({ color: defaultColor }, true, serviceLocator.collectionManager);
         newLine.startEditing();

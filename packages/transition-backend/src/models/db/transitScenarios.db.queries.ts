@@ -26,7 +26,7 @@ const tableName = 'tr_transit_scenarios';
 const serviceTableName = 'tr_transit_scenario_services';
 
 // TODO Type the return values
-const attributesCleaner = function(attributes: Partial<ScenarioAttributes>): { [key: string]: any } {
+const attributesCleaner = function (attributes: Partial<ScenarioAttributes>): { [key: string]: any } {
     const _attributes: any = _cloneDeep(attributes);
     delete _attributes.services;
     // Set null any undefined, but specified attribute
@@ -46,7 +46,7 @@ const attributesParser = (dbAttributes: {
     Object.keys(rest).forEach(
         (key) => (dbAttributes[key] = dbAttributes[key] !== null ? dbAttributes[key] : undefined)
     );
-    return (dbAttributes as unknown) as ScenarioAttributes;
+    return dbAttributes as unknown as ScenarioAttributes;
 };
 
 const collection = async (): Promise<ScenarioAttributes[]> => {
@@ -190,9 +190,7 @@ const update = async (id: string, updatedObject: Partial<ScenarioAttributes>, re
         const services = updatedObject.services;
         if (services !== undefined) {
             // Prepare current services for scenario
-            const currentServices = await knex(serviceTableName)
-                .select()
-                .where('scenario_id', id);
+            const currentServices = await knex(serviceTableName).select().where('scenario_id', id);
             const { newServices, deletedServices } = getNewAndDeletedServicesForScenario(id, services, currentServices);
 
             // Insert and delete services if required
@@ -201,9 +199,7 @@ const update = async (id: string, updatedObject: Partial<ScenarioAttributes>, re
             }
             if (deletedServices.length > 0) {
                 const deletePromises = deletedServices.map((deletedService) =>
-                    knex(serviceTableName)
-                        .delete()
-                        .where(deletedService)
+                    knex(serviceTableName).delete().where(deletedService)
                 );
                 await Promise.all(deletePromises);
             }
@@ -226,9 +222,7 @@ const updateMultiple = async (updatedObjects: Partial<ScenarioAttributes>[], ret
         if (objectsToUpdate.length > 0) {
             // Prepare current services for scenario
             const scenarioIds = objectsToUpdate.map((object) => object.id as string);
-            const currentServices = await knex(serviceTableName)
-                .select()
-                .whereIn('scenario_id', scenarioIds);
+            const currentServices = await knex(serviceTableName).select().whereIn('scenario_id', scenarioIds);
 
             const allNewServices: { scenario_id: string; service_id: string }[] = [];
             const allDeletedServices: { scenario_id: string; service_id: string }[] = [];
@@ -249,9 +243,7 @@ const updateMultiple = async (updatedObjects: Partial<ScenarioAttributes>[], ret
             }
             if (allDeletedServices.length > 0) {
                 const deletePromises = allDeletedServices.map((deletedService) =>
-                    knex(serviceTableName)
-                        .delete()
-                        .where(deletedService)
+                    knex(serviceTableName).delete().where(deletedService)
                 );
                 await Promise.all(deletePromises);
             }
@@ -268,10 +260,7 @@ const updateMultiple = async (updatedObjects: Partial<ScenarioAttributes>[], ret
 
 const cascadeDeleteServices = async (id: string) => {
     try {
-        const scenarioServices = knex
-            .select('service_id')
-            .from(`${serviceTableName}`)
-            .where('scenario_id', id);
+        const scenarioServices = knex.select('service_id').from(`${serviceTableName}`).where('scenario_id', id);
         const countServiceQuery = knex
             .select('service_id')
             .from(`${serviceTableName}`)
@@ -280,10 +269,7 @@ const cascadeDeleteServices = async (id: string) => {
             .groupBy('service_id')
             .as('servCount');
         const servicesOnlyInThisScenario = (
-            await knex
-                .select('service_id')
-                .from(countServiceQuery)
-                .where('count', '=', 1)
+            await knex.select('service_id').from(countServiceQuery).where('count', '=', 1)
         ).map((service) => service.service_id);
         if (servicesOnlyInThisScenario.length > 0) {
             servicesDbQueries.deleteMultiple(servicesOnlyInThisScenario);

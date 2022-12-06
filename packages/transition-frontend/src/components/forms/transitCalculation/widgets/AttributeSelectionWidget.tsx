@@ -72,7 +72,7 @@ function BooleanAttributeSelectionWidgetBase<T extends TransitBatchCalculationAt
             </label>
             <InputRadio
                 id={`formFieldBatchCalculationSelection${props.currentAttribute}`}
-                value={(props.attributes[props.currentAttribute] as unknown) as boolean | undefined}
+                value={props.attributes[props.currentAttribute] as unknown as boolean | undefined}
                 sameLine={true}
                 disabled={false}
                 choices={[

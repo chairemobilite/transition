@@ -25,7 +25,7 @@ import { SimulationAttributes, SimulationDataAttributes } from 'transition-commo
 
 const tableName = 'tr_simulations';
 
-const attributesCleaner = function(attributes: Partial<SimulationAttributes>) {
+const attributesCleaner = function (attributes: Partial<SimulationAttributes>) {
     const _attributes: any = _cloneDeep(attributes);
     _attributes.is_enabled = attributes.isEnabled;
     delete _attributes.isEnabled;

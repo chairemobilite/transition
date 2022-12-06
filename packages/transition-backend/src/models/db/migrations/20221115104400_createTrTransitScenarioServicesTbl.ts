@@ -7,22 +7,10 @@ export async function up(knex: Knex): Promise<unknown> {
         return;
     }
     return knex.schema.createTable(tableName, (table: Knex.TableBuilder) => {
-        table
-            .uuid('scenario_id')
-            .notNullable()
-            .index(); // required
-        table
-            .foreign('scenario_id')
-            .references('tr_transit_scenarios.id')
-            .onDelete('CASCADE');
-        table
-            .uuid('service_id')
-            .notNullable()
-            .index(); // required
-        table
-            .foreign('service_id')
-            .references('tr_transit_services.id')
-            .onDelete('CASCADE');
+        table.uuid('scenario_id').notNullable().index(); // required
+        table.foreign('scenario_id').references('tr_transit_scenarios.id').onDelete('CASCADE');
+        table.uuid('service_id').notNullable().index(); // required
+        table.foreign('service_id').references('tr_transit_services.id').onDelete('CASCADE');
     });
 }
 

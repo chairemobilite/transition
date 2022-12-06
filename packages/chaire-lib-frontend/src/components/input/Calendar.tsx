@@ -53,10 +53,7 @@ export default class Calendar extends React.Component<InputCalendarProps, InputC
                 ? moment(this.props.startDate, this.props.dateFormat).valueOf()
                 : new Date().getTime(),
             endDate: this.props.endDate
-                ? moment(this.props.endDate, this.props.dateFormat)
-                    .hours(23)
-                    .minutes(59)
-                    .valueOf()
+                ? moment(this.props.endDate, this.props.dateFormat).hours(23).minutes(59).valueOf()
                 : undefined,
             dateState: DateState.START
         };

@@ -20,7 +20,7 @@ import TrError from '../../utils/TrError';
  * @param collectionManager TODO Remove?
  * @returns Return the status of the load, either 'success' or 'error'
  */
-const loadFromCollection = function<S extends GenericAttributes, T extends GenericObject<S>>(
+const loadFromCollection = function <S extends GenericAttributes, T extends GenericObject<S>>(
     baseCollection: GenericObjectCollection<T>,
     attributesCollection: Partial<S>[],
     collectionManager?
@@ -77,7 +77,7 @@ const loadFromCollection = function<S extends GenericAttributes, T extends Gener
  * @param socketEventName
  * @returns
  */
-const loadFromServer = function<S extends GenericAttributes, T extends GenericObject<S>>(
+const loadFromServer = function <S extends GenericAttributes, T extends GenericObject<S>>(
     collection: GenericObjectCollection<T>,
     socket,
     collectionManager,
@@ -111,7 +111,7 @@ const loadFromServer = function<S extends GenericAttributes, T extends GenericOb
     });
 };
 
-const loadGeojsonFromCollection = function(collection: GenericMapObjectCollection<any, any, any>, features) {
+const loadGeojsonFromCollection = function (collection: GenericMapObjectCollection<any, any, any>, features) {
     if (isProgressable(collection)) collection.progress('LoadingFromCollection', 0.0);
     const collectionName = collection.displayName;
     if (features) {
@@ -145,7 +145,7 @@ const loadGeojsonFromCollection = function(collection: GenericMapObjectCollectio
     }
 };
 
-const loadGeojsonFromServer = function(
+const loadGeojsonFromServer = function (
     collection: GenericMapObjectCollection<any, any, any>,
     socket,
     dataSourceIds = [],
@@ -188,7 +188,7 @@ const loadGeojsonFromServer = function(
     });
 };
 
-const loadFromServerByFilter = function(
+const loadFromServerByFilter = function (
     collection: GenericObjectCollection<any>,
     socket,
     collectionManager,

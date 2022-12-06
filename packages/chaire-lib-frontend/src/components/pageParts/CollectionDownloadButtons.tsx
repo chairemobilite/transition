@@ -18,7 +18,7 @@ export interface CollectionDownloadButtonsProps extends WithTranslation {
     collection: GenericCollection<any>;
 }
 
-const CollectionDownloadButtons = function(props: CollectionDownloadButtonsProps) {
+const CollectionDownloadButtons = function (props: CollectionDownloadButtonsProps) {
     const collection = props.collection;
     const collectionIsEmpty = !collection || collection.size() === 0;
 

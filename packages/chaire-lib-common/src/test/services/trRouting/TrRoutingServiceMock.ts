@@ -9,10 +9,12 @@ import { pathNoTransfer } from './TrRoutingConstantsStubs';
 
 // Type the mock method. If the signature changes, this needs to be updated here
 // too, otherwise tests may fail (or worse, succeed) without explanation.
-const mockRouteFunction: jest.MockedFunction<(
-    params: TrRoutingService.RoutingQueryOptions,
-    options: { [key: string]: unknown }
-) => Promise<TrRoutingService.TrRoutingResult>> = jest.fn();
+const mockRouteFunction: jest.MockedFunction<
+    (
+        params: TrRoutingService.RoutingQueryOptions,
+        options: { [key: string]: unknown }
+    ) => Promise<TrRoutingService.TrRoutingResult>
+> = jest.fn();
 mockRouteFunction.mockImplementation(async (_params, _options) => {
     return {
         type: 'path',
@@ -20,10 +22,12 @@ mockRouteFunction.mockImplementation(async (_params, _options) => {
     };
 });
 
-const mockAccessibleMapFunction: jest.MockedFunction<(
-    params: TrRoutingService.RoutingQueryOptions,
-    options: { [key: string]: unknown }
-) => Promise<TrRoutingService.TrRoutingResultAccessibilityMap>> = jest.fn();
+const mockAccessibleMapFunction: jest.MockedFunction<
+    (
+        params: TrRoutingService.RoutingQueryOptions,
+        options: { [key: string]: unknown }
+    ) => Promise<TrRoutingService.TrRoutingResultAccessibilityMap>
+> = jest.fn();
 mockAccessibleMapFunction.mockImplementation(async (_params, _options) => {
     return {
         type: 'nodes',

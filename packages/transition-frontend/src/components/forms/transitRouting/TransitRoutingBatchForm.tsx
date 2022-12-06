@@ -282,30 +282,32 @@ class TransitRoutingBatchForm extends ChangeEventsForm<TransitBatchRoutingFormPr
         return (
             <Collapsible trigger={this.props.t('transit:transitRouting:BatchRoutingCsv')} transitionTime={100}>
                 <div className="tr__form-section">
-                    {/* not yet implemented */ false && this.state.csvAttributes && (
-                        <div className="apptr__form-input-container _two-columns _small-inputs">
-                            <label>{this.props.t('transit:transitRouting:WithGeometry')}</label>
-                            <InputRadio
-                                id={`formFieldTransitBatchRoutingWithGeometry${batchRoutingId}`}
-                                value={batchRouting.attributes.withGeometries}
-                                sameLine={true}
-                                choices={[
-                                    {
-                                        value: true
-                                    },
-                                    {
-                                        value: false
+                    {
+                        /* not yet implemented */ false && this.state.csvAttributes && (
+                            <div className="apptr__form-input-container _two-columns _small-inputs">
+                                <label>{this.props.t('transit:transitRouting:WithGeometry')}</label>
+                                <InputRadio
+                                    id={`formFieldTransitBatchRoutingWithGeometry${batchRoutingId}`}
+                                    value={batchRouting.attributes.withGeometries}
+                                    sameLine={true}
+                                    choices={[
+                                        {
+                                            value: true
+                                        },
+                                        {
+                                            value: false
+                                        }
+                                    ]}
+                                    localePrefix="transit:transitRouting:withGeometryChoices"
+                                    t={this.props.t}
+                                    isBoolean={true}
+                                    onValueChange={(e) =>
+                                        this.onValueChange('withGeometries', { value: _toBool(e.target.value) })
                                     }
-                                ]}
-                                localePrefix="transit:transitRouting:withGeometryChoices"
-                                t={this.props.t}
-                                isBoolean={true}
-                                onValueChange={(e) =>
-                                    this.onValueChange('withGeometries', { value: _toBool(e.target.value) })
-                                }
-                            />
-                        </div>
-                    )}
+                                />
+                            </div>
+                        )
+                    }
                 </div>
                 <div className="tr__form-section">
                     <div className="apptr__form-input-container _two-columns">

@@ -28,9 +28,9 @@ class TrRoutingServiceBackend {
         return Object.keys(availablePorts).find((port) => availablePorts[port] === true) !== undefined;
     }
 
-    getAvailablePorts(
-        startingPort: number = Preferences.get('trRouting.batchPortStart', 14000)
-    ): { [port: number]: boolean } {
+    getAvailablePorts(startingPort: number = Preferences.get('trRouting.batchPortStart', 14000)): {
+        [port: number]: boolean;
+    } {
         return TrRoutingProcessManager.getAvailablePortsByStartingPort(startingPort);
     }
 

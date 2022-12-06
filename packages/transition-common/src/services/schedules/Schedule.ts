@@ -365,9 +365,9 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             };
             return trip;
         } catch (error) {
-            throw `The path ${path.getId()} for line ${
-                path.getLine().getAttributes().shortname
-            } (${path.getLine().getId()}) is not valid. Please recalculate routing for this path`;
+            throw `The path ${path.getId()} for line ${path.getLine().getAttributes().shortname} (${path
+                .getLine()
+                .getId()}) is not valid. Please recalculate routing for this path`;
         }
     }
 

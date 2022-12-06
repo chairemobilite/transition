@@ -12,7 +12,7 @@ import config from '../../config/server.config';
 
 const availablePortsByStartingPort: { [startingPort: number]: { [port: number]: boolean } } = {};
 
-const getServiceName = function(port) {
+const getServiceName = function (port) {
     return `trRouting${port}`;
 };
 
@@ -115,7 +115,7 @@ const status = async (parameters) => {
     }
 };
 
-const startMultiple = async function(
+const startMultiple = async function (
     numberOfInstances: number,
     startingPort = Preferences.get('trRouting.batchPortStart', 14000),
     cacheDirectoryPath?: string
@@ -140,7 +140,7 @@ const startMultiple = async function(
     };
 };
 
-const stopMultiple = async function(
+const stopMultiple = async function (
     numberOfInstances,
     startingPort = Preferences.get('trRouting.batchPortStart', 14000)
 ) {
@@ -162,11 +162,11 @@ const stopMultiple = async function(
     };
 };
 
-const getAvailablePortsByStartingPort = function(startingPort = Preferences.get('trRouting.batchPortStart', 14000)) {
+const getAvailablePortsByStartingPort = function (startingPort = Preferences.get('trRouting.batchPortStart', 14000)) {
     return availablePortsByStartingPort[startingPort] || [];
 };
 
-const getAvailablePort = function(startingPort = Preferences.get('trRouting.batchPortStart', 14000)) {
+const getAvailablePort = function (startingPort = Preferences.get('trRouting.batchPortStart', 14000)) {
     if (!availablePortsByStartingPort[startingPort]) {
         return null;
     }

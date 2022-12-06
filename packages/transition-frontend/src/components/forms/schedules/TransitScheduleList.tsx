@@ -88,7 +88,7 @@ const TransitScheduleList: React.FunctionComponent<ScheduleListProps> = (props: 
                         icon={faPlus}
                         iconClass="_icon"
                         label={props.t('transit:transitSchedule:NewSchedule')}
-                        onClick={function() {
+                        onClick={function () {
                             // new
                             serviceLocator.selectedObjectsManager.select(
                                 'schedule',
@@ -107,7 +107,7 @@ const TransitScheduleList: React.FunctionComponent<ScheduleListProps> = (props: 
                         icon={faWindowClose}
                         iconClass="_icon"
                         label={props.t('transit:transitSchedule:CloseSchedulesWindow')}
-                        onClick={function() {
+                        onClick={function () {
                             // close
                             serviceLocator.eventManager.emit('fullSizePanel.hide');
                         }}

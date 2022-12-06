@@ -6,10 +6,9 @@
  */
 import { RouteResults } from '../../../services/routing/RoutingService';
 
-const mockGetRouteByMode: jest.MockedFunction<(
-    origin: GeoJSON.Feature<GeoJSON.Point>,
-    destination: GeoJSON.Feature<GeoJSON.Point>
-) => Promise<RouteResults>> = jest.fn();
+const mockGetRouteByMode: jest.MockedFunction<
+    (origin: GeoJSON.Feature<GeoJSON.Point>, destination: GeoJSON.Feature<GeoJSON.Point>) => Promise<RouteResults>
+> = jest.fn();
 mockGetRouteByMode.mockImplementation(async (_origin, _destination) => {
     console.log('Mocking RoutingUtils.getRouteByMode');
     return {

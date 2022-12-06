@@ -21,7 +21,7 @@ import { _isBlank } from './LodashExtensions';
  * (default false)
  * @returns A string formatted as (HH:MM[:ss]), or empty if seconds are invalid
  */
-const secondsSinceMidnightToTimeStr = function(
+const secondsSinceMidnightToTimeStr = function (
     secondsSinceMidnight: number,
     has24hours = true,
     withSeconds = false
@@ -48,7 +48,7 @@ const secondsSinceMidnightToTimeStr = function(
     }
 };
 
-const decimalHourToTimeStr = function(decimalHour, has24hours = true, withSeconds = false) {
+const decimalHourToTimeStr = function (decimalHour, has24hours = true, withSeconds = false) {
     decimalHour = parseFloat(decimalHour);
     if (_isFinite(decimalHour) && decimalHour >= 0) {
         const seconds = Math.round(decimalHour * 3600);
@@ -57,7 +57,7 @@ const decimalHourToTimeStr = function(decimalHour, has24hours = true, withSecond
     return null;
 };
 
-const timeStrToDecimalHour = function(timeStr) {
+const timeStrToDecimalHour = function (timeStr) {
     if (_isString(timeStr)) {
         const splittedTime = timeStr.split(':');
         if (splittedTime.length === 2) {
@@ -71,42 +71,42 @@ const timeStrToDecimalHour = function(timeStr) {
     return null;
 };
 
-const secondsToMinutes = function(seconds, rounding = Math.ceil) {
+const secondsToMinutes = function (seconds, rounding = Math.ceil) {
     seconds = parseInt(seconds);
     return _isFinite(seconds) ? rounding(seconds / 60) : null;
 };
 
-const secondsToMinutesDecimal = function(seconds) {
+const secondsToMinutesDecimal = function (seconds) {
     seconds = parseInt(seconds);
     return _isFinite(seconds) ? seconds / 60 : null;
 };
 
-const secondsToHours = function(seconds, rounding = Math.ceil) {
+const secondsToHours = function (seconds, rounding = Math.ceil) {
     seconds = parseInt(seconds);
     return _isFinite(seconds) ? rounding(seconds / 3600) : null;
 };
 
-const secondsToHoursDecimal = function(seconds) {
+const secondsToHoursDecimal = function (seconds) {
     seconds = parseInt(seconds);
     return _isFinite(seconds) ? seconds / 3600 : null;
 };
 
-const minutesToHours = function(minutes: string | number, rounding = Math.ceil) {
+const minutesToHours = function (minutes: string | number, rounding = Math.ceil) {
     minutes = typeof minutes === 'string' ? parseInt(minutes) : minutes;
     return _isFinite(minutes) ? rounding(minutes / 60) : null;
 };
 
-const minutesToHoursDecimal = function(minutes: string | number) {
+const minutesToHoursDecimal = function (minutes: string | number) {
     minutes = typeof minutes === 'string' ? parseInt(minutes) : minutes;
     return _isFinite(minutes) ? minutes / 60 : null;
 };
 
-const minutesToSeconds = function(minutes: string | number) {
+const minutesToSeconds = function (minutes: string | number) {
     minutes = typeof minutes === 'string' ? parseInt(minutes) : minutes;
     return _isFinite(minutes) ? minutes * 60 : null;
 };
 
-const hoursToSeconds = function(hours) {
+const hoursToSeconds = function (hours) {
     hours = parseInt(hours);
     return _isFinite(hours) ? hours * 3600 : null;
 };
@@ -119,7 +119,7 @@ const hoursToSeconds = function(hours) {
  * @param timeStr Number of seconds since midnight (HH:MM[:ss])
  * @returns The number of seconds since midnight, or null if invalid
  */
-const timeStrToSecondsSinceMidnight = function(timeStr: string) {
+const timeStrToSecondsSinceMidnight = function (timeStr: string) {
     if (_isBlank(timeStr)) {
         return null;
     }
@@ -134,7 +134,7 @@ const timeStrToSecondsSinceMidnight = function(timeStr: string) {
     return !Number.isNaN(result) ? result : null;
 };
 
-const intTimeToSecondsSinceMidnight = function(intTime) {
+const intTimeToSecondsSinceMidnight = function (intTime) {
     // 0 = midnight, 100 = 1:00 (AM), 2358 = 23:58, 2743 = 27:43
     if (_isBlank(intTime)) {
         return null;
@@ -152,7 +152,7 @@ const intTimeToSecondsSinceMidnight = function(intTime) {
 };
 
 // returns value as seconds, rounded, ceiled or floored to the nearest 60 seconds:
-const roundSecondsToNearestMinute = function(seconds: number, rounding = Math.ceil): number {
+const roundSecondsToNearestMinute = function (seconds: number, rounding = Math.ceil): number {
     return rounding(seconds / 60) * 60;
 };
 

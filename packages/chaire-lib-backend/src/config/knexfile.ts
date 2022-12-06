@@ -14,7 +14,7 @@ if (
 )
     throw 'database is not set';
 
-export const onUpdateTrigger = function(table: string) {
+export const onUpdateTrigger = function (table: string) {
     return `
   CREATE TRIGGER ${table}_updated_at
   BEFORE UPDATE ON ${table}

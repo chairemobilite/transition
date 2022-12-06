@@ -14,7 +14,7 @@ import { AgencyCollection as CacheCollection, Agency as CacheObject } from '../c
 import { _emptyStringToNull } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { boolToInt8, int8ToBool } from 'chaire-lib-backend/lib/utils/json2capnp/CapnpConversionUtils';
 
-const collectionToCache = function(collection: AgencyCollection, cachePathDirectory?: string) {
+const collectionToCache = function (collection: AgencyCollection, cachePathDirectory?: string) {
     return defaultCollectionToCache({
         collection,
         cacheName: 'agencies',
@@ -23,7 +23,7 @@ const collectionToCache = function(collection: AgencyCollection, cachePathDirect
         maxNumberOfObjectsPerFile: 1000,
         CacheCollection,
         CollectionClass: AgencyCollection,
-        capnpParser: function(object: Agency, cacheObject: CacheObject) {
+        capnpParser: function (object: Agency, cacheObject: CacheObject) {
             const attributes = object.getAttributes();
             if (!attributes.data) {
                 attributes.data = {};
@@ -43,7 +43,7 @@ const collectionToCache = function(collection: AgencyCollection, cachePathDirect
     });
 };
 
-const collectionFromCache = function(cachePathDirectory?: string) {
+const collectionFromCache = function (cachePathDirectory?: string) {
     return defaultCollectionFromCache({
         collection: new AgencyCollection([], {}),
         CollectionClass: AgencyCollection,
@@ -51,14 +51,14 @@ const collectionFromCache = function(cachePathDirectory?: string) {
         cachePathDirectory,
         pluralizedCollectionName: 'Agencies',
         CacheCollection,
-        parser: function(object) {
+        parser: function (object) {
             if (object.attributes) {
                 return new Agency(object.attributes, false);
             } else {
                 return new Agency(object, false);
             }
         },
-        capnpParser: function(cacheObject: CacheObject) {
+        capnpParser: function (cacheObject: CacheObject) {
             return new Agency(
                 {
                     id: cacheObject.getUuid(),

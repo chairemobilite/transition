@@ -64,7 +64,7 @@ const importerByObjectName = {
     gtfs: { type: 'function' as const, fct: gtfsImportFunction }
 };
 
-export default function(socket: SocketIO.Socket, userId: number) {
+export default function (socket: SocketIO.Socket, userId: number) {
     // FIXME Can't use remaining as files may be deleted and this is set up once per user
     const quota = Users.getUserQuota(userId);
     const absoluteUserDir = `${directoryManager.userDataDirectory}/${userId}`;

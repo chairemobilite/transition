@@ -10,7 +10,7 @@
  * @param {(number | null | undefined)} value The value to  convert
  * @return {*}  {number} The original value or -1 if it was null
  */
-const nullToMinusOne = function(value: number | null | undefined): number {
+const nullToMinusOne = function (value: number | null | undefined): number {
     if (value === null || value === undefined) {
         return -1;
     }
@@ -24,7 +24,7 @@ const nullToMinusOne = function(value: number | null | undefined): number {
  * @return {*}  {number | undefined)} The original value or undefined if the
  * value was -1
  */
-const minusOneToUndefined = function(value: number): number | undefined {
+const minusOneToUndefined = function (value: number): number | undefined {
     if (value === -1) {
         return undefined;
     }
@@ -37,7 +37,7 @@ const minusOneToUndefined = function(value: number): number | undefined {
  * @param {( boolean | null | undefined)} value The value to convert
  * @return {*}  {number} 1 for true, 0 for false or -1 for any other value
  */
-const boolToInt8 = function(value: boolean | null | undefined): number {
+const boolToInt8 = function (value: boolean | null | undefined): number {
     if (value === true) {
         return 1;
     } else if (value === false) {
@@ -53,7 +53,7 @@ const boolToInt8 = function(value: boolean | null | undefined): number {
  * @return {*}  {(boolean | undefined)} true if 1, false if 0 or undefined for
  * any other value
  */
-const int8ToBool = function(value: number): boolean | undefined {
+const int8ToBool = function (value: number): boolean | undefined {
     if (value === 1) {
         return true;
     } else if (value === 0) {
@@ -70,7 +70,7 @@ const int8ToBool = function(value: number): boolean | undefined {
  * @return {*}  {(string | undefined)} undefined if str is the 'none' string,
  * the original value otherwise
  */
-const noneStringToUndefined = function(str: string): string | undefined {
+const noneStringToUndefined = function (str: string): string | undefined {
     if (str === 'none') {
         return undefined;
     }
@@ -86,7 +86,7 @@ const LAT_LON_PRECISION_FACTOR = 1000000;
  * @param {[number, number]} coordinates The coordinates to round
  * @return {*}  {[number, number]} Rounded coordinates
  */
-const roundLonLatCoordinates = function(coordinates: [number, number]): [number, number] {
+const roundLonLatCoordinates = function (coordinates: [number, number]): [number, number] {
     // precise to approximately 10 cm
     return [roundLonLatCoordinate(coordinates[0]), roundLonLatCoordinate(coordinates[1])];
 };
@@ -98,7 +98,7 @@ const roundLonLatCoordinates = function(coordinates: [number, number]): [number,
  * @param {number} coordinate The coordinate to round
  * @return {*}  {number}
  */
-const roundLonLatCoordinate = function(coordinate: number): number {
+const roundLonLatCoordinate = function (coordinate: number): number {
     return intCoordinateToLatLon(latLonCoordinateToInt(coordinate));
 };
 
@@ -110,7 +110,7 @@ const roundLonLatCoordinate = function(coordinate: number): number {
  * @param {number} coordinate The coordinate to transform to integer
  * @return {*}  {number}
  */
-const latLonCoordinateToInt = function(coordinate: number): number {
+const latLonCoordinateToInt = function (coordinate: number): number {
     return Math.round(coordinate * LAT_LON_PRECISION_FACTOR);
 };
 
@@ -121,7 +121,7 @@ const latLonCoordinateToInt = function(coordinate: number): number {
  * @param {number} intCoordinate The integer to convert back to lat/lon
  * @return {*}  {number}
  */
-const intCoordinateToLatLon = function(intCoordinate: number): number {
+const intCoordinateToLatLon = function (intCoordinate: number): number {
     return intCoordinate / LAT_LON_PRECISION_FACTOR;
 };
 

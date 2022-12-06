@@ -17,7 +17,7 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 const MenuBar: React.FunctionComponent<LayoutSectionProps> = (props: LayoutSectionProps) => {
     const sectionsConfig = Preferences.get('sections.transition');
 
-    const onClickHandler = function(e) {
+    const onClickHandler = function (e) {
         e.preventDefault();
         const sectionShortname = e.currentTarget.getAttribute('data-section');
         serviceLocator.eventManager.emit(

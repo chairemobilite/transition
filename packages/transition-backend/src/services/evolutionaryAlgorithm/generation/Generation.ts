@@ -79,8 +79,9 @@ abstract class Generation {
             const scenarioCollection = new ScenarioCollection(scenarios, {});
             await collectionToCache(scenarioCollection, this.options.simulationRun.getCacheDirectoryPath());
             console.log(
-                `  generation ${this.generationNumber}: preparation completed in ${(Date.now() - time) /
-                    1000} sec. and saved in ${this.options.simulationRun.getProjectRelativeCacheDirectoryPath()}`
+                `  generation ${this.generationNumber}: preparation completed in ${
+                    (Date.now() - time) / 1000
+                } sec. and saved in ${this.options.simulationRun.getProjectRelativeCacheDirectoryPath()}`
             );
         } catch (error) {
             console.log('Some candidates could not be prepared');

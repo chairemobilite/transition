@@ -308,9 +308,9 @@ export class ServiceImporter implements GtfsObjectImporter<ServiceImportData, Se
 
     private getServiceAgencies = (lineIds: string[]): string[] => {
         return _uniq(
-            (lineIds
-                .map((lineId) => this._allLines.getById(lineId))
-                .filter((line) => line !== undefined) as Line[]).map((line) => line?.attributes.agency_id)
+            (
+                lineIds.map((lineId) => this._allLines.getById(lineId)).filter((line) => line !== undefined) as Line[]
+            ).map((line) => line?.attributes.agency_id)
         );
     };
 

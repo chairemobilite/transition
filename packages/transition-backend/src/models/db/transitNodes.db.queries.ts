@@ -26,7 +26,7 @@ const tableName = 'tr_transit_nodes';
 const pathTableName = 'tr_transit_paths';
 const st = knexPostgis(knex);
 
-const attributesCleaner = function(attributes: Partial<NodeAttributes>): { [key: string]: any } {
+const attributesCleaner = function (attributes: Partial<NodeAttributes>): { [key: string]: any } {
     //console.log('attributes', attributes);
     const _attributes: any = _cloneDeep(attributes);
     if (_attributes.geography) {
@@ -229,11 +229,7 @@ const deleteIfUnused = async (id: string): Promise<string | undefined> => {
             );
         }
         const notInQuery = knex.distinct(knex.raw('unnest(nodes)')).from(pathTableName);
-        const response = await knex(tableName)
-            .where('id', id)
-            .whereNotIn('id', notInQuery)
-            .del()
-            .returning('id');
+        const response = await knex(tableName).where('id', id).whereNotIn('id', notInQuery).del().returning('id');
         return response.length === 1 ? response[0] : undefined;
     } catch (error) {
         throw new TrError(
@@ -244,7 +240,7 @@ const deleteIfUnused = async (id: string): Promise<string | undefined> => {
     }
 };
 
-const deleteMultipleUnused = function(ids: string[]): Promise<string[]> {
+const deleteMultipleUnused = function (ids: string[]): Promise<string[]> {
     return new Promise((resolve, reject) => {
         const notInQuery = knex.distinct(knex.raw('unnest(nodes)')).from(pathTableName);
         return knex(tableName)

@@ -29,7 +29,7 @@ import { _emptyStringToNull } from 'chaire-lib-common/lib/utils/LodashExtensions
 import { NodeCollection as CacheCollection } from '../capnpDataModel/nodeCollection.capnp';
 import { Node as CacheObjectClass } from '../capnpDataModel/node.capnp';
 
-const exportParser = function(object: Node, cacheObject: CacheObjectClass) {
+const exportParser = function (object: Node, cacheObject: CacheObjectClass) {
     const attributes = object.getAttributes();
 
     const geography = attributes.geography;
@@ -79,7 +79,7 @@ const exportParser = function(object: Node, cacheObject: CacheObjectClass) {
     }
 };
 
-const importParser = function(cacheObject: CacheObjectClass) {
+const importParser = function (cacheObject: CacheObjectClass) {
     const geography = {
         type: 'Point' as const,
         coordinates: [
@@ -124,7 +124,7 @@ const importParser = function(cacheObject: CacheObjectClass) {
     return new Node(attributes, false);
 };
 
-const deleteObjectCache = function(objectId: string, cachePathDirectory?: string) {
+const deleteObjectCache = function (objectId: string, cachePathDirectory?: string) {
     return defaultDeleteObjectCache({
         cacheName: 'node',
         cachePathDirectory: cachePathDirectory ? `${cachePathDirectory}/nodes` : 'nodes',
@@ -132,7 +132,7 @@ const deleteObjectCache = function(objectId: string, cachePathDirectory?: string
     });
 };
 
-const objectToCache = function(object: Node, cachePathDirectory?: string) {
+const objectToCache = function (object: Node, cachePathDirectory?: string) {
     return defaultObjectToCache({
         cacheName: 'node',
         cachePathDirectory: cachePathDirectory ? `${cachePathDirectory}/nodes` : 'nodes',
@@ -143,14 +143,14 @@ const objectToCache = function(object: Node, cachePathDirectory?: string) {
     });
 };
 
-const objectsToCache = function(objects: Node[], cachePathDirectory?: string) {
+const objectsToCache = function (objects: Node[], cachePathDirectory?: string) {
     return defaultObjectsToCache(objectToCache, {
         cachePathDirectory,
         objects
     });
 };
 
-const objectFromCache = function(nodeId: string, cachePathDirectory?: string) {
+const objectFromCache = function (nodeId: string, cachePathDirectory?: string) {
     return defaultObjectFromCache({
         cacheName: 'node',
         cachePathDirectory: cachePathDirectory ? `${cachePathDirectory}/nodes` : 'nodes',
@@ -161,7 +161,7 @@ const objectFromCache = function(nodeId: string, cachePathDirectory?: string) {
     });
 };
 
-const collectionToCache = function(collection: NodeCollection, cachePathDirectory?: string) {
+const collectionToCache = function (collection: NodeCollection, cachePathDirectory?: string) {
     return defaultCollectionToCache({
         collection,
         cacheName: 'nodes',
@@ -170,7 +170,7 @@ const collectionToCache = function(collection: NodeCollection, cachePathDirector
         maxNumberOfObjectsPerFile: 50000,
         CacheCollection,
         CollectionClass: NodeCollection,
-        capnpParser: function(object: GeoJSON.Feature<GeoJSON.Point, NodeAttributes>, cacheObject) {
+        capnpParser: function (object: GeoJSON.Feature<GeoJSON.Point, NodeAttributes>, cacheObject) {
             const attributes = object.properties;
 
             const geography = attributes.geography || object.geometry;
@@ -202,7 +202,7 @@ const collectionToCache = function(collection: NodeCollection, cachePathDirector
     });
 };
 
-const collectionFromCache = function(cachePathDirectory?: string) {
+const collectionFromCache = function (cachePathDirectory?: string) {
     // for now we only return geojson instead of objects for geojson collection
 
     return defaultCollectionFromCache({
@@ -212,7 +212,7 @@ const collectionFromCache = function(cachePathDirectory?: string) {
         pluralizedCollectionName: 'Nodes',
         CollectionClass: NodeCollection,
         CacheCollection,
-        capnpParser: function(cacheObject) {
+        capnpParser: function (cacheObject) {
             const geography = {
                 type: 'Point',
                 coordinates: [

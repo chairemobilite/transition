@@ -16,7 +16,7 @@ import { exportGtfs } from '../services/gtfsExport/GtfsExporter';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
 
 // TODO Use a typeguard to check socket.io type to emit broadcasts
-export default function(socket: EventEmitter, userId: number) {
+export default function (socket: EventEmitter, userId: number) {
     const absoluteUserDir = `${directoryManager.userDataDirectory}/${userId}`;
     const gtfsImportDirectory = `${absoluteUserDir}/gtfs/gtfs`;
     const exportAbsoluteDirectory = `${absoluteUserDir}/exports`;

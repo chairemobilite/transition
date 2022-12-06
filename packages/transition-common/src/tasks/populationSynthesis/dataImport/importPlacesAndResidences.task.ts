@@ -89,7 +89,7 @@ async function run(fileManager: any) {
             ]
         },
         {
-            when: function(answers) {
+            when: function (answers) {
                 return answers.osmSource === 'geojsonpoly';
             },
             type: 'file-tree-selection',
@@ -99,7 +99,7 @@ async function run(fileManager: any) {
             pageSize: 20
         },
         {
-            when: function(answers) {
+            when: function (answers) {
                 return answers.osmSource === 'files';
             },
             type: 'file-tree-selection',
@@ -109,7 +109,7 @@ async function run(fileManager: any) {
             pageSize: 20
         },
         {
-            when: function(answers) {
+            when: function (answers) {
                 return answers.osmSource === 'files';
             },
             type: 'file-tree-selection',

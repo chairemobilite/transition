@@ -82,7 +82,7 @@ export function getEntrancesForBuilding(
  * @param data The OSM data
  * @param osmData The OSM data object
  */
-export const getOsmNodesFor = function(data: OsmRawDataType, osmData: DataOsmRaw): OsmRawDataTypeNode[] {
+export const getOsmNodesFor = function (data: OsmRawDataType, osmData: DataOsmRaw): OsmRawDataTypeNode[] {
     const osmDataIndex = osmData.getIndex();
 
     const nodesById = osmDataIndex.osmNodesById;
@@ -139,7 +139,7 @@ export const getOsmNodesFor = function(data: OsmRawDataType, osmData: DataOsmRaw
  *    onlyNodesWithEntranceTags If true: only parse nodes with entrance tags
  *    (way faster boundary nodes parse)
  */
-export const getNodesInside = function(
+export const getNodesInside = function (
     geojson:
         | GeoJSON.Feature<GeoJSON.Polygon, GeoJSON.GeoJsonProperties>
         | GeoJSON.Feature<GeoJSON.MultiPolygon, GeoJSON.GeoJsonProperties>,

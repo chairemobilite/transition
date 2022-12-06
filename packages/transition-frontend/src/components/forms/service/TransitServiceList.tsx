@@ -27,7 +27,7 @@ interface ServiceListProps extends WithTranslation {
 const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: ServiceListProps) => {
     const [showModal, setShowModal] = useState(false);
 
-    const newService = function() {
+    const newService = function () {
         const defaultColor = Preferences.get('transit.services.defaultColor', '#0086FF');
         const newService = new TransitService({ color: defaultColor }, true, serviceLocator.collectionManager);
         newService.startEditing();

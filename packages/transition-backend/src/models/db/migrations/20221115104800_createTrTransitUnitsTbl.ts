@@ -8,32 +8,15 @@ export async function up(knex: Knex): Promise<unknown> {
         return;
     }
     await knex.schema.createTable(tableName, (table: Knex.TableBuilder) => {
-        table
-            .uuid('id')
-            .unique()
-            .notNullable()
-            .defaultTo(knex.raw('gen_random_uuid()'))
-            .primary();
-        table
-            .specificType('integer_id', 'serial')
-            .unique()
-            .index();
+        table.uuid('id').unique().notNullable().defaultTo(knex.raw('gen_random_uuid()')).primary();
+        table.specificType('integer_id', 'serial').unique().index();
         table.string('internal_id').index();
         table.uuid('agency_id').index();
-        table
-            .foreign('agency_id')
-            .references('tr_transit_agencies.id')
-            .onDelete('CASCADE');
+        table.foreign('agency_id').references('tr_transit_agencies.id').onDelete('CASCADE');
         table.uuid('garage_id').index();
-        table
-            .foreign('garage_id')
-            .references('tr_transit_garages.id')
-            .onDelete('SET NULL');
+        table.foreign('garage_id').references('tr_transit_garages.id').onDelete('SET NULL');
         table.uuid('line_id').index();
-        table
-            .foreign('line_id')
-            .references('tr_transit_lines.id')
-            .onDelete('SET NULL');
+        table.foreign('line_id').references('tr_transit_lines.id').onDelete('SET NULL');
         table.string('mode').index();
         table.integer('manufacturer').index();
         table.integer('model').index();
@@ -47,10 +30,7 @@ export async function up(knex: Knex): Promise<unknown> {
         table.float('length_m');
         table.float('width_m');
         table.json('data');
-        table
-            .boolean('is_enabled')
-            .index()
-            .defaultTo(true);
+        table.boolean('is_enabled').index().defaultTo(true);
         table.timestamp('created_at').defaultTo(knex.raw('NOW()'));
         table.timestamp('updated_at');
         table.boolean('is_frozen').index();
