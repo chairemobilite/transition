@@ -86,8 +86,8 @@ describe('csv only result', () => {
         expect(result.csv).toBeDefined();
         expect((result.csv as string[]).length).toEqual(1);
         expect((result.csv as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},` +
-            `${simplePathResult.path.origin[1]},${simplePathResult.path.origin[0]},` +
-            `${simplePathResult.path.destination[1]},${simplePathResult.path.destination[0]},` +
+            `${simplePathResult.path.origin[0]},${simplePathResult.path.origin[1]},` +
+            `${simplePathResult.path.destination[0]},${simplePathResult.path.destination[1]},` +
             `,,success,${simplePathResult.path.departureTime},` +
             `${simplePathResult.path.departureTimeSeconds},${simplePathResult.path.arrivalTime},${simplePathResult.path.arrivalTimeSeconds},` +
             `${simplePathResult.path.initialDepartureTime},${simplePathResult.path.initialDepartureTimeSeconds},${simplePathResult.path.initialLostTimeAtDepartureMinutes},` +
@@ -154,8 +154,8 @@ describe('csv only result', () => {
         expect(result.csv).toBeDefined();
         expect((result.csv as string[]).length).toEqual(1);
         expect((result.csv as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},` + 
-            `${simplePathResult.path.origin[1]},${simplePathResult.path.origin[0]},` +
-            `${simplePathResult.path.destination[1]},${simplePathResult.path.destination[0]},` +
+            `${simplePathResult.path.origin[0]},${simplePathResult.path.origin[1]},` +
+            `${simplePathResult.path.destination[0]},${simplePathResult.path.destination[1]},` +
             `,,success,${simplePathResult.path.departureTime},` +
             `${simplePathResult.path.departureTimeSeconds},${simplePathResult.path.arrivalTime},${simplePathResult.path.arrivalTimeSeconds},` +
             `${simplePathResult.path.initialDepartureTime},${simplePathResult.path.initialDepartureTimeSeconds},${simplePathResult.path.initialLostTimeAtDepartureMinutes},` +
@@ -218,8 +218,8 @@ describe('csv only result', () => {
         expect(result.csv).toBeDefined();
         expect((result.csv as string[]).length).toEqual(2);
         expect((result.csv as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},` +
-            `${simplePathResult.path.origin[1]},${simplePathResult.path.origin[0]},` +
-            `${simplePathResult.path.destination[1]},${simplePathResult.path.destination[0]},` +
+            `${simplePathResult.path.origin[0]},${simplePathResult.path.origin[1]},` +
+            `${simplePathResult.path.destination[0]},${simplePathResult.path.destination[1]},` +
             `1,2,success,${simplePathResult.path.departureTime},` +
             `${simplePathResult.path.departureTimeSeconds},${simplePathResult.path.arrivalTime},${simplePathResult.path.arrivalTimeSeconds},` +
             `${simplePathResult.path.initialDepartureTime},${simplePathResult.path.initialDepartureTimeSeconds},${simplePathResult.path.initialLostTimeAtDepartureMinutes},` +
@@ -238,8 +238,8 @@ describe('csv only result', () => {
             `${cyclingRouteResult.routes[0].duration},${cyclingRouteResult.routes[0].distance}`
         );
         expect((result.csv as string[])[1]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},` +
-            `${transferPathResult.path.origin[1]},${transferPathResult.path.origin[0]},` +
-            `${transferPathResult.path.destination[1]},${transferPathResult.path.destination[0]},` +
+            `${transferPathResult.path.origin[0]},${transferPathResult.path.origin[1]},` +
+            `${transferPathResult.path.destination[0]},${transferPathResult.path.destination[1]},` +
             `2,2,success,${transferPathResult.path.departureTime},` +
             `${transferPathResult.path.departureTimeSeconds},${transferPathResult.path.arrivalTime},${transferPathResult.path.arrivalTimeSeconds},` +
             `${transferPathResult.path.initialDepartureTime},${transferPathResult.path.initialDepartureTimeSeconds},${transferPathResult.path.initialLostTimeAtDepartureMinutes},` +
