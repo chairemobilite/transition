@@ -249,10 +249,10 @@ const generateCsvWithTransit = (
             !_isBlank(alternative.destination[0])
         ) {
             // TODO csvAttributes will need to be typed
-            csvAttributes.originLat = origin[1];
-            csvAttributes.originLon = origin[0];
-            csvAttributes.destinationLat = destination[1];
-            csvAttributes.destinationLon = destination[0];
+            csvAttributes.originLat = origin[0];
+            csvAttributes.originLon = origin[1];
+            csvAttributes.destinationLat = destination[0];
+            csvAttributes.destinationLon = destination[1];
         }
 
         for (const attribute in _omit(rest, ['steps'])) {
