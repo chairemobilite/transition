@@ -9,7 +9,8 @@ export interface Saveable {
     delete(socket: any): Promise<any>;
 }
 
-export const isSaveable = (obj: any) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const isSaveable = (obj: any): obj is Saveable => {
     return obj.save && typeof obj.save === 'function' && obj.delete && typeof obj.delete === 'function';
 };
 
