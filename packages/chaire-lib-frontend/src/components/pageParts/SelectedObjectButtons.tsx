@@ -86,7 +86,6 @@ const SelectedObjectButtons: React.FunctionComponent<SelectedObjectButtonsProps<
                 );
                 return;
             }
-            const saveableObject = object as unknown as Saveable;
             if (isFrozen === true && object.wasFrozen()) {
                 serviceLocator.selectedObjectsManager.deselect(objectSingularName);
                 return true;
@@ -97,7 +96,7 @@ const SelectedObjectButtons: React.FunctionComponent<SelectedObjectButtonsProps<
                         name: `Saving${objectCapitalizedSingularName}`,
                         progress: 0.0
                     });
-                    saveableObject
+                    object
                         .save(serviceLocator.socketEventManager)
                         .then((response) => {
                             if (props.afterSave) {
