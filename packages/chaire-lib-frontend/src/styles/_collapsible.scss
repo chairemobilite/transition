@@ -34,3 +34,9 @@
     background-color: grey;
   }
 }
+
+// FIXME react-collapsible's lazyRender requires the children to have at least a minimum height to be rendered on the first click.
+// See https://github.com/glennflanagan/react-collapsible/issues/36
+.Collapsible__contentInner {
+  padding-top: 1px;
+}
