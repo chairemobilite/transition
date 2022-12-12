@@ -324,10 +324,10 @@ export class TrRoutingService {
 
     private async internalSummary(
         params: TrRoutingApi.TransitRouteQueryOptions
-    ): Promise<TrRoutingApi.TrRoutingV2SummaryResult> {
+    ): Promise<TrRoutingApi.TrRoutingV2.SummaryResponse> {
         const routingResult = await this.callTrRouting<
             TrRoutingApi.TransitRouteQueryOptions,
-            TrRoutingApi.TrRoutingV2SummaryResponse
+            TrRoutingApi.TrRoutingV2.SummaryResponse
         >(apiCalls.summary, params);
         if (routingResult.status === 'data_error') {
             throw new TrError(
@@ -348,7 +348,7 @@ export class TrRoutingService {
             }
         }
 
-        return routingResult as TrRoutingApi.TrRoutingV2SummaryResult;
+        return routingResult as TrRoutingApi.TrRoutingV2.SummaryResponse;
     }
 
     // FIXME tahini: Type the options
@@ -371,7 +371,7 @@ export class TrRoutingService {
 
     public async summary(
         params: TrRoutingApi.TransitRouteQueryOptions
-    ): Promise<TrRoutingApi.TrRoutingV2SummaryResult> {
+    ): Promise<TrRoutingApi.TrRoutingV2.SummaryResponse> {
         return await this.internalSummary(params);
     }
 }

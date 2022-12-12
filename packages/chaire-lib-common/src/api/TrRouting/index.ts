@@ -5,4 +5,4 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 export * from './base';
-export * from './trRoutingApiV2';
+export * as TrRoutingV2 from './trRoutingApiV2';

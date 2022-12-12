@@ -4,28 +4,35 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-export type TrRoutingV2ResponseCommon = {
-    status: 'success';
+
+export type RouteQueryResponse = {
     origin: [number, number];
     destination: [number, number];
     timeOfTrip: number;
     timeType: 0 | 1;
 };
 
-export type TrRoutingV2SummaryResult = TrRoutingV2ResponseCommon & {
-    nbAlternativesCalculated: number;
-    lines: {
-        lineUuid: string;
-        lineShortname: string;
-        lineLongname: string;
-        agencyUuid: string;
-        agencyAcronym: string;
-        agencyName: string;
-        alternativeCount: number;
-    }[];
+export type RouteSuccessResponseCommon = {
+    status: 'success';
+    query: RouteQueryResponse;
 };
 
-export type TrRoutingV2QueryError = {
+export type SummarySuccessResult = RouteSuccessResponseCommon & {
+    result: {
+        nbRoutes: number;
+        lines: {
+            lineUuid: string;
+            lineShortname: string;
+            lineLongname: string;
+            agencyUuid: string;
+            agencyAcronym: string;
+            agencyName: string;
+            alternativeCount: number;
+        }[];
+    };
+};
+
+export type RouteQueryError = {
     status: 'query_error';
     errorCode:
         | 'EMPTY_SCENARIO'
@@ -39,7 +46,7 @@ export type TrRoutingV2QueryError = {
         | 'PARAM_ERROR_UNKNOWN';
 };
 
-export type TrRoutingV2DataError = {
+export type DataError = {
     status: 'data_error';
     errorCode:
         | 'DATA_ERROR'
@@ -52,4 +59,4 @@ export type TrRoutingV2DataError = {
         | 'MISSING_DATA_SCHEDULES';
 };
 
-export type TrRoutingV2SummaryResponse = TrRoutingV2SummaryResult | TrRoutingV2DataError | TrRoutingV2QueryError;
+export type SummaryResponse = SummarySuccessResult | DataError | RouteQueryError;
