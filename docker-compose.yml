@@ -1,12 +1,17 @@
-# Example docker-compose file to run the Transition app in one container and a second one for PostGis
+# Example docker-compose file to run the Transition app in one container and a
+# second one for PostGis
 #
-# Use the official postgis image for the DB, with the default username and password
-# The DB data live in a docker volume. You can adapt to have it live in a specific location
-# To run with an existing DB, change the PG_CONNECTION_STRING_PREFIX and drop the postgres service
-# and related volume
+# Use the official postgis image for the DB, with the default username and
+# password The DB data live in a docker volume. You can adapt to have it live in
+# a specific location To run with an existing DB, change the
+# PG_CONNECTION_STRING_PREFIX and drop the postgres service and related volume
 #
-# It use the application configuration that was in the .env file that was built in the application image
+# It uses the application configuration that was in the .env file that was built
+# in the application image. It expects the project runtime directory to be in
+# /app/examples/runtime.
 # It used "testtransition" as the application image, you can adapt to your prefered image name.
+#
+# See the lines marked CUSTOM to see how to customize the image with frequent customization needs
 
 version: "3.7"
 # docker-compose version 1.22 is required for this version
@@ -19,6 +24,9 @@ services:
       - 8080:8080
     environment:
       PG_CONNECTION_STRING_PREFIX: postgres://postgres:pass@postgres:5432/
+      # CUSTOM Add environment variables. This can be any variable contained in the .env file. These have precedence over their value in .env
+      # PROJECT_CONFIG: /config/config.js
+      # TRANSITION_DOTENV: /path/to/custom/.env
     depends_on:
       - postgres
     #HACK, needed for running trRouting. See https://github.com/kaligrafy/trRouting/issues/23
@@ -29,6 +37,10 @@ services:
       - transition-project-osrm:/app/examples/runtime/osrm
       # TODO Remove this once the cache is actually a cache
       - transition-project-cache:/app/examples/runtime/cache
+      # CUSTOM For custom project with config file and runtime directory, add
+      # additional volumes here. The following lines adds the local
+      # `/home/myHome/transition-example` in the container's `/config` directory
+      # - "/home/myHome/transition-example/:/config"
 
   postgres:
     image: postgis/postgis

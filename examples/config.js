@@ -5,7 +5,8 @@ module.exports = {
     auth: {
       localLogin: {
         allowRegistration: true,
-        confirmEmail: true
+        // This will send an email to confirm the user's email address. Email send needs to be configured. By default, users can register and directly login.
+        // confirmEmail: true
       }
     },
     
