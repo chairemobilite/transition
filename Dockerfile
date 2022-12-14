@@ -26,9 +26,11 @@ COPY packages/transition-backend packages/transition-backend
 COPY packages/transition-frontend packages/transition-frontend
 RUN yarn install
 
-
 # Copy the rest. (node_modules are excluded in .dockerignore)
 COPY . /app
+
+# Setup the example as a default configuration for the image
+COPY .env.docker /app/.env
 
 #TODO evaluate if any of those commands are necessary
 #RUN yarn setup
@@ -39,9 +41,6 @@ RUN yarn compile
 
 #TODO We probably need to do something different for the projects configuration directories
 # the docker-compose file have an example of using volume for part of a project
-
-# Setup the example as a default configuration for the image
-COPY .env.example /app/.env
 
 # Copy in json2capnp
 COPY --from=json2capnpbuild /app/services/json2capnp/target/debug/json2capnp services/json2capnp/

@@ -34,7 +34,6 @@ capnproto libcapnp-dev postgresql-postgis postgresql-postgis-scripts rustc cargo
 * `yarn migrate`: Update the database schema with latest changes. This can be run whenever the source code is updated
 * Optionally `yarn create-user`: Run this task to create a new user in the database. The user will be able to login to the web interface. This command can be run entirely in a non-interactive mode with the following parameters: `yarn create-user --username <username> --email <email> --password <clearTextPassword> [--first_name <firstName> --last_name <lastName> --[no-]admin --[no-]valid --[no-]confirmed --prefs <jsonStringOfPreferences>]`. For example, to create and administrator user with the english language as preference, run the following command `yarn create-user --username admin --email admin@example.org --password MyAdminPassword --admin --prefs '{ "lang": "en" }'`
 
-
 ## Getting started
 
 **An example configuration and geographical area can be found in [the examples](examples/) directory.**
@@ -69,6 +68,25 @@ yarn node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm
 yarn node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/prepareOsmNetworkData.task.js
 ```
 
+### Prepare the environment file
+
+Transition relies on a few environment variables, that can either be set on the system, or contained in a .env file. First, copy the example .env file and edit the variables.
+
+```
+cp .env.example .env
+```
+
+* Change `PG_CONNECTION_STRING_PREFIX=postgres://postgres:@localhost:5432/` to `PG_CONNECTION_STRING_PREFIX=postgres://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/`
+* Change `EXPRESS_SESSION_SECRET_KEY` to a random string with no space
+* Change `PROJECT_CONFIG` to point to your project's configuration file. The default is an example configuration file that can be copied and configured for your own need.
+
+### Get a Mapbox access token
+* Go to [Mapbox](http://mapxbox.com) and sign up
+* Go to your account dashboard, then generate a new access token
+* Open the `.env` file
+* Copy this access token to `.env` file: `MAPBOX_ACCESS_TOKEN=YOUR_TOKEN`
+* If you have a custom mapbox style, put your username and style id in `MAPBOX_USER_ID` and `MAPBOX_STYLE_ID`
+
 ### Create the client application
 
 Run `yarn build:dev` or `yarn build:prod` to create the html client application that will be run on the browser. 
@@ -102,12 +120,18 @@ You can easily launch the whole transition system using Docker and thus not havi
 ### Building the image
 `docker build -t testtransition .`
 (You can replace testtransition with your prefered image name. Don't forget to update any other command and compose file if you do so)
-To run the application directly, you'll need to add an .env as previously described before building. 
+To run the application directly, you'll need to add a `.env` as previously described, either by editing the `.env.docker` file before building the image, or by adding a `.env` file and pointing to it when running.
+
+**Warning**: The project directory is assumed to be in `/app/examples/runtime` with a project name of `demo_transition`. The cache server starts with a cache at this location. If it is not the case, update line 69 of the `Dockerfile` to fine-tune the cache directory as second argument to `json2capnp`.
 
 ### Running using docker-compose
-An example docker-compose.yml file is available in the reposity. If used, it will spin up a container for the transition
-front-end and for dependent services like the postgis database
+An example docker-compose.yml file is available in the reposity. If used, it will spin up a container for the transition 
+front-end and for dependent services like the postgis database.
+
+*The `docker-compose.yml` file contains customization suggestion.*
+
 * `docker-compose up -d`
+
 On the first run, you'll need to run the the DB setup commands. See the Installation section of this document for the full details. As a short-hand:
 * `docker exec transition_transition-www_1 yarn setup`
 * `docker exec transition_transition-www_1 yarn migrate`
