@@ -309,6 +309,8 @@ export class TrRoutingService {
         } else if (routingResult.status !== 'success' && routingResult.status !== undefined) {
             // FIXME: the accessible map query response does not return a status, so if undefined, then it's ok. but it needs to be fixed in trRouting
             const routingError = routingResult as TrRoutingApi.TrRoutingError;
+            // FIXME: There is a status, but it is not one that is known. Display it for now.
+            console.log(`Unknown error status returned from trRouting: ${JSON.stringify(routingResult)}`);
             throw new TrError(
                 `cannot calculate transit route with trRouting: ${routingError.status}`,
                 ErrorCodes.OtherError,
