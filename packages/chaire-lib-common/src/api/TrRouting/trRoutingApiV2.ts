@@ -60,3 +60,100 @@ export type DataError = {
 };
 
 export type SummaryResponse = SummarySuccessResult | DataError | RouteQueryError;
+
+export type NoRoutingRouteReason =
+    | 'NO_ROUTING_FOUND'
+    | 'NO_ACCESS_AT_ORIGIN'
+    | 'NO_ACCESS_AT_DESTINATION'
+    | 'NO_ACCESS_AT_ORIGIN_AND_DESTINATION'
+    | 'NO_SERVICE_FROM_ORIGIN'
+    | 'NO_SERVICE_TO_DESTINATION';
+
+export type NoRoutingRouteResult = {
+    status: 'no_routing_found';
+    query: RouteQueryResponse;
+    reason?: NoRoutingRouteReason;
+};
+
+export type RouteSuccessResult = RouteSuccessResponseCommon & {
+    result: {
+        routes: SingleRouteResult[];
+        totalRoutesCalculated: number;
+    };
+};
+
+export type SingleRouteResult = {
+    departureTime: number;
+    arrivalTime: number;
+    totalTravelTime: number;
+    totalDistance: number;
+    totalInVehicleTime: number;
+    totalInVehicleDistance: number;
+    totalNonTransitTravelTime: number;
+    totalNonTransitDistance: number;
+    numberOfBoardings: number;
+    numberOfTransfers: number;
+    transferWalkingTime: number;
+    transferWalkingDistance: number;
+    accessTravelTime: number;
+    accessDistance: number;
+    egressTravelTime: number;
+    egressDistance: number;
+    transferWaitingTime: number;
+    firstWaitingTime: number;
+    totalWaitingTime: number;
+    steps: TripStep[];
+};
+
+export type TripStepWalking =
+    | {
+          action: 'walking';
+          travelTime: number;
+          distance: number;
+          departureTime: number;
+          arrivalTime: number;
+      } & ({ type: 'egress' } | { type: 'access' | 'transfer'; readyToBoardAt: number });
+
+export type TripStepEnterOrExit = {
+    agencyAcronym: string;
+    agencyName: string;
+    agencyUuid: string;
+    lineShortname: string;
+    lineLongname: string;
+    lineUuid: string;
+    pathUuid: string;
+    modeName: string;
+    mode: string;
+    tripUuid: string;
+    legSequenceInTrip: number;
+    stopSequenceInTrip: number;
+    nodeName: string;
+    nodeCode: string;
+    nodeUuid: string;
+    nodeCoordinates: [number, number];
+};
+
+export type TripStepBoarding = {
+    action: 'boarding';
+    departureTime: number;
+    waitingTime: number;
+} & TripStepEnterOrExit;
+
+export type TripStepUnboarding = {
+    action: 'unboarding';
+    arrivalTime: number;
+    inVehicleTime: number;
+    inVehicleDistance: number;
+} & TripStepEnterOrExit;
+
+export type TripStep = TripStepWalking | TripStepBoarding | TripStepUnboarding;
+
+export type RouteResponse = RouteSuccessResult | NoRoutingRouteResult | DataError | RouteQueryError;
+
+export const isErrorWithCode = (result: RouteResponse | SummaryResponse): result is RouteQueryError | DataError => {
+    return result.status === 'data_error' || result.status === 'query_error';
+};
+
+export const isNoRouting = (result: RouteResponse): result is NoRoutingRouteResult => {
+    return result.status === 'no_routing_found';
+};
