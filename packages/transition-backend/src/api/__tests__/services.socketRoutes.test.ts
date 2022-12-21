@@ -261,7 +261,7 @@ describe('trRouting routes', () => {
             destination: [2, 1] as [number, number]
         };
         mockedTrRoutingRoute.mockResolvedValueOnce(routeResponse);
-        socketStub.emit(TrRoutingConstants.ROUTE, routeParameters, (response) => {
+        socketStub.emit(TrRoutingConstants.ROUTE_V1, routeParameters, (response) => {
             expect(Status.isStatusOk(response)).toBe(true);
             expect(mockedTrRoutingRoute).toHaveBeenCalledWith(routeParameters.query, routeParameters.host, routeParameters.port);
             expect(response).toEqual(Status.createOk(routeResponse));
@@ -276,7 +276,7 @@ describe('trRouting routes', () => {
             destination: [2, 1] as [number, number]
         };
         mockedTrRoutingRoute.mockResolvedValueOnce(routeResponse);
-        socketStub.emit(TrRoutingConstants.ROUTE, { query: routeParameters.query }, (response) => {
+        socketStub.emit(TrRoutingConstants.ROUTE_V1, { query: routeParameters.query }, (response) => {
             expect(Status.isStatusOk(response)).toBe(true);
             expect(mockedTrRoutingRoute).toHaveBeenCalledWith(routeParameters.query, 'http://localhost', Preferences.get('trRouting.port'));
             expect(response).toEqual(Status.createOk(routeResponse));
@@ -290,7 +290,7 @@ describe('trRouting routes', () => {
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
         mockedTrRoutingRoute.mockRejectedValueOnce(error);
-        socketStub.emit(TrRoutingConstants.ROUTE, routeParameters, function (status) {
+        socketStub.emit(TrRoutingConstants.ROUTE_V1, routeParameters, function (status) {
             expect(mockedTrRoutingRoute).toHaveBeenCalledWith(routeParameters.query, routeParameters.host, routeParameters.port);
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual(message);

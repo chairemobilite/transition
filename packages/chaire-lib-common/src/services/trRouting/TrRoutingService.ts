@@ -146,7 +146,10 @@ const apiResultToAccessibleMap = (apiResult: TrRoutingApi.TrRoutingApiResult): T
 
 type ApiCall = { socketRoute?: string; url: string };
 const apiCalls = {
-    route: { socketRoute: TrRoutingApi.TrRoutingConstants.ROUTE, url: TrRoutingApi.TrRoutingConstants.FETCH_ROUTE_URL },
+    route: {
+        socketRoute: TrRoutingApi.TrRoutingConstants.ROUTE_V1,
+        url: TrRoutingApi.TrRoutingConstants.FETCH_ROUTE_V1_URL
+    },
     summary: { url: TrRoutingApi.TrRoutingConstants.FETCH_SUMMARY_URL }
 };
 
