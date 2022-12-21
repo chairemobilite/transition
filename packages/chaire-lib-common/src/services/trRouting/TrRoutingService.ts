@@ -170,16 +170,19 @@ export class TrRoutingService {
         if (response.status !== 200) {
             throw new TrError('Error querying trRouting from server', ErrorCodes.OtherError);
         }
-        const status: Status.Status<U> = await response.json();
-        return Status.unwrap(status);
+        return await response.json();
     }
 
-    private async callTrRouting<T, U>(apiCall: ApiCall, params: T): Promise<U> {
+    private async callTrRouting<T, U>(apiCall: ApiCall, params: T): Promise<Status.Status<U>> {
         return new Promise((resolve, _reject) => {
             if (serviceLocator.socketEventManager && apiCall.socketRoute !== undefined) {
-                this.callTrRoutingWithSocket(apiCall.socketRoute, params).then((response) => resolve(response as U));
+                this.callTrRoutingWithSocket(apiCall.socketRoute, params).then((response) =>
+                    resolve(response as Status.Status<U>)
+                );
             } else {
-                this.callTrRoutingWithFetch(apiCall.url, params).then((response) => resolve(response as U));
+                this.callTrRoutingWithFetch(apiCall.url, params).then((response) =>
+                    resolve(response as Status.Status<U>)
+                );
             }
         });
     }
@@ -268,13 +271,17 @@ export class TrRoutingService {
         queryString: string,
         options: { [key: string]: unknown } = {}
     ): Promise<TrRoutingApi.TrRoutingApiResult> {
-        const routingResult = await this.callTrRouting<
+        const responseStatus = await this.callTrRouting<
             { query: string; [key: string]: any },
             TrRoutingApi.TrRoutingApiResult
         >(apiCalls.route, {
             query: queryString,
             ...options
         });
+        if (Status.isStatusError(responseStatus)) {
+            this.handleErrorStatus(responseStatus);
+        }
+        const routingResult = Status.unwrap(responseStatus);
         if (TrRoutingApi.isNoRouting(routingResult)) {
             const reason = routingResult.reason;
             throw new TrError(
@@ -291,21 +298,19 @@ export class TrRoutingService {
                 'transit:transitRouting:errors:DataError'
             );
         } else if (routingResult.status === 'error' && routingResult.error && (routingResult.error as any).code) {
-            const error = (routingResult as TrRoutingApi.TrRoutingError).error;
+            // Any error status from the application in the v1 route
             const errorCode = (routingResult.error as any).code;
-            if (errorCode === 'ECONNREFUSED') {
-                throw new TrError(
-                    `cannot calculate transit route with trRouting: ${error}`,
-                    ErrorCodes.ServerNotRunning,
-                    'transit:transitRouting:errors:TrRoutingServerNotRunning'
-                );
-            } else if (errorCode.startsWith('MISSING_DATA_')) {
+            if (errorCode.startsWith('MISSING_DATA_')) {
                 throw new TrError(
                     `cannot calculate transit route with trRouting: ${errorCode}`,
                     ErrorCodes.MissingData,
                     `transit:transitRouting:errors:${errorCode}`
                 );
             }
+            throw new TrError(`cannot handle call to trRouting: ${errorCode}`, ErrorCodes.OtherError, {
+                text: 'transit:transitRouting:errors:TrRoutingServerError',
+                params: { error: String(errorCode || '-') }
+            });
         } else if (routingResult.status !== 'success' && routingResult.status !== undefined) {
             // FIXME: the accessible map query response does not return a status, so if undefined, then it's ok. but it needs to be fixed in trRouting
             const routingError = routingResult as TrRoutingApi.TrRoutingError;
@@ -324,13 +329,35 @@ export class TrRoutingService {
         return routingResult;
     }
 
+    // Throw the appropriate error if the status is erroneous
+    private handleErrorStatus = (status: Status.StatusError) => {
+        // Handle application errors
+        const error = status.error;
+        const errorCode = (error as any).code;
+        if (errorCode === 'ECONNREFUSED') {
+            throw new TrError(
+                `cannot handle call to trRouting: ${error}`,
+                ErrorCodes.ServerNotRunning,
+                'transit:transitRouting:errors:TrRoutingServerNotRunning'
+            );
+        }
+        throw new TrError(`cannot handle call to trRouting: ${errorCode || error}`, ErrorCodes.OtherError, {
+            text: 'transit:transitRouting:errors:TrRoutingServerError',
+            params: { error: String(error || '-') }
+        });
+    };
+
     private async internalSummary(
         params: TrRoutingApi.TransitRouteQueryOptions
     ): Promise<TrRoutingApi.TrRoutingV2.SummaryResponse> {
-        const routingResult = await this.callTrRouting<
+        const responseStatus = await this.callTrRouting<
             TrRoutingApi.TransitRouteQueryOptions,
             TrRoutingApi.TrRoutingV2.SummaryResponse
         >(apiCalls.summary, params);
+        if (Status.isStatusError(responseStatus)) {
+            this.handleErrorStatus(responseStatus);
+        }
+        const routingResult = Status.unwrap(responseStatus);
         if (routingResult.status === 'data_error') {
             throw new TrError(
                 `cannot calculate transit route with trRouting: ${

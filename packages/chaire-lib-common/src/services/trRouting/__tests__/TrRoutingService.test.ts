@@ -10,6 +10,7 @@ import serviceLocator from '../../../utils/ServiceLocator';
 import TrError from '../../../utils/TrError';
 import { TestUtils } from '../../../test';
 import fetchMock from 'jest-fetch-mock';
+import * as Status from '../../../utils/Status';
 
 const trRoutingService = new TrRoutingService;
 
@@ -28,7 +29,7 @@ beforeEach(() => {
 });
 
 test('Test routing with manual OD departure time', async () => {
-    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback({status: 'success'}));
+    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
     const result = await trRoutingService.route({minWaitingTime: 180,
         maxAccessTravelTime: 900,
         maxEgressTravelTime: 900,
@@ -55,7 +56,7 @@ test('Test routing with manual OD departure time', async () => {
 });
 
 test('Test routing with manual OD arrival time', async () => {
-    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback({status: 'success'}));
+    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
     const result = await trRoutingService.route({minWaitingTime: 180,
         maxAccessTravelTime: 900,
         maxEgressTravelTime: 900,
@@ -80,7 +81,7 @@ test('Test routing with manual OD arrival time', async () => {
 });
 
 test('Test routing with OD trip arrival time', async () => {
-    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback({status: 'success'}));
+    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
     const result = await trRoutingService.route({minWaitingTime: 180,
         maxAccessTravelTime: 900,
         maxEgressTravelTime: 900,
@@ -105,7 +106,7 @@ test('Test routing with OD trip arrival time', async () => {
 });
 
 test('Test erroneous response', async () => {
-    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback({status: 'no_routing_found', alternatives: []}));
+    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'no_routing_found', alternatives: []})));
     let exception;
     try {
         const result = await trRoutingService.route({minWaitingTime: 180,
@@ -134,10 +135,10 @@ test('Test erroneous response', async () => {
 });
 
 test('Test erroneous response with a reason', async () => {
-    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback({
+    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({
         status: 'no_routing_found',
         reason: 'NO_ACCESS_AT_ORIGIN',
-        alternatives: []})
+        alternatives: []}))
     );
     let exception;
     try {
@@ -166,9 +167,39 @@ test('Test erroneous response with a reason', async () => {
 
 });
 
+test('Test arbitrary server error', async () => {
+    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createError('Error'))
+    );
+    let exception;
+    try {
+        await trRoutingService.route({minWaitingTime: 180,
+            maxAccessTravelTime: 900,
+            maxEgressTravelTime: 900,
+            maxTransferTravelTime: 900,
+            maxTravelTime: 900,
+            alternatives: true,
+            scenarioId: 'abcdef',
+            odTripUuid: 'abcdefghi',
+            timeOfTrip: 10800,
+            timeOfTripType: 'arrival'
+        });
+    } catch (error) {
+        exception = error;
+    }
+    expect(exception).not.toBeUndefined();
+    expect(exception instanceof TrError).toBeTruthy();
+    const exceptionObject = (exception as TrError).export();
+    expect(exceptionObject.error).toEqual('cannot handle call to trRouting: Error');
+    expect(exceptionObject.errorCode).toEqual(ErrorCodes.OtherError);
+    expect((exceptionObject.localizedMessage as any).text).toContain('TrRoutingServerError');
+    expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+
+});
+
 test('test accessibleMap with origin', async () => {
     // Test only an origin and departure time, the alternative should not be set and all_nodes=1 should be there
-    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback({status: 'success'}));
+    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
     await trRoutingService.accessibleMap({minWaitingTime: 180,
         maxAccessTravelTime: 900,
         maxEgressTravelTime: 900,
@@ -195,7 +226,7 @@ test('test accessibleMap with origin', async () => {
 test('test accessibleMap with origin and accessible nodes', async () => {
     const accessibleNodes = { ids: ['uuid1', 'uuid2'], durations: [125.3, 130] };
     // Test only an origin and departure time, the alternative should not be set and all_nodes=1 should be there
-    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback({status: 'success'}));
+    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
     await trRoutingService.accessibleMap({minWaitingTime: 180,
         maxAccessTravelTime: 900,
         maxEgressTravelTime: 900,
@@ -227,7 +258,7 @@ test('test accessibleMap with origin and accessible nodes with unmatched sizes',
     // 2 ids, 1 distance
     const accessibleNodes = { ids: ['uuid1', 'uuid2'], durations: [125.3] };
     // Test only an origin and departure time, the alternative should not be set and all_nodes=1 should be there
-    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback({status: 'success'}));
+    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
     await trRoutingService.accessibleMap({minWaitingTime: 180,
         maxAccessTravelTime: 900,
         maxEgressTravelTime: 900,
@@ -257,7 +288,7 @@ test('test accessibleMap with origin and accessible nodes with unmatched sizes',
 
 test('test accessibleMap with destination', async () => {
     // Test only an destination and arrival time, the alternative should not be set and all_nodes=1 should be there
-    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback({status: 'success'}));
+    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
     const result = await trRoutingService.accessibleMap({minWaitingTime: 180,
         maxAccessTravelTime: 900,
         maxEgressTravelTime: 900,
@@ -283,7 +314,7 @@ test('test accessibleMap with destination', async () => {
 test('test accessibleMap with destination and accessible nodes', async () => {
     const accessibleNodes = { ids: ['uuid1', 'uuid2'], durations: [125.3, 130] };
     // Test only an destination and arrival time, the alternative should not be set and all_nodes=1 should be there
-    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback({status: 'success'}));
+    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
     const result = await trRoutingService.accessibleMap({minWaitingTime: 180,
         maxAccessTravelTime: 900,
         maxEgressTravelTime: 900,
@@ -315,7 +346,7 @@ test('test accessibleMap with destination and accessible nodes with unmatched si
     // 2 ids, 1 distance
     const accessibleNodes = { ids: ['uuid1', 'uuid2'], durations: [125.3] };
     // Test only an destination and arrival time, the alternative should not be set and all_nodes=1 should be there
-    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback({status: 'success'}));
+    socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
     const result = await trRoutingService.accessibleMap({minWaitingTime: 180,
         maxAccessTravelTime: 900,
         maxEgressTravelTime: 900,

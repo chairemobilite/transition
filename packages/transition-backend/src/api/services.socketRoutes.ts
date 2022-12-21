@@ -148,7 +148,7 @@ export default function (socket: EventEmitter, userId?: number) {
                 parameters.host || 'http://localhost',
                 parameters.port || Preferences.get('trRouting.port')
             );
-            callback(routingResults);
+            callback(Status.createOk(routingResults));
         } catch (error) {
             console.error(error);
             callback(Status.createError(TrError.isTrError(error) ? error.message : error));
