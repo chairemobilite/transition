@@ -15,7 +15,6 @@ import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingSe
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import osrmService from 'chaire-lib-backend/lib/utils/osrm/OSRMService';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
 import { transitionRouteOptions, transitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
@@ -24,8 +23,6 @@ import { TransitBatchAccessibilityMapAttributes } from 'chaire-lib-common/lib/ap
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ExecutableJob } from '../services/executableJob/ExecutableJob';
-import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
-import { BatchAccessMapJobType } from '../services/transitRouting/BatchAccessibilityMapJob';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 
 // TODO The socket routes should validate parameters as even typescript cannot guarantee the types over the network
@@ -141,7 +138,7 @@ export default function (socket: EventEmitter, userId?: number) {
             });
     });
 
-    socket.on(TrRoutingConstants.ROUTE, async (parameters, callback) => {
+    socket.on(TrRoutingConstants.ROUTE_V1, async (parameters, callback) => {
         try {
             const routingResults = await trRoutingService.route(
                 parameters.query,

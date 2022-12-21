@@ -42,7 +42,7 @@ test('Test routing with manual OD departure time', async () => {
         timeOfTripType: 'departure'
     });
     expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
     expect(fetchMock).not.toHaveBeenCalled();
 
     const queryString = socketEventManager.emit.mock.calls[0][1].query;
@@ -69,7 +69,7 @@ test('Test routing with manual OD arrival time', async () => {
         timeOfTripType: 'arrival'
     });
     expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
 
     const queryString = socketEventManager.emit.mock.calls[0][1].query;
     expect(queryString).toContain('&alternatives=1&');
@@ -94,7 +94,7 @@ test('Test routing with OD trip arrival time', async () => {
         timeOfTripType: 'arrival'
     });
     expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
 
     const queryString = socketEventManager.emit.mock.calls[0][1].query;
     expect(queryString).toContain('&alternatives=1&');
@@ -130,7 +130,7 @@ test('Test erroneous response', async () => {
     expect(exceptionObject.errorCode).toEqual(ErrorCodes.NoRoutingFound);
     expect(exceptionObject.localizedMessage).toContain('NoResultFound');
     expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
 
 });
 
@@ -163,7 +163,7 @@ test('Test erroneous response with a reason', async () => {
     expect(exceptionObject.errorCode).toEqual(ErrorCodes.NoAccessAtOrigin);
     expect(exceptionObject.localizedMessage).toContain('NO_ACCESS_AT_ORIGIN');
     expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
 
 });
 
@@ -193,7 +193,7 @@ test('Test arbitrary server error', async () => {
     expect(exceptionObject.errorCode).toEqual(ErrorCodes.OtherError);
     expect((exceptionObject.localizedMessage as any).text).toContain('TrRoutingServerError');
     expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
 
 });
 
@@ -211,7 +211,7 @@ test('test accessibleMap with origin', async () => {
         timeOfTripType: 'departure'
     });
     expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
 
     const queryString = socketEventManager.emit.mock.calls[0][1].query;
     expect(queryString).toContain(`&departure_time_seconds=10800`);
@@ -239,7 +239,7 @@ test('test accessibleMap with origin and accessible nodes', async () => {
         accessibleNodes
     });
     expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
 
     const queryString = socketEventManager.emit.mock.calls[0][1].query;
     expect(queryString).toContain(`&departure_time_seconds=10800`);
@@ -271,7 +271,7 @@ test('test accessibleMap with origin and accessible nodes with unmatched sizes',
         accessibleNodes
     });
     expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
 
     const queryString = socketEventManager.emit.mock.calls[0][1].query;
     expect(queryString).toContain(`&departure_time_seconds=10800`);
@@ -300,7 +300,7 @@ test('test accessibleMap with destination', async () => {
         timeOfTripType: 'arrival'
     });
     expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
 
     const queryString = socketEventManager.emit.mock.calls[0][1].query;
     expect(queryString).toContain(`&arrival_time_seconds=10800`);
@@ -327,7 +327,7 @@ test('test accessibleMap with destination and accessible nodes', async () => {
         accessibleNodes
     });
     expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
 
     const queryString = socketEventManager.emit.mock.calls[0][1].query;
     expect(queryString).toContain(`&arrival_time_seconds=10800`);
@@ -359,7 +359,7 @@ test('test accessibleMap with destination and accessible nodes with unmatched si
         accessibleNodes
     });
     expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE, expect.anything(), expect.anything());
+    expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
 
     const queryString = socketEventManager.emit.mock.calls[0][1].query;
     expect(queryString).toContain(`&arrival_time_seconds=10800`);
@@ -390,7 +390,7 @@ test('Test routing query, using fetch call', async () => {
     });
     expect(socketEventManager.emit).not.toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith('/trRouting/route', expect.objectContaining({ 
+    expect(fetchMock).toHaveBeenCalledWith('/trRouting/routeV1', expect.objectContaining({ 
         method: 'POST',
         body: expect.stringContaining('query')
     }));

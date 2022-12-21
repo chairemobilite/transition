@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.use(isLoggedIn);
 
-router.get('/route', async (req, res) => {
+router.get('/routeV1', async (req, res) => {
     try {
         const parameters = req.body;
         const routingResults = await trRoutingService.route(
