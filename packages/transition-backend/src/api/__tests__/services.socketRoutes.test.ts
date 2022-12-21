@@ -262,8 +262,9 @@ describe('trRouting routes', () => {
         };
         mockedTrRoutingRoute.mockResolvedValueOnce(routeResponse);
         socketStub.emit(TrRoutingConstants.ROUTE, routeParameters, (response) => {
+            expect(Status.isStatusOk(response)).toBe(true);
             expect(mockedTrRoutingRoute).toHaveBeenCalledWith(routeParameters.query, routeParameters.host, routeParameters.port);
-            expect(response).toEqual(routeResponse);
+            expect(response).toEqual(Status.createOk(routeResponse));
             done();
         });
     });
@@ -276,8 +277,9 @@ describe('trRouting routes', () => {
         };
         mockedTrRoutingRoute.mockResolvedValueOnce(routeResponse);
         socketStub.emit(TrRoutingConstants.ROUTE, { query: routeParameters.query }, (response) => {
+            expect(Status.isStatusOk(response)).toBe(true);
             expect(mockedTrRoutingRoute).toHaveBeenCalledWith(routeParameters.query, 'http://localhost', Preferences.get('trRouting.port'));
-            expect(response).toEqual(routeResponse);
+            expect(response).toEqual(Status.createOk(routeResponse));
             done();
         });
     });
