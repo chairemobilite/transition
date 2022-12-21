@@ -38,19 +38,12 @@ class TrRoutingServiceBackend {
         return TrRoutingProcessManager.getAvailablePort(startingPort);
     }
 
-    request(
+    private request<T>(
         query: string,
         host: string | undefined,
         port: string | undefined,
         customRequestPath: string
-    ): Promise<
-        | TrRoutingApi.TrRoutingWithAlternativeResult
-        | TrRoutingApi.TrRoutingPath
-        | TrRoutingApi.TrRoutingNoResult
-        | TrRoutingApi.TrRoutingErrorWithCode
-        | TrRoutingApi.TrRoutingError
-        | TrRoutingApi.TrRoutingAccessibleMap
-    > {
+    ): Promise<T> {
         const trRoutingRequest = `${this.getUrlPrefix(host, port, customRequestPath)}?${query}`;
 
         //console.log('trRoutingRequest', trRoutingRequest);
@@ -86,110 +79,17 @@ class TrRoutingServiceBackend {
         | TrRoutingApi.TrRoutingError
         | TrRoutingApi.TrRoutingAccessibleMap
     > {
-        return this.request(query, host, port, 'route/v1/transit');
+        return this.request<
+            | TrRoutingApi.TrRoutingWithAlternativeResult
+            | TrRoutingApi.TrRoutingPath
+            | TrRoutingApi.TrRoutingNoResult
+            | TrRoutingApi.TrRoutingErrorWithCode
+            | TrRoutingApi.TrRoutingError
+            | TrRoutingApi.TrRoutingAccessibleMap
+        >(query, host, port, 'route/v1/transit');
     }
 
-    routeTo(
-        origin: GeoJSON.Feature<GeoJSON.Point>,
-        destination: GeoJSON.Feature<GeoJSON.Point>,
-        departureTimeSeconds: number,
-        scenarioId: string,
-        parameters = Preferences.get('transit.routing.transit'),
-        host?: string,
-        port?: string
-    ) {
-        // origin and destination must be geojson features
-
-        const trRoutingQueryArray = [
-            `origin=${origin.geometry.coordinates[1]},${origin.geometry.coordinates[0]}`,
-            `destination=${destination.geometry.coordinates[1]},${destination.geometry.coordinates[0]}`,
-            `min_waiting_time_seconds=${_get(parameters, 'minWaitingTimeSeconds', 180)}`,
-            `max_access_travel_time_seconds=${_get(
-                parameters,
-                'maxAccessTravelTimeSeconds',
-                _get(parameters, 'maxAccessEgressTravelTimeSeconds', 900)
-            )}`,
-            `max_egress_travel_time_seconds=${_get(
-                parameters,
-                'maxEgressTravelTimeSeconds',
-                _get(parameters, 'maxAccessEgressTravelTimeSeconds', 900)
-            )}`,
-            `max_transfer_travel_time_seconds=${_get(parameters, 'maxTransferTravelTimeSeconds', 900)}`,
-            `max_travel_time_seconds=${_get(parameters, 'maxTotalTravelTimeSeconds', 10800)}`,
-            `departure_time_seconds=${departureTimeSeconds || _get(parameters, 'departureTimeSeconds', 28800)}`,
-            `scenario_uuid=${scenarioId || _get(parameters, 'scenarioId', null)}`,
-            `alternatives=${_get(parameters, 'alternatives', false) === true ? '1' : '0'}`,
-            `max_alternatives=${_get(parameters, 'maxAlternatives', 200)}`
-        ];
-
-        if (parameters.maxFirstWaitingTimeSeconds) {
-            trRoutingQueryArray.push(`max_first_waiting_time_seconds=${parameters.maxFirstWaitingTimeSeconds}`);
-        }
-
-        if (parameters.od_trip_uuid || parameters.odTripId) {
-            trRoutingQueryArray.push(`od_trip_uuid=${parameters.od_trip_uuid || parameters.odTripId}`);
-        }
-
-        if (!_isBlank(parameters.port) && _isBlank(port)) {
-            port = parameters.port;
-        }
-
-        if (!_isBlank(parameters.host) && _isBlank(host)) {
-            host = parameters.host;
-        }
-
-        const trRoutingQuery = trRoutingQueryArray.join('&');
-
-        return this.request(trRoutingQuery, host, port, 'route/v1/transit');
-    }
-
-    routeFrom(
-        origin: GeoJSON.Feature<GeoJSON.Point>,
-        destination: GeoJSON.Feature<GeoJSON.Point>,
-        arrivalTimeSeconds: number,
-        scenarioId: string,
-        parameters = Preferences.get('transit.routing.transit'),
-        host?: string,
-        port?: string
-    ) {
-        // origin and destination must be geojson features
-
-        const trRoutingQueryArray = [
-            `origin=${origin.geometry.coordinates[1]},${origin.geometry.coordinates[0]}`,
-            `destination=${destination.geometry.coordinates[1]},${destination.geometry.coordinates[0]}`,
-            `min_waiting_time_seconds=${_get(parameters, 'minWaitingTimeSeconds', 180)}`,
-            `max_access_travel_time_seconds=${_get(parameters, 'maxAccessEgressTravelTimeSeconds', 900)}`,
-            `max_egress_travel_time_seconds=${_get(parameters, 'maxAccessEgressTravelTimeSeconds', 900)}`,
-            `max_transfer_travel_time_seconds=${_get(parameters, 'maxTransferTravelTimeSeconds', 900)}`,
-            `max_travel_time_seconds=${_get(parameters, 'maxTotalTravelTimeSeconds', 10800)}`,
-            `arrival_time_seconds=${arrivalTimeSeconds || _get(parameters, 'arrivalTimeSeconds', 28800)}`,
-            `scenario_uuid=${scenarioId || _get(parameters, 'scenarioId', null)}`,
-            `alternatives=${_get(parameters, 'alternatives', false) === true ? '1' : '0'}`,
-            `max_alternatives=${_get(parameters, 'maxAlternatives', 200)}`
-        ];
-
-        if (parameters.maxFirstWaitingTimeSeconds) {
-            trRoutingQueryArray.push(`max_first_waiting_time_seconds=${parameters.maxFirstWaitingTimeSeconds}`);
-        }
-
-        if (parameters.od_trip_uuid || parameters.odTripId) {
-            trRoutingQueryArray.push(`od_trip_uuid=${parameters.od_trip_uuid || parameters.odTripId}`);
-        }
-
-        if (!_isBlank(parameters.port) && _isBlank(port)) {
-            port = parameters.port;
-        }
-
-        if (!_isBlank(parameters.host) && _isBlank(host)) {
-            host = parameters.host;
-        }
-
-        const trRoutingQuery = trRoutingQueryArray.join('&');
-
-        return this.request(trRoutingQuery, host, port, 'route/v1/transit');
-    }
-
-    summary(parameters: TrRoutingApi.TransitRouteQueryOptions) {
+    summary(parameters: TrRoutingApi.TransitRouteQueryOptions): Promise<TrRoutingApi.TrRoutingV2.SummaryResponse> {
         // origin and destination must be geojson features
 
         const trRoutingQueryArray = [
@@ -222,7 +122,12 @@ class TrRoutingServiceBackend {
 
         const trRoutingQuery = trRoutingQueryArray.join('&');
 
-        return this.request(trRoutingQuery, undefined, undefined, 'v2/summary');
+        return this.request<TrRoutingApi.TrRoutingV2.SummaryResponse>(
+            trRoutingQuery,
+            undefined,
+            undefined,
+            'v2/summary'
+        );
     }
 
     updateCache(parameters: { cacheNames: string[]; customPath?: string }, host?: string, port?: string) {
