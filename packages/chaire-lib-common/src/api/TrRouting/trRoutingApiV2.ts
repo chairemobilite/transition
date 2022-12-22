@@ -4,6 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+/**
+ * This file contains the types for the trRouting v2 API. The API itself is
+ * documented at https://chairemobilite.github.io/trRouting/APIv2/index.html
+ */
 
 export type RouteQueryResponse = {
     origin: [number, number];

@@ -13,11 +13,22 @@ router.use(isLoggedIn);
 router.get('/routeV1', async (req, res) => {
     try {
         const parameters = req.body;
-        const routingResults = await trRoutingService.route(
+        const routingResults = await trRoutingService.v1TransitCall(
             parameters.query,
             parameters.host || 'http://localhost',
             parameters.port || Preferences.get('trRouting.port')
         );
+        return res.status(200).json(Status.createOk(routingResults));
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(Status.createError(TrError.isTrError(error) ? error.message : error));
+    }
+});
+
+router.get('/route', async (req, res) => {
+    try {
+        const { parameters, hostPort } = req.body;
+        const routingResults = await trRoutingService.route(parameters, hostPort);
         return res.status(200).json(Status.createOk(routingResults));
     } catch (error) {
         console.error(error);

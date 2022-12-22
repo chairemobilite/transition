@@ -251,7 +251,7 @@ export default class OdTripSimulation implements SimulationMethod {
         const queryArray = this.generateQuery(options.transitRoutingParameters);
         queryArray.push(`scenario_uuid=${scenarioId}`);
 
-        const result = await trRoutingService.route(
+        const result = await trRoutingService.v1TransitCall(
             queryArray.join('&'),
             'http://localhost',
             options.trRoutingPort.toString()
