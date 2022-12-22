@@ -41,7 +41,7 @@ class TrRoutingServiceBackend {
     private request<T>(
         query: string,
         host: string | undefined,
-        port: string | undefined,
+        port: string | number | undefined,
         customRequestPath: string
     ): Promise<T> {
         const trRoutingRequest = `${this.getUrlPrefix(host, port, customRequestPath)}?${query}`;
@@ -66,8 +66,8 @@ class TrRoutingServiceBackend {
         });
     }
 
-    // TODO Receive an object instead, that can be converted to a call to v1 or v2
-    route(
+    // FIXME This call is still necessary for od trips and all_nodes, until all calls have been updated to API v2
+    v1TransitCall(
         query: string,
         host: string,
         port: string
@@ -89,9 +89,7 @@ class TrRoutingServiceBackend {
         >(query, host, port, 'route/v1/transit');
     }
 
-    summary(parameters: TrRoutingApi.TransitRouteQueryOptions): Promise<TrRoutingApi.TrRoutingV2.SummaryResponse> {
-        // origin and destination must be geojson features
-
+    private routeOptionsToQueryString = (parameters: TrRoutingApi.TransitRouteQueryOptions): string => {
         const trRoutingQueryArray = [
             `origin=${parameters.originDestination[0].geometry.coordinates[0]},${parameters.originDestination[0].geometry.coordinates[1]}`,
             `destination=${parameters.originDestination[1].geometry.coordinates[0]},${parameters.originDestination[1].geometry.coordinates[1]}`,
@@ -120,7 +118,25 @@ class TrRoutingServiceBackend {
             trRoutingQueryArray.push(`max_first_waiting_time=${parameters.maxFirstWaitingTime}`);
         }
 
-        const trRoutingQuery = trRoutingQueryArray.join('&');
+        return trRoutingQueryArray.join('&');
+    };
+
+    route(
+        parameters: TrRoutingApi.TransitRouteQueryOptions,
+        hostPort: TrRoutingApi.HostPort = {}
+    ): Promise<TrRoutingApi.TrRoutingV2.RouteResponse> {
+        const trRoutingQuery = this.routeOptionsToQueryString(parameters);
+
+        return this.request<TrRoutingApi.TrRoutingV2.RouteResponse>(
+            trRoutingQuery,
+            hostPort.host,
+            hostPort.port,
+            'v2/route'
+        );
+    }
+
+    summary(parameters: TrRoutingApi.TransitRouteQueryOptions): Promise<TrRoutingApi.TrRoutingV2.SummaryResponse> {
+        const trRoutingQuery = this.routeOptionsToQueryString(parameters);
 
         return this.request<TrRoutingApi.TrRoutingV2.SummaryResponse>(
             trRoutingQuery,
@@ -141,7 +157,11 @@ class TrRoutingServiceBackend {
         return this.request(trRoutingQuery, host, port, 'updateCache');
     }
 
-    private getUrlPrefix(host: string | undefined, port: string | undefined, customRequestPath: string): string {
+    private getUrlPrefix(
+        host: string | undefined,
+        port: string | number | undefined,
+        customRequestPath: string
+    ): string {
         const trRoutingConfig = Preferences.get('trRouting');
         if (host === undefined) {
             host = process.env.TR_ROUTING_HOST_URL || trRoutingConfig.host || 'http://localhost';
