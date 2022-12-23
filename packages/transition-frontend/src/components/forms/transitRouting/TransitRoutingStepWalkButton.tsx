@@ -6,11 +6,12 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import { secondsToMinutes } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 
-import { TrRoutingWalkingStep } from 'chaire-lib-common/lib/api/TrRouting';
+import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 
 export interface TransitRoutingStepWalkButtonProps extends WithTranslation {
-    step: TrRoutingWalkingStep;
+    step: TrRoutingV2.TripStepWalking;
     stepIndex: number;
     waitingTimeSeconds?: number;
 }
@@ -25,15 +26,12 @@ const TransitRoutingStepWalkButton: React.FunctionComponent<TransitRoutingStepWa
                     <span className="_list-element _strong">{props.t('transit:transitRouting:actions:walking')}</span>
                 </span>
                 <span className="_list-group _flush-right _right">
-                    <span
-                        className="_list-element"
-                        title={`${props.step.travelTimeSeconds} ${props.t('main:secondAbbr')}.`}
-                    >
-                        {props.step.travelTimeMinutes} {props.t('main:minuteAbbr')}.
+                    <span className="_list-element" title={`${props.step.travelTime} ${props.t('main:secondAbbr')}.`}>
+                        {secondsToMinutes(props.step.travelTime)} {props.t('main:minuteAbbr')}.
                     </span>
                 </span>
                 <span className="_list-group _right">
-                    <span className="_list-element">{Math.round(props.step.distanceMeters)} m</span>
+                    <span className="_list-element">{Math.round(props.step.distance)} m</span>
                 </span>
             </li>
             <li className="_clear" key="clearer"></li>

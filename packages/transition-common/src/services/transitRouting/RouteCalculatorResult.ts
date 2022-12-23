@@ -9,8 +9,8 @@ import _get from 'lodash.get';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { RoutingOrTransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
-import { TrRoutingPath } from 'chaire-lib-common/lib/api/TrRouting';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 
 // TODO Add a common type to getPath(index)
 export interface RouteCalculatorResult {
@@ -18,7 +18,7 @@ export interface RouteCalculatorResult {
     getAlternativesCount: () => number;
     originDestinationToGeojson: () => GeoJSON.FeatureCollection<GeoJSON.Point>;
     getPathGeojson: (index: number, options: { [key: string]: any }) => Promise<GeoJSON.FeatureCollection>;
-    getPath: (index: number) => TrRoutingPath | Route | undefined;
+    getPath: (index: number) => TrRoutingRoute | Route | undefined;
     getRoutingMode(): RoutingOrTransitMode;
     hasError: () => boolean;
     getError: () => TrError | undefined;

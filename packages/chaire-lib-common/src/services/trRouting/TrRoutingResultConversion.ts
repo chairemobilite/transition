@@ -8,7 +8,7 @@ import { TrRoutingRoute } from './TrRoutingService';
 import { secondsSinceMidnightToTimeStr, secondsToMinutes } from '../../utils/DateTimeUtils';
 import { TrRoutingV2 } from '../../api/TrRouting';
 
-interface TrRoutingWalkingStep {
+export interface TrRoutingWalkingStep {
     action: 'walking';
     arrivalTime: string;
     arrivalTimeSeconds: number;
@@ -22,7 +22,7 @@ interface TrRoutingWalkingStep {
     type: 'access' | 'egress' | 'transfer';
 }
 
-interface TrRoutingBoardingStep {
+export interface TrRoutingBoardingStep {
     action: 'boarding';
     agencyAcronym: string;
     agencyName: string;
@@ -46,7 +46,7 @@ interface TrRoutingBoardingStep {
     waitingTimeSeconds: number;
 }
 
-interface TrRoutingUnboardingStep {
+export interface TrRoutingUnboardingStep {
     action: 'unboarding';
     agencyAcronym: string;
     agencyName: string;

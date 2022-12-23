@@ -73,8 +73,7 @@ const routeOdTripMock = jest.fn().mockImplementation((odTrip: BaseOdTrip) => ({
     result: new TransitRoutingResult({
         origin: { type: 'Feature' as const, geometry: odTrip.attributes.origin_geography, properties: {} },
         destination: { type: 'Feature' as const, geometry: odTrip.attributes.destination_geography, properties: {} },
-        hasAlternatives: false,
-        paths: [simplePathResult.path],
+        paths: simplePathResult.routes,
         maxWalkingTime: 300
     })
 }));

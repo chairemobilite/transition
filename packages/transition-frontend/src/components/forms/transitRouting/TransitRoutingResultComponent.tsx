@@ -12,17 +12,18 @@ import TransitRoutingStepRideButton from './TransitRoutingStepRideButton';
 import RouteButton from './RouteButton';
 import { secondsToMinutes, secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { TrRoutingBoardingStep, TrRoutingPath, TrRoutingUnboardingStep } from 'chaire-lib-common/lib/api/TrRouting';
+import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 
 // TODO: extract these typeguards elsewhere:
-const pathIsRoute = (path: Route | TrRoutingPath | undefined): path is Route => {
+const pathIsRoute = (path: Route | TrRoutingRoute | undefined): path is Route => {
     return typeof (path as any).distance === 'number';
 };
 export interface TransitRoutingResultsProps extends WithTranslation {
-    path?: TrRoutingPath | Route;
+    path?: TrRoutingRoute | Route;
     walkOnly?: Route;
     routingMode: RoutingOrTransitMode;
     request: TransitRoutingAttributes;
@@ -83,18 +84,18 @@ const TransitRoutingResults: React.FunctionComponent<TransitRoutingResultsProps>
     } else if (path) {
         path.steps.forEach((step, stepIndex) => {
             if (step.action === 'walking') {
-                const boardingStep = path.steps[stepIndex + 1] as TrRoutingBoardingStep;
+                const boardingStep = path.steps[stepIndex + 1] as TrRoutingV2.TripStepBoarding;
                 stepsButtons.push(
                     <TransitRoutingStepWalkButton
                         step={step}
                         stepIndex={stepIndex}
                         key={`step${stepIndex}`}
-                        waitingTimeSeconds={path.steps[stepIndex + 1] ? boardingStep.waitingTimeSeconds : undefined}
+                        waitingTimeSeconds={path.steps[stepIndex + 1] ? boardingStep.waitingTime : undefined}
                     />
                 );
-            } else if (step.action === 'board') {
-                const boardingStep = step as TrRoutingBoardingStep;
-                const alightingStep = path.steps[stepIndex + 1] as TrRoutingUnboardingStep;
+            } else if (step.action === 'boarding') {
+                const boardingStep = step as TrRoutingV2.TripStepBoarding;
+                const alightingStep = path.steps[stepIndex + 1] as TrRoutingV2.TripStepUnboarding;
                 stepsButtons.push(
                     <TransitRoutingStepRideButton
                         boardingStep={boardingStep}
@@ -106,18 +107,18 @@ const TransitRoutingResults: React.FunctionComponent<TransitRoutingResultsProps>
             }
         });
 
-        const nonOptimisedTravelTimeSeconds = !_isBlank(path.initialLostTimeAtDepartureMinutes)
-            ? path.totalTravelTimeSeconds + path.initialLostTimeAtDepartureSeconds
-            : path.totalTravelTimeSeconds +
-              ((props.request.arrivalTimeSecondsSinceMidnight || path.arrivalTimeSeconds) - path.arrivalTimeSeconds);
+        const nonOptimisedTravelTimeSeconds =
+            path.timeOfTripType === 'departure'
+                ? path.arrivalTime - path.timeOfTrip
+                : path.totalTravelTime + (path.timeOfTrip - path.arrivalTime);
         return (
             <div className="tr__form-section">
                 <table className="_statistics">
                     <tbody>
                         <tr>
                             <th>{props.t('transit:transitRouting:results:OptimisedTravelTime')}</th>
-                            <td title={`${path.totalTravelTimeSeconds} ${props.t('main:secondAbbr')}.`}>
-                                {path.totalTravelTimeMinutes} {props.t('main:minuteAbbr')}.
+                            <td title={`${path.totalTravelTime} ${props.t('main:secondAbbr')}.`}>
+                                {secondsToMinutes(path.totalTravelTime)} {props.t('main:minuteAbbr')}.
                             </td>
                         </tr>
                         <tr>
@@ -128,23 +129,28 @@ const TransitRoutingResults: React.FunctionComponent<TransitRoutingResultsProps>
                         </tr>
                         <tr>
                             <th>
-                                {!_isBlank(path.initialDepartureTime)
+                                {path.timeOfTripType === 'departure' && path.departureTime !== path.timeOfTrip
                                     ? props.t('transit:transitRouting:results:OptimisedDepartureTime')
                                     : props.t('transit:transitRouting:results:DepartureTime')}
                             </th>
                             <td>{path.departureTime}</td>
                         </tr>
-                        {!_isBlank(path.initialDepartureTime) && (
+                        {path.timeOfTripType === 'departure' && path.departureTime !== path.timeOfTrip && (
                             <tr>
                                 <th>{props.t('transit:transitRouting:results:NonOptimisedDepartureTime')}</th>
-                                <td>{path.initialDepartureTime}</td>
+                                <td>{path.timeOfTrip}</td>
                             </tr>
                         )}
-                        {!_isBlank(path.initialLostTimeAtDepartureMinutes) && (
+                        {path.timeOfTripType === 'departure' && path.departureTime !== path.timeOfTrip && (
                             <tr>
                                 <th>{props.t('transit:transitRouting:results:LostTimeAtDepartureIfNonOptimised')}</th>
-                                <td title={`${path.initialLostTimeAtDepartureSeconds} ${props.t('main:secondAbbr')}.`}>
-                                    {path.initialLostTimeAtDepartureMinutes} {props.t('main:minuteAbbr')}.
+                                <td
+                                    title={`${nonOptimisedTravelTimeSeconds - path.totalTravelTime} ${props.t(
+                                        'main:secondAbbr'
+                                    )}.`}
+                                >
+                                    {secondsToMinutes(nonOptimisedTravelTimeSeconds - path.totalTravelTime)}{' '}
+                                    {props.t('main:minuteAbbr')}.
                                 </td>
                             </tr>
                         )}
@@ -152,47 +158,34 @@ const TransitRoutingResults: React.FunctionComponent<TransitRoutingResultsProps>
                             <th>{props.t('transit:transitRouting:results:ArrivalTime')}</th>
                             <td>{path.arrivalTime}</td>
                         </tr>
-                        {_isBlank(path.initialLostTimeAtDepartureMinutes) && (
+                        {path.timeOfTripType === 'arrival' && (
                             <tr>
                                 <th>{props.t('transit:transitRouting:results:NonOptimisedArrivalTime')}</th>
-                                <td>
-                                    {secondsSinceMidnightToTimeStr(
-                                        props.request.arrivalTimeSecondsSinceMidnight || path.arrivalTimeSeconds
-                                    )}
-                                </td>
+                                <td>{secondsSinceMidnightToTimeStr(path.timeOfTrip)}</td>
                             </tr>
                         )}
-                        {_isBlank(path.initialLostTimeAtDepartureMinutes) && (
+                        {path.timeOfTripType === 'arrival' && (
                             <tr>
                                 <th>{props.t('transit:transitRouting:results:LostTimeAtArrivalIfNonOptimised')}</th>
-                                <td
-                                    title={`${
-                                        (props.request.arrivalTimeSecondsSinceMidnight || path.arrivalTimeSeconds) -
-                                        path.arrivalTimeSeconds
-                                    } ${props.t('main:secondAbbr')}.`}
-                                >
-                                    {secondsToMinutes(
-                                        (props.request.arrivalTimeSecondsSinceMidnight || path.arrivalTimeSeconds) -
-                                            path.arrivalTimeSeconds
-                                    )}{' '}
-                                    {props.t('main:minuteAbbr')}.
+                                <td title={`${path.timeOfTrip - path.arrivalTime} ${props.t('main:secondAbbr')}.`}>
+                                    {secondsToMinutes(path.timeOfTrip - path.arrivalTime)} {props.t('main:minuteAbbr')}.
                                 </td>
                             </tr>
                         )}
                         <tr>
                             <th>{props.t('transit:transitRouting:results:TotalDistance')}</th>
-                            <td title={`${path.totalDistanceMeters} m`}>{path.totalDistanceMeters} m</td>
+                            <td title={`${path.totalDistance} m`}>{path.totalDistance} m</td>
                         </tr>
                         <tr>
                             <th>{props.t('transit:transitRouting:results:AccessTravelTime')}</th>
-                            <td title={`${path.accessTravelTimeSeconds} ${props.t('main:secondAbbr')}.`}>
-                                {path.accessTravelTimeMinutes} {props.t('main:minuteAbbr')}.
+                            <td title={`${path.accessTravelTime} ${props.t('main:secondAbbr')}.`}>
+                                {secondsToMinutes(path.accessTravelTime)} {props.t('main:minuteAbbr')}.
                             </td>
                         </tr>
                         <tr>
                             <th>{props.t('transit:transitRouting:results:EgressTravelTime')}</th>
-                            <td title={`${path.egressTravelTimeSeconds} ${props.t('main:secondAbbr')}.`}>
-                                {path.egressTravelTimeMinutes} {props.t('main:minuteAbbr')}.
+                            <td title={`${path.egressTravelTime} ${props.t('main:secondAbbr')}.`}>
+                                {secondsToMinutes(path.egressTravelTime)} {props.t('main:minuteAbbr')}.
                             </td>
                         </tr>
                         <tr>
@@ -201,26 +194,26 @@ const TransitRoutingResults: React.FunctionComponent<TransitRoutingResultsProps>
                         </tr>
                         <tr>
                             <th>{props.t('transit:transitRouting:results:TotalTransferTravelTime')}</th>
-                            <td title={`${path.transferWalkingTimeSeconds} ${props.t('main:secondAbbr')}.`}>
-                                {path.transferWalkingTimeMinutes} {props.t('main:minuteAbbr')}.
+                            <td title={`${path.transferWalkingTime} ${props.t('main:secondAbbr')}.`}>
+                                {secondsToMinutes(path.transferWalkingTime)} {props.t('main:minuteAbbr')}.
                             </td>
                         </tr>
                         <tr>
                             <th>{props.t('transit:transitRouting:results:TotalInVehicleTime')}</th>
-                            <td title={`${path.totalInVehicleTimeSeconds} ${props.t('main:secondAbbr')}.`}>
-                                {path.totalInVehicleTimeMinutes} {props.t('main:minuteAbbr')}.
+                            <td title={`${path.totalInVehicleTime} ${props.t('main:secondAbbr')}.`}>
+                                {secondsToMinutes(path.totalInVehicleTime)} {props.t('main:minuteAbbr')}.
                             </td>
                         </tr>
                         <tr>
                             <th>{props.t('transit:transitRouting:results:TotalAccessTravelTime')}</th>
-                            <td title={`${path.totalNonTransitTravelTimeSeconds} ${props.t('main:secondAbbr')}.`}>
-                                {path.totalNonTransitTravelTimeMinutes} {props.t('main:minuteAbbr')}.
+                            <td title={`${path.totalNonTransitTravelTime} ${props.t('main:secondAbbr')}.`}>
+                                {secondsToMinutes(path.totalNonTransitTravelTime)} {props.t('main:minuteAbbr')}.
                             </td>
                         </tr>
                         <tr>
                             <th>{props.t('transit:transitRouting:results:TotalTransferWaitingTime')}</th>
-                            <td title={`${path.transferWaitingTimeSeconds} ${props.t('main:secondAbbr')}.`}>
-                                {path.transferWaitingTimeMinutes} {props.t('main:minuteAbbr')}.
+                            <td title={`${path.transferWaitingTime} ${props.t('main:secondAbbr')}.`}>
+                                {secondsToMinutes(path.transferWaitingTime)} {props.t('main:minuteAbbr')}.
                             </td>
                         </tr>
                     </tbody>
