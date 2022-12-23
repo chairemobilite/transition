@@ -4,6 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import { point as turfPoint } from '@turf/turf';
+
 import serviceLocator from '../../utils/ServiceLocator';
 import TrError from '../../utils/TrError';
 import * as TrRoutingApi from '../../api/TrRouting';
@@ -19,7 +21,8 @@ export enum ErrorCodes {
     ServerNotRunning = 'TRROUTING_SERVER_NOT_RUNNING',
     OtherError = 'TRROUTING_ERROR_UNKNOWN',
     MissingData = 'TRROUTING_MISSING_DATA',
-    DataError = 'TRROUTING_INVALID_DATA'
+    DataError = 'TRROUTING_INVALID_DATA',
+    QueryError = 'TRROUTING_QUERY_ERROR'
 }
 
 const errorCodeByReason = (reason: TrRoutingApi.TrRoutingNoRoutingReason): ErrorCodes => {
@@ -114,8 +117,17 @@ export type TrRoutingResultAccessibilityMap = { type: 'nodes'; nodes: TrRoutingA
 
 export type TrRoutingResult = TrRoutingResultPath | TrRoutingResultAlternatives;
 
+// For each route to be self contained, the query parameters are added to each result
+export type TrRoutingRoute = TrRoutingApi.TrRoutingV2.SingleRouteResult & {
+    originDestination: [GeoJSON.Feature<GeoJSON.Point>, GeoJSON.Feature<GeoJSON.Point>];
+    timeOfTrip: number;
+    timeOfTripType: 'arrival' | 'departure';
+};
+// API agnostic version of the route result
+export type TrRoutingRouteResult = { routes: TrRoutingRoute[]; totalRoutesCalculated: number };
+
 // TODO This is exported because the batch routing needs to call this for result. It shouldn't be, the API should be modified so the caller uses the main TrRoutingService method instead.
-export const apiResultToResult = (apiResult: TrRoutingApi.TrRoutingApiResult): TrRoutingResult => {
+const apiResultToResult = (apiResult: TrRoutingApi.TrRoutingApiResult): TrRoutingResult => {
     if ('alternatives' in apiResult) {
         const resultWithAlternatives = apiResult as TrRoutingApi.TrRoutingWithAlternativeResult;
         return {
@@ -144,17 +156,38 @@ const apiResultToAccessibleMap = (apiResult: TrRoutingApi.TrRoutingApiResult): T
     };
 };
 
+const apiV2ToRouteResult = (apiResult: TrRoutingApi.TrRoutingV2.RouteSuccessResult): TrRoutingRouteResult => {
+    // For each route to be self contained, concatenate the query with each result
+    const allRoutes = apiResult.result.routes.map((route) => ({
+        ...route,
+        originDestination: [turfPoint(apiResult.query.origin), turfPoint(apiResult.query.destination)] as [
+            GeoJSON.Feature<GeoJSON.Point>,
+            GeoJSON.Feature<GeoJSON.Point>
+        ],
+        timeOfTrip: apiResult.query.timeOfTrip,
+        timeOfTripType: apiResult.query.timeType === 0 ? ('departure' as const) : ('arrival' as const)
+    }));
+    return {
+        routes: allRoutes,
+        totalRoutesCalculated: apiResult.result.totalRoutesCalculated
+    };
+};
+
 type ApiCall = { socketRoute?: string; url: string };
 const apiCalls = {
     route: {
+        socketRoute: TrRoutingApi.TrRoutingConstants.ROUTE,
+        url: TrRoutingApi.TrRoutingConstants.FETCH_ROUTE_URL
+    },
+    summary: { url: TrRoutingApi.TrRoutingConstants.FETCH_SUMMARY_URL },
+    legacyCall: {
         socketRoute: TrRoutingApi.TrRoutingConstants.ROUTE_V1,
         url: TrRoutingApi.TrRoutingConstants.FETCH_ROUTE_V1_URL
-    },
-    summary: { url: TrRoutingApi.TrRoutingConstants.FETCH_SUMMARY_URL }
+    }
 };
 
 export class TrRoutingService {
-    private async callTrRoutingWithSocket<T, U>(socketRoute: string, params: T): Promise<U> {
+    private async callTrRoutingWithSocket<T, U>(socketRoute: string, params: T): Promise<Status.Status<U>> {
         return new Promise((resolve, _reject) => {
             serviceLocator.socketEventManager.emit(socketRoute, params, (routingResult: any) => {
                 resolve(routingResult);
@@ -162,7 +195,7 @@ export class TrRoutingService {
         });
     }
 
-    private async callTrRoutingWithFetch<T, U>(url: string, params: T): Promise<U> {
+    private async callTrRoutingWithFetch<T, U>(url: string, params: T): Promise<Status.Status<U>> {
         const response = await fetch(url, {
             method: 'POST',
             body: JSON.stringify(params),
@@ -177,17 +210,11 @@ export class TrRoutingService {
     }
 
     private async callTrRouting<T, U>(apiCall: ApiCall, params: T): Promise<Status.Status<U>> {
-        return new Promise((resolve, _reject) => {
-            if (serviceLocator.socketEventManager && apiCall.socketRoute !== undefined) {
-                this.callTrRoutingWithSocket(apiCall.socketRoute, params).then((response) =>
-                    resolve(response as Status.Status<U>)
-                );
-            } else {
-                this.callTrRoutingWithFetch(apiCall.url, params).then((response) =>
-                    resolve(response as Status.Status<U>)
-                );
-            }
-        });
+        if (serviceLocator.socketEventManager && apiCall.socketRoute !== undefined) {
+            return this.callTrRoutingWithSocket(apiCall.socketRoute, params);
+        } else {
+            return this.callTrRoutingWithFetch(apiCall.url, params);
+        }
     }
 
     // TODO Parameters should be converted to a query in the backend, not here
@@ -270,14 +297,14 @@ export class TrRoutingService {
     }
 
     // FIXME tahini: Type the options
-    private async internalRoute(
+    private async internalRouteV1(
         queryString: string,
         options: { [key: string]: unknown } = {}
     ): Promise<TrRoutingApi.TrRoutingApiResult> {
         const responseStatus = await this.callTrRouting<
             { query: string; [key: string]: any },
             TrRoutingApi.TrRoutingApiResult
-        >(apiCalls.route, {
+        >(apiCalls.legacyCall, {
             query: queryString,
             ...options
         });
@@ -380,16 +407,66 @@ export class TrRoutingService {
             }
         }
 
-        return routingResult as TrRoutingApi.TrRoutingV2.SummaryResponse;
+        return routingResult;
+    }
+
+    private handleRouteResponse(routingResult: TrRoutingApi.TrRoutingV2.RouteResponse): TrRoutingRouteResult {
+        if (routingResult.status === 'success') {
+            return apiV2ToRouteResult(routingResult);
+        }
+        if (TrRoutingApi.TrRoutingV2.isNoRouting(routingResult)) {
+            // No routing, throw error with reason
+            const reason = routingResult.reason;
+            throw new TrError(
+                'cannot calculate transit route with trRouting: no_routing_found',
+                reason !== undefined ? errorCodeByReason(reason) : ErrorCodes.NoRoutingFound,
+                `transit:transitRouting:errors:${reason !== undefined ? reason : 'NoResultFound'}`
+            );
+        } else if (routingResult.status === 'data_error') {
+            const isMissingData = routingResult.errorCode.startsWith('MISSING_DATA_');
+            // Data error on the server, data may be missing
+            throw new TrError(
+                `cannot calculate transit route with trRouting because of an error on server: ${routingResult.errorCode}`,
+                isMissingData ? ErrorCodes.MissingData : ErrorCodes.DataError,
+                `transit:transitRouting:errors:${isMissingData ? routingResult.errorCode : 'DataError'}`
+            );
+        } else if (routingResult.status === 'query_error') {
+            throw new TrError(
+                `cannot calculate transit route with trRouting because of a query error: ${routingResult.errorCode}`,
+                ErrorCodes.QueryError,
+                `transit:transitRouting:errors:${routingResult.errorCode}`
+            );
+        }
+        console.log('Cannot calculate transit route with trRouting: unknown response status', routingResult);
+        // throw unknown error
+        throw new TrError('cannot calculate transit route with trRouting: unknown error', ErrorCodes.OtherError, {
+            text: 'transit:transitRouting:errors:TrRoutingServerError',
+            params: { error: '-' }
+        });
     }
 
     // FIXME tahini: Type the options
-    public async route(
+    public async routeV1(
         params: RoutingQueryOptions,
         options: { [key: string]: unknown } = {}
     ): Promise<TrRoutingResult> {
-        const routingResult = await this.internalRoute(this.paramsToQuery(params), options);
+        const routingResult = await this.internalRouteV1(this.paramsToQuery(params), options);
         return apiResultToResult(routingResult);
+    }
+
+    public async route(
+        params: TrRoutingApi.TransitRouteQueryOptions,
+        hostPort?: TrRoutingApi.HostPort
+    ): Promise<TrRoutingRouteResult> {
+        const responseStatus = await this.callTrRouting<
+            { parameters: TrRoutingApi.TransitRouteQueryOptions; hostPort?: TrRoutingApi.HostPort },
+            TrRoutingApi.TrRoutingV2.RouteResponse
+        >(apiCalls.route, { parameters: params, hostPort });
+        if (Status.isStatusError(responseStatus)) {
+            this.handleErrorStatus(responseStatus);
+        }
+        const routingResult = Status.unwrap(responseStatus);
+        return this.handleRouteResponse(routingResult);
     }
 
     // TODO Document the API of trRouting and make sure this method should really be a separate one
@@ -397,7 +474,7 @@ export class TrRoutingService {
         params: AccessibilityMapQueryOptions,
         options: { [key: string]: unknown } = {}
     ): Promise<TrRoutingResultAccessibilityMap> {
-        const routingResult = await this.internalRoute(this.accessMapParamsToQuery(params), options);
+        const routingResult = await this.internalRouteV1(this.accessMapParamsToQuery(params), options);
         return apiResultToAccessibleMap(routingResult);
     }
 
