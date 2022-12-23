@@ -25,13 +25,9 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import { ErrorCodes } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
-import {
-    TrRoutingPath,
-    TrRoutingBoardingStep,
-    TrRoutingWalkingStep,
-    TrRoutingUnboardingStep
-} from 'chaire-lib-common/lib/api/TrRouting';
+import { ErrorCodes, TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
+import { routeToUserObject } from 'chaire-lib-common/lib/services/trRouting/TrRoutingResultConversion';
 // TODO Should this file go in the backend?
 
 interface RouteOdTripParameters {
@@ -175,7 +171,7 @@ const generateCsvContent = (
 };
 
 const getStepSummaries = (
-    result: Partial<TrRoutingPath>
+    result: Partial<TrRoutingRoute>
 ): {
     lineUuids: string;
     modes: string;
@@ -183,26 +179,26 @@ const getStepSummaries = (
 } => {
     const steps = result.steps || [];
     const lineUuids = steps
-        .filter((step) => step.action === 'board')
-        .map((step) => (step as TrRoutingBoardingStep).lineUuid)
+        .filter((step) => step.action === 'boarding')
+        .map((step) => (step as TrRoutingV2.TripStepBoarding).lineUuid)
         .join('|');
     const modes = steps
-        .filter((step) => step.action === 'board')
-        .map((step) => (step as TrRoutingBoardingStep).mode)
+        .filter((step) => step.action === 'boarding')
+        .map((step) => (step as TrRoutingV2.TripStepBoarding).mode)
         .join('|');
     const stepsSummary = steps
         .map((step) => {
             switch (step.action) {
-            case 'board':
-                return `wait${(step as TrRoutingBoardingStep).waitingTimeSeconds}s`;
-            case 'unboard':
-                return `ride${(step as TrRoutingUnboardingStep).inVehicleTimeSeconds}s${
-                    (step as TrRoutingUnboardingStep).inVehicleDistanceMeters
+            case 'boarding':
+                return `wait${(step as TrRoutingV2.TripStepBoarding).waitingTime}s`;
+            case 'unboarding':
+                return `ride${(step as TrRoutingV2.TripStepUnboarding).inVehicleTime}s${
+                    (step as TrRoutingV2.TripStepUnboarding).inVehicleDistance
                 }m`;
             case 'walking':
-                return `${(step as TrRoutingWalkingStep).type}${(step as TrRoutingWalkingStep).travelTimeSeconds}s${
-                    (step as TrRoutingWalkingStep).distanceMeters
-                }m`;
+                return `${(step as TrRoutingV2.TripStepWalking).type}${
+                    (step as TrRoutingV2.TripStepWalking).travelTime
+                }s${(step as TrRoutingV2.TripStepWalking).distance}m`;
             }
         })
         .join('|');
@@ -233,27 +229,22 @@ const generateCsvWithTransit = (
         }
         alternativeSequence++;
         const stepsDetailSummary = getStepSummaries(alternative);
-        const { origin, destination, ...rest } = alternative;
+        const userResult = routeToUserObject(alternative);
+        const { origin, destination, ...rest } = userResult;
         const csvAttributes = Object.assign(
             _cloneDeep(preFilledCsvAttributes),
             _cloneDeep(transitAttributes),
             stepsDetailSummary
         );
         // replace origin and destination coordinates arrays by separate lat/lon values:
-        if (
-            alternative.origin &&
-            alternative.destination &&
-            !_isBlank(alternative.origin[1]) &&
-            !_isBlank(alternative.origin[0]) &&
-            !_isBlank(alternative.destination[1]) &&
-            !_isBlank(alternative.destination[0])
-        ) {
-            // TODO csvAttributes will need to be typed
-            csvAttributes.originLat = origin[0];
-            csvAttributes.originLon = origin[1];
-            csvAttributes.destinationLat = destination[0];
-            csvAttributes.destinationLon = destination[1];
-        }
+        // TODO csvAttributes will need to be typed
+        csvAttributes.originLat = origin[1];
+        csvAttributes.originLon = origin[0];
+        csvAttributes.destinationLat = destination[1];
+        csvAttributes.destinationLon = destination[0];
+        (csvAttributes.alternativeSequence = alternativeSequence),
+        (csvAttributes.alternativeTotalSequence = transitResult.getAlternativesCount()),
+        (csvAttributes.status = 'success');
 
         for (const attribute in _omit(rest, ['steps'])) {
             if (csvAttributes[attribute] !== undefined) {
@@ -268,7 +259,7 @@ const generateCsvWithTransit = (
         csvContent.push(unparse([csvAttributes], { header: false }));
 
         if (options.exportCsvDetailed === true) {
-            const steps = alternative.steps;
+            const steps = userResult.steps;
             if (steps) {
                 for (let j = 0, countJ = steps.length; j < countJ; j++) {
                     const step = steps[j];

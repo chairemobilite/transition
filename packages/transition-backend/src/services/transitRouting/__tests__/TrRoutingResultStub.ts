@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TrRoutingResultPath, TrRoutingResultAlternatives } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { pathNoTransfer, pathOneTransfer } from 'chaire-lib-common/lib/test/services/trRouting/TrRoutingConstantsStubs';
+import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/trRouting/TrRoutingConstantsStubs';
 
 // TODO tahini: this is considered a test file, so we need a test, should be a mock
 test('Dummy', () => {
@@ -14,30 +14,19 @@ test('Dummy', () => {
 });
 
 // A simple path without transfer
-export const simplePathResult: TrRoutingResultPath = {
-	type: 'path',
-	path: pathNoTransfer
+export const simplePathResult: TrRoutingRouteResult = {
+	totalRoutesCalculated: 1,
+	routes: [pathNoTransferRouteResult]
 }
 
-export const transferPathResult: TrRoutingResultPath = {
-	type: 'path',
-	path: pathOneTransfer
+export const transferPathResult: TrRoutingRouteResult = {
+	totalRoutesCalculated: 1,
+	routes: [pathOneTransferRouteResult]
 }
 
-export const alternativesResult: TrRoutingResultAlternatives = {
-	type: 'withAlternatives',
-	alternatives: [
-		{
-			alternativeSequence: 1,
-			alternativeTotalSequence: 2,
-			...pathNoTransfer
-		},
-		{
-			alternativeSequence: 2,
-			alternativeTotalSequence: 2,
-			...pathOneTransfer
-		}
-	]
+export const alternativesResult: TrRoutingRouteResult = {
+	totalRoutesCalculated: 3,
+	routes: [pathNoTransferRouteResult, pathOneTransferRouteResult]
 }
 
 export const walkingRouteResult: RouteResults = {

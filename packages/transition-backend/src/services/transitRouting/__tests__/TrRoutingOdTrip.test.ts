@@ -10,14 +10,13 @@ import routeOdTrip from '../TrRoutingOdTrip';
 import { simplePathResult, transferPathResult, alternativesResult, walkingRouteResult, cyclingRouteResult } from './TrRoutingResultStub';
 import { TransitRouting, TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import { TestUtils } from 'chaire-lib-common/lib/test';
 import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ErrorCodes } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
-import { TrRoutingBoardingStep, TrRoutingUnboardingStep, TrRoutingWalkingStep } from 'chaire-lib-common/lib/api/TrRouting';
 import Path from 'transition-common/src/services/path/Path';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
+import { routeToUserObject, TrRoutingBoardingStep, TrRoutingUnboardingStep, TrRoutingWalkingStep } from 'chaire-lib-common/src/services/trRouting/TrRoutingResultConversion';
 
 const calculateMock = jest.fn();
 
@@ -43,8 +42,8 @@ beforeEach(() => {
     calculateMock.mockClear();
 });
 
-const origin = TestUtils.makePoint(simplePathResult.path.origin);
-const destination = TestUtils.makePoint(simplePathResult.path.destination);
+const origin = simplePathResult.routes[0].originDestination[0];
+const destination = simplePathResult.routes[0].originDestination[1];
 const odTrip = new BaseOdTrip({
     origin_geography: origin.geometry,
     destination_geography: destination.geometry,
@@ -64,8 +63,7 @@ describe('csv only result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                hasAlternatives: false,
-                paths: [simplePathResult.path],
+                paths: simplePathResult.routes,
                 maxWalkingTime: 300
             })
         };
@@ -80,28 +78,29 @@ describe('csv only result', () => {
             withGeometries: false,
             reverseOD: false,
         });
+        const expectedUserResult = routeToUserObject(simplePathResult.routes[0]);
         expect(result.csvDetailed).toBeUndefined();
         expect(result.geometries).toBeUndefined();
         expect(result.result).toEqual(resultByMode.transit);
         expect(result.csv).toBeDefined();
         expect((result.csv as string[]).length).toEqual(1);
         expect((result.csv as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},` +
-            `${simplePathResult.path.origin[0]},${simplePathResult.path.origin[1]},` +
-            `${simplePathResult.path.destination[0]},${simplePathResult.path.destination[1]},` +
-            `,,success,${simplePathResult.path.departureTime},` +
-            `${simplePathResult.path.departureTimeSeconds},${simplePathResult.path.arrivalTime},${simplePathResult.path.arrivalTimeSeconds},` +
-            `${simplePathResult.path.initialDepartureTime},${simplePathResult.path.initialDepartureTimeSeconds},${simplePathResult.path.initialLostTimeAtDepartureMinutes},` +
-            `${simplePathResult.path.initialLostTimeAtDepartureSeconds},${simplePathResult.path.totalTravelTimeMinutes},${simplePathResult.path.totalTravelTimeSeconds},` +
-            `${simplePathResult.path.totalDistanceMeters},${simplePathResult.path.totalInVehicleTimeMinutes},${simplePathResult.path.totalInVehicleTimeSeconds},` +
-            `${simplePathResult.path.totalInVehicleDistanceMeters},${simplePathResult.path.totalNonTransitTravelTimeMinutes},${simplePathResult.path.totalNonTransitTravelTimeSeconds},` +
-            `${simplePathResult.path.totalNonTransitDistanceMeters},${simplePathResult.path.numberOfBoardings},${simplePathResult.path.numberOfTransfers},` +
-            `${simplePathResult.path.transferWalkingTimeMinutes},${simplePathResult.path.transferWalkingTimeSeconds},${simplePathResult.path.transferWalkingDistanceMeters},` +
-            `${simplePathResult.path.accessTravelTimeMinutes},${simplePathResult.path.accessTravelTimeSeconds},${simplePathResult.path.accessDistanceMeters},` +
-            `${simplePathResult.path.egressTravelTimeMinutes},${simplePathResult.path.egressTravelTimeSeconds},${simplePathResult.path.egressDistanceMeters},` +
-            `${simplePathResult.path.nearestNetworkNodeOriginDistanceMeters || ''},${simplePathResult.path.nearestNetworkNodeDestinationDistanceMeters || ''},${simplePathResult.path.transferWaitingTimeMinutes},` +
-            `${simplePathResult.path.transferWaitingTimeSeconds},${simplePathResult.path.firstWaitingTimeMinutes},${simplePathResult.path.firstWaitingTimeSeconds},` +
-            `${simplePathResult.path.totalWaitingTimeMinutes},${simplePathResult.path.totalWaitingTimeSeconds},` +
-            `,${(simplePathResult.path.steps[1] as TrRoutingBoardingStep).lineUuid},${(simplePathResult.path.steps[1] as TrRoutingBoardingStep).mode},access210s262m|wait180s|ride391s1426m|egress753s998m`
+            `${expectedUserResult.origin[1]},${expectedUserResult.origin[0]},` +
+            `${expectedUserResult.destination[1]},${expectedUserResult.destination[0]},` +
+            `1,1,success,${expectedUserResult.departureTime},` +
+            `${expectedUserResult.departureTimeSeconds},${expectedUserResult.arrivalTime},${expectedUserResult.arrivalTimeSeconds},` +
+            `${expectedUserResult.initialDepartureTime},${expectedUserResult.initialDepartureTimeSeconds},${expectedUserResult.initialLostTimeAtDepartureMinutes},` +
+            `${expectedUserResult.initialLostTimeAtDepartureSeconds},${expectedUserResult.totalTravelTimeMinutes},${expectedUserResult.totalTravelTimeSeconds},` +
+            `${expectedUserResult.totalDistanceMeters},${expectedUserResult.totalInVehicleTimeMinutes},${expectedUserResult.totalInVehicleTimeSeconds},` +
+            `${expectedUserResult.totalInVehicleDistanceMeters},${expectedUserResult.totalNonTransitTravelTimeMinutes},${expectedUserResult.totalNonTransitTravelTimeSeconds},` +
+            `${expectedUserResult.totalNonTransitDistanceMeters},${expectedUserResult.numberOfBoardings},${expectedUserResult.numberOfTransfers},` +
+            `${expectedUserResult.transferWalkingTimeMinutes},${expectedUserResult.transferWalkingTimeSeconds},${expectedUserResult.transferWalkingDistanceMeters},` +
+            `${expectedUserResult.accessTravelTimeMinutes},${expectedUserResult.accessTravelTimeSeconds},${expectedUserResult.accessDistanceMeters},` +
+            `${expectedUserResult.egressTravelTimeMinutes},${expectedUserResult.egressTravelTimeSeconds},${expectedUserResult.egressDistanceMeters},` +
+            `${expectedUserResult.transferWaitingTimeMinutes},` +
+            `${expectedUserResult.transferWaitingTimeSeconds},${expectedUserResult.firstWaitingTimeMinutes},${expectedUserResult.firstWaitingTimeSeconds},` +
+            `${expectedUserResult.totalWaitingTimeMinutes},${expectedUserResult.totalWaitingTimeSeconds},` +
+            `${(expectedUserResult.steps[1] as any).lineUuid},${(expectedUserResult.steps[1] as any).mode},access210s262m|wait180s|ride391s1426m|egress753s998m`
         );
         expect(calculateMock).toHaveBeenCalledWith(expect.objectContaining({
             _attributes: expect.objectContaining({
@@ -120,8 +119,7 @@ describe('csv only result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                hasAlternatives: false,
-                paths: [simplePathResult.path],
+                paths: simplePathResult.routes,
                 maxWalkingTime: 300
             }),
             walking: new UnimodalRouteCalculationResult({
@@ -148,28 +146,29 @@ describe('csv only result', () => {
             withGeometries: false,
             reverseOD: false,
         });
+        const expectedUserResult = routeToUserObject(simplePathResult.routes[0]);
         expect(result.csvDetailed).toBeUndefined();
         expect(result.geometries).toBeUndefined();
         expect(result.result).toEqual(resultByMode.transit);
         expect(result.csv).toBeDefined();
         expect((result.csv as string[]).length).toEqual(1);
         expect((result.csv as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},` + 
-            `${simplePathResult.path.origin[0]},${simplePathResult.path.origin[1]},` +
-            `${simplePathResult.path.destination[0]},${simplePathResult.path.destination[1]},` +
-            `,,success,${simplePathResult.path.departureTime},` +
-            `${simplePathResult.path.departureTimeSeconds},${simplePathResult.path.arrivalTime},${simplePathResult.path.arrivalTimeSeconds},` +
-            `${simplePathResult.path.initialDepartureTime},${simplePathResult.path.initialDepartureTimeSeconds},${simplePathResult.path.initialLostTimeAtDepartureMinutes},` +
-            `${simplePathResult.path.initialLostTimeAtDepartureSeconds},${simplePathResult.path.totalTravelTimeMinutes},${simplePathResult.path.totalTravelTimeSeconds},` +
-            `${simplePathResult.path.totalDistanceMeters},${simplePathResult.path.totalInVehicleTimeMinutes},${simplePathResult.path.totalInVehicleTimeSeconds},` +
-            `${simplePathResult.path.totalInVehicleDistanceMeters},${simplePathResult.path.totalNonTransitTravelTimeMinutes},${simplePathResult.path.totalNonTransitTravelTimeSeconds},` +
-            `${simplePathResult.path.totalNonTransitDistanceMeters},${simplePathResult.path.numberOfBoardings},${simplePathResult.path.numberOfTransfers},` +
-            `${simplePathResult.path.transferWalkingTimeMinutes},${simplePathResult.path.transferWalkingTimeSeconds},${simplePathResult.path.transferWalkingDistanceMeters},` +
-            `${simplePathResult.path.accessTravelTimeMinutes},${simplePathResult.path.accessTravelTimeSeconds},${simplePathResult.path.accessDistanceMeters},` +
-            `${simplePathResult.path.egressTravelTimeMinutes},${simplePathResult.path.egressTravelTimeSeconds},${simplePathResult.path.egressDistanceMeters},` +
-            `${simplePathResult.path.nearestNetworkNodeOriginDistanceMeters || ''},${simplePathResult.path.nearestNetworkNodeDestinationDistanceMeters || ''},${simplePathResult.path.transferWaitingTimeMinutes},` +
-            `${simplePathResult.path.transferWaitingTimeSeconds},${simplePathResult.path.firstWaitingTimeMinutes},${simplePathResult.path.firstWaitingTimeSeconds},` +
-            `${simplePathResult.path.totalWaitingTimeMinutes},${simplePathResult.path.totalWaitingTimeSeconds},` +
-            `,${(simplePathResult.path.steps[1] as TrRoutingBoardingStep).lineUuid},${(simplePathResult.path.steps[1] as TrRoutingBoardingStep).mode},access210s262m|wait180s|ride391s1426m|egress753s998m,`+
+            `${expectedUserResult.origin[1]},${expectedUserResult.origin[0]},` +
+            `${expectedUserResult.destination[1]},${expectedUserResult.destination[0]},` +
+            `1,1,success,${expectedUserResult.departureTime},` +
+            `${expectedUserResult.departureTimeSeconds},${expectedUserResult.arrivalTime},${expectedUserResult.arrivalTimeSeconds},` +
+            `${expectedUserResult.initialDepartureTime},${expectedUserResult.initialDepartureTimeSeconds},${expectedUserResult.initialLostTimeAtDepartureMinutes},` +
+            `${expectedUserResult.initialLostTimeAtDepartureSeconds},${expectedUserResult.totalTravelTimeMinutes},${expectedUserResult.totalTravelTimeSeconds},` +
+            `${expectedUserResult.totalDistanceMeters},${expectedUserResult.totalInVehicleTimeMinutes},${expectedUserResult.totalInVehicleTimeSeconds},` +
+            `${expectedUserResult.totalInVehicleDistanceMeters},${expectedUserResult.totalNonTransitTravelTimeMinutes},${expectedUserResult.totalNonTransitTravelTimeSeconds},` +
+            `${expectedUserResult.totalNonTransitDistanceMeters},${expectedUserResult.numberOfBoardings},${expectedUserResult.numberOfTransfers},` +
+            `${expectedUserResult.transferWalkingTimeMinutes},${expectedUserResult.transferWalkingTimeSeconds},${expectedUserResult.transferWalkingDistanceMeters},` +
+            `${expectedUserResult.accessTravelTimeMinutes},${expectedUserResult.accessTravelTimeSeconds},${expectedUserResult.accessDistanceMeters},` +
+            `${expectedUserResult.egressTravelTimeMinutes},${expectedUserResult.egressTravelTimeSeconds},${expectedUserResult.egressDistanceMeters},` +
+            `${expectedUserResult.transferWaitingTimeMinutes},` +
+            `${expectedUserResult.transferWaitingTimeSeconds},${expectedUserResult.firstWaitingTimeMinutes},${expectedUserResult.firstWaitingTimeSeconds},` +
+            `${expectedUserResult.totalWaitingTimeMinutes},${expectedUserResult.totalWaitingTimeSeconds},` +
+            `${(expectedUserResult.steps[1] as any).lineUuid},${(expectedUserResult.steps[1] as any).mode},access210s262m|wait180s|ride391s1426m|egress753s998m,`+
             `${walkingRouteResult.routes[0].duration},${walkingRouteResult.routes[0].distance},` +
             `${cyclingRouteResult.routes[0].duration},${cyclingRouteResult.routes[0].distance}`
         );
@@ -184,8 +183,7 @@ describe('csv only result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                hasAlternatives: true,
-                paths: alternativesResult.alternatives,
+                paths: alternativesResult.routes,
                 maxWalkingTime: 300
             }),
             walking: new UnimodalRouteCalculationResult({
@@ -212,49 +210,51 @@ describe('csv only result', () => {
             withGeometries: false,
             reverseOD: false,
         });
+        const expectedUserResult = routeToUserObject(alternativesResult.routes[0]);
         expect(result.csvDetailed).toBeUndefined();
         expect(result.geometries).toBeUndefined();
         expect(result.result).toEqual(resultByMode.transit);
         expect(result.csv).toBeDefined();
         expect((result.csv as string[]).length).toEqual(2);
         expect((result.csv as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},` +
-            `${simplePathResult.path.origin[0]},${simplePathResult.path.origin[1]},` +
-            `${simplePathResult.path.destination[0]},${simplePathResult.path.destination[1]},` +
-            `1,2,success,${simplePathResult.path.departureTime},` +
-            `${simplePathResult.path.departureTimeSeconds},${simplePathResult.path.arrivalTime},${simplePathResult.path.arrivalTimeSeconds},` +
-            `${simplePathResult.path.initialDepartureTime},${simplePathResult.path.initialDepartureTimeSeconds},${simplePathResult.path.initialLostTimeAtDepartureMinutes},` +
-            `${simplePathResult.path.initialLostTimeAtDepartureSeconds},${simplePathResult.path.totalTravelTimeMinutes},${simplePathResult.path.totalTravelTimeSeconds},` +
-            `${simplePathResult.path.totalDistanceMeters},${simplePathResult.path.totalInVehicleTimeMinutes},${simplePathResult.path.totalInVehicleTimeSeconds},` +
-            `${simplePathResult.path.totalInVehicleDistanceMeters},${simplePathResult.path.totalNonTransitTravelTimeMinutes},${simplePathResult.path.totalNonTransitTravelTimeSeconds},` +
-            `${simplePathResult.path.totalNonTransitDistanceMeters},${simplePathResult.path.numberOfBoardings},${simplePathResult.path.numberOfTransfers},` +
-            `${simplePathResult.path.transferWalkingTimeMinutes},${simplePathResult.path.transferWalkingTimeSeconds},${simplePathResult.path.transferWalkingDistanceMeters},` +
-            `${simplePathResult.path.accessTravelTimeMinutes},${simplePathResult.path.accessTravelTimeSeconds},${simplePathResult.path.accessDistanceMeters},` +
-            `${simplePathResult.path.egressTravelTimeMinutes},${simplePathResult.path.egressTravelTimeSeconds},${simplePathResult.path.egressDistanceMeters},` +
-            `${simplePathResult.path.nearestNetworkNodeOriginDistanceMeters || ''},${simplePathResult.path.nearestNetworkNodeDestinationDistanceMeters || ''},${simplePathResult.path.transferWaitingTimeMinutes},` +
-            `${simplePathResult.path.transferWaitingTimeSeconds},${simplePathResult.path.firstWaitingTimeMinutes},${simplePathResult.path.firstWaitingTimeSeconds},` +
-            `${simplePathResult.path.totalWaitingTimeMinutes},${simplePathResult.path.totalWaitingTimeSeconds},` +
-            `,${(simplePathResult.path.steps[1] as TrRoutingBoardingStep).lineUuid},${(simplePathResult.path.steps[1] as TrRoutingBoardingStep).mode},access210s262m|wait180s|ride391s1426m|egress753s998m,`+
+            `${expectedUserResult.origin[1]},${expectedUserResult.origin[0]},` +
+            `${expectedUserResult.destination[1]},${expectedUserResult.destination[0]},` +
+            `1,2,success,${expectedUserResult.departureTime},` +
+            `${expectedUserResult.departureTimeSeconds},${expectedUserResult.arrivalTime},${expectedUserResult.arrivalTimeSeconds},` +
+            `${expectedUserResult.initialDepartureTime},${expectedUserResult.initialDepartureTimeSeconds},${expectedUserResult.initialLostTimeAtDepartureMinutes},` +
+            `${expectedUserResult.initialLostTimeAtDepartureSeconds},${expectedUserResult.totalTravelTimeMinutes},${expectedUserResult.totalTravelTimeSeconds},` +
+            `${expectedUserResult.totalDistanceMeters},${expectedUserResult.totalInVehicleTimeMinutes},${expectedUserResult.totalInVehicleTimeSeconds},` +
+            `${expectedUserResult.totalInVehicleDistanceMeters},${expectedUserResult.totalNonTransitTravelTimeMinutes},${expectedUserResult.totalNonTransitTravelTimeSeconds},` +
+            `${expectedUserResult.totalNonTransitDistanceMeters},${expectedUserResult.numberOfBoardings},${expectedUserResult.numberOfTransfers},` +
+            `${expectedUserResult.transferWalkingTimeMinutes},${expectedUserResult.transferWalkingTimeSeconds},${expectedUserResult.transferWalkingDistanceMeters},` +
+            `${expectedUserResult.accessTravelTimeMinutes},${expectedUserResult.accessTravelTimeSeconds},${expectedUserResult.accessDistanceMeters},` +
+            `${expectedUserResult.egressTravelTimeMinutes},${expectedUserResult.egressTravelTimeSeconds},${expectedUserResult.egressDistanceMeters},` +
+            `${expectedUserResult.transferWaitingTimeMinutes},` +
+            `${expectedUserResult.transferWaitingTimeSeconds},${expectedUserResult.firstWaitingTimeMinutes},${expectedUserResult.firstWaitingTimeSeconds},` +
+            `${expectedUserResult.totalWaitingTimeMinutes},${expectedUserResult.totalWaitingTimeSeconds},` +
+            `${(expectedUserResult.steps[1] as any).lineUuid},${(expectedUserResult.steps[1] as any).mode},access210s262m|wait180s|ride391s1426m|egress753s998m,`+
             `${walkingRouteResult.routes[0].duration},${walkingRouteResult.routes[0].distance},` +
             `${cyclingRouteResult.routes[0].duration},${cyclingRouteResult.routes[0].distance}`
         );
+        const expectedUserResultAlt = routeToUserObject(alternativesResult.routes[1]);
         expect((result.csv as string[])[1]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},` +
-            `${transferPathResult.path.origin[0]},${transferPathResult.path.origin[1]},` +
-            `${transferPathResult.path.destination[0]},${transferPathResult.path.destination[1]},` +
-            `2,2,success,${transferPathResult.path.departureTime},` +
-            `${transferPathResult.path.departureTimeSeconds},${transferPathResult.path.arrivalTime},${transferPathResult.path.arrivalTimeSeconds},` +
-            `${transferPathResult.path.initialDepartureTime},${transferPathResult.path.initialDepartureTimeSeconds},${transferPathResult.path.initialLostTimeAtDepartureMinutes},` +
-            `${transferPathResult.path.initialLostTimeAtDepartureSeconds},${transferPathResult.path.totalTravelTimeMinutes},${transferPathResult.path.totalTravelTimeSeconds},` +
-            `${transferPathResult.path.totalDistanceMeters},${transferPathResult.path.totalInVehicleTimeMinutes},${transferPathResult.path.totalInVehicleTimeSeconds},` +
-            `${transferPathResult.path.totalInVehicleDistanceMeters},${transferPathResult.path.totalNonTransitTravelTimeMinutes},${transferPathResult.path.totalNonTransitTravelTimeSeconds},` +
-            `${transferPathResult.path.totalNonTransitDistanceMeters},${transferPathResult.path.numberOfBoardings},${transferPathResult.path.numberOfTransfers},` +
-            `${transferPathResult.path.transferWalkingTimeMinutes},${transferPathResult.path.transferWalkingTimeSeconds},${transferPathResult.path.transferWalkingDistanceMeters},` +
-            `${transferPathResult.path.accessTravelTimeMinutes},${transferPathResult.path.accessTravelTimeSeconds},${transferPathResult.path.accessDistanceMeters},` +
-            `${transferPathResult.path.egressTravelTimeMinutes},${transferPathResult.path.egressTravelTimeSeconds},${transferPathResult.path.egressDistanceMeters},` +
-            `${transferPathResult.path.nearestNetworkNodeOriginDistanceMeters || ''},${transferPathResult.path.nearestNetworkNodeDestinationDistanceMeters || ''},${transferPathResult.path.transferWaitingTimeMinutes},` +
-            `${transferPathResult.path.transferWaitingTimeSeconds},${transferPathResult.path.firstWaitingTimeMinutes},${transferPathResult.path.firstWaitingTimeSeconds},` +
-            `${transferPathResult.path.totalWaitingTimeMinutes},${transferPathResult.path.totalWaitingTimeSeconds},` +
-            `,${(transferPathResult.path.steps[1] as TrRoutingBoardingStep).lineUuid}|${(transferPathResult.path.steps[4] as TrRoutingBoardingStep).lineUuid},` +
-            `${(transferPathResult.path.steps[1] as TrRoutingBoardingStep).mode}|${(transferPathResult.path.steps[4] as TrRoutingBoardingStep).mode},` +
+            `${expectedUserResultAlt.origin[1]},${expectedUserResultAlt.origin[0]},` +
+            `${expectedUserResultAlt.destination[1]},${expectedUserResultAlt.destination[0]},` +
+            `2,2,success,${expectedUserResultAlt.departureTime},` +
+            `${expectedUserResultAlt.departureTimeSeconds},${expectedUserResultAlt.arrivalTime},${expectedUserResultAlt.arrivalTimeSeconds},` +
+            `${expectedUserResultAlt.initialDepartureTime},${expectedUserResultAlt.initialDepartureTimeSeconds},${expectedUserResultAlt.initialLostTimeAtDepartureMinutes},` +
+            `${expectedUserResultAlt.initialLostTimeAtDepartureSeconds},${expectedUserResultAlt.totalTravelTimeMinutes},${expectedUserResultAlt.totalTravelTimeSeconds},` +
+            `${expectedUserResultAlt.totalDistanceMeters},${expectedUserResultAlt.totalInVehicleTimeMinutes},${expectedUserResultAlt.totalInVehicleTimeSeconds},` +
+            `${expectedUserResultAlt.totalInVehicleDistanceMeters},${expectedUserResultAlt.totalNonTransitTravelTimeMinutes},${expectedUserResultAlt.totalNonTransitTravelTimeSeconds},` +
+            `${expectedUserResultAlt.totalNonTransitDistanceMeters},${expectedUserResultAlt.numberOfBoardings},${expectedUserResultAlt.numberOfTransfers},` +
+            `${expectedUserResultAlt.transferWalkingTimeMinutes},${expectedUserResultAlt.transferWalkingTimeSeconds},${expectedUserResultAlt.transferWalkingDistanceMeters},` +
+            `${expectedUserResultAlt.accessTravelTimeMinutes},${expectedUserResultAlt.accessTravelTimeSeconds},${expectedUserResultAlt.accessDistanceMeters},` +
+            `${expectedUserResultAlt.egressTravelTimeMinutes},${expectedUserResultAlt.egressTravelTimeSeconds},${expectedUserResultAlt.egressDistanceMeters},` +
+            `${expectedUserResultAlt.transferWaitingTimeMinutes},` +
+            `${expectedUserResultAlt.transferWaitingTimeSeconds},${expectedUserResultAlt.firstWaitingTimeMinutes},${expectedUserResultAlt.firstWaitingTimeSeconds},` +
+            `${expectedUserResultAlt.totalWaitingTimeMinutes},${expectedUserResultAlt.totalWaitingTimeSeconds},` +
+            `${(expectedUserResultAlt.steps[1] as any).lineUuid}|${(expectedUserResultAlt.steps[4] as any).lineUuid},` +
+            `${(expectedUserResultAlt.steps[1] as any).mode}|${(expectedUserResultAlt.steps[4] as any).mode},` +
             `access210s262m|wait180s|ride391s1426m|transfer753s998m|wait180s|ride391s1426m|egress753s998m,`+
             `${walkingRouteResult.routes[0].duration},${walkingRouteResult.routes[0].distance},` +
             `${cyclingRouteResult.routes[0].duration},${cyclingRouteResult.routes[0].distance}`
@@ -269,7 +269,6 @@ describe('csv only result', () => {
         const resultByMode = { transit: new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                hasAlternatives: false,
                 paths: [],
                 maxWalkingTime: 300,
                 error: new TrError(
@@ -308,10 +307,10 @@ describe('csv only result', () => {
         expect(result.csv).toBeDefined();
         expect((result.csv as string[]).length).toEqual(1);
         expect((result.csv as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},` +
-            `${simplePathResult.path.origin[1]},${simplePathResult.path.origin[0]},` +
-            `${simplePathResult.path.destination[1]},${simplePathResult.path.destination[0]},` +
+            `${origin.geometry.coordinates[1]},${origin.geometry.coordinates[0]},` +
+            `${destination.geometry.coordinates[1]},${destination.geometry.coordinates[0]},` +
             `,,TRROUTING_NO_ROUTING_FOUND,,` +
-            `,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,`+
+            `,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,`+
             `${walkingRouteResult.routes[0].duration},${walkingRouteResult.routes[0].distance},` +
             `${cyclingRouteResult.routes[0].duration},${cyclingRouteResult.routes[0].distance}`
         );
@@ -329,8 +328,7 @@ describe('detailed csv only result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                hasAlternatives: false,
-                paths: [simplePathResult.path],
+                paths: simplePathResult.routes,
                 maxWalkingTime: 300
             })
         };
@@ -345,23 +343,24 @@ describe('detailed csv only result', () => {
             withGeometries: false,
             reverseOD: false,
         });
+        const expectedUserResult = routeToUserObject(simplePathResult.routes[0]);
         expect(result.csvDetailed).toBeDefined();
         expect(result.geometries).toBeUndefined();
         expect(result.result).toEqual(resultByMode.transit);
         expect(result.csv).toBeDefined();
         expect((result.csvDetailed as string[]).length).toEqual(4);
-        const accessStep = simplePathResult.path.steps[0] as TrRoutingWalkingStep;
-        const boardingStep = simplePathResult.path.steps[1] as TrRoutingBoardingStep;
-        const unboardingStep = simplePathResult.path.steps[2] as TrRoutingUnboardingStep;
-        const egressStep = simplePathResult.path.steps[3] as TrRoutingWalkingStep;
-        expect((result.csvDetailed as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,1,${simplePathResult.path.steps[0].action},` +
+        const accessStep = expectedUserResult.steps[0] as TrRoutingWalkingStep;
+        const boardingStep = expectedUserResult.steps[1] as TrRoutingBoardingStep;
+        const unboardingStep = expectedUserResult.steps[2] as TrRoutingUnboardingStep;
+        const egressStep = expectedUserResult.steps[3] as TrRoutingWalkingStep;
+        expect((result.csvDetailed as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,1,${expectedUserResult.steps[0].action},` +
             `${accessStep.type},${accessStep.travelTimeSeconds},${accessStep.travelTimeMinutes},` +
             `${accessStep.distanceMeters},${accessStep.departureTime},${accessStep.arrivalTime},` +
             `${accessStep.departureTimeSeconds},${accessStep.arrivalTimeSeconds},` +
             `,,,,,,,,,,,,,,,,,,,,,,,` +
             `${accessStep.readyToBoardAt},${accessStep.readyToBoardAtSeconds}`
         );
-        expect((result.csvDetailed as string[])[1]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,2,${simplePathResult.path.steps[1].action},` +
+        expect((result.csvDetailed as string[])[1]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,2,${expectedUserResult.steps[1].action},` +
             `,,,` +
             `,${boardingStep.departureTime},,` +
             `${boardingStep.departureTimeSeconds},,` +
@@ -375,7 +374,7 @@ describe('detailed csv only result', () => {
             `${boardingStep.waitingTimeSeconds},${boardingStep.waitingTimeMinutes},,` +
             ``
         );
-        expect((result.csvDetailed as string[])[2]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,3,${simplePathResult.path.steps[2].action},` +
+        expect((result.csvDetailed as string[])[2]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,3,${expectedUserResult.steps[2].action},` +
             `,,,` +
             `,,${unboardingStep.arrivalTime},` +
             `,${unboardingStep.arrivalTimeSeconds},` +
@@ -389,7 +388,7 @@ describe('detailed csv only result', () => {
             `,,,` +
             ``
         );
-        expect((result.csvDetailed as string[])[3]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,4,${simplePathResult.path.steps[3].action},` +
+        expect((result.csvDetailed as string[])[3]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,4,${expectedUserResult.steps[3].action},` +
             `${egressStep.type},${egressStep.travelTimeSeconds},${egressStep.travelTimeMinutes},` +
             `${egressStep.distanceMeters},${egressStep.departureTime},${egressStep.arrivalTime},` +
             `${egressStep.departureTimeSeconds},${egressStep.arrivalTimeSeconds},` +
@@ -408,8 +407,7 @@ describe('detailed csv only result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                hasAlternatives: false,
-                paths: [simplePathResult.path],
+                paths: simplePathResult.routes,
                 maxWalkingTime: 300
             }),
             walking: new UnimodalRouteCalculationResult({
@@ -436,23 +434,24 @@ describe('detailed csv only result', () => {
             withGeometries: false,
             reverseOD: false,
         });
+        const expectedUserResult = routeToUserObject(simplePathResult.routes[0]);
         expect(result.csvDetailed).toBeDefined();
         expect(result.geometries).toBeUndefined();
         expect(result.result).toEqual(resultByMode.transit);
         expect(result.csv).toBeDefined();
         expect((result.csvDetailed as string[]).length).toEqual(4);
-        const accessStep = simplePathResult.path.steps[0] as TrRoutingWalkingStep;
-        const boardingStep = simplePathResult.path.steps[1] as TrRoutingBoardingStep;
-        const unboardingStep = simplePathResult.path.steps[2] as TrRoutingUnboardingStep;
-        const egressStep = simplePathResult.path.steps[3] as TrRoutingWalkingStep;
-        expect((result.csvDetailed as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,1,${simplePathResult.path.steps[0].action},` +
+        const accessStep = expectedUserResult.steps[0] as TrRoutingWalkingStep;
+        const boardingStep = expectedUserResult.steps[1] as TrRoutingBoardingStep;
+        const unboardingStep = expectedUserResult.steps[2] as TrRoutingUnboardingStep;
+        const egressStep = expectedUserResult.steps[3] as TrRoutingWalkingStep;
+        expect((result.csvDetailed as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,1,${expectedUserResult.steps[0].action},` +
             `${accessStep.type},${accessStep.travelTimeSeconds},${accessStep.travelTimeMinutes},` +
             `${accessStep.distanceMeters},${accessStep.departureTime},${accessStep.arrivalTime},` +
             `${accessStep.departureTimeSeconds},${accessStep.arrivalTimeSeconds},` +
             `,,,,,,,,,,,,,,,,,,,,,,,` +
             `${accessStep.readyToBoardAt},${accessStep.readyToBoardAtSeconds}`
         );
-        expect((result.csvDetailed as string[])[1]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,2,${simplePathResult.path.steps[1].action},` +
+        expect((result.csvDetailed as string[])[1]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,2,${expectedUserResult.steps[1].action},` +
             `,,,` +
             `,${boardingStep.departureTime},,` +
             `${boardingStep.departureTimeSeconds},,` +
@@ -466,7 +465,7 @@ describe('detailed csv only result', () => {
             `${boardingStep.waitingTimeSeconds},${boardingStep.waitingTimeMinutes},,` +
             ``
         );
-        expect((result.csvDetailed as string[])[2]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,3,${simplePathResult.path.steps[2].action},` +
+        expect((result.csvDetailed as string[])[2]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,3,${expectedUserResult.steps[2].action},` +
             `,,,` +
             `,,${unboardingStep.arrivalTime},` +
             `,${unboardingStep.arrivalTimeSeconds},` +
@@ -480,7 +479,7 @@ describe('detailed csv only result', () => {
             `,,,` +
             ``
         );
-        expect((result.csvDetailed as string[])[3]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,4,${simplePathResult.path.steps[3].action},` +
+        expect((result.csvDetailed as string[])[3]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,4,${expectedUserResult.steps[3].action},` +
             `${egressStep.type},${egressStep.travelTimeSeconds},${egressStep.travelTimeMinutes},` +
             `${egressStep.distanceMeters},${egressStep.departureTime},${egressStep.arrivalTime},` +
             `${egressStep.departureTimeSeconds},${egressStep.arrivalTimeSeconds},` +
@@ -497,13 +496,13 @@ describe('detailed csv only result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                hasAlternatives: true,
-                paths: alternativesResult.alternatives,
+                paths: alternativesResult.routes,
                 maxWalkingTime: 300
             })
         };
         calculateMock.mockResolvedValue(resultByMode);
 
+        const expectedUserResult = routeToUserObject(alternativesResult.routes[0]);
         const result = await routeOdTrip(odTrip, {
             routing,
             odTripIndex: 0,
@@ -520,18 +519,18 @@ describe('detailed csv only result', () => {
         expect((result.csvDetailed as string[]).length).toEqual(11);
 
         // Validate first path
-        const accessStep = simplePathResult.path.steps[0] as TrRoutingWalkingStep;
-        const boardingStep = simplePathResult.path.steps[1] as TrRoutingBoardingStep;
-        const unboardingStep = simplePathResult.path.steps[2] as TrRoutingUnboardingStep;
-        const egressStep = simplePathResult.path.steps[3] as TrRoutingWalkingStep;
-        expect((result.csvDetailed as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,1,${simplePathResult.path.steps[0].action},` +
+        const accessStep = expectedUserResult.steps[0] as TrRoutingWalkingStep;
+        const boardingStep = expectedUserResult.steps[1] as TrRoutingBoardingStep;
+        const unboardingStep = expectedUserResult.steps[2] as TrRoutingUnboardingStep;
+        const egressStep = expectedUserResult.steps[3] as TrRoutingWalkingStep;
+        expect((result.csvDetailed as string[])[0]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,1,${expectedUserResult.steps[0].action},` +
             `${accessStep.type},${accessStep.travelTimeSeconds},${accessStep.travelTimeMinutes},` +
             `${accessStep.distanceMeters},${accessStep.departureTime},${accessStep.arrivalTime},` +
             `${accessStep.departureTimeSeconds},${accessStep.arrivalTimeSeconds},` +
             `,,,,,,,,,,,,,,,,,,,,,,,` +
             `${accessStep.readyToBoardAt},${accessStep.readyToBoardAtSeconds}`
         );
-        expect((result.csvDetailed as string[])[1]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,2,${simplePathResult.path.steps[1].action},` +
+        expect((result.csvDetailed as string[])[1]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,2,${expectedUserResult.steps[1].action},` +
             `,,,` +
             `,${boardingStep.departureTime},,` +
             `${boardingStep.departureTimeSeconds},,` +
@@ -545,7 +544,7 @@ describe('detailed csv only result', () => {
             `${boardingStep.waitingTimeSeconds},${boardingStep.waitingTimeMinutes},,` +
             ``
         );
-        expect((result.csvDetailed as string[])[2]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,3,${simplePathResult.path.steps[2].action},` +
+        expect((result.csvDetailed as string[])[2]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,3,${expectedUserResult.steps[2].action},` +
             `,,,` +
             `,,${unboardingStep.arrivalTime},` +
             `,${unboardingStep.arrivalTimeSeconds},` +
@@ -559,7 +558,7 @@ describe('detailed csv only result', () => {
             `,,,` +
             ``
         );
-        expect((result.csvDetailed as string[])[3]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,4,${simplePathResult.path.steps[3].action},` +
+        expect((result.csvDetailed as string[])[3]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},1,4,${expectedUserResult.steps[3].action},` +
         `${egressStep.type},${egressStep.travelTimeSeconds},${egressStep.travelTimeMinutes},` +
         `${egressStep.distanceMeters},${egressStep.departureTime},${egressStep.arrivalTime},` +
         `${egressStep.departureTimeSeconds},${egressStep.arrivalTimeSeconds},` +
@@ -567,21 +566,22 @@ describe('detailed csv only result', () => {
         );
 
         // Validate second path, with transfer steps
-        const accessStepSeq2 = transferPathResult.path.steps[0] as TrRoutingWalkingStep;
-        const boardingStep1Seq2 = transferPathResult.path.steps[1] as TrRoutingBoardingStep;
-        const unboardingStep1Seq2 = transferPathResult.path.steps[2] as TrRoutingUnboardingStep;
-        const transferStep = transferPathResult.path.steps[3] as TrRoutingWalkingStep;
-        const boardingStep2Seq2 = transferPathResult.path.steps[4] as TrRoutingBoardingStep;
-        const unboardingStep2Seq2 = transferPathResult.path.steps[5] as TrRoutingUnboardingStep;
-        const egressStepSeq2 = transferPathResult.path.steps[6] as TrRoutingWalkingStep;
-        expect((result.csvDetailed as string[])[4]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,1,${transferPathResult.path.steps[0].action},` +
+        const expectedUserResultAlt = routeToUserObject(alternativesResult.routes[1]);
+        const accessStepSeq2 = expectedUserResultAlt.steps[0] as TrRoutingWalkingStep;
+        const boardingStep1Seq2 = expectedUserResultAlt.steps[1] as TrRoutingBoardingStep;
+        const unboardingStep1Seq2 = expectedUserResultAlt.steps[2] as TrRoutingUnboardingStep;
+        const transferStep = expectedUserResultAlt.steps[3] as TrRoutingWalkingStep;
+        const boardingStep2Seq2 = expectedUserResultAlt.steps[4] as TrRoutingBoardingStep;
+        const unboardingStep2Seq2 = expectedUserResultAlt.steps[5] as TrRoutingUnboardingStep;
+        const egressStepSeq2 = expectedUserResultAlt.steps[6] as TrRoutingWalkingStep;
+        expect((result.csvDetailed as string[])[4]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,1,${expectedUserResultAlt.steps[0].action},` +
             `${accessStepSeq2.type},${accessStepSeq2.travelTimeSeconds},${accessStepSeq2.travelTimeMinutes},` +
             `${accessStepSeq2.distanceMeters},${accessStepSeq2.departureTime},${accessStepSeq2.arrivalTime},` +
             `${accessStepSeq2.departureTimeSeconds},${accessStepSeq2.arrivalTimeSeconds},` +
             `,,,,,,,,,,,,,,,,,,,,,,,` +
             `${accessStepSeq2.readyToBoardAt},${accessStepSeq2.readyToBoardAtSeconds}`
         );
-        expect((result.csvDetailed as string[])[5]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,2,${transferPathResult.path.steps[1].action},` +
+        expect((result.csvDetailed as string[])[5]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,2,${expectedUserResultAlt.steps[1].action},` +
             `,,,` +
             `,${boardingStep1Seq2.departureTime},,` +
             `${boardingStep1Seq2.departureTimeSeconds},,` +
@@ -595,7 +595,7 @@ describe('detailed csv only result', () => {
             `${boardingStep1Seq2.waitingTimeSeconds},${boardingStep1Seq2.waitingTimeMinutes},,` +
             ``
         );
-        expect((result.csvDetailed as string[])[6]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,3,${transferPathResult.path.steps[2].action},` +
+        expect((result.csvDetailed as string[])[6]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,3,${expectedUserResultAlt.steps[2].action},` +
             `,,,` +
             `,,${unboardingStep1Seq2.arrivalTime},` +
             `,${unboardingStep1Seq2.arrivalTimeSeconds},` +
@@ -609,13 +609,13 @@ describe('detailed csv only result', () => {
             `,,,` +
             ``
         );
-        expect((result.csvDetailed as string[])[7]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,4,${transferPathResult.path.steps[3].action},` +
+        expect((result.csvDetailed as string[])[7]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,4,${expectedUserResultAlt.steps[3].action},` +
             `${transferStep.type},${transferStep.travelTimeSeconds},${transferStep.travelTimeMinutes},` +
             `${transferStep.distanceMeters},${transferStep.departureTime},${transferStep.arrivalTime},` +
             `${transferStep.departureTimeSeconds},${transferStep.arrivalTimeSeconds},` +
-            `,,,,,,,,,,,,,,,,,,,,,,,,`
+            `,,,,,,,,,,,,,,,,,,,,,,,${transferStep.readyToBoardAt},${transferStep.readyToBoardAtSeconds}`
         );
-        expect((result.csvDetailed as string[])[8]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,5,${transferPathResult.path.steps[4].action},` +
+        expect((result.csvDetailed as string[])[8]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,5,${expectedUserResultAlt.steps[4].action},` +
             `,,,` +
             `,${boardingStep2Seq2.departureTime},,` +
             `${boardingStep2Seq2.departureTimeSeconds},,` +
@@ -629,7 +629,7 @@ describe('detailed csv only result', () => {
             `${boardingStep2Seq2.waitingTimeSeconds},${boardingStep2Seq2.waitingTimeMinutes},,` +
             ``
         );
-        expect((result.csvDetailed as string[])[9]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,6,${transferPathResult.path.steps[5].action},` +
+        expect((result.csvDetailed as string[])[9]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,6,${expectedUserResultAlt.steps[5].action},` +
             `,,,` +
             `,,${unboardingStep2Seq2.arrivalTime},` +
             `,${unboardingStep2Seq2.arrivalTimeSeconds},` +
@@ -643,7 +643,7 @@ describe('detailed csv only result', () => {
             `,,,` +
             ``
         );
-        expect((result.csvDetailed as string[])[10]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,7,${transferPathResult.path.steps[6].action},` +
+        expect((result.csvDetailed as string[])[10]).toEqual(`${odTrip.getId()},${odTrip.attributes.internal_id},2,7,${expectedUserResultAlt.steps[6].action},` +
             `${egressStepSeq2.type},${egressStepSeq2.travelTimeSeconds},${egressStepSeq2.travelTimeMinutes},` +
             `${egressStepSeq2.distanceMeters},${egressStepSeq2.departureTime},${egressStepSeq2.arrivalTime},` +
             `${egressStepSeq2.departureTimeSeconds},${egressStepSeq2.arrivalTimeSeconds},` +
@@ -659,7 +659,6 @@ describe('detailed csv only result', () => {
         const resultByMode = { transit: new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                hasAlternatives: false,
                 paths: [],
                 maxWalkingTime: 300,
                 error: new TrError(
@@ -686,19 +685,20 @@ describe('detailed csv only result', () => {
         expect(result.csv).toBeDefined();
         expect((result.csvDetailed as string[]).length).toEqual(0);
     });
+    
 });
 
 describe('geometries result', () => {
 
     const path = new Path({
-        id: (simplePathResult.path.steps[1] as TrRoutingBoardingStep).pathUuid,
+        id: (simplePathResult.routes[0].steps[1] as any).pathUuid,
         geography: {
             type: 'LineString',
             coordinates: [[-73,45], [-73.01,45.001], [-73.015,45.001], [-73.015,45.01], [-73.02,45.015],
                 [-73.021,45.02], [-73.03,45.04], [-73.03,45.045], [-73.035,45.05], [-73.04,45.06] ]
         },
         direction: 'outbound',
-        line_id: (simplePathResult.path.steps[1] as TrRoutingBoardingStep).lineUuid,
+        line_id: (simplePathResult.routes[0].steps[1] as any).lineUuid,
         nodes: ['node1', 'node2', 'node3', 'node4', 'node5', 'node6', 'node7', 'node8'],
         segments: [0, 2, 3, 4, 6, 7, 8, 9],
         data: {}
@@ -714,8 +714,7 @@ describe('geometries result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                hasAlternatives: false,
-                paths: [simplePathResult.path],
+                paths: simplePathResult.routes,
                 maxWalkingTime: 300
             })
         };
@@ -761,8 +760,7 @@ describe('geometries result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                hasAlternatives: false,
-                paths: [simplePathResult.path],
+                paths: simplePathResult.routes,
                 maxWalkingTime: 300
             }),
             walking: new UnimodalRouteCalculationResult({
@@ -835,7 +833,6 @@ describe('geometries result', () => {
         const resultByMode = { transit: new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                hasAlternatives: false,
                 paths: [],
                 maxWalkingTime: 300,
                 error: new TrError(
@@ -873,8 +870,7 @@ test('Test reverse OD', async () => {
         new TransitRoutingResult({
             origin: origin,
             destination: destination,
-            hasAlternatives: false,
-            paths: [simplePathResult.path],
+            paths: simplePathResult.routes,
             maxWalkingTime: 300
         })
     };

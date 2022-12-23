@@ -10,11 +10,11 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { secondsToMinutes } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
-import { TrRoutingBoardingStep, TrRoutingUnboardingStep } from 'chaire-lib-common/lib/api/TrRouting';
+import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 
 export interface TransitRoutingStepRideButtonProps extends WithTranslation {
-    boardingStep: TrRoutingBoardingStep;
-    alightingStep: TrRoutingUnboardingStep;
+    boardingStep: TrRoutingV2.TripStepBoarding;
+    alightingStep: TrRoutingV2.TripStepUnboarding;
     stepIndex: number;
 }
 
@@ -49,7 +49,7 @@ const TransitRoutingStepRideButton: React.FunctionComponent<TransitRoutingStepRi
         serviceLocator.collectionManager
     );
     */
-    const travelTimeSeconds = props.alightingStep.arrivalTimeSeconds - props.boardingStep.departureTimeSeconds;
+    const travelTimeSeconds = props.alightingStep.arrivalTime - props.boardingStep.departureTime;
     const travelTimeMinutes = secondsToMinutes(travelTimeSeconds, Math.round);
 
     return (
@@ -61,9 +61,9 @@ const TransitRoutingStepRideButton: React.FunctionComponent<TransitRoutingStepRi
                 <span className="_list-group _flush-right _right">
                     <span
                         className="_list-element"
-                        title={`${props.boardingStep.waitingTimeSeconds} ${props.t('main:secondAbbr')}.`}
+                        title={`${props.boardingStep.waitingTime} ${props.t('main:secondAbbr')}.`}
                     >
-                        {props.boardingStep.waitingTimeMinutes} {props.t('main:minuteAbbr')}. (
+                        {secondsToMinutes(props.boardingStep.waitingTime)} {props.t('main:minuteAbbr')}. (
                         {props.t('transit:transitRouting:waiting')})
                     </span>
                 </span>
@@ -103,7 +103,7 @@ const TransitRoutingStepRideButton: React.FunctionComponent<TransitRoutingStepRi
                     </span>
                 </span>
                 <span className="_list-group _right">
-                    <span className="_list-element">{Math.round(props.alightingStep.inVehicleDistanceMeters)} m</span>
+                    <span className="_list-element">{Math.round(props.alightingStep.inVehicleDistance)} m</span>
                 </span>
             </li>
             <li className="_clear" key="clearer2"></li>

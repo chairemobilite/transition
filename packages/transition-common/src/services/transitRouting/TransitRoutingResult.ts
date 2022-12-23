@@ -7,13 +7,8 @@
 import _get from 'lodash.get';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import {
-    TrRoutingPath,
-    TrRoutingBoardingStep,
-    TrRoutingUnboardingStep,
-    TrRoutingWalkingStep,
-    TrRoutingStep
-} from 'chaire-lib-common/lib/api/TrRouting';
+import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
+import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { Route, RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { getRouteByMode } from 'chaire-lib-common/lib/services/routing/RoutingUtils';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -46,8 +41,7 @@ interface StepGeojsonProperties {
 interface TransitResultParams {
     origin: GeoJSON.Feature<GeoJSON.Point>;
     destination: GeoJSON.Feature<GeoJSON.Point>;
-    hasAlternatives: boolean;
-    paths: TrRoutingPath[];
+    paths: TrRoutingRoute[];
     walkOnlyPath?: Route;
     maxWalkingTime?: number | undefined;
     error?: TrError;
@@ -56,7 +50,7 @@ interface TransitResultParams {
 export class TransitRoutingResult implements RouteCalculatorResult {
     private _origin: GeoJSON.Feature<GeoJSON.Point>;
     private _destination: GeoJSON.Feature<GeoJSON.Point>;
-    private _paths: TrRoutingPath[];
+    private _paths: TrRoutingRoute[];
     private _hasAlternatives: boolean;
     private _walkOnlyPath: Route | undefined;
     private _walkOnlyPathIndex: number;
@@ -65,7 +59,7 @@ export class TransitRoutingResult implements RouteCalculatorResult {
     constructor(params: TransitResultParams) {
         this._origin = params.origin;
         this._destination = params.destination;
-        this._hasAlternatives = params.hasAlternatives;
+        this._hasAlternatives = params.paths.length > 1;
         this._paths = params.paths;
         this._walkOnlyPath = params.walkOnlyPath;
         this._error = params.error;
@@ -76,7 +70,7 @@ export class TransitRoutingResult implements RouteCalculatorResult {
             if (params.maxWalkingTime && params.maxWalkingTime < walkPathDuration) {
                 this._walkOnlyPathIndex = -1;
             } else {
-                const walkIndex = this._paths.findIndex((path) => walkPathDuration <= path.totalTravelTimeMinutes * 60);
+                const walkIndex = this._paths.findIndex((path) => walkPathDuration <= path.totalTravelTime);
                 this._walkOnlyPathIndex = walkIndex >= 0 ? walkIndex : this._paths.length;
             }
         } else {
@@ -96,7 +90,7 @@ export class TransitRoutingResult implements RouteCalculatorResult {
         return 'transit';
     }
 
-    getPath(index: number): TrRoutingPath | undefined {
+    getPath(index: number): TrRoutingRoute | undefined {
         return index === this._walkOnlyPathIndex
             ? undefined
             : this._walkOnlyPathIndex !== -1 && index >= this._walkOnlyPathIndex
@@ -116,7 +110,7 @@ export class TransitRoutingResult implements RouteCalculatorResult {
     }
 
     private async generatePathGeojson(
-        steps: TrRoutingStep[],
+        steps: TrRoutingV2.TripStep[],
         walkingSegmentsGeojson: GeoJSON.Feature<GeoJSON.Geometry, StepGeojsonProperties>[],
         options: { completeData?: boolean; pathCollection?: PathCollection } = { completeData: false }
     ): Promise<GeoJSON.FeatureCollection> {
@@ -147,19 +141,19 @@ export class TransitRoutingResult implements RouteCalculatorResult {
                         walkingSegmentGeojson.properties = {
                             ...walkingSegmentGeojson.properties,
                             type: step.type,
-                            departureTimeSeconds: step.departureTimeSeconds,
-                            arrivalTimeSeconds: step.arrivalTimeSeconds
+                            departureTimeSeconds: step.departureTime,
+                            arrivalTimeSeconds: step.arrivalTime
                         };
                     }
                     features.push(walkingSegmentGeojson);
                 }
                 walkingSegmentIndex++;
             }
-            if (step.action === 'board') {
-                const boardStep = step as TrRoutingBoardingStep;
+            if (step.action === 'boarding') {
+                const boardStep = step as TrRoutingV2.TripStepBoarding;
                 const nextStep = steps[i + 1];
-                if (nextStep && nextStep.action === 'unboard' && nextStep.pathUuid && pathCollection) {
-                    const unboardStep = nextStep as TrRoutingUnboardingStep;
+                if (nextStep && nextStep.action === 'unboarding' && nextStep.pathUuid && pathCollection) {
+                    const unboardStep = nextStep as TrRoutingV2.TripStepUnboarding;
                     const path = pathCollection.getById(unboardStep.pathUuid);
                     if (path && path.geometry) {
                         const pathCoordinates = path.geometry.coordinates;
@@ -176,8 +170,8 @@ export class TransitRoutingResult implements RouteCalculatorResult {
                             pathCoordinatesEndIndex + 1
                         ); // slice does not include end index
                         let properties: StepGeojsonProperties = {
-                            distanceMeters: unboardStep.inVehicleDistanceMeters,
-                            travelTimeSeconds: unboardStep.inVehicleTimeSeconds,
+                            distanceMeters: unboardStep.inVehicleDistance,
+                            travelTimeSeconds: unboardStep.inVehicleTime,
                             color: path.properties.color,
                             stepSequence: currentStepIndex++,
                             action: 'ride'
@@ -185,7 +179,7 @@ export class TransitRoutingResult implements RouteCalculatorResult {
                         if (completeData) {
                             properties = {
                                 ...properties,
-                                departureTimeSeconds: boardStep.departureTimeSeconds,
+                                departureTimeSeconds: boardStep.departureTime,
                                 agencyAcronym: boardStep.agencyAcronym,
                                 agencyUuid: boardStep.agencyUuid,
                                 lineShortname: boardStep.lineShortname,
@@ -193,7 +187,7 @@ export class TransitRoutingResult implements RouteCalculatorResult {
                                 pathUuid: boardStep.pathUuid,
                                 mode: boardStep.mode,
                                 legSequenceInTrip: boardStep.legSequenceInTrip,
-                                arrivalTimeSeconds: unboardStep.arrivalTimeSeconds
+                                arrivalTimeSeconds: unboardStep.arrivalTime
                             };
                         }
                         features.push({
@@ -267,10 +261,10 @@ export class TransitRoutingResult implements RouteCalculatorResult {
             if (step.action !== 'walking') {
                 return;
             }
-            const walkingStep = step as TrRoutingWalkingStep;
+            const walkingStep = step as TrRoutingV2.TripStepWalking;
             if (walkingStep.type === 'access') {
                 // access segment
-                const nextBoardingStep = steps[stepIndex + 1] as TrRoutingBoardingStep;
+                const nextBoardingStep = steps[stepIndex + 1] as TrRoutingV2.TripStepBoarding;
                 const nodeCoordinates = nextBoardingStep.nodeCoordinates;
                 walkingSegmentsRoutingPromises.push(
                     getRouteByMode(
@@ -284,7 +278,7 @@ export class TransitRoutingResult implements RouteCalculatorResult {
                 );
             } else if (walkingStep.type === 'egress') {
                 // egress segment
-                const prevUnboardingStep = steps[stepIndex - 1] as TrRoutingUnboardingStep;
+                const prevUnboardingStep = steps[stepIndex - 1] as TrRoutingV2.TripStepUnboarding;
                 const nodeCoordinates = prevUnboardingStep.nodeCoordinates;
                 walkingSegmentsRoutingPromises.push(
                     getRouteByMode(
@@ -297,8 +291,8 @@ export class TransitRoutingResult implements RouteCalculatorResult {
                     )
                 );
             } else if (walkingStep.type === 'transfer') {
-                const nextBoardingStep = steps[stepIndex + 1] as TrRoutingBoardingStep;
-                const prevUnboardingStep = steps[stepIndex - 1] as TrRoutingUnboardingStep;
+                const nextBoardingStep = steps[stepIndex + 1] as TrRoutingV2.TripStepBoarding;
+                const prevUnboardingStep = steps[stepIndex - 1] as TrRoutingV2.TripStepUnboarding;
                 const alightingNodeCoordinates = prevUnboardingStep.nodeCoordinates;
                 const boardingNodeCoordinates = nextBoardingStep.nodeCoordinates;
                 walkingSegmentsRoutingPromises.push(

@@ -4,8 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _get from 'lodash.get';
-import _set from 'lodash.set';
 import _cloneDeep from 'lodash.clonedeep';
 import GeoJSON from 'geojson';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -14,24 +12,21 @@ import { TransitRouting } from './TransitRouting';
 import { getRouteByMode } from 'chaire-lib-common/lib/services/routing/RoutingUtils';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-common/lib/services/trRouting/TrRoutingServiceManager';
-import { RoutingOrTransitMode, TransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import { TransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import {
-    TrRoutingResult,
-    TrRoutingResultPath,
-    TrRoutingResultAlternatives
-} from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { TransitRoutingResult } from './TransitRoutingResult';
 import { UnimodalRouteCalculationResult, RouteCalculatorResult } from './RouteCalculatorResult';
+import { HostPort, TransitRouteQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 
 type TransitOrRouteCalculatorResult =
-    | { routingMode: TransitMode; result: TrRoutingResult | TrError }
+    | { routingMode: TransitMode; result: TrRoutingRouteResult | TrError }
     | { routingMode: RoutingMode; result: RouteResults | TrError };
 
-const resultIsTrRouting = (
+const resultIsTransit = (
     result: TransitOrRouteCalculatorResult
-): result is { routingMode: TransitMode; result: TrRoutingResult } => {
-    return result.routingMode === 'transit' && (result.result as any).type !== undefined;
+): result is { routingMode: TransitMode; result: TrRoutingRouteResult | TrError } => {
+    return result.routingMode === 'transit';
 };
 
 const resultIsRouting = (
@@ -58,7 +53,7 @@ export class TransitRoutingCalculator {
             const routingResult = routingResults[i];
             const routingMode = routingResults[i].routingMode;
 
-            if (routingMode === 'transit') {
+            if (resultIsTransit(routingResult)) {
                 // walking is always added when calculating transit, so it can't be undefined
                 const walkingRouteResult = routingResults.find((result) => result.routingMode === 'walking');
                 const walkOnlyPath =
@@ -69,18 +64,12 @@ export class TransitRoutingCalculator {
                 results[routingMode] = new TransitRoutingResult({
                     origin: originDestination.features[0],
                     destination: originDestination.features[1],
-                    hasAlternatives:
-                        resultIsTrRouting(routingResult) && routingResult.result.type === 'withAlternatives',
-                    paths: resultIsTrRouting(routingResult)
-                        ? routingResult.result.type === 'withAlternatives'
-                            ? (routingResult.result as TrRoutingResultAlternatives).alternatives
-                            : [(routingResult.result as TrRoutingResultPath).path]
-                        : [],
+                    paths: TrError.isTrError(routingResult.result) ? [] : routingResult.result.routes,
                     walkOnlyPath,
                     maxWalkingTime: maxWalkingTime,
-                    error: resultIsTrRouting(routingResult) ? undefined : (routingResult.result as TrError)
+                    error: TrError.isTrError(routingResult.result) ? routingResult.result : undefined
                 });
-            } else {
+            } else if (routingMode !== 'transit') {
                 results[routingMode] = new UnimodalRouteCalculationResult({
                     routingMode,
                     origin: originDestination.features[0],
@@ -94,15 +83,15 @@ export class TransitRoutingCalculator {
     }
 
     private static async calculateTransit(
-        od: GeoJSON.FeatureCollection<GeoJSON.Point>,
+        od: [GeoJSON.Feature<GeoJSON.Point>, GeoJSON.Feature<GeoJSON.Point>],
         routing: TransitRouting,
-        queryOptions: any
+        queryOptions: HostPort
     ) {
         const departureTime = routing.getAttributes().departureTimeSecondsSinceMidnight;
         const arrivalTime = routing.getAttributes().arrivalTimeSecondsSinceMidnight;
         const trRoutingService = trRoutingServiceManager.getService();
 
-        const queryParams = {
+        const queryParams: TransitRouteQueryOptions = {
             minWaitingTime: routing.getAttributes().minWaitingTimeSeconds || 180,
             maxAccessTravelTime: routing.getAttributes().maxAccessEgressTravelTimeSeconds || 900,
             maxEgressTravelTime: routing.getAttributes().maxAccessEgressTravelTimeSeconds || 900,
@@ -110,44 +99,35 @@ export class TransitRoutingCalculator {
             maxTravelTime: routing.getAttributes().maxTotalTravelTimeSeconds || 10800,
             alternatives: routing.getAttributes().withAlternatives || false,
             scenarioId: routing.getAttributes().scenarioId || '',
-            originDestination:
-                od.features.length === 2
-                    ? ([od.features[0], od.features[1]] as [
-                          GeoJSON.Feature<GeoJSON.Point>,
-                          GeoJSON.Feature<GeoJSON.Point>
-                      ])
-                    : undefined,
-            odTripUuid: !_isBlank(routing.getAttributes().odTripUuid) ? routing.getAttributes().odTripUuid : undefined,
-            routingName: !_isBlank(routing.getAttributes().routingName)
-                ? routing.getAttributes().routingName
-                : undefined, // TODO: ignored by trRouting for now
+            originDestination: od,
             timeOfTrip: !_isBlank(departureTime) ? (departureTime as number) : (arrivalTime as number),
-            timeOfTripType: !_isBlank(routing.getAttributes().departureTimeSecondsSinceMidnight)
-                ? ('departure' as const)
-                : ('arrival' as const),
+            timeOfTripType: !_isBlank(departureTime) ? ('departure' as const) : ('arrival' as const),
             maxFirstWaitingTime: routing.getAttributes().maxFirstWaitingTimeSeconds || undefined
         };
-        return await trRoutingService.routeV1(queryParams, queryOptions);
+        return await trRoutingService.route(queryParams, queryOptions);
     }
 
-    private static async calculateRoute(od: GeoJSON.FeatureCollection<GeoJSON.Point>, routingMode: RoutingMode) {
-        if (od.features.length < 2) {
-            throw 'Invalid origin/destination for mode ' + routingMode;
-        }
-        return await getRouteByMode(od.features[0], od.features[1], routingMode);
+    private static async calculateRoute(
+        od: [GeoJSON.Feature<GeoJSON.Point>, GeoJSON.Feature<GeoJSON.Point>],
+        routingMode: RoutingMode
+    ) {
+        return await getRouteByMode(od[0], od[1], routingMode);
     }
 
     // FIXME: Type the options
     static async calculate(
         routing: TransitRouting,
         updatePreferences = false,
-        options: { isCancelled?: () => void; [key: string]: any } = {}
+        options: { isCancelled?: () => boolean; [key: string]: any } = {}
     ): Promise<ResultsByMode> {
         if (updatePreferences) {
             routing.updateRoutingPrefs();
         }
 
         const od = routing.originDestinationToGeojson();
+        if (od.features.length < 2) {
+            throw 'Invalid origin/destination';
+        }
         const { isCancelled, ...queryOptions } = options;
         queryOptions.port = routing.getAttributes().routingPort;
 
@@ -168,12 +148,19 @@ export class TransitRoutingCalculator {
                 if (routingMode === 'transit') {
                     routingResult.push({
                         routingMode,
-                        result: await TransitRoutingCalculator.calculateTransit(od, routing, queryOptions)
+                        result: await TransitRoutingCalculator.calculateTransit(
+                            [od.features[0], od.features[1]],
+                            routing,
+                            queryOptions
+                        )
                     });
                 } else {
                     routingResult.push({
                         routingMode,
-                        result: await TransitRoutingCalculator.calculateRoute(od, routingMode)
+                        result: await TransitRoutingCalculator.calculateRoute(
+                            [od.features[0], od.features[1]],
+                            routingMode
+                        )
                     });
                 }
             } catch (error) {
