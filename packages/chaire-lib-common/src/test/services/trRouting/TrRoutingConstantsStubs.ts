@@ -4,7 +4,108 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TrRoutingPath } from '../../../api/TrRouting';
+import { TrRoutingPath, TrRoutingV2 } from '../../../api/TrRouting';
+import { TrRoutingRoute } from '../../../services/trRouting/TrRoutingService';
+import TestUtils from '../../TestUtils';
+
+// TODO These constant paths seem to have as base an actual reply from trRouting
+// with local data and randomly adapted. The data does not make sense. No
+// calculations should be made on them at all! We should add stub data that
+// actually makes sense for a fictive agency.
+
+export const pathNoTransferRouteV2: TrRoutingV2.SingleRouteResult = {
+    departureTime: 28324,
+    arrivalTime: 29858,
+    totalTravelTime: 1534,
+    totalDistance: 2686,
+    totalInVehicleTime: 391,
+    totalInVehicleDistance: 1426,
+    totalNonTransitTravelTime: 963,
+    totalNonTransitDistance: 1260,
+    numberOfBoardings: 1,
+    numberOfTransfers: 0,
+    transferWalkingTime: 0,
+    transferWalkingDistance: 0,
+    accessTravelTime: 210,
+    accessDistance: 262,
+    egressTravelTime: 753,
+    egressDistance: 998,
+    transferWaitingTime: 0,
+    firstWaitingTime: 180,
+    totalWaitingTime: 180,
+    steps: [
+        {
+            type: 'access',
+            action: 'walking',
+            travelTime: 210,
+            distance: 262,
+            departureTime: 28324,
+            arrivalTime: 28534,
+            readyToBoardAt: 28714
+        },
+        {
+            action: 'boarding',
+            departureTime: 28714,
+            waitingTime: 180,
+            agencyAcronym: 'STM',
+            agencyName: 'Société de transport de Montréal',
+            agencyUuid: '4b193a41-adc0-400b-aa9b-390d9aea6226',
+            lineLongname: 'Amherst',
+            lineShortname: '14',
+            lineUuid: '2e93cc6a-9f35-4b78-ad60-de5166013747',
+            pathUuid: 'ba9be399-9c87-4707-91cd-e71c720814d2',
+            modeName: 'Bus',
+            mode: 'bus',
+            tripUuid: 'dda23fbd-d300-4b0f-be00-826e7b1306e7',
+            legSequenceInTrip: 2,
+            stopSequenceInTrip: 2,
+            nodeCode: '52800',
+            nodeCoordinates: [-73.560609, 45.519149],
+            nodeName: 'Amherst / Robin',
+            nodeUuid: '05d9dd74-9d39-46b8-b7f4-257551d66ed4'
+        },
+        {
+            action: 'unboarding',
+            arrivalTime: 29105,
+            inVehicleTime: 391,
+            inVehicleDistance: 1426,
+            agencyAcronym: 'STM',
+            agencyName: 'Société de transport de Montréal',
+            agencyUuid: '4b193a41-adc0-400b-aa9b-390d9aea6226',
+            lineLongname: 'Amherst',
+            lineShortname: '14',
+            lineUuid: '2e93cc6a-9f35-4b78-ad60-de5166013747',
+            pathUuid: 'ba9be399-9c87-4707-91cd-e71c720814d2',
+            modeName: 'Bus',
+            mode: 'bus',
+            tripUuid: 'dda23fbd-d300-4b0f-be00-826e7b1306e7',
+            legSequenceInTrip: 5,
+            stopSequenceInTrip: 5,
+            nodeCode: '52356',
+            nodeCoordinates: [-73.573864, 45.526659],
+            nodeName: 'De La Roche / Bureau',
+            nodeUuid: 'b7c419fb-5a2a-4980-8e08-6889609f2a0f'
+        },
+        {
+            type: 'egress',
+            action: 'walking',
+            travelTime: 753,
+            distance: 998,
+            departureTime: 29105,
+            arrivalTime: 29858
+        }
+    ]
+};
+
+export const pathNoTransferRouteResult: TrRoutingRoute = {
+    originDestination: [
+        TestUtils.makePoint([-73.56084442138672, 45.51738357543945]),
+        TestUtils.makePoint([-73.5704345703125, 45.5335807800293])
+    ],
+    timeOfTrip: 28200,
+    timeOfTripType: 'departure' as const,
+    ...pathNoTransferRouteV2
+};
 
 /**
  * Default return value for a trRouting request. This json string was generated
@@ -15,9 +116,9 @@ export const pathNoTransfer: TrRoutingPath = {
     accessDistanceMeters: 262,
     accessTravelTimeMinutes: 4,
     accessTravelTimeSeconds: 210,
-    arrivalTime: '08:18',
+    arrivalTime: '8:17',
     arrivalTimeSeconds: 29858,
-    departureTime: '07:52',
+    departureTime: '7:52',
     departureTimeSeconds: 28324,
     destination: [-73.5704345703125, 45.5335807800293],
     egressDistanceMeters: 998,
@@ -25,7 +126,7 @@ export const pathNoTransfer: TrRoutingPath = {
     egressTravelTimeSeconds: 753,
     firstWaitingTimeMinutes: 3,
     firstWaitingTimeSeconds: 180,
-    initialDepartureTime: '07:50',
+    initialDepartureTime: '7:50',
     initialDepartureTimeSeconds: 28200,
     initialLostTimeAtDepartureMinutes: 2,
     initialLostTimeAtDepartureSeconds: 124,
@@ -37,12 +138,12 @@ export const pathNoTransfer: TrRoutingPath = {
     steps: [
         {
             action: 'walking',
-            arrivalTime: '07:56',
+            arrivalTime: '7:55',
             arrivalTimeSeconds: 28534,
-            departureTime: '07:52',
+            departureTime: '7:52',
             departureTimeSeconds: 28324,
             distanceMeters: 262,
-            readyToBoardAt: '07:59',
+            readyToBoardAt: '7:58',
             readyToBoardAtSeconds: 28714,
             travelTimeMinutes: 4,
             travelTimeSeconds: 210,
@@ -53,7 +154,7 @@ export const pathNoTransfer: TrRoutingPath = {
             agencyAcronym: 'STM',
             agencyName: 'Société de transport de Montréal',
             agencyUuid: '4b193a41-adc0-400b-aa9b-390d9aea6226',
-            departureTime: '07:59',
+            departureTime: '7:58',
             departureTimeSeconds: 28714,
             legSequenceInTrip: 2,
             lineLongname: 'Amherst',
@@ -67,7 +168,7 @@ export const pathNoTransfer: TrRoutingPath = {
             nodeUuid: '05d9dd74-9d39-46b8-b7f4-257551d66ed4',
             pathUuid: 'ba9be399-9c87-4707-91cd-e71c720814d2',
             stopSequenceInTrip: 2,
-            tripUuid: 'ba9be399-9c87-4707-91cd-e71c720814d2',
+            tripUuid: 'dda23fbd-d300-4b0f-be00-826e7b1306e7',
             waitingTimeMinutes: 3,
             waitingTimeSeconds: 180
         },
@@ -76,7 +177,7 @@ export const pathNoTransfer: TrRoutingPath = {
             agencyAcronym: 'STM',
             agencyName: 'Société de transport de Montréal',
             agencyUuid: '4b193a41-adc0-400b-aa9b-390d9aea6226',
-            arrivalTime: '08:05',
+            arrivalTime: '8:05',
             arrivalTimeSeconds: 29105,
             inVehicleDistanceMeters: 1426,
             inVehicleTimeMinutes: 7,
@@ -97,9 +198,9 @@ export const pathNoTransfer: TrRoutingPath = {
         },
         {
             action: 'walking',
-            arrivalTime: '08:18',
+            arrivalTime: '8:17',
             arrivalTimeSeconds: 29858,
-            departureTime: '08:05',
+            departureTime: '8:05',
             departureTimeSeconds: 29105,
             distanceMeters: 998,
             travelTimeMinutes: 13,
@@ -123,6 +224,152 @@ export const pathNoTransfer: TrRoutingPath = {
     transferWalkingDistanceMeters: 0,
     transferWalkingTimeMinutes: 0,
     transferWalkingTimeSeconds: 0
+};
+
+export const pathOneTransferV2: TrRoutingV2.SingleRouteResult = {
+    departureTime: 900,
+    arrivalTime: 36063,
+    totalTravelTime: 1534,
+    totalDistance: 3686,
+    totalInVehicleTime: 1320,
+    totalInVehicleDistance: 2126,
+    totalNonTransitTravelTime: 963,
+    totalNonTransitDistance: 1260,
+    numberOfBoardings: 1,
+    numberOfTransfers: 1,
+    transferWalkingTime: 0,
+    transferWalkingDistance: 0,
+    accessTravelTime: 960,
+    accessDistance: 555,
+    egressTravelTime: 876,
+    egressDistance: 800,
+    transferWaitingTime: 300,
+    firstWaitingTime: 888,
+    totalWaitingTime: 1800,
+    steps: [
+        {
+            type: 'access',
+            action: 'walking',
+            travelTime: 210,
+            distance: 262,
+            departureTime: 28324,
+            arrivalTime: 28534,
+            readyToBoardAt: 28714
+        },
+        {
+            action: 'boarding',
+            departureTime: 28714,
+            waitingTime: 180,
+            agencyAcronym: 'STM',
+            agencyName: 'Société de transport de Montréal',
+            agencyUuid: '4b193a41-adc0-400b-aa9b-390d9aea6226',
+            lineLongname: 'Amherst',
+            lineShortname: '14',
+            lineUuid: '2e93cc6a-9f35-4b78-ad60-de5166013747',
+            pathUuid: 'ba9be399-9c87-4707-91cd-e71c720814d2',
+            modeName: 'Bus',
+            mode: 'bus',
+            tripUuid: 'ba9be399-9c87-4707-91cd-e71c720814d2',
+            legSequenceInTrip: 2,
+            stopSequenceInTrip: 2,
+            nodeCode: '52800',
+            nodeCoordinates: [-73.560609, 45.519149],
+            nodeName: 'Amherst / Robin',
+            nodeUuid: '05d9dd74-9d39-46b8-b7f4-257551d66ed4'
+        },
+        {
+            action: 'unboarding',
+            arrivalTime: 29105,
+            inVehicleTime: 391,
+            inVehicleDistance: 1426,
+            agencyAcronym: 'STM',
+            agencyName: 'Société de transport de Montréal',
+            agencyUuid: '4b193a41-adc0-400b-aa9b-390d9aea6226',
+            lineLongname: 'Amherst',
+            lineShortname: '14',
+            lineUuid: '2e93cc6a-9f35-4b78-ad60-de5166013747',
+            pathUuid: 'ba9be399-9c87-4707-91cd-e71c720814d2',
+            modeName: 'Bus',
+            mode: 'bus',
+            tripUuid: 'ba9be399-9c87-4707-91cd-e71c720814d2',
+            legSequenceInTrip: 15,
+            stopSequenceInTrip: 16,
+            nodeCode: '52356',
+            nodeCoordinates: [-73.573864, 45.526659],
+            nodeName: 'De La Roche / Bureau',
+            nodeUuid: 'b7c419fb-5a2a-4980-8e08-6889609f2a0f'
+        },
+        {
+            type: 'transfer',
+            action: 'walking',
+            travelTime: 753,
+            distance: 998,
+            departureTime: 29105,
+            arrivalTime: 29858,
+            readyToBoardAt: 30038
+        },
+        {
+            action: 'boarding',
+            departureTime: 30900,
+            waitingTime: 180,
+            agencyAcronym: 'STM',
+            agencyName: 'Société de transport de Montréal',
+            agencyUuid: '4b1941-adc0-400b-aa9b-390d9aea6226',
+            lineLongname: 'Sherbrooke direction OUEST',
+            lineShortname: '24',
+            lineUuid: '2493cc6a-4b78-ad60-de5166013747',
+            pathUuid: 'bg2be399-9c87-4707-91cd-e71c720814d2',
+            modeName: 'Bus',
+            mode: 'bus',
+            tripUuid: 'ddag2fbd-d300-4b0f-be00-826e7b1306e7',
+            legSequenceInTrip: 8,
+            stopSequenceInTrip: 8,
+            nodeCode: '52636',
+            nodeCoordinates: [-73.990609, 45.999149],
+            nodeName: 'Sherbrooke / Cherrier',
+            nodeUuid: '05d9dg24-9d39-46b8-b7f4-257551d66ed4'
+        },
+        {
+            action: 'unboarding',
+            arrivalTime: 31291,
+            inVehicleTime: 391,
+            inVehicleDistance: 1426,
+            agencyAcronym: 'STM',
+            agencyName: 'Société de transport de Montréal',
+            agencyUuid: '4b1941-adc0-400b-aa9b-390d9aea6226',
+            lineLongname: 'Sherbrooke direction OUEST',
+            lineShortname: '24',
+            lineUuid: '2493cc6a-4b78-ad60-de5166013747',
+            pathUuid: 'bg2be399-9c87-4707-91cd-e71c720814d2',
+            modeName: 'Bus',
+            mode: 'bus',
+            tripUuid: 'ddag2fbd-d300-4b0f-be00-826e7b1306e7',
+            legSequenceInTrip: 15,
+            stopSequenceInTrip: 16,
+            nodeCode: '5236',
+            nodeCoordinates: [-73.993864, 45.996659],
+            nodeName: 'Sherbrooke / Metcalfe',
+            nodeUuid: 'b7c41g2b-5a2a-4980-8e08-6889609f2a0f'
+        },
+        {
+            type: 'egress',
+            action: 'walking',
+            travelTime: 753,
+            distance: 998,
+            departureTime: 31291,
+            arrivalTime: 32044
+        }
+    ]
+};
+
+export const pathOneTransferRouteResult: TrRoutingRoute = {
+    originDestination: [
+        TestUtils.makePoint([-73.56084442138672, 45.51738357543945]),
+        TestUtils.makePoint([-74.5708345703125, 44.5332307800293])
+    ],
+    timeOfTrip: 1890,
+    timeOfTripType: 'departure' as const,
+    ...pathOneTransferV2
 };
 
 export const pathOneTransfer: TrRoutingPath = {

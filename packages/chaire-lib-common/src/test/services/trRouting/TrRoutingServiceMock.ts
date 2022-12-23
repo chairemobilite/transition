@@ -5,20 +5,21 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import * as TrRoutingService from '../../../services/trRouting/TrRoutingService';
-import { pathNoTransfer } from './TrRoutingConstantsStubs';
+import { pathNoTransfer, pathNoTransferRouteResult } from './TrRoutingConstantsStubs';
 
-// Type the mock method. If the signature changes, this needs to be updated here
-// too, otherwise tests may fail (or worse, succeed) without explanation.
-const mockRouteFunction: jest.MockedFunction<
-    (
-        params: TrRoutingService.RoutingQueryOptions,
-        options: { [key: string]: unknown }
-    ) => Promise<TrRoutingService.TrRoutingResult>
-> = jest.fn();
-mockRouteFunction.mockImplementation(async (_params, _options) => {
+const mockRouteV1Function: jest.MockedFunction<typeof TrRoutingService.TrRoutingService.prototype.routeV1> = jest.fn();
+mockRouteV1Function.mockImplementation(async (_params, _options) => {
     return {
         type: 'path',
         path: pathNoTransfer
+    };
+});
+
+const mockRouteFunction: jest.MockedFunction<typeof TrRoutingService.TrRoutingService.prototype.route> = jest.fn();
+mockRouteFunction.mockImplementation(async (_params) => {
+    return {
+        routes: [pathNoTransferRouteResult],
+        totalRoutesCalculated: 1
     };
 });
 
@@ -38,18 +39,21 @@ mockAccessibleMapFunction.mockImplementation(async (_params, _options) => {
 const enableMocks = () => {
     // The TrRoutingService module contains a lot of stuff, just mock the main
     // API function of the TrRoutingService class
-    TrRoutingService.TrRoutingService.prototype.route = mockRouteFunction;
+    TrRoutingService.TrRoutingService.prototype.routeV1 = mockRouteV1Function;
     TrRoutingService.TrRoutingService.prototype.accessibleMap = mockAccessibleMapFunction;
+    TrRoutingService.TrRoutingService.prototype.route = mockRouteFunction;
 };
 
 const mockClear = () => {
     mockRouteFunction.mockClear();
     mockAccessibleMapFunction.mockClear();
+    mockRouteV1Function.mockClear();
 };
 
 export default {
     enableMocks,
     mockClear,
+    mockRouteV1Function,
     mockRouteFunction,
     mockAccessibleMapFunction
 };

@@ -127,7 +127,7 @@ export class TransitRoutingCalculator {
                 : ('arrival' as const),
             maxFirstWaitingTime: routing.getAttributes().maxFirstWaitingTimeSeconds || undefined
         };
-        return await trRoutingService.route(queryParams, queryOptions);
+        return await trRoutingService.routeV1(queryParams, queryOptions);
     }
 
     private static async calculateRoute(od: GeoJSON.FeatureCollection<GeoJSON.Point>, routingMode: RoutingMode) {
