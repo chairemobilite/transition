@@ -12,14 +12,11 @@ interface choiceType {
     disabled?: boolean;
     label?: string;
     choices?: choiceType[];
-    [key: string]: unknown;
 }
 
-interface innerChoiceType {
-    value: string;
-    label?: string;
+type innerChoiceType = choiceType & {
     index: number;
-}
+};
 
 // TODO: maybe we should just extend react select and accept any of its config in our component props
 export interface InputMultiSelectProps {
@@ -167,7 +164,9 @@ export class InputMultiselect extends React.Component<InputMultiSelectProps> {
                     isClearable={this.props.isClearable || true}
                     closeMenuOnSelect={this.props.closeMenuOnSelect || (this.props.multiple ? false : true)}
                     placeholder=""
-                    value={this.props.multiple !== false ? actualValueWithLabel : actualValueWithLabel[0]}
+                    value={
+                        (this.props.multiple !== false ? actualValueWithLabel : actualValueWithLabel[0]) as choiceType
+                    }
                     className="react-select-container apptr__input _input-multiselect"
                     classNamePrefix="react-select"
                     styles={customStyles}
