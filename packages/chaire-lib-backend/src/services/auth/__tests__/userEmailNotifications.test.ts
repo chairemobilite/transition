@@ -99,11 +99,13 @@ test('Registration email confirm by admin', async () => {
     await sendConfirmationEmail(user, { strategy: 'confirmByAdmin', confirmUrl });
 
     const sentEmails = nodemailerMock.mock.getSentMail();
-    expect(sentEmails.length).toBe(2);
+    expect(sentEmails.length).toBe(3);
     expect(sentEmails[0].from).toEqual(fromEmail);
     expect(sentEmails[0].to).toEqual(frenchAdmin.email);
     expect(sentEmails[1].from).toEqual(fromEmail);
     expect(sentEmails[1].to).toEqual(englishAdmin.email);
+    expect(sentEmails[2].from).toEqual(fromEmail);
+    expect(sentEmails[2].to).toEqual(defaultUserData.email);
     expect(sentEmails[0].subject).not.toEqual(sentEmails[1].subject);
     expect(sentEmails[0].text).not.toEqual(sentEmails[1].text);
     expect(sentEmails[0].text).toContain('Bonjour ' + frenchAdmin.first_name + ' ' + frenchAdmin.last_name);
@@ -115,6 +117,9 @@ test('Registration email confirm by admin', async () => {
     expect(sentEmails[1].html).toContain('Hi ' + englishAdmin.username);
     expect(sentEmails[1].html).toContain(`<a href="${confirmUrl}">${confirmUrl}</a>`);
     expect(sentEmails[0].html.match(/\<br\/\>/g).length).toBeGreaterThan(1);
+    expect(sentEmails[2].text).toContain('Bonjour');
+    expect(sentEmails[2].text).not.toContain(confirmUrl);
+
 });
 
 test('Registration email confirm by admin, but no admin', async () => {
