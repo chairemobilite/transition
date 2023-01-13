@@ -58,13 +58,19 @@ export default class UserModel extends bookshelf.Model<UserModel> {
         return bcrypt.hashSync(password, bcrypt.genSaltSync(10));
     };
 
-    static confirmAccount = async (token: string): Promise<'Confirmed' | 'NotFound'> => {
+    static confirmAccount = async (
+        token: string,
+        actionCallback?: (user: UserModel) => void
+    ): Promise<'Confirmed' | 'NotFound'> => {
         const user = await UserModel.where<UserModel>({ confirmation_token: token }).fetch({ require: false });
         if (!user) {
             return 'NotFound';
         }
         user.set({ confirmation_token: null, is_confirmed: true });
         await user.save();
+        if (actionCallback) {
+            actionCallback(user);
+        }
         return 'Confirmed';
     };
 

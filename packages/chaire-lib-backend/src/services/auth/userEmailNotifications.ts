@@ -103,6 +103,16 @@ export const sendConfirmationEmail = async (
     console.log('Email sent for account confirmation');
 };
 
+export const sendConfirmedByAdminEmail = async (user: UserModel): Promise<void> => {
+    const email = {
+        mailText: 'server:confirmedByAdminEmailText',
+        mailSubject: 'server:confirmedByAdminEmailSubject',
+        toUser: user
+    };
+    await sendEmail(email, {});
+    console.log('Email sent for confirmation by admin');
+};
+
 /**
  * Send an email to the user with a link to the forget password page
  * @param user The user who forgot his password
