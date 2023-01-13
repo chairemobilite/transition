@@ -31,6 +31,7 @@ jest.mock('../userPermissions', () => {
         getHomePage: jest.fn()
     };
 });
+
 const mockedGetHomePage = getHomePage as jest.MockedFunction<typeof getHomePage>;
 
 const tracker = mockKnex.getTracker();
@@ -61,6 +62,26 @@ test('Test valid token confirmation', async () => {
     expect(user.get('confirmation_token')).toBeNull();
     expect(user.get('is_confirmed')).toBeTruthy();
     expect(result).toEqual('Confirmed');
+});
+
+test('Test valid token with callback', async () => {
+    const token = "thisisanarbitraytoken";
+    tracker.on('query', (query) => {
+        query.response([{
+            id: 5,
+            confirmation_token: token,
+            is_confirmed: false
+        }]);
+    });
+    const callback = jest.fn();
+    const result = await User.confirmAccount(token, callback);
+    expect(saveFct).toHaveBeenCalledTimes(1);
+    expect(saveFct.mock.instances).toHaveLength(1);
+    const user = saveFct.mock.instances[0];
+    expect(user.get('confirmation_token')).toBeNull();
+    expect(user.get('is_confirmed')).toBeTruthy();
+    expect(result).toEqual('Confirmed');
+    expect(callback).toHaveBeenCalled();
 });
 
 test('Test invalid token confirmation', async () => {

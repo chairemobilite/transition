@@ -9,7 +9,7 @@ import nodemailerMock  from 'nodemailer-mock';
 import knex from 'knex';
 import mockKnex from 'mock-knex';
 
-import { sendConfirmationEmail, resetPasswordEmail, sendEmail } from '../userEmailNotifications';
+import { sendConfirmationEmail, sendConfirmedByAdminEmail, resetPasswordEmail, sendEmail } from '../userEmailNotifications';
 import UserModel from '../user';
 import { registerTranslationDir } from '../../../config/i18next';
 
@@ -160,6 +160,17 @@ test('Forgot password email, english', async () => {
     expect(sentEmails[0].html).toContain('Hi ');
     expect(sentEmails[0].html).toContain(`<a href="${confirmUrl}">${confirmUrl}</a>`);
     expect(sentEmails[0].html.match(/\<br\/\>/g).length).toBeGreaterThan(1);
+});
+
+test('Confirmed by admin email', async () => {
+    const user = new UserModel({...defaultUserData})
+    await sendConfirmedByAdminEmail(user);
+
+    const sentEmails = nodemailerMock.mock.getSentMail();
+    expect(sentEmails.length).toBe(1);
+    expect(sentEmails[0].from).toEqual(fromEmail);
+    expect(sentEmails[0].to).toEqual(defaultUserData.email);
+    expect(sentEmails[0].subject).toContain('compte confirmé');
 });
 
 describe('sendEmail function', () => {
