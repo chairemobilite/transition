@@ -69,11 +69,19 @@ const getConfirmEmailsToSend = async (user: UserModel, strategy?: string): Promi
     if (admins.length === 0) {
         throw new Error('There are no admins to confirm emails!!');
     }
-    return admins.map((admin) => ({
+    // Send email to admins and a notification to the user
+    const userNotificationPending = {
+        mailText: 'server:pendingConfirmByAdminText',
+        mailSubject: 'server:pendingConfirmByAdminSubject',
+        toUser: user
+    };
+    const notifications = admins.map((admin) => ({
         mailText: 'server:confirmByAdminText',
         mailSubject: 'server:confirmByAdminSubject',
         toUser: admin
     }));
+    notifications.push(userNotificationPending);
+    return notifications;
 };
 
 /**
@@ -93,6 +101,16 @@ export const sendConfirmationEmail = async (
         await sendEmail(email, { userConfirmationUrl: { url: options.confirmUrl }, usermail: user.get('email') });
     });
     console.log('Email sent for account confirmation');
+};
+
+export const sendConfirmedByAdminEmail = async (user: UserModel): Promise<void> => {
+    const email = {
+        mailText: 'server:confirmedByAdminEmailText',
+        mailSubject: 'server:confirmedByAdminEmailSubject',
+        toUser: user
+    };
+    await sendEmail(email, {});
+    console.log('Email sent confirmation by admin');
 };
 
 /**
