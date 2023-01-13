@@ -5,6 +5,8 @@
     "confirmByUserSubject": "Transition: New User Confirmation",
     "pendingConfirmByAdminSubject": "Transition: account creation confirmation pending",
     "pendingConfirmByAdminText": "Hi {{name}},\n\nyour access request to transition will be confirmed by an administrator shortly.\n\nThank you",
+    "confirmedByAdminEmailSubject": "Transition: account confirmed",
+    "confirmedByAdminEmailText": "Hi {{name}},\n\nyour access request have been confirmed. You can now use your account.",
     "resetPasswordEmailSubject": "Forgotten password",
     "resetPasswordEmailText": "Hi {{name}},\n\nYou are receiving this because you have requested the reset of the password for your account.\n\nPlease click on the following link, or paste this into your browser to complete the process\n\n{{resetPasswordUrl}}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.\n\nThank you",
     "magicLinkEmailText": "Welcome!\n\nTo connect to the application, click on the following link: {{magicLinkUrl}}.\n\nThank you",

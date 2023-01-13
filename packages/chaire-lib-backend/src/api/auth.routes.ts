@@ -15,6 +15,7 @@ import User, { sanitizeUserAttributes, UserAttributes } from '../services/auth/u
 // TODO Responsibility for user login management is usually in passport, move it there
 import { resetPasswordEmail } from '../services/auth/userEmailNotifications';
 import config from '../config/server.config';
+import { getConfirmEmailStrategy } from '../config/auth/localLogin.config';
 
 const defaultSuccessCallback = (req: Request, res: Response) => {
     // Handle success
@@ -114,7 +115,7 @@ export default function (app: express.Express) {
 
     app.post('/verify', async (req, res) => {
         try {
-            const response = await User.confirmAccount(req.body.token);
+            const response = await User.confirmAccount(req.body.token, getConfirmEmailStrategy() === 'confirmByAdmin');
             return res.status(200).json({
                 status: response
             });

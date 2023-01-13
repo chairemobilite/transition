@@ -19,7 +19,8 @@ import { v4 as uuidV4 } from 'uuid';
 // FIXME: auth.localLogin is now the way to define local login behavior, setting variables here for legacy purposes
 // @Deprecated all config.* that is not in auth, are deprecated and have been moved to auth
 const getConfirmEmail = () => config.confirmEmail || config.auth?.localLogin?.confirmEmail;
-const getConfirmEmailStrategy = () => config.confirmEmailStrategy || config.auth?.localLogin?.confirmEmailStrategy;
+export const getConfirmEmailStrategy = () =>
+    config.confirmEmailStrategy || config.auth?.localLogin?.confirmEmailStrategy;
 
 const getVerifyUrl = (user: UserModel): string => {
     const host = process.env.HOST || 'http://localhost:8080';

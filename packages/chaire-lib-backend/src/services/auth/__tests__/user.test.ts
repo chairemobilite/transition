@@ -10,6 +10,7 @@ import MockDate from 'mockdate';
 import moment from 'moment';
 import { sanitizeUserAttributes, UserAttributes } from '../user';
 import { getHomePage } from '../userPermissions';
+import { sendConfirmedByAdminEmail } from '../userEmailNotifications';
 
 import User from '../user';
 
@@ -31,6 +32,17 @@ jest.mock('../userPermissions', () => {
         getHomePage: jest.fn()
     };
 });
+jest.mock('../userEmailNotifications', () => {
+    const originalModule =
+        jest.requireActual<typeof import('../userEmailNotifications')>('../userEmailNotifications');
+
+    return {
+        __esModule: true, // Use it when dealing with esModules
+        ...originalModule,
+        sendConfirmedByAdminEmail: jest.fn()
+    };
+});
+
 const mockedGetHomePage = getHomePage as jest.MockedFunction<typeof getHomePage>;
 
 const tracker = mockKnex.getTracker();
@@ -40,9 +52,12 @@ const saveFct = jest.fn();
 
 User.prototype.save = saveFct;
 
+const mockedSendConfirmedByAdmin = sendConfirmedByAdminEmail as jest.MockedFunction<typeof sendConfirmedByAdminEmail>;
+
 beforeEach(() => {
     saveFct.mockClear();
     mockedGetHomePage.mockClear();
+    mockedSendConfirmedByAdmin.mockClear();
 });
 
 test('Test valid token confirmation', async () => {
@@ -61,6 +76,26 @@ test('Test valid token confirmation', async () => {
     expect(user.get('confirmation_token')).toBeNull();
     expect(user.get('is_confirmed')).toBeTruthy();
     expect(result).toEqual('Confirmed');
+    expect(mockedSendConfirmedByAdmin).not.toHaveBeenCalled();
+});
+
+test('Test valid token confirmation from admin', async () => {
+    const token = "thisisanarbitraytoken";
+    tracker.on('query', (query) => {
+        query.response([{
+            id: 5,
+            confirmation_token: token,
+            is_confirmed: false
+        }]);
+    });
+    const result = await User.confirmAccount(token, true);
+    expect(saveFct).toHaveBeenCalledTimes(1);
+    expect(saveFct.mock.instances).toHaveLength(1);
+    const user = saveFct.mock.instances[0];
+    expect(user.get('confirmation_token')).toBeNull();
+    expect(user.get('is_confirmed')).toBeTruthy();
+    expect(result).toEqual('Confirmed');
+    expect(mockedSendConfirmedByAdmin).toHaveBeenCalled();
 });
 
 test('Test invalid token confirmation', async () => {

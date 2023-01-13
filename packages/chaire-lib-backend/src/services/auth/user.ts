@@ -10,6 +10,7 @@ import moment from 'moment';
 import { BaseUser } from 'chaire-lib-common/lib/services/user/userType';
 import { serializePermissions } from './authorization';
 import { getHomePage } from './userPermissions';
+import { sendConfirmedByAdminEmail } from './userEmailNotifications';
 
 export type UserAttributes = {
     id: number;
@@ -58,13 +59,16 @@ export default class UserModel extends bookshelf.Model<UserModel> {
         return bcrypt.hashSync(password, bcrypt.genSaltSync(10));
     };
 
-    static confirmAccount = async (token: string): Promise<'Confirmed' | 'NotFound'> => {
+    static confirmAccount = async (token: string, confirmedByAdmin?: boolean): Promise<'Confirmed' | 'NotFound'> => {
         const user = await UserModel.where<UserModel>({ confirmation_token: token }).fetch({ require: false });
         if (!user) {
             return 'NotFound';
         }
         user.set({ confirmation_token: null, is_confirmed: true });
         await user.save();
+        if (confirmedByAdmin) {
+            sendConfirmedByAdminEmail(user);
+        }
         return 'Confirmed';
     };
 
