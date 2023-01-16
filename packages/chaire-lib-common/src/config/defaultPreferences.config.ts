@@ -90,29 +90,6 @@ const defaultPreferences: PreferencesModel = {
                 icon: '/dist/images/icons/interface/preferences_white.svg',
                 hasMapLayers: false
             }
-        },
-        osc2ar: {
-            osc2arProject1: {
-                localizedTitle: 'osc2ar:NewProject',
-                icon: '/dist/images/icons/osc2ar/project/project1_white.svg',
-                hasMapLayers: false,
-                showFullSizePanel: true
-            }
-        },
-        octavi: {
-            octaviHighlights: {
-                localizedTitle: 'main:Highlights',
-                icon: '/dist/images/icons/interface/highlighter_white.svg',
-                hasMapLayers: false,
-                showFullSizePanel: true
-            },
-            octaviMap: {
-                localizedTitle: 'octavi:Map',
-                icon: '/dist/images/icons/interface/accessibility_map_white.svg',
-                hasMapLayers: true,
-                showFullSizePanel: false,
-                showMap: true
-            }
         }
     },
     map: {
@@ -185,18 +162,7 @@ const defaultPreferences: PreferencesModel = {
                 'transitPathWaypointsSelected',
                 'transitNodes',
                 'transitNodesSelected'
-            ],
-            osc2arProject1: [],
-            osc2arProject2: [],
-            osc2arProject3: [],
-            osc2arProject4: [],
-            osc2arProject5: [],
-            osc2arProject6: [],
-            osc2arProject7: [],
-            osc2arProject8: [],
-            osc2arProject9: [],
-            octaviHighlights: [],
-            octaviMap: ['octaviTaxiTripsOrigins']
+            ]
         }
     },
     showAggregatedOdTripsLayer: true,
@@ -648,81 +614,7 @@ const defaultPreferences: PreferencesModel = {
             label: 'MTM Zone 8 NAD83 EPSG:2950',
             value: '+proj=tmerc +lat_0=0 +lon_0=-73.5 +k=0.9999 +x_0=304800 +y_0=0 +ellps=GRS80 +units=m +no_defs'
         }
-    },
-    osc2arCharts: {
-        preferences: {
-            osc2arProject1: {
-                activeCharts: {
-                    TopLeft: null,
-                    TopRight: null,
-                    BottomLeft: null,
-                    BottomRight: null
-                },
-                activeMenus: {
-                    TopLeft: false,
-                    TopRight: false,
-                    BottomLeft: false,
-                    BottomRight: false
-                },
-                activeFilters: {
-                    TopLeft: {
-                        period: {
-                            start: new Date().getTime(),
-                            end: new Date().getTime(),
-                            startTime: 0,
-                            endTime: 1440,
-                            step: 15,
-                            days: []
-                        },
-                        weather: { visibility: false, snowFall: false, icedRoad: false },
-                        segments: ''
-                    },
-                    TopRight: {
-                        period: {
-                            start: new Date().getTime(),
-                            end: new Date().getTime(),
-                            startTime: 0,
-                            endTime: 1440,
-                            step: 15,
-                            days: []
-                        },
-                        weather: { visibility: false, snowFall: false, icedRoad: false },
-                        segments: ''
-                    },
-                    BottomLeft: {
-                        period: {
-                            start: new Date().getTime(),
-                            end: new Date().getTime(),
-                            startTime: 0,
-                            endTime: 1440,
-                            step: 15,
-                            days: []
-                        },
-                        weather: { visibility: false, snowFall: false, icedRoad: false },
-                        segments: ''
-                    },
-                    BottomRight: {
-                        period: {
-                            start: new Date().getTime(),
-                            end: new Date().getTime(),
-                            startTime: 0,
-                            endTime: 1440,
-                            step: 15,
-                            days: []
-                        },
-                        weather: { visibility: false, snowFall: false, icedRoad: false },
-                        segments: ''
-                    }
-                },
-                mainPosition: 'AllPositions',
-                nbCharts: 4
-            }
-        },
-        isMapActive: false,
-        isTableActive: false
-    },
-    osc2arCorridors: {},
-    osc2arPeriods: {}
+    }
 };
 
 export default defaultPreferences;

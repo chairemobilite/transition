@@ -27,9 +27,6 @@
   "GarageCollectionLoadingFromServer": "Loading garages from server",
   "UnitCollectionLoadingFromServer": "Loading units from server",
   "AggregatedODGeojsonCollectionLoadingFromServer": "Loading OD places from server",
-  "NetworkSegmentGeojsonCollectionLoadingFromServer" : "Loading osc2ar network from server",
-  "NetworkSpeedsCollectionLoadingFromServer" : "Loading osc2ar speeds from server",
-  "TaxiActivitiesCollectionLoadingFromServer": "Loading taxi activites from server",
 
   "SimulationCollectionLoadingFromCollection": "Loading simulations",
   "NetworkCollectionLoadingFromCollection": "Loading networks",
@@ -48,8 +45,6 @@
   "GarageCollectionLoadingFromCollection": "Loading garages",
   "UnitCollectionLoadingFromCollection": "Loading units",
   "AggregatedODGeojsonCollectionLoadingFromCollection": "Loading OD places",
-  "NetworkSegmentGeojsonCollectionLoadingFromCollection" : "Loading osc2ar network",
-  "NetworkSpeedsCollectionLoadingFromCollection" : "Loading osc2ar speeds",
 
   "SavingAllCache": "Saving cache files",
   "RestartTrRouting": "Restart routing engine",
