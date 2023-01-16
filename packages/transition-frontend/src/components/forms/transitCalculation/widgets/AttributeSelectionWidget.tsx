@@ -47,7 +47,7 @@ function CsvAttributeSelectionWidgetBase<T extends TransitBatchCalculationAttrib
                 {props.t(`transit:transitRouting:${capitalizeFirstLetter(props.currentAttribute as string)}`)}
             </label>
             <InputSelect
-                id={`formFieldBatchCalculationSelection${props.currentAttribute}`}
+                id={`formFieldBatchCalculationSelection${String(props.currentAttribute)}`}
                 value={String(props.attributes[props.currentAttribute])}
                 choices={csvAttributesChoices}
                 onValueChange={(e) => props.onValueChange(props.currentAttribute, { value: e.target.value })}
@@ -71,7 +71,7 @@ function BooleanAttributeSelectionWidgetBase<T extends TransitBatchCalculationAt
                 {props.t(`transit:transitRouting:${capitalizeFirstLetter(props.currentAttribute as string)}`)}
             </label>
             <InputRadio
-                id={`formFieldBatchCalculationSelection${props.currentAttribute}`}
+                id={`formFieldBatchCalculationSelection${String(props.currentAttribute)}`}
                 value={props.attributes[props.currentAttribute] as unknown as boolean | undefined}
                 sameLine={true}
                 disabled={false}

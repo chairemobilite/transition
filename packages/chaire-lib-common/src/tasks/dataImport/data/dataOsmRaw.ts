@@ -168,12 +168,12 @@ export class DataOsmRaw extends DataBase<OsmRawDataType> {
     }
 
     protected objectMatches(element: OsmRawDataType, data: { [key: string]: any }): boolean {
-        const matches = data.other ? super.objectMatches(element, data.other) : true;
+        const matches = data.other ? super.innerObjectMatches(element, data.other) : true;
         if (matches && data.tags) {
             if (!element.tags) {
                 return false;
             }
-            return super.objectMatches(element.tags, data.tags);
+            return super.innerObjectMatches(element.tags, data.tags);
         }
         return matches;
     }

@@ -23,7 +23,7 @@ export class DataGeojson extends DataBase<GeoJSON.Feature> {
     protected objectMatches(element: GeoJSON.Feature, data: { [key: string]: any }): boolean {
         const properties = element.properties || {};
         const { id, ...otherData } = data;
-        const matches = super.objectMatches(properties, otherData);
+        const matches = super.innerObjectMatches(properties, otherData);
         if (matches && id) {
             if (!element.id) {
                 return false;
