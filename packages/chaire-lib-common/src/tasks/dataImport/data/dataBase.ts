@@ -12,8 +12,9 @@ export abstract class DataBase<T> {
     }
 
     protected abstract getData(): T[];
+    protected abstract objectMatches(element: T, data: { [key: string]: any }): boolean;
 
-    protected objectMatches(element: { [key: string]: any }, data: { [key: string]: any }): boolean {
+    protected innerObjectMatches(element: { [key: string]: any }, data: { [key: string]: any }): boolean {
         const dataKey = Object.keys(data);
         for (let i = 0, size = dataKey.length; i < size; i++) {
             const key = dataKey[i];

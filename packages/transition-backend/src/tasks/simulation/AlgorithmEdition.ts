@@ -77,7 +77,7 @@ export const editAlgorithmConfiguration = async (
     );
 
     const answers = await inquirer.prompt(questions);
-    Object.assign(newParameters.algorithmConfiguration?.config, answers);
+    Object.assign(newParameters.algorithmConfiguration?.config || {}, answers);
 
     return newParameters;
 };
