@@ -93,6 +93,8 @@ Run `yarn build:dev` or `yarn build:prod` to create the html client application 
 
 The `prod` version is minified, while the `dev` version lhas greater size but allows to more easily debug the application.
 
+*Note: If running with node version 18, webpack may return an error. In that case, run `export NODE_OPTIONS=--openssl-legacy-provider` before.*
+
 ### Start the json2capnp cache server
 
 *Optional*

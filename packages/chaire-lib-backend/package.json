@@ -1,6 +1,6 @@
 {
     "engines": {
-        "node": ">=12.9.0"
+        "node": ">=16.0.0"
     },
     "name": "chaire-lib-backend",
     "version": "0.2.2",
