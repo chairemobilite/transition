@@ -43,7 +43,7 @@ const objectToGtfs = (line: Line, agencyId: string, includeCustomFields = false)
         route_desc: attributes.description, // optional
         route_type: vehicleType, // required
         route_url: attributes.data.gtfs?.route_url, // optional
-        route_color: attributes.color, // optional
+        route_color: attributes.color !== undefined ? attributes.color.substring(1) : undefined, // optional
         route_text_color: attributes.data.gtfs?.route_text_color || line.getPreferredTextColorBasedOnLineColor(), // optional
         route_sort_order: attributes.data.gtfs?.route_sort_order, // optional
         continuous_pickup: attributes.data.gtfs?.continuous_pickup, // optional

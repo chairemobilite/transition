@@ -5,9 +5,10 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { Trip } from "gtfs-types";
-import { GtfsInternalData, StopTime } from '../GtfsImportTypes';
+import { GtfsInternalData, StopTime, formatColor } from '../GtfsImportTypes';
 import { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import each from 'jest-each';
 
 /** Base object for import data, each test can add their own specific data, but use this with basic assignation for unused fields */
 export const defaultImportData = {
@@ -395,6 +396,13 @@ export const gtfsValidTransitionGeneratedData = {
     'stop_times.txt': gtfsValidSimpleData['stop_times.txt']
 }
 
-test('Dummy gtfs import data', () => {
-    // Empty test so this file passes
+
+each([
+    ['123456', undefined, '#123456'],
+    ['#123456', undefined, '#123456'],
+    ['123456', '#ABCDEF', '#123456'],
+    [undefined, '#ABCDEF', '#ABCDEF'],
+    [undefined, undefined, undefined],
+]).test('Format color: %s %s', (color, defaultValue, expected) => {
+    expect(formatColor(color, defaultValue)).toEqual(expected);
 })

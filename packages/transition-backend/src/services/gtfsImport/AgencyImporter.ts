@@ -14,7 +14,7 @@ import { getUniqueAgencyAcronym } from 'transition-common/lib/services/agency/Ag
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { Agency as GtfsAgencySpec } from 'gtfs-types';
 import { GtfsObjectImporter } from './GtfsObjectImporter';
-import { GtfsInternalData } from './GtfsImportTypes';
+import { formatColor, GtfsInternalData } from './GtfsImportTypes';
 
 export class AgencyImporter implements GtfsObjectImporter<AgencyImportData, Agency> {
     public static DEFAULT_AGENCY_ACRONYM = 'single';
@@ -107,7 +107,8 @@ export class AgencyImporter implements GtfsObjectImporter<AgencyImportData, Agen
             name: gtfsObject.agency_name,
             data: {
                 gtfs: gtfsObject
-            }
+            },
+            color: formatColor(gtfsObject.tr_agency_color, agencyDefaultColor)
         };
         if (gtfsObject.tr_agency_description) {
             agencyAttributes.description = gtfsObject.tr_agency_description;
@@ -126,11 +127,6 @@ export class AgencyImporter implements GtfsObjectImporter<AgencyImportData, Agen
             if (descriptionStrings.length > 0) {
                 agencyAttributes.description = descriptionStrings.join(', ');
             }
-        }
-        if (gtfsObject.tr_agency_color) {
-            agencyAttributes.color = gtfsObject.tr_agency_color;
-        } else if (agencyDefaultColor) {
-            agencyAttributes.color = agencyDefaultColor;
         }
         return agencyAttributes;
     }

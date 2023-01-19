@@ -73,3 +73,15 @@ export interface GtfsInternalData {
      */
     doNotUpdateAgencies: string[];
 }
+
+/**
+ * Properly formats a color string with a prefixing '#' sign, or returns
+ * undefined if no color or default value
+ *
+ * @param color The color string, prefixed with '#' or not
+ * @param defaultColor The default color, prefixed with '#'
+ * @returns A color string prefixed with '#', or the default color if undefined,
+ * or undefined if no default color specified
+ */
+export const formatColor = (color: string | undefined, defaultColor?: string) =>
+    color !== undefined ? `${color.startsWith('#') ? '' : '#'}${color}` : defaultColor;
