@@ -44,14 +44,15 @@ export const lineAttributes1 = {
     category: 'C',
     allow_same_line_transfers: false,
     is_autonomous: true,
+    color: '#112233',
     data: {
         gtfs: {
             route_id: 'Orig',
             agency_id: 'OrigAg',
             route_type: 3,
             route_url: 'https://foo.com',
-            route_color: '#112233',
-            route_text_color: '#123456',
+            route_color: '112233',
+            route_text_color: '123456',
             route_sort_order: 3,
             continuous_pickup: 0,
             continuous_drop_off: 0
@@ -120,7 +121,7 @@ test('Test exporting one line originally from gtfs', async () => {
     expect(mockWriteStream.write).toHaveBeenCalledTimes(1);
     expect(mockWriteStream.write).toHaveBeenLastCalledWith([
         '"route_id","agency_id","route_short_name","route_long_name","route_desc","route_type","route_url","route_color","route_text_color","route_sort_order","continuous_pickup","continuous_drop_off"',
-        `"${lineAttributes1.id}","${agencyGtfsSlug}","${lineAttributes1.shortname}","${lineAttributes1.longname}",,3,"${lineAttributes1.data.gtfs.route_url}",,"${lineAttributes1.data.gtfs.route_text_color}",${lineAttributes1.data.gtfs.route_sort_order},${lineAttributes1.data.gtfs.continuous_pickup},${lineAttributes1.data.gtfs.continuous_drop_off}`
+        `"${lineAttributes1.id}","${agencyGtfsSlug}","${lineAttributes1.shortname}","${lineAttributes1.longname}",,3,"${lineAttributes1.data.gtfs.route_url}","112233","${lineAttributes1.data.gtfs.route_text_color}",${lineAttributes1.data.gtfs.route_sort_order},${lineAttributes1.data.gtfs.continuous_pickup},${lineAttributes1.data.gtfs.continuous_drop_off}`
     ].join('\n'));
     expect(mockWriteStream.end).toHaveBeenCalledTimes(1);
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/routes.txt'));
@@ -146,7 +147,7 @@ test('Test exporting multiple lines, with transferable that should not be export
     expect(mockWriteStream.write).toHaveBeenCalledTimes(1);
     expect(mockWriteStream.write).toHaveBeenLastCalledWith([
         '"route_id","agency_id","route_short_name","route_long_name","route_desc","route_type","route_url","route_color","route_text_color","route_sort_order","continuous_pickup","continuous_drop_off"',
-        `"${lineAttributes1.id}","${agencyGtfsSlug}","${lineAttributes1.shortname}","${lineAttributes1.longname}",,3,"${lineAttributes1.data.gtfs.route_url}",,"${lineAttributes1.data.gtfs.route_text_color}",${lineAttributes1.data.gtfs.route_sort_order},${lineAttributes1.data.gtfs.continuous_pickup},${lineAttributes1.data.gtfs.continuous_drop_off}`,
+        `"${lineAttributes1.id}","${agencyGtfsSlug}","${lineAttributes1.shortname}","${lineAttributes1.longname}",,3,"${lineAttributes1.data.gtfs.route_url}","112233","${lineAttributes1.data.gtfs.route_text_color}",${lineAttributes1.data.gtfs.route_sort_order},${lineAttributes1.data.gtfs.continuous_pickup},${lineAttributes1.data.gtfs.continuous_drop_off}`,
         `"${lineAttributes2.id}","${agencyGtfsSlug}","${lineAttributes2.shortname}","${lineAttributes2.longname}",,3,,,,,,`
     ].join('\n'));
     expect(mockWriteStream.end).toHaveBeenCalledTimes(1);

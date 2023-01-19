@@ -329,4 +329,28 @@ describe('GTFS Line import', () => {
             })
         }));
     });
+
+    test('Test default line color', async () => {
+        currentData = gtfsValidSimpleData;
+        
+        // No route color and no import agency color
+        const { route_color, ...rest } = line0ForImport;
+        const importData = [ { line: { ...rest }, selected: true } ];
+        const lines = new LineCollection([], {})
+
+        const lineImporter = new LineImporter({ directoryPath: '', lines });
+        const data = await lineImporter.import(Object.assign({}, defaultImportData, { lines: importData }), Object.assign({}, defaultInternalImportData, { agencyIdsByAgencyGtfsId }));
+        expect(lineSaveFct).toHaveBeenCalledTimes(1);
+        const newLine = data[gtfsValidTransitionGeneratedData['routes.txt'][0].route_id];
+        expect(newLine).toBeDefined();
+        expect(newLine.getAttributes().color).toEqual('#FFFFFF');
+
+        // Import again, this time with a default agency color
+        const defaultColor = '#ABCDEF';
+        const data2 = await lineImporter.import(Object.assign({}, defaultImportData, { lines: importData, agencies_color: defaultColor }), Object.assign({}, defaultInternalImportData, { agencyIdsByAgencyGtfsId }));
+        expect(lineSaveFct).toHaveBeenCalledTimes(2);
+        const newLine2 = data2[gtfsValidTransitionGeneratedData['routes.txt'][0].route_id];
+        expect(newLine2).toBeDefined();
+        expect(newLine2.getAttributes().color).toEqual(defaultColor);
+    });
 })

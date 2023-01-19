@@ -18,7 +18,7 @@ import { ServiceImportData, GtfsImportData } from 'transition-common/lib/service
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { getUniqueServiceName } from 'transition-common/lib/services/service/ServiceUtils';
 import { GtfsObjectImporter } from './GtfsObjectImporter';
-import { GtfsInternalData } from './GtfsImportTypes';
+import { formatColor, GtfsInternalData } from './GtfsImportTypes';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import Line from 'transition-common/lib/services/line/Line';
 
@@ -49,12 +49,9 @@ export const gtfsToObjectAttributes = (gtfsObject: GtfsService): Partial<Service
             gtfs: {
                 service_id: gtfsObject.service_id
             }
-        }
+        },
+        color: formatColor(gtfsObject.tr_service_color)
     };
-    if (gtfsObject.tr_service_color) {
-        serviceAttributes.color =
-            (gtfsObject.tr_service_color.startsWith('#') ? '' : '#') + gtfsObject.tr_service_color;
-    }
     if (gtfsObject.tr_service_desc) {
         serviceAttributes.description = gtfsObject.tr_service_desc;
     }

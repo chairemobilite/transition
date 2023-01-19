@@ -17,7 +17,10 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 import AgencyImporter from './AgencyImporter';
 import { GtfsObjectImporter } from './GtfsObjectImporter';
-import { GtfsInternalData } from './GtfsImportTypes';
+import { GtfsInternalData, formatColor } from './GtfsImportTypes';
+
+// Default line color as per the GTFS specification
+const DEFAULT_LINE_COLOR = '#FFFFFF';
 
 export class LineImporter implements GtfsObjectImporter<LineImportData, Line> {
     private _filePath: string;
@@ -77,7 +80,8 @@ export class LineImporter implements GtfsObjectImporter<LineImportData, Line> {
                 importedLines[importObject.line.route_id] = await this.importLine(
                     importObject,
                     {
-                        agencyId: internalData.agencyIdsByAgencyGtfsId[importObject.line.agency_id]
+                        agencyId: internalData.agencyIdsByAgencyGtfsId[importObject.line.agency_id],
+                        agencyColor: importData.agencies_color
                     },
                     internalData.doNotUpdateAgencies
                 );
@@ -86,7 +90,10 @@ export class LineImporter implements GtfsObjectImporter<LineImportData, Line> {
         return importedLines;
     }
 
-    private gtfsToObjectAttributes(gtfsObject: GtfsRoute, agencyId: string): Partial<LineAttributes> {
+    private gtfsToObjectAttributes(
+        gtfsObject: GtfsRoute,
+        options: { agencyId: string; agencyColor?: string }
+    ): Partial<LineAttributes> {
         let mode: LineMode | undefined = undefined;
         const categoryRouteType = Math.floor(gtfsObject.route_type / 100) * 100;
         for (let i = 0, count = lineModes.length; i < count; i++) {
@@ -105,17 +112,15 @@ export class LineImporter implements GtfsObjectImporter<LineImportData, Line> {
         }
 
         const lineAttributes: Partial<LineAttributes> = {
-            agency_id: agencyId, // should not be null!
+            agency_id: options.agencyId, // should not be null!
             shortname: gtfsObject.route_short_name,
             longname: gtfsObject.route_long_name || gtfsObject.route_desc,
             mode: mode,
             data: {
                 gtfs: gtfsObject
-            }
+            },
+            color: formatColor(gtfsObject.route_color, options.agencyColor || DEFAULT_LINE_COLOR)
         };
-        if (gtfsObject.route_color) {
-            lineAttributes.color = (gtfsObject.route_color.startsWith('#') ? '' : '#') + gtfsObject.route_color;
-        }
         if (gtfsObject.tr_route_internal_id) {
             lineAttributes.internal_id = gtfsObject.tr_route_internal_id;
         }
@@ -135,14 +140,14 @@ export class LineImporter implements GtfsObjectImporter<LineImportData, Line> {
 
     private async importLine(
         lineToImport: LineImportData,
-        options: { agencyId: string },
+        options: { agencyId: string; agencyColor?: string },
         doNotUpdateAgencies: string[]
     ): Promise<Line> {
         // If there was an error importing the agency, this will be undefined and the line should not be imported
         if (options.agencyId === undefined) {
             throw `Agency was not imported correctly for line ${lineToImport.line.route_id}`;
         }
-        const lineAttributes = this.gtfsToObjectAttributes(lineToImport.line, options.agencyId);
+        const lineAttributes = this.gtfsToObjectAttributes(lineToImport.line, options);
 
         // Find the line to overwrite in the agency, if any.
         // The line exists if the agency ID is the same that this line belongs to and the route was imported with the same gtfs route_id or the short and long names match
