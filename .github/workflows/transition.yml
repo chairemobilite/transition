@@ -35,6 +35,33 @@ jobs:
       run: yarn test
     - name: UI Test
       run: yarn test:ui
+
+  # Because of https://github.com/chairemobilite/transition/issues/531, version 18 needs an additional environment variable. When fixed, we can use a version matrix instead
+  build-and-test-18:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
+    env:
+      PROJECT_CONFIG: ${{ github.workspace }}/examples/config.js
+    steps:
+    - uses: actions/checkout@v3
+    - name: copy env file
+      run: cp .env.example .env
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Install
+      run: yarn
+    - name: Compile
+      run: yarn compile
+    - name: Build Client bundle
+      run: yarn cross-env NODE_OPTIONS=--openssl-legacy-provider yarn build:prod
+    - name: Unit Test
+      run: yarn test
+    - name: UI Test
+      run: yarn test:ui
   
   code-lint:
     runs-on: ubuntu-latest
