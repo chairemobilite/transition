@@ -17,6 +17,7 @@ import {
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import constants from 'chaire-lib-common/lib/config/constants';
 
 export interface accessMapLocationOptions {
     projection: string;
@@ -34,14 +35,14 @@ const extractLocation = (
         [key: string]: any;
     },
     options: accessMapLocationOptions,
-    projections: any
+    projection: { srid: number; value: string }
 ): AccessibilityMapLocation => {
     const internalId = line[options.idAttribute];
     const location =
-        options.projection === '4326'
+        projection.srid === constants.geographicCoordinateSystem.srid
             ? turfPoint([parseFloat(line[options.xAttribute]), parseFloat(line[options.yAttribute])]).geometry
             : turfPoint(
-                proj4(projections[options.projection].value, projections['4326'].value, [
+                proj4(projection.value, constants.geographicCoordinateSystem.value, [
                     parseFloat(line[options.xAttribute]),
                     parseFloat(line[options.yAttribute])
                 ])
@@ -117,11 +118,21 @@ export const parseLocationsFromCsv = async (
     let nbErrors = 0;
     const errors: ErrorMessage[] = [];
 
+    const projection =
+        projections[options.projection] !== undefined
+            ? projections[options.projection]
+            : constants.geographicCoordinateSystem;
+    if (projections[options.projection] === undefined) {
+        console.log(
+            `Parsing access map locations: unknown projections '${options.projection}' will use default value of ${projection.label}`
+        );
+    }
+
     const status = await parseCsvFile(
         csvFilePath,
         (line, rowNumber) => {
             try {
-                const location = extractLocation(line, options, projections);
+                const location = extractLocation(line, options, projection);
 
                 if (options.debug) {
                     console.log(
