@@ -37,13 +37,11 @@ export default class DownloadOsmData extends GenericDataImportTask {
         try {
             const osmRawDataFile = absoluteDsDir + GenericDataImportTask.OSM_RAW_DATA_FILE;
             if (await this.promptOverwriteIfExists(osmRawDataFile, 'OpenStreeMap raw data file')) {
-                const osmRawData = await osmDownloader.downloadJson(polygonGeojson);
-                this.fileManager.writeFileAbsolute(osmRawDataFile, JSON.stringify(osmRawData));
+                await osmDownloader.writeJson(osmRawDataFile, polygonGeojson);
             }
             const osmGeojson = absoluteDsDir + GenericDataImportTask.OSM_GEOJSON_FILE;
             if (await this.promptOverwriteIfExists(osmGeojson, 'OpenStreeMap geojson file')) {
-                const osmGeojsonData = await osmDownloader.downloadGeojson(polygonGeojson);
-                this.fileManager.writeFileAbsolute(osmGeojson, JSON.stringify(osmGeojsonData));
+                await osmDownloader.writeGeojson(osmGeojson, polygonGeojson);
             }
         } catch (error) {
             throw new Error('Error retrieving Open Street Map data from server:' + JSON.stringify(error));

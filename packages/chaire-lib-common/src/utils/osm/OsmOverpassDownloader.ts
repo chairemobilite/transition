@@ -9,6 +9,7 @@ import osmToGeojson from 'osmtogeojson';
 import fs from 'fs';
 import { pipeline } from 'node:stream';
 import { promisify } from 'node:util';
+import JSONStream from 'JSONStream';
 
 import { geojsonToPolyBoundary } from '../geometry/ConversionUtils';
 import allNodesXmlQuery from '../../config/osm/overpassQueries/allNodes';
@@ -97,6 +98,27 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
     }
 
     /**
+     * Download data from openstreetmap API, and write it to a json file
+     * If the file exist, it will be overwritten
+     *
+     * @param {string} Filename to write to
+     * @param {(GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature)}
+     * boundPoly The geojson polygon for which to fetch the data
+     * @param {*} [overpassXmlQueryString=allNodesXmlQuery] The XML query to
+     * run. Placeholders BOUNDARY and OUTPUT will be replaced respectively by
+     * the polygon boundaries in parameter and the output type, here 'xml'
+     * @return {*} The result of the query, as an xml string
+     * @memberof OsmOverpassDownloaderImpl
+     */
+    public async writeJson(
+        filename: string,
+        boundPoly: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature,
+        overpassXmlQueryString: string = allNodesXmlQuery
+    ): Promise<boolean> {
+        return this.write(filename, boundPoly, overpassXmlQueryString, 'json');
+    }
+
+    /**
      * Download data from openstreetmap API, and return a geojson feature
      * collection
      *
@@ -120,6 +142,39 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
     }
 
     /**
+     * Download data from openstreetmap API, convert it to geojson and write it to
+     * a geojson file. It does not reuse the generic write as we need to do a data
+     * conversion to geojson using osmtogeojson in the middle of the stream.
+     * If the file exist, it will be overwritten
+     *
+     * See downloadGeojson for params
+     */
+    public async writeGeojson(
+        filename: string,
+        boundPoly: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature,
+        overpassXmlQueryString: string = allWaysAndRelationsXmlQuery
+    ): Promise<boolean> {
+        const response = await this.downloadData(boundPoly, overpassXmlQueryString, 'json');
+        const streamPipeline = promisify(pipeline);
+
+        console.log('Writing osm geojson data to ' + filename);
+
+        // Inspired by a conversation with ChatGPT :)
+        const writeStream = fs.createWriteStream(filename);
+        const jsonStream = JSONStream.parse('elements.*');
+        jsonStream.on('data', (element) => {
+            const geojsonData = osmToGeojson({ elements: [element] });
+            writeStream.write(JSON.stringify(geojsonData));
+        });
+        jsonStream.on('end', () => {
+            writeStream.end();
+        });
+        await streamPipeline(response.body, jsonStream);
+        console.log('Done writing osm geojson data');
+
+        return true;
+    }
+    /**
      * Download data from openstreetmap API, and return an xml string of the result
      *
      * @param {(GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature)}
@@ -132,7 +187,7 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
      */
     public async downloadXml(
         boundPoly: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature,
-        overpassXmlQueryString = allNodesXmlQuery
+        overpassXmlQueryString: string = allNodesXmlQuery
     ): Promise<string> {
         const response = await this.downloadData(boundPoly, overpassXmlQueryString, 'xml');
         const textContent = await response.text();
@@ -158,7 +213,19 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
         boundPoly: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature,
         overpassXmlQueryString = allNodesXmlQuery
     ): Promise<boolean> {
-        const response = await this.downloadData(boundPoly, overpassXmlQueryString, 'xml');
+        return this.write(filename, boundPoly, overpassXmlQueryString, 'xml');
+    }
+
+    /**
+     * Encapsulate write logic for both WriteXml and WriteJson function. Only the format changes
+     */
+    private async write(
+        filename: string,
+        boundPoly: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature,
+        overpassXmlQueryString: string,
+        fileType: 'xml' | 'json'
+    ): Promise<boolean> {
+        const response = await this.downloadData(boundPoly, overpassXmlQueryString, fileType);
         // Taken from fetch-node documentation
         const streamPipeline = promisify(pipeline);
         console.log('Writing osm data to ' + filename);
