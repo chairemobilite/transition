@@ -6,6 +6,7 @@
  */
 import config from './shared/project.config';
 import lineModesDefaultValues from './lineModesDefaultValues';
+import constants from './constants';
 
 interface SectionDescription {
     localizedTitle: string;
@@ -604,11 +605,7 @@ const defaultPreferences: PreferencesModel = {
         }
     },
     proj4Projections: {
-        '4326': {
-            srid: 4326,
-            label: 'WGS84 EPSG:4326 (latitude/longitude)',
-            value: '+title=WGS 84 (long/lat) +proj=longlat +ellps=WGS84 +datum=WGS84 +units=degrees'
-        },
+        [String(constants.geographicCoordinateSystem.srid)]: constants.geographicCoordinateSystem,
         '2950': {
             srid: 2950,
             label: 'MTM Zone 8 NAD83 EPSG:2950',
