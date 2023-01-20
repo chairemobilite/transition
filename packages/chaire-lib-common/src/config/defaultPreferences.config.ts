@@ -545,7 +545,7 @@ const defaultPreferences: PreferencesModel = {
         routing: {
             batch: {
                 withGeometry: false,
-                projection: '+title=WGS 84 (long/lat) +proj=longlat +ellps=WGS84 +datum=WGS84 +units=degrees',
+                projection: String(constants.geographicCoordinateSystem.srid),
                 allowSavingOdTripsToDb: false
             },
             transit: {
