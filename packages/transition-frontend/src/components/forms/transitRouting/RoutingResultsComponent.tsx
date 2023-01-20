@@ -17,15 +17,13 @@ import { TransitRoutingAttributes } from 'transition-common/lib/services/transit
 export interface TransitRoutingResultsProps extends WithTranslation {
     results: ResultsByMode;
     request: TransitRoutingAttributes;
+    selectedMode?: RoutingOrTransitMode;
+    setSelectedMode: (mode: RoutingOrTransitMode) => void;
 }
 
 const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (props: TransitRoutingResultsProps) => {
     const selectedRoutingModes: RoutingOrTransitMode[] = (Object.keys(props.results) as RoutingOrTransitMode[]) || [];
     const selectedRoutingModesCount = selectedRoutingModes.length;
-
-    const [_selectedRoutingMode, setSelectedRoutingMode] = useState(
-        selectedRoutingModes.includes('transit') ? 'transit' : selectedRoutingModes[0]
-    );
 
     // prepare routing mode results tabs:
     const routingModesResultsTabs: Tab[] = [];
@@ -36,15 +34,7 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
             continue;
         }
         routingModesResultsTabs.push(
-            <Tab
-                key={selectedRoutingModes[i]}
-                onSelect={function (index, lastIndex, e) {
-                    if (index !== lastIndex) {
-                        // check if selection changed
-                        setSelectedRoutingMode(selectedRoutingModes[i]);
-                    }
-                }}
-            >
+            <Tab key={selectedRoutingModes[i]}>
                 {props.t(`transit:transitPath:routingModes:${selectedRoutingModes[i]}`)}
             </Tab>
         );
@@ -57,7 +47,15 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
 
     return (
         <React.Fragment>
-            <Tabs>
+            <Tabs
+                selectedIndex={props.selectedMode !== undefined ? selectedRoutingModes.indexOf(props.selectedMode) : 0}
+                onSelect={function (index, lastIndex, e) {
+                    if (index !== lastIndex) {
+                        // check if selection changed
+                        props.setSelectedMode(selectedRoutingModes[index]);
+                    }
+                }}
+            >
                 <TabList>{routingModesResultsTabs}</TabList>
                 <React.Fragment>{routingModesResultsTabPanels}</React.Fragment>
             </Tabs>
