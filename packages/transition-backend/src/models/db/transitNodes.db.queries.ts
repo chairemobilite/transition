@@ -230,7 +230,7 @@ const deleteIfUnused = async (id: string): Promise<string | undefined> => {
         }
         const notInQuery = knex.distinct(knex.raw('unnest(nodes)')).from(pathTableName);
         const response = await knex(tableName).where('id', id).whereNotIn('id', notInQuery).del().returning('id');
-        return response.length === 1 ? response[0] : undefined;
+        return response.length === 1 ? response[0]['id'] : undefined;
     } catch (error) {
         throw new TrError(
             `Cannot delete object with id ${id} from table ${tableName} (knex error: ${error})`,
@@ -250,7 +250,7 @@ const deleteMultipleUnused = function (ids: string[]): Promise<string[]> {
             .returning('id')
             .then((ret) => {
                 //const numberOfDeletedObjects = parseInt(response);
-                resolve(ret);
+                resolve(ret.map((delId) => delId.id));
             })
             .catch((error) => {
                 reject(

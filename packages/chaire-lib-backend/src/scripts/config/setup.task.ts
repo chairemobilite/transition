@@ -6,7 +6,7 @@
  */
 import '../../config/dotenv.config'; // Unused, but must be imported
 import config from '../../config/server.config';
-import knex from 'knex';
+import { knex } from 'knex';
 
 import knexRootCfg from './knexfile.root';
 import knexPublicCfg from './knexfile.public';

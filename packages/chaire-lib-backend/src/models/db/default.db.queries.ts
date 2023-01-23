@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { validate as uuidValidate } from 'uuid';
-import Knex from 'knex';
+import { Knex } from 'knex';
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -64,7 +64,7 @@ const create = async <T extends GenericAttributes, U>(
         const _newObject = parser ? parser(newObject) : newObject;
 
         const returningArray = await knex(tableName).insert(_newObject).returning(returning);
-        return returningArray[0];
+        return returningArray[0][returning];
     } catch (error) {
         throw new TrError(
             `Cannot insert object with id ${newObject.id} in table ${tableName} database (knex error: ${error})`,
@@ -162,7 +162,7 @@ const update = async <T extends GenericAttributes, U>(
         const _attributes = parser ? parser(attributes) : attributes;
 
         const returningArray = await knex(tableName).update(_attributes).where('id', id).returning(returning);
-        return returningArray[0];
+        return returningArray[0][returning];
     } catch (error) {
         throw new TrError(
             `Cannot update object with id ${id} from table ${tableName} (knex error: ${error})`,

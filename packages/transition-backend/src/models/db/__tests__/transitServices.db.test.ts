@@ -12,10 +12,12 @@ import Collection from 'transition-common/lib/services/service/ServiceCollection
 import ObjectClass, { ServiceAttributes } from 'transition-common/lib/services/service/Service';
 import schedulesDbQueries from '../transitSchedules.db.queries';
 import linesDbQueries from '../transitLines.db.queries';
+import agenciesDbQueries from '../transitAgencies.db.queries';
 
-const objectName   = 'service';
-const simulationId = '373a583c-df49-440f-8f44-f39fb0033c56';
+const objectName = 'service';
+const simulationId = uuidV4();
 const lineId = uuidV4();
+const agencyId = uuidV4();
 
 const newObjectAttributes: ServiceAttributes = {  
   id           : uuidV4(),
@@ -81,8 +83,14 @@ const updatedAttributes = {
 beforeAll(async () => {
     jest.setTimeout(10000);
     await dbQueries.truncate();
+    await agenciesDbQueries.create({
+        id: agencyId,
+        name: 'test',
+        acronym: 'test'
+    } as any);
     await linesDbQueries.create({
         id: lineId,
+        agency_id: agencyId,
         color: '#ffffff',
     } as any);
     await simulationDbQueries.create({
@@ -98,6 +106,7 @@ afterAll(async() => {
     await dbQueries.truncate();
     await simulationDbQueries.truncate();
     await linesDbQueries.truncate();
+    await agenciesDbQueries.truncate();
     await schedulesDbQueries.truncateSchedules();
     simulationDbQueries.destroy();
     dbQueries.destroy();

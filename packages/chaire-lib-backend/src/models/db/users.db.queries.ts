@@ -17,7 +17,7 @@ const create = async (newObject: Partial<UserAttributes>): Promise<UserAttribute
     try {
         const returning = await knex(tableName).insert(newObject).returning('id');
         // Fetch newly inserted user, to get all values that may have been auto-filled at insert
-        const userAttributes = await getById(returning[0]);
+        const userAttributes = await getById(returning[0].id);
         if (userAttributes === undefined) {
             throw 'Cannot fetch user recently inserted';
         }

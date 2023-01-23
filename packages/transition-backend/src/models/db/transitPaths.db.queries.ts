@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import Knex from 'knex';
+import { Knex } from 'knex';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import { validate as uuidValidate } from 'uuid';
 import _cloneDeep from 'lodash.clonedeep';
@@ -142,7 +142,7 @@ const geojsonCollectionFromQuery = async (query: Knex.QueryBuilder) => {
         ) as geojson
         `)
         );
-        const geojson = response.length === 1 ? response[0].geojson : undefined;
+        const geojson = response.length === 1 ? response[0]['geojson'] : undefined;
         if (geojson) {
             return geojson;
         }
