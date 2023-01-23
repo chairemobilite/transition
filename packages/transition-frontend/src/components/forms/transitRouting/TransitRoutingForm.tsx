@@ -217,10 +217,10 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
         serviceLocator.eventManager.off('collection.update.scenarios', this.onScenarioCollectionUpdate);
     }
 
-    private isValid(): boolean {
+    private isValid = (): boolean => {
         // Are all form fields valid and the routing object too
         return !this.hasInvalidFields() && this.state.object.validate();
-    }
+    };
 
     private downloadCsv() {
         const elements = this.state.object.getAttributes().savedForBatch;
@@ -476,7 +476,7 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
                         />
                     )}
                 </form>
-                <TransitRoutingBatchForm routingEngine={this.state.object} />
+                <TransitRoutingBatchForm routingEngine={this.state.object} isRoutingEngineValid={this.isValid} />
             </React.Fragment>
         );
     }
