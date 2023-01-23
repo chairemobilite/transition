@@ -653,7 +653,8 @@
             "DataSourceAlreadyExists": "Une source de données de ce nom existe déjà pour les calculs OD.",
             "InvalidOdTripsDataSource": "Source de données de calculs OD invalide.",
             "ErrorCalculatingLocation":  "Erreur de calcul pour le lieu {{id}}",
-            "UserDiskQuotaReached": "L'espace disque maximal permis a été atteint. Veuillez supprimer des tâches passées pour en supprimer les fichiers"
+            "UserDiskQuotaReached": "L'espace disque maximal permis a été atteint. Veuillez supprimer des tâches passées pour en supprimer les fichiers",
+            "RoutingParametersInvalidForBatch": "Les paramètres pour le calcul de chemin sont invalides. Assurez-vous que le scénario est bien configuré et que les temps sont valides."
         },
         "actions": {
             "walking": "Marche",

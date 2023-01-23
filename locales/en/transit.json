@@ -653,7 +653,8 @@
             "DataSourceAlreadyExists": "A data source with that name already exists for OD calculations.",
             "InvalidOdTripsDataSource": "Invalid OD calculations data source.",
             "ErrorCalculatingLocation":  "Error calculating location {{id}}",
-            "UserDiskQuotaReached": "Maximum allowed disk space has been reached. Please delete old tasks to delete their files."
+            "UserDiskQuotaReached": "Maximum allowed disk space has been reached. Please delete old tasks to delete their files.",
+            "RoutingParametersInvalidForBatch": "Routing parameters are invalid. Make sure the scenario is set and times have a valid value."
         },
         "actions": {
             "walking": "Walk",
