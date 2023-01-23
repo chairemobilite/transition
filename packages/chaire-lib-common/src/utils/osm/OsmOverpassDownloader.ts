@@ -110,12 +110,12 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
      * @return {*} The result of the query, as an xml string
      * @memberof OsmOverpassDownloaderImpl
      */
-    public async writeJson(
+    public async fetchAndWriteJson(
         filename: string,
         boundPoly: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature,
         overpassXmlQueryString: string = allNodesXmlQuery
     ): Promise<boolean> {
-        return this.write(filename, boundPoly, overpassXmlQueryString, 'json');
+        return this.fetchAndWrite(filename, boundPoly, overpassXmlQueryString, 'json');
     }
 
     /**
@@ -149,7 +149,7 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
      *
      * See downloadGeojson for params
      */
-    public async writeGeojson(
+    public async fetchAndWriteGeojson(
         filename: string,
         boundPoly: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature,
         overpassXmlQueryString: string = allWaysAndRelationsXmlQuery
@@ -208,18 +208,18 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
      * @return {*} The result of the query, as an xml string
      * @memberof OsmOverpassDownloaderImpl
      */
-    public async writeXml(
+    public async fetchAndWriteXml(
         filename: string,
         boundPoly: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature,
         overpassXmlQueryString = allNodesXmlQuery
     ): Promise<boolean> {
-        return this.write(filename, boundPoly, overpassXmlQueryString, 'xml');
+        return this.fetchAndWrite(filename, boundPoly, overpassXmlQueryString, 'xml');
     }
 
     /**
-     * Encapsulate write logic for both WriteXml and WriteJson function. Only the format changes
+     * Encapsulate write logic for both fetchAndWriteXml and fetchAndWriteJson function. Only the format changes
      */
-    private async write(
+    private async fetchAndWrite(
         filename: string,
         boundPoly: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature,
         overpassXmlQueryString: string,
