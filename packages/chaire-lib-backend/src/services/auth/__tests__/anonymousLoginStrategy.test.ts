@@ -1,3 +1,9 @@
+/*
+ * Copyright 2022, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
 import passport from 'passport';
 import usersDbQueries from '../../../models/db/users.db.queries';
 

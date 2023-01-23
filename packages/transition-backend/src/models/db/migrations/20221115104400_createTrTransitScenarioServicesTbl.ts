@@ -1,4 +1,4 @@
-import * as Knex from 'knex';
+import { Knex } from 'knex';
 
 const tableName = 'tr_transit_scenario_services';
 

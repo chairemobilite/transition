@@ -69,7 +69,7 @@ beforeAll(async () => {
     await dbQueries.truncate();
     await knex.raw(`TRUNCATE TABLE users CASCADE`);
     const user = await UserModel.createAndSave(userAttributes);
-    userAttributes.id = user.id;
+    userAttributes.id = user.attributes.id;
 });
 
 beforeEach(() => {
@@ -188,8 +188,8 @@ describe(`${objectName}`, () => {
     test('Read collections for specific user', async() => {
 
         // Add a user and a job for this user
-        const user = await UserModel.createAndSave({ uuid: uuidV4(), username: 'second' });
-        const jobForSecondUser = Object.assign({}, newObjectAttributes, { user_id: user.id });
+        const user = await UserModel.createAndSave({ username: 'second' });
+        const jobForSecondUser = Object.assign({}, newObjectAttributes, { user_id: user.attributes.id });
         await dbQueries.create(jobForSecondUser);
         
         // Make sure no parameter returns all jobs
@@ -205,10 +205,10 @@ describe(`${objectName}`, () => {
         expect(result.jobs[1].user_id).toEqual(userAttributes.id);
 
         // Read collection for second user
-        result = await dbQueries.collection({ userId: user.id, pageIndex: 0, pageSize: 0 });
+        result = await dbQueries.collection({ userId: user.attributes.id, pageIndex: 0, pageSize: 0 });
         expect(result.totalCount).toBe(1);
         expect(result.jobs.length).toBe(1);
-        expect(result.jobs[0].user_id).toEqual(user.id);
+        expect(result.jobs[0].user_id).toEqual(user.attributes.id);
 
     });
 

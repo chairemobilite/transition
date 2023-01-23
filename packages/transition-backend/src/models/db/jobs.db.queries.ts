@@ -8,7 +8,7 @@ import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import { truncate, destroy } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { QueryBuilder } from 'knex';
+import { Knex } from 'knex';
 import { JobAttributes, JobDataType } from 'transition-common/lib/services/jobs/Job';
 
 const tableName = 'tr_jobs';
@@ -42,7 +42,7 @@ const collection = async (
     } = { pageIndex: 0, pageSize: 0 }
 ): Promise<{ jobs: JobAttributes<JobDataType>[]; totalCount: number }> => {
     try {
-        const addWhere = (query: QueryBuilder) => {
+        const addWhere = (query: Knex.QueryBuilder) => {
             if (options.userId !== undefined) {
                 query.where('user_id', options.userId);
             }
@@ -131,7 +131,7 @@ const read = async (id: number): Promise<JobAttributes<JobDataType>> => {
 const create = async (job: Omit<JobAttributes<JobDataType>, 'id'>): Promise<number> => {
     try {
         const returningArray = await knex(tableName).insert(job).returning('id');
-        return returningArray[0];
+        return returningArray[0].id;
     } catch (error) {
         throw new TrError(
             `Cannot insert object in table ${tableName} database (knex error: ${error})`,
@@ -154,7 +154,7 @@ const update = async (
 ): Promise<number> => {
     try {
         const returningArray = await knex(tableName).update(attributes).where('id', id).returning('id');
-        return returningArray[0];
+        return returningArray[0].id;
     } catch (error) {
         throw new TrError(
             `Cannot update object with id ${id} from table ${tableName} (knex error: ${error})`,
