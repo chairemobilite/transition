@@ -1,4 +1,5 @@
 # Setup development environment on Ubuntu
+# WARNING! Deprecated.
 
 *Tested on Ubuntu 20.04 LTS (Focal Fossa)*
 
@@ -117,7 +118,7 @@ cp .env.example .env
 * Change `PROJECT_CONFIG` to point to your project's configuration file. The default is an example configuration file that can be copied and configured for your own need.
 
 ### Get a Mapbox access token
-* Go to [Mapbox](http://mapxbox.com) and sign up
+* Go to [Mapbox](http://mapbox.com) and sign up
 * Go to your account dashboard, then generate a new access token
 * Open the `.env` file
 * Copy this access token to `.env` file: `MAPBOX_ACCESS_TOKEN=YOUR_TOKEN`
