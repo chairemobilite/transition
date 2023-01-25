@@ -4,21 +4,14 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import knex from 'knex';
-import mockKnex from 'mock-knex';
 import passport from 'passport';
 import { TestUtils } from 'chaire-lib-common/lib/test';
 
 import passwordlessLogin from '../passwordless.config';
 import { sendEmail } from '../../../services/auth/userEmailNotifications';
+import usersDbQueries from '../../../models/db/users.db.queries';
 
 process.env.MAGIC_LINK_SECRET_KEY = 'SOMEARBITRARYSTRINGFORASECRETKEY';
-// Mock DB and email notifications module
-jest.mock('../../../config/shared/db.config', () => {
-    const connection = knex({ client: 'pg', debug: false});
-    mockKnex.mock(connection, 'knex@0.10');
-    return connection;
-});
 
 passwordlessLogin(passport);
 
@@ -27,19 +20,24 @@ const mockedSendEmail = sendEmail as jest.MockedFunction<typeof sendEmail>;
 
 const url = 'http://test.transition.city/';
 
-const tracker = mockKnex.getTracker();
-tracker.install();
-
 // req.logIn needs to be set and is called by passport when successful
 const logInFct = jest.fn().mockImplementation((_a, _b, callback) => {
     callback();
 });
+
+jest.mock('../../../models/db/users.db.queries', () => ({
+    find: jest.fn().mockResolvedValue(undefined),
+    create: jest.fn()
+}));
+const mockFind = usersDbQueries.find as jest.MockedFunction<typeof usersDbQueries.find>;
+const mockCreate = usersDbQueries.create as jest.MockedFunction<typeof usersDbQueries.create>;
 
 // Initialize various user data
 const newUserEmail = 'newUser@transition.city';
 const existingUserEmail = 'existingUser@transition.city';
 const existingUser = {
     id: 5,
+    uuid: 'arbitrary',
     password: null,
     username: existingUserEmail,
     email: existingUserEmail,
@@ -47,41 +45,21 @@ const existingUser = {
     is_valid: true
 };
 
-let insertedUser: any = null;
 const newUserId = 7;
-// Query results
-tracker.on('query', (query) => {
-    if (query.bindings.includes(existingUserEmail)) {
-        query.response([existingUser]);
-    } else if (query.method === 'insert') {
-        insertedUser = {
-            id: newUserId,
-            confirmation_token: query.bindings[0],
-            email: query.bindings[1],
-            facebook_id: query.bindings[2],
-            first_name: query.bindings[3],
-            generated_password: query.bindings[4],
-            google_id: query.bindings[5],
-            is_admin: query.bindings[6],
-            is_confirmed: query.bindings[7],
-            is_test: query.bindings[8],
-            is_valid: query.bindings[9],
-            last_name: query.bindings[10],
-            password: query.bindings[11],
-            username: query.bindings[12]
-        };
-        query.response([insertedUser]);
-    } else {
-        query.response(null);
-    }
-
-});
 
 beforeEach(() => {
     logInFct.mockClear();
-    insertedUser = null;
     process.env.HOST = url;
     mockedSendEmail.mockClear();
+    mockFind.mockClear();
+    mockCreate.mockClear();
+    mockCreate.mockImplementation(async (attribs) => {
+        return {
+            id: newUserId,
+            uuid: 'arbitrary',
+            ...attribs
+        }
+    });
 });
 
 test('Passwordless login, first entry, direct access', async () => {
@@ -101,10 +79,27 @@ test('Passwordless login, first entry, direct access', async () => {
     await authPromise;
     expect(mockedSendEmail).not.toHaveBeenCalled();
     expect(logInFct).toHaveBeenCalledTimes(1);
-    expect(insertedUser).not.toBeNull();
-    expect(insertedUser.email).toEqual(newUserEmail);
-    expect(insertedUser.username).toEqual(newUserEmail);
-    expect(logInFct).toHaveBeenCalledWith({ id: insertedUser.id, username: newUserEmail, email: newUserEmail, firstName: '', lastName: '', preferences: {}, serializedPermissions: []}, expect.anything(), expect.anything());
+
+    expect(mockFind).toHaveBeenCalledTimes(1);
+    expect(mockFind).toHaveBeenCalledWith({ usernameOrEmail: newUserEmail }, false);
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+    expect(mockCreate).toHaveBeenCalledWith({
+        username: newUserEmail,
+        email: newUserEmail,
+        google_id: null,
+        facebook_id: null,
+        generated_password: null,
+        password: null,
+        first_name: '',
+        last_name: '',
+        is_admin: false,
+        is_valid: true,
+        is_test: false,
+        is_confirmed: true,
+        confirmation_token: null
+    });
+
+    expect(logInFct).toHaveBeenCalledWith({ id: newUserId, username: newUserEmail, email: newUserEmail, firstName: '', lastName: '', preferences: {}, serializedPermissions: []}, expect.anything(), expect.anything());
 });
 
 describe('Complete send/verify flow for existing user', () => {
@@ -112,6 +107,8 @@ describe('Complete send/verify flow for existing user', () => {
     let verifyUrl: string | undefined;
 
     test('User enters email', async () => {
+        mockFind.mockResolvedValueOnce(existingUser);
+        mockFind.mockResolvedValueOnce(existingUser);
         const endFct = jest.fn();
         const authPromise = new Promise((resolve, reject) => {
             const res = { 
@@ -131,9 +128,14 @@ describe('Complete send/verify flow for existing user', () => {
         await authPromise;
         // The send magic email has been sent but nothing waits for it, just flush all promises
         await TestUtils.flushPromises();
+
+        expect(mockFind).toHaveBeenCalledTimes(2);
+        expect(mockFind).toHaveBeenCalledWith({ usernameOrEmail: existingUserEmail }, false);
+        expect(mockFind).toHaveBeenCalledWith({ email: existingUserEmail }, false);
+
         expect(mockedSendEmail).toHaveBeenCalledTimes(1);
         expect(mockedSendEmail).toHaveBeenLastCalledWith({
-            toUser: expect.objectContaining({ attributes: expect.objectContaining({ email: existingUserEmail, username: existingUserEmail })}),
+            toUser: expect.objectContaining({ _attributes: expect.objectContaining({ email: existingUserEmail, username: existingUserEmail })}),
             mailText: ['customServer:magicLinkEmailText', 'server:magicLinkEmailText'],
             mailSubject: ['customServer:magicLinkEmailSubject', 'server:magicLinkEmailSubject']
         }, { magicLinkUrl: { url: expect.stringContaining('/magic/verify') } });
@@ -141,6 +143,7 @@ describe('Complete send/verify flow for existing user', () => {
     });
     
     test('Verify link url', async () => {
+        mockFind.mockResolvedValueOnce(existingUser);
         const endFct = jest.fn();
         expect(verifyUrl).toBeDefined();
         const indexOfToken = verifyUrl?.indexOf('token=');
@@ -159,6 +162,10 @@ describe('Complete send/verify flow for existing user', () => {
             );
         });
         const authResult: any = await authPromise;
+
+        expect(mockFind).toHaveBeenCalledTimes(1);
+        expect(mockFind).toHaveBeenCalledWith({ email: existingUserEmail }, false);
+
         expect(authResult.err).toBeUndefined();
         expect(authResult.result).toBeUndefined();
         expect(logInFct).toHaveBeenCalledTimes(1);

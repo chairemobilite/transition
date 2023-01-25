@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { AbilityBuilder, Ability } from '@casl/ability';
-import { UserAttributes } from './user'; // application specific interfaces
+import { UserAttributes } from '../users/user';
 
 const roleMap: { [key: string]: ((builder: AbilityBuilder<Ability>, user: UserAttributes) => void)[] } = {
     admin: [({ can }: AbilityBuilder<Ability>) => can('manage', 'all')]

@@ -6,8 +6,8 @@
  */
 import { NextFunction, Request, Response } from 'express';
 import defineAbilitiesFor from './userPermissions';
-import { UserAttributes } from './user';
 import { PackRule, packRules } from '@casl/ability/extra';
+import { UserAttributes } from '../users/user';
 
 export const UserSubject = 'Users';
 

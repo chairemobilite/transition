@@ -23,7 +23,7 @@ import morgan from 'morgan'; // http logger
 import requestIp from 'request-ip';
 import authRoutes from 'chaire-lib-backend/lib/api/auth.routes';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
-import { UserAttributes } from 'chaire-lib-backend/lib/services/auth/user';
+import { UserAttributes } from 'chaire-lib-backend/lib/services/users/user';
 import config from 'chaire-lib-backend/lib/config/server.config';
 
 export const setupServer = (app: Express) => {

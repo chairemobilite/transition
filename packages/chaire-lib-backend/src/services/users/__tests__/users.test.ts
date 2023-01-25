@@ -4,166 +4,103 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import knex from 'knex';
-import mockKnex from 'mock-knex';
 import each from 'jest-each';
+import { v4 as uuidV4 } from 'uuid';
 import { DirectoryManager } from '../../../utils/filesystem/directoryManager';
 import config from '../../../config/server.config';
+import usersDbQueries from '../../../models/db/users.db.queries';
 
 import Users from '../users';
 
-jest.mock('../../../config/shared/db.config', () => {
-    const connection = knex({ client: 'pg', debug: false});
-    mockKnex.mock(connection, 'knex@0.10');
-    return connection;
-});
-
-const tracker = mockKnex.getTracker();
-tracker.install();
+jest.mock('../../../models/db/users.db.queries', () => ({
+    getList: jest.fn()
+}));
+const mockGetList = usersDbQueries.getList as jest.MockedFunction<typeof usersDbQueries.getList>;
 
 // Create 10 users, half are admins
 const allUsers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((id) => ({
     id,
+    uuid: uuidV4(),
     username: 'test' + id,
     is_admin: id % 2 === 0
 }));
 
-const queryFct = jest.fn().mockImplementation((query) => {
-    // Just return all the uers all the time, we are testing the queries after all, not the results
-    if (query.sql.includes('count')) {
-        query.response([{
-            count: allUsers.length
-        }])
-    } else {
-        query.response(allUsers)
-    }
-
-});
-
-tracker.on('query', queryFct);
-
 beforeEach(() => {
-    queryFct.mockClear();
+    mockGetList.mockClear();
+    mockGetList.mockResolvedValue({ users: allUsers, totalCount: allUsers.length });
 });
 
 describe('Get all matching', () => {
+
     test('Get all users', async() => {
         const users = await Users.getAllMatching();
-        expect(queryFct).toHaveBeenCalledTimes(2);
-        expect(queryFct).toHaveBeenCalledWith(expect.objectContaining({ sql: expect.stringContaining('select count(*)') }), expect.anything());
+        expect(mockGetList).toHaveBeenCalledTimes(1);
+        expect(mockGetList).toHaveBeenCalledWith({ filters: {}, pageIndex: 0, pageSize: -1 });
         expect(users.totalCount).toEqual(allUsers.length);
-        expect(users.users.map(userModel => userModel.attributes)).toEqual(allUsers);
+        expect(users.users).toEqual(allUsers);
     });
 
     test('Get first page, no index', async() => {
         await Users.getAllMatching({ pageSize: 5 });
-        expect(queryFct).toHaveBeenCalledTimes(2);
-        const countCall = queryFct.mock.calls[0];
-        const userCall = queryFct.mock.calls[1];
-
-        expect(countCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('select count(*)') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('limit') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('offset') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('where') }));
-
-        expect(userCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('limit'), bindings: [ 5 ]}));
-        expect(userCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('where') }));
-        expect(userCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('offset') }));
+        expect(mockGetList).toHaveBeenCalledTimes(1);
+        expect(mockGetList).toHaveBeenCalledWith({ filters: {}, pageIndex: 0, pageSize: 5 });
     });
 
     test('Get first page, with index', async() => {
-        await Users.getAllMatching({ pageSize: 5 });
-        expect(queryFct).toHaveBeenCalledTimes(2);
-        const countCall = queryFct.mock.calls[0];
-        const userCall = queryFct.mock.calls[1];
-
-        expect(countCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('select count(*)') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('limit') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('offset') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('where') }));
-
-        expect(userCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('limit'), bindings: [ 5 ]}));
-        expect(userCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('where') }));
-        expect(userCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('offset') }));
+        await Users.getAllMatching({ pageIndex: 0, pageSize: 5 });
+        expect(mockGetList).toHaveBeenCalledTimes(1);
+        expect(mockGetList).toHaveBeenCalledWith({ filters: {}, pageIndex: 0, pageSize: 5 });
     });
 
     test('Get second page', async() => {
         await Users.getAllMatching({ pageSize: 5, pageIndex: 1 });
-        expect(queryFct).toHaveBeenCalledTimes(2);
-        const countCall = queryFct.mock.calls[0];
-        const userCall = queryFct.mock.calls[1];
-
-        expect(countCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('select count(*)') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('limit') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('offset') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('where') }));
-
-        expect(userCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('limit'), bindings: [ 5, 5 ]}));
-        expect(userCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('offset'), bindings: [ 5, 5 ]}));
-        expect(userCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('where') }));
+        expect(mockGetList).toHaveBeenCalledTimes(1);
+        expect(mockGetList).toHaveBeenCalledWith({ filters: {}, pageIndex: 1, pageSize: 5 });
     });
 
     test('Search with filter', async() => {
         await Users.getAllMatching({ filter: { username: 'a' } });
-        expect(queryFct).toHaveBeenCalledTimes(2);
-        const countCall = queryFct.mock.calls[0];
-        const userCall = queryFct.mock.calls[1];
-
-        expect(countCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('select count(*)') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('limit') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('offset') }));
-        expect(countCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('where') }));
-
-        expect(userCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('limit')}));
-        expect(userCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('offset')}));
-        expect(userCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('where'), bindings: [ '%a%' ] }));
+        expect(mockGetList).toHaveBeenCalledTimes(1);
+        expect(mockGetList).toHaveBeenCalledWith({ filters: { username: 'a' }, pageIndex: 0, pageSize: -1 });
     });
 
     test('Search with filter and paging', async() => {
         await Users.getAllMatching({ filter: { username: 'a'}, pageSize: 3, pageIndex: 2 });
-        expect(queryFct).toHaveBeenCalledTimes(2);
-        const countCall = queryFct.mock.calls[0];
-        const userCall = queryFct.mock.calls[1];
-
-        expect(countCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('select count(*)') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('limit') }));
-        expect(countCall[0]).not.toEqual(expect.objectContaining({ sql: expect.stringContaining('offset') }));
-        expect(countCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('where "username"'), bindings: [ '%a%' ] }));
-
-        expect(userCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('limit'), bindings: [ '%a%', 3, 6 ]}));
-        expect(userCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('offset')}));
-        expect(userCall[0]).toEqual(expect.objectContaining({ sql: expect.stringContaining('where'), bindings: [ '%a%', 3, 6 ] }));
+        expect(mockGetList).toHaveBeenCalledTimes(1);
+        expect(mockGetList).toHaveBeenCalledWith({ filters: {username: 'a'}, pageIndex: 2, pageSize: 3 });
     });
 });
 
 describe('Get admins', () => {
     test('Test get admins', async () => {
-        tracker.on('query', (query) => {
-            query.response([{
-                id: 1,
-                username: 'admin1',
-                email: 'admin1@test.com',
-                is_admin: true
-            },
-            {
-                id: 2,
-                username: 'admin2',
-                email: 'admin2@test.com',
-                is_admin: true
-            }]);
-        });
+        const adminUsers = [{
+            id: 1,
+            uuid: uuidV4(),
+            username: 'admin1',
+            email: 'admin1@test.com',
+            is_admin: true
+        },
+        {
+            id: 2,
+            uuid: uuidV4(),
+            username: 'admin2',
+            email: 'admin2@test.com',
+            is_admin: true
+        }];
+        mockGetList.mockResolvedValue({ users: adminUsers, totalCount: adminUsers.length });
         const admins = await Users.getAdmins();
-        expect(admins.length).toEqual(2);
-        expect(admins[0].get('username')).toEqual('admin1');
-        expect(admins[1].get('username')).toEqual('admin2');
+        expect(mockGetList).toHaveBeenCalledTimes(1);
+        expect(mockGetList).toHaveBeenCalledWith({ filters: { is_admin: true } });
+        expect(admins[0].username).toEqual('admin1');
+        expect(admins[1].username).toEqual('admin2');
     });
     
     test('Test get admins, none found', async () => {
-        tracker.on('query', (query) => {
-            query.response(null);
-        });
+        mockGetList.mockResolvedValue({ users: [], totalCount: 0 });
         const admins = await Users.getAdmins();
         expect(admins.length).toEqual(0);
+        expect(mockGetList).toHaveBeenCalledTimes(1);
+        expect(mockGetList).toHaveBeenCalledWith({ filters: { is_admin: true } });
     });
 });
 
