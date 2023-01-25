@@ -5,58 +5,33 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import bytes from 'bytes';
-import UserModel from '../auth/user';
 import { directoryManager } from '../../utils/filesystem/directoryManager';
 import config from '../../config/server.config';
+import usersDbQueries, { UserFilter } from '../../models/db/users.db.queries';
+import { UserAttributes } from './user';
 
 export default class Users {
-    static getBaseQuery(filters: { [key: string]: string }): UserModel {
-        const baseQuery: UserModel = UserModel.where({});
-        for (const key in filters) {
-            switch (key) {
-            case 'email':
-                baseQuery.where('email', 'LIKE', `%${filters[key]}%`);
-                break;
-            case 'username':
-                baseQuery.where('username', 'LIKE', `%${filters[key]}%`);
-                break;
-            }
-        }
-        return baseQuery;
-    }
-
     static getAllMatching = async (
-        params: { filter?: { [key: string]: string }; pageIndex?: number; pageSize?: number } = {}
-    ): Promise<{ users: any[]; totalCount: number }> => {
+        params: { filter?: UserFilter; pageIndex?: number; pageSize?: number } = {}
+    ): Promise<{ users: UserAttributes[]; totalCount: number }> => {
         const pageIndex = params.pageIndex || 0;
         const pageSize = params.pageSize || -1;
         const filters = params.filter || {};
 
-        const totalCount = await Users.getBaseQuery(filters).count();
-        if (totalCount === 0) {
-            return { users: [], totalCount };
-        }
-        const users =
-            pageSize !== -1
-                ? await Users.getBaseQuery(filters)
-                    .query()
-                    .limit(pageSize)
-                    .offset(pageIndex * pageSize)
-                : await Users.getBaseQuery(filters).fetchAll({ require: false });
+        const { users, totalCount } = await usersDbQueries.getList({ filters, pageIndex, pageSize });
+
         if (users.length === 0) {
             return { users: [], totalCount: typeof totalCount === 'number' ? totalCount : parseInt(totalCount) };
         }
         return { users, totalCount: typeof totalCount === 'number' ? totalCount : parseInt(totalCount) };
     };
 
-    static getAdmins = async (): Promise<UserModel[]> => {
-        const users = await UserModel.where<UserModel>({ is_admin: true }).fetchAll({ require: false });
+    static getAdmins = async (): Promise<UserAttributes[]> => {
+        const { users } = await usersDbQueries.getList({ filters: { is_admin: true } });
         if (users.length === 0) {
             return [];
         }
-        const userModels: UserModel[] = [];
-        users.map((user) => userModels.push(user));
-        return userModels;
+        return users;
     };
 
     /**

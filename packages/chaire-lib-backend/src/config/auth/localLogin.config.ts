@@ -24,7 +24,7 @@ export const getConfirmEmailStrategy = () =>
 
 const getVerifyUrl = (user: UserModel): string => {
     const host = process.env.HOST || 'http://localhost:8080';
-    return new url.URL(`/verify/${user.get('confirmation_token')}`, host).href;
+    return new url.URL(`/verify/${user.attributes.confirmation_token}`, host).href;
 };
 
 const sendEmailIfRequired = async (
@@ -69,19 +69,14 @@ export default function (passport: PassportStatic) {
                     query = 'username = ? OR email = ? OR facebook_id = ? OR google_id = ?'; //password ? `(username = '${usernameOrEmail}' OR email = '${usernameOrEmail}') AND password = crypt('${password}', password)` : `(username = '${usernameOrEmail}' OR email = '${usernameOrEmail}')`;
                     binding = [usernameOrEmail, usernameOrEmail, usernameOrEmail, usernameOrEmail];
                 } */
-                new UserModel()
-                    .query({
-                        where: { username: usernameOrEmail },
-                        orWhere: { email: usernameOrEmail }
-                    })
-                    .fetch({ require: false })
+                UserModel.find({ usernameOrEmail: usernameOrEmail })
                     .then(async (model) => {
-                        if (model === null) {
+                        if (model === undefined) {
                             done('UnknownUser', false);
                             return;
                         }
                         if (await model.verifyPassword(password)) {
-                            if (!model.get('is_confirmed')) {
+                            if (!model.attributes.is_confirmed) {
                                 done(null, false, { message: 'UnconfirmedUser' });
                             } else {
                                 done(null, model.sanitize());
@@ -110,14 +105,9 @@ export default function (passport: PassportStatic) {
                 done: (error: any, user?: any, options?: LocalStrategy.IVerifyOptions) => void
             ) => {
                 const email = req.body.email;
-                new UserModel()
-                    .query({
-                        where: { username },
-                        orWhere: { email: email ? email : username }
-                    })
-                    .fetch({ require: false })
+                UserModel.find({ username, email: email ? email : username }, true)
                     .then(async (model) => {
-                        if (model !== null) {
+                        if (model !== undefined) {
                             done('UserExists', false);
                             return;
                         }

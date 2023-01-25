@@ -10,6 +10,7 @@ import validator from 'validator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GenericTask } from 'chaire-lib-common/lib/tasks/genericTask';
 import User from '../../services/auth/user';
+import { UserAttributes } from '../../services/users/user';
 
 /**
  * Task to create a user in the database. If any of the username, email or
@@ -139,12 +140,11 @@ export class CreateUser implements GenericTask {
         await this.createUser(user);
     }
 
-    private async createUser(user: any) {
+    private async createUser(user: UserAttributes) {
         console.log('Creating new user: ', user);
-        user.password = User.encryptPassword(user.password);
-        const newUser = new User(user);
+        user.password = typeof user.password === 'string' ? User.encryptPassword(user.password) : undefined;
         try {
-            await newUser.save();
+            await User.createAndSave(user);
         } catch (error) {
             console.log(`An error occured when creating the new user: ${error}`);
         }
@@ -163,8 +163,12 @@ export class CreateUser implements GenericTask {
         const preferences = typeof argv['prefs'] === 'string' ? JSON.stringify(JSON.parse(argv['prefs'])) : '{}';
 
         const users = await User.fetchAll();
-        this.existingUsernames = users.map((user) => user.attributes.username);
-        this.existingEmails = users.map((user) => user.attributes.email);
+        this.existingUsernames = users
+            .filter((user) => typeof user.username === 'string')
+            .map((user) => user.username) as string[];
+        this.existingEmails = users
+            .filter((user) => typeof user.email === 'string')
+            .map((user) => user.email) as string[];
 
         if (username || email || password || first_name || last_name) {
             // Non-interactive user creation

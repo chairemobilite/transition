@@ -6,21 +6,20 @@
  */
 import { Transporter } from 'nodemailer';
 import nodemailerMock  from 'nodemailer-mock';
-import knex from 'knex';
-import mockKnex from 'mock-knex';
+import { v4 as uuidV4 } from 'uuid';
 
 import { sendConfirmationEmail, sendConfirmedByAdminEmail, resetPasswordEmail, sendEmail } from '../userEmailNotifications';
 import UserModel from '../user';
 import { registerTranslationDir } from '../../../config/i18next';
+import usersDbQueries from '../../../models/db/users.db.queries';
 
 registerTranslationDir(__dirname + '/../../../../../../locales/');
 
 // Need to mock the db to fetch admins
-jest.mock('../../../config/shared/db.config', () => {
-    const connection = knex({ client: 'pg', debug: false});
-    mockKnex.mock(connection, 'knex@0.10');
-    return connection;
-});
+jest.mock('../../../models/db/users.db.queries', () => ({
+    getList: jest.fn()
+}));
+const mockGetList = usersDbQueries.getList as jest.MockedFunction<typeof usersDbQueries.getList>;
 // Mock email transport
 jest.mock('../../mailer/transport', () => (nodemailerMock.createTransport({
     sendmail: true,
@@ -28,18 +27,19 @@ jest.mock('../../mailer/transport', () => (nodemailerMock.createTransport({
     path: '/usr/sbin/sendmail'
 }) as any as Transporter));
 
-const tracker = mockKnex.getTracker();
-tracker.install();
-
 const fromEmail = 'test@admin.org';
 process.env.MAIL_FROM_ADDRESS = fromEmail;
 
 // User data: 2 admins for each language and the user himself
 const defaultUserData = {
+    id: 5,
+    uuid: uuidV4(),
     email: 'test@transition.city',
     preferences: { lang: 'fr' }
 };
 const frenchAdmin = {
+    id: 1,
+    uuid: uuidV4(),
     email: 'french@transition.city',
     username: 'frenchAdmin',
     first_name: 'French',
@@ -47,23 +47,19 @@ const frenchAdmin = {
     preferences: { lang: 'fr' }
 }
 const englishAdmin = {
+    id: 2,
+    uuid: uuidV4(),
     email: 'english@transition.city',
     username: 'englishAdmin',
     preferences: { lang: 'en' }
 }
 
-tracker.on('query', (query) => {
-    if (query.sql.includes('is_admin')) {
-        query.response([frenchAdmin, englishAdmin]);
-    } else {
-        query.response(null);
-    }
-});
-
 const confirmUrl = 'http://transition.city/verify/something';
 
 beforeEach(() => {
     nodemailerMock.mock.reset();
+    mockGetList.mockClear();
+    mockGetList.mockResolvedValue({ users: [frenchAdmin, englishAdmin], totalCount: 2 });
 })
 
 test('Test sending with defaults', async () => {
@@ -123,9 +119,13 @@ test('Registration email confirm by admin', async () => {
 });
 
 test('Registration email confirm by admin, but no admin', async () => {
-    tracker.on('query', (query) => query.response(null));
+    mockGetList.mockResolvedValueOnce({ users: [], totalCount: 0});
     const user = new UserModel({...defaultUserData})
-    await expect(sendConfirmationEmail(user, { strategy: 'confirmByAdmin', confirmUrl })).rejects.toEqual(new Error('There are no admins to confirm emails!!'));
+    await expect(sendConfirmationEmail(user, { strategy: 'confirmByAdmin', confirmUrl }))
+        .rejects
+        .toEqual(new Error('There are no admins to confirm emails!!'));
+    expect(mockGetList).toHaveBeenCalledTimes(1);
+    expect(mockGetList).toHaveBeenCalledWith({ filters: { is_admin: true } });
 });
 
 test('Forgot password email, french', async () => {
