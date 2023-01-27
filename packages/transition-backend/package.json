@@ -44,7 +44,7 @@
         "i18next": "^20.2.2",
         "inquirer": "^8.2.4",
         "jszip": "^3.10.1",
-        "knex": "^0.21.19",
+        "knex": "^2.4.0",
         "knex-postgis": "^0.14.1",
         "lodash.camelcase": "^4.3.0",
         "lodash.clonedeep": "^4.5.0",

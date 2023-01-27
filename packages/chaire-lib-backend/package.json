@@ -51,7 +51,7 @@
         "i18next-fs-backend": "^1.1.1",
         "inquirer": "^7.3.3",
         "inquirer-file-tree-selection-prompt": "^1.0.7",
-        "knex": "^0.21.19",
+        "knex": "^2.4.0",
         "lodash.camelcase": "^4.3.0",
         "lodash.clonedeep": "^4.5.0",
         "lodash.flatten": "^4.4.0",
