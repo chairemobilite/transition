@@ -12,11 +12,11 @@ For Ubuntu users: [complete step-by-step development environment setup procedure
 
 ## Non-Node Dependencies
 
-* PostgreSQL 10+ with PostGIS
+* [PostgreSQL](https://www.postgresql.org/) 10+ with [PostGIS](https://postgis.net/)
 * [OSRM](https://github.com/Project-OSRM/osrm-backend/): It is the routing engine used by Transition, to calculate the routes for various modes: for example walking, cycling, driving, bus in urban setting, suburban bus, etc.
 * [trRouting](https://github.com/chairemobilite/trRouting/): An open source routing engine to calculate the route between an origin and a destination, or to calculate accessibility from/to a point, using public transit network. It is the main engine used for public transit simulations.
-* yarn: [debian/ubuntu](https://classic.yarnpkg.com/en/docs/install/#debian-stable) [macos](https://classic.yarnpkg.com/en/docs/install/#mac-stable)
-* Rust: It is used to run the json2capnp cache service which makes the application much faster if there's a lot of transit data.
+* yarn: [debian/ubuntu](https://classic.yarnpkg.com/en/docs/install/#debian-stable) or [macOS](https://classic.yarnpkg.com/en/docs/install/#mac-stable)
+* [Rust](https://www.rust-lang.org/): It is used to run the json2capnp cache service which makes the application much faster if there's a lot of transit data.
 
 ## Installation
 
@@ -58,9 +58,9 @@ walking: {
 
 ### Download and prepare the road network
 
-Route calculations for transit route, walking access or egress to transit stops, etc require a routing engine (`osrm`), which itself requires the road network from Open Street map. The following commands will download and prepare the road network data for use with osrm. 
+Route calculations for transit route, walking access or egress to transit stops, etc. require a routing engine (`osrm`), which itself requires the road network from OpenStreetMap. The following commands will download and prepare the road network data for use with osrm. 
 
-But first, a geojson polygon file is required to specify the area for which to download and process the road network. To easily create a polygon, [geojson.io](https://geojson.io) can be used, which can then be copy-pasted to a file.
+But first, a GeoJSON polygon file is required to specify the area for which to download and process the road network. To easily create a polygon, [geojson.io](https://geojson.io) can be used, which can then be copy-pasted to a file.
 
 ```shell
 yarn node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/downloadOsmNetworkData.task.js --polygon-file examples/polygon_rtl_area.geojson
@@ -77,7 +77,7 @@ cp .env.example .env
 ```
 
 * Change `PG_CONNECTION_STRING_PREFIX=postgres://postgres:@localhost:5432/` to `PG_CONNECTION_STRING_PREFIX=postgres://postgres:YOUR_POSTGRES_PASSWORD@localhost:5432/`
-* Change `EXPRESS_SESSION_SECRET_KEY` to a random string with no space
+* Change `EXPRESS_SESSION_SECRET_KEY` to a random string with no space.
 * Change `PROJECT_CONFIG` to point to your project's configuration file. The default is an example configuration file that can be copied and configured for your own need.
 
 ### Get a Mapbox access token
@@ -91,7 +91,7 @@ cp .env.example .env
 
 Run `yarn build:dev` or `yarn build:prod` to create the html client application that will be run on the browser. 
 
-The `prod` version is minified, while the `dev` version lhas greater size but allows to more easily debug the application.
+The `prod` version is minified, while the `dev` version has greater size but allows to more easily debug the application.
 
 ### Start the json2capnp cache server
 
@@ -101,13 +101,13 @@ Run `yarn start:json2capnp -- 2000 /absolute/path/to/cache/directory/` to start 
 
 This is required if the `defaultPreferences:json2capnp:enabled` preference is set to `true` in the `config.js` file (`true` is the default, to not use the rust server, set the value to `false` under the default preferences).
 
-### Start the nodejs server
+### Start the Node.js server
 
 Use one of these alternative start command:
 
 * `yarn start`: Start the server, with normal operation
 * `yarn start:debug`: Start the server with extra debugging information
-* `yarn start:tracing` Start the nodejs server with an OpenTelemetry config defined in a `tracing.js` file (placed in the root directory). See https://github.com/open-telemetry/opentelemetry-js/blob/main/getting-started/README.md#initialize-a-global-tracer for an example. 
+* `yarn start:tracing` Start the Node.js server with an OpenTelemetry config defined in a `tracing.js` file (placed in the root directory). See https://github.com/open-telemetry/opentelemetry-js/blob/main/getting-started/README.md#initialize-a-global-tracer for an example. 
 
 ### Open the application
 
@@ -122,13 +122,13 @@ You can easily launch the whole transition system using Docker and thus not havi
 (You can replace testtransition with your prefered image name. Don't forget to update any other command and compose file if you do so)
 To run the application directly, you'll need to add a `.env` as previously described, either by editing the `.env.docker` file before building the image, or by adding a `.env` file and pointing to it when running.
 
-**Warning**: The project directory is assumed to be in `/app/examples/runtime` with a project name of `demo_transition`. The cache server starts with a cache at this location. If it is not the case, update line 69 of the `Dockerfile` to fine-tune the cache directory as second argument to `json2capnp`.
+**Warning**: The project directory is assumed to be in `/app/examples/runtime` with a project name of `demo_transition`. The cache server starts with a cache at this location. If it is not the case, update line 68 of the `Dockerfile` to fine-tune the cache directory as second argument to `json2capnp`.
 
 ### Running using docker-compose
-An example docker-compose.yml file is available in the reposity. If used, it will spin up a container for the transition 
+An example docker-compose.yml file is available in the repository. If used, it will spin up a container for the transition 
 front-end and for dependent services like the postgis database.
 
-*The `docker-compose.yml` file contains customization suggestion.*
+*The `docker-compose.yml` file contains customisation suggestions.*
 
 * `docker-compose up -d`
 
@@ -139,7 +139,7 @@ On the first run, you'll need to run the the DB setup commands. See the Installa
 * `docker-compose restart`
 
 To load OSRM Data:
-Copy a geojson polygon
+Copy a GeoJSON polygon.
 
 #TODO Maybe the whole projects directory should be in a volume
 ```shell
@@ -151,8 +151,8 @@ docker exec -it transition_transition-www_1 yarn node --max-old-space-size=4096 
 ```
 
 ### Running development commands
-During development, you can run command in the docker image and use your local code.
-For example to run yarn test in the chaire-lib backend:
+During development, you can run commands in the docker image and use your local code.
+For example, to run yarn test in the chaire-lib backend:
 `docker run -a STDOUT -it -v "${PWD}:/home/project" -w=/home/project/transition-app/chaire-lib/backend/ testtransition yarn test`
 You can also run the app this way with:
 `docker run -a STDOUT -it -v "${PWD}:/home/project" -w=/home/project/ testtransition yarn start`
