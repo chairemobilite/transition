@@ -37,6 +37,7 @@ import { ResultsByMode } from 'transition-common/lib/services/transitRouting/Tra
 import TransitRoutingBaseComponent from './widgets/TransitRoutingBaseComponent';
 import ODCoordinatesComponent from './widgets/ODCoordinatesComponent';
 import TimeOfTripComponent from './widgets/TimeOfTripComponent';
+import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 
 export interface TransitRoutingFormProps extends WithTranslation {
     // TODO tahini batch routing
@@ -52,6 +53,7 @@ interface TransitRoutingFormState extends ChangeEventsState<TransitRouting> {
     scenarioCollection: any;
     loading: boolean;
     routingErrors?: ErrorMessage[];
+    selectedMode?: RoutingOrTransitMode;
 }
 
 class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, TransitRoutingFormState> {
@@ -95,6 +97,10 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
             );
         }
     }
+
+    setSelectedMode = (selectedMode: RoutingOrTransitMode) => {
+        this.setState({ selectedMode });
+    };
 
     onScenarioCollectionUpdate() {
         this.setState({ scenarioCollection: serviceLocator.collectionManager.get('scenarios') });
@@ -211,10 +217,10 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
         serviceLocator.eventManager.off('collection.update.scenarios', this.onScenarioCollectionUpdate);
     }
 
-    private isValid(): boolean {
+    private isValid = (): boolean => {
         // Are all form fields valid and the routing object too
         return !this.hasInvalidFields() && this.state.object.validate();
-    }
+    };
 
     private downloadCsv() {
         const elements = this.state.object.getAttributes().savedForBatch;
@@ -465,10 +471,12 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
                         <RoutingResultsComponent
                             results={this.state.currentResult}
                             request={this.state.object.attributes}
+                            selectedMode={this.state.selectedMode}
+                            setSelectedMode={this.setSelectedMode}
                         />
                     )}
                 </form>
-                <TransitRoutingBatchForm routingEngine={this.state.object} />
+                <TransitRoutingBatchForm routingEngine={this.state.object} isRoutingEngineValid={this.isValid} />
             </React.Fragment>
         );
     }

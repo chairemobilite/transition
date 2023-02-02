@@ -1,6 +1,6 @@
 {
   "engines": {
-    "node": ">=12.9.0"
+    "node": ">=16.0.0"
   },
   "name": "chaire-lib-frontend",
   "version": "0.2.2",
@@ -36,8 +36,6 @@
     "@types/react": "^16.9.0",
     "@types/react-dom": "^16.9.0",
     "bcryptjs": "^2.4.3",
-    "bookshelf": "^1.2.0",
-    "bookshelf-json-columns": "^3.0.0",
     "chaire-lib-common": "^0.2.2",
     "child_process": "^1.0.2",
     "date-fns": "^2.16.1",

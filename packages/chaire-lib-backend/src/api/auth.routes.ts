@@ -11,11 +11,12 @@ import moment from 'moment';
 import url from 'url';
 
 import passport from '../config/auth';
-import User, { sanitizeUserAttributes, UserAttributes } from '../services/auth/user';
+import User, { sanitizeUserAttributes } from '../services/auth/user';
 // TODO Responsibility for user login management is usually in passport, move it there
 import { resetPasswordEmail, sendConfirmedByAdminEmail } from '../services/auth/userEmailNotifications';
 import config from '../config/server.config';
 import { getConfirmEmailStrategy } from '../config/auth/localLogin.config';
+import { UserAttributes } from '../services/users/user';
 
 const defaultSuccessCallback = (req: Request, res: Response) => {
     // Handle success
@@ -160,16 +161,15 @@ export default function (app: express.Express) {
     app.post('/update_user_preferences', (req, res) => {
         const valuesByPath = req.body.valuesByPath;
         if (req.isAuthenticated() && req.user) {
-            const _user = new User({ ...req.user });
-            const preferences = Object.assign({}, _user.get('preferences'));
+            const _user = new User({ ...req.user } as UserAttributes);
+            const preferences = Object.assign({}, _user.attributes.preferences);
             if (Object.keys(valuesByPath).length > 0) {
                 for (const path in valuesByPath) {
                     _set(preferences, path, valuesByPath[path]);
                 }
             }
-            _user.set('preferences', preferences);
             _user
-                .save()
+                .updateAndSave({ preferences })
                 .then((_data) => {
                     res.status(200).json({
                         status: 'success'
@@ -191,10 +191,9 @@ export default function (app: express.Express) {
 
     app.get('/reset_user_preferences', async (req, res) => {
         if (req.isAuthenticated() && req.user) {
-            const _user = new User({ ...req.user });
-            _user.set('preferences', {});
+            const _user = new User({ ...req.user } as UserAttributes);
             try {
-                await _user.save();
+                await _user.updateAndSave({ preferences: {} });
                 return res.status(200).json({
                     status: 'success'
                 });
@@ -215,11 +214,7 @@ export default function (app: express.Express) {
         const token = crypto.randomBytes(20).toString('hex');
         try {
             // TODO Responsibility for user login management is usually in passport, move it there
-            const user = await new User()
-                .query({
-                    where: { email: req.body.email }
-                })
-                .fetch({ require: false });
+            const user = await User.find({ email: req.body.email });
 
             if (!user) {
                 return res.status(200).json({
@@ -228,13 +223,14 @@ export default function (app: express.Express) {
                 });
             }
 
-            user.set('password_reset_token', token);
-            user.set('password_reset_expire_at', moment(Date.now() + 86400000)); // 1 day);
-            const updatedUser = await user.save();
+            await user.updateAndSave({
+                password_reset_token: token,
+                password_reset_expire_at: moment(Date.now() + 86400000)
+            });
 
             const host = process.env.HOST || 'http://localhost:8080';
-            const resetPasswordUrl = new url.URL(`/reset/${updatedUser.get('password_reset_token')}`, host).href;
-            resetPasswordEmail(updatedUser, { resetPasswordUrl });
+            const resetPasswordUrl = new url.URL(`/reset/${token}`, host).href;
+            resetPasswordEmail(user, { resetPasswordUrl });
 
             return res.status(200).json({
                 status: 'ok',

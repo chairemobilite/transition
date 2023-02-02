@@ -21,17 +21,22 @@ if (!process.env.NODE_ENV) {
 const configuration = require('chaire-lib-backend/lib/config/server.config');
 const config = configuration.default ? configuration.default : configuration;
 
+// Public directory from which files are served
+const publicDirectory = path.join(__dirname, '..', '..', 'public');
+const bundleOutputPath = path.join(publicDirectory, 'dist', config.projectShortname);
+// Local path where locales are stored
+const localeDirectory = path.join(__dirname, '..', '..', 'locales');
+const entryFileName =  './lib/app-transition.js';
+
 module.exports = (env) => {
   console.log(`building js for project ${config.projectShortname}`);
 
   const isProduction = env === 'production';
   console.log('process.env.NODE_ENV', process.env.NODE_ENV);
 
-  // Public directory from which files are served
-  const publicDirectory = path.join(__dirname, '..', '..', 'public');
-  const bundleOutputPath = path.join(publicDirectory, 'dist', config.projectShortname);
-  // Local path where locales are stored
-  const localeDirectory = path.join(__dirname, '..', '..', 'locales');
+  const bundleFileName = isProduction ? `transition-${config.projectShortname}-bundle-${env}.[contenthash].js` : `transition-${config.projectShortname}-bundle-${env}.dev.js`;
+  const styleFileName = isProduction ? `transition-${config.projectShortname}-styles.[contenthash].css` : `transition-${config.projectShortname}-styles.dev.css`;
+  const htmlFileName = path.join(`index-${config.projectShortname}${env === 'test' ? `_${env}` : ''}.html`);
 
   const languages = config.languages || ['fr', 'en'];
   const languagesFilter = `/${languages.join("|")}/`;
@@ -39,7 +44,6 @@ module.exports = (env) => {
   // TODO Custom styles and locales should be set in config (#419, #420)
   const customStylesFilePath  = `${config.projectDir}/styles/styles.scss`;
   const customLocalesFilePath = `${config.projectDir}/locales`;
-  const entryFileName =  './lib/app-transition.js';
   const entry                 = fs.existsSync('./'+customStylesFilePath) ? [entryFileName, './'+customStylesFilePath] : [entryFileName];
   const includeDirectories    = [
     path.join(__dirname, 'lib'),
@@ -54,7 +58,7 @@ module.exports = (env) => {
     entry: entry,
     output: {
       path: bundleOutputPath,
-      filename: isProduction ? `transition-${config.projectShortname}-bundle-${env}.[contenthash].js` : `transition-${config.projectShortname}-bundle-${env}.dev.js`,
+      filename: bundleFileName,
       publicPath: '/dist/'
     },
     watchOptions: {
@@ -91,16 +95,13 @@ module.exports = (env) => {
             {
               loader: 'css-loader',
               options: {
-                sourceMap: true//,
-                //limit: 100000
+                sourceMap: true
               }
             },
             {
               loader: 'sass-loader',
               options: {
-                //data: "$projectShortname: " + config.projectShortnames + ";",
-                sourceMap: true,
-                //limit: 100000
+                sourceMap: true
               }
             }
           ]
@@ -122,11 +123,11 @@ module.exports = (env) => {
         cleanAfterEveryBuildPatterns: ['**/*', '!images/**', '!*.html'],
       }),
       new HtmlWebpackPlugin({
-        filename: path.join(`index-${config.projectShortname}${env === 'test' ? `_${env}` : ''}.html`),
+        filename: htmlFileName,
         template: path.join(publicDirectory, 'index.html'),
       }),
       new MiniCssExtractPlugin({
-        filename: isProduction ? `transition-${config.projectShortname}-styles.[contenthash].css` : `transition-${config.projectShortname}-styles.dev.css`
+        filename: styleFileName
       }),
       new webpack.DefinePlugin({
         'process.env': {
@@ -142,10 +143,7 @@ module.exports = (env) => {
           'MAPBOX_STYLE_ID'             : JSON.stringify(process.env.MAPBOX_STYLE_ID || config.mapboxStyleId),
           'CUSTOM_RASTER_TILES_XYZ_URL' : JSON.stringify(process.env.CUSTOM_RASTER_TILES_XYZ_URL || config.customRasterTilesXyzUrl),
           'CUSTOM_RASTER_TILES_MIN_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM || config.customRasterTilesMinZoom),
-          'CUSTOM_RASTER_TILES_MAX_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM || config.customRasterTilesMaxZoom),
-          'PROJECT_SAMPLE'              : JSON.stringify(process.env.PROJECT_SAMPLE),
-          'GEONAMES_USERNAME'           : JSON.stringify(process.env.GEONAMES_USERNAME),
-          'PHOTON_OSM_SEARCH_API_URL'   : JSON.stringify(process.env.PHOTON_OSM_SEARCH_API_URL)
+          'CUSTOM_RASTER_TILES_MAX_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM || config.customRasterTilesMaxZoom)
         },
         '__CONFIG__': JSON.stringify({
             ...config

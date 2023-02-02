@@ -8,16 +8,18 @@ import { v4 as uuidV4 } from 'uuid';
 import _cloneDeep                       from 'lodash.clonedeep';
 import { lineString as turfLineString } from '@turf/helpers';
 
-import dbQueries         from '../transitPaths.db.queries';
-import linesDbQueries    from '../transitLines.db.queries';
-import scenariosDbQueries    from '../transitScenarios.db.queries';
-import schedulesDbQueries    from '../transitSchedules.db.queries';
-import servicesDbQueries    from '../transitServices.db.queries';
+import dbQueries from '../transitPaths.db.queries';
+import linesDbQueries from '../transitLines.db.queries';
+import scenariosDbQueries from '../transitScenarios.db.queries';
+import schedulesDbQueries from '../transitSchedules.db.queries';
+import servicesDbQueries from '../transitServices.db.queries';
+import agencyDbQueries from '../transitAgencies.db.queries'
 import GeojsonCollection from 'transition-common/lib/services/path/PathCollection';
-import ObjectClass       from 'transition-common/lib/services/path/Path';
+import ObjectClass from 'transition-common/lib/services/path/Path';
 
 const objectName = 'path';
-const lineId     = '123a583c-df49-440f-8f44-f39fb0033c78';
+const agencyId = uuidV4();
+const lineId = uuidV4();
 const serviceId = uuidV4();
 const scenarioId = uuidV4();
 
@@ -94,9 +96,15 @@ const updatedAttributes = {
 };
 
 beforeAll(async () => {
-    await dbQueries.truncate()
+    await dbQueries.truncate();
+    await agencyDbQueries.create({
+        id: agencyId,
+        name: 'test',
+        acronym: 'test'
+    } as any);
     await linesDbQueries.create({
         id: lineId,
+        agency_id: agencyId,
         color: '#ffffff',
     } as any);
     await servicesDbQueries.create({
@@ -116,6 +124,7 @@ afterAll(async () => {
     await scenariosDbQueries.truncate();
     await dbQueries.truncate();
     await linesDbQueries.truncate();
+    await agencyDbQueries.truncate();
     schedulesDbQueries.destroy();
     schedulesDbQueries.destroy();
     schedulesDbQueries.destroy();

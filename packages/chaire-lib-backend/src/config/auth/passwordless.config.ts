@@ -22,12 +22,11 @@ const getMagicUrl = (href: string): string => {
 };
 
 const sendMagicLink = async (destination, href: string) => {
-    const model = await new UserModel()
-        .query({
-            where: { email: destination }
-        })
-        .fetch({ require: false });
-    const user = model === undefined ? new UserModel({ email: destination }) : model;
+    const model = await UserModel.find({ email: destination });
+    const user =
+        model === undefined
+            ? new UserModel({ id: -1, uuid: 'notadbuser', email: destination, username: destination })
+            : model;
     sendEmail(
         {
             mailText: ['customServer:magicLinkEmailText', 'server:magicLinkEmailText'],
@@ -46,12 +45,8 @@ const sendMagicLink = async (destination, href: string) => {
 
 const getOrCreateUserWithEmail = async (destination: string): Promise<UserModel> => {
     console.log('destination', destination);
-    const model = await new UserModel()
-        .query({
-            where: { email: destination }
-        })
-        .fetch({ require: false });
-    if (model !== null) {
+    const model = await UserModel.find({ email: destination });
+    if (model !== undefined) {
         return model;
     }
     const isTest =

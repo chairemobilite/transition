@@ -42,12 +42,7 @@ class PwdLessDirectSignupStrategy {
         const emailOrSms = payload.destination;
 
         // Verify if the email is already in the database
-        const model = await new UserModel()
-            .query({
-                where: { email: emailOrSms },
-                orWhere: { username: emailOrSms }
-            })
-            .fetch({ require: false });
+        const model = await UserModel.find({ usernameOrEmail: emailOrSms });
 
         // If so, use the magicLoginStrategy
         if (model) {

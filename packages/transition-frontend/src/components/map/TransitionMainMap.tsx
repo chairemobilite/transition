@@ -487,9 +487,9 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
         contextMenu.style.display = 'block';
 
         ReactDom.render(
-            <React.Fragment>
+            <ul>
                 {elements.map((element) => (
-                    <span
+                    <li
                         key={element.key ? element.key : element.title}
                         style={{ display: 'block', padding: '5px' }}
                         onClick={() => {
@@ -499,9 +499,9 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
                         onMouseOver={() => element.onHover && element.onHover()}
                     >
                         {this.props.t(element.title)}
-                    </span>
+                    </li>
                 ))}
-            </React.Fragment>,
+            </ul>,
             contextMenu
         );
     };

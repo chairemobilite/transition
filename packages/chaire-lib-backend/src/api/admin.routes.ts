@@ -60,14 +60,14 @@ router.post('/updateUser', async (req, res) => {
             res.status(404).json({ status: 'BadRequest', message: 'Missing user uuid' });
         }
 
-        const user = await new UserModel({ uuid }).fetch();
-        user.updateAttributes(rest);
-        await user.save();
-        /*const response = await Users.getAllMatching({
-            pageIndex: page,
-            pageSize: Number.isNaN(queryPageSize) ? undefined : queryPageSize,
-            filter: actualFilters
-        }); */
+        const user = await UserModel.getByUuid(uuid);
+        if (user === undefined) {
+            return res.status(404).json({
+                status: 'notFound',
+                uuid
+            });
+        }
+        await user.updateAndSanitizeAttributes(rest);
 
         return res.status(200).json({
             status: 'success',

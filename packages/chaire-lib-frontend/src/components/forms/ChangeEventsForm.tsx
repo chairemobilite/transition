@@ -57,9 +57,9 @@ export abstract class ChangeEventsForm<P, S extends ChangeEventsState<any>> exte
         return this._invalidFields;
     }
 
-    protected hasInvalidFields(): boolean {
+    protected hasInvalidFields = (): boolean => {
         return Object.keys(this._invalidFields).filter((key) => this._invalidFields[key]).length > 0;
-    }
+    };
 }
 
 export default ChangeEventsForm;

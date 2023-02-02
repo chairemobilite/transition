@@ -4,8 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import knex from 'knex';
-import mockKnex from 'mock-knex';
 import express, { RequestHandler } from 'express';
 import request from 'supertest';
 import session from 'supertest-session';
@@ -14,12 +12,13 @@ import authRoutes from '../auth.routes';
 import { resetPasswordEmail } from '../../services/auth/userEmailNotifications';
 import User from '../../services/auth/user';
 import config from '../../config/server.config';
+import usersDbQueries from '../../models/db/users.db.queries';
 
 jest.mock('../../config/server.config', () => ({
     auth: {}
 }));
 jest.mock('../../services/auth/userEmailNotifications');
-const mockedResetPwdEmail = resetPasswordEmail as jest.Mocked<typeof resetPasswordEmail>;
+const mockedResetPwdEmail = resetPasswordEmail as jest.MockedFunction<typeof resetPasswordEmail>;
 const mockResetPassword = jest.fn();
 User.resetPassword = mockResetPassword;
 
@@ -67,42 +66,20 @@ const password = 'testtest';
 const validEmail = 'test@test.org';
 const validUser = {
     id: 5,
+    uuid: 'arbitrary',
     username: validUsername,
     email: validEmail,
     is_confirmed: true,
     is_valid: true
 };
 
-// Mock DB and email notifications module
-jest.mock('../../config/shared/db.config', () => {
-    const connection = knex({ client: 'pg', debug: false});
-    mockKnex.mock(connection, 'knex@0.10');
-    return connection;
-});
-
-const tracker = mockKnex.getTracker();
-tracker.install();
-
-let updatedUser: any = null;
-const resetPasswordToken = 'b7319eab283aa67195913d66804e739a9519483c';
 // Query results
-tracker.on('query', (query) => {
-    if (query.method === 'update') {
-        updatedUser = {
-            id: validUser.id,
-            username: query.bindings[0],
-            email: query.bindings[1],
-            is_confirmed: query.bindings[2],
-            is_valid: query.bindings[3],
-            password_reset_token: resetPasswordToken
-        };
-        query.response([updatedUser]);
-    } else if (query.bindings.includes(validEmail)) {
-        query.response([validUser]);
-    } else {
-        query.response(null);
-    }
-});
+jest.mock('../../models/db/users.db.queries', () => ({
+    find: jest.fn().mockResolvedValue(undefined),
+    update: jest.fn()
+}));
+const mockFind = usersDbQueries.find as jest.MockedFunction<typeof usersDbQueries.find>;
+const mockUpdate = usersDbQueries.update as jest.MockedFunction<typeof usersDbQueries.update>;
 
 const app = express();
 // FIXME Since upgrading @types/node, the types are wrong and we get compilation error. It is documented for example https://github.com/DefinitelyTyped/DefinitelyTyped/issues/53584 the real fix would require upgrading a few packages and may have side-effects. Simple casting works for now.
@@ -117,6 +94,9 @@ beforeEach(() => {
     }
     mockResetPassword.mockClear();
     Object.keys(authMockFunctions).forEach(authType => authMockFunctions[authType].mockClear());
+    mockFind.mockClear();
+    mockUpdate.mockClear();
+    mockedResetPwdEmail.mockClear();
 })
 
 test('Login, valid user', async () => {
@@ -221,7 +201,7 @@ test('Signup, unconfirmed user', async () => {
 });
 
 test('Forgot password, user exists', async () => {
-    expect(mockedResetPwdEmail).not.toHaveBeenCalled();
+    mockFind.mockResolvedValueOnce(validUser);
     const res = await request(app)
         .post('/forgot', { email: validEmail })
         .send({ email: validEmail })
@@ -230,15 +210,25 @@ test('Forgot password, user exists', async () => {
         .expect(200);
     expect(res.body.emailExists).toEqual(true);
 
+    expect(mockUpdate).toHaveBeenCalledTimes(1);
+    expect(mockUpdate).toHaveBeenCalledWith(validUser.id, {
+        password_reset_token: expect.anything(),
+        password_reset_expire_at: expect.anything()
+    })
     // FIXME: For some reason here expect(mockedResetPwdEmail).toHaveBeenCalledWith(expect.objectContaining({attributes: updatedUser})) does not work, it says it receives a json, while the actual argument is the right object.
     expect(mockedResetPwdEmail).toHaveBeenCalledTimes(1);
     expect((mockedResetPwdEmail as any).mock.calls).toHaveLength(1);
+    
     const args = (mockedResetPwdEmail as any).mock.calls[0];
-    expect(args[0]).toMatchObject({attributes: updatedUser});
+    expect(args[0]).toMatchObject({_attributes: {
+        ...validUser,
+        password_reset_token: expect.anything(),
+        password_reset_expire_at: expect.anything()
+    }});
+    
 });
 
 test('Forgot password, user does not exist', async () => {
-    expect(mockedResetPwdEmail).toHaveBeenCalledTimes(1);
     const res = await request(app)
         .post('/forgot')
         .set('Accept', 'application/json')
@@ -246,7 +236,7 @@ test('Forgot password, user does not exist', async () => {
         .expect('Content-Type', /json/)
         .expect(200);
     expect(res.body.emailExists).toEqual(false);
-    expect(mockedResetPwdEmail).toHaveBeenCalledTimes(1);
+    expect(mockedResetPwdEmail).not.toHaveBeenCalled();
 });
 
 test('Reset password, post without password', async () => {

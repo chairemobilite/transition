@@ -19,6 +19,12 @@ export const sendEmail = async (
     userNotification: UserNotification,
     translateKeys: { [name: string]: any }
 ): Promise<void> => {
+    if (typeof userNotification.toUser.attributes.email !== 'string') {
+        console.error(
+            `Mail should be sent to user ${userNotification.toUser.attributes.uuid}, but the user does not have an email`
+        );
+        return;
+    }
     const transport = mailTransport;
     if (transport === null) {
         throw new Error('Mail transport configuration error. Email cannot be sent');
@@ -45,7 +51,7 @@ export const sendEmail = async (
     const subject = translate(userNotification.mailSubject);
     const mailOptions = {
         from: process.env.MAIL_FROM_ADDRESS,
-        to: userNotification.toUser.get('email'),
+        to: userNotification.toUser.attributes.email,
         subject: subject,
         text: textMsg,
         html: htmlMsg
@@ -69,13 +75,14 @@ const getConfirmEmailsToSend = async (user: UserModel, strategy?: string): Promi
     if (admins.length === 0) {
         throw new Error('There are no admins to confirm emails!!');
     }
+    const adminUsers = admins.map((adminAttribs) => new UserModel(adminAttribs));
     // Send email to admins and a notification to the user
     const userNotificationPending = {
         mailText: 'server:pendingConfirmByAdminText',
         mailSubject: 'server:pendingConfirmByAdminSubject',
         toUser: user
     };
-    const notifications = admins.map((admin) => ({
+    const notifications = adminUsers.map((admin) => ({
         mailText: 'server:confirmByAdminText',
         mailSubject: 'server:confirmByAdminSubject',
         toUser: admin
@@ -98,7 +105,7 @@ export const sendConfirmationEmail = async (
 ): Promise<void> => {
     const emails = await getConfirmEmailsToSend(user, options.strategy);
     emails.forEach(async (email) => {
-        await sendEmail(email, { userConfirmationUrl: { url: options.confirmUrl }, usermail: user.get('email') });
+        await sendEmail(email, { userConfirmationUrl: { url: options.confirmUrl }, usermail: user.attributes.email });
     });
     console.log('Email sent for account confirmation');
 };

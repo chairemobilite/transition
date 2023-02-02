@@ -130,9 +130,9 @@ passport.serializeUser((user: any, done) => {
 
 passport.deserializeUser(async (id, done) => {
     try {
-        const model = await new UserModel().where({ id }).fetch({ require: false });
-        if (model !== null) {
-            done(null, model.toJSON());
+        const model = await UserModel.getById(id as number);
+        if (model !== undefined) {
+            done(null, model.attributes);
             return null;
         }
         done('User does not exist');

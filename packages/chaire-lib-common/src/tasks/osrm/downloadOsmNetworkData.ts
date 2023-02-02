@@ -82,7 +82,7 @@ export class DownloadOsmNetworkData implements GenericTask {
                 let nbRetry = 0;
                 const downloadData = async () => {
                     try {
-                        await osmDownloader.writeXml(osmRawDataFile, polygonGeojson, networksPolyForOsrm);
+                        await osmDownloader.fetchAndWriteXml(osmRawDataFile, polygonGeojson, networksPolyForOsrm);
                         resolve();
                     } catch (error) {
                         nbRetry++;

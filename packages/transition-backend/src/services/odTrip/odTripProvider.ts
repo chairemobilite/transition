@@ -17,6 +17,7 @@ import {
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import constants from 'chaire-lib-common/lib/config/constants';
 
 export interface OdTripOptions {
     projection: string;
@@ -36,27 +37,27 @@ const extractOdTrip = (
         [key: string]: any;
     },
     options: OdTripOptions,
-    projections: any
+    projection: { srid: number; value: string }
 ): BaseOdTrip => {
     const internalId = line[options.idAttribute];
     const originGeography =
-        options.projection === '4326'
+        projection.srid === constants.geographicCoordinateSystem.srid
             ? turfPoint([parseFloat(line[options.originXAttribute]), parseFloat(line[options.originYAttribute])])
                 .geometry
             : turfPoint(
-                proj4(projections[options.projection].value, projections['4326'].value, [
+                proj4(projection.value, constants.geographicCoordinateSystem.value, [
                     parseFloat(line[options.originXAttribute]),
                     parseFloat(line[options.originYAttribute])
                 ])
             ).geometry;
     const destinationGeography =
-        options.projection === '4326'
+        projection.srid === constants.geographicCoordinateSystem.srid
             ? turfPoint([
                 parseFloat(line[options.destinationXAttribute]),
                 parseFloat(line[options.destinationYAttribute])
             ]).geometry
             : turfPoint(
-                proj4(projections[options.projection].value, projections['4326'].value, [
+                proj4(projection.value, constants.geographicCoordinateSystem.value, [
                     parseFloat(line[options.destinationXAttribute]),
                     parseFloat(line[options.destinationYAttribute])
                 ])
@@ -144,11 +145,21 @@ export const parseOdTripsFromCsv = async (
     let nbErrors = 0;
     const errors: ErrorMessage[] = [];
 
+    const projection =
+        projections[options.projection] !== undefined
+            ? projections[options.projection]
+            : constants.geographicCoordinateSystem;
+    if (projections[options.projection] === undefined) {
+        console.log(
+            `Parsing OD trips: unknown projections '${options.projection}' will use default value of ${projection.label}`
+        );
+    }
+
     const status = await parseCsvFile(
         csvFilePath,
         (line, rowNumber) => {
             try {
-                const odTrip = extractOdTrip(line, options, projections);
+                const odTrip = extractOdTrip(line, options, projection);
 
                 if (options.debug) {
                     console.log(

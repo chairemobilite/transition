@@ -43,6 +43,7 @@ export interface TransitBatchRoutingFormProps extends WithTranslation {
     fileUploader?: any;
     fileImportRef?: any;
     routingEngine: TransitRouting;
+    isRoutingEngineValid?: () => boolean;
 }
 
 interface TransitBatchRoutingFormState extends ChangeEventsState<TransitBatchRouting> {
@@ -206,6 +207,10 @@ class TransitRoutingBatchForm extends ChangeEventsForm<TransitBatchRoutingFormPr
     }
 
     async onCalculateBatch() {
+        if (this.props.isRoutingEngineValid !== undefined && !this.props.isRoutingEngineValid()) {
+            this.setState({ errors: ['transit:transitRouting:errors:RoutingParametersInvalidForBatch'] });
+            return;
+        }
         this.setState({
             batchRoutingInProgress: true,
             errors: [],
