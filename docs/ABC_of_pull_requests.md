@@ -92,7 +92,7 @@ So all the PR checks are OK, I'm ready to approve and merge! But wait, there are
 
 - [ ] **Did I approve the PR?**: In the `Files changed` tab of the PR, click on the green `review changes` button and select `Approve` and submit.
 
-<!-- The link leads to a 4040 page.
+<!-- The link leads to a 404 page.
 ![Approve the PR](images/PRs/approvePR.png)-->
 
 
