@@ -12,7 +12,7 @@ PROJECT_CONFIG=</path/to/this/repo>/examples/transition/config.js
 
 3. Follow the [installation instructions](../../README.md#installation) at the root of this repo to setup the database and create users
 
-4. Follow the [build and start instructions](../../main/README.md#build-and-start) at the root of this repo to compile and build the code, but do not start the nodejs server yet.
+4. Follow the [build and start instructions](../../README.md#build-and-start) at the root of this repo to compile and build the code, but do not start the nodejs server yet.
 
 5. Get and prepare the road network for `osrm` to route. This step is optional, but required to create new lines that properly follow the road network. The first line will download the Open Street Map network data from the overpass API. The second line will prepare the data for the `osrm` servers. Data is prepared differently for different modes of transportation. Selecting `driving` and `walking` are mandatory modes, as `driving` is the default mode for vehicles and `walking` is required to calculate access, transfer and egress times from transit.
 
