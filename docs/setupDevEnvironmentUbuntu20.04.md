@@ -1,5 +1,4 @@
 # Setup development environment on Ubuntu
-# WARNING! Deprecated.
 
 *Tested on Ubuntu 20.04 LTS (Focal Fossa)*
 
