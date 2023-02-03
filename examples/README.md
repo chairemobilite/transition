@@ -2,7 +2,7 @@ This folder contains an example configuration file, as well as necessary files t
 
 # Running the demo
 
-1. Make sure all the pre-requisites are installed. For complete installation instructions of all dependencies, see the [instructions for Ubuntu](../../main/docs/setupDevEnvironmentUbuntu20.04.md).
+1. Make sure all the pre-requisites are installed. For complete installation instructions of all dependencies, see the [instructions for Ubuntu](../../docs/setupDevEnvironmentUbuntu20.04.md).
 
 2. Update the .env file and set the `PROJECT_CONFIG` to point to the config file in this directory
 
@@ -10,7 +10,7 @@ This folder contains an example configuration file, as well as necessary files t
 PROJECT_CONFIG=</path/to/this/repo>/examples/transition/config.js
 ```
 
-3. Follow the [installation instructions](../../main/README.md#installation) at the root of this repo to setup the database and create users
+3. Follow the [installation instructions](../../README.md#installation) at the root of this repo to setup the database and create users
 
 4. Follow the [build and start instructions](../../main/README.md#build-and-start) at the root of this repo to compile and build the code, but do not start the nodejs server yet.
 
