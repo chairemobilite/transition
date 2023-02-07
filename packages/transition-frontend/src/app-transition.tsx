@@ -22,6 +22,7 @@ import {
     SupplyManagementDashboardContribution,
     DemandManagementDashboardContribution
 } from './components/dashboard/TransitionDashboardContribution';
+import { SupplyDemandAnalysisDashboardContribution } from './components/dashboard/supplyDemandAnalysisModule/SupplyDemandAnalysisDashboardContribution';
 import { setApplicationConfiguration } from 'chaire-lib-frontend/lib/config/application.config';
 
 import 'chaire-lib-frontend/lib/styles/styles-transition.scss';
@@ -34,7 +35,11 @@ setApplicationConfiguration({ homePage: '/dashboard' });
 config.appTitle = 'Transition';
 
 const store = configureStore();
-const contributions = [new SupplyManagementDashboardContribution(), new DemandManagementDashboardContribution()];
+const contributions = [
+    new SupplyManagementDashboardContribution(),
+    new DemandManagementDashboardContribution(),
+    new SupplyDemandAnalysisDashboardContribution()
+];
 const jsx = (
     <Provider store={store}>
         <I18nextProvider i18n={i18n}>
