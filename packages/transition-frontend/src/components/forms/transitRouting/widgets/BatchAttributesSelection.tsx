@@ -7,17 +7,15 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-import TransitBatchRouting, {
-    TransitBatchRoutingAttributes
-} from 'transition-common/lib/services/transitRouting/TransitBatchRouting';
+import { TransitOdDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import * as BatchAttributeSelectionWidgets from '../../transitCalculation/widgets/AttributeSelectionWidget';
 
 export interface BatchAttributesSelectionComponentProps extends WithTranslation {
-    attributes: TransitBatchRoutingAttributes;
+    attributes: TransitOdDemandFromCsvAttributes;
     csvAttributes: string[];
-    onValueChange: (path: keyof TransitBatchRoutingAttributes, newValue: { value: any; valid?: boolean }) => void;
+    onValueChange: (path: keyof TransitOdDemandFromCsvAttributes, newValue: { value: any; valid?: boolean }) => void;
 }
 
 const BatchAttributesSelectionComponent: React.FunctionComponent<BatchAttributesSelectionComponentProps> = (

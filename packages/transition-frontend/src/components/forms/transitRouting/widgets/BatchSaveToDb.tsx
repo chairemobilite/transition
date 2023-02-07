@@ -9,7 +9,7 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import _toString from 'lodash.tostring';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { TransitBatchRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitBatchRouting';
+import { TransitOdDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import { _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -17,7 +17,7 @@ import DataSourceCollection from 'transition-common/lib/services/dataSource/Data
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 
 export interface BatchAttributesSelectionComponentProps extends WithTranslation {
-    attributes: TransitBatchRoutingAttributes;
+    attributes: TransitOdDemandFromCsvAttributes;
     defaultDataSourceName: string;
     onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
 }
