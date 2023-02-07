@@ -57,7 +57,7 @@ Examples of views of PRs to review at this step:
 
 ### Code review
 
-Next is the code review itself. Behaviour is one thing, code quality is another. In this step, we want to make sure the code under review reaches the current standards of code in the various workspaces, and also that the proposed solution makes sense.
+Next is the code review itself. Behavior is one thing, code quality is another. In this step, we want to make sure the code under review reaches the current standards of code in the various workspaces, and also that the proposed solution makes sense.
 
 - [ ] **Does the code respect the code style?** You can just run `yarn format` on the repo and see if any file was changed. If so (and it is related to the patch), you should ask the author to apply the format to all the commits.
 - [ ] **Is the code well documented?** Is there sufficient documentation on the new code? Some claim good programming does not need comments. Make sure the absence of comments is a sign of good programming (variable names, simple obvious statements). In the case of Transition, specific algorithms do need documentation for non domain specialists.
@@ -72,19 +72,17 @@ Next is the code review itself. Behaviour is one thing, code quality is another.
 
 - [ ] The code touches important core parts, is not well tested and may have side effects.
 - [ ] The author specifically mentioned to test some specific thing.
-- [ ] There is some behaviour change that requires validation by maintainers.
+- [ ] There is some behavior change that requires validation by maintainers.
 
 If functional review is required, here are the steps to follow:
 
 - [ ] **Get the code**: There are instructions at the bottom of the PR to get the code. Click on the `command line instructions` link beside the green Merge button. See screenshot below. Refuse if there are conflicts with `dev`.
 
-<!-- The link leads to a 404 page.
-![Get the code](images/PRs/getTheCode.png)-->
+[Get the code](images/PRs/getTheCode.png)
 
 - [ ] **Compile and run**: Make sure it all compiles correctly in your environment: In one window: `yarn && yarn compile && yarn build:dev`. In another window: `yarn start:json2capnp`. In yet another window: `yarn start`.
-- [ ] **Test the new code**: **Thoroughly** try the feature impacted by the PR: don't just do the basic stuff, try corner cases, all fields, try with different data (as much as you can). We want to be sure the behaviour is as expected! Look at the console messages for any errors. Report anything out of ordinary, comment its behaviour, etc.
+- [ ] **Test the new code**: **Thoroughly** try the feature impacted by the PR: don't just do the basic stuff, try corner cases, all fields, try with different data (as much as you can). We want to be sure the behavior is as expected! Look at the console messages for any errors. Report anything out of ordinary, comment its behavior, etc.
 - [ ] **Test for regressions**: Until we have good unit test coverage to do it instead of us, briefly also make sure it did not impact anything else, especially if modules in chaire-lib were modified. Report anything out of ordinary.
-- [ ] **Does it possibly impact other applications?**: The PR has probably only been tested for the application under review. If the application touches `chaire-lib` or some `shared` files in `src`, make sure it does not break anything in the other apps that use it.
 
 ### Accept and merge
 
@@ -92,8 +90,7 @@ So all the PR checks are OK, I'm ready to approve and merge! But wait, there are
 
 - [ ] **Did I approve the PR?**: In the `Files changed` tab of the PR, click on the green `review changes` button and select `Approve` and submit.
 
-<!-- The link leads to a 404 page.
-![Approve the PR](images/PRs/approvePR.png)-->
+[Approve the PR](images/PRs/approvePR.png)
 
 
 - [ ] **Did all reviewers approve?**: If anyone was specifically requested for review, make sure the review was done and approved (or that there is no need). In doubt, just ping the other reviewer(s) for comments.
