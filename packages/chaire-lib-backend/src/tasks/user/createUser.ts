@@ -177,7 +177,6 @@ export class CreateUser implements GenericTask {
             await this.createUserFromData({
                 username,
                 email: typeof email === 'string' ? email?.toLowerCase() : undefined,
-                // email,
                 password,
                 first_name,
                 last_name,

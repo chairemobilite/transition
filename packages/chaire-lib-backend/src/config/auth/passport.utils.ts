@@ -26,7 +26,6 @@ export const saveNewUser = async function (params: newUserParams): Promise<UserM
         const newUserObj = await UserModel.createAndSave({
             username: params.username || null,
             email: typeof params.email === 'string' ? params.email.toLowerCase() : null,
-            //email: params.email || null
             google_id: params.googleId || null,
             facebook_id: params.facebookId || null,
             generated_password: params.generatedPassword || null,
