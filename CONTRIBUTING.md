@@ -8,7 +8,7 @@ There are many ways to contribute to the development of Transition. Here's a few
 
 ### Asking a question
 
-You can use the issue tracker of this github project to ask a question. You can label it as a `question`. Before asking, make sure a similar question has not been asked before.
+You can use the [issue tracker](https://github.com/chairemobilite/transition/issues) of this GitHub project to ask a question. You can label it as a `question`. Before asking, make sure a similar question has not been asked before.
 
 ### Reporting bugs
 
@@ -16,7 +16,7 @@ If you use Transition and encounter a bug, first make sure a similar issue has n
 
 ### Requesting features and ideas
 
-If there's something you would like to see in Transition, no matter how big or small a change it may seem, you may start a discussion in the issue tracker here. Members of the community can join in the discussion.
+If there's something you would like to see in Transition, no matter how big or small a change it may seem, you may start a discussion in the issue tracker [here](https://github.com/chairemobilite/transition/issues). Members of the community can join in the discussion.
 
 ### Developing the platform
 
