@@ -14,7 +14,6 @@ import _get from 'lodash.get';
 import _cloneDeep from 'lodash.clonedeep';
 import _toString from 'lodash.tostring';
 import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
-import slugify from 'slugify';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
@@ -25,7 +24,8 @@ import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
-import TransitBatchRouting from 'transition-common/lib/services/transitRouting/TransitBatchRouting';
+import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
+import TransitBatchRoutingCalculator from 'transition-common/lib/services/transitRouting/TransitBatchRoutingCalculator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
@@ -46,7 +46,7 @@ export interface TransitBatchRoutingFormProps extends WithTranslation {
     isRoutingEngineValid?: () => boolean;
 }
 
-interface TransitBatchRoutingFormState extends ChangeEventsState<TransitBatchRouting> {
+interface TransitBatchRoutingFormState extends ChangeEventsState<TransitOdDemandFromCsv> {
     scenarioCollection: any;
     cacheCsvAttributes: any;
     csvUploadedToServer: boolean;
@@ -69,10 +69,9 @@ class TransitRoutingBatchForm extends ChangeEventsForm<TransitBatchRoutingFormPr
     constructor(props: TransitBatchRoutingFormProps) {
         super(props);
 
-        const batchRoutingEngine = new TransitBatchRouting(
+        const batchRoutingEngine = new TransitOdDemandFromCsv(
             Object.assign(_cloneDeep(Preferences.get('transit.routing.batch')), { saveToDb: false }),
-            false,
-            props.routingEngine
+            false
         );
 
         this.state = {
@@ -218,7 +217,10 @@ class TransitRoutingBatchForm extends ChangeEventsForm<TransitBatchRoutingFormPr
         });
         const attributes = this.state.object.attributes;
         try {
-            const routingResult: any = await this.state.object.calculate(true);
+            const routingResult: any = await TransitBatchRoutingCalculator.calculate(
+                this.state.object,
+                this.props.routingEngine.getAttributes()
+            );
             this.setState({
                 batchRoutingInProgress: false,
                 detailedResult: routingResult.results,

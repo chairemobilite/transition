@@ -4,8 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TransitBatchRouting } from '../TransitBatchRouting';
-import { TransitRouting } from '../TransitRouting';
+import { TransitOdDemandFromCsv } from '../TransitOdDemandFromCsv';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import DataSourceCollection from '../../dataSource/DataSourceCollection';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -14,10 +13,8 @@ import DataSource from '../../dataSource/DataSource';
 const collectionManager = new CollectionManager(null);
 serviceLocator.addService('collectionManager', collectionManager);
 
-const defaultTransitRouting = new TransitRouting({});
-
 test('Validate number of CPUs', () => {
-    const batchRouting = new TransitBatchRouting({}, false, defaultTransitRouting);
+    const batchRouting = new TransitOdDemandFromCsv({}, false);
     
     // all cpu count has not been set, they should remain unset
     batchRouting.validate();
@@ -81,7 +78,7 @@ describe('validate saveToDb', () => {
     collectionManager.add('dataSources', dataSourceCollection);
 
     test('default validation, should be false', () => {
-        const batchRouting = new TransitBatchRouting({}, false, defaultTransitRouting);
+        const batchRouting = new TransitOdDemandFromCsv({}, false);
 
         // Default validation, should be false and validate ok
         batchRouting.validate();
@@ -90,7 +87,7 @@ describe('validate saveToDb', () => {
     });
 
     test('new data source, unexisting name', () => {
-        const batchRouting = new TransitBatchRouting({}, false, defaultTransitRouting);
+        const batchRouting = new TransitOdDemandFromCsv({}, false);
         const expectedSaveToDb = { type: 'new' as const, dataSourceName: dataSources[2].attributes.name as string };
         batchRouting.attributes.saveToDb = expectedSaveToDb;
 
@@ -100,7 +97,7 @@ describe('validate saveToDb', () => {
     });
 
     test('new data source, existing name', () => {
-        const batchRouting = new TransitBatchRouting({}, false, defaultTransitRouting);
+        const batchRouting = new TransitOdDemandFromCsv({}, false);
         const expectedSaveToDb = { type: 'new' as const, dataSourceName: dataSources[0].attributes.name as string }
         batchRouting.attributes.saveToDb = expectedSaveToDb;
 
@@ -111,7 +108,7 @@ describe('validate saveToDb', () => {
     });
 
     test('existing data source, valid', () => {
-        const batchRouting = new TransitBatchRouting({}, false, defaultTransitRouting);
+        const batchRouting = new TransitOdDemandFromCsv({}, false);
         const expectedSaveToDb = { type: 'overwrite' as const, dataSourceId: dataSources[0].getId() }
         batchRouting.attributes.saveToDb = expectedSaveToDb;
 
@@ -121,7 +118,7 @@ describe('validate saveToDb', () => {
     });
 
     test('existing data source, unexisting', () => {
-        const batchRouting = new TransitBatchRouting({}, false, defaultTransitRouting);
+        const batchRouting = new TransitOdDemandFromCsv({}, false);
         const expectedSaveToDb = { type: 'overwrite' as const, dataSourceId: 'arbitrary' }
         batchRouting.attributes.saveToDb = expectedSaveToDb;
 
@@ -132,7 +129,7 @@ describe('validate saveToDb', () => {
     });
 
     test('existing data source, not an odTrip data source', () => {
-        const batchRouting = new TransitBatchRouting({}, false, defaultTransitRouting);
+        const batchRouting = new TransitOdDemandFromCsv({}, false);
         const expectedSaveToDb = { type: 'overwrite' as const, dataSourceId: dataSources[1].getId() }
         batchRouting.attributes.saveToDb = expectedSaveToDb;
 
