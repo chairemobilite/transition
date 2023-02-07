@@ -153,7 +153,8 @@ export class CreateUser implements GenericTask {
     public async run(argv: { [key: string]: unknown }): Promise<void> {
         // Handle arguments and default values
         const username = argv['username'];
-        const email = argv['email'] !== undefined ? argv['email'] as string : undefined;
+        // const email = argv['email'] !== undefined ? argv['email'] as string : undefined;
+        const email = argv['email'];
         const password = argv['password'];
         const first_name = argv['first_name'] || '';
         const last_name = argv['last_name'] || '';
@@ -169,12 +170,14 @@ export class CreateUser implements GenericTask {
         this.existingEmails = users
             .filter((user) => typeof user.email === 'string')
             .map((user) => user.email?.toLowerCase()) as string[];
+            // .map((user) => user.email) as string[];
 
         if (username || email || password || first_name || last_name) {
             // Non-interactive user creation
             await this.createUserFromData({
                 username,
-                email: email?.toLowerCase(),
+                email: typeof email === 'string' ? email?.toLowerCase() : undefined,
+                // email,
                 password,
                 first_name,
                 last_name,
