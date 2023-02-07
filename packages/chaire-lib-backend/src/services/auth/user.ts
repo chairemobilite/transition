@@ -200,6 +200,9 @@ export default class UserModel {
     }
 
     sanitize = (): BaseUser => {
+        if (typeof this._attributes.email === 'string') {
+            this._attributes.email = this._attributes.email.toLowerCase();
+        }
         return sanitizeUserAttributes(this._attributes);
     };
 }
