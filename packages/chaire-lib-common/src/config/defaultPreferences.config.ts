@@ -65,8 +65,8 @@ const defaultPreferences: PreferencesModel = {
                 icon: '/dist/images/icons/interface/accessibility_map_white.svg',
                 hasMapLayers: true
             },
-            odRouting: {
-                localizedTitle: 'main:OdRouting',
+            batchCalculation: {
+                localizedTitle: 'main:BatchCalculation',
                 icon: '/dist/images/icons/interface/od_routing_white.svg',
                 hasMapLayers: true
             },

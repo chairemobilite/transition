@@ -31,7 +31,7 @@
   "connectionIsOffline": "Vous êtes déconnectés, veuillez vérifier votre connexion.",
   "Routing": "Calcul de chemin",
   "AccessibilityMap": "Carte d'accessibilité",
-  "OdRouting": "Chargement OD",
+  "BatchCalculation": "Calculs multiples",
   "RestartTrRouting": "[Re]démarrer le calculateur de chemins",
   "SaveAllData": "Sauvegarder toutes les données pour le calculateur de chemin",
   "PrepareData": "Préparer les données",

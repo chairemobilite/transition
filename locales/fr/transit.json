@@ -921,5 +921,9 @@
                 "geojson": "GeoJSON"
             }
         }
+    },
+    "batchCalculation": {
+        "List": "Tâches de calcul",
+        "New": "Nouveau calcul"
     }
 }

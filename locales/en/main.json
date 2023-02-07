@@ -31,7 +31,7 @@
   "connectionIsOffline": "You are offline, please verify your connection.",
   "Routing": "Routing",
   "AccessibilityMap": "Accessibility map",
-  "OdRouting": "OD batch routing",
+  "BatchCalculation": "Batch calculations",
   "RestartTrRouting": "[Re]start routing engine",
   "SaveAllData": "Save all data for the routing engine",
   "PrepareData": "Prepare data",
