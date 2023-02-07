@@ -78,7 +78,7 @@ If functional review is required, here are the steps to follow:
 
 - [ ] **Get the code**: There are instructions at the bottom of the PR to get the code. Click on the `command line instructions` link beside the green Merge button. See screenshot below. Refuse if there are conflicts with `dev`.
 
-- ![Get the code](images/PRs/getTheCode.png)
+![Get the code](images/PRs/getTheCode.png)
 
 - [ ] **Compile and run**: Make sure it all compiles correctly in your environment: In one window: `yarn && yarn compile && yarn build:dev`. In another window: `yarn start:json2capnp`. In yet another window: `yarn start`.
 - [ ] **Test the new code**: **Thoroughly** try the feature impacted by the PR: don't just do the basic stuff, try corner cases, all fields, try with different data (as much as you can). We want to be sure the behavior is as expected! Look at the console messages for any errors. Report anything out of ordinary, comment its behavior, etc.
@@ -90,7 +90,7 @@ So all the PR checks are OK, I'm ready to approve and merge! But wait, there are
 
 - [ ] **Did I approve the PR?**: In the `Files changed` tab of the PR, click on the green `review changes` button and select `Approve` and submit.
 
-- ![Approve the PR](images/PRs/approvePR.png)
+![Approve the PR](images/PRs/approvePR.png)
 
 
 - [ ] **Did all reviewers approve?**: If anyone was specifically requested for review, make sure the review was done and approved (or that there is no need). In doubt, just ping the other reviewer(s) for comments.
