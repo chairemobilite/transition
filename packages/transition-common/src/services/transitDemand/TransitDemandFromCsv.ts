@@ -4,8 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _get from 'lodash.get';
-import _set from 'lodash.set';
 import _cloneDeep from 'lodash.clonedeep';
 
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
@@ -17,7 +15,7 @@ import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 /**
  * Base attributes for any batch transit calculation, like routing or accessibility map
  */
-export interface TransitBatchCalculationAttributes extends GenericAttributes {
+export interface TransitDemandFromCsvAttributes extends GenericAttributes {
     calculationName?: string;
     csvFile?: any;
     idAttribute?: string;
@@ -26,11 +24,12 @@ export interface TransitBatchCalculationAttributes extends GenericAttributes {
     timeAttribute?: string;
     withGeometries?: boolean;
     detailed?: boolean;
+    // TODO Remove these from this object once trRouting is parallel
     cpuCount?: number;
     maxCpuCount?: number;
 }
 
-export class TransitBatchCalculation<T extends TransitBatchCalculationAttributes> extends ObjectWithHistory<T> {
+export class TransitDemandFromCsv<T extends TransitDemandFromCsvAttributes> extends ObjectWithHistory<T> {
     private _preferencesPath: string;
 
     constructor(attributes: Partial<T>, isNew = false, preferencesPath: string) {
@@ -97,4 +96,4 @@ export class TransitBatchCalculation<T extends TransitBatchCalculationAttributes
     }
 }
 
-export default TransitBatchCalculation;
+export default TransitDemandFromCsv;

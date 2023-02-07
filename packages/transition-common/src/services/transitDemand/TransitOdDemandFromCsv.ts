@@ -1,0 +1,107 @@
+/*
+ * Copyright 2022, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
+import _cloneDeep from 'lodash.clonedeep';
+
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { TransitRouting } from '../transitRouting/TransitRouting';
+import DataSourceCollection from '../dataSource/DataSourceCollection';
+import { TransitDemandFromCsv, TransitDemandFromCsvAttributes } from './TransitDemandFromCsv';
+
+export interface TransitOdDemandFromCsvAttributes extends TransitDemandFromCsvAttributes {
+    projection?: string;
+    originXAttribute?: string;
+    originYAttribute?: string;
+    destinationXAttribute?: string;
+    destinationYAttribute?: string;
+    saveToDb: false | { type: 'new'; dataSourceName: string } | { type: 'overwrite'; dataSourceId: string };
+}
+
+/**
+ * Describe a CSV file field mapping for a transition origin/destination pair file
+ */
+export class TransitOdDemandFromCsv extends TransitDemandFromCsv<TransitOdDemandFromCsvAttributes> {
+    constructor(attributes: Partial<TransitOdDemandFromCsvAttributes>, isNew = false) {
+        super(attributes, isNew, 'transit.routing.batch');
+    }
+
+    _prepareAttributes(attributes: Partial<TransitOdDemandFromCsvAttributes>) {
+        if (attributes.saveToDb === undefined) {
+            attributes.saveToDb = false;
+        }
+
+        return super._prepareAttributes(attributes);
+    }
+
+    validate(): boolean {
+        super.validate();
+        const attributes = this.getAttributes();
+        if (attributes.csvFile) {
+            if (_isBlank(attributes.projection)) {
+                this._isValid = false;
+                this.errors.push('transit:transitRouting:errors:ProjectionIsMissing');
+            }
+            if (_isBlank(attributes.originXAttribute)) {
+                this._isValid = false;
+                this.errors.push('transit:transitRouting:errors:OriginXAttributeIsMissing');
+            }
+            if (_isBlank(attributes.originYAttribute)) {
+                this._isValid = false;
+                this.errors.push('transit:transitRouting:errors:OriginYAttributeIsMissing');
+            }
+            if (_isBlank(attributes.destinationXAttribute)) {
+                this._isValid = false;
+                this.errors.push('transit:transitRouting:errors:DestinationXAttributeIsMissing');
+            }
+            if (_isBlank(attributes.destinationYAttribute)) {
+                this._isValid = false;
+                this.errors.push('transit:transitRouting:errors:DestinationYAttributeIsMissing');
+            }
+        }
+        if (attributes.saveToDb !== false) {
+            const dataSourceCollection: DataSourceCollection = serviceLocator.collectionManager.get('dataSources');
+            if (attributes.saveToDb.type === 'new') {
+                // For new data source, make sure an odTrip data source with that name does not already exists
+                // TODO Should we check shortname too?
+                const dataSources = dataSourceCollection.getByAttribute('name', attributes.saveToDb.dataSourceName);
+                if (dataSources.find((ds) => ds.attributes.type === 'odTrips') !== undefined) {
+                    this._isValid = false;
+                    this.errors.push('transit:transitRouting:errors:DataSourceAlreadyExists');
+                }
+            } else {
+                // For data source replacement, make sure it exists
+                const dataSource = dataSourceCollection.getById(attributes.saveToDb.dataSourceId);
+                if (dataSource === undefined) {
+                    this._isValid = false;
+                    this.errors.push('transit:transitRouting:errors:DataSourceDoesNotExists');
+                } else if (dataSource.attributes.type !== 'odTrips') {
+                    this._isValid = false;
+                    this.errors.push('transit:transitRouting:errors:InvalidOdTripsDataSource');
+                }
+            }
+        }
+        return this._isValid;
+
+        // TODO: add validations for all attributes fields
+    }
+
+    updateRoutingPrefs() {
+        if (serviceLocator.socketEventManager) {
+            const exportedAttributes: TransitOdDemandFromCsvAttributes = _cloneDeep(this._attributes);
+            if (exportedAttributes.data && exportedAttributes.data.results) {
+                delete exportedAttributes.data.results;
+            }
+            exportedAttributes.csvFile = null;
+            Preferences.update(serviceLocator.socketEventManager, serviceLocator.eventManager, {
+                'transit.routing.batch': exportedAttributes
+            });
+        }
+    }
+}
+
+export default TransitOdDemandFromCsv;
