@@ -253,15 +253,9 @@ class TransitRoutingBatchForm extends ChangeEventsForm<
     }
 
     componentDidMount() {
-        if (this.props.addEventListeners) this.props.addEventListeners();
-
         serviceLocator.socketEventManager.emit('service.parallelThreadCount', (response) => {
             this.setMaxParallelCalculators(response.count);
         });
-    }
-
-    componentWillUnmount() {
-        if (this.props.removeEventListeners) this.props.removeEventListeners();
     }
 
     render() {

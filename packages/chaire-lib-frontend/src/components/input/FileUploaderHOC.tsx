@@ -12,8 +12,6 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import ImportValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 
 export interface FileUploaderHOCProps {
-    addEventListeners: () => void;
-    removeEventListeners: () => void;
     fileImportRef: React.RefObject<HTMLInputElement>;
     fileUploader: SocketIOFileClient;
     onChange: React.ChangeEventHandler;
@@ -50,12 +48,10 @@ const fileUploaderHOC = <P,>(
             this.onFileUploadComplete = this.onFileUploadComplete.bind(this);
             this.onFileUploadError = this.onFileUploadError.bind(this);
             this.onFileUploadAbort = this.onFileUploadAbort.bind(this);
-            this.addEventListeners = this.addEventListeners.bind(this);
-            this.removeEventListeners = this.removeEventListeners.bind(this);
             this.onChange = this.onChange.bind(this);
         }
 
-        addEventListeners() {
+        componentDidMount() {
             this.fileUploader.on('start', this.onFileUploadStart);
             this.fileUploader.on('stream', this.onFileUploadStream);
             this.fileUploader.on('complete', this.onFileUploadComplete);
@@ -63,7 +59,7 @@ const fileUploaderHOC = <P,>(
             this.fileUploader.on('abort', this.onFileUploadAbort);
         }
 
-        removeEventListeners() {
+        componentWillUnmount() {
             this.fileUploader.off('start', this.onFileUploadStart);
             this.fileUploader.off('stream', this.onFileUploadStream);
             this.fileUploader.off('complete', this.onFileUploadComplete);
@@ -107,8 +103,6 @@ const fileUploaderHOC = <P,>(
             return (
                 <WrappedComponent
                     {...this.props}
-                    addEventListeners={this.addEventListeners}
-                    removeEventListeners={this.removeEventListeners}
                     fileImportRef={this.fileImportRef}
                     fileUploader={this.fileUploader}
                     onChange={this.onChange}

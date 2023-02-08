@@ -7,12 +7,10 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-import ImporterValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import FileUploaderHOC, { FileUploaderHOCProps } from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import FileImportForm from '../../parts/FileImportForm';
 
-interface PathImportFormProps extends FileUploaderHOCProps {
+interface PathImportFormProps {
     setImporterSelected: (importerSelected: boolean) => void;
 }
 
@@ -44,22 +42,16 @@ const PathsImportForm: React.FunctionComponent<PathImportFormProps & WithTransla
     };
 
     React.useEffect(() => {
-        props.addEventListeners();
         serviceLocator.socketEventManager.on('importer.pathsImported', onImported);
         return () => {
-            props.removeEventListeners();
             serviceLocator.socketEventManager.off('importer.pathsImported', onImported);
         };
     }, []);
 
     return (
         <FileImportForm
-            validator={props.validator as ImporterValidator}
             pluralizedObjectsName={'paths'}
             fileNameWithExtension={'paths.geojson'}
-            fileUploader={props.fileUploader}
-            fileImportRef={props.fileImportRef}
-            onChange={props.onChange}
             acceptsExtension={'.json,.geojson'}
             label={props.t('main:GeojsonFile')}
             closeImporter={closeImporter}
@@ -67,4 +59,4 @@ const PathsImportForm: React.FunctionComponent<PathImportFormProps & WithTransla
     );
 };
 
-export default FileUploaderHOC(withTranslation(['transit', 'main'])(PathsImportForm), ImporterValidator);
+export default withTranslation(['transit', 'main'])(PathsImportForm);
