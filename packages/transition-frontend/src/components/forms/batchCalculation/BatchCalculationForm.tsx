@@ -7,12 +7,18 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
+import ConfigureDemandFromCsvForm from './stepForms/ConfigureDemandFromCsvForm';
+import { TransitDemandFromCsvFile } from '../../../services/transitDemand/types';
 
-export interface ScenarioAnalysisFormProps {
+export interface BatchCalculationFormProps {
     availableRoutingModes?: string[];
     onEnd: () => void;
 }
+
+const stepCount = 2;
 /**
  * Scenario Analysis form, to configure what to analyse:
  *
@@ -22,22 +28,94 @@ export interface ScenarioAnalysisFormProps {
  *
  * step 3: Confirm and run analysis
  *
- * @param {(ScenarioAnalysisFormProps & WithTranslation)} props
+ * @param {(BatchCalculationFormProps & WithTranslation)} props
  * @return {*}
  */
-const ScenarioAnalysisForm: React.FunctionComponent<ScenarioAnalysisFormProps & WithTranslation> = (
-    props: ScenarioAnalysisFormProps & WithTranslation
+const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & WithTranslation> = (
+    props: BatchCalculationFormProps & WithTranslation
 ) => {
+    const [scenarioCollection, setScenarioCollection] = React.useState(
+        serviceLocator.collectionManager.get('scenarios')
+    );
+    const [currentStep, setCurrentStep] = React.useState(0);
+    const [nextEnabled, setNextEnabled] = React.useState(false);
+    const [demand, setDemand] = React.useState<TransitDemandFromCsvFile | undefined>(undefined);
+
+    const onScenarioCollectionUpdate = () => {
+        setScenarioCollection(serviceLocator.collectionManager.get('scenarios'));
+    };
+
+    const onDemandStepComplete = (demandData: TransitDemandFromCsvFile) => {
+        setDemand(demandData);
+        if (demandData.demand.validate()) {
+            setNextEnabled(true);
+        }
+    };
+
+    const onFileReset = () => {
+        setNextEnabled(false);
+    };
+
+    const incrementStep = () => {
+        setCurrentStep(currentStep + 1);
+    };
+
+    const decrementStep = () => {
+        setCurrentStep(currentStep - 1);
+        setNextEnabled(true);
+    };
+
+    React.useEffect(() => {
+        serviceLocator.eventManager.on('collection.update.scenarios', onScenarioCollectionUpdate);
+        return () => {
+            serviceLocator.eventManager.off('collection.update.scenarios', onScenarioCollectionUpdate);
+        };
+    }, []);
+
+    if (!scenarioCollection) {
+        return <LoadingPage />;
+    }
+
     return (
-        <React.Fragment>
-            {props.t('transit:batchCalculation:New')}
+        <form id={'tr__form-transit-sc-analysis-new'} className="apptr__form">
+            <h3>
+                <img
+                    src={'/dist/images/icons/interface/od_routing_white.svg'}
+                    className="_icon"
+                    alt={props.t('transit:batchCalculation:New')}
+                />{' '}
+                {props.t('transit:batchCalculation:New')}
+            </h3>
+            {currentStep === 0 && (
+                <ConfigureDemandFromCsvForm
+                    currentDemand={demand}
+                    onComplete={onDemandStepComplete}
+                    onFileReset={onFileReset}
+                />
+            )}
             <div className="tr__form-buttons-container">
                 <span title={props.t('main:Cancel')}>
                     <Button key="back" color="grey" label={props.t('main:Cancel')} onClick={props.onEnd} />
                 </span>
+                {currentStep > 0 && (
+                    <span title={props.t('main:Previous')}>
+                        <Button key="next" color="green" label={props.t('main:Previous')} onClick={decrementStep} />
+                    </span>
+                )}
+                {currentStep < stepCount - 1 && (
+                    <span title={props.t('main:Next')}>
+                        <Button
+                            disabled={!nextEnabled}
+                            key="next"
+                            color="green"
+                            label={props.t('main:Next')}
+                            onClick={incrementStep}
+                        />
+                    </span>
+                )}
             </div>
-        </React.Fragment>
+        </form>
     );
 };
 
-export default withTranslation(['transit', 'main'])(ScenarioAnalysisForm);
+export default withTranslation(['transit', 'main'])(BatchCalculationForm);

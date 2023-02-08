@@ -924,6 +924,7 @@
     },
     "batchCalculation": {
         "List": "Tâches de calcul",
-        "New": "Nouveau calcul"
+        "New": "Nouveau calcul",
+        "UploadFile": "Téléverser le fichier"
     }
 }

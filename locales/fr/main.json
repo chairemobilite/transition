@@ -25,6 +25,8 @@
   "Delete": "Supprimer",
   "loading": "chargement",
   "Loading": "Chargement",
+  "Next": "Suivant",
+  "Previous": "Précédent",
   "DiscardChanges": "Ignorer les changements",
   "ConfirmBackModal": "Il y a des changements non sauvegardés. Voulez-vous ignorer les changements et quitter cette section?",
   "UnsavedChanges": "Il y a des changements non sauvegardés. Veuillez les sauvegarder avant de quitter cette section.",
