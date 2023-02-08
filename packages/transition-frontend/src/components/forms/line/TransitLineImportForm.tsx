@@ -9,20 +9,16 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 
 import ImporterValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import FileUploaderHOC from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
+import FileUploaderHOC, { FileUploaderHOCProps } from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import FileImportForm from '../../parts/FileImportForm';
 
-interface LineImportFormProps extends WithTranslation {
-    addEventListeners: () => void;
-    removeEventListeners: () => void;
-    onChange: React.ChangeEventHandler;
+interface LineImportFormProps extends FileUploaderHOCProps {
     setImporterSelected: (importerSelected: boolean) => void;
-    fileUploader?: any;
-    fileImportRef?: any;
-    validator: ImporterValidator;
 }
 
-const LineImportForm: React.FunctionComponent<LineImportFormProps> = (props: LineImportFormProps) => {
+const LineImportForm: React.FunctionComponent<LineImportFormProps & WithTranslation> = (
+    props: LineImportFormProps & WithTranslation
+) => {
     const closeImporter = () => props.setImporterSelected(false);
 
     const onImported = async () => {
@@ -49,7 +45,7 @@ const LineImportForm: React.FunctionComponent<LineImportFormProps> = (props: Lin
 
     return (
         <FileImportForm
-            validator={props.validator}
+            validator={props.validator as ImporterValidator}
             pluralizedObjectsName={'lines'}
             fileNameWithExtension={'lines.json'}
             fileUploader={props.fileUploader}

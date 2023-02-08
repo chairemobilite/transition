@@ -11,27 +11,27 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import ImportValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 
-interface FileUploaderHOCProps {
-    fileUploader: any;
-    fileImportRef: any;
+export interface FileUploaderHOCProps {
+    addEventListeners: () => void;
+    removeEventListeners: () => void;
+    fileImportRef: React.RefObject<HTMLInputElement>;
+    fileUploader: SocketIOFileClient;
+    onChange: React.ChangeEventHandler;
+    validator?: ImportValidator;
 }
 
 interface FileUploaderHOCState {
     validator?: ImportValidator;
 }
 
-/**
- * TODO Fix and type this class. Look at react hooks which are supposed to be
- * the new way to do hoc in typescript?
- */
 const fileUploaderHOC = <P,>(
     WrappedComponent: React.ComponentType<P>,
     importerValidator?: typeof ImportValidator,
     autoImport = true
 ) => {
     class FileUploaderHOC extends React.Component<P & FileUploaderHOCProps, FileUploaderHOCState> {
-        private fileImportRef;
-        private fileUploader;
+        private fileImportRef: React.RefObject<HTMLElement>;
+        private fileUploader: SocketIOFileClient;
 
         constructor(props: P & FileUploaderHOCProps) {
             super(props);
@@ -107,11 +107,6 @@ const fileUploaderHOC = <P,>(
             return (
                 <WrappedComponent
                     {...this.props}
-                    onFileUploadStart={this.onFileUploadStart}
-                    onFileUploadStream={this.onFileUploadStream}
-                    onFileUploadComplete={this.onFileUploadComplete}
-                    onFileUploadError={this.onFileUploadError}
-                    onFileUploadAbort={this.onFileUploadAbort}
                     addEventListeners={this.addEventListeners}
                     removeEventListeners={this.removeEventListeners}
                     fileImportRef={this.fileImportRef}

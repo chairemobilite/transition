@@ -9,20 +9,16 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 
 import ImporterValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import FileUploaderHOC from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
+import FileUploaderHOC, { FileUploaderHOCProps } from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import FileImportForm from '../../parts/FileImportForm';
 
-interface NodeImportFormProps extends WithTranslation {
-    addEventListeners: () => void;
-    removeEventListeners: () => void;
-    onChange: React.ChangeEventHandler;
+interface NodeImportFormProps extends FileUploaderHOCProps {
     setImporterSelected: (importerSelected: boolean) => void;
-    fileUploader?: any;
-    fileImportRef?: any;
-    validator: ImporterValidator;
 }
 
-const NodesImportForm: React.FunctionComponent<NodeImportFormProps> = (props: NodeImportFormProps) => {
+const NodesImportForm: React.FunctionComponent<NodeImportFormProps & WithTranslation> = (
+    props: NodeImportFormProps & WithTranslation
+) => {
     const closeImporter = () => props.setImporterSelected(false);
 
     const onImported = async () => {
@@ -51,7 +47,7 @@ const NodesImportForm: React.FunctionComponent<NodeImportFormProps> = (props: No
 
     return (
         <FileImportForm
-            validator={props.validator}
+            validator={props.validator as ImporterValidator}
             pluralizedObjectsName={'nodes'}
             fileNameWithExtension={'nodes.geojson'}
             fileUploader={props.fileUploader}

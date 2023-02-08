@@ -30,18 +30,14 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 // ** File upload
-import FileUploaderHOC from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
+import FileUploaderHOC, { FileUploaderHOCProps } from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import { _toInteger, _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import BatchAttributesSelection from './widgets/BatchAttributesSelection';
 import BatchSaveToDb from './widgets/BatchSaveToDb';
 import ExecutableJobComponent from '../../parts/executableJob/ExecutableJobComponent';
 
-export interface TransitBatchRoutingFormProps extends WithTranslation {
-    addEventListeners?: () => void;
-    removeEventListeners?: () => void;
-    fileUploader?: any;
-    fileImportRef?: any;
+export interface TransitBatchRoutingFormProps extends FileUploaderHOCProps {
     routingEngine: TransitRouting;
     isRoutingEngineValid?: () => boolean;
 }
@@ -63,10 +59,13 @@ interface TransitBatchRoutingFormState extends ChangeEventsState<TransitOdDemand
 }
 
 // TODO tahini type this class
-class TransitRoutingBatchForm extends ChangeEventsForm<TransitBatchRoutingFormProps, TransitBatchRoutingFormState> {
+class TransitRoutingBatchForm extends ChangeEventsForm<
+    TransitBatchRoutingFormProps & WithTranslation,
+    TransitBatchRoutingFormState
+> {
     private fileReader: any;
 
-    constructor(props: TransitBatchRoutingFormProps) {
+    constructor(props: TransitBatchRoutingFormProps & WithTranslation) {
         super(props);
 
         const batchRoutingEngine = new TransitOdDemandFromCsv(
