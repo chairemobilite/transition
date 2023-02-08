@@ -25,6 +25,8 @@
   "Delete": "Delete",
   "loading": "loading",
   "Loading": "Loading",
+  "Next": "Next",
+  "Previous": "Previous",
   "DiscardChanges": "Discard Changes",
   "ConfirmBackModal": "There are unsaved changes. Discard current changes and leave this section?",
   "UnsavedChanges": "There are unsaved changes on the current objects. Please save them before leaving this section.",

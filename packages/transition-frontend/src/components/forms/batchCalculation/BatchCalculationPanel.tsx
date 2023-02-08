@@ -30,7 +30,7 @@ const CalculationPanel: React.FunctionComponent<WithTranslation> = (props: WithT
     }, []);
 
     return (
-        <div id="tr__form-transit-simulations-panel" className="tr__form-transit-simulations-panel tr__panel">
+        <div id="tr__form-transit-calculation-panel" className="tr__form-transit-calculation-panel tr__panel">
             {isNewAnalysis === false && <BatchCalculationList onNewAnalysis={() => setIsNewAnalysis(true)} />}
             {isNewAnalysis && <BatchCalculationForm onEnd={() => setIsNewAnalysis(false)} />}
         </div>

@@ -926,6 +926,7 @@
     },
     "batchCalculation": {
         "List": "Calculation jobs",
-        "New": "New calculation"
+        "New": "New calculation",
+        "UploadFile": "Upload file"
     }
 }

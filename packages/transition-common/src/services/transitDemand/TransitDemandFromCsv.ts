@@ -44,10 +44,6 @@ export abstract class TransitDemandFromCsv<T extends TransitDemandFromCsvAttribu
         this.errors = [];
         const attributes = this.getAttributes();
         if (attributes.csvFile) {
-            if (_isBlank(attributes.calculationName)) {
-                this._isValid = false;
-                this.errors.push('transit:transitRouting:errors:CalculationNameIsMissing');
-            }
             if (_isBlank(attributes.idAttribute)) {
                 this._isValid = false;
                 this.errors.push('transit:transitRouting:errors:IdAttributeIsMissing');
