@@ -9,20 +9,16 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 
 import ImporterValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import FileUploaderHOC from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
+import FileUploaderHOC, { FileUploaderHOCProps } from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import FileImportForm from '../../parts/FileImportForm';
 
-interface ServicesImportFormProps extends WithTranslation {
-    addEventListeners: () => void;
-    removeEventListeners: () => void;
-    onChange: React.ChangeEventHandler;
+interface ServicesImportFormProps extends FileUploaderHOCProps {
     setImporterSelected: (importerSelected: boolean) => void;
-    fileUploader?: any;
-    fileImportRef?: any;
-    validator: ImporterValidator;
 }
 
-const ServicesImportForm: React.FunctionComponent<ServicesImportFormProps> = (props: ServicesImportFormProps) => {
+const ServicesImportForm: React.FunctionComponent<ServicesImportFormProps & WithTranslation> = (
+    props: ServicesImportFormProps & WithTranslation
+) => {
     const closeImporter = () => props.setImporterSelected(false);
 
     const onImported = async () => {
@@ -45,7 +41,7 @@ const ServicesImportForm: React.FunctionComponent<ServicesImportFormProps> = (pr
 
     return (
         <FileImportForm
-            validator={props.validator}
+            validator={props.validator as ImporterValidator}
             pluralizedObjectsName={'services'}
             fileNameWithExtension={'services.json'}
             fileUploader={props.fileUploader}
