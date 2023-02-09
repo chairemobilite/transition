@@ -8,18 +8,38 @@ import React from 'react';
 import SocketIOFileClient from 'socket.io-file-client';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import ImportValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
+
+export type FileUploadStatus =
+    | {
+          status: 'notUploaded';
+      }
+    | {
+          status: 'uploading';
+          progress: number;
+      }
+    | {
+          status: 'error';
+          error: string | Error;
+      }
+    | {
+          status: 'completed';
+      }
+    | {
+          status: 'aborted';
+      };
 
 export interface FileUploaderHOCProps {
     fileImportRef: React.RefObject<HTMLInputElement>;
     fileUploader: SocketIOFileClient;
     onChange: React.ChangeEventHandler;
     validator?: ImportValidator;
+    uploadStatus: FileUploadStatus;
 }
 
 interface FileUploaderHOCState {
     validator?: ImportValidator;
+    uploadStatus: FileUploadStatus;
 }
 
 const fileUploaderHOC = <P,>(
@@ -35,13 +55,12 @@ const fileUploaderHOC = <P,>(
             super(props);
 
             this.state = {
-                validator: importerValidator ? new importerValidator({}) : undefined
+                validator: importerValidator ? new importerValidator({}) : undefined,
+                uploadStatus: { status: 'notUploaded' }
             };
 
             this.fileImportRef = React.createRef();
-            this.fileUploader = new SocketIOFileClient(serviceLocator.socketEventManager._eventManager, {
-                chunkSize: Preferences.get('socketUploadChunkSize')
-            });
+            this.fileUploader = new SocketIOFileClient(serviceLocator.socketEventManager._eventManager);
 
             this.onFileUploadStart = this.onFileUploadStart.bind(this);
             this.onFileUploadStream = this.onFileUploadStream.bind(this);
@@ -76,26 +95,31 @@ const fileUploaderHOC = <P,>(
         }
 
         onFileUploadStart(_fileInfo) {
+            this.setState({ uploadStatus: { status: 'uploading', progress: 0 } });
             serviceLocator.eventManager.emit('progress', { name: 'UploadingFile', progress: 0.0 });
         }
 
-        onFileUploadStream(_fileInfo) {
-            /* Nothing to do */
+        onFileUploadStream(fileInfo: { size: number; sent: number }) {
+            const progress = fileInfo.sent / fileInfo.size;
+            this.setState({ uploadStatus: { status: 'uploading', progress } });
+            serviceLocator.eventManager.emit('progress', { name: 'UploadingFile', progress });
         }
 
         onFileUploadComplete(_fileInfo) {
+            this.setState({ uploadStatus: { status: 'completed' } });
             serviceLocator.eventManager.emit('progress', { name: 'UploadingFile', progress: 1.0 });
-            //console.log('File upload Complete', fileInfo);
             if (autoImport) {
                 serviceLocator.eventManager.emit('progress', { name: 'Importing', progress: 0.0 });
             }
         }
 
         onFileUploadError(error) {
+            this.setState({ uploadStatus: { status: 'error', error } });
             console.log('File upload error!', error);
         }
 
         onFileUploadAbort(fileInfo) {
+            this.setState({ uploadStatus: { status: 'aborted' } });
             console.log('File upload aborted: ', fileInfo);
         }
 
@@ -107,6 +131,7 @@ const fileUploaderHOC = <P,>(
                     fileUploader={this.fileUploader}
                     onChange={this.onChange}
                     validator={this.state.validator}
+                    uploadStatus={this.state.uploadStatus}
                 />
             );
         }
