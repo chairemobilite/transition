@@ -12,7 +12,13 @@ import BatchCalculationList from './BatchCalculationList';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import BatchCalculationForm from './BatchCalculationForm';
 
-const CalculationPanel: React.FunctionComponent<WithTranslation> = (props: WithTranslation) => {
+export interface CalculationPanelPanelProps {
+    availableRoutingModes?: string[];
+}
+
+const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps & WithTranslation> = (
+    props: CalculationPanelPanelProps & WithTranslation
+) => {
     const [scenarioCollection, setScenarioCollection] = React.useState<ScenarioCollection | undefined>(
         serviceLocator.collectionManager.get('scenarios')
     );
@@ -32,7 +38,12 @@ const CalculationPanel: React.FunctionComponent<WithTranslation> = (props: WithT
     return (
         <div id="tr__form-transit-calculation-panel" className="tr__form-transit-calculation-panel tr__panel">
             {isNewAnalysis === false && <BatchCalculationList onNewAnalysis={() => setIsNewAnalysis(true)} />}
-            {isNewAnalysis && <BatchCalculationForm onEnd={() => setIsNewAnalysis(false)} />}
+            {isNewAnalysis && (
+                <BatchCalculationForm
+                    availableRoutingModes={props.availableRoutingModes}
+                    onEnd={() => setIsNewAnalysis(false)}
+                />
+            )}
         </div>
     );
 };
