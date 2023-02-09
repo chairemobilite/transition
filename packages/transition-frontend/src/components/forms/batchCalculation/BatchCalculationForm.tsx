@@ -6,19 +6,23 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import _cloneDeep from 'lodash.clonedeep';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import ConfigureDemandFromCsvForm from './stepForms/ConfigureDemandFromCsvForm';
 import { TransitDemandFromCsvFile } from '../../../services/transitDemand/types';
+import ConfigureBatchCalculationForm from './stepForms/ConfigureBatchCalculationForm';
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import { BatchCalculationParameters } from '../../../services/batchCalculation/types';
 
 export interface BatchCalculationFormProps {
     availableRoutingModes?: string[];
     onEnd: () => void;
 }
 
-const stepCount = 2;
+const stepCount = 3;
 /**
  * Scenario Analysis form, to configure what to analyse:
  *
@@ -40,6 +44,9 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
     const [currentStep, setCurrentStep] = React.useState(0);
     const [nextEnabled, setNextEnabled] = React.useState(false);
     const [demand, setDemand] = React.useState<TransitDemandFromCsvFile | undefined>(undefined);
+    const [routingParameters, setRoutingParameters] = React.useState<BatchCalculationParameters>(
+        _cloneDeep(Preferences.get('transit.routing.transit', { routingModes: [], withAlternatives: false }))
+    );
 
     const onScenarioCollectionUpdate = () => {
         setScenarioCollection(serviceLocator.collectionManager.get('scenarios'));
@@ -50,6 +57,11 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
         if (demandData.demand.validate()) {
             setNextEnabled(true);
         }
+    };
+
+    const onParametersUpdate = (routingParameters: BatchCalculationParameters, isValid: boolean) => {
+        setRoutingParameters(routingParameters);
+        setNextEnabled(isValid);
     };
 
     const onFileReset = () => {
@@ -91,6 +103,14 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
                     currentDemand={demand}
                     onComplete={onDemandStepComplete}
                     onFileReset={onFileReset}
+                />
+            )}
+            {currentStep === 1 && (
+                <ConfigureBatchCalculationForm
+                    availableRoutingModes={props.availableRoutingModes}
+                    routingParameters={routingParameters}
+                    onUpdate={onParametersUpdate}
+                    scenarioCollection={scenarioCollection}
                 />
             )}
             <div className="tr__form-buttons-container">

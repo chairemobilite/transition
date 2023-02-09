@@ -50,10 +50,10 @@ const ConfigureDemandFromCsvForm: React.FunctionComponent<
     const [updateCnt, setUpdateCnt] = React.useState(0);
     const [ready, setReady] = React.useState(false);
 
-    const onCsvFileChange = async (file) => {
+    const onCsvFileChange = async (file: File) => {
         setLoading(true);
         try {
-            setCsvFileAttributes(await demand.setCsvFile(file));
+            setCsvFileAttributes(await demand.setCsvFile(file as any));
             setReady(demand.validate());
             props.onFileReset();
         } finally {
