@@ -6,10 +6,8 @@
  */
 import _cloneDeep from 'lodash.clonedeep';
 
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { TransitRouting } from '../transitRouting/TransitRouting';
 import DataSourceCollection from '../dataSource/DataSourceCollection';
 import { TransitDemandFromCsv, TransitDemandFromCsvAttributes } from './TransitDemandFromCsv';
 
@@ -90,18 +88,20 @@ export class TransitOdDemandFromCsv extends TransitDemandFromCsv<TransitOdDemand
         // TODO: add validations for all attributes fields
     }
 
-    updateRoutingPrefs() {
-        if (serviceLocator.socketEventManager) {
-            const exportedAttributes: TransitOdDemandFromCsvAttributes = _cloneDeep(this._attributes);
-            if (exportedAttributes.data && exportedAttributes.data.results) {
-                delete exportedAttributes.data.results;
-            }
-            exportedAttributes.csvFile = null;
-            Preferences.update(serviceLocator.socketEventManager, serviceLocator.eventManager, {
-                'transit.routing.batch': exportedAttributes
-            });
+    protected onCsvFileAttributesUpdated = (_csvFields: string[]): void => {
+        if (this.attributes.originXAttribute && !_csvFields.includes(this.attributes.originXAttribute)) {
+            this.attributes.originXAttribute = undefined;
         }
-    }
+        if (this.attributes.originYAttribute && !_csvFields.includes(this.attributes.originYAttribute)) {
+            this.attributes.originYAttribute = undefined;
+        }
+        if (this.attributes.destinationXAttribute && !_csvFields.includes(this.attributes.destinationXAttribute)) {
+            this.attributes.destinationXAttribute = undefined;
+        }
+        if (this.attributes.destinationYAttribute && !_csvFields.includes(this.attributes.destinationYAttribute)) {
+            this.attributes.destinationYAttribute = undefined;
+        }
+    };
 }
 
 export default TransitOdDemandFromCsv;

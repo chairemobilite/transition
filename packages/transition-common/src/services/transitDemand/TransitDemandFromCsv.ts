@@ -11,13 +11,14 @@ import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWit
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
 
 /**
  * Base attributes for any batch transit calculation, like routing or accessibility map
  */
 export interface TransitDemandFromCsvAttributes extends GenericAttributes {
     calculationName?: string;
-    csvFile?: any;
+    csvFile?: string | File;
     idAttribute?: string;
     timeAttributeDepartureOrArrival?: 'arrival' | 'departure';
     timeFormat?: string;
@@ -29,7 +30,7 @@ export interface TransitDemandFromCsvAttributes extends GenericAttributes {
     maxCpuCount?: number;
 }
 
-export class TransitDemandFromCsv<T extends TransitDemandFromCsvAttributes> extends ObjectWithHistory<T> {
+export abstract class TransitDemandFromCsv<T extends TransitDemandFromCsvAttributes> extends ObjectWithHistory<T> {
     private _preferencesPath: string;
 
     constructor(attributes: Partial<T>, isNew = false, preferencesPath: string) {
@@ -88,12 +89,43 @@ export class TransitDemandFromCsv<T extends TransitDemandFromCsvAttributes> exte
             if (exportedAttributes.data && exportedAttributes.data.results) {
                 delete exportedAttributes.data.results;
             }
-            exportedAttributes.csvFile = null;
+            delete exportedAttributes.csvFile;
             Preferences.update(serviceLocator.socketEventManager, serviceLocator.eventManager, {
                 [this._preferencesPath]: exportedAttributes
             });
         }
     }
+
+    setCsvFile = async (file: string | File) => {
+        let csvFileAttributes: string[] = [];
+        this.attributes.csvFile = file;
+        await parseCsvFile(
+            file,
+            (data) => {
+                csvFileAttributes = Object.keys(data);
+                if (this.attributes.idAttribute && !csvFileAttributes.includes(this.attributes.idAttribute)) {
+                    this.attributes.idAttribute = undefined;
+                }
+                if (this.attributes.timeAttribute && !csvFileAttributes.includes(this.attributes.timeAttribute)) {
+                    this.attributes.timeAttribute = undefined;
+                }
+                this.onCsvFileAttributesUpdated(csvFileAttributes);
+            },
+            {
+                header: true,
+                nbRows: 1 // only get the header
+            }
+        );
+        return csvFileAttributes;
+    };
+
+    /**
+     * Method called when a file has been parsed. This can be overwritten to
+     * validate the field names from the file
+     *
+     * @param _csvFields Field names from the CSV file (first row)
+     */
+    protected abstract onCsvFileAttributesUpdated: (_csvFields: string[]) => void;
 }
 
 export default TransitDemandFromCsv;

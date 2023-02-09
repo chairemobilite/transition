@@ -124,59 +124,14 @@ class TransitRoutingBatchForm extends ChangeEventsForm<
         });
     }
 
-    onSubmitCsv() {
-        parseCsvFile(
-            this.state.object.get('csvFile'),
-            (data) => {
-                const csvAttributes = Object.keys(data);
-                const batchRouting = this.state.object;
-                if (
-                    batchRouting.attributes.idAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.idAttribute)
-                ) {
-                    batchRouting.attributes.idAttribute = undefined;
-                }
-                if (
-                    batchRouting.attributes.originXAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.originXAttribute)
-                ) {
-                    batchRouting.attributes.originXAttribute = undefined;
-                }
-                if (
-                    batchRouting.attributes.originYAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.originYAttribute)
-                ) {
-                    batchRouting.attributes.originYAttribute = undefined;
-                }
-                if (
-                    batchRouting.attributes.destinationXAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.destinationXAttribute)
-                ) {
-                    batchRouting.attributes.destinationXAttribute = undefined;
-                }
-                if (
-                    batchRouting.attributes.destinationYAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.destinationYAttribute)
-                ) {
-                    batchRouting.attributes.destinationYAttribute = undefined;
-                }
-                if (
-                    batchRouting.attributes.timeAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.timeAttribute)
-                ) {
-                    batchRouting.attributes.timeAttribute = undefined;
-                }
-
-                this.setState({
-                    object: batchRouting,
-                    csvAttributes
-                });
-            },
-            {
-                header: true,
-                nbRows: 1 // only get the header
-            }
-        );
+    async onSubmitCsv() {
+        if (this.state.object.attributes.csvFile !== undefined) {
+            const csvAttributes = await this.state.object.setCsvFile(this.state.object.attributes.csvFile);
+            this.setState({
+                object: this.state.object,
+                csvAttributes
+            });
+        }
     }
 
     onCalculationNameChange(path: string, value: { value: any; valid?: boolean }) {
@@ -342,7 +297,7 @@ class TransitRoutingBatchForm extends ChangeEventsForm<
                         <BatchSaveToDb
                             onValueChange={this.onValueChange}
                             attributes={batchRouting.attributes}
-                            defaultDataSourceName={batchRouting.attributes.csvFile.name || ''}
+                            defaultDataSourceName={(batchRouting.attributes.csvFile as File).name || ''}
                         />
                     )}
                     {

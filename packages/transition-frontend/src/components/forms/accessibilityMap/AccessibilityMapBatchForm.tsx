@@ -112,41 +112,14 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
         });
     };
 
-    onSubmitCsv = () => {
-        parseCsvFile(
-            this.state.object.get('csvFile'),
-            (data) => {
-                const csvAttributes = Object.keys(data);
-                const batchRouting = this.state.object;
-                if (
-                    batchRouting.attributes.idAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.idAttribute)
-                ) {
-                    batchRouting.attributes.idAttribute = undefined;
-                }
-                if (batchRouting.attributes.xAttribute && !csvAttributes.includes(batchRouting.attributes.xAttribute)) {
-                    batchRouting.attributes.xAttribute = undefined;
-                }
-                if (batchRouting.attributes.yAttribute && !csvAttributes.includes(batchRouting.attributes.yAttribute)) {
-                    batchRouting.attributes.yAttribute = undefined;
-                }
-                if (
-                    batchRouting.attributes.timeAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.timeAttribute)
-                ) {
-                    batchRouting.attributes.timeAttribute = undefined;
-                }
-
-                this.setState({
-                    object: batchRouting,
-                    csvAttributes
-                });
-            },
-            {
-                header: true,
-                nbRows: 1 // only get the header
-            }
-        );
+    onSubmitCsv = async () => {
+        if (this.state.object.attributes.csvFile !== undefined) {
+            const csvAttributes = await this.state.object.setCsvFile(this.state.object.attributes.csvFile);
+            this.setState({
+                object: this.state.object,
+                csvAttributes
+            });
+        }
     };
 
     onCalculationNameChange = (path: string, value: { value: any; valid?: boolean }) => {
