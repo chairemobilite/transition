@@ -268,7 +268,7 @@ const deleteMultipleUnused = function (ids: string[]): Promise<string[]> {
 export default {
     exists: exists.bind(null, knex, tableName),
     read,
-    create: (newObject: NodeAttributes, returning?: string) => {
+    create: (newObject: NodeAttributes, returning?: string | string[]) => {
         return create(knex, tableName, attributesCleaner, newObject, returning);
     },
     createMultiple: (newObjects: NodeAttributes[], returning?: string[]) => {
