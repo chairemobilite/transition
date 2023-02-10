@@ -927,6 +927,8 @@
     "batchCalculation": {
         "List": "Calculation jobs",
         "New": "New calculation",
-        "UploadFile": "Upload file"
+        "UploadFile": "Upload file",
+        "DemandData": "Demand data",
+        "AnalysisParameters": "Parameters"
     }
 }
