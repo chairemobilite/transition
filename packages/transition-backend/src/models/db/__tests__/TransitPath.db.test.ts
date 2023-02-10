@@ -298,7 +298,7 @@ describe(`${objectName}`, function() {
         delete pathWithoutGeography.id;
         pathWithoutGeography.integer_id = 5;
         const newObject = new ObjectClass(pathWithoutGeography, true);
-        const id = await dbQueries.create(newObject.attributes);
+        const id = await dbQueries.create(newObject.attributes) as string;
         
         // 3 features in the complete collection
         const _collection = await dbQueries.collection();

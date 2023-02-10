@@ -58,13 +58,13 @@ const create = async <T extends GenericAttributes, U>(
     tableName: string,
     parser: ((arg: T) => U) | undefined,
     newObject: T,
-    returning = 'id'
-): Promise<string> => {
+    returning: string | string[] = 'id'
+): Promise<string | { [key: string]: unknown }> => {
     try {
         const _newObject = parser ? parser(newObject) : newObject;
 
         const returningArray = await knex(tableName).insert(_newObject).returning(returning);
-        return returningArray[0][returning];
+        return typeof returning === 'string' ? returningArray[0][returning] : returningArray[0];
     } catch (error) {
         throw new TrError(
             `Cannot insert object with id ${newObject.id} in table ${tableName} database (knex error: ${error})`,

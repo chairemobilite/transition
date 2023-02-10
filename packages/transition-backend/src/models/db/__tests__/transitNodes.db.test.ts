@@ -181,11 +181,12 @@ describe(`${objectName}`, () => {
 
     });
 
-    test('should create a second new object in database', async () => {
+    test('should create a second new object in database, with array returning', async () => {
 
         const newObject = new ObjectClass(newObjectAttributes2, true);
-        const id = await dbQueries.create(newObject.attributes)
+        const { id, integer_id } = await dbQueries.create(newObject.attributes, ['id', 'integer_id']) as {[key: string]: unknown}
         expect(id).toBe(newObjectAttributes2.id);
+        expect(integer_id).toBeDefined();
 
     });
 
