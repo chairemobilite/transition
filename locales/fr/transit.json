@@ -925,6 +925,8 @@
     "batchCalculation": {
         "List": "Tâches de calcul",
         "New": "Nouveau calcul",
-        "UploadFile": "Téléverser le fichier"
+        "UploadFile": "Téléverser le fichier",
+        "DemandData": "Données de la demande",
+        "AnalysisParameters": "Paramètres"
     }
 }

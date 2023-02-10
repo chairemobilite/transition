@@ -16,13 +16,14 @@ import { TransitDemandFromCsvFile } from '../../../services/transitDemand/types'
 import ConfigureBatchCalculationForm from './stepForms/ConfigureBatchCalculationForm';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { BatchCalculationParameters } from '../../../services/batchCalculation/types';
+import ConfirmScenarioAnalysiForm from './stepForms/ConfirmCalculationForm';
 
 export interface BatchCalculationFormProps {
     availableRoutingModes?: string[];
     onEnd: () => void;
 }
 
-const stepCount = 3;
+const stepCount = 4;
 /**
  * Scenario Analysis form, to configure what to analyse:
  *
@@ -108,6 +109,14 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
             {currentStep === 1 && (
                 <ConfigureBatchCalculationForm
                     availableRoutingModes={props.availableRoutingModes}
+                    routingParameters={routingParameters}
+                    onUpdate={onParametersUpdate}
+                    scenarioCollection={scenarioCollection}
+                />
+            )}
+            {currentStep === 2 && (
+                <ConfirmScenarioAnalysiForm
+                    currentDemand={demand as TransitDemandFromCsvFile}
                     routingParameters={routingParameters}
                     onUpdate={onParametersUpdate}
                     scenarioCollection={scenarioCollection}
