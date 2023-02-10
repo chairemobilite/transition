@@ -16,7 +16,8 @@ import { TransitDemandFromCsvFile } from '../../../services/transitDemand/types'
 import ConfigureBatchCalculationForm from './stepForms/ConfigureBatchCalculationForm';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { BatchCalculationParameters } from '../../../services/batchCalculation/types';
-import ConfirmScenarioAnalysiForm from './stepForms/ConfirmCalculationForm';
+import ConfirmCalculationForm from './stepForms/ConfirmCalculationForm';
+import TransitBatchRoutingCalculator from 'transition-common/lib/services/transitRouting/TransitBatchRoutingCalculator';
 
 export interface BatchCalculationFormProps {
     availableRoutingModes?: string[];
@@ -70,6 +71,13 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
     };
 
     const incrementStep = () => {
+        if (currentStep === stepCount - 2) {
+            if (demand !== undefined) {
+                // TODO Don't just return, wait for the return value to make sure the calculation is running
+                TransitBatchRoutingCalculator.calculate(demand.demand, routingParameters);
+                props.onEnd();
+            }
+        }
         setCurrentStep(currentStep + 1);
     };
 
@@ -115,13 +123,16 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
                 />
             )}
             {currentStep === 2 && (
-                <ConfirmScenarioAnalysiForm
+                <ConfirmCalculationForm
                     currentDemand={demand as TransitDemandFromCsvFile}
                     routingParameters={routingParameters}
                     onUpdate={onParametersUpdate}
                     scenarioCollection={scenarioCollection}
                 />
             )}
+            {
+                // TODO The below buttons should be handled by the steps themselves, with proper validations on click. It's ackward for the individual form workflow to have them in the parent form.
+            }
             <div className="tr__form-buttons-container">
                 <span title={props.t('main:Cancel')}>
                     <Button key="back" color="grey" label={props.t('main:Cancel')} onClick={props.onEnd} />
@@ -137,7 +148,7 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
                             disabled={!nextEnabled}
                             key="next"
                             color="green"
-                            label={props.t('main:Next')}
+                            label={props.t(`main:${currentStep === stepCount - 2 ? 'Calculate' : 'Next'}`)}
                             onClick={incrementStep}
                         />
                     </span>

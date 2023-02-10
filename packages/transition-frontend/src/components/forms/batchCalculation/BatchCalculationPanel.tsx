@@ -41,6 +41,7 @@ const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps & Wit
             {isNewAnalysis && (
                 <BatchCalculationForm
                     availableRoutingModes={props.availableRoutingModes}
+                    // TODO This function should receive some parameter, whether it is cancelled or a calculation is pending.
                     onEnd={() => setIsNewAnalysis(false)}
                 />
             )}
