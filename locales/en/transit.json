@@ -931,6 +931,9 @@
         "New": "New calculation",
         "UploadFile": "Upload file",
         "DemandData": "Demand data",
-        "AnalysisParameters": "Parameters"
+        "AnalysisParameters": "Parameters",
+        "ConfigureDemand": "Configure demand data",
+        "ConfigureParameters": "Configure analysis parameters",
+        "AnalysisSummary": "Analysis summary"
     }
 }

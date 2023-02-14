@@ -929,6 +929,9 @@
         "New": "Nouveau calcul",
         "UploadFile": "Téléverser le fichier",
         "DemandData": "Données de la demande",
-        "AnalysisParameters": "Paramètres"
+        "AnalysisParameters": "Paramètres",
+        "ConfigureDemand": "Configuration des données de la demande",
+        "ConfigureParameters": "Configuration des paramètres d'analyse",
+        "AnalysisSummary": "Sommaire de l'analyse"
     }
 }

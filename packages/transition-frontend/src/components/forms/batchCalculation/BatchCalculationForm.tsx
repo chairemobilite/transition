@@ -108,27 +108,36 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
                 {props.t('transit:batchCalculation:New')}
             </h3>
             {currentStep === 0 && (
-                <ConfigureDemandFromCsvForm
-                    currentDemand={demand}
-                    onComplete={onDemandStepComplete}
-                    onFileReset={onFileReset}
-                />
+                <React.Fragment>
+                    <h4>{props.t('transit:scenarioAnalysis:ConfigureDemand')}</h4>
+                    <ConfigureDemandFromCsvForm
+                        currentDemand={demand}
+                        onComplete={onDemandStepComplete}
+                        onFileReset={onFileReset}
+                    />
+                </React.Fragment>
             )}
             {currentStep === 1 && (
-                <ConfigureBatchCalculationForm
-                    availableRoutingModes={props.availableRoutingModes}
-                    routingParameters={routingParameters}
-                    onUpdate={onParametersUpdate}
-                    scenarioCollection={scenarioCollection}
-                />
+                <React.Fragment>
+                    <h4>{props.t('transit:batchCalculation:ConfigureParameters')}</h4>
+                    <ConfigureBatchCalculationForm
+                        availableRoutingModes={props.availableRoutingModes}
+                        routingParameters={routingParameters}
+                        onUpdate={onParametersUpdate}
+                        scenarioCollection={scenarioCollection}
+                    />
+                </React.Fragment>
             )}
             {currentStep === 2 && (
-                <ConfirmCalculationForm
-                    currentDemand={demand as TransitDemandFromCsvFile}
-                    routingParameters={routingParameters}
-                    onUpdate={onParametersUpdate}
-                    scenarioCollection={scenarioCollection}
-                />
+                <React.Fragment>
+                    <h4>{props.t('transit:batchCalculation:AnalysisSummary')}</h4>
+                    <ConfirmCalculationForm
+                        currentDemand={demand as TransitDemandFromCsvFile}
+                        routingParameters={routingParameters}
+                        onUpdate={onParametersUpdate}
+                        scenarioCollection={scenarioCollection}
+                    />
+                </React.Fragment>
             )}
             {
                 // TODO The below buttons should be handled by the steps themselves, with proper validations on click. It's ackward for the individual form workflow to have them in the parent form.
