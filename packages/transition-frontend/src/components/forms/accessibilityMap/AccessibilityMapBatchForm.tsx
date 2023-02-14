@@ -32,18 +32,14 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 // ** File upload
-import FileUploaderHOC from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
+import FileUploaderHOC, { FileUploaderHOCProps } from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import { _toInteger, _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import BatchAttributesSelection from './widgets/BatchAttributesSelection';
 import { BatchAccessibilityMapCalculator } from '../../../services/accessibilityMap/BatchAccessibilityMapCalculator';
 import ExecutableJobComponent from '../../parts/executableJob/ExecutableJobComponent';
 
-export interface BatchAccessibilityMapFormProps extends WithTranslation {
-    addEventListeners?: () => void;
-    removeEventListeners?: () => void;
-    fileUploader?: any;
-    fileImportRef?: any;
+export interface BatchAccessibilityMapFormProps extends FileUploaderHOCProps {
     routingEngine: TransitAccessibilityMapRouting;
 }
 
@@ -67,10 +63,10 @@ interface BatchAccessibilityMapFormState extends ChangeEventsState<TransitBatchA
 // part. That would require extending 2 different classes, which is possibly
 // permitted in javascript, but not the cleanest.
 class AccessibilityMapBatchForm extends ChangeEventsForm<
-    BatchAccessibilityMapFormProps,
+    BatchAccessibilityMapFormProps & WithTranslation,
     BatchAccessibilityMapFormState
 > {
-    constructor(props: BatchAccessibilityMapFormProps) {
+    constructor(props: BatchAccessibilityMapFormProps & WithTranslation) {
         super(props);
 
         const batchRoutingEngine = new TransitBatchAccessibilityMap(
@@ -116,41 +112,14 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
         });
     };
 
-    onSubmitCsv = () => {
-        parseCsvFile(
-            this.state.object.get('csvFile'),
-            (data) => {
-                const csvAttributes = Object.keys(data);
-                const batchRouting = this.state.object;
-                if (
-                    batchRouting.attributes.idAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.idAttribute)
-                ) {
-                    batchRouting.attributes.idAttribute = undefined;
-                }
-                if (batchRouting.attributes.xAttribute && !csvAttributes.includes(batchRouting.attributes.xAttribute)) {
-                    batchRouting.attributes.xAttribute = undefined;
-                }
-                if (batchRouting.attributes.yAttribute && !csvAttributes.includes(batchRouting.attributes.yAttribute)) {
-                    batchRouting.attributes.yAttribute = undefined;
-                }
-                if (
-                    batchRouting.attributes.timeAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.timeAttribute)
-                ) {
-                    batchRouting.attributes.timeAttribute = undefined;
-                }
-
-                this.setState({
-                    object: batchRouting,
-                    csvAttributes
-                });
-            },
-            {
-                header: true,
-                nbRows: 1 // only get the header
-            }
-        );
+    onSubmitCsv = async () => {
+        if (this.state.object.attributes.csvFile !== undefined) {
+            const csvAttributes = await this.state.object.setCsvFile(this.state.object.attributes.csvFile);
+            this.setState({
+                object: this.state.object,
+                csvAttributes
+            });
+        }
     };
 
     onCalculationNameChange = (path: string, value: { value: any; valid?: boolean }) => {
@@ -211,15 +180,9 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
     }
 
     componentDidMount() {
-        if (this.props.addEventListeners) this.props.addEventListeners();
-
         serviceLocator.socketEventManager.emit('service.parallelThreadCount', (response) => {
             this.setMaxParallelCalculators(response.count);
         });
-    }
-
-    componentWillUnmount() {
-        if (this.props.removeEventListeners) this.props.removeEventListeners();
     }
 
     render() {

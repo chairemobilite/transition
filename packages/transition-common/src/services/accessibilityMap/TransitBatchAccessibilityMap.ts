@@ -54,6 +54,15 @@ export class TransitBatchAccessibilityMap extends TransitDemandFromCsv<TransitBa
     get routingEngine(): AccessibilityMapRouting {
         return this._routing;
     }
+
+    protected onCsvFileAttributesUpdated = (_csvFields: string[]): void => {
+        if (this.attributes.xAttribute && !_csvFields.includes(this.attributes.xAttribute)) {
+            this.attributes.xAttribute = undefined;
+        }
+        if (this.attributes.yAttribute && !_csvFields.includes(this.attributes.yAttribute)) {
+            this.attributes.yAttribute = undefined;
+        }
+    };
 }
 
 export default TransitBatchAccessibilityMap;

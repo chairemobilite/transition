@@ -111,7 +111,7 @@ const createFromTrip = async function (periodTrip: SchedulePeriodTrip, scheduleI
     if (!periodTrip.schedule_period_id) {
         periodTrip.schedule_period_id = periodId;
     }
-    const id = await create(knex, tripTable, scheduleTripsAttributesCleaner, periodTrip, 'id');
+    const id = (await create(knex, tripTable, scheduleTripsAttributesCleaner, periodTrip, 'id')) as string;
     return id;
 };
 
@@ -122,7 +122,7 @@ const createFromPeriod = async function (periodSchedule: SchedulePeriod, schedul
     if (!periodSchedule.schedule_id) {
         periodSchedule.schedule_id = schedule_id;
     }
-    const id = await create(knex, periodTable, schedulePeriodsAttributesCleaner, periodSchedule, 'id');
+    const id = (await create(knex, periodTable, schedulePeriodsAttributesCleaner, periodSchedule, 'id')) as string;
     if (periodSchedule.trips) {
         for (let i = 0; i < periodSchedule.trips.length; i++) {
             await createFromTrip(periodSchedule.trips[i], schedule_id, id);
@@ -133,7 +133,7 @@ const createFromPeriod = async function (periodSchedule: SchedulePeriod, schedul
 
 // create all needed inserts from scheduleData (from scheduleByServiceId[serviceId])
 const createFromScheduleData = async function (scheduleData: ScheduleAttributes) {
-    const id = await create(knex, scheduleTable, scheduleAttributesCleaner, scheduleData, 'id');
+    const id = (await create(knex, scheduleTable, scheduleAttributesCleaner, scheduleData, 'id')) as string;
     for (let i = 0; i < scheduleData.periods.length; i++) {
         await createFromPeriod(scheduleData.periods[i], id);
     }
@@ -144,7 +144,14 @@ const updateFromTrip = async function (periodTrip: Partial<SchedulePeriodTrip>) 
     if (!periodTrip.id || !periodTrip.schedule_id || !periodTrip.schedule_period_id) {
         throw 'Missing trip, schedule or period id for trip, cannot update';
     }
-    const id = await update(knex, tripTable, scheduleTripsAttributesCleaner, periodTrip.id, periodTrip, 'id');
+    const id = (await update(
+        knex,
+        tripTable,
+        scheduleTripsAttributesCleaner,
+        periodTrip.id,
+        periodTrip,
+        'id'
+    )) as string;
     return id;
 };
 
@@ -180,7 +187,7 @@ const updateFromPeriod = async function (periodSchedule: Partial<SchedulePeriod>
 };
 
 const updateFromScheduleData = async function (scheduleId: string, scheduleData: ScheduleAttributes) {
-    const id = await update(knex, scheduleTable, scheduleAttributesCleaner, scheduleId, scheduleData, 'id');
+    const id = (await update(knex, scheduleTable, scheduleAttributesCleaner, scheduleId, scheduleData, 'id')) as string;
     const periodIds = await getPeriodIdsForSchedule(id);
     const currentPeriods: string[] = [];
     // Update or create periods in schedule

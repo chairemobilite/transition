@@ -7,22 +7,16 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-import ImporterValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import FileUploaderHOC from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import FileImportForm from '../../parts/FileImportForm';
 
-interface LineImportFormProps extends WithTranslation {
-    addEventListeners: () => void;
-    removeEventListeners: () => void;
-    onChange: React.ChangeEventHandler;
+interface LineImportFormProps {
     setImporterSelected: (importerSelected: boolean) => void;
-    fileUploader?: any;
-    fileImportRef?: any;
-    validator: ImporterValidator;
 }
 
-const LineImportForm: React.FunctionComponent<LineImportFormProps> = (props: LineImportFormProps) => {
+const LineImportForm: React.FunctionComponent<LineImportFormProps & WithTranslation> = (
+    props: LineImportFormProps & WithTranslation
+) => {
     const closeImporter = () => props.setImporterSelected(false);
 
     const onImported = async () => {
@@ -39,22 +33,16 @@ const LineImportForm: React.FunctionComponent<LineImportFormProps> = (props: Lin
     };
 
     React.useEffect(() => {
-        props.addEventListeners();
         serviceLocator.socketEventManager.on('importer.linesImported', onImported);
         return () => {
-            props.removeEventListeners();
             serviceLocator.socketEventManager.off('importer.linesImported', onImported);
         };
     }, []);
 
     return (
         <FileImportForm
-            validator={props.validator}
             pluralizedObjectsName={'lines'}
             fileNameWithExtension={'lines.json'}
-            fileUploader={props.fileUploader}
-            fileImportRef={props.fileImportRef}
-            onChange={props.onChange}
             label={props.t('main:JsonFile')}
             acceptsExtension={'.json'}
             closeImporter={closeImporter}
@@ -62,4 +50,4 @@ const LineImportForm: React.FunctionComponent<LineImportFormProps> = (props: Lin
     );
 };
 
-export default FileUploaderHOC(withTranslation(['transit', 'main'])(LineImportForm), ImporterValidator);
+export default withTranslation(['transit', 'main'])(LineImportForm);

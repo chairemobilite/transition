@@ -7,22 +7,16 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-import ImporterValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import FileUploaderHOC from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import FileImportForm from '../../parts/FileImportForm';
 
-interface ServicesImportFormProps extends WithTranslation {
-    addEventListeners: () => void;
-    removeEventListeners: () => void;
-    onChange: React.ChangeEventHandler;
+interface ServicesImportFormProps {
     setImporterSelected: (importerSelected: boolean) => void;
-    fileUploader?: any;
-    fileImportRef?: any;
-    validator: ImporterValidator;
 }
 
-const ServicesImportForm: React.FunctionComponent<ServicesImportFormProps> = (props: ServicesImportFormProps) => {
+const ServicesImportForm: React.FunctionComponent<ServicesImportFormProps & WithTranslation> = (
+    props: ServicesImportFormProps & WithTranslation
+) => {
     const closeImporter = () => props.setImporterSelected(false);
 
     const onImported = async () => {
@@ -35,26 +29,20 @@ const ServicesImportForm: React.FunctionComponent<ServicesImportFormProps> = (pr
     };
 
     React.useEffect(() => {
-        props.addEventListeners();
         serviceLocator.socketEventManager.on('importer.servicesImported', onImported);
         return () => {
-            props.removeEventListeners();
             serviceLocator.socketEventManager.off('importer.servicesImported', onImported);
         };
     }, []);
 
     return (
         <FileImportForm
-            validator={props.validator}
             pluralizedObjectsName={'services'}
             fileNameWithExtension={'services.json'}
-            fileUploader={props.fileUploader}
-            fileImportRef={props.fileImportRef}
-            onChange={props.onChange}
             label={props.t('main:JsonFile')}
             closeImporter={closeImporter}
         />
     );
 };
 
-export default FileUploaderHOC(withTranslation(['transit', 'main'])(ServicesImportForm), ImporterValidator);
+export default withTranslation(['transit', 'main'])(ServicesImportForm);

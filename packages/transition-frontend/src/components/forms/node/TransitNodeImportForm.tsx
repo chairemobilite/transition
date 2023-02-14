@@ -7,22 +7,16 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-import ImporterValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import FileUploaderHOC from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import FileImportForm from '../../parts/FileImportForm';
 
-interface NodeImportFormProps extends WithTranslation {
-    addEventListeners: () => void;
-    removeEventListeners: () => void;
-    onChange: React.ChangeEventHandler;
+interface NodeImportFormProps {
     setImporterSelected: (importerSelected: boolean) => void;
-    fileUploader?: any;
-    fileImportRef?: any;
-    validator: ImporterValidator;
 }
 
-const NodesImportForm: React.FunctionComponent<NodeImportFormProps> = (props: NodeImportFormProps) => {
+const NodesImportForm: React.FunctionComponent<NodeImportFormProps & WithTranslation> = (
+    props: NodeImportFormProps & WithTranslation
+) => {
     const closeImporter = () => props.setImporterSelected(false);
 
     const onImported = async () => {
@@ -41,22 +35,16 @@ const NodesImportForm: React.FunctionComponent<NodeImportFormProps> = (props: No
     };
 
     React.useEffect(() => {
-        props.addEventListeners();
         serviceLocator.socketEventManager.on('importer.nodesImported', onImported);
         return () => {
-            props.removeEventListeners();
             serviceLocator.socketEventManager.off('importer.nodesImported', onImported);
         };
     }, []);
 
     return (
         <FileImportForm
-            validator={props.validator}
             pluralizedObjectsName={'nodes'}
             fileNameWithExtension={'nodes.geojson'}
-            fileUploader={props.fileUploader}
-            fileImportRef={props.fileImportRef}
-            onChange={props.onChange}
             acceptsExtension={'.json,.geojson'}
             label={props.t('main:GeojsonFile')}
             closeImporter={closeImporter}
@@ -64,4 +52,4 @@ const NodesImportForm: React.FunctionComponent<NodeImportFormProps> = (props: No
     );
 };
 
-export default FileUploaderHOC(withTranslation(['transit', 'main'])(NodesImportForm), ImporterValidator);
+export default withTranslation(['transit', 'main'])(NodesImportForm);

@@ -30,18 +30,14 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 // ** File upload
-import FileUploaderHOC from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
+import FileUploaderHOC, { FileUploaderHOCProps } from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import { _toInteger, _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import BatchAttributesSelection from './widgets/BatchAttributesSelection';
 import BatchSaveToDb from './widgets/BatchSaveToDb';
 import ExecutableJobComponent from '../../parts/executableJob/ExecutableJobComponent';
 
-export interface TransitBatchRoutingFormProps extends WithTranslation {
-    addEventListeners?: () => void;
-    removeEventListeners?: () => void;
-    fileUploader?: any;
-    fileImportRef?: any;
+export interface TransitBatchRoutingFormProps extends FileUploaderHOCProps {
     routingEngine: TransitRouting;
     isRoutingEngineValid?: () => boolean;
 }
@@ -63,10 +59,13 @@ interface TransitBatchRoutingFormState extends ChangeEventsState<TransitOdDemand
 }
 
 // TODO tahini type this class
-class TransitRoutingBatchForm extends ChangeEventsForm<TransitBatchRoutingFormProps, TransitBatchRoutingFormState> {
+class TransitRoutingBatchForm extends ChangeEventsForm<
+    TransitBatchRoutingFormProps & WithTranslation,
+    TransitBatchRoutingFormState
+> {
     private fileReader: any;
 
-    constructor(props: TransitBatchRoutingFormProps) {
+    constructor(props: TransitBatchRoutingFormProps & WithTranslation) {
         super(props);
 
         const batchRoutingEngine = new TransitOdDemandFromCsv(
@@ -125,59 +124,14 @@ class TransitRoutingBatchForm extends ChangeEventsForm<TransitBatchRoutingFormPr
         });
     }
 
-    onSubmitCsv() {
-        parseCsvFile(
-            this.state.object.get('csvFile'),
-            (data) => {
-                const csvAttributes = Object.keys(data);
-                const batchRouting = this.state.object;
-                if (
-                    batchRouting.attributes.idAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.idAttribute)
-                ) {
-                    batchRouting.attributes.idAttribute = undefined;
-                }
-                if (
-                    batchRouting.attributes.originXAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.originXAttribute)
-                ) {
-                    batchRouting.attributes.originXAttribute = undefined;
-                }
-                if (
-                    batchRouting.attributes.originYAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.originYAttribute)
-                ) {
-                    batchRouting.attributes.originYAttribute = undefined;
-                }
-                if (
-                    batchRouting.attributes.destinationXAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.destinationXAttribute)
-                ) {
-                    batchRouting.attributes.destinationXAttribute = undefined;
-                }
-                if (
-                    batchRouting.attributes.destinationYAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.destinationYAttribute)
-                ) {
-                    batchRouting.attributes.destinationYAttribute = undefined;
-                }
-                if (
-                    batchRouting.attributes.timeAttribute &&
-                    !csvAttributes.includes(batchRouting.attributes.timeAttribute)
-                ) {
-                    batchRouting.attributes.timeAttribute = undefined;
-                }
-
-                this.setState({
-                    object: batchRouting,
-                    csvAttributes
-                });
-            },
-            {
-                header: true,
-                nbRows: 1 // only get the header
-            }
-        );
+    async onSubmitCsv() {
+        if (this.state.object.attributes.csvFile !== undefined) {
+            const csvAttributes = await this.state.object.setCsvFile(this.state.object.attributes.csvFile);
+            this.setState({
+                object: this.state.object,
+                csvAttributes
+            });
+        }
     }
 
     onCalculationNameChange(path: string, value: { value: any; valid?: boolean }) {
@@ -254,15 +208,9 @@ class TransitRoutingBatchForm extends ChangeEventsForm<TransitBatchRoutingFormPr
     }
 
     componentDidMount() {
-        if (this.props.addEventListeners) this.props.addEventListeners();
-
         serviceLocator.socketEventManager.emit('service.parallelThreadCount', (response) => {
             this.setMaxParallelCalculators(response.count);
         });
-    }
-
-    componentWillUnmount() {
-        if (this.props.removeEventListeners) this.props.removeEventListeners();
     }
 
     render() {
@@ -349,7 +297,7 @@ class TransitRoutingBatchForm extends ChangeEventsForm<TransitBatchRoutingFormPr
                         <BatchSaveToDb
                             onValueChange={this.onValueChange}
                             attributes={batchRouting.attributes}
-                            defaultDataSourceName={batchRouting.attributes.csvFile.name || ''}
+                            defaultDataSourceName={(batchRouting.attributes.csvFile as File).name || ''}
                         />
                     )}
                     {

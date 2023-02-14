@@ -4,14 +4,25 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import _cloneDeep from 'lodash.clonedeep';
 import { TransitOdDemandFromCsv } from '../TransitOdDemandFromCsv';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import DataSourceCollection from '../../dataSource/DataSourceCollection';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import DataSource from '../../dataSource/DataSource';
+import { CsvFileAttributes, parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
+
+jest.mock('chaire-lib-common/lib/utils/files/CsvFile', () => ({
+    parseCsvFile: jest.fn()
+}))
+const parseCsvFileMock = parseCsvFile as jest.MockedFunction<typeof parseCsvFile>;
 
 const collectionManager = new CollectionManager(null);
 serviceLocator.addService('collectionManager', collectionManager);
+
+beforeEach(() => {
+    parseCsvFileMock.mockClear();
+})
 
 test('Validate number of CPUs', () => {
     const batchRouting = new TransitOdDemandFromCsv({}, false);
@@ -139,3 +150,117 @@ describe('validate saveToDb', () => {
         expect(batchRouting.attributes.saveToDb).toEqual(expectedSaveToDb);
     });
 });
+
+describe('setCsvFile', () => {
+    // csvObject to send to the row callback for the test.
+    let csvObjects = {};
+    parseCsvFileMock.mockImplementation((_input: string | NodeJS.ReadableStream | any,
+        rowCallback: (object: { [key: string]: any }, rowNumber: number) => void,
+        _options: Partial<CsvFileAttributes>) => {
+            return new Promise((resolve, reject) => {
+                rowCallback(csvObjects, 1);
+                resolve('completed');
+            });
+    });
+
+    test('Test with no prior field mapping', async () => {
+        // Set test data
+        csvObjects = { id: 1, field1: 'just data', field2: -73, field3: 45, field4: 'arbitrary' };
+
+        const batchRouting = new TransitOdDemandFromCsv({}, false);
+        const expectedUndefined = ['idAttribute', 'timeAttributeDepartureOrArrival', 'timeFormat', 'timeAttribute',
+            'withGeometries', 'detailed', 'projection', 'originXAttribute', 'originYAttribute', 
+            'destinationXAttribute', 'destinationYAttribute'];
+        const file = 'justAFile.csv';
+
+        const csvFields = await batchRouting.setCsvFile(file);
+
+        // Validte calls and return values
+        expect(csvFields).toEqual(Object.keys(csvObjects));
+        expect(parseCsvFileMock).toHaveBeenCalledTimes(1);
+        expect(parseCsvFileMock).toHaveBeenCalledWith(file, expect.anything(), { header: true, nbRows: 1});
+        expect(batchRouting.attributes).toEqual(expect.objectContaining({
+            csvFile: file,
+        }));
+        
+        expect(expectedUndefined.find((name) => batchRouting.attributes[name] !== undefined)).toBeUndefined();
+    });
+
+    test('Test with prior still valid field mapping', async () => {
+        // Set test data
+        csvObjects = { id: 1, field1: 'id', field2: -73, field3: 45, field4: '01:00', field5: -73, field6: 45, };
+
+        const batchRoutingAttributes = {
+            calculationName: 'calculationName',
+            csvFile: 'previousFile.csv',
+            idAttribute: 'field1',
+            timeAttributeDepartureOrArrival: 'arrival' as const,
+            timeFormat: 'timeFormat',
+            timeAttribute: 'field4',
+            withGeometries: true,
+            detailed: false,
+            projection: 'projection',
+            originXAttribute: 'field2',
+            originYAttribute: 'field3',
+            destinationXAttribute: 'field5',
+            destinationYAttribute: 'field6',
+        };
+        const batchRouting = new TransitOdDemandFromCsv(_cloneDeep(batchRoutingAttributes), false);
+        const file = 'justAFile.csv';
+    
+        const csvFields = await batchRouting.setCsvFile(file);
+
+        // Validte calls and return values
+        expect(csvFields).toEqual(Object.keys(csvObjects));
+        expect(parseCsvFileMock).toHaveBeenCalledTimes(1);
+        expect(parseCsvFileMock).toHaveBeenCalledWith(file, expect.anything(), { header: true, nbRows: 1});
+        
+        expect(batchRouting.attributes).toEqual(expect.objectContaining({
+            ...batchRoutingAttributes,
+            csvFile: file
+        }));
+    });
+
+    test('Test with prior field mapping to reset', async () => {
+        // Set test data
+        csvObjects = { id: 1, field1: 'just data', field2: -73, field3: 45, field4: 'arbitrary' };
+
+        const batchRoutingAttributes = {
+            calculationName: 'calculationName',
+            csvFile: 'previousFile.csv',
+            idAttribute: 'idAttribute',
+            timeAttributeDepartureOrArrival: 'arrival' as const,
+            timeFormat: 'timeFormat',
+            timeAttribute: 'timeAttribute',
+            withGeometries: true,
+            detailed: false,
+            projection: 'projection',
+            originXAttribute: 'originXAttribute',
+            originYAttribute: 'originYAttribute',
+            destinationXAttribute: 'destinationXAttribute',
+            destinationYAttribute: 'destinationYAttribute',
+        };
+        const batchRouting = new TransitOdDemandFromCsv(_cloneDeep(batchRoutingAttributes), false);
+        const expectedUndefined = ['idAttribute', 'timeAttribute', 'originXAttribute', 'originYAttribute', 
+            'destinationXAttribute', 'destinationYAttribute'];
+        const file = 'justAFile.csv';
+        
+        const csvFields = await batchRouting.setCsvFile(file);
+
+        // Validte calls and return values
+        expect(csvFields).toEqual(Object.keys(csvObjects));
+        expect(parseCsvFileMock).toHaveBeenCalledTimes(1);
+        expect(parseCsvFileMock).toHaveBeenCalledWith(file, expect.anything(), { header: true, nbRows: 1});
+        expect(batchRouting.attributes).toEqual(expect.objectContaining({
+            csvFile: file,
+            calculationName: batchRoutingAttributes.calculationName,
+            timeAttributeDepartureOrArrival: batchRoutingAttributes.timeAttributeDepartureOrArrival,
+            timeFormat: batchRoutingAttributes.timeFormat,
+            withGeometries: true,
+            detailed: false,
+            projection: 'projection'
+        }));
+        
+        expect(expectedUndefined.find((name) => batchRouting.attributes[name] !== undefined)).toBeUndefined();
+    })
+})

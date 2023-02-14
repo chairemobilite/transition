@@ -16,7 +16,7 @@ import { secondsToMinutes, minutesToSeconds } from 'chaire-lib-common/lib/utils/
 export interface TransitRoutingBaseComponentProps extends WithTranslation {
     attributes: TransitRoutingBaseAttributes;
     disabled?: boolean;
-    onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
+    onValueChange: (path: keyof TransitRoutingBaseAttributes, newValue: { value: any; valid?: boolean }) => void;
 }
 
 const TransitRoutingBaseComponent: React.FunctionComponent<TransitRoutingBaseComponentProps> = (

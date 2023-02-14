@@ -7,22 +7,16 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-import ImporterValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import FileUploaderHOC from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import FileImportForm from '../../parts/FileImportForm';
 
-interface PathImportFormProps extends WithTranslation {
-    addEventListeners: () => void;
-    removeEventListeners: () => void;
-    onChange: React.ChangeEventHandler;
+interface PathImportFormProps {
     setImporterSelected: (importerSelected: boolean) => void;
-    fileUploader?: any;
-    fileImportRef?: any;
-    validator: ImporterValidator;
 }
 
-const PathsImportForm: React.FunctionComponent<PathImportFormProps> = (props: PathImportFormProps) => {
+const PathsImportForm: React.FunctionComponent<PathImportFormProps & WithTranslation> = (
+    props: PathImportFormProps & WithTranslation
+) => {
     const closeImporter = () => props.setImporterSelected(false);
 
     const onImported = async () => {
@@ -48,22 +42,16 @@ const PathsImportForm: React.FunctionComponent<PathImportFormProps> = (props: Pa
     };
 
     React.useEffect(() => {
-        props.addEventListeners();
         serviceLocator.socketEventManager.on('importer.pathsImported', onImported);
         return () => {
-            props.removeEventListeners();
             serviceLocator.socketEventManager.off('importer.pathsImported', onImported);
         };
     }, []);
 
     return (
         <FileImportForm
-            validator={props.validator}
             pluralizedObjectsName={'paths'}
             fileNameWithExtension={'paths.geojson'}
-            fileUploader={props.fileUploader}
-            fileImportRef={props.fileImportRef}
-            onChange={props.onChange}
             acceptsExtension={'.json,.geojson'}
             label={props.t('main:GeojsonFile')}
             closeImporter={closeImporter}
@@ -71,4 +59,4 @@ const PathsImportForm: React.FunctionComponent<PathImportFormProps> = (props: Pa
     );
 };
 
-export default FileUploaderHOC(withTranslation(['transit', 'main'])(PathsImportForm), ImporterValidator);
+export default withTranslation(['transit', 'main'])(PathsImportForm);

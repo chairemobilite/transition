@@ -7,22 +7,16 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-import ImporterValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import FileUploaderHOC from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import FileImportForm from '../../parts/FileImportForm';
 
-interface AgencyImportFormProps extends WithTranslation {
-    addEventListeners: () => void;
-    removeEventListeners: () => void;
-    onChange: React.ChangeEventHandler;
+interface AgencyImportFormProps {
     setImporterSelected: (importerSelected: boolean) => void;
-    fileUploader?: any;
-    fileImportRef?: any;
-    validator: ImporterValidator;
 }
 
-const AgenciesImportForm: React.FunctionComponent<AgencyImportFormProps> = (props: AgencyImportFormProps) => {
+const AgenciesImportForm: React.FunctionComponent<AgencyImportFormProps & WithTranslation> = (
+    props: AgencyImportFormProps & WithTranslation
+) => {
     const closeImporter = () => props.setImporterSelected(false);
 
     const onImported = async () => {
@@ -35,22 +29,16 @@ const AgenciesImportForm: React.FunctionComponent<AgencyImportFormProps> = (prop
     };
 
     React.useEffect(() => {
-        props.addEventListeners();
         serviceLocator.socketEventManager.on('importer.agenciesImported', onImported);
         return () => {
-            props.removeEventListeners();
             serviceLocator.socketEventManager.off('importer.agenciesImported', onImported);
         };
     }, []);
 
     return (
         <FileImportForm
-            validator={props.validator}
             pluralizedObjectsName={'agencies'}
             fileNameWithExtension={'agencies.json'}
-            fileUploader={props.fileUploader}
-            fileImportRef={props.fileImportRef}
-            onChange={props.onChange}
             label={props.t('main:JsonFile')}
             acceptsExtension={'.json'}
             closeImporter={closeImporter}
@@ -58,4 +46,4 @@ const AgenciesImportForm: React.FunctionComponent<AgencyImportFormProps> = (prop
     );
 };
 
-export default FileUploaderHOC(withTranslation(['transit', 'main'])(AgenciesImportForm), ImporterValidator);
+export default withTranslation(['transit', 'main'])(AgenciesImportForm);
