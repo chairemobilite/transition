@@ -10,6 +10,10 @@ See http://transition.city/
 
 For Ubuntu users: [complete step-by-step development environment setup procedure](docs/setupDevEnvironmentUbuntu20.04.md)
 
+## Stand alone Desktop installation
+
+For users only interested in running Transition, without manually installing all the dependencies, follow these [step-by-step instructions to set up Transition using Docker Desktop](docs/runWithDocker.md).
+
 ## Non-Node Dependencies
 
 * [PostgreSQL](https://www.postgresql.org/) 10+ with [PostGIS](https://postgis.net/)
