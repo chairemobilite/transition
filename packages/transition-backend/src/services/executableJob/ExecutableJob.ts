@@ -30,7 +30,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         jobType?: string;
         pageIndex: number;
         pageSize: number;
-        sort?: { field: string; direction: 'asc' | 'desc' };
+        sort?: { field: keyof JobAttributes<JobDataType>; direction: 'asc' | 'desc' }[];
     }): Promise<Promise<{ jobs: ExecutableJob<JobDataType>[]; totalCount: number }>> {
         const { jobs, totalCount } = await jobsDbQueries.collection(options);
         return { jobs: jobs.map((attribs) => new ExecutableJob<JobDataType>(attribs)), totalCount };
