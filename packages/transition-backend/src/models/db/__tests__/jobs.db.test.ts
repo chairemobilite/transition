@@ -53,7 +53,7 @@ const updatedAttributes = {
 }
 
 const newObjectAttributes2: Omit<JobAttributes<TestJobType2>, 'id'> = {
-    status: 'pending' as const,
+    status: 'completed' as const,
     name: 'test2' as const,
     user_id: userAttributes.id,
     data: data.data,
@@ -241,6 +241,44 @@ describe(`${objectName}`, () => {
         expect(result.jobs.length).toBe(1);
         expect(result.jobs[0].name).toEqual(newObjectAttributes2.name);
         expect(result.jobs[0].id).toEqual(firstId);
+
+    });
+
+    test('Read collection by status', async() => {
+
+        // Empty status, should return all
+        let result = await dbQueries.collection({ statuses: [], pageIndex: 0, pageSize: 0 });
+        expect(result.totalCount).toBe(3);
+        expect(result.jobs.length).toBe(3);
+
+        // Return pending jobs
+        result = await dbQueries.collection({ statuses: ['pending'], pageIndex: 0, pageSize: 0 });
+        expect(result.totalCount).toBe(2);
+        expect(result.jobs.length).toBe(2);
+
+        // Return pending or inProgress jobs, only pending are in the db
+        result = await dbQueries.collection({ statuses: ['pending', 'inProgress'], pageIndex: 0, pageSize: 0 });
+        expect(result.totalCount).toBe(2);
+        expect(result.jobs.length).toBe(2);
+
+        // Return pending or completed, should return all
+        result = await dbQueries.collection({ statuses: ['pending', 'completed'], pageIndex: 0, pageSize: 0 });
+        expect(result.totalCount).toBe(3);
+        expect(result.jobs.length).toBe(3);
+
+        // Return pending or inProgress jobs for user. There are 2 pendign jobs, but only 1 for user 1
+        result = await dbQueries.collection({ userId: userAttributes.id, statuses: ['pending', 'inProgress'], pageIndex: 0, pageSize: 0 });
+        expect(result.totalCount).toBe(1);
+        expect(result.jobs.length).toBe(1);
+        expect(result.jobs[0].status).toEqual('pending');
+        expect(result.jobs[0].user_id).toEqual(userAttributes.id);
+
+        // Return pending or completed jobs for the second user. There should be only one such job for user 2
+        result = await dbQueries.collection({ userId: userAttributes.id + 1, statuses: ['pending', 'completed'], pageIndex: 0, pageSize: 0 });
+        expect(result.totalCount).toBe(1);
+        expect(result.jobs.length).toBe(1);
+        expect(result.jobs[0].status).toEqual('pending');
+        expect(result.jobs[0].user_id).not.toEqual(userAttributes.id);
 
     });
 
