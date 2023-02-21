@@ -11,7 +11,6 @@ import { spawn } from 'child_process';
 import events from 'events';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import OSRMProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import { _booleish } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
@@ -19,6 +18,7 @@ import { recreateCache } from './services/capnpCache/dbToCache';
 import preferencesSocketRoutes from 'chaire-lib-backend/lib/api/preferences.socketRoutes';
 import allSocketRoutes from './api/all.socketRoutes';
 import { startPool } from './tasks/serverWorkerPool';
+import { ExecutableJob } from './services/executableJob/ExecutableJob';
 
 const socketWildCard = socketMiddleWare();
 
@@ -41,6 +41,16 @@ const setupSocketServerApp = async function (server, session) {
     // Add socket routes to an event emitter for the server process to use
     serviceLocator.addService('socketEventManager', new events.EventEmitter());
     allSocketRoutes(serviceLocator.socketEventManager);
+
+    // Enqueue/resume running and pending tasks
+    // FIXME This implies a single server process for a given database. We don't
+    // know if the job is enqueued in another process somewhere and may be
+    // executed twice. For pending jobs, we could have a first run, first serve,
+    // but for jobs in progress, we don't know if they are actively being run or
+    // not
+    if (process.env.STARTUP_RESTART_JOBS === undefined || _booleish(process.env.STARTUP_RESTART_JOBS)) {
+        await ExecutableJob.enqueueRunningAndPendingJobs(serviceLocator.socketEventManager);
+    }
 
     const io = socketIO(server, {
         pingTimeout: 60000,

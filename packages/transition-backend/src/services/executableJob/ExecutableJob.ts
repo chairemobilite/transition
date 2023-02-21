@@ -20,6 +20,33 @@ export type InitialJobData = {
 };
 
 export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
+    static async enqueueRunningAndPendingJobs<TData extends JobDataType>(
+        progressEmitter: EventEmitter
+    ): Promise<boolean> {
+        try {
+            const runningAndPending = await jobsDbQueries.collection({
+                statuses: ['inProgress', 'pending'],
+                pageIndex: 0,
+                pageSize: 0,
+                // Statuses are sorted by their enum value, not alphabetically, pending < inProgress, descending returns inProgress first
+                sort: [
+                    { field: 'status', direction: 'desc' },
+                    { field: 'created_at', direction: 'asc' }
+                ]
+            });
+            console.log(`Enqueuing ${runningAndPending.jobs.length} in progress and pending jobs`);
+            for (let i = 0; i < runningAndPending.jobs.length; i++) {
+                const job = new ExecutableJob<TData>(runningAndPending.jobs[i] as JobAttributes<TData>);
+                await job.enqueue(progressEmitter);
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error resuming in progress and pending jobs:', error);
+            return false;
+        }
+    }
+
     static async loadTask<TData extends JobDataType>(id: number): Promise<ExecutableJob<TData>> {
         const jobAttributes = await jobsDbQueries.read(id);
         return new ExecutableJob<TData>(jobAttributes as JobAttributes<TData>);
