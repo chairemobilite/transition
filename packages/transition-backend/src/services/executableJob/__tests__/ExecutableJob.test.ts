@@ -50,7 +50,8 @@ jest.mock('../../../models/db/jobs.db.queries', () => {
         read: jest.fn(),
         create: jest.fn(),
         update: jest.fn().mockResolvedValue(2),
-        delete: jest.fn().mockResolvedValue(2)
+        delete: jest.fn().mockResolvedValue(2),
+        collection: jest.fn()
     }
 });
 const mockedJobRead = jobsDbQueries.read as jest.MockedFunction<typeof jobsDbQueries.read>;
@@ -58,6 +59,7 @@ mockedJobRead.mockResolvedValue(_cloneDeep(jobAttributes));
 const mockedJobCreate = jobsDbQueries.create as jest.MockedFunction<typeof jobsDbQueries.create>;
 const mockedJobUpdate = jobsDbQueries.update as jest.MockedFunction<typeof jobsDbQueries.update>;
 const mockedJobDelete = jobsDbQueries.delete as jest.MockedFunction<typeof jobsDbQueries.delete>;
+const mockedJobCollection = jobsDbQueries.collection as jest.MockedFunction<typeof jobsDbQueries.collection>;
 
 jest.mock('../../../tasks/serverWorkerPool', () => (
     { execJob: jest.fn() }
@@ -69,6 +71,7 @@ beforeEach(() => {
     mockedJobCreate.mockClear();
     mockedJobUpdate.mockClear();
     mockedJobDelete.mockClear();
+    mockedJobCollection.mockClear();
     mockedPool.mockClear();
 });
 
@@ -97,6 +100,62 @@ test('Test load job', async () => {
     expect(jobObj.attributes).toEqual(expect.objectContaining({ id: jobAttributes.id, ...newJobAttributes }));
     expect(jobObj.status).toEqual('pending');
 });
+
+describe('Test resume running and pending', () => {
+    test('No data', async () => {
+        mockedJobCollection.mockResolvedValueOnce({ jobs: [], totalCount: 0 })
+        expect(await ExecutableJob.enqueueRunningAndPendingJobs(progressEmitter)).toEqual(true);
+        expect(mockedJobCollection).toHaveBeenCalledWith(expect.objectContaining({
+            statuses: ['inProgress', 'pending'],
+            pageIndex: 0,
+            pageSize: 0,
+            sort: [
+                { field: 'status', direction: 'desc' },
+                { field: 'created_at', direction: 'asc' }
+            ]
+        }));
+        expect(mockedPool).not.toHaveBeenCalled();
+    });
+
+    test('in progress and pending jobs', async () => {
+        const jobsToRun = [{
+            id: 5,
+            status: 'inProgress' as const,
+            ...newJobAttributes
+        }, jobAttributes, {
+            id: 6,
+            status: 'pending' as const,
+            ...newJobAttributes
+        }];
+        mockedJobCollection.mockResolvedValueOnce({ jobs: jobsToRun, totalCount: jobsToRun.length })
+        expect(await ExecutableJob.enqueueRunningAndPendingJobs(progressEmitter)).toEqual(true);
+        expect(mockedJobCollection).toHaveBeenCalledWith(expect.objectContaining({
+            statuses: ['inProgress', 'pending'],
+            pageIndex: 0,
+            pageSize: 0,
+            sort: [
+                { field: 'status', direction: 'desc' },
+                { field: 'created_at', direction: 'asc' }
+            ]
+        }));
+        // Just needs a return value, anything will do
+        mockedPool.mockResolvedValue(5 as any);
+        
+        expect(mockedPool).toHaveBeenCalledTimes(3);
+        expect(mockedPool).toHaveBeenNthCalledWith(1, 'task', [jobsToRun[0].id], expect.anything());
+        expect(mockedPool).toHaveBeenNthCalledWith(2, 'task', [jobsToRun[1].id], expect.anything());
+        expect(mockedPool).toHaveBeenNthCalledWith(3, 'task', [jobsToRun[2].id], expect.anything());
+    });
+
+    test('exception', async () => {
+
+        mockedJobCollection.mockRejectedValueOnce('exception')
+        expect(await ExecutableJob.enqueueRunningAndPendingJobs(progressEmitter)).toEqual(false);
+        expect(mockedPool).not.toHaveBeenCalled();
+
+    });
+});
+
 
 test('Test getJobFileDirectory', async () => {
     const jobObj = await ExecutableJob.loadTask(jobAttributes.id);

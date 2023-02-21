@@ -55,12 +55,7 @@ const collection = async (
                 if (statuses.length === 1) {
                     query.where('status', options.statuses[0]);
                 } else if (statuses.length > 1) {
-                    query.where(function () {
-                        this.where('status', statuses[0] as JobStatus);
-                        statuses.slice(1).forEach((status) => {
-                            this.orWhere('status', status);
-                        });
-                    });
+                    query.whereIn('status', statuses);
                 }
             }
         };

@@ -92,9 +92,9 @@ const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>) =>
 };
 
 const wrapTaskExecution = async (id: number) => {
-    // Load task from database and execute only if it is pending
+    // Load task from database and execute only if it is pending, or resume tasks in progress
     const task = await ExecutableJob.loadTask(id);
-    if (task.status !== 'pending') {
+    if (task.status !== 'pending' && task.status !== 'inProgress') {
         return;
     }
     const taskListener = taskUpdateListener();
