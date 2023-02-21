@@ -39,7 +39,7 @@ const collection = async (
         statuses?: JobStatus[];
         pageIndex: number;
         pageSize: number;
-        sort?: { field: string; direction: 'asc' | 'desc' };
+        sort?: { field: keyof JobAttributes<JobDataType>; direction: 'asc' | 'desc' }[];
     } = { pageIndex: 0, pageSize: 0 }
 ): Promise<{ jobs: JobAttributes<JobDataType>[]; totalCount: number }> => {
     try {
@@ -64,7 +64,7 @@ const collection = async (
                 }
             }
         };
-        const sort = options.sort || { field: 'created_at', direction: 'desc' };
+        const sorts = options.sort || [{ field: 'created_at', direction: 'desc' }];
 
         // Get the total count for that query
         const countQuery = knex.count('id').from(tableName);
@@ -80,7 +80,8 @@ const collection = async (
             return { jobs: [], totalCount };
         }
 
-        const jobsQuery = knex.select().from(tableName).orderBy(sort.field, sort.direction);
+        const jobsQuery = knex.select().from(tableName);
+        sorts.forEach((sort) => jobsQuery.orderBy(sort.field, sort.direction));
         addWhere(jobsQuery);
         if (options.pageSize > 0) {
             jobsQuery.limit(options.pageSize).offset(options.pageIndex * options.pageSize);

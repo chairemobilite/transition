@@ -229,18 +229,54 @@ describe(`${objectName}`, () => {
         const secondId = result.jobs[0].id;
 
         // Read first page for first user, sort ascending
-        result = await dbQueries.collection({ userId: userAttributes.id, pageIndex: 0, pageSize: 1, sort: { field: 'created_at', direction: 'asc' } });
+        result = await dbQueries.collection({ userId: userAttributes.id, pageIndex: 0, pageSize: 1, sort: [{ field: 'created_at', direction: 'asc' }] });
         expect(result.totalCount).toBe(2);
         expect(result.jobs.length).toBe(1);
         expect(result.jobs[0].name).toEqual(newObjectAttributes.name);
         expect(result.jobs[0].id).toEqual(secondId);
 
         // Read second page for first user, sort ascending
-        result = await dbQueries.collection({ userId: userAttributes.id, pageIndex: 1, pageSize: 1, sort: { field: 'created_at', direction: 'asc' } });
+        result = await dbQueries.collection({ userId: userAttributes.id, pageIndex: 1, pageSize: 1, sort: [{ field: 'created_at', direction: 'asc' }] });
         expect(result.totalCount).toBe(2);
         expect(result.jobs.length).toBe(1);
         expect(result.jobs[0].name).toEqual(newObjectAttributes2.name);
         expect(result.jobs[0].id).toEqual(firstId);
+
+    });
+
+    test('Various sort', async() => {
+
+        // Sort all by status ascending (statuses are sorted by their enum value, not alphabetically, pending is first)
+        let result = await dbQueries.collection({ pageIndex: 0, pageSize: 0, sort: [{ field: 'status', direction: 'asc' }] });
+        expect(result.totalCount).toBe(3);
+        expect(result.jobs.length).toBe(3);
+        expect(result.jobs[0].status).toEqual('pending');
+        expect(result.jobs[1].status).toEqual('pending');
+        expect(result.jobs[2].status).toEqual('completed');
+
+        // Sort all by status descending
+        result = await dbQueries.collection({ pageIndex: 0, pageSize: 0, sort: [{ field: 'status', direction: 'desc' }] });
+        expect(result.totalCount).toBe(3);
+        expect(result.jobs.length).toBe(3);
+        expect(result.jobs[0].status).toEqual('completed');
+        expect(result.jobs[1].status).toEqual('pending');
+        expect(result.jobs[2].status).toEqual('pending');
+
+        // Sort by status ascending and user id descending
+        result = await dbQueries.collection({ pageIndex: 0, pageSize: 0, sort: [{ field: 'status', direction: 'asc' }, { field: 'user_id', direction: 'desc' }] });
+        expect(result.totalCount).toBe(3);
+        expect(result.jobs.length).toBe(3);
+        expect(result.jobs[0]).toEqual(expect.objectContaining({ status: 'pending', user_id: userAttributes.id + 1 }));
+        expect(result.jobs[1]).toEqual(expect.objectContaining({ status: 'pending', user_id: userAttributes.id }));
+        expect(result.jobs[2]).toEqual(expect.objectContaining({ status: 'completed', user_id: userAttributes.id }));
+
+        // Sort by status ascending and user id ascending
+        result = await dbQueries.collection({ pageIndex: 0, pageSize: 0, sort: [{ field: 'status', direction: 'asc' }, { field: 'user_id', direction: 'asc' }] });
+        expect(result.totalCount).toBe(3);
+        expect(result.jobs.length).toBe(3);
+        expect(result.jobs[0]).toEqual(expect.objectContaining({ status: 'pending', user_id: userAttributes.id }));
+        expect(result.jobs[1]).toEqual(expect.objectContaining({ status: 'pending', user_id: userAttributes.id + 1 }));
+        expect(result.jobs[2]).toEqual(expect.objectContaining({ status: 'completed', user_id: userAttributes.id }));
 
     });
 
