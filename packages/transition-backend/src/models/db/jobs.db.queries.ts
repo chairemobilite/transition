@@ -9,7 +9,7 @@ import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import { truncate, destroy } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { Knex } from 'knex';
-import { JobAttributes, JobDataType } from 'transition-common/lib/services/jobs/Job';
+import { JobAttributes, JobDataType, JobStatus } from 'transition-common/lib/services/jobs/Job';
 
 const tableName = 'tr_jobs';
 
@@ -36,6 +36,7 @@ const collection = async (
     options: {
         userId?: number;
         jobType?: string;
+        statuses?: JobStatus[];
         pageIndex: number;
         pageSize: number;
         sort?: { field: string; direction: 'asc' | 'desc' };
@@ -48,6 +49,19 @@ const collection = async (
             }
             if (options.jobType !== undefined) {
                 query.where('name', options.jobType);
+            }
+            if (options.statuses !== undefined) {
+                const statuses = options.statuses;
+                if (statuses.length === 1) {
+                    query.where('status', options.statuses[0]);
+                } else if (statuses.length > 1) {
+                    query.where(function () {
+                        this.where('status', statuses[0] as JobStatus);
+                        statuses.slice(1).forEach((status) => {
+                            this.orWhere('status', status);
+                        });
+                    });
+                }
             }
         };
         const sort = options.sort || { field: 'created_at', direction: 'desc' };
