@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-export default `<osm-script output="OUTPUT" output-config="" timeout="120">
+export default `<osm-script output="OUTPUT" output-config="" timeout="240">
     <union into="_">
         <polygon-query bounds="BOUNDARY"/>
         <recurse from="_" into="_" type="up"/>

@@ -1,4 +1,4 @@
-[out:json][timeout:120];
+[out:json][timeout:240];
 (
     {{polyboundary="BOUNDARY"}}
 
