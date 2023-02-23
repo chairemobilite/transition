@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-export default `<osm-script output="OUTPUT" output-config="" timeout="100">
+export default `<osm-script output="OUTPUT" output-config="" timeout="200">
     <union into="_">
         <query into="_" type="way">
             <has-kv k="highway" modv="" v=""/>
