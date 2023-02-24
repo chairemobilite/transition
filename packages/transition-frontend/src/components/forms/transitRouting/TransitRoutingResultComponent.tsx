@@ -133,12 +133,12 @@ const TransitRoutingResults: React.FunctionComponent<TransitRoutingResultsProps>
                                     ? props.t('transit:transitRouting:results:OptimisedDepartureTime')
                                     : props.t('transit:transitRouting:results:DepartureTime')}
                             </th>
-                            <td>{path.departureTime}</td>
+                            <td>{secondsSinceMidnightToTimeStr(path.departureTime)}</td>
                         </tr>
                         {path.timeOfTripType === 'departure' && path.departureTime !== path.timeOfTrip && (
                             <tr>
                                 <th>{props.t('transit:transitRouting:results:NonOptimisedDepartureTime')}</th>
-                                <td>{path.timeOfTrip}</td>
+                                <td>{secondsSinceMidnightToTimeStr(path.timeOfTrip)}</td>
                             </tr>
                         )}
                         {path.timeOfTripType === 'departure' && path.departureTime !== path.timeOfTrip && (
@@ -156,7 +156,7 @@ const TransitRoutingResults: React.FunctionComponent<TransitRoutingResultsProps>
                         )}
                         <tr>
                             <th>{props.t('transit:transitRouting:results:ArrivalTime')}</th>
-                            <td>{path.arrivalTime}</td>
+                            <td>{secondsSinceMidnightToTimeStr(path.arrivalTime)}</td>
                         </tr>
                         {path.timeOfTripType === 'arrival' && (
                             <tr>
