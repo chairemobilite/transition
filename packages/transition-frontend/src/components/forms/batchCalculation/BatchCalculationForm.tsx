@@ -109,7 +109,7 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
             </h3>
             {currentStep === 0 && (
                 <React.Fragment>
-                    <h4>{props.t('transit:scenarioAnalysis:ConfigureDemand')}</h4>
+                    <h4>{props.t('transit:batchCalculation:ConfigureDemand')}</h4>
                     <ConfigureDemandFromCsvForm
                         currentDemand={demand}
                         onComplete={onDemandStepComplete}
