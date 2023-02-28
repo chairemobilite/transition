@@ -4,7 +4,7 @@
     "confirmByUserText": "Bonjour {{name}},\n\nVous avez demandé l'accès à transition.\n\nPour confirmer votre accès, veuillez cliquer sur le lien ci-dessous, ou copier-coller l'URL dans votre navigateur {{userConfirmationUrl}}.\n\nMerci",
     "confirmByUserSubject": "Transition: Confirmation d'un nouvel utilisateur",
     "pendingConfirmByAdminSubject": "Transition: compte en attente de confirmation par un administrateur",
-    "pendingConfirmByAdminText": "Bonjour {{name}},\n\nVotre accès à transition d'abord être validé par un administrateur.\n\nMerci",
+    "pendingConfirmByAdminText": "Bonjour {{name}},\n\nVotre accès à transition doit d'abord être validé par un administrateur.\n\nMerci",
     "confirmedByAdminEmailSubject": "Transition: compte confirmé",
     "confirmedByAdminEmailText": "Bonjour {{name}},\n\nVotre accès à transition a été confirmé. Vous pouvez maintenant utiliser votre compte.",
     "resetPasswordEmailSubject": "Mot de passe oublié",
