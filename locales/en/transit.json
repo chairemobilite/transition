@@ -507,7 +507,7 @@
         "OdTripsRouting": "OD demand load calculation",
         "AccessibilityMap": "Accessibility map",
         "AccessibilityMapDuration": "Total duration (minutes)",
-        "AccessibilityMapNumberOfPolygons": "NUmber of polygons to calculate",
+        "AccessibilityMapNumberOfPolygons": "Number of polygons to calculate",
         "AccessibilityMapDelta": "Delta (minutes)",
         "AccessibilityMapDeltaInterval": "Delat interval (minutes)",
         "AccessibilityMapExampleDurationAndNumberOfPolygons": "A total duration of 60 minutes with a number of polygons of 3 implies that we will obtain three polygons: accessibility at 20 minutes, 40 minutes and 60 minutes.",
