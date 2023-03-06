@@ -1,6 +1,9 @@
 -- Copyright 2017-2019 Railnova SA <support@railnova.eu>, Nikita Marchant <nikita.marchant@gmail.com>
 -- Code under the 2-clause BSD license
 
+-- from https://github.com/railnova/osrm-train-profile
+-- only the max speed has been modified for Transition
+
 api_version = 4
 
 function setup()
