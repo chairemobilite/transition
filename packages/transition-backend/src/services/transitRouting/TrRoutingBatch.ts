@@ -46,18 +46,24 @@ const GEOMETRY_FILE_NAME = 'batchRoutingGeometryResults.geojson';
  * various odTrip sources. Now it handles result stream creation, reading the
  * odTrips from csv and write and notification to caller.
  *
- * @param parameters
- * @param transitRoutingAttributes
- * @param progressEmitter
+ * @param parameters The parameters for the batch calculation task
+ * @param transitRoutingAttributes The transit routing parameters, for
+ * individual calculation
+ * @param options Options for this calculation: the absoluteBaseDirectory is the
+ * directory where the source files are and where the output files should be
+ * saved. The progress emitters allows to emit progress data to clients. The
+ * isCancelled function is periodically called to see if the task is cancelled.
  * @returns
  */
 export const batchRoute = async (
     demandParameters: TransitBatchRoutingDemandAttributes,
     transitRoutingAttributes: BatchCalculationParameters,
-    absoluteBaseDirectory: string,
-    inputFileName: string,
-    progressEmitter: EventEmitter,
-    isCancelled: () => boolean
+    options: {
+        absoluteBaseDirectory: string;
+        inputFileName: string;
+        progressEmitter: EventEmitter;
+        isCancelled: () => boolean;
+    }
 ): Promise<
     TransitBatchCalculationResult & {
         files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
@@ -66,26 +72,31 @@ export const batchRoute = async (
     console.log('TrRoutingService batchRoute Parameters', demandParameters);
     const parameters = demandParameters.configuration;
 
-    const files: { input: string; csv?: string; detailedCsv?: string; geojson?: string } = { input: inputFileName };
+    const files: { input: string; csv?: string; detailedCsv?: string; geojson?: string } = {
+        input: options.inputFileName
+    };
 
-    const resultsCsvFilePath = `${absoluteBaseDirectory}/${CSV_FILE_NAME}`;
-    const resultsCsvDetailedFilePath = `${absoluteBaseDirectory}/${DETAILED_CSV_FILE_NAME}`;
-    const resultsGeojsonGeometryFilePath = `${absoluteBaseDirectory}/${GEOMETRY_FILE_NAME}`;
+    const resultsCsvFilePath = `${options.absoluteBaseDirectory}/${CSV_FILE_NAME}`;
+    const resultsCsvDetailedFilePath = `${options.absoluteBaseDirectory}/${DETAILED_CSV_FILE_NAME}`;
+    const resultsGeojsonGeometryFilePath = `${options.absoluteBaseDirectory}/${GEOMETRY_FILE_NAME}`;
 
-    console.log(`importing od trips from CSV file ${inputFileName}`);
+    console.log(`importing od trips from CSV file ${options.inputFileName}`);
     console.log('reading data from csv file...');
 
     try {
-        const { odTrips, errors } = await parseOdTripsFromCsv(`${absoluteBaseDirectory}/${inputFileName}`, parameters);
+        const { odTrips, errors } = await parseOdTripsFromCsv(
+            `${options.absoluteBaseDirectory}/${options.inputFileName}`,
+            parameters
+        );
 
         const odTripsCount = odTrips.length;
         console.log(odTripsCount + ' OdTrips parsed');
-        progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
+        options.progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
 
         // Divide odTripCount by 3 for the minimum number of calculation, to avoid creating too many processes if trip count is small
         const trRoutingInstancesCount = Math.max(1, Math.min(Math.ceil(odTripsCount / 3), parameters.cpuCount));
 
-        progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 0.0 });
+        options.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 0.0 });
 
         // Because of cancellation, we need to make sure processes are stopped before restarting
         // TODO trRouting should be multi-threaded, this will be useless then.
@@ -95,9 +106,9 @@ export const batchRoute = async (
         const batchRoutingPromise = async () => {
             console.log('trRouting multiple startStatus', startStatus);
 
-            progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 1.0 });
+            options.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 1.0 });
 
-            progressEmitter.emit('progress', { name: 'BatchRouting', progress: 0.0 });
+            options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 0.0 });
             // Number of od pairs after which to report progress
             const progressStep = Math.ceil(odTrips.length / 100);
 
@@ -224,7 +235,7 @@ export const batchRoute = async (
                 } finally {
                     completedRoutingsCount++;
                     if (completedRoutingsCount % progressStep === 0) {
-                        progressEmitter.emit('progress', {
+                        options.progressEmitter.emit('progress', {
                             name: 'BatchRouting',
                             progress: completedRoutingsCount / odTripsCount
                         });
@@ -239,7 +250,7 @@ export const batchRoute = async (
             for (let odTripIndex = 0; odTripIndex < odTripsCount; odTripIndex++) {
                 promiseQueue.add(async () => {
                     // Assert the job is not cancelled, otherwise clear the queue and let the job exit
-                    if (isCancelled()) {
+                    if (options.isCancelled()) {
                         promiseQueue.clear();
                     }
                     await odTripTask({
@@ -265,12 +276,12 @@ export const batchRoute = async (
                 files.geojson = GEOMETRY_FILE_NAME;
             }
 
-            progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
-            progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
+            options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
+            options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
 
             const stopStatus = await TrRoutingProcessManager.stopMultiple(trRoutingInstancesCount);
 
-            progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 1.0 });
+            options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 1.0 });
             console.log('trRouting multiple stopStatus', stopStatus);
 
             return {
