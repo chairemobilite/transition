@@ -74,10 +74,12 @@ const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>) => {
     const { files, ...result } = await batchRoute(
         task.attributes.data.parameters.demandAttributes,
         task.attributes.data.parameters.transitRoutingAttributes,
-        absoluteUserDir,
-        inputFileName,
-        newProgressEmitter(),
-        getTaskCancelledFct(task)
+        {
+            absoluteBaseDirectory: absoluteUserDir,
+            inputFileName,
+            progressEmitter: newProgressEmitter(),
+            isCancelled: getTaskCancelledFct(task)
+        }
     );
     task.attributes.data.results = result;
     task.attributes.resources = { files };
