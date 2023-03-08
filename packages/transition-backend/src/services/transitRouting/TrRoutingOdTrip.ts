@@ -15,11 +15,6 @@ import {
     ResultsByMode
 } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
-import {
-    steps as allCsvDetailedAttributes,
-    base as baseAttributes,
-    transit as transitAttributes
-} from '../../config/trRoutingAttributes';
 import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
@@ -28,6 +23,7 @@ import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { ErrorCodes, TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 import { routeToUserObject } from 'chaire-lib-common/lib/services/trRouting/TrRoutingResultConversion';
+import { getDefaultCsvAttributes, getDefaultStepsAttributes } from './ResultAttributes';
 // TODO Should this file go in the backend?
 
 interface RouteOdTripParameters {
@@ -83,6 +79,9 @@ const routeOdTrip = async function (
 
     const uuid = odTrip.getId();
     const internalId = odTrip.attributes.internal_id || '';
+    const csvResultAttributes = getDefaultCsvAttributes(parameters.routing.attributes.routingModes || []);
+    csvResultAttributes.uuid = uuid;
+    csvResultAttributes.internalId = internalId;
 
     try {
         const results: ResultsByMode = await TransitRoutingCalculator.calculate(
@@ -101,7 +100,7 @@ const routeOdTrip = async function (
             );
         }
 
-        const { csv, csvDetailed } = generateCsvContent(results, {
+        const { csv, csvDetailed } = generateCsvContent(results, csvResultAttributes, {
             uuid,
             internalId,
             origin,
@@ -118,7 +117,7 @@ const routeOdTrip = async function (
         };
     } catch (error) {
         return {
-            csv: parameters.exportCsv ? [generateCsvErrorRow(error, { uuid, internalId })] : undefined,
+            csv: parameters.exportCsv ? [generateCsvErrorRow(error, csvResultAttributes)] : undefined,
             csvDetailed: parameters.exportCsvDetailed ? [] : undefined,
             geometries: parameters.withGeometries ? [] : undefined,
             result: undefined
@@ -128,6 +127,7 @@ const routeOdTrip = async function (
 
 const generateCsvContent = (
     results: ResultsByMode,
+    csvAttributes: { [key: string]: string | number | null },
     options: {
         uuid: string;
         internalId: string;
@@ -144,13 +144,10 @@ const generateCsvContent = (
         };
     }
 
-    const csvAttributes = _cloneDeep(baseAttributes);
     csvAttributes.originLat = options.origin.coordinates[1];
     csvAttributes.originLon = options.origin.coordinates[0];
     csvAttributes.destinationLat = options.destination.coordinates[1];
     csvAttributes.destinationLon = options.destination.coordinates[0];
-    csvAttributes.uuid = options.uuid;
-    csvAttributes.internalId = options.internalId;
 
     const transitResult = results.transit;
     if (transitResult !== undefined) {
@@ -231,11 +228,7 @@ const generateCsvWithTransit = (
         const stepsDetailSummary = getStepSummaries(alternative);
         const userResult = routeToUserObject(alternative);
         const { origin, destination, ...rest } = userResult;
-        const csvAttributes = Object.assign(
-            _cloneDeep(preFilledCsvAttributes),
-            _cloneDeep(transitAttributes),
-            stepsDetailSummary
-        );
+        const csvAttributes = Object.assign(_cloneDeep(preFilledCsvAttributes), stepsDetailSummary);
         // replace origin and destination coordinates arrays by separate lat/lon values:
         // TODO csvAttributes will need to be typed
         csvAttributes.originLat = origin[1];
@@ -268,7 +261,7 @@ const generateCsvWithTransit = (
                             {
                             step.inVehicleDistanceMeters = null;
                             } */
-                    const csvDetailedAttributes = _cloneDeep(allCsvDetailedAttributes);
+                    const csvDetailedAttributes = getDefaultStepsAttributes();
                     csvDetailedAttributes.uuid = preFilledCsvAttributes.uuid;
                     csvDetailedAttributes.internalId = preFilledCsvAttributes.internalId;
                     csvDetailedAttributes.alternativeSequence = alternativeSequence;
@@ -299,7 +292,6 @@ const generateCsvErrorRow = (
     csvAttributes: { [key: string]: string | number | null },
     results?: ResultsByMode
 ): string => {
-    Object.assign(csvAttributes, _cloneDeep(transitAttributes));
     csvAttributes.status = TrError.isTrError(error) ? error.getCode() : 'error';
 
     if (TrError.isTrError(error) && error.getCode() === ErrorCodes.OtherError) {
