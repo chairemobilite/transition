@@ -11,7 +11,7 @@ import { EventEmitter } from 'events';
 
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import routeOdTrip from './TrRoutingOdTrip';
-import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
@@ -23,18 +23,12 @@ import {
 import odPairsDbQueries from '../../models/db/odPairs.db.queries';
 import pathDbQueries from '../../models/db/transitPaths.db.queries';
 import { getDataSource } from '../dataSources/dataSources';
-import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { BatchRoutingResultProcessor, createRoutingFileResultProcessor } from './TrRoutingBatchResult';
+import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 
 /**
  * Do batch calculation on a csv file input
- *
- * TODO: This was naively copy/pasted from the legacy TrRoutingService class.
- * This function should be split into smaller chunks, with their own
- * responsibility, so this method can have more flexibility and be called with
- * various odTrip sources. Now it handles result stream creation, reading the
- * odTrips from csv and write and notification to caller.
  *
  * @param parameters The parameters for the batch calculation task
  * @param transitRoutingAttributes The transit routing parameters, for
@@ -59,49 +53,55 @@ export const batchRoute = async (
         files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
     }
 > => {
-    console.log('TrRoutingService batchRoute Parameters', demandParameters);
-    const parameters = demandParameters.configuration;
+    return new TrRoutingBatch(demandParameters.configuration, transitRoutingAttributes, options).run();
+};
 
-    console.log(`importing od trips from CSV file ${options.inputFileName}`);
-    console.log('reading data from csv file...');
-    let files: { input: string; csv?: string; detailedCsv?: string; geojson?: string } = {
-        input: options.inputFileName
-    };
+class TrRoutingBatch {
+    private odTrips: BaseOdTrip[] = [];
+    private errors: ErrorMessage[] = [];
+    private pathCollection: PathCollection | undefined = undefined;
+    private resultHandler: BatchRoutingResultProcessor | undefined = undefined;
 
-    try {
-        const { odTrips, errors } = await parseOdTripsFromCsv(
-            `${options.absoluteBaseDirectory}/${options.inputFileName}`,
-            parameters
-        );
+    constructor(
+        private demandParameters: TransitBatchRoutingDemandFromCsvAttributes,
+        private transitRoutingAttributes: BatchCalculationParameters,
+        private options: {
+            absoluteBaseDirectory: string;
+            inputFileName: string;
+            progressEmitter: EventEmitter;
+            isCancelled: () => boolean;
+        }
+    ) {
+        // Nothing else to do
+    }
 
-        const odTripsCount = odTrips.length;
-        console.log(odTripsCount + ' OdTrips parsed');
-        options.progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
+    run = async (): Promise<
+        TransitBatchCalculationResult & {
+            files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
+        }
+    > => {
+        console.log('TrRoutingService batchRoute Parameters', this.demandParameters);
+        const parameters = this.demandParameters;
 
-        // Divide odTripCount by 3 for the minimum number of calculation, to avoid creating too many processes if trip count is small
-        const trRoutingInstancesCount = Math.max(1, Math.min(Math.ceil(odTripsCount / 3), parameters.cpuCount));
+        try {
+            // Get the odTrips to calculate
+            const odTripData = await this.getOdTrips();
+            this.odTrips = odTripData.odTrips;
+            this.errors = odTripData.errors;
 
-        options.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 0.0 });
+            const odTripsCount = this.odTrips.length;
+            console.log(odTripsCount + ' OdTrips parsed');
+            this.options.progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
 
-        // Because of cancellation, we need to make sure processes are stopped before restarting
-        // TODO trRouting should be multi-threaded, this will be useless then.
-        await TrRoutingProcessManager.stopMultiple(trRoutingInstancesCount);
-        const startStatus = await TrRoutingProcessManager.startMultiple(trRoutingInstancesCount);
+            // Start the trRouting instances for the odTrips
+            const trRoutingInstancesCount = await this.startTrRoutingInstances(odTripsCount);
 
-        const batchRoutingPromise = async () => {
-            console.log('trRouting multiple startStatus', startStatus);
-
-            options.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 1.0 });
-
-            options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 0.0 });
+            this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 0.0 });
             // Number of od pairs after which to report progress
-            const progressStep = Math.ceil(odTrips.length / 100);
+            const progressStep = Math.ceil(this.odTrips.length / 100);
 
-            const routingObject = new TransitRouting(transitRoutingAttributes);
-            const { resultHandler, pathCollection } = await prepareResultData(parameters, routingObject, options);
-            files = resultHandler.getFiles();
-
-            //let completedOdTripsCount = 0;
+            const routingObject = new TransitRouting(this.transitRoutingAttributes);
+            await this.prepareResultData(routingObject);
 
             const poolOfTrRoutingPorts = _cloneDeep(
                 Object.keys(TrRoutingProcessManager.getAvailablePortsByStartingPort())
@@ -113,131 +113,212 @@ export const batchRoute = async (
 
             // Log progress at most for each 1% progress
             const logInterval = Math.ceil(odTripsCount / 100);
-            const odTripTask = async ({ odTrip, odTripIndex }: { odTrip: BaseOdTrip; odTripIndex: number }) => {
-                const trRoutingPort = poolOfTrRoutingPorts.pop();
-                try {
-                    if (trRoutingPort === undefined) {
-                        throw 'TrRoutingBatch: No available routing port. This should not happen';
-                    }
-                    if ((odTripIndex + 1) % logInterval === 0) {
-                        console.log(`Routing odTrip ${odTripIndex + 1}/${odTripsCount}`);
-                    }
-
-                    const routingResult = await routeOdTrip(odTrip, {
-                        trRoutingPort,
-                        odTripIndex: odTripIndex,
-                        odTripsCount,
-                        routing: routingObject,
-                        exportCsv: true,
-                        exportCsvDetailed: parameters.detailed !== false ? true : false,
-                        withGeometries: parameters.withGeometries === true ? true : false,
-                        reverseOD: false,
-                        pathCollection
-                    });
-                    if (benchmarkStart >= 0 && odTripIndex > 0 && odTripIndex % 100 === 0) {
-                        console.log(
-                            'calc/sec',
-                            Math.round(
-                                (100 * completedRoutingsCount) / ((1 / 1000) * (performance.now() - benchmarkStart))
-                            ) / 100
-                        );
-                    }
-                    resultHandler.processResult(routingResult);
-
-                    return routingResult;
-                } catch (error) {
-                    errors.push({
-                        text: 'transit:transitRouting:errors:ErrorCalculatingOdTrip',
-                        params: { id: odTrip.attributes.internal_id || String(odTripIndex) }
-                    });
-                    console.error(`Error getting od trip result ${error}`);
-                } finally {
-                    completedRoutingsCount++;
-                    if (completedRoutingsCount % progressStep === 0) {
-                        options.progressEmitter.emit('progress', {
-                            name: 'BatchRouting',
-                            progress: completedRoutingsCount / odTripsCount
-                        });
-                    }
-                    if (trRoutingPort !== undefined) {
-                        poolOfTrRoutingPorts.push(trRoutingPort);
-                    }
+            const benchmarkStart = performance.now();
+            const logOdTripBefore = (index: number) => {
+                if ((index + 1) % logInterval === 0) {
+                    console.log(`Routing odTrip ${index + 1}/${odTripsCount}`);
                 }
             };
-
-            const benchmarkStart = performance.now();
+            const logOdTripAfter = (index: number) => {
+                if (benchmarkStart >= 0 && index > 0 && index % 100 === 0) {
+                    console.log(
+                        'calc/sec',
+                        Math.round(
+                            (100 * completedRoutingsCount) / ((1 / 1000) * (performance.now() - benchmarkStart))
+                        ) / 100
+                    );
+                }
+            };
             for (let odTripIndex = 0; odTripIndex < odTripsCount; odTripIndex++) {
                 promiseQueue.add(async () => {
                     // Assert the job is not cancelled, otherwise clear the queue and let the job exit
-                    if (options.isCancelled()) {
+                    if (this.options.isCancelled()) {
                         promiseQueue.clear();
                     }
-                    await odTripTask({
-                        odTripIndex,
-                        odTrip: odTrips[odTripIndex]
-                    });
+                    const trRoutingPort = poolOfTrRoutingPorts.pop() as number;
+                    try {
+                        await this.odTripTask(odTripIndex, routingObject, {
+                            trRoutingPort,
+                            logBefore: logOdTripBefore,
+                            logAfter: logOdTripAfter
+                        });
+                    } finally {
+                        completedRoutingsCount++;
+                        if (completedRoutingsCount % progressStep === 0) {
+                            this.options.progressEmitter.emit('progress', {
+                                name: 'BatchRouting',
+                                progress: completedRoutingsCount / odTripsCount
+                            });
+                        }
+                        if (trRoutingPort !== undefined) {
+                            poolOfTrRoutingPorts.push(trRoutingPort);
+                        }
+                    }
                 });
             }
 
             await promiseQueue.onIdle();
+            this.resultHandler?.end();
 
-            resultHandler.end();
-
-            options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
-            options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
+            this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
+            this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
 
             const stopStatus = await TrRoutingProcessManager.stopMultiple(trRoutingInstancesCount);
 
-            options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 1.0 });
+            this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 1.0 });
             console.log('trRouting multiple stopStatus', stopStatus);
 
-            return {
+            const routingResult = {
                 calculationName: parameters.calculationName,
                 detailed: parameters.detailed,
                 completed: true,
                 errors: [],
-                warnings: errors,
-                files: resultHandler.getFiles()
+                warnings: this.errors,
+                files: this.resultHandler?.getFiles() || { input: this.options.inputFileName }
             };
-        };
 
-        const routingResult = await batchRoutingPromise();
-
-        if (parameters.saveToDb !== false) {
-            console.log('Saving OD pairs to database...');
-            try {
-                await saveOdPairs(odTrips, parameters.saveToDb);
-            } catch (error) {
-                console.error(
-                    `Error saving od pairs to database: ${
-                        TrError.isTrError(error) ? JSON.stringify(error.export()) : JSON.stringify(error)
-                    }`
-                );
-                const localizedMessage = TrError.isTrError(error) ? error.export().localizedMessage : '';
-                routingResult.warnings.push(
-                    localizedMessage !== '' ? localizedMessage : 'transit:transitRouting:errors:ErrorSavingOdTripsToDb'
-                );
+            // FIXME Saving to DB should be done in a separate workflow. See #583
+            if (parameters.saveToDb !== false) {
+                console.log('Saving OD pairs to database...');
+                try {
+                    await saveOdPairs(this.odTrips, parameters.saveToDb);
+                } catch (error) {
+                    console.error(
+                        `Error saving od pairs to database: ${
+                            TrError.isTrError(error) ? JSON.stringify(error.export()) : JSON.stringify(error)
+                        }`
+                    );
+                    const localizedMessage = TrError.isTrError(error) ? error.export().localizedMessage : '';
+                    routingResult.warnings.push(
+                        localizedMessage !== ''
+                            ? localizedMessage
+                            : 'transit:transitRouting:errors:ErrorSavingOdTripsToDb'
+                    );
+                }
+                console.log('Saved OD pairs to database...');
             }
-            console.log('Saved OD pairs to database...');
-        }
 
-        return routingResult;
-    } catch (error) {
-        if (Array.isArray(error)) {
-            return {
-                calculationName: parameters.calculationName,
-                detailed: false,
-                completed: false,
-                errors: error,
-                warnings: [],
-                files
-            };
-        } else {
-            console.error(`Error in batch routing calculation: ${error}`);
-            throw error;
+            return routingResult;
+        } catch (error) {
+            if (Array.isArray(error)) {
+                return {
+                    calculationName: parameters.calculationName,
+                    detailed: false,
+                    completed: false,
+                    errors: error,
+                    warnings: [],
+                    files:
+                        this.resultHandler !== undefined
+                            ? this.resultHandler.getFiles()
+                            : { input: this.options.inputFileName }
+                };
+            } else {
+                console.error(`Error in batch routing calculation: ${error}`);
+                throw error;
+            }
         }
-    }
-};
+    };
+
+    private prepareResultData = async (routing: TransitRouting): Promise<void> => {
+        this.resultHandler = createRoutingFileResultProcessor(
+            this.options.absoluteBaseDirectory,
+            this.demandParameters,
+            routing,
+            this.options.inputFileName
+        );
+
+        if (this.demandParameters.withGeometries) {
+            const pathCollection = new PathCollection([], {});
+            if (routing.attributes.scenarioId) {
+                const pathGeojson = await pathDbQueries.geojsonCollection({
+                    scenarioId: routing.attributes.scenarioId
+                });
+                pathCollection.loadFromCollection(pathGeojson.features);
+            }
+            this.pathCollection = pathCollection;
+        }
+    };
+
+    private getOdTrips = async (): Promise<{
+        odTrips: BaseOdTrip[];
+        errors: ErrorMessage[];
+    }> => {
+        console.log(`importing od trips from CSV file ${this.options.inputFileName}`);
+        console.log('reading data from csv file...');
+
+        const { odTrips, errors } = await parseOdTripsFromCsv(
+            `${this.options.absoluteBaseDirectory}/${this.options.inputFileName}`,
+            this.demandParameters
+        );
+
+        const odTripsCount = odTrips.length;
+        console.log(odTripsCount + ' OdTrips parsed');
+        this.options.progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
+        return { odTrips, errors };
+    };
+
+    private startTrRoutingInstances = async (odTripsCount: number): Promise<number> => {
+        // Divide odTripCount by 3 for the minimum number of calculation, to avoid creating too many processes if trip count is small
+        const trRoutingInstancesCount = Math.max(
+            1,
+            Math.min(Math.ceil(odTripsCount / 3), this.demandParameters.cpuCount)
+        );
+
+        try {
+            this.options.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 0.0 });
+
+            // Because of cancellation, we need to make sure processes are stopped before restarting
+            // TODO trRouting should be multi-threaded, this will be useless then.
+            await TrRoutingProcessManager.stopMultiple(trRoutingInstancesCount);
+            const startStatus = await TrRoutingProcessManager.startMultiple(trRoutingInstancesCount);
+
+            console.log('trRouting multiple startStatus', startStatus);
+        } finally {
+            this.options.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 1.0 });
+        }
+        return trRoutingInstancesCount;
+    };
+
+    private odTripTask = async (
+        odTripIndex: number,
+        routingObject: TransitRouting,
+        options: {
+            trRoutingPort?: number;
+            logBefore: (index: number) => void;
+            logAfter: (index: number) => void;
+        }
+    ) => {
+        const odTrip = this.odTrips[odTripIndex];
+        try {
+            if (options.trRoutingPort === undefined) {
+                throw 'TrRoutingBatch: No available routing port. This should not happen';
+            }
+            options.logBefore(odTripIndex);
+
+            const routingResult = await routeOdTrip(odTrip, {
+                trRoutingPort: options.trRoutingPort,
+                odTripIndex: odTripIndex,
+                odTripsCount: this.odTrips.length,
+                routing: routingObject,
+                exportCsv: true,
+                exportCsvDetailed: this.demandParameters.detailed !== false ? true : false,
+                withGeometries: this.demandParameters.withGeometries === true ? true : false,
+                reverseOD: false,
+                pathCollection: this.pathCollection
+            });
+            options.logAfter(odTripIndex);
+            this.resultHandler?.processResult(routingResult);
+
+            return routingResult;
+        } catch (error) {
+            this.errors.push({
+                text: 'transit:transitRouting:errors:ErrorCalculatingOdTrip',
+                params: { id: odTrip.attributes.internal_id || String(odTripIndex) }
+            });
+            console.error(`Error getting od trip result ${error}`);
+        }
+    };
+}
 
 export const saveOdPairs = async (
     odTrips: BaseOdTrip[],
@@ -254,38 +335,4 @@ export const saveOdPairs = async (
             return odTrip.attributes;
         })
     );
-};
-
-const prepareResultData = async (
-    parameters: TransitBatchRoutingDemandFromCsvAttributes,
-    routing: TransitRouting,
-    options: {
-        absoluteBaseDirectory: string;
-        inputFileName: string;
-        progressEmitter: EventEmitter;
-        isCancelled: () => boolean;
-    }
-): Promise<{
-    resultHandler: BatchRoutingResultProcessor;
-    pathCollection?: PathCollection;
-}> => {
-    const resultHandler = createRoutingFileResultProcessor(
-        options.absoluteBaseDirectory,
-        parameters,
-        routing,
-        options.inputFileName
-    );
-
-    let pathCollection: PathCollection | undefined = undefined;
-    if (parameters.withGeometries) {
-        pathCollection = new PathCollection([], {});
-        if (routing.attributes.scenarioId) {
-            const pathGeojson = await pathDbQueries.geojsonCollection({
-                scenarioId: routing.attributes.scenarioId
-            });
-            pathCollection.loadFromCollection(pathGeojson.features);
-        }
-    }
-
-    return { resultHandler, pathCollection };
 };
