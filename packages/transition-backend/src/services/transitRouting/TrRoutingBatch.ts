@@ -13,14 +13,8 @@ import { EventEmitter } from 'events';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import routeOdTrip from './TrRoutingOdTrip';
-import {
-    steps as stepsAttributes,
-    base as baseAttributes,
-    transit as transitAttributes
-} from '../../config/trRoutingAttributes';
-import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
+import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
-import { routingModes } from 'chaire-lib-common/lib/config/routingModes';
 import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import {
@@ -32,6 +26,7 @@ import pathDbQueries from '../../models/db/transitPaths.db.queries';
 import { getDataSource } from '../dataSources/dataSources';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import { getDefaultCsvAttributes, getDefaultStepsAttributes } from './ResultAttributes';
 
 const CSV_FILE_NAME = 'batchRoutingResults.csv';
 const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';
@@ -119,26 +114,14 @@ export const batchRoute = async (
             let geometryFileHasData = false;
             const routingObject = new TransitRouting(transitRoutingAttributes);
 
-            const csvAttributes = _cloneDeep(baseAttributes);
-            if (routingObject.attributes.routingModes?.includes('transit')) {
-                Object.assign(csvAttributes, _cloneDeep(transitAttributes));
-            }
-            // Add a time and distance column per non-transit mode
-            routingObject.attributes.routingModes?.forEach((mode: any) => {
-                if (routingModes.includes(mode)) {
-                    csvAttributes[`only${mode.charAt(0).toUpperCase() + mode.slice(1)}TravelTimeSeconds`] = null;
-                    csvAttributes[`only${mode.charAt(0).toUpperCase() + mode.slice(1)}DistanceMeters`] = null;
-                }
-            });
             // Make sure if routing is there, that walking is there too
             // TODO This is very custom, can we do something else for this?
-            if (
-                routingObject.attributes.routingModes?.includes('transit') &&
-                !routingObject.attributes.routingModes?.includes('walking')
-            ) {
-                csvAttributes['onlyWalkingTravelTimeSeconds'] = null;
-                csvAttributes['onlyWalkingDistanceMeters'] = null;
+            const requestedModes = routingObject.attributes.routingModes || [];
+            if (requestedModes.includes('transit') && !requestedModes.includes('walking')) {
+                requestedModes.push('walking');
+                routingObject.attributes.routingModes = requestedModes;
             }
+            const csvAttributes = getDefaultCsvAttributes(requestedModes);
 
             fileManager.writeFileAbsolute(resultsCsvFilePath, '');
             csvStream = fs.createWriteStream(resultsCsvFilePath);
@@ -148,7 +131,7 @@ export const batchRoute = async (
                 fileManager.writeFileAbsolute(resultsCsvDetailedFilePath, '');
                 csvDetailedStream = fs.createWriteStream(resultsCsvDetailedFilePath);
                 csvDetailedStream.on('error', console.error);
-                csvDetailedStream.write(Object.keys(stepsAttributes).join(',') + '\n');
+                csvDetailedStream.write(Object.keys(getDefaultStepsAttributes()).join(',') + '\n');
             }
             if (parameters.withGeometries) {
                 pathCollection = new PathCollection([], {});
