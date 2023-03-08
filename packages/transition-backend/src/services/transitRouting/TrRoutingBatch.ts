@@ -4,13 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import fs from 'fs';
 import _cloneDeep from 'lodash.clonedeep';
 import { performance } from 'perf_hooks';
 import pQueue from 'p-queue';
 import { EventEmitter } from 'events';
 
-import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import routeOdTrip from './TrRoutingOdTrip';
 import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
@@ -19,18 +17,15 @@ import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import {
     TransitBatchCalculationResult,
-    TransitBatchRoutingDemandAttributes
+    TransitBatchRoutingDemandAttributes,
+    TransitBatchRoutingDemandFromCsvAttributes
 } from 'chaire-lib-common/lib/api/TrRouting';
 import odPairsDbQueries from '../../models/db/odPairs.db.queries';
 import pathDbQueries from '../../models/db/transitPaths.db.queries';
 import { getDataSource } from '../dataSources/dataSources';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import { getDefaultCsvAttributes, getDefaultStepsAttributes } from './ResultAttributes';
-
-const CSV_FILE_NAME = 'batchRoutingResults.csv';
-const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';
-const GEOMETRY_FILE_NAME = 'batchRoutingGeometryResults.geojson';
+import { BatchRoutingResultProcessor, createRoutingFileResultProcessor } from './TrRoutingBatchResult';
 
 /**
  * Do batch calculation on a csv file input
@@ -67,16 +62,11 @@ export const batchRoute = async (
     console.log('TrRoutingService batchRoute Parameters', demandParameters);
     const parameters = demandParameters.configuration;
 
-    const files: { input: string; csv?: string; detailedCsv?: string; geojson?: string } = {
-        input: options.inputFileName
-    };
-
-    const resultsCsvFilePath = `${options.absoluteBaseDirectory}/${CSV_FILE_NAME}`;
-    const resultsCsvDetailedFilePath = `${options.absoluteBaseDirectory}/${DETAILED_CSV_FILE_NAME}`;
-    const resultsGeojsonGeometryFilePath = `${options.absoluteBaseDirectory}/${GEOMETRY_FILE_NAME}`;
-
     console.log(`importing od trips from CSV file ${options.inputFileName}`);
     console.log('reading data from csv file...');
+    let files: { input: string; csv?: string; detailedCsv?: string; geojson?: string } = {
+        input: options.inputFileName
+    };
 
     try {
         const { odTrips, errors } = await parseOdTripsFromCsv(
@@ -107,45 +97,9 @@ export const batchRoute = async (
             // Number of od pairs after which to report progress
             const progressStep = Math.ceil(odTrips.length / 100);
 
-            let csvStream: fs.WriteStream | undefined = undefined;
-            let csvDetailedStream: fs.WriteStream | undefined = undefined;
-            let geometryStream: fs.WriteStream | undefined = undefined;
-            let pathCollection: PathCollection | undefined = undefined;
-            let geometryFileHasData = false;
             const routingObject = new TransitRouting(transitRoutingAttributes);
-
-            // Make sure if routing is there, that walking is there too
-            // TODO This is very custom, can we do something else for this?
-            const requestedModes = routingObject.attributes.routingModes || [];
-            if (requestedModes.includes('transit') && !requestedModes.includes('walking')) {
-                requestedModes.push('walking');
-                routingObject.attributes.routingModes = requestedModes;
-            }
-            const csvAttributes = getDefaultCsvAttributes(requestedModes);
-
-            fileManager.writeFileAbsolute(resultsCsvFilePath, '');
-            csvStream = fs.createWriteStream(resultsCsvFilePath);
-            csvStream.on('error', console.error);
-            csvStream.write(Object.keys(csvAttributes).join(',') + '\n');
-            if (parameters.detailed) {
-                fileManager.writeFileAbsolute(resultsCsvDetailedFilePath, '');
-                csvDetailedStream = fs.createWriteStream(resultsCsvDetailedFilePath);
-                csvDetailedStream.on('error', console.error);
-                csvDetailedStream.write(Object.keys(getDefaultStepsAttributes()).join(',') + '\n');
-            }
-            if (parameters.withGeometries) {
-                pathCollection = new PathCollection([], {});
-                if (routingObject.attributes.scenarioId) {
-                    const pathGeojson = await pathDbQueries.geojsonCollection({
-                        scenarioId: routingObject.attributes.scenarioId
-                    });
-                    pathCollection.loadFromCollection(pathGeojson.features);
-                }
-                fileManager.writeFileAbsolute(resultsGeojsonGeometryFilePath, '');
-                geometryStream = fs.createWriteStream(resultsGeojsonGeometryFilePath);
-                geometryStream.on('error', console.error);
-                geometryStream.write('{ "type": "FeatureCollection", "features": [');
-            }
+            const { resultHandler, pathCollection } = await prepareResultData(parameters, routingObject, options);
+            files = resultHandler.getFiles();
 
             //let completedOdTripsCount = 0;
 
@@ -188,25 +142,7 @@ export const batchRoute = async (
                             ) / 100
                         );
                     }
-                    if (geometryStream && routingResult.geometries && routingResult.geometries.length > 0) {
-                        // Write the geometry in the stream
-                        geometryStream.write(
-                            (geometryFileHasData ? ',\n' : '') +
-                                routingResult.geometries.map((geometry) => JSON.stringify(geometry)).join(',\n')
-                        );
-                        geometryFileHasData = true;
-                    }
-                    if (csvStream && routingResult.csv && routingResult.csv.length > 0) {
-                        csvStream.write(routingResult.csv.join('\n') + '\n');
-                    }
-                    if (
-                        csvDetailedStream &&
-                        parameters.detailed &&
-                        routingResult.csvDetailed &&
-                        routingResult.csvDetailed.length > 0
-                    ) {
-                        csvDetailedStream.write(routingResult.csvDetailed.join('\n') + '\n');
-                    }
+                    resultHandler.processResult(routingResult);
 
                     return routingResult;
                 } catch (error) {
@@ -245,19 +181,7 @@ export const batchRoute = async (
 
             await promiseQueue.onIdle();
 
-            if (csvStream) {
-                csvStream.end();
-                files.csv = CSV_FILE_NAME;
-            }
-            if (csvDetailedStream) {
-                csvDetailedStream.end();
-                files.detailedCsv = DETAILED_CSV_FILE_NAME;
-            }
-            if (geometryStream) {
-                geometryStream.write(']}');
-                geometryStream.end();
-                files.geojson = GEOMETRY_FILE_NAME;
-            }
+            resultHandler.end();
 
             options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
             options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
@@ -273,7 +197,7 @@ export const batchRoute = async (
                 completed: true,
                 errors: [],
                 warnings: errors,
-                files
+                files: resultHandler.getFiles()
             };
         };
 
@@ -330,4 +254,38 @@ export const saveOdPairs = async (
             return odTrip.attributes;
         })
     );
+};
+
+const prepareResultData = async (
+    parameters: TransitBatchRoutingDemandFromCsvAttributes,
+    routing: TransitRouting,
+    options: {
+        absoluteBaseDirectory: string;
+        inputFileName: string;
+        progressEmitter: EventEmitter;
+        isCancelled: () => boolean;
+    }
+): Promise<{
+    resultHandler: BatchRoutingResultProcessor;
+    pathCollection?: PathCollection;
+}> => {
+    const resultHandler = createRoutingFileResultProcessor(
+        options.absoluteBaseDirectory,
+        parameters,
+        routing,
+        options.inputFileName
+    );
+
+    let pathCollection: PathCollection | undefined = undefined;
+    if (parameters.withGeometries) {
+        pathCollection = new PathCollection([], {});
+        if (routing.attributes.scenarioId) {
+            const pathGeojson = await pathDbQueries.geojsonCollection({
+                scenarioId: routing.attributes.scenarioId
+            });
+            pathCollection.loadFromCollection(pathGeojson.features);
+        }
+    }
+
+    return { resultHandler, pathCollection };
 };
