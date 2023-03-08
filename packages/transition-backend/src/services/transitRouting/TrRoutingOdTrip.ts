@@ -24,6 +24,7 @@ import { ErrorCodes, TrRoutingRoute } from 'chaire-lib-common/lib/services/trRou
 import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 import { routeToUserObject } from 'chaire-lib-common/lib/services/trRouting/TrRoutingResultConversion';
 import { getDefaultCsvAttributes, getDefaultStepsAttributes } from './ResultAttributes';
+import { OdTripRouteOutput } from './types';
 // TODO Should this file go in the backend?
 
 interface RouteOdTripParameters {
@@ -45,10 +46,7 @@ interface RouteOdTripParameters {
     pathCollection?: PathCollection;
 }
 
-const routeOdTrip = async function (
-    odTrip: BaseOdTrip,
-    parameters: RouteOdTripParameters
-): Promise<{ csv?: string[]; csvDetailed?: string[]; geometries?: GeoJSON.Feature[]; result?: TransitRoutingResult }> {
+const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripParameters): Promise<OdTripRouteOutput> {
     const routingAttributes: TransitRoutingAttributes = Object.assign({}, parameters.routing.getAttributes());
     // TODO Manage routing port in a better way
     (routingAttributes as any).routingPort = parameters.trRoutingPort;
