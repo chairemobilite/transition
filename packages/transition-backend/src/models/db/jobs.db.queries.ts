@@ -152,15 +152,15 @@ const create = async (job: Omit<JobAttributes<JobDataType>, 'id'>): Promise<numb
 };
 
 /**
- * Update a job. Most properties should be immutable, only status, data and
- * resources can be updated
+ * Update a job. Most properties should be immutable, only status, data,
+ * internal_data and resources can be updated
  * @param id ID of the object to update
  * @param attributes The attributes to update
  * @returns The ID of the updated object
  */
 const update = async (
     id: number,
-    attributes: Partial<Pick<JobAttributes<JobDataType>, 'status' | 'data' | 'resources'>>
+    attributes: Partial<Pick<JobAttributes<JobDataType>, 'status' | 'data' | 'resources' | 'internal_data'>>
 ): Promise<number> => {
     try {
         const returningArray = await knex(tableName).update(attributes).where('id', id).returning('id');

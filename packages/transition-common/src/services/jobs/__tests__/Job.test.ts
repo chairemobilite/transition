@@ -25,6 +25,7 @@ const jobAttributes: JobAttributes<TestJobType> = {
     name: 'test' as const,
     user_id: 3,
     status: 'pending',
+    internal_data: {},
     data: { parameters: { foo: 'bar' } },
     resources: { files: { testFile: 'path/to/file' } }
 };

@@ -70,7 +70,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             inputFiles,
             hasOutputFiles,
             ...attributes
-        }: Omit<JobAttributes<TData>, 'id' | 'status'> & InitialJobData<TData>,
+        }: Omit<JobAttributes<TData>, 'id' | 'status' | 'internal_data'> & InitialJobData<TData>,
         jobListener?: EventEmitter
     ): Promise<ExecutableJob<TData>> {
         const jobProgressEmitter =
@@ -111,9 +111,9 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             attributes.resources = { ...(attributes.resources || {}), files: jobFiles };
         }
 
-        const id = await jobsDbQueries.create({ status: 'pending', ...attributes });
+        const id = await jobsDbQueries.create({ status: 'pending', internal_data: {}, ...attributes });
         jobProgressEmitter.emit('executableJob.updated', { id, name: attributes.name });
-        const job = new ExecutableJob<TData>({ id, status: 'pending', ...attributes });
+        const job = new ExecutableJob<TData>({ id, status: 'pending', internal_data: {}, ...attributes });
         toCopy.forEach(({ filePath, jobFileName }) =>
             fileManager.copyFileAbsolute(filePath, `${job.getJobFileDirectory()}/${jobFileName}`, true)
         );
@@ -213,8 +213,13 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
     async save(jobListener?: EventEmitter): Promise<number> {
         const jobProgressEmitter =
             jobListener !== undefined ? jobListener : clientEventManager.getUserEventEmitter(this.attributes.user_id);
-        const { resources, data } = this.attributes;
-        const updatedId = await jobsDbQueries.update(this.attributes.id, { status: this.status, resources, data });
+        const { resources, data, internal_data } = this.attributes;
+        const updatedId = await jobsDbQueries.update(this.attributes.id, {
+            status: this.status,
+            resources,
+            data,
+            internal_data
+        });
         jobProgressEmitter.emit('executableJob.updated', { id: updatedId, name: this.attributes.name });
         return updatedId;
     }

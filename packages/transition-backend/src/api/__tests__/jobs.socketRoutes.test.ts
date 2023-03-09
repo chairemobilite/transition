@@ -47,7 +47,7 @@ describe('Jobs list', () => {
     });
 
     test('List jobs properly', (done) => {
-        const jobs = [{id: 1, user_id: userId, name: 'test', status: 'pending' as const, data: {}}];
+        const jobs = [{id: 1, user_id: userId, name: 'test', status: 'pending' as const, internal_data: {}, data: {}}];
         mockedCollection.mockResolvedValueOnce({ jobs, totalCount: 1 });
         socketStub.emit('executableJobs.list', {}, async (status) => {
             expect(Status.isStatusOk(status)).toEqual(true);
@@ -89,6 +89,7 @@ describe('Job files', () => {
         name: 'test' as const,
         user_id: 3,
         status: 'completed',
+        internal_data: {},
         data: { parameters: { foo: 'bar' } },
         resources: { files: { testFile: 'file.csv', testFile2: 'noExtension', testFile3: 'doesNotExist.csv' } },
         created_at: '2022-08-08 13:21:34',

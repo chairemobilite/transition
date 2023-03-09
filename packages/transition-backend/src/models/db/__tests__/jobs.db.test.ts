@@ -45,17 +45,24 @@ const newObjectAttributes: Omit<JobAttributes<TestJobType>, 'id'> = {
     status: 'pending' as const,
     name: 'test' as const,
     user_id: userAttributes.id,
+    internal_data: {},
     data: data.data
 };
 
 const updatedAttributes = {
-    status: 'inProgress' as const
+    status: 'inProgress' as const,
+    internal_data: {
+        checkpoint: 34
+    }
 }
 
 const newObjectAttributes2: Omit<JobAttributes<TestJobType2>, 'id'> = {
     status: 'completed' as const,
     name: 'test2' as const,
     user_id: userAttributes.id,
+    internal_data: {
+        checkpoint: 0
+    },
     data: data.data,
     resources: { files: { myFile: '/path/to/file' } }
 };
@@ -119,7 +126,7 @@ describe(`${objectName}`, () => {
         const updatedObject = await dbQueries.read(currentIdForObject1 as number);
         for (const attribute in updatedAttributes)
         {
-            expect(updatedObject[attribute]).toBe(updatedAttributes[attribute]);
+            expect(updatedObject[attribute]).toEqual(updatedAttributes[attribute]);
         }
 
     });
@@ -162,7 +169,7 @@ describe(`${objectName}`, () => {
         expect(error).toBeDefined();
 
         // Update the object1 to its original value
-        await dbQueries.update(currentIdForObject1 as number, { status: newObjectAttributes.status });
+        await dbQueries.update(currentIdForObject1 as number, { status: newObjectAttributes.status, internal_data: newObjectAttributes.internal_data });
     });
 
     test('Read collections by job type', async() => {

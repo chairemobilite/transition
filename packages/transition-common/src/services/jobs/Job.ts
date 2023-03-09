@@ -21,6 +21,12 @@ export interface JobAttributes<TData extends JobDataType> {
     user_id: number;
     name: TData[JobNameKey];
     status: JobStatus;
+    /**
+     * Data internal to the job management, that is not relevant to the users
+     */
+    internal_data: {
+        checkpoint?: number;
+    };
     data: {
         [Property in keyof TData[JobDataKey]]: TData[JobDataKey][Property];
     };

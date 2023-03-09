@@ -33,16 +33,17 @@ type TestJobType = {
     }
 }
 
-const newJobAttributes: Omit<JobAttributes<TestJobType>, 'id' | 'status'> = {
+const newJobAttributes: Omit<JobAttributes<TestJobType>, 'id' | 'status' | 'internal_data'> = {
     name: 'test' as const,
     user_id: 3,
     data: { parameters: { foo: 'bar' } },
     resources: { files: { testFile: 'path/to/file' } }
-} as JobAttributes<TestJobType>
+} as JobAttributes<TestJobType>;
 
 const jobAttributes: JobAttributes<TestJobType> = {
     id: 2,
     status: 'pending',
+    internal_data: {},
     ...newJobAttributes
 };
 
@@ -92,8 +93,8 @@ test('Test create job', async () => {
     mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
     const jobObj = await ExecutableJob.createJob(newJobAttributes);
     expect(mockedJobCreate).toHaveBeenCalledTimes(1);
-    expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', ...newJobAttributes });
-    expect(jobObj.attributes).toEqual(expect.objectContaining({ id: jobAttributes.id, ...newJobAttributes }));
+    expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', internal_data: {}, ...newJobAttributes });
+    expect(jobObj.attributes).toEqual({ id: jobAttributes.id, internal_data: {}, ...newJobAttributes });
     expect(jobObj.status).toEqual('pending');
 
     // Create with listener
@@ -116,8 +117,8 @@ test('Test create job with input files', async () => {
     mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
     const jobObj = await ExecutableJob.createJob(attributes);
     expect(mockedJobCreate).toHaveBeenCalledTimes(1);
-    expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', ...newJobAttributes, resources: { files: { testFile: filename, testFile2: renameTo } } });
-    expect(jobObj.attributes).toEqual(expect.objectContaining({ id: jobAttributes.id, ...newJobAttributes, resources: { files: { testFile: filename, testFile2: renameTo } } }));
+    expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', internal_data: {}, ...newJobAttributes, resources: { files: { testFile: filename, testFile2: renameTo } } });
+    expect(jobObj.attributes).toEqual(expect.objectContaining({ id: jobAttributes.id, internal_data: {}, ...newJobAttributes, resources: { files: { testFile: filename, testFile2: renameTo } } }));
     expect(jobObj.status).toEqual('pending');
 
     expect(mockedFileExists).toHaveBeenCalledTimes(2);
@@ -157,10 +158,12 @@ describe('Test resume running and pending', () => {
         const jobsToRun = [{
             id: 5,
             status: 'inProgress' as const,
+            internal_data: {},
             ...newJobAttributes
         }, jobAttributes, {
             id: 6,
             status: 'pending' as const,
+            internal_data: {},
             ...newJobAttributes
         }];
         mockedJobCollection.mockResolvedValueOnce({ jobs: jobsToRun, totalCount: jobsToRun.length })
@@ -249,16 +252,17 @@ test('Test save', async () => {
     // Change something, including the user_id, and save the existing object, user_id should not be updated
     jobObj.attributes.data.results = 3;
     jobObj.attributes.user_id = jobAttributes.user_id + 1;
+    jobObj.attributes.internal_data.checkpoint = 23;
     await jobObj.save();
     expect(mockedJobUpdate).toHaveBeenCalledTimes(1);
-    const { data, status, resources } = jobAttributes;
-    expect(mockedJobUpdate).toHaveBeenCalledWith(jobObj.attributes.id, { status, data: { ...data, results: 3 }, resources });
+    const { data, status, resources, internal_data } = jobAttributes;
+    expect(mockedJobUpdate).toHaveBeenCalledWith(jobObj.attributes.id, { status, data: { ...data, results: 3 }, resources, internal_data: { ...internal_data, checkpoint: 23 } });
 
     // Change the status, it should be updated
     jobObj.setInProgress();
     await jobObj.save();
     expect(mockedJobUpdate).toHaveBeenCalledTimes(2);
-    expect(mockedJobUpdate).toHaveBeenLastCalledWith(jobObj.attributes.id, { status: 'inProgress', data: { ...data, results: 3 }, resources });
+    expect(mockedJobUpdate).toHaveBeenLastCalledWith(jobObj.attributes.id, { status: 'inProgress', data: { ...data, results: 3 }, resources, internal_data: { ...internal_data, checkpoint: 23 } });
 
     // Save with listener
     const listener = new EventEmitter();
