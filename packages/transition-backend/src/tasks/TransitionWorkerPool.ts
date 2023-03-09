@@ -20,13 +20,17 @@ import Users from 'chaire-lib-backend/lib/services/users/users';
 
 prepareSocketRoutes();
 
-function newProgressEmitter() {
+function newProgressEmitter(task: ExecutableJob<JobDataType>) {
     const eventEmitter = new EventEmitter();
     eventEmitter.on('progress', (progressData: { name: string; customText?: string; progress: number }) => {
         workerpool.workerEmit({
             event: 'progress',
             data: progressData
         });
+    });
+    eventEmitter.on('checkpoint', (checkpoint: number) => {
+        task.attributes.internal_data.checkpoint = checkpoint;
+        task.save();
     });
     return eventEmitter;
 }
@@ -78,7 +82,7 @@ const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>) => {
             jobId: task.attributes.id,
             absoluteBaseDirectory: absoluteUserDir,
             inputFileName,
-            progressEmitter: newProgressEmitter(),
+            progressEmitter: newProgressEmitter(task),
             isCancelled: getTaskCancelledFct(task)
         }
     );
@@ -92,7 +96,7 @@ const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>) =>
         task.attributes.data.parameters.batchAccessMapAttributes,
         task.attributes.data.parameters.accessMapAttributes,
         absoluteUserDir,
-        newProgressEmitter(),
+        newProgressEmitter(task),
         getTaskCancelledFct(task)
     );
     task.attributes.data.results = result;

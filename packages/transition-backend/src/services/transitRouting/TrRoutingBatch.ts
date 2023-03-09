@@ -31,11 +31,14 @@ import {
     generateFileOutputResults
 } from './TrRoutingBatchResult';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { CheckpointTracker } from '../executableJob/JobCheckpointTracker';
+
+const CHECKPOINT_INTERVAL = 250;
 
 /**
  * Do batch calculation on a csv file input
  *
- * @param parameters The parameters for the batch calculation task
+ * @param demandParameters The parameters for the batch calculation task
  * @param transitRoutingAttributes The transit routing parameters, for
  * individual calculation
  * @param options Options for this calculation: the absoluteBaseDirectory is the
@@ -143,6 +146,7 @@ class TrRoutingBatch {
                     );
                 }
             };
+            const checkpointTracker = new CheckpointTracker(CHECKPOINT_INTERVAL, this.options.progressEmitter);
             for (let odTripIndex = 0; odTripIndex < odTripsCount; odTripIndex++) {
                 promiseQueue.add(async () => {
                     // Assert the job is not cancelled, otherwise clear the queue and let the job exit
@@ -167,11 +171,13 @@ class TrRoutingBatch {
                         if (trRoutingPort !== undefined) {
                             poolOfTrRoutingPorts.push(trRoutingPort);
                         }
+                        checkpointTracker.handled(odTripIndex);
                     }
                 });
             }
 
             await promiseQueue.onIdle();
+            checkpointTracker.completed();
 
             this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
             this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
