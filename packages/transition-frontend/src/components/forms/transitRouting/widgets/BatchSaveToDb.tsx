@@ -158,9 +158,9 @@ const BatchSaveToDbComponent: React.FunctionComponent<BatchAttributesSelectionCo
                     }
                 />
             </div>
-            {props.attributes.saveToDb !== false && (
+            {props.attributes.saveToDb !== false && props.attributes.saveToDb !== undefined && (
                 <SaveToDbChoiceComponentTranslated
-                    saveToDb={props.attributes.saveToDb}
+                    saveToDb={props.attributes.saveToDb || false}
                     onValueChange={props.onValueChange}
                 />
             )}

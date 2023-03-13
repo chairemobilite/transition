@@ -68,7 +68,7 @@ const getTaskCancelledFct = (task: ExecutableJob<JobDataType>) => {
 const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>) => {
     const absoluteUserDir = task.getJobFileDirectory();
     const { files, ...result } = await batchRoute(
-        task.attributes.data.parameters.batchRoutingAttributes,
+        task.attributes.data.parameters.demandAttributes,
         task.attributes.data.parameters.transitRoutingAttributes,
         absoluteUserDir,
         newProgressEmitter(),
