@@ -23,7 +23,10 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { routingModes } from 'chaire-lib-common/lib/config/routingModes';
 import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import { TransitBatchCalculationResult, TransitBatchRoutingAttributes } from 'chaire-lib-common/lib/api/TrRouting';
+import {
+    TransitBatchCalculationResult,
+    TransitBatchRoutingDemandAttributes
+} from 'chaire-lib-common/lib/api/TrRouting';
 import odPairsDbQueries from '../../models/db/odPairs.db.queries';
 import pathDbQueries from '../../models/db/transitPaths.db.queries';
 import { getDataSource } from '../dataSources/dataSources';
@@ -49,7 +52,7 @@ const GEOMETRY_FILE_NAME = 'batchRoutingGeometryResults.geojson';
  * @returns
  */
 export const batchRoute = async (
-    parameters: TransitBatchRoutingAttributes,
+    demandParameters: TransitBatchRoutingDemandAttributes,
     transitRoutingAttributes: BatchCalculationParameters,
     absoluteBaseDirectory: string,
     progressEmitter: EventEmitter,
@@ -59,7 +62,8 @@ export const batchRoute = async (
         files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
     }
 > => {
-    console.log('TrRoutingService batchRoute Parameters', parameters);
+    console.log('TrRoutingService batchRoute Parameters', demandParameters);
+    const parameters = demandParameters.configuration;
 
     // TODO Extract this somewhere, or allow configurable name
     const csvFilePath = 'batchRouting.csv';

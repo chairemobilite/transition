@@ -15,7 +15,7 @@ import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingSe
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import osrmService from 'chaire-lib-backend/lib/utils/osrm/OSRMService';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
+import { TransitBatchRoutingDemandAttributes, TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
 import { transitionRouteOptions, transitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import { TransitBatchAccessibilityMapAttributes } from 'chaire-lib-common/lib/api/TrRouting';
@@ -24,6 +24,8 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ExecutableJob } from '../services/executableJob/ExecutableJob';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
+import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
+import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 
 // TODO The socket routes should validate parameters as even typescript cannot guarantee the types over the network
 // TODO Add more unit tests as the called methods are cleaned up
@@ -166,36 +168,41 @@ export default function (socket: EventEmitter, userId?: number) {
     // there is no userId here, it means the socket routes are set from CLI and
     // it can't run these tasks now.
     if (userId !== undefined) {
-        const absoluteUserDir = `${directoryManager.userDataDirectory}/${userId}`;
-
-        socket.on(TrRoutingConstants.BATCH_ROUTE, async (parameters, transitRoutingAttributes, callback) => {
-            try {
-                socket.emit('progress', { name: 'BatchRouting', progress: null });
-                // TODO Handle the input file and add it to the task
-                const job = await ExecutableJob.createJob(
-                    {
-                        user_id: userId,
-                        name: 'batchRoute',
-                        data: {
-                            parameters: {
-                                batchRoutingAttributes: parameters,
-                                transitRoutingAttributes
-                            }
+        socket.on(
+            TrRoutingConstants.BATCH_ROUTE,
+            async (
+                parameters: TransitBatchRoutingDemandAttributes,
+                transitRoutingAttributes: BatchCalculationParameters,
+                callback
+            ) => {
+                try {
+                    socket.emit('progress', { name: 'BatchRouting', progress: null });
+                    // TODO Handle the input file and add it to the task
+                    const job: ExecutableJob<BatchRouteJobType> = await ExecutableJob.createJob(
+                        {
+                            user_id: userId,
+                            name: 'batchRoute',
+                            data: {
+                                parameters: {
+                                    demandAttributes: parameters,
+                                    transitRoutingAttributes
+                                }
+                            },
+                            inputFiles: [`${directoryManager.userDataDirectory}/${userId}/imports/batchRouting.csv`],
+                            hasOutputFiles: true
                         },
-                        inputFiles: [`${directoryManager.userDataDirectory}/${userId}/imports/batchRouting.csv`],
-                        hasOutputFiles: true
-                    },
-                    socket
-                );
-                await job.enqueue(socket);
-                await job.refresh();
-                // TODO Do a quick return with task detail instead of waiting for task to finish
-                callback(Status.createOk(job.attributes.data.results));
-            } catch (error) {
-                console.error(error);
-                callback(Status.createError(TrError.isTrError(error) ? error.message : error));
+                        socket
+                    );
+                    await job.enqueue(socket);
+                    await job.refresh();
+                    // TODO Do a quick return with task detail instead of waiting for task to finish
+                    callback(Status.createOk(job.attributes.data.results));
+                } catch (error) {
+                    console.error(error);
+                    callback(Status.createError(TrError.isTrError(error) ? error.message : error));
+                }
             }
-        });
+        );
 
         socket.on(
             TrRoutingConstants.BATCH_ACCESS_MAP,

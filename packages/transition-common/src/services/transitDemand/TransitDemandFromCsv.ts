@@ -12,21 +12,16 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
+import { TransitBatchDemandFromCsvAttributes } from 'chaire-lib-common/lib/api/TrRouting';
 
 /**
  * Base attributes for any batch transit calculation, like routing or accessibility map
  */
-export interface TransitDemandFromCsvAttributes extends GenericAttributes {
-    calculationName?: string;
+export interface TransitDemandFromCsvAttributes
+    extends GenericAttributes,
+        Partial<TransitBatchDemandFromCsvAttributes> {
     csvFile?: string | File;
-    idAttribute?: string;
-    timeAttributeDepartureOrArrival?: 'arrival' | 'departure';
-    timeFormat?: string;
-    timeAttribute?: string;
-    withGeometries?: boolean;
-    detailed?: boolean;
     // TODO Remove these from this object once trRouting is parallel
-    cpuCount?: number;
     maxCpuCount?: number;
 }
 

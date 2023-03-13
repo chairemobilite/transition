@@ -254,10 +254,13 @@ describe('trRouting routes', () => {
     };
 
     // It's a stub call, parameters don't have to be complete
-    const batchRouteParameters = {
-        calculationName: 'test',
-        cpuCount: 1,
-        saveToDb: false
+    const demandParameters = {
+        type: 'csv',
+        configuration: {
+            calculationName: 'test',
+            cpuCount: 1,
+            saveToDb: false
+        }
     };
 
     // It's a stub call, parameters don't have to be complete
@@ -374,7 +377,7 @@ describe('trRouting routes', () => {
         mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: undefined });
         mockedEnqueue.mockResolvedValueOnce(true);
         mockedRefresh.mockResolvedValueOnce(true);
-        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, batchRouteParameters, transitAttributes, (status) => {
+        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, (status) => {
             expect(Status.isStatusOk(status));
             expect(mockedJobCreate).toHaveBeenCalledTimes(1);
             expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
@@ -382,7 +385,7 @@ describe('trRouting routes', () => {
                 user_id: 1,
                 data: {
                     parameters: {
-                        batchRoutingAttributes: batchRouteParameters,
+                        demandAttributes: demandParameters,
                         transitRoutingAttributes: transitAttributes
                     }
                 }
@@ -400,7 +403,7 @@ describe('trRouting routes', () => {
         const error = new TrError(message, code, localizedMessage);
         mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: 100 });
         mockedEnqueue.mockRejectedValueOnce(error);
-        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, batchRouteParameters, transitAttributes, function (status) {
+        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, function (status) {
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual(message);
             expect(mockedJobCreate).toHaveBeenCalledTimes(1);
@@ -409,7 +412,7 @@ describe('trRouting routes', () => {
                 user_id: 1,
                 data: {
                     parameters: {
-                        batchRoutingAttributes: batchRouteParameters,
+                        demandAttributes: demandParameters,
                         transitRoutingAttributes: transitAttributes
                     }
                 }
@@ -421,7 +424,7 @@ describe('trRouting routes', () => {
 
     test('Batch route, not enough space on disk', (done) => {
         mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: 0 });
-        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, batchRouteParameters, transitAttributes, function (status) {
+        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, function (status) {
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual('UserDiskQuotaReached');
             expect(mockedJobCreate).not.toHaveBeenCalled();

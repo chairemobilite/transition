@@ -10,15 +10,10 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import DataSourceCollection from '../dataSource/DataSourceCollection';
 import { TransitDemandFromCsv, TransitDemandFromCsvAttributes } from './TransitDemandFromCsv';
+import { TransitBatchRoutingDemandFromCsvAttributes } from 'chaire-lib-common/lib/api/TrRouting';
 
-export interface TransitOdDemandFromCsvAttributes extends TransitDemandFromCsvAttributes {
-    projection?: string;
-    originXAttribute?: string;
-    originYAttribute?: string;
-    destinationXAttribute?: string;
-    destinationYAttribute?: string;
-    saveToDb: false | { type: 'new'; dataSourceName: string } | { type: 'overwrite'; dataSourceId: string };
-}
+export type TransitOdDemandFromCsvAttributes = TransitDemandFromCsvAttributes &
+    Partial<TransitBatchRoutingDemandFromCsvAttributes>;
 
 /**
  * Describe a CSV file field mapping for a transition origin/destination pair file
@@ -63,7 +58,7 @@ export class TransitOdDemandFromCsv extends TransitDemandFromCsv<TransitOdDemand
         }
         if (attributes.saveToDb !== false) {
             const dataSourceCollection: DataSourceCollection = serviceLocator.collectionManager.get('dataSources');
-            if (attributes.saveToDb.type === 'new') {
+            if (attributes.saveToDb?.type === 'new') {
                 // For new data source, make sure an odTrip data source with that name does not already exists
                 // TODO Should we check shortname too?
                 const dataSources = dataSourceCollection.getByAttribute('name', attributes.saveToDb.dataSourceName);
@@ -71,7 +66,7 @@ export class TransitOdDemandFromCsv extends TransitDemandFromCsv<TransitOdDemand
                     this._isValid = false;
                     this.errors.push('transit:transitRouting:errors:DataSourceAlreadyExists');
                 }
-            } else {
+            } else if (attributes.saveToDb?.type === 'overwrite') {
                 // For data source replacement, make sure it exists
                 const dataSource = dataSourceCollection.getById(attributes.saveToDb.dataSourceId);
                 if (dataSource === undefined) {
