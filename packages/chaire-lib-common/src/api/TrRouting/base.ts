@@ -17,6 +17,7 @@ export type TransitBatchDemandFromCsvAttributes = {
     withGeometries: boolean;
     detailed: boolean;
     cpuCount: number;
+    csvFile: { location: 'upload' } | { location: 'server'; fromJob: number };
 };
 
 export type TransitBatchRoutingDemandFromCsvAttributes = TransitBatchDemandFromCsvAttributes & {

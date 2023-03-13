@@ -20,7 +20,6 @@ import { TransitBatchDemandFromCsvAttributes } from 'chaire-lib-common/lib/api/T
 export interface TransitDemandFromCsvAttributes
     extends GenericAttributes,
         Partial<TransitBatchDemandFromCsvAttributes> {
-    csvFile?: string | File;
     // TODO Remove these from this object once trRouting is parallel
     maxCpuCount?: number;
 }
@@ -87,9 +86,12 @@ export abstract class TransitDemandFromCsv<T extends TransitDemandFromCsvAttribu
         }
     }
 
-    setCsvFile = async (file: string | File) => {
+    setCsvFile = async (
+        file: string | File | NodeJS.ReadableStream,
+        fileLocation: { location: 'upload' } | { location: 'server'; fromJob: number }
+    ) => {
         let csvFileAttributes: string[] = [];
-        this.attributes.csvFile = file;
+        this.attributes.csvFile = fileLocation;
         await parseCsvFile(
             file,
             (data) => {

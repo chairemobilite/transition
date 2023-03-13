@@ -932,6 +932,13 @@
         "AnalysisParameters": "Paramètres",
         "ConfigureDemand": "Configuration des données de la demande",
         "ConfigureParameters": "Configuration des paramètres d'analyse",
-        "AnalysisSummary": "Sommaire de l'analyse"
+        "AnalysisSummary": "Sommaire de l'analyse",
+        "ReplayJob": "Nouveau calcul à partir de cette tâche",
+        "UploadedFile": "Fichier téléversé",
+        "FromPreviousJob": "Données d'un calcul précédent",
+        "errors": {
+            "InputFileUnavailable": "Le fichier d'entrée n'existe pas pour cette tâche",
+            "ErrorGettingReplayParameters": "Un problème est survenu lors de l'obtention de la configuration pour ré-exécuter un calcul"
+        }
     }
 }

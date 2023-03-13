@@ -18,8 +18,16 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import ConfirmCalculationForm from './stepForms/ConfirmCalculationForm';
 import TransitBatchRoutingCalculator from 'transition-common/lib/services/transitRouting/TransitBatchRoutingCalculator';
+import { TransitBatchRoutingDemandAttributes } from 'chaire-lib-common/lib/api/TrRouting';
+import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 
 export interface BatchCalculationFormProps {
+    initialValues?: {
+        parameters: BatchCalculationParameters;
+        demand: TransitBatchRoutingDemandAttributes;
+
+        csvFields: string[];
+    };
     availableRoutingModes?: string[];
     onEnd: () => void;
 }
@@ -45,9 +53,19 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
     );
     const [currentStep, setCurrentStep] = React.useState(0);
     const [nextEnabled, setNextEnabled] = React.useState(false);
-    const [demand, setDemand] = React.useState<TransitDemandFromCsvFile | undefined>(undefined);
+    const [demand, setDemand] = React.useState<TransitDemandFromCsvFile | undefined>(
+        props.initialValues !== undefined
+            ? {
+                type: 'csv' as const,
+                csvFields: props.initialValues.csvFields,
+                demand: new TransitOdDemandFromCsv(props.initialValues.demand.configuration)
+            }
+            : undefined
+    );
     const [routingParameters, setRoutingParameters] = React.useState<BatchCalculationParameters>(
-        _cloneDeep(Preferences.get('transit.routing.transit', { routingModes: [], withAlternatives: false }))
+        props.initialValues !== undefined
+            ? props.initialValues.parameters
+            : _cloneDeep(Preferences.get('transit.routing.transit', { routingModes: [], withAlternatives: false }))
     );
 
     const onScenarioCollectionUpdate = () => {

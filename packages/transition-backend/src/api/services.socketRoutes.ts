@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import os from 'os';
+import fs from 'fs';
 import { EventEmitter } from 'events';
 import osrm from 'osrm';
 
@@ -26,6 +27,8 @@ import { ExecutableJob } from '../services/executableJob/ExecutableJob';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
+import { fileKey } from 'transition-common/lib/services/jobs/Job';
 
 // TODO The socket routes should validate parameters as even typescript cannot guarantee the types over the network
 // TODO Add more unit tests as the called methods are cleaned up
@@ -177,6 +180,26 @@ export default function (socket: EventEmitter, userId?: number) {
             ) => {
                 try {
                     socket.emit('progress', { name: 'BatchRouting', progress: null });
+                    const inputFiles: { [Property in keyof BatchRouteJobType[fileKey]]?: string } = {};
+                    if (parameters.configuration.csvFile.location === 'upload') {
+                        inputFiles.input = `${directoryManager.userDataDirectory}/${userId}/imports/batchRouting.csv`;
+                    } else {
+                        const batchRouteJob = await ExecutableJob.loadTask<BatchRouteJobType>(
+                            parameters.configuration.csvFile.fromJob
+                        );
+                        if (batchRouteJob.attributes.name !== 'batchRoute') {
+                            throw 'Requested job is not a batchRoute job';
+                        }
+                        if (batchRouteJob.attributes.user_id !== userId) {
+                            throw 'Not allowed to get the input file from job';
+                        }
+                        const filePath = batchRouteJob.getFilePath('input');
+                        if (filePath === undefined) {
+                            throw 'InputFileNotAvailable';
+                        }
+                        inputFiles.input = filePath;
+                    }
+
                     // TODO Handle the input file and add it to the task
                     const job: ExecutableJob<BatchRouteJobType> = await ExecutableJob.createJob(
                         {
@@ -188,9 +211,7 @@ export default function (socket: EventEmitter, userId?: number) {
                                     transitRoutingAttributes
                                 }
                             },
-                            inputFiles: {
-                                input: `${directoryManager.userDataDirectory}/${userId}/imports/batchRouting.csv`
-                            },
+                            inputFiles,
                             hasOutputFiles: true
                         },
                         socket
@@ -199,6 +220,54 @@ export default function (socket: EventEmitter, userId?: number) {
                     await job.refresh();
                     // TODO Do a quick return with task detail instead of waiting for task to finish
                     callback(Status.createOk(job.attributes.data.results));
+                } catch (error) {
+                    console.error(error);
+                    callback(Status.createError(TrError.isTrError(error) ? error.message : error));
+                }
+            }
+        );
+
+        socket.on(
+            TrRoutingConstants.BATCH_ROUTE_REPLAY,
+            async (
+                jobId: number,
+                callback: (
+                    status: Status.Status<{
+                        parameters: BatchCalculationParameters;
+                        demand: TransitBatchRoutingDemandAttributes;
+                        csvFields: string[];
+                    }>
+                ) => void
+            ) => {
+                try {
+                    const job = await ExecutableJob.loadTask(jobId);
+                    if (job.attributes.name !== 'batchRoute') {
+                        throw 'Requested job is not a batchRoute job';
+                    }
+                    const batchRouteJob = job as ExecutableJob<BatchRouteJobType>;
+                    const attributes = batchRouteJob.attributes.data.parameters;
+                    const filePath = batchRouteJob.getFilePath('input');
+                    if (filePath === undefined) {
+                        throw 'InputFileUnavailable';
+                    }
+                    const demand = new TransitOdDemandFromCsv(attributes.demandAttributes.configuration);
+                    // Make sure saving to db is set to false, as it was already imported if so
+                    demand.attributes.saveToDb = false;
+                    const csvFileStream = fs.createReadStream(filePath);
+                    const csvFields = await demand.setCsvFile(csvFileStream, { location: 'server', fromJob: jobId });
+                    callback(
+                        Status.createOk({
+                            parameters: attributes.transitRoutingAttributes,
+                            demand: {
+                                type: attributes.demandAttributes.type,
+                                configuration: {
+                                    ...attributes.demandAttributes.configuration,
+                                    csvFile: { location: 'server', fromJob: jobId }
+                                }
+                            },
+                            csvFields
+                        })
+                    );
                 } catch (error) {
                     console.error(error);
                     callback(Status.createError(TrError.isTrError(error) ? error.message : error));

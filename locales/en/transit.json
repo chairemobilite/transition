@@ -934,6 +934,13 @@
         "AnalysisParameters": "Parameters",
         "ConfigureDemand": "Configure demand data",
         "ConfigureParameters": "Configure analysis parameters",
-        "AnalysisSummary": "Analysis summary"
+        "AnalysisSummary": "Analysis summary",
+        "ReplayJob": "Create new calculation from this one",
+        "UploadedFile": "Uploaded file",
+        "FromPreviousJob": "Data from previous calculation",
+        "errors": {
+            "InputFileUnavailable": "Input file does not exist for this job",
+            "ErrorGettingReplayParameters": "Error getting execution data to replay calculation"
+        }
     }
 }

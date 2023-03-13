@@ -4,6 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import fs from 'fs';
 import { EventEmitter } from 'events';
 import path from 'path';
 
@@ -137,6 +138,23 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             }
         });
     }
+
+    getFilePath = (fileName: keyof TData['files']): string | undefined => {
+        const jobFiles = this.attributes.resources?.files;
+        if (jobFiles === undefined) {
+            return undefined;
+        }
+        const file = jobFiles[fileName];
+        const files = directoryManager.getFilesAbsolute(this.getJobFileDirectory());
+        if (file === undefined || files === null || !files.includes(file)) {
+            return undefined;
+        }
+        const filePath = path.join(this.getJobFileDirectory(), file);
+        if (!fs.existsSync(filePath)) {
+            return undefined;
+        }
+        return filePath;
+    };
 
     setCancelled(): boolean {
         if (this.status === 'pending' || this.status === 'inProgress') {

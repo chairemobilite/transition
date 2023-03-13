@@ -40,7 +40,13 @@ const ConfirmCalculationForm: React.FunctionComponent<ConfirmCalculationFormProp
                     </tr>
                     <tr>
                         <th>{props.t('main:CsvFile')}</th>
-                        <td>{(demandAttributes.csvFile as File).name}</td>
+                        <td>
+                            {props.t(
+                                demandAttributes.csvFile?.location === 'upload'
+                                    ? 'transit:batchCalculation:UploadedFile'
+                                    : 'transit:batchCalculation:FromPreviousJob'
+                            )}
+                        </td>
                     </tr>
                     <tr>
                         <th>{props.t('transit:transitRouting:Detailed')}</th>

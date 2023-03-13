@@ -38,7 +38,7 @@ describe('Test Calculate', () => {
     const defaultDemandAttributes = {
         calculationName: 'test',
         projection: 'projection',
-        csvFile: 'filename',
+        csvFile: { location: 'upload' as const },
         timeAttributeDepartureOrArrival: 'arrival' as const,
         timeFormat: 'HH:MM',
         timeAttribute: 'time',
@@ -76,7 +76,8 @@ describe('Test Calculate', () => {
             timeAttribute: defaultDemandAttributes.timeAttribute,
             withGeometries: defaultDemandAttributes.withGeometries,
             cpuCount: defaultDemandAttributes.cpuCount,
-            saveToDb: defaultDemandAttributes.saveToDb
+            saveToDb: defaultDemandAttributes.saveToDb,
+            csvFile: { location: 'upload' }
         }
     }
 
@@ -85,7 +86,7 @@ describe('Test Calculate', () => {
         expect(result).toEqual(defaultResponse);
 
         expect(batchRouteSocketMock).toHaveBeenCalledTimes(1);
-        expect(batchRouteSocketMock).toHaveBeenCalledWith(expectedDemand, defaultQueryParams, expect.anything())
+        expect(batchRouteSocketMock).toHaveBeenCalledWith( expectedDemand, defaultQueryParams, expect.anything())
     });
 
     test('Calculate with valid values, but server error', async () => {
@@ -95,12 +96,12 @@ describe('Test Calculate', () => {
             .toThrowError('cannot calculate transit batch route with trRouting: arbitrary error');
 
         expect(batchRouteSocketMock).toHaveBeenCalledTimes(1);
-        expect(batchRouteSocketMock).toHaveBeenCalledWith(expectedDemand, defaultQueryParams, expect.anything())
+        expect(batchRouteSocketMock).toHaveBeenCalledWith( expectedDemand, defaultQueryParams, expect.anything())
     });
 
     test('Calculate with invalid demand parameters', async () => {
         // File set but no other attribute
-        const invalidDemand = new TransitOdDemandFromCsv({ csvFile: 'myfile'});
+        const invalidDemand = new TransitOdDemandFromCsv({ csvFile: { location: 'upload' as const }});
         await expect(async () => await TransitBatchRoutingCalculator.calculate(invalidDemand, defaultQueryParams))
             .rejects
             .toThrowError('cannot calculate transit batch route: the CSV file data is invalid');

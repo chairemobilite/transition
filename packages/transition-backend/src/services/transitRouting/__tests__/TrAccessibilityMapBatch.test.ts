@@ -94,7 +94,8 @@ const defaultParameters = {
     timeAttribute: 'timeattrib',
     withGeometries: false,
     detailed: false,
-    cpuCount: 1
+    cpuCount: 1,
+    csvFile: { location: 'upload' as const }
 };
 
 const defaultAttributes = {

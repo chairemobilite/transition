@@ -93,6 +93,7 @@ jest.mock('../../../models/db/odPairs.db.queries');
 
 const defaultParameters = {
     calculationName: 'test',
+    csvFile: { location: 'upload' as const },
     projection: 'test',
     idAttribute: 'id',
     originXAttribute: 'origX',

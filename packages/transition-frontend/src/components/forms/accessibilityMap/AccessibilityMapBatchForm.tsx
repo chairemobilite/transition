@@ -55,6 +55,7 @@ interface BatchAccessibilityMapFormState extends ChangeEventsState<TransitBatchA
     batchRoutingInProgress: boolean;
     errors: ErrorMessage[];
     warnings: ErrorMessage[];
+    csvFile?: File;
 }
 
 // TODO This class has A LOT in common with TransitRoutingBatchForm. We should
@@ -91,16 +92,17 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
         };
     }
 
-    onCsvFileChange = (file) => {
+    onCsvFileChange = (file: File) => {
         // ** File upload
 
         const batchRouting = this.state.object;
 
-        batchRouting.attributes.csvFile = file;
+        batchRouting.attributes.csvFile = { location: 'upload' };
 
         this.state.object.validate();
 
         this.setState({
+            csvFile: file,
             object: batchRouting,
             csvAttributes: undefined,
             geojsonDownloadUrl: null,
@@ -113,8 +115,8 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
     };
 
     onSubmitCsv = async () => {
-        if (this.state.object.attributes.csvFile !== undefined) {
-            const csvAttributes = await this.state.object.setCsvFile(this.state.object.attributes.csvFile);
+        if (this.state.csvFile !== undefined) {
+            const csvAttributes = await this.state.object.setCsvFile(this.state.csvFile, { location: 'upload' });
             this.setState({
                 object: this.state.object,
                 csvAttributes
