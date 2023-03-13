@@ -11,7 +11,7 @@ import _cloneDeep from 'lodash.clonedeep';
 import { _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputMultiselect from 'chaire-lib-frontend/lib/components/input/InputMultiselect';
-import { isBatchParametersValid, BatchCalculationParameters } from '../../../../services/batchCalculation/types';
+import { isBatchParametersValid, BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import TransitRoutingBaseComponent from '../../transitRouting/widgets/TransitRoutingBaseComponent';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';

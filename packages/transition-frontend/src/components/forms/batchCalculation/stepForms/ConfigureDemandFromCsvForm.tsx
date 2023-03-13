@@ -19,7 +19,7 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import BatchAttributesSelection from '../../transitRouting/widgets/BatchAttributesSelection';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { TransitDemandFromCsvFile } from '../../../../services/transitDemand/types';
+import { TransitDemandFromCsvFile } from 'transition-common/lib/services/transitDemand/types';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 
 interface ConfigureDemandFromCsvFormProps {

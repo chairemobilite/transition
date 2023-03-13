@@ -12,10 +12,10 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import ConfigureDemandFromCsvForm from './stepForms/ConfigureDemandFromCsvForm';
-import { TransitDemandFromCsvFile } from '../../../services/transitDemand/types';
+import { TransitDemandFromCsvFile } from 'transition-common/lib/services/transitDemand/types';
 import ConfigureBatchCalculationForm from './stepForms/ConfigureBatchCalculationForm';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { BatchCalculationParameters } from '../../../services/batchCalculation/types';
+import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import ConfirmCalculationForm from './stepForms/ConfirmCalculationForm';
 import TransitBatchRoutingCalculator from 'transition-common/lib/services/transitRouting/TransitBatchRoutingCalculator';
 
