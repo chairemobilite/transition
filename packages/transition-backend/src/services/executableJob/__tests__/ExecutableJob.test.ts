@@ -12,7 +12,7 @@ import { JobAttributes } from 'transition-common/lib/services/jobs/Job';
 import { execJob } from '../../../tasks/serverWorkerPool';
 import { ExecutableJob } from '../ExecutableJob';
 import jobsDbQueries from '../../../models/db/jobs.db.queries'
-import { JobStatus } from 'transition-common/src/services/jobs/Job';
+import { JobStatus } from 'transition-common/lib/services/jobs/Job';
 
 const progressEmitter = new EventEmitter();
 
