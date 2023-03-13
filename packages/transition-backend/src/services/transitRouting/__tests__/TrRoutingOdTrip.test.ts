@@ -14,7 +14,7 @@ import { TransitRoutingResult } from 'transition-common/lib/services/transitRout
 import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ErrorCodes } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
-import Path from 'transition-common/src/services/path/Path';
+import Path from 'transition-common/lib/services/path/Path';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { routeToUserObject, TrRoutingBoardingStep, TrRoutingUnboardingStep, TrRoutingWalkingStep } from 'chaire-lib-common/src/services/trRouting/TrRoutingResultConversion';
 
