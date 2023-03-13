@@ -18,7 +18,7 @@ import {
     base as baseAttributes,
     transit as transitAttributes
 } from '../../config/trRoutingAttributes';
-import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { routingModes } from 'chaire-lib-common/lib/config/routingModes';
 import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
@@ -28,6 +28,7 @@ import odPairsDbQueries from '../../models/db/odPairs.db.queries';
 import pathDbQueries from '../../models/db/transitPaths.db.queries';
 import { getDataSource } from '../dataSources/dataSources';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 
 const CSV_FILE_NAME = 'batchRoutingResults.csv';
 const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';
@@ -49,7 +50,7 @@ const GEOMETRY_FILE_NAME = 'batchRoutingGeometryResults.geojson';
  */
 export const batchRoute = async (
     parameters: TransitBatchRoutingAttributes,
-    transitRoutingAttributes: Partial<TransitRoutingAttributes>,
+    transitRoutingAttributes: BatchCalculationParameters,
     absoluteBaseDirectory: string,
     progressEmitter: EventEmitter,
     isCancelled: () => boolean

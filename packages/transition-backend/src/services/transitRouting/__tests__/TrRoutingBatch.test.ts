@@ -115,7 +115,7 @@ beforeEach(() => {
 
 test('Batch route to csv', async () => {
     const parameters = Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false });
-    const result = await batchRoute(parameters, { }, absoluteDir, socketMock, isCancelledMock);
+    const result = await batchRoute(parameters, { routingModes: ['walking' ] }, absoluteDir, socketMock, isCancelledMock);
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
@@ -136,7 +136,7 @@ test('Batch route with some errors', async () => {
     const errors = [ 'error1', 'error2' ];
     mockParseOdTripsFromCsv.mockResolvedValueOnce({ odTrips, errors });
     const parameters = Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false });
-    const result = await batchRoute(parameters, { }, absoluteDir, socketMock, isCancelledMock);
+    const result = await batchRoute(parameters, { routingModes: ['walking' ] }, absoluteDir, socketMock, isCancelledMock);
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
@@ -157,7 +157,7 @@ test('Batch route with too many errors', async () => {
     const errors = [ 'error1', 'error2' ];
     mockParseOdTripsFromCsv.mockRejectedValueOnce(errors);
     const parameters = Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false });
-    const result = await batchRoute(parameters, { }, absoluteDir, socketMock, isCancelledMock);
+    const result = await batchRoute(parameters, { routingModes: ['walking' ] }, absoluteDir, socketMock, isCancelledMock);
     expect(routeOdTripMock).toHaveBeenCalledTimes(0);
     expect(mockCreateStream).toHaveBeenCalledTimes(0);
     expect(result).toEqual({
@@ -175,7 +175,7 @@ test('Batch route and save to db', async () => {
     (odPairsDbQueries.deleteForDataSourceId as any).mockClear();
 
     const parameters = Object.assign({}, defaultParameters, { saveToDb: {type: 'new', dataSourceName: 'name'}, calculationName: 'test', detailed: false });
-    const result = await batchRoute(parameters, { }, absoluteDir, socketMock, isCancelledMock);
+    const result = await batchRoute(parameters, { routingModes: ['walking' ] }, absoluteDir, socketMock, isCancelledMock);
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
