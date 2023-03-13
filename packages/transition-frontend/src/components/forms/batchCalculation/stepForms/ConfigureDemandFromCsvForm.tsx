@@ -48,13 +48,13 @@ const ConfigureDemandFromCsvForm: React.FunctionComponent<
     const [csvFileAttributes, setCsvFileAttributes] = React.useState<string[]>(props.currentDemand?.csvFields || []);
     const [loading, setLoading] = React.useState(false);
     const [updateCnt, setUpdateCnt] = React.useState(0);
-    const [ready, setReady] = React.useState(false);
+    const [readyToUpload, setReadyToUpload] = React.useState(false);
 
     const onCsvFileChange = async (file: File) => {
         setLoading(true);
         try {
-            setCsvFileAttributes(await demand.setCsvFile(file as any));
-            setReady(demand.validate());
+            setCsvFileAttributes(await demand.setCsvFile(file, { location: 'upload' }));
+            setReadyToUpload(demand.validate());
             props.onFileReset();
         } finally {
             setLoading(false);
@@ -66,7 +66,9 @@ const ConfigureDemandFromCsvForm: React.FunctionComponent<
         newValue: { value: unknown; valid?: boolean }
     ): void => {
         demand.attributes[path] = newValue.value as never;
-        setReady(demand.validate());
+        if (demand.attributes.csvFile?.location === 'upload') {
+            setReadyToUpload(demand.validate());
+        }
         setUpdateCnt(updateCnt + 1);
     };
 
@@ -82,6 +84,12 @@ const ConfigureDemandFromCsvForm: React.FunctionComponent<
 
         demand.updateRoutingPrefs();
     };
+
+    React.useEffect(() => {
+        if (demand.attributes.csvFile?.location === 'server' && demand.validate()) {
+            props.onComplete({ type: 'csv', demand, csvFields: csvFileAttributes });
+        }
+    }, []);
 
     React.useEffect(() => {
         if (props.uploadStatus.status === 'completed') {
@@ -113,11 +121,11 @@ const ConfigureDemandFromCsvForm: React.FunctionComponent<
             {csvFileAttributes.length !== 0 && (
                 <React.Fragment>
                     <FormErrors errors={demand.getErrors()} />
-                    {ready && (
+                    {readyToUpload && (
                         <div className="tr__form-buttons-container">
                             <span title={props.t('transit:batchCalculation:UploadFile')}>
                                 <Button
-                                    disabled={!ready}
+                                    disabled={!readyToUpload}
                                     key="next"
                                     color="blue"
                                     label={props.t('transit:batchCalculation:UploadFile')}

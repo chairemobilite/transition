@@ -85,7 +85,8 @@ export class TransitBatchRoutingCalculator {
                 timeAttribute: attributes.timeAttribute as string,
                 withGeometries: attributes.withGeometries || false,
                 cpuCount: attributes.cpuCount || 1,
-                saveToDb: attributes.saveToDb || false
+                saveToDb: attributes.saveToDb || false,
+                csvFile: attributes.csvFile === undefined ? { location: 'upload' } : attributes.csvFile
             }
         };
 
@@ -107,6 +108,40 @@ export class TransitBatchRoutingCalculator {
             // FIXME:  Not part of the promise, can't resolve the error here
             // resolve(trError.export());
         }
+    }
+
+    static async getCalculationParametersForJob(jobId: number): Promise<{
+        parameters: BatchCalculationParameters;
+        demand: TransitBatchRoutingDemandAttributes;
+        csvFields: string[];
+    }> {
+        return new Promise((resolve, reject) => {
+            serviceLocator.socketEventManager.emit(
+                TrRoutingConstants.BATCH_ROUTE_REPLAY,
+                jobId,
+                (
+                    routingStatus: Status.Status<{
+                        parameters: BatchCalculationParameters;
+                        demand: TransitBatchRoutingDemandAttributes;
+                        csvFields: string[];
+                    }>
+                ) => {
+                    if (Status.isStatusOk(routingStatus)) {
+                        resolve(Status.unwrap(routingStatus));
+                    } else if (routingStatus.error === 'InputFileUnavailable') {
+                        reject(
+                            new TrError(
+                                'Input file has not been found',
+                                'TRJOB0002',
+                                'transit:batchCalculation:errors:InputFileUnavailable'
+                            )
+                        );
+                    } else {
+                        reject(routingStatus.error);
+                    }
+                }
+            );
+        });
     }
 }
 

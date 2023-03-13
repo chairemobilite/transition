@@ -11,6 +11,9 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import BatchCalculationList from './BatchCalculationList';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import BatchCalculationForm from './BatchCalculationForm';
+import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import { TransitOdDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
+import { TransitBatchRoutingDemandAttributes } from 'chaire-lib-common/lib/api/TrRouting';
 
 export interface CalculationPanelPanelProps {
     availableRoutingModes?: string[];
@@ -23,9 +26,26 @@ const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps & Wit
         serviceLocator.collectionManager.get('scenarios')
     );
     const [isNewAnalysis, setIsNewAnalysis] = React.useState(false);
+    const [initialValues, setInitialValues] = React.useState<
+        | {
+              parameters: BatchCalculationParameters;
+              demand: TransitBatchRoutingDemandAttributes;
+              csvFields: string[];
+          }
+        | undefined
+    >(undefined);
 
     const onScenarioCollectionUpdate = () => {
         setScenarioCollection(serviceLocator.collectionManager.get('scenarios'));
+    };
+
+    const onNewAnalysis = (parameters?: {
+        parameters: BatchCalculationParameters;
+        demand: TransitBatchRoutingDemandAttributes;
+        csvFields: string[];
+    }) => {
+        setInitialValues(parameters);
+        setIsNewAnalysis(true);
     };
 
     React.useEffect(() => {
@@ -37,10 +57,11 @@ const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps & Wit
 
     return (
         <div id="tr__form-transit-calculation-panel" className="tr__form-transit-calculation-panel tr__panel">
-            {isNewAnalysis === false && <BatchCalculationList onNewAnalysis={() => setIsNewAnalysis(true)} />}
+            {isNewAnalysis === false && <BatchCalculationList onNewAnalysis={onNewAnalysis} />}
             {isNewAnalysis && (
                 <BatchCalculationForm
                     availableRoutingModes={props.availableRoutingModes}
+                    initialValues={initialValues}
                     // TODO This function should receive some parameter, whether it is cancelled or a calculation is pending.
                     onEnd={() => setIsNewAnalysis(false)}
                 />
