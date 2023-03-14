@@ -1,0 +1,1359 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              -73.509779,
+              45.517738
+            ],
+            [
+              -73.509715,
+              45.517835
+            ],
+            [
+              -73.509185,
+              45.518653
+            ],
+            [
+              -73.507051,
+              45.517961
+            ],
+            [
+              -73.506891,
+              45.517922
+            ],
+            [
+              -73.506664,
+              45.517868
+            ],
+            [
+              -73.506809,
+              45.51815
+            ],
+            [
+              -73.507145,
+              45.518744
+            ],
+            [
+              -73.507259,
+              45.518943
+            ],
+            [
+              -73.507357,
+              45.519131
+            ],
+            [
+              -73.507383,
+              45.519182
+            ],
+            [
+              -73.50755,
+              45.519501
+            ],
+            [
+              -73.507772,
+              45.519927
+            ],
+            [
+              -73.508237,
+              45.520797
+            ],
+            [
+              -73.508248,
+              45.520819
+            ],
+            [
+              -73.508312,
+              45.520939
+            ],
+            [
+              -73.508254,
+              45.52092
+            ],
+            [
+              -73.508192,
+              45.520901
+            ],
+            [
+              -73.505549,
+              45.520069
+            ],
+            [
+              -73.502258,
+              45.518996
+            ],
+            [
+              -73.502258,
+              45.518996
+            ],
+            [
+              -73.500428,
+              45.5184
+            ],
+            [
+              -73.499965,
+              45.518253
+            ],
+            [
+              -73.499567,
+              45.518864
+            ],
+            [
+              -73.499201,
+              45.519426
+            ],
+            [
+              -73.499202,
+              45.519425
+            ],
+            [
+              -73.499567,
+              45.518864
+            ],
+            [
+              -73.499965,
+              45.518253
+            ],
+            [
+              -73.500428,
+              45.5184
+            ],
+            [
+              -73.502258,
+              45.518996
+            ],
+            [
+              -73.505549,
+              45.520069
+            ],
+            [
+              -73.508192,
+              45.520901
+            ],
+            [
+              -73.508254,
+              45.52092
+            ],
+            [
+              -73.508312,
+              45.520939
+            ],
+            [
+              -73.508254,
+              45.52092
+            ],
+            [
+              -73.508192,
+              45.520901
+            ],
+            [
+              -73.505549,
+              45.520069
+            ],
+            [
+              -73.502258,
+              45.518996
+            ],
+            [
+              -73.510243,
+              45.521449
+            ],
+            [
+              -73.511284,
+              45.521802
+            ],
+            [
+              -73.513145,
+              45.522398
+            ],
+            [
+              -73.513209,
+              45.522418
+            ],
+            [
+              -73.51336,
+              45.522467
+            ],
+            [
+              -73.513513,
+              45.522529
+            ],
+            [
+              -73.513495,
+              45.521155
+            ],
+            [
+              -73.513485,
+              45.520782
+            ],
+            [
+              -73.513485,
+              45.520781
+            ],
+            [
+              -73.513484,
+              45.520749
+            ],
+            [
+              -73.513498,
+              45.520036
+            ],
+            [
+              -73.513674,
+              45.519548
+            ],
+            [
+              -73.51387,
+              45.519153
+            ],
+            [
+              -73.51389,
+              45.519109
+            ],
+            [
+              -73.513909,
+              45.519071
+            ],
+            [
+              -73.513721,
+              45.518902
+            ],
+            [
+              -73.51358,
+              45.51885
+            ],
+            [
+              -73.513326,
+              45.518765
+            ],
+            [
+              -73.512939,
+              45.51865
+            ],
+            [
+              -73.512238,
+              45.518425
+            ],
+            [
+              -73.50991,
+              45.51767
+            ]
+          ]
+        },
+        "id": 431,
+        "properties": {
+          "id": "07968fa7-7ebe-47b3-8d9e-2ac28a274af4",
+          "data": {
+            "gtfs": {
+              "shape_id": "e49a6423-b5c0-48bb-819e-10ff3b66bccf"
+            },
+            "segments": [
+              {
+                "distanceMeters": 692,
+                "travelTimeSeconds": 117
+              },
+              {
+                "distanceMeters": 859,
+                "travelTimeSeconds": 117
+              },
+              {
+                "distanceMeters": 1497,
+                "travelTimeSeconds": 231
+              },
+              {
+                "distanceMeters": 546,
+                "travelTimeSeconds": 80
+              }
+            ],
+            "from_gtfs": true,
+            "nodeTypes": [],
+            "variables": {
+              "d_p": null,
+              "n_q_p": 0,
+              "n_s_p": 0,
+              "d_l_avg": null,
+              "d_l_max": null,
+              "d_l_med": null,
+              "d_l_min": null
+            },
+            "waypoints": [],
+            "routingMode": "bus_urban",
+            "routingEngine": "engine",
+            "waypointTypes": [],
+            "dwellTimeSeconds": [
+              0,
+              20,
+              20,
+              20,
+              0
+            ],
+            "defaultRoutingMode": "bus_urban",
+            "layoverTimeSeconds": 180,
+            "maxRunningSpeedKmH": 120,
+            "defaultAcceleration": 1,
+            "defaultDeceleration": 1,
+            "returnBackGeography": null,
+            "totalDistanceMeters": 3594,
+            "defaultRoutingEngine": "engine",
+            "totalDwellTimeSeconds": 60,
+            "defaultRunningSpeedKmH": 40,
+            "defaultDwellTimeSeconds": 20,
+            "birdDistanceBetweenTerminals": 0,
+            "defaultMinLayoverTimeSeconds": 180,
+            "operatingSpeedMetersPerSecond": 5.94,
+            "travelTimeWithoutDwellTimesSeconds": 545,
+            "operatingTimeWithLayoverTimeSeconds": 785,
+            "totalTravelTimeWithReturnBackSeconds": null,
+            "defaultLayoverRatioOverTotalTravelTime": 0.1,
+            "operatingTimeWithoutLayoverTimeSeconds": 605,
+            "operatingSpeedWithLayoverMetersPerSecond": 4.58,
+            "averageSpeedWithoutDwellTimesMetersPerSecond": 6.59
+          },
+          "mode": "bus",
+          "name": "outbound",
+          "color": "#8effb4",
+          "nodes": [
+            "e66fb997-f83d-42a0-a232-e5b0a94a0caf",
+            "1893a2d3-2e8b-4965-b8e9-5552ec8f07a4",
+            "98279ff5-957b-4eeb-9ad3-2a9d5fb6ef98",
+            "9db6aff2-2175-49e9-984e-3eb4c8dd470c",
+            "e66fb997-f83d-42a0-a232-e5b0a94a0caf"
+          ],
+          "stops": [],
+          "line_id": "d5c2e101-bdf3-4431-9e10-e798fce740cc",
+          "segments": [
+            0,
+            16,
+            25,
+            45
+          ],
+          "direction": "outbound",
+          "is_frozen": false,
+          "created_at": "2023-03-14T18:35:26.422185+00:00",
+          "integer_id": 431,
+          "is_enabled": true,
+          "updated_at": null,
+          "description": null,
+          "internal_id": null
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              -73.512964,
+              45.521048
+            ],
+            [
+              -73.510954,
+              45.520386
+            ],
+            [
+              -73.510243,
+              45.521449
+            ],
+            [
+              -73.508774,
+              45.520998
+            ],
+            [
+              -73.50874,
+              45.520987
+            ],
+            [
+              -73.508656,
+              45.520959
+            ],
+            [
+              -73.508653,
+              45.520958
+            ],
+            [
+              -73.50864,
+              45.520954
+            ],
+            [
+              -73.508495,
+              45.520945
+            ],
+            [
+              -73.508312,
+              45.520939
+            ],
+            [
+              -73.508376,
+              45.521052
+            ],
+            [
+              -73.50882,
+              45.521847
+            ],
+            [
+              -73.508911,
+              45.52201
+            ],
+            [
+              -73.509196,
+              45.52252
+            ],
+            [
+              -73.509298,
+              45.522709
+            ],
+            [
+              -73.509687,
+              45.52343
+            ],
+            [
+              -73.509754,
+              45.523555
+            ],
+            [
+              -73.509977,
+              45.524041
+            ],
+            [
+              -73.509884,
+              45.524165
+            ],
+            [
+              -73.509793,
+              45.524217
+            ],
+            [
+              -73.509653,
+              45.524285
+            ],
+            [
+              -73.50872,
+              45.523979
+            ],
+            [
+              -73.508141,
+              45.523971
+            ],
+            [
+              -73.50783,
+              45.524418
+            ],
+            [
+              -73.507828,
+              45.524421
+            ],
+            [
+              -73.507784,
+              45.524484
+            ],
+            [
+              -73.504015,
+              45.52321
+            ],
+            [
+              -73.503676,
+              45.523095
+            ],
+            [
+              -73.502184,
+              45.522591
+            ],
+            [
+              -73.501625,
+              45.522402
+            ],
+            [
+              -73.501184,
+              45.522253
+            ],
+            [
+              -73.501099,
+              45.522224
+            ],
+            [
+              -73.500708,
+              45.522863
+            ],
+            [
+              -73.50062,
+              45.523008
+            ],
+            [
+              -73.500367,
+              45.52342
+            ],
+            [
+              -73.498736,
+              45.522873
+            ],
+            [
+              -73.49744,
+              45.522428
+            ],
+            [
+              -73.497432,
+              45.522704
+            ],
+            [
+              -73.497389,
+              45.522847
+            ],
+            [
+              -73.497258,
+              45.523041
+            ],
+            [
+              -73.496826,
+              45.523476
+            ],
+            [
+              -73.496798,
+              45.523504
+            ],
+            [
+              -73.49677,
+              45.523532
+            ],
+            [
+              -73.496869,
+              45.523566
+            ],
+            [
+              -73.499678,
+              45.524544
+            ],
+            [
+              -73.499916,
+              45.524664
+            ],
+            [
+              -73.500017,
+              45.524714
+            ],
+            [
+              -73.500093,
+              45.524745
+            ],
+            [
+              -73.500486,
+              45.524902
+            ],
+            [
+              -73.502701,
+              45.52562
+            ],
+            [
+              -73.50361,
+              45.525921
+            ],
+            [
+              -73.505375,
+              45.526503
+            ],
+            [
+              -73.505571,
+              45.526568
+            ],
+            [
+              -73.506781,
+              45.526968
+            ],
+            [
+              -73.507334,
+              45.52715
+            ],
+            [
+              -73.5103,
+              45.52813
+            ],
+            [
+              -73.510401,
+              45.528159
+            ],
+            [
+              -73.51047,
+              45.528232
+            ],
+            [
+              -73.510523,
+              45.528153
+            ],
+            [
+              -73.510527,
+              45.528147
+            ],
+            [
+              -73.510568,
+              45.528082
+            ],
+            [
+              -73.510675,
+              45.527879
+            ],
+            [
+              -73.510698,
+              45.527819
+            ],
+            [
+              -73.510721,
+              45.527758
+            ],
+            [
+              -73.510836,
+              45.527394
+            ],
+            [
+              -73.510855,
+              45.527335
+            ],
+            [
+              -73.510915,
+              45.526403
+            ],
+            [
+              -73.510801,
+              45.525535
+            ],
+            [
+              -73.510795,
+              45.525489
+            ],
+            [
+              -73.510551,
+              45.524579
+            ],
+            [
+              -73.511523,
+              45.524887
+            ],
+            [
+              -73.511946,
+              45.524236
+            ],
+            [
+              -73.512455,
+              45.523454
+            ],
+            [
+              -73.51306,
+              45.523637
+            ],
+            [
+              -73.513348,
+              45.523723
+            ],
+            [
+              -73.513525,
+              45.523724
+            ],
+            [
+              -73.513512,
+              45.522963
+            ],
+            [
+              -73.513511,
+              45.522924
+            ],
+            [
+              -73.513514,
+              45.522659
+            ],
+            [
+              -73.513513,
+              45.522529
+            ],
+            [
+              -73.51346802270393,
+              45.52115535341436
+            ],
+            [
+              -73.51348602270393,
+              45.522529353414356
+            ]
+          ]
+        },
+        "id": 432,
+        "properties": {
+          "id": "23424624-2557-497d-8eda-08c36eed76f9",
+          "data": {
+            "gtfs": {
+              "shape_id": "f6914ae0-c474-47c6-945d-43d4612d434c"
+            },
+            "segments": [
+              {
+                "distanceMeters": 439,
+                "travelTimeSeconds": 94
+              },
+              {
+                "distanceMeters": 614,
+                "travelTimeSeconds": 90
+              },
+              {
+                "distanceMeters": 1118,
+                "travelTimeSeconds": 162
+              },
+              {
+                "distanceMeters": 1204,
+                "travelTimeSeconds": 160
+              },
+              {
+                "distanceMeters": 1037,
+                "travelTimeSeconds": 148
+              }
+            ],
+            "from_gtfs": true,
+            "nodeTypes": [],
+            "variables": {
+              "d_p": null,
+              "n_q_p": 0,
+              "n_s_p": 0,
+              "d_l_avg": null,
+              "d_l_max": null,
+              "d_l_med": null,
+              "d_l_min": null
+            },
+            "waypoints": [],
+            "routingMode": "bus_urban",
+            "routingEngine": "engine",
+            "waypointTypes": [],
+            "dwellTimeSeconds": [
+              0,
+              20,
+              20,
+              20,
+              20,
+              0
+            ],
+            "defaultRoutingMode": "bus_urban",
+            "layoverTimeSeconds": 180,
+            "maxRunningSpeedKmH": 120,
+            "defaultAcceleration": 1,
+            "defaultDeceleration": 1,
+            "returnBackGeography": null,
+            "totalDistanceMeters": 4412,
+            "defaultRoutingEngine": "engine",
+            "totalDwellTimeSeconds": 80,
+            "defaultRunningSpeedKmH": 40,
+            "defaultDwellTimeSeconds": 20,
+            "birdDistanceBetweenTerminals": 0,
+            "defaultMinLayoverTimeSeconds": 180,
+            "operatingSpeedMetersPerSecond": 6.01,
+            "travelTimeWithoutDwellTimesSeconds": 654,
+            "operatingTimeWithLayoverTimeSeconds": 914,
+            "totalTravelTimeWithReturnBackSeconds": null,
+            "defaultLayoverRatioOverTotalTravelTime": 0.1,
+            "operatingTimeWithoutLayoverTimeSeconds": 734,
+            "operatingSpeedWithLayoverMetersPerSecond": 4.83,
+            "averageSpeedWithoutDwellTimesMetersPerSecond": 6.75
+          },
+          "mode": "bus",
+          "name": "allo",
+          "color": "#0086FF",
+          "nodes": [
+            "9db6aff2-2175-49e9-984e-3eb4c8dd470c",
+            "1893a2d3-2e8b-4965-b8e9-5552ec8f07a4",
+            "1da8599d-038c-4242-b6d8-ab011dd7f5a1",
+            "13013916-32c5-4da2-8c6f-a9c582a4c0a5",
+            "0abd44bc-ce59-4161-a0a7-b31176db0e89",
+            "9db6aff2-2175-49e9-984e-3eb4c8dd470c"
+          ],
+          "stops": [],
+          "line_id": "64343fa8-40dc-4015-91da-fd16754900e6",
+          "segments": [
+            0,
+            6,
+            23,
+            41,
+            58
+          ],
+          "direction": "outbound",
+          "is_frozen": false,
+          "created_at": "2023-03-14T18:35:26.422185+00:00",
+          "integer_id": 432,
+          "is_enabled": true,
+          "updated_at": null,
+          "description": null,
+          "internal_id": null
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              -73.50828852417017,
+              45.520952296045216
+            ],
+            [
+              -73.50835248436653,
+              45.52106522576691
+            ],
+            [
+              -73.50879644395893,
+              45.521860153415474
+            ],
+            [
+              -73.50888744561341,
+              45.52202315637901
+            ],
+            [
+              -73.50917235155603,
+              45.52253298806579
+            ],
+            [
+              -73.50927425659131,
+              45.52272181210174
+            ],
+            [
+              -73.5096632382837,
+              45.52344277816912
+            ],
+            [
+              -73.50972982659697,
+              45.52356701009688
+            ],
+            [
+              -73.50995247856473,
+              45.52405225160507
+            ],
+            [
+              -73.51018,
+              45.524458
+            ],
+            [
+              -73.510426,
+              45.525377
+            ],
+            [
+              -73.510431,
+              45.525413
+            ],
+            [
+              -73.510485,
+              45.52576
+            ],
+            [
+              -73.510565,
+              45.526283
+            ],
+            [
+              -73.510566,
+              45.526288
+            ],
+            [
+              -73.508382,
+              45.525568
+            ],
+            [
+              -73.507854,
+              45.526365
+            ],
+            [
+              -73.507334,
+              45.52715
+            ],
+            [
+              -73.506781,
+              45.526968
+            ],
+            [
+              -73.505571,
+              45.526568
+            ],
+            [
+              -73.505375,
+              45.526503
+            ],
+            [
+              -73.50361,
+              45.525921
+            ],
+            [
+              -73.502701,
+              45.52562
+            ],
+            [
+              -73.500486,
+              45.524902
+            ],
+            [
+              -73.500138,
+              45.524763
+            ],
+            [
+              -73.500131,
+              45.52476
+            ],
+            [
+              -73.500093,
+              45.524745
+            ],
+            [
+              -73.500017,
+              45.524714
+            ],
+            [
+              -73.500072,
+              45.524631
+            ],
+            [
+              -73.500403,
+              45.524121
+            ],
+            [
+              -73.500517,
+              45.523949
+            ],
+            [
+              -73.500601,
+              45.523821
+            ],
+            [
+              -73.500601,
+              45.523754
+            ],
+            [
+              -73.500561,
+              45.523716
+            ],
+            [
+              -73.500255,
+              45.523604
+            ],
+            [
+              -73.500367,
+              45.52342
+            ],
+            [
+              -73.50062,
+              45.523008
+            ],
+            [
+              -73.500708,
+              45.522863
+            ],
+            [
+              -73.501099,
+              45.522224
+            ],
+            [
+              -73.500708,
+              45.522863
+            ],
+            [
+              -73.50062,
+              45.523008
+            ],
+            [
+              -73.500367,
+              45.52342
+            ],
+            [
+              -73.501004,
+              45.52084
+            ],
+            [
+              -73.501434,
+              45.520208
+            ],
+            [
+              -73.501844,
+              45.519605
+            ],
+            [
+              -73.50224963683692,
+              45.51902165067072
+            ],
+            [
+              -73.50554076765208,
+              45.52009469332179
+            ],
+            [
+              -73.50818399679271,
+              45.52092676545384
+            ],
+            [
+              -73.50824584722251,
+              45.520945719617806
+            ],
+            [
+              -73.50830360102779,
+              45.52096463896781
+            ]
+          ]
+        },
+        "id": 433,
+        "properties": {
+          "id": "30fb2f7e-8277-4c92-8e03-c5aac5ee4860",
+          "data": {
+            "gtfs": {
+              "shape_id": "e9c2034a-811d-4cbd-bd7e-ca274a312679"
+            },
+            "segments": [
+              {
+                "distanceMeters": 623,
+                "travelTimeSeconds": 73
+              },
+              {
+                "distanceMeters": 1003,
+                "travelTimeSeconds": 121
+              },
+              {
+                "distanceMeters": 1281,
+                "travelTimeSeconds": 180
+              }
+            ],
+            "from_gtfs": true,
+            "nodeTypes": [],
+            "variables": {
+              "d_p": null,
+              "n_q_p": 0,
+              "n_s_p": 0,
+              "d_l_avg": null,
+              "d_l_max": null,
+              "d_l_med": null,
+              "d_l_min": null
+            },
+            "waypoints": [],
+            "routingMode": "bus_urban",
+            "routingEngine": "engine",
+            "waypointTypes": [],
+            "dwellTimeSeconds": [
+              0,
+              20,
+              20,
+              0
+            ],
+            "defaultRoutingMode": "bus_urban",
+            "layoverTimeSeconds": 180,
+            "maxRunningSpeedKmH": 120,
+            "defaultAcceleration": 1,
+            "defaultDeceleration": 1,
+            "returnBackGeography": null,
+            "totalDistanceMeters": 2907,
+            "defaultRoutingEngine": "engine",
+            "totalDwellTimeSeconds": 40,
+            "defaultRunningSpeedKmH": 40,
+            "defaultDwellTimeSeconds": 20,
+            "birdDistanceBetweenTerminals": 0,
+            "defaultMinLayoverTimeSeconds": 180,
+            "operatingSpeedMetersPerSecond": 7.02,
+            "travelTimeWithoutDwellTimesSeconds": 374,
+            "operatingTimeWithLayoverTimeSeconds": 594,
+            "totalTravelTimeWithReturnBackSeconds": null,
+            "defaultLayoverRatioOverTotalTravelTime": 0.1,
+            "operatingTimeWithoutLayoverTimeSeconds": 414,
+            "operatingSpeedWithLayoverMetersPerSecond": 4.89,
+            "averageSpeedWithoutDwellTimesMetersPerSecond": 7.77
+          },
+          "mode": "bus",
+          "name": "outbound",
+          "color": "#ff0000",
+          "nodes": [
+            "1893a2d3-2e8b-4965-b8e9-5552ec8f07a4",
+            "2e11d7c6-5ded-4e4c-aeb2-4312df2b8e67",
+            "d41672d0-e186-418e-b20f-1d82b60c3365",
+            "1893a2d3-2e8b-4965-b8e9-5552ec8f07a4"
+          ],
+          "stops": [],
+          "line_id": "ceb91422-b237-444b-ae6c-382ec1b196f0",
+          "segments": [
+            0,
+            13,
+            24
+          ],
+          "direction": "outbound",
+          "is_frozen": false,
+          "created_at": "2023-03-14T18:35:26.422185+00:00",
+          "integer_id": 433,
+          "is_enabled": true,
+          "updated_at": null,
+          "description": null,
+          "internal_id": null
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              -73.504673,
+              45.52101
+            ],
+            [
+              -73.506868,
+              45.522376
+            ],
+            [
+              -73.501812,
+              45.523633
+            ],
+            [
+              -73.504673,
+              45.52101
+            ]
+          ]
+        },
+        "id": 434,
+        "properties": {
+          "id": "5dad050b-276b-41ca-9430-836e6182ef11",
+          "data": {
+            "segments": [
+              {
+                "distanceMeters": 229,
+                "travelTimeSeconds": 37
+              },
+              {
+                "distanceMeters": 418,
+                "travelTimeSeconds": 49
+              },
+              {
+                "distanceMeters": 368,
+                "travelTimeSeconds": 46
+              }
+            ],
+            "from_gtfs": false,
+            "nodeTypes": [
+              "manual",
+              "manual",
+              "manual",
+              "manual"
+            ],
+            "variables": {
+              "d_p": 1015,
+              "T_o_p": 240,
+              "n_q_p": 4,
+              "n_s_p": 4,
+              "d_l_avg": 338,
+              "d_l_max": 418,
+              "d_l_med": 368,
+              "d_l_min": 229
+            },
+            "waypoints": [
+              [],
+              [],
+              [],
+              []
+            ],
+            "routingMode": "rail",
+            "routingEngine": "manual",
+            "routingFailed": false,
+            "waypointTypes": [
+              [],
+              [],
+              [],
+              []
+            ],
+            "dwellTimeSeconds": [
+              0,
+              30,
+              30,
+              30
+            ],
+            "defaultRoutingMode": "bus_urban",
+            "layoverTimeSeconds": 180,
+            "maxRunningSpeedKmH": 250,
+            "defaultAcceleration": 0.7,
+            "defaultDeceleration": 0.7,
+            "returnBackGeography": null,
+            "totalDistanceMeters": 1015,
+            "defaultRoutingEngine": "engine",
+            "totalDwellTimeSeconds": 90,
+            "defaultRunningSpeedKmH": 90,
+            "defaultDwellTimeSeconds": 30,
+            "defaultMinLayoverTimeSeconds": 180,
+            "operatingSpeedMetersPerSecond": 4.23,
+            "travelTimeWithoutDwellTimesSeconds": 60,
+            "operatingTimeWithLayoverTimeSeconds": 420,
+            "totalTravelTimeWithReturnBackSeconds": 420,
+            "defaultLayoverRatioOverTotalTravelTime": 0.1,
+            "operatingTimeWithoutLayoverTimeSeconds": 240,
+            "operatingSpeedWithLayoverMetersPerSecond": 2.42,
+            "directRouteBetweenTerminalsDistanceMeters": 0,
+            "averageSpeedWithoutDwellTimesMetersPerSecond": 16.92,
+            "directRouteBetweenTerminalsTravelTimeSeconds": 0
+          },
+          "mode": "rail",
+          "name": null,
+          "color": "#7cc2ff",
+          "nodes": [
+            "c72f260f-0d66-46a0-aa47-d7bdf5b8c3c5",
+            "c64e94bb-98df-4524-930a-135a6f4b4bff",
+            "0e5d2dfa-ebda-4bee-8d5e-46436cbea299",
+            "c72f260f-0d66-46a0-aa47-d7bdf5b8c3c5"
+          ],
+          "stops": [],
+          "line_id": "b84c824e-021d-468d-ace8-2d3141f1a92f",
+          "segments": [
+            0,
+            1,
+            2
+          ],
+          "direction": "outbound",
+          "is_frozen": false,
+          "created_at": "2023-03-14T18:37:25.139166+00:00",
+          "integer_id": 434,
+          "is_enabled": true,
+          "updated_at": "2023-03-14T18:37:28.770778+00:00",
+          "description": null,
+          "internal_id": null
+        }
+      },
+      {
+        "type": "Feature",
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              -73.506902,
+              45.518315
+            ],
+            [
+              -73.50712158963032,
+              45.51875741096554
+            ],
+            [
+              -73.50723532335999,
+              45.51895594616031
+            ],
+            [
+              -73.50733301923187,
+              45.51914336273085
+            ],
+            [
+              -73.50735902998653,
+              45.519194383826544
+            ],
+            [
+              -73.50752609767734,
+              45.51951351312816
+            ],
+            [
+              -73.507622,
+              45.519639
+            ],
+            [
+              -73.50774820582673,
+              45.51993971757537
+            ],
+            [
+              -73.50821303283041,
+              45.52080939390484
+            ],
+            [
+              -73.50822402743344,
+              45.52083138311092
+            ],
+            [
+              -73.50828819446096,
+              45.52095169628749
+            ],
+            [
+              -73.508365,
+              45.521033
+            ]
+          ]
+        },
+        "id": 439,
+        "properties": {
+          "id": "00b3410d-2a90-4d1f-a8a0-da1df08e8adf",
+          "data": {
+            "segments": [
+              {
+                "distanceMeters": 158,
+                "travelTimeSeconds": 26
+              },
+              {
+                "distanceMeters": 166,
+                "travelTimeSeconds": 36
+              }
+            ],
+            "from_gtfs": false,
+            "nodeTypes": [
+              "engine",
+              "engine",
+              "engine"
+            ],
+            "variables": {
+              "d_p": 324,
+              "T_o_p": 120,
+              "n_q_p": 3,
+              "n_s_p": 3,
+              "d_l_avg": 162,
+              "d_l_max": 166,
+              "d_l_med": 162,
+              "d_l_min": 158
+            },
+            "waypoints": [
+              [],
+              [],
+              []
+            ],
+            "routingMode": "bus_urban",
+            "routingEngine": "engine",
+            "routingFailed": false,
+            "waypointTypes": [
+              [],
+              [],
+              []
+            ],
+            "dwellTimeSeconds": [
+              0,
+              20,
+              20
+            ],
+            "defaultRoutingMode": "bus_urban",
+            "layoverTimeSeconds": 180,
+            "maxRunningSpeedKmH": 120,
+            "defaultAcceleration": 1,
+            "defaultDeceleration": 1,
+            "returnBackGeography": null,
+            "totalDistanceMeters": 324,
+            "defaultRoutingEngine": "engine",
+            "totalDwellTimeSeconds": 40,
+            "defaultRunningSpeedKmH": 40,
+            "defaultDwellTimeSeconds": 20,
+            "defaultMinLayoverTimeSeconds": 180,
+            "operatingSpeedMetersPerSecond": 2.7,
+            "travelTimeWithoutDwellTimesSeconds": 60,
+            "operatingTimeWithLayoverTimeSeconds": 300,
+            "totalTravelTimeWithReturnBackSeconds": 300,
+            "defaultLayoverRatioOverTotalTravelTime": 0.1,
+            "operatingTimeWithoutLayoverTimeSeconds": 120,
+            "operatingSpeedWithLayoverMetersPerSecond": 1.08,
+            "directRouteBetweenTerminalsDistanceMeters": 323,
+            "averageSpeedWithoutDwellTimesMetersPerSecond": 5.4,
+            "directRouteBetweenTerminalsTravelTimeSeconds": 44
+          },
+          "mode": "bus",
+          "name": null,
+          "color": "#7cc2ff",
+          "nodes": [
+            "c28a8fa6-886c-4f1e-b291-00d0237d02dd",
+            "01cbab8a-50a9-42e0-9d05-820a9dd4fa51",
+            "1893a2d3-2e8b-4965-b8e9-5552ec8f07a4"
+          ],
+          "stops": [],
+          "line_id": "a83750a3-afd2-43ab-9f44-9388d43312b7",
+          "segments": [
+            0,
+            6
+          ],
+          "direction": "outbound",
+          "is_frozen": false,
+          "created_at": "2023-03-17T19:53:55.906598+00:00",
+          "integer_id": 439,
+          "is_enabled": true,
+          "updated_at": null,
+          "description": null,
+          "internal_id": null
+        }
+      }
+    ]
+  }

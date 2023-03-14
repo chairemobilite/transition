@@ -115,7 +115,7 @@ const replaceCoordinate = (lineToReplace: string, offsetLine: string, lineId: nu
         }
     }
     const lineIndex = getLineIndexById(lineId,layerData);
-    let geoData = layerData as any;
+    const geoData = layerData as any;
     geoData.features[lineIndex].geometry.coordinates =
         line.geometry.coordinates;
 };
