@@ -42,6 +42,15 @@ const setupSocketServerApp = async function (server, session) {
     serviceLocator.addService('socketEventManager', new events.EventEmitter());
     allSocketRoutes(serviceLocator.socketEventManager);
 
+    // Batch calculation jobs require the cache to exist. It should not be
+    // possible to run those without the cache, so we wait for its creation
+    // before allowing users to connect
+    if (_booleish(process.env.STARTUP_RECREATE_CACHE)) {
+        console.log('Recreating cache files');
+        // TODO get cachePathDIrectory from params
+        await recreateCache({ refreshTransferrableNodes: true, saveLines: true });
+    }
+
     // Enqueue/resume running and pending tasks
     // FIXME This implies a single server process for a given database. We don't
     // know if the job is enqueued in another process somewhere and may be
@@ -107,12 +116,6 @@ const setupSocketServerApp = async function (server, session) {
         preferencesSocketRoutes(socket, (socket as any).handshake.session.passport.user);
         allSocketRoutes(socket, (socket as any).handshake.session.passport.user);
     });
-
-    if (_booleish(process.env.STARTUP_RECREATE_CACHE)) {
-        console.log('Recreating cache files');
-        // TODO get cachePathDIrectory from params
-        recreateCache({ refreshTransferrableNodes: true, saveLines: true });
-    }
 
     return io;
 };
