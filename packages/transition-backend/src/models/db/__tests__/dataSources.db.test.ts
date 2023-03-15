@@ -6,11 +6,20 @@
  */
 import { v4 as uuidV4 } from 'uuid';
 
+import knex from 'chaire-lib-backend/lib/config/shared/db.config';
+import { create, truncate } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import dbQueries           from '../dataSources.db.queries';
 import Collection          from 'transition-common/lib/services/dataSource/DataSourceCollection';
 import ObjectClass         from 'transition-common/lib/services/dataSource/DataSource';
 
 const objectName   = 'data source';
+
+const user = {
+    id: 1,
+    uuid: uuidV4(),
+    email: 'test@transition.city',
+    is_valid: true
+};
 
 const newObjectAttributes = {
     id: uuidV4(),
@@ -32,6 +41,7 @@ const newObjectAttributes2 = {
     name: 'new test data source 2',
     description: "description for new test data source 2",
     is_frozen: false,
+    owner: user.id,
     data: {
       foo2: 'bar2',
       bar2: 'foo2'
@@ -59,10 +69,13 @@ const updatedAttributes = {
 beforeAll(async () => {
     jest.setTimeout(10000);
     await dbQueries.truncate();
+    await truncate(knex, 'users');
+    await create(knex, 'users', undefined, user as any);
 });
 
 afterAll(async() => {
     await dbQueries.truncate();
+    await truncate(knex, 'users');
     dbQueries.destroy();
 });
 
@@ -88,6 +101,7 @@ describe(`${objectName}`, () => {
         const attributes = await dbQueries.read(newObjectAttributes.id) as any;
         delete attributes.updated_at;
         delete attributes.created_at;
+        delete attributes.owner;
         expect(attributes).toEqual(newObjectAttributes);
 
     });
@@ -145,7 +159,7 @@ describe(`${objectName}`, () => {
         delete collection[0].attributes.updated_at;
         delete collection[1].attributes.updated_at;
         expect(collection[0].getId()).toBe(_newObjectAttributes.id);
-        expect(collection[0].getAttributes()).toEqual(new ObjectClass(_newObjectAttributes, false).getAttributes());
+        expect(collection[0].getAttributes()).toEqual({ ...(new ObjectClass(_newObjectAttributes, false).getAttributes()), owner: null });
         expect(collection[1].getId()).toBe(_newObjectAttributes2.id);
         expect(collection[1].getAttributes()).toEqual(new ObjectClass(_newObjectAttributes2, false).getAttributes());
         
@@ -207,7 +221,7 @@ describe(`${objectName}`, () => {
         // Find new object
         const object1 = collection.find((obj) => obj.getId() === _newObjectAttributes.id);
         expect(object1).toBeDefined();
-        expect((object1 as any).getAttributes()).toEqual(new ObjectClass(_newObjectAttributes, false).getAttributes());
+        expect((object1 as any).getAttributes()).toEqual({ ...(new ObjectClass(_newObjectAttributes, false).getAttributes()), owner: null });
         const object2 = collection.find((obj) => obj.getId() === _newObjectAttributes2.id);
         expect(object2).toBeDefined();
         expect((object2 as any).getAttributes()).toEqual(new ObjectClass(_newObjectAttributes2, false).getAttributes());

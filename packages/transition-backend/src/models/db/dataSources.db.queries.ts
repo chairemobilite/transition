@@ -26,14 +26,12 @@ const tableName = 'tr_data_sources';
 
 const collection = async (type?: DataSourceType): Promise<DataSourceAttributes[]> => {
     try {
-        const response = await knex.raw(`
-        SELECT 
-          *
-        FROM ${tableName}
-        ${type !== undefined ? `WHERE type = '${type}'` : ''}
-        ORDER BY name;
-      `);
-        const collection = response.rows;
+        const query = knex(tableName);
+        if (type !== undefined) {
+            query.where('type', type);
+        }
+        query.orderBy('name');
+        const collection = await query;
         if (collection) {
             return collection;
         }
