@@ -258,7 +258,7 @@ describe('trRouting routes', () => {
         type: 'csv',
         configuration: {
             calculationName: 'test',
-            csvFile: { location: 'upload' },
+            csvFile: { location: 'upload', filename: 'myCoolFile.csv' },
             cpuCount: 1,
             saveToDb: false
         }

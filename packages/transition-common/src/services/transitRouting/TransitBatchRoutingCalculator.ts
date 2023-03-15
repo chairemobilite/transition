@@ -86,7 +86,10 @@ export class TransitBatchRoutingCalculator {
                 withGeometries: attributes.withGeometries || false,
                 cpuCount: attributes.cpuCount || 1,
                 saveToDb: attributes.saveToDb || false,
-                csvFile: attributes.csvFile === undefined ? { location: 'upload' } : attributes.csvFile
+                csvFile:
+                    attributes.csvFile === undefined
+                        ? { location: 'upload', filename: 'batchRouting.csv' }
+                        : attributes.csvFile
             }
         };
 

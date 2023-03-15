@@ -95,7 +95,7 @@ const defaultParameters = {
     withGeometries: false,
     detailed: false,
     cpuCount: 1,
-    csvFile: { location: 'upload' as const }
+    csvFile: { location: 'upload' as const, filename: 'input.csv' }
 };
 
 const defaultAttributes = {

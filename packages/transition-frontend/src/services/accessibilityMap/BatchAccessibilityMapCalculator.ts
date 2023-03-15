@@ -89,7 +89,7 @@ export class BatchAccessibilityMapCalculator {
             timeAttribute: attributes.timeAttribute as string,
             withGeometries: attributes.withGeometries || false,
             cpuCount: attributes.cpuCount || 1,
-            csvFile: { location: 'upload' }
+            csvFile: attributes.csvFile || { location: 'upload', filename: 'batchAccessMap.csv' }
         };
 
         try {

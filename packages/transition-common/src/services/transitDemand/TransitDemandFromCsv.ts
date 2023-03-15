@@ -91,7 +91,10 @@ export abstract class TransitDemandFromCsv<T extends TransitDemandFromCsvAttribu
         fileLocation: { location: 'upload' } | { location: 'server'; fromJob: number }
     ) => {
         let csvFileAttributes: string[] = [];
-        this.attributes.csvFile = fileLocation;
+        this.attributes.csvFile =
+            fileLocation.location === 'upload'
+                ? { location: 'upload', filename: typeof file === 'string' ? file : (file as File).name }
+                : fileLocation;
         await parseCsvFile(
             file,
             (data) => {
