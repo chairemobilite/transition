@@ -7,15 +7,17 @@
 import { EventEmitter } from 'events';
 import path from 'path';
 
-import Job, { JobAttributes, JobDataType } from 'transition-common/lib/services/jobs/Job';
+import Job, { JobAttributes, JobDataType, fileKey } from 'transition-common/lib/services/jobs/Job';
 import jobsDbQueries from '../../models/db/jobs.db.queries';
 import { directoryManager } from 'chaire-lib-backend/lib//utils/filesystem/directoryManager';
 import { execJob } from '../../tasks/serverWorkerPool';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 
-export type InitialJobData = {
-    inputFiles?: string[];
+export type InitialJobData<TData extends JobDataType> = {
+    inputFiles?: {
+        [Property in keyof TData[fileKey]]?: string;
+    };
     hasOutputFiles?: boolean;
 };
 
@@ -64,7 +66,11 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
     }
 
     static async createJob<TData extends JobDataType>(
-        { inputFiles, hasOutputFiles, ...attributes }: Omit<JobAttributes<TData>, 'id' | 'status'> & InitialJobData,
+        {
+            inputFiles,
+            hasOutputFiles,
+            ...attributes
+        }: Omit<JobAttributes<TData>, 'id' | 'status'> & InitialJobData<TData>,
         jobListener?: EventEmitter
     ): Promise<ExecutableJob<TData>> {
         // Check the disk usage if the job has output files
@@ -75,19 +81,35 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             }
         }
 
+        // Initialize the job's input files
+        const toCopy: {
+            filePath: string;
+            jobFileName: string;
+        }[] = [];
+        if (inputFiles) {
+            const jobFiles: {
+                [Property in keyof TData[fileKey]]?: string;
+            } = {};
+            Object.keys(inputFiles).forEach((inputFileKey: keyof TData[fileKey]) => {
+                const inputFile = inputFiles[inputFileKey];
+                if (inputFile !== undefined && fileManager.fileExistsAbsolute(inputFile)) {
+                    const parsedInput = path.parse(inputFile);
+                    jobFiles[inputFileKey] = `${parsedInput.name}${parsedInput.ext}`;
+                    toCopy.push({
+                        filePath: inputFile,
+                        jobFileName: `${parsedInput.name}${parsedInput.ext}`
+                    });
+                }
+            });
+            attributes.resources = { ...(attributes.resources || {}), files: jobFiles };
+        }
+
         const id = await jobsDbQueries.create({ status: 'pending', ...attributes });
         jobListener?.emit('executableJob.updated', { id, name: attributes.name });
         const job = new ExecutableJob<TData>({ id, status: 'pending', ...attributes });
-        if (inputFiles) {
-            inputFiles.forEach((inputFile) => {
-                const parsedInput = path.parse(inputFile);
-                fileManager.copyFileAbsolute(
-                    inputFile,
-                    `${job.getJobFileDirectory()}/${parsedInput.name}${parsedInput.ext}`,
-                    true
-                );
-            });
-        }
+        toCopy.forEach(({ filePath, jobFileName }) =>
+            fileManager.copyFileAbsolute(filePath, `${job.getJobFileDirectory()}/${jobFileName}`, true)
+        );
         return job;
     }
 
