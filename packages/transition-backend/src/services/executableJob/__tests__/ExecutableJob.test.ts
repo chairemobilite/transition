@@ -108,20 +108,23 @@ test('Test create job', async () => {
 test('Test create job with input files', async () => {
     const filename = 'blabla.csv';
     const absoluteFilePath = `/path/to/file/${filename}`;
+    const renameTo = 'myCoolFile.csv';
     const attributes = _cloneDeep(newJobAttributes) as any;
-    attributes.inputFiles = { testFile: absoluteFilePath };
+    attributes.inputFiles = { testFile: absoluteFilePath, testFile2: { filepath: absoluteFilePath, renameTo } };
 
     mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
     const jobObj = await ExecutableJob.createJob(attributes);
     expect(mockedJobCreate).toHaveBeenCalledTimes(1);
-    expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', ...newJobAttributes, resources: { files: { testFile: filename } } });
-    expect(jobObj.attributes).toEqual(expect.objectContaining({ id: jobAttributes.id, ...newJobAttributes, resources: { files: { testFile: filename } } }));
+    expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', ...newJobAttributes, resources: { files: { testFile: filename, testFile2: renameTo } } });
+    expect(jobObj.attributes).toEqual(expect.objectContaining({ id: jobAttributes.id, ...newJobAttributes, resources: { files: { testFile: filename, testFile2: renameTo } } }));
     expect(jobObj.status).toEqual('pending');
 
-    expect(mockedFileExists).toHaveBeenCalledTimes(1);
-    expect(mockedFileExists).toHaveBeenCalledWith(absoluteFilePath);
-    expect(mockedCopyFile).toHaveBeenCalledTimes(1);
-    expect(mockedCopyFile).toHaveBeenCalledWith(absoluteFilePath, `${jobObj.getJobFileDirectory()}/${filename}`, true);
+    expect(mockedFileExists).toHaveBeenCalledTimes(2);
+    expect(mockedFileExists).toHaveBeenNthCalledWith(1, absoluteFilePath);
+    expect(mockedFileExists).toHaveBeenNthCalledWith(2, absoluteFilePath);
+    expect(mockedCopyFile).toHaveBeenCalledTimes(2);
+    expect(mockedCopyFile).toHaveBeenNthCalledWith(1, absoluteFilePath, `${jobObj.getJobFileDirectory()}/${filename}`, true);
+    expect(mockedCopyFile).toHaveBeenNthCalledWith(2, absoluteFilePath, `${jobObj.getJobFileDirectory()}/${renameTo}`, true);
 });
 
 

@@ -17,7 +17,7 @@ import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager
 
 export type InitialJobData<TData extends JobDataType> = {
     inputFiles?: {
-        [Property in keyof TData[fileKey]]?: string;
+        [Property in keyof TData[fileKey]]?: string | { filepath: string; renameTo: string };
     };
     hasOutputFiles?: boolean;
 };
@@ -93,12 +93,17 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             } = {};
             Object.keys(inputFiles).forEach((inputFileKey: keyof TData[fileKey]) => {
                 const inputFile = inputFiles[inputFileKey];
-                if (inputFile !== undefined && fileManager.fileExistsAbsolute(inputFile)) {
-                    const parsedInput = path.parse(inputFile);
-                    jobFiles[inputFileKey] = `${parsedInput.name}${parsedInput.ext}`;
+                if (inputFile === undefined) {
+                    return;
+                }
+                const inputFilePath = typeof inputFile === 'string' ? inputFile : inputFile.filepath;
+                if (fileManager.fileExistsAbsolute(inputFilePath)) {
+                    const jobFileName =
+                        typeof inputFile === 'string' ? path.parse(inputFilePath).base : inputFile.renameTo;
+                    jobFiles[inputFileKey] = jobFileName;
                     toCopy.push({
-                        filePath: inputFile,
-                        jobFileName: `${parsedInput.name}${parsedInput.ext}`
+                        filePath: inputFilePath,
+                        jobFileName: jobFileName
                     });
                 }
             });
