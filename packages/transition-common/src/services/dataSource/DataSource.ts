@@ -30,6 +30,7 @@ export type DataSourceType = typeof dataSourceTypesArray[number];
 
 export interface DataSourceAttributes extends GenericAttributes {
     type: DataSourceType;
+    owner?: number;
 }
 
 class DataSource extends ObjectWithHistory<DataSourceAttributes> {
