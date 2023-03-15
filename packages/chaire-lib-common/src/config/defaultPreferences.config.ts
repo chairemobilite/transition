@@ -550,6 +550,7 @@ const defaultPreferences: PreferencesModel = {
             },
             transit: {
                 routingModes: ['transit'],
+                withAlternatives: false,
                 departureTimeSecondsSinceMidnight: 28800,
                 arrivalTimeSecondsSinceMidnight: null,
                 minWaitingTimeSeconds: 180,
