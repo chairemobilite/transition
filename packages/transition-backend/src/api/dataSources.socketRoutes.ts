@@ -15,10 +15,10 @@ import dataSourcesDbQueries from '../models/db/dataSources.db.queries';
  * @export
  * @param {EventEmitter} socket The socket to register the routes to
  */
-export default function (socket: EventEmitter) {
+export default function (socket: EventEmitter, userId?: number) {
     socket.on('dataSources.collection', async (_dataSourceId, callback) => {
         try {
-            const collection = await dataSourcesDbQueries.collection();
+            const collection = await dataSourcesDbQueries.collection({ userId });
             callback({ collection });
         } catch (error) {
             console.error(error);

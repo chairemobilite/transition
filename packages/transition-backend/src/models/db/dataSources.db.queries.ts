@@ -5,10 +5,10 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
+import { validate as uuidValidate } from 'uuid';
 
 import {
     exists,
-    read,
     create,
     createMultiple,
     update,
@@ -24,11 +24,19 @@ import { DataSourceAttributes, DataSourceType } from 'transition-common/lib/serv
 
 const tableName = 'tr_data_sources';
 
-const collection = async (type?: DataSourceType): Promise<DataSourceAttributes[]> => {
+const collection = async (
+    options: { type?: DataSourceType; userId?: number } = {}
+): Promise<DataSourceAttributes[]> => {
     try {
         const query = knex(tableName);
-        if (type !== undefined) {
-            query.where('type', type);
+        if (options.type !== undefined) {
+            query.where('type', options.type);
+        }
+        if (options.userId !== undefined) {
+            query.where((builder) => {
+                builder.where('owner', options.userId);
+                builder.orWhereNull('owner');
+            });
         }
         query.orderBy('name');
         const collection = await query;
@@ -55,9 +63,17 @@ const collection = async (type?: DataSourceType): Promise<DataSourceAttributes[]
  * @param name Name or shortname of the data source to find
  * @returns The data source attributes if found or undefined otherwise
  */
-const findByName = async (name: string): Promise<DataSourceAttributes | undefined> => {
+const findByName = async (name: string, userId?: number): Promise<DataSourceAttributes | undefined> => {
     try {
-        const dataSources = await knex(tableName).where('name', name).orWhere('shortname', name);
+        const query = knex(tableName);
+        query.where((builder) => {
+            builder.where('name', name);
+            builder.orWhere('shortname', name);
+        });
+        if (userId !== undefined) {
+            query.andWhere('owner', userId);
+        }
+        const dataSources = await query;
         return dataSources.length > 0 ? dataSources[0] : undefined;
     } catch (error) {
         throw new TrError(
@@ -68,9 +84,42 @@ const findByName = async (name: string): Promise<DataSourceAttributes | undefine
     }
 };
 
+const read = async (id: string, userId?: number): Promise<Partial<DataSourceAttributes>> => {
+    try {
+        if (!uuidValidate(id)) {
+            throw new TrError(
+                `Cannot read object from table ${tableName} because the required parameter id is missing, blank or not a valid uuid`,
+                'DBQDSC0004',
+                'DatabaseCannotReadDataSourceBecauseIdIsMissingOrInvalid'
+            );
+        }
+        const query = knex(tableName).where('id', id);
+        if (userId !== undefined) {
+            query.andWhere('owner', userId);
+        }
+        const rows = await query;
+
+        if (rows.length !== 1) {
+            throw new TrError(
+                `Cannot find object with id ${id} from table ${tableName}`,
+                'DBQRD0002',
+                'DatabaseCannotReadDataSourceBecauseObjectDoesNotExist'
+            );
+        } else {
+            return rows[0];
+        }
+    } catch (error) {
+        throw new TrError(
+            `Cannot read object with id ${id} from table ${tableName} (knex error: ${error})`,
+            'DBQRD0003',
+            'DatabaseCannotReadDataSourceBecauseDatabaseError'
+        );
+    }
+};
+
 export default {
     exists: exists.bind(null, knex, tableName),
-    read: read.bind(null, knex, tableName, undefined, '*'),
+    read,
     create: (newObject: DataSourceAttributes, returning?: string) => {
         return create(knex, tableName, undefined, newObject, returning);
     },
