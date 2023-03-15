@@ -912,7 +912,7 @@
         "ConfirmCancel": "Do you confirm cancellation of this job?",
         "batchRoute": {
             "files": {
-                "input": "Input file",
+                "input": "Input file: {{filename}}",
                 "csv": "CSV",
                 "geojson": "GeoJSON",
                 "detailedCsv": "CSV with detailed steps"
@@ -920,7 +920,7 @@
         },
         "batchAccessMap": {
             "files": {
-                "input": "Input file",
+                "input": "Input file: {{filename}}",
                 "csv": "CSV",
                 "geojson": "GeoJSON"
             }

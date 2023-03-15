@@ -910,7 +910,7 @@
         "ConfirmCancel": "Confirmez-vous que vous désirez bien annuler cette tâche?",
         "batchRoute": {
             "files": {
-                "input": "Fichier d'entrée",
+                "input": "Fichier d'entrée: {{filename}}",
                 "csv": "CSV",
                 "geojson": "GeoJSON",
                 "detailedCsv": "CSV détaillé avec étapes"
@@ -918,7 +918,7 @@
         },
         "batchAccessMap": {
             "files": {
-                "input": "Fichier d'entrée",
+                "input": "{{filename}}",
                 "csv": "CSV",
                 "geojson": "GeoJSON"
             }
