@@ -97,7 +97,7 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
 
         const batchRouting = this.state.object;
 
-        batchRouting.attributes.csvFile = { location: 'upload' };
+        batchRouting.attributes.csvFile = { location: 'upload', filename: file.name };
 
         this.state.object.validate();
 

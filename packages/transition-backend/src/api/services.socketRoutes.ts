@@ -180,9 +180,16 @@ export default function (socket: EventEmitter, userId?: number) {
             ) => {
                 try {
                     socket.emit('progress', { name: 'BatchRouting', progress: null });
-                    const inputFiles: { [Property in keyof BatchRouteJobType[fileKey]]?: string } = {};
+                    const inputFiles: {
+                        [Property in keyof BatchRouteJobType[fileKey]]?:
+                            | string
+                            | { filepath: string; renameTo: string };
+                    } = {};
                     if (parameters.configuration.csvFile.location === 'upload') {
-                        inputFiles.input = `${directoryManager.userDataDirectory}/${userId}/imports/batchRouting.csv`;
+                        inputFiles.input = {
+                            filepath: `${directoryManager.userDataDirectory}/${userId}/imports/batchRouting.csv`,
+                            renameTo: parameters.configuration.csvFile.filename
+                        };
                     } else {
                         const batchRouteJob = await ExecutableJob.loadTask<BatchRouteJobType>(
                             parameters.configuration.csvFile.fromJob

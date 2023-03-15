@@ -38,7 +38,7 @@ describe('Test Calculate', () => {
     const defaultDemandAttributes = {
         calculationName: 'test',
         projection: 'projection',
-        csvFile: { location: 'upload' as const },
+        csvFile: { location: 'upload' as const, filename: 'input.csv' },
         timeAttributeDepartureOrArrival: 'arrival' as const,
         timeFormat: 'HH:MM',
         timeAttribute: 'time',
@@ -77,7 +77,7 @@ describe('Test Calculate', () => {
             withGeometries: defaultDemandAttributes.withGeometries,
             cpuCount: defaultDemandAttributes.cpuCount,
             saveToDb: defaultDemandAttributes.saveToDb,
-            csvFile: { location: 'upload' }
+            csvFile: { location: 'upload', filename: 'input.csv' }
         }
     }
 
@@ -101,7 +101,7 @@ describe('Test Calculate', () => {
 
     test('Calculate with invalid demand parameters', async () => {
         // File set but no other attribute
-        const invalidDemand = new TransitOdDemandFromCsv({ csvFile: { location: 'upload' as const }});
+        const invalidDemand = new TransitOdDemandFromCsv({ csvFile: { location: 'upload' as const, filename: 'input.csv' }});
         await expect(async () => await TransitBatchRoutingCalculator.calculate(invalidDemand, defaultQueryParams))
             .rejects
             .toThrowError('cannot calculate transit batch route: the CSV file data is invalid');
