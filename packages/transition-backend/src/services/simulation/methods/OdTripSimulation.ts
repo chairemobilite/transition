@@ -58,7 +58,7 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
             i18nName: 'transit:simulation:simulationMethods:OdTripsDataSource',
             type: 'select' as const,
             choices: async () => {
-                const dataSources = await dataSourceDbQueries.collection('odTrips');
+                const dataSources = await dataSourceDbQueries.collection({ type: 'odTrips' });
                 return dataSources.map((ds) => ({
                     value: ds.id,
                     label: ds.shortname

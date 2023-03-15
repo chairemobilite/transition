@@ -131,6 +131,27 @@ describe(`${objectName}`, () => {
 
     });
 
+    test('should read a second object if allowed', async() => {
+        
+        const attributes = await dbQueries.read(newObjectAttributes2.id, user.id) as any;
+        delete attributes.updated_at;
+        delete attributes.created_at;
+        expect(attributes).toEqual(newObjectAttributes2);
+
+    });
+
+    test('should not read an object if not the owner allowed', async() => {
+        
+        let exception: any = undefined;
+        try {
+            await dbQueries.read(newObjectAttributes2.id, user.id + 1);
+        } catch (error) {
+            exception = error;
+        }
+        expect(exception).toBeDefined();
+
+    });
+
     test('should find by name', async() => {
         // By shortname
         const object = await dbQueries.findByName(newObjectAttributes2.shortname);
@@ -139,6 +160,24 @@ describe(`${objectName}`, () => {
         // By name
         const object2 = await dbQueries.findByName(newObjectAttributes2.name);
         expect(object2).toEqual(expect.objectContaining(newObjectAttributes2));
+    });
+
+    test('should find by name and user', async() => {
+        // By shortname and owner
+        const object = await dbQueries.findByName(newObjectAttributes2.shortname, user.id);
+        expect(object).toEqual(expect.objectContaining(newObjectAttributes2));
+
+        // By name and owner
+        const object2 = await dbQueries.findByName(newObjectAttributes2.name, user.id);
+        expect(object2).toEqual(expect.objectContaining(newObjectAttributes2));
+
+        // By shortname and owner
+        const object3 = await dbQueries.findByName(newObjectAttributes2.shortname, user.id + 1);
+        expect(object3).toBeUndefined();
+
+        // By name and owner
+        const object4 = await dbQueries.findByName(newObjectAttributes2.name, user.id + 1);
+        expect(object4).toBeUndefined();
     });
 
     test('should read collection from database', async() => {
@@ -270,11 +309,37 @@ describe(`${objectName}`, () => {
     });
 
     test('Get collection of specific type', async() => {
-        const _collection = await dbQueries.collection(sameNameDifferentType.type);
+        const _collection = await dbQueries.collection({ type: sameNameDifferentType.type });
         expect(_collection.length).toEqual(1);
 
-        const _collectionNone = await dbQueries.collection('none');
+        const _collectionNone = await dbQueries.collection({ type: 'none' });
         expect(_collectionNone.length).toEqual(0);
-    })
+    });
+
+    test('Get collection for specific user', async() => {
+        // Should get all collections for the user
+        const _collection = await dbQueries.collection({ userId: user.id });
+        expect(_collection.length).toEqual(3);
+
+        // Shoule get only the collection with null owner
+        const _collectionNone = await dbQueries.collection({ userId: user.id + 1 });
+        expect(_collectionNone.length).toEqual(2);
+    });
+
+    test('Get collection for specific user and type', async() => {
+        // The user should get his collection for this type
+        let _collection = await dbQueries.collection({ userId: user.id, type: newObjectAttributes2.type });
+        expect(_collection.length).toEqual(1);
+
+        // The other user should not get anything
+        _collection = await dbQueries.collection({ userId: user.id + 1, type: newObjectAttributes2.type });
+        expect(_collection.length).toEqual(0);
+
+        // Both users should get the collection with null owner for other type
+        _collection = await dbQueries.collection({ userId: user.id, type: newObjectAttributes.type  });
+        expect(_collection.length).toEqual(1);
+        _collection = await dbQueries.collection({ userId: user.id + 1, type: newObjectAttributes.type  });
+        expect(_collection.length).toEqual(1);
+    });
 
 });

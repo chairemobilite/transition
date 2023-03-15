@@ -10,11 +10,12 @@ import DataSourceCollection from 'transition-common/lib/services/dataSource/Data
 import dbQueries from '../../models/db/dataSources.db.queries';
 
 export const getDataSource = async (
-    options: { isNew: true; dataSourceName: string; type: DataSourceType } | { isNew: false; dataSourceId: string }
+    options: { isNew: true; dataSourceName: string; type: DataSourceType } | { isNew: false; dataSourceId: string },
+    userId?: number
 ): Promise<DataSource> => {
     if (options.isNew === true) {
         const dataSourceCollection = new DataSourceCollection([], {});
-        const collection = await dbQueries.collection(options.type);
+        const collection = await dbQueries.collection({ type: options.type, userId: userId });
         dataSourceCollection.loadFromCollection(collection);
         const dataSource = dataSourceCollection.getByShortname(options.dataSourceName);
         if (dataSource !== undefined) {
@@ -25,13 +26,13 @@ export const getDataSource = async (
             );
         }
         const newDataSource = new DataSource(
-            { type: options.type, name: options.dataSourceName, shortname: options.dataSourceName },
+            { type: options.type, name: options.dataSourceName, shortname: options.dataSourceName, owner: userId },
             true
         );
         await dbQueries.create(newDataSource.attributes);
         return newDataSource;
     } else {
-        const dsAttributes = await dbQueries.read(options.dataSourceId);
+        const dsAttributes = await dbQueries.read(options.dataSourceId, userId);
         return new DataSource(dsAttributes, false);
     }
 };

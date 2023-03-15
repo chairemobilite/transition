@@ -49,7 +49,7 @@ export class AccessMapSimulationDescriptor implements SimulationAlgorithmDescrip
             i18nName: 'transit:simulation:simulationMethods:AccessMapDataSources',
             type: 'select' as const,
             choices: async () => {
-                const dataSources = await dataSourceDbQueries.collection('places');
+                const dataSources = await dataSourceDbQueries.collection({ type: 'places' });
                 return dataSources.map((ds) => ({
                     value: ds.id,
                     label: ds.shortname

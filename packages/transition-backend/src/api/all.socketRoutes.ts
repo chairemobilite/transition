@@ -21,7 +21,7 @@ import placesSocketRoutes from './places.socketRoutes';
 import jobsSocketRoutes from './jobs.socketRoutes';
 
 export default function (socket: EventEmitter, userId?: number) {
-    dataSourcesSocketRoutes(socket);
+    dataSourcesSocketRoutes(socket, userId);
     cacheSocketRoutes(socket);
     servicesSocketRoutes(socket, userId);
     transitSocketRoutesNew(socket);
