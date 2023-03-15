@@ -188,7 +188,9 @@ export default function (socket: EventEmitter, userId?: number) {
                                     transitRoutingAttributes
                                 }
                             },
-                            inputFiles: [`${directoryManager.userDataDirectory}/${userId}/imports/batchRouting.csv`],
+                            inputFiles: {
+                                input: `${directoryManager.userDataDirectory}/${userId}/imports/batchRouting.csv`
+                            },
                             hasOutputFiles: true
                         },
                         socket
@@ -224,7 +226,9 @@ export default function (socket: EventEmitter, userId?: number) {
                                     accessMapAttributes
                                 }
                             },
-                            inputFiles: [`${directoryManager.userDataDirectory}/${userId}/imports/batchAccessMap.csv`],
+                            inputFiles: {
+                                input: `${directoryManager.userDataDirectory}/${userId}/imports/batchAccessMap.csv`
+                            },
                             hasOutputFiles: true
                         },
                         socket
