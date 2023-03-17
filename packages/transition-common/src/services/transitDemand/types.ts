@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
+import TransitOdDemandFromCsv from './TransitOdDemandFromCsv';
 
 export type TransitDemandFromCsvFile = {
     type: 'csv';

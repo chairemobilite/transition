@@ -90,9 +90,10 @@ jest.mock('../../dataSources/dataSources', () => ({
 }));
 
 jest.mock('../../../models/db/odPairs.db.queries');
-
+const inputFileName = 'batchRouting.csv';
 const defaultParameters = {
     calculationName: 'test',
+    csvFile: { location: 'upload' as const, filename: inputFileName },
     projection: 'test',
     idAttribute: 'id',
     originXAttribute: 'origX',
@@ -114,17 +115,17 @@ beforeEach(() => {
 })
 
 test('Batch route to csv', async () => {
-    const parameters = Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false });
-    const result = await batchRoute(parameters, { }, absoluteDir, socketMock, isCancelledMock);
+    const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false }) };
+    const result = await batchRoute(parameters, { routingModes: ['walking' ] }, absoluteDir, inputFileName, socketMock, isCancelledMock);
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-        calculationName: parameters.calculationName,
-        detailed: parameters.detailed,
+        calculationName: parameters.configuration.calculationName,
+        detailed: parameters.configuration.detailed,
         completed: true,
         errors: [],
         warnings: [],
-        files: { input: 'batchRouting.csv', csv: 'batchRoutingResults.csv' }
+        files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
     });
     const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith('batchRoutingResults.csv'));
     expect(csvFileName).toBeDefined();
@@ -135,17 +136,17 @@ test('Batch route to csv', async () => {
 test('Batch route with some errors', async () => {
     const errors = [ 'error1', 'error2' ];
     mockParseOdTripsFromCsv.mockResolvedValueOnce({ odTrips, errors });
-    const parameters = Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false });
-    const result = await batchRoute(parameters, { }, absoluteDir, socketMock, isCancelledMock);
+    const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false }) };
+    const result = await batchRoute(parameters, { routingModes: ['walking' ] }, absoluteDir, inputFileName, socketMock, isCancelledMock);
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-        calculationName: parameters.calculationName,
-        detailed: parameters.detailed,
+        calculationName: parameters.configuration.calculationName,
+        detailed: parameters.configuration.detailed,
         completed: true,
         errors: [],
         warnings: errors,
-        files: { input: 'batchRouting.csv', csv: 'batchRoutingResults.csv' }
+        files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
     });
     const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith('batchRoutingResults.csv'));
     expect(csvFileName).toBeDefined();
@@ -156,17 +157,17 @@ test('Batch route with some errors', async () => {
 test('Batch route with too many errors', async () => {
     const errors = [ 'error1', 'error2' ];
     mockParseOdTripsFromCsv.mockRejectedValueOnce(errors);
-    const parameters = Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false });
-    const result = await batchRoute(parameters, { }, absoluteDir, socketMock, isCancelledMock);
+    const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false }) };
+    const result = await batchRoute(parameters, { routingModes: ['walking' ] }, absoluteDir, inputFileName, socketMock, isCancelledMock);
     expect(routeOdTripMock).toHaveBeenCalledTimes(0);
     expect(mockCreateStream).toHaveBeenCalledTimes(0);
     expect(result).toEqual({
-        calculationName: parameters.calculationName,
+        calculationName: parameters.configuration.calculationName,
         detailed: false,
         completed: false,
         errors,
         warnings: [],
-        files: { input: 'batchRouting.csv' }
+        files: { input: inputFileName }
     });
 });
 
@@ -174,17 +175,17 @@ test('Batch route and save to db', async () => {
     (odPairsDbQueries.createMultiple as any).mockClear();
     (odPairsDbQueries.deleteForDataSourceId as any).mockClear();
 
-    const parameters = Object.assign({}, defaultParameters, { saveToDb: {type: 'new', dataSourceName: 'name'}, calculationName: 'test', detailed: false });
-    const result = await batchRoute(parameters, { }, absoluteDir, socketMock, isCancelledMock);
+    const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { saveToDb: {type: 'new', dataSourceName: 'name'}, calculationName: 'test', detailed: false }) };
+    const result = await batchRoute(parameters, { routingModes: ['walking' ] }, absoluteDir, inputFileName, socketMock, isCancelledMock);
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-        calculationName: parameters.calculationName,
-        detailed: parameters.detailed,
+        calculationName: parameters.configuration.calculationName,
+        detailed: parameters.configuration.detailed,
         completed: true,
         errors: [],
         warnings: [],
-        files: { input: 'batchRouting.csv', csv: 'batchRoutingResults.csv' }
+        files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
     });
     const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith('batchRoutingResults.csv'));
     expect(csvFileName).toBeDefined();

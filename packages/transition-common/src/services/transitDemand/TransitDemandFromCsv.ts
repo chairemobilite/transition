@@ -12,21 +12,15 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
+import { TransitBatchDemandFromCsvAttributes } from 'chaire-lib-common/lib/api/TrRouting';
 
 /**
  * Base attributes for any batch transit calculation, like routing or accessibility map
  */
-export interface TransitDemandFromCsvAttributes extends GenericAttributes {
-    calculationName?: string;
-    csvFile?: string | File;
-    idAttribute?: string;
-    timeAttributeDepartureOrArrival?: 'arrival' | 'departure';
-    timeFormat?: string;
-    timeAttribute?: string;
-    withGeometries?: boolean;
-    detailed?: boolean;
+export interface TransitDemandFromCsvAttributes
+    extends GenericAttributes,
+        Partial<TransitBatchDemandFromCsvAttributes> {
     // TODO Remove these from this object once trRouting is parallel
-    cpuCount?: number;
     maxCpuCount?: number;
 }
 
@@ -92,9 +86,15 @@ export abstract class TransitDemandFromCsv<T extends TransitDemandFromCsvAttribu
         }
     }
 
-    setCsvFile = async (file: string | File) => {
+    setCsvFile = async (
+        file: string | File | NodeJS.ReadableStream,
+        fileLocation: { location: 'upload' } | { location: 'server'; fromJob: number }
+    ) => {
         let csvFileAttributes: string[] = [];
-        this.attributes.csvFile = file;
+        this.attributes.csvFile =
+            fileLocation.location === 'upload'
+                ? { location: 'upload', filename: typeof file === 'string' ? file : (file as File).name }
+                : fileLocation;
         await parseCsvFile(
             file,
             (data) => {

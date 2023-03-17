@@ -10,8 +10,8 @@ import _toString from 'lodash.tostring';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import { secondsToMinutes } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 
-import { BatchCalculationParameters } from '../../../../services/batchCalculation/types';
-import { TransitDemandFromCsvFile } from '../../../../services/transitDemand/types';
+import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import { TransitDemandFromCsvFile } from 'transition-common/lib/services/transitDemand/types';
 
 export interface ConfirmCalculationFormProps {
     currentDemand: TransitDemandFromCsvFile;
@@ -40,7 +40,13 @@ const ConfirmCalculationForm: React.FunctionComponent<ConfirmCalculationFormProp
                     </tr>
                     <tr>
                         <th>{props.t('main:CsvFile')}</th>
-                        <td>{(demandAttributes.csvFile as File).name}</td>
+                        <td>
+                            {props.t(
+                                demandAttributes.csvFile?.location === 'upload'
+                                    ? 'transit:batchCalculation:UploadedFile'
+                                    : 'transit:batchCalculation:FromPreviousJob'
+                            )}
+                        </td>
                     </tr>
                     <tr>
                         <th>{props.t('transit:transitRouting:Detailed')}</th>

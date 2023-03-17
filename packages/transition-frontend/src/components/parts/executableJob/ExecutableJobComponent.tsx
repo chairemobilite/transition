@@ -8,6 +8,7 @@ import React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { Column } from 'react-table';
 import moment from 'moment';
+import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faStopCircle } from '@fortawesome/free-solid-svg-icons/faStopCircle';
 
 import ExecutableJobList, { ReturnedJobAttributes } from './ExecutableJobList';
@@ -18,12 +19,17 @@ import ExpandableText from './ExpandableText';
 import ExpandableFiles from './ExpandableFileWidget';
 import Button from '../Button';
 import ButtonList from '../ButtonList';
-import { ButtonCellWithConfirm } from '../ButtonCell';
+import ButtonCell, { ButtonCellWithConfirm } from '../ButtonCell';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 interface ExecutableJobComponentProps {
     jobType?: string;
     defaultPageSize?: number;
+    customActions?: {
+        callback: (jobId: number) => void;
+        title: string;
+        icon: IconProp;
+    }[];
 }
 
 const fetchFromSocket = (parameters: {
@@ -195,6 +201,18 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
                                     <FontAwesomeIcon icon={faStopCircle} />
                                 </ButtonCellWithConfirm>
                             )}
+                            {props.customActions !== undefined &&
+                                props.customActions.length > 0 &&
+                                props.customActions.map((action, index) => (
+                                    <ButtonCell
+                                        key={`execJob_customAction${index}`}
+                                        alignment="flush"
+                                        onClick={() => action.callback(cellProps.value)}
+                                        title={props.t(action.title)}
+                                    >
+                                        <FontAwesomeIcon icon={action.icon} />
+                                    </ButtonCell>
+                                ))}
                         </Button>
                     </ButtonList>
                 )

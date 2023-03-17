@@ -13,7 +13,9 @@ export interface ExpandableFileProps {
     showFileText: string;
 }
 
-type JobFileType = { [fileName: string]: { url: string; downloadName: string; title: string } };
+type JobFileType = {
+    [fileName: string]: { url: string; downloadName: string; title: string | { text: string; fileName: string } };
+};
 
 const getFilesFromSocket = (id: number): Promise<Status.Status<JobFileType>> => {
     return new Promise((resolve) => {
@@ -62,7 +64,11 @@ const ExpandableFileWidget: React.FunctionComponent<ExpandableFileProps & WithTr
                 Object.keys(files).map((fileName, fileIdx) => (
                     <p key={`jobFile${props.jobId}_${fileIdx}`}>
                         <a href={files[fileName].url} download={files[fileName].downloadName}>
-                            {props.t(files[fileName].title)}
+                            {typeof files[fileName].title === 'string'
+                                ? props.t(files[fileName].title as string)
+                                : props.t((files[fileName].title as any).text, {
+                                    filename: (files[fileName].title as any).fileName
+                                })}
                         </a>
                     </p>
                 ))}

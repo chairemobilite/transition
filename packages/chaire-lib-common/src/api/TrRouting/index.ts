@@ -29,14 +29,26 @@ export class TrRoutingConstants {
     static readonly ROUTE_V1 = 'service.trRouting.routeV1';
     static readonly UPDATE_CACHE = 'service.trRouting.updateCache';
     /**
-     * Socket route name to call a batch routing calculation. It takes a
-     * parameter of type {@link TransitBatchRoutingAttributes}. It returns a
+     * Socket route name to call a batch routing calculation. It takes
+     * parameter of type {@link TransitBatchRoutingDemandAttributes}. It returns a
      * {@link Status}, with a {@link TransitBatchCalculationResult} on success
      *
      * @static
      * @memberof TrRoutingConstants
      */
     static readonly BATCH_ROUTE = 'service.trRouting.batchRoute';
+    /**
+     * Socket route name to call to get the parameters to replay a previously
+     * saved task. It takes the ID of the batch routing job to replay. It
+     * returns a {@link Status}, with a object containing a field named
+     * 'parameters' of type {@link BatchCalculationParameters}, a 'demand' field
+     * of type {@link TransitOdDemandFromCsvAttributes} and a 'csvFields' field
+     * containing the string headers of the fields of the csv file on success
+     *
+     * @static
+     * @memberof TrRoutingConstants
+     */
+    static readonly BATCH_ROUTE_REPLAY = 'service.trRouting.batchRouteReplay';
     /**
      * Socket route name to call a batch accessibility map calculation. It takes
      * a parameter of type {@link TransitBatchAccessibilityMapAttributes}. It

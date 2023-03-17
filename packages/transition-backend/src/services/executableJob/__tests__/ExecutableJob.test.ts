@@ -12,7 +12,8 @@ import { JobAttributes } from 'transition-common/lib/services/jobs/Job';
 import { execJob } from '../../../tasks/serverWorkerPool';
 import { ExecutableJob } from '../ExecutableJob';
 import jobsDbQueries from '../../../models/db/jobs.db.queries'
-import { JobStatus } from 'transition-common/src/services/jobs/Job';
+import { JobStatus } from 'transition-common/lib/services/jobs/Job';
+import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 
 const progressEmitter = new EventEmitter();
 
@@ -66,6 +67,15 @@ jest.mock('../../../tasks/serverWorkerPool', () => (
 ));
 const mockedPool = execJob as jest.MockedFunction<typeof execJob>;
 
+jest.mock('chaire-lib-backend/lib/utils/filesystem/fileManager', () => ({
+    fileManager: {
+        fileExistsAbsolute: jest.fn().mockReturnValue(true),
+        copyFileAbsolute: jest.fn()
+    }
+}));
+const mockedFileExists = fileManager.fileExistsAbsolute as jest.MockedFunction<typeof fileManager.fileExistsAbsolute>;
+const mockedCopyFile = fileManager.copyFileAbsolute as jest.MockedFunction<typeof fileManager.copyFileAbsolute>;
+
 beforeEach(() => {
     mockedJobRead.mockClear();
     mockedJobCreate.mockClear();
@@ -73,6 +83,8 @@ beforeEach(() => {
     mockedJobDelete.mockClear();
     mockedJobCollection.mockClear();
     mockedPool.mockClear();
+    mockedFileExists.mockClear();
+    mockedCopyFile.mockClear();
 });
 
 test('Test create job', async () => {
@@ -92,6 +104,29 @@ test('Test create job', async () => {
     expect(jobUpdatedListener).toHaveBeenCalledTimes(1);
     expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
 });
+
+test('Test create job with input files', async () => {
+    const filename = 'blabla.csv';
+    const absoluteFilePath = `/path/to/file/${filename}`;
+    const renameTo = 'myCoolFile.csv';
+    const attributes = _cloneDeep(newJobAttributes) as any;
+    attributes.inputFiles = { testFile: absoluteFilePath, testFile2: { filepath: absoluteFilePath, renameTo } };
+
+    mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
+    const jobObj = await ExecutableJob.createJob(attributes);
+    expect(mockedJobCreate).toHaveBeenCalledTimes(1);
+    expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', ...newJobAttributes, resources: { files: { testFile: filename, testFile2: renameTo } } });
+    expect(jobObj.attributes).toEqual(expect.objectContaining({ id: jobAttributes.id, ...newJobAttributes, resources: { files: { testFile: filename, testFile2: renameTo } } }));
+    expect(jobObj.status).toEqual('pending');
+
+    expect(mockedFileExists).toHaveBeenCalledTimes(2);
+    expect(mockedFileExists).toHaveBeenNthCalledWith(1, absoluteFilePath);
+    expect(mockedFileExists).toHaveBeenNthCalledWith(2, absoluteFilePath);
+    expect(mockedCopyFile).toHaveBeenCalledTimes(2);
+    expect(mockedCopyFile).toHaveBeenNthCalledWith(1, absoluteFilePath, `${jobObj.getJobFileDirectory()}/${filename}`, true);
+    expect(mockedCopyFile).toHaveBeenNthCalledWith(2, absoluteFilePath, `${jobObj.getJobFileDirectory()}/${renameTo}`, true);
+});
+
 
 test('Test load job', async () => {
     const jobObj = await ExecutableJob.loadTask(jobAttributes.id);

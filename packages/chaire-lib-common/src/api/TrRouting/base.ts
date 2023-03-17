@@ -6,36 +6,37 @@
  */
 import { ErrorMessage } from '../../utils/TrError';
 
-export interface TransitBatchRoutingAttributes {
+// TODO These batch demand attributes are not trRouting specific. They should go elsewhere
+export type TransitBatchDemandFromCsvAttributes = {
     calculationName: string;
     projection: string;
     idAttribute: string;
+    timeAttributeDepartureOrArrival: 'arrival' | 'departure';
+    timeFormat: string;
+    timeAttribute: string;
+    withGeometries: boolean;
+    detailed: boolean;
+    cpuCount: number;
+    csvFile: { location: 'upload'; filename: string } | { location: 'server'; fromJob: number };
+};
+
+export type TransitBatchRoutingDemandFromCsvAttributes = TransitBatchDemandFromCsvAttributes & {
     originXAttribute: string;
     originYAttribute: string;
     destinationXAttribute: string;
     destinationYAttribute: string;
-    timeAttributeDepartureOrArrival: 'arrival' | 'departure';
-    timeFormat: string;
-    timeAttribute: string;
-    withGeometries: boolean;
-    detailed: boolean;
-    cpuCount: number;
     saveToDb: false | { type: 'new'; dataSourceName: string } | { type: 'overwrite'; dataSourceId: string };
-}
+};
 
-export interface TransitBatchAccessibilityMapAttributes {
-    calculationName: string;
-    projection: string;
-    idAttribute: string;
+export type TransitBatchRoutingDemandAttributes = {
+    type: 'csv';
+    configuration: TransitBatchRoutingDemandFromCsvAttributes;
+};
+
+export type TransitBatchAccessibilityMapAttributes = TransitBatchDemandFromCsvAttributes & {
     xAttribute: string;
     yAttribute: string;
-    timeAttributeDepartureOrArrival: 'arrival' | 'departure';
-    timeFormat: string;
-    timeAttribute: string;
-    withGeometries: boolean;
-    detailed: boolean;
-    cpuCount: number;
-}
+};
 
 export interface TransitBatchCalculationResult {
     calculationName: string;

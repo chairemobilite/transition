@@ -8,7 +8,7 @@ import { createWriteStream } from 'fs';
 import { v4 as uuidV4 } from 'uuid';
 
 import { exportLine } from '../LineExporter';
-import { LineAttributes } from 'transition-common/src/services/line/Line';
+import { LineAttributes } from 'transition-common/lib/services/line/Line';
 
 jest.mock('fs', () => {
     // Require the original module to not be mocked...

@@ -9,7 +9,7 @@ import { v4 as uuidV4 } from 'uuid';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import dbQueries from '../jobs.db.queries';
 import UserModel from 'chaire-lib-backend/lib/services/auth/user';
-import { JobAttributes, Job as ObjectClass } from 'transition-common/src/services/jobs/Job';
+import { JobAttributes, Job as ObjectClass } from 'transition-common/lib/services/jobs/Job';
 
 const objectName   = 'job';
 

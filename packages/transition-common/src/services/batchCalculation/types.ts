@@ -2,7 +2,7 @@ import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes'
 import {
     TransitRoutingQueryAttributes,
     validateTrQueryAttributes
-} from 'transition-common/lib/services/transitRouting/TransitRoutingQueryAttributes';
+} from '../transitRouting/TransitRoutingQueryAttributes';
 
 export const isBatchParametersValid = (parameters: BatchCalculationParameters) => {
     let parametersValid = true;

@@ -173,14 +173,14 @@ describe('setCsvFile', () => {
             'destinationXAttribute', 'destinationYAttribute'];
         const file = 'justAFile.csv';
 
-        const csvFields = await batchRouting.setCsvFile(file);
+        const csvFields = await batchRouting.setCsvFile(file, { location: 'upload' });
 
         // Validte calls and return values
         expect(csvFields).toEqual(Object.keys(csvObjects));
         expect(parseCsvFileMock).toHaveBeenCalledTimes(1);
         expect(parseCsvFileMock).toHaveBeenCalledWith(file, expect.anything(), { header: true, nbRows: 1});
         expect(batchRouting.attributes).toEqual(expect.objectContaining({
-            csvFile: file,
+            csvFile: { location: 'upload', filename: file },
         }));
         
         expect(expectedUndefined.find((name) => batchRouting.attributes[name] !== undefined)).toBeUndefined();
@@ -192,7 +192,7 @@ describe('setCsvFile', () => {
 
         const batchRoutingAttributes = {
             calculationName: 'calculationName',
-            csvFile: 'previousFile.csv',
+            csvFile: { location: 'upload' as const, filename: 'input.csv' },
             idAttribute: 'field1',
             timeAttributeDepartureOrArrival: 'arrival' as const,
             timeFormat: 'timeFormat',
@@ -208,7 +208,7 @@ describe('setCsvFile', () => {
         const batchRouting = new TransitOdDemandFromCsv(_cloneDeep(batchRoutingAttributes), false);
         const file = 'justAFile.csv';
     
-        const csvFields = await batchRouting.setCsvFile(file);
+        const csvFields = await batchRouting.setCsvFile(file, { location: 'upload' });
 
         // Validte calls and return values
         expect(csvFields).toEqual(Object.keys(csvObjects));
@@ -217,7 +217,7 @@ describe('setCsvFile', () => {
         
         expect(batchRouting.attributes).toEqual(expect.objectContaining({
             ...batchRoutingAttributes,
-            csvFile: file
+            csvFile: { location: 'upload', filename: file }
         }));
     });
 
@@ -227,7 +227,7 @@ describe('setCsvFile', () => {
 
         const batchRoutingAttributes = {
             calculationName: 'calculationName',
-            csvFile: 'previousFile.csv',
+            csvFile: { location: 'upload' as const, filename: 'input.csv' },
             idAttribute: 'idAttribute',
             timeAttributeDepartureOrArrival: 'arrival' as const,
             timeFormat: 'timeFormat',
@@ -245,14 +245,14 @@ describe('setCsvFile', () => {
             'destinationXAttribute', 'destinationYAttribute'];
         const file = 'justAFile.csv';
         
-        const csvFields = await batchRouting.setCsvFile(file);
+        const csvFields = await batchRouting.setCsvFile(file, { location: 'upload' });
 
         // Validte calls and return values
         expect(csvFields).toEqual(Object.keys(csvObjects));
         expect(parseCsvFileMock).toHaveBeenCalledTimes(1);
         expect(parseCsvFileMock).toHaveBeenCalledWith(file, expect.anything(), { header: true, nbRows: 1});
         expect(batchRouting.attributes).toEqual(expect.objectContaining({
-            csvFile: file,
+            csvFile: { location: 'upload', filename: file },
             calculationName: batchRoutingAttributes.calculationName,
             timeAttributeDepartureOrArrival: batchRoutingAttributes.timeAttributeDepartureOrArrival,
             timeFormat: batchRoutingAttributes.timeFormat,

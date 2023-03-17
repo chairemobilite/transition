@@ -71,7 +71,11 @@ export default function (socket: EventEmitter, userId: number) {
                 const jobResourceFiles = job.attributes.resources?.files || {};
                 const files = directoryManager.getFilesAbsolute(job.getJobFileDirectory());
                 const jobFiles: {
-                    [fileName: string]: { url: string; downloadName: string; title: string };
+                    [fileName: string]: {
+                        url: string;
+                        downloadName: string;
+                        title: string | { text: string; fileName: string };
+                    };
                 } = {};
                 Object.keys(jobResourceFiles).forEach((file) => {
                     if (jobResourceFiles[file] && files?.includes(jobResourceFiles[file] as string)) {
@@ -83,9 +87,9 @@ export default function (socket: EventEmitter, userId: number) {
                                 ? `${fileName}_${formattedTime}`
                                 : `${match[1]}_${formattedTime}.${match[2]}`;
                         jobFiles[file] = {
-                            url: `/job/${id}/${jobResourceFiles[file] as string}`,
+                            url: `/job/${id}/${fileName}`,
                             downloadName: downloadName,
-                            title: `transit:jobs:${job.attributes.name}:files:${file}`
+                            title: { text: `transit:jobs:${job.attributes.name}:files:${file}`, fileName }
                         };
                     }
                 });

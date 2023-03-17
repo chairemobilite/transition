@@ -4,15 +4,18 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TransitBatchCalculationResult, TransitBatchRoutingAttributes } from 'chaire-lib-common/lib/api/TrRouting';
-import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import {
+    TransitBatchCalculationResult,
+    TransitBatchRoutingDemandAttributes
+} from 'chaire-lib-common/lib/api/TrRouting';
+import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 
 export type BatchRouteJobType = {
     name: 'batchRoute';
     data: {
         parameters: {
-            batchRoutingAttributes: TransitBatchRoutingAttributes;
-            transitRoutingAttributes: Partial<TransitRoutingAttributes>;
+            demandAttributes: TransitBatchRoutingDemandAttributes;
+            transitRoutingAttributes: BatchCalculationParameters;
         };
         results?: TransitBatchCalculationResult;
     };
