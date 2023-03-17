@@ -208,22 +208,19 @@ export default function (socket: EventEmitter, userId?: number) {
                     }
 
                     // TODO Handle the input file and add it to the task
-                    const job: ExecutableJob<BatchRouteJobType> = await ExecutableJob.createJob(
-                        {
-                            user_id: userId,
-                            name: 'batchRoute',
-                            data: {
-                                parameters: {
-                                    demandAttributes: parameters,
-                                    transitRoutingAttributes
-                                }
-                            },
-                            inputFiles,
-                            hasOutputFiles: true
+                    const job: ExecutableJob<BatchRouteJobType> = await ExecutableJob.createJob({
+                        user_id: userId,
+                        name: 'batchRoute',
+                        data: {
+                            parameters: {
+                                demandAttributes: parameters,
+                                transitRoutingAttributes
+                            }
                         },
-                        socket
-                    );
-                    await job.enqueue(socket);
+                        inputFiles,
+                        hasOutputFiles: true
+                    });
+                    await job.enqueue();
                     await job.refresh();
                     // TODO Do a quick return with task detail instead of waiting for task to finish
                     callback(Status.createOk(job.attributes.data.results));
@@ -292,24 +289,21 @@ export default function (socket: EventEmitter, userId?: number) {
                 try {
                     socket.emit('progress', { name: 'BatchAccessMap', progress: null });
                     // TODO Handle the input file and add it to the task
-                    const job = await ExecutableJob.createJob(
-                        {
-                            user_id: userId,
-                            name: 'batchAccessMap',
-                            data: {
-                                parameters: {
-                                    batchAccessMapAttributes: parameters,
-                                    accessMapAttributes
-                                }
-                            },
-                            inputFiles: {
-                                input: `${directoryManager.userDataDirectory}/${userId}/imports/batchAccessMap.csv`
-                            },
-                            hasOutputFiles: true
+                    const job = await ExecutableJob.createJob({
+                        user_id: userId,
+                        name: 'batchAccessMap',
+                        data: {
+                            parameters: {
+                                batchAccessMapAttributes: parameters,
+                                accessMapAttributes
+                            }
                         },
-                        socket
-                    );
-                    await job.enqueue(socket);
+                        inputFiles: {
+                            input: `${directoryManager.userDataDirectory}/${userId}/imports/batchAccessMap.csv`
+                        },
+                        hasOutputFiles: true
+                    });
+                    await job.enqueue();
                     await job.refresh();
                     // TODO Do a quick return with task detail instead of waiting for task to finish
                     callback(Status.createOk(job.attributes.data.results));

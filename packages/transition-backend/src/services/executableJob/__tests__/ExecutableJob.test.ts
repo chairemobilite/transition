@@ -140,7 +140,7 @@ test('Test load job', async () => {
 describe('Test resume running and pending', () => {
     test('No data', async () => {
         mockedJobCollection.mockResolvedValueOnce({ jobs: [], totalCount: 0 })
-        expect(await ExecutableJob.enqueueRunningAndPendingJobs(progressEmitter)).toEqual(true);
+        expect(await ExecutableJob.enqueueRunningAndPendingJobs()).toEqual(true);
         expect(mockedJobCollection).toHaveBeenCalledWith(expect.objectContaining({
             statuses: ['inProgress', 'pending'],
             pageIndex: 0,
@@ -164,7 +164,7 @@ describe('Test resume running and pending', () => {
             ...newJobAttributes
         }];
         mockedJobCollection.mockResolvedValueOnce({ jobs: jobsToRun, totalCount: jobsToRun.length })
-        expect(await ExecutableJob.enqueueRunningAndPendingJobs(progressEmitter)).toEqual(true);
+        expect(await ExecutableJob.enqueueRunningAndPendingJobs()).toEqual(true);
         // Wait for the jobs to have been enqueued and saved
         await TestUtils.flushPromises();
         expect(mockedJobCollection).toHaveBeenCalledWith(expect.objectContaining({
@@ -188,7 +188,7 @@ describe('Test resume running and pending', () => {
     test('exception', async () => {
 
         mockedJobCollection.mockRejectedValueOnce('exception')
-        expect(await ExecutableJob.enqueueRunningAndPendingJobs(progressEmitter)).toEqual(false);
+        expect(await ExecutableJob.enqueueRunningAndPendingJobs()).toEqual(false);
         expect(mockedPool).not.toHaveBeenCalled();
 
     });

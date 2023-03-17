@@ -59,7 +59,7 @@ const setupSocketServerApp = async function (server, session) {
     // but for jobs in progress, we don't know if they are actively being run or
     // not
     if (process.env.STARTUP_RESTART_JOBS === undefined || _booleish(process.env.STARTUP_RESTART_JOBS)) {
-        await ExecutableJob.enqueueRunningAndPendingJobs(serviceLocator.socketEventManager);
+        await ExecutableJob.enqueueRunningAndPendingJobs();
     }
 
     const io = socketIO(server, {
