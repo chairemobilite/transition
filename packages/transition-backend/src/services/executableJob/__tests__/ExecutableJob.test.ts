@@ -8,6 +8,7 @@ import _cloneDeep from 'lodash.clonedeep';
 import { EventEmitter } from 'events';
 import each from 'jest-each';
 
+import { TestUtils } from 'chaire-lib-common/lib/test';
 import { JobAttributes } from 'transition-common/lib/services/jobs/Job';
 import { execJob } from '../../../tasks/serverWorkerPool';
 import { ExecutableJob } from '../ExecutableJob';
@@ -164,6 +165,8 @@ describe('Test resume running and pending', () => {
         }];
         mockedJobCollection.mockResolvedValueOnce({ jobs: jobsToRun, totalCount: jobsToRun.length })
         expect(await ExecutableJob.enqueueRunningAndPendingJobs(progressEmitter)).toEqual(true);
+        // Wait for the jobs to have been enqueued and saved
+        await TestUtils.flushPromises();
         expect(mockedJobCollection).toHaveBeenCalledWith(expect.objectContaining({
             statuses: ['inProgress', 'pending'],
             pageIndex: 0,
