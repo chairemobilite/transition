@@ -14,6 +14,7 @@ import { directoryManager } from 'chaire-lib-backend/lib//utils/filesystem/direc
 import { execJob } from '../../tasks/serverWorkerPool';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
+import clientEventManager from '../../utils/ClientEventManager';
 
 export type InitialJobData<TData extends JobDataType> = {
     inputFiles?: {
@@ -23,9 +24,7 @@ export type InitialJobData<TData extends JobDataType> = {
 };
 
 export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
-    static async enqueueRunningAndPendingJobs<TData extends JobDataType>(
-        progressEmitter: EventEmitter
-    ): Promise<boolean> {
+    static async enqueueRunningAndPendingJobs<TData extends JobDataType>(): Promise<boolean> {
         try {
             const runningAndPending = await jobsDbQueries.collection({
                 statuses: ['inProgress', 'pending'],
@@ -40,7 +39,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             console.log(`Enqueuing ${runningAndPending.jobs.length} in progress and pending jobs`);
             for (let i = 0; i < runningAndPending.jobs.length; i++) {
                 const job = new ExecutableJob<TData>(runningAndPending.jobs[i] as JobAttributes<TData>);
-                await job.enqueue(progressEmitter);
+                await job.enqueue();
             }
 
             return true;
@@ -74,6 +73,8 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         }: Omit<JobAttributes<TData>, 'id' | 'status'> & InitialJobData<TData>,
         jobListener?: EventEmitter
     ): Promise<ExecutableJob<TData>> {
+        const jobProgressEmitter =
+            jobListener !== undefined ? jobListener : clientEventManager.getUserEventEmitter(attributes.user_id);
         // Check the disk usage if the job has output files
         if (hasOutputFiles) {
             const diskUsage = Users.getUserDiskUsage(attributes.user_id);
@@ -111,7 +112,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         }
 
         const id = await jobsDbQueries.create({ status: 'pending', ...attributes });
-        jobListener?.emit('executableJob.updated', { id, name: attributes.name });
+        jobProgressEmitter.emit('executableJob.updated', { id, name: attributes.name });
         const job = new ExecutableJob<TData>({ id, status: 'pending', ...attributes });
         toCopy.forEach(({ filePath, jobFileName }) =>
             fileManager.copyFileAbsolute(filePath, `${job.getJobFileDirectory()}/${jobFileName}`, true)
@@ -134,12 +135,16 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         }/`;
     }
 
-    async enqueue(progressEmitter: EventEmitter): Promise<any> {
+    async enqueue(progressEmitter?: EventEmitter): Promise<any> {
         // TODO Handle the cancellation
+        const jobProgressEmitter =
+            progressEmitter !== undefined
+                ? progressEmitter
+                : clientEventManager.getUserEventEmitter(this.attributes.user_id);
         await this.save();
         execJob('task', [this.attributes.id], {
             on: function (payload) {
-                progressEmitter.emit(payload.event, payload.data);
+                jobProgressEmitter.emit(payload.event, payload.data);
             }
         });
     }
@@ -206,20 +211,24 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
     }
 
     async save(jobListener?: EventEmitter): Promise<number> {
+        const jobProgressEmitter =
+            jobListener !== undefined ? jobListener : clientEventManager.getUserEventEmitter(this.attributes.user_id);
         const { resources, data } = this.attributes;
         const updatedId = await jobsDbQueries.update(this.attributes.id, { status: this.status, resources, data });
-        jobListener?.emit('executableJob.updated', { id: updatedId, name: this.attributes.name });
+        jobProgressEmitter.emit('executableJob.updated', { id: updatedId, name: this.attributes.name });
         return updatedId;
     }
 
     async delete(jobListener?: EventEmitter): Promise<number> {
+        const jobProgressEmitter =
+            jobListener !== undefined ? jobListener : clientEventManager.getUserEventEmitter(this.attributes.user_id);
         // Delete resources used by this task
         const fileDirectory = this.getJobFileDirectory();
         if (directoryManager.directoryExistsAbsolute(fileDirectory)) {
             directoryManager.deleteDirectoryAbsolute(fileDirectory);
         }
         const id = await jobsDbQueries.delete(this.attributes.id);
-        jobListener?.emit('executableJob.updated', { id, name: this.attributes.name });
+        jobProgressEmitter.emit('executableJob.updated', { id, name: this.attributes.name });
         return id;
     }
 }
