@@ -19,6 +19,7 @@ import preferencesSocketRoutes from 'chaire-lib-backend/lib/api/preferences.sock
 import allSocketRoutes from './api/all.socketRoutes';
 import { startPool } from './tasks/serverWorkerPool';
 import { ExecutableJob } from './services/executableJob/ExecutableJob';
+import clientEventManager from './utils/ClientEventManager';
 
 const socketWildCard = socketMiddleWare();
 
@@ -99,8 +100,10 @@ const setupSocketServerApp = async function (server, session) {
     });
 
     io.on('connection', (socket: socketIO.Socket) => {
+        const userId = (socket as any).handshake.session.passport.user;
         socket.on('disconnect', () => {
             io.emit('user disconnected');
+            clientEventManager.removeClientSocket(socket, userId);
         });
 
         if (
@@ -113,8 +116,9 @@ const setupSocketServerApp = async function (server, session) {
             });
         }
 
-        preferencesSocketRoutes(socket, (socket as any).handshake.session.passport.user);
-        allSocketRoutes(socket, (socket as any).handshake.session.passport.user);
+        clientEventManager.registerClientSocket(socket, userId);
+        preferencesSocketRoutes(socket, userId);
+        allSocketRoutes(socket, userId);
     });
 
     return io;
