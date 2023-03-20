@@ -7,3 +7,4 @@
 export { default as LoadingPage } from './LoadingPage';
 export * from './NotFoundPage';
 export { default as LoginPage } from './LoginPage';
+export { default as MaintenancePage } from './MaintenancePage';

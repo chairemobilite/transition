@@ -11,13 +11,13 @@ import { I18nextProvider } from 'react-i18next';
 import { createBrowserHistory } from 'history';
 import { Router } from 'react-router-dom';
 
-import i18n from 'chaire-lib-frontend/lib/config/i18n.config';
+import initI18n from 'chaire-lib-frontend/lib/config/i18n.config';
 import TransitionRouter from './components/routers/TransitionRouter';
 import MainMap from './components/map/TransitionMainMap';
 import configureStore from 'chaire-lib-frontend/lib/store/configureStore';
 import { login, logout } from 'chaire-lib-frontend/lib/actions/Auth';
-import { LoadingPage } from 'chaire-lib-frontend/lib/components/pages';
-import config from 'chaire-lib-frontend/lib/config/project.config';
+import { LoadingPage, MaintenancePage } from 'chaire-lib-frontend/lib/components/pages';
+import config, { fetchConfiguration } from 'chaire-lib-frontend/lib/config/project.config';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import {
     SupplyManagementDashboardContribution,
@@ -50,11 +50,19 @@ const contributions = [
     new DemandManagementDashboardContribution(),
     new SupplyDemandAnalysisDashboardContribution()
 ];
-const jsx = (
+
+let hasConfig: boolean | undefined = undefined;
+let hasFetchedAuth: boolean | undefined = undefined;
+let hasRendered = false;
+const jsx = () => (
     <Provider store={store}>
-        <I18nextProvider i18n={i18n}>
+        <I18nextProvider i18n={initI18n()}>
             <Router history={history}>
-                <TransitionRouter contributions={contributions} config={config} mainMap={MainMap as any} />
+                {hasConfig === true ? (
+                    <TransitionRouter contributions={contributions} config={config} mainMap={MainMap as any} />
+                ) : (
+                    <MaintenancePage />
+                )}
             </Router>
         </I18nextProvider>
     </Provider>
@@ -62,16 +70,21 @@ const jsx = (
 
 ReactDOM.render(<LoadingPage />, document.getElementById('app'));
 
-let hasRendered = false;
 const renderApp = () => {
-    if (!hasRendered) {
-        ReactDOM.render(jsx, document.getElementById('app'));
+    if (!hasRendered && hasConfig !== undefined && hasFetchedAuth !== undefined) {
+        ReactDOM.render(jsx(), document.getElementById('app'));
         hasRendered = true;
     }
 };
 
+fetchConfiguration().then((configOk: boolean) => {
+    hasConfig = configOk;
+    renderApp();
+});
+
 fetch('/verifyAuthentication', { credentials: 'include' })
     .then((response) => {
+        hasFetchedAuth = true;
         if (response.status === 200) {
             // authorized (user authentication succeeded)
             response.json().then((body) => {

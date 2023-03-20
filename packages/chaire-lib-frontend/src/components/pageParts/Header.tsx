@@ -178,26 +178,27 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
                                 </button>
                             </li>
                         )}
-                        {config.languages.map((language) => {
-                            return props.i18n.language !== language ? (
-                                <li className="tr__top-menu-element" key={'item-nav-lang'}>
-                                    <button
-                                        type="button"
-                                        className="menu-button em"
-                                        key={`header__nav-language-${language}`}
-                                        lang={language}
-                                        onClick={() => {
-                                            props.i18n.changeLanguage(language);
-                                            moment.locale(props.i18n.language);
-                                        }}
-                                    >
-                                        {config.languageNames[language]}
-                                    </button>
-                                </li>
-                            ) : (
-                                ''
-                            );
-                        })}
+                        {props.i18n.language !== undefined &&
+                            config.languages.map((language) => {
+                                return props.i18n.language !== language ? (
+                                    <li className="tr__top-menu-element" key={'item-nav-lang'}>
+                                        <button
+                                            type="button"
+                                            className="menu-button em"
+                                            key={`header__nav-language-${language}`}
+                                            lang={language}
+                                            onClick={() => {
+                                                props.i18n.changeLanguage(language);
+                                                moment.locale(props.i18n.language);
+                                            }}
+                                        >
+                                            {config.languageNames[language]}
+                                        </button>
+                                    </li>
+                                ) : (
+                                    ''
+                                );
+                            })}
                         {props.user && <TranslatableUser user={props.user} />}
                     </ul>
                 </nav>
