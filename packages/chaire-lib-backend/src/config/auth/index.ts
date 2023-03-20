@@ -12,7 +12,7 @@ import GoogleStrategy from 'passport-google-oauth';
 import FacebookStrategy from 'passport-facebook';
 import url from 'url';
 import localLogin from './localLogin.config';
-import config from '../server.config';
+import { projectConfig } from '../config';
 import { IAuthModel, IUserModel } from '../../services/auth/authModel';
 
 export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic => {
@@ -107,16 +107,20 @@ export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic 
         );
     }
 
-    if (!config.auth || config.auth.localLogin !== undefined || config.separateAdminLoginPage === true) {
+    if (
+        !projectConfig.auth ||
+        projectConfig.auth.localLogin !== undefined ||
+        projectConfig.separateAdminLoginPage === true
+    ) {
         localLogin(passport, authModel);
     }
-    if (config.auth && config.auth.passwordless !== undefined) {
+    if (projectConfig.auth && projectConfig.auth.passwordless !== undefined) {
         const passwordlessConfig = require('./passwordless.config');
         // FIXME It used to work without the next line, not anymore... probably some compilation issue
         const pwdlessConfig = passwordlessConfig.default ? passwordlessConfig.default : passwordlessConfig;
         pwdlessConfig(passport, authModel);
     }
-    if (config.auth && config.auth.anonymous === true) {
+    if (projectConfig.auth && projectConfig.auth.anonymous === true) {
         const anonymousLoginStrategy = require('../../services/auth/anonymousLoginStrategy');
         // FIXME It used to work without the next line, not anymore... probably some compilation issue
         const AnonymousLoginStrategy = anonymousLoginStrategy.default

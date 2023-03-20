@@ -10,10 +10,15 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 import configRoutes from '../config.routes';
 
-jest.mock('../../config/server.config', () => ({
-    mapDefaultCenter: { lon: -3, lat: -3 },
-    separateAdminLoginPage: false,
-    projectShortname: 'unitTest'
+jest.mock('../../config/config', () => ({
+    projectConfig: {
+        mapDefaultCenter: { lon: -3, lat: -3 },
+        separateAdminLoginPage: false,
+        projectShortname: 'unitTest'
+    },
+    serverConfig: {
+        maxFileUploadMB: 1024
+    }
 }));
 
 const app = express();

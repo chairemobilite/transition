@@ -18,8 +18,7 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development';
 }
 
-const configuration = require('chaire-lib-backend/lib/config/server.config');
-const config = configuration.default ? configuration.default : configuration;
+const { projectConfig: config } = require('chaire-lib-backend/lib/config/config');
 
 // Public directory from which files are served
 const publicDirectory = path.join(__dirname, '..', '..', 'public');

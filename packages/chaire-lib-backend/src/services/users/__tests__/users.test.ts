@@ -7,7 +7,7 @@
 import each from 'jest-each';
 import { v4 as uuidV4 } from 'uuid';
 import { DirectoryManager } from '../../../utils/filesystem/directoryManager';
-import config from '../../../config/server.config';
+import { serverConfig } from '../../../config/config';
 import usersDbQueries from '../../../models/db/users.db.queries';
 
 import Users from '../users';
@@ -105,9 +105,9 @@ describe('Get admins', () => {
 });
 
 describe('User quota and disk space', () => {
-    let defaultUserQuota = config.userDiskQuota;
+    let defaultUserQuota = serverConfig.userDiskQuota;
     afterAll(() => {
-        config.userDiskQuota = defaultUserQuota;
+        serverConfig.userDiskQuota = defaultUserQuota;
     });
     
     const mockGetDirectorySize = jest.fn().mockReturnValue(1);
@@ -126,9 +126,9 @@ describe('User quota and disk space', () => {
         ['Invalid quota string', 'bla', 1, 0],
     ]).test('Disk usage: %s', (_description, configQuota: string | undefined, currentDirSize: number, remaining) => {
         if (configQuota !== undefined) {
-            config.userDiskQuota = configQuota;
+            serverConfig.userDiskQuota = configQuota;
         } else {
-            config.userDiskQuota = defaultUserQuota;
+            serverConfig.userDiskQuota = defaultUserQuota;
         }
         mockGetDirectorySize.mockReturnValueOnce(currentDirSize);
         expect(Users.getUserDiskUsage(userId)).toEqual({ used: currentDirSize, remaining });
@@ -144,9 +144,9 @@ describe('User quota and disk space', () => {
         ['Invalid quota string', 'bla', 0],
     ]).test('User quota: %s', (_description, configQuota: string | undefined, expected: number) => {
         if (configQuota !== undefined) {
-            config.userDiskQuota = configQuota;
+            serverConfig.userDiskQuota = configQuota;
         } else {
-            config.userDiskQuota = defaultUserQuota;
+            serverConfig.userDiskQuota = defaultUserQuota;
         }
         expect(Users.getUserQuota(userId)).toEqual(expected);
     });

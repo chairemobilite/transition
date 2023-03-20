@@ -6,11 +6,11 @@
  */
 import express from 'express';
 // TODO This config is both server and project config. It should only include the project config to be typed later
-import config from '../config/server.config';
+import { projectConfig } from '../config/config';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 export default function (app: express.Express) {
     app.get('/config', (req, res) => {
-        return res.status(200).json(Status.createOk(config));
+        return res.status(200).json(Status.createOk(projectConfig));
     });
 }

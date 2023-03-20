@@ -7,16 +7,18 @@
 import express, { RequestHandler } from 'express';
 import request from 'supertest';
 import session from 'supertest-session';
-import passport from 'passport';
 
 import authRoutes from '../auth.routes';
 import { resetPasswordEmail } from '../../services/auth/userEmailNotifications';
 import { userAuthModel } from '../../services/auth/userAuthModel';
-import config from '../../config/server.config';
+import { projectConfig } from '../../config/config';
 import usersDbQueries from '../../models/db/users.db.queries';
 
-jest.mock('../../config/server.config', () => ({
-    auth: {}
+jest.mock('../../config/config', () => ({
+    projectConfig: {
+        auth: {}
+    },
+    serverConfig: {}
 }));
 jest.mock('../../services/auth/userEmailNotifications');
 const mockedResetPwdEmail = resetPasswordEmail as jest.MockedFunction<typeof resetPasswordEmail>;
@@ -332,7 +334,7 @@ describe('Passwordless and anonymous auth routes, unsupported', () => {
 
 describe('Passwordless and anonymous auth routes, supported', () => {
     // Allow passwordless and anonymous in the configuration
-    config.auth = {
+    projectConfig.auth = {
         anonymous: true,
         passwordless: {
             directFirstLogin: true
@@ -347,7 +349,7 @@ describe('Passwordless and anonymous auth routes, supported', () => {
     authRoutes(secondApp, userAuthModel);
 
     afterAll(() => {
-        config.auth = {};
+        projectConfig.auth = {};
     });
 
     test('Test the passwordless first route', async () => {

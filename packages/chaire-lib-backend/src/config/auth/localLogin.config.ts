@@ -10,16 +10,16 @@ import url from 'url';
 import { PassportStatic } from 'passport';
 import LocalStrategy from 'passport-local';
 
-import config from '../server.config';
+import { projectConfig } from '../config';
 import { sendConfirmationEmail } from '../../services/auth/userEmailNotifications';
 import { v4 as uuidV4 } from 'uuid';
 import { IAuthModel, IUserModel } from '../../services/auth/authModel';
 
 // FIXME: auth.localLogin is now the way to define local login behavior, setting variables here for legacy purposes
 // @Deprecated all config.* that is not in auth, are deprecated and have been moved to auth
-const getConfirmEmail = () => config.confirmEmail || config.auth?.localLogin?.confirmEmail;
+const getConfirmEmail = () => projectConfig.confirmEmail || projectConfig.auth?.localLogin?.confirmEmail;
 export const getConfirmEmailStrategy = () =>
-    config.confirmEmailStrategy || config.auth?.localLogin?.confirmEmailStrategy;
+    projectConfig.confirmEmailStrategy || projectConfig.auth?.localLogin?.confirmEmailStrategy;
 
 const getVerifyUrl = (confirmationToken: string): string => {
     const host = process.env.HOST || 'http://localhost:8080';

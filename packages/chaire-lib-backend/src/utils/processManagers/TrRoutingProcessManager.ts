@@ -8,7 +8,7 @@ import { directoryManager } from '../filesystem/directoryManager';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import ProcessManager from './ProcessManager';
 import osrmService from '../osrm/OSRMService';
-import config from '../../config/server.config';
+import { projectConfig } from '../../config/config';
 
 const availablePortsByStartingPort: { [startingPort: number]: { [port: number]: boolean } } = {};
 
@@ -39,7 +39,7 @@ const startTrRoutingProcess = async (
     if (parameters.cacheDirectoryPath) {
         commandArgs.push(`--cachePath=${parameters.cacheDirectoryPath}`);
     } else {
-        commandArgs.push(`--cachePath=${directoryManager.projectDirectory}/cache/${config.projectShortname}`);
+        commandArgs.push(`--cachePath=${directoryManager.projectDirectory}/cache/${projectConfig.projectShortname}`);
     }
     const waitString = 'ready.';
 

@@ -8,7 +8,7 @@ import i18next from 'i18next';
 import Backend from 'i18next-fs-backend';
 import { join } from 'path';
 
-import config from './server.config';
+import { projectConfig } from './config';
 import { fileManager } from '../utils/filesystem/fileManager';
 import { directoryManager } from '../utils/filesystem/directoryManager';
 
@@ -67,10 +67,10 @@ const initializeI18n = () => {
     i18next.use(Backend).init({
         initImmediate: false,
         load: 'languageOnly', // no region-specific,
-        supportedLngs: config.languages,
-        preload: config.languages,
+        supportedLngs: projectConfig.languages,
+        preload: projectConfig.languages,
         nonExplicitSupportedLngs: false,
-        fallbackLng: config.defaultLocale || 'en',
+        fallbackLng: projectConfig.defaultLocale || 'en',
         ns: namespaces,
         defaultNS: 'server',
         debug: false,

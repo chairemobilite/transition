@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 require('./dotenv.config'); // dotenv is required to get the connection strings
-import config from './server.config';
+import { projectConfig } from './config';
 // TODO Let this data be in the config file instead, but only when the server config is separate from project config to not leak data
 if (
     !process.env['PG_CONNECTION_STRING_PREFIX'] ||
@@ -19,7 +19,7 @@ export const onUpdateTrigger = function (table: string) {
   CREATE TRIGGER ${table}_updated_at
   BEFORE UPDATE ON ${table}
   FOR EACH ROW
-  EXECUTE PROCEDURE ${process.env.PG_DATABASE_SCHEMA || config.projectShortname}.on_update_timestamp();
+  EXECUTE PROCEDURE ${process.env.PG_DATABASE_SCHEMA || projectConfig.projectShortname}.on_update_timestamp();
 `;
 };
 
@@ -27,7 +27,7 @@ export default {
     client: 'pg',
     connection:
         process.env['PG_CONNECTION_STRING_PREFIX'] + process.env[`PG_DATABASE_${process.env.NODE_ENV.toUpperCase()}`],
-    searchPath: [process.env.PG_DATABASE_SCHEMA || config.projectShortname || 'public', 'public'],
+    searchPath: [process.env.PG_DATABASE_SCHEMA || projectConfig.projectShortname || 'public', 'public'],
     migrations: {
         directory: __dirname + '/../models/db/migrations',
         tableName: 'knex_migrations_lib',

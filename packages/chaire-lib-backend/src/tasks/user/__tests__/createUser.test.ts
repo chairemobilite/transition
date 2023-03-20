@@ -7,7 +7,6 @@
 import each from 'jest-each';
 
 import { CreateUser } from '../createUser';
-import config from '../../../config/server.config';
 import { userAuthModel } from '../../../services/auth/userAuthModel';
 
 jest.mock('../../../services/auth/userAuthModel', () => ({

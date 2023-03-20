@@ -7,7 +7,7 @@
 import passport from 'passport';
 import localLogin from '../localLogin.config';
 import { sendConfirmationEmail } from '../../../services/auth/userEmailNotifications';
-import config from '../../server.config';
+import { projectConfig } from '../../config';
 
 import { userAuthModel } from '../../../services/auth/userAuthModel';
 import usersDbQueries from '../../../models/db/users.db.queries';
@@ -239,7 +239,7 @@ test('Local signup strategy, auto-signon user exists', async () => {
 
 test('Local signup strategy, with email confirmation by user', async () => {
     const endFct = jest.fn();
-    config.auth = { localLogin: { confirmEmail: true }};
+    projectConfig.auth = { localLogin: { confirmEmail: true }};
     const authPromise = new Promise((resolve, reject) => {
         passport.authenticate('local-signup')(
             {
@@ -289,7 +289,7 @@ test('Local signup strategy, with email confirmation by user', async () => {
 
 test('Local signup strategy, with email confirmation by admin', async () => {
     const endFct = jest.fn();
-    config.auth = { localLogin: { 
+    projectConfig.auth = { localLogin: { 
         confirmEmail: true,
         confirmEmailStrategy: 'confirmByAdmin'
     }};
@@ -344,7 +344,7 @@ test('Local signup strategy, with email confirmation by admin, urls without endi
     const urlWithoutSlash = 'https://test.transition';
     process.env.HOST = urlWithoutSlash;
     const endFct = jest.fn();
-    config.auth = { localLogin: { 
+    projectConfig.auth = { localLogin: { 
         confirmEmail: true,
         confirmEmailStrategy: 'confirmByAdmin'
     }};

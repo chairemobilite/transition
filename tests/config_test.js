@@ -2,6 +2,8 @@ module.exports = {
 
     maxParallelCalculators: 3,
     projectDirectory: `${__dirname}/runtime/`,
+    maxFileUploadMB: 1024,
+   
     projectShortname: 'test',
   
     allowRegistration: true,
