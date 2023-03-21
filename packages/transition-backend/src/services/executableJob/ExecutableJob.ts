@@ -40,7 +40,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             console.log(`Enqueuing ${runningAndPending.jobs.length} in progress and pending jobs`);
             for (let i = 0; i < runningAndPending.jobs.length; i++) {
                 const job = new ExecutableJob<TData>(runningAndPending.jobs[i] as JobAttributes<TData>);
-                job.enqueue(progressEmitter);
+                await job.enqueue(progressEmitter);
             }
 
             return true;
@@ -137,7 +137,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
     async enqueue(progressEmitter: EventEmitter): Promise<any> {
         // TODO Handle the cancellation
         await this.save();
-        return execJob('task', [this.attributes.id], {
+        execJob('task', [this.attributes.id], {
             on: function (payload) {
                 progressEmitter.emit(payload.event, payload.data);
             }
