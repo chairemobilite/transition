@@ -11,7 +11,7 @@
     ],
     "scripts": {
         "setup": "yarn workspace chaire-lib-backend run setup",
-        "setup-test": "yarn workspace chaire-lib-backend run setup-test",
+        "setup-test": "PROJECT_CONFIG=${PWD}/tests/config_test.js yarn workspace chaire-lib-backend run setup-test",
         "migrate": "yarn workspace chaire-lib-backend run migrate && yarn workspace transition-backend run migrate",
         "migrate-test": "PROJECT_CONFIG=${PWD}/tests/config_test.js yarn workspace chaire-lib-backend run migrate-test && PROJECT_CONFIG=${PWD}/tests/config_test.js yarn workspace transition-backend run migrate-test",
         "clean": "yarn workspaces run clean",
