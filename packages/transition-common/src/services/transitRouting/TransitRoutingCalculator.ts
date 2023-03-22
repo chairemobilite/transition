@@ -36,7 +36,7 @@ const resultIsRouting = (
 };
 
 export type ResultsByMode = {
-    [key in RoutingMode]?: RouteCalculatorResult;
+    [key in RoutingMode]?: UnimodalRouteCalculationResult;
 } & {
     transit?: TransitRoutingResult;
 };
@@ -61,13 +61,13 @@ export class TransitRoutingCalculator {
                         ? (walkingRouteResult.result as RouteResults).routes[0]
                         : undefined;
 
-                results[routingMode] = new TransitRoutingResult({
+                results[routingResult.routingMode] = new TransitRoutingResult({
                     origin: originDestination.features[0],
                     destination: originDestination.features[1],
                     paths: TrError.isTrError(routingResult.result) ? [] : routingResult.result.routes,
                     walkOnlyPath,
                     maxWalkingTime: maxWalkingTime,
-                    error: TrError.isTrError(routingResult.result) ? routingResult.result : undefined
+                    error: TrError.isTrError(routingResult.result) ? routingResult.result.export() : undefined
                 });
             } else if (routingMode !== 'transit') {
                 results[routingMode] = new UnimodalRouteCalculationResult({
@@ -75,7 +75,7 @@ export class TransitRoutingCalculator {
                     origin: originDestination.features[0],
                     destination: originDestination.features[1],
                     paths: resultIsRouting(routingResult) ? routingResult.result.routes : [],
-                    error: resultIsRouting(routingResult) ? undefined : (routingResult.result as TrError)
+                    error: TrError.isTrError(routingResult.result) ? routingResult.result.export() : undefined
                 });
             }
         }
