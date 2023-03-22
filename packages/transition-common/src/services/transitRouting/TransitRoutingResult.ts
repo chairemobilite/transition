@@ -13,7 +13,7 @@ import { Route, RouteResults } from 'chaire-lib-common/lib/services/routing/Rout
 import { getRouteByMode } from 'chaire-lib-common/lib/services/routing/RoutingUtils';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import PathCollection from '../path/PathCollection';
-import TrError from 'chaire-lib-common/lib/utils/TrError';
+import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import { RouteCalculatorResult } from './RouteCalculatorResult';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 
@@ -44,34 +44,24 @@ interface TransitResultParams {
     paths: TrRoutingRoute[];
     walkOnlyPath?: Route;
     maxWalkingTime?: number | undefined;
-    error?: TrError;
+    error?: { localizedMessage: ErrorMessage; error: string; errorCode: string };
 }
 
-export class TransitRoutingResult implements RouteCalculatorResult {
-    private _origin: GeoJSON.Feature<GeoJSON.Point>;
-    private _destination: GeoJSON.Feature<GeoJSON.Point>;
-    private _paths: TrRoutingRoute[];
+export class TransitRoutingResult implements RouteCalculatorResult<TransitResultParams> {
     private _hasAlternatives: boolean;
-    private _walkOnlyPath: Route | undefined;
     private _walkOnlyPathIndex: number;
-    private _error: TrError | undefined;
 
-    constructor(params: TransitResultParams) {
-        this._origin = params.origin;
-        this._destination = params.destination;
-        this._hasAlternatives = params.paths.length > 1;
-        this._paths = params.paths;
-        this._walkOnlyPath = params.walkOnlyPath;
-        this._error = params.error;
+    constructor(private _params: TransitResultParams) {
+        this._hasAlternatives = this._params.paths.length > 1;
 
         // Find the index at which to place the walk only path
-        if (params.walkOnlyPath) {
-            const walkPathDuration = params.walkOnlyPath.duration;
-            if (params.maxWalkingTime && params.maxWalkingTime < walkPathDuration) {
+        if (this._params.walkOnlyPath) {
+            const walkPathDuration = this._params.walkOnlyPath.duration;
+            if (this._params.maxWalkingTime && this._params.maxWalkingTime < walkPathDuration) {
                 this._walkOnlyPathIndex = -1;
             } else {
-                const walkIndex = this._paths.findIndex((path) => walkPathDuration <= path.totalTravelTime);
-                this._walkOnlyPathIndex = walkIndex >= 0 ? walkIndex : this._paths.length;
+                const walkIndex = this._params.paths.findIndex((path) => walkPathDuration <= path.totalTravelTime);
+                this._walkOnlyPathIndex = walkIndex >= 0 ? walkIndex : this._params.paths.length;
             }
         } else {
             this._walkOnlyPathIndex = -1;
@@ -83,7 +73,7 @@ export class TransitRoutingResult implements RouteCalculatorResult {
     }
 
     getAlternativesCount(): number {
-        return this._walkOnlyPathIndex !== -1 ? this._paths.length + 1 : this._paths.length;
+        return this._walkOnlyPathIndex !== -1 ? this._params.paths.length + 1 : this._params.paths.length;
     }
 
     getRoutingMode(): RoutingOrTransitMode {
@@ -94,18 +84,18 @@ export class TransitRoutingResult implements RouteCalculatorResult {
         return index === this._walkOnlyPathIndex
             ? undefined
             : this._walkOnlyPathIndex !== -1 && index >= this._walkOnlyPathIndex
-                ? this._paths[index - 1]
-                : this._paths[index];
+                ? this._params.paths[index - 1]
+                : this._params.paths[index];
     }
 
     getWalkOnlyRoute(): Route | undefined {
-        return this._walkOnlyPath;
+        return this._params.walkOnlyPath;
     }
 
     originDestinationToGeojson(): GeoJSON.FeatureCollection<GeoJSON.Point> {
         return {
             type: 'FeatureCollection',
-            features: [this._origin, this._destination]
+            features: [this._params.origin, this._params.destination]
         };
     }
 
@@ -212,16 +202,16 @@ export class TransitRoutingResult implements RouteCalculatorResult {
 
     getWalkPathGeojson(): GeoJSON.FeatureCollection {
         // TODO tahini: A route to geojson should be somewhere else than here
-        if (!this._walkOnlyPath) {
+        if (!this._params.walkOnlyPath) {
             throw 'Walk only path not available!';
         }
-        if (this._walkOnlyPath.geometry) {
+        if (this._params.walkOnlyPath.geometry) {
             const geojson: GeoJSON.Feature<GeoJSON.Geometry, StepGeojsonProperties> = {
                 type: 'Feature',
-                geometry: this._walkOnlyPath.geometry,
+                geometry: this._params.walkOnlyPath.geometry,
                 properties: {
-                    distanceMeters: this._walkOnlyPath.distance,
-                    travelTimeSeconds: this._walkOnlyPath.duration,
+                    distanceMeters: this._params.walkOnlyPath.distance,
+                    travelTimeSeconds: this._params.walkOnlyPath.duration,
                     mode: 'walking',
                     color: _get(Preferences.current, 'transit.routing.transit.walkingSegmentsColor')
                 } as StepGeojsonProperties
@@ -245,8 +235,8 @@ export class TransitRoutingResult implements RouteCalculatorResult {
         }
         const path =
             this._walkOnlyPathIndex !== -1 && index >= this._walkOnlyPathIndex
-                ? this._paths[index - 1]
-                : this._paths[index];
+                ? this._params.paths[index - 1]
+                : this._params.paths[index];
         if (!path) {
             return {
                 type: 'FeatureCollection',
@@ -270,7 +260,7 @@ export class TransitRoutingResult implements RouteCalculatorResult {
                     getRouteByMode(
                         {
                             type: 'Feature',
-                            geometry: { type: 'Point', coordinates: this._origin.geometry.coordinates },
+                            geometry: { type: 'Point', coordinates: this._params.origin.geometry.coordinates },
                             properties: {}
                         },
                         { type: 'Feature', geometry: { type: 'Point', coordinates: nodeCoordinates }, properties: {} }
@@ -285,7 +275,7 @@ export class TransitRoutingResult implements RouteCalculatorResult {
                         { type: 'Feature', geometry: { type: 'Point', coordinates: nodeCoordinates }, properties: {} },
                         {
                             type: 'Feature',
-                            geometry: { type: 'Point', coordinates: this._destination.geometry.coordinates },
+                            geometry: { type: 'Point', coordinates: this._params.destination.geometry.coordinates },
                             properties: {}
                         }
                     )
@@ -340,10 +330,13 @@ export class TransitRoutingResult implements RouteCalculatorResult {
     }
 
     hasError(): boolean {
-        return this._error !== undefined;
+        return this._params.error !== undefined;
     }
 
     getError(): TrError | undefined {
-        return this._error;
+        const error = this._params.error;
+        return error !== undefined ? new TrError(error.error, error.errorCode, error.localizedMessage) : undefined;
     }
+
+    getParams = (): TransitResultParams => this._params;
 }

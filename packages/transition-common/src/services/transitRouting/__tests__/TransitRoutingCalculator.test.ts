@@ -12,11 +12,9 @@ import { simplePathResult, transferPathResult, alternativesResult } from './TrRo
 import { TransitRoutingCalculator } from '../TransitRoutingCalculator';
 import { TransitRouting, TransitRoutingAttributes } from '../TransitRouting';
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { TrRoutingStep } from 'chaire-lib-common/lib/api/TrRouting';
-import { TrRoutingResultPath, TrRoutingResultAlternatives } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { TransitRoutingResult } from '../TransitRoutingResult';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
-import { RouteCalculatorResult } from '../RouteCalculatorResult';
+import { UnimodalRouteCalculationResult } from '../RouteCalculatorResult';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { TrRoutingV2 } from 'chaire-lib-common/src/api/TrRouting';
 
@@ -198,7 +196,7 @@ describe('TransitRoutingCalculator', () => {
 
         expect(Object.keys(result)).toEqual(routingModes);
         for (let i = 0; i < routingModes.length; i++) {
-            const resultForMode = result[routingModes[i]] as RouteCalculatorResult;
+            const resultForMode = result[routingModes[i]] as UnimodalRouteCalculationResult;
             expect(resultForMode).toBeDefined();
             expect(resultForMode.hasError()).toBeFalsy();
             expect(resultForMode.getError()).toBeUndefined();
@@ -222,10 +220,10 @@ describe('TransitRoutingCalculator', () => {
 
         expect(Object.keys(result)).toEqual(routingModes);
         for (let i = 0; i < routingModes.length; i++) {
-            const resultForMode = result[routingModes[i]] as RouteCalculatorResult;
+            const resultForMode = result[routingModes[i]] as UnimodalRouteCalculationResult;
             expect(resultForMode).toBeDefined();
             expect(resultForMode.hasError()).toBeTruthy();
-            expect(resultForMode.getError()).toBeDefined();
+            expect(TrError.isTrError(resultForMode.getError())).toBe(true);
         }
     });
 });

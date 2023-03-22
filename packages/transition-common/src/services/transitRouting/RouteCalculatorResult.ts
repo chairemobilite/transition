@@ -9,11 +9,11 @@ import _get from 'lodash.get';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { RoutingOrTransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
-import TrError from 'chaire-lib-common/lib/utils/TrError';
+import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 
 // TODO Add a common type to getPath(index)
-export interface RouteCalculatorResult {
+export interface RouteCalculatorResult<InputParams> {
     hasAlternatives: () => boolean;
     getAlternativesCount: () => number;
     originDestinationToGeojson: () => GeoJSON.FeatureCollection<GeoJSON.Point>;
@@ -22,6 +22,7 @@ export interface RouteCalculatorResult {
     getRoutingMode(): RoutingOrTransitMode;
     hasError: () => boolean;
     getError: () => TrError | undefined;
+    getParams: () => InputParams;
 }
 
 interface ResultParams {
@@ -29,44 +30,34 @@ interface ResultParams {
     origin: GeoJSON.Feature<GeoJSON.Point>;
     destination: GeoJSON.Feature<GeoJSON.Point>;
     paths: Route[];
-    error?: TrError;
+    error?: { localizedMessage: ErrorMessage; error: string; errorCode: string };
 }
 
-export class UnimodalRouteCalculationResult implements RouteCalculatorResult {
-    private _routingMode: RoutingMode;
-    private _origin: GeoJSON.Feature<GeoJSON.Point>;
-    private _destination: GeoJSON.Feature<GeoJSON.Point>;
-    private _paths: Route[];
-    private _error: TrError | undefined;
-
-    constructor(params: ResultParams) {
-        this._routingMode = params.routingMode;
-        this._origin = params.origin;
-        this._destination = params.destination;
-        this._paths = params.paths;
-        this._error = params.error;
+export class UnimodalRouteCalculationResult implements RouteCalculatorResult<ResultParams> {
+    constructor(private _params: ResultParams) {
+        /** Nothin to do */
     }
 
     getRoutingMode(): RoutingOrTransitMode {
-        return this._routingMode;
+        return this._params.routingMode;
     }
 
     hasAlternatives(): boolean {
-        return this._paths.length > 1;
+        return this._params.paths.length > 1;
     }
 
     getAlternativesCount(): number {
-        return this._paths.length;
+        return this._params.paths.length;
     }
 
     getPath(index: number): Route | undefined {
-        return this._paths[index];
+        return this._params.paths[index];
     }
 
     originDestinationToGeojson(): GeoJSON.FeatureCollection<GeoJSON.Point> {
         return {
             type: 'FeatureCollection',
-            features: [this._origin, this._destination]
+            features: [this._params.origin, this._params.destination]
         };
     }
 
@@ -83,9 +74,9 @@ export class UnimodalRouteCalculationResult implements RouteCalculatorResult {
                 properties: {
                     distanceMeters: path.distance,
                     travelTimeSeconds: path.duration,
-                    mode: this._routingMode,
+                    mode: this._params.routingMode,
                     color: Preferences.get(
-                        `transit.routing.transit.${this._routingMode}.color`, // TODO: rename or move this prefs to reduce nesting
+                        `transit.routing.transit.${this._params.routingMode}.color`, // TODO: rename or move this prefs to reduce nesting
                         Preferences.get('transit.routing.transit.default.color')
                     )
                 }
@@ -99,10 +90,13 @@ export class UnimodalRouteCalculationResult implements RouteCalculatorResult {
     }
 
     hasError(): boolean {
-        return this._error !== undefined;
+        return this._params.error !== undefined;
     }
 
     getError(): TrError | undefined {
-        return this._error;
+        const error = this._params.error;
+        return error !== undefined ? new TrError(error.error, error.errorCode, error.localizedMessage) : undefined;
     }
+
+    getParams = (): ResultParams => this._params;
 }
