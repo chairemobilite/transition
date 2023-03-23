@@ -22,9 +22,14 @@ import {
 } from 'chaire-lib-common/lib/api/TrRouting';
 import odPairsDbQueries from '../../models/db/odPairs.db.queries';
 import pathDbQueries from '../../models/db/transitPaths.db.queries';
+import resultsDbQueries from '../../models/db/batchRouteResults.db.queries';
 import { getDataSource } from '../dataSources/dataSources';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import { BatchRoutingResultProcessor, createRoutingFileResultProcessor } from './TrRoutingBatchResult';
+import {
+    BatchRoutingResultProcessor,
+    createRoutingFileResultProcessor,
+    generateFileOutputResults
+} from './TrRoutingBatchResult';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 
 /**
@@ -43,6 +48,7 @@ export const batchRoute = async (
     demandParameters: TransitBatchRoutingDemandAttributes,
     transitRoutingAttributes: BatchCalculationParameters,
     options: {
+        jobId: number;
         absoluteBaseDirectory: string;
         inputFileName: string;
         progressEmitter: EventEmitter;
@@ -60,12 +66,12 @@ class TrRoutingBatch {
     private odTrips: BaseOdTrip[] = [];
     private errors: ErrorMessage[] = [];
     private pathCollection: PathCollection | undefined = undefined;
-    private resultHandler: BatchRoutingResultProcessor | undefined = undefined;
 
     constructor(
         private demandParameters: TransitBatchRoutingDemandFromCsvAttributes,
         private transitRoutingAttributes: BatchCalculationParameters,
         private options: {
+            jobId: number;
             absoluteBaseDirectory: string;
             inputFileName: string;
             progressEmitter: EventEmitter;
@@ -93,6 +99,9 @@ class TrRoutingBatch {
             console.log(odTripsCount + ' OdTrips parsed');
             this.options.progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
 
+            // Delete any previous result for this job
+            await resultsDbQueries.deleteForJob(this.options.jobId);
+
             // Start the trRouting instances for the odTrips
             const trRoutingInstancesCount = await this.startTrRoutingInstances(odTripsCount);
 
@@ -100,8 +109,13 @@ class TrRoutingBatch {
             // Number of od pairs after which to report progress
             const progressStep = Math.ceil(this.odTrips.length / 100);
 
+            // force add walking when selecting transit mode, so we can check if walking is better
+            const routingModes = this.transitRoutingAttributes.routingModes;
+            if (routingModes.includes('transit') && !routingModes.includes('walking')) {
+                routingModes.push('walking');
+            }
+            this.transitRoutingAttributes.routingModes = routingModes;
             const routingObject = new TransitRouting(this.transitRoutingAttributes);
-            await this.prepareResultData(routingObject);
 
             const poolOfTrRoutingPorts = _cloneDeep(
                 Object.keys(TrRoutingProcessManager.getAvailablePortsByStartingPort())
@@ -158,7 +172,6 @@ class TrRoutingBatch {
             }
 
             await promiseQueue.onIdle();
-            this.resultHandler?.end();
 
             this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
             this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
@@ -168,13 +181,18 @@ class TrRoutingBatch {
             this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 1.0 });
             console.log('trRouting multiple stopStatus', stopStatus);
 
+            // Generate the output files
+            this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
+            const files = await this.generateResultFiles(routingObject);
+            this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 1.0 });
+
             const routingResult = {
                 calculationName: parameters.calculationName,
                 detailed: parameters.detailed,
                 completed: true,
                 errors: [],
                 warnings: this.errors,
-                files: this.resultHandler?.getFiles() || { input: this.options.inputFileName }
+                files
             };
 
             // FIXME Saving to DB should be done in a separate workflow. See #583
@@ -207,10 +225,7 @@ class TrRoutingBatch {
                     completed: false,
                     errors: error,
                     warnings: [],
-                    files:
-                        this.resultHandler !== undefined
-                            ? this.resultHandler.getFiles()
-                            : { input: this.options.inputFileName }
+                    files: { input: this.options.inputFileName }
                 };
             } else {
                 console.error(`Error in batch routing calculation: ${error}`);
@@ -219,16 +234,55 @@ class TrRoutingBatch {
         }
     };
 
-    private prepareResultData = async (routing: TransitRouting): Promise<void> => {
-        this.resultHandler = createRoutingFileResultProcessor(
+    private generateResultFiles = async (
+        routing: TransitRouting
+    ): Promise<{ input: string; csv?: string; detailedCsv?: string; geojson?: string }> => {
+        const { resultHandler, pathCollection } = await this.prepareResultData(routing);
+
+        let currentResultPage = 0;
+        let totalCount = 0;
+        const pageSize = 250;
+        do {
+            const { totalCount: total, tripResults } = await resultsDbQueries.collection(this.options.jobId, {
+                pageIndex: currentResultPage,
+                pageSize
+            });
+            totalCount = total;
+            for (let i = 0; i < tripResults.length; i++) {
+                const processedResults = await generateFileOutputResults(
+                    tripResults[i].data,
+                    routing.attributes.routingModes,
+                    {
+                        exportCsv: true,
+                        exportDetailed: this.demandParameters.detailed === true,
+                        withGeometries: this.demandParameters.withGeometries === true,
+                        pathCollection
+                    }
+                );
+                resultHandler.processResult(processedResults);
+            }
+            currentResultPage++;
+        } while (Math.ceil(totalCount / pageSize) > currentResultPage);
+        resultHandler.end();
+
+        // Files are ready, delete the results from the database
+        resultsDbQueries.deleteForJob(this.options.jobId);
+        return resultHandler.getFiles();
+    };
+
+    private prepareResultData = async (
+        routing: TransitRouting
+    ): Promise<{ resultHandler: BatchRoutingResultProcessor; pathCollection?: PathCollection }> => {
+        const resultHandler = createRoutingFileResultProcessor(
             this.options.absoluteBaseDirectory,
             this.demandParameters,
             routing,
             this.options.inputFileName
         );
 
+        let pathCollection: PathCollection | undefined = undefined;
         if (this.demandParameters.withGeometries) {
-            const pathCollection = new PathCollection([], {});
+            pathCollection = new PathCollection([], {});
             if (routing.attributes.scenarioId) {
                 const pathGeojson = await pathDbQueries.geojsonCollection({
                     scenarioId: routing.attributes.scenarioId
@@ -237,6 +291,7 @@ class TrRoutingBatch {
             }
             this.pathCollection = pathCollection;
         }
+        return { resultHandler, pathCollection };
     };
 
     private getOdTrips = async (): Promise<{
@@ -300,14 +355,16 @@ class TrRoutingBatch {
                 odTripIndex: odTripIndex,
                 odTripsCount: this.odTrips.length,
                 routing: routingObject,
-                exportCsv: true,
-                exportCsvDetailed: this.demandParameters.detailed !== false ? true : false,
-                withGeometries: this.demandParameters.withGeometries === true ? true : false,
                 reverseOD: false,
                 pathCollection: this.pathCollection
             });
+            // FIXME Do not synchronously wait for the save (~10% time overhead). When we have checkpoint support, we can do .then/catch to handle completion instead
+            await resultsDbQueries.create({
+                jobId: this.options.jobId,
+                tripIndex: odTripIndex,
+                data: routingResult
+            });
             options.logAfter(odTripIndex);
-            this.resultHandler?.processResult(routingResult);
 
             return routingResult;
         } catch (error) {

@@ -11,19 +11,14 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
 import { ResultsByMode } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+import { OdTripRouteResult } from '../../services/transitRouting/types';
 
 const tableName = 'tr_batch_route_results';
 
 type TripJobResult = {
     jobId: number;
     tripIndex: number;
-    data: {
-        uuid: string;
-        internalId: string;
-        origin?: GeoJSON.Point;
-        destination?: GeoJSON.Point;
-        results?: ResultsByMode;
-    };
+    data: OdTripRouteResult;
 };
 
 const create = async (result: TripJobResult): Promise<void> => {

@@ -75,6 +75,7 @@ const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>) => {
         task.attributes.data.parameters.demandAttributes,
         task.attributes.data.parameters.transitRoutingAttributes,
         {
+            jobId: task.attributes.id,
             absoluteBaseDirectory: absoluteUserDir,
             inputFileName,
             progressEmitter: newProgressEmitter(),

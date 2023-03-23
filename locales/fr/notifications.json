@@ -74,6 +74,7 @@
   "ParsingCsvWithLineNumber": "Lecture du fichier CSV ligne ",
   "StartingRoutingParallelServers": "Démarrage des serveurs de calcul parallèles",
   "StoppingRoutingParallelServers": "Fermeture des serveurs de calcul parallèles",
+  "GeneratingBatchRoutingResults": "Génération des fichiers de résultats de calcul",
   "GTFSExporterPreparation": "Préparation de l'exportation GTFS",
   "GTFSExporterZipping": "Compression des données GTFS",
   "pending": "en attente",
