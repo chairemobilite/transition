@@ -5,26 +5,17 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { feature as turfFeature } from '@turf/turf';
-import _omit from 'lodash.omit';
-import _cloneDeep from 'lodash.clonedeep';
-import { unparse } from 'papaparse';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import {
     TransitRoutingCalculator,
     ResultsByMode
 } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
-import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
-import TrError from 'chaire-lib-common/lib/utils/TrError';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
-import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import { ErrorCodes, TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
-import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
-import { routeToUserObject } from 'chaire-lib-common/lib/services/trRouting/TrRoutingResultConversion';
-import { getDefaultCsvAttributes, getDefaultStepsAttributes } from './ResultAttributes';
-import { OdTripRouteOutput } from './types';
+import { OdTripRouteResult } from './types';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 // TODO Should this file go in the backend?
 
 interface RouteOdTripParameters {
@@ -32,9 +23,6 @@ interface RouteOdTripParameters {
     trRoutingPort?: number;
     odTripIndex: number;
     odTripsCount: number;
-    exportCsv: boolean;
-    exportCsvDetailed: boolean;
-    withGeometries: boolean;
     reverseOD: boolean;
     /**
      * The collection of paths used in the scenario, required only if the
@@ -46,7 +34,7 @@ interface RouteOdTripParameters {
     pathCollection?: PathCollection;
 }
 
-const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripParameters): Promise<OdTripRouteOutput> {
+const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripParameters): Promise<OdTripRouteResult> {
     const routingAttributes: TransitRoutingAttributes = Object.assign({}, parameters.routing.getAttributes());
     // TODO Manage routing port in a better way
     (routingAttributes as any).routingPort = parameters.trRoutingPort;
@@ -55,12 +43,13 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
     const destination = parameters.reverseOD
         ? odTrip.attributes.origin_geography
         : odTrip.attributes.destination_geography;
+    const uuid = odTrip.getId();
+    const internalId = odTrip.attributes.internal_id || '';
 
     if (!origin || !origin.coordinates || !destination || !destination.coordinates) {
         return {
-            csv: parameters.exportCsv ? [] : undefined,
-            csvDetailed: parameters.exportCsvDetailed ? [] : undefined,
-            geometries: parameters.withGeometries ? [] : undefined
+            uuid,
+            internalId
         };
     }
 
@@ -75,282 +64,28 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
     routingAttributes.departureTimeSecondsSinceMidnight =
         odTrip.attributes.timeType === 'departure' ? odTrip.attributes.timeOfTrip : undefined;
 
-    const uuid = odTrip.getId();
-    const internalId = odTrip.attributes.internal_id || '';
-    const csvResultAttributes = getDefaultCsvAttributes(parameters.routing.attributes.routingModes || []);
-    csvResultAttributes.uuid = uuid;
-    csvResultAttributes.internalId = internalId;
-
     try {
         const results: ResultsByMode = await TransitRoutingCalculator.calculate(
             new TransitRouting(routingAttributes),
             false
         );
 
-        let features: GeoJSON.Feature[] | undefined = undefined;
-        if (parameters.withGeometries === true) {
-            features = await generateShapeGeojsons(
-                results,
-                {
-                    internalId
-                },
-                parameters.pathCollection
-            );
-        }
-
-        const { csv, csvDetailed } = generateCsvContent(results, csvResultAttributes, {
+        return {
             uuid,
             internalId,
             origin,
             destination,
-            exportCsv: parameters.exportCsv,
-            exportCsvDetailed: parameters.exportCsvDetailed
-        });
-
-        return {
-            csv: parameters.exportCsv ? csv : undefined,
-            csvDetailed: parameters.exportCsvDetailed ? csvDetailed : undefined,
-            geometries: features,
-            result: results.transit
+            results
         };
     } catch (error) {
         return {
-            csv: parameters.exportCsv ? [generateCsvErrorRow(error, csvResultAttributes)] : undefined,
-            csvDetailed: parameters.exportCsvDetailed ? [] : undefined,
-            geometries: parameters.withGeometries ? [] : undefined,
-            result: undefined
+            uuid,
+            internalId,
+            origin,
+            destination,
+            error: TrError.isTrError(error) ? error.export() : String(error)
         };
     }
-};
-
-const generateCsvContent = (
-    results: ResultsByMode,
-    csvAttributes: { [key: string]: string | number | null },
-    options: {
-        uuid: string;
-        internalId: string;
-        origin: GeoJSON.Point;
-        destination: GeoJSON.Point;
-        exportCsv: boolean;
-        exportCsvDetailed: boolean;
-    }
-): { csv: string[]; csvDetailed: string[] } => {
-    if (options.exportCsv !== true) {
-        return {
-            csv: [],
-            csvDetailed: []
-        };
-    }
-
-    csvAttributes.originLat = options.origin.coordinates[1];
-    csvAttributes.originLon = options.origin.coordinates[0];
-    csvAttributes.destinationLat = options.destination.coordinates[1];
-    csvAttributes.destinationLon = options.destination.coordinates[0];
-
-    const transitResult = results.transit;
-    if (transitResult !== undefined) {
-        return generateCsvWithTransit(transitResult, results, csvAttributes, {
-            exportCsvDetailed: options.exportCsvDetailed
-        });
-    }
-
-    const csvContent: string[] = [];
-
-    addAdditionalModes(results, csvAttributes);
-    csvContent.push(unparse([csvAttributes], { header: false }));
-
-    return {
-        csv: csvContent,
-        csvDetailed: []
-    };
-};
-
-const getStepSummaries = (
-    result: Partial<TrRoutingRoute>
-): {
-    lineUuids: string;
-    modes: string;
-    stepsSummary: string;
-} => {
-    const steps = result.steps || [];
-    const lineUuids = steps
-        .filter((step) => step.action === 'boarding')
-        .map((step) => (step as TrRoutingV2.TripStepBoarding).lineUuid)
-        .join('|');
-    const modes = steps
-        .filter((step) => step.action === 'boarding')
-        .map((step) => (step as TrRoutingV2.TripStepBoarding).mode)
-        .join('|');
-    const stepsSummary = steps
-        .map((step) => {
-            switch (step.action) {
-            case 'boarding':
-                return `wait${(step as TrRoutingV2.TripStepBoarding).waitingTime}s`;
-            case 'unboarding':
-                return `ride${(step as TrRoutingV2.TripStepUnboarding).inVehicleTime}s${
-                    (step as TrRoutingV2.TripStepUnboarding).inVehicleDistance
-                }m`;
-            case 'walking':
-                return `${(step as TrRoutingV2.TripStepWalking).type}${
-                    (step as TrRoutingV2.TripStepWalking).travelTime
-                }s${(step as TrRoutingV2.TripStepWalking).distance}m`;
-            }
-        })
-        .join('|');
-    return { lineUuids, modes, stepsSummary };
-};
-
-const generateCsvWithTransit = (
-    transitResult: TransitRoutingResult,
-    results: ResultsByMode,
-    preFilledCsvAttributes: { [key: string]: string | number | null },
-    options: { exportCsvDetailed: boolean }
-): { csv: string[]; csvDetailed: string[] } => {
-    const csvContent: string[] = [];
-    const csvDetailedContent: string[] = [];
-
-    if (transitResult.hasError()) {
-        return {
-            csv: [generateCsvErrorRow(transitResult.getError(), preFilledCsvAttributes, results)],
-            csvDetailed: []
-        };
-    }
-    let alternativeSequence = 0;
-    for (let i = 0, countI = transitResult.getAlternativesCount(); i < countI; i++) {
-        const alternative = transitResult.getPath(i);
-        if (alternative === undefined) {
-            // This is the walk only path
-            continue;
-        }
-        alternativeSequence++;
-        const stepsDetailSummary = getStepSummaries(alternative);
-        const userResult = routeToUserObject(alternative);
-        const { origin, destination, ...rest } = userResult;
-        const csvAttributes = Object.assign(_cloneDeep(preFilledCsvAttributes), stepsDetailSummary);
-        // replace origin and destination coordinates arrays by separate lat/lon values:
-        // TODO csvAttributes will need to be typed
-        csvAttributes.originLat = origin[1];
-        csvAttributes.originLon = origin[0];
-        csvAttributes.destinationLat = destination[1];
-        csvAttributes.destinationLon = destination[0];
-        (csvAttributes.alternativeSequence = alternativeSequence),
-        (csvAttributes.alternativeTotalSequence = transitResult.getAlternativesCount()),
-        (csvAttributes.status = 'success');
-
-        for (const attribute in _omit(rest, ['steps'])) {
-            if (csvAttributes[attribute] !== undefined) {
-                csvAttributes[attribute] = rest[attribute];
-            } else {
-                console.error(
-                    `csvAttributes is missing ${attribute} attribute which was returned by trRouting (it will be ignored)`
-                );
-            }
-        }
-        addAdditionalModes(results, csvAttributes);
-        csvContent.push(unparse([csvAttributes], { header: false }));
-
-        if (options.exportCsvDetailed === true) {
-            const steps = userResult.steps;
-            if (steps) {
-                for (let j = 0, countJ = steps.length; j < countJ; j++) {
-                    const step = steps[j];
-                    // TODO Is this needed?
-                    /*if (step.action === 'unboard' && step.inVehicleDistanceMeters && step.inVehicleDistanceMeters === -1)
-                            {
-                            step.inVehicleDistanceMeters = null;
-                            } */
-                    const csvDetailedAttributes = getDefaultStepsAttributes();
-                    csvDetailedAttributes.uuid = preFilledCsvAttributes.uuid;
-                    csvDetailedAttributes.internalId = preFilledCsvAttributes.internalId;
-                    csvDetailedAttributes.alternativeSequence = alternativeSequence;
-                    csvDetailedAttributes.stepSequence = j + 1;
-                    for (const attribute in step) {
-                        if (csvDetailedAttributes[attribute] !== undefined) {
-                            csvDetailedAttributes[attribute] = step[attribute];
-                        } else {
-                            console.error(
-                                `csvDetailedAttributes is missing ${attribute} attribute which was returned by trRouting (it will be ignored)`
-                            );
-                        }
-                    }
-                    csvDetailedContent.push(unparse([csvDetailedAttributes], { header: false }));
-                }
-            }
-        }
-    }
-
-    return {
-        csv: csvContent,
-        csvDetailed: csvDetailedContent
-    };
-};
-
-const generateCsvErrorRow = (
-    error: any,
-    csvAttributes: { [key: string]: string | number | null },
-    results?: ResultsByMode
-): string => {
-    csvAttributes.status = TrError.isTrError(error) ? error.getCode() : 'error';
-
-    if (TrError.isTrError(error) && error.getCode() === ErrorCodes.OtherError) {
-        console.error(`cannot calculate transit route with trRouting: ${error.message}`);
-    }
-
-    if (results) {
-        addAdditionalModes(results, csvAttributes);
-    }
-
-    return unparse([csvAttributes], { header: false });
-};
-
-const addAdditionalModes = (results: ResultsByMode, csvAttributes: { [key: string]: string | number | null }) => {
-    // Add the value of the time for each mode
-    Object.keys(results).forEach((key) => {
-        if (key !== 'transit' && results[key]) {
-            const resultForMode = results[key];
-            const pathForMode = !resultForMode.hasError() ? (resultForMode.getPath(0) as Route) : undefined;
-            csvAttributes[`only${key.charAt(0).toUpperCase() + key.slice(1)}TravelTimeSeconds`] = pathForMode
-                ? pathForMode.duration
-                : resultForMode.getError().getCode();
-            csvAttributes[`only${key.charAt(0).toUpperCase() + key.slice(1)}DistanceMeters`] = pathForMode
-                ? pathForMode.distance
-                : null;
-        }
-    });
-};
-
-const generateShapeGeojsons = async (
-    results: ResultsByMode,
-    options: { internalId: string },
-    pathCollection?: PathCollection
-): Promise<GeoJSON.Feature[]> => {
-    let features: GeoJSON.Feature[] = [];
-
-    const modes = Object.keys(results);
-    for (let modeIndex = 0; modeIndex < modes.length; modeIndex++) {
-        const result = results[modes[modeIndex]];
-        try {
-            for (let i = 0, alternativeCount = result.getAlternativesCount(); i < alternativeCount; i++) {
-                const featureColl = await result.getPathGeojson(i, { completeData: true, pathCollection });
-                features = features.concat(
-                    featureColl.features.map((feature) => ({
-                        type: 'Feature',
-                        properties: {
-                            alternative: i,
-                            internalId: options.internalId,
-                            routingMode: modes[modeIndex],
-                            ...feature.properties
-                        },
-                        geometry: feature.geometry
-                    }))
-                );
-            }
-        } catch (error) {
-            console.error(`Error generating geojson path for mode ${modes[modeIndex]}: ${error}`);
-        }
-    }
-
-    return features;
 };
 
 export default routeOdTrip;
