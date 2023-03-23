@@ -55,7 +55,7 @@ const findOverlapingLines = (layerData: GeoJSON.FeatureCollection) : Map<string,
                 lineString(features[i].geometry.coordinates),
                 lineString(features[j].geometry.coordinates)
             );
-            if (overlap.features.length == 0) continue;
+            if (overlap.features.length === 0) continue;
             for (const segment of overlap.features) {
                 const overlapStr = JSON.stringify(segment);
                 if (!overlapMap.has(overlapStr)) overlapMap.set(overlapStr, new Set());
@@ -77,10 +77,10 @@ const manageOverlapingSegmentsData = (overlapMap: Map<string, Set<number>>, laye
             const lastPoint = coordinates[coordinates.length - 1];
             for (let i = 0; i < data.geometry.coordinates.length; i++) {
                 const actualPoint = data.geometry.coordinates[i];
-                if (actualPoint[0] == firstPoint[0] && actualPoint[1] == firstPoint[1]) {
+                if (actualPoint[0] === firstPoint[0] && actualPoint[1] === firstPoint[1]) {
                     segmentDirections.push(true);
                     break;
-                } else if (actualPoint[0] == lastPoint[0] && actualPoint[1] == lastPoint[1]) {
+                } else if (actualPoint[0] === lastPoint[0] && actualPoint[1] === lastPoint[1]) {
                     segmentDirections.push(false);
                     break;
                 }
@@ -108,7 +108,7 @@ const replaceCoordinate = (lineToReplace: string, offsetLine: string, lineId: nu
         const actualPoint = line.geometry.coordinates[i];
         // We use this condition to know when the current point of the loop matches with the first point of the segment we want to replace
         // If the condition is verified we replace every subsequent point by the new coordinates with the applied offset
-        if (actualPoint[0] == firstPoint[0] && actualPoint[1] == firstPoint[1]) {
+        if (actualPoint[0] === firstPoint[0] && actualPoint[1] === firstPoint[1]) {
             for (let j = 0; j < length; j++) {
                 line.geometry.coordinates[i + j] = newGeoData.geometry.coordinates[j];
             }
