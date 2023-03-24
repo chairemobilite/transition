@@ -45,6 +45,9 @@ const CHECKPOINT_INTERVAL = 250;
  * directory where the source files are and where the output files should be
  * saved. The progress emitters allows to emit progress data to clients. The
  * isCancelled function is periodically called to see if the task is cancelled.
+ * The currentCheckpoint, if specified, is the last checkpoint that was
+ * registered for this task. In batch routing, it represents the number of
+ * completed od trips routed.
  * @returns
  */
 export const batchRoute = async (
@@ -56,6 +59,7 @@ export const batchRoute = async (
         inputFileName: string;
         progressEmitter: EventEmitter;
         isCancelled: () => boolean;
+        currentCheckpoint?: number;
     }
 ): Promise<
     TransitBatchCalculationResult & {
@@ -79,6 +83,7 @@ class TrRoutingBatch {
             inputFileName: string;
             progressEmitter: EventEmitter;
             isCancelled: () => boolean;
+            currentCheckpoint?: number;
         }
     ) {
         // Nothing else to do
@@ -102,8 +107,8 @@ class TrRoutingBatch {
             console.log(odTripsCount + ' OdTrips parsed');
             this.options.progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
 
-            // Delete any previous result for this job
-            await resultsDbQueries.deleteForJob(this.options.jobId);
+            // Delete any previous result for this job after checkpoint
+            await resultsDbQueries.deleteForJob(this.options.jobId, this.options.currentCheckpoint);
 
             // Start the trRouting instances for the odTrips
             const trRoutingInstancesCount = await this.startTrRoutingInstances(odTripsCount);
@@ -146,8 +151,13 @@ class TrRoutingBatch {
                     );
                 }
             };
-            const checkpointTracker = new CheckpointTracker(CHECKPOINT_INTERVAL, this.options.progressEmitter);
-            for (let odTripIndex = 0; odTripIndex < odTripsCount; odTripIndex++) {
+            const checkpointTracker = new CheckpointTracker(
+                CHECKPOINT_INTERVAL,
+                this.options.progressEmitter,
+                this.options.currentCheckpoint
+            );
+            const startIndex = this.options.currentCheckpoint || 0;
+            for (let odTripIndex = startIndex; odTripIndex < odTripsCount; odTripIndex++) {
                 promiseQueue.add(async () => {
                     // Assert the job is not cancelled, otherwise clear the queue and let the job exit
                     if (this.options.isCancelled()) {
@@ -271,8 +281,11 @@ class TrRoutingBatch {
         } while (Math.ceil(totalCount / pageSize) > currentResultPage);
         resultHandler.end();
 
-        // Files are ready, delete the results from the database
-        resultsDbQueries.deleteForJob(this.options.jobId);
+        // FIXME Results are kept in the database instead of being deleted
+        // because if the server is restarted after the results are deleted but
+        // before the job is marked as completed, all calculations will be lost.
+        // The results will be automatically deleted when the job is deleted
+        // from the interface though.
         return resultHandler.getFiles();
     };
 

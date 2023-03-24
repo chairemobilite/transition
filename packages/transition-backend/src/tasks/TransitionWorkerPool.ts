@@ -83,7 +83,8 @@ const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>) => {
             absoluteBaseDirectory: absoluteUserDir,
             inputFileName,
             progressEmitter: newProgressEmitter(task),
-            isCancelled: getTaskCancelledFct(task)
+            isCancelled: getTaskCancelledFct(task),
+            currentCheckpoint: task.attributes.internal_data.checkpoint
         }
     );
     task.attributes.data.results = result;
