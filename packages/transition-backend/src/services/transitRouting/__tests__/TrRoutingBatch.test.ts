@@ -167,8 +167,8 @@ test('Batch route to csv', async () => {
     }
     expect(mockResultCollection).toHaveBeenCalledTimes(1);
     expect(mockResultCollection).toHaveBeenCalledWith(jobId, { pageIndex: 0, pageSize: 250 });
-    expect(mockResultDeleteForJob).toHaveBeenCalledTimes(2);
-    expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId);
+    expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
+    expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId, undefined);
 });
 
 test('Batch route with many pages of results', async () => {
@@ -205,8 +205,8 @@ test('Batch route with many pages of results', async () => {
     expect(mockResultCollection).toHaveBeenCalledTimes(2);
     expect(mockResultCollection).toHaveBeenCalledWith(jobId, { pageIndex: 0, pageSize: 250 });
     expect(mockResultCollection).toHaveBeenCalledWith(jobId, { pageIndex: 1, pageSize: 250 });
-    expect(mockResultDeleteForJob).toHaveBeenCalledTimes(2);
-    expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId);
+    expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
+    expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId, undefined);
 });
 
 test('Batch route with some errors', async () => {
@@ -239,8 +239,8 @@ test('Batch route with some errors', async () => {
     }
     expect(mockResultCollection).toHaveBeenCalledTimes(1);
     expect(mockResultCollection).toHaveBeenCalledWith(jobId, { pageIndex: 0, pageSize: 250 });
-    expect(mockResultDeleteForJob).toHaveBeenCalledTimes(2);
-    expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId);
+    expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
+    expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId, undefined);
 });
 
 test('Batch route with too many errors', async () => {
@@ -301,4 +301,82 @@ describe('saveOdPairs', () => {
         expect(odPairsDbQueries.createMultiple).toHaveBeenCalledWith(odTrips.map((odTrip) => (expect.objectContaining(odTrip.attributes))));
         expect(odPairsDbQueries.createMultiple).toHaveBeenCalledWith(odTrips.map((_odTrip) => (expect.objectContaining({ dataSourceId: dataSource.getId() }))));
     })    
-})
+});
+
+describe('Batch route from checkpoint', () => {
+
+    test('Checkpoint is 0', async () => {
+        const currentCheckpoint = 0;
+        const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false })};
+        const result = await batchRoute(parameters, { routingModes: ['walking' ] }, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock, currentCheckpoint });
+        expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length - currentCheckpoint);
+        expect(mockCreateStream).toHaveBeenCalledTimes(1);
+        expect(result).toEqual({
+            calculationName: parameters.configuration.calculationName,
+            detailed: parameters.configuration.detailed,
+            completed: true,
+            errors: [],
+            warnings: [],
+            files: { input: 'batchRouting.csv', csv: 'batchRoutingResults.csv' }
+        });
+        const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith('batchRoutingResults.csv'));
+        expect(csvFileName).toBeDefined();
+        const csvStream = fileStreams[csvFileName as string];
+        expect(csvStream.data.length).toEqual(odTrips.length + 1 - currentCheckpoint);
+
+        expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
+        expect(mockResultDeleteForJob).toHaveBeenNthCalledWith(1, jobId, 0);
+    });
+
+    test('Checkpoint of 1', async () => {
+        const currentCheckpoint = 1;
+        const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false })};
+        const result = await batchRoute(parameters, { routingModes: ['walking' ] }, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock, currentCheckpoint });
+        expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length - currentCheckpoint);
+        expect(mockCreateStream).toHaveBeenCalledTimes(1);
+        expect(result).toEqual({
+            calculationName: parameters.configuration.calculationName,
+            detailed: parameters.configuration.detailed,
+            completed: true,
+            errors: [],
+            warnings: [],
+            files: { input: 'batchRouting.csv', csv: 'batchRoutingResults.csv' }
+        });
+        const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith('batchRoutingResults.csv'));
+        expect(csvFileName).toBeDefined();
+        const csvStream = fileStreams[csvFileName as string];
+        expect(csvStream.data.length).toEqual(odTrips.length + 1 - currentCheckpoint);
+
+        expect(mockResultDeleteForJob).toHaveBeenNthCalledWith(1, jobId, 1);
+    });
+
+    test('Checkpoint callback is called', async () => {
+        // Return a number of od trips larger than the checkpoint size
+        const checkpointListenerMock = jest.fn();
+        socketMock.on('checkpoint', checkpointListenerMock);
+        const largeOdTripsArray = Array(756).fill(odTrips[0]);
+        mockParseOdTripsFromCsv.mockResolvedValueOnce({ odTrips: largeOdTripsArray, errors: [] });
+        const currentCheckpoint = 0;
+        const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false })};
+        await batchRoute(parameters, { routingModes: ['walking' ] }, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock, currentCheckpoint });
+        expect(checkpointListenerMock).toHaveBeenCalledWith(250);
+        expect(checkpointListenerMock).toHaveBeenCalledWith(500);
+        expect(checkpointListenerMock).toHaveBeenCalledWith(750);
+        expect(checkpointListenerMock).toHaveBeenCalledWith(756);
+    });
+
+    test('Checkpoint callback is called after resuming', async () => {
+        // Return a number of od trips larger than the checkpoint size
+        const checkpointListenerMock = jest.fn();
+        socketMock.on('checkpoint', checkpointListenerMock);
+        const largeOdTripsArray = Array(756).fill(odTrips[0]);
+        mockParseOdTripsFromCsv.mockResolvedValueOnce({ odTrips: largeOdTripsArray, errors: [] });
+        const currentCheckpoint = 500;
+        const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false })};
+        await batchRoute(parameters, { routingModes: ['walking' ] }, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock, currentCheckpoint });
+        expect(checkpointListenerMock).toHaveBeenCalledWith(750);
+        expect(checkpointListenerMock).toHaveBeenCalledWith(756);
+    });
+
+});
+
