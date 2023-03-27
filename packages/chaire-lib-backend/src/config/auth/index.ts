@@ -4,8 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-// Unused, but must be imported to make sure the environment is configured at this point, otherwise process.env will have undefined values
-import _dotenv from '../dotenv.config'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import knex from '../shared/db.config';
 import passport, { PassportStatic } from 'passport';
 import GoogleStrategy from 'passport-google-oauth';

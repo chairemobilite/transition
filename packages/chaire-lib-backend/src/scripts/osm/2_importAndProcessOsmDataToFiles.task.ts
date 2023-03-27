@@ -4,8 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import prepareOsmData from 'chaire-lib-common/lib/tasks/dataImport/prepareOsmDataForImport';
+// Import taskWrapper first to load all configuration
 import taskWrapper from '../../tasks/taskWrapper';
+import prepareOsmData from 'chaire-lib-common/lib/tasks/dataImport/prepareOsmDataForImport';
 
 import { fileManager } from '../../utils/filesystem/fileManager';
 

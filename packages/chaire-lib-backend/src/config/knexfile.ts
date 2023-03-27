@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-require('./dotenv.config'); // dotenv is required to get the connection strings
 import { projectConfig } from './config';
 // TODO Let this data be in the config file instead, but only when the server config is separate from project config to not leak data
 if (

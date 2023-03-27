@@ -18,7 +18,8 @@ jest.mock('../../config/config', () => ({
     projectConfig: {
         auth: {}
     },
-    serverConfig: {}
+    serverConfig: {},
+    initializeConfig: jest.fn()
 }));
 jest.mock('../../services/auth/userEmailNotifications');
 const mockedResetPwdEmail = resetPasswordEmail as jest.MockedFunction<typeof resetPasswordEmail>;

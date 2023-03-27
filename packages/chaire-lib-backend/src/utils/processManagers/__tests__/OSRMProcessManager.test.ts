@@ -4,6 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+// Make sure configuration is set TODO mock
+import '../../../config/loadConfig';
 import path from 'path';
 var mockSpawn = require('mock-spawn');
 

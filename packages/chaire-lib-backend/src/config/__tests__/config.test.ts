@@ -1,8 +1,10 @@
 process.env.PROJECT_CONFIG = `${__dirname}/../../../../../tests/config2_test.js`;
-import { serverConfig, projectConfig } from '../config';
+import { serverConfig, projectConfig, initializeConfig } from '../config';
 import path from 'path';
 
 test('Expected server/project config from file defined in .env', () => {
+    initializeConfig();
+    
     expect(serverConfig.userDiskQuota).toEqual('1gb');
     expect(serverConfig.maxFileUploadMB).toEqual(256);
     expect(serverConfig.maxParallelCalculators).toEqual(1);

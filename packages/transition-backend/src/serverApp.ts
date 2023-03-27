@@ -4,8 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-// FIXME Need to make sure it is imported. Really? It was imported in server.ts it should be enough
-import _dotenv from 'chaire-lib-backend/lib/config/dotenv.config';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import path from 'path';
 import { Express, Request, Response, RequestHandler } from 'express';

@@ -106,20 +106,28 @@ const parseServerConfig = (configFromFile: { [key: string]: any }): Partial<Base
     return serverConfigFromFile;
 };
 
-const configFileNormalized = getConfigFilePath();
+let configInitialized = false;
 
-try {
-    const configFileContent = require(configFileNormalized);
-    const configFromFile = _cloneDeep(configFileContent);
-    console.log(`Read server configuration from ${configFileNormalized}`);
+export const initializeConfig = () => {
+    if (configInitialized === true) {
+        return;
+    }
+    const configFileNormalized = getConfigFilePath();
 
-    const serverConfigFromFile = parseServerConfig(configFromFile);
+    try {
+        const configFileContent = require(configFileNormalized);
+        const configFromFile = _cloneDeep(configFileContent);
+        console.log(`Read server configuration from ${configFileNormalized}`);
 
-    setServerConfiguration(serverConfigFromFile);
-    setProjectConfiguration(configFromFile);
-} catch (error) {
-    console.error(`Error loading server configuration in file ${configFileNormalized}`);
-}
+        const serverConfigFromFile = parseServerConfig(configFromFile);
+
+        setServerConfiguration(serverConfigFromFile);
+        setProjectConfiguration(configFromFile);
+        configInitialized = true;
+    } catch (error) {
+        console.error(`Error loading server configuration in file ${configFileNormalized}`);
+    }
+};
 
 /** Application configuration, does not include the server configuration */
 export const projectConfig = config;

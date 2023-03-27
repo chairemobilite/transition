@@ -2,6 +2,7 @@
 delete process.env.PROJECT_CONFIG;
 import fs from 'fs';
 import os from 'os';
+import { initializeConfig } from '../config';
 
 jest.mock('fs', () => {
     // Require the original module to not be mocked...
@@ -18,7 +19,7 @@ const existsSyncMock = fs.existsSync as jest.MockedFunction<typeof fs.existsSync
 test('Expected reading configuration files in default paths', () => {
     let error: unknown | undefined = undefined;
     try {
-        require('../config')
+        initializeConfig();
     } catch (err) {
         error = err;
     }

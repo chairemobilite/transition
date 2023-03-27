@@ -4,8 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { PrepareOsmNetworkData } from '../../tasks/osrm/prepareOsmNetworkData';
+// Import taskWrapper first to load all configuration
 import taskWrapper from '../../tasks/taskWrapper';
+import { PrepareOsmNetworkData } from '../../tasks/osrm/prepareOsmNetworkData';
 import { fileManager } from '../../utils/filesystem/fileManager';
 
 taskWrapper(new PrepareOsmNetworkData(fileManager))

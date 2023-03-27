@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import '../../config/dotenv.config'; // Unused, but must be imported
-import { projectConfig } from '../../config/config';
+// Load configuration before running task
+import { projectConfig } from '../../config/loadConfig';
 import { knex } from 'knex';
 
 import knexRootCfg from './knexfile.root';

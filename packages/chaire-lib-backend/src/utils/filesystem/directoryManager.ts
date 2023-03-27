@@ -9,7 +9,6 @@ import glob from 'glob';
 import util from 'util';
 import fs from 'fs-extra';
 
-import '../../config/dotenv.config';
 import { serverConfig, projectConfig } from '../../config/config';
 
 // Recursively get size in bytes of a file or directory

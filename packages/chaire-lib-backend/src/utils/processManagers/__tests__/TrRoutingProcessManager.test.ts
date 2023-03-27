@@ -1,3 +1,11 @@
+/*
+ * Copyright 2022, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
+// Make sure configuration is set TODO mock
+import '../../../config/loadConfig';
 import { directoryManager } from '../../filesystem/directoryManager';
 import TrRoutingProcessManager from '../TrRoutingProcessManager';
 import ProcessManager from '../ProcessManager';
