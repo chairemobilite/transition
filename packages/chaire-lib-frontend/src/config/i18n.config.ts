@@ -10,7 +10,7 @@ import moment from 'moment-business-days';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import HttpApi from 'i18next-http-backend';
 
-import config from 'chaire-lib-common/lib/config/shared/project.config';
+import config from './project.config';
 
 const detectorOrder = config.detectLanguage ? ['cookie', 'localStorage', 'navigator'] : ['cookie', 'localStorage'];
 
@@ -49,7 +49,8 @@ if (i18n.language) {
     i18n.changeLanguage(i18n.language.split('-')[0]); // force remove region specific
 }
 
-if (!i18n.language || config.languages.indexOf(i18n.language) <= -1) {
+// Make sure the currently set language exists, if any
+if (i18n.language && config.languages.indexOf(i18n.language) <= -1) {
     i18n.changeLanguage(config.defaultLocale);
 }
 
