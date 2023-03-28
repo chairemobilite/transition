@@ -8,7 +8,7 @@ import { manageOverlappingLines } from '../ManageOverlappingLines';
 import GeoJSON from 'geojson';
 import { lineOffset, LineString } from "@turf/turf";
 
-const featureSqueletton: GeoJSON.Feature = {
+const featureSkeleton: GeoJSON.Feature<LineString> = {
     type: 'Feature',
     geometry: {
         type: 'LineString',
@@ -61,16 +61,16 @@ test('Test offset with basic opposite direction overlap', () => {
 
 
 test('Test offset with multiple same length overlaps', () => {
-    const collection : GeoJSON.FeatureCollection = {
+    const collection : GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: []
     };
 
     for(let i = 0; i < 4; i++) {
-        const feature = JSON.parse(JSON.stringify(featureSqueletton));
+        const feature = JSON.parse(JSON.stringify(featureSkeleton));
         feature.id = i;
         for(let j = 0; j < 5; j++) {
-            (feature.geometry as any).coordinates.push([0, j]);
+            feature.geometry.coordinates.push([0, j]);
         }
         collection.features.push(feature);
     }
@@ -89,28 +89,29 @@ test('Test offset with multiple same length overlaps', () => {
 
 
 test('Test offset with multiple different lengths overlap', () => {
-    const collection : GeoJSON.FeatureCollection = {
+    const collection : GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: []
     };
 
     for(let i = 0; i < 4; i++) {
-        const feature = JSON.parse(JSON.stringify(featureSqueletton));
+        const feature = JSON.parse(JSON.stringify(featureSkeleton));
         feature.id = i;
         for(let j = 0; j < 4 * i + 3; j++) {
-            (feature.geometry as any).coordinates.push([0, j]);
+            feature.geometry.coordinates.push([0, j]);
         }
         collection.features.push(feature);
     }
 
     const initial = JSON.stringify(collection);
     const offsetCollection = manageOverlappingLines(collection);
+    // TODO: Add a more specific expect once the expected behaviour is specified
     expect(JSON.stringify(offsetCollection)).not.toEqual(initial);
 });
 
 
 test('Test overlaps between multiple segments of the same line with another line', () => {
-    const collection: GeoJSON.FeatureCollection = {
+    const collection: GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: [
             {
@@ -137,12 +138,13 @@ test('Test overlaps between multiple segments of the same line with another line
     const initial = JSON.stringify(collection);
     let offsetCollection = manageOverlappingLines(collection);
     offsetCollection = manageOverlappingLines(collection);
+    // Expect not to have an infinite loop in the above calls
     expect(JSON.stringify(offsetCollection)).not.toEqual(initial);
 });
 
 
 test('Test overlaps with duplicate coordinates', () => {
-    const collection: GeoJSON.FeatureCollection = {
+    const collection: GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: [
             {
@@ -167,5 +169,10 @@ test('Test overlaps with duplicate coordinates', () => {
     };
 
     const offsetCollection = manageOverlappingLines(collection);
-    expect((offsetCollection.features[0].geometry as any).coordinates[1][0]).not.toBeNaN();
+    offsetCollection.features.forEach((feature) => {
+        feature.geometry.coordinates.forEach((coord) => {
+            expect(coord[0]).not.toBeNaN();
+            expect(coord[1]).not.toBeNaN();
+        })
+    })
 });

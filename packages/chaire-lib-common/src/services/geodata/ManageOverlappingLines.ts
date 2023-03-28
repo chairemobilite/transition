@@ -1,21 +1,33 @@
-import { lineOffset, lineOverlap, lineString } from '@turf/turf';
+import { lineOffset, lineOverlap, lineString, LineString } from '@turf/turf';
 
 interface OverlappingSegments {
-    geoData: GeoJSON.Feature<GeoJSON.LineString>;
+    geoData: GeoJSON.Feature<LineString>;
     crossingLines: number[];
     directions: boolean[];
 }
 
-export const manageOverlappingLines = (layerData: GeoJSON.FeatureCollection): GeoJSON.FeatureCollection => {
+export const manageOverlappingLines = (
+    layerData: GeoJSON.FeatureCollection<LineString>
+): GeoJSON.FeatureCollection<LineString> => {
     const overlapMap = findOverlapingLines(layerData);
     const overlapArray = manageOverlapingSegmentsData(overlapMap, layerData);
-    return applyOffset(overlapArray, layerData);
+    const offsetLayer = applyOffset(overlapArray, layerData);
+    return cleanLines(offsetLayer);
+};
+
+const cleanLines = (geojson: GeoJSON.FeatureCollection<LineString>): GeoJSON.FeatureCollection<LineString> => {
+    geojson.features.forEach((feature) => {
+        feature.geometry.coordinates = feature.geometry.coordinates.filter((value) => {
+            return !Number.isNaN(value[0]) && !Number.isNaN(value[1]);
+        });
+    });
+    return geojson;
 };
 
 const applyOffset = (
     overlapArray: OverlappingSegments[],
-    layerData: GeoJSON.FeatureCollection
-): GeoJSON.FeatureCollection => {
+    layerData: GeoJSON.FeatureCollection<LineString>
+): GeoJSON.FeatureCollection<LineString> => {
     for (let i = 0; i < overlapArray.length; i++) {
         const nbOverlapped = overlapArray[i].directions.length;
         let oppositeDirectionOffset = 0;
@@ -39,9 +51,7 @@ const applyOffset = (
     return layerData;
 };
 
-const findOverlapingLines = (
-    layerData: GeoJSON.FeatureCollection
-): Map<string, Set<number>> => {
+const findOverlapingLines = (layerData: GeoJSON.FeatureCollection<LineString>): Map<string, Set<number>> => {
     const features = layerData.features as any;
     // The map contains the feature and a set of numbers
     // The feature is the segment concerned by the overlap
@@ -55,7 +65,6 @@ const findOverlapingLines = (
             );
             if (overlap.features.length === 0) continue;
             for (const segment of overlap.features) {
-                if (segment.geometry.coordinates.length <= 2) continue;
                 const overlapStr = JSON.stringify(segment);
                 if (!overlapMap.has(overlapStr)) overlapMap.set(overlapStr, new Set());
                 overlapMap.get(overlapStr)?.add(features[i].id).add(features[j].id);
@@ -67,12 +76,12 @@ const findOverlapingLines = (
 
 const manageOverlapingSegmentsData = (
     overlapMap: Map<string, Set<number>>,
-    layerData: GeoJSON.FeatureCollection
+    layerData: GeoJSON.FeatureCollection<LineString>
 ): OverlappingSegments[] => {
     const overlapArray: OverlappingSegments[] = [];
     overlapMap.forEach((value: any, key: any) => {
         const segmentDirections: Array<boolean> = [];
-        const keyGeojson = JSON.parse(key)
+        const keyGeojson = JSON.parse(key);
         value.forEach((id: number) => {
             const data = getLineById(id, layerData);
             const coordinates = keyGeojson.geometry.coordinates;
@@ -100,10 +109,10 @@ const manageOverlapingSegmentsData = (
 };
 
 const replaceCoordinate = (
-    lineToReplace: GeoJSON.Feature<GeoJSON.LineString>,
-    offsetLine: GeoJSON.Feature<GeoJSON.LineString>,
+    lineToReplace: GeoJSON.Feature<LineString>,
+    offsetLine: GeoJSON.Feature<LineString>,
     lineId: number,
-    layerData: GeoJSON.FeatureCollection
+    layerData: GeoJSON.FeatureCollection<LineString>
 ): void => {
     const line = getLineById(lineId, layerData);
     const oldCoordinates = lineToReplace.geometry.coordinates;
@@ -134,7 +143,7 @@ const replaceCoordinate = (
     geoData.features[lineIndex].geometry.coordinates = line.geometry.coordinates;
 };
 
-const getLineById = (lineId: number, layerData: GeoJSON.FeatureCollection): GeoJSON.Feature<GeoJSON.LineString> => {
+const getLineById = (lineId: number, layerData: GeoJSON.FeatureCollection<LineString>): GeoJSON.Feature<LineString> => {
     const features = layerData.features as any;
     for (let i = 0; i < features.length; i++) {
         if (features[i].id === lineId) {
@@ -151,7 +160,7 @@ const getLineById = (lineId: number, layerData: GeoJSON.FeatureCollection): GeoJ
     };
 };
 
-const getLineIndexById = (lineId: number, layerData: GeoJSON.FeatureCollection): number => {
+const getLineIndexById = (lineId: number, layerData: GeoJSON.FeatureCollection<LineString>): number => {
     const features = layerData.features;
     for (let i = 0; i < features.length; i++) {
         if (features[i].id === lineId) {
