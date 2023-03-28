@@ -6,6 +6,7 @@
  */
 import { manageOverlappingLines } from '../ManageOverlappingLines';
 import GeoJSON from 'geojson';
+import { lineOffset, LineString } from "@turf/turf";
 
 const featureSqueletton: GeoJSON.Feature = {
     type: 'Feature',
@@ -17,21 +18,15 @@ const featureSqueletton: GeoJSON.Feature = {
     properties: {}
 };
 
-const basicCollection : GeoJSON.FeatureCollection = {
+const basicCollection : GeoJSON.FeatureCollection<LineString> = {
     type: 'FeatureCollection',
     features: [
         {
             type: 'Feature',
             geometry: {
                 type: 'LineString',
-                coordinates: [
-                    [0,0],
-                    [0,1],
-                    [0,2],
-                    [0,3],
-                    [0,4],
-                    [0,5]
-                ] },
+                coordinates: [[0,0], [0,1], [0,2], [0,3], [0,4], [0,5]] 
+            },
             id: 1,
             properties: {}
         },
@@ -39,14 +34,8 @@ const basicCollection : GeoJSON.FeatureCollection = {
             type: 'Feature',
             geometry: {
                 type: 'LineString',
-                coordinates: [
-                    [1,0],
-                    [1,1],
-                    [1,2],
-                    [1,3],
-                    [1,4],
-                    [1,5]
-                ] },
+                coordinates: [[1,0], [1,1], [1,2], [1,3], [1,4], [1,5]]
+            },
             id: 2,
             properties: {}
         }]
@@ -55,26 +44,15 @@ const basicCollection : GeoJSON.FeatureCollection = {
 
 test('Test offset with no overlaps', () => {
     const initial = JSON.stringify(basicCollection);
-    const offsetCollection = manageOverlappingLines(basicCollection);
+    const offsetCollection = manageOverlappingLines(JSON.parse(initial));
     expect(JSON.stringify(offsetCollection)).toEqual(initial);
-});
-
-
-test('Test offset with basic overlap', () => {
-    const collection = JSON.parse(JSON.stringify(basicCollection));
-    collection.features[1].geometry.coordinates =
-    collection.features[1].geometry.coordinates.map((val: Array<number>) => [0, val[1]]);
-
-    const initial = JSON.stringify(collection);
-    const offsetCollection = manageOverlappingLines(collection);
-    expect(JSON.stringify(offsetCollection)).not.toEqual(initial);
 });
 
 
 test('Test offset with basic opposite direction overlap', () => {
     const collection = JSON.parse(JSON.stringify(basicCollection));
     collection.features[1].geometry.coordinates =
-        collection.features[1].geometry.coordinates.map((val: Array<number>) => [0, val[1]]).reverse();
+        collection.features[1].geometry.coordinates.map((_, index) => [0, index]).reverse();
 
     const initial = JSON.stringify(collection);
     const offsetCollection = manageOverlappingLines(collection);
@@ -97,9 +75,16 @@ test('Test offset with multiple same length overlaps', () => {
         collection.features.push(feature);
     }
 
-    const initial = JSON.stringify(collection);
+    const expectedOffset: GeoJSON.Feature[] = []
+    collection.features.forEach((feature, index) => {
+        expectedOffset.push(lineOffset(feature as GeoJSON.Feature<LineString>, 3 * index, { units: 'meters' }))
+    })
+
     const offsetCollection = manageOverlappingLines(collection);
-    expect(JSON.stringify(offsetCollection)).not.toEqual(initial);
+
+    offsetCollection.features.forEach((feature, i) => {
+        expect(JSON.stringify(feature.geometry)).toEqual(JSON.stringify(expectedOffset[i].geometry));
+    })
 });
 
 
@@ -132,12 +117,7 @@ test('Test overlaps between multiple segments of the same line with another line
                 type: 'Feature',
                 geometry: {
                     type: 'LineString',
-                    coordinates: [
-                        [0, 0],
-                        [1, 1],
-                        [2, 2],
-                        [3, 3]
-                    ]
+                    coordinates: [[0, 0], [1, 1], [2, 2], [3, 3]]
                 },
                 id: 1,
                 properties: {}
@@ -146,15 +126,7 @@ test('Test overlaps between multiple segments of the same line with another line
                 type: 'Feature',
                 geometry: {
                     type: 'LineString',
-                    coordinates: [
-                        [3, 3],
-                        [2, 2],
-                        [1, 1],
-                        [0, 0],
-                        [1, 1],
-                        [2, 2],
-                        [3, 3]
-                    ]
+                    coordinates: [[3, 3], [2, 2], [1, 1], [0, 0], [1, 1], [2, 2], [3, 3]]
                 },
                 id: 2,
                 properties: {}
@@ -177,12 +149,7 @@ test('Test overlaps with duplicate coordinates', () => {
                 type: 'Feature',
                 geometry: {
                     type: 'LineString',
-                    coordinates: [
-                        [0, 0],
-                        [0, 1],
-                        [0, 1],
-                        [0, 2]
-                    ]
+                    coordinates: [[0, 0], [0, 1], [0, 1], [0, 2]]
                 },
                 id: 1,
                 properties: {}
@@ -191,11 +158,7 @@ test('Test overlaps with duplicate coordinates', () => {
                 type: 'Feature',
                 geometry: {
                     type: 'LineString',
-                    coordinates: [
-                        [1, 1],
-                        [0, 1],
-                        [0, 0]
-                    ]
+                    coordinates: [[1, 1],[0, 1],[0, 0]]
                 },
                 id: 2,
                 properties: {}
