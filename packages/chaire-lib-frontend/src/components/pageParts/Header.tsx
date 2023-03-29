@@ -13,11 +13,11 @@ import moment from 'moment-business-days';
 import ConfirmModal from '../modal/ConfirmModal';
 import { startLogout, resetUserProfile } from '../../actions/Auth';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
-import { FrontendUser } from '../../services/auth/user';
 import { History } from 'history';
+import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
 
 export interface HeaderProps extends WithTranslation {
-    user: FrontendUser;
+    user: CliUser;
     path: any;
     startLogout: () => void;
     resetUserProfile: () => void;
@@ -26,12 +26,12 @@ export interface HeaderProps extends WithTranslation {
 }
 
 interface UserProps {
-    user: FrontendUser;
+    user: CliUser;
     resetUserProfile: () => void;
 }
 
 interface UserMenuProps {
-    user: FrontendUser;
+    user: CliUser;
     resetUserProfile: () => void;
     wrapperRef: React.MutableRefObject<null>;
     closeMenu: () => void;

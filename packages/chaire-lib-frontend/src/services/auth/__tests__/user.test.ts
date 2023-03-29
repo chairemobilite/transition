@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { toFrontendUser } from '../user';
+import { toCliUser } from '../user';
 
 const baseUser = {
     id: 1,
@@ -16,38 +16,38 @@ const baseUser = {
 const testSubject = 'test';
 
 test('No permissions', () => {
-    const frontendUser = toFrontendUser(baseUser);
-    expect(frontendUser.isAuthorized({ [testSubject]: 'read' })).toBeFalsy();
-    expect(frontendUser.isAuthorized({ all: 'read' })).toBeFalsy();
-    expect(frontendUser.isAuthorized({ [testSubject]: ['read','update'] })).toBeFalsy();
-    expect(frontendUser.is_admin).toBeFalsy();
+    const cliUser = toCliUser(baseUser);
+    expect(cliUser.isAuthorized({ [testSubject]: 'read' })).toBeFalsy();
+    expect(cliUser.isAuthorized({ all: 'read' })).toBeFalsy();
+    expect(cliUser.isAuthorized({ [testSubject]: ['read','update'] })).toBeFalsy();
+    expect(cliUser.is_admin).toBeFalsy();
 });
 
 test('Admin permissions', () => {
     const user = Object.assign({}, baseUser, { serializedPermissions: [ ['manage', 'all'] ] });
-    const frontendUser = toFrontendUser(user);
-    expect(frontendUser.isAuthorized({ [testSubject]: 'read' })).toBeTruthy();
-    expect(frontendUser.isAuthorized({ all: 'read' })).toBeTruthy();
-    expect(frontendUser.isAuthorized({ [testSubject]: ['read','update'] })).toBeTruthy();
-    expect(frontendUser.is_admin).toBeTruthy();
+    const cliUser = toCliUser(user);
+    expect(cliUser.isAuthorized({ [testSubject]: 'read' })).toBeTruthy();
+    expect(cliUser.isAuthorized({ all: 'read' })).toBeTruthy();
+    expect(cliUser.isAuthorized({ [testSubject]: ['read','update'] })).toBeTruthy();
+    expect(cliUser.is_admin).toBeTruthy();
 });
 
 test('Some permissions', () => {
     let serializedPermissions = [ [ 'read', testSubject ], [ 'read', 'other test object' ] ];
     let user = Object.assign({}, baseUser, { serializedPermissions });
-    let frontendUser = toFrontendUser(user);
-    expect(frontendUser.isAuthorized({ [testSubject]: 'read' })).toBeTruthy();
-    expect(frontendUser.isAuthorized({ all: 'read' })).toBeFalsy();
-    expect(frontendUser.isAuthorized({ [testSubject]: ['read','update'] })).toBeFalsy();
-    expect(frontendUser.is_admin).toBeFalsy();
+    let cliUser = toCliUser(user);
+    expect(cliUser.isAuthorized({ [testSubject]: 'read' })).toBeTruthy();
+    expect(cliUser.isAuthorized({ all: 'read' })).toBeFalsy();
+    expect(cliUser.isAuthorized({ [testSubject]: ['read','update'] })).toBeFalsy();
+    expect(cliUser.is_admin).toBeFalsy();
 
     serializedPermissions = [ [ 'read,update', testSubject ], [ 'read', 'other test object' ] ];
     user = Object.assign({}, baseUser, { serializedPermissions });
-    frontendUser = toFrontendUser(user);
-    expect(frontendUser.isAuthorized({ [testSubject]: 'read' })).toBeTruthy();
-    expect(frontendUser.isAuthorized({ all: 'read' })).toBeFalsy();
-    expect(frontendUser.isAuthorized({ [testSubject]: ['read','update'] })).toBeTruthy();
-    expect(frontendUser.is_admin).toBeFalsy();
+    cliUser = toCliUser(user);
+    expect(cliUser.isAuthorized({ [testSubject]: 'read' })).toBeTruthy();
+    expect(cliUser.isAuthorized({ all: 'read' })).toBeFalsy();
+    expect(cliUser.isAuthorized({ [testSubject]: ['read','update'] })).toBeTruthy();
+    expect(cliUser.is_admin).toBeFalsy();
 });
 
 test('Some permissions and home pages', () => {
@@ -60,28 +60,28 @@ test('Some permissions and home pages', () => {
     // User with only one permission on pages
     let serializedPermissions = [ [ 'read', testSubject ], [ 'read', 'other test object' ] ];
     let user = Object.assign({}, baseUser, { serializedPermissions });
-    let frontendUser = toFrontendUser(user, pages);
-    expect(frontendUser.pages.length).toEqual(1);
-    expect(frontendUser.pages[0]).toEqual(pages[1]);
+    let cliUser = toCliUser(user, pages);
+    expect(cliUser.pages.length).toEqual(1);
+    expect(cliUser.pages[0]).toEqual(pages[1]);
 
     // User with 2 permissions on pages
     serializedPermissions = [ [ 'read,update', testSubject ], [ 'read', 'other test object' ] ];
     user = Object.assign({}, baseUser, { serializedPermissions });
-    frontendUser = toFrontendUser(user, pages);
-    expect(frontendUser.pages.length).toEqual(2);
-    expect(frontendUser.pages[0]).toEqual(pages[0]);
-    expect(frontendUser.pages[1]).toEqual(pages[1]);
+    cliUser = toCliUser(user, pages);
+    expect(cliUser.pages.length).toEqual(2);
+    expect(cliUser.pages[0]).toEqual(pages[0]);
+    expect(cliUser.pages[1]).toEqual(pages[1]);
 
     // Admin user
     user = Object.assign({}, baseUser, { serializedPermissions: [ ['manage', 'all'] ] });
-    frontendUser = toFrontendUser(user, pages);
-    expect(frontendUser.pages.length).toEqual(3);
-    expect(frontendUser.pages[0]).toEqual(pages[0]);
-    expect(frontendUser.pages[1]).toEqual(pages[1]);
-    expect(frontendUser.pages[2]).toEqual(pages[2]);
+    cliUser = toCliUser(user, pages);
+    expect(cliUser.pages.length).toEqual(3);
+    expect(cliUser.pages[0]).toEqual(pages[0]);
+    expect(cliUser.pages[1]).toEqual(pages[1]);
+    expect(cliUser.pages[2]).toEqual(pages[2]);
 
     // No permissions
     user = Object.assign({}, baseUser, { serializedPermissions: [] });
-    frontendUser = toFrontendUser(user, pages);
-    expect(frontendUser.pages.length).toEqual(0);
+    cliUser = toCliUser(user, pages);
+    expect(cliUser.pages.length).toEqual(0);
 });

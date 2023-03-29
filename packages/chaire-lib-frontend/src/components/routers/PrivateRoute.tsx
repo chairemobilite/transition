@@ -4,18 +4,18 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { FrontendUser } from '../../services/auth/user';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Route, Redirect, RouteProps } from 'react-router-dom';
 
 import { Header } from '../pageParts';
+import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
 
 interface PrivateRouteProps extends RouteProps {
     isAuthenticated: boolean;
     component: any;
     componentProps: { [prop: string]: unknown };
-    user: FrontendUser;
+    user: CliUser;
     permissions?: { [subject: string]: string | string[] };
     config?: { [key: string]: unknown };
 }

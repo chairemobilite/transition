@@ -6,7 +6,7 @@
  */
 import { BaseUser } from 'chaire-lib-common/lib/services/user/userType';
 import appConfiguration from '../config/application.config';
-import { toFrontendUser } from '../services/auth/user';
+import { toCliUser } from '../services/auth/user';
 import { AuthAction, AuthActionTypes } from '../store/auth';
 import { History, Location } from 'history';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
@@ -22,7 +22,7 @@ export const setShowUserInfoPerm = (perms: { [subject: string]: string | string[
 
 export const login = (user: BaseUser | null, isAuthenticated = false, register = false, login = false): AuthAction => ({
     type: AuthActionTypes.LOGIN,
-    user: user ? toFrontendUser(user, appConfiguration.pages, showUserInfoPerm) : user,
+    user: user ? toCliUser(user, appConfiguration.pages, showUserInfoPerm) : user,
     isAuthenticated,
     register,
     login
