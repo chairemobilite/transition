@@ -3,6 +3,8 @@ module.exports = {
     maxParallelCalculators: 1,
     projectDirectory: `${__dirname}/dir`,
     projectShortname: 'unitTest',
+    extraServerField: 'foo',
+    extraProjectField: '1234',
   
     allowRegistration: true,
   

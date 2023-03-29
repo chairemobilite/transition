@@ -108,8 +108,12 @@ const parseServerConfig = (configFromFile: { [key: string]: any }): Partial<Base
 
 let configInitialized = false;
 
-export const initializeConfig = () => {
-    if (configInitialized === true) {
+export const initializeConfig = <ServerC, ProjectC>(
+    parseServer?: (configFromFile: { [key: string]: any }) => ServerC,
+    parseProject?: (configFromFile: { [key: string]: any }) => ProjectC,
+    forceReload = false
+) => {
+    if (configInitialized === true && !forceReload) {
         return;
     }
     const configFileNormalized = getConfigFilePath();
@@ -121,8 +125,13 @@ export const initializeConfig = () => {
 
         const serverConfigFromFile = parseServerConfig(configFromFile);
 
-        setServerConfiguration(serverConfigFromFile);
-        setProjectConfiguration(configFromFile);
+        const appServerconfig = parseServer !== undefined ? parseServer(configFromFile) : {};
+        const appProjectConfig = parseProject !== undefined ? parseProject(configFromFile) : {};
+        // TODO Validate the serverConfigFromFile and configFromFile objects before setting it
+        setServerConfiguration<ServerC>(
+            Object.assign({}, serverConfigFromFile, appServerconfig) as ServerConfiguration<ServerC>
+        );
+        setProjectConfiguration<ProjectC>(Object.assign({}, configFromFile, appProjectConfig));
         configInitialized = true;
     } catch (error) {
         console.error(`Error loading server configuration in file ${configFileNormalized}`);
