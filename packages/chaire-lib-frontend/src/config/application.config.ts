@@ -4,7 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { UserPages } from '../services/auth/user';
+
+import { UserPages } from 'chaire-lib-common/lib/services/user/userType';
 
 export type ApplicationConfiguration<AdditionalConfig> = {
     /**

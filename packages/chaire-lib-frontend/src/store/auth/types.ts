@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { FrontendUser } from '../../services/auth/user';
+import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
 
 export enum AuthActionTypes {
     LOGIN = 'LOGIN',
@@ -16,7 +16,7 @@ export enum AuthActionTypes {
 export type AuthAction =
     | {
           type: AuthActionTypes.LOGIN;
-          user: FrontendUser | null | undefined;
+          user: CliUser | null | undefined;
           isAuthenticated: boolean;
           register: boolean;
           login: boolean;
@@ -39,7 +39,7 @@ export type AuthAction =
       };
 
 export interface AuthState {
-    readonly user?: FrontendUser | null;
+    readonly user?: CliUser | null;
     readonly isAuthenticated: boolean;
     readonly register?: boolean;
     readonly login?: boolean;

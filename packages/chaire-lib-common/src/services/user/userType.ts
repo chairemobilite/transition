@@ -16,3 +16,23 @@ export interface BaseUser {
     serializedPermissions: PackRule<any>[];
     homePage?: string;
 }
+
+export type UserPages = { path: string; permissions: UserPermissions; title: string };
+
+export type UserPermissions = {
+    [subject: string]: string | string[];
+};
+
+export type PermUser = {
+    isAuthorized: (permissions: UserPermissions) => boolean;
+    is_admin: boolean;
+    pages: UserPages[];
+    showUserInfo: boolean;
+};
+
+/**
+ * User type suitable for client-side code, ie with limited internal and
+ * confidential data, but with all appropriate data to validation user
+ * permissions as required.
+ */
+export type CliUser = BaseUser & PermUser;
