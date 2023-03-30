@@ -113,9 +113,16 @@ class TrRoutingBatch {
             // Start the trRouting instances for the odTrips
             const trRoutingInstancesCount = await this.startTrRoutingInstances(odTripsCount);
 
-            this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 0.0 });
+            // Prepare indexes for calculations and progress report
+            const startIndex = this.options.currentCheckpoint || 0;
+            let completedRoutingsCount = startIndex;
             // Number of od pairs after which to report progress
             const progressStep = Math.ceil(this.odTrips.length / 100);
+
+            this.options.progressEmitter.emit('progress', {
+                name: 'BatchRouting',
+                progress: completedRoutingsCount / odTripsCount
+            });
 
             // force add walking when selecting transit mode, so we can check if walking is better
             const routingModes = this.transitRoutingAttributes.routingModes;
@@ -128,8 +135,6 @@ class TrRoutingBatch {
             const poolOfTrRoutingPorts = _cloneDeep(
                 Object.keys(TrRoutingProcessManager.getAvailablePortsByStartingPort())
             ).map((portStr) => parseInt(portStr));
-
-            let completedRoutingsCount = 0;
 
             const promiseQueue = new pQueue({ concurrency: poolOfTrRoutingPorts.length });
 
@@ -156,7 +161,6 @@ class TrRoutingBatch {
                 this.options.progressEmitter,
                 this.options.currentCheckpoint
             );
-            const startIndex = this.options.currentCheckpoint || 0;
             for (let odTripIndex = startIndex; odTripIndex < odTripsCount; odTripIndex++) {
                 promiseQueue.add(async () => {
                     // Assert the job is not cancelled, otherwise clear the queue and let the job exit
