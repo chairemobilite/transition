@@ -40,7 +40,8 @@ const jobAttributes: Omit<JobAttributes<TestJobType>, 'id'> = {
     status: 'pending' as const,
     name: 'test' as const,
     user_id: userAttributes.id,
-    data: data.data
+    data: data.data,
+    internal_data: {}
 };
 
 // Current ids in the DB for the various test objects to use throughout the tests
