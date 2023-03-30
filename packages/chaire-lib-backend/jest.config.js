@@ -10,6 +10,10 @@ const baseConfig = require('../../tests/jest.config.base');
 // Ignore db.queries.test files
 module.exports = {
     ...baseConfig,
+    setupFilesAfterEnv: [
+        ...baseConfig.setupFilesAfterEnv,
+        './jestSetup.ts'
+    ],
     'testPathIgnorePatterns': ['(/__tests__/.*(db\\.test)\\.(jsx?|tsx?))$', '(/__tests__/.*(integration\\.test)\\.(jsx?|tsx?))$'],
 };
 
