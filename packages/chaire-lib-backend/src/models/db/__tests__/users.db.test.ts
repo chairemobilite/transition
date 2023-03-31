@@ -13,11 +13,13 @@ import dbQueries from '../users.db.queries';
 import { truncate } from '../default.db.queries';
 import { UserAttributes } from '../../../services/users/user';
 
+const testEmail = 'test@test.org';
+
 const user = {
     id: 1,
     uuid: uuidV4(),
     username: 'test',
-    email: 'test@test.org',
+    email: testEmail.toLowerCase(),
     preferences: { lang: 'fr' },
     first_name: 'Toto'
 };
@@ -32,6 +34,15 @@ const user2 = {
     password_reset_token: 'sometokenforpasswordreset'
 };
 
+const userCaps = {
+    id: 3,
+    uuid: uuidV4(),
+    username: 'testCaps',
+    email: testEmail.toUpperCase(),
+    preferences: { lang: 'fr' },
+    first_name: 'Toto'
+};
+
 const userToInsert = {
     username: 'newUser',
     preferences: { lang: 'fr' },
@@ -44,6 +55,7 @@ beforeAll(async () => {
     await truncate(knex, 'users');
     await knex('users').insert(user);
     await knex('users').insert(user2);
+    await knex('users').insert(userCaps);
 });
 
 afterAll(async() => {
@@ -51,15 +63,19 @@ afterAll(async() => {
 });
 
 each([
-    [{ first_name: user.first_name }, user ],
+    [{ first_name: user.first_name }, user],
     [{}, undefined],
-    [{ first_name: 'other'}, undefined],
+    [{ first_name: 'other' }, undefined],
     [{ first_name: user2.first_name, username: user2.username }, user2],
     [{ usernameOrEmail: user2.email }, user2],
     [{ usernameOrEmail: user2.username }, user2],
     [{ password_reset_token: user2.password_reset_token }, user2],
     [{ username: user2.username, email: 'arbitrary' }, undefined],
+    [{ usernameOrEmail: user2.email.toUpperCase() }, user2],
+    // When using userCaps as expected value, the email would get sanitized and wouldn't match the expected
+    [{ usernameOrEmail: userCaps.email }, { email: testEmail.toLowerCase() }],
 ]).test('Find user by %s', async(data, expected) => {
+    // find uses WhereILike which ignores case
     const user = await dbQueries.find(data);
     if (expected === undefined) {
         expect(user).toBeUndefined();
@@ -81,10 +97,10 @@ test('Find user with orWhere', async() => {
 });
 
 each([
-    [user.id, user ],
+    [user.id, user],
     [user2.id, user2],
     [50, undefined]
-]).test('Find user by %s', async(id, expected) => {
+]).test('Get user by %s', async(id, expected) => {
     const user = await dbQueries.getById(id);
     if (expected === undefined) {
         expect(user).toBeUndefined();
@@ -108,26 +124,27 @@ each([
 });
 
 test('Create new user', async () => {
-
     const userAttributes = await dbQueries.create(userToInsert);
     expect(userAttributes.id).toBeDefined();
     expect(userAttributes.uuid).toBeDefined();
     expect(typeof userAttributes.id).toEqual('number');
-
 });
 
 test('Create new user with duplicate key', async () => {
-
     await expect(dbQueries.create(userToInsert))
         .rejects
         .toThrowError(expect.anything());
+});
 
+test('Create user with duplicate email, but in caps', async () => {
+    await expect(dbQueries.create(userCaps))
+        .rejects
+        .toThrowError(expect.anything());
 });
 
 test('Update user', async () => {
-
     const newName = 'Newname';
-    const { id, uuid, username, ...origUser} = await dbQueries.getById(user.id) as UserAttributes;
+    const { id, uuid, username, ...origUser } = await dbQueries.getById(user.id) as UserAttributes;
     const updatedAttributes = _cloneDeep(origUser);
     updatedAttributes.is_admin = true;
     updatedAttributes.first_name = newName;
@@ -135,20 +152,29 @@ test('Update user', async () => {
     const updatedUser = await dbQueries.getById(user.id) as UserAttributes;
     expect(updatedUser.is_admin).toEqual(true);
     expect(updatedUser.first_name).toEqual(newName);
+});
 
+test('Update converts new emails to lowercase', async () => {
+    const newEmail = 'EMAIL@EMAIL.COM';
+    const { id, uuid, username, ...origUser } = await dbQueries.getById(user.id) as UserAttributes;
+    const updatedAttributes = _cloneDeep(origUser);
+    updatedAttributes.email = newEmail;
+    await dbQueries.update(user.id, updatedAttributes);
+    const updatedUser = await dbQueries.getById(user.id) as UserAttributes;
+    expect(updatedUser.email).toEqual(newEmail.toLowerCase());
 });
 
 test('Collection', async () => {
     const collection = await dbQueries.collection();
-    expect(collection.length).toEqual(3);
-    const dbUser = collection.find(u => u.id === user2.id);
+    expect(collection.length).toEqual(4);
+    const dbUser = collection.find((u) => u.id === user2.id);
     expect(dbUser).toBeDefined();
     expect(dbUser).toEqual(expect.objectContaining(user2));
 });
 
-describe(`list users`, () => {
+describe('list users', () => {
 
-    const nbUsers = 3;
+    const nbUsers = 4;
 
     test('Get the complete list', async () => {
         const { users, totalCount } = await dbQueries.getList({ filters: {}, pageIndex: 0, pageSize: -1 });
@@ -162,17 +188,17 @@ describe(`list users`, () => {
     });
 
     test('Get paginated users list', async () => {
-        // 2 pages, the last one has 1 element
-        let pageSize = 2;
+        // 2 pages, the last one has 2 elements
+        const pageSize = 2;
         // First page
         const { users: page1, totalCount: totalCount1 } = await dbQueries.getList({ filters: {}, pageIndex: 0, pageSize });
         expect(totalCount1).toEqual(nbUsers);
         expect(page1.length).toEqual(pageSize);
-        // Second page, should have 1 element
+        // Second page, should have 2 elements
         const { users: page2, totalCount: totalCount2 } = await dbQueries.getList({ filters: {}, pageIndex: 1, pageSize });
         expect(totalCount2).toEqual(nbUsers);
-        expect(page2.length).toEqual(1);
-        let inOtherPage = page2.find(user => page1.find(user2 => user2.id === user.id) !== undefined);
+        expect(page2.length).toEqual(2);
+        const inOtherPage = page2.find((user) => page1.find((user2) => user2.id === user.id) !== undefined);
         expect(inOtherPage).toBeUndefined();
         // There is no third page
         const { users: page3, totalCount: totalCount3 } = await dbQueries.getList({ filters: {}, pageIndex: 2, pageSize });
@@ -187,7 +213,7 @@ describe(`list users`, () => {
     });
 
     test('Get users list with email filter', async () => {
-        // Use 'test' string, should return 2 users
+        // Use 'test' string, should return 2 users as one email is modified prior
         const { users: testUsers, totalCount: totalCountTest } = await dbQueries.getList({ filters: { email: 'test' }, pageIndex: 0, pageSize: -1 });
         expect(totalCountTest).toEqual(2);
         expect(testUsers.length).toEqual(2);
@@ -201,13 +227,18 @@ describe(`list users`, () => {
         const { users: fooUsers, totalCount: totalCountFoo } = await dbQueries.getList({ filters: { email: 'foo' }, pageIndex: 0, pageSize: -1 });
         expect(totalCountFoo).toEqual(0);
         expect(fooUsers.length).toEqual(0);
+
+        // Use 'TEST' string, should return 2 users as it is case insensitive
+        const { users: capsUsers, totalCount: totalCountCaps } = await dbQueries.getList({ filters: { email: 'TEST' }, pageIndex: 0, pageSize: -1 });
+        expect(totalCountCaps).toEqual(2);
+        expect(capsUsers.length).toEqual(2);
     });
 
     test('Get users list with username filter', async () => {
-        // Use 'test' string, should return 2 users
+        // Use 'test' string, should return 3 users
         const { users: testUsers, totalCount: totalCountTest } = await dbQueries.getList({ filters: { username: 'test' }, pageIndex: 0, pageSize: -1 });
-        expect(totalCountTest).toEqual(2);
-        expect(testUsers.length).toEqual(2);
+        expect(totalCountTest).toEqual(3);
+        expect(testUsers.length).toEqual(3);
 
         // Use 'newUser' string, should return 1 user
         const { users: testOrgUsers, totalCount: totalCountTestOrg } = await dbQueries.getList({ filters: { username: 'newUser' }, pageIndex: 0, pageSize: -1 });
@@ -245,15 +276,14 @@ describe(`list users`, () => {
 
         // is_admin is false
         const { users: notAdminUsers, totalCount: totalCountNotAdmin } = await dbQueries.getList({ filters: { is_admin: false }, pageIndex: 0, pageSize: -1 });
-        expect(totalCountNotAdmin).toEqual(1);
-        expect(notAdminUsers.length).toEqual(1);
+        expect(totalCountNotAdmin).toEqual(2);
+        expect(notAdminUsers.length).toEqual(2);
     });
 
     test('Combine filter and paging', async () => {
-
         const pageSize = 1;
         const filters = { username: 'test', email: 'test' };
-        // Use 'test' string for both email and username, should return 2 users, but paginated
+        // Use 'test' string for both email and username, should return 3 users, but paginated
         const { users: filterPage1, totalCount: totalCountTest } = await dbQueries.getList({ filters, pageIndex: 0, pageSize });
         expect(totalCountTest).toEqual(2);
         expect(filterPage1.length).toEqual(pageSize);
@@ -262,14 +292,13 @@ describe(`list users`, () => {
         const { users: filterPage2, totalCount: totalCount2 } = await dbQueries.getList({ filters, pageIndex: 1, pageSize });
         expect(totalCount2).toEqual(2);
         expect(filterPage2.length).toEqual(pageSize);
-        let inOtherPage = filterPage2.find(user => filterPage1.find(user2 => user2.id === user.id) !== undefined);
+        const inOtherPage = filterPage2.find((user) => filterPage1.find((user2) => user2.id === user.id) !== undefined);
         expect(inOtherPage).toBeUndefined();
 
         // There is no third page
         const { users: filterPage3, totalCount: totalCount3 } = await dbQueries.getList({ filters, pageIndex: 2, pageSize });
         expect(totalCount3).toEqual(2);
         expect(filterPage3.length).toEqual(0);
-
     });
 
     test('Page index, but page size is -1, should return all', async () => {
@@ -280,7 +309,6 @@ describe(`list users`, () => {
     });
 
     test('Sort data', async () => {
-
         // Sort by email ascending
         const { users: pageAsc, totalCount: totalCount } = await dbQueries.getList({
             filters: {},
@@ -303,7 +331,6 @@ describe(`list users`, () => {
         for (let i = 0; i < nbUsers; i++) {
             expect(pageAsc[i]).toEqual(pageDesc[nbUsers - 1 - i]);
         }
-
     });
 
     // Parameters for list come from external, we cannot guarantee the types
@@ -319,10 +346,9 @@ describe(`list users`, () => {
             .toThrowError('Cannot get users list in table users (knex error: Invalid sort order for interview query: desc; select * from users (DBINTO0001))');
 
         // Inject bad where value, should be escaped and return 0
-        const { users: page, totalCount: totalCount } = await dbQueries.getList({ filters: { email: `test'; delete from users;` }, pageIndex: 0, pageSize: -1 });
+        const { users: page, totalCount: totalCount } = await dbQueries.getList({ filters: { email: 'test\'; delete from users;' }, pageIndex: 0, pageSize: -1 });
         expect(totalCount).toEqual(0);
         expect(page.length).toEqual(0);
-
-    })
+    });
 
 });

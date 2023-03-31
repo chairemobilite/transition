@@ -54,7 +54,6 @@ Examples of views of PRs to review at this step:
 
 ![Multiple commits](images/PRs/multipleCommits.png)
 
-
 ### Code review
 
 Next is the code review itself. Behavior is one thing, code quality is another. In this step, we want to make sure the code under review reaches the current standards of code in the various workspaces, and also that the proposed solution makes sense.
@@ -91,7 +90,6 @@ So all the PR checks are OK, I'm ready to approve and merge! But wait, there are
 - [ ] **Did I approve the PR?**: In the `Files changed` tab of the PR, click on the green `review changes` button and select `Approve` and submit.
 
 ![Approve the PR](images/PRs/approvePR.png)
-
 
 - [ ] **Did all reviewers approve?**: If anyone was specifically requested for review, make sure the review was done and approved (or that there is no need). In doubt, just ping the other reviewer(s) for comments.
 - [ ] **Were all comments addressed?**: If other reviewers requested changes, make sure they were all addressed (or are outdated).
