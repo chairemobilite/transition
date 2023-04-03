@@ -6,11 +6,9 @@
  */
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import {
-    TrRoutingConstants,
-    TransitBatchRoutingDemandAttributes,
-    TransitBatchCalculationResult
-} from 'chaire-lib-common/lib/api/TrRouting';
+import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
+import { TransitBatchRoutingDemandAttributes } from '../transitDemand/types';
+import { TransitBatchCalculationResult } from '../batchCalculation/types';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TransitOdDemandFromCsv from '../transitDemand/TransitOdDemandFromCsv';
 import { validateTrQueryAttributes } from './TransitRoutingQueryAttributes';

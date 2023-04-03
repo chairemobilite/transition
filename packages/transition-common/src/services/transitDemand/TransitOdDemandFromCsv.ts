@@ -10,7 +10,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import DataSourceCollection from '../dataSource/DataSourceCollection';
 import { TransitDemandFromCsv, TransitDemandFromCsvAttributes } from './TransitDemandFromCsv';
-import { TransitBatchRoutingDemandFromCsvAttributes } from 'chaire-lib-common/lib/api/TrRouting';
+import { TransitBatchRoutingDemandFromCsvAttributes } from './types';
 
 export type TransitOdDemandFromCsvAttributes = TransitDemandFromCsvAttributes &
     Partial<TransitBatchRoutingDemandFromCsvAttributes>;

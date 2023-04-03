@@ -12,7 +12,7 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
-import { TransitBatchDemandFromCsvAttributes } from 'chaire-lib-common/lib/api/TrRouting';
+import { TransitBatchDemandFromCsvAttributes } from './types';
 
 /**
  * Base attributes for any batch transit calculation, like routing or accessibility map

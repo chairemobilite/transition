@@ -12,8 +12,7 @@ import BatchCalculationList from './BatchCalculationList';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import BatchCalculationForm from './BatchCalculationForm';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import { TransitOdDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
-import { TransitBatchRoutingDemandAttributes } from 'chaire-lib-common/lib/api/TrRouting';
+import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
 
 export interface CalculationPanelPanelProps {
     availableRoutingModes?: string[];

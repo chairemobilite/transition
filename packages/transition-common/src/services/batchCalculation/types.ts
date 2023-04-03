@@ -1,4 +1,5 @@
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import {
     TransitRoutingQueryAttributes,
     validateTrQueryAttributes
@@ -24,3 +25,11 @@ export const isBatchParametersValid = (parameters: BatchCalculationParameters) =
 export type BatchCalculationParameters = {
     routingModes: RoutingOrTransitMode[];
 } & TransitRoutingQueryAttributes;
+
+export interface TransitBatchCalculationResult {
+    calculationName: string;
+    detailed: boolean;
+    completed: boolean;
+    warnings: ErrorMessage[];
+    errors: ErrorMessage[];
+}

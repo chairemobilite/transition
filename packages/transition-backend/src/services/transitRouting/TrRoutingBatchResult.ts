@@ -8,7 +8,7 @@ import fs from 'fs';
 import _omit from 'lodash.omit';
 import _cloneDeep from 'lodash.clonedeep';
 
-import { TransitBatchRoutingDemandFromCsvAttributes, TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
+import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { getDefaultCsvAttributes, getDefaultStepsAttributes } from './ResultAttributes';
 import { OdTripRouteOutput, OdTripRouteResult } from './types';
@@ -21,6 +21,7 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import { TransitBatchRoutingDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/types';
 
 const CSV_FILE_NAME = 'batchRoutingResults.csv';
 const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';

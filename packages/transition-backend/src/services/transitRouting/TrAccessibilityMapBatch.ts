@@ -17,10 +17,8 @@ import { parseLocationsFromCsv } from '../accessMapLocation/AccessMapLocationPro
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import nodeDbQueries from '../../models/db/transitNodes.db.queries';
 import scenariosDbQueries from '../../models/db/transitScenarios.db.queries';
-import {
-    TransitBatchAccessibilityMapAttributes,
-    TransitBatchCalculationResult
-} from 'chaire-lib-common/lib/api/TrRouting';
+import { TransitBatchAccessibilityMapAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { createAccessMapFileResultProcessor } from './TrAccessibilityMapBatchResult';
 import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
 import { AccessibilityMapLocation } from 'transition-common/lib/services/accessibilityMap/AccessibiltyMapLocation';
