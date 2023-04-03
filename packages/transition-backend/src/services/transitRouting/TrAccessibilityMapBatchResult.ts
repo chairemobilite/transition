@@ -9,7 +9,7 @@ import _omit from 'lodash.omit';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
-import { TransitBatchAccessibilityMapAttributes } from 'chaire-lib-common/lib/api/TrRouting';
+import { TransitBatchAccessibilityMapAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { AccessibilityMapLocation } from 'transition-common/lib/services/accessibilityMap/AccessibiltyMapLocation';
 import { unparse } from 'papaparse';

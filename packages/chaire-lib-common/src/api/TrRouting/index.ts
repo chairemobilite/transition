@@ -45,6 +45,8 @@ export class TrRoutingConstants {
      * of type {@link TransitOdDemandFromCsvAttributes} and a 'csvFields' field
      * containing the string headers of the fields of the csv file on success
      *
+     * TODO Move batch route related services and constants to transition-backend
+     *
      * @static
      * @memberof TrRoutingConstants
      */

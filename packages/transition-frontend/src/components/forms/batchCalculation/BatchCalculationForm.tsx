@@ -18,7 +18,7 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import ConfirmCalculationForm from './stepForms/ConfirmCalculationForm';
 import TransitBatchRoutingCalculator from 'transition-common/lib/services/transitRouting/TransitBatchRoutingCalculator';
-import { TransitBatchRoutingDemandAttributes } from 'chaire-lib-common/lib/api/TrRouting';
+import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
 import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 
 export interface BatchCalculationFormProps {

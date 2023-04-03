@@ -16,10 +16,10 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import {
-    TransitBatchCalculationResult,
     TransitBatchRoutingDemandAttributes,
     TransitBatchRoutingDemandFromCsvAttributes
-} from 'chaire-lib-common/lib/api/TrRouting';
+} from 'transition-common/lib/services/transitDemand/types';
+import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import odPairsDbQueries from '../../models/db/odPairs.db.queries';
 import pathDbQueries from '../../models/db/transitPaths.db.queries';
 import resultsDbQueries from '../../models/db/batchRouteResults.db.queries';

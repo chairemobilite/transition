@@ -16,10 +16,13 @@ import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingSe
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import osrmService from 'chaire-lib-backend/lib/utils/osrm/OSRMService';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { TransitBatchRoutingDemandAttributes, TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
+import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
 import { transitionRouteOptions, transitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import { TransitBatchAccessibilityMapAttributes } from 'chaire-lib-common/lib/api/TrRouting';
+import {
+    TransitBatchRoutingDemandAttributes,
+    TransitBatchAccessibilityMapAttributes
+} from 'transition-common/lib/services/transitDemand/types';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';

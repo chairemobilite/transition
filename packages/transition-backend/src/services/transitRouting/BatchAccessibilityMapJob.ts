@@ -4,10 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import {
-    TransitBatchAccessibilityMapAttributes,
-    TransitBatchCalculationResult
-} from 'chaire-lib-common/lib/api/TrRouting';
+import { TransitBatchAccessibilityMapAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 
 export type BatchAccessMapJobType = {
