@@ -12,19 +12,17 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
-import { TransitBatchDemandFromCsvAttributes } from './types';
+import { TransitDemandFromCsvAttributes } from './types';
 
 /**
  * Base attributes for any batch transit calculation, like routing or accessibility map
  */
-export interface TransitDemandFromCsvAttributes
-    extends GenericAttributes,
-        Partial<TransitBatchDemandFromCsvAttributes> {
+export interface DemandCsvAttributes extends GenericAttributes, Partial<TransitDemandFromCsvAttributes> {
     // TODO Remove these from this object once trRouting is parallel
     maxCpuCount?: number;
 }
 
-export abstract class TransitDemandFromCsv<T extends TransitDemandFromCsvAttributes> extends ObjectWithHistory<T> {
+export abstract class TransitDemandFromCsv<T extends DemandCsvAttributes> extends ObjectWithHistory<T> {
     private _preferencesPath: string;
 
     constructor(attributes: Partial<T>, isNew = false, preferencesPath: string) {

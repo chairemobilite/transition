@@ -8,18 +8,18 @@ import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import _toString from 'lodash.tostring';
 
-import { TransitDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/TransitDemandFromCsv';
+import { TransitDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/types';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import { _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
-interface BatchAttributeSelectionComponentProps<T extends TransitDemandFromCsvAttributes> {
+interface BatchAttributeSelectionComponentProps<T extends Partial<TransitDemandFromCsvAttributes>> {
     currentAttribute: keyof T;
     attributes: T;
     onValueChange: (path: keyof T, newValue: { value: any; valid?: boolean }) => void;
 }
 
-interface BatchCsvAttributeSelectionComponentProps<T extends TransitDemandFromCsvAttributes>
+interface BatchCsvAttributeSelectionComponentProps<T extends Partial<TransitDemandFromCsvAttributes>>
     extends BatchAttributeSelectionComponentProps<T> {
     csvAttributes: string[];
 }
@@ -36,7 +36,7 @@ const getCsvAttributeChoice = (csvAttributes: string[]) => {
         : [];
 };
 
-function CsvAttributeSelectionWidgetBase<T extends TransitDemandFromCsvAttributes>(
+function CsvAttributeSelectionWidgetBase<T extends Partial<TransitDemandFromCsvAttributes>>(
     props: BatchCsvAttributeSelectionComponentProps<T> & WithTranslation
 ) {
     const csvAttributesChoices = getCsvAttributeChoice(props.csvAttributes);
@@ -57,12 +57,12 @@ function CsvAttributeSelectionWidgetBase<T extends TransitDemandFromCsvAttribute
 }
 
 export const CsvAttributeSelectionWidget = withTranslation(['transit', 'main'])(CsvAttributeSelectionWidgetBase) as <
-    T extends TransitDemandFromCsvAttributes
+    T extends Partial<TransitDemandFromCsvAttributes>
 >(
     props: BatchCsvAttributeSelectionComponentProps<T>
 ) => any;
 
-function BooleanAttributeSelectionWidgetBase<T extends TransitDemandFromCsvAttributes>(
+function BooleanAttributeSelectionWidgetBase<T extends Partial<TransitDemandFromCsvAttributes>>(
     props: BatchAttributeSelectionComponentProps<T> & WithTranslation
 ) {
     return (
@@ -94,9 +94,9 @@ function BooleanAttributeSelectionWidgetBase<T extends TransitDemandFromCsvAttri
 
 export const BooleanAttributeSelectionWidget = withTranslation(['transit', 'main'])(
     BooleanAttributeSelectionWidgetBase
-) as <T extends TransitDemandFromCsvAttributes>(props: BatchAttributeSelectionComponentProps<T>) => any;
+) as <T extends Partial<TransitDemandFromCsvAttributes>>(props: BatchAttributeSelectionComponentProps<T>) => any;
 
-function TimeAttributeSelectionWidgetBase<T extends TransitDemandFromCsvAttributes>(
+function TimeAttributeSelectionWidgetBase<T extends Partial<TransitDemandFromCsvAttributes>>(
     props: BatchCsvAttributeSelectionComponentProps<T> & WithTranslation
 ) {
     const csvAttributesChoices = getCsvAttributeChoice(props.csvAttributes);
@@ -140,7 +140,7 @@ function TimeAttributeSelectionWidgetBase<T extends TransitDemandFromCsvAttribut
 
 export const TimeAttributeSelectionWidget = withTranslation(['transit', 'main'])(TimeAttributeSelectionWidgetBase);
 
-function TimeFormatAttributeSelectionWidgetBase<T extends TransitDemandFromCsvAttributes>(
+function TimeFormatAttributeSelectionWidgetBase<T extends Partial<TransitDemandFromCsvAttributes>>(
     props: BatchAttributeSelectionComponentProps<T> & WithTranslation
 ) {
     const timeFormats = [

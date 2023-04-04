@@ -7,16 +7,16 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-import { TransitBatchAccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitBatchAccessibilityMap';
+import { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitBatchAccessibilityMap';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import * as BatchAttributeSelectionWidgets from '../../transitCalculation/widgets/AttributeSelectionWidget';
 
 export interface BatchAttributesSelectionComponentProps extends WithTranslation {
-    attributes: TransitBatchAccessibilityMapAttributes;
+    attributes: TransitDemandFromCsvAccessMapAttributes;
     csvAttributes: string[];
     onValueChange: (
-        path: keyof TransitBatchAccessibilityMapAttributes,
+        path: keyof TransitDemandFromCsvAccessMapAttributes,
         newValue: { value: any; valid?: boolean }
     ) => void;
 }

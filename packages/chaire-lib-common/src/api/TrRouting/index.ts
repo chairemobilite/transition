@@ -53,7 +53,7 @@ export class TrRoutingConstants {
     static readonly BATCH_ROUTE_REPLAY = 'service.trRouting.batchRouteReplay';
     /**
      * Socket route name to call a batch accessibility map calculation. It takes
-     * a parameter of type {@link TransitBatchAccessibilityMapAttributes}. It
+     * a parameter of type {@link TransitDemandFromCsvAccessMapAttributes}. It
      * returns a {@link Status}, with a {@link TransitBatchCalculationResult} on
      * success.
      *

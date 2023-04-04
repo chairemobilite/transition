@@ -6,9 +6,9 @@
  */
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import AccessibilityMapRouting from './TransitAccessibilityMapRouting';
-import { TransitDemandFromCsv, TransitDemandFromCsvAttributes } from '../transitDemand/TransitDemandFromCsv';
+import { TransitDemandFromCsv, DemandCsvAttributes } from '../transitDemand/TransitDemandFromCsv';
 
-export interface TransitBatchAccessibilityMapAttributes extends TransitDemandFromCsvAttributes {
+export interface TransitDemandFromCsvAccessMapAttributes extends DemandCsvAttributes {
     projection?: string;
     xAttribute?: string;
     yAttribute?: string;
@@ -16,11 +16,11 @@ export interface TransitBatchAccessibilityMapAttributes extends TransitDemandFro
 
 export const accessibilityMapPreferencesPath = 'accessibilityMap.batch';
 
-export class TransitBatchAccessibilityMap extends TransitDemandFromCsv<TransitBatchAccessibilityMapAttributes> {
+export class TransitBatchAccessibilityMap extends TransitDemandFromCsv<TransitDemandFromCsvAccessMapAttributes> {
     private _routing: AccessibilityMapRouting;
 
     constructor(
-        attributes: Partial<TransitBatchAccessibilityMapAttributes>,
+        attributes: Partial<TransitDemandFromCsvAccessMapAttributes>,
         isNew = false,
         routing: AccessibilityMapRouting
     ) {
