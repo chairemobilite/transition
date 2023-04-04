@@ -4,8 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import TransitOdDemandFromCsv from './TransitOdDemandFromCsv';
-
 export type TransitDemandFromCsvAttributes = {
     calculationName: string;
     projection: string;
@@ -35,10 +33,4 @@ export type TransitBatchRoutingDemandAttributes = {
 export type TransitDemandFromCsvAccessMapAttributes = TransitDemandFromCsvAttributes & {
     xAttribute: string;
     yAttribute: string;
-};
-
-export type TransitDemandFromCsvFile = {
-    type: 'csv';
-    demand: TransitOdDemandFromCsv;
-    csvFields: string[];
 };
