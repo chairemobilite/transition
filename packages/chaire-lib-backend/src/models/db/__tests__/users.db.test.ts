@@ -71,8 +71,7 @@ each([
     [{ password_reset_token: user2.password_reset_token }, user2],
     [{ username: user2.username, email: 'arbitrary' }, undefined],
     [{ usernameOrEmail: user2.email.toUpperCase() }, user2],
-    // When using userCaps as expected value, the email would get sanitized and wouldn't match the expected
-    [{ usernameOrEmail: userCaps.email }, { email: testEmail.toLowerCase() }],
+    [{ usernameOrEmail: userCaps.email }, user],
 ]).test('Find user by %s', async(data, expected) => {
     // find uses WhereILike which ignores case
     const user = await dbQueries.find(data);
@@ -154,7 +153,7 @@ test('Update user', async () => {
 });
 
 test('Update converts new emails to lowercase', async () => {
-    const newEmail = 'EMAIL@EMAIL.COM';
+    const newEmail = 'EMAIL@EMAIL.ORG';
     const { id, uuid, username, ...origUser } = await dbQueries.getById(user.id) as UserAttributes;
     const updatedAttributes = _cloneDeep(origUser);
     updatedAttributes.email = newEmail;
@@ -216,6 +215,12 @@ describe('list users', () => {
         const { users: testUsers, totalCount: totalCountTest } = await dbQueries.getList({ filters: { email: 'test' }, pageIndex: 0, pageSize: -1 });
         expect(totalCountTest).toEqual(1);
         expect(testUsers.length).toEqual(1);
+        
+        // Use 'TEST' string, should return 1 user as it is case insensitive
+        const { users: capsUsers, totalCount: totalCountCaps } = await dbQueries.getList({ filters: { email: 'TEST' }, pageIndex: 0, pageSize: -1 });
+        expect(totalCountCaps).toEqual(1);
+        expect(capsUsers.length).toEqual(1);
+        expect(capsUsers).toEqual(testUsers);
 
         // Use 'example.com' string, should return 1 user
         const { users: testOrgUsers, totalCount: totalCountTestOrg } = await dbQueries.getList({ filters: { email: 'example.org' }, pageIndex: 0, pageSize: -1 });
@@ -226,11 +231,6 @@ describe('list users', () => {
         const { users: fooUsers, totalCount: totalCountFoo } = await dbQueries.getList({ filters: { email: 'foo' }, pageIndex: 0, pageSize: -1 });
         expect(totalCountFoo).toEqual(0);
         expect(fooUsers.length).toEqual(0);
-
-        // Use 'TEST' string, should return 1 user as it is case insensitive
-        const { users: capsUsers, totalCount: totalCountCaps } = await dbQueries.getList({ filters: { email: 'TEST' }, pageIndex: 0, pageSize: -1 });
-        expect(totalCountCaps).toEqual(1);
-        expect(capsUsers.length).toEqual(1);
     });
 
     test('Get users list with username filter', async () => {
@@ -256,10 +256,10 @@ describe('list users', () => {
         expect(totalCountTest).toEqual(1);
         expect(testUsers.length).toEqual(1);
 
-        // Use 'test' for username and 'example.org' for email, should return 1 user
-        const { users: testOrgUsers, totalCount: totalCountTestOrg } = await dbQueries.getList({ filters: { username: 'test', email: 'example.org' }, pageIndex: 0, pageSize: -1 });
-        expect(totalCountTestOrg).toEqual(1);
-        expect(testOrgUsers.length).toEqual(1);
+        // Use 'test' for username and '.org' for email, should return 2 users
+        const { users: testOrgUsers, totalCount: totalCountTestOrg } = await dbQueries.getList({ filters: { username: 'test', email: '.org' }, pageIndex: 0, pageSize: -1 });
+        expect(totalCountTestOrg).toEqual(2);
+        expect(testOrgUsers.length).toEqual(2);
 
         // Use 'test' string for username and 'foo' for email, should return nothing
         const { users: fooUsers, totalCount: totalCountFoo } = await dbQueries.getList({ filters: { username: 'test', email: 'foo' }, pageIndex: 0, pageSize: -1 });

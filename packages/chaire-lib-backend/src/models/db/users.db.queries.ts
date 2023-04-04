@@ -82,7 +82,7 @@ const find = async (
             delete whereData.usernameOrEmail;
         }
         Object.keys(whereData).forEach((key) => {
-            if (key === whereData.email) {
+            if (key === 'email') {
                 orWhere ? query.orWhereILike(key, whereData[key]) : query.andWhereILike(key, whereData[key]);
             } else {
                 orWhere ? query.orWhere(key, whereData[key]) : query.andWhere(key, whereData[key]);
