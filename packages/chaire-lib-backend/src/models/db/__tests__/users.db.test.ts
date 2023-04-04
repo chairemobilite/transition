@@ -55,7 +55,6 @@ beforeAll(async () => {
     await truncate(knex, 'users');
     await knex('users').insert(user);
     await knex('users').insert(user2);
-    await knex('users').insert(userCaps);
 });
 
 afterAll(async() => {
@@ -166,7 +165,7 @@ test('Update converts new emails to lowercase', async () => {
 
 test('Collection', async () => {
     const collection = await dbQueries.collection();
-    expect(collection.length).toEqual(4);
+    expect(collection.length).toEqual(3);
     const dbUser = collection.find((u) => u.id === user2.id);
     expect(dbUser).toBeDefined();
     expect(dbUser).toEqual(expect.objectContaining(user2));
@@ -174,7 +173,7 @@ test('Collection', async () => {
 
 describe('list users', () => {
 
-    const nbUsers = 4;
+    const nbUsers = 3;
 
     test('Get the complete list', async () => {
         const { users, totalCount } = await dbQueries.getList({ filters: {}, pageIndex: 0, pageSize: -1 });
@@ -188,16 +187,16 @@ describe('list users', () => {
     });
 
     test('Get paginated users list', async () => {
-        // 2 pages, the last one has 2 elements
+        // 2 pages
         const pageSize = 2;
-        // First page
+        // First page, should have 2 elements
         const { users: page1, totalCount: totalCount1 } = await dbQueries.getList({ filters: {}, pageIndex: 0, pageSize });
         expect(totalCount1).toEqual(nbUsers);
         expect(page1.length).toEqual(pageSize);
-        // Second page, should have 2 elements
+        // Second page, should have 1 element
         const { users: page2, totalCount: totalCount2 } = await dbQueries.getList({ filters: {}, pageIndex: 1, pageSize });
         expect(totalCount2).toEqual(nbUsers);
-        expect(page2.length).toEqual(2);
+        expect(page2.length).toEqual(1);
         const inOtherPage = page2.find((user) => page1.find((user2) => user2.id === user.id) !== undefined);
         expect(inOtherPage).toBeUndefined();
         // There is no third page
@@ -213,13 +212,13 @@ describe('list users', () => {
     });
 
     test('Get users list with email filter', async () => {
-        // Use 'test' string, should return 2 users as one email is modified prior
+        // Use 'test' string, should return 1 user as one email is modified before
         const { users: testUsers, totalCount: totalCountTest } = await dbQueries.getList({ filters: { email: 'test' }, pageIndex: 0, pageSize: -1 });
-        expect(totalCountTest).toEqual(2);
-        expect(testUsers.length).toEqual(2);
+        expect(totalCountTest).toEqual(1);
+        expect(testUsers.length).toEqual(1);
 
-        // Use 'test.org' string, should return 1 user
-        const { users: testOrgUsers, totalCount: totalCountTestOrg } = await dbQueries.getList({ filters: { email: 'test.org' }, pageIndex: 0, pageSize: -1 });
+        // Use 'example.com' string, should return 1 user
+        const { users: testOrgUsers, totalCount: totalCountTestOrg } = await dbQueries.getList({ filters: { email: 'example.org' }, pageIndex: 0, pageSize: -1 });
         expect(totalCountTestOrg).toEqual(1);
         expect(testOrgUsers.length).toEqual(1);
 
@@ -228,17 +227,17 @@ describe('list users', () => {
         expect(totalCountFoo).toEqual(0);
         expect(fooUsers.length).toEqual(0);
 
-        // Use 'TEST' string, should return 2 users as it is case insensitive
+        // Use 'TEST' string, should return 1 user as it is case insensitive
         const { users: capsUsers, totalCount: totalCountCaps } = await dbQueries.getList({ filters: { email: 'TEST' }, pageIndex: 0, pageSize: -1 });
-        expect(totalCountCaps).toEqual(2);
-        expect(capsUsers.length).toEqual(2);
+        expect(totalCountCaps).toEqual(1);
+        expect(capsUsers.length).toEqual(1);
     });
 
     test('Get users list with username filter', async () => {
-        // Use 'test' string, should return 3 users
+        // Use 'test' string, should return 2 users
         const { users: testUsers, totalCount: totalCountTest } = await dbQueries.getList({ filters: { username: 'test' }, pageIndex: 0, pageSize: -1 });
-        expect(totalCountTest).toEqual(3);
-        expect(testUsers.length).toEqual(3);
+        expect(totalCountTest).toEqual(2);
+        expect(testUsers.length).toEqual(2);
 
         // Use 'newUser' string, should return 1 user
         const { users: testOrgUsers, totalCount: totalCountTestOrg } = await dbQueries.getList({ filters: { username: 'newUser' }, pageIndex: 0, pageSize: -1 });
@@ -252,10 +251,10 @@ describe('list users', () => {
     });
 
     test('Get users list with username and email filter', async () => {
-        // Use 'test' string for both email and username, should return 2 users
+        // Use 'test' string for both email and username, should return 1 user
         const { users: testUsers, totalCount: totalCountTest } = await dbQueries.getList({ filters: { username: 'test', email: 'test' }, pageIndex: 0, pageSize: -1 });
-        expect(totalCountTest).toEqual(2);
-        expect(testUsers.length).toEqual(2);
+        expect(totalCountTest).toEqual(1);
+        expect(testUsers.length).toEqual(1);
 
         // Use 'test' for username and 'example.org' for email, should return 1 user
         const { users: testOrgUsers, totalCount: totalCountTestOrg } = await dbQueries.getList({ filters: { username: 'test', email: 'example.org' }, pageIndex: 0, pageSize: -1 });
@@ -276,28 +275,28 @@ describe('list users', () => {
 
         // is_admin is false
         const { users: notAdminUsers, totalCount: totalCountNotAdmin } = await dbQueries.getList({ filters: { is_admin: false }, pageIndex: 0, pageSize: -1 });
-        expect(totalCountNotAdmin).toEqual(2);
-        expect(notAdminUsers.length).toEqual(2);
+        expect(totalCountNotAdmin).toEqual(1);
+        expect(notAdminUsers.length).toEqual(1);
     });
 
     test('Combine filter and paging', async () => {
         const pageSize = 1;
         const filters = { username: 'test', email: 'test' };
-        // Use 'test' string for both email and username, should return 3 users, but paginated
+        // Use 'test' string for both email and username, should return 1 user, but paginated
         const { users: filterPage1, totalCount: totalCountTest } = await dbQueries.getList({ filters, pageIndex: 0, pageSize });
-        expect(totalCountTest).toEqual(2);
+        expect(totalCountTest).toEqual(1);
         expect(filterPage1.length).toEqual(pageSize);
 
         // Second page
         const { users: filterPage2, totalCount: totalCount2 } = await dbQueries.getList({ filters, pageIndex: 1, pageSize });
-        expect(totalCount2).toEqual(2);
-        expect(filterPage2.length).toEqual(pageSize);
+        expect(totalCount2).toEqual(1);
+        expect(filterPage2.length).toEqual(0);
         const inOtherPage = filterPage2.find((user) => filterPage1.find((user2) => user2.id === user.id) !== undefined);
         expect(inOtherPage).toBeUndefined();
 
         // There is no third page
         const { users: filterPage3, totalCount: totalCount3 } = await dbQueries.getList({ filters, pageIndex: 2, pageSize });
-        expect(totalCount3).toEqual(2);
+        expect(totalCount3).toEqual(1);
         expect(filterPage3.length).toEqual(0);
     });
 
