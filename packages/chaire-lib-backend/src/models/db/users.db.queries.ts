@@ -82,7 +82,11 @@ const find = async (
             delete whereData.usernameOrEmail;
         }
         Object.keys(whereData).forEach((key) => {
-            orWhere ? query.orWhereILike(key, whereData[key]) : query.andWhereILike(key, whereData[key]);
+            if (key === whereData.email) {
+                orWhere ? query.orWhereILike(key, whereData[key]) : query.andWhereILike(key, whereData[key]);
+            } else {
+                orWhere ? query.orWhere(key, whereData[key]) : query.andWhere(key, whereData[key]);
+            }
         });
 
         const response = await query.limit(1);
@@ -147,12 +151,14 @@ const sanitizeOrderDirection = (order: string): string => {
 const getRawFilter = (filters: UserFilter): [string, string[]] | undefined => {
     const rawFilters: string[] = [];
     const bindings: string[] = [];
-    ['email', 'username'].forEach((field) => {
-        if (filters[field] !== undefined) {
-            rawFilters.push(`${field} ILIKE ?`);
-            bindings.push(`%${filters[field]}%`);
-        }
-    });
+    if (filters['email'] !== undefined) {
+        rawFilters.push(`${'email'} ILIKE ?`);
+        bindings.push(`%${filters['email']}%`);
+    }
+    if (filters['username'] !== undefined) {
+        rawFilters.push(`${'username'} LIKE ?`);
+        bindings.push(`%${filters['username']}%`);
+    }
     if (filters.is_admin !== undefined) {
         rawFilters.push(`is_admin IS ${filters.is_admin === true ? 'TRUE' : 'NOT TRUE'}`);
     }
