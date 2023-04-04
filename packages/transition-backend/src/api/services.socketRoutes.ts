@@ -21,7 +21,7 @@ import { transitionRouteOptions, transitionMatchOptions } from 'chaire-lib-commo
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import {
     TransitBatchRoutingDemandAttributes,
-    TransitBatchAccessibilityMapAttributes
+    TransitDemandFromCsvAccessMapAttributes
 } from 'transition-common/lib/services/transitDemand/types';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
@@ -285,7 +285,7 @@ export default function (socket: EventEmitter, userId?: number) {
         socket.on(
             TrRoutingConstants.BATCH_ACCESS_MAP,
             async (
-                parameters: TransitBatchAccessibilityMapAttributes,
+                parameters: TransitDemandFromCsvAccessMapAttributes,
                 accessMapAttributes: AccessibilityMapAttributes,
                 callback
             ) => {

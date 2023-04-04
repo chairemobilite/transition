@@ -6,7 +6,7 @@
  */
 import TransitOdDemandFromCsv from './TransitOdDemandFromCsv';
 
-export type TransitBatchDemandFromCsvAttributes = {
+export type TransitDemandFromCsvAttributes = {
     calculationName: string;
     projection: string;
     idAttribute: string;
@@ -19,7 +19,7 @@ export type TransitBatchDemandFromCsvAttributes = {
     csvFile: { location: 'upload'; filename: string } | { location: 'server'; fromJob: number };
 };
 
-export type TransitBatchRoutingDemandFromCsvAttributes = TransitBatchDemandFromCsvAttributes & {
+export type TransitDemandFromCsvRoutingAttributes = TransitDemandFromCsvAttributes & {
     originXAttribute: string;
     originYAttribute: string;
     destinationXAttribute: string;
@@ -29,10 +29,10 @@ export type TransitBatchRoutingDemandFromCsvAttributes = TransitBatchDemandFromC
 
 export type TransitBatchRoutingDemandAttributes = {
     type: 'csv';
-    configuration: TransitBatchRoutingDemandFromCsvAttributes;
+    configuration: TransitDemandFromCsvRoutingAttributes;
 };
 
-export type TransitBatchAccessibilityMapAttributes = TransitBatchDemandFromCsvAttributes & {
+export type TransitDemandFromCsvAccessMapAttributes = TransitDemandFromCsvAttributes & {
     xAttribute: string;
     yAttribute: string;
 };

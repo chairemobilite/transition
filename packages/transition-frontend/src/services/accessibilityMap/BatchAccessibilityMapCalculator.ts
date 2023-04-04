@@ -7,7 +7,7 @@
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitBatchAccessibilityMap from 'transition-common/lib/services/accessibilityMap/TransitBatchAccessibilityMap';
-import { TransitBatchAccessibilityMapAttributes as TransitBatchAccessibilityMapAttributesBase } from 'transition-common/lib/services/transitDemand/types';
+import { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
 import AccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
@@ -29,7 +29,7 @@ export interface TransitMapCalculationOptions {
 
 export class BatchAccessibilityMapCalculator {
     private static async _calculate(
-        params: TransitBatchAccessibilityMapAttributesBase,
+        params: TransitDemandFromCsvAccessMapAttributes,
         routingEngine: AccessibilityMapRouting
     ): Promise<any> {
         return new Promise((resolve, reject) => {
@@ -75,7 +75,7 @@ export class BatchAccessibilityMapCalculator {
         }
 
         const attributes = accessMap.attributes;
-        const parameters: TransitBatchAccessibilityMapAttributesBase = {
+        const parameters: TransitDemandFromCsvAccessMapAttributes = {
             calculationName: attributes.calculationName as string,
             projection: attributes.projection as string,
             detailed: attributes.detailed || false,

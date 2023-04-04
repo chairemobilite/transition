@@ -9,7 +9,7 @@ import _omit from 'lodash.omit';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
-import { TransitBatchAccessibilityMapAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { AccessibilityMapLocation } from 'transition-common/lib/services/accessibilityMap/AccessibiltyMapLocation';
 import { unparse } from 'papaparse';
@@ -43,7 +43,7 @@ export interface BatchAccessibilityMapResultProcessor {
  */
 export const createAccessMapFileResultProcessor = (
     absoluteDirectory: string,
-    parameters: TransitBatchAccessibilityMapAttributes,
+    parameters: TransitDemandFromCsvAccessMapAttributes,
     accessMapAttributes: AccessibilityMapAttributes
 ): BatchAccessibilityMapResultProcessor => {
     return new BatchAccessibilityMapResultProcessorFile(absoluteDirectory, parameters, accessMapAttributes);
@@ -67,7 +67,7 @@ class BatchAccessibilityMapResultProcessorFile implements BatchAccessibilityMapR
      */
     constructor(
         private absoluteDirectory: string,
-        private parameters: TransitBatchAccessibilityMapAttributes,
+        private parameters: TransitDemandFromCsvAccessMapAttributes,
         private accessMapAttributes: AccessibilityMapAttributes
     ) {
         this.initResultFiles();

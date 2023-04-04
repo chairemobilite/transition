@@ -17,7 +17,7 @@ import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import {
     TransitBatchRoutingDemandAttributes,
-    TransitBatchRoutingDemandFromCsvAttributes
+    TransitDemandFromCsvRoutingAttributes
 } from 'transition-common/lib/services/transitDemand/types';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import odPairsDbQueries from '../../models/db/odPairs.db.queries';
@@ -75,7 +75,7 @@ class TrRoutingBatch {
     private pathCollection: PathCollection | undefined = undefined;
 
     constructor(
-        private demandParameters: TransitBatchRoutingDemandFromCsvAttributes,
+        private demandParameters: TransitDemandFromCsvRoutingAttributes,
         private transitRoutingAttributes: BatchCalculationParameters,
         private options: {
             jobId: number;

@@ -17,7 +17,7 @@ import { parseLocationsFromCsv } from '../accessMapLocation/AccessMapLocationPro
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import nodeDbQueries from '../../models/db/transitNodes.db.queries';
 import scenariosDbQueries from '../../models/db/transitScenarios.db.queries';
-import { TransitBatchAccessibilityMapAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { createAccessMapFileResultProcessor } from './TrAccessibilityMapBatchResult';
 import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
@@ -36,7 +36,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
  * @returns
  */
 export const batchAccessibilityMap = async (
-    parameters: TransitBatchAccessibilityMapAttributes,
+    parameters: TransitDemandFromCsvAccessMapAttributes,
     accessMapAttributes: AccessibilityMapAttributes,
     absoluteBaseDirectory: string,
     progressEmitter: EventEmitter,

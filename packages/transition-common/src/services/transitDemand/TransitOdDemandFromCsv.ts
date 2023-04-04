@@ -9,11 +9,10 @@ import _cloneDeep from 'lodash.clonedeep';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import DataSourceCollection from '../dataSource/DataSourceCollection';
-import { TransitDemandFromCsv, TransitDemandFromCsvAttributes } from './TransitDemandFromCsv';
-import { TransitBatchRoutingDemandFromCsvAttributes } from './types';
+import { TransitDemandFromCsv, DemandCsvAttributes } from './TransitDemandFromCsv';
+import { TransitDemandFromCsvRoutingAttributes } from './types';
 
-export type TransitOdDemandFromCsvAttributes = TransitDemandFromCsvAttributes &
-    Partial<TransitBatchRoutingDemandFromCsvAttributes>;
+export type TransitOdDemandFromCsvAttributes = DemandCsvAttributes & Partial<TransitDemandFromCsvRoutingAttributes>;
 
 /**
  * Describe a CSV file field mapping for a transition origin/destination pair file

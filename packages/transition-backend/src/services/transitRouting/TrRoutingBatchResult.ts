@@ -21,7 +21,7 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
-import { TransitBatchRoutingDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
 
 const CSV_FILE_NAME = 'batchRoutingResults.csv';
 const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';
@@ -41,7 +41,7 @@ export interface BatchRoutingResultProcessor {
  */
 export const createRoutingFileResultProcessor = (
     absoluteDirectory: string,
-    parameters: TransitBatchRoutingDemandFromCsvAttributes,
+    parameters: TransitDemandFromCsvRoutingAttributes,
     routing: TransitRouting,
     inputFileName: string
 ): BatchRoutingResultProcessor => {
@@ -60,7 +60,7 @@ class BatchRoutingResultProcessorFile implements BatchRoutingResultProcessor {
 
     constructor(
         private absoluteDirectory: string,
-        private parameters: TransitBatchRoutingDemandFromCsvAttributes,
+        private parameters: TransitDemandFromCsvRoutingAttributes,
         private routing: TransitRouting,
         private inputFileName: string
     ) {
