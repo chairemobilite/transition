@@ -6,13 +6,16 @@ interface OverlappingSegments {
     directions: boolean[];
 }
 
-export const manageOverlappingLines = (
+export const manageOverlappingLines = async (
     layerData: GeoJSON.FeatureCollection<LineString>
-): GeoJSON.FeatureCollection<LineString> => {
-    const overlapMap = findOverlapingLines(layerData);
+): Promise<GeoJSON.FeatureCollection<LineString>> => {
+    const overlapMap = await findOverlapingLines(layerData);
     const overlapArray = manageOverlapingSegmentsData(overlapMap, layerData);
-    const offsetLayer = applyOffset(overlapArray, layerData);
-    return cleanLines(offsetLayer);
+    const offsetLayer = await applyOffset(overlapArray, layerData);
+    const geojson = cleanLines(offsetLayer);
+    return new Promise((resolve) => {
+        resolve(geojson)
+    })
 };
 
 const cleanLines = (geojson: GeoJSON.FeatureCollection<LineString>): GeoJSON.FeatureCollection<LineString> => {
@@ -24,54 +27,64 @@ const cleanLines = (geojson: GeoJSON.FeatureCollection<LineString>): GeoJSON.Fea
     return geojson;
 };
 
-const applyOffset = (
+const applyOffset = async (
     overlapArray: OverlappingSegments[],
     layerData: GeoJSON.FeatureCollection<LineString>
-): GeoJSON.FeatureCollection<LineString> => {
-    for (let i = 0; i < overlapArray.length; i++) {
-        const nbOverlapped = overlapArray[i].directions.length;
-        let oppositeDirectionOffset = 0;
-        let sameDirectionOffset = 0;
-        for (let j = 0; j < nbOverlapped; j++) {
-            const segment = overlapArray[i].geoData;
-            if (overlapArray[i].directions[j]) {
-                const offsetLine = lineOffset(segment, 3 * sameDirectionOffset, { units: 'meters' });
-                replaceCoordinate(segment, offsetLine, overlapArray[i].crossingLines[j], layerData);
-                sameDirectionOffset++;
-            } else {
-                const reverseCoordinates = segment.geometry.coordinates.slice().reverse();
-                const reverseLine = segment;
-                reverseLine.geometry.coordinates = reverseCoordinates;
-                const offsetLine = lineOffset(reverseLine, 3 * oppositeDirectionOffset, { units: 'meters' });
-                replaceCoordinate(reverseLine, offsetLine, overlapArray[i].crossingLines[j], layerData);
-                oppositeDirectionOffset++;
-            }
+): Promise<GeoJSON.FeatureCollection<LineString>> => {
+    return new Promise(async (resolve) => {
+        for (let i = 0; i < overlapArray.length; i++) {
+            await new Promise<void>((res) => setTimeout(() => {
+                const nbOverlapped = overlapArray[i].directions.length;
+                let oppositeDirectionOffset = 0;
+                let sameDirectionOffset = 0;
+                for (let j = 0; j < nbOverlapped; j++) {
+                    const segment = overlapArray[i].geoData;
+                    if (overlapArray[i].directions[j]) {
+                        const offsetLine = lineOffset(segment, 3 * sameDirectionOffset, { units: 'meters' });
+                        replaceCoordinate(segment, offsetLine, overlapArray[i].crossingLines[j], layerData);
+                        sameDirectionOffset++;
+                    } else {
+                        const reverseCoordinates = segment.geometry.coordinates.slice().reverse();
+                        const reverseLine = segment;
+                        reverseLine.geometry.coordinates = reverseCoordinates;
+                        const offsetLine = lineOffset(reverseLine, 3 * oppositeDirectionOffset, { units: 'meters' });
+                        replaceCoordinate(reverseLine, offsetLine, overlapArray[i].crossingLines[j], layerData);
+                        oppositeDirectionOffset++;
+                    }
+                }
+                res()
+            }, 0));
         }
-    }
-    return layerData;
+        resolve(layerData);
+    })
 };
 
-const findOverlapingLines = (layerData: GeoJSON.FeatureCollection<LineString>): Map<string, Set<number>> => {
-    const features = layerData.features as any;
-    // The map contains the feature and a set of numbers
-    // The feature is the segment concerned by the overlap
-    // The set of numbers is a set that contains the IDs of every single line concerned by the overlap on that segment
-    const overlapMap: Map<string, Set<number>> = new Map();
-    for (let i = 0; i < features.length - 1; i++) {
-        for (let j = i + 1; j < features.length; j++) {
-            const overlap = lineOverlap(
-                lineString(features[i].geometry.coordinates),
-                lineString(features[j].geometry.coordinates)
-            );
-            if (overlap.features.length === 0) continue;
-            for (const segment of overlap.features) {
-                const overlapStr = JSON.stringify(segment);
-                if (!overlapMap.has(overlapStr)) overlapMap.set(overlapStr, new Set());
-                overlapMap.get(overlapStr)?.add(features[i].id).add(features[j].id);
-            }
+const findOverlapingLines = async (layerData: GeoJSON.FeatureCollection<LineString>): Promise<Map<string, Set<number>>> => {
+    return new Promise(async (resolve) => {
+        const features = layerData.features as any;
+        // The map contains the feature and a set of numbers
+        // The feature is the segment concerned by the overlap
+        // The set of numbers is a set that contains the IDs of every single line concerned by the overlap on that segment
+        const overlapMap: Map<string, Set<number>> = new Map();
+        for (let i = 0; i < features.length - 1; i++) {
+            await new Promise<void>((res) => setTimeout(() => {
+                for (let j = i + 1; j < features.length; j++) {
+                    const overlap = lineOverlap(
+                        lineString(features[i].geometry.coordinates),
+                        lineString(features[j].geometry.coordinates)
+                    );
+                    if (overlap.features.length === 0) continue;
+                    for (const segment of overlap.features) {
+                        const overlapStr = JSON.stringify(segment);
+                        if (!overlapMap.has(overlapStr)) overlapMap.set(overlapStr, new Set());
+                        overlapMap.get(overlapStr)?.add(features[i].id).add(features[j].id);
+                    }
+                }
+                res()
+            }, 0));
         }
-    }
-    return overlapMap;
+        resolve(overlapMap);
+    })
 };
 
 const manageOverlapingSegmentsData = (

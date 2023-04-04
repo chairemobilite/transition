@@ -42,25 +42,25 @@ const basicCollection : GeoJSON.FeatureCollection<LineString> = {
 };
 
 
-test('Test offset with no overlaps', () => {
+test('Test offset with no overlaps', async () => {
     const initial = JSON.stringify(basicCollection);
-    const offsetCollection = manageOverlappingLines(JSON.parse(initial));
+    const offsetCollection = await manageOverlappingLines(JSON.parse(initial));
     expect(JSON.stringify(offsetCollection)).toEqual(initial);
 });
 
 
-test('Test offset with basic opposite direction overlap', () => {
+test('Test offset with basic opposite direction overlap', async () => {
     const collection = JSON.parse(JSON.stringify(basicCollection));
     collection.features[1].geometry.coordinates =
         collection.features[1].geometry.coordinates.map((_, index) => [0, index]).reverse();
 
     const initial = JSON.stringify(collection);
-    const offsetCollection = manageOverlappingLines(collection);
+    const offsetCollection = await manageOverlappingLines(collection);
     expect(JSON.stringify(offsetCollection)).toEqual(initial);
 });
 
 
-test('Test offset with multiple same length overlaps', () => {
+test('Test offset with multiple same length overlaps', async () => {
     const collection : GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: []
@@ -80,7 +80,7 @@ test('Test offset with multiple same length overlaps', () => {
         expectedOffset.push(lineOffset(feature as GeoJSON.Feature<LineString>, 3 * index, { units: 'meters' }))
     })
 
-    const offsetCollection = manageOverlappingLines(collection);
+    const offsetCollection = await manageOverlappingLines(collection);
 
     offsetCollection.features.forEach((feature, i) => {
         expect(JSON.stringify(feature.geometry)).toEqual(JSON.stringify(expectedOffset[i].geometry));
@@ -88,7 +88,7 @@ test('Test offset with multiple same length overlaps', () => {
 });
 
 
-test('Test offset with multiple different lengths overlap', () => {
+test('Test offset with multiple different lengths overlap', async () => {
     const collection : GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: []
@@ -104,13 +104,13 @@ test('Test offset with multiple different lengths overlap', () => {
     }
 
     const initial = JSON.stringify(collection);
-    const offsetCollection = manageOverlappingLines(collection);
+    const offsetCollection = await manageOverlappingLines(collection);
     // TODO: Add a more specific expect once the expected behaviour is specified
     expect(JSON.stringify(offsetCollection)).not.toEqual(initial);
 });
 
 
-test('Test overlaps between multiple segments of the same line with another line', () => {
+test('Test overlaps between multiple segments of the same line with another line', async () => {
     const collection: GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: [
@@ -136,14 +136,14 @@ test('Test overlaps between multiple segments of the same line with another line
     };
 
     const initial = JSON.stringify(collection);
-    let offsetCollection = manageOverlappingLines(collection);
-    offsetCollection = manageOverlappingLines(collection);
+    let offsetCollection = await manageOverlappingLines(collection);
+    offsetCollection = await manageOverlappingLines(collection);
     // Expect not to have an infinite loop in the above calls
     expect(JSON.stringify(offsetCollection)).not.toEqual(initial);
 });
 
 
-test('Test overlaps with duplicate coordinates', () => {
+test('Test overlaps with duplicate coordinates', async () => {
     const collection: GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: [
@@ -168,7 +168,7 @@ test('Test overlaps with duplicate coordinates', () => {
         ]
     };
 
-    const offsetCollection = manageOverlappingLines(collection);
+    const offsetCollection = await manageOverlappingLines(collection);
     offsetCollection.features.forEach((feature) => {
         feature.geometry.coordinates.forEach((coord) => {
             expect(coord[0]).not.toBeNaN();
