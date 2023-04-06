@@ -7,21 +7,32 @@ interface OverlappingSegments {
 }
 
 export const manageOverlappingLines = async (
-    layerData: GeoJSON.FeatureCollection<LineString>
+    layerData: GeoJSON.FeatureCollection<LineString>,
+    isCancelled: (() => boolean) | false = false
 ): Promise<GeoJSON.FeatureCollection<LineString>> => {
-    const overlapMap = await findOverlapingLines(layerData);
+    const overlapMap = await findOverlapingLines(layerData, isCancelled);
     const overlapArray = manageOverlapingSegmentsData(overlapMap, layerData);
-    const offsetLayer = await applyOffset(overlapArray, layerData);
+    const offsetLayer = await applyOffset(overlapArray, layerData, isCancelled);
     const geojson = cleanLines(offsetLayer);
-    return new Promise((resolve) => {
+
+    return new Promise((resolve, reject) => {
+        if (isCancelled && isCancelled()) {
+            reject('Cancelled');
+            return;
+        }
         resolve(geojson);
     });
 };
 
 const findOverlapingLines = async (
-    layerData: GeoJSON.FeatureCollection<LineString>
+    layerData: GeoJSON.FeatureCollection<LineString>,
+    isCancelled: (() => boolean) | false = false
 ): Promise<Map<string, Set<number>>> => {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
+        if (isCancelled && isCancelled()) {
+            reject('Cancelled');
+            return;
+        }
         const features = layerData.features as any;
         // The map contains the feature and a set of numbers
         // The feature is the segment concerned by the overlap
@@ -101,9 +112,14 @@ const manageOverlapingSegmentsData = (
 
 const applyOffset = async (
     overlapArray: OverlappingSegments[],
-    layerData: GeoJSON.FeatureCollection<LineString>
+    layerData: GeoJSON.FeatureCollection<LineString>,
+    isCancelled: (() => boolean) | false = false
 ): Promise<GeoJSON.FeatureCollection<LineString>> => {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
+        if (isCancelled && isCancelled()) {
+            reject('Cancelled');
+            return;
+        }
         for (let i = 0; i < overlapArray.length; i++) {
             await new Promise<void>((resolve) =>
                 setTimeout(() => {
