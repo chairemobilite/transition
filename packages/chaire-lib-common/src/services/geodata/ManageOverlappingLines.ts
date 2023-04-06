@@ -15,7 +15,7 @@ interface OverlappingSegments {
      */
     geoData: GeoJSON.Feature<LineString>;
     /**
-     * IDs of each line in conflict with the specified overlap
+     * Index of each line in conflict with the specified overlap
      */
     crossingLines: number[];
     /**
@@ -45,7 +45,7 @@ const findOverlappingLines = (layerData: GeoJSON.FeatureCollection<LineString>):
     const features = layerData.features;
     // The map contains the feature and a set of numbers
     // The feature is the segment concerned by the overlap
-    // The set of numbers is a set that contains the IDs of every single line concerned by the overlap on that segment
+    // The set of numbers is a set that contains the indexes of every single line concerned by the overlap on that segment
     const overlapMap: Map<string, Set<number>> = new Map();
     for (let i = 0; i < features.length - 1; i++) {
         for (let j = i + 1; j < features.length; j++) {
@@ -57,7 +57,7 @@ const findOverlappingLines = (layerData: GeoJSON.FeatureCollection<LineString>):
             for (const segment of overlap.features) {
                 const overlapStr = JSON.stringify(segment);
                 if (!overlapMap.has(overlapStr)) overlapMap.set(overlapStr, new Set());
-                overlapMap.get(overlapStr)?.add(Number(features[i].id)).add(Number(features[j].id));
+                overlapMap.get(overlapStr)?.add(i).add(j);
             }
         }
     }
@@ -73,8 +73,8 @@ const manageOverlappingSegmentsData = (
         const segmentDirections: Array<boolean> = [];
         const keyGeojson = JSON.parse(key);
         // For each line, add the direction of the overlap segment
-        value.forEach((id: number) => {
-            const data = getLineById(id, layerData);
+        value.forEach((index: number) => {
+            const data = layerData.features[index];
             const coordinates = keyGeojson.geometry.coordinates;
             const firstPoint = coordinates[0];
             const lastPoint = coordinates[coordinates.length - 1];
@@ -110,13 +110,13 @@ const applyOffset = (
         for (let j = 0; j < nbOverlapped; j++) {
             const segment = overlapArray[i].geoData;
             if (overlapArray[i].directions[j]) {
-                const line = getLineById(overlapArray[i].crossingLines[j], layerData);
+                const line = layerData.features[overlapArray[i].crossingLines[j]];
                 replaceLineCoordinates(segment, sameDirectionOffset, line);
                 sameDirectionOffset++;
             } else {
                 // No deep copy made before the reverse as there was already one previously
                 segment.geometry.coordinates.reverse();
-                const line = getLineById(overlapArray[i].crossingLines[j], layerData);
+                const line = layerData.features[overlapArray[i].crossingLines[j]];
                 replaceLineCoordinates(segment, oppositeDirectionOffset, line);
                 oppositeDirectionOffset++;
             }
@@ -167,21 +167,4 @@ const cleanLines = (geojson: GeoJSON.FeatureCollection<LineString>): GeoJSON.Fea
         });
     });
     return geojson;
-};
-
-const getLineById = (lineId: number, layerData: GeoJSON.FeatureCollection<LineString>): GeoJSON.Feature<LineString> => {
-    const features = layerData.features;
-    for (let i = 0; i < features.length; i++) {
-        if (features[i].id === lineId) {
-            return features[i];
-        }
-    }
-    return {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-            type: 'LineString',
-            coordinates: []
-        }
-    };
 };
