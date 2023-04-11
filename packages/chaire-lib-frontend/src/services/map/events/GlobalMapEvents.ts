@@ -10,6 +10,7 @@ import _debounce from 'lodash.debounce';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { MapEventHandlerDescription } from '../IMapEventHandler';
+import { manageZoom } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
 
 /* This file encapsulates global map events, that do not require a specific context */
 
@@ -23,6 +24,7 @@ const onZoomEnd = (_e: MapboxGL.MapMouseEvent) => {
             'map.zoom': e.target.getZoom()
         });
     }, 1000);
+    manageZoom(_e.target.getBounds(), _e.target.getZoom());
 };
 
 const onDragEnd = (e: MapboxGL.MapMouseEvent) => {
@@ -42,6 +44,7 @@ const onDragEnd = (e: MapboxGL.MapMouseEvent) => {
             'map.center': [centerLatLng.lng, centerLatLng.lat]
         });
     }, 1000)();
+    manageZoom(e.target.getBounds(), e.target.getZoom());
 };
 
 const onDragStart = (e: MapboxGL.MapMouseEvent) => {
