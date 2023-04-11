@@ -85,7 +85,7 @@ const transitPaths : GeoJSON.FeatureCollection<LineString> = {
                 type: 'LineString',
                 coordinates: [[0,4], [1,4], [2,4], [3,4], [4,4]]
             },
-            id: 4,
+            id: 5,
             properties: {
                 nodes: ['0']
             }
@@ -112,7 +112,7 @@ const transitNodes : GeoJSON.FeatureCollection<Point> = {
 
 const nodeMap: Map<string, number[]>[] = [
     new Map([
-      ['0', [1, 2, 3, 4]]
+      ['0', [1, 2, 3, 4, 5]]
     ])
   ];
   
@@ -121,5 +121,5 @@ const nodeMap: Map<string, number[]>[] = [
 test('Test basic relocation of nodes', () => {
     const initialNodes = JSON.stringify(transitNodes);
     const relocatedNode = relocateNodes(transitNodes, nodeMap[0], transitPaths).features[0].geometry.coordinates;
-    expect(relocatedNode).toEqual([2,1.5]);
+    expect(relocatedNode).toEqual([2,2]);
 });
