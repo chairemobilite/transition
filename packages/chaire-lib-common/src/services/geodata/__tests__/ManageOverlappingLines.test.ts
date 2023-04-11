@@ -4,9 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { manageOverlappingLines } from '../ManageOverlappingLines';
+import { manageOverlappingLines, getLinesInView } from '../ManageOverlappingLines';
 import GeoJSON from 'geojson';
 import { lineOffset, LineString } from "@turf/turf";
+import MapboxGL from 'mapbox-gl';
 
 const featureSkeleton: GeoJSON.Feature<LineString> = {
     type: 'Feature',
@@ -176,3 +177,48 @@ test('Test overlaps with duplicate coordinates', () => {
         })
     })
 });
+
+test('Test getting lines within the view bounds', () => {
+    const collection: GeoJSON.FeatureCollection<LineString> = {
+        type: 'FeatureCollection',
+        features: [
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [[0, 0], [0, 1], [0, 1], [2, 2]]
+                },
+                id: 1,
+                properties: {}
+            },
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [[10, 10],[20, 20],[30, 30]]
+                },
+                id: 2,
+                properties: {}
+            },
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [[1, 1],[20, 20],[30, 30]]
+                },
+                id: 3,
+                properties: {}
+            }
+        ]
+    };
+    const sw = new MapboxGL.LngLat(0, 0);
+    const ne = new MapboxGL.LngLat(5, 5);
+    const bounds = new MapboxGL.LngLatBounds(sw, ne);
+
+    const linesInView = getLinesInView(bounds, collection);
+
+    expect(linesInView.features.length).toEqual(2);
+    expect(linesInView.features[0].id).toEqual(1);
+    expect(linesInView.features[1].id).toEqual(3);
+});
+

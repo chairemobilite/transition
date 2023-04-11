@@ -24,16 +24,7 @@ export const manageZoom = (bounds: MapboxGL.LngLatBounds, zoom: number): void =>
         return;
     }
 
-    const linesInView: GeoJSON.FeatureCollection<LineString> = {type: 'FeatureCollection', features: []};
-    const features = originalLayer.features;
-    for (let i = 0; i < features.length; i++) {
-        for (let j = 0; j < features[i].geometry.coordinates.length; j++) {
-            if (isInBounds(bounds, features[i].geometry.coordinates[j])) {
-                linesInView.features.push(features[i])
-                break;
-            }
-        }
-    }
+    const linesInView = getLinesInView(bounds, originalLayer);
     
     manageOverlappingLines(serviceLocator.layerManager._layersByName['transitPaths'].source.data, linesInView); //ServiceLocator necessary to have reference to layer used by transition
     manageRelocatingNodes();
@@ -49,17 +40,36 @@ export const manageZoom = (bounds: MapboxGL.LngLatBounds, zoom: number): void =>
         serviceLocator.collectionManager.get('nodes').toGeojson()
     );
 }
+
+export const getLinesInView = (
+    bounds: MapboxGL.LngLatBounds, 
+    layer: GeoJSON.FeatureCollection<LineString>
+): GeoJSON.FeatureCollection<LineString> => {
+    const features = layer.features;
+    const linesInView: GeoJSON.FeatureCollection<LineString> = {type: 'FeatureCollection', features: []};
+    for (let i = 0; i < features.length; i++) {
+        for (let j = 0; j < features[i].geometry.coordinates.length; j++) {
+            if (isInBounds(bounds, features[i].geometry.coordinates[j])) {
+                linesInView.features.push(features[i])
+                break;
+            }
+        }
+    }
+    return linesInView;
+};
     
 const isInBounds = (bounds: MapboxGL.LngLatBounds, coord: number[]): boolean => {
     return bounds.contains(new MapboxGL.LngLat(coord[0], coord[1]));
-}
+};
 
-// Used for tests. Same basic logic as manageZoom, but without the unecessary elements for tests
 export const manageOverlappingLines = (
     layerData: GeoJSON.FeatureCollection<LineString>,
-    linesInView: GeoJSON.FeatureCollection<LineString>
+    linesInView?: GeoJSON.FeatureCollection<LineString>
 ): GeoJSON.FeatureCollection<LineString> => {
     currentLayer = layerData;
+    if (typeof linesInView === "undefined"){
+        linesInView = layerData;
+    }
     const overlapMap = findOverlapingLines(linesInView);
     const overlapArray = manageOverlapingSegmentsData(overlapMap);
     applyOffset(overlapArray);
@@ -255,7 +265,6 @@ export const relocateNodes = (nodeFeatures: any, nodeMap: Map<any, any>, pathFea
         features: relocatedNodes
     };
 }
-
   
 function areCoordinatesEqual(coords1: number[], coords2: number[]): boolean {
     return coords1[0] === coords2[0] && coords1[1] === coords2[1];
