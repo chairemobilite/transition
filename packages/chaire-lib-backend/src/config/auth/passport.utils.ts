@@ -35,7 +35,7 @@ export const saveNewUser = async function (params: newUserParams): Promise<UserM
             last_name: '',
             is_admin: false,
             is_valid: params.isTest === true ? false : true,
-            is_test: params.isTest,
+            is_test: params.isTest === true ? true : false,
             is_confirmed: params.confirmationToken !== undefined ? false : true,
             confirmation_token: params.confirmationToken !== undefined ? params.confirmationToken : null
         });

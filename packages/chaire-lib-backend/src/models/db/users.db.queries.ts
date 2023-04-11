@@ -13,8 +13,17 @@ import { UserAttributes } from '../../services/users/user';
 
 const tableName = 'users';
 
+const attributesCleaner = function (attributes: Partial<UserAttributes>): { [key: string]: any } {
+    const _attributes: any = _cloneDeep(attributes);
+    if (_attributes.email) {
+        _attributes.email = _attributes.email.toLowerCase();
+    }
+    return _attributes;
+};
+
 const create = async (newObject: Partial<UserAttributes>): Promise<UserAttributes> => {
     try {
+        newObject = attributesCleaner(newObject);
         const returning = await knex(tableName).insert(newObject).returning('id');
         // Fetch newly inserted user, to get all values that may have been auto-filled at insert
         const userAttributes = await getById(returning[0].id);
@@ -68,12 +77,16 @@ const find = async (
         }
         const query = knex(tableName);
         if (whereData.usernameOrEmail !== undefined) {
-            query.where('email', whereData.usernameOrEmail);
+            query.whereILike('email', whereData.usernameOrEmail);
             query.orWhere('username', whereData.usernameOrEmail);
             delete whereData.usernameOrEmail;
         }
         Object.keys(whereData).forEach((key) => {
-            orWhere ? query.orWhere(key, whereData[key]) : query.andWhere(key, whereData[key]);
+            if (key === 'email') {
+                orWhere ? query.orWhereILike(key, whereData[key]) : query.andWhereILike(key, whereData[key]);
+            } else {
+                orWhere ? query.orWhere(key, whereData[key]) : query.andWhere(key, whereData[key]);
+            }
         });
 
         const response = await query.limit(1);
@@ -93,6 +106,7 @@ const update = async (
     returning = 'id'
 ): Promise<string> => {
     try {
+        attributes = attributesCleaner(attributes);
         const returningArray = await knex(tableName).update(attributes).where('id', id).returning(returning);
         return returningArray[0];
     } catch (error) {
@@ -137,12 +151,14 @@ const sanitizeOrderDirection = (order: string): string => {
 const getRawFilter = (filters: UserFilter): [string, string[]] | undefined => {
     const rawFilters: string[] = [];
     const bindings: string[] = [];
-    ['email', 'username'].forEach((field) => {
-        if (filters[field] !== undefined) {
-            rawFilters.push(`${field} LIKE ?`);
-            bindings.push(`%${filters[field]}%`);
-        }
-    });
+    if (filters['email'] !== undefined) {
+        rawFilters.push(`${'email'} ILIKE ?`);
+        bindings.push(`%${filters['email']}%`);
+    }
+    if (filters['username'] !== undefined) {
+        rawFilters.push(`${'username'} LIKE ?`);
+        bindings.push(`%${filters['username']}%`);
+    }
     if (filters.is_admin !== undefined) {
         rawFilters.push(`is_admin IS ${filters.is_admin === true ? 'TRUE' : 'NOT TRUE'}`);
     }
