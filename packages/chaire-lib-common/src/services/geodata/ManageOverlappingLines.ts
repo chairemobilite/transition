@@ -17,16 +17,14 @@ interface OverlappingSegments {
 export const manageZoom = (bounds: MapboxGL.LngLatBounds, zoom: number): void => {
     if (!originalLayer) { //Site does not load if original layer is initialized as a constant
         //Deep copy of original layer, necessary so that repeated zooms don't apply offsets to the same points
-        originalLayer = JSON.parse(JSON.stringify(serviceLocator.layerManager._layersByName['transitPaths'].source.data)); //Deep copy of original layer
+        originalLayer = JSON.parse(JSON.stringify(serviceLocator.layerManager._layersByName['transitPaths'].source.data));
     }
 
     if (zoom <= zoomLimit) {
         return;
     }
 
-    currentLayer = serviceLocator.layerManager._layersByName['transitPaths'].source.data;
-    const linesInView: GeoJSON.FeatureCollection<LineString> = JSON.parse(JSON.stringify(originalLayer));
-    linesInView.features = [];
+    const linesInView: GeoJSON.FeatureCollection<LineString> = {type: 'FeatureCollection', features: []};
     const features = originalLayer.features;
     for (let i = 0; i < features.length; i++) {
         for (let j = 0; j < features[i].geometry.coordinates.length; j++) {
@@ -36,11 +34,8 @@ export const manageZoom = (bounds: MapboxGL.LngLatBounds, zoom: number): void =>
             }
         }
     }
-
-    const overlapMap = findOverlapingLines(linesInView);
-    const overlapArray = manageOverlapingSegmentsData(overlapMap);
-    applyOffset(overlapArray);
-    cleanLines();
+    
+    manageOverlappingLines(serviceLocator.layerManager._layersByName['transitPaths'].source.data, linesInView); //ServiceLocator necessary to have reference to layer used by transition
     manageRelocatingNodes();
 
     serviceLocator.eventManager.emit(
@@ -48,9 +43,11 @@ export const manageZoom = (bounds: MapboxGL.LngLatBounds, zoom: number): void =>
         'transitPaths',
         serviceLocator.collectionManager.get('paths').toGeojson()
     );
-    serviceLocator.eventManager.emit('map.updateLayers', {
-        transitNodes: serviceLocator.collectionManager.get('nodes').toGeojson()
-    });
+    serviceLocator.eventManager.emit(
+        'map.updateLayers',
+        'transitNodes',
+        serviceLocator.collectionManager.get('nodes').toGeojson()
+    );
 }
     
 const isInBounds = (bounds: MapboxGL.LngLatBounds, coord: number[]): boolean => {
@@ -59,10 +56,11 @@ const isInBounds = (bounds: MapboxGL.LngLatBounds, coord: number[]): boolean => 
 
 // Used for tests. Same basic logic as manageZoom, but without the unecessary elements for tests
 export const manageOverlappingLines = (
-    layerData: GeoJSON.FeatureCollection<LineString>
+    layerData: GeoJSON.FeatureCollection<LineString>,
+    linesInView: GeoJSON.FeatureCollection<LineString>
 ): GeoJSON.FeatureCollection<LineString> => {
     currentLayer = layerData;
-    const overlapMap = findOverlapingLines(layerData);
+    const overlapMap = findOverlapingLines(linesInView);
     const overlapArray = manageOverlapingSegmentsData(overlapMap);
     applyOffset(overlapArray);
     return cleanLines();
@@ -80,7 +78,6 @@ const cleanLines = (): GeoJSON.FeatureCollection<LineString> => {
 const applyOffset = (overlapArray: OverlappingSegments[]): void => {
     for (let i = 0; i < overlapArray.length; i++) {
         const nbOverlapped = overlapArray[i].directions.length;
-        //console.log("j: " + nbOverlapped); 
         let oppositeDirectionOffset = 0;
         let sameDirectionOffset = 0;
         for (let j = 0; j < nbOverlapped; j++) {
