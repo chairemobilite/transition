@@ -11,9 +11,6 @@ export type TransitDemandFromCsvAttributes = {
     timeAttributeDepartureOrArrival: 'arrival' | 'departure';
     timeFormat: string;
     timeAttribute: string;
-    withGeometries: boolean;
-    detailed: boolean;
-    cpuCount: number;
     csvFile: { location: 'upload'; filename: string } | { location: 'server'; fromJob: number };
 };
 
@@ -33,4 +30,10 @@ export type TransitBatchRoutingDemandAttributes = {
 export type TransitDemandFromCsvAccessMapAttributes = TransitDemandFromCsvAttributes & {
     xAttribute: string;
     yAttribute: string;
+    // TODO For batch routing, these parameters were moved to batch calculation. They should too for batch access map, when we refactor this calculation a similar way
+    withGeometries: boolean;
+    detailed: boolean;
+    // TODO Remove these from this object once trRouting is parallel
+    cpuCount: number;
+    maxCpuCount?: number;
 };

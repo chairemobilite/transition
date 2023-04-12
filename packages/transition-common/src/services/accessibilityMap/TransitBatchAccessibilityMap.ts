@@ -12,6 +12,11 @@ export interface TransitDemandFromCsvAccessMapAttributes extends DemandCsvAttrib
     projection?: string;
     xAttribute?: string;
     yAttribute?: string;
+    // TODO Move to a BatchAccessMap type, similar to BatchCalculationParameters
+    detailed?: boolean;
+    withGeometries?: boolean;
+    cpuCount?: number;
+    maxCpuCount?: number;
 }
 
 export const accessibilityMapPreferencesPath = 'accessibilityMap.batch';
@@ -47,6 +52,19 @@ export class TransitBatchAccessibilityMap extends TransitDemandFromCsv<TransitDe
                 this._isValid = false;
                 this.errors.push('transit:transitRouting:errors:YAttributeIsMissing');
             }
+        }
+        if (typeof attributes.cpuCount !== 'number' && typeof attributes.maxCpuCount === 'number') {
+            attributes.cpuCount = attributes.maxCpuCount as number;
+        } else if (
+            typeof attributes.cpuCount === 'number' &&
+            typeof attributes.maxCpuCount === 'number' &&
+            attributes.cpuCount > attributes.maxCpuCount
+        ) {
+            // Automatically set the number of CPU to the max count
+            attributes.cpuCount = attributes.maxCpuCount;
+        } else if (typeof attributes.cpuCount === 'number' && attributes.cpuCount <= 0) {
+            // Minimum number of CPU is 1
+            attributes.cpuCount = 1;
         }
         return this._isValid;
     }

@@ -22,60 +22,6 @@ serviceLocator.addService('collectionManager', collectionManager);
 
 beforeEach(() => {
     parseCsvFileMock.mockClear();
-})
-
-test('Validate number of CPUs', () => {
-    const batchRouting = new TransitOdDemandFromCsv({}, false);
-    
-    // all cpu count has not been set, they should remain unset
-    batchRouting.validate();
-    expect(batchRouting.getAttributes().cpuCount).toBeUndefined();
-    expect(batchRouting.getAttributes().maxCpuCount).toBeUndefined();
-
-    // Set a max count, the count should be the max count
-    const maxCpu = 4;
-    batchRouting.getAttributes().maxCpuCount = maxCpu;
-    batchRouting.validate();
-    expect(batchRouting.getAttributes().cpuCount).toEqual(maxCpu);
-    expect(batchRouting.getAttributes().maxCpuCount).toEqual(maxCpu);
-
-    // Set a valid count, should be unchanged
-    let cpuCount = 2;
-    batchRouting.getAttributes().cpuCount = cpuCount;
-    batchRouting.validate();
-    expect(batchRouting.getAttributes().cpuCount).toEqual(cpuCount);
-    expect(batchRouting.getAttributes().maxCpuCount).toEqual(maxCpu);
-
-    // Set a CPU count too high, should be back to max count
-    cpuCount = maxCpu + 2;
-    batchRouting.getAttributes().cpuCount = cpuCount;
-    batchRouting.validate();
-    expect(batchRouting.getAttributes().cpuCount).toEqual(maxCpu);
-    expect(batchRouting.getAttributes().maxCpuCount).toEqual(maxCpu);
-
-    // Set a CPU count below 0, should be set to 1
-    cpuCount = -1;
-    batchRouting.getAttributes().cpuCount = cpuCount;
-    batchRouting.validate();
-    expect(batchRouting.getAttributes().cpuCount).toEqual(1);
-    expect(batchRouting.getAttributes().maxCpuCount).toEqual(maxCpu);
-
-    // Set max to undefined, then set cpu count below to 0 or negative, should be 1
-    batchRouting.getAttributes().maxCpuCount = undefined;
-    batchRouting.getAttributes().cpuCount = 0;
-    batchRouting.validate();
-    expect(batchRouting.getAttributes().cpuCount).toEqual(1);
-    expect(batchRouting.getAttributes().maxCpuCount).toBeUndefined();
-    batchRouting.getAttributes().cpuCount = -1;
-    batchRouting.validate();
-    expect(batchRouting.getAttributes().cpuCount).toEqual(1);
-    expect(batchRouting.getAttributes().maxCpuCount).toBeUndefined();
-
-    cpuCount = 10;
-    batchRouting.getAttributes().cpuCount = cpuCount;
-    batchRouting.validate();
-    expect(batchRouting.getAttributes().cpuCount).toEqual(cpuCount);
-    expect(batchRouting.getAttributes().maxCpuCount).toBeUndefined();
 });
 
 describe('validate saveToDb', () => {

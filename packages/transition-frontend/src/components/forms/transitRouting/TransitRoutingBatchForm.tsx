@@ -40,23 +40,6 @@ class TransitRoutingBatchForm extends ChangeEventsForm<
         };
     }
 
-    // FIXME Keep the max parallel calculator code for now, until it is completely migrated in the new scenario analysis
-    private setMaxParallelCalculators(max: number) {
-        const batchRoutingEngine = this.state.object;
-        batchRoutingEngine.attributes.maxCpuCount = max;
-        batchRoutingEngine.attributes.cpuCount = Math.min(batchRoutingEngine.attributes.cpuCount || max, max);
-        batchRoutingEngine.validate();
-        this.setState({
-            object: batchRoutingEngine
-        });
-    }
-
-    componentDidMount() {
-        serviceLocator.socketEventManager.emit('service.parallelThreadCount', (response) => {
-            this.setMaxParallelCalculators(response.count);
-        });
-    }
-
     render() {
         // TODO This feature has moved in february 2023. Keep this message for a
         // few months, just so users get a warning if they are used to coming

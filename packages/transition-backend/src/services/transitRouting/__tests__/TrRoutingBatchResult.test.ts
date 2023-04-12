@@ -111,7 +111,7 @@ describe('File generator: Only CSV results', () => {
 
     beforeAll(() => {
         resetFileStreams();
-        resultProcessor = createRoutingFileResultProcessor(absoluteDir, Object.assign({}, defaultParameters, { detailed: false, withGeometry: false }), new TransitRouting({ routingModes: testRoutingModes }), inputFileName);
+        resultProcessor = createRoutingFileResultProcessor(absoluteDir, defaultParameters, { routingModes: testRoutingModes, detailed: false, withGeometries: false }, inputFileName);
     })
 
     test('File initialization', () => {
@@ -162,7 +162,7 @@ describe('File generator: CSV and detailed results', () => {
     let resultProcessor;
     beforeAll(() => {
         resetFileStreams();
-        resultProcessor = createRoutingFileResultProcessor(absoluteDir, Object.assign({}, defaultParameters, { detailed: true, withGeometry: false }), new TransitRouting({ routingModes: testRoutingModes }), inputFileName);
+        resultProcessor = createRoutingFileResultProcessor(absoluteDir, defaultParameters, { routingModes: testRoutingModes, detailed: true, withGeometries: false }, inputFileName);
     })
 
     test('File initialization', () => {
@@ -228,7 +228,7 @@ describe('File generator: CSV and geojson results', () => {
     let resultProcessor;
     beforeAll(() => {
         resetFileStreams();
-        resultProcessor = createRoutingFileResultProcessor(absoluteDir, Object.assign({}, defaultParameters, { detailed: false, withGeometries: true }), new TransitRouting({ routingModes: testRoutingModes }), inputFileName);
+        resultProcessor = createRoutingFileResultProcessor(absoluteDir, defaultParameters, { routingModes: testRoutingModes, detailed: false, withGeometries: true }, inputFileName);
     })
 
     test('File initialization', () => {
