@@ -7,6 +7,7 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import _cloneDeep from 'lodash.clonedeep';
+import _toString from 'lodash.tostring';
 
 import { _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
@@ -20,6 +21,10 @@ import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
+import * as BatchAttributeSelectionWidgets from '../../transitCalculation/widgets/AttributeSelectionWidget';
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
+import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 export interface ConfigureCalculationParametersFormProps {
     routingParameters: BatchCalculationParameters;
@@ -44,6 +49,10 @@ const ConfigureCalculationParametersForm: React.FunctionComponent<
         // validate the data on first load
         const { valid } = isBatchParametersValid(props.routingParameters);
         props.onUpdate(props.routingParameters, valid);
+        // Get the max cpu count
+        serviceLocator.socketEventManager.emit('service.parallelThreadCount', (response) => {
+            onValueChange('maxCpuCount', { value: response.count });
+        });
     }, []);
 
     const onValueChange = (path: keyof BatchCalculationParameters, newValue: { value: any; valid?: boolean }): void => {
@@ -118,6 +127,26 @@ const ConfigureCalculationParametersForm: React.FunctionComponent<
                             t={props.t}
                             isBoolean={true}
                             onValueChange={(e) => onValueChange('withAlternatives', { value: _toBool(e.target.value) })}
+                        />
+                    </InputWrapper>
+                    <BatchAttributeSelectionWidgets.BooleanAttributeSelectionWidget
+                        currentAttribute="detailed"
+                        onValueChange={onValueChange}
+                        attributes={props.routingParameters}
+                    />
+                    <BatchAttributeSelectionWidgets.BooleanAttributeSelectionWidget
+                        currentAttribute="withGeometries"
+                        onValueChange={onValueChange}
+                        attributes={props.routingParameters}
+                    />
+                    <InputWrapper smallInput={true} label={props.t('transit:transitRouting:CpuCount')}>
+                        <InputStringFormatted
+                            id={'formFieldTransitBatchRoutingCpuCount'}
+                            value={props.routingParameters.cpuCount}
+                            onValueUpdated={(value) => onValueChange('cpuCount', value)}
+                            stringToValue={_toInteger}
+                            valueToString={_toString}
+                            type={'number'}
                         />
                     </InputWrapper>
                 </React.Fragment>

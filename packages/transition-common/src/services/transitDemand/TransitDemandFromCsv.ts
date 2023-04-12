@@ -18,8 +18,7 @@ import { TransitDemandFromCsvAttributes } from './types';
  * Base attributes for any batch transit calculation, like routing or accessibility map
  */
 export interface DemandCsvAttributes extends GenericAttributes, Partial<TransitDemandFromCsvAttributes> {
-    // TODO Remove these from this object once trRouting is parallel
-    maxCpuCount?: number;
+    /* Nothing else to add */
 }
 
 export abstract class TransitDemandFromCsv<T extends DemandCsvAttributes> extends ObjectWithHistory<T> {
@@ -53,19 +52,7 @@ export abstract class TransitDemandFromCsv<T extends DemandCsvAttributes> extend
                 this.errors.push('transit:transitRouting:errors:TimeAttributeIsMissing');
             }
         }
-        if (_isBlank(attributes.cpuCount) && !_isBlank(attributes.maxCpuCount)) {
-            attributes.cpuCount = attributes.maxCpuCount;
-        } else if (
-            !_isBlank(attributes.cpuCount) &&
-            !_isBlank(attributes.maxCpuCount) &&
-            (attributes.cpuCount as number) > (attributes.maxCpuCount as number)
-        ) {
-            // Automatically set the number of CPU to the max count
-            attributes.cpuCount = attributes.maxCpuCount;
-        } else if (!_isBlank(attributes.cpuCount) && (attributes.cpuCount as number) <= 0) {
-            // Minimum number of CPU is 1
-            attributes.cpuCount = 1;
-        }
+
         return this._isValid;
 
         // TODO: add validations for all attributes fields

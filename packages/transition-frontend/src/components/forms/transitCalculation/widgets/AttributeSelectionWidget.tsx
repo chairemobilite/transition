@@ -6,21 +6,22 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _toString from 'lodash.tostring';
 
 import { TransitDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/types';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import { _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
-interface BatchAttributeSelectionComponentProps<T extends Partial<TransitDemandFromCsvAttributes>> {
+// Can't use Record<string, unknown> instead of Object because our types are interfaces and/or include Partial and they can't be assigned. See https://github.com/microsoft/TypeScript/issues/15300
+// eslint-disable-next-line @typescript-eslint/ban-types
+interface BatchAttributeSelectionComponentProps<T extends Object> {
     currentAttribute: keyof T;
     attributes: T;
     onValueChange: (path: keyof T, newValue: { value: any; valid?: boolean }) => void;
 }
 
-interface BatchCsvAttributeSelectionComponentProps<T extends Partial<TransitDemandFromCsvAttributes>>
-    extends BatchAttributeSelectionComponentProps<T> {
+// eslint-disable-next-line @typescript-eslint/ban-types
+interface BatchCsvAttributeSelectionComponentProps<T extends Object> extends BatchAttributeSelectionComponentProps<T> {
     csvAttributes: string[];
 }
 
@@ -36,7 +37,8 @@ const getCsvAttributeChoice = (csvAttributes: string[]) => {
         : [];
 };
 
-function CsvAttributeSelectionWidgetBase<T extends Partial<TransitDemandFromCsvAttributes>>(
+// eslint-disable-next-line @typescript-eslint/ban-types
+function CsvAttributeSelectionWidgetBase<T extends Object>(
     props: BatchCsvAttributeSelectionComponentProps<T> & WithTranslation
 ) {
     const csvAttributesChoices = getCsvAttributeChoice(props.csvAttributes);
@@ -57,12 +59,14 @@ function CsvAttributeSelectionWidgetBase<T extends Partial<TransitDemandFromCsvA
 }
 
 export const CsvAttributeSelectionWidget = withTranslation(['transit', 'main'])(CsvAttributeSelectionWidgetBase) as <
-    T extends Partial<TransitDemandFromCsvAttributes>
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    T extends Object
 >(
     props: BatchCsvAttributeSelectionComponentProps<T>
 ) => any;
 
-function BooleanAttributeSelectionWidgetBase<T extends Partial<TransitDemandFromCsvAttributes>>(
+// eslint-disable-next-line @typescript-eslint/ban-types
+function BooleanAttributeSelectionWidgetBase<T extends Object>(
     props: BatchAttributeSelectionComponentProps<T> & WithTranslation
 ) {
     return (
@@ -94,7 +98,8 @@ function BooleanAttributeSelectionWidgetBase<T extends Partial<TransitDemandFrom
 
 export const BooleanAttributeSelectionWidget = withTranslation(['transit', 'main'])(
     BooleanAttributeSelectionWidgetBase
-) as <T extends Partial<TransitDemandFromCsvAttributes>>(props: BatchAttributeSelectionComponentProps<T>) => any;
+    // eslint-disable-next-line @typescript-eslint/ban-types
+) as <T extends Object>(props: BatchAttributeSelectionComponentProps<T>) => any;
 
 function TimeAttributeSelectionWidgetBase<T extends Partial<TransitDemandFromCsvAttributes>>(
     props: BatchCsvAttributeSelectionComponentProps<T> & WithTranslation

@@ -22,6 +22,7 @@ import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 
 const CSV_FILE_NAME = 'batchRoutingResults.csv';
 const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';
@@ -41,11 +42,11 @@ export interface BatchRoutingResultProcessor {
  */
 export const createRoutingFileResultProcessor = (
     absoluteDirectory: string,
-    parameters: TransitDemandFromCsvRoutingAttributes,
-    routing: TransitRouting,
+    demandParameters: TransitDemandFromCsvRoutingAttributes,
+    batchParameters: BatchCalculationParameters,
     inputFileName: string
 ): BatchRoutingResultProcessor => {
-    return new BatchRoutingResultProcessorFile(absoluteDirectory, parameters, routing, inputFileName);
+    return new BatchRoutingResultProcessorFile(absoluteDirectory, demandParameters, batchParameters, inputFileName);
 };
 
 class BatchRoutingResultProcessorFile implements BatchRoutingResultProcessor {
@@ -60,24 +61,24 @@ class BatchRoutingResultProcessorFile implements BatchRoutingResultProcessor {
 
     constructor(
         private absoluteDirectory: string,
-        private parameters: TransitDemandFromCsvRoutingAttributes,
-        private routing: TransitRouting,
+        private demandParameters: TransitDemandFromCsvRoutingAttributes,
+        private batchParameters: BatchCalculationParameters,
         private inputFileName: string
     ) {
         this.initResultFiles();
     }
     private initResultFiles = () => {
-        const csvAttributes = getDefaultCsvAttributes(this.routing.attributes.routingModes || []);
+        const csvAttributes = getDefaultCsvAttributes(this.batchParameters.routingModes || []);
 
         this.csvStream = fs.createWriteStream(this.resultsCsvFilePath);
         this.csvStream.on('error', console.error);
         this.csvStream.write(Object.keys(csvAttributes).join(',') + '\n');
-        if (this.parameters.detailed) {
+        if (this.batchParameters.detailed) {
             this.csvDetailedStream = fs.createWriteStream(this.resultsCsvDetailedFilePath);
             this.csvDetailedStream.on('error', console.error);
             this.csvDetailedStream.write(Object.keys(getDefaultStepsAttributes()).join(',') + '\n');
         }
-        if (this.parameters.withGeometries) {
+        if (this.batchParameters.withGeometries) {
             this.geometryStream = fs.createWriteStream(this.resultsGeojsonGeometryFilePath);
             this.geometryStream.on('error', console.error);
             this.geometryStream.write('{ "type": "FeatureCollection", "features": [');
@@ -117,8 +118,8 @@ class BatchRoutingResultProcessorFile implements BatchRoutingResultProcessor {
     getFiles = () => ({
         input: this.inputFileName,
         csv: CSV_FILE_NAME,
-        detailedCsv: this.parameters.detailed ? DETAILED_CSV_FILE_NAME : undefined,
-        geojson: this.parameters.withGeometries ? GEOMETRY_FILE_NAME : undefined
+        detailedCsv: this.batchParameters.detailed ? DETAILED_CSV_FILE_NAME : undefined,
+        geojson: this.batchParameters.withGeometries ? GEOMETRY_FILE_NAME : undefined
     });
 }
 

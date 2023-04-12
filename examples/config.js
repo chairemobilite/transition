@@ -9,6 +9,7 @@ module.exports = {
         // confirmEmail: true
       }
     },
+    maxParallelCalculators: 2,
     
     // Maximum number of parallel calculation
     // TODO trRouting should support multi-threading so we shouldn't have to start multiple instances

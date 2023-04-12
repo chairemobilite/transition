@@ -11,8 +11,7 @@ import { TransitBatchRoutingDemandAttributes } from '../transitDemand/types';
 import { TransitBatchCalculationResult } from '../batchCalculation/types';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TransitOdDemandFromCsv from '../transitDemand/TransitOdDemandFromCsv';
-import { validateTrQueryAttributes } from './TransitRoutingQueryAttributes';
-import { BatchCalculationParameters } from '../batchCalculation/types';
+import { BatchCalculationParameters, isBatchParametersValid } from '../batchCalculation/types';
 
 export class TransitBatchRoutingCalculator {
     private static async _calculate(
@@ -56,7 +55,7 @@ export class TransitBatchRoutingCalculator {
             console.error(trError.export());
             throw trError;
         }
-        if (!validateTrQueryAttributes(queryAttributes).valid) {
+        if (!isBatchParametersValid(queryAttributes).valid) {
             const trError = new TrError(
                 'cannot calculate transit batch route: the routing parameters are invalid',
                 'TRBROUTING0002',
@@ -72,7 +71,6 @@ export class TransitBatchRoutingCalculator {
             configuration: {
                 calculationName: attributes.calculationName as string,
                 projection: attributes.projection as string,
-                detailed: attributes.detailed || false,
                 idAttribute: attributes.idAttribute as string,
                 originXAttribute: attributes.originXAttribute as string,
                 originYAttribute: attributes.originYAttribute as string,
@@ -81,8 +79,6 @@ export class TransitBatchRoutingCalculator {
                 timeAttributeDepartureOrArrival: attributes.timeAttributeDepartureOrArrival || 'departure',
                 timeFormat: attributes.timeFormat as string,
                 timeAttribute: attributes.timeAttribute as string,
-                withGeometries: attributes.withGeometries || false,
-                cpuCount: attributes.cpuCount || 1,
                 saveToDb: attributes.saveToDb || false,
                 csvFile:
                     attributes.csvFile === undefined

@@ -49,14 +49,6 @@ const ConfirmCalculationForm: React.FunctionComponent<ConfirmCalculationFormProp
                         </td>
                     </tr>
                     <tr>
-                        <th>{props.t('transit:transitRouting:Detailed')}</th>
-                        <td>{props.t(`transit:transitRouting:${demandAttributes.detailed || false}`)}</td>
-                    </tr>
-                    <tr>
-                        <th>{props.t('transit:transitRouting:WithGeometries')}</th>
-                        <td>{props.t(`transit:transitRouting:${demandAttributes.withGeometries || false}`)}</td>
-                    </tr>
-                    <tr>
                         <th className="_header" colSpan={2}>
                             {props.t('transit:batchCalculation:AnalysisParameters')}
                         </th>
@@ -98,6 +90,18 @@ const ConfirmCalculationForm: React.FunctionComponent<ConfirmCalculationFormProp
                     <tr>
                         <th>{props.t('transit:transitRouting:WithAlternatives')}</th>
                         <td>{props.t(`transit:transitRouting:${props.routingParameters.withAlternatives}`)}</td>
+                    </tr>
+                    <tr>
+                        <th>{props.t('transit:transitRouting:Detailed')}</th>
+                        <td>{props.t(`transit:transitRouting:${props.routingParameters.detailed || false}`)}</td>
+                    </tr>
+                    <tr>
+                        <th>{props.t('transit:transitRouting:WithGeometries')}</th>
+                        <td>{props.t(`transit:transitRouting:${props.routingParameters.withGeometries || false}`)}</td>
+                    </tr>
+                    <tr>
+                        <th>{props.t('transit:transitRouting:CpuCount')}</th>
+                        <td>{`${props.routingParameters.cpuCount || 1}`}</td>
                     </tr>
                 </tbody>
             </table>

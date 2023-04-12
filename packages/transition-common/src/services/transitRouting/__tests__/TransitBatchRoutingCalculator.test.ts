@@ -7,13 +7,8 @@
 import { EventEmitter } from 'events';
 import { TransitBatchRoutingCalculator } from '../TransitBatchRoutingCalculator';
 import { TransitOdDemandFromCsv } from '../../transitDemand/TransitOdDemandFromCsv';
-import { TransitRouting } from '../TransitRouting';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { TransitRoutingQueryAttributes } from '../../transitRouting/TransitRoutingQueryAttributes';
-import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
-import DataSourceCollection from '../../dataSource/DataSourceCollection';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import DataSource from '../../dataSource/DataSource';
 import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
 
 const socketMock = new EventEmitter();
@@ -42,11 +37,6 @@ describe('Test Calculate', () => {
         timeAttributeDepartureOrArrival: 'arrival' as const,
         timeFormat: 'HH:MM',
         timeAttribute: 'time',
-        withGeometries: false,
-        detailed: false,
-        // TODO Remove these from this object once trRouting is parallel
-        cpuCount: 1,
-        maxCpuCount: 2,
         idAttribute: 'id',
         originXAttribute: 'xorig',
         originYAttribute: 'yorig',
@@ -58,14 +48,18 @@ describe('Test Calculate', () => {
     const defaultQueryParams = {
         routingModes: [ 'walking' as const ],
         minWaitingTimeSeconds: 180,
-        scenarioId: 'scenarioId'
+        scenarioId: 'scenarioId',
+        detailed:false,
+        withGeometries: false,
+        // TODO Remove these from this object once trRouting is parallel
+        cpuCount: 1,
+        maxCpuCount: 2,
     };
     const expectedDemand = {
         type: 'csv',
         configuration: {
             calculationName: defaultDemandAttributes.calculationName,
             projection: defaultDemandAttributes.projection,
-            detailed: defaultDemandAttributes.detailed,
             idAttribute: defaultDemandAttributes.idAttribute,
             originXAttribute: defaultDemandAttributes.originXAttribute,
             originYAttribute: defaultDemandAttributes.originYAttribute,
@@ -74,8 +68,6 @@ describe('Test Calculate', () => {
             timeAttributeDepartureOrArrival: defaultDemandAttributes.timeAttributeDepartureOrArrival,
             timeFormat: defaultDemandAttributes.timeFormat,
             timeAttribute: defaultDemandAttributes.timeAttribute,
-            withGeometries: defaultDemandAttributes.withGeometries,
-            cpuCount: defaultDemandAttributes.cpuCount,
             saveToDb: defaultDemandAttributes.saveToDb,
             csvFile: { location: 'upload', filename: 'input.csv' }
         }

@@ -208,7 +208,7 @@ class TrRoutingBatch {
 
             const routingResult = {
                 calculationName: parameters.calculationName,
-                detailed: parameters.detailed,
+                detailed: this.transitRoutingAttributes.detailed,
                 completed: true,
                 errors: [],
                 warnings: this.errors,
@@ -274,8 +274,8 @@ class TrRoutingBatch {
                     routing.attributes.routingModes,
                     {
                         exportCsv: true,
-                        exportDetailed: this.demandParameters.detailed === true,
-                        withGeometries: this.demandParameters.withGeometries === true,
+                        exportDetailed: this.transitRoutingAttributes.detailed === true,
+                        withGeometries: this.transitRoutingAttributes.withGeometries === true,
                         pathCollection
                     }
                 );
@@ -299,12 +299,12 @@ class TrRoutingBatch {
         const resultHandler = createRoutingFileResultProcessor(
             this.options.absoluteBaseDirectory,
             this.demandParameters,
-            routing,
+            this.transitRoutingAttributes,
             this.options.inputFileName
         );
 
         let pathCollection: PathCollection | undefined = undefined;
-        if (this.demandParameters.withGeometries) {
+        if (this.transitRoutingAttributes.withGeometries) {
             pathCollection = new PathCollection([], {});
             if (routing.attributes.scenarioId) {
                 const pathGeojson = await pathDbQueries.geojsonCollection({
@@ -339,7 +339,7 @@ class TrRoutingBatch {
         // Divide odTripCount by 3 for the minimum number of calculation, to avoid creating too many processes if trip count is small
         const trRoutingInstancesCount = Math.max(
             1,
-            Math.min(Math.ceil(odTripsCount / 3), this.demandParameters.cpuCount)
+            Math.min(Math.ceil(odTripsCount / 3), this.transitRoutingAttributes.cpuCount || 1)
         );
 
         try {
