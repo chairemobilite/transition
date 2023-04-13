@@ -30,15 +30,14 @@ interface OverlappingSegments {
  * Offset overlapping lines when multiple lines use the same road or segment.
  * This is to be able to visually follow where each line goes.
  * @param layerData GeoJSON data containing the lines to offset (will be modified)
- * @returns Same GeoJSON data as entry with the offsetted lines
  */
 export const offsetOverlappingLines = (
     layerData: GeoJSON.FeatureCollection<LineString>
-): GeoJSON.FeatureCollection<LineString> => {
+): void => {
     const overlapMap = findOverlappingLines(layerData);
     const overlapArray = manageOverlappingSegmentsData(overlapMap, layerData);
-    const offsetLayer = applyOffset(overlapArray, layerData);
-    return cleanLines(offsetLayer);
+    applyOffset(overlapArray, layerData);
+    cleanLines(layerData);
 };
 
 const findOverlappingLines = (layerData: GeoJSON.FeatureCollection<LineString>): Map<string, Set<number>> => {
@@ -102,7 +101,7 @@ const manageOverlappingSegmentsData = (
 const applyOffset = (
     overlapArray: OverlappingSegments[],
     layerData: GeoJSON.FeatureCollection<LineString>
-): GeoJSON.FeatureCollection<LineString> => {
+): void => {
     for (let i = 0; i < overlapArray.length; i++) {
         const nbOverlapped = overlapArray[i].directions.length;
         let oppositeDirectionOffset = 0;
@@ -122,7 +121,6 @@ const applyOffset = (
             }
         }
     }
-    return layerData;
 };
 
 /**
@@ -160,11 +158,10 @@ const replaceLineCoordinates = (
     }
 };
 
-const cleanLines = (geojson: GeoJSON.FeatureCollection<LineString>): GeoJSON.FeatureCollection<LineString> => {
+const cleanLines = (geojson: GeoJSON.FeatureCollection<LineString>): void => {
     geojson.features.forEach((feature) => {
         feature.geometry.coordinates = feature.geometry.coordinates.filter((value) => {
             return !Number.isNaN(value[0]) && !Number.isNaN(value[1]);
         });
     });
-    return geojson;
 };
