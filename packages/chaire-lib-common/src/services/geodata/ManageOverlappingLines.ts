@@ -14,14 +14,7 @@ export const manageOverlappingLines = async (
     const overlapArray = manageOverlapingSegmentsData(overlapMap, layerData);
     const offsetLayer = await applyOffset(overlapArray, layerData, isCancelled);
     const geojson = cleanLines(offsetLayer);
-
-    return new Promise((resolve, reject) => {
-        if (isCancelled && isCancelled()) {
-            reject('Cancelled');
-            return;
-        }
-        resolve(geojson);
-    });
+    return geojson;
 };
 
 const findOverlapingLines = async (
@@ -34,11 +27,18 @@ const findOverlapingLines = async (
             return;
         }
         const features = layerData.features as any;
+        console.log("ICI features :" + JSON.stringify(features));
         // The map contains the feature and a set of numbers
         // The feature is the segment concerned by the overlap
         // The set of numbers is a set that contains the IDs of every single line concerned by the overlap on that segment
         let overlapMap: Map<string, Set<number>> = new Map();
         for (let i = 0; i < features.length - 1; i++) {
+            if(i%20 === 0){
+                if (isCancelled && isCancelled()) {
+                    reject('Cancelled');
+                    return;
+                }
+            }
             for (let j = i + 1; j < features.length; j++) {
                 const overlap = lineOverlap(
                     lineString(features[i].geometry.coordinates),
@@ -48,6 +48,8 @@ const findOverlapingLines = async (
                 if (j % 20 === 0) {
                     await new Promise<void>((resolve) =>
                         setTimeout(() => {
+                            //console.log("ICI features :" + JSON.stringify(features));
+                            //console.log(" ICI overlap :" + JSON.stringify(overlap));
                             overlapMap = fillOverlapMap(overlap, features, overlapMap, i, j);
                             resolve();
                         }, 0)
@@ -62,8 +64,8 @@ const findOverlapingLines = async (
 };
 
 const fillOverlapMap = (
-    overlap: any,
-    features: any,
+    overlap: GeoJSON.FeatureCollection<LineString>,
+    features: GeoJSON.Feature<LineString>,
     overlapMap: Map<string, Set<number>>,
     indexI: number,
     indexJ: number
@@ -116,11 +118,13 @@ const applyOffset = async (
     isCancelled: (() => boolean) | false = false
 ): Promise<GeoJSON.FeatureCollection<LineString>> => {
     return new Promise(async (resolve, reject) => {
-        if (isCancelled && isCancelled()) {
-            reject('Cancelled');
-            return;
-        }
         for (let i = 0; i < overlapArray.length; i++) {
+            if(i % 20 === 0){
+                if (isCancelled && isCancelled()) {
+                    reject('Cancelled');
+                    return;
+                }
+            }
             await new Promise<void>((resolve) =>
                 setTimeout(() => {
                     const nbOverlapped = overlapArray[i].directions.length;
