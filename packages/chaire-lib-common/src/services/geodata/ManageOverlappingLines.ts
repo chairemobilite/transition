@@ -27,7 +27,6 @@ const findOverlapingLines = async (
             return;
         }
         const features = layerData.features as any;
-        console.log("ICI features :" + JSON.stringify(features));
         // The map contains the feature and a set of numbers
         // The feature is the segment concerned by the overlap
         // The set of numbers is a set that contains the IDs of every single line concerned by the overlap on that segment
@@ -48,8 +47,6 @@ const findOverlapingLines = async (
                 if (j % 20 === 0) {
                     await new Promise<void>((resolve) =>
                         setTimeout(() => {
-                            //console.log("ICI features :" + JSON.stringify(features));
-                            //console.log(" ICI overlap :" + JSON.stringify(overlap));
                             overlapMap = fillOverlapMap(overlap, features, overlapMap, i, j);
                             resolve();
                         }, 0)
