@@ -1,9 +1,10 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2023, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+
 import { lineOffset, lineOverlap, lineString, booleanPointInPolygon } from '@turf/turf';
 import { LineString, Feature, Polygon } from 'geojson';
 
@@ -53,7 +54,8 @@ const isInBounds = (bounds: Feature<Polygon>, coord: number[]): boolean => {
    return booleanPointInPolygon(coord, bounds);
 };
 
-/* Offset overlapping lines when multiple lines use the same road or segment.
+/**
+ * Offset overlapping lines when multiple lines use the same road or segment.
  * This is to be able to visually follow where each line goes.
  * @param layerData GeoJSON data containing the lines to offset (will be modified)
  */
@@ -204,7 +206,7 @@ const applyOffset = async (
  * Replace coordinates of a segment of line with the offsetted coordinates
  * @param originalSegment The unmodified coordinates of the segment to offset
  * @param offsetCount Units by which to offset the segment
- * @param line The complete line on which to apply the offset segment
+ * @param line The complete line on which to apply the offset segment (will be modified)
  */
 const replaceLineCoordinates = (
     originalSegment: GeoJSON.Feature<LineString>,

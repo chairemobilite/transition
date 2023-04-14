@@ -1,9 +1,10 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2023, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+
 import { manageRelocatingNodes } from '../RelocateNodes';
 import GeoJSON, { GeoJsonGeometryTypes } from 'geojson';
 import { lineOffset, LineString, Point } from '@turf/turf';
@@ -111,7 +112,7 @@ const transitNodes : GeoJSON.FeatureCollection<Point> = {
     ]
 };
 
-test('Test basic relocation of nodes #1', () => {
+test('Check that the offset nodes are at the expected middle point', () => {
     const nodesTest = _cloneDeep(transitNodes);
     manageRelocatingNodes(nodesTest, _cloneDeep(transitPaths));
 

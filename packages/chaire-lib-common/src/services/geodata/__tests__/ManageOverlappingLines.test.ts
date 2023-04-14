@@ -1,9 +1,10 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2023, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+
 import { offsetOverlappingLines, OFFSET_WIDTH, getLinesInView } from '../ManageOverlappingLines';
 import { lineOffset, inside, circle, union, bboxPolygon } from '@turf/turf';
 import GeoJSON, { LineString } from 'geojson';
@@ -208,6 +209,7 @@ test('Test getting lines within the view bounds', () => {
     const collection: GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: [
+            // Line entirely contained in bounds
             {
                 type: 'Feature',
                 geometry: {
@@ -217,6 +219,7 @@ test('Test getting lines within the view bounds', () => {
                 id: 1,
                 properties: {}
             },
+            // Line outside bounds
             {
                 type: 'Feature',
                 geometry: {
@@ -226,6 +229,7 @@ test('Test getting lines within the view bounds', () => {
                 id: 2,
                 properties: {}
             },
+            // Line partially inside bounds
             {
                 type: 'Feature',
                 geometry: {

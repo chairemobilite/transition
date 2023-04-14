@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2023, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
@@ -28,7 +28,7 @@ const isInBounds = (bounds: Feature<Polygon>, coord: number[]): boolean => {
 
 /**
 Relocates nodes to the middle point of their crossing paths, if they intersect more than one path.
-@param nodeFeatures - a FeatureCollection of nodes.
+@param nodeFeatures - a FeatureCollection of nodes. (will be modified)
 @param nodeMap - a Map of node IDs to arrays of path IDs that intersect the node.
 @param pathFeatures - a FeatureCollection of paths.
 */
@@ -122,7 +122,7 @@ function getCrossingPaths(featureCollection) {
 
 /**
  * Orchestrates the relocation of nodes by calling the relocateNodes function with the necessary parameters.
- * @param transitNodes - a Points feature collection giving a reference to the correct nodes layer
+ * @param transitNodes - a Points feature collection giving a reference to the correct nodes layer (will be modified)
  * @param transitPath - a LineString feature collection giving a reference to the correct paths layer
  */
 export const manageRelocatingNodes = (transitNodes: GeoJSON.FeatureCollection<Point>, transitPaths: GeoJSON.FeatureCollection<LineString>) => {
