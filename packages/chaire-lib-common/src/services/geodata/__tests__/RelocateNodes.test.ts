@@ -7,6 +7,7 @@
 import { relocateNodes } from '../RelocateNodes';
 import GeoJSON, { GeoJsonGeometryTypes } from 'geojson';
 import { lineOffset, LineString, Point} from "@turf/turf";
+import _cloneDeep from 'lodash.clonedeep';
 
 const lineSkeleton: GeoJSON.Feature<LineString> = {
     type: 'Feature',
@@ -43,7 +44,7 @@ const transitPaths : GeoJSON.FeatureCollection<LineString> = {
             },
             id: 1,
             properties: {
-                nodes: ['0']
+                nodes: ['0,1,2']
             }
         },
         {
@@ -54,7 +55,7 @@ const transitPaths : GeoJSON.FeatureCollection<LineString> = {
             },
             id: 2,
             properties: {
-                nodes: ['0']
+                nodes: ['0,1,2']
             }
         },
         {
@@ -65,7 +66,7 @@ const transitPaths : GeoJSON.FeatureCollection<LineString> = {
             },
             id: 3,
             properties: {
-                nodes: ['0']
+                nodes: ['0,1,2']
             }
         },
         {
@@ -76,7 +77,7 @@ const transitPaths : GeoJSON.FeatureCollection<LineString> = {
             },
             id: 4,
             properties: {
-                nodes: ['0']
+                nodes: ['0,1,2']
             }
         },
         {
@@ -87,7 +88,7 @@ const transitPaths : GeoJSON.FeatureCollection<LineString> = {
             },
             id: 5,
             properties: {
-                nodes: ['0']
+                nodes: ['0,1,2']
             }
         }]
 };
@@ -106,20 +107,64 @@ const transitNodes : GeoJSON.FeatureCollection<Point> = {
                 color:'',
                 id:'0'
             }
+        },
+        {
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: [1,3]
+            },
+            id: 1,
+            properties: {
+                color:'',
+                id:'1'
+            }
+        },
+        {
+            type: 'Feature',
+            geometry: {
+                type: 'Point',
+                coordinates: [4,2]
+            },
+            id: 2,
+            properties: {
+                color:'',
+                id:'2'
+            }
         }
     ]
 };
 
 const nodeMap: Map<string, number[]>[] = [
     new Map([
-      ['0', [1, 2, 3, 4, 5]]
+      ['0', [1, 2, 3, 4, 5]],
+      ['1', [1, 2, 3, 4, 5]],
+      ['2', [1, 2, 3]]
     ])
   ];
-  
-;
 
-test('Test basic relocation of nodes', () => {
-    const initialNodes = JSON.stringify(transitNodes);
-    const relocatedNode = relocateNodes(transitNodes, nodeMap[0], transitPaths).features[0].geometry.coordinates;
+test('Test basic relocation of nodes #1', () => {
+    const nodeIndex = 0; 
+
+    const map = _cloneDeep(nodeMap);
+    const relocatedNode = relocateNodes(_cloneDeep(transitNodes), map[0], _cloneDeep(transitPaths)).features[nodeIndex].geometry.coordinates;
+    
     expect(relocatedNode).toEqual([2,2]);
+});
+
+test('Test basic relocation of nodes #2', () => {
+    const nodeIndex = 1; 
+    const map = _cloneDeep(nodeMap);
+    const relocatedNode = relocateNodes(_cloneDeep(transitNodes), map[0], _cloneDeep(transitPaths)).features[nodeIndex].geometry.coordinates;
+    
+    expect(relocatedNode).toEqual([1,2]);
+});
+
+test('Test basic relocation of nodes #3', () => {
+    const nodeIndex = 2; 
+
+    const map = _cloneDeep(nodeMap);
+    const relocatedNode = relocateNodes(_cloneDeep(transitNodes), map[0], _cloneDeep(transitPaths)).features[nodeIndex].geometry.coordinates;
+    
+    expect(relocatedNode).toEqual([4,1]);
 });
