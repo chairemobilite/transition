@@ -49,25 +49,25 @@ const basicCollection : GeoJSON.FeatureCollection<LineString> = {
 };
 
 
-test('Test offset with no overlaps', () => {
-    const offsetCollection = _cloneDeep(basicCollection)
-    offsetOverlappingLines(offsetCollection);
+test('Test offset with no overlaps', async () => {
+    const offsetCollection = _cloneDeep(basicCollection);
+    await offsetOverlappingLines(offsetCollection);
     expect(offsetCollection).toEqual(basicCollection);
 });
 
 
-test('Test offset with basic opposite direction overlap', () => {
+test('Test offset with basic opposite direction overlap', async () => {
     const collection = _cloneDeep(basicCollection);
     collection.features[1].geometry.coordinates =
         collection.features[1].geometry.coordinates.map((_, index) => [0, index]).reverse();
 
     const offsetCollection = _cloneDeep(collection);
-    offsetOverlappingLines(offsetCollection);
+    await offsetOverlappingLines(offsetCollection);
     expect(offsetCollection).toEqual(collection);
 });
 
 
-test('Test offset with multiple same length overlaps', () => {
+test('Test offset with multiple same length overlaps', async () => {
     const collection : GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: []
@@ -85,7 +85,7 @@ test('Test offset with multiple same length overlaps', () => {
     }
 
     const offsetCollection = _cloneDeep(collection);
-    offsetOverlappingLines(offsetCollection);
+    await offsetOverlappingLines(offsetCollection);
 
     const expectedOffset: GeoJSON.Feature[] = [];
     collection.features.forEach((feature, index) => {
@@ -98,7 +98,7 @@ test('Test offset with multiple same length overlaps', () => {
 });
 
 
-test('Test offset with multiple different lengths overlap', () => {
+test('Test offset with multiple different lengths overlap', async () => {
     const collection : GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: []
@@ -117,13 +117,13 @@ test('Test offset with multiple different lengths overlap', () => {
     }
 
     const offsetCollection = _cloneDeep(collection);
-    offsetOverlappingLines(offsetCollection);
+    await offsetOverlappingLines(offsetCollection);
     // TODO: Add a more specific expect once the expected behaviour is specified
     expect(offsetCollection).not.toEqual(collection);
 });
 
 
-test('Test overlaps between multiple segments of the same line with another line', () => {
+test('Test overlaps between multiple segments of the same line with another line', async () => {
     const collection: GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: [
@@ -148,29 +148,29 @@ test('Test overlaps between multiple segments of the same line with another line
         ]
     };
 
-    let offsetCollection = _cloneDeep(collection);
+    const offsetCollection = _cloneDeep(collection);
     // Expect not to have an infinite loop in these calls
-    offsetOverlappingLines(offsetCollection);
-    offsetOverlappingLines(offsetCollection);
+    await offsetOverlappingLines(offsetCollection);
+    await offsetOverlappingLines(offsetCollection);
 
     // Verify line lengths
     collection.features.forEach((feature, i) => {
         expect(offsetCollection.features[i].geometry.coordinates.length).toBe(feature.geometry.coordinates.length);
-    })
+    });
 
     // Verify that offsetted coords are within the offset distance
     let polygon = _cloneDeep(featureSkeleton) as GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon>;
-    polygon.geometry.type = "Polygon";
+    polygon.geometry.type = 'Polygon';
     collection.features[0].geometry.coordinates.forEach((coord) => {
-        polygon = union(polygon, (circle(coord, OFFSET_WIDTH + 1, {units: "meters"})));
-    })
+        polygon = union(polygon, (circle(coord, OFFSET_WIDTH + 1, { units: 'meters' })));
+    });
     offsetCollection.features[1].geometry.coordinates.forEach((coord) => {
         expect(inside(coord, polygon)).toBeTruthy();
-    })
+    });
 });
 
 
-test('Test overlaps with duplicate coordinates', () => {
+test('Test overlaps with duplicate coordinates', async () => {
     const collection: GeoJSON.FeatureCollection<LineString> = {
         type: 'FeatureCollection',
         features: [
@@ -195,7 +195,7 @@ test('Test overlaps with duplicate coordinates', () => {
         ]
     };
 
-    offsetOverlappingLines(collection);
+    await offsetOverlappingLines(collection);
     collection.features.forEach((feature) => {
         feature.geometry.coordinates.forEach((coord) => {
             expect(coord[0]).not.toBeNaN();
