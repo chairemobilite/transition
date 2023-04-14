@@ -195,7 +195,7 @@ const replaceCoordinate = (
         }
     }
     const lineIndex = getLineIndexById(lineId, layerData);
-    const geoData = layerData as any;
+    const geoData = layerData as GeoJSON.FeatureCollection<LineString>;
     geoData.features[lineIndex].geometry.coordinates = line.geometry.coordinates;
 };
 
