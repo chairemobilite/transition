@@ -11,7 +11,8 @@ import { lineString, bboxPolygon, bbox } from '@turf/turf';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { MapEventHandlerDescription } from '../IMapEventHandler';
-import { getLinesInView, manageOverlappingLines, manageRelocatingNodes } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
+import { getLinesInView, manageOverlappingLines } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
+import { manageRelocatingNodes } from 'chaire-lib-common/lib/services/geodata/RelocateNodes';
 
 const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation
 // TODO: Make zoomLimit modifiable by user
@@ -82,20 +83,20 @@ const applyAestheticChanges = (boundsGL: MapboxGL.LngLatBounds, zoom: number): v
     const bounds = [sw, ne];
     const boundsPolygon = bboxPolygon(bbox(lineString(bounds)));
     const linesInView = getLinesInView(boundsPolygon, layer);
+    const transitNodes = serviceLocator.layerManager._layersByName['transitNodes'].source.data; 
 
     manageOverlappingLines(linesInView); //ServiceLocator necessary to have reference to layer used by transition
-    manageRelocatingNodes();
+    manageRelocatingNodes(linesInView, transitNodes);
 
     serviceLocator.eventManager.emit(
         'map.updateLayer',
         'transitPaths',
         layer
     );
-    serviceLocator.eventManager.emit(
-        'map.updateLayers',
-        'transitNodes',
-        serviceLocator.collectionManager.get('nodes').toGeojson()
-    );
+
+    serviceLocator.eventManager.emit('map.updateLayers', {
+        transitNodes: transitNodes
+    }); 
 };
 
 export default globalEventDescriptors;
