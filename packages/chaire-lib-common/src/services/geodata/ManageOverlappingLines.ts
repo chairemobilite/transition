@@ -1,6 +1,5 @@
-import MapboxGL from 'mapbox-gl';
 import serviceLocator from '../../utils/ServiceLocator';
-import { lineOffset, lineOverlap, Lines, lineString, LineString, nearestPointOnLine } from '@turf/turf';
+import { lineOffset, lineOverlap, lineString, LineString, nearestPointOnLine, Feature, Polygon, booleanPointInPolygon, bboxPolygon, bbox } from '@turf/turf';
 
 const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation
 let originalLayer; //Necessary so that offsets aren't applied to already offset lines after zoom
@@ -12,7 +11,7 @@ interface OverlappingSegments {
     directions: boolean[];
 }
 
-export const manageZoom = (bounds: MapboxGL.LngLatBounds, zoom: number): void => {
+export const manageZoom = (bounds: number[][], zoom: number): void => {
     if (!originalLayer) {
         //Site does not load if original layer is initialized as a constant
         //Deep copy of original layer, necessary so that repeated zooms don't apply offsets to the same points
@@ -24,7 +23,8 @@ export const manageZoom = (bounds: MapboxGL.LngLatBounds, zoom: number): void =>
         return;
     }
 
-    const linesInView = getLinesInView(bounds, originalLayer);
+    const boundsPolygon = bboxPolygon(bbox(lineString(bounds)));
+    const linesInView = getLinesInView(boundsPolygon, originalLayer);
 
     manageOverlappingLines(linesInView); //ServiceLocator necessary to have reference to layer used by transition
     manageRelocatingNodes();
@@ -42,7 +42,7 @@ export const manageZoom = (bounds: MapboxGL.LngLatBounds, zoom: number): void =>
 };
 
 export const getLinesInView = (
-    bounds: MapboxGL.LngLatBounds,
+    bounds: Feature<Polygon>,
     layer: GeoJSON.FeatureCollection<LineString>
 ): GeoJSON.FeatureCollection<LineString> => {
     const features = layer.features;
@@ -58,8 +58,8 @@ export const getLinesInView = (
     return linesInView;
 };
 
-const isInBounds = (bounds: MapboxGL.LngLatBounds, coord: number[]): boolean => {
-    return bounds.contains(new MapboxGL.LngLat(coord[0], coord[1]));
+const isInBounds = (bounds: Feature<Polygon>, coord: number[]): boolean => {
+    return booleanPointInPolygon(coord, bounds);
 };
 
 export const manageOverlappingLines = (

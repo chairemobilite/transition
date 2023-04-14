@@ -24,7 +24,11 @@ const onZoomEnd = (_e: MapboxGL.MapMouseEvent) => {
             'map.zoom': e.target.getZoom()
         });
     }, 1000);
-    manageZoom(_e.target.getBounds(), _e.target.getZoom());
+    const boundsGL = _e.target.getBounds();
+    const sw = boundsGL.getSouthWest().toArray();
+    const ne = boundsGL.getNorthEast().toArray();
+    const bounds = [sw, ne];
+    manageZoom(bounds, _e.target.getZoom());
 };
 
 const onDragEnd = (e: MapboxGL.MapMouseEvent) => {
@@ -44,7 +48,11 @@ const onDragEnd = (e: MapboxGL.MapMouseEvent) => {
             'map.center': [centerLatLng.lng, centerLatLng.lat]
         });
     }, 1000)();
-    manageZoom(e.target.getBounds(), e.target.getZoom());
+    const boundsGL = e.target.getBounds();
+    const sw = boundsGL.getSouthWest().toArray();
+    const ne = boundsGL.getNorthEast().toArray();
+    const bounds = [sw, ne];
+    manageZoom(bounds, e.target.getZoom());
 };
 
 const onDragStart = (e: MapboxGL.MapMouseEvent) => {

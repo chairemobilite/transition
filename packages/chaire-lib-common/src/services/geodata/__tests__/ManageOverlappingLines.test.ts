@@ -6,8 +6,7 @@
  */
 import { manageOverlappingLines, getLinesInView } from '../ManageOverlappingLines';
 import GeoJSON from 'geojson';
-import { lineOffset, LineString } from "@turf/turf";
-import MapboxGL from 'mapbox-gl';
+import { bboxPolygon, lineOffset, LineString } from "@turf/turf";
 
 const featureSkeleton: GeoJSON.Feature<LineString> = {
     type: 'Feature',
@@ -211,9 +210,7 @@ test('Test getting lines within the view bounds', () => {
             }
         ]
     };
-    const sw = new MapboxGL.LngLat(0, 0);
-    const ne = new MapboxGL.LngLat(5, 5);
-    const bounds = new MapboxGL.LngLatBounds(sw, ne);
+    const bounds = bboxPolygon([0, 0, 5, 5]);
 
     const linesInView = getLinesInView(bounds, collection);
 
@@ -221,4 +218,3 @@ test('Test getting lines within the view bounds', () => {
     expect(linesInView.features[0].id).toEqual(1);
     expect(linesInView.features[1].id).toEqual(3);
 });
-
