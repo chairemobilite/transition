@@ -26,13 +26,13 @@ const findOverlapingLines = async (
             reject('Cancelled');
             return;
         }
-        const features = layerData.features as any;
+        const features: GeoJSON.Feature<LineString>[] = layerData.features;
         // The map contains the feature and a set of numbers
         // The feature is the segment concerned by the overlap
         // The set of numbers is a set that contains the IDs of every single line concerned by the overlap on that segment
         let overlapMap: Map<string, Set<number>> = new Map();
         for (let i = 0; i < features.length - 1; i++) {
-            if(i%20 === 0){
+            if (i % 20 === 0) {
                 if (isCancelled && isCancelled()) {
                     reject('Cancelled');
                     return;
@@ -62,7 +62,7 @@ const findOverlapingLines = async (
 
 const fillOverlapMap = (
     overlap: GeoJSON.FeatureCollection<LineString>,
-    features: GeoJSON.Feature<LineString>,
+    features: GeoJSON.Feature<LineString>[],
     overlapMap: Map<string, Set<number>>,
     indexI: number,
     indexJ: number
@@ -70,7 +70,10 @@ const fillOverlapMap = (
     for (const segment of overlap.features) {
         const overlapStr = JSON.stringify(segment);
         if (!overlapMap.has(overlapStr)) overlapMap.set(overlapStr, new Set());
-        overlapMap.get(overlapStr)?.add(features[indexI].id).add(features[indexJ].id);
+        overlapMap
+            .get(overlapStr)
+            ?.add(features[indexI].id as number)
+            .add(features[indexJ].id as number);
     }
     return overlapMap;
 };
@@ -116,7 +119,7 @@ const applyOffset = async (
 ): Promise<GeoJSON.FeatureCollection<LineString>> => {
     return new Promise(async (resolve, reject) => {
         for (let i = 0; i < overlapArray.length; i++) {
-            if(i % 20 === 0){
+            if (i % 20 === 0) {
                 if (isCancelled && isCancelled()) {
                     reject('Cancelled');
                     return;
