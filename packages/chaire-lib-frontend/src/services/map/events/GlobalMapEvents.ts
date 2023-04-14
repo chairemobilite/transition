@@ -11,7 +11,7 @@ import { lineString, bboxPolygon, bbox, feature } from '@turf/turf';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { MapEventHandlerDescription } from '../IMapEventHandler';
-import { getLinesInView, manageOverlappingLines } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
+import { getLinesInView, offsetOverlappingLines } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
 import { getNodesInView, manageRelocatingNodes } from 'chaire-lib-common/lib/services/geodata/RelocateNodes';
 
 const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation
@@ -71,7 +71,7 @@ const globalEventDescriptors: MapEventHandlerDescription[] = [
     { type: 'map', eventName: 'mousemove', handler: onMouseMove }
 ];
 
-const applyAestheticChanges = (boundsGL: MapboxGL.LngLatBounds, zoom: number): void => {
+const applyAestheticChanges = async (boundsGL: MapboxGL.LngLatBounds, zoom: number): Promise<void> => {
     if (zoom <= zoomLimit) {
         return;
     }
@@ -83,7 +83,7 @@ const applyAestheticChanges = (boundsGL: MapboxGL.LngLatBounds, zoom: number): v
     
     let layer = (serviceLocator.layerManager._layersByName['transitPaths'].source.data);
     const linesInView = getLinesInView(boundsPolygon, layer);
-    manageOverlappingLines(linesInView);
+    await offsetOverlappingLines(linesInView);
 
     const transitNodes = serviceLocator.layerManager._layersByName['transitNodes'].source.data; 
     const nodesInView = getNodesInView(boundsPolygon, transitNodes);
