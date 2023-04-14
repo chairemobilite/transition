@@ -1,45 +1,13 @@
 import serviceLocator from '../../utils/ServiceLocator';
-import { lineOffset, lineOverlap, lineString, LineString, nearestPointOnLine, Feature, Polygon, booleanPointInPolygon, bboxPolygon, bbox } from '@turf/turf';
+import { lineOffset, lineOverlap, lineString, LineString, nearestPointOnLine, Feature, Polygon, booleanPointInPolygon } from '@turf/turf';
 
-const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation
-let originalLayer; //Necessary so that offsets aren't applied to already offset lines after zoom
-// let currentLayer; //Is the usual layer when in prod, and a smaller custom layer when doing tests
+
 
 interface OverlappingSegments {
     geoData: GeoJSON.Feature<LineString>;
     crossingLines: number[];
     directions: boolean[];
 }
-
-export const manageZoom = (bounds: number[][], zoom: number): void => {
-    if (!originalLayer) {
-        //Site does not load if original layer is initialized as a constant
-        //Deep copy of original layer, necessary so that repeated zooms don't apply offsets to the same points
-        originalLayer = (serviceLocator.layerManager._layersByName['transitPaths'].source.data
-        );
-    }
-
-    if (zoom <= zoomLimit) {
-        return;
-    }
-
-    const boundsPolygon = bboxPolygon(bbox(lineString(bounds)));
-    const linesInView = getLinesInView(boundsPolygon, originalLayer);
-
-    manageOverlappingLines(linesInView); //ServiceLocator necessary to have reference to layer used by transition
-    manageRelocatingNodes();
-
-    serviceLocator.eventManager.emit(
-        'map.updateLayer',
-        'transitPaths',
-        originalLayer
-    );
-    serviceLocator.eventManager.emit(
-        'map.updateLayers',
-        'transitNodes',
-        serviceLocator.collectionManager.get('nodes').toGeojson()
-    );
-};
 
 export const getLinesInView = (
     bounds: Feature<Polygon>,

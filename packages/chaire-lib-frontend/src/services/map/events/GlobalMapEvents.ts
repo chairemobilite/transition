@@ -6,11 +6,17 @@
  */
 import MapboxGL from 'mapbox-gl';
 import _debounce from 'lodash.debounce';
+import { lineString, bboxPolygon, bbox } from '@turf/turf';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { MapEventHandlerDescription } from '../IMapEventHandler';
-import { manageZoom } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
+import { getLinesInView, manageOverlappingLines, manageRelocatingNodes } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
+
+const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation
+// TODO: Make zoomLimit modifiable by user
+
+let originalLayer; //Necessary so that offsets aren't applied to already offset lines after zoom
 
 /* This file encapsulates global map events, that do not require a specific context */
 
@@ -25,10 +31,7 @@ const onZoomEnd = (_e: MapboxGL.MapMouseEvent) => {
         });
     }, 1000);
     const boundsGL = _e.target.getBounds();
-    const sw = boundsGL.getSouthWest().toArray();
-    const ne = boundsGL.getNorthEast().toArray();
-    const bounds = [sw, ne];
-    manageZoom(bounds, _e.target.getZoom());
+    applyAestheticChanges(boundsGL, _e.target.getZoom());
 };
 
 const onDragEnd = (e: MapboxGL.MapMouseEvent) => {
@@ -49,10 +52,7 @@ const onDragEnd = (e: MapboxGL.MapMouseEvent) => {
         });
     }, 1000)();
     const boundsGL = e.target.getBounds();
-    const sw = boundsGL.getSouthWest().toArray();
-    const ne = boundsGL.getNorthEast().toArray();
-    const bounds = [sw, ne];
-    manageZoom(bounds, e.target.getZoom());
+    applyAestheticChanges(boundsGL, e.target.getZoom());
 };
 
 const onDragStart = (e: MapboxGL.MapMouseEvent) => {
@@ -71,5 +71,37 @@ const globalEventDescriptors: MapEventHandlerDescription[] = [
     { type: 'map', eventName: 'dragstart', handler: onDragStart },
     { type: 'map', eventName: 'mousemove', handler: onMouseMove }
 ];
+
+const applyAestheticChanges = (boundsGL: MapboxGL.LngLatBounds, zoom: number): void => {
+    if (!originalLayer) {
+        //Site does not load if original layer is initialized as a constant
+        //Deep copy of original layer, necessary so that repeated zooms don't apply offsets to the same points
+        originalLayer = (serviceLocator.layerManager._layersByName['transitPaths'].source.data);
+    }
+
+    if (zoom <= zoomLimit) {
+        return;
+    }
+
+    const sw = boundsGL.getSouthWest().toArray();
+    const ne = boundsGL.getNorthEast().toArray();
+    const bounds = [sw, ne];
+    const boundsPolygon = bboxPolygon(bbox(lineString(bounds)));
+    const linesInView = getLinesInView(boundsPolygon, originalLayer);
+
+    manageOverlappingLines(linesInView); //ServiceLocator necessary to have reference to layer used by transition
+    manageRelocatingNodes();
+
+    serviceLocator.eventManager.emit(
+        'map.updateLayer',
+        'transitPaths',
+        originalLayer
+    );
+    serviceLocator.eventManager.emit(
+        'map.updateLayers',
+        'transitNodes',
+        serviceLocator.collectionManager.get('nodes').toGeojson()
+    );
+};
 
 export default globalEventDescriptors;
