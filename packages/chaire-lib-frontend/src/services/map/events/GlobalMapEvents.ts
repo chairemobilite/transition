@@ -75,29 +75,25 @@ const applyAestheticChanges = async (boundsGL: MapboxGL.LngLatBounds, zoom: numb
     if (zoom <= zoomLimit) {
         return;
     }
-    
+
     const sw = boundsGL.getSouthWest().toArray();
     const ne = boundsGL.getNorthEast().toArray();
     const bounds = [sw, ne];
     const boundsPolygon = bboxPolygon(bbox(lineString(bounds)));
-    
-    let layer = (serviceLocator.layerManager._layersByName['transitPaths'].source.data);
+
+    const layer = serviceLocator.layerManager._layersByName['transitPaths'].source.data;
     const linesInView = getLinesInView(boundsPolygon, layer);
     await offsetOverlappingLines(linesInView);
 
-    const transitNodes = serviceLocator.layerManager._layersByName['transitNodes'].source.data; 
+    const transitNodes = serviceLocator.layerManager._layersByName['transitNodes'].source.data;
     const nodesInView = getNodesInView(boundsPolygon, transitNodes);
     manageRelocatingNodes(nodesInView, linesInView);
 
-    serviceLocator.eventManager.emit(
-        'map.updateLayer',
-        'transitPaths',
-        layer
-    );
+    serviceLocator.eventManager.emit('map.updateLayer', 'transitPaths', layer);
 
     serviceLocator.eventManager.emit('map.updateLayers', {
         transitNodes: transitNodes
-    }); 
+    });
 };
 
 export default globalEventDescriptors;

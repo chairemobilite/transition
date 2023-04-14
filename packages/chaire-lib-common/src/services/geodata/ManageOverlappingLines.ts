@@ -28,30 +28,30 @@ interface OverlappingSegments {
 }
 
 /**
-* Obtains the lines from a paths layer that have at least one coordinate inside the viewport.
-* @param bounds - a bounding box Polygon that represents the viewport's coordinates
-* @param layer - the paths layer that we want to get the visible lines from
-* @return A collection of the lines that are in the viewport
-*/
+ * Obtains the lines from a paths layer that have at least one coordinate inside the viewport.
+ * @param bounds - a bounding box Polygon that represents the viewport's coordinates
+ * @param layer - the paths layer that we want to get the visible lines from
+ * @return A collection of the lines that are in the viewport
+ */
 export const getLinesInView = (
-   bounds: Feature<Polygon>,
-   layer: GeoJSON.FeatureCollection<LineString>
+    bounds: Feature<Polygon>,
+    layer: GeoJSON.FeatureCollection<LineString>
 ): GeoJSON.FeatureCollection<LineString> => {
-   const features = layer.features;
-   const linesInView: GeoJSON.FeatureCollection<LineString> = { type: 'FeatureCollection', features: [] };
-   for (let i = 0; i < features.length; i++) {
-       for (let j = 0; j < features[i].geometry.coordinates.length; j++) {
-           if (isInBounds(bounds, features[i].geometry.coordinates[j])) {
-               linesInView.features.push(features[i]);
-               break;
-           }
-       }
-   }
-   return linesInView;
+    const features = layer.features;
+    const linesInView: GeoJSON.FeatureCollection<LineString> = { type: 'FeatureCollection', features: [] };
+    for (let i = 0; i < features.length; i++) {
+        for (let j = 0; j < features[i].geometry.coordinates.length; j++) {
+            if (isInBounds(bounds, features[i].geometry.coordinates[j])) {
+                linesInView.features.push(features[i]);
+                break;
+            }
+        }
+    }
+    return linesInView;
 };
 
 const isInBounds = (bounds: Feature<Polygon>, coord: number[]): boolean => {
-   return booleanPointInPolygon(coord, bounds);
+    return booleanPointInPolygon(coord, bounds);
 };
 
 /**
@@ -244,4 +244,3 @@ const cleanLines = (geojson: GeoJSON.FeatureCollection<LineString>): void => {
         });
     });
 };
-
