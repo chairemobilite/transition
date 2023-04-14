@@ -32,7 +32,7 @@ Relocates nodes to the middle point of their crossing paths, if they intersect m
 @param nodeMap - a Map of node IDs to arrays of path IDs that intersect the node.
 @param pathFeatures - a FeatureCollection of paths.
 */
-export const relocateNodes = (nodeFeatures: any, nodeMap: Map<any, any>, pathFeatures: any) => {
+const relocateNodes = (nodeFeatures: any, nodeMap: Map<any, any>, pathFeatures: any) => {
     // Initialize an array for the relocated nodes
     const relocatedNodes: any[] = [];
 
@@ -70,15 +70,15 @@ export const relocateNodes = (nodeFeatures: any, nodeMap: Map<any, any>, pathFea
 }
 
   
-/**
- * Checks if two sets of coordinates are equal.
- * @param coords1 - an array of two coordinates in the format [longitude, latitude].
- * @param coords2 - an array of two coordinates in the format [longitude, latitude].
- * @returns true if the coordinates are equal, false otherwise.
- */
-function areCoordinatesEqual(coords1: number[], coords2: number[]): boolean {
-    return coords1[0] === coords2[0] && coords1[1] === coords2[1];
-}
+// /**
+//  * Checks if two sets of coordinates are equal.
+//  * @param coords1 - an array of two coordinates in the format [longitude, latitude].
+//  * @param coords2 - an array of two coordinates in the format [longitude, latitude].
+//  * @returns true if the coordinates are equal, false otherwise.
+//  */
+// function areCoordinatesEqual(coords1: number[], coords2: number[]): boolean {
+//     return coords1[0] === coords2[0] && coords1[1] === coords2[1];
+// }
   
 /**
  * Finds the point on each path that is closest to the given node.
@@ -140,7 +140,7 @@ function getCrossingPaths(featureCollection) {
  * @param transitPath - a LineString feature collection giving a reference to the correct paths layer
  * @param transitNodes - a Points feature collection giving a reference to the correct nodes layer
  */
-export const manageRelocatingNodes = (transitPaths: GeoJSON.FeatureCollection<LineString>, transitNodes: GeoJSON.FeatureCollection<Point> ) => {
+export const manageRelocatingNodes = (transitNodes: GeoJSON.FeatureCollection<Point>, transitPaths: GeoJSON.FeatureCollection<LineString>) => {
     const nodeMap = getCrossingPaths(transitPaths);
     relocateNodes(transitNodes, nodeMap, transitPaths);
 }
