@@ -16,8 +16,6 @@ import { getLinesInView, manageOverlappingLines, manageRelocatingNodes } from 'c
 const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation
 // TODO: Make zoomLimit modifiable by user
 
-let originalLayer; //Necessary so that offsets aren't applied to already offset lines after zoom
-
 /* This file encapsulates global map events, that do not require a specific context */
 
 const onMouseOut = (_e: MapboxGL.MapMouseEvent) => {
@@ -73,21 +71,17 @@ const globalEventDescriptors: MapEventHandlerDescription[] = [
 ];
 
 const applyAestheticChanges = (boundsGL: MapboxGL.LngLatBounds, zoom: number): void => {
-    if (!originalLayer) {
-        //Site does not load if original layer is initialized as a constant
-        //Deep copy of original layer, necessary so that repeated zooms don't apply offsets to the same points
-        originalLayer = (serviceLocator.layerManager._layersByName['transitPaths'].source.data);
-    }
-
     if (zoom <= zoomLimit) {
         return;
     }
 
+    let layer = (serviceLocator.layerManager._layersByName['transitPaths'].source.data);
+    
     const sw = boundsGL.getSouthWest().toArray();
     const ne = boundsGL.getNorthEast().toArray();
     const bounds = [sw, ne];
     const boundsPolygon = bboxPolygon(bbox(lineString(bounds)));
-    const linesInView = getLinesInView(boundsPolygon, originalLayer);
+    const linesInView = getLinesInView(boundsPolygon, layer);
 
     manageOverlappingLines(linesInView); //ServiceLocator necessary to have reference to layer used by transition
     manageRelocatingNodes();
@@ -95,7 +89,7 @@ const applyAestheticChanges = (boundsGL: MapboxGL.LngLatBounds, zoom: number): v
     serviceLocator.eventManager.emit(
         'map.updateLayer',
         'transitPaths',
-        originalLayer
+        layer
     );
     serviceLocator.eventManager.emit(
         'map.updateLayers',
