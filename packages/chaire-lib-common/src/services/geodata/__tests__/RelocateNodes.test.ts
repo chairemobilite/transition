@@ -6,32 +6,8 @@
  */
 import { manageRelocatingNodes } from '../RelocateNodes';
 import GeoJSON, { GeoJsonGeometryTypes } from 'geojson';
-import { lineOffset, LineString, Point} from "@turf/turf";
+import { lineOffset, LineString, Point } from '@turf/turf';
 import _cloneDeep from 'lodash.clonedeep';
-
-const lineSkeleton: GeoJSON.Feature<LineString> = {
-    type: 'Feature',
-    geometry: {
-        type: 'LineString',
-        coordinates: []
-    },
-    id: 0,
-    properties: {
-        id: ''
-    }
-};
-
-const nodeSkeleton: GeoJSON.Feature<Point> = {
-    type: 'Feature',
-    geometry: {
-        type: 'Point',
-        coordinates: [2,5]
-    },
-    id: 0,
-    properties: {
-        nodes: []
-    }
-}
 
 const transitPaths : GeoJSON.FeatureCollection<LineString> = {
     type: 'FeatureCollection',
@@ -40,11 +16,11 @@ const transitPaths : GeoJSON.FeatureCollection<LineString> = {
             type: 'Feature',
             geometry: {
                 type: 'LineString',
-                coordinates: [[0,0], [1,0], [2,0], [3,0], [4,0]] 
+                coordinates: [[0,0], [1,0], [2,0], [3,0], [4,0]]
             },
             id: 1,
             properties: {
-                nodes: ['0,1,2']
+                nodes: [0,1,2]
             }
         },
         {
@@ -55,7 +31,7 @@ const transitPaths : GeoJSON.FeatureCollection<LineString> = {
             },
             id: 2,
             properties: {
-                nodes: ['0,1,2']
+                nodes: [0,1,2]
             }
         },
         {
@@ -66,7 +42,7 @@ const transitPaths : GeoJSON.FeatureCollection<LineString> = {
             },
             id: 3,
             properties: {
-                nodes: ['0,1,2']
+                nodes: [0,1,2]
             }
         },
         {
@@ -77,7 +53,7 @@ const transitPaths : GeoJSON.FeatureCollection<LineString> = {
             },
             id: 4,
             properties: {
-                nodes: ['0,1,2']
+                nodes: [0,1]
             }
         },
         {
@@ -88,7 +64,7 @@ const transitPaths : GeoJSON.FeatureCollection<LineString> = {
             },
             id: 5,
             properties: {
-                nodes: ['0,1,2']
+                nodes: [0,1]
             }
         }]
 };
@@ -105,7 +81,7 @@ const transitNodes : GeoJSON.FeatureCollection<Point> = {
             id: 0,
             properties: {
                 color:'',
-                id:'0'
+                id: 0
             }
         },
         {
@@ -117,7 +93,7 @@ const transitNodes : GeoJSON.FeatureCollection<Point> = {
             id: 1,
             properties: {
                 color:'',
-                id:'1'
+                id: 1
             }
         },
         {
@@ -129,43 +105,18 @@ const transitNodes : GeoJSON.FeatureCollection<Point> = {
             id: 2,
             properties: {
                 color:'',
-                id:'2'
+                id: 2
             }
         }
     ]
 };
 
-const nodeMap: Map<string, number[]>[] = [
-    new Map([
-      ['0', [1, 2, 3, 4, 5]],
-      ['1', [1, 2, 3, 4, 5]],
-      ['2', [1, 2, 3]]
-    ])
-  ];
-
 test('Test basic relocation of nodes #1', () => {
-    const nodeIndex = 0; 
-
-    const map = _cloneDeep(nodeMap);
     const nodesTest = _cloneDeep(transitNodes);
     manageRelocatingNodes(nodesTest, _cloneDeep(transitPaths));
-    
-    expect(nodesTest).toEqual([2,2]);
+
+    expect(nodesTest.features[0].geometry.coordinates).toEqual([2,2]);
+    expect(nodesTest.features[1].geometry.coordinates).toEqual([1,2]);
+    expect(nodesTest.features[2].geometry.coordinates).toEqual([4,1]);
+
 });
-
-// test('Test basic relocation of nodes #2', () => {
-//     const nodeIndex = 1; 
-//     const map = _cloneDeep(nodeMap);
-//     const relocatedNode = manageRelocatingNodes(_cloneDeep(transitNodes), _cloneDeep(transitPaths));
-    
-//     expect(relocatedNode).toEqual([1,2]);
-// });
-
-// test('Test basic relocation of nodes #3', () => {
-//     const nodeIndex = 2; 
-
-//     const map = _cloneDeep(nodeMap);
-//     const relocatedNode = manageRelocatingNodes(_cloneDeep(transitNodes), _cloneDeep(transitPaths));
-    
-//     expect(relocatedNode).toEqual([4,1]);
-// });
