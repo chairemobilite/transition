@@ -8,6 +8,12 @@ interface OverlappingSegments {
     directions: boolean[];
 }
 
+/**
+ * Obtains the lines from a paths layer that have at least one coordinate inside the viewport.
+ * @param bounds - a bounding box Polygon that represents the viewport's coordinates
+ * @param layer - the paths layer that we want to get the visible lines from
+ * @return A collection of the lines that are in the viewport
+ */
 export const getLinesInView = (
     bounds: Feature<Polygon>,
     layer: GeoJSON.FeatureCollection<LineString>
@@ -29,6 +35,11 @@ const isInBounds = (bounds: Feature<Polygon>, coord: number[]): boolean => {
     return booleanPointInPolygon(coord, bounds);
 };
 
+/**
+ * Orchestrates the relocation of offsetting of overlapping lines.
+ * @param layerData - a LineString feature collection giving a reference to the correct paths layer
+ * @return The same layer after the lines have been offset and made more aesthetically pleasing
+ */
 export const manageOverlappingLines = (
     layerData: GeoJSON.FeatureCollection<LineString>,
 ): GeoJSON.FeatureCollection<LineString> => {

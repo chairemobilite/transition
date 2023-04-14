@@ -139,7 +139,8 @@ function getCrossingPaths(featureCollection) {
 
 /**
  * Orchestrates the relocation of nodes by calling the relocateNodes function with the necessary parameters.
- * No parameters or return value.
+ * @param transitPath - a LineString feature collection giving a reference to the correct paths layer
+ * @param transitNodes - a Points feature collection giving a reference to the correct nodes layer
  */
 export const manageRelocatingNodes = (transitPaths: GeoJSON.FeatureCollection<LineString>, transitNodes: GeoJSON.FeatureCollection<Point> ) => {
     const nodeMap = getCrossingPaths(transitPaths);

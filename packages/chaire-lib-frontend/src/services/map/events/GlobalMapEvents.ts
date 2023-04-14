@@ -85,7 +85,7 @@ const applyAestheticChanges = (boundsGL: MapboxGL.LngLatBounds, zoom: number): v
     const linesInView = getLinesInView(boundsPolygon, layer);
     const transitNodes = serviceLocator.layerManager._layersByName['transitNodes'].source.data; 
 
-    manageOverlappingLines(linesInView); //ServiceLocator necessary to have reference to layer used by transition
+    manageOverlappingLines(linesInView);
     manageRelocatingNodes(linesInView, transitNodes);
 
     serviceLocator.eventManager.emit(
