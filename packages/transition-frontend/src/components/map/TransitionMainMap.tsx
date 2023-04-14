@@ -22,7 +22,7 @@ import MapPopupManager from 'chaire-lib-frontend/lib/services/map/MapPopupManage
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { getMapBoxDraw, removeMapBoxDraw } from 'chaire-lib-frontend/lib/services/map/MapPolygonService';
 import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
-import { manageOverlappingLines } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
+import { offsetOverlappingLines } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
 import Node from 'transition-common/lib/services/nodes/Node';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import _cloneDeep from 'lodash.clonedeep';
@@ -467,9 +467,9 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
     updateLayer = (layerName: string, geojson: GeoJSON.FeatureCollection) => {
         if (geojson.features[0].geometry.type === 'LineString') {
             //TODO : Add here the implementation of when to cancel the operation
-            manageOverlappingLines(geojson as GeoJSON.FeatureCollection<GeoJSON.LineString>,false).then((layerData) => {
-                this.layerManager.updateLayer(layerName, layerData);
-            })
+            offsetOverlappingLines(geojson as GeoJSON.FeatureCollection<GeoJSON.LineString>,false).then(() => {
+                this.layerManager.updateLayer(layerName, geojson);
+            });
         }
         this.layerManager.updateLayer(layerName, geojson);
     };
