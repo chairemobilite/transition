@@ -1,6 +1,11 @@
+/*
+ * Copyright 2022, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
+
 import { lineOffset, lineOverlap, lineString, LineString, Feature, Polygon, booleanPointInPolygon } from '@turf/turf';
-
-
 
 interface OverlappingSegments {
     geoData: GeoJSON.Feature<LineString>;

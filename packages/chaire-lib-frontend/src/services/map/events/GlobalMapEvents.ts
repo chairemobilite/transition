@@ -6,13 +6,13 @@
  */
 import MapboxGL from 'mapbox-gl';
 import _debounce from 'lodash.debounce';
-import { lineString, bboxPolygon, bbox } from '@turf/turf';
+import { lineString, bboxPolygon, bbox, feature } from '@turf/turf';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { MapEventHandlerDescription } from '../IMapEventHandler';
 import { getLinesInView, manageOverlappingLines } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
-import { manageRelocatingNodes } from 'chaire-lib-common/lib/services/geodata/RelocateNodes';
+import { getNodesInView, manageRelocatingNodes } from 'chaire-lib-common/lib/services/geodata/RelocateNodes';
 
 const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation
 // TODO: Make zoomLimit modifiable by user
@@ -75,18 +75,19 @@ const applyAestheticChanges = (boundsGL: MapboxGL.LngLatBounds, zoom: number): v
     if (zoom <= zoomLimit) {
         return;
     }
-
-    let layer = (serviceLocator.layerManager._layersByName['transitPaths'].source.data);
     
     const sw = boundsGL.getSouthWest().toArray();
     const ne = boundsGL.getNorthEast().toArray();
     const bounds = [sw, ne];
     const boundsPolygon = bboxPolygon(bbox(lineString(bounds)));
+    
+    let layer = (serviceLocator.layerManager._layersByName['transitPaths'].source.data);
     const linesInView = getLinesInView(boundsPolygon, layer);
-    const transitNodes = serviceLocator.layerManager._layersByName['transitNodes'].source.data; 
-
     manageOverlappingLines(linesInView);
-    manageRelocatingNodes(linesInView, transitNodes);
+
+    const transitNodes = serviceLocator.layerManager._layersByName['transitNodes'].source.data; 
+    const nodesInView = getNodesInView(boundsPolygon, transitNodes);
+    manageRelocatingNodes(linesInView, nodesInView);
 
     serviceLocator.eventManager.emit(
         'map.updateLayer',

@@ -1,21 +1,43 @@
+/*
+ * Copyright 2022, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
 
-import serviceLocator from '../../utils/ServiceLocator';
-import { lineString, nearestPointOnLine } from '@turf/turf';
+import { lineString, nearestPointOnLine, Feature, Polygon, booleanPointInPolygon } from '@turf/turf';
 import { LineString, Point } from 'geojson';
+
+export const getNodesInView = (
+    bounds: Feature<Polygon>,
+    layer: GeoJSON.FeatureCollection<Point>
+): GeoJSON.FeatureCollection<Point> => {
+    const features = layer.features;
+    const nodesInView: GeoJSON.FeatureCollection<Point> = { type: 'FeatureCollection', features: [] };
+    for (let i = 0; i < features.length; i++) {
+        if (isInBounds(bounds, features[i].geometry.coordinates)) {
+            nodesInView.features.push(features[i]);
+        }
+    }
+    return nodesInView;
+};
+
+const isInBounds = (bounds: Feature<Polygon>, coord: number[]): boolean => {
+    return booleanPointInPolygon(coord, bounds);
+};
 
 /** 
 Relocates nodes to the middle point of their crossing paths, if they intersect more than one path.
 @param nodeFeatures - a FeatureCollection of nodes.
 @param nodeMap - a Map of node IDs to arrays of path IDs that intersect the node.
 @param pathFeatures - a FeatureCollection of paths.
-@returns a FeatureCollection of relocated nodes.
 */
 export const relocateNodes = (nodeFeatures: any, nodeMap: Map<any, any>, pathFeatures: any) => {
     // Initialize an array for the relocated nodes
     const relocatedNodes: any[] = [];
 
     // Loop through each node feature in the input of the transit nodes array
-    nodeFeatures.features.forEach(nodeFeature => {
+    nodeFeatures.features.forEach((nodeFeature, i) => {
         // Get the ID of the current node.
         const nodeId = nodeFeature.properties.id;
 
@@ -38,37 +60,13 @@ export const relocateNodes = (nodeFeatures: any, nodeMap: Map<any, any>, pathFea
             
             // Find the middle point of the closest point
             const middlePoint = findMiddlePoint(closestPoints);
-
-            // Create a modified node feature with the new coordinates and update the nodeFeatures array.
-            const modifiedNode = {
-                type: "Feature",
-                id: nodeFeature.id,
-                geometry: {
-                    type: "Point",
-                    coordinates: middlePoint
-                },
-                properties: {
-                    id: nodeId,
-                    color: "#ff0000"
-                }
-            };
-
-            // Only add the modified node to the relocatedNodes array and update the nodeFeatures array if the coordinates are different from the old coordinates.
-            if (!areCoordinatesEqual(modifiedNode.geometry.coordinates, nodeFeature.geometry.coordinates)) {
-                for(let i = 0 ; i < nodeFeatures.features.length ; i++){
-                    if(nodeFeatures.features[i].properties.id == nodeId){
-                        // serviceLocator.layerManager._layersByName['transitNodes'].source.data.features[i] = modifiedNode;
-                        nodeFeatures.features[i] = modifiedNode;
-                    }
-                }            
-                relocatedNodes.push(modifiedNode);
-            }
+            nodeFeatures.features[i].geometry.coordinates = middlePoint;
         }
     });
-    return {
-        type: "FeatureCollection",
-        features: relocatedNodes
-    };
+    // return {
+    //     type: "FeatureCollection",
+    //     features: relocatedNodes
+    // };
 }
 
   
