@@ -63,11 +63,17 @@ export const offsetOverlappingLines = async (
     layerData: GeoJSON.FeatureCollection<LineString>,
     isCancelled: (() => boolean) | false = false
 ): Promise<void> => {
-    const overlapMap = await findOverlappingLines(layerData, isCancelled);
-    const overlapArray = manageOverlappingSegmentsData(overlapMap, layerData);
-    await applyOffset(overlapArray, layerData, isCancelled);
-    cleanLines(layerData);
-    return;
+    return new Promise(async (resolve, reject) => {
+        try{
+            const overlapMap = await findOverlappingLines(layerData, isCancelled);
+            const overlapArray = manageOverlappingSegmentsData(overlapMap, layerData);
+            await applyOffset(overlapArray, layerData, isCancelled);
+            cleanLines(layerData);
+            resolve();
+        } catch(e) {
+            reject(e);
+        }
+    });
 };
 
 const findOverlappingLines = async (

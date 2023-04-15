@@ -14,8 +14,9 @@ import { MapEventHandlerDescription } from '../IMapEventHandler';
 import { getLinesInView, offsetOverlappingLines } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
 import { getNodesInView, manageRelocatingNodes } from 'chaire-lib-common/lib/services/geodata/RelocateNodes';
 
-const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation
 // TODO: Make zoomLimit modifiable by user
+const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation
+let applyAestheticChangesNonce: Object = new Object();
 
 /* This file encapsulates global map events, that do not require a specific context */
 
@@ -72,7 +73,14 @@ const globalEventDescriptors: MapEventHandlerDescription[] = [
 ];
 
 const applyAestheticChanges = async (boundsGL: MapboxGL.LngLatBounds, zoom: number): Promise<void> => {
+    const localNonce = (applyAestheticChangesNonce = new Object());
+    const isCancelled = () => localNonce !== applyAestheticChangesNonce;
+
     if (zoom <= zoomLimit) {
+        return;
+    }
+
+    if (isCancelled && isCancelled()) {
         return;
     }
 
@@ -83,7 +91,10 @@ const applyAestheticChanges = async (boundsGL: MapboxGL.LngLatBounds, zoom: numb
 
     const layer = serviceLocator.layerManager._layersByName['transitPaths'].source.data;
     const linesInView = getLinesInView(boundsPolygon, layer);
-    await offsetOverlappingLines(linesInView);
+    await offsetOverlappingLines(linesInView, isCancelled).catch(() => { return; }); // isCancelled is handled after
+    if (isCancelled && isCancelled()) {
+        return;
+    }
 
     const transitNodes = serviceLocator.layerManager._layersByName['transitNodes'].source.data;
     const nodesInView = getNodesInView(boundsPolygon, transitNodes);
