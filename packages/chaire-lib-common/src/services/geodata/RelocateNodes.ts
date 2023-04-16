@@ -46,7 +46,7 @@ const relocateNodes = async (
 
         // Loop through each node feature in the input of the transit nodes array
         //nodeFeatures.features.forEach((nodeFeature, i) => {
-        for (let i = 0; i < nodeFeatures.features.length - 1; i++) {
+        for (let i = 0; i < nodeFeatures.features.length; i++) {
             if (i % 20 === 0) {
                 if (isCancelled && isCancelled()) {
                     reject('Cancelled');
