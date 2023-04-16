@@ -98,7 +98,10 @@ const applyAestheticChanges = async (boundsGL: MapboxGL.LngLatBounds, zoom: numb
 
     const transitNodes = serviceLocator.layerManager._layersByName['transitNodes'].source.data;
     const nodesInView = getNodesInView(boundsPolygon, transitNodes);
-    manageRelocatingNodes(nodesInView, linesInView);
+    await manageRelocatingNodes(nodesInView, linesInView, isCancelled).catch(() => {return;});
+    if (isCancelled && isCancelled()) {
+        return;
+    }
 
     serviceLocator.eventManager.emit('map.updateLayer', 'transitPaths', layer);
 

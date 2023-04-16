@@ -6,8 +6,7 @@
  */
 
 import { manageRelocatingNodes } from '../RelocateNodes';
-import GeoJSON, { GeoJsonGeometryTypes } from 'geojson';
-import { lineOffset, LineString, Point } from '@turf/turf';
+import { LineString, Point } from '@turf/turf';
 import _cloneDeep from 'lodash.clonedeep';
 
 const transitPaths : GeoJSON.FeatureCollection<LineString> = {
@@ -112,9 +111,9 @@ const transitNodes : GeoJSON.FeatureCollection<Point> = {
     ]
 };
 
-test('Check that the offset nodes are at the expected middle point', () => {
+test('Check that the offset nodes are at the expected middle point', async () => {
     const nodesTest = _cloneDeep(transitNodes);
-    manageRelocatingNodes(nodesTest, _cloneDeep(transitPaths));
+    await manageRelocatingNodes(nodesTest, _cloneDeep(transitPaths));
 
     expect(nodesTest.features[0].geometry.coordinates).toEqual([2,2]);
     expect(nodesTest.features[1].geometry.coordinates).toEqual([1,2]);

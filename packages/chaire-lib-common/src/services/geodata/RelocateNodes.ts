@@ -32,36 +32,54 @@ Relocates nodes to the middle point of their crossing paths, if they intersect m
 @param nodeMap - a Map of node IDs to arrays of path IDs that intersect the node.
 @param pathFeatures - a FeatureCollection of paths.
 */
-const relocateNodes = (nodeFeatures: any, nodeMap: Map<any, any>, pathFeatures: any) => {
-    // Initialize an array for the relocated nodes
-    const relocatedNodes: any[] = [];
-
-    // Loop through each node feature in the input of the transit nodes array
-    nodeFeatures.features.forEach((nodeFeature, i) => {
-        // Get the ID of the current node.
-        const nodeId = nodeFeature.properties.id;
-
-        // Get an array of the path IDs that intersect the current node.
-        const paths = nodeMap.get(nodeId);
-
-        // If the node intersects more than one path, find the middle point of the intersecting paths and relocate the node to that point.
-        if (paths && paths.length > 1) {
-            // Get an array of the coordinates of each path that intersects the node.
-            const pathCoords = paths.map((pathId) => {
-                const pathFeature = pathFeatures.features.find((feature) => feature.id === pathId);
-                return pathFeature.geometry.coordinates;
-            });
-
-            // Get the coordinates of the current node.
-            const nodeCoords = nodeFeature.geometry.coordinates;
-
-            // Find the closest point on each path to the current node.
-            const closestPoints = findClosestPoints(nodeCoords, pathCoords);
-
-            // Find the middle point of the closest point
-            const middlePoint = findMiddlePoint(closestPoints);
-            nodeFeatures.features[i].geometry.coordinates = middlePoint;
+const relocateNodes = async (
+    nodeFeatures: any, 
+    nodeMap: Map<any, any>, 
+    pathFeatures: any,
+    isCancelled: (() => boolean) | false = false
+): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+        if (isCancelled && isCancelled()) {
+            reject('Cancelled');
+            return;
         }
+
+        // Loop through each node feature in the input of the transit nodes array
+        //nodeFeatures.features.forEach((nodeFeature, i) => {
+        for (let i = 0; i < nodeFeatures.features.length - 1; i++) {
+            if (i % 20 === 0) {
+                if (isCancelled && isCancelled()) {
+                    reject('Cancelled');
+                    return;
+                }
+            }
+
+            // Get the ID of the current node.
+            const nodeId = nodeFeatures.features[i].properties.id;
+
+            // Get an array of the path IDs that intersect the current node.
+            const paths = nodeMap.get(nodeId);
+
+            // If the node intersects more than one path, find the middle point of the intersecting paths and relocate the node to that point.
+            if (paths && paths.length > 1) {
+                // Get an array of the coordinates of each path that intersects the node.
+                const pathCoords = paths.map((pathId) => {
+                    const pathFeature = pathFeatures.features.find((feature) => feature.id === pathId);
+                    return pathFeature.geometry.coordinates;
+                });
+
+                // Get the coordinates of the current node.
+                const nodeCoords = nodeFeatures.features[i].geometry.coordinates;
+
+                // Find the closest point on each path to the current node.
+                const closestPoints = findClosestPoints(nodeCoords, pathCoords);
+
+                // Find the middle point of the closest point
+                const middlePoint = findMiddlePoint(closestPoints);
+                nodeFeatures.features[i].geometry.coordinates = middlePoint;
+            }
+        }
+        resolve();
     });
 };
 
@@ -125,10 +143,18 @@ function getCrossingPaths(featureCollection) {
  * @param transitNodes - a Points feature collection giving a reference to the correct nodes layer (will be modified)
  * @param transitPath - a LineString feature collection giving a reference to the correct paths layer
  */
-export const manageRelocatingNodes = (
+export const manageRelocatingNodes = async (
     transitNodes: GeoJSON.FeatureCollection<Point>,
-    transitPaths: GeoJSON.FeatureCollection<LineString>
-) => {
-    const nodeMap = getCrossingPaths(transitPaths);
-    relocateNodes(transitNodes, nodeMap, transitPaths);
+    transitPaths: GeoJSON.FeatureCollection<LineString>,
+    isCancelled: (() => boolean) | false = false
+): Promise<void> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const nodeMap = getCrossingPaths(transitPaths);
+            await relocateNodes(transitNodes, nodeMap, transitPaths, isCancelled);
+            resolve();
+        } catch(e) {
+            reject(e);
+        }
+    });
 };
