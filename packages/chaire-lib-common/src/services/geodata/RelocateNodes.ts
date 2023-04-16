@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import { lineString, nearestPointOnLine, Feature, Polygon, booleanPointInPolygon } from '@turf/turf';
+import { lineString, nearestPointOnLine, Feature, Polygon, booleanPointInPolygon, FeatureCollection } from '@turf/turf';
 import { LineString, Point } from 'geojson';
 
 export const getNodesInView = (
@@ -32,14 +32,17 @@ Relocates nodes to the middle point of their crossing paths, if they intersect m
 @param nodeMap - a Map of node IDs to arrays of path IDs that intersect the node.
 @param pathFeatures - a FeatureCollection of paths.
 */
-const relocateNodes = (nodeFeatures: any, nodeMap: Map<any, any>, pathFeatures: any) => {
+const relocateNodes = (nodeFeatures: GeoJSON.FeatureCollection<Point>, nodeMap: Map<String, Number[]>, pathFeatures: GeoJSON.FeatureCollection<LineString>) => {
+    console.log(nodeFeatures);
+    console.log(nodeMap);
+    console.log(pathFeatures);
     // Initialize an array for the relocated nodes
     const relocatedNodes: any[] = [];
 
     // Loop through each node feature in the input of the transit nodes array
-    nodeFeatures.features.forEach((nodeFeature, i) => {
+    nodeFeatures.features.forEach((nodeFeature : GeoJSON.Feature<Point>, i) => {
         // Get the ID of the current node.
-        const nodeId = nodeFeature.properties.id;
+        const nodeId = nodeFeature.properties?.id;
 
         // Get an array of the path IDs that intersect the current node.
         const paths = nodeMap.get(nodeId);
@@ -49,7 +52,7 @@ const relocateNodes = (nodeFeatures: any, nodeMap: Map<any, any>, pathFeatures: 
             // Get an array of the coordinates of each path that intersects the node.
             const pathCoords = paths.map((pathId) => {
                 const pathFeature = pathFeatures.features.find((feature) => feature.id === pathId);
-                return pathFeature.geometry.coordinates;
+                return pathFeature?.geometry.coordinates;
             });
 
             // Get the coordinates of the current node.
@@ -63,6 +66,8 @@ const relocateNodes = (nodeFeatures: any, nodeMap: Map<any, any>, pathFeatures: 
             nodeFeatures.features[i].geometry.coordinates = middlePoint;
         }
     });
+
+    console.log(relocatedNodes);
 };
 
 /**
