@@ -64,13 +64,13 @@ export const offsetOverlappingLines = async (
     isCancelled: (() => boolean) | false = false
 ): Promise<void> => {
     return new Promise(async (resolve, reject) => {
-        try{
+        try {
             const overlapMap = await findOverlappingLines(layerData, isCancelled);
             const overlapArray = manageOverlappingSegmentsData(overlapMap, layerData);
             await applyOffset(overlapArray, layerData, isCancelled);
             cleanLines(layerData);
             resolve();
-        } catch(e) {
+        } catch (e) {
             reject(e);
         }
     });

@@ -22,7 +22,7 @@ export const getNodesInView = (
     return nodesInView;
 };
 
-const isInBounds = (bounds: Feature<Polygon>, coord: number[]) : boolean => {
+const isInBounds = (bounds: Feature<Polygon>, coord: number[]): boolean => {
     return booleanPointInPolygon(coord, bounds);
 };
 
@@ -33,8 +33,8 @@ Relocates nodes to the middle point of their crossing paths, if they intersect m
 @param pathFeatures - a FeatureCollection of paths.
 */
 const relocateNodes = async (
-    nodeFeatures: GeoJSON.FeatureCollection<Point>, 
-    nodeMap: Map<String, Number[]>, 
+    nodeFeatures: GeoJSON.FeatureCollection<Point>,
+    nodeMap: Map<string, number[]>,
     pathFeatures: GeoJSON.FeatureCollection<LineString>,
     isCancelled: (() => boolean) | false = false
 ): Promise<void> => {
@@ -89,7 +89,7 @@ const relocateNodes = async (
  * @param pathCoords - an array of arrays, where each inner array represents the coordinates of a path in the format [[longitude1, latitude1], [longitude2, latitude2], ...].
  * @returns an array of arrays, where each inner array represents the coordinates of the point on the corresponding path that is closest to the node.
  */
-function findClosestPoints(nodeCoords, pathCoords) : Position[]{
+function findClosestPoints(nodeCoords, pathCoords): Position[] {
     const closestPoints = pathCoords.map((path) => {
         const line = lineString(path);
         const nearestPoint = nearestPointOnLine(line, nodeCoords);
@@ -103,7 +103,7 @@ function findClosestPoints(nodeCoords, pathCoords) : Position[]{
  * @param points - an array of arrays, where each inner array represents a point in the format [longitude, latitude].
  * @returns an array representing the coordinates of the middle point of the input points.
  */
-function findMiddlePoint(points) : Position {
+function findMiddlePoint(points): Position {
     const numPoints = points.length;
     const xCoords = points.map((point) => point[0]);
     const yCoords = points.map((point) => point[1]);
@@ -119,7 +119,7 @@ function findMiddlePoint(points) : Position {
  * @param featureCollection - a GeoJSON FeatureCollection representing the transit paths.
  * @returns a Map object with the node IDs as keys and arrays of path IDs that intersect each node as values.
  */
-function getCrossingPaths(featureCollection) : Map<String, Number[]> {
+function getCrossingPaths(featureCollection): Map<string, number[]> {
     const nodeMap = new Map();
 
     featureCollection.features.forEach((feature) => {
@@ -153,7 +153,7 @@ export const manageRelocatingNodes = async (
             const nodeMap = getCrossingPaths(transitPaths);
             await relocateNodes(transitNodes, nodeMap, transitPaths, isCancelled);
             resolve();
-        } catch(e) {
+        } catch (e) {
             reject(e);
         }
     });
