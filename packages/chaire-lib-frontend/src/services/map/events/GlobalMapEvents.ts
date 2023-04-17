@@ -91,14 +91,18 @@ const applyAestheticChanges = async (boundsGL: MapboxGL.LngLatBounds, zoom: numb
 
     const layer = serviceLocator.layerManager._layersByName['transitPaths'].source.data;
     const linesInView = getLinesInView(boundsPolygon, layer);
-    await offsetOverlappingLines(linesInView, isCancelled).catch(() => { return; }); // isCancelled is handled after
+    await offsetOverlappingLines(linesInView, isCancelled).catch(() => {
+        return;
+    }); // isCancelled is handled after
     if (isCancelled && isCancelled()) {
         return;
     }
 
     const transitNodes = serviceLocator.layerManager._layersByName['transitNodes'].source.data;
     const nodesInView = getNodesInView(boundsPolygon, transitNodes);
-    await manageRelocatingNodes(nodesInView, linesInView, isCancelled).catch(() => {return;});
+    await manageRelocatingNodes(nodesInView, linesInView, isCancelled).catch(() => {
+        return;
+    });
     if (isCancelled && isCancelled()) {
         return;
     }
