@@ -1,11 +1,12 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2023, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { offsetOverlappingLines, OFFSET_WIDTH } from '../ManageOverlappingLines';
-import { lineOffset, inside, circle, union } from '@turf/turf';
+
+import { offsetOverlappingLines, OFFSET_WIDTH, getLinesInView } from '../ManageOverlappingLines';
+import { lineOffset, inside, circle, union, bboxPolygon } from '@turf/turf';
 import GeoJSON, { LineString } from 'geojson';
 import _cloneDeep from 'lodash.clonedeep';
 
@@ -202,4 +203,49 @@ test('Test overlaps with duplicate coordinates', async () => {
             expect(coord[1]).not.toBeNaN();
         });
     });
+});
+
+test('Test getting lines within the view bounds', () => {
+    const collection: GeoJSON.FeatureCollection<LineString> = {
+        type: 'FeatureCollection',
+        features: [
+            // Line entirely contained in bounds
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [[0, 0], [0, 1], [0, 1], [2, 2]]
+                },
+                id: 1,
+                properties: {}
+            },
+            // Line outside bounds
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [[10, 10],[20, 20],[30, 30]]
+                },
+                id: 2,
+                properties: {}
+            },
+            // Line partially inside bounds
+            {
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: [[1, 1],[20, 20],[30, 30]]
+                },
+                id: 3,
+                properties: {}
+            }
+        ]
+    };
+    const bounds = bboxPolygon([0, 0, 5, 5]);
+
+    const linesInView = getLinesInView(bounds, collection);
+
+    expect(linesInView.features.length).toEqual(2);
+    expect(linesInView.features[0].id).toEqual(1);
+    expect(linesInView.features[1].id).toEqual(3);
 });

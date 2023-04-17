@@ -1,11 +1,12 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2023, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { lineOffset, lineOverlap, lineString } from '@turf/turf';
-import { LineString } from 'geojson';
+
+import { lineOffset, lineOverlap, lineString, booleanPointInPolygon } from '@turf/turf';
+import { LineString, Feature, Polygon } from 'geojson';
 
 export const OFFSET_WIDTH = 3; // Offset of each line in meters
 
@@ -27,6 +28,33 @@ interface OverlappingSegments {
 }
 
 /**
+ * Obtains the lines from a paths layer that have at least one coordinate inside the viewport.
+ * @param bounds - a bounding box Polygon that represents the viewport's coordinates
+ * @param layer - the paths layer that we want to get the visible lines from
+ * @return A collection of the lines that are in the viewport
+ */
+export const getLinesInView = (
+    bounds: Feature<Polygon>,
+    layer: GeoJSON.FeatureCollection<LineString>
+): GeoJSON.FeatureCollection<LineString> => {
+    const features = layer.features;
+    const linesInView: GeoJSON.FeatureCollection<LineString> = { type: 'FeatureCollection', features: [] };
+    for (let i = 0; i < features.length; i++) {
+        for (let j = 0; j < features[i].geometry.coordinates.length; j++) {
+            if (isInBounds(bounds, features[i].geometry.coordinates[j])) {
+                linesInView.features.push(features[i]);
+                break;
+            }
+        }
+    }
+    return linesInView;
+};
+
+const isInBounds = (bounds: Feature<Polygon>, coord: number[]): boolean => {
+    return booleanPointInPolygon(coord, bounds);
+};
+
+/**
  * Offset overlapping lines when multiple lines use the same road or segment.
  * This is to be able to visually follow where each line goes.
  * @param layerData GeoJSON data containing the lines to offset (will be modified)
@@ -35,14 +63,20 @@ export const offsetOverlappingLines = async (
     layerData: GeoJSON.FeatureCollection<LineString>,
     isCancelled: (() => boolean) | false = false
 ): Promise<void> => {
-    const overlapMap = await findOverlapingLines(layerData, isCancelled);
-    const overlapArray = manageOverlappingSegmentsData(overlapMap, layerData);
-    await applyOffset(overlapArray, layerData, isCancelled);
-    cleanLines(layerData);
-    return;
+    return new Promise(async (resolve, reject) => {
+        try {
+            const overlapMap = await findOverlappingLines(layerData, isCancelled);
+            const overlapArray = manageOverlappingSegmentsData(overlapMap, layerData);
+            await applyOffset(overlapArray, layerData, isCancelled);
+            cleanLines(layerData);
+            resolve();
+        } catch (e) {
+            reject(e);
+        }
+    });
 };
 
-const findOverlapingLines = async (
+const findOverlappingLines = async (
     layerData: GeoJSON.FeatureCollection<LineString>,
     isCancelled: (() => boolean) | false = false
 ): Promise<Map<string, Set<number>>> => {
@@ -178,7 +212,7 @@ const applyOffset = async (
  * Replace coordinates of a segment of line with the offsetted coordinates
  * @param originalSegment The unmodified coordinates of the segment to offset
  * @param offsetCount Units by which to offset the segment
- * @param line The complete line on which to apply the offset segment
+ * @param line The complete line on which to apply the offset segment (will be modified)
  */
 const replaceLineCoordinates = (
     originalSegment: GeoJSON.Feature<LineString>,
