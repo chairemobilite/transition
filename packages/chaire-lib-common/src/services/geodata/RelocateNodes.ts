@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import { lineString, nearestPointOnLine, Feature, Polygon, booleanPointInPolygon, FeatureCollection } from '@turf/turf';
+import { lineString, nearestPointOnLine, Feature, Polygon, booleanPointInPolygon, FeatureCollection, Position } from '@turf/turf';
 import { LineString, Point } from 'geojson';
 
 export const getNodesInView = (
@@ -22,7 +22,7 @@ export const getNodesInView = (
     return nodesInView;
 };
 
-const isInBounds = (bounds: Feature<Polygon>, coord: number[]): boolean => {
+const isInBounds = (bounds: Feature<Polygon>, coord: number[]) : boolean => {
     return booleanPointInPolygon(coord, bounds);
 };
 
@@ -33,12 +33,6 @@ Relocates nodes to the middle point of their crossing paths, if they intersect m
 @param pathFeatures - a FeatureCollection of paths.
 */
 const relocateNodes = (nodeFeatures: GeoJSON.FeatureCollection<Point>, nodeMap: Map<String, Number[]>, pathFeatures: GeoJSON.FeatureCollection<LineString>) => {
-    console.log(nodeFeatures);
-    console.log(nodeMap);
-    console.log(pathFeatures);
-    // Initialize an array for the relocated nodes
-    const relocatedNodes: any[] = [];
-
     // Loop through each node feature in the input of the transit nodes array
     nodeFeatures.features.forEach((nodeFeature : GeoJSON.Feature<Point>, i) => {
         // Get the ID of the current node.
@@ -66,8 +60,6 @@ const relocateNodes = (nodeFeatures: GeoJSON.FeatureCollection<Point>, nodeMap: 
             nodeFeatures.features[i].geometry.coordinates = middlePoint;
         }
     });
-
-    console.log(relocatedNodes);
 };
 
 /**
@@ -76,7 +68,7 @@ const relocateNodes = (nodeFeatures: GeoJSON.FeatureCollection<Point>, nodeMap: 
  * @param pathCoords - an array of arrays, where each inner array represents the coordinates of a path in the format [[longitude1, latitude1], [longitude2, latitude2], ...].
  * @returns an array of arrays, where each inner array represents the coordinates of the point on the corresponding path that is closest to the node.
  */
-function findClosestPoints(nodeCoords, pathCoords) {
+function findClosestPoints(nodeCoords, pathCoords) : Position[]{
     const closestPoints = pathCoords.map((path) => {
         const line = lineString(path);
         const nearestPoint = nearestPointOnLine(line, nodeCoords);
@@ -90,7 +82,7 @@ function findClosestPoints(nodeCoords, pathCoords) {
  * @param points - an array of arrays, where each inner array represents a point in the format [longitude, latitude].
  * @returns an array representing the coordinates of the middle point of the input points.
  */
-function findMiddlePoint(points) {
+function findMiddlePoint(points) : Position {
     const numPoints = points.length;
     const xCoords = points.map((point) => point[0]);
     const yCoords = points.map((point) => point[1]);
@@ -106,7 +98,7 @@ function findMiddlePoint(points) {
  * @param featureCollection - a GeoJSON FeatureCollection representing the transit paths.
  * @returns a Map object with the node IDs as keys and arrays of path IDs that intersect each node as values.
  */
-function getCrossingPaths(featureCollection) {
+function getCrossingPaths(featureCollection) : Map<String, Number[]> {
     const nodeMap = new Map();
 
     featureCollection.features.forEach((feature) => {
