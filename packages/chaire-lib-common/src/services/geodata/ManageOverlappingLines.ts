@@ -63,60 +63,55 @@ export const offsetOverlappingLines = async (
     layerData: GeoJSON.FeatureCollection<LineString>,
     isCancelled: (() => boolean) | false = false
 ): Promise<void> => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            const overlapMap = await findOverlappingLines(layerData, isCancelled);
-            const overlapArray = manageOverlappingSegmentsData(overlapMap, layerData);
-            await applyOffset(overlapArray, layerData, isCancelled);
-            cleanLines(layerData);
-            resolve();
-        } catch (e) {
-            reject(e);
-        }
-    });
+    try {
+        const overlapMap = await findOverlappingLines(layerData, isCancelled);
+        const overlapArray = manageOverlappingSegmentsData(overlapMap, layerData);
+        await applyOffset(overlapArray, layerData, isCancelled);
+        cleanLines(layerData);
+        return;
+    } catch (e) {
+        return Promise.reject(e);
+    }
 };
 
 const findOverlappingLines = async (
     layerData: GeoJSON.FeatureCollection<LineString>,
     isCancelled: (() => boolean) | false = false
 ): Promise<Map<string, Set<number>>> => {
-    return new Promise(async (resolve, reject) => {
-        if (isCancelled && isCancelled()) {
-            reject('Cancelled');
-            return;
-        }
-        const features = layerData.features;
-        // The map contains the feature and a set of numbers
-        // The feature is the segment concerned by the overlap
-        // The set of numbers is a set that contains the IDs of every single line concerned by the overlap on that segment
-        let overlapMap: Map<string, Set<number>> = new Map();
-        for (let i = 0; i < features.length - 1; i++) {
-            if (i % 20 === 0) {
-                if (isCancelled && isCancelled()) {
-                    reject('Cancelled');
-                    return;
-                }
+    if (isCancelled && isCancelled()) {
+        return Promise.reject('Cancelled');
+    }
+
+    const features = layerData.features;
+    // The map contains the feature and a set of numbers
+    // The feature is the segment concerned by the overlap
+    // The set of numbers is a set that contains the IDs of every single line concerned by the overlap on that segment
+    let overlapMap: Map<string, Set<number>> = new Map();
+    for (let i = 0; i < features.length - 1; i++) {
+        if (i % 20 === 0) {
+            if (isCancelled && isCancelled()) {
+                return Promise.reject('Cancelled');
             }
-            for (let j = i + 1; j < features.length; j++) {
-                const overlap = lineOverlap(
-                    lineString(features[i].geometry.coordinates),
-                    lineString(features[j].geometry.coordinates)
+        }
+        for (let j = i + 1; j < features.length; j++) {
+            const overlap = lineOverlap(
+                lineString(features[i].geometry.coordinates),
+                lineString(features[j].geometry.coordinates)
+            );
+            if (overlap.features.length === 0) continue;
+            if (j % 20 === 0) {
+                await new Promise<void>((resolve) =>
+                    setTimeout(() => {
+                        overlapMap = fillOverlapMap(overlap, overlapMap, i, j);
+                        resolve();
+                    }, 0)
                 );
-                if (overlap.features.length === 0) continue;
-                if (j % 20 === 0) {
-                    await new Promise<void>((resolve) =>
-                        setTimeout(() => {
-                            overlapMap = fillOverlapMap(overlap, overlapMap, i, j);
-                            resolve();
-                        }, 0)
-                    );
-                } else {
-                    overlapMap = fillOverlapMap(overlap, overlapMap, i, j);
-                }
+            } else {
+                overlapMap = fillOverlapMap(overlap, overlapMap, i, j);
             }
         }
-        resolve(overlapMap);
-    });
+    }
+    return Promise.resolve(overlapMap);
 };
 
 const fillOverlapMap = (
@@ -173,39 +168,36 @@ const applyOffset = async (
     layerData: GeoJSON.FeatureCollection<LineString>,
     isCancelled: (() => boolean) | false = false
 ): Promise<void> => {
-    return new Promise(async (resolve, reject) => {
-        for (let i = 0; i < overlapArray.length; i++) {
-            if (i % 20 === 0) {
-                if (isCancelled && isCancelled()) {
-                    reject('Cancelled');
-                    return;
-                }
+    for (let i = 0; i < overlapArray.length; i++) {
+        if (i % 20 === 0) {
+            if (isCancelled && isCancelled()) {
+                return Promise.reject('Cancelled');
             }
-            await new Promise<void>((resolve) =>
-                setTimeout(() => {
-                    const nbOverlapped = overlapArray[i].directions.length;
-                    let oppositeDirectionOffset = 0;
-                    let sameDirectionOffset = 0;
-                    for (let j = 0; j < nbOverlapped; j++) {
-                        const segment = overlapArray[i].geoData;
-                        if (overlapArray[i].directions[j]) {
-                            const line = layerData.features[overlapArray[i].crossingLines[j]];
-                            replaceLineCoordinates(segment, sameDirectionOffset, line);
-                            sameDirectionOffset++;
-                        } else {
-                            // No deep copy made before the reverse as there was already one previously
-                            segment.geometry.coordinates.reverse();
-                            const line = layerData.features[overlapArray[i].crossingLines[j]];
-                            replaceLineCoordinates(segment, oppositeDirectionOffset, line);
-                            oppositeDirectionOffset++;
-                        }
-                    }
-                    resolve();
-                }, 0)
-            );
         }
-        resolve();
-    });
+        await new Promise<void>((resolve) =>
+            setTimeout(() => {
+                const nbOverlapped = overlapArray[i].directions.length;
+                let oppositeDirectionOffset = 0;
+                let sameDirectionOffset = 0;
+                for (let j = 0; j < nbOverlapped; j++) {
+                    const segment = overlapArray[i].geoData;
+                    if (overlapArray[i].directions[j]) {
+                        const line = layerData.features[overlapArray[i].crossingLines[j]];
+                        replaceLineCoordinates(segment, sameDirectionOffset, line);
+                        sameDirectionOffset++;
+                    } else {
+                        // No deep copy made before the reverse as there was already one previously
+                        segment.geometry.coordinates.reverse();
+                        const line = layerData.features[overlapArray[i].crossingLines[j]];
+                        replaceLineCoordinates(segment, oppositeDirectionOffset, line);
+                        oppositeDirectionOffset++;
+                    }
+                }
+                resolve();
+            }, 0)
+        );
+    }
+    return;
 };
 
 /**
