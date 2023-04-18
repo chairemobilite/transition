@@ -76,7 +76,8 @@ const transitNodes : GeoJSON.FeatureCollection<Point> = {
             type: 'Feature',
             geometry: {
                 type: 'Point',
-                coordinates: [2,5]
+                // distance within MAX_NODE_RELOCATION_DISTANCE from expected center
+                coordinates: [2,2.0004]
             },
             id: 0,
             properties: {
@@ -88,7 +89,8 @@ const transitNodes : GeoJSON.FeatureCollection<Point> = {
             type: 'Feature',
             geometry: {
                 type: 'Point',
-                coordinates: [1,3]
+                // distance within MAX_NODE_RELOCATION_DISTANCE from expected center
+                coordinates: [1,2.0004]
             },
             id: 1,
             properties: {
@@ -100,7 +102,8 @@ const transitNodes : GeoJSON.FeatureCollection<Point> = {
             type: 'Feature',
             geometry: {
                 type: 'Point',
-                coordinates: [4,2]
+                // distance within MAX_NODE_RELOCATION_DISTANCE from expected center
+                coordinates: [4,1.0004]
             },
             id: 2,
             properties: {

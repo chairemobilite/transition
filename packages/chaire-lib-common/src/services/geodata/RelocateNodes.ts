@@ -5,8 +5,10 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import { lineString, nearestPointOnLine, Feature, Polygon, booleanPointInPolygon, Position } from '@turf/turf';
-import { LineString, Point } from 'geojson';
+import { lineString, nearestPointOnLine, booleanPointInPolygon, Position, distance } from '@turf/turf';
+import { LineString, Point, Feature, Polygon } from 'geojson';
+
+const MAX_NODE_RELOCATION_DISTANCE = 50; // in meters
 
 export const getNodesInView = (
     bounds: Feature<Polygon>,
@@ -31,6 +33,7 @@ Relocates nodes to the middle point of their crossing paths, if they intersect m
 @param nodeFeatures - a FeatureCollection of nodes. (will be modified)
 @param nodeMap - a Map of node IDs to arrays of path IDs that intersect the node.
 @param pathFeatures - a FeatureCollection of paths.
+@param maxDistance - the maximum manhattan distance between the old and new node coordinates for the relocation to occur.
 */
 const relocateNodes = async (
     nodeFeatures: GeoJSON.FeatureCollection<Point>,
@@ -73,9 +76,13 @@ const relocateNodes = async (
             // Find the closest point on each path to the current node.
             const closestPoints = findClosestPoints(nodeCoords, pathCoords);
 
-            // Find the middle point of the closest point
+            // Find the middle point of the closest point.
             const middlePoint = findMiddlePoint(closestPoints);
-            nodeFeatures.features[i].geometry.coordinates = middlePoint;
+
+            // Offset node if not too far from the old coordinates.
+            if (distance(nodeCoords, middlePoint, { units: 'meters' }) <= MAX_NODE_RELOCATION_DISTANCE) {
+                nodeFeatures.features[i].geometry.coordinates = middlePoint;
+            }
         }
     }
     return;
