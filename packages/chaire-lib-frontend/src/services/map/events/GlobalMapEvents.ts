@@ -74,6 +74,10 @@ const globalEventDescriptors: MapEventHandlerDescription[] = [
 ];
 
 const applyAestheticChanges = async (boundsGL: MapboxGL.LngLatBounds, zoom: number): Promise<void> => {
+    if (!Preferences.get('features.map.prettyDisplay', false)) {
+        return;
+    }
+
     const localNonce = (applyAestheticChangesNonce = new Object());
     const isCancelled = () => localNonce !== applyAestheticChangesNonce;
 
