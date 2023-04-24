@@ -9,8 +9,9 @@ import validator from 'validator';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GenericTask } from 'chaire-lib-common/lib/tasks/genericTask';
-import User from '../../services/auth/user';
 import { UserAttributes } from '../../services/users/user';
+import { userAuthModel } from '../../services/auth/userAuthModel';
+import { NewUserParams } from '../../services/auth/authModel';
 
 /**
  * Task to create a user in the database. If any of the username, email or
@@ -142,9 +143,9 @@ export class CreateUser implements GenericTask {
 
     private async createUser(user: UserAttributes) {
         console.log('Creating new user: ', user);
-        user.password = typeof user.password === 'string' ? User.encryptPassword(user.password) : undefined;
+        user.password = typeof user.password === 'string' ? userAuthModel.encryptPassword(user.password) : undefined;
         try {
-            await User.createAndSave(user);
+            await userAuthModel.createAndSave(user as NewUserParams);
         } catch (error) {
             console.log(`An error occured when creating the new user: ${error}`);
         }
@@ -162,7 +163,7 @@ export class CreateUser implements GenericTask {
         const defaultConfirmed = argv['confirmed'] !== undefined ? (argv['confirmed'] as boolean) : true;
         const preferences = typeof argv['prefs'] === 'string' ? JSON.stringify(JSON.parse(argv['prefs'])) : '{}';
 
-        const users = await User.fetchAll();
+        const users = await userAuthModel.fetchAll();
         this.existingUsernames = users
             .filter((user) => typeof user.username === 'string')
             .map((user) => user.username) as string[];

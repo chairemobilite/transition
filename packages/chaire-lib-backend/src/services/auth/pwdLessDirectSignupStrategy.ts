@@ -8,23 +8,23 @@ import { Request } from 'express';
 import { StrategyCreatedStatic } from 'passport';
 import MagicLoginStrategy from 'passport-magic-login';
 
-import { saveNewUser } from '../../config/auth/passport.utils';
-import UserModel from './user';
+import { userAuthModel } from './userAuthModel';
+import { IAuthModel, IUserModel } from './authModel';
 
 /**
  * Passport strategy, which uses a magic link sent by email or sms, but allows a
  * first time user to directly log into the application, without verifying the
  * email first.
  */
-class PwdLessDirectSignupStrategy {
+class PwdLessDirectSignupStrategy<A> {
     name = 'pwdlessdirectsignup';
 
-    constructor(private _magicLoginStrategy: MagicLoginStrategy) {
+    constructor(private _magicLoginStrategy: MagicLoginStrategy, private authModel: IAuthModel<IUserModel>) {
         // Nothing to do
     }
 
     private addNewUser = async (emailOrSms: string) => {
-        const newUser = await saveNewUser({
+        const newUser = await this.authModel.createAndSave({
             username: emailOrSms,
             email: emailOrSms,
             isTest: false
@@ -36,13 +36,13 @@ class PwdLessDirectSignupStrategy {
         }
     };
 
-    async authenticate(this: StrategyCreatedStatic & PwdLessDirectSignupStrategy, req: Request): Promise<void> {
+    async authenticate(this: StrategyCreatedStatic & PwdLessDirectSignupStrategy<A>, req: Request): Promise<void> {
         // Get the email from the payload
         const payload = req.method === 'GET' ? req.query : req.body;
         const emailOrSms = payload.destination;
 
         // Verify if the email is already in the database
-        const model = await UserModel.find({ usernameOrEmail: emailOrSms });
+        const model = await userAuthModel.find({ usernameOrEmail: emailOrSms });
 
         // If so, use the magicLoginStrategy
         if (model) {

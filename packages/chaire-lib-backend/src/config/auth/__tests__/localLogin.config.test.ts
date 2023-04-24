@@ -9,7 +9,7 @@ import localLogin from '../localLogin.config';
 import { sendConfirmationEmail } from '../../../services/auth/userEmailNotifications';
 import config from '../../server.config';
 
-import User from '../../../services/auth/user';
+import { userAuthModel } from '../../../services/auth/userAuthModel';
 import usersDbQueries from '../../../models/db/users.db.queries';
 
 jest.mock('../../../models/db/users.db.queries', () => ({
@@ -19,7 +19,7 @@ jest.mock('../../../models/db/users.db.queries', () => ({
 const mockFind = usersDbQueries.find as jest.MockedFunction<typeof usersDbQueries.find>;
 const mockCreate = usersDbQueries.create as jest.MockedFunction<typeof usersDbQueries.create>;
 
-localLogin(passport);
+localLogin(passport, userAuthModel);
 
 jest.mock('../../../services/auth/userEmailNotifications');
 const mockedConfirmEmail = sendConfirmationEmail as jest.Mocked<typeof sendConfirmationEmail>;
@@ -37,7 +37,7 @@ const unconfirmedUsername = 'unconfirmed';
 const newUsername = 'newUser';
 const newUserEmail = 'newUser@transition.city';
 const password = 'testtest';
-const encryptedPwd = User.encryptPassword(password);
+const encryptedPwd = userAuthModel.encryptPassword(password);
 const validUser = {
     id: 5,
     uuid: 'arbitrary',

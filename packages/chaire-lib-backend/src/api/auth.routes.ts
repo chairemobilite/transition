@@ -10,13 +10,14 @@ import crypto from 'crypto';
 import moment from 'moment';
 import url from 'url';
 
-import passport from '../config/auth';
-import User, { sanitizeUserAttributes } from '../services/auth/user';
+import User, { sanitizeUserAttributes } from '../services/auth/userAuthModel';
 // TODO Responsibility for user login management is usually in passport, move it there
 import { resetPasswordEmail, sendConfirmedByAdminEmail } from '../services/auth/userEmailNotifications';
 import config from '../config/server.config';
 import { getConfirmEmailStrategy } from '../config/auth/localLogin.config';
 import { UserAttributes } from '../services/users/user';
+import { userAuthModel } from '../services/auth/userAuthModel';
+import { PassportStatic } from 'passport';
 
 const defaultSuccessCallback = (req: Request, res: Response) => {
     // Handle success
@@ -37,7 +38,7 @@ const defaultFailureCallback = (err, _req: Request, res: Response, _next) => {
     });
 };
 
-export default function (app: express.Express) {
+export default (app: express.Express, passport: PassportStatic) => {
     app.get(
         '/googlelogin',
         passport.authenticate('google', { scope: 'https://www.googleapis.com/auth/userinfo.email' })
@@ -121,7 +122,7 @@ export default function (app: express.Express) {
                 callback = sendConfirmedByAdminEmail;
             }
 
-            const response = await User.confirmAccount(req.body.token, callback);
+            const response = await userAuthModel.confirmAccount(req.body.token, callback);
             return res.status(200).json({
                 status: response
             });
@@ -214,7 +215,7 @@ export default function (app: express.Express) {
         const token = crypto.randomBytes(20).toString('hex');
         try {
             // TODO Responsibility for user login management is usually in passport, move it there
-            const user = await User.find({ email: req.body.email });
+            const user = await userAuthModel.find({ email: req.body.email });
 
             if (!user) {
                 return res.status(200).json({
@@ -248,7 +249,7 @@ export default function (app: express.Express) {
     app.post('/reset/:token', async (req, res) => {
         try {
             const newPwd = req.body.newPassword ? req.body.newPassword : undefined;
-            const response = await User.resetPassword(req.params.token, newPwd);
+            const response = await userAuthModel.resetPassword(req.params.token, newPwd);
             return res.status(200).json({
                 status: response
             });
@@ -259,4 +260,4 @@ export default function (app: express.Express) {
             });
         }
     });
-}
+};

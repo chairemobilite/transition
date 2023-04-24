@@ -9,7 +9,7 @@ import nodemailerMock  from 'nodemailer-mock';
 import { v4 as uuidV4 } from 'uuid';
 
 import { sendConfirmationEmail, sendConfirmedByAdminEmail, resetPasswordEmail, sendEmail } from '../userEmailNotifications';
-import UserModel from '../user';
+import UserModel from '../userAuthModel';
 import { registerTranslationDir } from '../../../config/i18next';
 import usersDbQueries from '../../../models/db/users.db.queries';
 
@@ -175,11 +175,15 @@ test('Confirmed by admin email', async () => {
 
 describe('sendEmail function', () => {
     test('Send email, arbitrary email', async () => {
-        const user = new UserModel({...defaultUserData, preferences: { lang: 'en' }});
         await sendEmail({ 
             mailText: 'Test Text',
             mailSubject: 'Test subject',
-            toUser: user
+            toUser: {
+                id: defaultUserData.id,
+                email: defaultUserData.email,
+                lang: 'en',
+                displayName: defaultUserData.email
+            }
         }, {});
     
         const sentEmails = nodemailerMock.mock.getSentMail();
@@ -192,11 +196,15 @@ describe('sendEmail function', () => {
     });
     
     test('Send email, arbitrary email with translation array', async () => {
-        const user = new UserModel({...defaultUserData, preferences: { lang: 'en' }});
         await sendEmail({ 
             mailText: ['translationNs1:textString', 'translationNs2:textString'],
             mailSubject: ['translationNs1:subjectString', 'translationNs2:subjectString'],
-            toUser: user
+            toUser: {
+                id: defaultUserData.id,
+                email: defaultUserData.email,
+                lang: 'en',
+                displayName: defaultUserData.email
+            }
         }, {});
     
         const sentEmails = nodemailerMock.mock.getSentMail();

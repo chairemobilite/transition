@@ -10,10 +10,11 @@ import { TestUtils } from 'chaire-lib-common/lib/test';
 import passwordlessLogin from '../passwordless.config';
 import { sendEmail } from '../../../services/auth/userEmailNotifications';
 import usersDbQueries from '../../../models/db/users.db.queries';
+import { userAuthModel } from '../../../services/auth/userAuthModel';
 
 process.env.MAGIC_LINK_SECRET_KEY = 'SOMEARBITRARYSTRINGFORASECRETKEY';
 
-passwordlessLogin(passport);
+passwordlessLogin(passport, userAuthModel);
 
 jest.mock('../../../services/auth/userEmailNotifications');
 const mockedSendEmail = sendEmail as jest.MockedFunction<typeof sendEmail>;
@@ -135,7 +136,7 @@ describe('Complete send/verify flow for existing user', () => {
 
         expect(mockedSendEmail).toHaveBeenCalledTimes(1);
         expect(mockedSendEmail).toHaveBeenLastCalledWith({
-            toUser: expect.objectContaining({ _attributes: expect.objectContaining({ email: existingUserEmail, username: existingUserEmail })}),
+            toUser: { email: existingUserEmail, displayName: '', id: existingUser.id, lang: null },
             mailText: ['customServer:magicLinkEmailText', 'server:magicLinkEmailText'],
             mailSubject: ['customServer:magicLinkEmailSubject', 'server:magicLinkEmailSubject']
         }, { magicLinkUrl: { url: expect.stringContaining('/magic/verify') } });

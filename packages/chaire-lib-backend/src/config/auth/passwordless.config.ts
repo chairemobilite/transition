@@ -9,8 +9,7 @@ import url from 'url';
 import MagicLoginStrategy from 'passport-magic-login';
 import MagicWithDirectSignup from '../../services/auth/pwdLessDirectSignupStrategy';
 import { sendEmail } from '../../services/auth/userEmailNotifications';
-import UserModel from '../../services/auth/user';
-import { saveNewUser } from './passport.utils';
+import { IAuthModel, IUserModel } from '../../services/auth/authModel';
 
 // MagicLoginStrategy sends a link even for registration, for first-time users.
 // Since we also want to support direct entry to the app for first-time users,
@@ -21,51 +20,54 @@ const getMagicUrl = (href: string): string => {
     return new url.URL(`${href}`, host).href;
 };
 
-const sendMagicLink = async (destination, href: string) => {
-    const model = await UserModel.find({ email: destination });
-    const user =
-        model === undefined
-            ? new UserModel({ id: -1, uuid: 'notadbuser', email: destination, username: destination })
-            : model;
-    sendEmail(
-        {
-            mailText: ['customServer:magicLinkEmailText', 'server:magicLinkEmailText'],
-            mailSubject: ['customServer:magicLinkEmailSubject', 'server:magicLinkEmailSubject'],
-            toUser: user
-        },
-        { magicLinkUrl: { url: getMagicUrl(href) } }
-    )
-        .then(() => {
-            console.log('Email sent for magic link authentication');
-        })
-        .catch((error) => {
-            console.error('Error sending magic email: ', error);
+export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuthModel<U>) => {
+    const sendMagicLink = async (destination, href: string) => {
+        const model = await authModel.find({ email: destination });
+        const user =
+            model === undefined ? authModel.newUser({ id: -1, email: destination, username: destination }) : model;
+        sendEmail(
+            {
+                mailText: ['customServer:magicLinkEmailText', 'server:magicLinkEmailText'],
+                mailSubject: ['customServer:magicLinkEmailSubject', 'server:magicLinkEmailSubject'],
+                toUser: {
+                    id: user.id,
+                    email: user.email,
+                    displayName: user.displayName,
+                    lang: user.langPref
+                }
+            },
+            { magicLinkUrl: { url: getMagicUrl(href) } }
+        )
+            .then(() => {
+                console.log('Email sent for magic link authentication');
+            })
+            .catch((error) => {
+                console.error('Error sending magic email: ', error);
+            });
+    };
+
+    const getOrCreateUserWithEmail = async (destination: string): Promise<U> => {
+        console.log('destination', destination);
+        const model = await authModel.find({ email: destination });
+        if (model !== undefined) {
+            return model;
+        }
+        const isTest =
+            destination.toLowerCase().endsWith('@test.com') ||
+            destination.toLowerCase().endsWith('@test') ||
+            destination.toLowerCase().endsWith('@test.test');
+        const newUser = await authModel.createAndSave({
+            username: destination,
+            email: destination,
+            isTest
         });
-};
+        if (newUser !== null) {
+            return newUser;
+        } else {
+            throw 'Cannot save new user';
+        }
+    };
 
-const getOrCreateUserWithEmail = async (destination: string): Promise<UserModel> => {
-    console.log('destination', destination);
-    const model = await UserModel.find({ email: destination });
-    if (model !== undefined) {
-        return model;
-    }
-    const isTest =
-        destination.toLowerCase().endsWith('@test.com') ||
-        destination.toLowerCase().endsWith('@test') ||
-        destination.toLowerCase().endsWith('@test.test');
-    const newUser = await saveNewUser({
-        username: destination,
-        email: destination,
-        isTest
-    });
-    if (newUser !== null) {
-        return newUser;
-    } else {
-        throw 'Cannot save new user';
-    }
-};
-
-export default function (passport: PassportStatic) {
     // TODO Manage the language
     const magicLogin = new MagicLoginStrategy({
         // Used to encrypt the authentication token. Needs to be long, unique and (duh) secret.
@@ -100,7 +102,7 @@ export default function (passport: PassportStatic) {
         }
     });
 
-    const directSignupStrategy = new MagicWithDirectSignup(magicLogin);
+    const directSignupStrategy = new MagicWithDirectSignup(magicLogin, authModel);
     passport.use('passwordless-login', magicLogin);
     passport.use('passwordless-enter-login', directSignupStrategy);
-}
+};
