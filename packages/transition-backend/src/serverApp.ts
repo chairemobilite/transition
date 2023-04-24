@@ -8,7 +8,7 @@
 import _dotenv from 'chaire-lib-backend/lib/config/dotenv.config';
 // FIXME Need to make sure it is imported. Really? Any component using this should import it
 import _project from 'chaire-lib-backend/lib/config/server.config';
-import passport from 'chaire-lib-backend/lib/config/auth';
+import configurePassport from 'chaire-lib-backend/lib/config/auth';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import path from 'path';
 import { Express, Request, Response, RequestHandler } from 'express';
@@ -25,6 +25,7 @@ import authRoutes from 'chaire-lib-backend/lib/api/auth.routes';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { UserAttributes } from 'chaire-lib-backend/lib/services/users/user';
 import config from 'chaire-lib-backend/lib/config/server.config';
+import { userAuthModel } from 'chaire-lib-backend/lib/services/auth/userAuthModel';
 
 export const setupServer = (app: Express) => {
     const projectShortname = config.projectShortname;
@@ -74,6 +75,7 @@ export const setupServer = (app: Express) => {
         saveUninitialized: false,
         store: sessionStore
     });
+    const passport = configurePassport(userAuthModel);
 
     app.use(
         morgan('combined', {
@@ -142,7 +144,7 @@ export const setupServer = (app: Express) => {
     app.use('/dist/', publicPath); // this needs to be after gzip middlewares.
     app.use('/locales/', localePath); // this needs to be after gzip middlewares.
 
-    authRoutes(app);
+    authRoutes(app, passport);
 
     app.get('*', (req: Request, res: Response): void => {
         res.sendFile(indexPath);

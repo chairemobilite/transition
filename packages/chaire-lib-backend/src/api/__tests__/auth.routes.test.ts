@@ -7,10 +7,11 @@
 import express, { RequestHandler } from 'express';
 import request from 'supertest';
 import session from 'supertest-session';
+import passport from 'passport';
 
 import authRoutes from '../auth.routes';
 import { resetPasswordEmail } from '../../services/auth/userEmailNotifications';
-import User from '../../services/auth/user';
+import { userAuthModel } from '../../services/auth/userAuthModel';
 import config from '../../config/server.config';
 import usersDbQueries from '../../models/db/users.db.queries';
 
@@ -20,7 +21,7 @@ jest.mock('../../config/server.config', () => ({
 jest.mock('../../services/auth/userEmailNotifications');
 const mockedResetPwdEmail = resetPasswordEmail as jest.MockedFunction<typeof resetPasswordEmail>;
 const mockResetPassword = jest.fn();
-User.resetPassword = mockResetPassword;
+userAuthModel.resetPassword = mockResetPassword;
 
 let authResponse: {
     error: any,
@@ -85,7 +86,7 @@ const app = express();
 // FIXME Since upgrading @types/node, the types are wrong and we get compilation error. It is documented for example https://github.com/DefinitelyTyped/DefinitelyTyped/issues/53584 the real fix would require upgrading a few packages and may have side-effects. Simple casting works for now.
 app.use(express.json({ limit: '500mb' }) as RequestHandler);
 app.use(express.urlencoded({extended: true}) as RequestHandler);
-authRoutes(app);
+authRoutes(app, passport);
 
 beforeEach(() => {
     authResponse = {
@@ -341,7 +342,7 @@ describe('Passwordless and anonymous auth routes, supported', () => {
     // FIXME Since upgrading @types/node, the types are wrong and we get compilation error. It is documented for example https://github.com/DefinitelyTyped/DefinitelyTyped/issues/53584 the real fix would require upgrading a few packages and may have side-effects. Simple casting works for now.
     secondApp.use(express.json({ limit: '500mb' }) as RequestHandler);
     secondApp.use(express.urlencoded({extended: true}) as RequestHandler);
-    authRoutes(secondApp);
+    authRoutes(secondApp, passport);
 
     afterAll(() => {
         config.auth = {};

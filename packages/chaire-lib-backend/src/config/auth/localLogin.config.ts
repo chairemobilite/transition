@@ -10,11 +10,10 @@ import url from 'url';
 import { PassportStatic } from 'passport';
 import LocalStrategy from 'passport-local';
 
-import UserModel from '../../services/auth/user';
-import { saveNewUser } from './passport.utils';
 import config from '../server.config';
 import { sendConfirmationEmail } from '../../services/auth/userEmailNotifications';
 import { v4 as uuidV4 } from 'uuid';
+import { IAuthModel, IUserModel } from '../../services/auth/authModel';
 
 // FIXME: auth.localLogin is now the way to define local login behavior, setting variables here for legacy purposes
 // @Deprecated all config.* that is not in auth, are deprecated and have been moved to auth
@@ -22,13 +21,13 @@ const getConfirmEmail = () => config.confirmEmail || config.auth?.localLogin?.co
 export const getConfirmEmailStrategy = () =>
     config.confirmEmailStrategy || config.auth?.localLogin?.confirmEmailStrategy;
 
-const getVerifyUrl = (user: UserModel): string => {
+const getVerifyUrl = (confirmationToken: string): string => {
     const host = process.env.HOST || 'http://localhost:8080';
-    return new url.URL(`/verify/${user.attributes.confirmation_token}`, host).href;
+    return new url.URL(`/verify/${confirmationToken}`, host).href;
 };
 
 const sendEmailIfRequired = async (
-    user: UserModel,
+    user: IUserModel,
     done: (error: any, user?: any, options?: LocalStrategy.IVerifyOptions) => void
 ) => {
     if (getConfirmEmail() !== true) {
@@ -40,7 +39,7 @@ const sendEmailIfRequired = async (
             'Environment variable HOST is undefined. Add it to the .env file so the new user confirmation URL can be created'
         );
     } else {
-        const confirmUrl = getVerifyUrl(user);
+        const confirmUrl = getVerifyUrl(user.confirmationToken || '');
         try {
             await sendConfirmationEmail(user, {
                 strategy: getConfirmEmailStrategy() || 'confirmByUser',
@@ -54,7 +53,7 @@ const sendEmailIfRequired = async (
     done(null, false, { message: 'UnconfirmedUser' });
 };
 
-export default function (passport: PassportStatic) {
+export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuthModel<U>) => {
     passport.use(
         'local-login',
         new LocalStrategy.Strategy(
@@ -69,14 +68,15 @@ export default function (passport: PassportStatic) {
                     query = 'username = ? OR email = ? OR facebook_id = ? OR google_id = ?'; //password ? `(username = '${usernameOrEmail}' OR email = '${usernameOrEmail}') AND password = crypt('${password}', password)` : `(username = '${usernameOrEmail}' OR email = '${usernameOrEmail}')`;
                     binding = [usernameOrEmail, usernameOrEmail, usernameOrEmail, usernameOrEmail];
                 } */
-                UserModel.find({ usernameOrEmail: usernameOrEmail })
+                authModel
+                    .find({ usernameOrEmail: usernameOrEmail })
                     .then(async (model) => {
                         if (model === undefined) {
                             done('UnknownUser', false);
                             return;
                         }
                         if (await model.verifyPassword(password)) {
-                            if (!model.attributes.is_confirmed) {
+                            if (!model.isConfirmed) {
                                 done(null, false, { message: 'UnconfirmedUser' });
                             } else {
                                 done(null, model.sanitize());
@@ -105,7 +105,8 @@ export default function (passport: PassportStatic) {
                 done: (error: any, user?: any, options?: LocalStrategy.IVerifyOptions) => void
             ) => {
                 const email = req.body.email;
-                UserModel.find({ username, email: email ? email : username }, true)
+                authModel
+                    .find({ username, email: email ? email : username }, true)
                     .then(async (model) => {
                         if (model !== undefined) {
                             done('UserExists', false);
@@ -115,7 +116,7 @@ export default function (passport: PassportStatic) {
                             username.toLowerCase().endsWith('@test.com') ||
                             username.toLowerCase().endsWith('@test') ||
                             username.toLowerCase().endsWith('@test.test');
-                        const newUser = await saveNewUser({
+                        const newUser = await authModel.createAndSave({
                             username,
                             email,
                             password,
@@ -136,4 +137,4 @@ export default function (passport: PassportStatic) {
             }
         )
     );
-}
+};

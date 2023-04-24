@@ -7,9 +7,9 @@
 import express from 'express';
 
 import Users from '../services/users/users';
-import UserModel from '../services/auth/user';
 import isAuthorized, { UserSubject } from '../services/auth/authorization';
 import { getAvailableRoles } from '../services/auth/userPermissions';
+import { userAuthModel } from '../services/auth/userAuthModel';
 
 const router = express.Router();
 
@@ -60,7 +60,7 @@ router.post('/updateUser', async (req, res) => {
             res.status(404).json({ status: 'BadRequest', message: 'Missing user uuid' });
         }
 
-        const user = await UserModel.getByUuid(uuid);
+        const user = await userAuthModel.getByUuid(uuid);
         if (user === undefined) {
             return res.status(404).json({
                 status: 'notFound',

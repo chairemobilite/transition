@@ -6,10 +6,9 @@
  */
 import MockDate from 'mockdate';
 import moment from 'moment';
-import { sanitizeUserAttributes } from '../user';
 import { getHomePage } from '../userPermissions';
 
-import User from '../user';
+import User, { userAuthModel, sanitizeUserAttributes } from '../userAuthModel';
 import { UserAttributes } from '../../users/user';
 import usersDbQueries from '../../../models/db/users.db.queries';
 
@@ -54,7 +53,7 @@ describe('Account confirmation', () => {
             confirmation_token: token,
             is_confirmed: false
         });
-        const result = await User.confirmAccount(token);
+        const result = await userAuthModel.confirmAccount(token);
         expect(result).toEqual('Confirmed');
         expect(findFct).toHaveBeenCalledTimes(1);
         expect(findFct).toHaveBeenCalledWith({ confirmation_token: token });
@@ -72,7 +71,7 @@ describe('Account confirmation', () => {
             is_confirmed: false
         })
         const callback = jest.fn();
-        const result = await User.confirmAccount(token, callback);
+        const result = await userAuthModel.confirmAccount(token, callback);
         expect(result).toEqual('Confirmed');
         expect(findFct).toHaveBeenCalledTimes(1);
         expect(findFct).toHaveBeenCalledWith({ confirmation_token: token });
@@ -84,7 +83,7 @@ describe('Account confirmation', () => {
     test('Test invalid token confirmation', async () => {
         const token = "thisisanarbitraytoken";
         findFct.mockResolvedValueOnce(undefined)
-        const result = await User.confirmAccount(token);
+        const result = await userAuthModel.confirmAccount(token);
         expect(result).toEqual('NotFound');
         expect(findFct).toHaveBeenCalledTimes(1);
         expect(findFct).toHaveBeenCalledWith({ confirmation_token: token });
@@ -98,7 +97,7 @@ describe('Password verification', () => {
         const user = new User({
             id: defaultUserId,
             uuid: 'arbitrary',
-            password: User.encryptPassword(password),
+            password: userAuthModel.encryptPassword(password),
         });
         expect(await user.verifyPassword(password)).toBeTruthy();
         expect(await user.verifyPassword('')).toBeFalsy;
@@ -135,7 +134,7 @@ test('Test get display name', async () => {
         uuid: 'arbitrary',
         password: null,
     });
-    expect(user.getDisplayName()).toEqual('');
+    expect(user.displayName).toEqual('');
 
     user = new User({
         id: defaultUserId,
@@ -144,7 +143,7 @@ test('Test get display name', async () => {
         username,
         email
     });
-    expect(user.getDisplayName()).toEqual(username);
+    expect(user.displayName).toEqual(username);
 
     user = new User({
         id: defaultUserId,
@@ -153,7 +152,7 @@ test('Test get display name', async () => {
         username,
         first_name
     });
-    expect(user.getDisplayName()).toEqual(first_name);
+    expect(user.displayName).toEqual(first_name);
 
     user = new User({
         id: defaultUserId,
@@ -162,7 +161,7 @@ test('Test get display name', async () => {
         username,
         last_name
     });
-    expect(user.getDisplayName()).toEqual(last_name);
+    expect(user.displayName).toEqual(last_name);
 
     user = new User({
         id: defaultUserId,
@@ -172,7 +171,7 @@ test('Test get display name', async () => {
         first_name,
         last_name
     });
-    expect(user.getDisplayName()).toEqual(first_name + ' ' + last_name);
+    expect(user.displayName).toEqual(first_name + ' ' + last_name);
 
     user = new User({
         id: defaultUserId,
@@ -181,7 +180,7 @@ test('Test get display name', async () => {
         username: email,
         email
     });
-    expect(user.getDisplayName()).toEqual('');
+    expect(user.displayName).toEqual('');
 
 });
 
@@ -295,9 +294,9 @@ describe('Reset password', () => {
             uuid: defaultUuid,
             password_reset_token: token,
             password_reset_expire_at: moment(Date.now() + 86400000),
-            password: User.encryptPassword('forgotten')
+            password: userAuthModel.encryptPassword('forgotten')
         });
-        const result = await User.resetPassword(token, newPassword);
+        const result = await userAuthModel.resetPassword(token, newPassword);
         expect(result).toEqual('PasswordChanged');
 
         expect(findFct).toHaveBeenCalledTimes(1);
@@ -318,9 +317,9 @@ describe('Reset password', () => {
             uuid: defaultUuid,
             password_reset_token: token,
             password_reset_expire_at: moment(Date.now() - 86400000),
-            password: User.encryptPassword('forgotten')
+            password: userAuthModel.encryptPassword('forgotten')
         });
-        const result = await User.resetPassword(token, newPassword);
+        const result = await userAuthModel.resetPassword(token, newPassword);
         expect(result).toEqual('Expired');
         expect(saveFct).not.toHaveBeenCalled();
     });
@@ -329,7 +328,7 @@ describe('Reset password', () => {
         const token = 'thisisanarbitraytoken';
         const newPassword = 'newPassword';
         findFct.mockResolvedValueOnce(undefined);
-        const result = await User.resetPassword(token, newPassword);
+        const result = await userAuthModel.resetPassword(token, newPassword);
         expect(result).toEqual('NotFound');
         expect(saveFct).not.toHaveBeenCalled();
     });
@@ -341,13 +340,13 @@ describe('Reset password', () => {
             uuid: defaultUuid,
             password_reset_token: token,
             password_reset_expire_at: moment(Date.now() + 86400000),
-            password: User.encryptPassword('forgotten')
+            password: userAuthModel.encryptPassword('forgotten')
         });
-        let result = await User.resetPassword(token);
+        let result = await userAuthModel.resetPassword(token);
         expect(result).toEqual('Confirmed');
         expect(saveFct).not.toHaveBeenCalled();
     
-        result = await User.resetPassword(token, undefined);
+        result = await userAuthModel.resetPassword(token, undefined);
         expect(result).toEqual('Confirmed');
         expect(saveFct).not.toHaveBeenCalled();
     });
@@ -434,4 +433,38 @@ describe('Update attributes', () => {
         expect(baseUser.attributes).toEqual(baseUserAttribs);
     })
 
+});
+
+test('User properties', () => {
+    const userAttributes = {
+        id: 6,
+        email: 'foo@test.org',
+        username: 'foo',
+        first_name: 'Foo',
+        last_name: 'Bar',
+        is_valid: true,
+        is_confirmed: false,
+        confirmation_token: 'ThisIsAConfirmationToken',
+        profile: null,
+        preferences: { lang: 'es' },
+        generated_password: null,
+        google_id: null,
+        facebook_id: null,
+        password: 'Randomencryptedpassword',
+        password_reset_expire_at: moment('2023-04-24'),
+        password_reset_token: 'MyPasswordResetToken',
+        uuid: 'arbitraryUuid',
+        is_admin: false,
+        permissions: null,
+        is_test: false
+    };
+
+    const user = new User(userAttributes);
+    expect(user.id).toEqual(userAttributes.id);
+    expect(user.email).toEqual(userAttributes.email);
+    expect(user.langPref).toEqual(userAttributes.preferences.lang);
+    expect(user.displayName).toEqual(expect.stringContaining(userAttributes.first_name));
+    expect(user.passwordResetExpireAt).toEqual(userAttributes.password_reset_expire_at);
+    expect(user.confirmationToken).toEqual(userAttributes.confirmation_token);
+    expect(user.isConfirmed).toEqual(userAttributes.is_confirmed);
 });

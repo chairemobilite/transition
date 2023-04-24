@@ -5,24 +5,31 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import i18n from '../../config/i18next';
-import UserModel from './user';
+import { IUserModel } from './authModel';
 import Users from '../users/users';
 import mailTransport from '../mailer/transport';
+import { UserAttributesBase } from '../users/user';
+import UserModel from './userAuthModel';
+
+type UserEmailData = {
+    id: number;
+    email: string | null | undefined;
+    displayName: string;
+    lang: string | null;
+};
 
 interface UserNotification {
     mailText: string | string[];
     mailSubject: string | string[];
-    toUser: UserModel;
+    toUser: UserEmailData;
 }
 
 export const sendEmail = async (
     userNotification: UserNotification,
     translateKeys: { [name: string]: any }
 ): Promise<void> => {
-    if (typeof userNotification.toUser.attributes.email !== 'string') {
-        console.error(
-            `Mail should be sent to user ${userNotification.toUser.attributes.uuid}, but the user does not have an email`
-        );
+    if (typeof userNotification.toUser.email !== 'string') {
+        console.error(`Mail should be sent to user ${userNotification.toUser.id}, but the user does not have an email`);
         return;
     }
     const transport = mailTransport;
@@ -32,11 +39,11 @@ export const sendEmail = async (
     const urlKeys = Object.keys(translateKeys).filter((key) => translateKeys[key].url);
     const commonTranslateKeys = {
         ...translateKeys,
-        name: userNotification.toUser.getDisplayName(),
+        name: userNotification.toUser.displayName,
         interpolation: { escapeValue: false }
     };
 
-    const userLang = userNotification.toUser.getLangPref();
+    const userLang = userNotification.toUser.lang;
     const translate = userLang ? i18n().getFixedT(userLang) : i18n().getFixedT(i18n().language);
     const textTranslateKey = Object.assign({}, commonTranslateKeys);
     urlKeys.forEach((key) => (textTranslateKey[key] = translateKeys[key].url));
@@ -51,7 +58,7 @@ export const sendEmail = async (
     const subject = translate(userNotification.mailSubject);
     const mailOptions = {
         from: process.env.MAIL_FROM_ADDRESS,
-        to: userNotification.toUser.attributes.email,
+        to: userNotification.toUser.email,
         subject: subject,
         text: textMsg,
         html: htmlMsg
@@ -60,14 +67,19 @@ export const sendEmail = async (
     await transport.sendMail(mailOptions);
 };
 
-const getConfirmEmailsToSend = async (user: UserModel, strategy?: string): Promise<UserNotification[]> => {
+const getConfirmEmailsToSend = async (user: IUserModel, strategy?: string): Promise<UserNotification[]> => {
     const actualStrategy = strategy === 'confirmByAdmin' ? 'confirmByAdmin' : 'confirmByUser';
     if (actualStrategy === 'confirmByUser') {
         return [
             {
                 mailText: 'server:confirmByUserText',
                 mailSubject: 'server:confirmByUserSubject',
-                toUser: user
+                toUser: {
+                    id: user.id,
+                    email: user.email,
+                    displayName: user.displayName,
+                    lang: user.langPref
+                }
             }
         ];
     }
@@ -75,17 +87,28 @@ const getConfirmEmailsToSend = async (user: UserModel, strategy?: string): Promi
     if (admins.length === 0) {
         throw new Error('There are no admins to confirm emails!!');
     }
+    // Admins are always from the user auth model, so the object can be constructed directly
     const adminUsers = admins.map((adminAttribs) => new UserModel(adminAttribs));
     // Send email to admins and a notification to the user
     const userNotificationPending = {
         mailText: 'server:pendingConfirmByAdminText',
         mailSubject: 'server:pendingConfirmByAdminSubject',
-        toUser: user
+        toUser: {
+            id: user.id,
+            email: user.email,
+            displayName: user.displayName,
+            lang: user.langPref
+        }
     };
-    const notifications = adminUsers.map((admin) => ({
+    const notifications: UserNotification[] = adminUsers.map((admin) => ({
         mailText: 'server:confirmByAdminText',
         mailSubject: 'server:confirmByAdminSubject',
-        toUser: admin
+        toUser: {
+            id: admin.attributes.id,
+            email: admin.attributes.email,
+            displayName: admin.displayName,
+            lang: admin.langPref
+        }
     }));
     notifications.push(userNotificationPending);
     return notifications;
@@ -100,21 +123,26 @@ const getConfirmEmailsToSend = async (user: UserModel, strategy?: string): Promi
  * be sent.
  */
 export const sendConfirmationEmail = async (
-    user: UserModel,
+    user: IUserModel,
     options: { strategy?: string; confirmUrl: string }
 ): Promise<void> => {
     const emails = await getConfirmEmailsToSend(user, options.strategy);
     emails.forEach(async (email) => {
-        await sendEmail(email, { userConfirmationUrl: { url: options.confirmUrl }, usermail: user.attributes.email });
+        await sendEmail(email, { userConfirmationUrl: { url: options.confirmUrl }, usermail: user.email });
     });
     console.log('Email sent for account confirmation');
 };
 
-export const sendConfirmedByAdminEmail = async (user: UserModel): Promise<void> => {
+export const sendConfirmedByAdminEmail = async (user: IUserModel): Promise<void> => {
     const email = {
         mailText: 'server:confirmedByAdminEmailText',
         mailSubject: 'server:confirmedByAdminEmailSubject',
-        toUser: user
+        toUser: {
+            id: user.id,
+            email: user.email,
+            displayName: user.displayName,
+            lang: user.langPref
+        }
     };
     await sendEmail(email, {});
     console.log('Email sent for confirmation by admin');
@@ -125,11 +153,16 @@ export const sendConfirmedByAdminEmail = async (user: UserModel): Promise<void> 
  * @param user The user who forgot his password
  * @param options Options
  */
-export const resetPasswordEmail = async (user: UserModel, options: { resetPasswordUrl: string }): Promise<void> => {
+export const resetPasswordEmail = async (user: IUserModel, options: { resetPasswordUrl: string }): Promise<void> => {
     const email = {
         mailText: 'server:resetPasswordEmailText',
         mailSubject: 'server:resetPasswordEmailSubject',
-        toUser: user
+        toUser: {
+            id: user.id,
+            email: user.email,
+            displayName: user.displayName,
+            lang: user.langPref
+        }
     };
     await sendEmail(email, { resetPasswordUrl: { url: options.resetPasswordUrl } });
     console.log('Email sent for password reset');

@@ -6,6 +6,7 @@
  */
 import passport from 'passport';
 import usersDbQueries from '../../../models/db/users.db.queries';
+import { userAuthModel } from '../userAuthModel';
 
 import AnonymousLoginStrategy from '../anonymousLoginStrategy';
 
@@ -34,7 +35,7 @@ beforeEach(() => {
     mockCreate.mockClear();
 });
 
-const strategy = new AnonymousLoginStrategy();
+const strategy = new AnonymousLoginStrategy(userAuthModel);
 passport.use('anonymous-login', strategy);
 
 test('correct name', () => {
