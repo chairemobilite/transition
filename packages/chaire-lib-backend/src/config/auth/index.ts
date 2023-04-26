@@ -122,7 +122,7 @@ export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic 
         const AnonymousLoginStrategy = anonymousLoginStrategy.default
             ? anonymousLoginStrategy.default
             : anonymousLoginStrategy;
-        passport.use('anonymous-login', new AnonymousLoginStrategy());
+        passport.use('anonymous-login', new AnonymousLoginStrategy(authModel));
     }
 
     // TODO user is Express.User type and does not have an id type
