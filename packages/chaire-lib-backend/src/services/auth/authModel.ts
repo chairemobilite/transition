@@ -20,6 +20,7 @@ export interface IUserModel {
     isConfirmed: boolean;
     sanitize: () => BaseUser;
     verifyPassword: (password: string) => Promise<boolean>;
+    updateAndSave(newAttribs: unknown): Promise<void>;
 }
 
 export type NewUserParams = {
