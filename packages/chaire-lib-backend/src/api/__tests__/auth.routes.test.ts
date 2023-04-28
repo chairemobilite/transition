@@ -59,7 +59,9 @@ jest.mock('passport', () => {
         }),
         use: jest.fn(),
         serializeUser: jest.fn(),
-        deserializeUser: jest.fn()
+        deserializeUser: jest.fn(),
+        initialize: jest.fn().mockReturnValue((req, res, next) => next()),
+        session: jest.fn().mockReturnValue((req, res, next) => next())
     }
 });
 const validUsername = 'test';
@@ -86,7 +88,7 @@ const app = express();
 // FIXME Since upgrading @types/node, the types are wrong and we get compilation error. It is documented for example https://github.com/DefinitelyTyped/DefinitelyTyped/issues/53584 the real fix would require upgrading a few packages and may have side-effects. Simple casting works for now.
 app.use(express.json({ limit: '500mb' }) as RequestHandler);
 app.use(express.urlencoded({extended: true}) as RequestHandler);
-authRoutes(app, passport);
+authRoutes(app, userAuthModel);
 
 beforeEach(() => {
     authResponse = {
@@ -342,7 +344,7 @@ describe('Passwordless and anonymous auth routes, supported', () => {
     // FIXME Since upgrading @types/node, the types are wrong and we get compilation error. It is documented for example https://github.com/DefinitelyTyped/DefinitelyTyped/issues/53584 the real fix would require upgrading a few packages and may have side-effects. Simple casting works for now.
     secondApp.use(express.json({ limit: '500mb' }) as RequestHandler);
     secondApp.use(express.urlencoded({extended: true}) as RequestHandler);
-    authRoutes(secondApp, passport);
+    authRoutes(secondApp, userAuthModel);
 
     afterAll(() => {
         config.auth = {};

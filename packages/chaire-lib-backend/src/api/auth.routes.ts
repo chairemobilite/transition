@@ -16,8 +16,8 @@ import { resetPasswordEmail, sendConfirmedByAdminEmail } from '../services/auth/
 import config from '../config/server.config';
 import { getConfirmEmailStrategy } from '../config/auth/localLogin.config';
 import { UserAttributes } from '../services/users/user';
-import { userAuthModel } from '../services/auth/userAuthModel';
-import { PassportStatic } from 'passport';
+import { IAuthModel, IUserModel } from '../services/auth/authModel';
+import configurePassport from '../config/auth';
 
 const defaultSuccessCallback = (req: Request, res: Response) => {
     // Handle success
@@ -38,7 +38,11 @@ const defaultFailureCallback = (err, _req: Request, res: Response, _next) => {
     });
 };
 
-export default (app: express.Express, passport: PassportStatic) => {
+export default <U extends IUserModel>(app: express.Express, authModel: IAuthModel<U>) => {
+    const passport = configurePassport(authModel);
+    app.use(passport.initialize());
+    app.use(passport.session());
+
     app.get(
         '/googlelogin',
         passport.authenticate('google', { scope: 'https://www.googleapis.com/auth/userinfo.email' })
@@ -117,12 +121,12 @@ export default (app: express.Express, passport: PassportStatic) => {
 
     app.post('/verify', async (req, res) => {
         try {
-            let callback: ((user: User) => void) | undefined = undefined;
+            let callback: ((user: U) => void) | undefined = undefined;
             if (getConfirmEmailStrategy() === 'confirmByAdmin') {
                 callback = sendConfirmedByAdminEmail;
             }
 
-            const response = await userAuthModel.confirmAccount(req.body.token, callback);
+            const response = await authModel.confirmAccount(req.body.token, callback);
             return res.status(200).json({
                 status: response
             });
@@ -215,7 +219,7 @@ export default (app: express.Express, passport: PassportStatic) => {
         const token = crypto.randomBytes(20).toString('hex');
         try {
             // TODO Responsibility for user login management is usually in passport, move it there
-            const user = await userAuthModel.find({ email: req.body.email });
+            const user = await authModel.find({ email: req.body.email });
 
             if (!user) {
                 return res.status(200).json({
@@ -249,7 +253,7 @@ export default (app: express.Express, passport: PassportStatic) => {
     app.post('/reset/:token', async (req, res) => {
         try {
             const newPwd = req.body.newPassword ? req.body.newPassword : undefined;
-            const response = await userAuthModel.resetPassword(req.params.token, newPwd);
+            const response = await authModel.resetPassword(req.params.token, newPwd);
             return res.status(200).json({
                 status: response
             });
