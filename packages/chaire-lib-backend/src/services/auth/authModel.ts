@@ -18,6 +18,11 @@ export interface IUserModel {
     passwordResetExpireAt?: Moment | null;
     confirmationToken: string | null;
     isConfirmed: boolean;
+    /** Get the user attributes for this user, used in backend applications.
+     * Implementations can add data to these attributes */
+    attributes: UserAttributesBase;
+    /** Function that returns a base user with no confidential information. This
+     * user may be seen by the client */
     sanitize: () => BaseUser;
     verifyPassword: (password: string) => Promise<boolean>;
     updateAndSave(newAttribs: unknown): Promise<void>;

@@ -135,7 +135,7 @@ export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic 
         try {
             const model = await authModel.getById(id as number);
             if (model !== undefined) {
-                done(null, model.sanitize());
+                done(null, model.attributes);
                 return null;
             }
             done('User does not exist');
