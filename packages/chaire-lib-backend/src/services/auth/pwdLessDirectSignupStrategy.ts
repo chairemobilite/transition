@@ -8,7 +8,6 @@ import { Request } from 'express';
 import { StrategyCreatedStatic } from 'passport';
 import MagicLoginStrategy from 'passport-magic-login';
 
-import { userAuthModel } from './userAuthModel';
 import { IAuthModel, IUserModel } from './authModel';
 
 /**
@@ -42,7 +41,7 @@ class PwdLessDirectSignupStrategy<A> {
         const emailOrSms = payload.destination;
 
         // Verify if the email is already in the database
-        const model = await userAuthModel.find({ usernameOrEmail: emailOrSms });
+        const model = await this.authModel.find({ usernameOrEmail: emailOrSms });
 
         // If so, use the magicLoginStrategy
         if (model) {
