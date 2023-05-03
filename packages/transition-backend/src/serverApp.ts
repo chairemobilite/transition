@@ -90,6 +90,9 @@ export const setupServer = (app: Express) => {
     app.use(requestIp.mw()); // to get users ip addresses
     app.use(favicon(path.join(publicDirectory, 'favicon.ico')));
 
+    // Auth routes initialize passport, which needs to be initialized before the other routes
+    authRoutes(app, userAuthModel);
+
     app.set('trust proxy', true); // allow nginx or other proxy server to send request ip address
 
     // send js and css compressed (gzip) to save bandwidth:
@@ -139,8 +142,6 @@ export const setupServer = (app: Express) => {
 
     app.use('/dist/', publicPath); // this needs to be after gzip middlewares.
     app.use('/locales/', localePath); // this needs to be after gzip middlewares.
-
-    authRoutes(app, userAuthModel);
 
     app.get('*', (req: Request, res: Response): void => {
         res.sendFile(indexPath);
