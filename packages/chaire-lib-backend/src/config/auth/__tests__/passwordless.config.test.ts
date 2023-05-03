@@ -97,7 +97,8 @@ test('Passwordless login, first entry, direct access', async () => {
         is_valid: true,
         is_test: false,
         is_confirmed: true,
-        confirmation_token: null
+        confirmation_token: null,
+        preferences: null
     });
 
     expect(logInFct).toHaveBeenCalledWith({ id: newUserId, username: newUserEmail, email: newUserEmail, firstName: '', lastName: '', preferences: {}, serializedPermissions: []}, expect.anything(), expect.anything());

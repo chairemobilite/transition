@@ -146,7 +146,8 @@ describe('User creation', () => {
             is_confirmed: true,
             confirmation_token: null,
             is_admin: false,
-            is_test: false
+            is_test: false,
+            preferences: null
         }],
         ['User with username/email/password', {
             username: 'foo',
@@ -165,9 +166,10 @@ describe('User creation', () => {
             is_confirmed: true,
             confirmation_token: null,
             is_admin: false,
-            is_test: false
+            is_test: false,
+            preferences: null
         }],
-        ['With validity and confirmation', {
+        ['With validity, confirmation and is_admin', {
             email: 'foo@example.org',
             confirmationToken: aUuid,
             isTest: true
@@ -184,7 +186,52 @@ describe('User creation', () => {
             is_confirmed: false,
             confirmation_token: aUuid,
             is_admin: false,
-            is_test: true
+            is_test: true,
+            preferences: null
+        }], 
+        ['With is_admin, user first and last names and preferences', {
+            email: 'foo@example.org',
+            is_admin: true,
+            firstName: 'Foo',
+            lastName: 'Bar',
+            preferences: { lang: 'en' }
+        }, {
+            username: null,
+            email: 'foo@example.org',
+            google_id: null,
+            facebook_id: null,
+            generated_password: null,
+            password: null,
+            first_name: 'Foo',
+            last_name: 'Bar',
+            is_valid: true,
+            is_confirmed: true,
+            confirmation_token: null,
+            is_admin: true,
+            is_test: false,
+            preferences: { lang: 'en' }
+        }],
+        ['With invalid values', {
+            email: 'foo@example.org',
+            is_admin: 'some value',
+            isTest: 'some value',
+            preferences: `{ lang: 'en' }`,
+            confirmationToken: null
+        }, {
+            username: null,
+            email: 'foo@example.org',
+            google_id: null,
+            facebook_id: null,
+            generated_password: null,
+            password: null,
+            first_name: '',
+            last_name: '',
+            is_valid: true,
+            is_confirmed: false,
+            confirmation_token: null,
+            is_admin: false,
+            is_test: false,
+            preferences: null
         }]
     ]).test('%s', async (_description, params: NewUserParams, expectedUser: UserAttributes) => {
         createFct.mockImplementationOnce(async (data) => ({ id: 100, uuid: uuidV4(), ...data }));

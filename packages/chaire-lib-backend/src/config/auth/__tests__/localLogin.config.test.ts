@@ -205,7 +205,8 @@ test('Local signup strategy, auto-signon username and email', async () => {
         is_valid: true,
         is_test: false,
         is_confirmed: true,
-        confirmation_token: null
+        confirmation_token: null,
+        preferences: null
     });
 });
 
@@ -272,7 +273,8 @@ test('Local signup strategy, with email confirmation by user', async () => {
         is_valid: true,
         is_test: false,
         is_confirmed: false,
-        confirmation_token: expect.anything()
+        confirmation_token: expect.anything(),
+        preferences: null
     });
     const insertedUser: any = mockCreate.mock.calls[0][0];
 
@@ -325,7 +327,8 @@ test('Local signup strategy, with email confirmation by admin', async () => {
         is_valid: true,
         is_test: false,
         is_confirmed: false,
-        confirmation_token: expect.anything()
+        confirmation_token: expect.anything(),
+        preferences: null
     });
     const insertedUser: any = mockCreate.mock.calls[0][0];
 
@@ -374,7 +377,8 @@ test('Local signup strategy, with email confirmation by admin, urls without endi
         is_valid: true,
         is_test: false,
         is_confirmed: false,
-        confirmation_token: expect.anything()
+        confirmation_token: expect.anything(),
+        preferences: null
     });
     const insertedUser: any = mockCreate.mock.calls[0][0];
 

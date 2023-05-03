@@ -30,7 +30,7 @@ class UserAuthModel extends AuthModelBase<UserModel> {
         super(dbQueries);
     }
 
-    createAndSave = async (userData: NewUserParams): Promise<UserModel> => {
+    createAndSave = async (userData: NewUserParams & { is_admin?: boolean }): Promise<UserModel> => {
         const userAttribs = await dbQueries.create({
             username: userData.username || null,
             email: userData.email || null,
@@ -41,13 +41,14 @@ class UserAuthModel extends AuthModelBase<UserModel> {
                 userData.googleId || userData.facebookId || !userData.password
                     ? null
                     : this.encryptPassword(userData.password),
-            first_name: '',
-            last_name: '',
+            first_name: userData.firstName || '',
+            last_name: userData.lastName || '',
             is_valid: userData.isTest === true ? false : true,
             is_confirmed: userData.confirmationToken !== undefined ? false : true,
             confirmation_token: userData.confirmationToken !== undefined ? userData.confirmationToken : null,
-            is_admin: false,
-            is_test: userData.isTest === true
+            is_admin: userData.is_admin === true,
+            is_test: userData.isTest === true,
+            preferences: typeof userData.preferences === 'object' ? userData.preferences : null
         });
         const user = this.newUser(userAttribs);
 
