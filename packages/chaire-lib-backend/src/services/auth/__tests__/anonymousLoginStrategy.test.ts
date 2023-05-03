@@ -66,7 +66,8 @@ test('Anonymous strategy success', async () => {
         is_valid: true,
         is_test: false,
         is_confirmed: true,
-        confirmation_token: null
+        confirmation_token: null,
+        preferences: null
     });
     expect(logInFct).toHaveBeenCalledWith({ id: newUserId, username: expect.stringContaining('anonym_'), email: undefined, firstName: '', lastName: '', preferences: {}, serializedPermissions: []}, expect.anything(), expect.anything());
 });

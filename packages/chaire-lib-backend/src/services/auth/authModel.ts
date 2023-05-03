@@ -31,12 +31,17 @@ export interface IUserModel {
 export type NewUserParams = {
     username?: string;
     email?: string;
+    /** Unencrypted generated password, the authentication model should take care to save it as expected */
     generatedPassword?: string;
     googleId?: string;
     facebookId?: string;
+    /** Unencrypted password, the authentication model should take care to save it as expected */
     password?: string;
     isTest?: boolean;
     confirmationToken?: string;
+    firstName?: string;
+    lastName?: string;
+    preferences?: { [key: string]: any };
 };
 
 export interface IAuthModel<U extends IUserModel> {

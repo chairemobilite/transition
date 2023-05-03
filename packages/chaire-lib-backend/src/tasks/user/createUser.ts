@@ -7,11 +7,11 @@
 import inquirer from 'inquirer';
 import validator from 'validator';
 
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { _isBlank, _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GenericTask } from 'chaire-lib-common/lib/tasks/genericTask';
-import { UserAttributes } from '../../services/users/user';
 import { userAuthModel } from '../../services/auth/userAuthModel';
 import { NewUserParams } from '../../services/auth/authModel';
+import { v4 as uuidV4 } from 'uuid';
 
 /**
  * Task to create a user in the database. If any of the username, email or
@@ -51,7 +51,6 @@ export class CreateUser implements GenericTask {
 
     private callPrompt = async (options: {
         defaultAdmin: boolean;
-        defaultValid: boolean;
         defaultConfirmed: boolean;
         preferences: any;
     }): Promise<void> => {
@@ -91,11 +90,6 @@ export class CreateUser implements GenericTask {
                 default: options.defaultAdmin
             },
             {
-                name: 'is_valid',
-                type: 'confirm',
-                default: options.defaultValid
-            },
-            {
                 name: 'is_confirmed',
                 type: 'confirm',
                 default: options.defaultConfirmed
@@ -106,7 +100,7 @@ export class CreateUser implements GenericTask {
         await this.createUser(user);
     };
 
-    private async createUserFromData(user: any) {
+    private async createUserFromData(user: NewUserParams & { is_admin?: boolean }) {
         let isValid = true;
         if (_isBlank(user.email)) {
             isValid = false;
@@ -130,20 +124,19 @@ export class CreateUser implements GenericTask {
             );
         }
         // Just write an error message if username or email does not validate, it's not an error to throw
-        if (!this.validateUsername(user.username)) {
-            console.error('Invalid or existing username');
+        if (typeof user.username === 'string' && this.validateUsername(user.username) !== true) {
+            console.error('Invalid or existing username:', this.validateUsername(user.username));
             return;
         }
-        if (!this.validateEmail(user.email)) {
-            console.error('Invalid or existing email');
+        if (typeof user.email === 'string' && this.validateEmail(user.email) !== true) {
+            console.error('Invalid or existing email:', this.validateEmail(user.email));
             return;
         }
         await this.createUser(user);
     }
 
-    private async createUser(user: UserAttributes) {
+    private async createUser(user: NewUserParams & { is_admin?: boolean }) {
         console.log('Creating new user: ', user);
-        user.password = typeof user.password === 'string' ? userAuthModel.encryptPassword(user.password) : undefined;
         try {
             await userAuthModel.createAndSave(user as NewUserParams);
         } catch (error) {
@@ -153,15 +146,14 @@ export class CreateUser implements GenericTask {
 
     public async run(argv: { [key: string]: unknown }): Promise<void> {
         // Handle arguments and default values
-        const username = argv['username'];
-        const email = argv['email'];
-        const password = argv['password'];
-        const first_name = argv['first_name'] || '';
-        const last_name = argv['last_name'] || '';
-        const defaultAdmin = argv['admin'] !== undefined ? (argv['admin'] as boolean) : false;
-        const defaultValid = argv['valid'] !== undefined ? (argv['valid'] as boolean) : true;
-        const defaultConfirmed = argv['confirmed'] !== undefined ? (argv['confirmed'] as boolean) : true;
-        const preferences = typeof argv['prefs'] === 'string' ? JSON.stringify(JSON.parse(argv['prefs'])) : '{}';
+        const username = argv['username'] !== undefined ? (argv['username'] as string) : undefined;
+        const email = argv['email'] !== undefined ? (argv['email'] as string) : undefined;
+        const password = argv['password'] !== undefined ? (argv['password'] as string) : undefined;
+        const firstName = argv['first_name'] !== undefined ? (argv['first_name'] as string) : '';
+        const lastName = argv['last_name'] !== undefined ? (argv['last_name'] as string) : '';
+        const defaultAdmin = _toBool(argv['admin'] as any, false) as boolean;
+        const defaultConfirmed = _toBool(argv['confirmed'] as boolean, true) as boolean;
+        const preferences = typeof argv['prefs'] === 'string' ? JSON.parse(argv['prefs']) : {};
 
         const users = await userAuthModel.fetchAll();
         this.existingUsernames = users
@@ -171,21 +163,20 @@ export class CreateUser implements GenericTask {
             .filter((user) => typeof user.email === 'string')
             .map((user) => user.email) as string[];
 
-        if (username || email || password || first_name || last_name) {
+        if (username || email || password || firstName || lastName) {
             // Non-interactive user creation
             await this.createUserFromData({
                 username,
                 email,
                 password,
-                first_name,
-                last_name,
+                firstName,
+                lastName,
                 is_admin: defaultAdmin,
-                is_valid: defaultValid,
-                is_confirmed: defaultConfirmed,
+                confirmationToken: defaultConfirmed !== true ? uuidV4() : undefined,
                 preferences
             });
         } else {
-            await this.callPrompt({ defaultAdmin, defaultValid, defaultConfirmed, preferences });
+            await this.callPrompt({ defaultAdmin, defaultConfirmed, preferences });
         }
     }
 }
