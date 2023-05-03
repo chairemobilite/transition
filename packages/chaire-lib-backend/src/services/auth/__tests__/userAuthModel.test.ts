@@ -7,10 +7,13 @@
 import MockDate from 'mockdate';
 import moment from 'moment';
 import { getHomePage } from '../userPermissions';
+import each from 'jest-each';
+import { v4 as uuidV4 } from 'uuid';
 
 import User, { userAuthModel, sanitizeUserAttributes } from '../userAuthModel';
 import { UserAttributes } from '../../users/user';
 import usersDbQueries from '../../../models/db/users.db.queries';
+import { NewUserParams } from '../authModel';
 
 // Mocked date: 2020-09-23, the day we first mocked a date in Transition...
 MockDate.set(new Date(1600833600000));
@@ -27,13 +30,15 @@ jest.mock('../userPermissions', () => {
 });
 jest.mock('../../../models/db/users.db.queries', () => ({
     update: jest.fn(),
-    find: jest.fn()
+    find: jest.fn(),
+    create: jest.fn()
 }));
 
 const mockedGetHomePage = getHomePage as jest.MockedFunction<typeof getHomePage>;
 
 const saveFct = usersDbQueries.update as jest.MockedFunction<typeof usersDbQueries.update>;
-const findFct = usersDbQueries.find as jest.MockedFunction<typeof usersDbQueries.find>
+const findFct = usersDbQueries.find as jest.MockedFunction<typeof usersDbQueries.find>;
+const createFct = usersDbQueries.create as jest.MockedFunction<typeof usersDbQueries.create>;
 
 const defaultUserId = 5;
 const defaultUuid = 'arbitrary';
@@ -42,6 +47,7 @@ beforeEach(() => {
     saveFct.mockClear();
     findFct.mockClear();
     mockedGetHomePage.mockClear();
+    createFct.mockClear();
 });
 
 describe('Account confirmation', () => {
@@ -122,7 +128,73 @@ describe('Password verification', () => {
         expect(await user.verifyPassword('')).toBeFalsy;
         expect(await user.verifyPassword('Other password')).toBeFalsy();
     })
-})
+});
+
+describe('User creation', () => {
+    const aUuid = uuidV4();
+    each([
+        ['Empty user', {}, {
+            username: null,
+            email: null,
+            google_id: null,
+            facebook_id: null,
+            generated_password: null,
+            password: null,
+            first_name: '',
+            last_name: '',
+            is_valid: true,
+            is_confirmed: true,
+            confirmation_token: null,
+            is_admin: false,
+            is_test: false
+        }],
+        ['User with username/email/password', {
+            username: 'foo',
+            email: 'foo@example.org',
+            password: '1111111',
+        }, {
+            username: 'foo',
+            email: 'foo@example.org',
+            google_id: null,
+            facebook_id: null,
+            generated_password: null,
+            password: expect.stringContaining('$2a$10$'),
+            first_name: '',
+            last_name: '',
+            is_valid: true,
+            is_confirmed: true,
+            confirmation_token: null,
+            is_admin: false,
+            is_test: false
+        }],
+        ['With validity and confirmation', {
+            email: 'foo@example.org',
+            confirmationToken: aUuid,
+            isTest: true
+        }, {
+            username: null,
+            email: 'foo@example.org',
+            google_id: null,
+            facebook_id: null,
+            generated_password: null,
+            password: null,
+            first_name: '',
+            last_name: '',
+            is_valid: false,
+            is_confirmed: false,
+            confirmation_token: aUuid,
+            is_admin: false,
+            is_test: true
+        }]
+    ]).test('%s', async (_description, params: NewUserParams, expectedUser: UserAttributes) => {
+        createFct.mockImplementationOnce(async (data) => ({ id: 100, uuid: uuidV4(), ...data }));
+
+        const user = await userAuthModel.createAndSave(params)
+        expect(createFct).toHaveBeenCalledTimes(1);
+        expect(createFct).toHaveBeenCalledWith(expectedUser);
+        expect(user.attributes).toEqual(expect.objectContaining(expectedUser));
+    });
+});
 
 test('Test get display name', async () => {
     const username = 'test';

@@ -47,7 +47,7 @@ class UserAuthModel extends AuthModelBase<UserModel> {
             is_confirmed: userData.confirmationToken !== undefined ? false : true,
             confirmation_token: userData.confirmationToken !== undefined ? userData.confirmationToken : null,
             is_admin: false,
-            is_test: userData.isTest
+            is_test: userData.isTest === true
         });
         const user = this.newUser(userAttribs);
 
