@@ -77,8 +77,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         };
     }
 
-    // TODO Not the suggested approach, the 'object' should not be in the state after all, it is a prop
-    static getDerivedStateFromProps(props: PathFormProps, state: PathFormState) {
+    // TODO Not the suggested approach, the 'object' should not be in the state after all, it is a prop (see issue #307)
+    static getDerivedStateFromProps(props: any, state: PathFormState) {
         if (props.path !== state.object) {
             return {
                 object: props.path

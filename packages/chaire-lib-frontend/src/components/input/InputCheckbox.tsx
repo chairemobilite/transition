@@ -226,7 +226,6 @@ class InputCheckboxBooleanInner extends React.Component<InputCheckboxBoolProps> 
             /* nothing to do */
         },
         localePrefix: 'main',
-        t: (_str) => '',
         disabled: false
     };
 
