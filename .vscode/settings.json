@@ -4,5 +4,20 @@
     },
     "editor.tabSize": 4,
     "editor.insertSpaces": true,
-    "editor.detectIndentation": false
+    "editor.detectIndentation": false,
+    "i18n-ally.localesPaths": [
+        "locales"
+    ],
+    "i18n-ally.enabledFrameworks": [
+        "react",
+        "i18next"
+    ],
+    "i18n-ally.enabledParsers": [
+        "json"
+    ],
+    "i18n-ally.keystyle": "nested",
+    "i18n-ally.review.enabled": false,
+    "i18n-ally.namespace": true,
+    "i18n-ally.pathMatcher": "{locale}/{namespaces}.json",
+    "i18n-ally.indent": 4
 }
