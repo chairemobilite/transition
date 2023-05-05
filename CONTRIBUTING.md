@@ -18,6 +18,12 @@ If you use Transition and encounter a bug, first make sure a similar issue has n
 
 If there's something you would like to see in Transition, no matter how big or small a change it may seem, you may start a discussion in the issue tracker [here](https://github.com/chairemobilite/transition/issues). Members of the community can join in the discussion.
 
+### Translating
+
+Transition uses the i18next node modules for managing translations. Translations files are located in the `locales` directory, in a folder called by the language prefix. To support a new language, copy the folder for one of the existing languages, and edit the texts in each .json file.
+
+If using VScode, the [i18n Ally](https://github.com/lokalise/i18n-ally/) extension is a good tool to help with translations. The **i18n Ally** panel allows to see all translation keys and directly access its translations. And if editing the code, calling a `t` function (for translation), with a key, will show the available translations when hovering and allow to edit/add them.
+
 ### Developing the platform
 
 If you want to start getting involved in the development of the application, a good idea is to contact the current development team, through an issue describing the bug you want to fix or the feature you want to implement. To get started, there are some easy issues to work on using the [complexity low (good first issue)](https://github.com/chairemobilite/transition/labels/complexity%20low%20%28good%20first%20issue%29) label.
