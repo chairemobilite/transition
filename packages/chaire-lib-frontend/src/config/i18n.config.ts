@@ -19,6 +19,7 @@ i18n.use(LanguageDetector)
     .use(HttpApi)
     .init(
         {
+            returnNull: false,
             detection: {
                 // order and from where user language should be detected
                 order: detectorOrder,
@@ -26,7 +27,6 @@ i18n.use(LanguageDetector)
             },
             load: 'languageOnly', // no region-specific,
             preload: config.languages,
-            whitelist: config.languages,
             nonExplicitSupportedLngs: false,
             fallbackLng: config.defaultLocale || 'en',
             debug: false,
@@ -34,7 +34,6 @@ i18n.use(LanguageDetector)
                 escapeValue: false // not needed for react!!
             },
             react: {
-                wait: true,
                 useSuspense: false
             }
         },

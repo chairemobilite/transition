@@ -39,7 +39,7 @@ import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal'
 import Schedule from 'transition-common/lib/services/schedules/Schedule';
 import Line from 'transition-common/lib/services/line/Line';
 
-interface ScheduleFormProps extends WithTranslation {
+interface ScheduleFormProps {
     schedule: Schedule;
     line: Line;
     /** Services that are available as choices for this schedule (not assigned to other schedules) */
@@ -50,10 +50,10 @@ interface ScheduleFormState extends SaveableObjectState<Schedule> {
     scheduleErrors: string[];
 }
 
-class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps, ScheduleFormState> {
+class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps & WithTranslation, ScheduleFormState> {
     private resetChangesCount = 0;
 
-    constructor(props: ScheduleFormProps) {
+    constructor(props: ScheduleFormProps & WithTranslation) {
         super(props);
 
         this.state = {
@@ -66,8 +66,8 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         };
     }
 
-    // TODO Not the suggested approach, the 'object' should not be in the state after all, it is a prop
-    static getDerivedStateFromProps(props: ScheduleFormProps, state: ScheduleFormState) {
+    // TODO Not the suggested approach, the 'object' should not be in the state after all, it is a prop (see issue #307)
+    static getDerivedStateFromProps(props: any, state: ScheduleFormState) {
         if (props.schedule !== state.object) {
             return {
                 object: props.schedule
