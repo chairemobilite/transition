@@ -18,6 +18,7 @@ import configureStore from 'chaire-lib-frontend/lib/store/configureStore';
 import { login, logout } from 'chaire-lib-frontend/lib/actions/Auth';
 import { LoadingPage } from 'chaire-lib-frontend/lib/components/pages';
 import config from 'chaire-lib-frontend/lib/config/project.config';
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import {
     SupplyManagementDashboardContribution,
     DemandManagementDashboardContribution
@@ -27,9 +28,18 @@ import { setApplicationConfiguration } from 'chaire-lib-frontend/lib/config/appl
 
 import 'chaire-lib-frontend/lib/styles/styles-transition.scss';
 import './styles/transition.scss';
+import { TFunction } from 'i18next';
 
 const history = createBrowserHistory();
-setApplicationConfiguration({ homePage: '/dashboard' });
+setApplicationConfiguration({
+    homePage: '/dashboard',
+    userMenuItems: [
+        {
+            getText: (t: TFunction) => t('main:Preferences'),
+            action: () => serviceLocator.eventManager.emit('section.change', 'preferences', false)
+        }
+    ]
+});
 // Set the application title for the header
 // TODO This is a frontend only configuration, that should be configured in code, not in the config file. When configuration objects are revisited, make sure that is clear and possible
 config.appTitle = 'Transition';

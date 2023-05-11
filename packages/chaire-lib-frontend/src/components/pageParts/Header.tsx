@@ -11,8 +11,9 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import moment from 'moment-business-days';
 
 import ConfirmModal from '../modal/ConfirmModal';
-import { startLogout, resetUserProfile } from '../../actions/Auth';
+import { startLogout } from '../../actions/Auth';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
+import appConfiguration, { UserMenuItem } from '../../config/application.config';
 import { History } from 'history';
 import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
 
@@ -20,32 +21,70 @@ export interface HeaderProps extends WithTranslation {
     user: CliUser;
     path: any;
     startLogout: () => void;
-    resetUserProfile: () => void;
     appName: string;
     history: History;
 }
 
 interface UserProps {
     user: CliUser;
-    resetUserProfile: () => void;
 }
+
+interface UserMenuButtonProps {
+    menuItem: UserMenuItem;
+    modalOpenedCallback: (isOpened: boolean) => void;
+}
+
+const UserMenuButton: React.FunctionComponent<UserMenuButtonProps & WithTranslation> = (
+    props: UserMenuButtonProps & WithTranslation
+) => {
+    const [modalIsOpened, setModalIsOpened] = React.useState(false);
+    const toggleModal = (opened: boolean) => {
+        setModalIsOpened(opened);
+        props.modalOpenedCallback(opened);
+    };
+    return (
+        <React.Fragment>
+            <button
+                type="button"
+                className="menu-button"
+                key={'header__nav-reset'}
+                onClick={props.menuItem.confirmModal === undefined ? props.menuItem.action : () => toggleModal(true)}
+            >
+                {props.menuItem.getText(props.t)}
+            </button>
+            {modalIsOpened && props.menuItem.confirmModal !== undefined && (
+                <ConfirmModal
+                    isOpen={true}
+                    title={props.menuItem.confirmModal.title(props.t)}
+                    confirmAction={(e) => {
+                        console.log('confirmed');
+                        props.menuItem.action(e);
+                    }}
+                    confirmButtonColor="red"
+                    confirmButtonLabel={props.menuItem.confirmModal.label(props.t)}
+                    closeModal={() => toggleModal(false)}
+                />
+            )}
+        </React.Fragment>
+    );
+};
+const TranslatableUserMenuButton = withTranslation('menu')(UserMenuButton);
 
 interface UserMenuProps {
     user: CliUser;
-    resetUserProfile: () => void;
     wrapperRef: React.MutableRefObject<null>;
     closeMenu: () => void;
 }
 
 const UserMenu: React.FunctionComponent<UserMenuProps & WithTranslation> = (props: UserMenuProps & WithTranslation) => {
-    const [resetModalIsOpened, setResetModalIsOpened] = React.useState(false);
+    const [hasModalOpened, setHasModalOpened] = React.useState(false);
     React.useLayoutEffect(() => {
         function handleClickOutside(event) {
             if (
                 null !== props.wrapperRef &&
                 props.wrapperRef.current &&
                 !(props.wrapperRef.current as any).contains(event.target) &&
-                !resetModalIsOpened
+                !hasModalOpened
             ) {
                 props.closeMenu();
             }
@@ -56,27 +95,16 @@ const UserMenu: React.FunctionComponent<UserMenuProps & WithTranslation> = (prop
             // Unbind the event listener on clean up
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [props.wrapperRef, resetModalIsOpened]);
+    }, [props.wrapperRef, hasModalOpened]);
     return (
-        <div className="menu" ref={props.wrapperRef} style={{ display: 'block' }}>
-            <button
-                type="button"
-                className="menu-button"
-                key={'header__nav-reset'}
-                onClick={() => setResetModalIsOpened(true)}
-            >
-                {props.t('menu:Reset')}
-            </button>
-            {resetModalIsOpened && (
-                <ConfirmModal
-                    isOpen={true}
-                    title={props.t('menu:ResetUserPrefsTitle')}
-                    confirmAction={() => props.resetUserProfile()}
-                    confirmButtonColor="red"
-                    confirmButtonLabel={props.t('menu:ResetUserPrefsConfirm')}
-                    closeModal={() => setResetModalIsOpened(false)}
+        <div className="menu userMenu" ref={props.wrapperRef}>
+            {appConfiguration.userMenuItems.map((menuItem, index: number) => (
+                <TranslatableUserMenuButton
+                    key={`header__nav-user${index}`}
+                    menuItem={menuItem}
+                    modalOpenedCallback={setHasModalOpened}
                 />
-            )}
+            ))}
         </div>
     );
 };
@@ -90,17 +118,16 @@ const User: React.FunctionComponent<UserProps & WithTranslation> = (props: UserP
             <button
                 className="menu-button"
                 type="button"
-                onClick={() => setDisplay(display === 'none' ? 'block' : 'none')}
+                onClick={
+                    appConfiguration.userMenuItems.length > 0
+                        ? () => setDisplay(display === 'none' ? 'block' : 'none')
+                        : undefined
+                }
             >
                 {props.user.username || props.user.email || props.t('menu:User')}
             </button>
             {display !== 'none' && (
-                <TranslatableUserMenu
-                    wrapperRef={wrapperRef}
-                    user={props.user}
-                    resetUserProfile={props.resetUserProfile}
-                    closeMenu={() => setDisplay('none')}
-                />
+                <TranslatableUserMenu wrapperRef={wrapperRef} user={props.user} closeMenu={() => setDisplay('none')} />
             )}
         </li>
     );
@@ -171,7 +198,7 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
                                 ''
                             );
                         })}
-                        {props.user && <TranslatableUser user={props.user} resetUserProfile={props.resetUserProfile} />}
+                        {props.user && <TranslatableUser user={props.user} />}
                     </ul>
                 </nav>
             </div>
@@ -184,8 +211,7 @@ const mapStateToProps = (state) => {
 };
 
 const mapDispatchToProps = (dispatch, props: Omit<HeaderProps, 'startLogout'>) => ({
-    startLogout: () => dispatch(startLogout(props.history)),
-    resetUserProfile: () => dispatch(resetUserProfile(props.history))
+    startLogout: () => dispatch(startLogout(props.history))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(withTranslation('menu')(Header));
