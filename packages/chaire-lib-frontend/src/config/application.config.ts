@@ -4,8 +4,18 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-
+import { TFunction } from 'i18next';
 import { UserPages } from 'chaire-lib-common/lib/services/user/userType';
+import { MouseEventHandler } from 'react';
+
+export type UserMenuItem = {
+    getText: (t: TFunction) => string;
+    action: MouseEventHandler;
+    confirmModal?: {
+        title: (t: TFunction) => string;
+        label: (t: TFunction) => string;
+    };
+};
 
 export type ApplicationConfiguration<AdditionalConfig> = {
     /**
@@ -16,11 +26,17 @@ export type ApplicationConfiguration<AdditionalConfig> = {
      * Pages available to the user, once logged in
      */
     pages: UserPages[];
+    /**
+     * Items that will be added to the menu, when clicking on the logged in user
+     * name
+     */
+    userMenuItems: UserMenuItem[];
 } & AdditionalConfig;
 
 const appConfiguration: ApplicationConfiguration<any> = {
     homePage: '/',
-    pages: []
+    pages: [],
+    userMenuItems: []
 };
 
 export const setApplicationConfiguration = <AdditionalConfig>(

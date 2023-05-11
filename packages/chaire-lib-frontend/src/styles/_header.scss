@@ -42,5 +42,10 @@ header {
     border: 1px solid $border-white;
     z-index: 1000;
   }
+
+  .userMenu {
+    display: flex;
+    flex-direction: column;
+  }
   
 }
