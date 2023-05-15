@@ -8,6 +8,8 @@ import _cloneDeep from 'lodash.clonedeep';
 import { default as Preferences, PreferencesClass } from '../Preferences';
 import { default as defaultPreferences, PreferencesModel } from '../defaultPreferences.config';
 import { EventEmitter } from 'events';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
+import fetchMock from 'jest-fetch-mock';
 
 jest.mock('../../config/shared/project.config', () => {
     const config = require(process.env.PROJECT_CONFIG as string);
@@ -20,6 +22,11 @@ stubEmitter.on("preferences.update", (data, callback) => {
 })
 
 stubEmitter.on("preferences.updated", jest.fn());
+
+beforeEach(() => {
+    fetchMock.doMock();
+    fetchMock.mockClear();
+})
 
 test("Test default preferences", () => {
     expect(Preferences.get("sections")).toMatchObject(defaultPreferences.sections);
@@ -84,3 +91,28 @@ test("Test get from default or project default", () => {
     expect(Preferences.getFromProjectDefaultOrDefault("map.zoom")).toBe(10);
     expect(Preferences.get("map.zoom")).toBe(15); // should not change users prefs value
 });
+
+describe('Load preferences', () => {
+    const preferences = { lang: 'fr', section: 'test', other: 'pref' };
+    test("Load from socket routes", async () => {
+        const testPreferences = Object.assign({}, preferences, { from: 'socket' });
+        stubEmitter.on("preferences.read", (callback) => {
+            callback(Status.createOk(testPreferences));
+        })
+
+        await Preferences.load(stubEmitter, stubEmitter);
+        expect(Preferences.attributes).toEqual(expect.objectContaining(testPreferences));
+    });
+
+    test("Load from fetch", async () => {
+        const testPreferences = Object.assign({}, preferences, { from: 'fetch' });
+        fetchMock.mockOnce(JSON.stringify(Status.createOk(testPreferences)));
+
+        await Preferences.load();
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock).toHaveBeenCalledWith('/load_user_preferences', expect.objectContaining({ 
+            method: 'GET'
+        }));
+        expect(Preferences.attributes).toEqual(expect.objectContaining(testPreferences));
+    });
+})
