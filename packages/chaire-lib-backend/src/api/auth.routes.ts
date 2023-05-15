@@ -10,7 +10,7 @@ import crypto from 'crypto';
 import moment from 'moment';
 import url from 'url';
 
-import User, { sanitizeUserAttributes } from '../services/auth/userAuthModel';
+import { sanitizeUserAttributes } from '../services/auth/userAuthModel';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 // TODO Responsibility for user login management is usually in passport, move it there
 import { resetPasswordEmail, sendConfirmedByAdminEmail } from '../services/auth/userEmailNotifications';
@@ -167,15 +167,14 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
     app.post('/update_user_preferences', (req, res) => {
         const valuesByPath = req.body.valuesByPath;
         if (req.isAuthenticated() && req.user) {
-            const _user = new User({ ...req.user } as UserAttributes);
-            const preferences = Object.assign({}, _user.attributes.preferences);
+            const user = authModel.newUser({ ...req.user });
+            const preferences = Object.assign({}, user.attributes.preferences);
             if (Object.keys(valuesByPath).length > 0) {
                 for (const path in valuesByPath) {
                     _set(preferences, path, valuesByPath[path]);
                 }
             }
-            _user
-                .updateAndSave({ preferences })
+            user.updateAndSave({ preferences })
                 .then((_data) => {
                     res.status(200).json({
                         status: 'success'
@@ -191,15 +190,15 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
             return null;
         } else {
             console.log('not logged in!');
-            //return res.redirect(307, '/login');
+            return res.status(401).json({ status: 'Unauthorized' });
         }
     });
 
     app.get('/reset_user_preferences', async (req, res) => {
         if (req.isAuthenticated() && req.user) {
-            const _user = new User({ ...req.user } as UserAttributes);
+            const user = authModel.newUser({ ...req.user });
             try {
-                await _user.updateAndSave({ preferences: {} });
+                await user.updateAndSave({ preferences: {} });
                 return res.status(200).json({
                     status: 'success'
                 });
