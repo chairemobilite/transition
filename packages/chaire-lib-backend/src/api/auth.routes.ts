@@ -11,6 +11,7 @@ import moment from 'moment';
 import url from 'url';
 
 import User, { sanitizeUserAttributes } from '../services/auth/userAuthModel';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 // TODO Responsibility for user login management is usually in passport, move it there
 import { resetPasswordEmail, sendConfirmedByAdminEmail } from '../services/auth/userEmailNotifications';
 import config from '../config/server.config';
@@ -209,6 +210,16 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
                     error
                 });
             }
+        } else {
+            console.log('not logged in!');
+            return res.status(401).json({ status: 'Unauthorized' });
+        }
+    });
+
+    app.get('/load_user_preferences', async (req, res) => {
+        if (req.isAuthenticated() && req.user) {
+            const user = authModel.newUser({ ...req.user });
+            return res.status(200).json(Status.createOk(user.attributes.preferences));
         } else {
             console.log('not logged in!');
             return res.status(401).json({ status: 'Unauthorized' });

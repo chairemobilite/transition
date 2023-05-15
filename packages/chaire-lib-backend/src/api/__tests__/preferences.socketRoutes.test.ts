@@ -10,6 +10,7 @@ import preferencesRoutes from '../preferences.socketRoutes';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import preferencesDbQueries from '../../models/db/preferences.db.queries';
 import preferences from 'chaire-lib-common/lib/config/Preferences';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 const socketStub = new EventEmitter();
 const userId = 2;
@@ -36,8 +37,9 @@ describe('Preferences: read user preferences', () => {
         const allPreferences = Object.assign({}, preferences.attributes, preferences1);
         mockedRead.mockResolvedValueOnce(preferences1);
         socketStub.emit('preferences.read', function (response) {
-            expect(mockedRead).toHaveBeenCalledWith(userId)
-            expect(response.preferences).toEqual(allPreferences);
+            expect(mockedRead).toHaveBeenCalledWith(userId);
+            expect(Status.isStatusOk(response)).toEqual(true);
+            expect(Status.unwrap(response)).toEqual(allPreferences);
             done();
         });
     });
@@ -50,7 +52,7 @@ describe('Preferences: read user preferences', () => {
         mockedRead.mockRejectedValueOnce(error);
         socketStub.emit('preferences.read', function (response) {
             expect(mockedRead).toHaveBeenLastCalledWith(userId)
-            expect(response.preferences).toBeUndefined();
+            expect(Status.isStatusError(response)).toEqual(true);
             expect(response.error).toEqual('Error reading preferences for user');
             done();
         });

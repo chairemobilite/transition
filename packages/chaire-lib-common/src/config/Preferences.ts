@@ -8,6 +8,9 @@ import _merge from 'lodash.merge';
 import _get from 'lodash.get';
 import _isNumber from 'lodash.isnumber';
 import _cloneDeep from 'lodash.clonedeep';
+import EventEmitter from 'events';
+
+import * as Status from '../utils/Status';
 import { ObjectWithHistory } from '../utils/objects/ObjectWithHistory';
 import { Saveable } from '../utils/objects/Saveable';
 import { default as defaultPreferences, PreferencesModel } from './defaultPreferences.config';
@@ -187,19 +190,49 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         _merge(this._attributes, _cloneDeep(this._runtimeServer));
     }
 
-    public load(socket: any, eventManager: any): Promise<PreferencesModel> {
-        return new Promise((resolve) => {
-            socket.emit('preferences.read', (response) => {
-                if (response.preferences) {
-                    this._attributes = _cloneDeep(
-                        _merge({}, this._default, this._projectDefault, response.preferences)
-                    );
+    private async loadFromSocket(socket: EventEmitter): Promise<Partial<PreferencesModel>> {
+        return new Promise((resolve, reject) => {
+            socket.emit('preferences.read', (response: Status.Status<Partial<PreferencesModel>>) => {
+                if (Status.isStatusOk(response)) {
+                    resolve(Status.unwrap(response));
+                } else {
+                    reject(response.error || 'Error loading preferences with socket');
                 }
-                // ignore if fetching user preferences fails
-                eventManager.emit('preferences.loaded');
-                resolve(this._attributes);
             });
         });
+    }
+
+    private async loadFromFetch(): Promise<Partial<PreferencesModel>> {
+        const response = await fetch('/load_user_preferences', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        if (response.status === 200) {
+            const jsonResponse = (await response.json()) as Status.Status<Partial<PreferencesModel>>;
+            if (Status.isStatusOk(jsonResponse)) {
+                return Status.unwrap(jsonResponse);
+            } else {
+                throw jsonResponse.error;
+            }
+        } else {
+            throw 'Invalid response returned from server';
+        }
+    }
+
+    public async load(socket?: EventEmitter, eventManager?: EventEmitter): Promise<PreferencesModel> {
+        try {
+            const preferencesFromServer = socket ? await this.loadFromSocket(socket) : await this.loadFromFetch();
+            this._attributes = _cloneDeep(
+                _merge({}, this._default, this._projectDefault, preferencesFromServer)
+            ) as PreferencesModelWithIdAndData;
+            eventManager?.emit('preferences.loaded');
+        } catch (error) {
+            console.error('Error loading preferences from server');
+        }
+        return this._attributes;
     }
 
     // TODO: type this:

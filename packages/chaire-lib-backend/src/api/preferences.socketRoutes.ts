@@ -11,6 +11,7 @@ import { EventEmitter } from 'events';
 // TODO This class calls these socket routes. We should thus not import it here. The Preferences class should be divided as part of #1665
 import allPreferences from 'chaire-lib-common/lib/config/Preferences';
 import preferencesQueries from '../models/db/preferences.db.queries';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 export default function (socket: EventEmitter, userId: number) {
     socket.on('preferences.read', async (callback) => {
@@ -19,14 +20,10 @@ export default function (socket: EventEmitter, userId: number) {
 
             // Merge the user preferences with all the other preferences
             const userPreferences = _merge({}, _cloneDeep(allPreferences.attributes), preferences);
-            callback({
-                preferences: userPreferences,
-                error: null,
-                flash: 'PreferencesReadSuccessfully'
-            });
+            callback(Status.createOk(userPreferences));
         } catch (error) {
             console.error(error);
-            callback({ error: 'Error reading preferences for user' });
+            callback(Status.createError('Error reading preferences for user'));
         }
     });
 
