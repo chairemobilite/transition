@@ -66,8 +66,9 @@ describe('Preferences: update user preferences', () => {
     test('Update preferences correctly', (done) => {
         mockedUpdate.mockResolvedValueOnce(userId);
         socketStub.emit('preferences.update', newPreferences, function (response) {
-            expect(mockedUpdate).toHaveBeenCalledWith(userId, newPreferences)
-            expect(response.userId).toEqual(userId);
+            expect(mockedUpdate).toHaveBeenCalledWith(userId, newPreferences);
+            expect(Status.isStatusOk(response)).toEqual(true);
+            expect(Status.unwrap(response)).toEqual(userId);
             done();
         });
     });
@@ -79,8 +80,8 @@ describe('Preferences: update user preferences', () => {
         const error = new TrError(message, code, localizedMessage);
         mockedUpdate.mockRejectedValueOnce(error);
         socketStub.emit('preferences.update', newPreferences, function (response) {
-            expect(mockedUpdate).toHaveBeenLastCalledWith(userId, newPreferences)
-            expect(response.userId).toBeUndefined();
+            expect(mockedUpdate).toHaveBeenLastCalledWith(userId, newPreferences);
+            expect(Status.isStatusError(response)).toEqual(true);
             expect(response.error).toEqual('Error updating preferences for user');
             done();
         });

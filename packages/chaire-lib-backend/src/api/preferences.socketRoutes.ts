@@ -30,15 +30,10 @@ export default function (socket: EventEmitter, userId: number) {
     socket.on('preferences.update', async (valuesByPath, callback) => {
         try {
             const updatedUserId = await preferencesQueries.update(userId, valuesByPath);
-
-            callback({
-                userId: updatedUserId,
-                error: null,
-                flash: 'PreferencesUpdatedSuccessfully'
-            });
+            callback(Status.createOk(updatedUserId));
         } catch (error) {
             console.error(error);
-            callback({ error: 'Error updating preferences for user' });
+            callback(Status.createError('Error updating preferences for user'));
         }
     });
 }

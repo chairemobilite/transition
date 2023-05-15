@@ -147,26 +147,64 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         return projectDefaultOrDefaultValue;
     }
 
-    public update(
-        socket: any,
-        eventManager: any,
+    private async updateFromSocket(
+        socket: EventEmitter,
         valuesByPath: Partial<PreferencesModelWithIdAndData>
-    ): Promise<PreferencesModelWithIdAndData> {
-        return new Promise((resolve) => {
-            socket.emit('preferences.update', valuesByPath, (_response) => {
-                this._attributes = _cloneDeep(_merge({}, this._attributes, valuesByPath));
-                eventManager.emit('preferences.updated');
-                resolve(this._attributes);
+    ): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            socket.emit('preferences.update', valuesByPath, (response: Status.Status<unknown>) => {
+                if (Status.isStatusOk(response)) {
+                    resolve(true);
+                } else {
+                    reject(response.error);
+                }
             });
         });
     }
 
-    public save(socket: any, eventManager?: any): Promise<PreferencesModel> {
-        return new Promise((resolve) => {
-            socket.emit('preferences.update', this._attributes, (response) => {
-                resolve(response);
-            });
+    private async updateFromFetch(valuesByPath: Partial<PreferencesModelWithIdAndData>): Promise<boolean> {
+        const response = await fetch('/update_user_preferences', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ valuesByPath })
         });
+        if (response.status === 200) {
+            const jsonResponse = (await response.json()) as Status.Status<unknown>;
+            if (Status.isStatusOk(jsonResponse)) {
+                return true;
+            } else {
+                throw jsonResponse.error;
+            }
+        } else {
+            throw 'Invalid response returned from server';
+        }
+    }
+
+    public async update(
+        valuesByPath: Partial<PreferencesModelWithIdAndData>,
+        socket?: EventEmitter,
+        eventManager?: EventEmitter
+    ): Promise<PreferencesModelWithIdAndData> {
+        try {
+            socket ? await this.updateFromSocket(socket, valuesByPath) : await this.updateFromFetch(valuesByPath);
+            this._attributes = _cloneDeep(_merge({}, this._attributes, valuesByPath));
+            eventManager?.emit('preferences.updated');
+        } catch (error) {
+            console.error('Error loading preferences from server');
+        }
+        return this._attributes;
+    }
+
+    public async save(socket?: EventEmitter, eventManager?: EventEmitter): Promise<PreferencesModel> {
+        try {
+            socket ? await this.updateFromSocket(socket, this.attributes) : await this.updateFromFetch(this.attributes);
+            eventManager?.emit('preferences.updated');
+        } catch (error) {
+            console.error('Error loading preferences from server');
+        }
+        return this._attributes;
     }
 
     // Not implemented for Preferences, we should never delete the preferences object.

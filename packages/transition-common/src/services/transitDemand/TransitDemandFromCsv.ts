@@ -65,9 +65,13 @@ export abstract class TransitDemandFromCsv<T extends DemandCsvAttributes> extend
                 delete exportedAttributes.data.results;
             }
             delete exportedAttributes.csvFile;
-            Preferences.update(serviceLocator.socketEventManager, serviceLocator.eventManager, {
-                [this._preferencesPath]: exportedAttributes
-            });
+            Preferences.update(
+                {
+                    [this._preferencesPath]: exportedAttributes
+                },
+                serviceLocator.socketEventManager,
+                serviceLocator.eventManager
+            );
         }
     }
 

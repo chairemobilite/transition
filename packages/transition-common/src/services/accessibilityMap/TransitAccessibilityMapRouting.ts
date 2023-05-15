@@ -206,9 +206,13 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
             if (exportedAttributes.data && exportedAttributes.data.results) {
                 delete exportedAttributes.data.results;
             }
-            Preferences.update(serviceLocator.socketEventManager, serviceLocator.eventManager, {
-                'transit.routing.transitAccessibilityMap': exportedAttributes
-            });
+            Preferences.update(
+                {
+                    'transit.routing.transitAccessibilityMap': exportedAttributes
+                },
+                serviceLocator.socketEventManager,
+                serviceLocator.eventManager
+            );
         }
     }
 }
