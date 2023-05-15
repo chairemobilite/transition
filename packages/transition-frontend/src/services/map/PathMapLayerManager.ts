@@ -165,10 +165,14 @@ class PathMapLayerManager {
             ['match', ['get', 'line_id'], hiddenLineIds.length === 0 ? ['none'] : hiddenLineIds, true, false]
         ]);
         serviceLocator.eventManager.emit('map.layers.updateFilter');
-        Preferences.update(serviceLocator.socketEventManager, serviceLocator.eventManager, {
-            'map.layers.hiddenAgencyIds': hiddenAgencyIds,
-            'map.layers.hiddenLineIds': hiddenLineIds
-        });
+        Preferences.update(
+            {
+                'map.layers.hiddenAgencyIds': hiddenAgencyIds,
+                'map.layers.hiddenLineIds': hiddenLineIds
+            },
+            serviceLocator.socketEventManager,
+            serviceLocator.eventManager
+        );
     }
 }
 

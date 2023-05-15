@@ -4,6 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import _set from 'lodash.set';
 import _cloneDeep from 'lodash.clonedeep';
 import { default as Preferences, PreferencesClass } from '../Preferences';
 import { default as defaultPreferences, PreferencesModel } from '../defaultPreferences.config';
@@ -17,13 +18,20 @@ jest.mock('../../config/shared/project.config', () => {
 })
 
 const stubEmitter = new EventEmitter();
-stubEmitter.on("preferences.update", (data, callback) => {
-    callback("ok");
-})
+const mockStubUpdatePreferences = jest.fn().mockImplementation((data, callback) => {
+    callback(Status.createOk('ok'));
+});
+stubEmitter.on("preferences.update", mockStubUpdatePreferences);
+const mockStubReadPreferences = jest.fn();
+stubEmitter.on("preferences.read", mockStubReadPreferences);
 
 stubEmitter.on("preferences.updated", jest.fn());
 
+const originalPreferences = _cloneDeep(Preferences.attributes);
+
 beforeEach(() => {
+    // Reset preferences to the default value
+    Object.assign(Preferences.attributes, _cloneDeep(originalPreferences));
     fetchMock.doMock();
     fetchMock.mockClear();
 })
@@ -52,7 +60,7 @@ test("Test set preferences", () => {
     expect(Preferences.get("foo.bar")).toBe("foobar");
 });
 
-test("Test update preferences", async () => {
+describe('Updating preferences', () => {
     // Test adding a section to transition
     const sectionData = {
         localizedTitle: "myTitle",
@@ -66,8 +74,50 @@ test("Test update preferences", async () => {
             }
         }
     }
-    await Preferences.update(stubEmitter, stubEmitter, myNewPrefs);
-    expect(Preferences.get("sections.test.mySection")).toMatchObject(sectionData);
+
+    test("Update from socket routes", async () => {
+        await Preferences.update(myNewPrefs, stubEmitter, stubEmitter);
+
+        expect(mockStubUpdatePreferences).toHaveBeenLastCalledWith(myNewPrefs, expect.anything());
+        expect(Preferences.get("sections.test.mySection")).toMatchObject(sectionData);
+    });
+
+    test("Update from socket routes, with error", async () => {
+        const currentPrefs = Preferences.attributes;
+        console.log('Before test:', currentPrefs);
+        mockStubUpdatePreferences.mockImplementationOnce((data, callback) => callback(Status.createError('Error from socket')));
+        expect(mockStubUpdatePreferences).toHaveBeenLastCalledWith(myNewPrefs, expect.anything());
+
+        await Preferences.update(myNewPrefs, stubEmitter, stubEmitter);
+        // No changes to preferences should happen
+        expect(Preferences.get("sections.test.mySection")).toBeUndefined();
+    });
+
+    test("Update from fetch", async () => {
+        fetchMock.mockOnce(JSON.stringify(Status.createOk('ok')));
+
+        await Preferences.update(myNewPrefs);
+        
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock).toHaveBeenCalledWith('/update_user_preferences', expect.objectContaining({ 
+            method: 'POST',
+            body: JSON.stringify({ valuesByPath: myNewPrefs })
+        }));
+        expect(Preferences.get("sections.test.mySection")).toMatchObject(sectionData);
+    });
+
+    test("Update from fetch, with error", async () => {
+        fetchMock.mockOnce(JSON.stringify(Status.createError('Error from fetch')));
+
+        await Preferences.update(myNewPrefs);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock).toHaveBeenCalledWith('/update_user_preferences', expect.objectContaining({ 
+            method: 'POST',
+            body: JSON.stringify({ valuesByPath: myNewPrefs })
+        }));
+        // No changes to preferences should happen
+        expect(Preferences.get("sections.test.mySection")).toBeUndefined();
+    });
 });
 
 test("Test reset to default", () => {
@@ -96,12 +146,23 @@ describe('Load preferences', () => {
     const preferences = { lang: 'fr', section: 'test', other: 'pref' };
     test("Load from socket routes", async () => {
         const testPreferences = Object.assign({}, preferences, { from: 'socket' });
-        stubEmitter.on("preferences.read", (callback) => {
+        mockStubReadPreferences.mockImplementationOnce((callback) => {
             callback(Status.createOk(testPreferences));
         })
 
         await Preferences.load(stubEmitter, stubEmitter);
         expect(Preferences.attributes).toEqual(expect.objectContaining(testPreferences));
+    });
+
+    test("Load from socket routes, with error", async () => {
+        const currentPrefs = Preferences.attributes;
+        mockStubReadPreferences.mockImplementationOnce((callback) => {
+            callback(Status.createError('Error from socket'));
+        })
+
+        await Preferences.load(stubEmitter, stubEmitter);
+        // No changes to preferences should happen
+        expect(Preferences.attributes).toEqual(currentPrefs);
     });
 
     test("Load from fetch", async () => {
@@ -114,5 +175,18 @@ describe('Load preferences', () => {
             method: 'GET'
         }));
         expect(Preferences.attributes).toEqual(expect.objectContaining(testPreferences));
+    });
+
+    test("Load from fetch, with error", async () => {
+        const currentPrefs = Preferences.attributes;
+        fetchMock.mockOnce(JSON.stringify(Status.createError('Error from fetch')));
+
+        await Preferences.load();
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock).toHaveBeenCalledWith('/load_user_preferences', expect.objectContaining({ 
+            method: 'GET'
+        }));
+        // No changes to preferences should happen
+        expect(Preferences.attributes).toEqual(currentPrefs);
     });
 })

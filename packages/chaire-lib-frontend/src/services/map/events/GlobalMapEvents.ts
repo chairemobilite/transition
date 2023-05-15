@@ -19,9 +19,13 @@ const onMouseOut = (_e: MapboxGL.MapMouseEvent) => {
 
 const onZoomEnd = (_e: MapboxGL.MapMouseEvent) => {
     _debounce((e: MapboxGL.MapMouseEvent) => {
-        Preferences.update(serviceLocator.socketEventManager, serviceLocator.eventManager, {
-            'map.zoom': e.target.getZoom()
-        });
+        Preferences.update(
+            {
+                'map.zoom': e.target.getZoom()
+            },
+            serviceLocator.socketEventManager,
+            serviceLocator.eventManager
+        );
     }, 1000);
 };
 
@@ -38,9 +42,13 @@ const onDragEnd = (e: MapboxGL.MapMouseEvent) => {
     }
     _debounce(() => {
         const centerLatLng = map.getCenter();
-        Preferences.update(serviceLocator.socketEventManager, serviceLocator.eventManager, {
-            'map.center': [centerLatLng.lng, centerLatLng.lat]
-        });
+        Preferences.update(
+            {
+                'map.center': [centerLatLng.lng, centerLatLng.lat]
+            },
+            serviceLocator.socketEventManager,
+            serviceLocator.eventManager
+        );
     }, 1000)();
 };
 

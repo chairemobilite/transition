@@ -220,9 +220,13 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
             delete exportedAttributes.pathGeojson;
             delete exportedAttributes.walkingOnlyPathGeojson;
             delete exportedAttributes.id;
-            Preferences.update(serviceLocator.socketEventManager, serviceLocator.eventManager, {
-                'transit.routing.transit': exportedAttributes
-            });
+            Preferences.update(
+                {
+                    'transit.routing.transit': exportedAttributes
+                },
+                serviceLocator.socketEventManager,
+                serviceLocator.eventManager
+            );
         }
     }
 
