@@ -32,6 +32,7 @@ interface UserProps {
 interface UserMenuButtonProps {
     menuItem: UserMenuItem;
     modalOpenedCallback: (isOpened: boolean) => void;
+    closeMenu: () => void;
 }
 
 const UserMenuButton: React.FunctionComponent<UserMenuButtonProps & WithTranslation> = (
@@ -42,13 +43,17 @@ const UserMenuButton: React.FunctionComponent<UserMenuButtonProps & WithTranslat
         setModalIsOpened(opened);
         props.modalOpenedCallback(opened);
     };
+    const executeAction: React.MouseEventHandler = (e) => {
+        props.menuItem.action(e);
+        props.closeMenu();
+    };
     return (
         <React.Fragment>
             <button
                 type="button"
                 className="menu-button"
                 key={'header__nav-reset'}
-                onClick={props.menuItem.confirmModal === undefined ? props.menuItem.action : () => toggleModal(true)}
+                onClick={props.menuItem.confirmModal === undefined ? executeAction : () => toggleModal(true)}
             >
                 {props.menuItem.getText(props.t)}
             </button>
@@ -56,10 +61,7 @@ const UserMenuButton: React.FunctionComponent<UserMenuButtonProps & WithTranslat
                 <ConfirmModal
                     isOpen={true}
                     title={props.menuItem.confirmModal.title(props.t)}
-                    confirmAction={(e) => {
-                        console.log('confirmed');
-                        props.menuItem.action(e);
-                    }}
+                    confirmAction={executeAction}
                     confirmButtonColor="red"
                     confirmButtonLabel={props.menuItem.confirmModal.label(props.t)}
                     closeModal={() => toggleModal(false)}
@@ -103,6 +105,7 @@ const UserMenu: React.FunctionComponent<UserMenuProps & WithTranslation> = (prop
                     key={`header__nav-user${index}`}
                     menuItem={menuItem}
                     modalOpenedCallback={setHasModalOpened}
+                    closeMenu={props.closeMenu}
                 />
             ))}
         </div>
