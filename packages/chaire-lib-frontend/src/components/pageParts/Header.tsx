@@ -45,6 +45,10 @@ const UserMenuButton: React.FunctionComponent<UserMenuButtonProps & WithTranslat
     };
     const executeAction: React.MouseEventHandler = (e) => {
         props.menuItem.action(e);
+        if (props.menuItem.postExec === 'refreshLang') {
+            // This will trigger a refresh of all i18n strings on the page
+            props.i18n.changeLanguage(props.i18n.language);
+        }
         props.closeMenu();
     };
     return (

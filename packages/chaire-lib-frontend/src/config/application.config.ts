@@ -11,6 +11,12 @@ import { MouseEventHandler } from 'react';
 export type UserMenuItem = {
     getText: (t: TFunction) => string;
     action: MouseEventHandler;
+    /**
+     * Extra action to run after the action has been run. This allows to trigger
+     * some events on the page. 'refreshLang' will cause a refresh of the
+     * translation strings on the page.
+     */
+    postExec?: 'refreshLang';
     confirmModal?: {
         title: (t: TFunction) => string;
         label: (t: TFunction) => string;
