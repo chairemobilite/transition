@@ -87,5 +87,9 @@ tests/test
 # node profiling data
 profilingData*
 
-#example apps
+# example apps
 examples/runtime
+
+# cache and installation
+config.js
+runtime
