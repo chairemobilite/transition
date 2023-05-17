@@ -44,6 +44,7 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         return this._attributes;
     }
 
+    // FIXME: Do the following functions need to be public?
     public getDefault() {
         return this._default;
     }
@@ -141,6 +142,11 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         return this._isValid;
     }
 
+    /**
+     * FIXME: Used for preferences edit form
+     * @param path Dot-separated path to the preference to reset
+     * @returns The new preferences value
+     */
     public resetPathToDefault(path: string) {
         const projectDefaultOrDefaultValue = this.getFromProjectDefaultOrDefault(path);
         this.set(path, projectDefaultOrDefaultValue);
@@ -182,6 +188,17 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         }
     }
 
+    /**
+     * Update preferences value and save to the server
+     * @param valuesByPath An object where the keys are the dot-separated path
+     * to the preferences to update and the value is the new value of the
+     * preference.
+     * @param socket Optional, an socket event emitter to use to save the data.
+     * If undefined, a post to the server will be done
+     * @param eventManager Optional, an event manager that will emit after the
+     * preferences update.
+     * @returns The complete preferences object
+     */
     public async update(
         valuesByPath: Partial<PreferencesModelWithIdAndData>,
         socket?: EventEmitter,
@@ -197,6 +214,10 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         return this._attributes;
     }
 
+    /**
+     * Save the whole preferences object to the server
+     * FIXME: Used for preferences edit form
+     */
     public async save(socket?: EventEmitter, eventManager?: EventEmitter): Promise<PreferencesModel> {
         try {
             socket ? await this.updateFromSocket(socket, this.attributes) : await this.updateFromFetch(this.attributes);
@@ -260,6 +281,14 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         }
     }
 
+    /**
+     * Load preferences from server
+     * @param socket Optional, an socket event emitter to use to load the data.
+     * If undefined, a get from the server will be done
+     * @param eventManager Optional, an event manager that will emit after the
+     * preferences are loaded.
+     * @returns The complete preferences object
+     */
     public async load(socket?: EventEmitter, eventManager?: EventEmitter): Promise<PreferencesModel> {
         try {
             const preferencesFromServer = socket ? await this.loadFromSocket(socket) : await this.loadFromFetch();
