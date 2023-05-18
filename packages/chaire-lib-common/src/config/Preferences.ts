@@ -198,20 +198,16 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
      * preference.
      * @param socket Optional, an socket event emitter to use to save the data.
      * If undefined, a post to the server will be done
-     * @param eventManager Optional, an event manager that will emit after the
-     * preferences update.
      * @returns The complete preferences object
      */
     public async update(
         valuesByPath: Partial<PreferencesModelWithIdAndData>,
-        socket?: EventEmitter,
-        eventManager?: EventEmitter
+        socket?: EventEmitter
     ): Promise<PreferencesModelWithIdAndData> {
         try {
             socket ? await this.updateFromSocket(socket, valuesByPath) : await this.updateFromFetch(valuesByPath);
             this._attributes = _cloneDeep(_merge({}, this._attributes, valuesByPath));
             this._eventEmitter.emit(prefChangeEvent, valuesByPath);
-            eventManager?.emit('preferences.updated');
         } catch (error) {
             console.error('Error loading preferences from server');
         }
@@ -289,18 +285,15 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
      * Load preferences from server
      * @param socket Optional, an socket event emitter to use to load the data.
      * If undefined, a get from the server will be done
-     * @param eventManager Optional, an event manager that will emit after the
-     * preferences are loaded.
      * @returns The complete preferences object
      */
-    public async load(socket?: EventEmitter, eventManager?: EventEmitter): Promise<PreferencesModel> {
+    public async load(socket?: EventEmitter): Promise<PreferencesModel> {
         try {
             const preferencesFromServer = socket ? await this.loadFromSocket(socket) : await this.loadFromFetch();
             this._attributes = _cloneDeep(
                 _merge({}, this._default, this._projectDefault, preferencesFromServer)
             ) as PreferencesModelWithIdAndData;
             this._eventEmitter.emit(prefChangeEvent, this._attributes);
-            eventManager?.emit('preferences.loaded');
         } catch (error) {
             console.error('Error loading preferences from server');
         }

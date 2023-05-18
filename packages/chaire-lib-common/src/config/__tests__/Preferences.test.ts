@@ -25,8 +25,6 @@ stubEmitter.on("preferences.update", mockStubUpdatePreferences);
 const mockStubReadPreferences = jest.fn();
 stubEmitter.on("preferences.read", mockStubReadPreferences);
 
-stubEmitter.on("preferences.updated", jest.fn());
-
 const originalPreferences = _cloneDeep(Preferences.attributes);
 
 beforeEach(() => {
@@ -76,7 +74,7 @@ describe('Updating preferences', () => {
     }
 
     test("Update from socket routes", async () => {
-        await Preferences.update(myNewPrefs, stubEmitter, stubEmitter);
+        await Preferences.update(myNewPrefs, stubEmitter);
 
         expect(mockStubUpdatePreferences).toHaveBeenLastCalledWith(myNewPrefs, expect.anything());
         expect(Preferences.get("sections.test.mySection")).toMatchObject(sectionData);
@@ -88,7 +86,7 @@ describe('Updating preferences', () => {
         mockStubUpdatePreferences.mockImplementationOnce((data, callback) => callback(Status.createError('Error from socket')));
         expect(mockStubUpdatePreferences).toHaveBeenLastCalledWith(myNewPrefs, expect.anything());
 
-        await Preferences.update(myNewPrefs, stubEmitter, stubEmitter);
+        await Preferences.update(myNewPrefs, stubEmitter);
         // No changes to preferences should happen
         expect(Preferences.get("sections.test.mySection")).toBeUndefined();
     });
@@ -150,7 +148,7 @@ describe('Load preferences', () => {
             callback(Status.createOk(testPreferences));
         })
 
-        await Preferences.load(stubEmitter, stubEmitter);
+        await Preferences.load(stubEmitter);
         expect(Preferences.attributes).toEqual(expect.objectContaining(testPreferences));
     });
 
@@ -160,7 +158,7 @@ describe('Load preferences', () => {
             callback(Status.createError('Error from socket'));
         })
 
-        await Preferences.load(stubEmitter, stubEmitter);
+        await Preferences.load(stubEmitter);
         // No changes to preferences should happen
         expect(Preferences.attributes).toEqual(currentPrefs);
     });

@@ -170,8 +170,7 @@ class PathMapLayerManager {
                 'map.layers.hiddenAgencyIds': hiddenAgencyIds,
                 'map.layers.hiddenLineIds': hiddenLineIds
             },
-            serviceLocator.socketEventManager,
-            serviceLocator.eventManager
+            serviceLocator.socketEventManager
         );
     }
 }
