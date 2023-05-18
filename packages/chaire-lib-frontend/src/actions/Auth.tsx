@@ -344,7 +344,7 @@ export const resetUserProfile = (history: History) => {
             // reset localStorage
             window.localStorage.clear();
             // reload preferences from server
-            await Preferences.load(serviceLocator.socketEventManager, serviceLocator.eventManager);
+            await Preferences.load(serviceLocator.socketEventManager);
 
             if (response.status === 200) {
                 const defaultPath = appConfiguration.homePage;

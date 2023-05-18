@@ -224,8 +224,7 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
                 {
                     'transit.routing.transit': exportedAttributes
                 },
-                serviceLocator.socketEventManager,
-                serviceLocator.eventManager
+                serviceLocator.socketEventManager
             );
         }
     }

@@ -69,8 +69,7 @@ export abstract class TransitDemandFromCsv<T extends DemandCsvAttributes> extend
                 {
                     [this._preferencesPath]: exportedAttributes
                 },
-                serviceLocator.socketEventManager,
-                serviceLocator.eventManager
+                serviceLocator.socketEventManager
             );
         }
     }
