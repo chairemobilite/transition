@@ -23,10 +23,13 @@ interface PreferencesModelWithIdAndData extends PreferencesModel {
     data: { [key: string]: any };
 }
 
+const prefChangeEvent = 'change';
+
 export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAndData> implements Saveable {
     private _default: Partial<PreferencesModel>;
     private _projectDefault: Partial<PreferencesModel>;
     private _runtimeServer: Partial<PreferencesModel>;
+    private _eventEmitter: EventEmitter = new EventEmitter();
     protected static displayName = 'Preferences';
 
     constructor(attributes = {}, isNew = false) {
@@ -207,6 +210,7 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         try {
             socket ? await this.updateFromSocket(socket, valuesByPath) : await this.updateFromFetch(valuesByPath);
             this._attributes = _cloneDeep(_merge({}, this._attributes, valuesByPath));
+            this._eventEmitter.emit(prefChangeEvent, valuesByPath);
             eventManager?.emit('preferences.updated');
         } catch (error) {
             console.error('Error loading preferences from server');
@@ -295,6 +299,7 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
             this._attributes = _cloneDeep(
                 _merge({}, this._default, this._projectDefault, preferencesFromServer)
             ) as PreferencesModelWithIdAndData;
+            this._eventEmitter.emit(prefChangeEvent, this._attributes);
             eventManager?.emit('preferences.loaded');
         } catch (error) {
             console.error('Error loading preferences from server');
@@ -305,6 +310,26 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
     // TODO: type this:
     public get(path: string, defaultValue: unknown = undefined): any {
         return super.get(path, defaultValue);
+    }
+
+    /**
+     * Add a listener for preferences changes
+     *
+     * @param callback The function to call when there are changes to the
+     * current preferences. The listener will send as parameter the preferences
+     * values that have changed
+     */
+    public addChangeListener(callback: (preferences: Partial<PreferencesModelWithIdAndData>) => void) {
+        this._eventEmitter.on(prefChangeEvent, callback);
+    }
+
+    /**
+     * Remove a listener for preferences changes
+     *
+     * @param callback The previously added callback
+     */
+    public removeChangeListener(callback: (preferences: Partial<PreferencesModelWithIdAndData>) => void) {
+        this._eventEmitter.off(prefChangeEvent, callback);
     }
 }
 
