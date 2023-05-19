@@ -13,9 +13,10 @@ import {
     polygonToLine as turfPolygonToLine,
     //multiPolygon as turfMultiPolygon
     bbox as turfBbox,
-    bboxPolygon as turfBboxPolygon
+    bboxPolygon as turfBboxPolygon,
+    envelope as turfEnvelope
 } from '@turf/turf';
-import { Feature, FeatureCollection, Point, MultiPolygon, MultiLineString } from 'geojson';
+import { Feature, FeatureCollection, Point, MultiPolygon, MultiLineString, BBox } from 'geojson';
 import polygonClipping from 'polygon-clipping';
 import _cloneDeep from 'lodash.clonedeep';
 import _sum from 'lodash.sum';
@@ -190,15 +191,39 @@ export class TransitAccessibilityMapCalculator {
     ): Promise<polygonClipping.MultiPolygon> {
         return new Promise((resolve, reject) => {
             let pixelized: polygonClipping.MultiPolygon = [];
+            let maxBbox = [-500, -500, 500, 500];
+            //envelope au lieu de bbox??
+            //boolean within
+            //const metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom)
             const pixelizeFunc = (previous, i) => {
                 // logique pixelisation
-                const toPixelize = previous.concat(nodeCircles[i]);
-                // const bbox = turfBboxPolygon(turfBbox(toPixelize));
+                const toPixelize = previous.concat(turfEnvelope(nodeCircles[i]));
+                const bbox = turfBboxPolygon(turfBbox(toPixelize));
+                if (pixelized.length == 0){
+                    if (bbox.bbox != undefined){
+                        maxBbox = bbox.bbox;
+                    }
+                }
+                if (bbox.bbox != undefined){
+                    console.log(bbox.bbox[0]);
+                    if (bbox.bbox[0] < maxBbox[0]){
+                        maxBbox[0] = bbox.bbox[0];
+                    }
+                    if (bbox.bbox[1] < maxBbox[1]){
+                        maxBbox[1] = bbox.bbox[1];
+                    }
+                    if (bbox.bbox[2] > maxBbox[2]){
+                        maxBbox[2] = bbox.bbox[2];
+                    }
+                    if (bbox.bbox[3] > maxBbox[3]){
+                        maxBbox[3] = bbox.bbox[3];
+                    }
+                }
+                
                 // pixelized = polygonClipping.union();
 
-                console.log('allo');
-                // const polygon: Polygon = [nodeCircles[i][0][0], nodeCircles[i][0][nodeCircles[i][0].length], nodeCircles[i][nodeCircles[i].length][nodeCircles[i].length], nodeCircles[i][nodeCircles[i].length][0]];
-                const polygon: Polygon = [nodeCircles[i]];
+                const polygon: Polygon = [nodeCircles[i][0][0], nodeCircles[i][0][nodeCircles[i][0].length()], nodeCircles[i][nodeCircles[i].length()][nodeCircles[i].length()], nodeCircles[i][nodeCircles[i].length()][0]];
+                // const polygon: Polygon = [nodeCircles[i]];
                 pixelized = polygonClipping.union(polygon);
                 
 

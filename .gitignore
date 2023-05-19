@@ -89,7 +89,3 @@ profilingData*
 
 # example apps
 examples/runtime
-
-# cache and installation
-config.js
-runtime
