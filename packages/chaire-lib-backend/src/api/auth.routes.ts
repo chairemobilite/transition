@@ -176,16 +176,11 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
             }
             user.updateAndSave({ preferences })
                 .then((_data) => {
-                    res.status(200).json({
-                        status: 'success'
-                    });
+                    res.status(200).json(Status.createOk(true));
                 })
                 .catch((error) => {
                     console.log(error);
-                    return res.status(200).json({
-                        status: 'error',
-                        error
-                    });
+                    return res.status(200).json(Status.createError(error));
                 });
             return null;
         } else {
@@ -199,15 +194,10 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
             const user = authModel.newUser({ ...req.user });
             try {
                 await user.updateAndSave({ preferences: {} });
-                return res.status(200).json({
-                    status: 'success'
-                });
+                return res.status(200).json(Status.createOk(true));
             } catch (error) {
                 console.log(error);
-                return res.status(200).json({
-                    status: 'error',
-                    error
-                });
+                return res.status(200).json(Status.createError(error));
             }
         } else {
             console.log('not logged in!');
