@@ -23,8 +23,7 @@ const onZoomEnd = (_e: MapboxGL.MapMouseEvent) => {
             {
                 'map.zoom': e.target.getZoom()
             },
-            serviceLocator.socketEventManager,
-            serviceLocator.eventManager
+            serviceLocator.socketEventManager
         );
     }, 1000);
 };
@@ -46,8 +45,7 @@ const onDragEnd = (e: MapboxGL.MapMouseEvent) => {
             {
                 'map.center': [centerLatLng.lng, centerLatLng.lat]
             },
-            serviceLocator.socketEventManager,
-            serviceLocator.eventManager
+            serviceLocator.socketEventManager
         );
     }, 1000)();
 };

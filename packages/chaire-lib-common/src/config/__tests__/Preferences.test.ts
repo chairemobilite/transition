@@ -25,8 +25,6 @@ stubEmitter.on("preferences.update", mockStubUpdatePreferences);
 const mockStubReadPreferences = jest.fn();
 stubEmitter.on("preferences.read", mockStubReadPreferences);
 
-stubEmitter.on("preferences.updated", jest.fn());
-
 const originalPreferences = _cloneDeep(Preferences.attributes);
 
 beforeEach(() => {
@@ -76,7 +74,7 @@ describe('Updating preferences', () => {
     }
 
     test("Update from socket routes", async () => {
-        await Preferences.update(myNewPrefs, stubEmitter, stubEmitter);
+        await Preferences.update(myNewPrefs, stubEmitter);
 
         expect(mockStubUpdatePreferences).toHaveBeenLastCalledWith(myNewPrefs, expect.anything());
         expect(Preferences.get("sections.test.mySection")).toMatchObject(sectionData);
@@ -88,7 +86,7 @@ describe('Updating preferences', () => {
         mockStubUpdatePreferences.mockImplementationOnce((data, callback) => callback(Status.createError('Error from socket')));
         expect(mockStubUpdatePreferences).toHaveBeenLastCalledWith(myNewPrefs, expect.anything());
 
-        await Preferences.update(myNewPrefs, stubEmitter, stubEmitter);
+        await Preferences.update(myNewPrefs, stubEmitter);
         // No changes to preferences should happen
         expect(Preferences.get("sections.test.mySection")).toBeUndefined();
     });
@@ -150,7 +148,7 @@ describe('Load preferences', () => {
             callback(Status.createOk(testPreferences));
         })
 
-        await Preferences.load(stubEmitter, stubEmitter);
+        await Preferences.load(stubEmitter);
         expect(Preferences.attributes).toEqual(expect.objectContaining(testPreferences));
     });
 
@@ -160,7 +158,7 @@ describe('Load preferences', () => {
             callback(Status.createError('Error from socket'));
         })
 
-        await Preferences.load(stubEmitter, stubEmitter);
+        await Preferences.load(stubEmitter);
         // No changes to preferences should happen
         expect(Preferences.attributes).toEqual(currentPrefs);
     });
@@ -189,4 +187,108 @@ describe('Load preferences', () => {
         // No changes to preferences should happen
         expect(Preferences.attributes).toEqual(currentPrefs);
     });
-})
+});
+
+describe('Preferences listener', () => {
+    const prefChangedListener = jest.fn();
+
+    beforeEach(() => {
+        prefChangedListener.mockClear();
+    });
+
+    afterEach(() => {
+        Preferences.removeChangeListener(prefChangedListener);
+    });
+
+    test("Listen on update", async () => {
+        const myNewPrefs: Partial<PreferencesModel> = {
+            sections: {
+                test: {
+                    mySection: { 
+                        localizedTitle: "prefTitle",
+                        icon: "/path/to/my/icon",
+                        hasMapLayers: true 
+                    }
+                }
+            }
+        }
+
+        fetchMock.mockOnce(JSON.stringify(Status.createOk('ok')));
+        fetchMock.mockOnce(JSON.stringify(Status.createOk('ok')));
+
+        // Add listener
+        Preferences.addChangeListener(prefChangedListener);
+
+        // Save the data and make sure the listener has been called
+        await Preferences.update(myNewPrefs);
+        
+        expect(prefChangedListener).toHaveBeenCalledTimes(1);
+        expect(prefChangedListener).toHaveBeenCalledWith(myNewPrefs);
+
+        // Remove the listener, save the data and make sure the listener has not been called again
+        Preferences.removeChangeListener( prefChangedListener);
+
+        await Preferences.update({ sections: _cloneDeep(originalPreferences.sections) });
+        
+        expect(prefChangedListener).toHaveBeenCalledTimes(1);
+    });
+
+    test("Listen on update with error, no call expected", async () => {
+        const myNewPrefs: Partial<PreferencesModel> = {
+            sections: {
+                test: {
+                    mySection: { 
+                        localizedTitle: "prefTitle",
+                        icon: "/path/to/my/icon",
+                        hasMapLayers: true 
+                    }
+                }
+            }
+        }
+
+        fetchMock.mockOnce(JSON.stringify(Status.createError('error')));
+
+        // Add listeners
+        Preferences.addChangeListener(prefChangedListener);
+
+        // Save the data and make sure the listener has been called
+        await Preferences.update(myNewPrefs);
+        
+        expect(prefChangedListener).not.toHaveBeenCalled();
+    });
+
+    test("Listen on load", async () => {
+        const testPreferences = Object.assign({}, _cloneDeep(originalPreferences), { from: 'fetch' });
+        fetchMock.mockOnce(JSON.stringify(Status.createOk(testPreferences)));
+        fetchMock.mockOnce(JSON.stringify(Status.createOk(testPreferences)));
+
+        // Add listener
+        Preferences.addChangeListener(prefChangedListener);
+
+        // Save the data and make sure the listener has been called
+        await Preferences.load();
+        
+        expect(prefChangedListener).toHaveBeenCalledTimes(1);
+        expect(prefChangedListener).toHaveBeenCalledWith(testPreferences);
+
+        // Remove the listener, save the data and make sure the listener has not been called again
+        Preferences.removeChangeListener(prefChangedListener);
+
+        await Preferences.load();
+        
+        expect(prefChangedListener).toHaveBeenCalledTimes(1);
+    });
+
+    test("Listen on load with error, no call expected", async () => {
+        fetchMock.mockOnce(JSON.stringify(Status.createError('error')));
+
+        // Add listeners
+        Preferences.addChangeListener(prefChangedListener);
+
+        // Save the data and make sure the listener has been called
+        await Preferences.load();
+        
+        expect(prefChangedListener).not.toHaveBeenCalled();
+    });
+
+});

@@ -210,8 +210,7 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
                 {
                     'transit.routing.transitAccessibilityMap': exportedAttributes
                 },
-                serviceLocator.socketEventManager,
-                serviceLocator.eventManager
+                serviceLocator.socketEventManager
             );
         }
     }

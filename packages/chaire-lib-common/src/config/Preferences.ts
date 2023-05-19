@@ -23,10 +23,13 @@ interface PreferencesModelWithIdAndData extends PreferencesModel {
     data: { [key: string]: any };
 }
 
+const prefChangeEvent = 'change';
+
 export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAndData> implements Saveable {
     private _default: Partial<PreferencesModel>;
     private _projectDefault: Partial<PreferencesModel>;
     private _runtimeServer: Partial<PreferencesModel>;
+    private _eventEmitter: EventEmitter = new EventEmitter();
     protected static displayName = 'Preferences';
 
     constructor(attributes = {}, isNew = false) {
@@ -44,6 +47,7 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         return this._attributes;
     }
 
+    // FIXME: Do the following functions need to be public?
     public getDefault() {
         return this._default;
     }
@@ -141,6 +145,11 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         return this._isValid;
     }
 
+    /**
+     * FIXME: Used for preferences edit form
+     * @param path Dot-separated path to the preference to reset
+     * @returns The new preferences value
+     */
     public resetPathToDefault(path: string) {
         const projectDefaultOrDefaultValue = this.getFromProjectDefaultOrDefault(path);
         this.set(path, projectDefaultOrDefaultValue);
@@ -182,21 +191,33 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         }
     }
 
+    /**
+     * Update preferences value and save to the server
+     * @param valuesByPath An object where the keys are the dot-separated path
+     * to the preferences to update and the value is the new value of the
+     * preference.
+     * @param socket Optional, an socket event emitter to use to save the data.
+     * If undefined, a post to the server will be done
+     * @returns The complete preferences object
+     */
     public async update(
         valuesByPath: Partial<PreferencesModelWithIdAndData>,
-        socket?: EventEmitter,
-        eventManager?: EventEmitter
+        socket?: EventEmitter
     ): Promise<PreferencesModelWithIdAndData> {
         try {
             socket ? await this.updateFromSocket(socket, valuesByPath) : await this.updateFromFetch(valuesByPath);
             this._attributes = _cloneDeep(_merge({}, this._attributes, valuesByPath));
-            eventManager?.emit('preferences.updated');
+            this._eventEmitter.emit(prefChangeEvent, valuesByPath);
         } catch (error) {
             console.error('Error loading preferences from server');
         }
         return this._attributes;
     }
 
+    /**
+     * Save the whole preferences object to the server
+     * FIXME: Used for preferences edit form
+     */
     public async save(socket?: EventEmitter, eventManager?: EventEmitter): Promise<PreferencesModel> {
         try {
             socket ? await this.updateFromSocket(socket, this.attributes) : await this.updateFromFetch(this.attributes);
@@ -260,13 +281,19 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         }
     }
 
-    public async load(socket?: EventEmitter, eventManager?: EventEmitter): Promise<PreferencesModel> {
+    /**
+     * Load preferences from server
+     * @param socket Optional, an socket event emitter to use to load the data.
+     * If undefined, a get from the server will be done
+     * @returns The complete preferences object
+     */
+    public async load(socket?: EventEmitter): Promise<PreferencesModel> {
         try {
             const preferencesFromServer = socket ? await this.loadFromSocket(socket) : await this.loadFromFetch();
             this._attributes = _cloneDeep(
                 _merge({}, this._default, this._projectDefault, preferencesFromServer)
             ) as PreferencesModelWithIdAndData;
-            eventManager?.emit('preferences.loaded');
+            this._eventEmitter.emit(prefChangeEvent, this._attributes);
         } catch (error) {
             console.error('Error loading preferences from server');
         }
@@ -276,6 +303,26 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
     // TODO: type this:
     public get(path: string, defaultValue: unknown = undefined): any {
         return super.get(path, defaultValue);
+    }
+
+    /**
+     * Add a listener for preferences changes
+     *
+     * @param callback The function to call when there are changes to the
+     * current preferences. The listener will send as parameter the preferences
+     * values that have changed
+     */
+    public addChangeListener(callback: (preferences: Partial<PreferencesModelWithIdAndData>) => void) {
+        this._eventEmitter.on(prefChangeEvent, callback);
+    }
+
+    /**
+     * Remove a listener for preferences changes
+     *
+     * @param callback The previously added callback
+     */
+    public removeChangeListener(callback: (preferences: Partial<PreferencesModelWithIdAndData>) => void) {
+        this._eventEmitter.off(prefChangeEvent, callback);
     }
 }
 

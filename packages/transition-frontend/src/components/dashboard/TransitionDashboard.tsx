@@ -259,7 +259,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
             this.setState({ socketConnected: true });
         } else {
             // firsty load the preferences, then set socket state to connected, so the main map can get preferences on first load.
-            Preferences.load(serviceLocator.socketEventManager, serviceLocator.eventManager).then(() => {
+            Preferences.load(serviceLocator.socketEventManager).then(() => {
                 this.setState({
                     preferencesLoaded: true,
                     socketConnected: true,
