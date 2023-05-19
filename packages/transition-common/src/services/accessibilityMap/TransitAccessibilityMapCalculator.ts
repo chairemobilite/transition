@@ -10,8 +10,10 @@ import {
     multiLineString as turfMultiLineString,
     circle as turfCircle,
     area as turfArea,
-    polygonToLine as turfPolygonToLine
+    polygonToLine as turfPolygonToLine,
     //multiPolygon as turfMultiPolygon
+    bbox as turfBbox,
+    bboxPolygon as turfBboxPolygon
 } from '@turf/turf';
 import { Feature, FeatureCollection, Point, MultiPolygon, MultiLineString } from 'geojson';
 import polygonClipping from 'polygon-clipping';
@@ -34,6 +36,8 @@ import {
     TransitAccessibilityMapWithPolygonResult,
     TransitAccessibilityMapResult
 } from './TransitAccessibilityMapResult';
+import { resolve } from 'path';
+import { Polygon } from 'polygon-clipping';
 
 export interface TransitMapCalculationOptions {
     isCancelled?: (() => boolean) | false;
@@ -152,7 +156,7 @@ export class TransitAccessibilityMapCalculator {
         // return f.union(nodeCircles);
         // TODO This is a much slower version of the simple above line, dividing the work, but allowing the user to cancel the request...
         return new Promise((resolve, reject) => {
-            const pieces = 20;
+            const pieces = 20; //d'où vient pieces = 20?
             const splitSize = Math.ceil(nodeCircles.length / pieces);
             let clipped: polygonClipping.MultiPolygon = [];
             const clipFunc = (previous, i) => {
@@ -177,6 +181,46 @@ export class TransitAccessibilityMapCalculator {
                 }
             };
             clipFunc(clipped, 0);
+        });
+    }
+
+    private static async pixelizePolygon(
+        nodeCircles,
+        isCancelled: (() => boolean) | false = false
+    ): Promise<polygonClipping.MultiPolygon> {
+        return new Promise((resolve, reject) => {
+            let pixelized: polygonClipping.MultiPolygon = [];
+            const pixelizeFunc = (previous, i) => {
+                // logique pixelisation
+                const toPixelize = previous.concat(nodeCircles[i]);
+                // const bbox = turfBboxPolygon(turfBbox(toPixelize));
+                // pixelized = polygonClipping.union();
+
+                console.log('allo');
+                // const polygon: Polygon = [nodeCircles[i][0][0], nodeCircles[i][0][nodeCircles[i][0].length], nodeCircles[i][nodeCircles[i].length][nodeCircles[i].length], nodeCircles[i][nodeCircles[i].length][0]];
+                const polygon: Polygon = [nodeCircles[i]];
+                pixelized = polygonClipping.union(polygon);
+                
+
+                if (isCancelled && isCancelled()) {
+                    reject('Cancelled');
+                    return;
+                }
+                if (i < nodeCircles.length - 1) {
+                    setTimeout(() => {
+                        try {
+                            // The function will concat with previous, nothing to do for this case
+                            pixelizeFunc(pixelized, i + 1);
+                        } catch (error) {
+                            // Error clipping this data, reject the promise
+                            reject(error);
+                        }
+                    }, 0);
+                } else {
+                    resolve(pixelized);
+                }
+            };
+            pixelizeFunc(pixelized, 1);
         });
     }
 
@@ -332,6 +376,7 @@ export class TransitAccessibilityMapCalculator {
         deltaCount = 1,
         options: TransitMapCalculationOptions = {}
     ) {
+        console.log('generate polygons');
         const isCancelled = options.isCancelled || (() => false);
 
         durations.sort((a, b) => b - a); // durations must be in descending order so it appears correctly in qgis
@@ -406,8 +451,11 @@ export class TransitAccessibilityMapCalculator {
                 progress: stepI++ / stepsCount
             });
 
+            //const metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom)
+            const polygonCoordinates = await this.pixelizePolygon(nodeCircles, isCancelled);
+            
             // TODO This is the veryyy sloooooow operation.
-            const polygonCoordinates = await this.clipPolygon(nodeCircles, isCancelled);
+            // const polygonCoordinates = await this.clipPolygon(nodeCircles, isCancelled);
             const polygon = _cloneDeep(defaultGeojsonPolygon);
             polygon.geometry.coordinates = polygonCoordinates;
 
