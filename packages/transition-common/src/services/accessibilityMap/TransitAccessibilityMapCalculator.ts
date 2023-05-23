@@ -17,7 +17,7 @@ import {
     envelope as turfEnvelope
 } from '@turf/turf';
 import { Feature, FeatureCollection, Point, MultiPolygon, MultiLineString, BBox } from 'geojson';
-import polygonClipping from 'polygon-clipping';
+import polygonClipping, { Ring } from 'polygon-clipping';
 import _cloneDeep from 'lodash.clonedeep';
 import _sum from 'lodash.sum';
 import _uniq from 'lodash.uniq';
@@ -39,6 +39,7 @@ import {
 } from './TransitAccessibilityMapResult';
 import { resolve } from 'path';
 import { Polygon } from 'polygon-clipping';
+import { forEach } from 'lodash';
 
 export interface TransitMapCalculationOptions {
     isCancelled?: (() => boolean) | false;
@@ -195,37 +196,46 @@ export class TransitAccessibilityMapCalculator {
             //envelope au lieu de bbox??
             //boolean within
             //const metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom)
+            let extremumsPos: number[] = [-180, -90, 180, 90]; //min lat et long
+            for (let circle of nodeCircles){
+                // console.log(circle);
+                if(circle[0][0][0] > extremumsPos[0]){
+                    extremumsPos[0] = circle[0][0][0];
+                }
+                if(circle[0][0][1] > extremumsPos[1]){
+                    extremumsPos[1] = circle[0][0][1];
+                }
+                if(circle[0][0][0] < extremumsPos[2]){
+                    extremumsPos[2] = circle[0][0][0];
+                }
+                if(circle[0][0][1] < extremumsPos[3]){
+                    extremumsPos[3] = circle[0][0][1];
+                }
+            }
+
+            const ring: Ring = [[extremumsPos[0], extremumsPos[3]], [extremumsPos[0], extremumsPos[1]], [extremumsPos[2], extremumsPos[1]], [extremumsPos[2], extremumsPos[3]], [extremumsPos[0], extremumsPos[3]]];
+            const polygon: Polygon = [ring];
+            pixelized = [polygon];
+
             const pixelizeFunc = (previous, i) => {
                 // logique pixelisation
-                const toPixelize = previous.concat(turfEnvelope(nodeCircles[i]));
-                const bbox = turfBboxPolygon(turfBbox(toPixelize));
-                if (pixelized.length == 0){
-                    if (bbox.bbox != undefined){
-                        maxBbox = bbox.bbox;
-                    }
-                }
-                if (bbox.bbox != undefined){
-                    console.log(bbox.bbox[0]);
-                    if (bbox.bbox[0] < maxBbox[0]){
-                        maxBbox[0] = bbox.bbox[0];
-                    }
-                    if (bbox.bbox[1] < maxBbox[1]){
-                        maxBbox[1] = bbox.bbox[1];
-                    }
-                    if (bbox.bbox[2] > maxBbox[2]){
-                        maxBbox[2] = bbox.bbox[2];
-                    }
-                    if (bbox.bbox[3] > maxBbox[3]){
-                        maxBbox[3] = bbox.bbox[3];
-                    }
-                }
+                //const toPixelize = previous.concat(nodeCircles[i][0]);
+                // const bbox = turfBboxPolygon(turfBbox(toPixelize));
+                // if (pixelized.length == 0){
+                //     if (bbox.bbox != undefined){
+                //         maxBbox = bbox.bbox;
+                //     }
+                // }
                 
                 // pixelized = polygonClipping.union();
 
-                const polygon: Polygon = [nodeCircles[i][0][0], nodeCircles[i][0][nodeCircles[i][0].length()], nodeCircles[i][nodeCircles[i].length()][nodeCircles[i].length()], nodeCircles[i][nodeCircles[i].length()][0]];
+                // const polygon: Polygon = [nodeCircles[i][0][0], nodeCircles[i][0][1], nodeCircles[i][(nodeCircles[i].length)/2][0], nodeCircles[i][(nodeCircles[i].length)/2][0]];
                 // const polygon: Polygon = [nodeCircles[i]];
-                pixelized = polygonClipping.union(polygon);
+                // pixelized = polygonClipping.union(polygon);
                 
+                // const ring: Ring = [[extremumsPos[0], extremumsPos[3]], [extremumsPos[0], extremumsPos[1]], [extremumsPos[2], extremumsPos[1]], [extremumsPos[2], extremumsPos[3]], [extremumsPos[0], extremumsPos[3]]];
+                // const polygon: Polygon = [ring];
+                // pixelized = [polygon];
 
                 if (isCancelled && isCancelled()) {
                     reject('Cancelled');
@@ -477,7 +487,7 @@ export class TransitAccessibilityMapCalculator {
             });
 
             //const metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom)
-            const polygonCoordinates = await this.pixelizePolygon(nodeCircles, isCancelled);
+            const polygonCoordinates = await this.clipPolygon(nodeCircles, isCancelled);
             
             // TODO This is the veryyy sloooooow operation.
             // const polygonCoordinates = await this.clipPolygon(nodeCircles, isCancelled);
