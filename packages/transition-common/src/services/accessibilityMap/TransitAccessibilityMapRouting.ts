@@ -69,7 +69,7 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
                 this.errors.push('transit:transitRouting:errors:MaxTotalTravelTimeSecondsIsInvalid');
             } else if (maxTravelTime > 3600) {
                 this._isValid = false;
-                this.errors.push('transit:transitRouting:errors:MaxTotalTravelTimeSecondsIsToLarge');
+                this.errors.push('transit:transitRouting:errors:MaxTotalTravelTimeSecondsIsTooLarge');
             }
         }
 
@@ -83,7 +83,7 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
                 this.errors.push('transit:transitRouting:errors:NumberOfPolygonsIsInvalid');
             } else if (this._isValid && maxTravelTime && nbOfPolygons * 60 > maxTravelTime) {
                 this._isValid = false;
-                this.errors.push('transit:transitRouting:errors:NumberOfPolygonsIsToLarge');
+                this.errors.push('transit:transitRouting:errors:NumberOfPolygonsIsTooLarge');
             }
         }
 
@@ -96,7 +96,7 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
             this.errors.push('transit:transitRouting:errors:DeltaIsInvalid');
         } else if (deltaSeconds > 1800) {
             this._isValid = false;
-            this.errors.push('transit:transitRouting:errors:DeltaIsToLarge');
+            this.errors.push('transit:transitRouting:errors:DeltaIsTooLarge');
         }
 
         const deltaIntervalSeconds = attributes.deltaIntervalSeconds;
@@ -141,10 +141,10 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
             this.errors.push('transit:transitRouting:errors:WalkingSpeedMpsIsInvalid');
         } else if (this._isValid && walkingSpeedMps > 10.0 / 3.6) {
             this._isValid = false;
-            this.errors.push('transit:transitRouting:errors:WalkingSpeedMpsIsToLarge');
+            this.errors.push('transit:transitRouting:errors:WalkingSpeedMpsIsTooLarge');
         } else if (this._isValid && walkingSpeedMps < 2.0 / 3.6) {
             this._isValid = false;
-            this.errors.push('transit:transitRouting:errors:WalkingSpeedMpsIsToLow');
+            this.errors.push('transit:transitRouting:errors:WalkingSpeedMpsIsTooLow');
         }
 
         const { valid: queryAttrValid, errors: queryAttrErrors } = validateTrQueryAttributes(this.getAttributes());
