@@ -44,6 +44,8 @@ import {
 import { resolve } from 'path';
 import { Polygon } from 'polygon-clipping';
 import { forEach } from 'lodash';
+import { Canvg } from 'canvg';
+import { geojson2svg } from 'geojson2svg';
 
 export interface TransitMapCalculationOptions {
     isCancelled?: (() => boolean) | false;
@@ -195,100 +197,20 @@ export class TransitAccessibilityMapCalculator {
         isCancelled: (() => boolean) | false = false
     ): Promise<polygonClipping.MultiPolygon> {
         return new Promise((resolve, reject) => {
-            // let pixelized: FeatureCollection<MultiPolygon> = {type: 'FeatureCollection', features: []};
+
+            let toPixel = [ [-73.497, 45.543], [-73.497, 45.52], [-73.472, 45.52], [-73.472, 45.543], [-73.497, 45.543]];
+            let geojson2svg = require('geojson2svg');
+            let converter = geojson2svg({output: 'path'});
+            let toPixelSvg = converter.convert({'type': 'Polygon', 'coordinates': [[ [73.497, 45.543], [73.497, 45.52], [73.472, 45.52], [73.472, 45.543], [73.497, 45.543]]]});
+            console.log(toPixelSvg);
+            
+
             let pixelized: polygonClipping.MultiPolygon = [];
-            let maxBbox = [-500, -500, 500, 500];
-            //envelope au lieu de bbox??
-            //boolean within
-            //const metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom)
-            // let extremumsPos: number[] = [-180, -90, 180, 90]; //min lat et long
-            // for (let circle of nodeCircles){
-            //     // console.log(circle);
-            //     if(circle[0][0][0] > extremumsPos[0]){
-            //         extremumsPos[0] = circle[0][0][0];
-            //     }
-            //     if(circle[0][0][1] > extremumsPos[1]){
-            //         extremumsPos[1] = circle[0][0][1];
-            //     }
-            //     if(circle[0][0][0] < extremumsPos[2]){
-            //         extremumsPos[2] = circle[0][0][0];
-            //     }
-            //     if(circle[0][0][1] < extremumsPos[3]){
-            //         extremumsPos[3] = circle[0][0][1];
-            //     }
-            // }
+            const pixelFunc = (previous, i) => {
+                // const toPixel = nodeCircles[i][0][0][0];
 
-            // const ring = turfLineString([[extremumsPos[0], extremumsPos[3]], [extremumsPos[0], extremumsPos[1]], [extremumsPos[2], extremumsPos[1]], [extremumsPos[2], extremumsPos[3]], [extremumsPos[0], extremumsPos[3]]]);
-            // let polygon: Feature<MultiPolygon> = turfMultiPolygon([[[[extremumsPos[0], extremumsPos[3]], [extremumsPos[0], extremumsPos[1]], [extremumsPos[2], extremumsPos[1]], [extremumsPos[2], extremumsPos[3]], [extremumsPos[0], extremumsPos[3]]]]]);
+                
 
-            //pixelized = turfPolygonSmooth(polygon, {iterations:3});
-            // pixelized = { features: [polygon], type: 'FeatureCollection' };
-
-            const pixelizeFunc = (previous, i) => {
-                // logique pixelisation
-                //const toPixelize = previous.concat(nodeCircles[i][0]);
-                // const bbox = turfBboxPolygon(turfBbox(toPixelize));
-                // if (pixelized.length == 0){
-                //     if (bbox.bbox != undefined){
-                //         maxBbox = bbox.bbox;
-                //     }
-                // }
-
-                // pixelized = polygonClipping.union();
-
-                // const polygon: Polygon = [nodeCircles[i][0][0], nodeCircles[i][0][1], nodeCircles[i][(nodeCircles[i].length)/2][0], nodeCircles[i][(nodeCircles[i].length)/2][0]];
-                // const polygon: Polygon = [nodeCircles[i]];
-                // pixelized = polygonClipping.union(polygon);
-
-                // const ring: Ring = [[extremumsPos[0], extremumsPos[3]], [extremumsPos[0], extremumsPos[1]], [extremumsPos[2], extremumsPos[1]], [extremumsPos[2], extremumsPos[3]], [extremumsPos[0], extremumsPos[3]]];
-                // const polygon: Polygon = [ring];
-                // pixelized = [polygon];
-
-                // let extremumsPos: number[] = [nodeCircles[i][0][0][0], nodeCircles[i][0][0][1], nodeCircles[i][0][0][0], nodeCircles[i][0][0][1]];
-                let extremumsPos: number[] = [-180, -90, 180, 90];
-                // console.log(nodeCircles[i]); //nodeCircles[i] = structure comprenant un cercle
-                // console.log(nodeCircles[i][0]); //cercle
-                // console.log(nodeCircles[i][0][0]); //coords
-                // console.log(nodeCircles[i][0][0][0]); //lat ou long
-                for (let j = 0; j < nodeCircles[i].length; j++) {
-                    if (nodeCircles[i][j][0][0] > extremumsPos[0]) {
-                        extremumsPos[0] = nodeCircles[i][j][0][0];
-                    }
-                    if (nodeCircles[i][j][0][1] > extremumsPos[1]) {
-                        extremumsPos[1] = nodeCircles[i][j][0][1];
-                    }
-                    if (nodeCircles[i][j][0][0] < extremumsPos[2]) {
-                        extremumsPos[2] = nodeCircles[i][j][0][0];
-                    }
-                    if (nodeCircles[i][j][0][1] < extremumsPos[3]) {
-                        extremumsPos[3] = nodeCircles[i][j][0][1];
-                    }
-                }
-
-                // console.log(extremumsPos);
-                //mettre un octogone avec les mi points
-                // const toPixelize = previous.concat([
-                //     [extremumsPos[2], extremumsPos[1]],
-                //     [extremumsPos[2], extremumsPos[3]],
-                //     [extremumsPos[0], extremumsPos[3]],
-                //     [extremumsPos[0], extremumsPos[1]],
-                //     [extremumsPos[2], extremumsPos[1]]
-                // ]);
-                const toPixelize: polygonClipping.Polygon = [
-                    [
-                        [extremumsPos[2], extremumsPos[1]],
-                        [extremumsPos[2], extremumsPos[3]],
-                        [extremumsPos[0], extremumsPos[3]],
-                        [extremumsPos[0], extremumsPos[1]],
-                        [extremumsPos[2], extremumsPos[1]]
-                    ]
-                ];
-                console.log(toPixelize);
-                if (previous != undefined && toPixelize[0] != toPixelize[2] && toPixelize[1] != toPixelize[3] && pixelized.length > 0) {
-                    pixelized = polygonClipping.union([toPixelize, previous]);
-                } else {
-                    pixelized[0] = toPixelize;
-                }
                 if (isCancelled && isCancelled()) {
                     reject('Cancelled');
                     return;
@@ -297,20 +219,141 @@ export class TransitAccessibilityMapCalculator {
                     setTimeout(() => {
                         try {
                             // The function will concat with previous, nothing to do for this case
-                            pixelizeFunc(pixelized, i + 1);
+                            pixelFunc(pixelized, i + 1);
                         } catch (error) {
                             // Error clipping this data, reject the promise
                             reject(error);
                         }
                     }, 0);
                 } else {
-                    console.log(pixelized);
                     resolve(pixelized);
                 }
             };
-            pixelizeFunc(pixelized, 0);
+            pixelFunc(pixelized, 0);
         });
     }
+
+    // private static async pixelizePolygon(
+    //     nodeCircles,
+    //     isCancelled: (() => boolean) | false = false
+    // ): Promise<polygonClipping.MultiPolygon> {
+    //     return new Promise((resolve, reject) => {
+    //         // let pixelized: FeatureCollection<MultiPolygon> = {type: 'FeatureCollection', features: []};
+    //         let pixelized: polygonClipping.MultiPolygon = [];
+    //         let maxBbox = [-500, -500, 500, 500];
+    //         //envelope au lieu de bbox??
+    //         //boolean within
+    //         //const metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom)
+    //         // let extremumsPos: number[] = [-180, -90, 180, 90]; //min lat et long
+    //         // for (let circle of nodeCircles){
+    //         //     // console.log(circle);
+    //         //     if(circle[0][0][0] > extremumsPos[0]){
+    //         //         extremumsPos[0] = circle[0][0][0];
+    //         //     }
+    //         //     if(circle[0][0][1] > extremumsPos[1]){
+    //         //         extremumsPos[1] = circle[0][0][1];
+    //         //     }
+    //         //     if(circle[0][0][0] < extremumsPos[2]){
+    //         //         extremumsPos[2] = circle[0][0][0];
+    //         //     }
+    //         //     if(circle[0][0][1] < extremumsPos[3]){
+    //         //         extremumsPos[3] = circle[0][0][1];
+    //         //     }
+    //         // }
+
+    //         // const ring = turfLineString([[extremumsPos[0], extremumsPos[3]], [extremumsPos[0], extremumsPos[1]], [extremumsPos[2], extremumsPos[1]], [extremumsPos[2], extremumsPos[3]], [extremumsPos[0], extremumsPos[3]]]);
+    //         // let polygon: Feature<MultiPolygon> = turfMultiPolygon([[[[extremumsPos[0], extremumsPos[3]], [extremumsPos[0], extremumsPos[1]], [extremumsPos[2], extremumsPos[1]], [extremumsPos[2], extremumsPos[3]], [extremumsPos[0], extremumsPos[3]]]]]);
+
+    //         //pixelized = turfPolygonSmooth(polygon, {iterations:3});
+    //         // pixelized = { features: [polygon], type: 'FeatureCollection' };
+
+    //         const pixelizeFunc = (previous, i) => {
+    //             // logique pixelisation
+    //             //const toPixelize = previous.concat(nodeCircles[i][0]);
+    //             // const bbox = turfBboxPolygon(turfBbox(toPixelize));
+    //             // if (pixelized.length == 0){
+    //             //     if (bbox.bbox != undefined){
+    //             //         maxBbox = bbox.bbox;
+    //             //     }
+    //             // }
+
+    //             // pixelized = polygonClipping.union();
+
+    //             // const polygon: Polygon = [nodeCircles[i][0][0], nodeCircles[i][0][1], nodeCircles[i][(nodeCircles[i].length)/2][0], nodeCircles[i][(nodeCircles[i].length)/2][0]];
+    //             // const polygon: Polygon = [nodeCircles[i]];
+    //             // pixelized = polygonClipping.union(polygon);
+
+    //             // const ring: Ring = [[extremumsPos[0], extremumsPos[3]], [extremumsPos[0], extremumsPos[1]], [extremumsPos[2], extremumsPos[1]], [extremumsPos[2], extremumsPos[3]], [extremumsPos[0], extremumsPos[3]]];
+    //             // const polygon: Polygon = [ring];
+    //             // pixelized = [polygon];
+
+    //             // let extremumsPos: number[] = [nodeCircles[i][0][0][0], nodeCircles[i][0][0][1], nodeCircles[i][0][0][0], nodeCircles[i][0][0][1]];
+    //             let extremumsPos: number[] = [-180, -90, 180, 90];
+    //             // console.log(nodeCircles[i]); //nodeCircles[i] = structure comprenant un cercle
+    //             // console.log(nodeCircles[i][0]); //cercle
+    //             // console.log(nodeCircles[i][0][0]); //coords
+    //             // console.log(nodeCircles[i][0][0][0]); //lat ou long
+    //             for (let j = 0; j < nodeCircles[i].length; j++) {
+    //                 if (nodeCircles[i][j][0][0] > extremumsPos[0]) {
+    //                     extremumsPos[0] = nodeCircles[i][j][0][0];
+    //                 }
+    //                 if (nodeCircles[i][j][0][1] > extremumsPos[1]) {
+    //                     extremumsPos[1] = nodeCircles[i][j][0][1];
+    //                 }
+    //                 if (nodeCircles[i][j][0][0] < extremumsPos[2]) {
+    //                     extremumsPos[2] = nodeCircles[i][j][0][0];
+    //                 }
+    //                 if (nodeCircles[i][j][0][1] < extremumsPos[3]) {
+    //                     extremumsPos[3] = nodeCircles[i][j][0][1];
+    //                 }
+    //             }
+
+    //             // console.log(extremumsPos);
+    //             //mettre un octogone avec les mi points
+    //             // const toPixelize = previous.concat([
+    //             //     [extremumsPos[2], extremumsPos[1]],
+    //             //     [extremumsPos[2], extremumsPos[3]],
+    //             //     [extremumsPos[0], extremumsPos[3]],
+    //             //     [extremumsPos[0], extremumsPos[1]],
+    //             //     [extremumsPos[2], extremumsPos[1]]
+    //             // ]);
+    //             const toPixelize: polygonClipping.Polygon = [
+    //                 [
+    //                     [extremumsPos[2], extremumsPos[1]],
+    //                     [extremumsPos[2], extremumsPos[3]],
+    //                     [extremumsPos[0], extremumsPos[3]],
+    //                     [extremumsPos[0], extremumsPos[1]],
+    //                     [extremumsPos[2], extremumsPos[1]]
+    //                 ]
+    //             ];
+    //             console.log(toPixelize);
+    //             if (previous != undefined && toPixelize[0] != toPixelize[2] && toPixelize[1] != toPixelize[3] && pixelized.length > 0) {
+    //                 pixelized = polygonClipping.union([toPixelize, previous]);
+    //             } else {
+    //                 pixelized[0] = toPixelize;
+    //             }
+    //             if (isCancelled && isCancelled()) {
+    //                 reject('Cancelled');
+    //                 return;
+    //             }
+    //             if (i < nodeCircles.length - 1) {
+    //                 setTimeout(() => {
+    //                     try {
+    //                         // The function will concat with previous, nothing to do for this case
+    //                         pixelizeFunc(pixelized, i + 1);
+    //                     } catch (error) {
+    //                         // Error clipping this data, reject the promise
+    //                         reject(error);
+    //                     }
+    //                 }, 0);
+    //             } else {
+    //                 console.log(pixelized);
+    //                 resolve(pixelized);
+    //             }
+    //         };
+    //         pixelizeFunc(pixelized, 0);
+    //     });
+    // }
 
     // FIXME: Type the options
     static async calculate(
