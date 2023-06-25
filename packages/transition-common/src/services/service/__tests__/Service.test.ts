@@ -203,10 +203,14 @@ test('Test deleting service with or without scheduled lines', async () => {
 });
 
 describe('Service validity period', () => {
+    // friday september 10 2021
     const startRange = new Date(moment('2021-09-10').toString());
+    // saturday october 9 2021
     const endRange = new Date(moment('2021-10-09').toString());
+    const saturdayInRange = new Date(moment('2021-09-11').toString());
     each([
         ['Valid range for date', startRange, undefined, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-01-01', end_date: '2022-01-01' })],
+        ['Valid range for date, but not service day', saturdayInRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-01-01', end_date: '2022-01-01' })],
         ['Invalid range for date, before', startRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-01-01', end_date: '2021-02-01' })],
         ['Invalid range for date, after', startRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-11-10', end_date: '2022-01-01' })],
         ['Valid range for range', startRange, endRange, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-01-01', end_date: '2022-01-01' })],
@@ -214,10 +218,15 @@ describe('Service validity period', () => {
         ['Invalid range for range, after', startRange, endRange, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-11-10', end_date: '2022-01-01' })],
         ['Valid range for range, all included', startRange, endRange, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-20', end_date: '2022-09-22' })],
         ['Valid range for range, overlaps', startRange, endRange, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2022-09-22' })],
-        ['Valid range for date, but has only dates', startRange, undefined, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-10', end_date: '2021-10-30', only_dates: ['2021-09-10', '2021-09-23', '2021-10-30'] })],
-        ['Valid range for date, only dates, but not test date', startRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-08', end_date: '2021-10-30', only_dates: ['2021-09-08', '2021-09-23', '2021-10-30'] })],
-        ['Valid range for range, but has only dates', startRange, endRange, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-12-31', only_dates: ['2021-09-08', '2021-09-23', '2021-10-30'] })],
-        ['Valid range for range, only dates, but not in test range', startRange, endRange, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-10-30', only_dates: ['2021-09-08', '2021-10-30'] })],
+        ['Valid range for date, but has only dates only', startRange, undefined, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-10', end_date: '2021-10-30', only_dates: ['2021-09-10', '2021-09-23', '2021-10-30'], monday: undefined, tuesday: undefined, wednesday: undefined, thursday: undefined, friday: undefined, saturday: undefined, sunday: undefined })],
+        ['Valid range for date, only dates only, but not test date', startRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-08', end_date: '2021-10-30', only_dates: ['2021-09-08', '2021-09-23', '2021-10-30'], monday: undefined, tuesday: undefined, wednesday: undefined, thursday: undefined, friday: undefined, saturday: undefined, sunday: undefined })],
+        ['Valid range for range, but has only dates only', startRange, endRange, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-12-31', only_dates: ['2021-09-08', '2021-09-23', '2021-10-30'], monday: undefined, tuesday: undefined, wednesday: undefined, thursday: undefined, friday: undefined, saturday: undefined, sunday: undefined })],
+        ['Valid range for range, only dates only, but not in test range', startRange, endRange, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-10-30', only_dates: ['2021-09-08', '2021-10-30'], monday: undefined, tuesday: undefined, wednesday: undefined, thursday: undefined, friday: undefined, saturday: undefined, sunday: undefined })],
+        ['Valid range for date, with additional service dates, date is additional', saturdayInRange, undefined, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-10', end_date: '2021-10-30', only_dates: ['2021-09-11'] })],
+        ['Valid range for date, with additional service dates, date is a service day', startRange, undefined, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-10', end_date: '2021-10-30', only_dates: ['2021-09-11'] })],
+        ['Valid range for date, with additional service dates, but not test date', saturdayInRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-08', end_date: '2021-10-30', only_dates: ['2021-09-12', '2021-09-23'] })],
+        ['Valid range for range, with additional service dates', saturdayInRange, endRange, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-12-31', only_dates: ['2021-09-11']  })],
+        ['Valid range for range, with additional service dates, but not in test range', endRange, new Date(moment('2021-10-10').toString()), false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-10-30', only_dates: ['2021-09-12', '2021-09-23'] })],
         ['Valid range for date, but exclude', startRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-09-11', except_dates: ['2021-09-10'] })],
         ['Valid range for date, with exclude, not excluded', startRange, undefined, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-09-11', except_dates: ['2021-09-13'] })],
         // TODO We don't look at the exclusion for ranges. Should we?

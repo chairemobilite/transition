@@ -190,29 +190,46 @@ class Service extends ObjectWithHistory<ServiceAttributes> implements Saveable {
             return false;
         }
 
-        // If there are only dates, make sure some are valid
-        const onlyDates = this._attributes.only_dates || [];
-        if (onlyDates.length > 0) {
-            const onlyDate = onlyDates.find((date) => {
-                const onlyDate = moment(date);
-                return onlyDate >= rangeStart && onlyDate <= rangeEnd;
-            });
-            if (onlyDate === undefined) {
-                return false;
-            }
-        }
-        // If no end specified, see if there's a exception for that date
+        // If no end specified, see if there's a exception for that date and the day of week is valid
         if (!end) {
             const exceptDates = this._attributes.except_dates || [];
-            return (
-                exceptDates.length === 0 ||
+            if (
+                exceptDates.length > 0 &&
                 exceptDates.find((date) => {
                     const exceptDate = moment(date);
                     return exceptDate.isSame(rangeStart);
-                }) === undefined
-            );
+                }) !== undefined
+            ) {
+                return false;
+            }
         }
-        return true;
+
+        // See if the service days correspond to the range
+        const dowStart = rangeStart.day();
+        const daysDiff = Math.min(6, rangeEnd.diff(rangeStart, 'days'));
+        const hasServiceDays = (dowStart: number, daysDiff: number) => {
+            for (let dow = dowStart; dow <= dowStart + daysDiff; dow++) {
+                // 0 is sunday, here's it's monday
+                const serviceDayIndex = dow % 7 === 0 ? 6 : (dow % 7) - 1;
+                if (this._attributes[serviceDays[serviceDayIndex]] === true) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        const serviceInRange = hasServiceDays(dowStart, daysDiff);
+
+        // If there are only dates, make sure some are valid
+        const onlyDates = this._attributes.only_dates || [];
+        const onlyDateInRange =
+            onlyDates.length > 0
+                ? onlyDates.find((date) => {
+                    const onlyDate = moment(date);
+                    return onlyDate >= rangeStart && onlyDate <= rangeEnd;
+                })
+                : undefined;
+
+        return onlyDateInRange !== undefined || serviceInRange;
     }
 
     toString(showId = false) {
