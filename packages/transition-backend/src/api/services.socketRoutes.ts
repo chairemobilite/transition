@@ -10,7 +10,7 @@ import { EventEmitter } from 'events';
 import osrm from 'osrm';
 
 import { isSocketIo } from './socketUtils';
-import serverConfig from 'chaire-lib-backend/lib/config/server.config';
+import { serverConfig } from 'chaire-lib-backend/lib/config/config';
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';

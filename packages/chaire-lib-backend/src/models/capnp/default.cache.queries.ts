@@ -8,7 +8,7 @@ import fs from 'fs';
 import pQueue from 'p-queue';
 import * as capnp from 'capnp-ts';
 
-import config from '../../config/server.config';
+import { projectConfig } from '../../config/config';
 import { fileManager } from '../../utils/filesystem/fileManager';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { writePackedMessageToStream, readToEndOfStream } from '../../services/json2capnp/capnpMessagesManager';
@@ -18,18 +18,18 @@ import GenericCollection from 'chaire-lib-common/lib/utils/objects/GenericCollec
 import { GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 
 const prefix = process.env.NODE_ENV === 'test' ? 'test_' : '';
+const mainCachePath = `${prefix}cache/${projectConfig.projectShortname}`;
 
-fileManager.directoryManager.createDirectoryIfNotExists(`${prefix}cache`);
-fileManager.directoryManager.createDirectoryIfNotExists(`${prefix}cache/${config.projectShortname}`);
+fileManager.directoryManager.createDirectoryIfNotExists(`${mainCachePath}`);
 
 const emptyCacheDirectory = async (pathDirectory: string) => {
-    const cacheDirectoryPath = `${prefix}cache/${config.projectShortname}/${pathDirectory}`;
+    const cacheDirectoryPath = `${mainCachePath}/${pathDirectory}`;
     fileManager.directoryManager.emptyDirectory(cacheDirectoryPath);
     return pathDirectory;
 };
 
 const deleteCacheDirectory = async (pathDirectory: string) => {
-    const cacheDirectoryPath = `${prefix}cache/${config.projectShortname}/${pathDirectory}`;
+    const cacheDirectoryPath = `${mainCachePath}/${pathDirectory}`;
     fileManager.directoryManager.deleteDirectory(cacheDirectoryPath);
     return pathDirectory;
 };
@@ -38,9 +38,7 @@ const deleteCacheDirectory = async (pathDirectory: string) => {
 const saveToFile = (
     params: { fileName?: string; data?: { [key: string]: any }; cachePathDirectory?: string } = {}
 ): string | undefined => {
-    const cachePathDirectory =
-        `${prefix}cache/${config.projectShortname}` +
-        (params.cachePathDirectory ? '/' + params.cachePathDirectory : '');
+    const cachePathDirectory = `${mainCachePath}` + (params.cachePathDirectory ? '/' + params.cachePathDirectory : '');
     const fileName = params.fileName;
     const data = params.data;
     if (fileName && data) {
@@ -55,7 +53,7 @@ const saveToFile = (
 
 // TODO: Consider returning the json object instead of the string here
 const getFromFile = (params: { path: string }): string | undefined => {
-    const filePath = `${prefix}cache/${config.projectShortname}/${params.path}`;
+    const filePath = `${mainCachePath}/${params.path}`;
     if (fileManager.fileExists(filePath)) {
         const data = fileManager.readFile(filePath);
         return data ? data : undefined;
@@ -92,20 +90,18 @@ const collectionToCache = async (params: CollectionCacheParams): Promise<any> =>
     const parser = params.parser; // TODO or CHANGE BEHAVIOUR: not used with json2capnp
     const capnpParser = params.capnpParser;
     const maxNumberOfObjectsPerFile = params.maxNumberOfObjectsPerFile || 50000; // TODO or CHANGE BEHAVIOUR: not yet implement with json2capnp
-    const cachePath = `${prefix}cache/${config.projectShortname}/${
+    const cachePath = `${mainCachePath}/${
         cachePathDirectory ? cachePathDirectory + '/' : ''
     }${collectionName}.capnpbin`;
     const absoluteCacheFilePath = fileManager.getAbsolutePath(cachePath);
     const bodyData: { [key: string]: any } = {};
 
     if (cachePathDirectory) {
-        fileManager.directoryManager.createDirectoryIfNotExists(
-            `${prefix}cache/${config.projectShortname}/${cachePathDirectory}`
-        );
+        fileManager.directoryManager.createDirectoryIfNotExists(`${mainCachePath}/${cachePathDirectory}`);
         bodyData.cache_directory_path = cachePathDirectory;
     }
     if (params.emptyDirectory) {
-        fileManager.directoryManager.emptyDirectory(`${prefix}cache/${config.projectShortname}/${cachePathDirectory}`);
+        fileManager.directoryManager.emptyDirectory(`${mainCachePath}/${cachePathDirectory}`);
     }
 
     // TODO: Callers should send the right type, the first 'if' can totally change the collection type! But make sure all callers are fixed first
@@ -220,7 +216,7 @@ const collectionFromCache = async (params: CollectionCacheParams): Promise<any> 
     const CacheCollection = params.CacheCollection;
     const capnpParser = params.capnpParser;
     const parser = params.parser;
-    const cachePath = `${prefix}cache/${config.projectShortname}/${
+    const cachePath = `${mainCachePath}/${
         cachePathDirectory ? cachePathDirectory + '/' : ''
     }${collectionName}.capnpbin`;
     const absoluteCacheFilePath = fileManager.getAbsolutePath(cachePath);
@@ -338,16 +334,14 @@ const objectToCache = async (params: ObjectToCacheParams) => {
     const capnpParser = params.capnpParser;
     const parser = params.parser;
     const objectId = object.attributes ? object.attributes.id : object.id;
-    const cachePath = `${prefix}cache/${config.projectShortname}/${
+    const cachePath = `${mainCachePath}/${
         cachePathDirectory ? cachePathDirectory + '/' : ''
     }${objectName}_${objectId}.capnpbin`;
     const absoluteCacheFilePath = fileManager.getAbsolutePath(cachePath);
     const bodyData: { [key: string]: any } = {};
 
     if (cachePathDirectory) {
-        fileManager.directoryManager.createDirectoryIfNotExists(
-            `${prefix}cache/${config.projectShortname}/${cachePathDirectory}`
-        );
+        fileManager.directoryManager.createDirectoryIfNotExists(`${mainCachePath}/${cachePathDirectory}`);
         bodyData.cache_directory_path = cachePathDirectory;
     }
     if (params.dataSourceId) {
@@ -414,7 +408,7 @@ const objectFromCache = async (params: ObjectFromCacheParams) => {
     const parser = params.parser;
     const objectId = params.objectId;
     const capnpParser = params.capnpParser;
-    const cachePath = `${prefix}cache/${config.projectShortname}/${
+    const cachePath = `${mainCachePath}/${
         cachePathDirectory ? cachePathDirectory + '/' : ''
     }${objectName}_${objectId}.capnpbin`;
     const absoluteCacheFilePath = fileManager.getAbsolutePath(cachePath);
@@ -469,7 +463,7 @@ const deleteObjectCache = async (params: { cacheName: string; cachePathDirectory
     const objectName = params.cacheName;
     const cachePathDirectory = params.cachePathDirectory;
     const objectId = params.objectId;
-    const cachePath = `${prefix}cache/${config.projectShortname}/${
+    const cachePath = `${mainCachePath}/${
         cachePathDirectory ? cachePathDirectory + '/' : ''
     }${objectName}_${objectId}.capnpbin`;
     const absoluteCacheFilePath = fileManager.getAbsolutePath(cachePath);
@@ -485,7 +479,7 @@ const deleteObjectsCache = async (params: { cacheName: string; cachePathDirector
     const cachePathDirectory = params.cachePathDirectory;
     const objectIds = params.objectIds;
     const cachePaths = objectIds.map((objectId) => {
-        return `${prefix}cache/${config.projectShortname}/${
+        return `${mainCachePath}/${
             cachePathDirectory ? cachePathDirectory + '/' : ''
         }${objectName}_${objectId}.capnpbin`;
     });

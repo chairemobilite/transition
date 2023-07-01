@@ -14,7 +14,7 @@ import { sanitizeUserAttributes } from '../services/auth/userAuthModel';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 // TODO Responsibility for user login management is usually in passport, move it there
 import { resetPasswordEmail, sendConfirmedByAdminEmail } from '../services/auth/userEmailNotifications';
-import config from '../config/server.config';
+import { projectConfig } from '../config/config';
 import { getConfirmEmailStrategy } from '../config/auth/localLogin.config';
 import { UserAttributes } from '../services/users/user';
 import { IAuthModel, IUserModel } from '../services/auth/authModel';
@@ -91,7 +91,7 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
         defaultFailureCallback
     );
 
-    if (config.auth && config.auth.passwordless) {
+    if (projectConfig.auth && projectConfig.auth.passwordless) {
         app.post(
             '/pwdless',
             passport.authenticate('passwordless-enter-login'),
@@ -116,7 +116,7 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
         );
     }
 
-    if (config.auth && config.auth.anonymous === true) {
+    if (projectConfig.auth && projectConfig.auth.anonymous === true) {
         app.get('/anonymous', passport.authenticate('anonymous-login'), defaultSuccessCallback, defaultFailureCallback);
     }
 

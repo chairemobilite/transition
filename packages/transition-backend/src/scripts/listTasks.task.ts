@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import 'chaire-lib-backend/lib/config/dotenv.config';
+import '../config/app.config';
 
 import { listTasks } from './listTasks';
 import inquirer from 'inquirer';

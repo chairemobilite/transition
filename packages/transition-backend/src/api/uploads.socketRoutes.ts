@@ -10,7 +10,7 @@ import SocketIO from 'socket.io';
 
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import uploadSocketRoutes from 'chaire-lib-backend/lib/api/uploads.socketRoutes';
-import serverConfig from 'chaire-lib-backend/lib/config/server.config';
+import { serverConfig } from 'chaire-lib-backend/lib/config/config';
 import GtfsImportPreparation from '../services/gtfsImport/GtfsImportPreparation';
 import agenciesImporter from '../services/importers/AgenciesImporter';
 import nodesImporter from '../services/importers/NodesImporter';

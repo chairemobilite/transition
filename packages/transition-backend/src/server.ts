@@ -6,22 +6,22 @@
  */
 import fs from 'fs';
 import { join } from 'path';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import _dotenv from 'chaire-lib-backend/lib/config/dotenv.config';
+// Configs needs to be imported before other files
+import { projectConfig } from './config/app.config';
+
 import { setupServer } from './serverApp';
 import setupSocketServerApp from './socketServerApp';
 import yargs from 'yargs/yargs';
 import { hideBin } from 'yargs/helpers';
 import express from 'express';
 import { registerTranslationDir, addTranslationNamespace } from 'chaire-lib-backend/lib/config/i18next';
-import config from 'chaire-lib-backend/lib/config/server.config';
 
 const argv = yargs(hideBin(process.argv)).argv;
 
 const useSSL = argv.ssl;
 const port = argv.port ? parseInt(argv.port as string) : useSSL ? 8443 : 8080;
 
-console.log(`starting server for project ${config.projectShortname} with port ${port}`);
+console.log(`starting server for project ${projectConfig.projectShortname} with port ${port}`);
 
 process.on('uncaughtException', (err) => {
     // handle the error safely

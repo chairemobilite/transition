@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import '../../config/dotenv.config'; // Unused, but must be imported
-import { CreateUser } from '../../tasks/user/createUser';
+// Import taskWrapper first to load all configuration
 import taskWrapper from '../../tasks/taskWrapper';
+import { CreateUser } from '../../tasks/user/createUser';
 
 taskWrapper(new CreateUser())
     .then(() => {

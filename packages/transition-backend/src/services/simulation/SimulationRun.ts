@@ -11,7 +11,7 @@ import _cloneDeep from 'lodash.clonedeep';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import config from 'chaire-lib-backend/lib/config/server.config';
+import { projectConfig } from 'chaire-lib-backend/lib/config/config';
 
 import Simulation, { SimulationDataAttributes } from 'transition-common/lib/services/simulation/Simulation';
 import SimulationRun, {
@@ -154,11 +154,11 @@ export default class SimulationRunBackend extends SimulationRun {
     }
 
     public getProjectRelativeCacheDirectoryPath(): string {
-        return `cache/${config.projectShortname}/${this.getCacheDirectoryPath()}`;
+        return `cache/${projectConfig.projectShortname}/${this.getCacheDirectoryPath()}`;
     }
 
     public getResultsDirectoryPath(): string {
-        return `exports/simulations/${config.projectShortname}/${this.getCacheDirectoryPath()}`;
+        return `exports/simulations/${projectConfig.projectShortname}/${this.getCacheDirectoryPath()}`;
     }
 
     async saveSimulationScenarios(scenarioIds: string[]): Promise<boolean> {

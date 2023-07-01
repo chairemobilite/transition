@@ -4,8 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { DownloadOsmNetworkData } from 'chaire-lib-common/lib/tasks/osrm/downloadOsmNetworkData';
+// Import taskWrapper first to load all configuration
 import taskWrapper from '../../tasks/taskWrapper';
+import { DownloadOsmNetworkData } from 'chaire-lib-common/lib/tasks/osrm/downloadOsmNetworkData';
 
 import { fileManager } from '../../utils/filesystem/fileManager';
 import { CliPromptGeojsonPolygonService } from '../../services/prompt/CliPromptGeojsonPolygonService';

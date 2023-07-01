@@ -7,6 +7,7 @@
 // This file is meant as the entry point of the worker pool, to be run in workers directly
 import workerpool from 'workerpool';
 import { EventEmitter } from 'events';
+import '../config/app.config';
 
 import { batchRoute } from '../services/transitRouting/TrRoutingBatch';
 import { batchAccessibilityMap } from '../services/transitRouting/TrAccessibilityMapBatch';
