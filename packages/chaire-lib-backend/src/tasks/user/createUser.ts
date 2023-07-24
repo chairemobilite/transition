@@ -6,6 +6,7 @@
  */
 import inquirer from 'inquirer';
 import validator from 'validator';
+import _cloneDeep from 'lodash.clonedeep';
 
 import { _isBlank, _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GenericTask } from 'chaire-lib-common/lib/tasks/genericTask';
@@ -136,7 +137,10 @@ export class CreateUser implements GenericTask {
     }
 
     private async createUser(user: NewUserParams & { is_admin?: boolean }) {
-        console.log('Creating new user: ', user);
+        // hide password from confirmation object log:
+        const confirmationUser = _cloneDeep(user);
+        confirmationUser.password = '***';
+        console.log('Creating new user: ', confirmationUser);
         try {
             await userAuthModel.createAndSave(user as NewUserParams);
         } catch (error) {
