@@ -464,7 +464,6 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
     };
 
     updateLayer = (layerName: string, geojson: GeoJSON.FeatureCollection) => {
-        //console.log('updating map layer', layerName, geojson);
         this.layerManager.updateLayer(layerName, geojson);
     };
 
