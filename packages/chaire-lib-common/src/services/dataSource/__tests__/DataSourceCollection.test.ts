@@ -8,11 +8,11 @@
 import { v4 as uuidV4 } from 'uuid';
 import _cloneDeep from 'lodash.clonedeep';
 
-import EventManagerMock from 'chaire-lib-common/lib/test/services/events/EventManagerMock';
+import EventManagerMock from '../../../test/services/events/EventManagerMock';
 import DataSource from '../DataSource';
 import DataSourceCollection from '../DataSourceCollection';
-import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
-import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import CollectionManager from '../../../utils/objects/CollectionManager';
+import serviceLocator from '../../../utils/ServiceLocator';
 
 // TODO Bring the collection manager to a mocking library
 const eventManager = EventManagerMock.eventManagerMock;

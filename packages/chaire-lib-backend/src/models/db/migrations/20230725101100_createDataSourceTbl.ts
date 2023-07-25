@@ -1,8 +1,15 @@
+/*
+ * Copyright 2023, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
 import { Knex } from 'knex';
 import { onUpdateTrigger } from '../../../config/knexfile';
 
 const tableName = 'tr_data_sources';
 
+// The data source table comes from transition
 export async function up(knex: Knex): Promise<unknown> {
     if (await knex.schema.hasTable(tableName)) {
         return;
@@ -44,7 +51,7 @@ export async function up(knex: Knex): Promise<unknown> {
 }
 
 export async function down(knex: Knex): Promise<unknown> {
-    // The table is also in chaire-lib, so 2 downs could potentially drop it, make sure it exists first
+    // The table was originally also in transition, so 2 downs could potentially drop it, make sure it exists first
     if (!(await knex.schema.hasTable(tableName))) {
         return;
     }

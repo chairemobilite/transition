@@ -7,7 +7,7 @@
 import { v4 as uuidV4 } from 'uuid';
 
 import dbQueries from '../odPairs.db.queries';
-import dataSourceDbQueries from '../dataSources.db.queries';
+import dataSourceDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import Collection from 'transition-common/lib/services/odTrip/BaseOdTripCollection';
 import { BaseOdTrip as ObjectClass } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 
