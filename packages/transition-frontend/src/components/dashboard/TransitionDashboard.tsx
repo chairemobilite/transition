@@ -29,7 +29,7 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import DataSourceCollection from 'transition-common/lib/services/dataSource/DataSourceCollection';
+import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
 import PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';

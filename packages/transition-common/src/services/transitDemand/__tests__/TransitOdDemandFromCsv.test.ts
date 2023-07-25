@@ -7,9 +7,9 @@
 import _cloneDeep from 'lodash.clonedeep';
 import { TransitOdDemandFromCsv } from '../TransitOdDemandFromCsv';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
-import DataSourceCollection from '../../dataSource/DataSourceCollection';
+import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import DataSource from '../../dataSource/DataSource';
+import DataSource from 'chaire-lib-common/lib/services/dataSource/DataSource';
 import { CsvFileAttributes, parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
 
 jest.mock('chaire-lib-common/lib/utils/files/CsvFile', () => ({

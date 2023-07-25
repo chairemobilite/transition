@@ -13,7 +13,7 @@ import { TransitOdDemandFromCsvAttributes } from 'transition-common/lib/services
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import { _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import DataSourceCollection from 'transition-common/lib/services/dataSource/DataSourceCollection';
+import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 
 export interface BatchAttributesSelectionComponentProps extends WithTranslation {

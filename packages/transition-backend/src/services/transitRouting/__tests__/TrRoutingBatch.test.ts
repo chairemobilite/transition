@@ -9,7 +9,7 @@ import { EventEmitter } from 'events';
 import { ObjectWritableMock } from 'stream-mock';
 
 import { batchRoute, saveOdPairs } from '../TrRoutingBatch';
-import DataSource, { DataSourceType } from 'transition-common/lib/services/dataSource/DataSource';
+import DataSource, { DataSourceType } from 'chaire-lib-common/lib/services/dataSource/DataSource';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
@@ -89,7 +89,7 @@ routeOdTripMock.mockImplementation(async (odTrip: BaseOdTrip) => ({
 }));
 
 const dataSource = new DataSource({ name: 'name', shortnam: 'name' }, false);
-jest.mock('../../dataSources/dataSources', () => ({
+jest.mock('chaire-lib-backend/lib/services/dataSources/dataSources', () => ({
     getDataSource: jest.fn().mockImplementation(async (options: { isNew: true, dataSourceName: string, type: DataSourceType } | { isNew: false, dataSourceId: string }) => {
         return dataSource;
     })

@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import knex from 'chaire-lib-backend/lib/config/shared/db.config';
+import knex from '../../config/shared/db.config';
 import { validate as uuidValidate } from 'uuid';
 
 import {
@@ -17,10 +17,10 @@ import {
     deleteMultiple,
     truncate,
     destroy
-} from 'chaire-lib-backend/lib/models/db/default.db.queries';
+} from './default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
-import { DataSourceAttributes, DataSourceType } from 'transition-common/lib/services/dataSource/DataSource';
+import { DataSourceAttributes, DataSourceType } from 'chaire-lib-common/lib/services/dataSource/DataSource';
 
 const tableName = 'tr_data_sources';
 
@@ -84,7 +84,7 @@ const findByName = async (name: string, userId?: number): Promise<DataSourceAttr
     }
 };
 
-const read = async (id: string, userId?: number): Promise<Partial<DataSourceAttributes>> => {
+const read = async (id: string, userId?: number): Promise<DataSourceAttributes> => {
     try {
         if (!uuidValidate(id)) {
             throw new TrError(

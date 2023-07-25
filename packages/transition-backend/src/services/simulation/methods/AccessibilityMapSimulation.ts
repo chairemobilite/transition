@@ -12,7 +12,7 @@ import { SimulationAlgorithmDescriptor } from 'transition-common/lib/services/si
 import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
 import { TransitRoutingBaseAttributes } from 'transition-common/lib/services/transitRouting/TransitRoutingQueryAttributes';
 import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
-import dataSourceDbQueries from '../../../models/db/dataSources.db.queries';
+import dataSourceDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import placesDbQueries from '../../../models/db/places.db.queries';
 import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
 import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';

@@ -23,7 +23,7 @@ import { TransitBatchCalculationResult } from 'transition-common/lib/services/ba
 import odPairsDbQueries from '../../models/db/odPairs.db.queries';
 import pathDbQueries from '../../models/db/transitPaths.db.queries';
 import resultsDbQueries from '../../models/db/batchRouteResults.db.queries';
-import { getDataSource } from '../dataSources/dataSources';
+import { getDataSource } from 'chaire-lib-backend/lib/services/dataSources/dataSources';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import {
     BatchRoutingResultProcessor,
