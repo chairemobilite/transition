@@ -9,7 +9,7 @@ import { v4 as uuidV4 } from 'uuid';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import dbQueries from '../batchRouteResults.db.queries';
 import jobsDbQueries from '../jobs.db.queries';
-import UserModel from 'chaire-lib-backend/lib/services/auth/user';
+import { userAuthModel } from 'chaire-lib-backend/lib/services/auth/userAuthModel';
 import { JobAttributes } from 'transition-common/lib/services/jobs/Job';
 import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import { cyclingRouteResult, simplePathResult, walkingRouteResult } from '../../../services/transitRouting/__tests__/TrRoutingResultStub';
@@ -95,7 +95,7 @@ beforeAll(async () => {
     await dbQueries.truncate();
     await jobsDbQueries.truncate();
     await knex.raw(`TRUNCATE TABLE users CASCADE`);
-    const user = await UserModel.createAndSave(userAttributes);
+    const user = await userAuthModel.createAndSave(userAttributes);
     userAttributes.id = user.attributes.id;
     jobAttributes.user_id = userAttributes.id
     jobId = await jobsDbQueries.create(jobAttributes);
