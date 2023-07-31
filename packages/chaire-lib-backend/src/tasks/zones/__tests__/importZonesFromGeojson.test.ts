@@ -309,7 +309,7 @@ describe('Correct calls', () => {
                 properties: {
                     property1: 'a',
                     property2: `b${idx}`,
-                    property3: 3
+                    property3: '3'
                 }
             }))
         };
@@ -356,6 +356,70 @@ describe('Correct calls', () => {
             internal_id: '3',
             shortname: newFeatureCollection.features[1].properties.property2,
             name: newFeatureCollection.features[1].properties.property3,
+            geography: newFeatureCollection.features[1].geometry,
+            dataSourceId: dataSources[0].id,
+            data: newFeatureCollection.features[1].properties
+        })]);
+
+    });
+
+    test('File and data source parameters, data source exists, many features properties, no strings', async () => {
+        // Prepare test data
+        mockDsCollection.mockResolvedValueOnce(dataSources);
+        const newFeatureCollection = {
+            type: 'FeatureCollection',
+            features: featureCollection.features.map((feature, idx) => ({
+                ...feature,
+                properties: {
+                    property1: [1, 3],
+                    property2: { subProperty: 'abc' },
+                    property3: 3
+                }
+            }))
+        };
+        mockReadFile.mockReturnValueOnce(JSON.stringify(newFeatureCollection));
+        mockInquirerPrompt.mockResolvedValueOnce({ shortnameAttribute: 'property3', nameAttribute: 'property1' });
+        
+        // Import zones
+        const importZonesTask = new ImportZonesFromGeojson();
+        await importZonesTask.run({ ['zones-file']: file, shortname: dataSources[0].shortname, name: dataSources[0].name });
+
+        // A new data source should have been created, with 2 new zones and no prompt for properties as there is only one
+        expect(mockDsCreate).not.toHaveBeenCalled();
+        expect(mockDeleteForDsId).toHaveBeenCalledWith(dataSources[0].id);
+        const expectedAttributeChoices = [{
+            name: `property1 (${newFeatureCollection.features[0].properties.property1})`,
+            value: 'property1'
+        }, {
+            name: `property2 (${newFeatureCollection.features[0].properties.property2})`,
+            value: 'property2'
+        }, {
+            name: `property3 (${newFeatureCollection.features[0].properties.property3})`,
+            value: 'property3'
+        }];
+        expect(mockInquirerPrompt).toHaveBeenCalledTimes(1);
+        expect(mockInquirerPrompt).toHaveBeenCalledWith([
+            expect.objectContaining({
+                choices: expectedAttributeChoices
+            }),
+            expect.objectContaining({
+                choices: expectedAttributeChoices
+            }),
+        ]);
+
+        expect(mockCreateMultiple).toHaveBeenCalledWith([expect.objectContaining({
+            id: expect.anything(),
+            internal_id: undefined,
+            shortname: String(newFeatureCollection.features[0].properties.property3),
+            name: String(newFeatureCollection.features[0].properties.property1),
+            geography: newFeatureCollection.features[0].geometry,
+            dataSourceId: dataSources[0].id,
+            data: newFeatureCollection.features[0].properties
+        }), expect.objectContaining({
+            id: expect.anything(),
+            internal_id: '3',
+            shortname: String(newFeatureCollection.features[1].properties.property3),
+            name: String(newFeatureCollection.features[1].properties.property1),
             geography: newFeatureCollection.features[1].geometry,
             dataSourceId: dataSources[0].id,
             data: newFeatureCollection.features[1].properties

@@ -217,8 +217,8 @@ export class ImportZonesFromGeojson implements GenericTask {
             shortname:
                 shortnameProperty === undefined
                     ? `Z${index}`
-                    : (zone.properties || {})[shortnameProperty].substring(0, 30),
-            name: nameProperty === undefined ? `Z${index}` : (zone.properties || {})[nameProperty],
+                    : String((zone.properties || {})[shortnameProperty]).substring(0, 30),
+            name: nameProperty === undefined ? `Z${index}` : String((zone.properties || {})[nameProperty]),
             dataSourceId,
             internal_id: zone.id === undefined ? undefined : String(zone.id),
             data: zone.properties || {},
