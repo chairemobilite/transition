@@ -14,6 +14,8 @@ import Collection from 'chaire-lib-common/lib/services/zones/ZoneCollection';
 const objectName   = 'zone';
 const dataSourceId = uuidV4();
 const otherDataSource = uuidV4();
+const dataSourceShortname = 'DS';
+const dataSourceName = 'DS Name';
 
 const newObjectAttributes = {  
     id: uuidV4(),
@@ -46,6 +48,8 @@ beforeAll(async () => {
     await dataSourceDbQueries.create({
         id: dataSourceId,
         type: 'zones',
+        shortname: dataSourceShortname,
+        name: dataSourceName,
         data: {}
     });
     await dataSourceDbQueries.create({
@@ -262,6 +266,32 @@ describe(`${objectName}`, () => {
         delete collection[0].attributes.integer_id;
         expect(collection[0].getId()).toBe(_newObjectAttributes2.id);
         expect(collection[0].getAttributes()).toEqual(new ObjectClass(_newObjectAttributes2, false).getAttributes());
+
+    });
+
+    test('get zones intersecting point', async() => {
+
+        // Point within the 2 zones
+        const zones = await dbQueries.getZonesContaining({ type: 'Feature', geometry: { type: 'Point', coordinates: [-72.75, 45.5] }, properties: {} });
+        expect(zones.length).toEqual(2);
+        expect(zones[0]).toEqual(expect.objectContaining({
+            ...newObjectAttributes,
+            dsShortname: null,
+            dsName: null
+        }));
+        expect(zones[1]).toEqual(expect.objectContaining({
+            ...newObjectAttributes2,
+            dsShortname: dataSourceShortname,
+            dsName: dataSourceName
+        }))
+
+        // Point within the zones, for data source
+        const zonesDs = await dbQueries.getZonesContaining({ type: 'Feature', geometry: { type: 'Point', coordinates: [-72.75, 45.5] }, properties: {} }, { dsId: newObjectAttributes.dataSourceId });
+        expect(zonesDs.length).toEqual(1);
+
+        // Point outside
+        const zones2 = await dbQueries.getZonesContaining({ type: 'Feature', geometry: { type: 'Point', coordinates: [-72.25, 45.25] }, properties: {} });
+        expect(zones2.length).toEqual(0);
 
     });
 

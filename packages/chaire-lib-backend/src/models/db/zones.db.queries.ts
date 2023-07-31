@@ -25,6 +25,7 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ZoneAttributes } from 'chaire-lib-common/lib/services/zones/Zone';
 
 const tableName = 'tr_zones';
+const dataSourceTbl = 'tr_data_sources';
 const st = knexPostgis(knex);
 
 const attributesCleaner = function (attributes: Partial<ZoneAttributes>): { [key: string]: any } {
@@ -126,6 +127,43 @@ const read = async (id: string) => {
     }
 };
 
+const getZonesContaining = async (
+    geography: GeoJSON.Feature,
+    options?: { dsId?: string }
+): Promise<(ZoneAttributes & { dsShortname: string; dsName: string })[]> => {
+    try {
+        const query = knex(`${tableName} as z`)
+            .select(
+                'z.*',
+                knex.raw('CASE geography WHEN NULL THEN NULL ELSE ST_AsGeoJSON(geography)::jsonb END as geography'),
+                'ds.shortname as dsShortname',
+                'ds.name as dsName'
+            )
+            .join(`${dataSourceTbl} as ds`, 'z.data_source_id', 'ds.id')
+            .where(st.intersects(st.geomFromGeoJSON(JSON.stringify(geography.geometry)), 'z.geography'));
+        if (options && options.dsId) {
+            query.where('z.data_source_id', options.dsId);
+        }
+        const response = await query;
+        return response.map((zone) => {
+            const { dsShortname, dsName, ...zoneAttribs } = zone;
+            return {
+                dsShortname,
+                dsName,
+                ...attributesParser(zoneAttribs)
+            };
+        });
+    } catch (error) {
+        throw new TrError(
+            `Cannot get zones containing feature ${JSON.stringify(
+                geography.geometry
+            )} from table ${tableName} (knex error: ${error})`,
+            'DBQZONE0004',
+            'DatabaseGetZonesContainingBecauseDatabaseError'
+        );
+    }
+};
+
 export default {
     exists: exists.bind(null, knex, tableName),
     read,
@@ -146,5 +184,6 @@ export default {
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
     collection,
-    deleteForDataSourceId: deleteForDataSourceId.bind(null, knex, tableName)
+    deleteForDataSourceId: deleteForDataSourceId.bind(null, knex, tableName),
+    getZonesContaining
 };
