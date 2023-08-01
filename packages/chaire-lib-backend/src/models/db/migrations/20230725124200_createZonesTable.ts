@@ -10,6 +10,9 @@ import { onUpdateTrigger } from '../../../config/knexfile';
 const tableName = 'tr_zones';
 
 export async function up(knex: Knex): Promise<unknown> {
+    if (await knex.schema.hasTable(tableName)) {
+        return;
+    }
     await knex.schema.createTable(tableName, (table: Knex.TableBuilder) => {
         table.uuid('id').unique().notNullable().defaultTo(knex.raw('gen_random_uuid()')).primary();
         table.string('internal_id');
