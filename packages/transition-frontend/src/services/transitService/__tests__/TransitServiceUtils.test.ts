@@ -113,6 +113,21 @@ const undefinedDays = new Service({
         start_date: '2019-06-30',
         end_date: '2020-06-30'
     }, true);
+const saturdayWithOnlyExcept = new Service({
+    saturday: true,
+    sunday: false,
+    monday: false,
+    tuesday: false,
+    wednesday: false,
+    thursday: false,
+    friday: false,
+    name: "Saturday service, with exceptions",
+    toString: () => "service short validity",
+    start_date: '2023-06-01',
+    end_date: '2023-07-01',
+    only_dates: ['2023-06-25'],
+    except_dates: ['2023-06-10']
+}, true);
 const translationFct = (str) => {return str.substring(str.lastIndexOf(':') + 1)};
 
 beforeEach(() => {
@@ -339,10 +354,16 @@ describe('Service matches', () => {
         ['Match service day: no days', serviceWeekday, { }, true],
         ['Match service day: multiple filter, all match (AND assumed for now)', serviceWeekday, { days: [0, 1, 2] }, true],
         ['Match service day: multiple filter, some match (AND assumed for now)', serviceWeekday, { days: [0, 6] }, false],
-        ['Match dates: start date in range', serviceWeekday, { startDate: new Date(moment('2020-10-10').toString()) }, true],
+        ['Match dates: start date in range', serviceWeekday, { startDate: new Date(moment('2020-10-09').toString()) }, true],
+        ['Match dates: start date in range, not a service day', serviceWeekday, { startDate: new Date(moment('2020-10-10').toString()) }, false],
         ['Match dates: start date not in range', serviceWeekday, { startDate: new Date(moment('2021-10-10').toString()) }, false],
         ['Match dates: start date and end date in range', serviceWeekday, { startDate: new Date(moment('2020-10-10').toString()), endDate: new Date(moment('2020-11-11').toString()) }, true],
         ['Match dates: start date and end date not in range', serviceWeekday, { startDate: new Date(moment('2021-10-10').toString()), endDate: new Date(moment('2021-11-11').toString()) }, false],
+        ['Match dates with only except: date is except date', saturdayWithOnlyExcept, { startDate: new Date(moment('2023-06-10').toString()) }, false],
+        ['Match dates with only except: date is only date', saturdayWithOnlyExcept, { startDate: new Date(moment('2023-06-25').toString()) }, true],
+        ['Match dates with only except: date is in range and the right day', saturdayWithOnlyExcept, { startDate: new Date(moment('2023-06-17').toString()) }, true],
+        ['Match dates with only except: date is in range but not the right day', saturdayWithOnlyExcept, { startDate: new Date(moment('2023-06-18').toString()) }, false],
+        ['Match dates with only except: start date and end date in range, but not the only date', saturdayWithOnlyExcept, { startDate: new Date(moment('2023-06-17').toString()), endDate: new Date(moment('2023-06-23').toString()) }, true],
         ['Match dates and day: match', serviceWeekday, { days: [2, 3], startDate: new Date(moment('2020-10-10').toString()), endDate: new Date(moment('2020-11-11').toString()) }, true],
         ['Match dates and day: no match for days', serviceWeekday, { days: [6], startDate: new Date(moment('2020-10-10').toString()), endDate: new Date(moment('2020-11-11').toString()) }, false],
         ['Match dates and day: no match for dates', serviceWeekday, { days: [2, 3], startDate: new Date(moment('2021-10-10').toString()), endDate: new Date(moment('2021-11-11').toString()) }, false],

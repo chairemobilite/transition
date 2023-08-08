@@ -7,8 +7,8 @@
 import _snakeCase from 'lodash.snakecase';
 import _camelCase from 'lodash.camelcase';
 
-import DataSource from 'transition-common/lib/services/dataSource/DataSource';
-import DataSourceCollection from 'transition-common/lib/services/dataSource/DataSourceCollection';
+import DataSource from 'chaire-lib-common/lib/services/dataSource/DataSource';
+import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
 import {
     collectionToCache as defaultCollectionToCache,
     collectionFromCache as defaultCollectionFromCache

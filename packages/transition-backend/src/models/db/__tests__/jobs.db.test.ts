@@ -8,7 +8,7 @@ import { v4 as uuidV4 } from 'uuid';
 
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import dbQueries from '../jobs.db.queries';
-import UserModel from 'chaire-lib-backend/lib/services/auth/user';
+import { userAuthModel } from 'chaire-lib-backend/lib/services/auth/userAuthModel';
 import { JobAttributes, Job as ObjectClass } from 'transition-common/lib/services/jobs/Job';
 
 const objectName   = 'job';
@@ -75,7 +75,7 @@ beforeAll(async () => {
     jest.setTimeout(10000);
     await dbQueries.truncate();
     await knex.raw(`TRUNCATE TABLE users CASCADE`);
-    const user = await UserModel.createAndSave(userAttributes);
+    const user = await userAuthModel.createAndSave(userAttributes);
     userAttributes.id = user.attributes.id;
 });
 
@@ -195,7 +195,7 @@ describe(`${objectName}`, () => {
     test('Read collections for specific user', async() => {
 
         // Add a user and a job for this user
-        const user = await UserModel.createAndSave({ username: 'second' });
+        const user = await userAuthModel.createAndSave({ username: 'second' });
         const jobForSecondUser = Object.assign({}, newObjectAttributes, { user_id: user.attributes.id });
         await dbQueries.create(jobForSecondUser);
         

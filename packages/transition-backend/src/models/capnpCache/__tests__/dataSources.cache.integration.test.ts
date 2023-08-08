@@ -9,8 +9,8 @@ import fetchMock from 'jest-fetch-mock';
 
 import * as cacheQueries from '../dataSources.cache.queries';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import ObjectClass from 'transition-common/lib/services/dataSource/DataSource';
-import Collection from 'transition-common/lib/services/dataSource/DataSourceCollection';
+import ObjectClass from 'chaire-lib-common/lib/services/dataSource/DataSource';
+import Collection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
 import each from 'jest-each';
 
 const newObjectAttributes = {

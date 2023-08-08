@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { ObjectWithHistory } from '../../utils/objects/ObjectWithHistory';
+import { GenericAttributes } from '../../utils/objects/GenericObject';
+import serviceLocator from '../../utils/ServiceLocator';
+import { _isBlank } from '../../utils/LodashExtensions';
 
 export const dataSourceTypesArray = [
     'none',

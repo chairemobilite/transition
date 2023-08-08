@@ -6,11 +6,11 @@
  */
 import { v4 as uuidV4 } from 'uuid';
 
-import knex from 'chaire-lib-backend/lib/config/shared/db.config';
-import { create, truncate } from 'chaire-lib-backend/lib/models/db/default.db.queries';
+import knex from '../../../config/shared/db.config';
+import { create, truncate } from '../default.db.queries';
 import dbQueries           from '../dataSources.db.queries';
-import Collection          from 'transition-common/lib/services/dataSource/DataSourceCollection';
-import ObjectClass         from 'transition-common/lib/services/dataSource/DataSource';
+import Collection          from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
+import ObjectClass         from 'chaire-lib-common/lib/services/dataSource/DataSource';
 
 const objectName   = 'data source';
 

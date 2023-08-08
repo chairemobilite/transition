@@ -16,7 +16,7 @@ import Service, { ServiceAttributes } from '../Service';
 
 const socketMock = new EventEmitter();
 
-const serviceAttributes1: ServiceAttributes = {
+const weekdayServiceAttributes: ServiceAttributes = {
     id: uuidV4(),
     name: 'Service1',
     data: {
@@ -63,8 +63,8 @@ const serviceAttributes2: ServiceAttributes = {
 
 test('should construct new services', function() {
 
-    const service1 = new Service(serviceAttributes1, true);
-    expect(service1.getAttributes()).toEqual(serviceAttributes1);
+    const service1 = new Service(weekdayServiceAttributes, true);
+    expect(service1.getAttributes()).toEqual(weekdayServiceAttributes);
     expect(service1.isNew()).toBe(true);
 
     const service2 = new Service(serviceAttributes2, false);
@@ -76,7 +76,7 @@ test('should validate', function() {
     // Service class does not have access to ServiceCollection. When we have a better than the collection manager, change it, but for now, fake it
     const features = [new Service(serviceAttributes2, false)]
     const collectionManager = { get: (name: string) => ({ features })}
-    const service = new Service(serviceAttributes1, true, collectionManager);
+    const service = new Service(weekdayServiceAttributes, true, collectionManager);
     expect(service.validate()).toBe(true);
     service.set('start_date', undefined);
     expect(service.validate()).toBe(false);
@@ -93,23 +93,23 @@ test('should validate', function() {
     expect(service.validate()).toBe(false);
     // Add service to collection and set own name
     features.push(service);
-    service.set('name', serviceAttributes1.name);
+    service.set('name', weekdayServiceAttributes.name);
     expect(service.validate()).toBe(true);
 });
 
 test('should convert to string', function() {
-    const service1a = new Service(serviceAttributes1, true);
-    expect(service1a.toString()).toBe(serviceAttributes1.name);
+    const service1a = new Service(weekdayServiceAttributes, true);
+    expect(service1a.toString()).toBe(weekdayServiceAttributes.name);
     service1a.set('name', undefined);
-    expect(service1a.toString()).toBe(serviceAttributes1.id);
-    const service1b = new Service(serviceAttributes1, true);
-    expect(service1b.toString(true)).toBe(`Service1 ${serviceAttributes1.id}`);
+    expect(service1a.toString()).toBe(weekdayServiceAttributes.id);
+    const service1b = new Service(weekdayServiceAttributes, true);
+    expect(service1b.toString(true)).toBe(`Service1 ${weekdayServiceAttributes.id}`);
     service1b.set('name', undefined);
-    expect(service1b.toString(true)).toBe(serviceAttributes1.id);
+    expect(service1b.toString(true)).toBe(weekdayServiceAttributes.id);
 });
 
 test('should save and delete in memory', function() {
-    const service = new Service(serviceAttributes1, true);
+    const service = new Service(weekdayServiceAttributes, true);
     expect(service.isNew()).toBe(true);
     expect(service.isDeleted()).toBe(false);
     service.saveInMemory();
@@ -122,7 +122,7 @@ test('static methods should work', function() {
     expect(Service.getPluralName()).toBe('services');
     expect(Service.getCapitalizedPluralName()).toBe('Services');
     expect(Service.getDisplayName()).toBe('Service');
-    const service = new Service(serviceAttributes1, true);
+    const service = new Service(weekdayServiceAttributes, true);
     expect(service.getPluralName()).toBe('services');
     expect(service.getCapitalizedPluralName()).toBe('Services');
     expect(service.getDisplayName()).toBe('Service');
@@ -131,13 +131,13 @@ test('static methods should work', function() {
 
 test('Test getting lines from attributes', () => {
     // Add an array of null, as returned by the database
-    const attributesWithoutLines = Object.assign({}, serviceAttributes1, {scheduled_lines: []});
+    const attributesWithoutLines = Object.assign({}, weekdayServiceAttributes, {scheduled_lines: []});
     const service1 = new Service(attributesWithoutLines, true);
     expect(service1.scheduledLineIds()).toEqual([]);
     expect(service1.hasScheduledLines()).toEqual(false);
     
     const scheduledLines = ['line1', 'line2'];
-    const attributesWithLines = Object.assign({}, serviceAttributes1, {scheduled_lines: scheduledLines});
+    const attributesWithLines = Object.assign({}, weekdayServiceAttributes, {scheduled_lines: scheduledLines});
     const service2 = new Service(attributesWithLines, false);
     expect(service2.scheduledLineIds()).toEqual(scheduledLines);
     expect(service2.hasScheduledLines()).toEqual(true);
@@ -145,7 +145,7 @@ test('Test getting lines from attributes', () => {
 
 test('Add/remove scheduled_lines', () => {
     // Add an array of null, as returned by the database
-    const attributesWithoutLines = Object.assign({scheduled_lines: [null]}, serviceAttributes1);
+    const attributesWithoutLines = Object.assign({scheduled_lines: [null]}, weekdayServiceAttributes);
     const service = new Service(attributesWithoutLines, true);
 
     const lineId1 = 'line';
@@ -184,7 +184,7 @@ test('Test deleting service with or without scheduled lines', async () => {
     socketMock.on('cache.saveLines', cacheLineSocketMock);
 
     // Test deleting a line without schedules
-    const attributesWithoutLines = Object.assign({}, serviceAttributes1, {scheduled_lines: []});
+    const attributesWithoutLines = Object.assign({}, weekdayServiceAttributes, {scheduled_lines: []});
     const service1 = new Service(attributesWithoutLines, true);
     await service1.delete(socketMock);
     expect(deleteSocketMock).toHaveBeenCalledTimes(1);
@@ -193,7 +193,7 @@ test('Test deleting service with or without scheduled lines', async () => {
     
     // Test deleting a line with schedules
     const scheduledLines = ['line1', 'line2'];
-    const attributesWithLines = Object.assign({}, serviceAttributes1, {scheduled_lines: scheduledLines});
+    const attributesWithLines = Object.assign({}, weekdayServiceAttributes, {scheduled_lines: scheduledLines});
     const service2 = new Service(attributesWithLines, false);
     await service2.delete(socketMock);
     expect(deleteSocketMock).toHaveBeenCalledTimes(2);
@@ -203,25 +203,34 @@ test('Test deleting service with or without scheduled lines', async () => {
 });
 
 describe('Service validity period', () => {
+    // friday september 10 2021
     const startRange = new Date(moment('2021-09-10').toString());
+    // saturday october 9 2021
     const endRange = new Date(moment('2021-10-09').toString());
+    const saturdayInRange = new Date(moment('2021-09-11').toString());
     each([
-        ['Valid range for date', startRange, undefined, true, Object.assign({}, serviceAttributes1, { start_date: '2021-01-01', end_date: '2022-01-01' })],
-        ['Invalid range for date, before', startRange, undefined, false, Object.assign({}, serviceAttributes1, { start_date: '2021-01-01', end_date: '2021-02-01' })],
-        ['Invalid range for date, after', startRange, undefined, false, Object.assign({}, serviceAttributes1, { start_date: '2021-11-10', end_date: '2022-01-01' })],
-        ['Valid range for range', startRange, endRange, true, Object.assign({}, serviceAttributes1, { start_date: '2021-01-01', end_date: '2022-01-01' })],
-        ['Invalid range for range, before', startRange, endRange, false, Object.assign({}, serviceAttributes1, { start_date: '2021-01-01', end_date: '2021-02-01' })],
-        ['Invalid range for range, after', startRange, endRange, false, Object.assign({}, serviceAttributes1, { start_date: '2021-11-10', end_date: '2022-01-01' })],
-        ['Valid range for range, all included', startRange, endRange, true, Object.assign({}, serviceAttributes1, { start_date: '2021-09-20', end_date: '2022-09-22' })],
-        ['Valid range for range, overlaps', startRange, endRange, true, Object.assign({}, serviceAttributes1, { start_date: '2021-09-01', end_date: '2022-09-22' })],
-        ['Valid range for date, but has only dates', startRange, undefined, true, Object.assign({}, serviceAttributes1, { start_date: '2021-09-10', end_date: '2021-10-30', only_dates: ['2021-09-10', '2021-09-23', '2021-10-30'] })],
-        ['Valid range for date, only dates, but not test date', startRange, undefined, false, Object.assign({}, serviceAttributes1, { start_date: '2021-09-08', end_date: '2021-10-30', only_dates: ['2021-09-08', '2021-09-23', '2021-10-30'] })],
-        ['Valid range for range, but has only dates', startRange, endRange, true, Object.assign({}, serviceAttributes1, { start_date: '2021-09-01', end_date: '2021-12-31', only_dates: ['2021-09-08', '2021-09-23', '2021-10-30'] })],
-        ['Valid range for range, only dates, but not in test range', startRange, endRange, false, Object.assign({}, serviceAttributes1, { start_date: '2021-09-01', end_date: '2021-10-30', only_dates: ['2021-09-08', '2021-10-30'] })],
-        ['Valid range for date, but exclude', startRange, undefined, false, Object.assign({}, serviceAttributes1, { start_date: '2021-09-01', end_date: '2021-09-11', except_dates: ['2021-09-10'] })],
-        ['Valid range for date, with exclude, not excluded', startRange, undefined, true, Object.assign({}, serviceAttributes1, { start_date: '2021-09-01', end_date: '2021-09-11', except_dates: ['2021-09-13'] })],
+        ['Valid range for date', startRange, undefined, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-01-01', end_date: '2022-01-01' })],
+        ['Valid range for date, but not service day', saturdayInRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-01-01', end_date: '2022-01-01' })],
+        ['Invalid range for date, before', startRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-01-01', end_date: '2021-02-01' })],
+        ['Invalid range for date, after', startRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-11-10', end_date: '2022-01-01' })],
+        ['Valid range for range', startRange, endRange, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-01-01', end_date: '2022-01-01' })],
+        ['Invalid range for range, before', startRange, endRange, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-01-01', end_date: '2021-02-01' })],
+        ['Invalid range for range, after', startRange, endRange, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-11-10', end_date: '2022-01-01' })],
+        ['Valid range for range, all included', startRange, endRange, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-20', end_date: '2022-09-22' })],
+        ['Valid range for range, overlaps', startRange, endRange, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2022-09-22' })],
+        ['Valid range for date, but has only dates only', startRange, undefined, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-10', end_date: '2021-10-30', only_dates: ['2021-09-10', '2021-09-23', '2021-10-30'], monday: undefined, tuesday: undefined, wednesday: undefined, thursday: undefined, friday: undefined, saturday: undefined, sunday: undefined })],
+        ['Valid range for date, only dates only, but not test date', startRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-08', end_date: '2021-10-30', only_dates: ['2021-09-08', '2021-09-23', '2021-10-30'], monday: undefined, tuesday: undefined, wednesday: undefined, thursday: undefined, friday: undefined, saturday: undefined, sunday: undefined })],
+        ['Valid range for range, but has only dates only', startRange, endRange, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-12-31', only_dates: ['2021-09-08', '2021-09-23', '2021-10-30'], monday: undefined, tuesday: undefined, wednesday: undefined, thursday: undefined, friday: undefined, saturday: undefined, sunday: undefined })],
+        ['Valid range for range, only dates only, but not in test range', startRange, endRange, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-10-30', only_dates: ['2021-09-08', '2021-10-30'], monday: undefined, tuesday: undefined, wednesday: undefined, thursday: undefined, friday: undefined, saturday: undefined, sunday: undefined })],
+        ['Valid range for date, with additional service dates, date is additional', saturdayInRange, undefined, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-10', end_date: '2021-10-30', only_dates: ['2021-09-11'] })],
+        ['Valid range for date, with additional service dates, date is a service day', startRange, undefined, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-10', end_date: '2021-10-30', only_dates: ['2021-09-11'] })],
+        ['Valid range for date, with additional service dates, but not test date', saturdayInRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-08', end_date: '2021-10-30', only_dates: ['2021-09-12', '2021-09-23'] })],
+        ['Valid range for range, with additional service dates', saturdayInRange, endRange, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-12-31', only_dates: ['2021-09-11']  })],
+        ['Valid range for range, with additional service dates, but not in test range', endRange, new Date(moment('2021-10-10').toString()), false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-10-30', only_dates: ['2021-09-12', '2021-09-23'] })],
+        ['Valid range for date, but exclude', startRange, undefined, false, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-09-11', except_dates: ['2021-09-10'] })],
+        ['Valid range for date, with exclude, not excluded', startRange, undefined, true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-09-11', except_dates: ['2021-09-13'] })],
         // TODO We don't look at the exclusion for ranges. Should we?
-        ['Valid range for range, but exclude', startRange, new Date(moment('2021-09-12').toString()), true, Object.assign({}, serviceAttributes1, { start_date: '2021-09-01', end_date: '2021-09-15', except_dates: ['2021-09-10', '2021-09-11', '2021-09-12'] })],
+        ['Valid range for range, but exclude', startRange, new Date(moment('2021-09-12').toString()), true, Object.assign({}, weekdayServiceAttributes, { start_date: '2021-09-01', end_date: '2021-09-15', except_dates: ['2021-09-10', '2021-09-11', '2021-09-12'] })],
     ]).test('%s', (_title, start, end, expected, serviceAttributes: ServiceAttributes) => {
         const service = new Service(serviceAttributes, false);
         if (end) {
@@ -233,17 +242,17 @@ describe('Service validity period', () => {
 });
 
 test('getClonedAttributes', () => {
-    const service = new Service(serviceAttributes1, true);
+    const service = new Service(weekdayServiceAttributes, true);
 
     // Delete specifics
     const clonedAttributes = service.getClonedAttributes();
-    const { id, data, ...expected } = _cloneDeep(serviceAttributes1);
+    const { id, data, ...expected } = _cloneDeep(weekdayServiceAttributes);
     (expected as any).data = _omit(data, 'gtfs');
     expect(clonedAttributes).toEqual(expected);
 
     // Complete copy
     const clonedAttributes2 = service.getClonedAttributes(false);
-    const { data: data2, ...expectedWithSpecifics } = _cloneDeep(serviceAttributes1);
+    const { data: data2, ...expectedWithSpecifics } = _cloneDeep(weekdayServiceAttributes);
     (expectedWithSpecifics as any).data = _omit(data, 'gtfs');
     expect(clonedAttributes2).toEqual(expectedWithSpecifics);
 

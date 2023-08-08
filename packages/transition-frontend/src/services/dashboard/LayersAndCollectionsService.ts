@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
-import DataSourceCollection from 'transition-common/lib/services/dataSource/DataSourceCollection';
+import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
