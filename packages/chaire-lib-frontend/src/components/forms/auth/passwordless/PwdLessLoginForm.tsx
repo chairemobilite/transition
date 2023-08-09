@@ -97,8 +97,8 @@ export class LoginPage extends React.Component<LoginPageProps & WithTranslation,
                         name="email"
                         id="email"
                         type="text"
+                        placeholder={this.props.t(['survey:auth:EmailPlaceholder', 'auth:EmailPlaceholder'])}
                         className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
-                        autoFocus
                         value={this.state.email}
                         onChange={this.onEmailChange}
                     />
