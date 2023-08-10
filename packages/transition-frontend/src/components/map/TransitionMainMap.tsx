@@ -43,6 +43,7 @@ export interface MainMapProps extends LayoutSectionProps {
 interface MainMapState {
     layers: string[];
     confirmModalDeleteIsOpen: boolean;
+    mapLoaded: boolean;
 }
 
 /**
@@ -66,7 +67,8 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
 
         this.state = {
             layers: Preferences.current.map.layers[this.props.activeSection],
-            confirmModalDeleteIsOpen: false
+            confirmModalDeleteIsOpen: false,
+            mapLoaded: false
         };
 
         this.defaultZoomArray = [props.zoom];
@@ -121,6 +123,16 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
         this.map?.dragPan.disable();
     };
 
+    onMapError = (e: any) => {
+        console.log('Map error:', e);
+        if (!this.state.mapLoaded) {
+            // Even if there was a map error, call the map.loaded event so the
+            // application can continue loading
+            this.setState({ mapLoaded: true });
+            serviceLocator.eventManager.emit('map.loaded');
+        }
+    };
+
     setMap = (e: MapboxGL.MapboxEvent) => {
         this.layerManager.setMap(e.target);
         this.popupManager.setMap(e.target);
@@ -160,6 +172,7 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
             }
         }
 
+        this.setState({ mapLoaded: true });
         serviceLocator.eventManager.emit('map.loaded');
     };
 
@@ -211,6 +224,7 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
             }
         }
         this.map.on('load', this.setMap);
+        this.map.on('error', this.onMapError);
         serviceLocator.addService('layerManager', this.layerManager);
         serviceLocator.addService('pathLayerManager', this.pathLayerManager);
         mapCustomEvents.addEvents(serviceLocator.eventManager);
