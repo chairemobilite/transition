@@ -128,7 +128,12 @@ export class LoginPage extends React.Component<LoginPageProps & WithTranslation,
                     )}
                 </div>
             </div>
-            <Button {...this.buttonProps} inputRef={this.submitButtonRef} label={this.props.t(['auth:Login'])} />
+            <Button
+                {...this.buttonProps}
+                inputRef={this.submitButtonRef}
+                label={this.props.t(['auth:Login'])}
+                onKeyUp={(e) => { if (e.key === 'enter' || e.key === 'space' || e.which === 13 || e.which === 32) { this.onButtonClick(); } else { return; } }}
+            />
         </form>
     );
 }

@@ -146,14 +146,8 @@ export class RegisterForm extends React.Component<RegisterFormProps & WithTransl
         }
     };
 
-    onKeyPress = (e) => {
-        if (e.key === 'Enter' || e.which === 13) {
-            this.submitButtonRef.current.click();
-        }
-    };
-
     render = () => (
-        <form className="apptr__form apptr__form-auth" onKeyPress={this.onKeyPress}>
+        <form className="apptr__form apptr__form-auth">
             <div className={'apptr__form-label-container center'}>
                 <div className="apptr__form__label-standalone no-question">
                     <p>{this.props.introductionText || this.props.t('auth:pleaseEnterLoginCredentials')}</p>
@@ -239,6 +233,7 @@ export class RegisterForm extends React.Component<RegisterFormProps & WithTransl
                 {...this.buttonProps}
                 inputRef={this.submitButtonRef}
                 label={this.props.t(['transition:auth:Register', 'auth:Register'])}
+                onKeyUp = {(e) => { if (e.key === 'enter' || e.key === 'space' || e.which === 13 || e.which === 32) { this.onButtonClick(); } else { return; } }}
             />
         </form>
     );
