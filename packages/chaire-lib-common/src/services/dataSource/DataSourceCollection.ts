@@ -5,13 +5,13 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import DataSource from './DataSource';
-import CollectionCacheable from 'chaire-lib-common/lib/services/objects/CollectionCacheable';
-import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
-import CollectionLoadable from 'chaire-lib-common/lib/services/objects/CollectionLoadable';
-import GenericObjectCollection from 'chaire-lib-common/lib/utils/objects/GenericObjectCollection';
-import Progressable from 'chaire-lib-common/lib/utils/objects/Progressable';
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import CollectionCacheable from '../../services/objects/CollectionCacheable';
+import CollectionManager from '../../utils/objects/CollectionManager';
+import CollectionLoadable from '../../services/objects/CollectionLoadable';
+import GenericObjectCollection from '../../utils/objects/GenericObjectCollection';
+import Progressable from '../../utils/objects/Progressable';
+import { GenericAttributes } from '../../utils/objects/GenericObject';
+import { EventManager } from '../../services/events/EventManager';
 
 /**
  * A collection of data sources

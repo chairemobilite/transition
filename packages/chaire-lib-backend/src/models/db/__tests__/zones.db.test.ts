@@ -1,45 +1,45 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2023, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
 
-import dbQueries from '../odPairs.db.queries';
-import dataSourceDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
-import Collection from 'transition-common/lib/services/odTrip/BaseOdTripCollection';
-import { BaseOdTrip as ObjectClass } from 'transition-common/lib/services/odTrip/BaseOdTrip';
+import dbQueries from '../zones.db.queries';
+import dataSourceDbQueries from '../dataSources.db.queries';
+import { Zone as ObjectClass } from 'chaire-lib-common/lib/services/zones/Zone';
+import Collection from 'chaire-lib-common/lib/services/zones/ZoneCollection';
 
-const objectName   = 'odTrip';
-const dataSourceId = '373a583c-df49-440f-8f44-f39fb0033c56';
+const objectName   = 'zone';
+const dataSourceId = uuidV4();
+const otherDataSource = uuidV4();
+const dataSourceShortname = 'DS';
+const dataSourceName = 'DS Name';
 
 const newObjectAttributes = {  
     id: uuidV4(),
     internal_id: 'test',
-    origin_geography: { type: 'Point' as const, coordinates: [-73, 45] },
-    destination_geography: { type: 'Point' as const, coordinates: [-73.5, 45.5] },
-    timeOfTrip: 28800,
-    timeType: 'departure' as const
+    geography: { type: 'Polygon' as const, coordinates: [ [ [-73, 45], [-73, 46], [-72, 46], [-73, 45] ] ] },
+    dataSourceId: otherDataSource // Not the same datasource
 };
 
 const newObjectAttributes2 = {
     id: uuidV4(),
     internal_id: 'test2',
+    shortname: 'T',
+    name: 'Some test zone',
     dataSourceId: dataSourceId,
-    origin_geography: { type: 'Point' as const, coordinates: [-73.1, 45.2] },
-    destination_geography: { type: 'Point' as const, coordinates: [-73.4, 45.4] },
-    timeOfTrip: 24000,
+    geography: { type: 'Polygon' as const, coordinates: [[[-73, 45], [-73, 46], [-72, 46], [-73, 45]]]},
     data: {
-        expansionFactor: 2,
         foo: 'bar'
-    },
-    timeType: 'arrival' as const
+    }
 };
 
 const updatedAttributes = {
   internal_id: 'new internal ID',
-  timeOfTrip: 3600
+  geography: { type: 'Polygon' as const, coordinates: [[[-73, 45], [-73, 40], [-72, 40], [-73, 45]]]},
+    
 };
 
 beforeAll(async () => {
@@ -47,7 +47,14 @@ beforeAll(async () => {
     await dbQueries.truncate();
     await dataSourceDbQueries.create({
         id: dataSourceId,
-        type: 'odTrips',
+        type: 'zones',
+        shortname: dataSourceShortname,
+        name: dataSourceName,
+        data: {}
+    });
+    await dataSourceDbQueries.create({
+        id: otherDataSource,
+        type: 'zones',
         data: {}
     });
 });
@@ -82,8 +89,8 @@ describe(`${objectName}`, () => {
         delete attributes.updated_at;
         delete attributes.created_at;
         delete attributes.integer_id;
-        expect(attributes.dataSourceId).toBeUndefined();
-        delete attributes.dataSourceId;
+        delete attributes.name;
+        delete attributes.shortname;
         expect(attributes.data).toEqual({});
         delete attributes.data;
         expect(attributes).toEqual(newObjectAttributes);
@@ -102,7 +109,7 @@ describe(`${objectName}`, () => {
         const updatedObject = await dbQueries.read(newObjectAttributes.id) as any;
         for (const attribute in updatedAttributes)
         {
-            expect(updatedObject[attribute]).toBe(updatedAttributes[attribute]);
+            expect(updatedObject[attribute]).toEqual(updatedAttributes[attribute]);
         }
 
     });
@@ -132,14 +139,11 @@ describe(`${objectName}`, () => {
         delete collection[1].attributes.created_at;
         delete collection[0].attributes.updated_at;
         delete collection[1].attributes.updated_at;
-        delete collection[0].attributes.integer_id;
-        delete collection[1].attributes.integer_id;
-        expect(collection[0].attributes.dataSourceId).toBeUndefined();
-        delete collection[0].attributes.dataSourceId;
-        expect(collection[0].getId()).toBe(_newObjectAttributes.id);
-        expect(collection[0].getAttributes()).toEqual(new ObjectClass(_newObjectAttributes, false).getAttributes());
-        expect(collection[1].getId()).toBe(_newObjectAttributes2.id);
-        expect(collection[1].getAttributes()).toEqual(new ObjectClass(_newObjectAttributes2, false).getAttributes());
+        // Objects are sorted by shortname, so object 2 will be first
+        expect(collection[0].attributes.id).toBe(_newObjectAttributes2.id);
+        expect(collection[0].attributes).toEqual(new ObjectClass(_newObjectAttributes2, false).getAttributes());
+        expect(collection[1].attributes.id).toBe(_newObjectAttributes.id);
+        expect(collection[1].attributes).toEqual(new ObjectClass(_newObjectAttributes, false).getAttributes());
         
     });
 
@@ -250,7 +254,7 @@ describe(`${objectName}`, () => {
 
     test('get a collection for specific data source id', async() => {
 
-        const _collection = await dbQueries.collection([dataSourceId]);
+        const _collection = await dbQueries.collection({ dataSourceId });
         const objectCollection = new Collection();
         objectCollection.loadFromCollection(_collection);
         const collection = objectCollection.features;
@@ -263,6 +267,44 @@ describe(`${objectName}`, () => {
         expect(collection[0].getId()).toBe(_newObjectAttributes2.id);
         expect(collection[0].getAttributes()).toEqual(new ObjectClass(_newObjectAttributes2, false).getAttributes());
 
+    });
+
+    test('get zones intersecting point', async() => {
+
+        // Point within the 2 zones
+        const zones = await dbQueries.getZonesContaining({ type: 'Feature', geometry: { type: 'Point', coordinates: [-72.75, 45.5] }, properties: {} });
+        expect(zones.length).toEqual(2);
+        expect(zones[0]).toEqual(expect.objectContaining({
+            ...newObjectAttributes,
+            dsShortname: null,
+            dsName: null
+        }));
+        expect(zones[1]).toEqual(expect.objectContaining({
+            ...newObjectAttributes2,
+            dsShortname: dataSourceShortname,
+            dsName: dataSourceName
+        }))
+
+        // Point within the zones, for data source
+        const zonesDs = await dbQueries.getZonesContaining({ type: 'Feature', geometry: { type: 'Point', coordinates: [-72.75, 45.5] }, properties: {} }, { dsId: newObjectAttributes.dataSourceId });
+        expect(zonesDs.length).toEqual(1);
+
+        // Point outside
+        const zones2 = await dbQueries.getZonesContaining({ type: 'Feature', geometry: { type: 'Point', coordinates: [-72.25, 45.25] }, properties: {} });
+        expect(zones2.length).toEqual(0);
+
+    });
+
+    test('delete for data source', async() => {
+        
+        const _collectionBefore = await dbQueries.collection({ dataSourceId });
+        expect(_collectionBefore.length).toEqual(1);
+
+        const id = await dbQueries.deleteForDataSourceId(dataSourceId)
+        expect(id).toEqual(dataSourceId);
+
+        const _collection = await dbQueries.collection({ dataSourceId });
+        expect(_collection.length).toEqual(0);
     });
 
 });

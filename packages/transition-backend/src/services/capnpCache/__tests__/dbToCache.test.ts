@@ -28,7 +28,7 @@ const dataSourceAttributes = {
       bar: 'foo'
     }
 };
-jest.mock('../../../models/db/dataSources.db.queries', () => {
+jest.mock('chaire-lib-backend/lib/models/db/dataSources.db.queries', () => {
     return {
         collection: jest.fn().mockImplementation(async () => {
             return [dataSourceAttributes];

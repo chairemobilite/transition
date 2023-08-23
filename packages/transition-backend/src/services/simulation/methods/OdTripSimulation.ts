@@ -7,7 +7,7 @@
 import { SimulationAlgorithmDescriptor } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
 import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
 import { TransitRoutingBaseAttributes } from 'transition-common/lib/services/transitRouting/TransitRoutingQueryAttributes';
-import dataSourceDbQueries from '../../../models/db/dataSources.db.queries';
+import dataSourceDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import TrError from 'chaire-lib-common/lib/utils/TrError';

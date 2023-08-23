@@ -8,7 +8,7 @@ import { v4 as uuidV4 } from 'uuid';
 import { point as turfPoint } from '@turf/turf';
 
 import dbQueries from '../places.db.queries';
-import dataSourcesDbQueries from '../dataSources.db.queries';
+import dataSourcesDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import GeojsonCollection from 'transition-common/lib/services/places/PlaceCollection';
 import ObjectClass, { PlaceAttributes } from 'transition-common/lib/services/places/Place';
 

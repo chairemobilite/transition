@@ -7,7 +7,7 @@
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { EventEmitter } from 'events';
 
-import dataSourcesDbQueries from '../models/db/dataSources.db.queries';
+import dataSourcesDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 
 /**
  * Add routes specific to the transit objects

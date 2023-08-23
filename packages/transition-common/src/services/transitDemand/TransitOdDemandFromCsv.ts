@@ -8,7 +8,7 @@ import _cloneDeep from 'lodash.clonedeep';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import DataSourceCollection from '../dataSource/DataSourceCollection';
+import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
 import { TransitDemandFromCsv, DemandCsvAttributes } from './TransitDemandFromCsv';
 import { TransitDemandFromCsvRoutingAttributes } from './types';
 

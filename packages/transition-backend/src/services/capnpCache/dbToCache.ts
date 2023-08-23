@@ -35,8 +35,8 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import pathsDbQueries from '../../models/db/transitPaths.db.queries';
 import { collectionToCache as pathCollectionToCache } from '../../models/capnpCache/transitPaths.cache.queries';
 
-import DataSourceCollection from 'transition-common/lib/services/dataSource/DataSourceCollection';
-import dataSourceDbQueries from '../../models/db/dataSources.db.queries';
+import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
+import dataSourceDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import { collectionToCache as dataSourceCollectionToCache } from '../../models/capnpCache/dataSources.cache.queries';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
