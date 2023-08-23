@@ -233,7 +233,13 @@ export class RegisterForm extends React.Component<RegisterFormProps & WithTransl
                 {...this.buttonProps}
                 inputRef={this.submitButtonRef}
                 label={this.props.t(['transition:auth:Register', 'auth:Register'])}
-                onKeyUp = {(e) => { if (e.key === 'enter' || e.key === 'space' || e.which === 13 || e.which === 32) { this.onButtonClick(); } else { return; } }}
+                onKeyUp={(e) => {
+                    if (e.key === 'enter' || e.key === 'space' || e.which === 13 || e.which === 32) {
+                        this.onButtonClick();
+                    } else {
+                        return;
+                    }
+                }}
             />
         </form>
     );
