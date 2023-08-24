@@ -6,7 +6,6 @@
  */
 // Unused, but must be imported to make sure the environment is configured at this point, otherwise process.env will have undefined values
 import _dotenv from '../dotenv.config'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import knex from '../shared/db.config';
 import passport, { PassportStatic } from 'passport';
 import GoogleStrategy from 'passport-google-oauth';
 import FacebookStrategy from 'passport-facebook';
@@ -25,25 +24,10 @@ export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic 
                     callbackURL: new url.URL('/googleoauth', process.env.HOST).href
                 },
                 (accessToken, refreshToken, profile, done) => {
-                    const query = 'google_id = ?';
-                    knex.select(
-                        'id',
-                        'uuid',
-                        'google_id',
-                        'facebook_id',
-                        'username',
-                        'email',
-                        'is_admin',
-                        'is_test',
-                        'preferences',
-                        'profile',
-                        'permissions'
-                    )
-                        .from('users')
-                        .whereRaw(query, [profile.id])
-                        .then(async (rows) => {
-                            if (rows.length === 1) {
-                                const user = rows[0];
+                    authModel
+                        .find({ google_id: profile.id })
+                        .then(async (user) => {
+                            if (user !== undefined) {
                                 // TODO Should sanitize user, but see if other fields need to be included
                                 done(null, { ...user });
                             } else {
@@ -69,25 +53,10 @@ export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic 
                     callbackURL: new url.URL('/facebookoauth', process.env.HOST).href
                 },
                 (accessToken, refreshToken, profile, done) => {
-                    const query = 'facebook_id = ?';
-                    knex.select(
-                        'id',
-                        'uuid',
-                        'google_id',
-                        'facebook_id',
-                        'username',
-                        'email',
-                        'is_admin',
-                        'is_test',
-                        'preferences',
-                        'profile',
-                        'permissions'
-                    )
-                        .from('users')
-                        .whereRaw(query, [profile.id])
-                        .then(async (rows) => {
-                            if (rows.length === 1) {
-                                const user = rows[0];
+                    authModel
+                        .find({ facebook_id: profile.id })
+                        .then(async (user) => {
+                            if (user !== undefined) {
                                 // TODO Should sanitize user, but see if other fields need to be included
                                 done(null, { ...user });
                             } else {

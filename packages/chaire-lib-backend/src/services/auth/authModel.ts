@@ -57,7 +57,14 @@ export interface IAuthModel<U extends IUserModel> {
     createAndSave: (userData: NewUserParams) => Promise<U>;
 
     find: (
-        findBy: { usernameOrEmail?: string; confirmation_token?: string; username?: string; email?: string },
+        findBy: {
+            usernameOrEmail?: string;
+            confirmation_token?: string;
+            username?: string;
+            email?: string;
+            google_id?: string;
+            facebook_id?: string;
+        },
         orWhere?: boolean
     ) => Promise<U | undefined>;
 
