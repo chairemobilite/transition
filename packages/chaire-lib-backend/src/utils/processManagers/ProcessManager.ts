@@ -143,8 +143,18 @@ const startProcess = async function (
                         name: serviceName
                     });
                 });
+                startedProcess.on('close', (code, signal) => {
+                    console.error(`${tagName} server (${serviceName})-(${startedProcess.pid}) closed with code ${code} and signal ${signal}`
+                    );
+                    resolve({
+                        status: 'not_running',
+                        service: tagName,
+                        action: 'start',
+                        name: serviceName
+                    });
+                });
                 startedProcess.on('error', (error) => {
-                    console.error(error);
+                    console.error(`${tagName} server (${serviceName})-(${startedProcess.pid}) exited with error: ${error}`);
                     resolve({
                         status: 'error',
                         service: tagName,
