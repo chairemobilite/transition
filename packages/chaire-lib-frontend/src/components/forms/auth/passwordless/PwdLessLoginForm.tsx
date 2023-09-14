@@ -12,7 +12,7 @@ import { History, Location } from 'history';
 import FormErrors from '../../../pageParts/FormErrors';
 import { startPwdLessLogin, LoginPwdlessData } from '../../../../actions/Auth';
 import Button from '../../../input/Button';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { _isBlank, _isEmail } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 export interface LoginPageProps {
     isAuthenticated?: boolean;
@@ -51,6 +51,10 @@ export class LoginPage extends React.Component<LoginPageProps & WithTranslation,
     onButtonClick = () => {
         if (!this.state.email) {
             this.setState(() => ({ error: this.props.t('auth:missingUsernameOrEmail') }));
+        } else if (this.state.email && !_isEmail(this.state.email)) {
+            this.setState(() => ({
+                error: 'auth:invalidEmail'
+            }));
         } else {
             this.setState(() => ({ error: undefined }));
             this.props.startPwdLessLogin({
