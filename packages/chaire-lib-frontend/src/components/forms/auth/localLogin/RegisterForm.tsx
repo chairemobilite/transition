@@ -14,6 +14,7 @@ import Button from '../../../input/Button';
 import FormErrors from '../../../pageParts/FormErrors';
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import CaptchaComponent, { validateCaptcha } from './CaptchaComponent';
+import { _isEmail } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 export interface RegisterFormProps {
     isAuthenticated?: boolean;
@@ -71,12 +72,7 @@ export class RegisterForm extends React.Component<RegisterFormProps & WithTransl
             this.setState({
                 error: { text: 'auth:passwordMustHaveAtLeastNCharacters', params: { n: '8' } }
             });
-        } else if (
-            this.state.email &&
-            !/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-                this.state.email
-            )
-        ) {
+        } else if (this.state.email && !_isEmail(this.state.email)) {
             this.setState(() => ({
                 error: 'auth:invalidEmail'
             }));
