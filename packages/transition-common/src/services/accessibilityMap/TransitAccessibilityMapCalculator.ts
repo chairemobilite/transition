@@ -10,18 +10,10 @@ import {
     multiLineString as turfMultiLineString,
     circle as turfCircle,
     area as turfArea,
-    polygonToLine as turfPolygonToLine,
-    //multiPolygon as turfMultiPolygon
-    bbox as turfBbox,
-    bboxPolygon as turfBboxPolygon,
-    envelope as turfEnvelope,
-    polygonSmooth as turfPolygonSmooth,
-    polygon as turfPolygon,
-    multiPolygon as turfMultiPolygon,
-    featureCollection
+    polygonToLine as turfPolygonToLine
 } from '@turf/turf';
-import { Feature, FeatureCollection, Point, MultiPolygon, MultiLineString, BBox } from 'geojson';
-import polygonClipping, { Ring } from 'polygon-clipping';
+import { Feature, FeatureCollection, Point, MultiPolygon, MultiLineString } from 'geojson';
+import polygonClipping from 'polygon-clipping';
 import _cloneDeep from 'lodash.clonedeep';
 import _sum from 'lodash.sum';
 import _uniq from 'lodash.uniq';
@@ -41,9 +33,6 @@ import {
     TransitAccessibilityMapWithPolygonResult,
     TransitAccessibilityMapResult
 } from './TransitAccessibilityMapResult';
-import { resolve } from 'path';
-import { Polygon } from 'polygon-clipping';
-import { forEach } from 'lodash';
 
 export interface TransitMapCalculationOptions {
     isCancelled?: (() => boolean) | false;
@@ -199,11 +188,10 @@ export class TransitAccessibilityMapCalculator {
         nodeCircles,
         isCancelled: (() => boolean) | false = false
     ): Promise<polygonClipping.MultiPolygon> {
-        console.log(nodeCircles);
         // return f.union(nodeCircles);
         // TODO This is a much slower version of the simple above line, dividing the work, but allowing the user to cancel the request...
         return new Promise((resolve, reject) => {
-            const pieces = 20; //d'où vient pieces = 20?
+            const pieces = 20;
             const splitSize = Math.ceil(nodeCircles.length / pieces);
             let clipped: polygonClipping.MultiPolygon = [];
             const clipFunc = (previous, i) => {
@@ -224,7 +212,6 @@ export class TransitAccessibilityMapCalculator {
                         }
                     }, 0);
                 } else {
-                    console.log(clipped);
                     resolve(clipped);
                 }
             };
@@ -384,7 +371,6 @@ export class TransitAccessibilityMapCalculator {
         deltaCount = 1,
         options: TransitMapCalculationOptions = {}
     ) {
-        console.log('generate polygons');
         const isCancelled = options.isCancelled || (() => false);
 
         durations.sort((a, b) => b - a); // durations must be in descending order so it appears correctly in qgis
