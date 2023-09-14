@@ -1,6 +1,9 @@
+import { v4 as uuidV4 } from 'uuid';
 import { Request } from 'express';
 import { StrategyCreatedStatic } from 'passport';
 import { IAuthModel, IUserModel } from './authModel';
+
+const anonymousPrefix = 'anonym_';
 
 /**
  * Passport strategy, which creates a user with a random name for the current
@@ -15,7 +18,18 @@ class AnonymousLoginStrategy<A> {
     async authenticate(this: StrategyCreatedStatic & AnonymousLoginStrategy<A>, req: Request): Promise<void> {
         console.log('anonymous login');
         try {
-            const username = `anonym_${(Math.ceil(Math.random() * 899999) + 100000).toString()}`;
+            let randomId: string | undefined = undefined;
+            let user: IUserModel | undefined = undefined;
+            let i = 0;
+            do {
+                randomId = uuidV4().slice(-10);
+                user = await this.authModel.find({ usernameOrEmail: `${anonymousPrefix}${randomId}` });
+                i++;
+            } while (user !== undefined && i < 10);
+            if (user !== undefined) {
+                throw 'Cannot find a unique username for new user, quitting';
+            }
+            const username = `${anonymousPrefix}${randomId}`;
             const newUser = await this.authModel.createAndSave({
                 username,
                 isTest: false

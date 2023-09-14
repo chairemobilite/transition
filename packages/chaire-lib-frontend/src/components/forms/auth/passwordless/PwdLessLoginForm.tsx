@@ -64,14 +64,8 @@ export class LoginPage extends React.Component<LoginPageProps & WithTranslation,
         this.setState(() => ({ email }));
     };
 
-    onKeyPress = (e: React.KeyboardEvent<HTMLFormElement>) => {
-        if (e.key === 'Enter' || e.which === 13) {
-            this.submitButtonRef.current.click();
-        }
-    };
-
     render = () => (
-        <form className="apptr__form apptr__form-auth" onKeyPress={this.onKeyPress}>
+        <form className="apptr__form apptr__form-auth">
             <div className={'apptr__form-label-container'}>
                 <div className="apptr__form__label-standalone no-question">
                     <p>{this.props.headerText}</p>
@@ -97,8 +91,8 @@ export class LoginPage extends React.Component<LoginPageProps & WithTranslation,
                         name="email"
                         id="email"
                         type="text"
+                        placeholder={this.props.t(['survey:auth:EmailPlaceholder', 'auth:EmailPlaceholder'])}
                         className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
-                        autoFocus
                         value={this.state.email}
                         onChange={this.onEmailChange}
                     />
@@ -108,6 +102,13 @@ export class LoginPage extends React.Component<LoginPageProps & WithTranslation,
                 {...this.buttonProps}
                 inputRef={this.submitButtonRef}
                 label={!_isBlank(this.props.buttonText) ? this.props.buttonText : this.props.t(['auth:Login'])}
+                onKeyUp={(e) => {
+                    if (e.key === 'enter' || e.key === 'space' || e.which === 13 || e.which === 32) {
+                        this.onButtonClick();
+                    } else {
+                        return;
+                    }
+                }}
             />
         </form>
     );
