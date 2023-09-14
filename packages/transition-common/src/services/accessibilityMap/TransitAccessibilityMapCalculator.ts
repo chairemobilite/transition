@@ -44,9 +44,6 @@ import {
 import { resolve } from 'path';
 import { Polygon } from 'polygon-clipping';
 import { forEach } from 'lodash';
-import { Canvg } from 'canvg';
-import { geojson2svg } from 'geojson2svg';
-import { resvg } from 'resvg';
 
 export interface TransitMapCalculationOptions {
     isCancelled?: (() => boolean) | false;
@@ -158,10 +155,51 @@ export class TransitAccessibilityMapCalculator {
         return params;
     }
 
+    private static async rasterPolygon(
+        nodeCircles,
+        isCancelled: (() => boolean) | false = false
+    ): Promise<string> {
+        // run rasterizer script, exec from child_process and python-shell don't work
+
+        return new Promise((resolve, reject) => {
+            let geojsonString = '{"type": "FeatureCollection", "features": [';
+            const rasterFunc = (previous, i) => {
+                if(nodeCircles[i] != undefined){
+                    // find a way to only use 6 decimals in nodeCircles to optimize?
+                    geojsonString = previous.concat('{"type": "Feature","properties": {},"geometry": {"coordinates":' + JSON.stringify(nodeCircles[i]) + ',"type": "Polygon"}},');
+                }
+                if (isCancelled && isCancelled()) {
+                    reject('Cancelled');
+                    return;
+                }
+                if (i < nodeCircles.length) {
+                    setTimeout(() => {
+                        try {
+                            // The function will concat with previous, nothing to do for this case
+                            rasterFunc(geojsonString, i + 1);
+                        } catch (error) {
+                            // Error clipping this data, reject the promise
+                            reject(error);
+                        }
+                    }, 0);
+                } else {
+                    geojsonString = geojsonString.substring(0, geojsonString.length - 1);
+                    geojsonString = geojsonString.concat(']}');
+                    console.log(geojsonString);
+                    // run rasterizer script, exec from child_process and python-shell don't work
+                    // replace result of rasterizer to geojsonString, delete artefacts (output file, script should remove intermediate and input files)
+                    resolve(geojsonString);
+                }
+            };
+            rasterFunc(geojsonString, 0);
+        });
+    }
+    
     private static async clipPolygon(
         nodeCircles,
         isCancelled: (() => boolean) | false = false
     ): Promise<polygonClipping.MultiPolygon> {
+        console.log(nodeCircles);
         // return f.union(nodeCircles);
         // TODO This is a much slower version of the simple above line, dividing the work, but allowing the user to cancel the request...
         return new Promise((resolve, reject) => {
@@ -186,282 +224,13 @@ export class TransitAccessibilityMapCalculator {
                         }
                     }, 0);
                 } else {
+                    console.log(clipped);
                     resolve(clipped);
                 }
             };
             clipFunc(clipped, 0);
         });
     }
-
-    private static async pngPolygon(
-        nodeCircles,
-        isCancelled: (() => boolean) | false = false
-    ): Promise<polygonClipping.MultiPolygon> {
-        // return f.union(nodeCircles);
-        // TODO This is a much slower version of the simple above line, dividing the work, but allowing the user to cancel the request...
-        return new Promise((resolve, reject) => {
-            let pnged: polygonClipping.MultiPolygon = [];
-            const fs = require('fs');
-            const gm = require('gm');
-            gm(100, 100, '#2266bbaa').size(function(err, value) {
-                console.log(value);
-            
-                if(err) {
-                    console.log(err);
-                }
-            });
-            const pngFunc = (previous, i) => {
-                const toPng = nodeCircles[i][0][0];
-                pnged = [];
-                // pnged = polygonClipping.union(toPng);
-                if (isCancelled && isCancelled()) {
-                    reject('Cancelled');
-                    return;
-                }
-                if (i < nodeCircles.length - 1) {
-                    setTimeout(() => {
-                        try {
-                            // The function will concat with previous, nothing to do for this case
-                            pngFunc(pnged, i + 1);
-                        } catch (error) {
-                            // Error clipping this data, reject the promise
-                            reject(error);
-                        }
-                    }, 0);
-                } else {
-                    resolve(pnged);
-                }
-            };
-            pngFunc(pnged, 0);
-        });
-    }
-
-    private static async pixelizePolygon(
-        nodeCircles,
-        isCancelled: (() => boolean) | false = false
-    ): Promise<polygonClipping.MultiPolygon> {
-        return new Promise((resolve, reject) => {
-
-            let toPixel = [ [-73.497, 45.543], [-73.497, 45.52], [-73.472, 45.52], [-73.472, 45.543], [-73.497, 45.543]];
-            const geojson2svg = require('geojson2svg');
-            let converter = geojson2svg({output: 'svg'});
-            let toPixelSvg = converter.convert({'type': 'Polygon', 'coordinates': [[ [73.497, 45.543], [73.497, 45.52], [73.472, 45.52], [73.472, 45.543], [73.497, 45.543]]]});
-            console.log(toPixelSvg);
-
-            const { Resvg } = require('resvg');
-            const opts = {
-                background: 'rgba(255, 255, 255, 1)',
-            }
-            const resvg = Resvg(toPixelSvg, opts);
-            const pngData = resvg.render();
-            console.log(pngData.width);
-            // const pngBuffer = pngData.asPng();
-            // console.log(pngBuffer.)
-
-            /*
-            img = new Image(),
-            serializer = new XMLSerializer(),
-            svgStr = serializer.serializeToString(document.getElementById('svg'));
-
-            img.src = 'data:image/svg+xml;base64,'+window.btoa(svgStr);
-
-            // You could also use the actual string without base64 encoding it:
-            //img.src = "data:image/svg+xml;utf8," + svgStr;
-
-            var canvas = document.createElement("canvas");
-
-            var w=800;
-            var h=400;
-
-            canvas.width = w;
-            canvas.height = h;
-            canvas.getContext("2d").drawImage(img,0,0,w,h);
-
-            var imgURL = canvas.toDataURL("image/png");
-
-
-            var dlLink = document.createElement('a');
-            dlLink.download = "image";
-            dlLink.href = imgURL;
-            dlLink.dataset.downloadurl = ["image/png", dlLink.download, dlLink.href].join(':');
-            
-            document.body.appendChild(dlLink);
-            dlLink.click();
-            document.body.removeChild(dlLink);
-            */
-
-            // //sharp
-            // const sharp = require('sharp');
-            // let png = sharp(toPixelSvg).png();
-            // console.log(png);
-
-            //canvg
-            // const canvas = document.createElement('canvas');
-            // if (canvas != undefined) {
-            //     const ctx = canvas.getContext('2d');
-            //     if(ctx != null){
-            //         let canvg = Canvg.fromString(ctx, toPixelSvg);
-            //         canvg.start();
-            //         let png = canvas.toDataURL("img/png");
-            //         console.log(png);
-            //     } else {
-            //         console.log("ctx null");
-            //     }
-            // } else {
-            //     console.log("canvas undefined");
-            // }
-
-            
-
-            let pixelized: polygonClipping.MultiPolygon = [];
-            const pixelFunc = (previous, i) => {
-                // const toPixel = nodeCircles[i][0][0][0];
-
-                
-
-                if (isCancelled && isCancelled()) {
-                    reject('Cancelled');
-                    return;
-                }
-                if (i < nodeCircles.length - 1) {
-                    setTimeout(() => {
-                        try {
-                            // The function will concat with previous, nothing to do for this case
-                            pixelFunc(pixelized, i + 1);
-                        } catch (error) {
-                            // Error clipping this data, reject the promise
-                            reject(error);
-                        }
-                    }, 0);
-                } else {
-                    resolve(pixelized);
-                }
-            };
-            pixelFunc(pixelized, 0);
-        });
-    }
-
-    // private static async pixelizePolygon(
-    //     nodeCircles,
-    //     isCancelled: (() => boolean) | false = false
-    // ): Promise<polygonClipping.MultiPolygon> {
-    //     return new Promise((resolve, reject) => {
-    //         // let pixelized: FeatureCollection<MultiPolygon> = {type: 'FeatureCollection', features: []};
-    //         let pixelized: polygonClipping.MultiPolygon = [];
-    //         let maxBbox = [-500, -500, 500, 500];
-    //         //envelope au lieu de bbox??
-    //         //boolean within
-    //         //const metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom)
-    //         // let extremumsPos: number[] = [-180, -90, 180, 90]; //min lat et long
-    //         // for (let circle of nodeCircles){
-    //         //     // console.log(circle);
-    //         //     if(circle[0][0][0] > extremumsPos[0]){
-    //         //         extremumsPos[0] = circle[0][0][0];
-    //         //     }
-    //         //     if(circle[0][0][1] > extremumsPos[1]){
-    //         //         extremumsPos[1] = circle[0][0][1];
-    //         //     }
-    //         //     if(circle[0][0][0] < extremumsPos[2]){
-    //         //         extremumsPos[2] = circle[0][0][0];
-    //         //     }
-    //         //     if(circle[0][0][1] < extremumsPos[3]){
-    //         //         extremumsPos[3] = circle[0][0][1];
-    //         //     }
-    //         // }
-
-    //         // const ring = turfLineString([[extremumsPos[0], extremumsPos[3]], [extremumsPos[0], extremumsPos[1]], [extremumsPos[2], extremumsPos[1]], [extremumsPos[2], extremumsPos[3]], [extremumsPos[0], extremumsPos[3]]]);
-    //         // let polygon: Feature<MultiPolygon> = turfMultiPolygon([[[[extremumsPos[0], extremumsPos[3]], [extremumsPos[0], extremumsPos[1]], [extremumsPos[2], extremumsPos[1]], [extremumsPos[2], extremumsPos[3]], [extremumsPos[0], extremumsPos[3]]]]]);
-
-    //         //pixelized = turfPolygonSmooth(polygon, {iterations:3});
-    //         // pixelized = { features: [polygon], type: 'FeatureCollection' };
-
-    //         const pixelizeFunc = (previous, i) => {
-    //             // logique pixelisation
-    //             //const toPixelize = previous.concat(nodeCircles[i][0]);
-    //             // const bbox = turfBboxPolygon(turfBbox(toPixelize));
-    //             // if (pixelized.length == 0){
-    //             //     if (bbox.bbox != undefined){
-    //             //         maxBbox = bbox.bbox;
-    //             //     }
-    //             // }
-
-    //             // pixelized = polygonClipping.union();
-
-    //             // const polygon: Polygon = [nodeCircles[i][0][0], nodeCircles[i][0][1], nodeCircles[i][(nodeCircles[i].length)/2][0], nodeCircles[i][(nodeCircles[i].length)/2][0]];
-    //             // const polygon: Polygon = [nodeCircles[i]];
-    //             // pixelized = polygonClipping.union(polygon);
-
-    //             // const ring: Ring = [[extremumsPos[0], extremumsPos[3]], [extremumsPos[0], extremumsPos[1]], [extremumsPos[2], extremumsPos[1]], [extremumsPos[2], extremumsPos[3]], [extremumsPos[0], extremumsPos[3]]];
-    //             // const polygon: Polygon = [ring];
-    //             // pixelized = [polygon];
-
-    //             // let extremumsPos: number[] = [nodeCircles[i][0][0][0], nodeCircles[i][0][0][1], nodeCircles[i][0][0][0], nodeCircles[i][0][0][1]];
-    //             let extremumsPos: number[] = [-180, -90, 180, 90];
-    //             // console.log(nodeCircles[i]); //nodeCircles[i] = structure comprenant un cercle
-    //             // console.log(nodeCircles[i][0]); //cercle
-    //             // console.log(nodeCircles[i][0][0]); //coords
-    //             // console.log(nodeCircles[i][0][0][0]); //lat ou long
-    //             for (let j = 0; j < nodeCircles[i].length; j++) {
-    //                 if (nodeCircles[i][j][0][0] > extremumsPos[0]) {
-    //                     extremumsPos[0] = nodeCircles[i][j][0][0];
-    //                 }
-    //                 if (nodeCircles[i][j][0][1] > extremumsPos[1]) {
-    //                     extremumsPos[1] = nodeCircles[i][j][0][1];
-    //                 }
-    //                 if (nodeCircles[i][j][0][0] < extremumsPos[2]) {
-    //                     extremumsPos[2] = nodeCircles[i][j][0][0];
-    //                 }
-    //                 if (nodeCircles[i][j][0][1] < extremumsPos[3]) {
-    //                     extremumsPos[3] = nodeCircles[i][j][0][1];
-    //                 }
-    //             }
-
-    //             // console.log(extremumsPos);
-    //             //mettre un octogone avec les mi points
-    //             // const toPixelize = previous.concat([
-    //             //     [extremumsPos[2], extremumsPos[1]],
-    //             //     [extremumsPos[2], extremumsPos[3]],
-    //             //     [extremumsPos[0], extremumsPos[3]],
-    //             //     [extremumsPos[0], extremumsPos[1]],
-    //             //     [extremumsPos[2], extremumsPos[1]]
-    //             // ]);
-    //             const toPixelize: polygonClipping.Polygon = [
-    //                 [
-    //                     [extremumsPos[2], extremumsPos[1]],
-    //                     [extremumsPos[2], extremumsPos[3]],
-    //                     [extremumsPos[0], extremumsPos[3]],
-    //                     [extremumsPos[0], extremumsPos[1]],
-    //                     [extremumsPos[2], extremumsPos[1]]
-    //                 ]
-    //             ];
-    //             console.log(toPixelize);
-    //             if (previous != undefined && toPixelize[0] != toPixelize[2] && toPixelize[1] != toPixelize[3] && pixelized.length > 0) {
-    //                 pixelized = polygonClipping.union([toPixelize, previous]);
-    //             } else {
-    //                 pixelized[0] = toPixelize;
-    //             }
-    //             if (isCancelled && isCancelled()) {
-    //                 reject('Cancelled');
-    //                 return;
-    //             }
-    //             if (i < nodeCircles.length - 1) {
-    //                 setTimeout(() => {
-    //                     try {
-    //                         // The function will concat with previous, nothing to do for this case
-    //                         pixelizeFunc(pixelized, i + 1);
-    //                     } catch (error) {
-    //                         // Error clipping this data, reject the promise
-    //                         reject(error);
-    //                     }
-    //                 }, 0);
-    //             } else {
-    //                 console.log(pixelized);
-    //                 resolve(pixelized);
-    //             }
-    //         };
-    //         pixelizeFunc(pixelized, 0);
-    //     });
-    // }
 
     // FIXME: Type the options
     static async calculate(
@@ -690,12 +459,16 @@ export class TransitAccessibilityMapCalculator {
                 progress: stepI++ / stepsCount
             });
 
-            //const metersPerPixel = 156543.03392 * Math.cos(lat * Math.PI / 180) / Math.pow(2, zoom)
-            const polygonCoordinates = await this.pngPolygon(nodeCircles, isCancelled);
+            // this will replace clipPolygon
+            // await this.rasterPolygon(nodeCircles, isCancelled);
+            const polygonCoordinates = await this.clipPolygon(nodeCircles, isCancelled);
 
             // TODO This is the veryyy sloooooow operation.
             // const polygonCoordinates = await this.clipPolygon(nodeCircles, isCancelled);
             const polygon = _cloneDeep(defaultGeojsonPolygon);
+            // this will replace clipPolygon
+            // const rasterized = await this.rasterPolygon(nodeCircles, isCancelled)
+            // polygon.geometry.coordinates = JSON.parse(rasterized);
             polygon.geometry.coordinates = polygonCoordinates;
 
             const area = turfArea(polygon);
