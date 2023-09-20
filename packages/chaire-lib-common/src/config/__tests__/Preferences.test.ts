@@ -4,8 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _set from 'lodash.set';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 import { default as Preferences, PreferencesClass } from '../Preferences';
 import { default as defaultPreferences, PreferencesModel } from '../defaultPreferences.config';
 import { EventEmitter } from 'events';

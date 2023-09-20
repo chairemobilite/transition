@@ -4,13 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash.clonedeep';
-import _get from 'lodash.get';
-import _set from 'lodash.set';
-import _mean from 'lodash.mean';
-import _isEqual from 'lodash.isequal';
-import _isNumber from 'lodash.isnumber';
-import _isFinite from 'lodash.isfinite';
+import _cloneDeep from 'lodash/cloneDeep';
+import _get from 'lodash/get';
+import _mean from 'lodash/mean';
+import _isNumber from 'lodash/isNumber';
+import _isFinite from 'lodash/isFinite';
 import {
     distance as turfDistance,
     length as turfLength,

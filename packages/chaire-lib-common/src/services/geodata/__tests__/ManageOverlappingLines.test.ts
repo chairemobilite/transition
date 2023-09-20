@@ -8,7 +8,7 @@
 import { offsetOverlappingLines, OFFSET_WIDTH, getLinesInView } from '../ManageOverlappingLines';
 import { lineOffset, inside, circle, union, bboxPolygon } from '@turf/turf';
 import GeoJSON, { LineString } from 'geojson';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 const featureSkeleton: GeoJSON.Feature = {
     type: 'Feature',

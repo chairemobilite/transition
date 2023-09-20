@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _get from 'lodash.get';
-import snakeCase from 'lodash.snakecase';
-import camelCase from 'lodash.camelcase';
+import _get from 'lodash/get';
+import snakeCase from 'lodash/snakeCase';
+import camelCase from 'lodash/camelCase';
 
 import { Node, NodeAttributes } from './Node';
 import CollectionCacheable from 'chaire-lib-common/lib/services/objects/CollectionCacheable';

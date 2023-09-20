@@ -5,8 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import fs from 'fs';
-import _omit from 'lodash.omit';
-import _cloneDeep from 'lodash.clonedeep';
+import _omit from 'lodash/omit';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';

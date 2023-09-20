@@ -1,6 +1,6 @@
-import _get from 'lodash.get';
+import _get from 'lodash/get';
 import _set from 'lodash.set';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 import { unparse } from 'papaparse';
 
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';

@@ -15,7 +15,7 @@ import {
     deleteRecord,
     destroy
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 import {
     SchedulePeriodTrip,
     SchedulePeriod,

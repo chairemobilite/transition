@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
 
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';

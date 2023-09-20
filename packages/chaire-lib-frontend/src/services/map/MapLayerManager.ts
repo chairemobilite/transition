@@ -6,7 +6,7 @@
  */
 import MapboxGL from 'mapbox-gl';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
-import _uniq from 'lodash.uniq';
+import _uniq from 'lodash/uniq';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 

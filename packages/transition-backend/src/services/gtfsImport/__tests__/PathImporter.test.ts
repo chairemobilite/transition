@@ -7,7 +7,6 @@
 import { v4 as uuidV4 } from 'uuid';
 import { mocked } from 'ts-jest/utils'
 import { defaultInternalImportData, offsetStopTimes } from './GtfsImportData.test';
-import _merge from 'lodash.merge';
 import Line from 'transition-common/lib/services/line/Line';
 import Path from 'transition-common/lib/services/path/Path';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';

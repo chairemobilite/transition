@@ -7,7 +7,7 @@
 
 import { manageRelocatingNodes } from '../RelocateNodes';
 import { LineString, Point } from '@turf/turf';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 const transitPaths : GeoJSON.FeatureCollection<LineString> = {
     type: 'FeatureCollection',

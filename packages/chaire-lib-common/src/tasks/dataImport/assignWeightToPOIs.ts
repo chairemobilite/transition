@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _uniq from 'lodash.uniq';
-import _uniqBy from 'lodash.uniqby';
-import _flatten from 'lodash.flatten';
+import _uniq from 'lodash/uniq';
+import _uniqBy from 'lodash/uniqBy';
+import _flatten from 'lodash/flatten';
 import GenericDataImportTask from './genericDataImportTask';
 import GeoJSON from 'geojson';
 import { DataGeojson, DataFileGeojson } from './data/dataGeojson';

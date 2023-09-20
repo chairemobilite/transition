@@ -15,9 +15,8 @@ import {
 } from '@turf/turf';
 import { Feature, FeatureCollection, Point, MultiPolygon, MultiLineString } from 'geojson';
 import polygonClipping from 'polygon-clipping';
-import _cloneDeep from 'lodash.clonedeep';
-import _sum from 'lodash.sum';
-import _uniq from 'lodash.uniq';
+import _cloneDeep from 'lodash/cloneDeep';
+import _sum from 'lodash/sum';
 
 import TransitAccessibilityMapRouting from './TransitAccessibilityMapRouting';
 import TrError from 'chaire-lib-common/lib/utils/TrError';

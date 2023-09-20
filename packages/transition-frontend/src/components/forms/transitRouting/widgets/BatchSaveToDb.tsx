@@ -6,7 +6,6 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _toString from 'lodash.tostring';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { TransitOdDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';

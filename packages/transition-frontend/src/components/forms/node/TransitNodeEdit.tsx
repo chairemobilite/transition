@@ -7,8 +7,8 @@
 import React from 'react';
 import Collapsible from 'react-collapsible';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _cloneDeep from 'lodash.clonedeep';
-import _toString from 'lodash.tostring';
+import _cloneDeep from 'lodash/cloneDeep';
+import _toString from 'lodash/toString';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';

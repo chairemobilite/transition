@@ -6,8 +6,8 @@
  */
 import moment from 'moment';
 import * as GtfsTypes from 'gtfs-types';
-import _uniq from 'lodash.uniq';
-import _isEqual from 'lodash.isequal';
+import _uniq from 'lodash/uniq';
+import _isEqual from 'lodash/isEqual';
 
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';

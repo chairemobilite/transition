@@ -7,7 +7,7 @@
 import React from 'react';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons/faFileDownload';
 import { faTasks } from '@fortawesome/free-solid-svg-icons/faTasks';
-import _get from 'lodash.get';
+import _get from 'lodash/get';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import slugify from 'slugify';
 import { v4 as uuidV4 } from 'uuid';

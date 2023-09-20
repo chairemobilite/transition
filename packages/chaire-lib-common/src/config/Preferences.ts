@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _merge from 'lodash.merge';
-import _get from 'lodash.get';
-import _isNumber from 'lodash.isnumber';
-import _cloneDeep from 'lodash.clonedeep';
+import _merge from 'lodash/merge';
+import _get from 'lodash/get';
+import _isNumber from 'lodash/isNumber';
+import _cloneDeep from 'lodash/cloneDeep';
 import EventEmitter from 'events';
 
 import * as Status from '../utils/Status';

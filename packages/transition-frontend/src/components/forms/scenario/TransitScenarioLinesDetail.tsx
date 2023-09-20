@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _uniq from 'lodash.uniq';
+import _uniq from 'lodash/uniq';
 
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import { PathAttributes } from 'transition-common/lib/services/path/Path';

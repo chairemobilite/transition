@@ -4,8 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash.clonedeep';
-import _isEqual from 'lodash.isequal';
+import _cloneDeep from 'lodash/cloneDeep';
 import { multiPoint as turfMultiPoint } from '@turf/turf';
 
 import { MapObject, MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';

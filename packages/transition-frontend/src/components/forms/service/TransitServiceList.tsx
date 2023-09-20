@@ -6,7 +6,7 @@
  */
 import React, { useState } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _get from 'lodash.get';
+import _get from 'lodash/get';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
 

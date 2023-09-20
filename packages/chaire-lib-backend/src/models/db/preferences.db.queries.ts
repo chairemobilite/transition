@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _set from 'lodash.set';
+import _set from 'lodash/set';
 import knex from '../../config/shared/db.config';
 
 import TrError from 'chaire-lib-common/lib/utils/TrError';

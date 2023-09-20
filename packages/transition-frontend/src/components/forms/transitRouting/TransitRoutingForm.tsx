@@ -9,8 +9,8 @@ import Collapsible from 'react-collapsible';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons/faFileDownload';
-import _cloneDeep from 'lodash.clonedeep';
-import _toString from 'lodash.tostring';
+import _cloneDeep from 'lodash/cloneDeep';
+import _toString from 'lodash/toString';
 import Loader from 'react-spinners/BeatLoader';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';

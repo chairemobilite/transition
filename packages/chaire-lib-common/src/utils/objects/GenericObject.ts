@@ -5,13 +5,13 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import _cloneDeep from 'lodash.clonedeep';
-import _set from 'lodash.set';
-import _get from 'lodash.get';
-import _isEqual from 'lodash.isequal';
-import _camelCase from 'lodash.camelcase';
-import _upperFirst from 'lodash.upperfirst';
-import _merge from 'lodash.merge';
+import _cloneDeep from 'lodash/cloneDeep';
+import _set from 'lodash/set';
+import _get from 'lodash/get';
+import _isEqual from 'lodash/isEqual';
+import _camelCase from 'lodash/camelCase';
+import _upperFirst from 'lodash/upperFirst';
+import _merge from 'lodash/merge';
 
 export interface GenericAttributes {
     id: string;

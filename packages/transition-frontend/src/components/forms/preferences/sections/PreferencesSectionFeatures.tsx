@@ -7,7 +7,6 @@
 import React from 'react';
 import Collapsible from 'react-collapsible';
 import { withTranslation } from 'react-i18next';
-import _toString from 'lodash.tostring';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';

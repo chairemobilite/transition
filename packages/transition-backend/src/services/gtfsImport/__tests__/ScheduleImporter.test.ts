@@ -11,7 +11,6 @@ import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import { StopTimeImportData } from '../GtfsImportTypes';
 import { defaultInternalImportData, offsetStopTimes } from './GtfsImportData.test';
-import _merge from 'lodash.merge';
 import ScheduleImporter from '../ScheduleImporter';
 import linesDbQueries from '../../../models/db/transitLines.db.queries';
 import schedulesDbQueries from '../../../models/db/transitSchedules.db.queries';

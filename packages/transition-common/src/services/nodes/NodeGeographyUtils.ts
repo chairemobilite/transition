@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import geokdbush from 'geokdbush';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import Node, { TransferableNodes, AccessiblePlacesPerTravelTime } from './Node';
 import TrError from 'chaire-lib-common/lib/utils/TrError';

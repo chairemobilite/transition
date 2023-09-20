@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import _omit from 'lodash.omit';
+import _omit from 'lodash/omit';
 
 import Agency from '../Agency';
 import { duplicateAgency } from '../AgencyDuplicator';

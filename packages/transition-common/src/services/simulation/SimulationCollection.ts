@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _toString from 'lodash.tostring';
+import _toString from 'lodash/toString';
 
 import Simulation, { SimulationAttributes } from './Simulation';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';

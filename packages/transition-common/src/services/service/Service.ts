@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _chunk from 'lodash.chunk';
+import _chunk from 'lodash/chunk';
 import moment from 'moment';
 import { EventEmitter } from 'events';
 
@@ -16,6 +16,7 @@ import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import Line from '../line/Line';
 
 export const serviceDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
@@ -151,7 +152,7 @@ class Service extends ObjectWithHistory<ServiceAttributes> implements Saveable {
         if (this._collectionManager && this._collectionManager.get('lines')) {
             //const requiredFleetByLine = {};
             let totalRequiredFleet = 0;
-            const lines = this._collectionManager.get('lines').getFeatures();
+            const lines = this._collectionManager.get('lines').getFeatures() as Line[];
             const batchSize = 10;
             const chunks = _chunk(lines, batchSize);
 
@@ -160,7 +161,8 @@ class Service extends ObjectWithHistory<ServiceAttributes> implements Saveable {
                 const chunkLines = chunks[i];
                 for (let j = 0, countJ = chunkLines.length; j < countJ; j++) {
                     const line = chunkLines[j];
-                    totalRequiredFleet += await line.calculateRequiredFleetForService(socket, this.get('id'));
+                    // TODO Make sure calculateRequiredFleetForService does not return null
+                    totalRequiredFleet += (await line.calculateRequiredFleetForService(socket, this.get('id'))) || 0;
                 }
             }
 

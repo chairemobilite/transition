@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash.clonedeep';
-import _get from 'lodash.get';
-import _isEqual from 'lodash.isequal';
+import _cloneDeep from 'lodash/cloneDeep';
+import _get from 'lodash/get';
+import _isEqual from 'lodash/isEqual';
 import * as turf from '@turf/turf';
 import * as GtfsTypes from 'gtfs-types';
 

@@ -6,8 +6,7 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _toString from 'lodash.tostring';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { PreferencesClass, default as preferences } from 'chaire-lib-common/lib/config/Preferences';

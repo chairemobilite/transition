@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash.clonedeep';
-import _get from 'lodash.get';
+import _cloneDeep from 'lodash/cloneDeep';
+import _get from 'lodash/get';
 import * as turf from '@turf/turf';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';

@@ -8,7 +8,7 @@ import React from 'react';
 import Collapsible from 'react-collapsible';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';

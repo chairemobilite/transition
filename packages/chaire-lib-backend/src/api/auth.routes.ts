@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _set from 'lodash.set';
+import _set from 'lodash/set';
 import express, { Request, Response } from 'express';
 import crypto from 'crypto';
 import moment from 'moment';

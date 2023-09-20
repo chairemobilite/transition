@@ -6,7 +6,7 @@
  */
 import * as GtfsTypes from 'gtfs-types';
 import { v4 as uuidV4 } from 'uuid';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 import pQueue from 'p-queue';
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';

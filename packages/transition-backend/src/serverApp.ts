@@ -13,7 +13,7 @@ import path from 'path';
 import { Express, Request, Response, RequestHandler } from 'express';
 
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
-import _camelCase from 'lodash.camelcase';
+import _camelCase from 'lodash/camelCase';
 import * as express from 'express';
 import favicon from 'serve-favicon';
 import expressSession from 'express-session';

@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import _cloneDeep                       from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 import { lineString as turfLineString } from '@turf/helpers';
 
 import dbQueries from '../transitPaths.db.queries';

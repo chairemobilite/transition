@@ -6,8 +6,8 @@
  */
 
 import { v4 as uuidV4 } from 'uuid';
-import _cloneDeep from 'lodash.clonedeep';
-import _omit from 'lodash.omit';
+import _cloneDeep from 'lodash/cloneDeep';
+import _omit from 'lodash/omit';
 
 import Agency from '../Agency';
 

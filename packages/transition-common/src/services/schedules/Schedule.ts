@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import _isNumber from 'lodash.isnumber';
+import _isNumber from 'lodash/isNumber';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
