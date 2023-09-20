@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 import knexPostgis from 'knex-postgis';
 import { validate as uuidValidate } from 'uuid';
 

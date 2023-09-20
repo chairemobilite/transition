@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 const defaultLineId = uuidV4();
 const defaultServiceId = uuidV4();

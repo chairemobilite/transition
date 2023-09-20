@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _omit from 'lodash.omit';
+import _omit from 'lodash/omit';
 import { point as turfPoint } from '@turf/turf';
 
 import Node, { NodeAttributes } from 'transition-common/lib/services/nodes/Node';

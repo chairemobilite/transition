@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _isFinite from 'lodash.isfinite';
-import _isString from 'lodash.isstring';
-import _padStart from 'lodash.padstart';
+import _isFinite from 'lodash/isFinite';
+import _isString from 'lodash/isString';
+import _padStart from 'lodash/padStart';
 import { _isBlank } from './LodashExtensions';
 
 /**
@@ -42,9 +42,9 @@ const secondsSinceMidnightToTimeStr = function (
 
     if (withSeconds) {
         const second = secondsSinceMidnightAbs - hour * 3600 - minute * 60;
-        return `${hour}:${_padStart(minute, 2, '0')}:${_padStart(second, 2, '0')}`;
+        return `${hour}:${_padStart(String(minute), 2, '0')}:${_padStart(String(second), 2, '0')}`;
     } else {
-        return `${hour}:${_padStart(minute, 2, '0')}`;
+        return `${hour}:${_padStart(String(minute), 2, '0')}`;
     }
 };
 

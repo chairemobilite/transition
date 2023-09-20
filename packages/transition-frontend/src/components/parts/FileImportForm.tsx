@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _upperFirst from 'lodash.upperfirst';
+import _upperFirst from 'lodash/upperFirst';
 import { faUndoAlt } from '@fortawesome/free-solid-svg-icons/faUndoAlt';
 import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
 

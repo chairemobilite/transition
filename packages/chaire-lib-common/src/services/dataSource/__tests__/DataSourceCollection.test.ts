@@ -6,7 +6,7 @@
  */
 
 import { v4 as uuidV4 } from 'uuid';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import EventManagerMock from '../../../test/services/events/EventManagerMock';
 import DataSource from '../DataSource';

@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _isFinite from 'lodash.isfinite';
+import _isFinite from 'lodash/isFinite';
 
 /**
  * Parses a number or string value to an integer. It returns an integer only if

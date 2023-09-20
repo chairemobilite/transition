@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import inquirer from 'inquirer';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 import { TFunction } from 'i18next';
 
 import Simulation, { SimulationDataAttributes } from 'transition-common/lib/services/simulation/Simulation';

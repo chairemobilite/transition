@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import _omit from 'lodash.omit';
+import _omit from 'lodash/omit';
 import fetchMock from 'jest-fetch-mock';
 
 import * as cacheQueries from '../transitNodes.cache.queries';

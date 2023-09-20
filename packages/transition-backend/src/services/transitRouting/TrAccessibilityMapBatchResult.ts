@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import fs from 'fs';
-import _omit from 'lodash.omit';
+import _omit from 'lodash/omit';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';

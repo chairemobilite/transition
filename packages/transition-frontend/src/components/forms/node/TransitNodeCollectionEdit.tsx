@@ -10,9 +10,9 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
-import _cloneDeep from 'lodash.clonedeep';
-import _get from 'lodash.get';
-import _toString from 'lodash.tostring';
+import _cloneDeep from 'lodash/cloneDeep';
+import _get from 'lodash/get';
+import _toString from 'lodash/toString';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';

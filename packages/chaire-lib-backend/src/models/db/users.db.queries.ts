@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import knex from '../../config/shared/db.config';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 

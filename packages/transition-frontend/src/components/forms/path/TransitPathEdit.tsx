@@ -13,7 +13,7 @@ import { faRedoAlt } from '@fortawesome/free-solid-svg-icons/faRedoAlt';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faRoute } from '@fortawesome/free-solid-svg-icons/faRoute';
-import _toString from 'lodash.tostring';
+import _toString from 'lodash/toString';
 import MathJax from 'react-mathjax';
 import { point as turfPoint, featureCollection as turfFeatureCollection } from '@turf/turf';
 

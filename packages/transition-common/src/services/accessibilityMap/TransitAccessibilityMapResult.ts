@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _sum from 'lodash.sum';
-import _uniq from 'lodash.uniq';
+import _sum from 'lodash/sum';
+import _uniq from 'lodash/uniq';
 
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import {

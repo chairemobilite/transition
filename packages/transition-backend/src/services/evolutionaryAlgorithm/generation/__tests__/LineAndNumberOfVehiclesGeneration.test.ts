@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import random from 'random';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 import { v4 as uuidV4 } from 'uuid';
 
 import Generation, { generateFirstCandidates } from '../LineAndNumberOfVehiclesGeneration';

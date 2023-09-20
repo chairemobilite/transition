@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _isObject from 'lodash.isobject';
-import _isEmpty from 'lodash.isempty';
-import _isFinite from 'lodash.isfinite';
-import _isDate from 'lodash.isdate';
+import _isObject from 'lodash/isObject';
+import _isEmpty from 'lodash/isEmpty';
+import _isFinite from 'lodash/isFinite';
+import _isDate from 'lodash/isDate';
 
 const _isBlank = function (value) {
     return (

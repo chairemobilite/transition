@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _snakeCase from 'lodash.snakecase';
-import _camelCase from 'lodash.camelcase';
+import _snakeCase from 'lodash/snakeCase';
+import _camelCase from 'lodash/camelCase';
 
 import DataSource from 'chaire-lib-common/lib/services/dataSource/DataSource';
 import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';

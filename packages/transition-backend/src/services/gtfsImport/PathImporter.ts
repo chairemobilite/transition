@@ -6,7 +6,7 @@
  */
 import * as GtfsTypes from 'gtfs-types';
 import pQueue from 'p-queue';
-import _isEqual from 'lodash.isequal';
+import _isEqual from 'lodash/isEqual';
 
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import Line from 'transition-common/lib/services/line/Line';

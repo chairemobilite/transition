@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _toString from 'lodash.tostring';
+import _toString from 'lodash/toString';
 
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';

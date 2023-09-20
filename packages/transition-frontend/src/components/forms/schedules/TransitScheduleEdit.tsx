@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import _toString from 'lodash.tostring';
+import _toString from 'lodash/toString';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUndoAlt } from '@fortawesome/free-solid-svg-icons/faUndoAlt';

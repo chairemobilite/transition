@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 import { subject } from '@casl/ability';
 import definePermissionsFor, { addRole, DEFAULT_ROLE_NAME, removeRole, getAvailableRoles, addRoleHomePage, getHomePage } from '../userPermissions';
 

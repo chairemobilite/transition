@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 import { Agency as GtfsAgency } from 'gtfs-types';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';

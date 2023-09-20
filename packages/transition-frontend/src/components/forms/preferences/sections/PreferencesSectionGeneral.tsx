@@ -7,7 +7,7 @@
 import React from 'react';
 import Collapsible from 'react-collapsible';
 import { withTranslation } from 'react-i18next';
-import _toString from 'lodash.tostring';
+import _toString from 'lodash/toString';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';

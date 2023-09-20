@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _get from 'lodash.get';
+import _get from 'lodash/get';
 //TODO replace this fetch-retry library with one compatible with TS
 const fetch = require('@zeit/fetch-retry')(require('node-fetch'));
 

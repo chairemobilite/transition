@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import MapboxGL from 'mapbox-gl';
-import _uniq from 'lodash.uniq';
+import _uniq from 'lodash/uniq';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';

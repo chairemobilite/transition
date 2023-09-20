@@ -6,7 +6,7 @@
  */
 import inquirer from 'inquirer';
 import { TFunction } from 'i18next';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import i18n from 'chaire-lib-backend/lib/config/i18next';
 import { GenericTask } from 'chaire-lib-common/lib/tasks/genericTask';

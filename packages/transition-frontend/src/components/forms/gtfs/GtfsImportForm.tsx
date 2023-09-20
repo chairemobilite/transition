@@ -7,7 +7,7 @@
 import React from 'react';
 import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
 import { faFileImport } from '@fortawesome/free-solid-svg-icons/faFileImport';
-import _get from 'lodash.get';
+import _get from 'lodash/get';
 import Loader from 'react-spinners/BeatLoader';
 import SocketIOFileClient from 'socket.io-file-client';
 import { withTranslation, WithTranslation } from 'react-i18next';

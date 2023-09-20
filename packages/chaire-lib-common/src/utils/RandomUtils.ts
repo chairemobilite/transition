@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import random, { Random } from 'random';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import { sequentialArray } from './MathUtils';
 

@@ -7,8 +7,8 @@
 
 import { v4 as uuidV4 } from 'uuid';
 import { EventEmitter } from 'events';
-import _cloneDeep from 'lodash.clonedeep';
-import _omit from 'lodash.omit';
+import _cloneDeep from 'lodash/cloneDeep';
+import _omit from 'lodash/omit';
 import each from 'jest-each';
 import moment from 'moment';
 

@@ -6,7 +6,7 @@
  */
 import GeoJSON from 'geojson';
 import * as turf from '@turf/turf';
-import _uniq from 'lodash.uniq';
+import _uniq from 'lodash/uniq';
 import { DataOsmRaw, OsmRawDataType } from './data/dataOsmRaw';
 import { DataGeojson } from './data/dataGeojson';
 import {

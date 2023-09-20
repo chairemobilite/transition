@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _merge from 'lodash.merge';
-import _camelCase from 'lodash.camelcase';
-import _flatten from 'lodash.flatten';
+import _merge from 'lodash/merge';
+import _camelCase from 'lodash/camelCase';
+import _flatten from 'lodash/flatten';
 
 import GeoJSON from 'geojson';
 import osrm from 'osrm'; // Types from the osrm API definition see https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/osrm/index.d.ts
@@ -223,8 +223,8 @@ class OSRMMode {
 
         // Process result if OSRM returned a valid response
         if (response.ok) {
-            let durations = [];
-            let distances = [];
+            let durations: number[] = [];
+            let distances: number[] = [];
             //TODO This is slightly different than the old code, need to confirm it works
             // Durations and distance are in this form: [[0],[0],[0],[235.1],[438.6]]
             // Check that we have at least one result, otherwise return empty arrays
@@ -234,8 +234,8 @@ class OSRMMode {
                 routingResultJson.distances &&
                 routingResultJson.distances.length > 1
             ) {
-                durations = _flatten(routingResultJson.durations).slice(1); // remove destination to itself
-                distances = _flatten(routingResultJson.distances).slice(1); // remove destination to itself
+                durations = _flatten(routingResultJson.durations as number[][]).slice(1); // remove destination to itself
+                distances = _flatten(routingResultJson.distances as number[][]).slice(1); // remove destination to itself
             }
 
             const result: RoutingService.TableResults = {

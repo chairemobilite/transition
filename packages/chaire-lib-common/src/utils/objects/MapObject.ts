@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _omit from 'lodash.omit';
+import _omit from 'lodash/omit';
 
 import { ObjectWithHistory } from './ObjectWithHistory';
 import { GenericAttributes } from './GenericObject';

@@ -5,8 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import _cloneDeep from 'lodash.clonedeep';
-import _omit from 'lodash.omit';
+import _cloneDeep from 'lodash/cloneDeep';
+import _omit from 'lodash/omit';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import EventManagerMock from 'chaire-lib-common/lib/test/services/events/EventManagerMock';

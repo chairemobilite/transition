@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import { GenericObject, GenericAttributes } from '../GenericObject';
 import GenericImmutableCollection from '../GenericImmutableCollection';

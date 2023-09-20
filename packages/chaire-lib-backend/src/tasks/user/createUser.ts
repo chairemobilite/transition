@@ -6,7 +6,7 @@
  */
 import inquirer from 'inquirer';
 import validator from 'validator';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import { _isBlank, _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GenericTask } from 'chaire-lib-common/lib/tasks/genericTask';

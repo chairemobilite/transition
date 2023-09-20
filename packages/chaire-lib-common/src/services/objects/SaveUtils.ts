@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { EventEmitter } from 'events';
-import _get from 'lodash.get';
+import _get from 'lodash/get';
 
 import * as Status from '../../utils/Status';
 import { GenericObject } from '../../utils/objects/GenericObject';

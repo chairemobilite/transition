@@ -6,11 +6,11 @@
  */
 
 import { v4 as uuidV4 } from 'uuid';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import EventManagerMock from 'chaire-lib-common/lib/test/services/events/EventManagerMock';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import _omit from 'lodash.omit';
+import _omit from 'lodash/omit';
 
 import Path from '../Path';
 import Node from '../../nodes/Node';

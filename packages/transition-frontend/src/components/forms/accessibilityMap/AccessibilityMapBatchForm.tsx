@@ -10,9 +10,9 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import Loader from 'react-spinners/BeatLoader';
 
 import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
-import _get from 'lodash.get';
-import _cloneDeep from 'lodash.clonedeep';
-import _toString from 'lodash.tostring';
+import _get from 'lodash/get';
+import _cloneDeep from 'lodash/cloneDeep';
+import _toString from 'lodash/toString';
 import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
 import slugify from 'slugify';
 

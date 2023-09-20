@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash.clonedeep';
-import _get from 'lodash.get';
-import _uniq from 'lodash.uniq';
+import _cloneDeep from 'lodash/cloneDeep';
+import _get from 'lodash/get';
+import _uniq from 'lodash/uniq';
 import { EventEmitter } from 'events';
 
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';

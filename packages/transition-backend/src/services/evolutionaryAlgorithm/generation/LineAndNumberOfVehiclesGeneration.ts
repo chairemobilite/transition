@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash.clonedeep';
-import _isEqual from 'lodash.isequal';
+import _cloneDeep from 'lodash/cloneDeep';
+import _isEqual from 'lodash/isEqual';
 import { Random } from 'random';
 
 import Generation from './Generation';

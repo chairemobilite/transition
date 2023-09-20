@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _isEqual from 'lodash.isequal';
+import _isEqual from 'lodash/isEqual';
 
 import InputSelect from './InputSelect';
 

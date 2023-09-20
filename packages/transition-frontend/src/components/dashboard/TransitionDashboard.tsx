@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import _get from 'lodash.get';
+import _get from 'lodash/get';
 import io from 'socket.io-client';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import EventEmitter from 'events';

@@ -7,7 +7,7 @@
 
 import { v4 as uuidV4 } from 'uuid';
 import { EventEmitter } from 'events';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import SimulationRun, { SimulationRunDataAttributes } from '../SimulationRun';
 import { SimulationAlgorithmDescriptorStub } from './SimulationAlgorithmStub';

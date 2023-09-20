@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _isEmpty from 'lodash.isempty';
+import _isEmpty from 'lodash/isEmpty';
 
 export abstract class DataBase<T> {
     constructor() {

@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _toString from 'lodash.tostring';
+import _toString from 'lodash/toString';
 import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons/faExchangeAlt';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';

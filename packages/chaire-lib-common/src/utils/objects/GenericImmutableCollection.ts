@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { validate as validateUuid } from 'uuid';
-import _cloneDeep from 'lodash.clonedeep';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import { GenericObject } from './GenericObject';
 import { _isBlank } from '../LodashExtensions';

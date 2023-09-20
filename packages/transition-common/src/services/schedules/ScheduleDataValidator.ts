@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _uniq from 'lodash.uniq';
+import _uniq from 'lodash/uniq';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { validate as uuidValidate } from 'uuid';

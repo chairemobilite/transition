@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import MapboxGL from 'mapbox-gl';
-import _debounce from 'lodash.debounce';
+import _debounce from 'lodash/debounce';
 import { lineString, bboxPolygon, bbox, feature } from '@turf/turf';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';

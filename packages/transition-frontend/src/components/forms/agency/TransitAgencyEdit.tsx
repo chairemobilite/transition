@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import _get from 'lodash.get';
+import _get from 'lodash/get';
 import timezones from 'timezone/zones';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
