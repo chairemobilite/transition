@@ -64,7 +64,7 @@ export class LoginPage extends React.Component<LoginPageProps & WithTranslation,
     };
 
     onUsernameOrEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const usernameOrEmail = e.target.value;
+        const usernameOrEmail = e.target.value.replaceAll(' ', ''); // E-mails and usernames can't have spaces
         this.setState(() => ({ usernameOrEmail }));
     };
 
