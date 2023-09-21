@@ -64,7 +64,7 @@ export class LoginPage extends React.Component<LoginPageProps & WithTranslation,
     };
 
     onEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const email = e.target.value;
+        const email = e.target.value.replaceAll(' ', ''); // E-mail adresses cannot have spaces
         this.setState(() => ({ email }));
     };
 

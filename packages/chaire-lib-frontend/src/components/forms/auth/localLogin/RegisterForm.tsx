@@ -104,7 +104,7 @@ export class RegisterForm extends React.Component<RegisterFormProps & WithTransl
     };
 
     onEmailChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-        const usernameOrEmail = e.target.value;
+        const usernameOrEmail = e.target.value.replaceAll(' ', ''); // E-mails and usernames can't have spaces
         if (usernameOrEmail) {
             this.setState(() => ({ email: usernameOrEmail }));
         } // allow empty string
