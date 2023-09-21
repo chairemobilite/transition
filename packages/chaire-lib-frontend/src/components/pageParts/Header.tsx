@@ -121,7 +121,7 @@ const User: React.FunctionComponent<UserProps & WithTranslation> = (props: UserP
     const [display, setDisplay] = React.useState('none');
     const wrapperRef = React.useRef(null);
     return (
-        <li className="tr__top-menu-element" key={'item-nav-user'}>
+        <li className="tr__top-menu-element" key={'item-nav-user'} id="item-nav-user">
             <button
                 className="menu-button"
                 type="button"
