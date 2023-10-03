@@ -99,6 +99,11 @@ export class LoginPage extends React.Component<LoginPageProps & WithTranslation,
                         className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
                         value={this.state.email}
                         onChange={this.onEmailChange}
+                        onKeyDown={(e) => {
+                            if (e.keyCode !== 13) return
+                            this.onButtonClick();
+                            e.preventDefault()
+                        }}
                     />
                 </div>
             </div>
