@@ -70,6 +70,10 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
             false
         );
 
+        if (results.transit) {
+            delete results.transit.getParams().walkOnlyPath;
+        }
+
         return {
             uuid,
             internalId,
