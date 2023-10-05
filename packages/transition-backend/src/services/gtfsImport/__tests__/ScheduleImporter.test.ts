@@ -6,6 +6,7 @@
  */
 import { v4 as uuidV4 } from 'uuid';
 import each from 'jest-each';
+import _cloneDeep from 'lodash/cloneDeep';
 import Line from 'transition-common/lib/services/line/Line';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
@@ -16,7 +17,6 @@ import linesDbQueries from '../../../models/db/transitLines.db.queries';
 import schedulesDbQueries from '../../../models/db/transitSchedules.db.queries';
 // Add a simple 2 periods group, for easier testing
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import Schedule from 'transition-common/lib/services/schedules/Schedule';
 
 const testPeriodGroupShortname = 'test';
 const testPeriod = { 
@@ -85,32 +85,43 @@ describe('Test trip preparation', () => {
     });
 
     test('One trip, with stop times and frequencies', () => {
-        importData.stopTimesByTripId = sampleStopTimesByTripId;
+        // Stop times for cases with frequencies should all be 0
+        const testImportData = _cloneDeep(importData);
+        const timeOffset = 21600;
+        const testSampleStopTimes = sampleStopTimes.map(({ arrivalTimeSeconds, departureTimeSeconds, ...rest }) => ({
+            ...rest,
+            arrivalTimeSeconds: arrivalTimeSeconds - timeOffset,
+            departureTimeSeconds: departureTimeSeconds - timeOffset
+        }))
+        testImportData.stopTimesByTripId = {
+            [sampleTripFromGtfs.trip_id]: testSampleStopTimes
+        };
 
         // First frequency every 12 minutes, another every 15 minutes
         const frequencies = [{
             trip_id: sampleTripFromGtfs.trip_id,
             start_time: '06:00',
             startTimeSeconds: 21600,
-            end_time: '06:30',
-            endTimeSeconds: 23400,
+            end_time: '06:24',
+            endTimeSeconds: 23040,
             headway_secs: 720
         },
         {
             trip_id: sampleTripFromGtfs.trip_id,
-            start_time: '06:30',
-            startTimeSeconds: 23400,
-            end_time: '07:00:00',
-            endTimeSeconds: 25200,
+            start_time: '06:24',
+            startTimeSeconds: 23040,
+            end_time: '06:55:00',
+            endTimeSeconds: 24900,
             headway_secs: 900
         }];
-        importData.frequenciesByTripId = {};
-        importData.frequenciesByTripId[sampleTripFromGtfs.trip_id] = frequencies;
-        importData.tripsToImport = [sampleTripFromGtfs];
-        const preparedTrips = ScheduleImporter.prepareTripData(importData);
+        testImportData.frequenciesByTripId = {};
+        testImportData.frequenciesByTripId[sampleTripFromGtfs.trip_id] = frequencies;
+        testImportData.tripsToImport = [sampleTripFromGtfs];
+        const preparedTrips = ScheduleImporter.prepareTripData(testImportData);
         expect(Object.keys(preparedTrips).length).toEqual(1);
         const tripsForLine = preparedTrips[route_id];
         expect(tripsForLine).toBeDefined();
+        console.log('trips for line', tripsForLine);
         expect(tripsForLine.length).toEqual(5);
 
         // All trips should be the same
@@ -121,38 +132,44 @@ describe('Test trip preparation', () => {
         expect(tripsForLine[4].trip).toEqual(sampleTripFromGtfs);
 
         // First trips starts at 06:00, second at 06:12, third at 06:24, fourth at 06:39, fifth at 06:54
-        expect(tripsForLine[0].stopTimes).toEqual([sampleStopTimes[0], sampleStopTimes[1], sampleStopTimes[2]]);
+        // Time offset is to bring the first arrival time at 0, but the frequency starts at departure time, remove the first waiting time
+        const departureTimeOffset = timeOffset - (testSampleStopTimes[0].departureTimeSeconds - testSampleStopTimes[0].arrivalTimeSeconds);
+        expect(tripsForLine[0].stopTimes).toEqual([
+            offsetStopTimes(testSampleStopTimes[0], departureTimeOffset),
+            offsetStopTimes(testSampleStopTimes[1], departureTimeOffset),
+            offsetStopTimes(testSampleStopTimes[2], departureTimeOffset)
+        ]);
         expect(tripsForLine[1].stopTimes).toEqual([
-            offsetStopTimes(sampleStopTimes[0], 720), 
-            offsetStopTimes(sampleStopTimes[1], 720), 
-            offsetStopTimes(sampleStopTimes[2], 720)
+            offsetStopTimes(testSampleStopTimes[0], departureTimeOffset + 720), 
+            offsetStopTimes(testSampleStopTimes[1], departureTimeOffset + 720), 
+            offsetStopTimes(testSampleStopTimes[2], departureTimeOffset + 720)
         ]);
         expect(tripsForLine[2].stopTimes).toEqual([
-            offsetStopTimes(sampleStopTimes[0], 720*2), 
-            offsetStopTimes(sampleStopTimes[1], 720*2), 
-            offsetStopTimes(sampleStopTimes[2], 720*2)
+            offsetStopTimes(testSampleStopTimes[0], departureTimeOffset + 720*2), 
+            offsetStopTimes(testSampleStopTimes[1], departureTimeOffset + 720*2), 
+            offsetStopTimes(testSampleStopTimes[2], departureTimeOffset + 720*2)
         ]);
         expect(tripsForLine[3].stopTimes).toEqual([
-            offsetStopTimes(sampleStopTimes[0], 720*2 + 900), 
-            offsetStopTimes(sampleStopTimes[1], 720*2 + 900), 
-            offsetStopTimes(sampleStopTimes[2], 720*2 + 900)
+            offsetStopTimes(testSampleStopTimes[0], departureTimeOffset + 720*2 + 900), 
+            offsetStopTimes(testSampleStopTimes[1], departureTimeOffset + 720*2 + 900), 
+            offsetStopTimes(testSampleStopTimes[2], departureTimeOffset + 720*2 + 900)
         ]);
         expect(tripsForLine[4].stopTimes).toEqual([
-            offsetStopTimes(sampleStopTimes[0], 720*2 + 900*2), 
-            offsetStopTimes(sampleStopTimes[1], 720*2 + 900*2), 
-            offsetStopTimes(sampleStopTimes[2], 720*2 + 900*2)
+            offsetStopTimes(testSampleStopTimes[0], departureTimeOffset + 720*2 + 900*2), 
+            offsetStopTimes(testSampleStopTimes[1], departureTimeOffset + 720*2 + 900*2), 
+            offsetStopTimes(testSampleStopTimes[2], departureTimeOffset + 720*2 + 900*2)
         ]);
     });
 
-    test('One line, multiple trip, mixed stop times and frequencies', () => {
+    test('One line, multiple trips, mixed stop times and frequencies', () => {
         importData.stopTimesByTripId = Object.assign({}, sampleStopTimesByTripId);
         // A frequency every 15 minutes for 30 minutes, will test boundaries
         const frequencies = [{
             trip_id: sampleTripFromGtfs.trip_id,
             start_time: '06:00',
             startTimeSeconds: 21600,
-            end_time: '06:30',
-            endTimeSeconds: 23400,
+            end_time: '06:31',
+            endTimeSeconds: 23460,
             headway_secs: 900
         }];
         importData.frequenciesByTripId = {};
@@ -179,17 +196,23 @@ describe('Test trip preparation', () => {
         expect(tripsForLine[3].trip).toEqual(sampleTripFromGtfs);
 
         // First trips starts at 06:00, second at 06:10, third at 06:15, fourth at 06:30
-        expect(tripsForLine[0].stopTimes).toEqual([sampleStopTimes[0], sampleStopTimes[1], sampleStopTimes[2]]);
+        // Time offset is to bring the first arrival time at 0, but the frequency starts at departure time, remove the first waiting time
+        const departureTimeOffset = frequencies[0].startTimeSeconds - sampleStopTimes[0].departureTimeSeconds;
+        expect(tripsForLine[0].stopTimes).toEqual([
+            offsetStopTimes(sampleStopTimes[0], departureTimeOffset),
+            offsetStopTimes(sampleStopTimes[1], departureTimeOffset),
+            offsetStopTimes(sampleStopTimes[2], departureTimeOffset)
+        ]);
         expect(tripsForLine[1].stopTimes).toEqual([otherTripStopTimes[0], otherTripStopTimes[1], otherTripStopTimes[2]]);
         expect(tripsForLine[2].stopTimes).toEqual([
-            offsetStopTimes(sampleStopTimes[0], 900), 
-            offsetStopTimes(sampleStopTimes[1], 900), 
-            offsetStopTimes(sampleStopTimes[2], 900)
+            offsetStopTimes(sampleStopTimes[0], departureTimeOffset + 900), 
+            offsetStopTimes(sampleStopTimes[1], departureTimeOffset + 900), 
+            offsetStopTimes(sampleStopTimes[2], departureTimeOffset + 900)
         ]);
         expect(tripsForLine[3].stopTimes).toEqual([
-            offsetStopTimes(sampleStopTimes[0], 900*2), 
-            offsetStopTimes(sampleStopTimes[1], 900*2), 
-            offsetStopTimes(sampleStopTimes[2], 900*2)
+            offsetStopTimes(sampleStopTimes[0], departureTimeOffset + 900*2), 
+            offsetStopTimes(sampleStopTimes[1], departureTimeOffset + 900*2), 
+            offsetStopTimes(sampleStopTimes[2], departureTimeOffset + 900*2)
         ]);
     });
 

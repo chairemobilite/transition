@@ -19,16 +19,27 @@ import scheduleDbQueries from '../../models/db/transitSchedules.db.queries';
 import { objectToCache as lineObjectToCache } from '../../models/capnpCache/transitLines.cache.queries';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
-const getNextStopTimes = (previousStopTimes: StopTime[], frequency: Frequencies): StopTime[] | undefined => {
-    if (previousStopTimes[0].arrivalTimeSeconds + frequency.headway_secs > frequency.endTimeSeconds) {
+const getNextStopTimes = (
+    previousTripStart: number,
+    stopTimes: StopTime[],
+    frequency: Frequencies
+): StopTime[] | undefined => {
+    const firstStopTimeDeparture = stopTimes[0].departureTimeSeconds;
+    // Offset to start time if the previous trip is not for current frequency, otherwise, apply headway
+    const offsetToApply =
+        previousTripStart < frequency.startTimeSeconds
+            ? frequency.startTimeSeconds - firstStopTimeDeparture
+            : previousTripStart + frequency.headway_secs - firstStopTimeDeparture;
+    // Frequency end time is not included in the current frequency count, as it changes frequency at that point
+    if (stopTimes[0].departureTimeSeconds + offsetToApply >= frequency.endTimeSeconds) {
         // Stop times for this frequency is finished
         return undefined;
     }
-    const nextStopTimes = _cloneDeep(previousStopTimes);
+    const nextStopTimes = _cloneDeep(stopTimes);
     nextStopTimes.forEach((stopTime) => {
-        stopTime.arrivalTimeSeconds = stopTime.arrivalTimeSeconds + frequency.headway_secs;
+        stopTime.arrivalTimeSeconds = stopTime.arrivalTimeSeconds + offsetToApply;
         stopTime.arrival_time = secondsSinceMidnightToTimeStr(stopTime.arrivalTimeSeconds);
-        stopTime.departureTimeSeconds = stopTime.departureTimeSeconds + frequency.headway_secs;
+        stopTime.departureTimeSeconds = stopTime.departureTimeSeconds + offsetToApply;
         stopTime.departure_time = secondsSinceMidnightToTimeStr(stopTime.departureTimeSeconds);
     });
     return nextStopTimes;
@@ -68,18 +79,23 @@ const prepareTripData = (
             continue;
         }
         const tripsForLine = tripDataByGtfsLineId[trip.route_id] || [];
-        tripsForLine.push({ trip, stopTimes });
         tripDataByGtfsLineId[trip.route_id] = tripsForLine;
 
+        const frequencies = frequenciesByTripId[trip.trip_id];
+        if (frequencies === undefined) {
+            // No frequencies, just add this trip with stop times
+            tripsForLine.push({ trip, stopTimes });
+            continue;
+        }
+
         // If a trip has frequencies, the stop times should be copied at that frequency rate to create a new trip
-        const frequencies = frequenciesByTripId[trip.trip_id] || [];
         for (let j = 0; j < frequencies.length; j++) {
             const frequency = frequencies[j];
-            let nextStopTimes = getNextStopTimes(stopTimes, frequency);
+            let nextStopTimes = getNextStopTimes(0, stopTimes, frequency);
             while (nextStopTimes) {
                 tripsForLine.push({ trip, stopTimes: nextStopTimes });
                 stopTimes = nextStopTimes;
-                nextStopTimes = getNextStopTimes(stopTimes, frequency);
+                nextStopTimes = getNextStopTimes(stopTimes[0].departureTimeSeconds, stopTimes, frequency);
             }
         }
     }
