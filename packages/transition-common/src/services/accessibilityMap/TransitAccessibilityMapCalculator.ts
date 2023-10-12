@@ -11,7 +11,6 @@ import {
     circle as turfCircle,
     area as turfArea,
     polygonToLine as turfPolygonToLine
-    //multiPolygon as turfMultiPolygon
 } from '@turf/turf';
 import { Feature, FeatureCollection, Point, MultiPolygon, MultiLineString } from 'geojson';
 import polygonClipping from 'polygon-clipping';
@@ -144,6 +143,46 @@ export class TransitAccessibilityMapCalculator {
         return params;
     }
 
+    private static async rasterPolygon(
+        nodeCircles,
+        isCancelled: (() => boolean) | false = false
+    ): Promise<string> {
+        // run rasterizer script, exec from child_process and python-shell don't work
+
+        return new Promise((resolve, reject) => {
+            let geojsonString = '{"type": "FeatureCollection", "features": [';
+            const rasterFunc = (previous, i) => {
+                if(nodeCircles[i] != undefined){
+                    // find a way to only use 6 decimals in nodeCircles to optimize?
+                    geojsonString = previous.concat('{"type": "Feature","properties": {},"geometry": {"coordinates":' + JSON.stringify(nodeCircles[i]) + ',"type": "Polygon"}},');
+                }
+                if (isCancelled && isCancelled()) {
+                    reject('Cancelled');
+                    return;
+                }
+                if (i < nodeCircles.length) {
+                    setTimeout(() => {
+                        try {
+                            // The function will concat with previous, nothing to do for this case
+                            rasterFunc(geojsonString, i + 1);
+                        } catch (error) {
+                            // Error clipping this data, reject the promise
+                            reject(error);
+                        }
+                    }, 0);
+                } else {
+                    geojsonString = geojsonString.substring(0, geojsonString.length - 1);
+                    geojsonString = geojsonString.concat(']}');
+                    console.log(geojsonString);
+                    // run rasterizer script, exec from child_process and python-shell don't work
+                    // replace result of rasterizer to geojsonString, delete artefacts (output file, script should remove intermediate and input files)
+                    resolve(geojsonString);
+                }
+            };
+            rasterFunc(geojsonString, 0);
+        });
+    }
+    
     private static async clipPolygon(
         nodeCircles,
         isCancelled: (() => boolean) | false = false
@@ -405,9 +444,16 @@ export class TransitAccessibilityMapCalculator {
                 progress: stepI++ / stepsCount
             });
 
-            // TODO This is the veryyy sloooooow operation.
+            // this will replace clipPolygon
+            // await this.rasterPolygon(nodeCircles, isCancelled);
             const polygonCoordinates = await this.clipPolygon(nodeCircles, isCancelled);
+
+            // TODO This is the veryyy sloooooow operation.
+            // const polygonCoordinates = await this.clipPolygon(nodeCircles, isCancelled);
             const polygon = _cloneDeep(defaultGeojsonPolygon);
+            // this will replace clipPolygon
+            // const rasterized = await this.rasterPolygon(nodeCircles, isCancelled)
+            // polygon.geometry.coordinates = JSON.parse(rasterized);
             polygon.geometry.coordinates = polygonCoordinates;
 
             const area = turfArea(polygon);
