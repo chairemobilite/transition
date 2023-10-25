@@ -86,7 +86,7 @@ module.exports = (env) => {
         },
         {
           test: /\.glsl$/,
-          loader: 'webpack-glsl-loader'
+          loader: '@davcri/webpack-glsl-loader'
         },
         {
           test: /\.s?css$/,
