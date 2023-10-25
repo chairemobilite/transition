@@ -697,11 +697,6 @@
     enabled "2.0.x"
     kuler "^2.0.0"
 
-"@davcri/webpack-glsl-loader@^1.0.2":
-  version "1.0.2"
-  resolved "http://localhost:4873/@davcri/webpack-glsl-loader/-/webpack-glsl-loader-1.0.2.tgz#657b0919bc3f9ceb6bc4cfaee2ef7db8c18bcb61"
-  integrity sha512-6E2C2qHEchwQb1SswWG2Lapsl1WvNZ+EDz5d7F+v4ZBmymZFr/kPMHG/9sBhURpAunn9Gs/KMIJWUPHDdZvcxg==
-
 "@emotion/babel-plugin@^11.10.5":
   version "11.10.5"
   resolved "https://registry.yarnpkg.com/@emotion/babel-plugin/-/babel-plugin-11.10.5.tgz#65fa6e1790ddc9e23cc22658a4c5dea423c55c3c"
@@ -9683,6 +9678,11 @@ loader-utils@^2.0.0:
     emojis-list "^3.0.0"
     json5 "^2.1.2"
 
+loader-utils@^3.2.0:
+  version "3.2.1"
+  resolved "http://localhost:4873/loader-utils/-/loader-utils-3.2.1.tgz#4fb104b599daafd82ef3e1a41fb9265f87e1f576"
+  integrity sha512-ZvFw1KWS3GVyYBYb7qkmRM/WwL2TQQBxgCK62rlvm4WpVQ23Nb4tYjApUlfjrEGvOs7KHEsmyUn75OHZrJMWPw==
+
 locate-path@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/locate-path/-/locate-path-3.0.0.tgz#dbec3b3ab759758071b58fe59fc41871af21400e"
@@ -14310,6 +14310,13 @@ ts-loader@^7.0.5:
     loader-utils "^1.0.2"
     micromatch "^4.0.0"
     semver "^6.0.0"
+
+ts-shader-loader@^2.0.2:
+  version "2.0.2"
+  resolved "http://localhost:4873/ts-shader-loader/-/ts-shader-loader-2.0.2.tgz#8d8d96491a9dcb026f2855da21fbd7a7d0dde744"
+  integrity sha512-PMdxdDQoS9D3O+UZ4y8Ul4AwXjTdvBiZHOLRnjkUbgNJyA1p0c4U2YXggqIGw7apCyoBP80QJz2Y+YcZMFHoVg==
+  dependencies:
+    loader-utils "^3.2.0"
 
 tslib@^1.7.1:
   version "1.14.1"
