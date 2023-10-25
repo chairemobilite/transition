@@ -162,6 +162,7 @@ export class RegisterForm extends React.Component<RegisterFormProps & WithTransl
                         name="email"
                         id="email"
                         type="text"
+                        inputMode="email"
                         className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
                         autoFocus
                         value={this.state.email}

@@ -111,6 +111,7 @@ export class ForgotPasswordPage extends React.Component<ForgotPasswordPageProps,
                             name="email"
                             id="email"
                             type="text"
+                            inputMode="email"
                             className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
                             autoFocus
                             value={this.state.email}
