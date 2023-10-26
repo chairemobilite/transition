@@ -9680,7 +9680,7 @@ loader-utils@^2.0.0:
 
 loader-utils@^3.2.0:
   version "3.2.1"
-  resolved "http://localhost:4873/loader-utils/-/loader-utils-3.2.1.tgz#4fb104b599daafd82ef3e1a41fb9265f87e1f576"
+  resolved "https://registry.yarnpkg.com/loader-utils/-/loader-utils-3.2.1.tgz#4fb104b599daafd82ef3e1a41fb9265f87e1f576"
   integrity sha512-ZvFw1KWS3GVyYBYb7qkmRM/WwL2TQQBxgCK62rlvm4WpVQ23Nb4tYjApUlfjrEGvOs7KHEsmyUn75OHZrJMWPw==
 
 locate-path@^3.0.0:
@@ -14313,7 +14313,7 @@ ts-loader@^7.0.5:
 
 ts-shader-loader@^2.0.2:
   version "2.0.2"
-  resolved "http://localhost:4873/ts-shader-loader/-/ts-shader-loader-2.0.2.tgz#8d8d96491a9dcb026f2855da21fbd7a7d0dde744"
+  resolved "https://registry.yarnpkg.com/ts-shader-loader/-/ts-shader-loader-2.0.2.tgz#8d8d96491a9dcb026f2855da21fbd7a7d0dde744"
   integrity sha512-PMdxdDQoS9D3O+UZ4y8Ul4AwXjTdvBiZHOLRnjkUbgNJyA1p0c4U2YXggqIGw7apCyoBP80QJz2Y+YcZMFHoVg==
   dependencies:
     loader-utils "^3.2.0"
