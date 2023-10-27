@@ -44,6 +44,7 @@ interface MainMapState {
     layers: string[];
     confirmModalDeleteIsOpen: boolean;
     mapLoaded: boolean;
+    mapStyleID: string;
 }
 
 /**
@@ -68,7 +69,8 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
         this.state = {
             layers: Preferences.current.map.layers[this.props.activeSection],
             confirmModalDeleteIsOpen: false,
-            mapLoaded: false
+            mapLoaded: false,
+            mapStyleID: Preferences.get('mapboxStyleID'),
         };
 
         this.defaultZoomArray = [props.zoom];
@@ -132,6 +134,21 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
             serviceLocator.eventManager.emit('map.loaded');
         }
     };
+
+    // See workaround posted in https://github.com/mapbox/mapbox-gl-js/issues/2268
+    onMapStyleLoad = (e: any) => {
+        console.log("DAVID onMapStyleLoad", e);
+        const waiting = () => {
+            if (!this.map?.isStyleLoaded()) {
+                console.log("onMapStyleLoad waiting...");
+                setTimeout(waiting, 200);
+            } else {
+                console.log("onMapStyleLoad After waiting, we are now updating enabled layuers.", this.state.layers);
+                this.layerManager.updateEnabledLayers(this.state.layers);
+            }
+          };
+          waiting();
+    }
 
     setMap = (e: MapboxGL.MapboxEvent) => {
         this.layerManager.setMap(e.target);
@@ -201,7 +218,7 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
     componentDidMount = () => {
         this.map = new MapboxGL.Map({
             container: this.mapContainer,
-            style: `mapbox://styles/${process.env.MAPBOX_USER_ID}/${process.env.MAPBOX_STYLE_ID}?fresh=true`,
+            style: `mapbox://styles/${process.env.MAPBOX_USER_ID}/${this.state.mapStyleID}?fresh=true`,
             center: this.defaultCenter,
             zoom: this.defaultZoomArray[0],
             maxZoom: 20,
@@ -225,6 +242,7 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
         }
         this.map.on('load', this.setMap);
         this.map.on('error', this.onMapError);
+        this.map.on('style.load', this.onMapStyleLoad);
         serviceLocator.addService('layerManager', this.layerManager);
         serviceLocator.addService('pathLayerManager', this.pathLayerManager);
         mapCustomEvents.addEvents(serviceLocator.eventManager);
@@ -252,8 +270,29 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
         serviceLocator.eventManager.on('map.handleDrawControl', this.handleDrawControl);
         serviceLocator.eventManager.on('map.deleteSelectedNodes', this.deleteSelectedNodes);
         serviceLocator.eventManager.on('map.deleteSelectedPolygon', this.deleteSelectedPolygon);
+        Preferences.addChangeListener(this.onPreferencesChange);
     };
 
+    onPreferencesChange = (updates: any) => {
+        if (!this.map) {
+            return;
+        }
+
+        try {
+            const currentStyleID = this.state.mapStyleID;//this.map?.getStyle().metadata['mapbox:origin'];
+            const newStyleID = Preferences.get('mapboxStyleID')
+
+            if (newStyleID !== currentStyleID) {
+                console.log("DAvid render changing style!", currentStyleID, newStyleID);
+                const previousEnabledLayers = this.layerManager.getEnabledLayers()
+                this.layerManager.updateEnabledLayers([]); // Clear all current layers and sources
+                this.map?.setStyle(`mapbox://styles/${process.env.MAPBOX_USER_ID}/${newStyleID}?fresh=true`);
+                this.setState({ mapStyleID: newStyleID });
+            }
+        } catch (e) {
+            console.log("exception:", e);
+        }
+    }
     componentWillUnmount = () => {
         serviceLocator.removeService('layerManager');
         serviceLocator.removeService('pathLayerManager');

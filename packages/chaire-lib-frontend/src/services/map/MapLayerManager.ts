@@ -99,8 +99,10 @@ class MapboxLayerManager {
         enabledLayers = _uniq(enabledLayers); // make sure we do not have the same layer twice (can happen with user prefs not replaced correctly after updates)
         const previousEnabledLayers: string[] = this._enabledLayers || [];
         previousEnabledLayers.forEach((previousEnabledLayer) => {
-            this._map?.removeLayer(previousEnabledLayer); // we need to remove all layers so we can keep the right z-index: TODO: make this more efficient by recalculating z-index in mapbox order instead of reloading everything.
-            if (!enabledLayers.includes(previousEnabledLayer)) {
+            if (this._map?.getLayer(previousEnabledLayer) !== undefined) {
+                this._map?.removeLayer(previousEnabledLayer); // we need to remove all layers so we can keep the right z-index: TODO: make this more efficient by recalculating z-index in mapbox order instead of reloading everything.
+            }
+            if (!enabledLayers.includes(previousEnabledLayer) && this._map?.getSource(previousEnabledLayer) !== undefined) {
                 this._map?.removeSource(previousEnabledLayer);
             }
         });

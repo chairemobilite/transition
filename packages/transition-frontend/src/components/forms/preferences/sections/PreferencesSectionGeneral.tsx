@@ -33,6 +33,16 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
         }
     }
 
+    const mapStyleLabelKeys = ['streets', 'outdoors', 'dark', 'light', 'satellite', 'satelliteStreets', 'navigationLight', 'navigationDark'];
+    const mapStyleIDs = ['streets-v10', 'outdoors-v10', 'dark-v10', 'light-v10', 'satellite-v9', 'satellite-streets-v10', 'navigation-day-v1', 'navigation-night-v1'];
+    const mapStyleChoices: { value: string; label: string }[] = [];
+    for (var i = 0; i < mapStyleIDs.length; i++) {
+        mapStyleChoices.push({
+            label: props.t(`main:preferences:mapStyles:${mapStyleLabelKeys[i]}`),
+            value: mapStyleIDs[i]
+        });
+    }
+
     return (
         <Collapsible trigger={props.t('main:preferences:General')} open={true} transitionTime={100}>
             <div className="tr__form-section">
@@ -50,7 +60,20 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
                         preferences={props.preferences}
                     />
                 </InputWrapper>
-
+                <InputWrapper label={props.t('main:preferences:MapStyle')}>
+                    <InputSelect
+                        id={'formFieldPreferencesMapboxStyleID'}
+                        value={prefs.mapboxStyleID}
+                        choices={mapStyleChoices}
+                        t={props.t}
+                        onValueChange={(e) => props.onValueChange('mapboxStyleID', { value: e.target.value })}
+                    />
+                    <PreferencesResetToDefaultButton
+                        resetPrefToDefault={props.resetPrefToDefault}
+                        path="mapboxStyleID"
+                        preferences={props.preferences}
+                    />
+                </InputWrapper>
                 <InputWrapper
                     label={props.t('main:preferences:DefaultWalkingSpeedKph')}
                     help={props.t('main:preferences:DefaultWalkingSpeedKphHelp')}
