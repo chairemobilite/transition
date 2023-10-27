@@ -64,6 +64,7 @@ interface MainMapState {
     enabledLayers: string[];
     contextMenu: HTMLElement | null;
     contextMenuRoot: Root | undefined;
+    mapStyleURL: string;
     xyzTileLayer?: Layer; // Temporary! Move this somewhere else
 }
 
@@ -124,6 +125,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             enabledLayers: [],
             contextMenu: null,
             contextMenuRoot: undefined,
+            mapStyleURL: Preferences.get('mapStyleURL'),
             xyzTileLayer: xyzTileLayer
         };
 
@@ -242,6 +244,11 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         //serviceLocator.eventManager.on('map.deleteSelectedNodes', this.deleteSelectedNodes);
         serviceLocator.eventManager.on('map.deleteSelectedPolygon', this.deleteSelectedPolygon);
         serviceLocator.eventManager.emit('map.loaded');
+        Preferences.addChangeListener(this.onPreferencesChange);
+    };
+
+    onPreferencesChange = (updates: any) => {
+        this.setState({ mapStyleURL: Preferences.get('mapStyleURL') });
     };
 
     componentWillUnmount = () => {
@@ -551,9 +558,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                     layers={layers}
                     onViewStateChange={this.onViewStateChange}
                 >
-                    <MapLibreMap
-                        mapStyle={'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'}
-                    />
+                    <MapLibreMap mapStyle={this.state.mapStyleURL} />
                 </DeckGL>
             </section>
         );
