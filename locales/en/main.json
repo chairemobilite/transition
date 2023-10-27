@@ -265,11 +265,17 @@
         "General": "General preferences",
         "DefaultSection": "Default section at opening",
         "InfoPanelPosition": "Info panel position",
+        "MapStyle": "Map background",
         "DefaultColor": "Default color",
         "DefaultWalkingSpeedKph": "Default walking speed (km/h)",
         "DefaultWalkingSpeedKphHelp": "Walking speed varies according to age and gender between 3 km/h (elderly people and young children) and 7 km/h (young and/or very active people). Men are on average a little faster than women and in general, walking speed decreases with age. The speed of a person in a manual wheelchair varies between 2 and 3 km/h depending on physical strength.",
         "ExperimentalFeatures": "Experimental features",
         "MapPrettyDisplay": "Display pretty lines and nodes on map",
+        "mapStyles": {
+            "osmBright": "OpenStreetMap",
+            "positron": "Light (positron)",
+            "darkMatter": "Dark (dark matter)"
+        },
         "transit": {
             "nodes": {}
         },
