@@ -20,6 +20,7 @@ export interface PreferencesModel {
     defaultSection: string;
     infoPanelPosition: string;
     dateTimeFormat: string;
+    mapStyleURL: string;
     sections: {
         [key: string]: {
             [key: string]: SectionDescription;
@@ -37,6 +38,7 @@ const defaultPreferences: PreferencesModel = {
     defaultSection: 'agencies',
     infoPanelPosition: 'right',
     dateTimeFormat: 'YYYY-MM-DD HH:mm',
+    mapStyleURL: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
     sections: {
         transition: {
             agencies: {

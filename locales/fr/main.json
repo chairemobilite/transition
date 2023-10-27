@@ -266,11 +266,17 @@
         "General": "Préférences générales",
         "DefaultSection": "Section par défaut lors de l'ouverture",
         "InfoPanelPosition": "Position du panneau d'information",
+        "MapStyle": "Fond de carte",
         "DefaultColor": "Couleur par défaut",
         "DefaultWalkingSpeedKph": "Vitesse de marche par défaut (km/h)",
         "DefaultWalkingSpeedKphHelp": "La vitesse de marche varie selon l'âge et le genre entre 3 km/h (personnes âges et jeunes enfants) et 7 km/h (personnes jeunes et/ou très actives). Les hommes sont en moyenne un peu plus rapides que les femmes et de manière générale, la vitesse de marche diminue avec l'âge. La vitesse d'une personne en chaise roulante manuelle varie entre 2 et 3 km/h selon la force physique.",
         "ExperimentalFeatures": "Fonctionnalités expérimentales",
         "MapPrettyDisplay": "Affichage esthétique des lignes et noeuds sur la carte",
+        "mapStyles": {
+            "osmBright": "OpenStreetMap",
+            "positron": "Clair (positron)",
+            "darkMatter": "Foncé (dark matter)"
+        },
         "transit": {
             "nodes": {}
         },
