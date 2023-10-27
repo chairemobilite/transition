@@ -117,6 +117,6 @@
     "webpack": "^4.43.0",
     "webpack-cdn-plugin": "^3.3.1",
     "webpack-cli": "^3.3.12",
-    "webpack-glsl-loader": "^1.0.1"
+    "ts-shader-loader": "^2.0.2"
   }
 }
