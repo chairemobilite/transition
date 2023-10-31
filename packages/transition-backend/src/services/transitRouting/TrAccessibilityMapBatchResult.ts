@@ -90,7 +90,9 @@ class BatchAccessibilityMapResultProcessorFile implements BatchAccessibilityMapR
         for (let i = 0; i < numberOfPolygons; i++) {
             polygonAttributes[`polygon${i}Duration`] = 0;
             polygonAttributes[`polygon${i}AreaSqKm`] = 0;
-            polygonAttributes[`polygon${i}Geojson`] = '';
+            if (this.parameters.withGeometries) {
+                polygonAttributes[`polygon${i}Geojson`] = '';
+            }
         }
 
         fileManager.writeFileAbsolute(this.resultsCsvFilePath, '');
@@ -146,7 +148,9 @@ class BatchAccessibilityMapResultProcessorFile implements BatchAccessibilityMapR
         for (let i = 0; i < results.polygons.features.length; i++) {
             polygonAttributes[`polygon${i}Duration`] = results.polygons.features[i].properties?.durationMinutes;
             polygonAttributes[`polygon${i}AreaSqKm`] = results.polygons.features[i].properties?.areaSqKm;
-            polygonAttributes[`polygon${i}Geojson`] = JSON.stringify(_omit(results.polygons.features[i], 'properties'));
+            if (this.parameters.withGeometries) {
+                polygonAttributes[`polygon${i}Geojson`] = JSON.stringify(_omit(results.polygons.features[i], 'properties'));
+            }
         }
         if (this._csvStream) {
             this._csvStream.write(unparse([Object.assign(csvResults, polygonAttributes)], { header: false }) + '\n');
