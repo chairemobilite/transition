@@ -14,6 +14,7 @@ import { MainMapProps } from '../map/TransitionMainMap';
 import FullSizePanel from 'chaire-lib-frontend/lib/components/dashboard/FullSizePanel';
 import { LoadingPage } from 'chaire-lib-frontend/lib/components/pages';
 import Toolbar from 'chaire-lib-frontend/lib/components/dashboard/Toolbar';
+import SplitView from 'chaire-lib-frontend/lib/components/dashboard/SplitView';
 import LeftMenu from 'chaire-lib-frontend/lib/components/dashboard/MenuBar';
 import RightPanel from 'chaire-lib-frontend/lib/components/dashboard/RightPanel';
 import BottomPanel from 'chaire-lib-frontend/lib/components/dashboard/BottomPanel';
@@ -325,28 +326,34 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                     <Toolbar activeSection={this.state.activeSection} contributions={this.contributions.toolbar} />
                     <div id="tr__main-container">
                         {/* TODO Should not need to pass the i18n props, anyway, we won't have to pass the Map component as props soon either */}
-                        <Map
-                            i18n={this.props.i18n}
-                            t={this.props.t}
-                            tReady={this.props.tReady}
-                            center={mapCenter}
-                            zoom={mapZoom}
-                            activeSection={this.state.activeSection}
-                        >
-                            {this.state.showFullSizePanel && (
-                                <FullSizePanel
-                                    activeSection={this.state.activeSection}
-                                    contributions={this.contributions.fullSize}
-                                />
-                            )}
-                        </Map>
-
                         <LeftMenu activeSection={this.state.activeSection} contributions={this.contributions.menuBar} />
-
-                        <RightPanel
-                            activeSection={this.state.activeSection}
-                            contributions={this.contributions.rightPanel}
-                            availableRoutingModes={this.state.availableRoutingModes}
+                        <SplitView
+                            minLeftWidth={500}
+                            initialLeftWith={'65%'}
+                            left={
+                                <Map
+                                    i18n={this.props.i18n}
+                                    t={this.props.t}
+                                    tReady={this.props.tReady}
+                                    center={mapCenter}
+                                    zoom={mapZoom}
+                                    activeSection={this.state.activeSection}
+                                >
+                                    {this.state.showFullSizePanel && (
+                                        <FullSizePanel
+                                            activeSection={this.state.activeSection}
+                                            contributions={this.contributions.fullSize}
+                                        />
+                                    )}
+                                </Map>
+                            }
+                            right={
+                                <RightPanel
+                                    activeSection={this.state.activeSection}
+                                    contributions={this.contributions.rightPanel}
+                                    availableRoutingModes={this.state.availableRoutingModes}
+                                />
+                            }
                         />
                         {this.state.unsavedChangesModalIsOpen && (
                             <ConfirmModal
