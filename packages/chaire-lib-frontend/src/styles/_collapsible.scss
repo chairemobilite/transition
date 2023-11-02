@@ -25,7 +25,12 @@
 
   &.is-open {
     &:before {
-      transform: rotateZ(180deg);
+      transform: rotateZ(0deg); // Arrow points downwards
+    }
+  }
+  &.is-closed {
+    &:before {
+      transform: rotateZ(-90deg); // Arrow points to the right
     }
   }
 
