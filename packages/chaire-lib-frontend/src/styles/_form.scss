@@ -64,11 +64,14 @@ textarea, ._input-textarea {
 }
 
 select {
-  font-size: $sm-size;
+  font-size: $font-size-small;
   background: $input-background;
   color: $input;
   font-weight: 700;
   text-overflow: ellipsis;
+  border: 1px solid $border-white;
+  padding: $xxxxs-size $xs-size;
+  border-radius: 1.2rem;
 }
 
 ._input-multiselect {
