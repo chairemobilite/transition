@@ -45,3 +45,7 @@
 .Collapsible__contentInner {
   padding-top: 1px;
 }
+
+._list .Collapsible__trigger {
+    background: none; // For list items (ex. list of lines in agency) we have our own background color, so we disable react-collapsible's.
+}
