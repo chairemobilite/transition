@@ -65,13 +65,23 @@ textarea, ._input-textarea {
 
 select {
   font-size: $font-size-small;
-  background: $input-background;
+  background-color: $input-background;
   color: $input;
   font-weight: 700;
   text-overflow: ellipsis;
   border: 1px solid $border-white;
-  padding: $xxxxs-size $xs-size;
+  padding-top: $xxxxs-size;
+  padding-bottom: $xxxxs-size; 
+  padding-left: $xs-size;
   border-radius: 1.2rem;
+
+  // Unfortunately we can't change the color of the chevron on the select input.
+  // We must add our own.
+  appearance: none;
+  background-image: url("/dist/images/icons/interface/select_chevron_white.svg");
+  padding-right: 1.8rem; // Give a little more space for the chevron image
+  background-repeat: no-repeat;
+  background-position: 98% 50%;
 }
 
 ._input-multiselect {
