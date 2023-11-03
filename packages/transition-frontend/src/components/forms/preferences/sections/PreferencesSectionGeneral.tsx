@@ -50,6 +50,29 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
                         preferences={props.preferences}
                     />
                 </InputWrapper>
+                <InputWrapper label={props.t('main:preferences:InfoPanelPosition')}>
+                    <InputSelect
+                        id={'formFieldPreferencesInfoPanelPosition'}
+                        value={prefs.infoPanelPosition}
+                        choices={[
+                            {
+                                label: props.t('main:Left'),
+                                value: 'left'
+                            },
+                            {
+                                label: props.t('main:Right'),
+                                value: 'right'
+                            }
+                        ]}
+                        t={props.t}
+                        onValueChange={(e) => props.onValueChange('infoPanelPosition', { value: e.target.value })}
+                    />
+                    <PreferencesResetToDefaultButton
+                        resetPrefToDefault={props.resetPrefToDefault}
+                        path="infoPanelPosition"
+                        preferences={props.preferences}
+                    />
+                </InputWrapper>
 
                 <InputWrapper
                     label={props.t('main:preferences:DefaultWalkingSpeedKph')}

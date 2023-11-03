@@ -18,6 +18,7 @@ interface SectionDescription {
 }
 export interface PreferencesModel {
     defaultSection: string;
+    infoPanelPosition: string;
     sections: {
         [key: string]: {
             [key: string]: SectionDescription;
@@ -33,6 +34,7 @@ export interface PreferencesModel {
 // TODO: Type more fields
 const defaultPreferences: PreferencesModel = {
     defaultSection: 'agencies',
+    infoPanelPosition: 'right',
     sections: {
         transition: {
             agencies: {
