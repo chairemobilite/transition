@@ -70,6 +70,7 @@ interface DashboardProps extends WithTranslation {
 
 interface DashboardState {
     activeSection: string;
+    infoPanelPosition: string;
     preferencesLoaded: boolean;
     socketConnected: boolean;
     socketWasConnected: boolean;
@@ -108,6 +109,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
             socketWasConnected: false,
             showFullSizePanel: false,
             activeSection,
+            infoPanelPosition: 'right',
             mainMapLayerGroups,
             unsavedChangesModalIsOpen: false,
             availableRoutingModes: []
@@ -123,6 +125,8 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         serviceLocator.addService('notificationService', new NotificationService());
 
         serviceLocator.eventManager.emit('progress', { name: 'MapLoading', progress: 0.0 });
+
+        Preferences.addChangeListener(this.onPreferencesChange);
 
         const allLayoutContribs = props.contributions.flatMap((contrib) => contrib.getLayoutContributions());
         this.contributions = {
@@ -214,6 +218,11 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         }
     };
 
+    onPreferencesChange = (updates: any) => {
+        const infoPanelPosition = Preferences.get('infoPanelPosition');
+        this.setState({ infoPanelPosition });
+    };
+
     loadLayersAndCollections = () => {
         if (!this.state.mainMapLayerGroups.includes('transit')) {
             return;
@@ -265,7 +274,8 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                     preferencesLoaded: true,
                     socketConnected: true,
                     socketWasConnected: true,
-                    activeSection: Preferences.getAttributes().defaultSection
+                    activeSection: Preferences.getAttributes().defaultSection,
+                    infoPanelPosition: Preferences.getAttributes().infoPanelPosition
                 });
             });
         }
@@ -312,6 +322,32 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         const mapZoom = preferencesMapZoom || 10;
         const Map = this.props.mainMap;
 
+        const mapComponent = (
+            <Map
+                i18n={this.props.i18n}
+                t={this.props.t}
+                tReady={this.props.tReady}
+                center={mapCenter}
+                zoom={mapZoom}
+                activeSection={this.state.activeSection}
+            >
+                {this.state.showFullSizePanel && (
+                    <FullSizePanel
+                        activeSection={this.state.activeSection}
+                        contributions={this.contributions.fullSize}
+                    />
+                )}
+            </Map>
+        );
+
+        const infoPanelComponent = (
+            <RightPanel
+                activeSection={this.state.activeSection}
+                contributions={this.contributions.rightPanel}
+                availableRoutingModes={this.state.availableRoutingModes}
+            />
+        );
+
         return (
             <React.Fragment>
                 {!this.state.socketConnected && this.state.socketWasConnected && (
@@ -328,32 +364,13 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                         {/* TODO Should not need to pass the i18n props, anyway, we won't have to pass the Map component as props soon either */}
                         <LeftMenu activeSection={this.state.activeSection} contributions={this.contributions.menuBar} />
                         <SplitView
-                            minLeftWidth={500}
-                            initialLeftWith={'65%'}
-                            left={
-                                <Map
-                                    i18n={this.props.i18n}
-                                    t={this.props.t}
-                                    tReady={this.props.tReady}
-                                    center={mapCenter}
-                                    zoom={mapZoom}
-                                    activeSection={this.state.activeSection}
-                                >
-                                    {this.state.showFullSizePanel && (
-                                        <FullSizePanel
-                                            activeSection={this.state.activeSection}
-                                            contributions={this.contributions.fullSize}
-                                        />
-                                    )}
-                                </Map>
-                            }
-                            right={
-                                <RightPanel
-                                    activeSection={this.state.activeSection}
-                                    contributions={this.contributions.rightPanel}
-                                    availableRoutingModes={this.state.availableRoutingModes}
-                                />
-                            }
+                            minLeftWidth={this.state.infoPanelPosition === 'left' ? 500 : 150}
+                            initialLeftWidth={this.state.infoPanelPosition === 'right' ? '65%' : '35%'}
+                            leftViewID={this.state.infoPanelPosition} // Just has to be something that changes when we switch the info panel position from R to L.
+                            hideRightViewWhenResizing={this.state.infoPanelPosition === 'left'}
+                            hideLeftViewWhenResizing={this.state.infoPanelPosition === 'right'}
+                            right={this.state.infoPanelPosition === 'right' ? infoPanelComponent : mapComponent}
+                            left={this.state.infoPanelPosition === 'left' ? infoPanelComponent : mapComponent}
                         />
                         {this.state.unsavedChangesModalIsOpen && (
                             <ConfirmModal

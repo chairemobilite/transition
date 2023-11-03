@@ -222,6 +222,7 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         try {
             socket ? await this.updateFromSocket(socket, this.attributes) : await this.updateFromFetch(this.attributes);
             eventManager?.emit('preferences.updated');
+            this._eventEmitter.emit(prefChangeEvent, this._attributes);
         } catch (error) {
             console.error('Error loading preferences from server');
         }
