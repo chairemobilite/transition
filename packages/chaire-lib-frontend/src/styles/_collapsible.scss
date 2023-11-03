@@ -25,7 +25,12 @@
 
   &.is-open {
     &:before {
-      transform: rotateZ(180deg);
+      transform: rotateZ(0deg); // Arrow points downwards
+    }
+  }
+  &.is-closed {
+    &:before {
+      transform: rotateZ(-90deg); // Arrow points to the right
     }
   }
 
@@ -39,4 +44,8 @@
 // See https://github.com/glennflanagan/react-collapsible/issues/36
 .Collapsible__contentInner {
   padding-top: 1px;
+}
+
+._list .Collapsible__trigger {
+    background: none; // For list items (ex. list of lines in agency) we have our own background color, so we disable react-collapsible's.
 }
