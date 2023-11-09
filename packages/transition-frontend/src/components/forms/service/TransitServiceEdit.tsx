@@ -217,10 +217,20 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
                 id={isNew ? 'tr__form-transit-service-new' : `tr__form-transit-service-edit__id_${service.get('id')}`}
                 className="tr__form-transit-service-edit apptr__form"
             >
-                <h3>
-                    {isNew ? this.props.t('transit:transitService:New') : this.props.t('transit:transitService:Edit')}
-                    {service.toString(false) ? ` • ${service.toString(false)}` : ''}
-                </h3>
+                <div className="tr__form-sticky-header-container">
+                    <h3>
+                        {isNew ? this.props.t('transit:transitService:New') : this.props.t('transit:transitService:Edit')}
+                        {service.toString(false) ? ` • ${service.toString(false)}` : ''}
+                    </h3>
+                    <SelectedObjectButtons
+                        deleteAction={this.onDelete}
+                        openDeleteConfirmModal={this.openDeleteConfirmModal}
+                        backAction={this.onBack}
+                        openBackConfirmModal={this.openBackConfirmModal}
+                        object={service}
+                        saveAction={this.state.mergedServices.length === 0 ? this.onSave : this.openMergeConfirmModal}
+                    />
+                </div>
                 <Collapsible trigger={this.props.t('form:basicFields')} open={true} transitionTime={100}>
                     <div className="tr__form-section">
                         <div className="apptr__form-input-container _two-columns">
@@ -324,14 +334,6 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
                 {this.hasInvalidFields() && <FormErrors errors={['main:errors:InvalidFormFields']} />}
 
                 <div>
-                    <SelectedObjectButtons
-                        deleteAction={this.onDelete}
-                        openDeleteConfirmModal={this.openDeleteConfirmModal}
-                        backAction={this.onBack}
-                        openBackConfirmModal={this.openBackConfirmModal}
-                        object={service}
-                        saveAction={this.state.mergedServices.length === 0 ? this.onSave : this.openMergeConfirmModal}
-                    />
                     {this.state.confirmModalDeleteIsOpen && (
                         <ConfirmModal
                             isOpen={true}

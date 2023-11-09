@@ -65,13 +65,23 @@ class SimulationEdit extends SaveableObjectForm<Simulation, SimulationFormProps,
                 id={isNew ? 'tr__form-transit-simulation-new' : `tr__form-transit-simulation-edit__id_${simulationId}`}
                 className="tr__form-transit-simulation-edit apptr__form"
             >
-                <h3>
-                    {simulation.getData('isNew')
-                        ? this.props.t('transit:simulation:New')
-                        : this.props.t('transit:simulation:Edit')}
-                    {simulation.toString(false) ? ` • ${simulation.toString(false)}` : ''}
-                </h3>
-
+                <div className="tr__form-sticky-header-container">
+                    <h3>
+                        {simulation.getData('isNew')
+                            ? this.props.t('transit:simulation:New')
+                            : this.props.t('transit:simulation:Edit')}
+                        {simulation.toString(false) ? ` • ${simulation.toString(false)}` : ''}
+                    </h3>
+                    <SelectedObjectButtons
+                        deleteAction={this.onDelete}
+                        openDeleteConfirmModal={this.openDeleteConfirmModal}
+                        backAction={this.onBack}
+                        openBackConfirmModal={this.openBackConfirmModal}
+                        object={simulation}
+                        onUndo={this.onHistoryChange}
+                        onRedo={this.onHistoryChange}
+                    />
+                </div>
                 <Collapsible trigger={this.props.t('form:basicFields')} open={true} transitionTime={100}>
                     <div className="tr__form-section">
                         <BaseSimulationComponent
@@ -163,15 +173,6 @@ class SimulationEdit extends SaveableObjectForm<Simulation, SimulationFormProps,
                 {this.hasInvalidFields() && <FormErrors errors={['main:errors:InvalidFormFields']} />}
 
                 <div>
-                    <SelectedObjectButtons
-                        deleteAction={this.onDelete}
-                        openDeleteConfirmModal={this.openDeleteConfirmModal}
-                        backAction={this.onBack}
-                        openBackConfirmModal={this.openBackConfirmModal}
-                        object={simulation}
-                        onUndo={this.onHistoryChange}
-                        onRedo={this.onHistoryChange}
-                    />
                     {this.state.confirmModalDeleteIsOpen && (
                         <ConfirmModal
                             isOpen={true}

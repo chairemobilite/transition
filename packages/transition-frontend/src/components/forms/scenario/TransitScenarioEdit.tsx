@@ -137,12 +137,21 @@ class TransitScenarioEdit extends SaveableObjectForm<Scenario, ScenarioFormProps
                 }
                 className="tr__form-transit-scenario-edit apptr__form"
             >
-                <h3>
-                    {scenario.isNew()
-                        ? this.props.t('transit:transitScenario:New')
-                        : this.props.t('transit:transitScenario:Edit')}
-                    {scenario.toString(false) ? ` • ${scenario.toString(false)}` : ''}
-                </h3>
+                <div className="tr__form-sticky-header-container">
+                    <h3>
+                        {scenario.isNew()
+                            ? this.props.t('transit:transitScenario:New')
+                            : this.props.t('transit:transitScenario:Edit')}
+                        {scenario.toString(false) ? ` • ${scenario.toString(false)}` : ''}
+                    </h3>
+                    <SelectedObjectButtons
+                        onDelete={this.onDelete}
+                        openDeleteConfirmModal={this.openDeleteConfirmModal}
+                        backAction={this.onBack}
+                        openBackConfirmModal={this.openBackConfirmModal}
+                        object={scenario}
+                    />
+                </div>
                 <Collapsible trigger={this.props.t('form:basicFields')} open={true} transitionTime={100}>
                     <div className="tr__form-section">
                         <div className="apptr__form-input-container _two-columns">
@@ -301,13 +310,6 @@ class TransitScenarioEdit extends SaveableObjectForm<Scenario, ScenarioFormProps
                 {this.hasInvalidFields() && <FormErrors errors={['main:errors:InvalidFormFields']} />}
 
                 <div>
-                    <SelectedObjectButtons
-                        onDelete={this.onDelete}
-                        openDeleteConfirmModal={this.openDeleteConfirmModal}
-                        backAction={this.onBack}
-                        openBackConfirmModal={this.openBackConfirmModal}
-                        object={scenario}
-                    />
                     {this.state.confirmModalDeleteIsOpen && (
                         <ConfirmModal
                             isOpen={true}

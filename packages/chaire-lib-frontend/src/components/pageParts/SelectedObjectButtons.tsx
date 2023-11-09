@@ -137,7 +137,7 @@ const SelectedObjectButtons: React.FunctionComponent<SelectedObjectButtonsProps<
     };
 
     return (
-        <div className="tr__form-buttons-container">
+        <div className="tr__form-buttons-container tr__form-selected-object-buttons-container">
             <span title={props.t('main:Back')}>
                 <Button
                     key="back"

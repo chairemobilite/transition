@@ -113,12 +113,21 @@ class TransitAgencyEdit extends SaveableObjectForm<Agency, AgencyFormProps, Agen
                     }
                     className="tr__form-transit-agency-edit apptr__form"
                 >
-                    <h3>
-                        {agency.isNew()
-                            ? this.props.t('transit:transitAgency:New')
-                            : this.props.t('transit:transitAgency:Edit')}
-                        {agency.toString(false) ? ` • ${agency.toString(false)}` : ''}
-                    </h3>
+                    <div className="tr__form-sticky-header-container">
+                        <h3>
+                            {agency.isNew()
+                                ? this.props.t('transit:transitAgency:New')
+                                : this.props.t('transit:transitAgency:Edit')}
+                            {agency.toString(false) ? ` • ${agency.toString(false)}` : ''}
+                        </h3>
+                        <SelectedObjectButtons
+                            onDelete={this.onDelete}
+                            openDeleteConfirmModal={this.openDeleteConfirmModal}
+                            backAction={this.onBack}
+                            openBackConfirmModal={this.openBackConfirmModal}
+                            object={agency}
+                        />
+                    </div>
                     <Collapsible trigger={this.props.t('form:basicFields')} open={true} transitionTime={100}>
                         <div className="tr__form-section">
                             <div className="apptr__form-input-container _two-columns">
@@ -227,13 +236,6 @@ class TransitAgencyEdit extends SaveableObjectForm<Agency, AgencyFormProps, Agen
                     <FormErrors errors={agency.errors} />
 
                     <div>
-                        <SelectedObjectButtons
-                            onDelete={this.onDelete}
-                            openDeleteConfirmModal={this.openDeleteConfirmModal}
-                            backAction={this.onBack}
-                            openBackConfirmModal={this.openBackConfirmModal}
-                            object={agency}
-                        />
                         {this.state.confirmModalDeleteIsOpen && (
                             <ConfirmModal
                                 isOpen={true}

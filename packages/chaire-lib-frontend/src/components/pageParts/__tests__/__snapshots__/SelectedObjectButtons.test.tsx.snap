@@ -2,7 +2,7 @@
 
 exports[`Test with delete button 1`] = `
 <div
-  className="tr__form-buttons-container"
+  className="tr__form-buttons-container tr__form-selected-object-buttons-container"
 >
   <span
     title="main:Back"
@@ -181,7 +181,7 @@ exports[`Test with delete button 1`] = `
 
 exports[`Test with save button 1`] = `
 <div
-  className="tr__form-buttons-container"
+  className="tr__form-buttons-container tr__form-selected-object-buttons-container"
 >
   <span
     title="main:Back"
@@ -360,7 +360,7 @@ exports[`Test with save button 1`] = `
 
 exports[`Test without delete button 1`] = `
 <div
-  className="tr__form-buttons-container"
+  className="tr__form-buttons-container tr__form-selected-object-buttons-container"
 >
   <span
     title="main:Back"
@@ -505,7 +505,7 @@ exports[`Test without delete button 1`] = `
 
 exports[`Test without save button 1`] = `
 <div
-  className="tr__form-buttons-container"
+  className="tr__form-buttons-container tr__form-selected-object-buttons-container"
 >
   <span
     title="main:Back"

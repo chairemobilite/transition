@@ -223,10 +223,59 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
                 id={isNew ? 'tr__form-transit-node-new' : `tr__form-transit-node-edit__id_${nodeId}`}
                 className="tr__form-transit-node-edit apptr__form"
             >
-                <h3>
-                    {isNew ? this.props.t('transit:transitNode:New') : this.props.t('transit:transitNode:Edit')}
-                    {node.toString(false) ? ` • ${node.toString(false)}` : ''}
-                </h3>
+                <div className="tr__form-sticky-header-container">
+                    <h3>
+                        {isNew ? this.props.t('transit:transitNode:New') : this.props.t('transit:transitNode:Edit')}
+                        {node.toString(false) ? ` • ${node.toString(false)}` : ''}
+                    </h3>
+                    <SelectedObjectButtons
+                        onDelete={this.onDelete}
+                        openDeleteConfirmModal={this.openDeleteConfirmModal}
+                        backAction={this.onBack}
+                        openBackConfirmModal={this.openBackConfirmModal}
+                        object={node}
+                        hideDelete={isFrozen === true || hasPaths}
+                        saveAction={() => {
+                            // save
+                            if (isFrozen === true && node.wasFrozen()) {
+                                serviceLocator.selectedObjectsManager.deselect('node');
+                                return true;
+                            }
+                            node.validate();
+                            if (node.isValid) {
+                                if (node.hasChanged()) {
+                                    serviceLocator.eventManager.emit('progress', {
+                                        name: 'SavingNode',
+                                        progress: 0.0
+                                    });
+                                    NodeGeographyUtils.updateTransferableNodesWithAffected(
+                                        node,
+                                        serviceLocator.collectionManager.get('nodes'),
+                                        serviceLocator.collectionManager
+                                    ).then(async (affectedNodes) => {
+                                        await Promise.all(
+                                            affectedNodes.map((n) => n.save(serviceLocator.socketEventManager))
+                                        );
+                                        await node.save(serviceLocator.socketEventManager);
+                                        serviceLocator.selectedObjectsManager.deselect('node');
+                                        serviceLocator.collectionManager.refresh('nodes');
+                                        serviceLocator.eventManager.emit('progress', {
+                                            name: 'SavingNode',
+                                            progress: 1.0
+                                        });
+                                    });
+                                } else {
+                                    serviceLocator.selectedObjectsManager.deselect('node');
+                                }
+                            } else {
+                                serviceLocator.selectedObjectsManager.update('node', node);
+                                this.updateLayers();
+                            }
+                        }}
+                        onUndo={this.onHistoryChange}
+                        onRedo={this.onHistoryChange}
+                    />
+                </div>
                 <Collapsible trigger={this.props.t('form:basicFields')} open={true} transitionTime={100}>
                     <div className="tr__form-section">
                         <InputWrapper label={this.props.t('transit:transitNode:Name')}>
@@ -391,53 +440,6 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
                     </Collapsible>
                 )}
                 <div>
-                    <SelectedObjectButtons
-                        onDelete={this.onDelete}
-                        openDeleteConfirmModal={this.openDeleteConfirmModal}
-                        backAction={this.onBack}
-                        openBackConfirmModal={this.openBackConfirmModal}
-                        object={node}
-                        hideDelete={isFrozen === true || hasPaths}
-                        saveAction={() => {
-                            // save
-                            if (isFrozen === true && node.wasFrozen()) {
-                                serviceLocator.selectedObjectsManager.deselect('node');
-                                return true;
-                            }
-                            node.validate();
-                            if (node.isValid) {
-                                if (node.hasChanged()) {
-                                    serviceLocator.eventManager.emit('progress', {
-                                        name: 'SavingNode',
-                                        progress: 0.0
-                                    });
-                                    NodeGeographyUtils.updateTransferableNodesWithAffected(
-                                        node,
-                                        serviceLocator.collectionManager.get('nodes'),
-                                        serviceLocator.collectionManager
-                                    ).then(async (affectedNodes) => {
-                                        await Promise.all(
-                                            affectedNodes.map((n) => n.save(serviceLocator.socketEventManager))
-                                        );
-                                        await node.save(serviceLocator.socketEventManager);
-                                        serviceLocator.selectedObjectsManager.deselect('node');
-                                        serviceLocator.collectionManager.refresh('nodes');
-                                        serviceLocator.eventManager.emit('progress', {
-                                            name: 'SavingNode',
-                                            progress: 1.0
-                                        });
-                                    });
-                                } else {
-                                    serviceLocator.selectedObjectsManager.deselect('node');
-                                }
-                            } else {
-                                serviceLocator.selectedObjectsManager.update('node', node);
-                                this.updateLayers();
-                            }
-                        }}
-                        onUndo={this.onHistoryChange}
-                        onRedo={this.onHistoryChange}
-                    />
                     {this.state.confirmModalDeleteIsOpen && (
                         <ConfirmModal
                             isOpen={true}
