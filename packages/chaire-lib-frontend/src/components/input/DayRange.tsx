@@ -106,7 +106,7 @@ export class DayRange extends React.Component<DayRangeProps> {
         return (
             <div>
                 {this.props.showPeriodDropdown && (
-                    <div className="apptr__form-input-container">
+                    <div className="apptr__form-input-container _two-columns">
                         <label> {this.props.t('main:dateTime:Day')}</label>
                         <InputSelect
                             id={`${this.props.id}_periodGroup`}
