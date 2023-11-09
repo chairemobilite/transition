@@ -211,15 +211,27 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
                 id={line.isNew() ? 'tr__form-transit-line-new' : `tr__form-transit-line-edit__id_${line.get('id')}`}
                 className="tr__form-transit-line-edit apptr__form"
             >
-                <h3>
-                    <img
-                        src={'/dist/images/icons/transit/line_white.svg'}
-                        className="_icon"
-                        alt={this.props.t('transit:transitLine:Line')}
-                    />{' '}
-                    {line.isNew() ? this.props.t('transit:transitLine:New') : this.props.t('transit:transitLine:Edit')}
-                    {line.toString(false) ? ` • ${line.toString(false)}` : ''}
-                </h3>
+                <div className="tr__form-sticky-header-container">
+                    <h3>
+                        <img
+                            src={'/dist/images/icons/transit/line_white.svg'}
+                            className="_icon"
+                            alt={this.props.t('transit:transitLine:Line')}
+                        />{' '}
+                        {line.isNew() ? this.props.t('transit:transitLine:New') : this.props.t('transit:transitLine:Edit')}
+                        {line.toString(false) ? ` • ${line.toString(false)}` : ''}
+                    </h3>
+                    {!this.props.selectedPath && canActionButtons && (
+                        <SelectedObjectButtons
+                            onDelete={this.onDelete}
+                            openDeleteConfirmModal={this.openDeleteConfirmModal}
+                            object={line}
+                            backAction={this.onBack}
+                            openBackConfirmModal={this.openBackConfirmModal}
+                            saveAction={this.onSave}
+                        />
+                    )}
+                </div>
                 <Collapsible
                     trigger={this.props.t('form:basicFields')}
                     open={_isBlank(this.props.selectedPath)}
@@ -367,16 +379,6 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
 
                 {canActionButtons && (
                     <div>
-                        {!this.props.selectedPath && (
-                            <SelectedObjectButtons
-                                onDelete={this.onDelete}
-                                openDeleteConfirmModal={this.openDeleteConfirmModal}
-                                object={line}
-                                backAction={this.onBack}
-                                openBackConfirmModal={this.openBackConfirmModal}
-                                saveAction={this.onSave}
-                            />
-                        )}
                         {!this.props.selectedPath &&
                             !this.props.selectedSchedule &&
                             (completePaths.length > 0 || lineHasSchedules) && (

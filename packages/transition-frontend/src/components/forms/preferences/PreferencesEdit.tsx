@@ -87,8 +87,17 @@ class PreferencesPanel extends SaveableObjectForm<PreferencesClass, PreferencesP
 
         return (
             <form id="tr__form-preferences" className="tr__form-preferences apptr__form">
-                <h3>{this.props.t('main:Preferences')}</h3>
-
+                <div className="tr__form-sticky-header-container">
+                    <h3>{this.props.t('main:Preferences')}</h3>
+                    <SelectedObjectButtons
+                        backAction={this.onBack}
+                        openBackConfirmModal={this.openBackConfirmModal}
+                        object={this.state.object}
+                        hideDelete={true}
+                        onUndo={this.onHistoryChange}
+                        onRedo={this.onHistoryChange}
+                    />
+                </div>
                 <PreferencesSectionGeneral
                     preferences={this.state.object}
                     onValueChange={this.onValueChange}
@@ -149,14 +158,6 @@ class PreferencesPanel extends SaveableObjectForm<PreferencesClass, PreferencesP
                 {this.hasInvalidFields() && <FormErrors errors={['main:errors:InvalidFormFields']} />}
 
                 <div>
-                    <SelectedObjectButtons
-                        backAction={this.onBack}
-                        openBackConfirmModal={this.openBackConfirmModal}
-                        object={this.state.object}
-                        hideDelete={true}
-                        onUndo={this.onHistoryChange}
-                        onRedo={this.onHistoryChange}
-                    />
                     {this.state.confirmModalBackIsOpen && (
                         <ConfirmModal
                             isOpen={true}

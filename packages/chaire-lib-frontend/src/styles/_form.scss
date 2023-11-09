@@ -278,7 +278,25 @@ select {
   &._center {
     justify-content: center;
   }
+}
 
+.tr__form-sticky-header-container {
+  display: flex;
+  position: sticky;
+  top: 0;
+  background-color: rgba(29, 31, 33, 0.8);
+  z-index: 1;
+  border-bottom: 1px solid $border-white;
+  justify-content: space-between;
+
+  h3 {
+    letter-spacing: unset !important;
+  }
+}
+
+.tr__form-selected-object-buttons-container .button {
+    padding: 0.3rem 0.6rem;
+    min-height: 2.6rem;
 }
 
 ._input-color {
