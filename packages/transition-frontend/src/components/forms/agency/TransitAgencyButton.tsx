@@ -212,35 +212,37 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
                     </ButtonCell>
                 )}
             </Button>
-            <Button key={`lines${props.agency.getId()}`} isSelected={agencyIsSelected} flushActionButtons={false}>
-                <Collapsible
-                    lazyRender={true}
-                    trigger={props.t('transit:transitLine:List')}
-                    open={false}
-                    transitionTime={100}
-                >
-                    <ButtonList key={`lines${props.agency.getId()}`}>
-                        {linesButtons}
-                        {!isFrozen && (
-                            <Button isSelected={false} key="containerLink">
-                                <ButtonCell
-                                    alignment="left"
-                                    onClick={newLineForAgency}
-                                    title={props.t('transit:transitLine:New')}
-                                >
-                                    <img
-                                        className="_list-element _icon-alone"
-                                        src={'/dist/images/icons/transit/line_add_white.svg'}
-                                        alt={props.t('transit:transitLine:New')}
+            <div className="tr__form-agencies-panel-lines-list">
+                <Button key={`lines${props.agency.getId()}`} isSelected={agencyIsSelected} flushActionButtons={false}>
+                    <Collapsible
+                        lazyRender={true}
+                        trigger={props.t('transit:transitLine:List')}
+                        open={false}
+                        transitionTime={100}
+                    >
+                        <ButtonList key={`lines${props.agency.getId()}`}>
+                            {linesButtons}
+                            {!isFrozen && (
+                                <Button isSelected={false} key="containerLink">
+                                    <ButtonCell
+                                        alignment="left"
+                                        onClick={newLineForAgency}
                                         title={props.t('transit:transitLine:New')}
-                                    />
-                                    <span className="_list-element">{props.t('transit:transitLine:New')}</span>
-                                </ButtonCell>
-                            </Button>
-                        )}
-                    </ButtonList>
-                </Collapsible>
-            </Button>
+                                    >
+                                        <img
+                                            className="_list-element _icon-alone"
+                                            src={'/dist/images/icons/transit/line_add_white.svg'}
+                                            alt={props.t('transit:transitLine:New')}
+                                            title={props.t('transit:transitLine:New')}
+                                        />
+                                        <span className="_list-element">{props.t('transit:transitLine:New')}</span>
+                                    </ButtonCell>
+                                </Button>
+                            )}
+                        </ButtonList>
+                    </Collapsible>
+                </Button>
+            </div>
         </React.Fragment>
     );
 };
