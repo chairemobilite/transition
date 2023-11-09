@@ -3,7 +3,7 @@
 exports[`All props 1`] = `
 <div>
   <div
-    className="apptr__form-input-container"
+    className="apptr__form-input-container _two-columns"
   >
     <label>
        
@@ -175,7 +175,7 @@ exports[`All props 1`] = `
 exports[`Disabled 1`] = `
 <div>
   <div
-    className="apptr__form-input-container"
+    className="apptr__form-input-container _two-columns"
   >
     <label>
        
