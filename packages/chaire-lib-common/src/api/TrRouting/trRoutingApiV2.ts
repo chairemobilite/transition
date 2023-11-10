@@ -36,18 +36,21 @@ export type SummarySuccessResult = RouteSuccessResponseCommon & {
     };
 };
 
+type ParamQueryError =
+    | 'EMPTY_SCENARIO'
+    | 'MISSING_PARAM_SCENARIO'
+    | 'MISSING_PARAM_TIME_OF_TRIP'
+    | 'INVALID_NUMERICAL_DATA'
+    | 'PARAM_ERROR_UNKNOWN';
+
 export type RouteQueryError = {
     status: 'query_error';
     errorCode:
-        | 'EMPTY_SCENARIO'
-        | 'MISSING_PARAM_SCENARIO'
+        | ParamQueryError
         | 'MISSING_PARAM_ORIGIN'
         | 'MISSING_PARAM_DESTINATION'
-        | 'MISSING_PARAM_TIME_OF_TRIP'
         | 'INVALID_ORIGIN'
-        | 'INVALID_DESTINATION'
-        | 'INVALID_NUMERICAL_DATA'
-        | 'PARAM_ERROR_UNKNOWN';
+        | 'INVALID_DESTINATION';
 };
 
 export type DataError = {
@@ -159,5 +162,60 @@ export const isErrorWithCode = (result: RouteResponse | SummaryResponse): result
 };
 
 export const isNoRouting = (result: RouteResponse): result is NoRoutingRouteResult => {
+    return result.status === 'no_routing_found';
+};
+
+// Accessibility map API types
+export type AccessibilityMapQueryError = {
+    status: 'query_error';
+    errorCode: ParamQueryError | 'MISSING_PARAM_PLACE' | 'INVALID_PLACE';
+};
+
+export type AccessibilityMapQueryResponse = {
+    place: [number, number];
+    timeOfTrip: number;
+    timeType: 0 | 1;
+};
+
+export type AccessibilityMapResponse =
+    | AccessibilityMapSuccessResult
+    | NoRoutingAccessibilityResult
+    | DataError
+    | AccessibilityMapQueryError;
+
+export type NoRoutingAccessibilityReason = 'NO_ROUTING_FOUND' | 'NO_ACCESS_AT_PLACE' | 'NO_SERVICE_AT_PLACE';
+
+export type NoRoutingAccessibilityResult = {
+    status: 'no_routing_found';
+    query: AccessibilityMapQueryResponse;
+    reason?: NoRoutingAccessibilityReason;
+};
+
+export type AccessibilityMapSuccessResult = {
+    status: 'success';
+    query: AccessibilityMapQueryResponse;
+    result: {
+        nodes: AccessibilityMapNode[];
+        totalNodeCount: number;
+    };
+};
+
+export type AccessibilityMapNode = {
+    nodeName: string;
+    nodeCode: string;
+    nodeUuid: string;
+    nodeTime: number;
+    nodeCoordinates: [number, number];
+    totalTravelTime: number;
+    numberOfTransfers: number;
+};
+
+export const isAccessMapErrorWithCode = (
+    result: AccessibilityMapResponse
+): result is AccessibilityMapQueryError | DataError => {
+    return result.status === 'data_error' || result.status === 'query_error';
+};
+
+export const isAccessMapNoRouting = (result: AccessibilityMapResponse): result is NoRoutingAccessibilityResult => {
     return result.status === 'no_routing_found';
 };
