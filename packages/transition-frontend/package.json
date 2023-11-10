@@ -23,6 +23,8 @@
     "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write"
   },
   "dependencies": {
+    "@alienfast/i18next-loader": "^1.1.4",
+    "@deck.gl/react": "^8.9.32",
     "@fortawesome/fontawesome-svg-core": "^1.2.32",
     "@fortawesome/free-solid-svg-icons": "^5.15.1",
     "@fortawesome/react-fontawesome": "^0.1.11",
@@ -36,11 +38,11 @@
     "chaire-lib-frontend": "^0.2.2",
     "child_process": "^1.0.2",
     "date-fns": "^2.30.0",
+    "deck.gl": "^8.9.32",
     "element-resize-event": "^3.0.6",
     "history": "^4.9.0",
     "i18next": "^22.4.15",
     "lodash": "^4.17.21",
-    "mapbox-gl": "chairemobilite/mapbox-gl-js#39bbf9aeb1859424e29cff2584715fddc9d018b9",
     "moment": "^2.29.4",
     "moment-business-days": "^1.2.0",
     "papaparse": "^5.3.0",
