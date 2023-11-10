@@ -74,7 +74,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
     }
 
     onUpdateLayers = () => {
-        const layersVisibility = {};
+        /*   const layersVisibility = {};
         serviceLocator.layerManager._enabledLayers.forEach((layerName) => {
             layersVisibility[layerName] = serviceLocator.layerManager.layerIsVisible(layerName);
         });
@@ -82,29 +82,29 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
             return {
                 layersVisibility
             };
-        });
+        }); */
     };
 
     onShowLayer = (layerName: string) => {
-        if (this.state.layersVisibility[layerName] === false) {
+        /*    if (this.state.layersVisibility[layerName] === false) {
             this.setState((oldState) => {
                 oldState.layersVisibility[layerName] = true;
                 return {
                     layersVisibility: oldState.layersVisibility
                 };
             });
-        }
+        } */
     };
 
     onHideLayer = (layerName: string) => {
-        if (this.state.layersVisibility[layerName] === true) {
+        /*    if (this.state.layersVisibility[layerName] === true) {
             this.setState((oldState) => {
                 oldState.layersVisibility[layerName] = false;
                 return {
                     layersVisibility: oldState.layersVisibility
                 };
             });
-        }
+        } */
     };
 
     onUpdateCoordinates = (coordinates: [number, number]) => {

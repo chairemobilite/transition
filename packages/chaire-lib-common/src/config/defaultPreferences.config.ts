@@ -477,20 +477,20 @@ const defaultPreferences: PreferencesModel = {
                 maxTotalTravelTimeSeconds: 10800,
                 walkingSpeedMps: 1.3888888888,
                 walkingSpeedFactor: 1.0, // walking travel times are weighted using this factor: Example: > 1.0 means faster walking, < 1.0 means slower walking
-                originLocationColor: 'rgba(140, 212, 0, 1.0)',
-                destinationLocationColor: 'rgba(212, 35, 14, 1.0)',
-                walkingSegmentsColor: 'rgba(160,160,160,1.0)',
+                originLocationColor: '#8cd400',
+                destinationLocationColor: '#d4230e',
+                walkingSegmentsColor: '#a0a0a0',
                 walking: {
-                    color: 'rgba(255, 238, 0,1.0)'
+                    color: '#ffee00'
                 },
                 cycling: {
-                    color: 'rgba(0, 204, 51,1.0)'
+                    color: '#00cc33'
                 },
                 driving: {
-                    color: 'rgba(229, 45, 0,1.0)'
+                    color: '#e52d00'
                 },
                 default: {
-                    color: 'rgba(160,160,160,1.0)'
+                    color: '#a0a0a0'
                 }
             },
             transitAccessibilityMap: {
@@ -507,8 +507,8 @@ const defaultPreferences: PreferencesModel = {
                 walkingSpeedMps: 1.3888888888,
                 walkingSpeedFactor: 1.0, // walking travel times are weighted using this factor: Example: > 1.0 means faster walking, < 1.0 means slower walking
                 maxTotalTravelTimeSeconds: 1800,
-                locationColor: 'rgba(47, 138, 243, 1.0)',
-                polygonColor: 'rgba(47, 138, 243, 0.4)'
+                locationColor: '#2f8af3',
+                polygonColor: '#2f8af366'
             },
             transitOdTrips: {
                 minWaitingTimeSeconds: 180,
