@@ -4,19 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-export interface TransitRouteQueryOptions {
-    /**
-     * An array containing the origin and destination points.
-     */
-    originDestination: [GeoJSON.Feature<GeoJSON.Point>, GeoJSON.Feature<GeoJSON.Point>];
+
+type TrRoutingBaseQueryOptions = {
     /**
      * The UUID of the scenario to use for the calculation
      */
     scenarioId: string;
-    /**
-     * Whether to calculate alternatives
-     */
-    alternatives?: boolean;
     /**
      * Arrival or departure time of the trip, in seconds since midnight
      */
@@ -49,7 +42,25 @@ export interface TransitRouteQueryOptions {
      * Maximum wait time at first transit stop
      */
     maxFirstWaitingTime?: number;
-}
+};
+
+export type TransitRouteQueryOptions = TrRoutingBaseQueryOptions & {
+    /**
+     * An array containing the origin and destination points.
+     */
+    originDestination: [GeoJSON.Feature<GeoJSON.Point>, GeoJSON.Feature<GeoJSON.Point>];
+    /**
+     * Whether to calculate alternatives
+     */
+    alternatives?: boolean;
+};
+
+export type AccessibilityMapQueryOptions = TrRoutingBaseQueryOptions & {
+    /**
+     * To point from/to which to get the accessibility map
+     */
+    location: GeoJSON.Feature<GeoJSON.Point>;
+};
 
 export interface TrRoutingWalkingStep {
     action: 'walking';
