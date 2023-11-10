@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@alienfast/i18next-loader": "^1.1.4",
+    "@deck.gl/react": "^8.9.32",
     "@fortawesome/fontawesome-svg-core": "^1.2.32",
     "@fortawesome/free-solid-svg-icons": "^5.15.1",
     "@fortawesome/react-fontawesome": "^0.1.11",
@@ -37,6 +38,7 @@
     "chaire-lib-frontend": "^0.2.2",
     "child_process": "^1.0.2",
     "date-fns": "^2.30.0",
+    "deck.gl": "^8.9.32",
     "element-resize-event": "^3.0.6",
     "history": "^4.9.0",
     "i18next": "^22.4.15",
@@ -113,10 +115,10 @@
     "style-loader": "^1.2.1",
     "ts-jest": "^27.0.7",
     "ts-loader": "^7.0.5",
+    "ts-shader-loader": "^2.0.2",
     "url-loader": "^4.1.0",
     "webpack": "^4.43.0",
     "webpack-cdn-plugin": "^3.3.1",
-    "webpack-cli": "^3.3.12",
-    "ts-shader-loader": "^2.0.2"
+    "webpack-cli": "^3.3.12"
   }
 }
