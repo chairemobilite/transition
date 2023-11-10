@@ -2,16 +2,34 @@ import React, {useState, useEffect} from 'react';
 import DeckGL from '@deck.gl/react';
 import {Map} from 'react-map-gl';
 import {TripsLayer} from '@deck.gl/geo-layers';
+import { PathLayer } from '@deck.gl/layers';
 import { PathStyleExtension } from '@deck.gl/extensions';
 import {createRoot} from 'react-dom/client';
 import { ScatterplotLayer } from 'deck.gl';
 import ScatterplotCustomLayer from './scatter-plot-custom-layer'
-import PathLineCustomLayer from './path-line-custom-layer'
+import PathStyleExtension2 from './path-line-custom-layer2'
+
+class MyPathLayer extends PathLayer {
+    getShaders() {
+      const shaders = super.getShaders();
+      shaders.inject['vs:#decl'] += `\
+    uniform float dashStart;`;
+      shaders.inject['vs:#main-end'] += `\
+    vDashOffset += dashStart;`;
+      return shaders;
+    }
+    
+    draw(opts) {
+      opts.uniforms.dashStart = this.props.dashStart || 0;
+      super.draw(opts);
+    }
+  }
+  
 
 deck.log.enable();
 deck.log.level = 2;
 luma.log.enable();
-luma.log.level = 2;
+luma.log.level = 3;
 
 function getTooltip({object}) {
   return object && object.properties.name;
@@ -85,7 +103,7 @@ export default function Counter({routeData, nodeData}) {
       }
     }),
 
-    new PathLineCustomLayer({
+    new MyPathLayer({
       id: 'trips-layer-selected',
       data: routeSelected,
       getPath: d => d.geometry.coordinates,
@@ -111,7 +129,8 @@ export default function Counter({routeData, nodeData}) {
       getDashArray: [4, 4],
       getOffset: 20,
       dashStart: dashStart,
-      extensions: [new PathStyleExtension({highPrecisionDash: true })]
+      getShaderColor: [102, 102, 255, 0],
+      extensions: [new PathStyleExtension2({highPrecisionDash: true })]
     }),
     
     new ScatterplotLayer({
