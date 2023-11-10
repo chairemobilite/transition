@@ -52,10 +52,12 @@ const mockedStatus = trRoutingProcessManager.status as jest.MockedFunction<typeo
 jest.mock('chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend', () => {
     return {
         route: jest.fn(),
-        v1TransitCall: jest.fn()
+        v1TransitCall: jest.fn(),
+        accessibilityMap: jest.fn()
     }
 });
 const mockedTrRoutingRoute = trRoutingService.route as jest.MockedFunction<typeof trRoutingService.route>;
+const mockedTrRoutingAccessibilityMap = trRoutingService.accessibilityMap as jest.MockedFunction<typeof trRoutingService.accessibilityMap>;
 const mockedTrRoutingV1Transit = trRoutingService.v1TransitCall as jest.MockedFunction<typeof trRoutingService.v1TransitCall>;
 
 jest.mock('../../models/db/jobs.db.queries', () => {
@@ -80,6 +82,7 @@ beforeEach(() => {
 
     mockedTrRoutingRoute.mockClear();
     mockedTrRoutingV1Transit.mockClear();
+    mockedTrRoutingAccessibilityMap.mockClear();
     mockedEnqueue.mockClear();
     mockedRefresh.mockClear();
     mockedJobCreate.mockClear();
@@ -253,6 +256,20 @@ describe('trRouting routes', () => {
         }
     };
 
+    // Parameter to pass to socket route for `accessibility map`
+    const accessMapParameters = {
+        parameters: {
+            location: TestUtils.makePoint([1, 1]),
+            scenarioId: 'arbitrary',
+            timeOfTrip: 28000,
+            timeOfTripType: 'arrival' as const,
+        },
+        hostPort: {
+            host: 'https://test',
+            port: 80
+        }
+    };
+
     // It's a stub call, parameters don't have to be complete
     const demandParameters = {
         type: 'csv',
@@ -368,6 +385,66 @@ describe('trRouting routes', () => {
         mockedTrRoutingRoute.mockRejectedValueOnce(error);
         socketStub.emit(TrRoutingConstants.ROUTE, routeParameters, function (status) {
             expect(mockedTrRoutingRoute).toHaveBeenCalledWith(routeParameters.parameters, routeParameters.hostPort);
+            expect(Status.isStatusError(status)).toBe(true);
+            expect((status as any).error).toEqual(message);
+            done();
+        });
+    });
+
+    test('Accessibility map correct', (done) => {
+        const accessMapResponse = {
+            status: 'success' as const,
+            query: {
+                place: [1, 1] as [number, number],
+                timeOfTrip: routeParameters.parameters.timeOfTrip,
+                timeType: 1 as 0 | 1
+            },
+            result: {
+                nodes: [
+                    { nodeName: 'test', nodeCode: 'T', nodeUuid: 'arbitrary', nodeTime: routeParameters.parameters.timeOfTrip + 3600, nodeCoordinates: [ 1.1, 1.2 ] as [number, number], totalTravelTime: 2000, numberOfTransfers: 5 },
+                    { nodeName: 'test2', nodeCode: 'T2', nodeUuid: 'arbitrary2', nodeTime: routeParameters.parameters.timeOfTrip + 3000, nodeCoordinates: [ 1.3, 1.2 ] as [number, number], totalTravelTime: 1500, numberOfTransfers: 0 }
+                ],
+                totalNodeCount: 2
+            }
+        };
+        mockedTrRoutingAccessibilityMap.mockResolvedValueOnce(accessMapResponse);
+        socketStub.emit(TrRoutingConstants.ACCESSIBILITY_MAP, accessMapParameters, (response) => {
+            expect(Status.isStatusOk(response)).toBe(true);
+            expect(mockedTrRoutingAccessibilityMap).toHaveBeenCalledWith(accessMapParameters.parameters, accessMapParameters.hostPort);
+            expect(response).toEqual(Status.createOk(accessMapResponse));
+            done();
+        });
+    });
+
+    test('Accessibility map without host port', (done) => {
+        const parametersOnly = { parameters: accessMapParameters.parameters };
+        const accessMapResponse = {
+            status: 'no_routing_found' as const,
+            query: {
+                place: [1, 1] as [number, number],
+                timeOfTrip: routeParameters.parameters.timeOfTrip,
+                timeType: 1 as 0 | 1
+            },
+            reason: 'NO_ACCESS_AT_PLACE' as const
+        };
+        mockedTrRoutingAccessibilityMap.mockResolvedValueOnce(accessMapResponse);
+        socketStub.emit(TrRoutingConstants.ACCESSIBILITY_MAP, parametersOnly, (response) => {
+            console.log('Got response ', response);
+            expect(Status.isStatusOk(response)).toBe(true);
+            expect(mockedTrRoutingAccessibilityMap).toHaveBeenCalledWith(accessMapParameters.parameters, undefined);
+            expect(response).toEqual(Status.createOk(accessMapResponse));
+            done();
+        });
+    });
+
+    test('Accessibility map with error', (done) => {
+        const message = 'Error routing transit';
+        const code = 'CODE';
+        const localizedMessage = 'transit:Message';
+        const error = new TrError(message, code, localizedMessage);
+        mockedTrRoutingAccessibilityMap.mockRejectedValueOnce(error);
+        socketStub.emit(TrRoutingConstants.ACCESSIBILITY_MAP, accessMapParameters, function (status) {
+            expect(mockedTrRoutingAccessibilityMap).toHaveBeenCalledWith(accessMapParameters.parameters, accessMapParameters.hostPort);
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual(message);
             done();

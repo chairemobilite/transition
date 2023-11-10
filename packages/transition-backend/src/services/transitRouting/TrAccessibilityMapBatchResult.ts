@@ -149,7 +149,9 @@ class BatchAccessibilityMapResultProcessorFile implements BatchAccessibilityMapR
             polygonAttributes[`polygon${i}Duration`] = results.polygons.features[i].properties?.durationMinutes;
             polygonAttributes[`polygon${i}AreaSqKm`] = results.polygons.features[i].properties?.areaSqKm;
             if (this.parameters.withGeometries) {
-                polygonAttributes[`polygon${i}Geojson`] = JSON.stringify(_omit(results.polygons.features[i], 'properties'));
+                polygonAttributes[`polygon${i}Geojson`] = JSON.stringify(
+                    _omit(results.polygons.features[i], 'properties')
+                );
             }
         }
         if (this._csvStream) {
