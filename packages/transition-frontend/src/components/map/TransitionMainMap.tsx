@@ -7,6 +7,11 @@
 import React, { PropsWithChildren } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
+import ReactDom from 'react-dom';
+import DeckGL from '@deck.gl/react/typed';
+import { DeckProps, Viewport, FilterContext, Layer } from '@deck.gl/core/typed';
+import { ScatterplotLayer } from 'deck.gl';
+import { TripsLayer } from '@deck.gl/geo-layers';
 import MapboxGL from 'mapbox-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { default as elementResizedEvent, unbind as removeResizeListener } from 'element-resize-event';
@@ -22,6 +27,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { getMapBoxDraw, removeMapBoxDraw } from 'chaire-lib-frontend/lib/services/map/MapPolygonService';
 import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
 import Node from 'transition-common/lib/services/nodes/Node';
+
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import _cloneDeep from 'lodash/cloneDeep';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
@@ -30,12 +36,14 @@ import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map
 import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import getLayer from './layers/TransitionMapLayer';
 
 MapboxGL.accessToken = process.env.MAPBOX_ACCESS_TOKEN || '';
 
 export interface MainMapProps extends LayoutSectionProps {
     zoom: number;
     center: [number, number];
+    //onMapDataChange: () => void;
     // TODO : put layers and events together in an application configuration received as props here
     // layersConfig: { [key: string]: any };
     // mapEvents: MapEventHandlerDescription[];
@@ -43,9 +51,14 @@ export interface MainMapProps extends LayoutSectionProps {
 }
 
 interface MainMapState {
-    layers: string[];
-    confirmModalDeleteIsOpen: boolean;
-    mapLoaded: boolean;
+    viewState: {
+        longitude: number;
+        latitude: number;
+        zoom: number;
+        pitch: number;
+        bearing: number;
+    };
+    enabledLayers: string[];
     contextMenu: HTMLElement | null;
     contextMenuRoot: Root | undefined;
 }
@@ -70,9 +83,14 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         super(props);
 
         this.state = {
-            layers: sectionLayers[this.props.activeSection] || [], // Get layers for section from config
-            confirmModalDeleteIsOpen: false,
-            mapLoaded: false,
+            viewState: {
+                longitude: props.center[0],
+                latitude: props.center[1],
+                zoom: props.zoom,
+                pitch: 0,
+                bearing: 0
+            },
+            enabledLayers: [],
             contextMenu: null,
             contextMenuRoot: undefined
         };
@@ -80,6 +98,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.defaultZoomArray = [props.zoom];
         this.defaultCenter = props.center;
         this.layerManager = new MapLayerManager(layersConfig);
+
         this.pathLayerManager = new PathMapLayerManager(this.layerManager);
 
         this.popupManager = new MapPopupManager();
@@ -129,59 +148,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.map?.dragPan.disable();
     };
 
-    onMapError = (e: any) => {
-        console.log('Map error:', e);
-        if (!this.state.mapLoaded) {
-            // Even if there was a map error, call the map.loaded event so the
-            // application can continue loading
-            this.setState({ mapLoaded: true });
-            serviceLocator.eventManager.emit('map.loaded');
-        }
-    };
-
-    setMap = (e: MapboxGL.MapboxEvent) => {
-        this.layerManager.setMap(e.target);
-        this.popupManager.setMap(e.target);
-        this.layerManager.updateEnabledLayers(this.state.layers);
-        if (process.env.CUSTOM_RASTER_TILES_XYZ_URL && this.map) {
-            const mapLayers = this.map.getStyle().layers || [];
-            let beforeLayerId = mapLayers.length > 0 ? mapLayers[0].id : undefined;
-
-            for (let i = 0, count = mapLayers.length; i < count; i++) {
-                const layer = mapLayers[i];
-                if (layer.type === 'background') {
-                    beforeLayerId = layer.id;
-                    break;
-                }
-            }
-
-            if (beforeLayerId) {
-                this.map.addSource('custom_tiles', {
-                    type: 'raster',
-                    tiles: [process.env.CUSTOM_RASTER_TILES_XYZ_URL],
-                    tileSize: 256
-                });
-                this.map?.addLayer(
-                    {
-                        id: 'custom_tiles',
-                        type: 'raster',
-                        source: 'custom_tiles',
-                        minzoom: process.env.CUSTOM_RASTER_TILES_MIN_ZOOM
-                            ? parseFloat(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM)
-                            : 0,
-                        maxzoom: process.env.CUSTOM_RASTER_TILES_MAX_ZOOM
-                            ? parseFloat(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM)
-                            : 22
-                    },
-                    beforeLayerId
-                );
-            }
-        }
-
-        this.setState({ mapLoaded: true });
-        serviceLocator.eventManager.emit('map.loaded');
-    };
-
     showPathsByAttribute = (attribute: string, value: any) => {
         // attribute must be agency_id or line_id
         if (attribute === 'agency_id') {
@@ -205,36 +171,12 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     };
 
     componentDidMount = () => {
-        this.map = new MapboxGL.Map({
-            container: this.mapContainer,
-            style: `mapbox://styles/${process.env.MAPBOX_USER_ID}/${process.env.MAPBOX_STYLE_ID}?fresh=true`,
-            center: this.defaultCenter,
-            zoom: this.defaultZoomArray[0],
-            maxZoom: 20,
-            hash: true
-        });
-
-        this.map.addControl(new MapboxGL.ScaleControl(), 'bottom-right');
-
-        for (const eventName in this.mapEvents) {
-            for (const layerName in this.mapEvents[eventName]) {
-                if (layerName === 'map') {
-                    this.map.on(eventName, this.getEventHandler(this.mapEvents[eventName][layerName]));
-                } else {
-                    this.map.on(
-                        eventName as any,
-                        layerName,
-                        this.getEventHandler(this.mapEvents[eventName][layerName])
-                    );
-                }
-            }
-        }
-        this.map.on('load', this.setMap);
-        this.map.on('error', this.onMapError);
         serviceLocator.addService('layerManager', this.layerManager);
         serviceLocator.addService('pathLayerManager', this.pathLayerManager);
+        this.layerManager.updateEnabledLayers(sectionLayers[this.props.activeSection]);
         mapCustomEvents.addEvents(serviceLocator.eventManager);
-        elementResizedEvent(this.mapContainer, this.onResizeContainer);
+        //elementResizedEvent(this.mapContainer, this.onResizeContainer);
+        // TODO Are those events all ours? Or are some mapbox's? In any case, they should all be documented in a map API file: who should use when, and which parameters are expected
         serviceLocator.eventManager.on('map.updateEnabledLayers', this.updateEnabledLayers);
         (serviceLocator.eventManager as EventManager).onEvent<MapUpdateLayerEventType>(
             'map.updateLayer',
@@ -265,15 +207,16 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.on('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.on('map.hideContextMenu', this.hideContextMenu);
         serviceLocator.eventManager.on('map.handleDrawControl', this.handleDrawControl);
-        serviceLocator.eventManager.on('map.deleteSelectedNodes', this.deleteSelectedNodes);
+        //serviceLocator.eventManager.on('map.deleteSelectedNodes', this.deleteSelectedNodes);
         serviceLocator.eventManager.on('map.deleteSelectedPolygon', this.deleteSelectedPolygon);
+        serviceLocator.eventManager.emit('map.loaded');
     };
 
     componentWillUnmount = () => {
         serviceLocator.removeService('layerManager');
         serviceLocator.removeService('pathLayerManager');
         mapCustomEvents.removeEvents(serviceLocator.eventManager);
-        removeResizeListener(this.mapContainer, this.onResizeContainer);
+        // removeResizeListener(this.mapContainer, this.onResizeContainer);
         serviceLocator.eventManager.off('map.updateEnabledLayers', this.updateEnabledLayers);
         serviceLocator.eventManager.off('map.updateLayer', this.updateLayer);
         serviceLocator.eventManager.off('map.updateLayers', this.updateLayers);
@@ -295,7 +238,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.off('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.off('map.hideContextMenu', this.hideContextMenu);
         serviceLocator.eventManager.off('map.handleDrawControl', this.handleDrawControl);
-        serviceLocator.eventManager.off('map.deleteSelectedNodes', this.deleteSelectedNodes);
+        //serviceLocator.eventManager.off('map.deleteSelectedNodes', this.deleteSelectedNodes);
         serviceLocator.eventManager.off('map.deleteSelectedPolygon', this.deleteSelectedPolygon);
         this.map?.remove(); // this will clean up everything including events
     };
@@ -424,12 +367,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         });
     };
 
-    deleteSelectedNodes = () => {
-        this.setState({
-            confirmModalDeleteIsOpen: true
-        });
-    };
-
     onDeleteSelectedNodes = () => {
         serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 0.0 });
         const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
@@ -498,15 +435,17 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         data: GeoJSON.FeatureCollection | ((original: GeoJSON.FeatureCollection) => GeoJSON.FeatureCollection);
     }) => {
         this.layerManager.updateLayer(args.layerName, args.data);
+        this.setState({ enabledLayers: Object.keys(this.layerManager.getEnabledLayers()) });
     };
 
     updateLayers = (geojsonByLayerName) => {
-        //console.log('updating map layers', Object.keys(geojsonByLayerName));
         this.layerManager.updateLayers(geojsonByLayerName);
+        this.setState({ enabledLayers: Object.keys(this.layerManager.getEnabledLayers()) });
     };
 
     updateEnabledLayers = (enabledLayers: string[]) => {
         this.layerManager.updateEnabledLayers(enabledLayers);
+        this.setState({ enabledLayers });
     };
 
     showContextMenu = (e, elements) => {
@@ -546,22 +485,36 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.state.contextMenuRoot.render(<React.Fragment></React.Fragment>);
     };
 
+    onLayerFilter = (context: FilterContext): boolean => {
+        return true;
+    };
+
+    // FIXME: Find the type for this
+    onViewStateChange = (viewStateChange) => {
+        this.setState({ viewState: viewStateChange.viewState });
+        // TODO Save map prefs
+        viewStateChange.viewState.latitude;
+        viewStateChange.viewState.longitude;
+        viewStateChange.viewState.zoom;
+    };
+
     render() {
+        const enabledLayers = this.layerManager.getEnabledLayers();
+
+        const layers: Layer[] = enabledLayers
+            .map((layer) => getLayer({ layerDescription: layer, viewState: this.state.viewState }))
+            .filter((layer) => layer !== undefined) as Layer[];
+        //<Map mapboxAccessToken={MAPBOX_ACCESS_TOKEN} />
         return (
             <section id="tr__main-map">
                 <div id="tr__main-map-context-menu" className="tr__main-map-context-menu"></div>
                 {this.props.children}
-                <div id="mapboxgl-map" ref={this.setRef} style={{ height: '100%', width: '100%' }}></div>
-                {this.state.confirmModalDeleteIsOpen && (
-                    <ConfirmModal
-                        title={this.props.t('transit:transitNode:ConfirmMultipleDelete')}
-                        confirmAction={this.onDeleteSelectedNodes}
-                        isOpen={true}
-                        confirmButtonColor="red"
-                        confirmButtonLabel={this.props.t('transit:transitNode:MultipleDelete')}
-                        closeModal={() => this.setState({ confirmModalDeleteIsOpen: false })}
-                    />
-                )}
+                <DeckGL
+                    viewState={this.state.viewState}
+                    controller={{ scrollZoom: true, dragPan: true }}
+                    layers={layers}
+                    onViewStateChange={this.onViewStateChange}
+                ></DeckGL>
             </section>
         );
     }
