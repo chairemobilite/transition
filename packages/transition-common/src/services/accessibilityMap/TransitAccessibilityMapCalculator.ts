@@ -21,10 +21,8 @@ import _sum from 'lodash/sum';
 import TransitAccessibilityMapRouting from './TransitAccessibilityMapRouting';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-common/lib/services/trRouting/TrRoutingServiceManager';
-import {
-    TrRoutingResultAccessibilityMap,
-    AccessibilityMapQueryOptions
-} from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { AccessibilityMapQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { _toInteger, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -138,9 +136,6 @@ export class TransitAccessibilityMapCalculator {
             timeOfTrip: options.timeSecondsSinceMidnight,
             timeOfTripType: options.timeOfTripType
         };
-        if (options.accessibleNodes) {
-            params.accessibleNodes = options.accessibleNodes;
-        }
         return params;
     }
 

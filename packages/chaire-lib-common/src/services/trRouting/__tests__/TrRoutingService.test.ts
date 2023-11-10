@@ -232,10 +232,10 @@ describe('Test routeV1 call', () => {
 });
 
 describe('Test accessibility map calls', () => {
+    
     test('With origin', async () => {
-        // Test only an origin and departure time, the alternative should not be set and all_nodes=1 should be there
-        socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
-        await trRoutingService.accessibleMap({minWaitingTime: 180,
+        const parameters = {
+            minWaitingTime: 180,
             maxAccessTravelTime: 900,
             maxEgressTravelTime: 900,
             maxTransferTravelTime: 900,
@@ -243,171 +243,96 @@ describe('Test accessibility map calls', () => {
             scenarioId: 'abcdef',
             location: origin,
             timeOfTrip: 10800,
-            timeOfTripType: 'departure'
-        });
-        expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-        expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
-    
-        const queryString = socketEventManager.emit.mock.calls[0][1].query;
-        expect(queryString).toContain(`&departure_time_seconds=10800`);
-        expect(queryString).toContain(`&origin=${origin.geometry.coordinates[1]},${origin.geometry.coordinates[0]}`);
-        expect(queryString).toContain(`all_nodes=1`);
-        expect(queryString).not.toContain(`&destination`);
-        expect(queryString).not.toContain(`&arrival_time_seconds`);
-        expect(queryString).not.toContain('alternatives');
-        expect(queryString).not.toContain(`access_node_uuids`);
-    });
-    
-    test('With origin and accessible nodes', async () => {
-        const accessibleNodes = { ids: ['uuid1', 'uuid2'], durations: [125.3, 130] };
+            timeOfTripType: 'departure' as const
+        };
+        const nodes = [{
+            nodeName: 'TestNode',
+            nodeCode: 'T',
+            nodeUuid: 'arbitrary',
+            nodeTime: 11800,
+            nodeCoordinates: origin,
+            totalTravelTime: 900,
+            numberOfTransfers: 1
+        }];
         // Test only an origin and departure time, the alternative should not be set and all_nodes=1 should be there
-        socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
-        await trRoutingService.accessibleMap({minWaitingTime: 180,
-            maxAccessTravelTime: 900,
-            maxEgressTravelTime: 900,
-            maxTransferTravelTime: 900,
-            maxTravelTime: 900,
-            scenarioId: 'abcdef',
-            location: origin,
-            timeOfTrip: 10800,
-            timeOfTripType: 'departure',
-            accessibleNodes
-        });
+        socketEventManager.emit.mockImplementationOnce((_socketRoute, _args, callback) => callback(Status.createOk({
+            status: 'success', 
+            query: {
+                place: origin.geometry.coordinates,
+                timeType: 0,
+                timeOfTrip: 10800
+            },
+            result: {
+                nodes,
+                totalNodeCount: 10
+            }
+        })));
+        const result = await trRoutingService.accessibleMap(parameters);
         expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-        expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
-    
-        const queryString = socketEventManager.emit.mock.calls[0][1].query;
-        expect(queryString).toContain(`&departure_time_seconds=10800`);
-        expect(queryString).toContain(`&origin=${origin.geometry.coordinates[1]},${origin.geometry.coordinates[0]}`);
-        expect(queryString).toContain(`&access_node_uuids=uuid1,uuid2`);
-        expect(queryString).toContain(`&access_node_travel_times=125,130`);
-        expect(queryString).toContain(`all_nodes=1`);
-        expect(queryString).not.toContain(`&destination`);
-        expect(queryString).not.toContain(`&arrival_time_seconds`);
-        expect(queryString).not.toContain('alternatives');
-        expect(queryString).not.toContain('egress_node_uuids');
-        expect(queryString).not.toContain('egress_node_travel_times');
-    });
-    
-    test('With origin and accessible nodes with unmatched sizes', async () => {
-        // 2 ids, 1 distance
-        const accessibleNodes = { ids: ['uuid1', 'uuid2'], durations: [125.3] };
-        // Test only an origin and departure time, the alternative should not be set and all_nodes=1 should be there
-        socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
-        await trRoutingService.accessibleMap({minWaitingTime: 180,
-            maxAccessTravelTime: 900,
-            maxEgressTravelTime: 900,
-            maxTransferTravelTime: 900,
-            maxTravelTime: 900,
-            scenarioId: 'abcdef',
-            location: origin,
-            timeOfTrip: 10800,
-            timeOfTripType: 'departure',
-            accessibleNodes
-        });
-        expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-        expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
-    
-        const queryString = socketEventManager.emit.mock.calls[0][1].query;
-        expect(queryString).toContain(`&departure_time_seconds=10800`);
-        expect(queryString).toContain(`&origin=${origin.geometry.coordinates[1]},${origin.geometry.coordinates[0]}`);
-        expect(queryString).toContain(`all_nodes=1`);
-        expect(queryString).not.toContain(`&destination`);
-        expect(queryString).not.toContain(`&arrival_time_seconds`);
-        expect(queryString).not.toContain('alternatives');
-        expect(queryString).not.toContain('egress_node_uuids');
-        expect(queryString).not.toContain('egress_node_travel_times');
-        expect(queryString).not.toContain('access_node_uuids');
-        expect(queryString).not.toContain('access_node_travel_times');
+        expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ACCESSIBILITY_MAP, { parameters, hostPort: undefined }, expect.anything());
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(result).toEqual({ type: 'nodes', nodes: [{ 
+            arrivalTimeSeconds: nodes[0].nodeTime,
+            arrivalTime: undefined,
+            departureTime: undefined,
+            departureTimeSeconds: undefined,
+            numberOfTransfers: nodes[0].numberOfTransfers,
+            id: nodes[0].nodeUuid,
+            totalTravelTimeSeconds: nodes[0].totalTravelTime
+        }] });
+
     });
     
     test('With destination', async () => {
-        // Test only an destination and arrival time, the alternative should not be set and all_nodes=1 should be there
-        socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
-        const result = await trRoutingService.accessibleMap({minWaitingTime: 180,
+        const parameters = {
+            minWaitingTime: 180,
             maxAccessTravelTime: 900,
             maxEgressTravelTime: 900,
             maxTransferTravelTime: 900,
             maxTravelTime: 900,
             scenarioId: 'abcdef',
-            location: destination,
+            location: origin,
             timeOfTrip: 10800,
-            timeOfTripType: 'arrival'
-        });
+            timeOfTripType: 'arrival' as const
+        };
+        const nodes = [{
+            nodeName: 'TestNode',
+            nodeCode: 'T',
+            nodeUuid: 'arbitrary',
+            nodeTime: 11800,
+            nodeCoordinates: origin,
+            totalTravelTime: 900,
+            numberOfTransfers: 1
+        }];
+        // Test only an origin and departure time, the alternative should not be set and all_nodes=1 should be there
+        socketEventManager.emit.mockImplementationOnce((_socketRoute, _args, callback) => callback(Status.createOk({
+            status: 'success', 
+            query: {
+                place: origin.geometry.coordinates,
+                timeType: 1,
+                timeOfTrip: 10800
+            },
+            result: {
+                nodes,
+                totalNodeCount: 10
+            }
+        })));
+        const result = await trRoutingService.accessibleMap(parameters);
         expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-        expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
-    
-        const queryString = socketEventManager.emit.mock.calls[0][1].query;
-        expect(queryString).toContain(`&arrival_time_seconds=10800`);
-        expect(queryString).toContain(`&destination=${destination.geometry.coordinates[1]},${destination.geometry.coordinates[0]}`);
-        expect(queryString).toContain(`all_nodes=1`);
-        expect(queryString).not.toContain(`&origin`);
-        expect(queryString).not.toContain(`&departure_time_seconds`);
-        expect(queryString).not.toContain('alternatives');
+        expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ACCESSIBILITY_MAP, { parameters, hostPort: undefined }, expect.anything());
+        expect(fetchMock).not.toHaveBeenCalled();
+        expect(result).toEqual({ type: 'nodes', nodes: [{ 
+            arrivalTimeSeconds: undefined,
+            arrivalTime: undefined,
+            departureTime: undefined,
+            departureTimeSeconds: nodes[0].nodeTime,
+            numberOfTransfers: nodes[0].numberOfTransfers,
+            id: nodes[0].nodeUuid,
+            totalTravelTimeSeconds: nodes[0].totalTravelTime
+        }] });
+
     });
-    
-    test('With destination and accessible nodes', async () => {
-        const accessibleNodes = { ids: ['uuid1', 'uuid2'], durations: [125.3, 130] };
-        // Test only an destination and arrival time, the alternative should not be set and all_nodes=1 should be there
-        socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
-        const result = await trRoutingService.accessibleMap({minWaitingTime: 180,
-            maxAccessTravelTime: 900,
-            maxEgressTravelTime: 900,
-            maxTransferTravelTime: 900,
-            maxTravelTime: 900,
-            scenarioId: 'abcdef',
-            location: destination,
-            timeOfTrip: 10800,
-            timeOfTripType: 'arrival',
-            accessibleNodes
-        });
-        expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-        expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
-    
-        const queryString = socketEventManager.emit.mock.calls[0][1].query;
-        expect(queryString).toContain(`&arrival_time_seconds=10800`);
-        expect(queryString).toContain(`&destination=${destination.geometry.coordinates[1]},${destination.geometry.coordinates[0]}`);
-        expect(queryString).toContain(`&egress_node_uuids=uuid1,uuid2`);
-        expect(queryString).toContain(`&egress_node_travel_times=125,130`);
-        expect(queryString).toContain(`all_nodes=1`);
-        expect(queryString).not.toContain(`&origin`);
-        expect(queryString).not.toContain(`&departure_time_seconds`);
-        expect(queryString).not.toContain('alternatives');
-        expect(queryString).not.toContain('access_node_uuids');
-        expect(queryString).not.toContain('access_node_travel_times');
-    });
-    
-    test('With destination and accessible nodes with unmatched sizes', async () => {
-        // 2 ids, 1 distance
-        const accessibleNodes = { ids: ['uuid1', 'uuid2'], durations: [125.3] };
-        // Test only an destination and arrival time, the alternative should not be set and all_nodes=1 should be there
-        socketEventManager.emit.mockImplementation((_socketRoute, _args, callback) => callback(Status.createOk({status: 'success'})));
-        const result = await trRoutingService.accessibleMap({minWaitingTime: 180,
-            maxAccessTravelTime: 900,
-            maxEgressTravelTime: 900,
-            maxTransferTravelTime: 900,
-            maxTravelTime: 900,
-            scenarioId: 'abcdef',
-            location: destination,
-            timeOfTrip: 10800,
-            timeOfTripType: 'arrival',
-            accessibleNodes
-        });
-        expect(socketEventManager.emit).toHaveBeenCalledTimes(1);
-        expect(socketEventManager.emit).toHaveBeenLastCalledWith(TrRoutingConstants.ROUTE_V1, expect.anything(), expect.anything());
-    
-        const queryString = socketEventManager.emit.mock.calls[0][1].query;
-        expect(queryString).toContain(`&arrival_time_seconds=10800`);
-        expect(queryString).toContain(`&destination=${destination.geometry.coordinates[1]},${destination.geometry.coordinates[0]}`);
-        expect(queryString).toContain(`all_nodes=1`);
-        expect(queryString).not.toContain(`&origin`);
-        expect(queryString).not.toContain(`&departure_time_seconds`);
-        expect(queryString).not.toContain('alternatives');
-        expect(queryString).not.toContain('egress_node_uuids');
-        expect(queryString).not.toContain('egress_node_travel_times');
-        expect(queryString).not.toContain('access_node_uuids');
-        expect(queryString).not.toContain('access_node_travel_times');
-    });
+
 });
 
 describe('Test route call', () => {
