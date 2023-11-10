@@ -116,28 +116,6 @@ describe('Test trRouting calls with various parameters', () => {
         expect(countChecks).toEqual(7);
     });
 
-    test('Test with accessible nodes', async () => {
-        const accessibleNodes = { ids: ['uuid1', 'uuid2'], durations: [400, 250.3] };
-        accessMapRouting = new TransitAccessibilityMapRouting(defaultAttributes);
-        try {
-            await TransitAccessibilityMapCalculator.calculate(accessMapRouting, false, { accessibleNodes });
-        } catch(e) {
-            /* it's normal to fail */
-        }
-        expect(mockedTrRouting.mockAccessibleMapFunction).toHaveBeenCalledTimes(1);
-        expect(mockedTrRouting.mockAccessibleMapFunction).toHaveBeenCalledWith(expect.objectContaining({
-            minWaitingTime: 180,
-            maxAccessTravelTime: 900,
-            maxEgressTravelTime: 900,
-            maxTransferTravelTime: 900,
-            scenarioId: defaultAttributes.scenarioId,
-            maxTravelTime: 900,
-            location: defaultAttributes.locationGeojson,
-            timeOfTrip: defaultAttributes.arrivalTimeSecondsSinceMidnight,
-            timeOfTripType: 'arrival',
-            accessibleNodes
-        }), expect.anything());
-    });
 });
 
 // FIXME: Will be brought back and fixed a few patches later with the NodeCollection. Easier than to temporarily fix the test

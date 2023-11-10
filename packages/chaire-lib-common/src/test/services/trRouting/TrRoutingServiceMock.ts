@@ -23,12 +23,8 @@ mockRouteFunction.mockImplementation(async (_params) => {
     };
 });
 
-const mockAccessibleMapFunction: jest.MockedFunction<
-    (
-        params: TrRoutingService.RoutingQueryOptions,
-        options: { [key: string]: unknown }
-    ) => Promise<TrRoutingService.TrRoutingResultAccessibilityMap>
-> = jest.fn();
+const mockAccessibleMapFunction: jest.MockedFunction<typeof TrRoutingService.TrRoutingService.prototype.accessibleMap> =
+    jest.fn();
 mockAccessibleMapFunction.mockImplementation(async (_params, _options) => {
     return {
         type: 'nodes',
