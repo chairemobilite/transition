@@ -232,10 +232,10 @@ const dashShaders = {
     }
   `,
    /*   'fs:DECKGL_FILTER_COLOR': `\
-    color = vec4(102, 102, 255, 1)
+    color = vec4(102, 102, 255, 1);
   `,*/
-    /*   'fs:#main-end': `\
-    gl_FragColor = vec4(102, 102, 255, 1.0)
-`*/
+       'fs:#main-end': `\
+    gl_FragColor = vec4(102/255, 102/255, 255/255, 1.0);
+`
     }
 };
