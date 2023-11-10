@@ -121,6 +121,36 @@ class TrRoutingServiceBackend {
         return trRoutingQueryArray.join('&');
     };
 
+    private accessMapOptionsToQueryString = (parameters: TrRoutingApi.AccessibilityMapQueryOptions): string => {
+        const trRoutingQueryArray = [
+            `place=${parameters.location.geometry.coordinates[0]},${parameters.location.geometry.coordinates[1]}`,
+            `scenario_id=${parameters.scenarioId}`,
+            `time_of_trip=${parameters.timeOfTrip}`,
+            `time_type=${parameters.timeOfTripType === 'departure' ? 0 : 1}`
+        ];
+
+        if (parameters.minWaitingTime) {
+            trRoutingQueryArray.push(`min_waiting_time=${parameters.minWaitingTime}`);
+        }
+        if (parameters.maxAccessTravelTime) {
+            trRoutingQueryArray.push(`max_access_travel_time=${parameters.maxAccessTravelTime}`);
+        }
+        if (parameters.maxEgressTravelTime) {
+            trRoutingQueryArray.push(`max_egress_travel_time=${parameters.maxEgressTravelTime}`);
+        }
+        if (parameters.maxTransferTravelTime) {
+            trRoutingQueryArray.push(`max_transfer_travel_time=${parameters.maxTransferTravelTime}`);
+        }
+        if (parameters.maxTravelTime) {
+            trRoutingQueryArray.push(`max_travel_time=${parameters.maxTravelTime}`);
+        }
+        if (parameters.maxFirstWaitingTime) {
+            trRoutingQueryArray.push(`max_first_waiting_time=${parameters.maxFirstWaitingTime}`);
+        }
+
+        return trRoutingQueryArray.join('&');
+    };
+
     route(
         parameters: TrRoutingApi.TransitRouteQueryOptions,
         hostPort: TrRoutingApi.HostPort = {}
@@ -143,6 +173,20 @@ class TrRoutingServiceBackend {
             undefined,
             undefined,
             'v2/summary'
+        );
+    }
+
+    accessibilityMap(
+        parameters: TrRoutingApi.AccessibilityMapQueryOptions,
+        hostPort: TrRoutingApi.HostPort = {}
+    ): Promise<TrRoutingApi.TrRoutingV2.AccessibilityMapResponse> {
+        const trRoutingQuery = this.accessMapOptionsToQueryString(parameters);
+
+        return this.request<TrRoutingApi.TrRoutingV2.AccessibilityMapResponse>(
+            trRoutingQuery,
+            hostPort.host,
+            hostPort.port,
+            'v2/accessibility'
         );
     }
 

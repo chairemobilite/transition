@@ -89,4 +89,24 @@ export class TrRoutingConstants {
      * @memberof TrRoutingConstants
      */
     static readonly FETCH_SUMMARY_URL = '/trRouting/summary';
+    /**
+     * Socket route name to call an accessibility map calculation. It
+     * takes a parameter of type {@link TrRoutingTypes.AccessibilityMapQueryOptions}
+     * and will return a {@link Status} with a {@link TrRoutingV2.AccessibilityMapResponse}
+     * on success
+     *
+     * @static
+     * @memberof TrRoutingConstants
+     */
+    static readonly ACCESSIBILITY_MAP = 'service.trRouting.accessibilityMap';
+    /**
+     * Relative URL to use when fetching an accessibility map request from the
+     * server. It takes a parameter of type
+     * {@link TrRoutingTypes.AccessibilityMapQueryOptions} and will return a
+     * {@link Status} with a {@link TrRoutingV2.AccessibilityMapResponse} on success
+     *
+     * @static
+     * @memberof TrRoutingConstants
+     */
+    static readonly FETCH_ACCESSIBILITY_MAP_URL = '/trRouting/accessibilityMap';
 }

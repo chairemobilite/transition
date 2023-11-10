@@ -170,6 +170,16 @@ export default function (socket: EventEmitter, userId?: number) {
         }
     });
 
+    socket.on(TrRoutingConstants.ACCESSIBILITY_MAP, async ({ parameters, hostPort }, callback) => {
+        try {
+            const routingResults = await trRoutingService.accessibilityMap(parameters, hostPort);
+            callback(Status.createOk(routingResults));
+        } catch (error) {
+            console.error(error);
+            callback(Status.createError(TrError.isTrError(error) ? error.message : error));
+        }
+    });
+
     // These routes create tasks, which need to be associated to a user. If
     // there is no userId here, it means the socket routes are set from CLI and
     // it can't run these tasks now.
