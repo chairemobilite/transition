@@ -201,8 +201,6 @@ const dashShaders = {
   
     float offset;
     float unitOffset = 0.0;
-    float shouldDraw = 0.0;
-    float myVar = 0.0;
     if (unitLength > 0.0) {
       if (dashAlignMode == 0.0) {
         offset = vDashOffset;
@@ -211,15 +209,13 @@ const dashShaders = {
         offset = solidLength / 2.0;
       }
   
-      float unitOffset = mod(vPathPosition.y + offset, unitLength);
-      myVar = mod(vPathPosition.y + offset, unitLength);
-      //gl_FragColor = vec4(102/255, 102/255, 255/255, 1.0 - (unitOffset) / unitLength);
+      unitOffset = mod(vPathPosition.y + offset, unitLength);
+
       if (gapLength > 0.0 && unitOffset > solidLength) {
         if (capType <= 0.5) {
           if (!(dashGapPickable && picking_uActive)) {
             //discard;
             //gl_FragColor = vec4(102/255, 102/255, 255/255, 1.0);
-            shouldDraw = 1.0;
           } else {
             //gl_FragColor = vec4(50/255, 50/255, 255/255, 0.5);
           }
@@ -239,12 +235,20 @@ const dashShaders = {
     }
   `,
       'fs:#main-end': `\
-    gl_FragColor = vec4(102/255, 102/255, 255/255, 1.0 - (myVar) / unitLength);
-    //if (shouldDraw > 0.0) {
-    //  gl_FragColor = vec4(102/255, 102/255, 255/255, 1.0 - (unitOffset) / unitLength);
-    //} else {
-    //  gl_FragColor = vec4(50/255, 50/255, 255/255, 0.5);
-    //}
+      float relY = unitOffset / unitLength;
+      // https://github.com/visgl/deck.gl/blob/b7c9fcc2b6e8693b5574a498fd128919b9780b49/modules/layers/src/path-layer/path-layer-fragment.glsl.ts#L31-L35
+      //if (abs(vPathPosition.x)*geometry.uv.x <= relY*unitLength) {
+      float shift = 0.12;
+      if (relY < 0.12 && abs(vPathPosition.x) <= 10.0*relY) {
+        gl_FragColor = vec4(255/255, 255/255, 255/255, 1.0);
+      } else {
+        // Can this be cleaned up?
+        float alpha = 1.0 - relY;
+        if (relY < shift) {
+            alpha = 1.0 - alpha - shift;
+        }
+        gl_FragColor = vec4(102/255, 102/255, 255/255, mix(0.5, 1.0, alpha));
+      }
   `,
    /*    'fs:#main-end': `\
       //float unitOffset = mod(vPathPosition.y + offset, unitLength);
