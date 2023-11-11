@@ -200,7 +200,9 @@ const dashShaders = {
     float unitLength = solidLength + gapLength;
   
     float offset;
-  
+    float unitOffset = 0.0;
+    float shouldDraw = 0.0;
+    float myVar = 0.0;
     if (unitLength > 0.0) {
       if (dashAlignMode == 0.0) {
         offset = vDashOffset;
@@ -210,11 +212,16 @@ const dashShaders = {
       }
   
       float unitOffset = mod(vPathPosition.y + offset, unitLength);
-  
+      myVar = mod(vPathPosition.y + offset, unitLength);
+      //gl_FragColor = vec4(102/255, 102/255, 255/255, 1.0 - (unitOffset) / unitLength);
       if (gapLength > 0.0 && unitOffset > solidLength) {
         if (capType <= 0.5) {
           if (!(dashGapPickable && picking_uActive)) {
-            discard;
+            //discard;
+            //gl_FragColor = vec4(102/255, 102/255, 255/255, 1.0);
+            shouldDraw = 1.0;
+          } else {
+            //gl_FragColor = vec4(50/255, 50/255, 255/255, 0.5);
           }
         } else {
           // caps are rounded, test the distance to solid ends
@@ -231,11 +238,17 @@ const dashShaders = {
       }
     }
   `,
-   /*   'fs:DECKGL_FILTER_COLOR': `\
-    color = vec4(102, 102, 255, 1);
-  `,*/
-       'fs:#main-end': `\
-    gl_FragColor = vec4(102/255, 102/255, 255/255, 1.0);
-`
+      'fs:#main-end': `\
+    gl_FragColor = vec4(102/255, 102/255, 255/255, 1.0 - (myVar) / unitLength);
+    //if (shouldDraw > 0.0) {
+    //  gl_FragColor = vec4(102/255, 102/255, 255/255, 1.0 - (unitOffset) / unitLength);
+    //} else {
+    //  gl_FragColor = vec4(50/255, 50/255, 255/255, 0.5);
+    //}
+  `,
+   /*    'fs:#main-end': `\
+      //float unitOffset = mod(vPathPosition.y + offset, unitLength);
+      //gl_FragColor = vec4(102/255, 102/255, 255/255, 1.0 - (unitOffset / unitLength));
+`*/
     }
 };
