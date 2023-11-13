@@ -146,20 +146,6 @@ export default function (socket: EventEmitter, userId?: number) {
             });
     });
 
-    socket.on(TrRoutingConstants.ROUTE_V1, async (parameters, callback) => {
-        try {
-            const routingResults = await trRoutingService.v1TransitCall(
-                parameters.query,
-                parameters.host || 'http://localhost',
-                parameters.port || Preferences.get('trRouting.port')
-            );
-            callback(Status.createOk(routingResults));
-        } catch (error) {
-            console.error(error);
-            callback(Status.createError(TrError.isTrError(error) ? error.message : error));
-        }
-    });
-
     socket.on(TrRoutingConstants.ROUTE, async ({ parameters, hostPort }, callback) => {
         try {
             const routingResults = await trRoutingService.route(parameters, hostPort);
