@@ -258,38 +258,20 @@ class TrRoutingBatch {
         routing: TransitRouting
     ): Promise<{ input: string; csv?: string; detailedCsv?: string; geojson?: string }> => {
         const { resultHandler, pathCollection } = await this.prepareResultData(routing);
-
-        let currentResultPage = 0;
-        let totalCount = 0;
-        const pageSize = 250;
-        do {
-            const { totalCount: total, tripResults } = await resultsDbQueries.collection(this.options.jobId, {
-                pageIndex: currentResultPage,
-                pageSize
+        const resultStream = resultsDbQueries.streamResults(this.options.jobId);
+        for await (const row of resultStream) {
+            // TODO Try to pipe the result generator and processor directly into this database result stream, to avoid all the awaits
+            const result = resultsDbQueries.resultParser(row);
+            const processedResults = await generateFileOutputResults(result.data, routing.attributes.routingModes, {
+                exportCsv: true,
+                exportDetailed: this.transitRoutingAttributes.detailed === true,
+                withGeometries: this.transitRoutingAttributes.withGeometries === true,
+                pathCollection
             });
-            totalCount = total;
-            for (let i = 0; i < tripResults.length; i++) {
-                const processedResults = await generateFileOutputResults(
-                    tripResults[i].data,
-                    routing.attributes.routingModes,
-                    {
-                        exportCsv: true,
-                        exportDetailed: this.transitRoutingAttributes.detailed === true,
-                        withGeometries: this.transitRoutingAttributes.withGeometries === true,
-                        pathCollection
-                    }
-                );
-                resultHandler.processResult(processedResults);
-            }
-            currentResultPage++;
-        } while (Math.ceil(totalCount / pageSize) > currentResultPage);
-        resultHandler.end();
+            resultHandler.processResult(processedResults);
+        }
 
-        // FIXME Results are kept in the database instead of being deleted
-        // because if the server is restarted after the results are deleted but
-        // before the job is marked as completed, all calculations will be lost.
-        // The results will be automatically deleted when the job is deleted
-        // from the interface though.
+        resultHandler.end();
         return resultHandler.getFiles();
     };
 

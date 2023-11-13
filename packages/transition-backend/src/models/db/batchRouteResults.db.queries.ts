@@ -130,6 +130,28 @@ const collection = async (
 };
 
 /**
+ * Get a stream of results
+ * FIXME Should this replace the collection call?
+ *
+ * @param jobId The ID of the job for which to get the results
+ * @returns
+ */
+const streamResults = (jobId: number) => {
+    try {
+        const resultsQuery = knex.select().from(tableName).where('job_id', jobId).orderBy('trip_index');
+
+        // TODO Try to pipe the attributeParser in the stream
+        return resultsQuery.stream();
+    } catch (error) {
+        throw new TrError(
+            `cannot fetch batch route results stream because of a database error (knex error: ${error})`,
+            'DBBRR0002',
+            'TransitTaskResultCouldNotBeStreamedBecauseDatabaseError'
+        );
+    }
+};
+
+/**
  * Delete the results for a specific job
  *
  * @param jobId The ID of the job for which to delete
@@ -156,7 +178,9 @@ const deleteForJob = async (jobId: number, tripIndex?: number): Promise<void> =>
 export default {
     create,
     collection,
+    streamResults,
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
-    deleteForJob
+    deleteForJob,
+    resultParser: attributesParser
 };

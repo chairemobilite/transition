@@ -225,6 +225,63 @@ describe(`${objectName}`, () => {
         expect((resultsPage2[0].data.results as any)['cycling']?.getParams()).toEqual(resultByMode2.cycling.getParams());
     });
 
+    test('should stream empty results when no data', (done) => {
+        const tripResults: any[] = [];
+        const stream = dbQueries.streamResults(jobId as number + 1);
+        stream
+            .on('error', (error) => {
+                expect(error).toEqual('success');
+                done();
+            })
+            .on('data', (row) => {
+                tripResults.push(row);
+            })
+            .on('end', () => {
+                expect(tripResults.length).toEqual(0);
+                done();
+            });
+    });
+
+    test('should stream the complete collection', (done) => {
+        const tripResults: any[] = [];
+        const stream = dbQueries.streamResults(jobId as number);
+        stream
+            .on('error', (error) => {
+                expect(error).toEqual('success');
+                done();
+            })
+            .on('data', (row) => {
+                tripResults.push(dbQueries.resultParser(row));
+            })
+            .on('end', () => {
+                expect(tripResults.length).toEqual(3);
+                expect(tripResults[0]).toEqual(expect.objectContaining({
+                    jobId,
+                    tripIndex: 0,
+                    data: expect.objectContaining(trip1Data)
+                }));
+                expect(Object.keys(tripResults[0].data.results as any)).toEqual(Object.keys(resultByMode));
+                expect((tripResults[0].data.results as any)['transit']?.getParams()).toEqual(resultByMode.transit.getParams());
+
+                expect(tripResults[1]).toEqual(expect.objectContaining({
+                    jobId,
+                    tripIndex: 1,
+                    data: expect.objectContaining(trip2Data)
+                }));
+                expect(Object.keys(tripResults[1].data.results as any)).toEqual(Object.keys(resultByMode2));
+                expect((tripResults[1].data.results as any)['transit']?.getParams()).toEqual(resultByMode2.transit.getParams());
+                expect((tripResults[1].data.results as any)['cycling']?.getParams()).toEqual(resultByMode2.cycling.getParams());
+
+                expect(tripResults[2]).toEqual({
+                    jobId,
+                    tripIndex: 2,
+                    data: expect.objectContaining(trip3Data)
+                });
+                expect(tripResults[2].data.results).toBeUndefined();
+                done();
+            });
+    });
+
     test('should correctly delete even for unexisting jobs', async() => {
         await dbQueries.deleteForJob(jobId as number + 1);
 
