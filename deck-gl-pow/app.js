@@ -5,13 +5,13 @@ import {TripsLayer} from '@deck.gl/geo-layers';
 import {createRoot} from 'react-dom/client';
 import { ScatterplotLayer } from 'deck.gl';
 import ScatterplotCustomLayer from './scatter-plot-custom-layer'
-import {ArrowPathLayer, ArrowPathStyleExtension} from './path-line-custom-layer2'
+import {ArrowPathLayer, ArrowPathStyleExtension} from './arrow-path-custom-layer'
 
 
 deck.log.enable();
-deck.log.level = 1;
+deck.log.level = 0;
 luma.log.enable();
-luma.log.level = 2;
+luma.log.level = 0;
 
 function getTooltip({object}) {
   return object && object.properties.name;
