@@ -18,7 +18,7 @@ import odPairsDbQueries from '../../../models/db/odPairs.db.queries';
 import resultDbQueries from '../../../models/db/batchRouteResults.db.queries';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import routeOdTrip from '../TrRoutingOdTrip';
-import { OdTripRouteResult } from '../types';
+import { Readable } from 'stream';
 
 const absoluteDir = `${directoryManager.userDataDirectory}/1/exports`;
 
@@ -95,19 +95,41 @@ jest.mock('chaire-lib-backend/lib/services/dataSources/dataSources', () => ({
     })
 }));
 
-const resultsInDb: {
-    jobId: number;
-    tripIndex: number;
-    data: OdTripRouteResult;
-}[] = []
-jest.mock('../../../models/db/batchRouteResults.db.queries', () => ({
-    create: jest.fn().mockImplementation((result) => resultsInDb.push(result)),
-    collection: jest.fn().mockImplementation((jobId, options) => ({ totalCount: resultsInDb.length, tripResults: resultsInDb })),
-    deleteForJob: jest.fn()
-}));
+const resultsInDb: any[] = []
+let mockedResultStream = new Readable();
+jest.mock('../../../models/db/batchRouteResults.db.queries', () => {
+    // Require the original module to not be mocked for config file existence check...
+    const originalModule =
+        jest.requireActual<typeof import('../../../models/db/batchRouteResults.db.queries')>('../../../models/db/batchRouteResults.db.queries');
+
+    return {
+        resultParser: originalModule.default.resultParser,
+        create: jest.fn().mockImplementation(({ jobId, tripIndex, data }) => {
+            const { results, ...rest } = data;
+            const resultParams = {};
+            if (results !== undefined) {
+                Object.keys(results).forEach((key) => {
+                    resultParams[key] = results[key].getParams();
+                });
+            }
+            resultsInDb.push({
+                job_id: jobId,
+                trip_index: tripIndex,
+                data: {
+                    ...rest,
+                    results: results !== undefined ? resultParams : undefined
+                }
+            })
+        }),
+        collection: jest.fn().mockImplementation((jobId, options) => ({ totalCount: resultsInDb.length, tripResults: resultsInDb })),
+        deleteForJob: jest.fn(),
+        streamResults: jest.fn().mockImplementation((jobId) => mockedResultStream)
+    };
+});
 const mockResultCreate = resultDbQueries.create as jest.MockedFunction<typeof resultDbQueries.create>;
 const mockResultCollection = resultDbQueries.collection as jest.MockedFunction<typeof resultDbQueries.collection>;
 const mockResultDeleteForJob = resultDbQueries.deleteForJob as jest.MockedFunction<typeof resultDbQueries.deleteForJob>;
+const mockStreamResults = resultDbQueries.streamResults as jest.MockedFunction<typeof resultDbQueries.streamResults>;
 
 jest.mock('../../../models/db/odPairs.db.queries');
 const inputFileName = 'batchRouting.csv';
@@ -132,15 +154,30 @@ const defaultBatchParameters = {
     cpuCount: 2
 }
 const jobId = 4;
+let resultsInDbCnt = 0;
 
 beforeEach(() => {
     resultsInDb.splice(0);
+    resultsInDbCnt = 0;
     routeOdTripMock.mockClear();
     mockCreateStream.mockClear();
     mockResultCreate.mockClear();
     mockResultCollection.mockClear();
     mockResultDeleteForJob.mockClear();
-})
+    mockStreamResults.mockClear();
+    mockedResultStream = new Readable({
+        objectMode: true,
+        read: function(size) {
+            if (resultsInDbCnt < resultsInDb.length) {
+                const sending = resultsInDb[resultsInDbCnt];
+                resultsInDbCnt++
+                return this.push(sending);
+            }
+            // Stream is finished return null to complete
+            return this.push(null);
+        }
+    });
+});
 
 test('Batch route to csv', async () => {
     const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test' }) };
@@ -168,46 +205,8 @@ test('Batch route to csv', async () => {
             tripIndex: i
         }));
     }
-    expect(mockResultCollection).toHaveBeenCalledTimes(1);
-    expect(mockResultCollection).toHaveBeenCalledWith(jobId, { pageIndex: 0, pageSize: 250 });
-    expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
-    expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId, undefined);
-});
-
-test('Batch route with many pages of results', async () => {
-    // Just mock the return value of the result collection call with a greater total cound, no need to have the actual number of results
-    mockResultCollection.mockResolvedValueOnce({ totalCount: 260, tripResults: resultsInDb });
-    mockResultCollection.mockResolvedValueOnce({ totalCount: 260, tripResults: resultsInDb });
-
-    const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test' }) };
-    const result = await batchRoute(parameters, defaultBatchParameters, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock });
-    expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
-    expect(mockCreateStream).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({
-        calculationName: parameters.configuration.calculationName,
-        detailed: defaultBatchParameters.detailed,
-        completed: true,
-        errors: [],
-        warnings: [],
-        files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
-    });
-    const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith('batchRoutingResults.csv'));
-    expect(csvFileName).toBeDefined();
-    const csvStream = fileStreams[csvFileName as string];
-    // Twice the results because 2 pages of results + header
-    expect(csvStream.data.length).toEqual(2 * odTrips.length + 1);
-
-    // Validate the result database calls
-    expect(mockResultCreate).toHaveBeenCalledTimes(odTrips.length);
-    for (let i = 0; i < odTrips.length; i++) {
-        expect(mockResultCreate).toHaveBeenCalledWith(expect.objectContaining({
-            jobId,
-            tripIndex: i
-        }));
-    }
-    expect(mockResultCollection).toHaveBeenCalledTimes(2);
-    expect(mockResultCollection).toHaveBeenCalledWith(jobId, { pageIndex: 0, pageSize: 250 });
-    expect(mockResultCollection).toHaveBeenCalledWith(jobId, { pageIndex: 1, pageSize: 250 });
+    expect(mockStreamResults).toHaveBeenCalledTimes(1);
+    expect(mockStreamResults).toHaveBeenCalledWith(jobId);
     expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
     expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId, undefined);
 });
@@ -240,8 +239,8 @@ test('Batch route with some errors', async () => {
             tripIndex: i
         }));
     }
-    expect(mockResultCollection).toHaveBeenCalledTimes(1);
-    expect(mockResultCollection).toHaveBeenCalledWith(jobId, { pageIndex: 0, pageSize: 250 });
+    expect(mockStreamResults).toHaveBeenCalledTimes(1);
+    expect(mockStreamResults).toHaveBeenCalledWith(jobId);
     expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
     expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId, undefined);
 });
@@ -382,4 +381,3 @@ describe('Batch route from checkpoint', () => {
     });
 
 });
-
