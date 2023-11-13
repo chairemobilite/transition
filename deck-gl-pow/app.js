@@ -2,34 +2,16 @@ import React, {useState, useEffect} from 'react';
 import DeckGL from '@deck.gl/react';
 import {Map} from 'react-map-gl';
 import {TripsLayer} from '@deck.gl/geo-layers';
-import { PathLayer } from '@deck.gl/layers';
-import { PathStyleExtension } from '@deck.gl/extensions';
 import {createRoot} from 'react-dom/client';
 import { ScatterplotLayer } from 'deck.gl';
 import ScatterplotCustomLayer from './scatter-plot-custom-layer'
-import PathStyleExtension2 from './path-line-custom-layer2'
+import {ArrowPathLayer, ArrowPathStyleExtension} from './path-line-custom-layer2'
 
-class MyPathLayer extends PathLayer {
-    getShaders() {
-      const shaders = super.getShaders();
-      shaders.inject['vs:#decl'] += `\
-    uniform float dashStart;`;
-      shaders.inject['vs:#main-end'] += `\
-    vDashOffset += dashStart;`;
-      return shaders;
-    }
-    
-    draw(opts) {
-      opts.uniforms.dashStart = this.props.dashStart || 0;
-      super.draw(opts);
-    }
-  }
-  
 
 deck.log.enable();
-deck.log.level = 2;
+deck.log.level = 1;
 luma.log.enable();
-luma.log.level = 3;
+luma.log.level = 2;
 
 function getTooltip({object}) {
   return object && object.properties.name;
@@ -54,16 +36,16 @@ var nodeIndex = -1;
 
 var routeSelected = null; 
 var nodeSelected = null;
-console.log("Hello");
+
 export default function Counter({routeData, nodeData}) {
   const [time, setTime] = useState(0);
-  const [dashStart, setDashStart] = useState(0);
+  const [arrowPathStart, setArrowPathStart] = useState(0);
 
   const [animation] = useState({});
 
   const animate = () => {
     setTime(t => (t + 1) % 700);
-    setDashStart((Date.now() / 100) % 1000);
+    setArrowPathStart((Date.now() / 100) % 2000);
     animation.id = window.requestAnimationFrame(animate);
   };
 
@@ -103,34 +85,21 @@ export default function Counter({routeData, nodeData}) {
       }
     }),
 
-    new MyPathLayer({
-      id: 'trips-layer-selected',
+    new ArrowPathLayer({
+      id: 'arrow-path-layer',
       data: routeSelected,
       getPath: d => d.geometry.coordinates,
-      //getTimestamps: d => {setTimestamps(d);},
-      //opacity: 0.8,
-      //widthMinPixels: 2,
-      //rounded: true,
-      //fadeTrail: true,
-      //trailLength: 400,
-      //currentTime: parseFloat(Math.cos(time/20)*100 + 200),
-      //shadowEnabled: false,
       pickable: true,
-      /*getColor: d => {
-        const rgb = d.properties.color
-        return [200, 200, 0]
-      },*/
       getWidth: (d, i) => {
-        if(i.index === routeIndex) {
+        if (i.index === routeIndex) {
           return 70;
         }
         return 20;
       },
-      getDashArray: [4, 4],
-      getOffset: 20,
-      dashStart: dashStart,
-      getShaderColor: [102, 102, 255, 0],
-      extensions: [new PathStyleExtension2({highPrecisionDash: true })]
+      getSizeArray: [4, 4],
+      arrowPathStart: arrowPathStart,
+      extensions: [new ArrowPathStyleExtension()],
+      getLineColor: [102/100, 102/100, 255/100, 1.0], // Not currently taken into account
     }),
     
     new ScatterplotLayer({
