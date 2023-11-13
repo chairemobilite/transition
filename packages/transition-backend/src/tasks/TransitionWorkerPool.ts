@@ -129,6 +129,9 @@ const wrapTaskExecution = async (id: number) => {
         }
         task.setCompleted();
     } catch (error) {
+        console.error(
+            `Setting job ${task.attributes.id} (${task.attributes.name}) as failed because of an error: ${error}`
+        );
         task.setFailed();
     }
     await task.save(taskListener);
