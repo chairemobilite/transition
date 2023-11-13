@@ -235,12 +235,6 @@ describe('trRouting process manager routes', () => {
 });
 
 describe('trRouting routes', () => {
-    // Parameter to pass to socket route v1
-    const routeV1Parameters = {
-        query: 'query=bla',
-        host: 'https://test',
-        port: 80
-    };
 
     // Parameter to pass to socket route for `route`
     const routeParameters = {
@@ -291,50 +285,6 @@ describe('trRouting routes', () => {
         minWaitingTimeSeconds: 180,
         scenarioId: 'arbitrary'
     }
-
-    test('Route v1 correctly', (done) => {
-        const routeResponse = { 
-            status: 'no_routing_found' as const,
-            origin: [1, 1] as [number, number],
-            destination: [2, 1] as [number, number]
-        };
-        mockedTrRoutingV1Transit.mockResolvedValueOnce(routeResponse);
-        socketStub.emit(TrRoutingConstants.ROUTE_V1, routeV1Parameters, (response) => {
-            expect(Status.isStatusOk(response)).toBe(true);
-            expect(mockedTrRoutingV1Transit).toHaveBeenCalledWith(routeV1Parameters.query, routeV1Parameters.host, routeV1Parameters.port);
-            expect(response).toEqual(Status.createOk(routeResponse));
-            done();
-        });
-    });
-
-    test('Route v1 with default parameters correctly', (done) => {
-        const routeResponse = { 
-            status: 'no_routing_found' as const,
-            origin: [1, 1] as [number, number],
-            destination: [2, 1] as [number, number]
-        };
-        mockedTrRoutingV1Transit.mockResolvedValueOnce(routeResponse);
-        socketStub.emit(TrRoutingConstants.ROUTE_V1, { query: routeV1Parameters.query }, (response) => {
-            expect(Status.isStatusOk(response)).toBe(true);
-            expect(mockedTrRoutingV1Transit).toHaveBeenCalledWith(routeV1Parameters.query, 'http://localhost', Preferences.get('trRouting.port'));
-            expect(response).toEqual(Status.createOk(routeResponse));
-            done();
-        });
-    });
-
-    test('Route v1 with error', (done) => {
-        const message = 'Error routing transit';
-        const code = 'CODE';
-        const localizedMessage = 'transit:Message';
-        const error = new TrError(message, code, localizedMessage);
-        mockedTrRoutingV1Transit.mockRejectedValueOnce(error);
-        socketStub.emit(TrRoutingConstants.ROUTE_V1, routeV1Parameters, function (status) {
-            expect(mockedTrRoutingV1Transit).toHaveBeenCalledWith(routeV1Parameters.query, routeV1Parameters.host, routeV1Parameters.port);
-            expect(Status.isStatusError(status)).toBe(true);
-            expect((status as any).error).toEqual(message);
-            done();
-        });
-    });
 
     test('Route correctly', (done) => {
         const routeResponse = {

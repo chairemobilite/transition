@@ -5,15 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import * as TrRoutingService from '../../../services/trRouting/TrRoutingService';
-import { pathNoTransfer, pathNoTransferRouteResult } from './TrRoutingConstantsStubs';
-
-const mockRouteV1Function: jest.MockedFunction<typeof TrRoutingService.TrRoutingService.prototype.routeV1> = jest.fn();
-mockRouteV1Function.mockImplementation(async (_params, _options) => {
-    return {
-        type: 'path',
-        path: pathNoTransfer
-    };
-});
+import { pathNoTransferRouteResult } from './TrRoutingConstantsStubs';
 
 const mockRouteFunction: jest.MockedFunction<typeof TrRoutingService.TrRoutingService.prototype.route> = jest.fn();
 mockRouteFunction.mockImplementation(async (_params) => {
@@ -35,7 +27,6 @@ mockAccessibleMapFunction.mockImplementation(async (_params, _options) => {
 const enableMocks = () => {
     // The TrRoutingService module contains a lot of stuff, just mock the main
     // API function of the TrRoutingService class
-    TrRoutingService.TrRoutingService.prototype.routeV1 = mockRouteV1Function;
     TrRoutingService.TrRoutingService.prototype.accessibleMap = mockAccessibleMapFunction;
     TrRoutingService.TrRoutingService.prototype.route = mockRouteFunction;
 };
@@ -43,13 +34,11 @@ const enableMocks = () => {
 const mockClear = () => {
     mockRouteFunction.mockClear();
     mockAccessibleMapFunction.mockClear();
-    mockRouteV1Function.mockClear();
 };
 
 export default {
     enableMocks,
     mockClear,
-    mockRouteV1Function,
     mockRouteFunction,
     mockAccessibleMapFunction
 };
