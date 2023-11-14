@@ -218,7 +218,9 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
                             className="_icon"
                             alt={this.props.t('transit:transitLine:Line')}
                         />{' '}
-                        {line.isNew() ? this.props.t('transit:transitLine:New') : this.props.t('transit:transitLine:Edit')}
+                        {line.isNew()
+                            ? this.props.t('transit:transitLine:New')
+                            : this.props.t('transit:transitLine:Edit')}
                         {line.toString(false) ? ` • ${line.toString(false)}` : ''}
                     </h3>
                     {!this.props.selectedPath && canActionButtons && (
