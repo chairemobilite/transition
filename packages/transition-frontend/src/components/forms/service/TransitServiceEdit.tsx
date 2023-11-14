@@ -219,7 +219,9 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
             >
                 <div className="tr__form-sticky-header-container">
                     <h3>
-                        {isNew ? this.props.t('transit:transitService:New') : this.props.t('transit:transitService:Edit')}
+                        {isNew
+                            ? this.props.t('transit:transitService:New')
+                            : this.props.t('transit:transitService:Edit')}
                         {service.toString(false) ? ` • ${service.toString(false)}` : ''}
                     </h3>
                     <SelectedObjectButtons

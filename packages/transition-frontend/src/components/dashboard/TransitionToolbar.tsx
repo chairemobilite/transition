@@ -222,7 +222,12 @@ class Toolbar extends React.Component<LayoutSectionProps, TransitionToolbarState
             <React.Fragment>
                 {this.state.coordinates && this.state.coordinates.length === 2 && (
                     <div className="tr__top-menu-buttons-container _small _pale">
-                        <span style={{width: "8rem"}}>{roundToDecimals(this.state.coordinates[0], 5)!.toFixed(5)},</span><span style={{width: "7rem"}}>{roundToDecimals(this.state.coordinates[1], 5)!.toFixed(5)}</span>
+                        <span style={{ width: '8rem' }}>
+                            {roundToDecimals(this.state.coordinates[0], 5)!.toFixed(5)},
+                        </span>
+                        <span style={{ width: '7rem' }}>
+                            {roundToDecimals(this.state.coordinates[1], 5)!.toFixed(5)}
+                        </span>
                     </div>
                 )}
 
