@@ -84,13 +84,6 @@ cp .env.example .env
 * Change `EXPRESS_SESSION_SECRET_KEY` to a random string with no space.
 * Change `PROJECT_CONFIG` to point to your project's configuration file. The default is an example configuration file that can be copied and configured for your own need.
 
-### Get a Mapbox access token
-* Go to [Mapbox](http://mapbox.com) and sign up
-* Go to your account dashboard, then generate a new access token
-* Open the `.env` file
-* Copy this access token to `.env` file: `MAPBOX_ACCESS_TOKEN=YOUR_TOKEN`
-* If you have a custom mapbox style, put your username and style id in `MAPBOX_USER_ID` and `MAPBOX_STYLE_ID`
-
 ### Create the client application
 
 Run `yarn build:dev` or `yarn build:prod` to create the html client application that will be run on the browser. 
