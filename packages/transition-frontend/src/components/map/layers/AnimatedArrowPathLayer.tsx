@@ -22,12 +22,12 @@ type _AnimatedArrowPathLayerProps<DataT = unknown> = {
      * @default 3
      */
     speedDivider?: number;
-  };
+};
 
 const defaultProps: DefaultProps<AnimatedArrowPathLayerProps> = {
-    getSizeArray: {type: 'accessor', value: [4, 4]},
+    getSizeArray: { type: 'accessor', value: [4, 4] },
     speedDivider: 3
-}
+};
 
 export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends object = never> extends PathLayer<
     DataT,
@@ -52,9 +52,9 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
         const animate = () => {
             const currentTime = this.state.time || 0;
             this.setState({
-                time: (currentTime + 1),// % loopLength,
+                time: currentTime + 1, // % loopLength,
                 animationID: window.requestAnimationFrame(animate) // draw next frame
-            })
+            });
         };
         const animationID = window.requestAnimationFrame(animate);
         this.setState({
@@ -63,7 +63,7 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
 
         const attributeManager = this.getAttributeManager();
         attributeManager?.addInstanced({
-            instanceArrowPathArrays: {size: 2, accessor: 'getSizeArray'},
+            instanceArrowPathArrays: { size: 2, accessor: 'getSizeArray' },
             instanceArrowPathOffsets: {
                 size: 1,
                 accessor: 'getPath',
@@ -105,9 +105,9 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
     getShaders() {
         return Object.assign({}, super.getShaders(), {
             // Code here is largely inspired by / copied from https://github.com/visgl/deck.gl/blob/master/modules/extensions/src/path-style/path-style-extension.ts
-        
+
             inject: {
-              'vs:#decl': `
+                'vs:#decl': `
           attribute vec2 instanceArrowPathArrays;
           attribute float instanceArrowPathOffsets;
           varying vec2 vArrowPathArray;
@@ -115,14 +115,14 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
           uniform float arrowPathTimeStep;
           uniform float speedDivider;
           `,
-          
-              'vs:#main-end': `
+
+                'vs:#main-end': `
           vArrowPathArray = instanceArrowPathArrays;
           vArrowPathOffset = instanceArrowPathOffsets / width.x;
           vArrowPathOffset += (arrowPathTimeStep / speedDivider);
           `,
-          
-              'fs:#decl': `
+
+                'fs:#decl': `
           varying vec2 vArrowPathArray;
           varying float vArrowPathOffset;
           
@@ -130,7 +130,7 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
             return floor(x + 0.5);
           }
           `,
-              'fs:#main-start': `
+                'fs:#main-start': `
             float solidLength = vArrowPathArray.x;
             float gapLength = vArrowPathArray.y;
             float unitLength = solidLength + gapLength;
@@ -142,7 +142,7 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
               unitOffset = mod(vPathPosition.y + offset, unitLength);
             }
           `,
-              'fs:#main-end': `\
+                'fs:#main-end': `\
             float relY = unitOffset / unitLength;
         
             // See this link for info about vPathPosition variable

@@ -5,9 +5,15 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { Layer, LayerProps } from '@deck.gl/core/typed';
+import {
+    layerEventNames,
+    MapCallbacks,
+    MapLayerEventHandlerDescriptor
+} from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import { MapLayer } from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
-import { ScatterplotLayer, PathLayer, GeoJsonLayer } from 'deck.gl/typed';
-import AnimatedArrowPathLayer from './AnimatedArrowPathLayer'
+import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo, Deck } from 'deck.gl/typed';
+import { MjolnirEvent, MjolnirGestureEvent } from 'mjolnir.js';
+import AnimatedArrowPathLayer from './AnimatedArrowPathLayer';
 
 // FIXME default color should probably be a app/user/theme preference?
 const DEFAULT_COLOR = '#0086FF';
@@ -22,6 +28,10 @@ type TransitionMapLayerProps = {
     layerDescription: MapLayer;
     // TODO Find the right type for this
     viewState;
+    events?: { [evtName in layerEventNames]?: MapLayerEventHandlerDescriptor[] };
+    activeSection: string;
+    setDragging: (dragging: boolean) => void;
+    mapCallbacks: MapCallbacks;
 };
 
 const stringToColor = (hexStringColor: string): [number, number, number] | [number, number, number, number] => [
@@ -54,7 +64,7 @@ const propertyToColor = (
                 : defaultRGBA;
 };
 
-const getLineLayer = (props: TransitionMapLayerProps): PathLayer =>
+const getLineLayer = (props: TransitionMapLayerProps, eventsToAdd): PathLayer =>
     new PathLayer({
         id: props.layerDescription.id,
         data: props.layerDescription.layerData.features,
@@ -63,29 +73,24 @@ const getLineLayer = (props: TransitionMapLayerProps): PathLayer =>
         getColor: (d) => propertyToColor(d, 'color'),
         opacity: 0.8,
         widthMinPixels: 2,
+        widthScale: 4,
         rounded: true,
         fadeTrail: true,
         trailLength: 400,
         currentTime: 0,
         shadowEnabled: false,
-        pickable: true
+        pickable: true,
         /*updateTriggers: {
       getWidth: routeIndex
-    },
-    onHover: (line) => {
-      routeIndex = line.index;
-    },
-    onClick: ({object}) => {
-      nodeSelected = null
-      routeSelected = [object]
-    } */
+    },*/
+        ...eventsToAdd
     });
 
-const getAnimatedArrowPathLayer = (props: TransitionMapLayerProps): AnimatedArrowPathLayer =>
+const getAnimatedArrowPathLayer = (props: TransitionMapLayerProps, eventsToAdd): AnimatedArrowPathLayer =>
     new AnimatedArrowPathLayer({
         id: props.layerDescription.id,
         data: props.layerDescription.layerData.features,
-        getPath: d => d.geometry.coordinates,
+        getPath: (d) => d.geometry.coordinates,
         pickable: true,
         getWidth: 100,
         /*
@@ -95,9 +100,10 @@ const getAnimatedArrowPathLayer = (props: TransitionMapLayerProps): AnimatedArro
         getColor: (d) => propertyToColor(d, 'color'),
         getSizeArray: [4, 4],
         speedDivider: 10,
+        ...eventsToAdd
     });
 
-const getPolygonLayer = (props: TransitionMapLayerProps): GeoJsonLayer =>
+const getPolygonLayer = (props: TransitionMapLayerProps, eventsToAdd): GeoJsonLayer =>
     new GeoJsonLayer({
         id: props.layerDescription.id,
         data: props.layerDescription.layerData.features,
@@ -112,10 +118,11 @@ const getPolygonLayer = (props: TransitionMapLayerProps): GeoJsonLayer =>
     }, */
         getFillColor: (d) => propertyToColor(d, 'color'),
         getLineColor: [80, 80, 80],
-        getLineWidth: 1
+        getLineWidth: 1,
+        ...eventsToAdd
     });
 
-const getScatterLayer = (props: TransitionMapLayerProps): ScatterplotLayer<any> =>
+const getScatterLayer = (props: TransitionMapLayerProps, eventsToAdd): ScatterplotLayer<any> =>
     new ScatterplotLayer({
         id: props.layerDescription.id,
         data: props.layerDescription.layerData.features,
@@ -125,33 +132,75 @@ const getScatterLayer = (props: TransitionMapLayerProps): ScatterplotLayer<any> 
         getFillColor: (d) => propertyToColor(d, 'color'),
         getLineColor: [255, 255, 255, 255],
         getRadius: (d, i) => 10,
+        radiusScale: 6,
         /* updateTriggers: {
           getRadius: nodeIndex
         }, */
-        pickable: true
-        /*onHover: (node) => {
-          nodeIndex = node.index;
-        },
-        onClick: ({object}) => {
-          routeSelected = null
-          nodeSelected = [object]
-        } */
+        pickable: true,
+        ...eventsToAdd
     });
+
+const addEvents = (
+    events: { [evtName in layerEventNames]?: MapLayerEventHandlerDescriptor[] },
+    props: TransitionMapLayerProps
+) => {
+    const layerEvents: any = {};
+    const leftClickEvents = events.onLeftClick;
+    const rightClickEvents = events.onRightClick;
+    const checkHandler = (handlerDes: MapLayerEventHandlerDescriptor) =>
+        handlerDes.condition === undefined || handlerDes.condition(props.activeSection);
+    const onLeftClickEvt = leftClickEvents === undefined ? [] : leftClickEvents;
+    const onRightClickEvt = rightClickEvents === undefined ? [] : rightClickEvents;
+    layerEvents.onClick = (info: PickingInfo, e: MjolnirGestureEvent) => {
+        if (e.leftButton) {
+            onLeftClickEvt.filter(checkHandler).forEach((ev) => ev.handler(info, e, props.mapCallbacks));
+        } else if (e.rightButton) {
+            onRightClickEvt.filter(checkHandler).forEach((ev) => ev.handler(info, e, props.mapCallbacks));
+        }
+    };
+    const onDragEvt = events.onDrag;
+    const onDragEndEvt = events.onDragEnd;
+    const onDragStartEvt = events.onDragStart;
+    if (onDragStartEvt || onDragEvt || onDragEndEvt) {
+        const onDragStartArr = onDragStartEvt === undefined ? [] : onDragStartEvt;
+        layerEvents.onDragStart = (info: PickingInfo, e: MjolnirGestureEvent) => {
+            props.setDragging(true);
+            onDragStartArr.filter(checkHandler).forEach((ev) => ev.handler(info, e, props.mapCallbacks));
+        };
+    }
+
+    if (onDragEvt) {
+        layerEvents.onDrag = (info: PickingInfo, e: MjolnirGestureEvent) => {
+            onDragEvt.filter(checkHandler).forEach((ev) => ev.handler(info, e, props.mapCallbacks));
+        };
+    }
+
+    if (onDragStartEvt || onDragEvt || onDragEndEvt) {
+        const onDragEndArr = onDragEndEvt === undefined ? [] : onDragEndEvt;
+        layerEvents.onDragEnd = (info: PickingInfo, e: MjolnirGestureEvent) => {
+            props.setDragging(false);
+            onDragEndArr.filter(checkHandler).forEach((ev) => ev.handler(info, e, props.mapCallbacks));
+        };
+    }
+
+    return layerEvents;
+};
 
 const getLayer = (props: TransitionMapLayerProps): Layer<LayerProps> | undefined => {
     if (props.layerDescription.layerData === undefined) {
         console.log('layer data is undefined', props.layerDescription.id);
         return undefined;
     }
+    const eventsToAdd = props.events !== undefined ? addEvents(props.events, props) : {};
     if (props.layerDescription.configuration.type === 'circle') {
         // FIXME Try not to type as any
-        return getScatterLayer(props) as any;
+        return getScatterLayer(props, eventsToAdd) as any;
     } else if (props.layerDescription.configuration.type === 'line') {
-        return getLineLayer(props) as any;
+        return getLineLayer(props, eventsToAdd) as any;
     } else if (props.layerDescription.configuration.type === 'fill') {
-        return getPolygonLayer(props) as any;
+        return getPolygonLayer(props, eventsToAdd) as any;
     } else if (props.layerDescription.configuration.type === 'animatedArrowPath') {
-        return getAnimatedArrowPathLayer(props) as any;
+        return getAnimatedArrowPathLayer(props, eventsToAdd) as any;
     }
     console.log('unknown layer', props.layerDescription.configuration);
     return undefined;

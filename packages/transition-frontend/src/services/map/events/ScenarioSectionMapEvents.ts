@@ -5,13 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
-import { onTransitPathsMouseLeave, onTransitPathsMouseEnter } from './PathLayerMapEvents';
+import { onPathTooltip } from './PathLayerMapEvents';
 
 /* This file encapsulates map events specific for the 'scenarios' section */
 
 const scenarioSectionEventDescriptors: MapEventHandlerDescription[] = [
-    { type: 'layer', layerName: 'transitPathsForServices', eventName: 'mouseenter', handler: onTransitPathsMouseEnter },
-    { type: 'layer', layerName: 'transitPathsForServices', eventName: 'mouseleave', handler: onTransitPathsMouseLeave }
+    { type: 'tooltip', layerName: 'transitPathsForServices', eventName: 'onTooltip', handler: onPathTooltip }
 ];
 
 export default scenarioSectionEventDescriptors;
