@@ -35,13 +35,13 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
     }
 
     const mapStyles = {
-        'osmBright': 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
-        'positron': 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-        'darkMatter': 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-    }
-    
+        osmBright: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json',
+        positron: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+        darkMatter: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+    };
+
     const mapStyleChoices: { value: string; label: string }[] = [];
-    Object.keys(mapStyles).forEach(function(key) {
+    Object.keys(mapStyles).forEach((key) => {
         mapStyleChoices.push({
             label: props.t(`main:preferences:mapStyles:${key}`),
             value: mapStyles[key]

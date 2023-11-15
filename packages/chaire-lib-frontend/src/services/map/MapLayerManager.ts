@@ -202,7 +202,9 @@ class MapboxLayerManager {
     }
 
     getEnabledLayers(): MapLayer[] {
-        return this._enabledLayers.map((layerName) => this._layersByName[layerName]);
+        return this._enabledLayers
+            .filter((layerName) => this._layersByName[layerName].layerData.features.length > 0)
+            .map((layerName) => this._layersByName[layerName]);
     }
 
     getLayerNames() {
