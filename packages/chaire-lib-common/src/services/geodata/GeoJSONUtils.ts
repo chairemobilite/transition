@@ -45,3 +45,5 @@ export const getPointCoordinates = (geojson: GeoJSON.GeoJSON): number[] | undefi
     }
     return undefined;
 };
+
+export const emptyFeatureCollection = { type: 'FeatureCollection', features: [] } as GeoJSON.FeatureCollection;
