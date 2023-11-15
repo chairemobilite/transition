@@ -8,7 +8,7 @@ import { featureCollection as turfFeatureCollection } from '@turf/turf';
 import _uniq from 'lodash/uniq';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { LayerDescription } from './layers/LayerDescription';
+import { MapLayer } from './layers/LayerDescription';
 
 const defaultGeojson = turfFeatureCollection([]) as GeoJSON.FeatureCollection<GeoJSON.Geometry>;
 
@@ -20,7 +20,7 @@ const defaultGeojson = turfFeatureCollection([]) as GeoJSON.FeatureCollection<Ge
  * TODO: If we want to support multiple map implementation, this layer management will have to be updated
  */
 class MapboxLayerManager {
-    private _layersByName: { [key: string]: LayerDescription } = {};
+    private _layersByName: { [key: string]: MapLayer } = {};
     private _enabledLayers: string[] = [];
     private _defaultFilterByLayer = {};
     private _filtersByLayer = {};
@@ -30,7 +30,7 @@ class MapboxLayerManager {
             this._layersByName[layerName] = {
                 id: layerName,
                 visible: false,
-                layerDescription: layersConfig[layerName],
+                configuration: layersConfig[layerName],
                 layerData: defaultGeojson
             };
             this._enabledLayers = [];
@@ -201,7 +201,7 @@ class MapboxLayerManager {
         return this._layersByName[layerName]?.visible;
     }
 
-    getEnabledLayers(): LayerDescription[] {
+    getEnabledLayers(): MapLayer[] {
         return this._enabledLayers.map((layerName) => this._layersByName[layerName]);
     }
 
