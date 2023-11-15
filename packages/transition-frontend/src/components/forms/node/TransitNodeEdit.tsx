@@ -180,7 +180,7 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
             layerName: 'transitNodesSelected',
             data: (oldGeojson: GeoJSON.FeatureCollection) => {
                 (oldGeojson.features[0].geometry as GeoJSON.Point).coordinates = coordinates;
-                return oldGeojson;
+                return turfFeatureCollection([oldGeojson.features[0]]);
             }
         });
     }
