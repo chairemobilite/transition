@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { Layer, LayerProps } from '@deck.gl/core/typed';
-import { LayerDescription } from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
+import { MapLayer } from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
 import { ScatterplotLayer, TripsLayer, PolygonLayer, GeoJsonLayer } from 'deck.gl/typed';
 
 // FIXME default color should probably be a app/user/theme preference?
@@ -18,7 +18,7 @@ const defaultRGBA = [
 ] as [number, number, number, number];
 
 type TransitionMapLayerProps = {
-    layerDescription: LayerDescription;
+    layerDescription: MapLayer;
     // TODO Find the right type for this
     viewState;
 };
@@ -126,15 +126,15 @@ const getLayer = (props: TransitionMapLayerProps): Layer<LayerProps> | undefined
         console.log('layer data is undefined', props.layerDescription.id);
         return undefined;
     }
-    if (props.layerDescription.layerDescription.type === 'circle') {
+    if (props.layerDescription.configuration.type === 'circle') {
         // FIXME Try not to type as any
         return getScatterLayer(props) as any;
-    } else if (props.layerDescription.layerDescription.type === 'line') {
+    } else if (props.layerDescription.configuration.type === 'line') {
         return getLineLayer(props) as any;
-    } else if (props.layerDescription.layerDescription.type === 'fill') {
+    } else if (props.layerDescription.configuration.type === 'fill') {
         return getPolygonLayer(props) as any;
     }
-    console.log('unknown layer', props.layerDescription.layerDescription);
+    console.log('unknown layer', props.layerDescription.configuration);
     return undefined;
 };
 
