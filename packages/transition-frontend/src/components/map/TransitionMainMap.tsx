@@ -40,6 +40,8 @@ import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/ev
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import getLayer from './layers/TransitionMapLayer';
 
+import { BitmapLayer } from '@deck.gl/layers';
+import { TileLayer } from '@deck.gl/geo-layers';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 export interface MainMapProps extends LayoutSectionProps {
@@ -61,6 +63,7 @@ interface MainMapState {
         bearing: number;
     };
     enabledLayers: string[];
+    xyzTileLayer?: Layer; // Temporary! Move this somewhere else
 }
 
 /**
@@ -82,6 +85,33 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     constructor(props: MainMapProps & WithTranslation) {
         super(props);
 
+        // TODO: This should not be here
+        let xyzTileLayer = undefined;
+        if (process.env.CUSTOM_RASTER_TILES_XYZ_URL) {
+            xyzTileLayer = new TileLayer({
+                data: process.env.CUSTOM_RASTER_TILES_XYZ_URL,
+                minZoom: process.env.CUSTOM_RASTER_TILES_MIN_ZOOM
+                    ? parseFloat(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM)
+                    : 0,
+                maxZoom: process.env.CUSTOM_RASTER_TILES_MAX_ZOOM
+                    ? parseFloat(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM)
+                    : 22,
+                opacity: 0.5,
+                tileSize: 256,
+                renderSubLayers: (props) => {
+                    const {
+                        bbox: { west, south, east, north }
+                    } = props.tile;
+
+                    return new BitmapLayer(props, {
+                        data: null,
+                        image: props.data,
+                        bounds: [west, south, east, north]
+                    });
+                }
+            });
+        }
+
         this.state = {
             viewState: {
                 longitude: props.center[0],
@@ -90,7 +120,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 pitch: 0,
                 bearing: 0
             },
-            enabledLayers: []
+            enabledLayers: [],
+            xyzTileLayer: xyzTileLayer
         };
 
         this.defaultZoomArray = [props.zoom];
@@ -498,6 +529,10 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         const layers: Layer[] = enabledLayers
             .map((layer) => getLayer({ layerDescription: layer, viewState: this.state.viewState }))
             .filter((layer) => layer !== undefined) as Layer[];
+
+        if (this.state.xyzTileLayer) {
+            layers.unshift(this.state.xyzTileLayer);
+        }
 
         return (
             <section id="tr__main-map">
