@@ -404,7 +404,7 @@ const layersConfig = {
     },
 
     transitPathsSelected: {
-        type: 'line',
+        type: 'animatedArrowPath',
         repaint: true,
         //"shaders": [transitPathsSelectedFragmentShader, transitPathsSelectedVertexShader],
         layout: {

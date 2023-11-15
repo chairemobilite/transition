@@ -7,6 +7,7 @@
 import { Layer, LayerProps } from '@deck.gl/core/typed';
 import { MapLayer } from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
 import { ScatterplotLayer, TripsLayer, PolygonLayer, GeoJsonLayer } from 'deck.gl/typed';
+import AnimatedArrowPathLayer from './AnimatedArrowPathLayer';
 
 // FIXME default color should probably be a app/user/theme preference?
 const DEFAULT_COLOR = '#0086FF';
@@ -80,6 +81,22 @@ const getLineLayer = (props: TransitionMapLayerProps): TripsLayer =>
     } */
     });
 
+const getAnimatedArrowPathLayer = (props: TransitionMapLayerProps): AnimatedArrowPathLayer =>
+    new AnimatedArrowPathLayer({
+        id: props.layerDescription.id,
+        data: props.layerDescription.layerData.features,
+        getPath: (d) => d.geometry.coordinates,
+        pickable: true,
+        getWidth: 100,
+        /*
+        getWidth: (d, i) => {
+            return 70;
+        },*/
+        getColor: (d) => propertyToColor(d, 'color'),
+        getSizeArray: [4, 4],
+        speedDivider: 10
+    });
+
 const getPolygonLayer = (props: TransitionMapLayerProps): GeoJsonLayer =>
     new GeoJsonLayer({
         id: props.layerDescription.id,
@@ -133,6 +150,8 @@ const getLayer = (props: TransitionMapLayerProps): Layer<LayerProps> | undefined
         return getLineLayer(props) as any;
     } else if (props.layerDescription.configuration.type === 'fill') {
         return getPolygonLayer(props) as any;
+    } else if (props.layerDescription.configuration.type === 'animatedArrowPath') {
+        return getAnimatedArrowPathLayer(props) as any;
     }
     console.log('unknown layer', props.layerDescription.configuration);
     return undefined;
