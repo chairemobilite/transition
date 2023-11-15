@@ -138,8 +138,6 @@ module.exports = (env) => {
           'NODE_ENV'                    : JSON.stringify(process.env.NODE_ENV),
           'IS_TESTING'                  : JSON.stringify(env === 'test'),
           'GOOGLE_API_KEY'              : JSON.stringify(process.env.GOOGLE_API_KEY),
-          'MAPBOX_ACCESS_TOKEN'         : JSON.stringify(process.env.MAPBOX_ACCESS_TOKEN),
-          'MAPBOX_USER_ID'              : JSON.stringify(process.env.MAPBOX_USER_ID || config.mapboxUserId),
           'CUSTOM_RASTER_TILES_XYZ_URL' : JSON.stringify(process.env.CUSTOM_RASTER_TILES_XYZ_URL || config.customRasterTilesXyzUrl),
           'CUSTOM_RASTER_TILES_MIN_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM || config.customRasterTilesMinZoom),
           'CUSTOM_RASTER_TILES_MAX_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM || config.customRasterTilesMaxZoom)
