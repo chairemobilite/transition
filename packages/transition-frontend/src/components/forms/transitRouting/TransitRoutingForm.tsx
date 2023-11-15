@@ -40,6 +40,7 @@ import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { calculateRouting } from '../../../services/routing/RoutingUtils';
 import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import { emptyFeatureCollection } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
 
 export interface TransitRoutingFormProps extends WithTranslation {
     // TODO tahini batch routing
@@ -121,8 +122,8 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
     resetResults() {
         this.setState({ currentResult: undefined });
         serviceLocator.eventManager.emit('map.updateLayers', {
-            routingPaths: undefined,
-            routingPathsStrokes: undefined
+            routingPaths: emptyFeatureCollection,
+            routingPathsStrokes: emptyFeatureCollection
         });
     }
 

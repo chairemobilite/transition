@@ -4,18 +4,15 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { PropsWithChildren } from 'react';
+import React, { createRef, PropsWithChildren } from 'react';
 import { createRoot } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import ReactDom from 'react-dom';
 import DeckGL from '@deck.gl/react/typed';
-import { DeckProps, Viewport, FilterContext, Layer } from '@deck.gl/core/typed';
-import { ScatterplotLayer } from 'deck.gl';
-import { TripsLayer } from '@deck.gl/geo-layers';
+import { FilterContext, Layer, Deck } from '@deck.gl/core/typed';
 import { Map as MapLibreMap } from 'react-map-gl/maplibre';
 import MapboxGL from 'mapbox-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import { default as elementResizedEvent, unbind as removeResizeListener } from 'element-resize-event';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import layersConfig from '../../config/layers.config';
@@ -30,7 +27,6 @@ import { getMapBoxDraw, removeMapBoxDraw } from 'chaire-lib-frontend/lib/service
 import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
 import Node from 'transition-common/lib/services/nodes/Node';
 
-import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import _cloneDeep from 'lodash/cloneDeep';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
@@ -38,10 +34,23 @@ import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map
 import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import {
+    layerEventNames,
+    tooltipEventNames,
+    MapEventHandlerDescriptor,
+    MapLayerEventHandlerDescriptor,
+    mapEventNames,
+    PointInfo,
+    TooltipEventHandlerDescriptor,
+    MapSelectEventHandlerDescriptor,
+    MapCallbacks
+} from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import getLayer from './layers/TransitionMapLayer';
+import { PickingInfo } from 'deck.gl/typed';
 
 import { BitmapLayer } from '@deck.gl/layers';
 import { TileLayer } from '@deck.gl/geo-layers';
+import { MjolnirEvent, MjolnirGestureEvent } from 'mjolnir.js';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 export interface MainMapProps extends LayoutSectionProps {
@@ -65,6 +74,7 @@ interface MainMapState {
     enabledLayers: string[];
     mapStyleURL: string;
     xyzTileLayer?: Layer; // Temporary! Move this somewhere else
+    isDragging: boolean;
 }
 
 /**
@@ -77,11 +87,29 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     private pathLayerManager: PathMapLayerManager;
     private defaultZoomArray: [number];
     private defaultCenter: [number, number];
-    private mapEvents: { [key: string]: { [key: string]: MapEventHandlerDescription[] } };
+    private mapEvents: {
+        map: { [evtName in mapEventNames]?: MapEventHandlerDescriptor[] };
+        layers: {
+            [layerName: string]: {
+                [evtName in layerEventNames]?: MapLayerEventHandlerDescriptor[];
+            };
+        };
+        tooltips: {
+            [layerName: string]: {
+                [evtName in tooltipEventNames]?: TooltipEventHandlerDescriptor[];
+            };
+        };
+        mapSelect: {
+            [layerName: string]: {
+                [evtName in mapEventNames]?: MapSelectEventHandlerDescriptor[];
+            };
+        };
+    };
     private map: MapboxGL.Map | undefined;
     private popupManager: MapPopupManager;
     private mapContainer;
     private draw: MapboxDraw | undefined;
+    private mapCallbacks: MapCallbacks;
 
     constructor(props: MainMapProps & WithTranslation) {
         super(props);
@@ -123,7 +151,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             },
             enabledLayers: [],
             mapStyleURL: Preferences.get('mapStyleURL'),
-            xyzTileLayer: xyzTileLayer
+            xyzTileLayer: xyzTileLayer,
+            isDragging: false
         };
 
         this.defaultZoomArray = [props.zoom];
@@ -133,23 +162,39 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.pathLayerManager = new PathMapLayerManager(this.layerManager);
 
         this.popupManager = new MapPopupManager();
-        this.mapContainer = HTMLElement;
+        this.mapContainer = createRef<HTMLDivElement>();
 
-        this.mapEvents = {};
+        this.mapEvents = { map: {}, layers: {}, tooltips: {}, mapSelect: {} };
         const newEvents = [globalMapEvents, transitionMapEvents];
         const newEventsArr = newEvents.flatMap((ev) => ev);
         newEventsArr.forEach((eventDescriptor) => {
-            this.mapEvents[eventDescriptor.eventName] = this.mapEvents[eventDescriptor.eventName] || {};
             if (eventDescriptor.type === 'layer') {
-                const events = this.mapEvents[eventDescriptor.eventName][eventDescriptor.layerName] || [];
+                this.mapEvents.layers[eventDescriptor.layerName] =
+                    this.mapEvents.layers[eventDescriptor.layerName] || {};
+                const events = this.mapEvents.layers[eventDescriptor.layerName][eventDescriptor.eventName] || [];
                 events.push(eventDescriptor);
-                this.mapEvents[eventDescriptor.eventName][eventDescriptor.layerName] = events;
+                this.mapEvents.layers[eventDescriptor.layerName][eventDescriptor.eventName] = events;
+            } else if (eventDescriptor.type === 'tooltip') {
+                this.mapEvents.tooltips[eventDescriptor.layerName] =
+                    this.mapEvents.tooltips[eventDescriptor.layerName] || {};
+                const events = this.mapEvents.tooltips[eventDescriptor.layerName][eventDescriptor.eventName] || [];
+                events.push(eventDescriptor);
+                this.mapEvents.tooltips[eventDescriptor.layerName][eventDescriptor.eventName] = events;
+            } else if (eventDescriptor.type === 'mapSelect') {
+                this.mapEvents.mapSelect[eventDescriptor.layerName] =
+                    this.mapEvents.mapSelect[eventDescriptor.layerName] || {};
+                const events = this.mapEvents.mapSelect[eventDescriptor.layerName][eventDescriptor.eventName] || [];
+                events.push(eventDescriptor);
+                this.mapEvents.mapSelect[eventDescriptor.layerName][eventDescriptor.eventName] = events;
             } else {
-                const events = this.mapEvents[eventDescriptor.eventName]['map'] || [];
+                const events = this.mapEvents.map[eventDescriptor.eventName] || [];
                 events.push(eventDescriptor);
-                this.mapEvents[eventDescriptor.eventName]['map'] = events;
+                this.mapEvents.map[eventDescriptor.eventName] = events;
             }
         });
+        this.mapCallbacks = {
+            pickMultipleObjects: this.pickMultipleObjects
+        };
     }
 
     fitBounds = (coordinates: [number, number]) => {
@@ -169,14 +214,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
 
     onDisableBoxZoom = () => {
         this.map?.boxZoom.disable();
-    };
-
-    onEnableDragPan = () => {
-        this.map?.dragPan.enable();
-    };
-
-    onDisableDragPan = () => {
-        this.map?.dragPan.disable();
     };
 
     showPathsByAttribute = (attribute: string, value: any) => {
@@ -227,8 +264,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.on('map.setCenter', this.setCenter);
         serviceLocator.eventManager.on('map.enableBoxZoom', this.onEnableBoxZoom);
         serviceLocator.eventManager.on('map.disableBoxZoom', this.onDisableBoxZoom);
-        serviceLocator.eventManager.on('map.enableDragPan', this.onEnableDragPan);
-        serviceLocator.eventManager.on('map.disableDragPan', this.onDisableDragPan);
         serviceLocator.eventManager.on('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.on('map.hideContextMenu', this.hideContextMenu);
         serviceLocator.eventManager.on('map.handleDrawControl', this.handleDrawControl);
@@ -263,8 +298,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.off('map.setCenter', this.setCenter);
         serviceLocator.eventManager.off('map.enableBoxZoom', this.onEnableBoxZoom);
         serviceLocator.eventManager.off('map.disableBoxZoom', this.onDisableBoxZoom);
-        serviceLocator.eventManager.off('map.enableDragPan', this.onEnableDragPan);
-        serviceLocator.eventManager.off('map.disableDragPan', this.onDisableDragPan);
         serviceLocator.eventManager.off('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.off('map.hideContextMenu', this.hideContextMenu);
         serviceLocator.eventManager.off('map.handleDrawControl', this.handleDrawControl);
@@ -279,24 +312,36 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         }
     };
 
-    private executeEvents = (e, events: MapEventHandlerDescription[]) => {
-        if (e.originalEvent && e.originalEvent.cancelBubble === true) {
-            return;
-        }
-        for (let eventIndex = 0; eventIndex < events.length; eventIndex++) {
-            const event = events[eventIndex];
-            if (event.condition === undefined || event.condition(this.props.activeSection)) {
-                event.handler(e);
-            }
-            if (e.originalEvent && e.originalEvent.cancelBubble === true) {
-                break;
-            }
+    private executeEvent = (event: MapEventHandlerDescriptor, pointInfo: PointInfo, e: MjolnirEvent) => {
+        if (event.condition === undefined || event.condition(this.props.activeSection)) {
+            event.handler(pointInfo, e, this.mapCallbacks);
         }
     };
 
-    getEventHandler = (events: MapEventHandlerDescription[]) => {
-        return (e) => this.executeEvents(e, events);
+    private executeTooltipEvent = (
+        event: TooltipEventHandlerDescriptor,
+        pickInfo: PickingInfo
+    ): string | undefined | { text: string; containsHtml: boolean } => {
+        if (event.condition === undefined || event.condition(this.props.activeSection)) {
+            return event.handler(pickInfo, this.mapCallbacks);
+        }
+        return undefined;
     };
+
+    private executeMapSelectEvent = (
+        event: MapSelectEventHandlerDescriptor,
+        pickInfo: PickingInfo[],
+        e: MjolnirEvent
+    ) => {
+        if (event.condition === undefined || event.condition(this.props.activeSection)) {
+            return event.handler(pickInfo, e, this.mapCallbacks);
+        }
+        return undefined;
+    };
+
+    /* getEventHandler = (events: MapEventHandlerDescription[]) => {
+        return (e) => this.executeEvents(e, events);
+    }; */
 
     showLayer = (layerName: string) => {
         this.layerManager.showLayer(layerName);
@@ -467,12 +512,12 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         data: GeoJSON.FeatureCollection | ((original: GeoJSON.FeatureCollection) => GeoJSON.FeatureCollection);
     }) => {
         this.layerManager.updateLayer(args.layerName, args.data);
-        this.setState({ enabledLayers: Object.keys(this.layerManager.getEnabledLayers()) });
+        this.setState({ enabledLayers: this.layerManager.getEnabledLayers().map((layer) => layer.id) });
     };
 
     updateLayers = (geojsonByLayerName) => {
         this.layerManager.updateLayers(geojsonByLayerName);
-        this.setState({ enabledLayers: Object.keys(this.layerManager.getEnabledLayers()) });
+        this.setState({ enabledLayers: this.layerManager.getEnabledLayers().map((layer) => layer.id) });
     };
 
     updateEnabledLayers = (enabledLayers: string[]) => {
@@ -480,13 +525,16 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.setState({ enabledLayers });
     };
 
-    showContextMenu = (e, elements) => {
+    showContextMenu = (
+        position: [number, number],
+        elements: { key?: string; title: string; onClick: () => void; onHover?: () => void }[]
+    ) => {
         const contextMenu = document.getElementById('tr__main-map-context-menu');
         if (!contextMenu) {
             return;
         }
-        contextMenu.style.left = e.point.x + 'px';
-        contextMenu.style.top = e.point.y + 'px';
+        contextMenu.style.left = position[0] + 'px';
+        contextMenu.style.top = position[1] + 'px';
         contextMenu.style.display = 'block';
 
         createRoot(contextMenu).render(
@@ -530,11 +578,112 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         viewStateChange.viewState.zoom;
     };
 
-    render() {
-        const enabledLayers = this.layerManager.getEnabledLayers();
+    onClick = (pickInfo: PickingInfo, event: MjolnirGestureEvent) => {
+        if (event.handled) return;
+        if (pickInfo.picked === false) {
+            if (event.leftButton) {
+                // Do the map's click events
+                const events = this.mapEvents.map.onLeftClick || [];
+                events.forEach((ev) =>
+                    this.executeEvent(
+                        ev,
+                        { coordinates: pickInfo.coordinate as number[], pixel: pickInfo.pixel as [number, number] },
+                        event
+                    )
+                );
+            } else if (event.rightButton) {
+                // Do the map's right click events
+                const events = this.mapEvents.map.onRightClick || [];
+                events.forEach((ev) =>
+                    this.executeEvent(
+                        ev,
+                        { coordinates: pickInfo.coordinate as number[], pixel: pickInfo.pixel as [number, number] },
+                        event
+                    )
+                );
+            }
+        } else {
+            const eventName = event.leftButton ? 'onLeftClick' : event.rightButton ? 'onRightClick' : undefined;
+            if (!eventName) return;
 
+            // See if there are multiple picks to call proper mapSelect events
+            // TODO Update the radius to not have an hard-coded value, fine-tune as necessary
+            const objects: PickingInfo[] = (this.mapContainer.current as Deck).pickMultipleObjects({
+                x: pickInfo.x,
+                y: pickInfo.y,
+                radius: 4,
+                layerIds: this.state.enabledLayers
+            });
+            const objectsByLayer: { [layerName: string]: PickingInfo[] } = {};
+            objects.forEach((picked) => {
+                if (picked.layer && picked.object) {
+                    const allPicked = objectsByLayer[picked.layer.id] || [];
+                    allPicked.push(picked);
+                    objectsByLayer[picked.layer.id] = allPicked;
+                }
+            });
+            Object.keys(objectsByLayer).forEach((layerName) => {
+                if (this.mapEvents.mapSelect[layerName] && this.mapEvents.mapSelect[layerName][eventName]) {
+                    (this.mapEvents.mapSelect[layerName][eventName] as MapSelectEventHandlerDescriptor[]).forEach(
+                        (ev) => {
+                            this.executeMapSelectEvent(ev, objectsByLayer[layerName], event);
+                        }
+                    );
+                }
+            });
+        }
+    };
+
+    onTooltip = (pickInfo: PickingInfo) => {
+        if (pickInfo.picked === true && pickInfo.layer) {
+            if (pickInfo.layer && !pickInfo.object) {
+                console.log('it is indeed possible to have a layer and no object', pickInfo.layer.id);
+                return null;
+            }
+            const tooltipEvents = (this.mapEvents.tooltips[pickInfo.layer.id] || {}).onTooltip;
+            if (tooltipEvents) {
+                for (let i = 0; i < tooltipEvents.length; i++) {
+                    const tooltip = this.executeTooltipEvent(tooltipEvents[i], pickInfo);
+                    if (tooltip !== undefined) {
+                        return typeof tooltip === 'string'
+                            ? tooltip
+                            : tooltip.containsHtml === true
+                                ? { html: tooltip.text }
+                                : tooltip.text;
+                    }
+                }
+            }
+        }
+        return null;
+    };
+
+    setDragging = (dragging: boolean) => {
+        this.setState({ isDragging: dragging });
+    };
+
+    pickMultipleObjects: typeof Deck.prototype.pickMultipleObjects = (opts: {
+        x: number;
+        y: number;
+        radius?: number | undefined;
+        depth?: number | undefined;
+        layerIds?: string[] | undefined;
+        unproject3D?: boolean | undefined;
+    }): PickingInfo[] => (this.mapContainer.current as Deck).pickMultipleObjects(opts);
+
+    render() {
+        // TODO: Deck.gl Migration: Should this be a state? To avoid recalculating for every render? See how often we render when the migration is complete
+        const enabledLayers = this.layerManager.getEnabledLayers();
         const layers: Layer[] = enabledLayers
-            .map((layer) => getLayer({ layerDescription: layer, viewState: this.state.viewState }))
+            .map((layer) =>
+                getLayer({
+                    layerDescription: layer,
+                    viewState: this.state.viewState,
+                    events: this.mapEvents.layers[layer.id],
+                    activeSection: this.props.activeSection,
+                    setDragging: this.setDragging,
+                    mapCallbacks: this.mapCallbacks
+                })
+            )
             .filter((layer) => layer !== undefined) as Layer[];
 
         if (this.state.xyzTileLayer) {
@@ -545,14 +694,19 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             <section id="tr__main-map">
                 <div id="tr__main-map-context-menu" className="tr__main-map-context-menu"></div>
                 {this.props.children}
-                <DeckGL
-                    viewState={this.state.viewState}
-                    controller={{ scrollZoom: true, dragPan: true }}
-                    layers={layers}
-                    onViewStateChange={this.onViewStateChange}
-                >
-                    <MapLibreMap mapStyle={this.state.mapStyleURL} />
-                </DeckGL>
+                <div onContextMenu={(evt) => evt.preventDefault()}>
+                    <DeckGL
+                        ref={this.mapContainer}
+                        viewState={this.state.viewState}
+                        controller={{ scrollZoom: true, dragPan: !this.state.isDragging }}
+                        layers={layers}
+                        onViewStateChange={this.onViewStateChange}
+                        onClick={this.onClick}
+                        getTooltip={this.onTooltip}
+                    >
+                        <MapLibreMap mapStyle={this.state.mapStyleURL} />
+                    </DeckGL>
+                </div>
             </section>
         );
     }

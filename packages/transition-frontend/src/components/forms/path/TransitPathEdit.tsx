@@ -55,8 +55,6 @@ interface PathFormProps extends WithTranslation {
 interface PathFormState extends SaveableObjectState<Path> {
     pathErrors: string[];
     confirmModalSchedulesAffectedlIsOpen: boolean;
-    waypointDraggingAfterNodeIndex?: number;
-    waypointDraggingIndex?: number;
 }
 
 class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormState> {
@@ -96,7 +94,6 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
 
     componentDidMount() {
         serviceLocator.eventManager.on('selected.deselect.path', this.onDeselect);
-        serviceLocator.eventManager.on('waypoint.startDrag', this.onStartDragWaypoint);
         serviceLocator.eventManager.on('waypoint.drag', this.onDragWaypoint);
         serviceLocator.eventManager.on('waypoint.update', this.onUpdateWaypoint);
         serviceLocator.eventManager.on('waypoint.replaceByNodeId', this.onReplaceWaypointByNodeId);
@@ -108,7 +105,6 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
 
     componentWillUnmount() {
         serviceLocator.eventManager.off('selected.deselect.path', this.onDeselect);
-        serviceLocator.eventManager.off('waypoint.startDrag', this.onStartDragWaypoint);
         serviceLocator.eventManager.off('waypoint.drag', this.onDragWaypoint);
         serviceLocator.eventManager.off('waypoint.update', this.onUpdateWaypoint);
         serviceLocator.eventManager.off('waypoint.replaceByNodeId', this.onReplaceWaypointByNodeId);
@@ -223,27 +219,6 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.emit('map.enableBoxZoom');
     };
 
-    // TODO Once the map is in typescript, we can probably get the type of the properties here instead of any
-    onStartDragWaypoint = (waypointGeojson: GeoJSON.Feature<GeoJSON.Point, any>) => {
-        if (this.props.path.isFrozen()) {
-            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-                layerName: 'transitPathWaypointsSelected',
-                data: turfFeatureCollection([])
-            });
-            return true;
-        }
-        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-            layerName: 'transitPathWaypointsSelected',
-            data: turfFeatureCollection([waypointGeojson])
-        });
-        this.setState((_oldState) => {
-            return {
-                waypointDraggingAfterNodeIndex: waypointGeojson.properties.afterNodeIndex,
-                waypointDraggingIndex: waypointGeojson.properties.waypointIndex
-            };
-        });
-    };
-
     onDragWaypoint = (coordinates: [number, number]) => {
         if (this.props.path.isFrozen()) {
             (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
@@ -259,7 +234,12 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         });
     };
 
-    onReplaceWaypointByNodeId = async (nodeId: string, waypointType = 'engine') => {
+    onReplaceWaypointByNodeId = async (
+        nodeId: string,
+        waypointType = 'engine',
+        waypointIndex: number,
+        afterNodeIndex: number
+    ) => {
         if (this.props.path.isFrozen()) {
             (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
                 layerName: 'transitPathWaypointsSelected',
@@ -267,12 +247,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             });
             return true;
         }
-        await this.props.path.replaceWaypointByNodeId(
-            nodeId,
-            this.state.waypointDraggingAfterNodeIndex || 0,
-            this.state.waypointDraggingIndex || 0,
-            waypointType
-        );
+        await this.props.path.replaceWaypointByNodeId(nodeId, afterNodeIndex, waypointIndex, waypointType);
         this.props.path.validate();
         serviceLocator.selectedObjectsManager.update('path', this.props.path);
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
@@ -282,20 +257,15 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.emit('selected.updateLayers.path');
     };
 
-    onUpdateWaypoint = (coordinates: [number, number], waypointType?: string) => {
+    onUpdateWaypoint = (coordinates: [number, number], waypointIndex: number, afterNodeIndex: number) => {
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'transitPathWaypointsSelected',
             data: turfFeatureCollection([])
         });
         if (!this.props.path.isFrozen()) {
             this.props.path
-                .updateWaypoint(
-                    coordinates,
-                    waypointType,
-                    this.state.waypointDraggingAfterNodeIndex || 0,
-                    this.state.waypointDraggingIndex || 0
-                )
-                .then((_response) => {
+                .updateWaypoint(coordinates, undefined, afterNodeIndex, waypointIndex)
+                .then(() => {
                     this.props.path.validate();
                     serviceLocator.selectedObjectsManager.update('path', this.props.path);
                     serviceLocator.eventManager.emit('selected.updateLayers.path');
@@ -306,10 +276,6 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         } else {
             serviceLocator.eventManager.emit('map.enableDragPan');
         }
-        this.setState({
-            waypointDraggingAfterNodeIndex: undefined,
-            waypointDraggingIndex: undefined
-        });
     };
 
     render() {

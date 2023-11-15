@@ -565,7 +565,7 @@
     "@luma.gl/experimental" "^8.5.21"
     "@luma.gl/shadertools" "^8.5.21"
 
-"@deck.gl/react@8.9.36":
+"@deck.gl/react@8.9.36", "@deck.gl/react@^8.9.36":
   version "8.9.36"
   resolved "https://registry.yarnpkg.com/@deck.gl/react/-/react-8.9.36.tgz#6fb0daef9b3f7c146aab082107875d90e969a985"
   integrity sha512-/WIvHK0aJwppLnpA6GZrOhfanx5WVWihx/o6U88kX53VsyJQMZU10+EXKc1FkI3nd5/jsLbLc8fC0dUtiXiSVw==
@@ -6317,7 +6317,7 @@ decimal.js@^10.4.2:
   resolved "https://registry.yarnpkg.com/decimal.js/-/decimal.js-10.4.3.tgz#1044092884d245d1b7f65725fa4ad4c6f781cc23"
   integrity sha512-VBBaLc1MgL5XpzgIP7ny5Z6Nx3UrRkIViUkPUdtl9aya5amy3De1gsUUSB1g3+3sExYNjCAsAznmukyxCb1GRA==
 
-deck.gl@^8.9.36:
+deck.gl@^8.9.32, deck.gl@^8.9.36:
   version "8.9.36"
   resolved "https://registry.yarnpkg.com/deck.gl/-/deck.gl-8.9.36.tgz#40e940ee20d6915a3d956a9aed1c48d622f20f12"
   integrity sha512-2LzolV1oNL4f5Q73JvgjsCCzwEMBaJWo1gTT1OWUE2l/7wMuXSdFfYRI45ewH8YaB+vh90d1G8N7kfmSysKabA==
