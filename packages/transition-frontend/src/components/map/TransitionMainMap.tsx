@@ -12,6 +12,7 @@ import DeckGL from '@deck.gl/react/typed';
 import { DeckProps, Viewport, FilterContext, Layer } from '@deck.gl/core/typed';
 import { ScatterplotLayer } from 'deck.gl';
 import { TripsLayer } from '@deck.gl/geo-layers';
+import { Map as MapLibreMap } from 'react-map-gl/maplibre';
 import MapboxGL from 'mapbox-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { default as elementResizedEvent, unbind as removeResizeListener } from 'element-resize-event';
@@ -39,7 +40,7 @@ import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/ev
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import getLayer from './layers/TransitionMapLayer';
 
-MapboxGL.accessToken = process.env.MAPBOX_ACCESS_TOKEN || '';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 export interface MainMapProps extends LayoutSectionProps {
     zoom: number;
@@ -497,7 +498,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         const layers: Layer[] = enabledLayers
             .map((layer) => getLayer({ layerDescription: layer, viewState: this.state.viewState }))
             .filter((layer) => layer !== undefined) as Layer[];
-        //<Map mapboxAccessToken={MAPBOX_ACCESS_TOKEN} />
+
         return (
             <section id="tr__main-map">
                 <div id="tr__main-map-context-menu" className="tr__main-map-context-menu"></div>
@@ -507,7 +508,11 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                     controller={{ scrollZoom: true, dragPan: true }}
                     layers={layers}
                     onViewStateChange={this.onViewStateChange}
-                ></DeckGL>
+                >
+                    <MapLibreMap
+                        mapStyle={'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'}
+                    />
+                </DeckGL>
             </section>
         );
     }
