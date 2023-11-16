@@ -28,22 +28,6 @@ export type ProjectConfiguration<AdditionalConfig> = {
     confirmEmailStrategy?: 'confirmByAdmin' | 'confirmByUser';
     languages: string[];
     defaultLocale: string;
-
-    // TODO The following configuration options should be only available on the server side, it's leaking information
-    /**
-     * The default disk usage quota for a user. The string is a number suffixed
-     * with the units, kb, mb or gb
-     */
-    userDiskQuota: string;
-    /**
-     * Maximum file upload size, in megabytes. Defaults to 256MB
-     */
-    maxFileUploadMB: number;
-    /**
-     * Absolute directory where project data will be stored (import files, osrm data, user data, caches, etc)
-     */
-    projectDirectory: string;
-    maxParallelCalculators: number;
 } & AdditionalConfig;
 
 // Initialize default configuration
@@ -51,9 +35,9 @@ const projectConfig: ProjectConfiguration<any> = {
     mapDefaultCenter: { lon: -73.6131, lat: 45.5041 },
     separateAdminLoginPage: false,
     projectShortname: 'default',
-    userDiskQuota: '1gb',
-    maxFileUploadMB: 256,
-    maxParallelCalculators: 1
+    auth: {},
+    languages: ['en', 'fr'],
+    defaultLocale: 'en'
 };
 
 /**

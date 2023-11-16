@@ -6,8 +6,6 @@
  */
 // FIXME Need to make sure it is imported. Really? It was imported in server.ts it should be enough
 import _dotenv from 'chaire-lib-backend/lib/config/dotenv.config';
-// FIXME Need to make sure it is imported. Really? Any component using this should import it
-import _project from 'chaire-lib-backend/lib/config/server.config';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import path from 'path';
 import { Express, Request, Response, RequestHandler } from 'express';
@@ -21,13 +19,14 @@ import KnexConnection from 'connect-session-knex';
 import morgan from 'morgan'; // http logger
 import requestIp from 'request-ip';
 import authRoutes from 'chaire-lib-backend/lib/api/auth.routes';
+import configRoutes from 'chaire-lib-backend/lib/api/config.routes';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { UserAttributes } from 'chaire-lib-backend/lib/services/users/user';
-import config from 'chaire-lib-backend/lib/config/server.config';
 import { userAuthModel } from 'chaire-lib-backend/lib/services/auth/userAuthModel';
+import { projectConfig, serverConfig } from 'chaire-lib-backend/lib/config/config';
 
 export const setupServer = (app: Express) => {
-    const projectShortname = config.projectShortname;
+    const projectShortname = projectConfig.projectShortname;
     if (!projectShortname) {
         throw 'Project short name is not set';
     }
@@ -40,7 +39,7 @@ export const setupServer = (app: Express) => {
 
     // FIXME Why this dir?
     directoryManager.createDirectoryIfNotExistsAbsolute(publicDistDirectory);
-    directoryManager.createDirectoryIfNotExistsAbsolute(config.projectDirectory);
+    directoryManager.createDirectoryIfNotExistsAbsolute(serverConfig.projectDirectory);
     directoryManager.createDirectoryIfNotExists('logs');
     directoryManager.createDirectoryIfNotExists('imports');
     directoryManager.createDirectoryIfNotExists('cache');
@@ -142,6 +141,8 @@ export const setupServer = (app: Express) => {
 
     app.use('/dist/', publicPath); // this needs to be after gzip middlewares.
     app.use('/locales/', localePath); // this needs to be after gzip middlewares.
+
+    configRoutes(app);
 
     app.get('*', (req: Request, res: Response): void => {
         res.sendFile(indexPath);

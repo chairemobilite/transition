@@ -18,7 +18,7 @@ const existsSyncMock = fs.existsSync as jest.MockedFunction<typeof fs.existsSync
 test('Expected reading configuration files in default paths', () => {
     let error: unknown | undefined = undefined;
     try {
-        require('../server.config')
+        require('../config')
     } catch (err) {
         error = err;
     }

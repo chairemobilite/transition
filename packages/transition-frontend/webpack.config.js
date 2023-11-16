@@ -18,8 +18,7 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development';
 }
 
-const configuration = require('chaire-lib-backend/lib/config/server.config');
-const config = configuration.default ? configuration.default : configuration;
+const { projectConfig: config } = require('chaire-lib-backend/lib/config/config');
 
 // Public directory from which files are served
 const publicDirectory = path.join(__dirname, '..', '..', 'public');
@@ -144,10 +143,7 @@ module.exports = (env) => {
           'CUSTOM_RASTER_TILES_XYZ_URL' : JSON.stringify(process.env.CUSTOM_RASTER_TILES_XYZ_URL || config.customRasterTilesXyzUrl),
           'CUSTOM_RASTER_TILES_MIN_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM || config.customRasterTilesMinZoom),
           'CUSTOM_RASTER_TILES_MAX_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM || config.customRasterTilesMaxZoom)
-        },
-        '__CONFIG__': JSON.stringify({
-            ...config
-        })
+        }
       }),
       new webpack.optimize.AggressiveMergingPlugin(),//Merge chunks
       new CompressionPlugin({

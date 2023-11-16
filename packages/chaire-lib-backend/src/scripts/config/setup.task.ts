@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import '../../config/dotenv.config'; // Unused, but must be imported
-import config from '../../config/server.config';
+import { projectConfig } from '../../config/config';
 import { knex } from 'knex';
 
 import knexRootCfg from './knexfile.root';
@@ -19,7 +19,7 @@ const createExtensionsAndSchemaQuery = `
   CREATE EXTENSION IF NOT EXISTS "pgcrypto"  SCHEMA public;
   CREATE EXTENSION IF NOT EXISTS "postgis"   SCHEMA public;
   CREATE EXTENSION IF NOT EXISTS "uuid-ossp" SCHEMA public;
-  CREATE SCHEMA    IF NOT EXISTS "${process.env.PG_DATABASE_SCHEMA || config.projectShortname}";
+  CREATE SCHEMA    IF NOT EXISTS "${process.env.PG_DATABASE_SCHEMA || projectConfig.projectShortname}";
   DROP OPERATOR CLASS IF EXISTS public._uuid_ops USING gin CASCADE;
   DROP OPERATOR FAMILY IF EXISTS public._uuid_ops USING gin CASCADE;
   CREATE OPERATOR CLASS public._uuid_ops DEFAULT 

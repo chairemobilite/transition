@@ -6,7 +6,7 @@
  */
 import bytes from 'bytes';
 import { directoryManager } from '../../utils/filesystem/directoryManager';
-import config from '../../config/server.config';
+import { serverConfig } from '../../config/config';
 import usersDbQueries, { UserFilter } from '../../models/db/users.db.queries';
 import { UserAttributes } from './user';
 
@@ -43,7 +43,7 @@ export default class Users {
      * directory.
      */
     static getUserQuota = (userId: number): number => {
-        const quota = bytes.parse(config.userDiskQuota);
+        const quota = bytes.parse(serverConfig.userDiskQuota);
         return quota === null ? 0 : quota;
     };
 

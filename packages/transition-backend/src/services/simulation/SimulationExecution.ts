@@ -16,7 +16,7 @@ import { SimulationAlgorithm } from 'transition-common/lib/services/simulation/S
 import SimulationRun from './SimulationRun';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
-import config from 'chaire-lib-backend/lib/config/server.config';
+import { projectConfig } from 'chaire-lib-backend/lib/config/config';
 
 /**
  * A factory to create a simulation algorithm object with the given parameters.
@@ -61,52 +61,52 @@ const prepareCacheDirectory = function (simulationRun: SimulationRun) {
 
     console.log('Preparing and copying cache files...');
     fileManager.directoryManager.copyDirectory(
-        `cache/${config.projectShortname}/dataSources`,
+        `cache/${projectConfig.projectShortname}/dataSources`,
         `${projectRelativeCacheDirectoryPath}/datasources`,
         true
     );
     fileManager.directoryManager.copyDirectory(
-        `cache/${config.projectShortname}/nodes`,
+        `cache/${projectConfig.projectShortname}/nodes`,
         `${projectRelativeCacheDirectoryPath}/nodes`,
         true
     );
     fileManager.directoryManager.copyDirectory(
-        `cache/${config.projectShortname}/lines`,
+        `cache/${projectConfig.projectShortname}/lines`,
         `${projectRelativeCacheDirectoryPath}/lines`,
         true
     );
     fileManager.copyFile(
-        `cache/${config.projectShortname}/dataSources.capnpbin`,
+        `cache/${projectConfig.projectShortname}/dataSources.capnpbin`,
         `${projectRelativeCacheDirectoryPath}/dataSources.capnpbin`,
         true
     );
     fileManager.copyFile(
-        `cache/${config.projectShortname}/agencies.capnpbin`,
+        `cache/${projectConfig.projectShortname}/agencies.capnpbin`,
         `${projectRelativeCacheDirectoryPath}/agencies.capnpbin`,
         true
     );
     fileManager.copyFile(
-        `cache/${config.projectShortname}/lines.capnpbin`,
+        `cache/${projectConfig.projectShortname}/lines.capnpbin`,
         `${projectRelativeCacheDirectoryPath}/lines.capnpbin`,
         true
     );
     fileManager.copyFile(
-        `cache/${config.projectShortname}/paths.capnpbin`,
+        `cache/${projectConfig.projectShortname}/paths.capnpbin`,
         `${projectRelativeCacheDirectoryPath}/paths.capnpbin`,
         true
     );
     fileManager.copyFile(
-        `cache/${config.projectShortname}/nodes.capnpbin`,
+        `cache/${projectConfig.projectShortname}/nodes.capnpbin`,
         `${projectRelativeCacheDirectoryPath}/nodes.capnpbin`,
         true
     );
     fileManager.copyFile(
-        `cache/${config.projectShortname}/scenarios.capnpbin`,
+        `cache/${projectConfig.projectShortname}/scenarios.capnpbin`,
         `${projectRelativeCacheDirectoryPath}/scenarios.capnpbin`,
         true
     );
     fileManager.copyFile(
-        `cache/${config.projectShortname}/services.capnpbin`,
+        `cache/${projectConfig.projectShortname}/services.capnpbin`,
         `${projectRelativeCacheDirectoryPath}/services.capnpbin`,
         true
     );

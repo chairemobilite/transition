@@ -10,7 +10,7 @@ import util from 'util';
 import fs from 'fs-extra';
 
 import '../../config/dotenv.config';
-import config from '../../config/server.config';
+import { serverConfig, projectConfig } from '../../config/config';
 
 // Recursively get size in bytes of a file or directory
 const getSize = (absolutePath: string): number => {
@@ -247,5 +247,8 @@ export class DirectoryManager {
 }
 
 // singleton:
-export const directoryManager = new DirectoryManager(config.projectDirectory, config.projectShortname || '');
+export const directoryManager = new DirectoryManager(
+    serverConfig.projectDirectory,
+    projectConfig.projectShortname || ''
+);
 Object.freeze(directoryManager);
