@@ -6,7 +6,7 @@
  */
 import { Layer, LayerProps } from '@deck.gl/core/typed';
 import { MapLayer } from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
-import { ScatterplotLayer, TripsLayer, PolygonLayer, GeoJsonLayer } from 'deck.gl/typed';
+import { ScatterplotLayer, PathLayer, GeoJsonLayer } from 'deck.gl/typed';
 import AnimatedArrowPathLayer from './AnimatedArrowPathLayer'
 
 // FIXME default color should probably be a app/user/theme preference?
@@ -54,8 +54,8 @@ const propertyToColor = (
                 : defaultRGBA;
 };
 
-const getLineLayer = (props: TransitionMapLayerProps): TripsLayer =>
-    new TripsLayer({
+const getLineLayer = (props: TransitionMapLayerProps): PathLayer =>
+    new PathLayer({
         id: props.layerDescription.id,
         data: props.layerDescription.layerData.features,
         getPath: (d) => d.geometry.coordinates,
