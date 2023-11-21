@@ -64,19 +64,34 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
     // TODO This may be racy (it already was) if the user switches alternative rapidly. Make it cancellable.
     showCurrentAlternative(result, alternativeIndex);
 
+    const onLeftButtonClick = () => {
+        setAlternativeIndex(alternativeIndex > 0 ? alternativeIndex - 1 : alternativesCount - 1);
+    };
+
+    const onRightButtonClick = () => {
+        setAlternativeIndex(alternativesCount > alternativeIndex + 1 ? alternativeIndex + 1 : 0);
+    };
+
     return (
         <React.Fragment>
             <div>
-                <div className="tr__form-buttons-container">
+                <div
+                    className="tr__form-buttons-container"
+                    onKeyDown={(e) => {
+                        if (e.key === 'ArrowLeft') {
+                            onLeftButtonClick();
+                        } else if (e.key === 'ArrowRight') {
+                            onRightButtonClick();
+                        }
+                    }}
+                >
                     {alternativesCount > 1 && (
                         <Button
                             icon={faAngleLeft}
                             color="blue"
                             iconClass="_icon-alone"
                             label=""
-                            onClick={() =>
-                                setAlternativeIndex(alternativeIndex > 0 ? alternativeIndex - 1 : alternativesCount - 1)
-                            }
+                            onClick={onLeftButtonClick}
                         />
                     )}
                     {alternativesCount > 0 && (
@@ -90,9 +105,7 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
                             color="blue"
                             iconClass="_icon-alone"
                             label=""
-                            onClick={() =>
-                                setAlternativeIndex(alternativesCount > alternativeIndex + 1 ? alternativeIndex + 1 : 0)
-                            }
+                            onClick={onRightButtonClick}
                         />
                     )}
                 </div>
