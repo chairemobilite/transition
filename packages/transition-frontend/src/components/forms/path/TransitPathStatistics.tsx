@@ -10,6 +10,7 @@ import MathJax from 'react-mathjax';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
+import SpeedUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/SpeedUnitFormatter';
 import pathStatsFormula from 'transition-common/lib/config/path/pathStats';
 import Path from 'transition-common/lib/services/path/Path';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
@@ -42,7 +43,7 @@ const StatsRowBase: React.FunctionComponent<StatsRowProps> = (props: StatsRowPro
 };
 const StatsRow = withTranslation(['transit'])(StatsRowBase);
 
-const SimpleRow: React.FunctionComponent<{ header: string; value?: string | number; isHeader?: boolean }> = ({
+const SimpleRow: React.FunctionComponent<{ header: string; value?: React.ReactNode; isHeader?: boolean }> = ({
     header,
     value = '',
     isHeader = false
@@ -114,9 +115,7 @@ const TransitPathStatistics: React.FunctionComponent<PathStatsProps> = (props: P
                 <SimpleRow header={props.t('transit:transitPath:Speeds')} isHeader={true} />
                 <SimpleRow
                     header={props.t('transit:transitPath:ExcludingDwellTimes')}
-                    value={`${
-                        Math.round((pathData.averageSpeedWithoutDwellTimesMetersPerSecond || 0) * 3.6 * 100) / 100
-                    } km/h`}
+                    value={<SpeedUnitFormatter value={pathData.averageSpeedWithoutDwellTimesMetersPerSecond || 0} sourceUnit='m/s' destinationUnit='km/h'/>}
                 />
                 <SimpleRow
                     header={props.t('transit:transitPath:OperatingSpeed')}
