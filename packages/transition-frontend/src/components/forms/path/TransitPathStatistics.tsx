@@ -11,6 +11,8 @@ import MathJax from 'react-mathjax';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import SpeedUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/SpeedUnitFormatter';
+import DistanceUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DistanceUnitFormatter';
+import DurationUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DurationUnitFormatter';
 import pathStatsFormula from 'transition-common/lib/config/path/pathStats';
 import Path from 'transition-common/lib/services/path/Path';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
@@ -27,7 +29,6 @@ const StatsRowBase: React.FunctionComponent<StatsRowProps> = (props: StatsRowPro
     const {
         translatableString,
         latexExpression,
-        unit = undefined
     } = typeof pathStatFormula === 'string'
         ? { translatableString: `variable:${props.variable}`, latexExpression: props.variable }
         : pathStatFormula;
@@ -37,7 +38,7 @@ const StatsRowBase: React.FunctionComponent<StatsRowProps> = (props: StatsRowPro
             <td className="_latex">
                 <MathJax.Node inline formula={latexExpression} />
             </td>
-            <td>{`${value}${unit ? ` ${unit}` : ''}`}</td>
+            <td>{value}</td>
         </tr>
     );
 };
@@ -80,36 +81,36 @@ const TransitPathStatistics: React.FunctionComponent<PathStatsProps> = (props: P
     return (
         <table className="_statistics">
             <tbody>
-                {variables && <StatsRow variable="d_p" value={variables.d_p} />}
+                {variables && <StatsRow variable="d_p" value={!_isBlank(variables.d_p) ? <DistanceUnitFormatter value={variables.d_p as number} sourceUnit='m' destinationUnit='km'/> : '?'}/>}
                 {variables && <StatsRow variable="n_q_p" value={variables.n_q_p} />}
-                {variables && <StatsRow variable="d_l_min" value={variables.d_l_min} />}
-                {variables && <StatsRow variable="d_l_max" value={variables.d_l_max} />}
-                {variables && <StatsRow variable="d_l_avg" value={variables.d_l_avg} />}
-                {variables && <StatsRow variable="d_l_med" value={variables.d_l_med} />}
+                {variables && <StatsRow variable="d_l_min" value={!_isBlank(variables.d_l_min) ? <DistanceUnitFormatter value={variables.d_l_min as number} sourceUnit='m' destinationUnit='m'/> : '?'} />}
+                {variables && <StatsRow variable="d_l_max" value={!_isBlank(variables.d_l_max) ? <DistanceUnitFormatter value={variables.d_l_max as number} sourceUnit='m' destinationUnit='m'/> : '?'} />}
+                {variables && <StatsRow variable="d_l_avg" value={!_isBlank(variables.d_l_avg) ? <DistanceUnitFormatter value={variables.d_l_avg as number} sourceUnit='m' destinationUnit='m'/> : '?'} />}
+                {variables && <StatsRow variable="d_l_med" value={!_isBlank(variables.d_l_med) ? <DistanceUnitFormatter value={variables.d_l_med as number} sourceUnit='m' destinationUnit='m'/> : '?'} />}
                 {variables && (
                     <StatsRow variable="q'_T" value={firstNode ? firstNode.properties.name : ''} defaultValue="" />
                 )}
                 {variables && (
                     <StatsRow variable="q''_T" value={lastNode ? lastNode.properties.name : ''} defaultValue="" />
                 )}
-                {variables && <StatsRow variable="T_o_p" value={roundToDecimals((variables.T_o_p || 0) / 60, 1)} />}
+                {variables && <StatsRow variable="T_o_p" value={!_isBlank(variables.T_o_p) ? <DurationUnitFormatter value={variables.T_o_p as number} sourceUnit='s' destinationUnit='m'/> : '0'} />}
 
                 <SimpleRow header={props.t('transit:transitPath:TravelTimes')} isHeader={true} />
                 <SimpleRow
                     header={props.t('transit:transitPath:IncludingDwellTimes')}
-                    value={`${Math.ceil((pathData.operatingTimeWithoutLayoverTimeSeconds || 0) / 60)} min`}
+                    value={<DurationUnitFormatter value={pathData.operatingTimeWithoutLayoverTimeSeconds || 0} sourceUnit='s' destinationUnit='m'/>}
                 />
                 <SimpleRow
                     header={props.t('transit:transitPath:ExcludingDwellTimes')}
-                    value={`${Math.ceil((pathData.travelTimeWithoutDwellTimesSeconds || 0) / 60)} min`}
+                    value={<DurationUnitFormatter value={pathData.travelTimeWithoutDwellTimesSeconds || 0} sourceUnit='s' destinationUnit='m'/>}
                 />
                 <SimpleRow
                     header={props.t('transit:transitPath:IncludingDwellTimesAndLayover')}
-                    value={`${Math.ceil((pathData.operatingTimeWithLayoverTimeSeconds || 0) / 60)} min`}
+                    value={<DurationUnitFormatter value={pathData.operatingTimeWithLayoverTimeSeconds || 0} sourceUnit='s' destinationUnit='m'/>}
                 />
                 <SimpleRow
                     header={props.t('transit:transitPath:LayoverTime')}
-                    value={`${pathData.layoverTimeSeconds} s`}
+                    value={<DurationUnitFormatter value={pathData.layoverTimeSeconds as number || 0} sourceUnit='s' destinationUnit='m'/>}
                 />
 
                 <SimpleRow header={props.t('transit:transitPath:Speeds')} isHeader={true} />
@@ -119,7 +120,7 @@ const TransitPathStatistics: React.FunctionComponent<PathStatsProps> = (props: P
                 />
                 <SimpleRow
                     header={props.t('transit:transitPath:OperatingSpeed')}
-                    value={`${Math.round((pathData.operatingSpeedMetersPerSecond || 0) * 3.6 * 10) / 10} km/h`}
+                    value={<SpeedUnitFormatter value={pathData.operatingSpeedMetersPerSecond || 0} sourceUnit='m/s' destinationUnit='km/h'/>}
                 />
 
                 {temporalTortuosity && (
