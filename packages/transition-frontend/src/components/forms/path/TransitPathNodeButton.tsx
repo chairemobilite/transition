@@ -7,6 +7,8 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
+import DistanceUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DistanceUnitFormatter';
+import DurationUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DurationUnitFormatter';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Path from 'transition-common/lib/services/path/Path';
 import Node from 'transition-common/lib/services/nodes/Node';
@@ -120,10 +122,10 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                 <li className={'_path-segment-list'} key={`segment${nodeIndex}`}>
                     <span className="_path-segment-label-container">
                         <span className="_path-segment-label">
-                            {segments[nodeIndex] ? segments[nodeIndex].travelTimeSeconds : '?'}s
+                            {segments[nodeIndex].travelTimeSeconds ? <DurationUnitFormatter value={segments[nodeIndex].travelTimeSeconds!} sourceUnit='s' destinationUnit='s' /> : '? s'}
                         </span>
                         <span className="_path-segment-label">
-                            {segments[nodeIndex] ? segments[nodeIndex].distanceMeters : '?'}m
+                            {segments[nodeIndex].distanceMeters ? <DistanceUnitFormatter value={segments[nodeIndex].distanceMeters!} sourceUnit='m' /> : '?'}
                         </span>
                         {cumulativeTimeSecondsAfter && cumulativeDistanceMeters && <br />}
                         {cumulativeTimeSecondsAfter && cumulativeDistanceMeters && (
@@ -138,12 +140,14 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                         )}
                         {cumulativeTimeSecondsAfter && (
                             <span className="_path-segment-label" title={props.t('main:Cumulative')}>
-                                {Math.ceil(cumulativeTimeSecondsAfter / 60)}&nbsp;min
+                                <DurationUnitFormatter value={cumulativeTimeSecondsAfter} sourceUnit='s' />
                             </span>
                         )}
+                        &#8213;
+                        &nbsp;
                         {cumulativeDistanceMeters && (
                             <span className="_path-segment-label" title={props.t('main:Cumulative')}>
-                                {Math.ceil(cumulativeDistanceMeters)}m
+                                <DistanceUnitFormatter value={cumulativeDistanceMeters} sourceUnit='m' />
                             </span>
                         )}
                     </span>
