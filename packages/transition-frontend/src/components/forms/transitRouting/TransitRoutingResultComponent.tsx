@@ -10,6 +10,8 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import TransitRoutingStepWalkButton from './TransitRoutingStepWalkButton';
 import TransitRoutingStepRideButton from './TransitRoutingStepRideButton';
 import RouteButton from './RouteButton';
+import DistanceUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DistanceUnitFormatter';
+import DurationUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DurationUnitFormatter';
 import { secondsToMinutes, secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
@@ -57,13 +59,14 @@ const TransitRoutingResults: React.FunctionComponent<TransitRoutingResultsProps>
                                 <tr>
                                     <th>{props.t('transit:transitRouting:results:TravelTime')}</th>
                                     <td title={`${pathToDisplay.duration} ${props.t('main:secondAbbr')}.`}>
-                                        {secondsToMinutes(pathToDisplay.duration, Math.round)}{' '}
-                                        {props.t('main:minuteAbbr')}.
+                                        <DurationUnitFormatter value={pathToDisplay.duration} sourceUnit="s" />
                                     </td>
                                 </tr>
                                 <tr>
                                     <th>{props.t('transit:transitRouting:results:Distance')}</th>
-                                    <td>{Math.round(pathToDisplay.distance)} m</td>
+                                    <td>
+                                        <DistanceUnitFormatter value={pathToDisplay.distance} sourceUnit="m" />
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>

@@ -12,6 +12,15 @@ const mpsToKph = function (mps: number): number {
     return mps * 3.6;
 };
 
+// M/s to ft/s
+const mpsToFtps = function (mps: number): number {
+    return mps * 3.281;
+};
+
+const ftpsToMps = function (ftps: number): number {
+    return ftps / 3.281;
+};
+
 const kphToMph = function (kph: number): number {
     return kph / 1.60934;
 };
@@ -34,6 +43,14 @@ const metersToMiles = function (meters: number): number {
 
 const milesToMeters = function (miles: number): number {
     return miles * 1609.34;
+};
+
+const metersToFeet = function (meters: number): number {
+    return meters * 3.281;
+};
+
+const feetToMeters = function (feet: number): number {
+    return feet / 3.281;
 };
 
 const kmToMiles = function (km: number): number {
@@ -89,12 +106,16 @@ const durationFromAccelerationDecelerationDistanceAndRunningSpeed = function (
 export {
     kphToMps,
     mpsToKph,
+    mpsToFtps,
+    ftpsToMps,
     kphToMph,
     mphToKph,
     mpsToMph,
     mphToMps,
     metersToMiles,
     milesToMeters,
+    metersToFeet,
+    feetToMeters,
     kmToMiles,
     milesToKm,
     sqFeetToSqMeters,

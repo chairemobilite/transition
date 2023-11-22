@@ -112,6 +112,38 @@ const hoursToSeconds = function (hours) {
 };
 
 /**
+ * Convert a duration in seconds to a formatted time string.
+ * The function takes a duration in seconds and returns a string
+ * in the format "XX hr YY min ZZ sec", where each non-zero
+ * component is included with its corresponding unit.
+ *
+ * @param {number} seconds - The duration in seconds to be converted.
+ * @param {string} hourUnit - The unit for hours (e.g., "hr").
+ * @param {string} minuteUnit - The unit for minutes (e.g., "min").
+ * @param {string} secondsUnit - The unit for seconds (e.g., "sec").
+ * @returns {string} - The formatted time string or an empty string if the input is invalid.
+ */
+const toXXhrYYminZZsec = function (seconds: number, hourUnit: string, minuteUnit: string, secondsUnit: string) {
+    if (_isBlank(seconds)) {
+        return null;
+    }
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    const timeComponents = [
+        { value: hours, unit: hourUnit },
+        { value: minutes, unit: minuteUnit },
+        { value: secs, unit: secondsUnit }
+    ];
+
+    return timeComponents
+        .map((component) => (component.value > 0 ? component.value + ' ' + component.unit : ''))
+        .filter(Boolean) // Discard empty components (ex: no seconds)
+        .join(' ');
+};
+
+/**
  * Convert a time string (HH:MM[:ss]) to the number of seconds since midnight.
  * Time strings can be > 24:00, for example for schedules for a day that end
  * after midnight. The number since midnight will thus be greater than the
@@ -168,6 +200,7 @@ export {
     minutesToHoursDecimal,
     minutesToSeconds,
     hoursToSeconds,
+    toXXhrYYminZZsec,
     timeStrToSecondsSinceMidnight,
     intTimeToSecondsSinceMidnight,
     roundSecondsToNearestMinute
