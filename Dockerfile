@@ -5,7 +5,7 @@
 # since node does not provide a buster image.
 # Added benefit of splitting the image
 # We copy the executable later
-FROM debian:bullseye AS json2capnpbuild
+FROM debian:bookworm AS json2capnpbuild
 WORKDIR /app/services/json2capnp
 COPY services/json2capnp ./
 RUN apt-get update && apt-get -y --no-install-recommends install cargo ca-certificates
@@ -13,7 +13,7 @@ RUN cargo build
 
 
 # Build Node app
-FROM node:16-bullseye
+FROM node:16-bookworm
 WORKDIR /app
 # Install all the json package dependencies in an intermediary image. To do so, we copy each package.json files
 # and run yarn install which will download all the listed packages in the image.
@@ -47,7 +47,7 @@ COPY --from=json2capnpbuild /app/services/json2capnp/target/debug/json2capnp ser
 
 # Copy in trRouting and osrm binaries
 # For trRouting
-RUN apt-get update && apt-get -y --no-install-recommends install capnproto libboost-regex1.74.0 libboost-filesystem1.74.0 libboost-iostreams1.74.0 libboost-thread1.74.0 libboost-date-time1.74.0 libboost-serialization1.74.0 libboost-program-options1.74.0 libspdlog1
+RUN apt-get update && apt-get -y --no-install-recommends install capnproto libboost-regex1.74.0 libboost-filesystem1.74.0 libboost-iostreams1.74.0 libboost-thread1.74.0 libboost-date-time1.74.0 libboost-serialization1.74.0 libboost-program-options1.74.0 libspdlog1.10
 
 # For OSRM
 # libtbb12 us only available in bookworm or later copy it from the osrm image
