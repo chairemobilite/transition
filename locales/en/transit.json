@@ -458,6 +458,8 @@
         "PathChangeWillAffectSchedulesWhatDoYouWantToDo": "Changes to this path will affect associated timetables. What do you want to do?",
         "CancelPathChanges": "Cancel changes",
         "IgnorePathChangesOnSchedule": "Save changes, but keep old timetables",
+        "IgnoreNodesMinDwellTimeSeconds": "Ignore nodes minimum dwell times",
+        "MinDwellTimeSecondsHelp": "At each node associated with this path, the dwell time used is the greater value between the default dwell time at that node (which can be modified by selecting the node in the Nodes section) and the value specified here for the path. If the checkbox below is checked, the dwell times specified in the nodes associated with this path will be ignored and replaced with the default dwell time for this path.",
         "UpdateSchedules": "Automatically update timetables",
         "ClickOnTransitNodeToStart": "Select a transit node to start the path",
         "PathEditMapDoc": "Click on node: Add the node at the end of the path<br/>Click on the map: Add a waypoint at the end<br/>Shift-click on node: Add a node at the beginning of the path<br/>Alt-click on node: Remove the node<br />m: Toggle manual mode for path calculation<br />Clic on the line + drag waypoint & drop on node: Add node in the middle of a path",

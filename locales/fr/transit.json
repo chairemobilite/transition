@@ -50,10 +50,10 @@
         },
         "MultipleDelete": "Supprimer les noeuds d'arrêt",
         "ConfirmMultipleDelete": "Confirmez-vous que vous désirez bien supprimer ces noeuds d'arrêt? Seuls les noeuds ne desservant aucun trajet seront supprimés.",
-        "deleteSelectedNodes":"Supprimer les noeuds sélectionnés et inutilisés",
-        "deleteSelectedPolygon":"Annuler la sélection",
-        "editSelectedNodes":"Modifier les noeuds sélectionnés",
-        "editFrozenSelectedNodesWarning":"Seulement les noeuds non verrouillés seront sauvegardés"
+        "deleteSelectedNodes": "Supprimer les noeuds sélectionnés et inutilisés",
+        "deleteSelectedPolygon": "Annuler la sélection",
+        "editSelectedNodes": "Modifier les noeuds sélectionnés",
+        "editFrozenSelectedNodesWarning": "Seulement les noeuds non verrouillés seront sauvegardés"
     },
     "transitAgency": {
         "List": "Agences",
@@ -458,13 +458,14 @@
         "PathChangeWillAffectSchedulesWhatDoYouWantToDo": "Les changements apportés à ce trajet affectent les horaires associés. Que voulez-vous faire?",
         "CancelPathChanges": "Annuler les changements",
         "IgnorePathChangesOnSchedule": "Sauvegarder les changements, mais conserver les anciens horaires",
+        "IgnoreNodesMinDwellTimeSeconds": "Ignorer les temps minimum d'arrêt des noeuds",
+        "MinDwellTimeSecondsHelp": "À chacun des noeuds associés à ce trajet, le temps d'arrêt utilisé est la plus grande valeur entre le temps d'arrêt par défaut à ce noeud (vous pouvez modifier cette valeur en sélectionnant le noeud dans la section Noeuds d'arrêt) et la valeur inscrite ici pour le trajet. Si la case ci-dessous est également cochée, les temps d'arrêts spécifiés dans les noeuds associés à ce trajet seront ignorés et remplacés par le temps d'arrêt par défaut de ce trajet.",
         "UpdateSchedules": "Mettre à jour les horaires automatiquement",
         "ClickOnTransitNodeToStart": "Sélectionner un noeud d'arrêt pour débuter le trajet",
         "PathEditMapDoc": "Clic sur un noeud: Ajouter le noeud à la fin du trajet<br />Clic sur la carte: Ajout d'un point de repère<br />Shift-clic sur noeud: Ajout du noeud au début du trajet<br />Alt-clic sur noeud: Enlever le noeud<br />m: Activer le mode manuel de calcul de trajet<br />Clic sur la ligne + glisser le point de repère et déposer sur un noeud: Ajout d'un noeud en milieu de trajet",
         "ShowPathEditHelp": "Montrer l'aide pour l'édition de trajet",
         "HidePathEditHelp": "Cacher l'aide pour l'édition de trajet",
         "warningFromGtfs": "Attention! Ce trajet a été importé d'un GTFS. Le recalculer pourrait changer le tracé ou les temps de parcours.",
-
         "directions": {
             "loop": "Boucle",
             "outbound": "Aller",
@@ -654,7 +655,7 @@
             "DataSourceDoesNotExists": "La source de données spécifiée n'existe pas.",
             "DataSourceAlreadyExists": "Une source de données de ce nom existe déjà pour les calculs OD.",
             "InvalidOdTripsDataSource": "Source de données de calculs OD invalide.",
-            "ErrorCalculatingLocation":  "Erreur de calcul pour le lieu {{id}}",
+            "ErrorCalculatingLocation": "Erreur de calcul pour le lieu {{id}}",
             "UserDiskQuotaReached": "L'espace disque maximal permis a été atteint. Veuillez supprimer des tâches passées pour en supprimer les fichiers",
             "RoutingParametersInvalidForBatch": "Les paramètres pour le calcul de chemin sont invalides. Assurez-vous que le scénario est bien configuré et que les temps sont valides."
         },

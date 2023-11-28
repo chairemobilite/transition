@@ -64,6 +64,7 @@ export interface PathAttributesData {
     defaultAcceleration?: number;
     defaultDeceleration?: number;
     defaultDwellTimeSeconds?: number;
+    ignoreNodesDefaultDwellTimeSeconds?: boolean; // if true, will ignore defaultDwellTimeSeconds from nodes and line mode
     defaultRunningSpeedKmH?: number;
     variables?: PathStatistics;
     routingFailed?: boolean;
@@ -989,6 +990,24 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         if (errorIndex >= 0) {
             this.errors.splice(errorIndex, 1);
         }
+    }
+
+    getDwellTimeSecondsAtNode(nodeDwellTimeSeconds: number | undefined) : number {
+        const defaultGeneralDwellTimeSeconds = Math.max(0, Preferences.get('transit.nodes.defaultDwellTimeSeconds', 20));
+        const pathDwellTimeSeconds : number = Math.max(0,this.getData('defaultDwellTimeSeconds', defaultGeneralDwellTimeSeconds) as number);
+        if (this.getData('ignoreNodesDefaultDwellTimeSecond', false) === true) {
+            return pathDwellTimeSeconds;
+        }
+        const defaultNodeDwellTime: number =
+        nodeDwellTimeSeconds !== undefined && nodeDwellTimeSeconds >= 0
+            ? nodeDwellTimeSeconds
+            : defaultGeneralDwellTimeSeconds;
+        return Math.ceil(
+            Math.max(
+                defaultNodeDwellTime,
+                pathDwellTimeSeconds
+            )
+        );
     }
 
     getTemporalTortuosity() {

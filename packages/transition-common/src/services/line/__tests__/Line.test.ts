@@ -49,7 +49,7 @@ beforeEach(() => {
     EventManagerMock.mockClear();
 });
 
-test('New lines', function() {
+test('New lines', () => {
 
     const line = new Line(lineAttributesBaseData, true);
     expect(line.getAttributes()).toEqual(lineAttributesBaseData);
@@ -57,7 +57,7 @@ test('New lines', function() {
 
 });
 
-test('New line default data', function() {
+test('New line default data', () => {
     const line = new Line(lineAttributesMinimalData, true);
     expect(line.getAttributes()).toEqual({
         ...lineAttributesMinimalData,
@@ -73,16 +73,16 @@ test('New line default data', function() {
 
 });
 
-test('should validate', function() {
+test('should validate', () => {
     const line1 = new Line(lineAttributesBaseData, true);
-    expect(line1.validate()).toBe(true); 
+    expect(line1.validate()).toBe(true);
 
     const line2 = new Line(lineAttributesMinimalData, true);
     expect(line2.validate()).toBe(false);
 
 });
 
-test('should convert to string', function() {
+test('should convert to string', () => {
     const path1a = new Line(lineAttributesBaseData, true);
     expect(path1a.toString()).toBe(`${lineAttributesBaseData.shortname} ${lineAttributesBaseData.longname}`);
     expect(path1a.toString(true)).toBe(`${lineAttributesBaseData.shortname} ${lineAttributesBaseData.longname} ${lineAttributesBaseData.id}`);
@@ -90,12 +90,12 @@ test('should convert to string', function() {
     expect(path1a.toString()).toBe(`${lineAttributesBaseData.shortname}`);
     expect(path1a.toString(true)).toBe(`${lineAttributesBaseData.shortname} ${lineAttributesBaseData.id}`);
     path1a.set('shortname', undefined);
-    expect(path1a.toString()).toBe(``);
+    expect(path1a.toString()).toBe('');
     expect(path1a.toString(true)).toBe(`${lineAttributesBaseData.id}`);
-    
+
 });
 
-test('should save and delete in memory', function() {
+test('should save and delete in memory', () => {
     const line = new Line(lineAttributesBaseData, true);
     expect(line.isNew()).toBe(true);
     expect(line.isDeleted()).toBe(false);
@@ -128,7 +128,7 @@ test('Delete line', async () => {
     expect(line.isDeleted()).toBe(true);
 });
 
-test('static methods should work', function() {
+test('static methods should work', () => {
     expect(Line.getPluralName()).toBe('lines');
     expect(Line.getCapitalizedPluralName()).toBe('Lines');
     expect(Line.getDisplayName()).toBe('Line');

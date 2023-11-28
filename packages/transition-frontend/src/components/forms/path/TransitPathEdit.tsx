@@ -457,6 +457,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     <InputCheckboxBoolean
                                         id={`formFieldTransitPathTemporaryManualRouting${pathId}`}
                                         label={`${this.props.t('transit:transitPath:TemporaryManualRouting')} [m]`}
+                                        disabled={isFrozen}
                                         isChecked={pathData.temporaryManualRouting || false}
                                         onValueChange={(e) =>
                                             this.onValueChange('data.temporaryManualRouting', { value: e.target.value })
@@ -466,18 +467,35 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                             )}
                             {mode !== 'transferable' && (
                                 <div className="apptr__form-input-container _two-columns">
-                                    <label>{this.props.t('transit:transitPath:MinDwellTimeSeconds')}</label>
-                                    <InputStringFormatted
-                                        id={`formFieldTransitPathEditMinDwellTimeSeconds${pathId}`}
+                                    <InputWrapper
+                                        label={this.props.t('transit:transitPath:MinDwellTimeSeconds')}
+                                        help={this.props.t('transit:transitPath:MinDwellTimeSecondsHelp')}
+                                    >
+                                        <InputStringFormatted
+                                            id={`formFieldTransitPathEditMinDwellTimeSeconds${pathId}`}
+                                            disabled={isFrozen}
+                                            value={path.getData('defaultDwellTimeSeconds')}
+                                            onValueUpdated={(value) =>
+                                                this.onValueChange('data.defaultDwellTimeSeconds', value)
+                                            }
+                                            key={`formFieldTransitPathEditMinDwellTimeSeconds${pathId}${this.resetChangesCount}`}
+                                            stringToValue={parseIntOrNull}
+                                            valueToString={(val) => _toString(parseIntOrNull(val))}
+                                            type="number"
+                                        />
+                                    </InputWrapper>
+                                </div>
+                            )}
+                            {mode !== 'transferable' && (
+                                <div className="apptr__form-input-container">
+                                    <InputCheckboxBoolean
+                                        id={`formFieldTransitPathEditIgnoreNodesMinDwellTimeSeconds${pathId}`}
                                         disabled={isFrozen}
-                                        value={path.getData('defaultDwellTimeSeconds')}
-                                        onValueUpdated={(value) =>
-                                            this.onValueChange('data.defaultDwellTimeSeconds', value)
+                                        label={this.props.t('transit:transitPath:IgnoreNodesMinDwellTimeSeconds')}
+                                        isChecked={pathData.ignoreNodesDefaultDwellTimeSeconds || false}
+                                        onValueChange={(e) =>
+                                            this.onValueChange('data.ignoreNodesDefaultDwellTimeSeconds', { value: e.target.value })
                                         }
-                                        key={`formFieldTransitPathEditMinDwellTimeSeconds${pathId}${this.resetChangesCount}`}
-                                        stringToValue={parseIntOrNull}
-                                        valueToString={(val) => _toString(parseIntOrNull(val))}
-                                        type="number"
                                     />
                                 </div>
                             )}
@@ -491,8 +509,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     key={`formFieldTransitPathEditDefaultRunningSpeedKmH${pathId}${this.resetChangesCount}`}
                                     stringToValue={parseFloatOrNull}
                                     valueToString={(val) => _toString(parseFloatOrNull(val))}
-                                    // TODO type number only supports integer
-                                    //type          = 'number'
+                                // TODO type number only supports integer
+                                //type          = 'number'
                                 />
                             </div>
                             {lineModesConfigByMode[mode].showAccelerationAndDeceleration !== false && (
@@ -508,8 +526,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                         key={`formFieldTransitPathEditDefaultAcceleration${pathId}${this.resetChangesCount}`}
                                         stringToValue={parseFloatOrNull}
                                         valueToString={(val) => _toString(parseFloatOrNull(val))}
-                                        // TODO type number only supports integer
-                                        //type          = 'number'
+                                    // TODO type number only supports integer
+                                    //type          = 'number'
                                     />
                                 </div>
                             )}
@@ -526,8 +544,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                         key={`formFieldTransitPathEditDefaultDeceleration${pathId}${this.resetChangesCount}`}
                                         stringToValue={parseFloatOrNull}
                                         valueToString={(val) => _toString(parseFloatOrNull(val))}
-                                        // TODO type number only supports integer
-                                        //type          = 'number'
+                                    // TODO type number only supports integer
+                                    //type          = 'number'
                                     />
                                 </div>
                             )}

@@ -35,7 +35,7 @@ const pathPreferences = {
     }
 };
 
-Preferences.setAttributes(Object.assign({}, Preferences.getAttributes(), pathPreferences))
+Preferences.setAttributes(Object.assign({}, Preferences.getAttributes(), pathPreferences));
 
 const lineId = uuidV4();
 const node1Id = uuidV4();
@@ -113,9 +113,9 @@ const pathAttributesNoGeometry = {
 
 beforeEach(() => {
     EventManagerMock.mockClear();
-})
+});
 
-test('New paths', function () {
+test('New paths', () => {
 
     const path = new Path(pathAttributesFullData, true);
     expect(path.getAttributes()).toEqual(pathAttributesFullData);
@@ -123,7 +123,7 @@ test('New paths', function () {
 
 });
 
-test('New path default data', function () {
+test('New path default data', () => {
     const path = new Path(pathAttributesNoData, true);
     expect(path.getAttributes()).toEqual({
         ...pathAttributesNoData,
@@ -155,7 +155,7 @@ test('New path default data', function () {
 
 });
 
-test('should validate', function () {
+test('should validate', () => {
     const path1 = new Path(pathAttributesFullData, true);
     expect(path1.validate()).toBe(true);
 
@@ -170,7 +170,7 @@ test('should validate', function () {
 
 });
 
-test('should convert to string', function () {
+test('should convert to string', () => {
     const path1a = new Path(pathAttributesFullData, true);
     expect(path1a.toString()).toBe(pathAttributesFullData.name);
     expect(path1a.toString(true)).toBe(`${pathAttributesFullData.name} ${pathAttributesFullData.id}`);
@@ -179,7 +179,7 @@ test('should convert to string', function () {
     expect(path1a.toString(true)).toBe(`${pathAttributesFullData.id}`);
 });
 
-test('should save and delete in memory', function () {
+test('should save and delete in memory', () => {
     const path = new Path(pathAttributesFullData, true);
     expect(path.isNew()).toBe(true);
     expect(path.isDeleted()).toBe(false);
@@ -212,7 +212,7 @@ test('Delete path', async () => {
     expect(path.isDeleted()).toBe(true);
 });
 
-test('static methods should work', function () {
+test('static methods should work', () => {
     expect(Path.getPluralName()).toBe('paths');
     expect(Path.getCapitalizedPluralName()).toBe('Paths');
     expect(Path.getDisplayName()).toBe('Path');
@@ -222,7 +222,7 @@ test('static methods should work', function () {
     expect(path.getDisplayName()).toBe('Path');
 });
 
-test('test get node distances from path with node routing radius and diff between distance and radius', function () {
+test('test get node distances from path with node routing radius and diff between distance and radius', () => {
     const nodeIds = [uuidV4(), uuidV4(), uuidV4(), uuidV4()];
     const nodes = [
         (new Node({ id: nodeIds[0], geography: { type: 'Point', coordinates: [0.0, 0.0] }, routing_radius_meters: 4.3 }, false)).toGeojson(),
@@ -304,4 +304,54 @@ test('getClonedAttributes', () => {
     // Complete copy
     const clonedAttributes4 = path2.getClonedAttributes(false);
     expect(clonedAttributes4).toEqual(path2.attributes);
+});
+
+describe('getDwellTimeSecondsAtNode', () => {
+    let instance: Path;
+    let mockPreferencesGet: jest.Mock;
+
+    beforeEach(() => {
+        instance = new Path({}, false, undefined);
+        mockPreferencesGet = jest.fn();
+
+        // Mock the getData and Preferences.get methods
+        Preferences.get = mockPreferencesGet;
+    });
+
+    it('should return the node dwell time when provided and valid', () => {
+        mockPreferencesGet.mockReturnValueOnce(20); // Default general dwell time
+        instance.attributes.data.ignoreNodesDefaultDwellTimeSecond = false;
+        expect(instance.getDwellTimeSecondsAtNode(30)).toBe(30);
+    });
+
+    it('should return the default general dwell time when node dwell time is undefined', () => {
+        instance.attributes.data.ignoreNodesDefaultDwellTimeSecond = false;
+        mockPreferencesGet.mockReturnValueOnce(20); // Default general dwell time
+        expect(instance.getDwellTimeSecondsAtNode(undefined)).toBe(20);
+    });
+
+    it('should return the path dwell time when ignoreNodesDefaultDwellTimeSecond is true', () => {
+        instance.attributes.data.ignoreNodesDefaultDwellTimeSecond = true;
+        instance.attributes.data.defaultDwellTimeSeconds = 25;
+        expect(instance.getDwellTimeSecondsAtNode(10)).toBe(25);
+    });
+
+    it('should return the maximum between node dwell time and path dwell time', () => {
+        instance.attributes.data.ignoreNodesDefaultDwellTimeSecond = false;
+        instance.attributes.data.defaultDwellTimeSeconds = 15;
+        expect(instance.getDwellTimeSecondsAtNode(20)).toBe(20); // Node dwell time is higher
+    });
+
+    it('should handle negative node dwell time by using the default', () => {
+        instance.attributes.data.ignoreNodesDefaultDwellTimeSecond = false;
+        instance.attributes.data.defaultDwellTimeSeconds = 15;
+        mockPreferencesGet.mockReturnValueOnce(20); // Default general dwell time
+        expect(instance.getDwellTimeSecondsAtNode(-5)).toBe(20);
+    });
+
+    it('should ceil the final result', () => {
+        instance.attributes.data.ignoreNodesDefaultDwellTimeSecond = false;
+        instance.attributes.data.defaultDwellTimeSeconds = 15.3;
+        expect(instance.getDwellTimeSecondsAtNode(15.7)).toBe(16);
+    });
 });
