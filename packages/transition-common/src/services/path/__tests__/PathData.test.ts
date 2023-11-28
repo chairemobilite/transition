@@ -20,6 +20,7 @@ export const arbitraryData = {
     defaultAcceleration: 1.1,
     defaultDeceleration: 1.1,
     defaultDwellTimeSeconds: 30,
+    ignoreNodesDefaultDwellTimeSecond: false,
     defaultRunningSpeedKmH: 50,
     maxRunningSpeedKmH: 100,
     routingMode: 'rail',
@@ -51,6 +52,7 @@ export const arbitraryDataWithoutTravelTimes = {
     defaultAcceleration: 1.1,
     defaultDeceleration: 1.1,
     defaultDwellTimeSeconds: 30,
+    ignoreNodesDefaultDwellTimeSecond: false,
     defaultRunningSpeedKmH: 50,
     maxRunningSpeedKmH: 120,
     routingMode: 'rail',
@@ -95,7 +97,7 @@ export const getPathAttributesWithData = (withTravelTime = true, {
         },
         is_frozen: false
     };
-}
+};
 
 export const getPathObjectWithData = ({
     lineId = defaultLineId,
@@ -105,8 +107,8 @@ export const getPathObjectWithData = ({
     const path = new Path(attributes, true);
     pathCollection.add(path);
     return path;
-}
+};
 
-test('Dummy Path', function () {
+test('Dummy Path', () => {
     // Dummy test so this file passes
 });

@@ -89,19 +89,9 @@ const handleLegs = (path: any, points: Geojson.Feature<Geojson.Point>[], legs: (
             // we can create the segment
             // FIXME: Move those ifs to their own methods
             const node = path._collectionManager.get('nodes').getById(nodeIds[nextNodeIndex]);
-            const defaultNodeDwellTime: number =
-                node && node.properties && node.properties.default_dwell_time_seconds
-                    ? node.properties.default_dwell_time_seconds
-                    : Preferences.get('transit.nodes.defaultDwellTimeSeconds', 20);
-            const dwellTimeSeconds: number = Math.ceil(
-                Math.max(
-                    defaultNodeDwellTime,
-                    path.getData(
-                        'defaultDwellTimeSeconds',
-                        Preferences.get('transit.nodes.defaultDwellTimeSeconds', 20)
-                    )
-                )
-            );
+            const nodeDefaultDwellTimeSeconds = node && node.properties && node.properties.default_dwell_time_seconds
+                ? node.properties.default_dwell_time_seconds : undefined;
+            const dwellTimeSeconds: number = path.getDwellTimeSecondsAtNode(nodeDefaultDwellTimeSeconds);
             const acceleration = path.getData('defaultAcceleration');
             const deceleration = path.getData('defaultDeceleration');
             // noDwellTimeDuration is the time if the vehicle does not stop at all
@@ -168,7 +158,7 @@ const handleLegs = (path: any, points: Geojson.Feature<Geojson.Point>[], legs: (
         : roundSecondsToNearestMinute(
             Math.max(
                 Preferences.current.transit.paths.data.defaultLayoverRatioOverTotalTravelTime *
-                      totalTravelTimeWithDwellTimesSeconds,
+                totalTravelTimeWithDwellTimesSeconds,
                 Preferences.current.transit.paths.data.defaultMinLayoverTimeSeconds
             ),
             Math.ceil
