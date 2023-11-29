@@ -43,6 +43,7 @@ interface TransitNodeCollectionEditState {
     is_frozen?: boolean;
     confirmModalDeleteIsOpen: boolean;
     confirmModalBackIsOpen: boolean;
+    editableNodeCount: number;
 }
 
 // TODO Add simple unit tests for this form, before fixing other todos, it's quite straightforward to do
@@ -56,6 +57,9 @@ class TransitNodeCollectionEdit extends React.Component<
         // TODO Values should be blank if they are not exactly the same for all nodes, otherwise, they take the common value
         // TODO How to handle frozen nodes in the selection, the user should be warned there are frozen nodes and if the is_frozen is not explicitly changed, those nodes should not be affected
         const node = this.props.nodes[0];
+        // Set the nodes as editing
+        const unfrozenNodes = this.props.nodes.filter((node) => !node.isFrozen());
+        unfrozenNodes.forEach((node) => node.startEditing());
         this.state = {
             confirmModalDeleteIsOpen: false,
             confirmModalBackIsOpen: false,
@@ -63,7 +67,8 @@ class TransitNodeCollectionEdit extends React.Component<
             routing_radius_meters: node ? node.attributes.routing_radius_meters : undefined,
             default_dwell_time_seconds: node ? node.attributes.default_dwell_time_seconds : undefined,
             is_frozen: node ? node.attributes.is_frozen || undefined : undefined,
-            nodeErrors: undefined
+            nodeErrors: undefined,
+            editableNodeCount: unfrozenNodes.length
         };
     }
 
@@ -204,7 +209,9 @@ class TransitNodeCollectionEdit extends React.Component<
 
         return (
             <form id="tr__form-transit-node-multi" className="tr__form-transit-node-edit apptr__form">
-                <h3>{this.props.t('transit:transitNode:editSelectedNodes')}</h3>
+                <h3>
+                    {this.props.t('transit:transitNode:editSelectedNodes', { count: this.state.editableNodeCount })}
+                </h3>
                 <Collapsible trigger={this.props.t('form:basicFields')} open={true} transitionTime={100}>
                     <div className="tr__form-section">
                         {isFrozen !== true && (
