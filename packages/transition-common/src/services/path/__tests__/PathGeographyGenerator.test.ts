@@ -10,12 +10,12 @@ import { pathGeographyUtils as PathGeographyUtils } from '../PathGeographyUtils'
 import { TestUtils } from 'chaire-lib-common/lib/test';
 import { roundSecondsToNearestMinute } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 
-const node1: any = TestUtils.makePoint([-73.745618, 45.368994], {routing_radius_meters: 50, id: "node1"}, {id: 1});
-const node2: any = TestUtils.makePoint([-73.742861, 45.361682], {routing_radius_meters: 100, id: "node2"}, {id: 2});
-const node3: any = TestUtils.makePoint([-73.738927, 45.361852], {routing_radius_meters: 10, id: "node3"}, {id: 3});
-const node4: any = TestUtils.makePoint([-73.731251, 45.368103], {routing_radius_meters: 50, id: "node4", default_dwell_time_seconds: 120}, {id: 4});
-const node5: any = TestUtils.makePoint([-73.734788, 45.372252], {id: "node5"}, {id: 5});
-const node6: any = TestUtils.makePoint([-73.749821, 45.373132], {id: "node6"}, {id: 6});
+const node1: any = TestUtils.makePoint([-73.745618, 45.368994], { routing_radius_meters: 50, id: 'node1' }, { id: 1 });
+const node2: any = TestUtils.makePoint([-73.742861, 45.361682], { routing_radius_meters: 100, id: 'node2' }, { id: 2 });
+const node3: any = TestUtils.makePoint([-73.738927, 45.361852], { routing_radius_meters: 10, id: 'node3' }, { id: 3 });
+const node4: any = TestUtils.makePoint([-73.731251, 45.368103], { routing_radius_meters: 50, id: 'node4', default_dwell_time_seconds: 120 }, { id: 4 });
+const node5: any = TestUtils.makePoint([-73.734788, 45.372252], { id: 'node5' }, { id: 5 });
+const node6: any = TestUtils.makePoint([-73.749821, 45.373132], { id: 'node6' }, { id: 6 });
 
 const nodeCollection = [node1, node2, node3, node4, node5, node6];
 const waypoint1: [number, number] = [-73.74382202603918, 45.36504595320852];
@@ -25,9 +25,17 @@ const waypoint4: [number, number] = [-73.73499563585311, 45.36717511817895];
 const waypoint5: [number, number] = [-73.73067714451926, 45.37201866994127];
 
 const line = new TransitObjectStub({
-    id: "line1",
+    id: 'line1',
 });
 const collectionManager = { get: (_str) => _str === 'nodes' ? new GenericCollectionStub(nodeCollection) : new GenericCollectionStub([]) };
+
+
+
+const DEFAULT_ACC_DEC = 1;
+const DEFAULT_SPEED = 36;
+const DEFAULT_DWELL_TIME = 25;
+const LAYOVER_TIME = 180;
+const DEFAULT_MAX_SPEED = 110;
 
 class TransitPathStub extends TransitObjectStub {
 
@@ -45,25 +53,22 @@ class TransitPathStub extends TransitObjectStub {
     getLine(): TransitObjectStub | undefined {
         return this.get('line_id') === line.get('id') ? line : undefined;
     }
+
+    getDwellTimeSecondsAtNode(nodeDwellTimeSeconds: number | undefined) : number {
+        return nodeDwellTimeSeconds || DEFAULT_DWELL_TIME;
+    }
 }
+const sum = (total: number, num: number) => { return total + num; };
+const twoDecimals = (num: number, denum: number) => { return Math.round(num / denum * 100) / 100; };
 
-const DEFAULT_ACC_DEC = 1;
-const DEFAULT_SPEED = 36;
-const DEFAULT_DWELL_TIME = 25;
-const LAYOVER_TIME = 180;
-const DEFAULT_MAX_SPEED = 110;
-
-const sum = (total: number, num: number) => { return total + num };
-const twoDecimals = (num: number, denum: number) => { return Math.round(num / denum * 100) / 100 };
-
-test("Generate From Routing Total Calculations", async() => {
+test('Generate From Routing Total Calculations', async() => {
     /* Test path between 2 nodes with engine */
     let simplePath = new TransitPathStub({
-        id: "path1",
+        id: 'path1',
         line_id: line.get('id'),
         nodes: [ node1.properties.id, node4.properties.id ],
         data: {
-            nodeTypes: ["engine", "engine"],
+            nodeTypes: ['engine', 'engine'],
             routingEngine: 'engine',
             routingMode: 'driving',
             defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
@@ -87,8 +92,8 @@ test("Generate From Routing Total Calculations", async() => {
                     duration: 66.67,
                     steps: [{
                         distance: 1500,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [node1.geometry.coordinates, node4.geometry.coordinates]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [node1.geometry.coordinates, node4.geometry.coordinates] }
                     }]
                 }]
             }
@@ -102,7 +107,7 @@ test("Generate From Routing Total Calculations", async() => {
     expect(simplePath.attributes.segments.length).toEqual(1);
     expect(simplePath.attributes.segments).toEqual([0]);
     expect(simplePath.attributes.geography).toEqual({
-        type: "LineString" as const,
+        type: 'LineString' as const,
         coordinates: [node1.geometry.coordinates, node4.geometry.coordinates]
     });
     let expectedNoDwellTimes = [66.67];
@@ -133,11 +138,11 @@ test("Generate From Routing Total Calculations", async() => {
 
     /* Test path between 2 nodes with engine custom type */
     simplePath = new TransitPathStub({
-        id: "path1",
+        id: 'path1',
         line_id: line.get('id'),
         nodes: [ node1.properties.id, node4.properties.id ],
         data: {
-            nodeTypes: ["engine custom", "engine custom"],
+            nodeTypes: ['engine custom', 'engine custom'],
             routingEngine: 'engine custom',
             routingMode: 'driving',
             defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
@@ -155,7 +160,7 @@ test("Generate From Routing Total Calculations", async() => {
     expect(simplePath.attributes.segments.length).toEqual(1);
     expect(simplePath.attributes.segments).toEqual([0]);
     expect(simplePath.attributes.geography).toEqual({
-        type: "LineString" as const,
+        type: 'LineString' as const,
         coordinates: [node1.geometry.coordinates, node4.geometry.coordinates]
     });
     expectedNoDwellTimes = [100];
@@ -182,16 +187,16 @@ test("Generate From Routing Total Calculations", async() => {
         operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, (expectedTotalTime + expectedDwellTime)),
         operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance, (expectedTotalTime + expectedDwellTime + LAYOVER_TIME))
     }));
-})
+});
 
-test("Generate From Routing Simple Use Cases", async() => {
+test('Generate From Routing Simple Use Cases', async() => {
     /* Test with a 3 segments path */
     const simplePath = new TransitPathStub({
-        id: "path1",
+        id: 'path1',
         line_id: line.get('id'),
         nodes: [ node1.properties.id, node4.properties.id, node6.properties.id ],
         data: {
-            nodeTypes: ["engine", "engine", "engine"],
+            nodeTypes: ['engine', 'engine', 'engine'],
             waypoints: [
                 [],
                 [],
@@ -225,16 +230,16 @@ test("Generate From Routing Simple Use Cases", async() => {
                     duration: 100,
                     steps: [{
                         distance: 1500,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [node1.geometry.coordinates, waypoint1, node4.geometry.coordinates]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [node1.geometry.coordinates, waypoint1, node4.geometry.coordinates] }
                     }]
                 }, {
                     distance: 1000,
                     duration: 66.67,
                     steps: [{
                         distance: 1000,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [node4.geometry.coordinates, node6.geometry.coordinates]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] }
                     }],
                 }]
             }
@@ -248,7 +253,7 @@ test("Generate From Routing Simple Use Cases", async() => {
     expect(simplePath.attributes.segments.length).toEqual(2);
     expect(simplePath.attributes.segments).toEqual([0, 2]);
     expect(simplePath.attributes.geography).toEqual({
-        type: "LineString" as const,
+        type: 'LineString' as const,
         coordinates: [node1.geometry.coordinates, waypoint1, node4.geometry.coordinates, node6.geometry.coordinates]
     });
     const expectedNoDwellTimes = [100, 66.67];
@@ -279,25 +284,25 @@ test("Generate From Routing Simple Use Cases", async() => {
         operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil)),
         operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil) + LAYOVER_TIME)
     }));
-})
+});
 
-test("Generate From Routing", async() => {
+test('Generate From Routing', async() => {
     /* Test with a 3 segments path */
     const complexPath = new TransitPathStub({
-        id: "path1",
+        id: 'path1',
         line_id: line.get('id'),
         nodes: [ node1.properties.id, node4.properties.id, node6.properties.id ],
         data: {
-            nodeTypes: ["engine", "manual", "engine"],
+            nodeTypes: ['engine', 'manual', 'engine'],
             waypoints: [
                 [waypoint1],
                 [waypoint3],
                 [waypoint5],
             ],
             waypointTypes: [
-                ["engine"],
-                ["manual"],
-                ["engine"],
+                ['engine'],
+                ['manual'],
+                ['engine'],
             ],
             routingEngine: 'engine',
             routingMode: 'driving',
@@ -322,8 +327,8 @@ test("Generate From Routing", async() => {
                     duration: 100,
                     steps: [{
                         distance: 1500,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [node1.geometry.coordinates, waypoint1]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [node1.geometry.coordinates, waypoint1] }
                     }],
                 }]
             }
@@ -341,16 +346,16 @@ test("Generate From Routing", async() => {
                     duration: 150,
                     steps: [{
                         distance: 1500,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [waypoint1, node4.geometry.coordinates]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [waypoint1, node4.geometry.coordinates] }
                     }],
                 }, {
                     distance: 1500,
                     duration: 150,
                     steps: [{
                         distance: 1500,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [node4.geometry.coordinates, waypoint3]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [node4.geometry.coordinates, waypoint3] }
                     }],
                 }]
             }
@@ -368,26 +373,26 @@ test("Generate From Routing", async() => {
                     duration: 66.67,
                     steps: [{
                         distance: 1000,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [waypoint3, node6.geometry.coordinates]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [waypoint3, node6.geometry.coordinates] }
                     }],
                 }, {
                     distance: 1500,
                     duration: 100,
                     steps: [{
                         distance: 1000,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [node6.geometry.coordinates, waypoint2]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [node6.geometry.coordinates, waypoint2] }
                     },
                     {
                         distance: 250,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [waypoint2, waypoint4]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [waypoint2, waypoint4] }
                     },
                     {
                         distance: 250,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [waypoint4, waypoint5]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [waypoint4, waypoint5] }
                     }],
                 }]
             }
@@ -430,25 +435,25 @@ test("Generate From Routing", async() => {
         operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil)),
         operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance,roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil) + LAYOVER_TIME)
     }));
-})
+});
 
-test("Generate From Routing With Errors", async() => {
+test('Generate From Routing With Errors', async() => {
     /* Test with a 3 segments path */
     const complexPath = new TransitPathStub({
-        id: "path1",
+        id: 'path1',
         line_id: line.get('id'),
         nodes: [ node1.properties.id, node4.properties.id, node6.properties.id ],
         data: {
-            nodeTypes: ["engine", "manual", "engine"],
+            nodeTypes: ['engine', 'manual', 'engine'],
             waypoints: [
                 [waypoint1],
                 [waypoint3],
                 [waypoint5],
             ],
             waypointTypes: [
-                ["engine"],
-                ["manual"],
-                ["engine"],
+                ['engine'],
+                ['manual'],
+                ['engine'],
             ],
             routingEngine: 'engine',
             routingMode: 'driving',
@@ -468,8 +473,8 @@ test("Generate From Routing With Errors", async() => {
                     duration: 200,
                     steps: [{
                         distance: 1500,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [node1.geometry.coordinates, waypoint1]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [node1.geometry.coordinates, waypoint1] }
                     }],
                 }]
             }
@@ -487,16 +492,16 @@ test("Generate From Routing With Errors", async() => {
                     duration: 200,
                     steps: [{
                         distance: 1500,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [waypoint1, node4.geometry.coordinates]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [waypoint1, node4.geometry.coordinates] }
                     }],
                 }, {
                     distance: 1500,
                     duration: 200,
                     steps: [{
                         distance: 1500,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [node4.geometry.coordinates, waypoint3]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [node4.geometry.coordinates, waypoint3] }
                     }],
                 }]
             }
@@ -514,8 +519,8 @@ test("Generate From Routing With Errors", async() => {
                     duration: 300,
                     steps: [{
                         distance: 2500,
-                        geometry: {type: "LineString" as const,
-                            coordinates: [waypoint3, waypoint5]}
+                        geometry: { type: 'LineString' as const,
+                            coordinates: [waypoint3, waypoint5] }
                     }],
                 }]
             }
@@ -535,4 +540,4 @@ test("Generate From Routing With Errors", async() => {
     expect(complexPath.attributes.data.geographyErrors.nodes[0].geometry.coordinates).toEqual(node6.geometry.coordinates);
     expect(complexPath.attributes.data.geographyErrors.waypoints.length).toEqual(0);
     expect(complexPath.attributes.segments).toBeFalsy();
-})
+});

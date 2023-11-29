@@ -89,8 +89,10 @@ const handleLegs = (path: any, points: Geojson.Feature<Geojson.Point>[], legs: (
             // we can create the segment
             // FIXME: Move those ifs to their own methods
             const node = path._collectionManager.get('nodes').getById(nodeIds[nextNodeIndex]);
-            const nodeDefaultDwellTimeSeconds = node && node.properties && node.properties.default_dwell_time_seconds
-                ? node.properties.default_dwell_time_seconds : undefined;
+            const nodeDefaultDwellTimeSeconds =
+                node && node.properties && node.properties.default_dwell_time_seconds
+                    ? node.properties.default_dwell_time_seconds
+                    : undefined;
             const dwellTimeSeconds: number = path.getDwellTimeSecondsAtNode(nodeDefaultDwellTimeSeconds);
             const acceleration = path.getData('defaultAcceleration');
             const deceleration = path.getData('defaultDeceleration');
@@ -158,7 +160,7 @@ const handleLegs = (path: any, points: Geojson.Feature<Geojson.Point>[], legs: (
         : roundSecondsToNearestMinute(
             Math.max(
                 Preferences.current.transit.paths.data.defaultLayoverRatioOverTotalTravelTime *
-                totalTravelTimeWithDwellTimesSeconds,
+                      totalTravelTimeWithDwellTimesSeconds,
                 Preferences.current.transit.paths.data.defaultMinLayoverTimeSeconds
             ),
             Math.ceil
