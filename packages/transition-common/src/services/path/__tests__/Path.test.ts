@@ -320,37 +320,37 @@ describe('getDwellTimeSecondsAtNode', () => {
 
     it('should return the node dwell time when provided and valid', () => {
         mockPreferencesGet.mockReturnValueOnce(20); // Default general dwell time
-        instance.attributes.data.ignoreNodesDefaultDwellTimeSecond = false;
+        instance.attributes.data.ignoreNodesDefaultDwellTimeSeconds = false;
         expect(instance.getDwellTimeSecondsAtNode(30)).toBe(30);
     });
 
     it('should return the default general dwell time when node dwell time is undefined', () => {
-        instance.attributes.data.ignoreNodesDefaultDwellTimeSecond = false;
+        instance.attributes.data.ignoreNodesDefaultDwellTimeSeconds = false;
         mockPreferencesGet.mockReturnValueOnce(20); // Default general dwell time
         expect(instance.getDwellTimeSecondsAtNode(undefined)).toBe(20);
     });
 
     it('should return the path dwell time when ignoreNodesDefaultDwellTimeSecond is true', () => {
-        instance.attributes.data.ignoreNodesDefaultDwellTimeSecond = true;
-        instance.attributes.data.defaultDwellTimeSeconds = 25;
-        expect(instance.getDwellTimeSecondsAtNode(10)).toBe(25);
+        instance.attributes.data.ignoreNodesDefaultDwellTimeSeconds = true;
+        instance.attributes.data.defaultDwellTimeSeconds = 15;
+        expect(instance.getDwellTimeSecondsAtNode(20)).toBe(15);
     });
 
     it('should return the maximum between node dwell time and path dwell time', () => {
-        instance.attributes.data.ignoreNodesDefaultDwellTimeSecond = false;
+        instance.attributes.data.ignoreNodesDefaultDwellTimeSeconds = false;
         instance.attributes.data.defaultDwellTimeSeconds = 15;
         expect(instance.getDwellTimeSecondsAtNode(20)).toBe(20); // Node dwell time is higher
     });
 
     it('should handle negative node dwell time by using the default', () => {
-        instance.attributes.data.ignoreNodesDefaultDwellTimeSecond = false;
+        instance.attributes.data.ignoreNodesDefaultDwellTimeSeconds = false;
         instance.attributes.data.defaultDwellTimeSeconds = 15;
         mockPreferencesGet.mockReturnValueOnce(20); // Default general dwell time
         expect(instance.getDwellTimeSecondsAtNode(-5)).toBe(20);
     });
 
     it('should ceil the final result', () => {
-        instance.attributes.data.ignoreNodesDefaultDwellTimeSecond = false;
+        instance.attributes.data.ignoreNodesDefaultDwellTimeSeconds = false;
         instance.attributes.data.defaultDwellTimeSeconds = 15.3;
         expect(instance.getDwellTimeSecondsAtNode(15.7)).toBe(16);
     });

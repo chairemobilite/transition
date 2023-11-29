@@ -494,7 +494,9 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                         label={this.props.t('transit:transitPath:IgnoreNodesMinDwellTimeSeconds')}
                                         isChecked={pathData.ignoreNodesDefaultDwellTimeSeconds || false}
                                         onValueChange={(e) =>
-                                            this.onValueChange('data.ignoreNodesDefaultDwellTimeSeconds', { value: e.target.value })
+                                            this.onValueChange('data.ignoreNodesDefaultDwellTimeSeconds', {
+                                                value: e.target.value
+                                            })
                                         }
                                     />
                                 </div>
@@ -509,8 +511,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     key={`formFieldTransitPathEditDefaultRunningSpeedKmH${pathId}${this.resetChangesCount}`}
                                     stringToValue={parseFloatOrNull}
                                     valueToString={(val) => _toString(parseFloatOrNull(val))}
-                                // TODO type number only supports integer
-                                //type          = 'number'
+                                    // TODO type number only supports integer
+                                    //type          = 'number'
                                 />
                             </div>
                             {lineModesConfigByMode[mode].showAccelerationAndDeceleration !== false && (
@@ -526,8 +528,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                         key={`formFieldTransitPathEditDefaultAcceleration${pathId}${this.resetChangesCount}`}
                                         stringToValue={parseFloatOrNull}
                                         valueToString={(val) => _toString(parseFloatOrNull(val))}
-                                    // TODO type number only supports integer
-                                    //type          = 'number'
+                                        // TODO type number only supports integer
+                                        //type          = 'number'
                                     />
                                 </div>
                             )}
@@ -544,8 +546,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                         key={`formFieldTransitPathEditDefaultDeceleration${pathId}${this.resetChangesCount}`}
                                         stringToValue={parseFloatOrNull}
                                         valueToString={(val) => _toString(parseFloatOrNull(val))}
-                                    // TODO type number only supports integer
-                                    //type          = 'number'
+                                        // TODO type number only supports integer
+                                        //type          = 'number'
                                     />
                                 </div>
                             )}
