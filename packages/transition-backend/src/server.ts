@@ -34,10 +34,15 @@ const { session } = setupServer(app);
 
 if (!useSSL) {
     // Create http server
-    const http = require('http');
-    const server = http.createServer(app);
-    server.listen(port);
-    setupSocketServerApp(server, session);
+    try {
+        const http = require('http');
+        const server = http.createServer(app);
+        server.listen(port);
+        setupSocketServerApp(server, session);
+    } catch (err) {
+        console.error('Error starting the http server: ', err);
+        throw err;
+    }
 } else {
     // Create the https server
     const pk = process.env.SSL_PRIVATE_KEY;
