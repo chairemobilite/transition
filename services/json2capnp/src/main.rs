@@ -156,5 +156,5 @@ fn main() {
         })
     };
 
-    rouille::start_server(format!("0.0.0.0:{}", port), handle_request);
+    rouille::start_server(format!(":::{}", port), handle_request);
 }
