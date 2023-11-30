@@ -21,7 +21,9 @@ export interface DurationUnitFormatterProps extends WithTranslation {
 const DurationUnitFormatter: React.FunctionComponent<DurationUnitFormatterProps> = (
     props: DurationUnitFormatterProps
 ) => {
-    const [destinationUnit, setDestinationUnit] = useState<destinationUnitOptionsType | undefined>(props.destinationUnit);
+    const [destinationUnit, setDestinationUnit] = useState<destinationUnitOptionsType | undefined>(
+        props.destinationUnit
+    );
 
     const valueInSeconds =
         props.sourceUnit === 's'
