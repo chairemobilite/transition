@@ -26,12 +26,10 @@ interface StatsRowProps extends WithTranslation {
 const StatsRowBase: React.FunctionComponent<StatsRowProps> = (props: StatsRowProps) => {
     const value = props.value !== null && props.value !== undefined ? props.value : props.defaultValue || '?';
     const pathStatFormula = pathStatsFormula[props.variable];
-    const {
-        translatableString,
-        latexExpression,
-    } = typeof pathStatFormula === 'string'
-        ? { translatableString: `variable:${props.variable}`, latexExpression: props.variable }
-        : pathStatFormula;
+    const { translatableString, latexExpression } =
+        typeof pathStatFormula === 'string'
+            ? { translatableString: `variable:${props.variable}`, latexExpression: props.variable }
+            : pathStatFormula;
     return (
         <tr>
             <th>{props.t(translatableString)}</th>
@@ -81,46 +79,172 @@ const TransitPathStatistics: React.FunctionComponent<PathStatsProps> = (props: P
     return (
         <table className="_statistics">
             <tbody>
-                {variables && <StatsRow variable="d_p" value={!_isBlank(variables.d_p) ? <DistanceUnitFormatter value={variables.d_p as number} sourceUnit='m' destinationUnit='km'/> : '?'}/>}
+                {variables && (
+                    <StatsRow
+                        variable="d_p"
+                        value={
+                            !_isBlank(variables.d_p) ? (
+                                <DistanceUnitFormatter
+                                    value={variables.d_p as number}
+                                    sourceUnit="m"
+                                    destinationUnit="km"
+                                />
+                            ) : (
+                                '?'
+                            )
+                        }
+                    />
+                )}
                 {variables && <StatsRow variable="n_q_p" value={variables.n_q_p} />}
-                {variables && <StatsRow variable="d_l_min" value={!_isBlank(variables.d_l_min) ? <DistanceUnitFormatter value={variables.d_l_min as number} sourceUnit='m' destinationUnit='m'/> : '?'} />}
-                {variables && <StatsRow variable="d_l_max" value={!_isBlank(variables.d_l_max) ? <DistanceUnitFormatter value={variables.d_l_max as number} sourceUnit='m' destinationUnit='m'/> : '?'} />}
-                {variables && <StatsRow variable="d_l_avg" value={!_isBlank(variables.d_l_avg) ? <DistanceUnitFormatter value={variables.d_l_avg as number} sourceUnit='m' destinationUnit='m'/> : '?'} />}
-                {variables && <StatsRow variable="d_l_med" value={!_isBlank(variables.d_l_med) ? <DistanceUnitFormatter value={variables.d_l_med as number} sourceUnit='m' destinationUnit='m'/> : '?'} />}
+                {variables && (
+                    <StatsRow
+                        variable="d_l_min"
+                        value={
+                            !_isBlank(variables.d_l_min) ? (
+                                <DistanceUnitFormatter
+                                    value={variables.d_l_min as number}
+                                    sourceUnit="m"
+                                    destinationUnit="m"
+                                />
+                            ) : (
+                                '?'
+                            )
+                        }
+                    />
+                )}
+                {variables && (
+                    <StatsRow
+                        variable="d_l_max"
+                        value={
+                            !_isBlank(variables.d_l_max) ? (
+                                <DistanceUnitFormatter
+                                    value={variables.d_l_max as number}
+                                    sourceUnit="m"
+                                    destinationUnit="m"
+                                />
+                            ) : (
+                                '?'
+                            )
+                        }
+                    />
+                )}
+                {variables && (
+                    <StatsRow
+                        variable="d_l_avg"
+                        value={
+                            !_isBlank(variables.d_l_avg) ? (
+                                <DistanceUnitFormatter
+                                    value={variables.d_l_avg as number}
+                                    sourceUnit="m"
+                                    destinationUnit="m"
+                                />
+                            ) : (
+                                '?'
+                            )
+                        }
+                    />
+                )}
+                {variables && (
+                    <StatsRow
+                        variable="d_l_med"
+                        value={
+                            !_isBlank(variables.d_l_med) ? (
+                                <DistanceUnitFormatter
+                                    value={variables.d_l_med as number}
+                                    sourceUnit="m"
+                                    destinationUnit="m"
+                                />
+                            ) : (
+                                '?'
+                            )
+                        }
+                    />
+                )}
                 {variables && (
                     <StatsRow variable="q'_T" value={firstNode ? firstNode.properties.name : ''} defaultValue="" />
                 )}
                 {variables && (
                     <StatsRow variable="q''_T" value={lastNode ? lastNode.properties.name : ''} defaultValue="" />
                 )}
-                {variables && <StatsRow variable="T_o_p" value={!_isBlank(variables.T_o_p) ? <DurationUnitFormatter value={variables.T_o_p as number} sourceUnit='s' destinationUnit='m'/> : '0'} />}
+                {variables && (
+                    <StatsRow
+                        variable="T_o_p"
+                        value={
+                            !_isBlank(variables.T_o_p) ? (
+                                <DurationUnitFormatter
+                                    value={variables.T_o_p as number}
+                                    sourceUnit="s"
+                                    destinationUnit="m"
+                                />
+                            ) : (
+                                '0'
+                            )
+                        }
+                    />
+                )}
 
                 <SimpleRow header={props.t('transit:transitPath:TravelTimes')} isHeader={true} />
                 <SimpleRow
                     header={props.t('transit:transitPath:IncludingDwellTimes')}
-                    value={<DurationUnitFormatter value={pathData.operatingTimeWithoutLayoverTimeSeconds || 0} sourceUnit='s' destinationUnit='m'/>}
+                    value={
+                        <DurationUnitFormatter
+                            value={pathData.operatingTimeWithoutLayoverTimeSeconds || 0}
+                            sourceUnit="s"
+                            destinationUnit="m"
+                        />
+                    }
                 />
                 <SimpleRow
                     header={props.t('transit:transitPath:ExcludingDwellTimes')}
-                    value={<DurationUnitFormatter value={pathData.travelTimeWithoutDwellTimesSeconds || 0} sourceUnit='s' destinationUnit='m'/>}
+                    value={
+                        <DurationUnitFormatter
+                            value={pathData.travelTimeWithoutDwellTimesSeconds || 0}
+                            sourceUnit="s"
+                            destinationUnit="m"
+                        />
+                    }
                 />
                 <SimpleRow
                     header={props.t('transit:transitPath:IncludingDwellTimesAndLayover')}
-                    value={<DurationUnitFormatter value={pathData.operatingTimeWithLayoverTimeSeconds || 0} sourceUnit='s' destinationUnit='m'/>}
+                    value={
+                        <DurationUnitFormatter
+                            value={pathData.operatingTimeWithLayoverTimeSeconds || 0}
+                            sourceUnit="s"
+                            destinationUnit="m"
+                        />
+                    }
                 />
                 <SimpleRow
                     header={props.t('transit:transitPath:LayoverTime')}
-                    value={<DurationUnitFormatter value={pathData.layoverTimeSeconds as number || 0} sourceUnit='s' destinationUnit='m'/>}
+                    value={
+                        <DurationUnitFormatter
+                            value={(pathData.layoverTimeSeconds as number) || 0}
+                            sourceUnit="s"
+                            destinationUnit="m"
+                        />
+                    }
                 />
 
                 <SimpleRow header={props.t('transit:transitPath:Speeds')} isHeader={true} />
                 <SimpleRow
                     header={props.t('transit:transitPath:ExcludingDwellTimes')}
-                    value={<SpeedUnitFormatter value={pathData.averageSpeedWithoutDwellTimesMetersPerSecond || 0} sourceUnit='m/s' destinationUnit='km/h'/>}
+                    value={
+                        <SpeedUnitFormatter
+                            value={pathData.averageSpeedWithoutDwellTimesMetersPerSecond || 0}
+                            sourceUnit="m/s"
+                            destinationUnit="km/h"
+                        />
+                    }
                 />
                 <SimpleRow
                     header={props.t('transit:transitPath:OperatingSpeed')}
-                    value={<SpeedUnitFormatter value={pathData.operatingSpeedMetersPerSecond || 0} sourceUnit='m/s' destinationUnit='km/h'/>}
+                    value={
+                        <SpeedUnitFormatter
+                            value={pathData.operatingSpeedMetersPerSecond || 0}
+                            sourceUnit="m/s"
+                            destinationUnit="km/h"
+                        />
+                    }
                 />
 
                 {temporalTortuosity && (
