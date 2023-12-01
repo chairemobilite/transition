@@ -27,10 +27,11 @@ interface RightPanelProps extends LayoutSectionProps {
 const RightPanel: React.FunctionComponent<RightPanelProps> = ({ contributions, ...props }: RightPanelProps) => {
     const contributionElements = React.useMemo(
         () =>
+
             contributions
                 .filter((contrib) => contrib.section === undefined || contrib.section === props.activeSection)
                 .map((contrib) => contrib.create({ ...props, key: `rightPanelEl${contrib.id}` })),
-        [props.activeSection]
+        [props.activeSection, props.availableRoutingModes]
     );
 
     return (
