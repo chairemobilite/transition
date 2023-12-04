@@ -10,9 +10,11 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import ReactDom from 'react-dom';
 import DeckGL from '@deck.gl/react/typed';
 import { FilterContext, Layer, Deck } from '@deck.gl/core/typed';
+
 import { Map as MapLibreMap } from 'react-map-gl/maplibre';
 import MapboxGL from 'mapbox-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import _debounce from 'lodash/debounce';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import layersConfig from '../../config/layers.config';
@@ -569,13 +571,21 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         return true;
     };
 
+    private updateUserPrefs = _debounce((viewStateChange) => {
+        // Save map zoom and center to user preferences
+        Preferences.update(
+            {
+                'map.zoom': viewStateChange.viewState.zoom,
+                'map.center': [viewStateChange.viewState.longitude, viewStateChange.viewState.latitude]
+            },
+            serviceLocator.socketEventManager
+        );
+    }, 500);
+
     // FIXME: Find the type for this
     onViewStateChange = (viewStateChange) => {
         this.setState({ viewState: viewStateChange.viewState });
-        // TODO Save map prefs
-        viewStateChange.viewState.latitude;
-        viewStateChange.viewState.longitude;
-        viewStateChange.viewState.zoom;
+        this.updateUserPrefs(viewStateChange);
     };
 
     onClick = (pickInfo: PickingInfo, event: MjolnirGestureEvent) => {
