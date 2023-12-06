@@ -109,4 +109,31 @@ describe('Events', function() {
 
   });
 
+  test('should emit an event, with typing', function(done) {
+    const eventName = 'test.event';
+    type TestEventType = {
+        name: 'test.event',
+        arguments: { 
+            arg1: number,
+            arg2: string
+        };
+    }
+    const arg1Val = 100;
+    const arg2Val = 'a string';
+
+    const callback = function(args: { 
+        arg1: number,
+        arg2: string
+    }) {
+      expect(args.arg1).toEqual(arg1Val);
+      expect(args.arg2).toEqual(arg2Val);
+      eventManager.off(eventName, callback);
+      done();
+    };
+
+    eventManager.onEvent<TestEventType>(eventName, callback);
+    eventManager.emitEvent<TestEventType>(eventName, { arg1: arg1Val, arg2: arg2Val });
+
+  });
+
 });
