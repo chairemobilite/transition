@@ -38,6 +38,8 @@ import TransitRoutingBaseComponent from './widgets/TransitRoutingBaseComponent';
 import ODCoordinatesComponent from './widgets/ODCoordinatesComponent';
 import TimeOfTripComponent from './widgets/TimeOfTripComponent';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 export interface TransitRoutingFormProps extends WithTranslation {
     // TODO tahini batch routing
@@ -90,11 +92,10 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
         this.resetBatchSelection = this.resetBatchSelection.bind(this);
 
         if (this.state.object.hasOrigin()) {
-            serviceLocator.eventManager.emit(
-                'map.updateLayer',
-                'routingPoints',
-                this.state.object.originDestinationToGeojson()
-            );
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'routingPoints',
+                data: this.state.object.originDestinationToGeojson()
+            });
         }
     }
 
@@ -174,7 +175,10 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
             if (isCancelled()) {
                 return;
             }
-            serviceLocator.eventManager.emit('map.updateLayer', 'routingPoints', routing.originDestinationToGeojson());
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'routingPoints',
+                data: routing.originDestinationToGeojson()
+            });
 
             this.setState({
                 currentResult: results,
@@ -202,7 +206,10 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
         const routing = this.state.object;
         routing.setOrigin(originCoordinates, true);
         routing.setDestination(destinationCoordinates, true);
-        serviceLocator.eventManager.emit('map.updateLayer', 'routingPoints', routing.originDestinationToGeojson());
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'routingPoints',
+            data: routing.originDestinationToGeojson()
+        });
         if (routing.hasOrigin() && routing.hasDestination() && shouldCalculate) {
             this.calculateRouting(true);
         }

@@ -9,6 +9,8 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import FileImportForm from '../../parts/FileImportForm';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 interface PathImportFormProps {
     setImporterSelected: (importerSelected: boolean) => void;
@@ -32,11 +34,10 @@ const PathsImportForm: React.FunctionComponent<PathImportFormProps & WithTransla
         serviceLocator.collectionManager.refresh('paths');
         serviceLocator.collectionManager.refresh('lines');
         serviceLocator.collectionManager.refresh('agencies');
-        serviceLocator.eventManager.emit(
-            'map.updateLayer',
-            'transitPaths',
-            serviceLocator.collectionManager.get('paths').toGeojson()
-        );
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitPaths',
+            data: serviceLocator.collectionManager.get('paths').toGeojson()
+        });
         serviceLocator.eventManager.emit('progress', { name: 'Importing', progress: 1.0 });
         closeImporter();
     };

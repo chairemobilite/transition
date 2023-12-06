@@ -23,6 +23,8 @@ import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import CollectionDownloadButtons from 'chaire-lib-frontend/lib/components/pageParts/CollectionDownloadButtons';
 import Agency from 'transition-common/lib/services/agency/Agency';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 const timezoneZoneChoices: { label: string; value: string }[] = [];
 for (let i = 0, countI = timezones.length; i < countI; i++) {
@@ -77,11 +79,10 @@ class TransitAgencyEdit extends SaveableObjectForm<Agency, AgencyFormProps, Agen
             try {
                 await serviceLocator.collectionManager.get('paths').loadFromServer(serviceLocator.socketEventManager);
                 serviceLocator.collectionManager.refresh('paths');
-                serviceLocator.eventManager.emit(
-                    'map.updateLayer',
-                    'transitPaths',
-                    serviceLocator.collectionManager.get('paths').toGeojson()
-                );
+                (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                    layerName: 'transitPaths',
+                    data: serviceLocator.collectionManager.get('paths').toGeojson()
+                });
                 serviceLocator.collectionManager
                     .get('lines')
                     .loadFromServer(serviceLocator.socketEventManager, serviceLocator.collectionManager);

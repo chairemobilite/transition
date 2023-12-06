@@ -26,6 +26,8 @@ import TransitServiceFilterableList from '../service/TransitServiceFilterableLis
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import ScenarioLinesDetail from './TransitScenarioLinesDetail';
 import { PathAttributes } from 'transition-common/lib/services/path/Path';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 interface ScenarioFormProps extends WithTranslation {
     scenario: Scenario;
@@ -62,13 +64,21 @@ class TransitScenarioEdit extends SaveableObjectForm<Scenario, ScenarioFormProps
                 try {
                     const paths = Status.unwrap(status);
                     // TODO: The scenario may have excluded lines/services/agencies that should be excluded too
-                    serviceLocator.eventManager.emit('map.updateLayer', 'transitPathsForServices', paths);
+                    (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
+                        'map.updateLayer',
+                        {
+                            layerName: 'transitPathsForServices',
+                            data: paths
+                        }
+                    );
                     this.setState({ paths });
                 } catch (_error) {
-                    serviceLocator.eventManager.emit(
+                    (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
                         'map.updateLayer',
-                        'transitPathsForServices',
-                        turfFeatureCollection([])
+                        {
+                            layerName: 'transitPathsForServices',
+                            data: turfFeatureCollection([])
+                        }
                     );
                     this.setState({ paths: turfFeatureCollection([]) });
                 }
@@ -81,7 +91,10 @@ class TransitScenarioEdit extends SaveableObjectForm<Scenario, ScenarioFormProps
     }
 
     componentWillUnmount() {
-        serviceLocator.eventManager.emit('map.updateLayer', 'transitPathsForServices', turfFeatureCollection([]));
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitPathsForServices',
+            data: turfFeatureCollection([])
+        });
     }
 
     protected onValueChange(path: string, newValue: { value: any; valid?: boolean } = { value: null, valid: true }) {

@@ -205,7 +205,10 @@ class MapboxLayerManager {
         this._map?.addLayer(this._layersByName[layerName].layer, this.getNextLayerName(layerName));
     }
 
-    updateLayer(layerName, geojson) {
+    updateLayer(
+        layerName: string,
+        geojson: GeoJSON.FeatureCollection | ((original: GeoJSON.FeatureCollection) => GeoJSON.FeatureCollection)
+    ) {
         const newGeojson =
             typeof geojson === 'function'
                 ? geojson(this._layersByName[layerName].source.data)

@@ -20,6 +20,8 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 export interface RoutingResultStatus {
     routingResult: UnimodalRouteCalculationResult | TransitRoutingResult;
     alternativeIndex: number;
@@ -33,7 +35,10 @@ export interface TransitRoutingResultsProps extends WithTranslation {
 
 const showCurrentAlternative = async (result, alternativeIndex) => {
     const pathGeojson = await result.getPathGeojson(alternativeIndex, {});
-    serviceLocator.eventManager.emit('map.updateLayer', 'routingPoints', result.originDestinationToGeojson());
+    (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+        layerName: 'routingPoints',
+        data: result.originDestinationToGeojson()
+    });
     serviceLocator.eventManager.emit('map.updateLayers', {
         routingPaths: pathGeojson,
         routingPathsStrokes: pathGeojson

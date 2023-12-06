@@ -12,6 +12,8 @@ import Line from 'transition-common/lib/services/line/Line';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
 import { duplicateLine } from 'transition-common/lib/services/line/LineDuplicator';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 interface LineButtonProps extends WithTranslation {
     line: Line;
@@ -51,11 +53,10 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
                 // reload paths
                 await serviceLocator.collectionManager.get('paths').loadFromServer(serviceLocator.socketEventManager);
                 serviceLocator.collectionManager.refresh('paths');
-                serviceLocator.eventManager.emit(
-                    'map.updateLayer',
-                    'transitPaths',
-                    serviceLocator.collectionManager.get('paths').toGeojson()
-                );
+                (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                    layerName: 'transitPaths',
+                    data: serviceLocator.collectionManager.get('paths').toGeojson()
+                });
             }
         }
         serviceLocator.eventManager.emit('progress', { name: 'DeletingLine', progress: 1.0 });
@@ -79,11 +80,10 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
         serviceLocator.collectionManager.refresh('paths');
         serviceLocator.collectionManager.refresh('lines');
         serviceLocator.collectionManager.refresh('services');
-        serviceLocator.eventManager.emit(
-            'map.updateLayer',
-            'transitPaths',
-            serviceLocator.collectionManager.get('paths').toGeojson()
-        );
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitPaths',
+            data: serviceLocator.collectionManager.get('paths').toGeojson()
+        });
         serviceLocator.eventManager.emit('progress', { name: 'SavingLine', progress: 1.0 });
     };
 
