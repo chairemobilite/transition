@@ -10,6 +10,7 @@ import Node from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
 import NodeGeographyUtils from 'transition-common/lib/services/nodes/NodeGeographyUtils';
+import { getTransferableNodes } from './TransferableNodeUtils';
 import { EventEmitter } from 'events';
 import { objectToCache } from '../../models/capnpCache/transitNodes.cache.queries';
 import nodesDbQueries from '../../models/db/transitNodes.db.queries';
@@ -52,7 +53,10 @@ export const saveAndUpdateAllNodes = async (
                 progress: index / countNodes
             });
         }
-        await NodeGeographyUtils.updateTransferableNodes(node, nodeCollection);
+
+        const reachableNodes = await getTransferableNodes(node, nodeCollection);
+        node.setData('transferableNodes', reachableNodes);
+
         if (placeCollection) {
             await NodeGeographyUtils.updateAccessiblePlaces(node, placeCollection);
             await nodesDbQueries.update(node.getId(), node.attributes);

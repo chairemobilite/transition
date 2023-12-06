@@ -12,6 +12,7 @@ import pathsDbQueries from '../transitPaths.db.queries';
 import GeojsonCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import ObjectClass from 'transition-common/lib/services/nodes/Node';
 import Path from 'transition-common/lib/services/path/Path';
+import { distance as turfDistance } from '@turf/turf';
 
 const objectName = 'node';
 
@@ -261,6 +262,28 @@ describe(`${objectName}`, () => {
             [newObjectAttributes2.id]: [newPathWithTwoAssociatedNodesAttributes.id, newPathWithOneAssociatedNodeAttributes.id],
             [newObjectAttributes3.id]: []
         });
+    });
+
+    test('should get nodes within bird radius', async () => {
+
+        const _collection = await dbQueries.geojsonCollection();
+        // Should be empty for the 1000 meters
+        const nodesWithinBirdRadius = await dbQueries.getNodesInBirdDistance(newObjectAttributes.id, 1000);
+        expect(nodesWithinBirdRadius).toEqual([]);
+
+        // With higher distance, there should be more nodes
+        const distanceToN2 = turfDistance(newObjectAttributes.geography.coordinates, newObjectAttributes2.geography.coordinates, { units: 'meters'});
+        const distanceToN3 = turfDistance(newObjectAttributes.geography.coordinates, newObjectAttributes3.geography.coordinates, { units: 'meters'});
+        const sortedExpectedNodes: [any, any][] = distanceToN2 < distanceToN3 ? [[newObjectAttributes2, distanceToN2], [newObjectAttributes3, distanceToN3]] : [[newObjectAttributes3, distanceToN3], [newObjectAttributes2, distanceToN2]];
+        const nodesWithinBirdRadius100000 = await dbQueries.getNodesInBirdDistance(newObjectAttributes.id, 100000);
+        expect(nodesWithinBirdRadius100000).toEqual([
+            { id: sortedExpectedNodes[0][0].id, distance: expect.anything() },
+            { id: sortedExpectedNodes[1][0].id, distance: expect.anything() }
+        ]);
+
+        // turf and postgis do not have the exact same distance algorithm. Simply make sure they are within 25 meters of each other
+        expect(Math.abs(nodesWithinBirdRadius100000[0].distance - sortedExpectedNodes[0][1])).toBeLessThanOrEqual(25);
+        expect(Math.abs(nodesWithinBirdRadius100000[1].distance - sortedExpectedNodes[1][1])).toBeLessThanOrEqual(25);
     });
 
     test('should not delete nodes from database if paths exist', async () => {
