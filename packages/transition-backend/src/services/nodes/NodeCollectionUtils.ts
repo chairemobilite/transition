@@ -6,7 +6,7 @@
  */
 import PQueue from 'p-queue';
 
-import Node from 'transition-common/lib/services/nodes/Node';
+import Node, { TransferableNodes } from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
 import NodeGeographyUtils from 'transition-common/lib/services/nodes/NodeGeographyUtils';
@@ -14,6 +14,7 @@ import { getTransferableNodes } from './TransferableNodeUtils';
 import { EventEmitter } from 'events';
 import { objectToCache } from '../../models/capnpCache/transitNodes.cache.queries';
 import nodesDbQueries from '../../models/db/transitNodes.db.queries';
+import transferableNodesDbQueries from '../../models/db/transitNodeTransferable.db.queries';
 
 /**
  * Update the transferables nodes for each node in the collection and save the
@@ -61,7 +62,12 @@ export const saveAndUpdateAllNodes = async (
             await NodeGeographyUtils.updateAccessiblePlaces(node, placeCollection);
             await nodesDbQueries.update(node.getId(), node.attributes);
         }
-        return await objectToCache(node, cachePathDirectory);
+        // Save both to database and cache
+        const promises = [
+            transferableNodesDbQueries.saveForNode(node.getId(), reachableNodes),
+            objectToCache(node, cachePathDirectory)
+        ];
+        return await Promise.all(promises);
     };
 
     const addPromises = features.map(async (feature, index) =>
