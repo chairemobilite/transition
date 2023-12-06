@@ -4,8 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventManager } from '../../../services/events/EventManager';
+import EventManagerImpl, { EventManager } from '../../../services/events/EventManager';
 import serviceLocator from '../../../utils/ServiceLocator';
+
+const eventMngr = new EventManagerImpl();
 
 const mockEmit: jest.MockedFunction<(event: string | Event, ...args: any[]) => void> = jest.fn();
 mockEmit.mockImplementation((_event, ...args) => {
@@ -18,12 +20,15 @@ mockEmit.mockImplementation((_event, ...args) => {
 });
 
 const mockEmitProgress: jest.MockedFunction<(progressName: string, completeRatio: number) => void> = jest.fn();
+const mockEmitEvent: jest.MockedFunction<typeof eventMngr.emitEvent> = jest.fn();
 
 const responses: any[] = [];
 
 const eventManagerMock = {
     emit: mockEmit,
     emitProgress: mockEmitProgress,
+    emitEvent: mockEmitEvent,
+    onEvent: jest.fn(),
     once: jest.fn(),
     on: jest.fn(),
     addListener: jest.fn(),
