@@ -11,6 +11,12 @@ import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import NodeCollectionUtils from '../NodeCollectionUtils';
 import { objectToCache } from '../../../models/capnpCache/transitNodes.cache.queries';
+import { getTransferableNodes } from '../TransferableNodeUtils';
+
+jest.mock('../TransferableNodeUtils', () => ({
+    getTransferableNodes: jest.fn()
+}));
+const mockGetTransferableNodes = getTransferableNodes as jest.MockedFunction<typeof getTransferableNodes>;
 
 jest.mock('../../../models/capnpCache/transitNodes.cache.queries', () => {
     return {
@@ -85,8 +91,44 @@ beforeEach(() => {
 })
 
 test('saveAndUpdateAllNodes without collection manager', async() => {
+    // Mock the transferable nodes for each node
+    const node1TransferableNodes = {
+        nodesIds: [nodeAttributesClose1.id, nodeAttributesClose2.id, nodeAttributesClose3.id],
+        walkingTravelTimesSeconds: [0, 150, 550],
+        walkingDistancesMeters: [0, 120, 512]
+    };
+    const node2TransferableNodes = {
+        nodesIds: [nodeAttributesClose2.id, nodeAttributesClose1.id, nodeAttributesClose3.id],
+        walkingTravelTimesSeconds: [0, 150, 300],
+        walkingDistancesMeters: [0, 120, 250]
+    };
+    const node3TransferableNodes = {
+        nodesIds: [nodeAttributesClose3.id],
+        walkingTravelTimesSeconds: [0],
+        walkingDistancesMeters: [0]
+    };
+    const nodeFarTransferableNodes = {
+        nodesIds: [nodeAttributesFar.id],
+        walkingTravelTimesSeconds: [0],
+        walkingDistancesMeters: [0]
+    };
+    mockGetTransferableNodes.mockImplementation(async (node, _) => node.getId() === nodeAttributesClose1.id ? node1TransferableNodes : node.getId() === nodeAttributesClose2.id ? node2TransferableNodes : node.getId() === nodeAttributesClose3.id ? node3TransferableNodes : nodeFarTransferableNodes);
     await NodeCollectionUtils.saveAndUpdateAllNodes(nodeCollection, undefined, eventEmitter);
 
     // Make sure all save calls to object to cache were done correctly
     expect(mockedObjectToCache).toHaveBeenCalledTimes(4);
+    // Make sure nodes have been updated
+    const savedObject1 = mockedObjectToCache.mock.calls[0][0];
+    const savedObject2 = mockedObjectToCache.mock.calls[1][0];
+    const savedObject3 = mockedObjectToCache.mock.calls[2][0];
+    const savedObject4 = mockedObjectToCache.mock.calls[3][0];
+    // Validate transferable node data was successfully saved
+    expect(savedObject1.getId()).toEqual(nodeAttributesClose1.id);
+    expect(savedObject1.getData('transferableNodes')).toEqual(node1TransferableNodes);
+    expect(savedObject2.getId()).toEqual(nodeAttributesClose2.id);
+    expect(savedObject2.getData('transferableNodes')).toEqual(node2TransferableNodes);
+    expect(savedObject3.getId()).toEqual(nodeAttributesClose3.id);
+    expect(savedObject3.getData('transferableNodes')).toEqual(node3TransferableNodes);
+    expect(savedObject4.getId()).toEqual(nodeAttributesFar.id);
+    expect(savedObject4.getData('transferableNodes')).toEqual(nodeFarTransferableNodes);
 });
