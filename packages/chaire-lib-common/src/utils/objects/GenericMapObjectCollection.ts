@@ -79,7 +79,7 @@ export default abstract class GenericMapObjectCollection<
         return this._idByIntegerId.get(featureIntegerId);
     }
 
-    toGeojson() {
+    toGeojson(): GeoJSON.FeatureCollection<M> {
         return {
             type: 'FeatureCollection',
             features: this.features
