@@ -32,6 +32,8 @@ import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/Input
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import NodeStatistics from './TransitNodeStatistics';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 interface NodeFormProps extends WithTranslation {
     node: Node;
@@ -174,9 +176,12 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
     }
 
     onDrag(coordinates) {
-        serviceLocator.eventManager.emit('map.updateLayer', 'transitNodesSelected', (oldGeojson) => {
-            oldGeojson.features[0].geometry.coordinates = coordinates;
-            return oldGeojson;
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitNodesSelected',
+            data: (oldGeojson: GeoJSON.FeatureCollection) => {
+                (oldGeojson.features[0].geometry as GeoJSON.Point).coordinates = coordinates;
+                return oldGeojson;
+            }
         });
     }
 

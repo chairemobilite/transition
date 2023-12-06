@@ -13,6 +13,8 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { MapEventHandlerDescription } from '../IMapEventHandler';
 import { getLinesInView, offsetOverlappingLines } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
 import { getNodesInView, manageRelocatingNodes } from 'chaire-lib-common/lib/services/geodata/RelocateNodes';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from './MapEventsCallbacks';
 
 // TODO: Make zoomLimit modifiable by user
 const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation
@@ -118,7 +120,10 @@ const applyAestheticChanges = async (boundsGL: MapboxGL.LngLatBounds, zoom: numb
         return;
     }
 
-    serviceLocator.eventManager.emit('map.updateLayer', 'transitPaths', layer);
+    (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+        layerName: 'transitPaths',
+        data: layer
+    });
 
     serviceLocator.eventManager.emit('map.updateLayers', {
         transitNodes: transitNodes

@@ -38,6 +38,8 @@ import { parseIntOrNull, parseFloatOrNull } from 'chaire-lib-common/lib/utils/Ma
 import Path, { pathDirectionArray } from 'transition-common/lib/services/path/Path';
 import Line from 'transition-common/lib/services/line/Line';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 const lineModesConfigByMode = {};
 for (let i = 0, countI = lineModesConfig.length; i < countI; i++) {
@@ -223,18 +225,16 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
     // TODO Once the map is in typescript, we can probably get the type of the properties here instead of any
     onStartDragWaypoint = (waypointGeojson: GeoJSON.Feature<GeoJSON.Point, any>) => {
         if (this.props.path.isFrozen()) {
-            serviceLocator.eventManager.emit(
-                'map.updateLayer',
-                'transitPathWaypointsSelected',
-                turfFeatureCollection([])
-            );
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'transitPathWaypointsSelected',
+                data: turfFeatureCollection([])
+            });
             return true;
         }
-        serviceLocator.eventManager.emit(
-            'map.updateLayer',
-            'transitPathWaypointsSelected',
-            turfFeatureCollection([waypointGeojson])
-        );
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitPathWaypointsSelected',
+            data: turfFeatureCollection([waypointGeojson])
+        });
         this.setState((oldState) => {
             return {
                 waypointDraggingAfterNodeIndex: waypointGeojson.properties.afterNodeIndex,
@@ -245,28 +245,25 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
 
     onDragWaypoint = (coordinates: [number, number]) => {
         if (this.props.path.isFrozen()) {
-            serviceLocator.eventManager.emit(
-                'map.updateLayer',
-                'transitPathWaypointsSelected',
-                turfFeatureCollection([])
-            );
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'transitPathWaypointsSelected',
+                data: turfFeatureCollection([])
+            });
             return true;
         }
         const waypointGeojson = turfPoint(coordinates);
-        serviceLocator.eventManager.emit(
-            'map.updateLayer',
-            'transitPathWaypointsSelected',
-            turfFeatureCollection([waypointGeojson])
-        );
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitPathWaypointsSelected',
+            data: turfFeatureCollection([waypointGeojson])
+        });
     };
 
     onReplaceWaypointByNodeId = async (nodeId: string, waypointType = 'engine') => {
         if (this.props.path.isFrozen()) {
-            serviceLocator.eventManager.emit(
-                'map.updateLayer',
-                'transitPathWaypointsSelected',
-                turfFeatureCollection([])
-            );
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'transitPathWaypointsSelected',
+                data: turfFeatureCollection([])
+            });
             return true;
         }
         await this.props.path.replaceWaypointByNodeId(
@@ -277,12 +274,18 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         );
         this.props.path.validate();
         serviceLocator.selectedObjectsManager.update('path', this.props.path);
-        serviceLocator.eventManager.emit('map.updateLayer', 'transitPathWaypointsSelected', turfFeatureCollection([]));
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitPathWaypointsSelected',
+            data: turfFeatureCollection([])
+        });
         serviceLocator.eventManager.emit('selected.updateLayers.path');
     };
 
     onUpdateWaypoint = (coordinates: [number, number], waypointType = null) => {
-        serviceLocator.eventManager.emit('map.updateLayer', 'transitPathWaypointsSelected', turfFeatureCollection([]));
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitPathWaypointsSelected',
+            data: turfFeatureCollection([])
+        });
         if (!this.props.path.isFrozen()) {
             this.props.path
                 .updateWaypoint(

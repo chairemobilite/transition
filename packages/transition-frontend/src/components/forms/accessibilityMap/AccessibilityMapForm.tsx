@@ -44,6 +44,8 @@ import AccessibilityMapStatsComponent from './AccessibilityMapStatsComponent';
 import TimeOfTripComponent from '../transitRouting/widgets/TimeOfTripComponent';
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
 import AccessibilityMapBatchForm from './AccessibilityMapBatchForm';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 export interface AccessibilityMapFormProps extends WithTranslation {
     addEventListeners?: () => void;
@@ -89,11 +91,10 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
         this.onScenarioCollectionUpdate = this.onScenarioCollectionUpdate.bind(this);
 
         if (routingEngine.hasLocation()) {
-            serviceLocator.eventManager.emit(
-                'map.updateLayer',
-                'accessibilityMapPoints',
-                routingEngine.locationToGeojson()
-            );
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'accessibilityMapPoints',
+                data: routingEngine.locationToGeojson()
+            });
         }
     }
 
@@ -108,7 +109,10 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
         routing.setLocation(coordinates);
         //}
 
-        serviceLocator.eventManager.emit('map.updateLayer', 'accessibilityMapPoints', routing.locationToGeojson());
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'accessibilityMapPoints',
+            data: routing.locationToGeojson()
+        });
 
         this.removePolygons();
     }
@@ -140,12 +144,14 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
     }
 
     removePolygons() {
-        serviceLocator.eventManager.emit('map.updateLayer', 'accessibilityMapPolygons', turfFeatureCollection([]));
-        serviceLocator.eventManager.emit(
-            'map.updateLayer',
-            'accessibilityMapPolygonStrokes',
-            turfFeatureCollection([])
-        );
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'accessibilityMapPolygons',
+            data: turfFeatureCollection([])
+        });
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'accessibilityMapPolygonStrokes',
+            data: turfFeatureCollection([])
+        });
         this.setState({
             currentResult: undefined,
             loading: false
@@ -157,7 +163,10 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
         if (routing.hasLocation()) {
             routing.setLocation(coordinates, false);
             // only update layer for better performance:
-            serviceLocator.eventManager.emit('map.updateLayer', 'accessibilityMapPoints', routing.locationToGeojson());
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'accessibilityMapPoints',
+                data: routing.locationToGeojson()
+            });
             this.removePolygons();
             //this.calculateRouting();
         }
@@ -167,7 +176,10 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
         const routing = this.state.object;
         // only both layer and routing engine object:
         routing.setLocation(coordinates);
-        serviceLocator.eventManager.emit('map.updateLayer', 'accessibilityMapPoints', routing.locationToGeojson());
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'accessibilityMapPoints',
+            data: routing.locationToGeojson()
+        });
         this.removePolygons();
         //this.calculateRouting();
     }
@@ -177,8 +189,14 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
 
         console.log('polygons calculated');
 
-        serviceLocator.eventManager.emit('map.updateLayer', 'accessibilityMapPolygons', polygons);
-        serviceLocator.eventManager.emit('map.updateLayer', 'accessibilityMapPolygonStrokes', strokes);
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'accessibilityMapPolygons',
+            data: polygons
+        });
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'accessibilityMapPolygonStrokes',
+            data: strokes
+        });
 
         this.setState({
             geojsonDownloadUrl: DownloadsUtils.generateJsonDownloadUrl(polygons),

@@ -13,6 +13,8 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 export interface ODCoordinatesComponentProps extends WithTranslation {
     originGeojson?: GeoJSON.Feature<GeoJSON.Point>;
@@ -160,7 +162,10 @@ class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps
                 externalUpdate: this.state.externalUpdate + 1
             });
             this.updateOrigin(coordinates[0], coordinates[1]);
-            serviceLocator.eventManager.emit('map.updateLayer', 'routingPoints', this.originDestinationToGeojson());
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'routingPoints',
+                data: this.originDestinationToGeojson()
+            });
         } else {
             this.setState({
                 destinationLat: coordinates[1],
@@ -168,7 +173,10 @@ class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps
                 externalUpdate: this.state.externalUpdate + 1
             });
             this.updateDestination(coordinates[0], coordinates[1]);
-            serviceLocator.eventManager.emit('map.updateLayer', 'routingPoints', this.originDestinationToGeojson());
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'routingPoints',
+                data: this.originDestinationToGeojson()
+            });
         }
     };
 

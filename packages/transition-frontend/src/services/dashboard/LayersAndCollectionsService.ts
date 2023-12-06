@@ -13,6 +13,8 @@ import PlaceCollection from 'transition-common/lib/services/places/PlaceCollecti
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 // TODO: Bring back the missing data types
 type LoadLayersOptions = {
@@ -56,11 +58,17 @@ export const loadLayersAndCollections = async ({
         serviceLocator.collectionManager.add('simulations', simulationCollection);
 
         await nodeCollection.loadFromServer(serviceLocator.socketEventManager);
-        serviceLocator.eventManager.emit('map.updateLayer', 'transitNodes', nodeCollection.toGeojson());
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitNodes',
+            data: nodeCollection.toGeojson()
+        });
         serviceLocator.collectionManager.add('nodes', nodeCollection);
 
         await pathCollection.loadFromServer(serviceLocator.socketEventManager);
-        serviceLocator.eventManager.emit('map.updateLayer', 'transitPaths', pathCollection.toGeojson());
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitPaths',
+            data: pathCollection.toGeojson()
+        });
         serviceLocator.collectionManager.add('paths', pathCollection);
 
         await lineCollection.loadFromServer(serviceLocator.socketEventManager, serviceLocator.collectionManager);
