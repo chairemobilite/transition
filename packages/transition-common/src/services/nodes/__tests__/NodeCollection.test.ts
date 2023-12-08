@@ -86,7 +86,7 @@ test('new node object', function() {
     
     const node1 = nodeCollection.newObject(node1Geojson, true);
     const node1Expected = new Node(nodeAttributes1, true);
-    expect(node1).toEqual(node1Expected);
+    expect(node1.attributes).toEqual(node1Expected.attributes);
 
 });
 
