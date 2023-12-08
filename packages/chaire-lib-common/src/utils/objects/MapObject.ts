@@ -36,6 +36,10 @@ export class MapObject<
             properties: _omit(this.attributes, 'data') as T
         };
     }
+
+    hasChangedGeography = (): boolean => {
+        return (this.isNew() && this._attributes.geography !== undefined) || this.hasChanged('geography');
+    };
 }
 
 export default MapObject;

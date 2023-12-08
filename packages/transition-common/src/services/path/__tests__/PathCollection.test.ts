@@ -103,7 +103,7 @@ test('new path object', function() {
     
     const path1 = pathCollection.newObject(path1Geojson, true);
     const path1Expected = new Path(pathAttributes1, true);
-    expect(path1).toEqual(path1Expected);
+    expect(path1.attributes).toEqual(path1Expected.attributes);
 
 });
 

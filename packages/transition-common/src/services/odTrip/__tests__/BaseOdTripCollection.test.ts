@@ -109,8 +109,8 @@ test('Load from server', async () => {
     expect(collection.getFeatures().length).toEqual(2);
     const odPair1 = collection.getFeatures()[0];
     const odPair2 = collection.getFeatures()[1];
-    expect(odPair1).toEqual(new BaseOdTrip(odTripAttributes1, false));
-    expect(odPair2).toEqual(new BaseOdTrip(odTripAttributes2, false));
+    expect(odPair1.attributes).toEqual(new BaseOdTrip(odTripAttributes1, false).attributes);
+    expect(odPair2.attributes).toEqual(new BaseOdTrip(odTripAttributes2, false).attributes);
 
 });
 
@@ -124,7 +124,7 @@ test('Load from server for data source', async () => {
     expect(eventManager.emit).toHaveBeenCalledWith('odPairs.collection', odTripAttributes1.dataSourceId, expect.anything());
     expect(collection.getFeatures().length).toEqual(1);
     const odPair1 = collection.getFeatures()[0];
-    expect(odPair1).toEqual(new BaseOdTrip(odTripAttributes1, false));
+    expect(odPair1.attributes).toEqual(new BaseOdTrip(odTripAttributes1, false).attributes);
 
 });
 
