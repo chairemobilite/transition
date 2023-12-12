@@ -12,8 +12,10 @@ import serviceLocator   from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { saveAndUpdateAllNodes } from '../../nodes/NodeCollectionUtils';
 
 import { recreateCache } from '../dbToCache';
+import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
+import { EventManagerMock } from 'chaire-lib-common/lib/test';
 
-serviceLocator.socketEventManager = new EventEmitter();
+//serviceLocator.socketEventManager = new EventEmitter();
 
 // Mock data sources
 const dataSourceAttributes = {
@@ -245,7 +247,7 @@ jest.mock('../../../models/db/places.db.queries', () => {
     }
 });
 jest.mock('../../nodes/NodeCollectionUtils');
-const mockedSaveAndUpdateAllNodes = saveAndUpdateAllNodes as jest.Mocked<typeof saveAndUpdateAllNodes>;
+const mockedSaveAndUpdateAllNodes = saveAndUpdateAllNodes as jest.MockedFunction<typeof saveAndUpdateAllNodes>;
 const mockedNodesToCache = jest.fn();
 jest.mock('../../../models/capnpCache/transitNodes.cache.queries', () => {
     return {
@@ -393,13 +395,13 @@ describe('Recreate cache', () => {
                 geometry: nodeGeography
             })]
         }), undefined);
-        expect(mockedSaveAndUpdateAllNodes).toHaveBeenCalledWith(expect.objectContaining({
+        expect(mockedSaveAndUpdateAllNodes).toHaveBeenLastCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({
                 type: 'Feature' as const,
                 properties: nodeAttributes,
                 geometry: nodeGeography
             })]
-        }), expect.anything(), undefined, expect.anything(), undefined);
+        }), expect.anything(), EventManagerMock.eventManagerMock, expect.anything(), undefined);
     });
 
     test('no refresh nodes, refresh schedules', async () => {
@@ -444,7 +446,7 @@ describe('Recreate cache', () => {
                 properties: nodeAttributes,
                 geometry: nodeGeography
             })]
-        }), expect.anything(), undefined, expect.anything(), undefined);
+        }), expect.anything(), EventManagerMock.eventManagerMock, expect.anything(), undefined);
     });
 
     test('refresh nodes and schedules', async () => {
@@ -490,6 +492,6 @@ describe('Recreate cache', () => {
                 properties: nodeAttributes,
                 geometry: nodeGeography
             })]
-        }), expect.anything(), undefined, expect.anything(), undefined);
+        }), expect.anything(), EventManagerMock.eventManagerMock, expect.anything(), undefined);
     });
 });
