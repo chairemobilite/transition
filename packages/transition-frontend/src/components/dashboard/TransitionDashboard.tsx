@@ -38,7 +38,7 @@ import { loadLayersAndCollections } from '../../services/dashboard/LayersAndColl
 import {
     Contribution,
     DashboardContribution,
-    LayoutSectionProps
+    PanelSectionProps
 } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
 
@@ -87,11 +87,11 @@ interface DashboardState {
  */
 class Dashboard extends React.Component<DashboardProps, DashboardState> {
     private contributions: {
-        bottomPanel: Contribution<LayoutSectionProps>[];
-        menuBar: Contribution<LayoutSectionProps>[];
-        toolbar: Contribution<LayoutSectionProps>[];
-        fullSize: Contribution<LayoutSectionProps>[];
-        rightPanel: Contribution<LayoutSectionProps>[];
+        bottomPanel: Contribution<PanelSectionProps>[];
+        menuBar: Contribution<PanelSectionProps>[];
+        toolbar: Contribution<PanelSectionProps>[];
+        fullSize: Contribution<PanelSectionProps>[];
+        rightPanel: Contribution<PanelSectionProps>[];
     };
     socket: any;
 

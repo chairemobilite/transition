@@ -4,6 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import React from 'react';
 import { WithTranslation } from 'react-i18next';
 
 /** These are various locations in the layout where a widget can be drawn.
@@ -26,6 +27,10 @@ export interface LayoutSectionProps extends WithTranslation {
     activeSection: string;
     key?: string;
 }
+
+export type PanelSectionProps = LayoutSectionProps & {
+    parentRef?: React.RefObject<HTMLDivElement>;
+};
 
 /**
  * Interface to be implemented by contribution elements. Each widget that goes

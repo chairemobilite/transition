@@ -20,6 +20,7 @@ import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/D
 import PreferencesPanel from '../forms/preferences/PreferencesEdit';
 interface RightPanelProps extends LayoutSectionProps {
     availableRoutingModes: string[];
+    parentRef?: React.RefObject<HTMLDivElement>;
 }
 
 const RightPanel: React.FunctionComponent<RightPanelProps> = (props: RightPanelProps) => {
@@ -28,7 +29,7 @@ const RightPanel: React.FunctionComponent<RightPanelProps> = (props: RightPanelP
             {props.activeSection === 'nodes' && <TransitNodesPanel />}
 
             {props.activeSection === 'agencies' && (
-                <TransitAgenciesPanel availableRoutingModes={props.availableRoutingModes} />
+                <TransitAgenciesPanel availableRoutingModes={props.availableRoutingModes} parentRef={props.parentRef} />
             )}
 
             {props.activeSection === 'scenarios' && <TransitScenariosPanel />}
