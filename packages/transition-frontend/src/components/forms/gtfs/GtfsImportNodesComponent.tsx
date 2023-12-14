@@ -14,14 +14,14 @@ import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper'
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
-export interface GtfsImportServiceComponentProps extends WithTranslation {
+export interface GtfsImportNodesComponentProps extends WithTranslation {
     id: string;
     updateSelectedValue: (path: keyof GtfsImportData, value: string | boolean | number | undefined) => void;
     gtfsImportData: GtfsImportData;
 }
 
-const GtfsImportServiceComponent: React.FunctionComponent<GtfsImportServiceComponentProps> = (
-    props: GtfsImportServiceComponentProps
+const GtfsImportNodesComponent: React.FunctionComponent<GtfsImportNodesComponentProps> = (
+    props: GtfsImportNodesComponentProps
 ) => {
     const stopAggregationWalkingTime = props.gtfsImportData.stopAggregationWalkingRadiusSeconds;
 
@@ -56,4 +56,4 @@ const GtfsImportServiceComponent: React.FunctionComponent<GtfsImportServiceCompo
     );
 };
 
-export default withTranslation(['transit', 'main'])(GtfsImportServiceComponent);
+export default withTranslation(['transit', 'main'])(GtfsImportNodesComponent);
