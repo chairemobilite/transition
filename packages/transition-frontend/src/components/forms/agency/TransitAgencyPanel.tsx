@@ -30,6 +30,7 @@ import Schedule from 'transition-common/lib/services/schedules/Schedule';
 
 interface AgencyPanelProps extends WithTranslation {
     availableRoutingModes: string[];
+    parentRef?: React.RefObject<HTMLDivElement>;
 }
 
 interface AgencyPanelState {
@@ -48,6 +49,7 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
     const [pathImporterSelected, setPathImporterSelected] = React.useState(false);
     const [agenciesListState, setAgenciesListState] = React.useState<AgencyListState>({
         expanded: [],
+        currentScrollPosition: 0
     });
     const [rerender, setRerender] = React.useState(0);
     const [state, setState] = React.useState<AgencyPanelState>({
@@ -137,6 +139,7 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
                     agencyCollection={state.agencyCollection}
                     agenciesListState={agenciesListState}
                     updateAgenciesListState={setAgenciesListState}
+                    parentRef={props.parentRef}
                 />
             )}
 
