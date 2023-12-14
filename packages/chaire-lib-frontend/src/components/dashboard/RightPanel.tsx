@@ -7,13 +7,13 @@
 import React from 'react';
 import { withTranslation } from 'react-i18next';
 
-import { Contribution, LayoutSectionProps } from '../../services/dashboard/DashboardContribution';
+import { Contribution, LayoutSectionProps, PanelSectionProps } from '../../services/dashboard/DashboardContribution';
 import ErrorBoundary from '../pageParts/ErrorBoundary';
 
 interface RightPanelProps extends LayoutSectionProps {
     // TODO This prop should be in a context or some other global scheme
     availableRoutingModes: string[];
-    contributions: Contribution<LayoutSectionProps>[];
+    contributions: Contribution<PanelSectionProps>[];
 }
 
 /**
@@ -25,17 +25,21 @@ interface RightPanelProps extends LayoutSectionProps {
  * @returns
  */
 const RightPanel: React.FunctionComponent<RightPanelProps> = ({ contributions, ...props }: RightPanelProps) => {
+    const rightPanelRef = React.useRef<HTMLDivElement>(null);
     const contributionElements = React.useMemo(
         () =>
-
             contributions
                 .filter((contrib) => contrib.section === undefined || contrib.section === props.activeSection)
-                .map((contrib) => contrib.create({ ...props, key: `rightPanelEl${contrib.id}` })),
+                .map((contrib) =>
+                    contrib.create({ ...props, key: `rightPanelEl${contrib.id}`, parentRef: rightPanelRef })
+                ),
         [props.activeSection, props.availableRoutingModes]
     );
+    // Reset ref scroll position when changing section
+    React.useEffect(() => rightPanelRef.current?.scrollTo({ left: 0, top: 0 }), [props.activeSection]);
 
     return (
-        <section id="tr__right-panel">
+        <section ref={rightPanelRef} id="tr__right-panel">
             <div className="tr__right-panel-inner">
                 <ErrorBoundary key={props.activeSection}>{contributionElements}</ErrorBoundary>
             </div>
