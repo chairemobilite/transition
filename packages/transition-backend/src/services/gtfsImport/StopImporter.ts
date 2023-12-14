@@ -87,16 +87,18 @@ export class StopImporter implements GtfsObjectPreparator<StopImportData> {
     async import(stops: StopImportData[], importData: GtfsImportData): Promise<{ [key: string]: Node }> {
         const importedStops: { [key: string]: Node } = {};
         const defaultNodesColor = importData.nodes_color;
-        const aggregationWalkingRadiusSeconds =
-            importData.stopAggregationWalkingRadiusSeconds ||
-            Preferences.get('transit.nodes.defaultStopAggregationWalkingRadiusSecondsWhenImportingFromGtfs', 60);
 
+        const aggregationWalkingRadiusSeconds =
+            importData.stopAggregationWalkingRadiusSeconds === undefined
+                ? Preferences.get('transit.nodes.defaultStopAggregationWalkingRadiusSecondsWhenImportingFromGtfs', 60)
+                : importData.stopAggregationWalkingRadiusSeconds;
         const updatedNodesById = {};
 
         // Split the nodes to import into already existing nodes to update and new nodes
         const promiseQueue = new PQueue({ concurrency: 1 });
 
         const promiseProducer = async (stopData: StopImportData) => {
+            // Even if aggregation radius is 0, we still run the query in case the node already exists in the database
             const nodesInRadius = await this._existingNodes.nodesInWalkingTravelTimeRadiusSecondsAround(
                 {
                     type: 'Point',

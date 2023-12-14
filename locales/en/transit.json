@@ -740,6 +740,8 @@
         "MergeSamePeriodServices": "Merge services for same periods? (use with caution, the resulting service will contain all services for the same period)",
         "DefaultAgencyColor": "Default agencies color",
         "DefaultNodeColor": "Default nodes and stops color",
+        "StopAggregationWalkingRadiusSeconds": "Maximum walking time to aggregate stops in a node",
+        "StopAggregationWalkingRadiusSecondsHelp": "If the walking time between 2 stops is less than this value, they will be merged in the same transit node, located at the centroid of all the stops composing it. Put 0 to keep all stops in their original position. But calculation times will increase with the number of nodes.",
         "ImportPaths": "Import paths",
         "ImportTrips": "Import trips",
         "OperationInProgress": "Import operation in progress",

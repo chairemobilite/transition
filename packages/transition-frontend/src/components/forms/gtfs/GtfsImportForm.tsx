@@ -26,6 +26,7 @@ import { GtfsConstants, GtfsImportStatus } from 'transition-common/lib/api/gtfs'
 import { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import GtfsImportServiceComponent from './GtfsImportServiceComponent';
 import GtfsImportAgenciesComponent from './GtfsImportAgenciesComponent';
+import GtfsImportNodesComponent from './GtfsImportNodesComponent';
 
 type GtfsImportProps = WithTranslation;
 
@@ -101,7 +102,7 @@ class GtfsImportForm extends React.Component<GtfsImportProps, GtfsImportState> {
         });
     }
 
-    updateSelectedValue(path: keyof GtfsImportData, value: string | boolean) {
+    updateSelectedValue = (path: keyof GtfsImportData, value: string | boolean | number | undefined) => {
         const importData = this.state.availableImportData;
         if (!importData) {
             return;
@@ -110,7 +111,7 @@ class GtfsImportForm extends React.Component<GtfsImportProps, GtfsImportState> {
         this.setState({
             availableImportData: importData
         });
-    }
+    };
 
     componentDidMount() {
         this._zipFileUploader.on('start', this.onZipFileUploadStart);
@@ -179,6 +180,15 @@ class GtfsImportForm extends React.Component<GtfsImportProps, GtfsImportState> {
         validator.set('defaultMinLayoverTimeSeconds', Preferences.current.transit.paths.defaultMinLayoverTimeSeconds);
         console.log('gtfsImporter.prepared', validator);
         validator.set('isPrepared', true);
+        if (validatorAttributes.stopAggregationWalkingRadiusSeconds === undefined) {
+            validatorAttributes.stopAggregationWalkingRadiusSeconds = Preferences.get(
+                'transit.nodes.defaultStopAggregationWalkingRadiusSecondsWhenImportingFromGtfs',
+                60
+            );
+        }
+        if (validatorAttributes.nodes_color === undefined) {
+            validatorAttributes.nodes_color = Preferences.get('transit.nodes.defaultColor', '#0086FF');
+        }
         this.setState({
             validator: validator,
             gtfsDataImported: false,
@@ -435,13 +445,11 @@ class GtfsImportForm extends React.Component<GtfsImportProps, GtfsImportState> {
                         </div>
                     )}
                     {availableImportData?.agencies.length > 0 && availableImportData?.services.length > 0 && (
-                        <div className="apptr__form-input-container _two-columns">
-                            <label className="_flex">{this.props.t('transit:gtfs:DefaultNodeColor')}</label>
-                            <InputColor
-                                id={`formFieldTransitGtfsImporterFileDefaultNodeColor${validatorId}`}
-                                value={availableImportData.nodes_color}
-                                defaultColor={Preferences.get('transit.nodes.defaultColor', '#0086FF')}
-                                onValueChange={(e) => this.updateSelectedValue('nodes_color', e.target.value)}
+                        <div className="apptr__form-input-container">
+                            <GtfsImportNodesComponent
+                                id={validatorId}
+                                updateSelectedValue={this.updateSelectedValue}
+                                gtfsImportData={availableImportData}
                             />
                         </div>
                     )}
