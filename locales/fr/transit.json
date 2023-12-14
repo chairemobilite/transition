@@ -737,6 +737,8 @@
         "MergeSamePeriodServices": "Combiner les services pour les mêmes périodes? (attention, le service résultant contiendra tous les services combinés)",
         "DefaultAgencyColor": "Couleur par défaut des agences",
         "DefaultNodeColor": "Couleur par défaut des noeuds et arrêts",
+        "StopAggregationWalkingRadiusSeconds": "Temps de marche maximal pour agréger les arrêts dans un noeud",
+        "StopAggregationWalkingRadiusSecondsHelp": "Si le temps de marche entre 2 arrêts est inférieur à cette valeur, ils seront rassemblés dans un seul noeud d'arrêt situé au centroïde de tous les arrêts le composant. Mettre 0 pour conserver les arrêts tels quels. Mais les temps de calcul vont augmenter avec le nombre de noeuds.",
         "ImportPaths": "Importer les trajets",
         "ImportTrips": "Importer les voyages",
         "ImportGtfsData": "Importer les données",
