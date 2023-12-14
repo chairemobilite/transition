@@ -20,6 +20,7 @@ import ButtonList from '../../parts/ButtonList';
 
 export type AgencyListState = {
     expanded: string[];
+    currentScrollPosition?: number;
 };
 
 interface AgencyListProps extends WithTranslation {
@@ -28,6 +29,7 @@ interface AgencyListProps extends WithTranslation {
     selectedLine?: Line;
     agenciesListState: AgencyListState;
     updateAgenciesListState: (state: AgencyListState) => void;
+    parentRef?: React.RefObject<HTMLDivElement>;
 }
 
 const TransitAgencyList: React.FunctionComponent<AgencyListProps> = (props: AgencyListProps) => {
@@ -48,9 +50,16 @@ const TransitAgencyList: React.FunctionComponent<AgencyListProps> = (props: Agen
 
     const objectSelected = props.selectedAgency !== undefined || props.selectedLine !== undefined;
 
-    const onSelect = () => {
-        props.updateAgenciesListState({ expanded: expandedAgencies });
-    };
+    React.useEffect(() => {
+        if (props.parentRef && props.agenciesListState.currentScrollPosition) {
+            props.parentRef.current?.scrollTo({ top: props.agenciesListState.currentScrollPosition });
+        }
+    }, []);
+    const onSelect = () =>
+        props.updateAgenciesListState({
+            expanded: expandedAgencies,
+            currentScrollPosition: props.parentRef?.current?.scrollTop
+        });
     const onAgencyExpanded = (agencyId: string) => {
         if (!expandedAgencies.includes(agencyId)) {
             expandedAgencies.push(agencyId);
