@@ -18,13 +18,20 @@ import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollec
 import TransitAgencyButton from './TransitAgencyButton';
 import ButtonList from '../../parts/ButtonList';
 
+export type AgencyListState = {
+    expanded: string[];
+};
+
 interface AgencyListProps extends WithTranslation {
     agencyCollection?: AgencyCollection;
     selectedAgency?: Agency;
     selectedLine?: Line;
+    agenciesListState: AgencyListState;
+    updateAgenciesListState: (state: AgencyListState) => void;
 }
 
 const TransitAgencyList: React.FunctionComponent<AgencyListProps> = (props: AgencyListProps) => {
+    const [expandedAgencies, setExpandedAgencies] = React.useState(props.agenciesListState.expanded);
     const newAgency = function () {
         const defaultColor = Preferences.get('transit.agencies.defaultColor', '#0086FF');
         const newAgency = new Agency({ color: defaultColor }, true, serviceLocator.collectionManager);
@@ -40,6 +47,23 @@ const TransitAgencyList: React.FunctionComponent<AgencyListProps> = (props: Agen
     };
 
     const objectSelected = props.selectedAgency !== undefined || props.selectedLine !== undefined;
+
+    const onSelect = () => {
+        props.updateAgenciesListState({ expanded: expandedAgencies });
+    };
+    const onAgencyExpanded = (agencyId: string) => {
+        if (!expandedAgencies.includes(agencyId)) {
+            expandedAgencies.push(agencyId);
+            setExpandedAgencies(expandedAgencies);
+        }
+    };
+    const onAgencyCollapsed = (agencyId: string) => {
+        const index = expandedAgencies.indexOf(agencyId);
+        if (index >= 0) {
+            expandedAgencies.splice(index, 1);
+            setExpandedAgencies(expandedAgencies);
+        }
+    };
 
     return (
         <div className="tr__list-transit-scenarios-container">
@@ -61,6 +85,10 @@ const TransitAgencyList: React.FunctionComponent<AgencyListProps> = (props: Agen
                                 agency={agency}
                                 selectedAgency={props.selectedAgency}
                                 selectedLine={props.selectedLine}
+                                onObjectSelected={onSelect}
+                                isExpanded={expandedAgencies.includes(agency.getId())}
+                                onAgencyExpanded={onAgencyExpanded}
+                                onAgencyCollapsed={onAgencyCollapsed}
                             />
                         ))}
             </ButtonList>

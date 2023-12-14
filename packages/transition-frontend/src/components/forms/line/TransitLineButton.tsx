@@ -17,6 +17,7 @@ interface LineButtonProps extends WithTranslation {
     line: Line;
     selectedLine?: Line;
     lineIsHidden: boolean;
+    onObjectSelected?: (objectId: string) => void;
 }
 
 const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: LineButtonProps) => {
@@ -29,7 +30,10 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
         }
         await props.line.refreshSchedules(serviceLocator.socketEventManager);
         props.line.startEditing();
-        serviceLocator.selectedObjectsManager.select('line', props.line);
+        if (props.onObjectSelected) {
+            props.onObjectSelected(props.line.getId());
+        }
+        serviceLocator.selectedObjectsManager.select('line', props.line);  
     };
 
     const onDelete: React.MouseEventHandler = async (e: React.MouseEvent) => {

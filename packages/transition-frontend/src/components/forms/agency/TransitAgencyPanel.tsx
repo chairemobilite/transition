@@ -16,7 +16,7 @@ import CollectionDownloadButtons from 'chaire-lib-frontend/lib/components/pagePa
 import CollectionSaveToCacheButtons from '../../parts/CollectionSaveToCacheButtons';
 import AgencyEdit from './TransitAgencyEdit';
 import LineEdit from '../line/TransitLineEdit';
-import AgenciesList from './TransitAgencyList';
+import AgenciesList, { AgencyListState } from './TransitAgencyList';
 import AgencyImportForm from './TransitAgencyImportForm';
 import LineImportForm from '../line/TransitLineImportForm';
 import PathImportForm from '../path/TransitPathImportForm';
@@ -46,6 +46,9 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
     const [agencyImporterSelected, setAgencyImporterSelected] = React.useState(false);
     const [lineImporterSelected, setLineImporterSelected] = React.useState(false);
     const [pathImporterSelected, setPathImporterSelected] = React.useState(false);
+    const [agenciesListState, setAgenciesListState] = React.useState<AgencyListState>({
+        expanded: [],
+    });
     const [rerender, setRerender] = React.useState(0);
     const [state, setState] = React.useState<AgencyPanelState>({
         agencyCollection: serviceLocator.collectionManager.get('agencies'),
@@ -130,7 +133,11 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
     return (
         <div id="tr__form-transit-agencies-panel" className="tr__form-transit-agencies-panel tr__panel">
             {!state.selectedAgency && !state.selectedLine && !importerSelected && (
-                <AgenciesList agencyCollection={state.agencyCollection} />
+                <AgenciesList
+                    agencyCollection={state.agencyCollection}
+                    agenciesListState={agenciesListState}
+                    updateAgenciesListState={setAgenciesListState}
+                />
             )}
 
             {state.selectedAgency && !importerSelected && <AgencyEdit agency={state.selectedAgency} />}

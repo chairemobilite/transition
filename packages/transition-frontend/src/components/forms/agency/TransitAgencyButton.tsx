@@ -22,6 +22,10 @@ interface AgencyButtonProps extends WithTranslation {
     agency: Agency;
     selectedAgency?: Agency;
     selectedLine?: Line;
+    onObjectSelected?: (objectId: string) => void;
+    isExpanded: boolean;
+    onAgencyExpanded: (agencyId: string) => void;
+    onAgencyCollapsed: (agencyId: string) => void;
 }
 
 const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: AgencyButtonProps) => {
@@ -35,6 +39,9 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
             e.stopPropagation();
         }
         props.agency.startEditing();
+        if (props.onObjectSelected) {
+            props.onObjectSelected(props.agency.getId());
+        }
         serviceLocator.selectedObjectsManager.select('agency', props.agency);
     };
 
@@ -141,6 +148,7 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
             lineIsHidden={
                 serviceLocator.pathLayerManager ? serviceLocator.pathLayerManager.lineIsHidden(line.id) : false
             }
+            onObjectSelected={props.onObjectSelected}
         />
     ));
 
@@ -217,8 +225,10 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
                     <Collapsible
                         lazyRender={true}
                         trigger={props.t('transit:transitLine:List')}
-                        open={false}
+                        open={props.isExpanded}
                         transitionTime={100}
+                        onOpen={() => props.onAgencyExpanded(props.agency.getId())}
+                        onClose={() => props.onAgencyCollapsed(props.agency.getId())}
                     >
                         <ButtonList key={`lines${props.agency.getId()}`}>
                             {linesButtons}
