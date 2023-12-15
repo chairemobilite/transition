@@ -80,4 +80,25 @@ export default function (socket: EventEmitter) {
             }
         }
     );
+
+    socket.on(
+        'transitNodes.deleteUnused',
+        async (nodeIds: string[] | undefined, callback: (status: Status.Status<string[]>) => void) => {
+            try {
+                const deletedNodeIds = await nodesDbQueries.deleteMultipleUnused(
+                    nodeIds === undefined || nodeIds === null ? 'all' : nodeIds
+                );
+                callback(Status.createOk(deletedNodeIds));
+            } catch (error) {
+                console.error(
+                    `An error occurred while deleting ${
+                        nodeIds === undefined || nodeIds === null ? 'all' : nodeIds.length
+                    } unused nodes: ${error}`
+                );
+                if (typeof callback === 'function') {
+                    callback(Status.createError('Error deleting unused nodes'));
+                }
+            }
+        }
+    );
 }
