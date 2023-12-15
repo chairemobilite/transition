@@ -50,10 +50,12 @@
         },
         "MultipleDelete": "Supprimer les noeuds d'arrêt",
         "ConfirmMultipleDelete": "Confirmez-vous que vous désirez bien supprimer ces noeuds d'arrêt? Seuls les noeuds ne desservant aucun trajet seront supprimés.",
+        "ConfirmAllDelete": "Confirmez-vous que vous désirez bien supprimer tous les noeuds d'arrêts inutilisés? Seuls les noeuds ne desservant aucun trajet seront supprimés.",
         "deleteSelectedNodes": "Supprimer les noeuds sélectionnés et inutilisés",
         "deleteSelectedPolygon": "Annuler la sélection",
         "editSelectedNodes": "Modifier les noeuds sélectionnés",
-        "editFrozenSelectedNodesWarning": "Seulement les noeuds non verrouillés seront sauvegardés"
+        "editFrozenSelectedNodesWarning": "Seulement les noeuds non verrouillés seront sauvegardés",
+        "DeleteAllUnusedNodes": "Supprimer tous les noeuds non utilisés"
     },
     "transitAgency": {
         "List": "Agences",
