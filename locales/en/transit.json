@@ -50,10 +50,12 @@
         },
         "MultipleDelete": "Delete nodes",
         "ConfirmMultipleDelete": "Do you confirm deletion of those stop nodes? Only the nodes through which no path passes will be deleted.",
+        "ConfirmAllDelete": "Do you confirm deletion of all unused stop nodes? Only the nodes through which no path passes will be deleted.",
         "deleteSelectedNodes": "Delete unused selected nodes",
-        "deleteSelectedPolygon":"Cancel selection",
-        "editSelectedNodes":"Edit selected nodes",
-        "editFrozenSelectedNodesWarning":"only unfrozen nodes will be saved"
+        "deleteSelectedPolygon": "Cancel selection",
+        "editSelectedNodes": "Edit selected nodes",
+        "editFrozenSelectedNodesWarning": "only unfrozen nodes will be saved",
+        "DeleteAllUnusedNodes": "Delete all unused nodes"
     },
     "transitAgency": {
         "List": "Agencies",
@@ -466,7 +468,6 @@
         "ShowPathEditHelp": "Show path edit help",
         "HidePathEditHelp": "Hide path edit help",
         "warningFromGtfs": "Warning! This transit path was imported from a GTFS. Recomputing its path could change the geography and timings.",
-
         "directions": {
             "loop": "Loop",
             "outbound": "Outbound",
@@ -656,7 +657,7 @@
             "DataSourceDoesNotExists": "The specified data source does not exists.",
             "DataSourceAlreadyExists": "A data source with that name already exists for OD calculations.",
             "InvalidOdTripsDataSource": "Invalid OD calculations data source.",
-            "ErrorCalculatingLocation":  "Error calculating location {{id}}",
+            "ErrorCalculatingLocation": "Error calculating location {{id}}",
             "UserDiskQuotaReached": "Maximum allowed disk space has been reached. Please delete old tasks to delete their files.",
             "RoutingParametersInvalidForBatch": "Routing parameters are invalid. Make sure the scenario is set and times have a valid value."
         },
@@ -722,9 +723,7 @@
         "HH_MM__HH_MM_SS": "HH:MM or HH:MM:SS",
         "HMM": "HMM",
         "SecondsSinceMidnight": "Seconds after midnight"
-
     },
-
     "gtfs": {
         "ButtonImport": "Import",
         "Import": "Import from a GTFS feed",

@@ -14,6 +14,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import nodesDbQueries from '../models/db/transitNodes.db.queries';
 import schedulesDbQueries from '../models/db/transitSchedules.db.queries';
+import { TransitApi } from 'transition-common/lib/api/transit';
 
 /**
  * Add routes specific to the transit objects
@@ -82,7 +83,7 @@ export default function (socket: EventEmitter) {
     );
 
     socket.on(
-        'transitNodes.deleteUnused',
+        TransitApi.DELETE_UNUSED_NODES,
         async (nodeIds: string[] | undefined, callback: (status: Status.Status<string[]>) => void) => {
             try {
                 const deletedNodeIds = await nodesDbQueries.deleteMultipleUnused(
