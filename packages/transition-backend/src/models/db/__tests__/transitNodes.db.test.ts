@@ -272,7 +272,22 @@ describe(`${objectName}`, () => {
 
         // Delete multiple nodes, some of which have paths associated, only the
         // one without path should be deleted
-        const ids = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id, newObjectAttributes3.id]);
+        const ids = await dbQueries.deleteMultipleUnused([newObjectAttributes.id, newObjectAttributes2.id, newObjectAttributes3.id]);
+        expect(ids).toEqual([newObjectAttributes3.id]);
+        expect(await dbQueries.exists(newObjectAttributes.id)).toBe(true);
+        expect(await dbQueries.exists(newObjectAttributes2.id)).toBe(true);
+        expect(await dbQueries.exists(newObjectAttributes3.id)).toBe(false);
+
+    });
+
+    test('should not delete all nodes nodes from database if paths exist', async () => {
+        // Add a new node, not associated with a path
+        const newObject = new ObjectClass(newObjectAttributes3, true);
+        await dbQueries.create(newObject.attributes);
+        expect(await dbQueries.exists(newObjectAttributes3.id)).toBe(true);
+
+        // Delete all unused nodes
+        const ids = await dbQueries.deleteMultipleUnused('all');
         expect(ids).toEqual([newObjectAttributes3.id]);
         expect(await dbQueries.exists(newObjectAttributes.id)).toBe(true);
         expect(await dbQueries.exists(newObjectAttributes2.id)).toBe(true);
@@ -288,7 +303,7 @@ describe(`${objectName}`, () => {
         expect(id).toBe(newObjectAttributes.id);
         expect(await dbQueries.exists(newObjectAttributes.id)).toBe(false);
 
-        const ids = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
+        const ids = await dbQueries.deleteMultipleUnused([newObjectAttributes.id, newObjectAttributes2.id]);
         expect(ids).toEqual([newObjectAttributes2.id]);
 
     });
