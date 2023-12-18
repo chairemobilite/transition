@@ -5,12 +5,13 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { Layer, LayerProps } from '@deck.gl/core/typed';
+import { propertiesContainsFilter } from '@turf/turf';
 import {
     layerEventNames,
     MapCallbacks,
     MapLayerEventHandlerDescriptor
 } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
-import { MapLayer } from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
+import * as LayerDescription from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
 import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo, Deck } from 'deck.gl/typed';
 import { MjolnirEvent, MjolnirGestureEvent } from 'mjolnir.js';
 import AnimatedArrowPathLayer from './AnimatedArrowPathLayer';
@@ -24,10 +25,19 @@ const defaultRGBA = [
     255
 ] as [number, number, number, number];
 
+// FIXME Deck.gl types the viewState as `any`, as if it could change depending
+// on... what?. Here we just type the parameters that we know are available to
+// our map, but maybe it is wrong to do so?
+export type ViewState = {
+    zoom: number;
+    latitude: number;
+    longitude: number;
+    [key: string]: any;
+};
+
 type TransitionMapLayerProps = {
-    layerDescription: MapLayer;
-    // TODO Find the right type for this
-    viewState;
+    layerDescription: LayerDescription.MapLayer;
+    viewState: ViewState;
     events?: { [evtName in layerEventNames]?: MapLayerEventHandlerDescriptor[] };
     activeSection: string;
     setDragging: (dragging: boolean) => void;
@@ -63,6 +73,63 @@ const propertyToColor = (
             : defaultColor
                 ? stringToColor(defaultColor)
                 : defaultRGBA;
+};
+
+const layerColorGetter = (
+    getter: LayerDescription.FeatureColor | undefined,
+    defaultValue: string
+):
+    | undefined
+    | [number, number, number]
+    | [number, number, number, number]
+    | ((feature: GeoJSON.Feature) => [number, number, number] | [number, number, number, number]) => {
+    if (getter === undefined) {
+        return stringToColor(defaultValue);
+    }
+    if (typeof getter === 'string') {
+        return stringToColor(getter);
+    }
+    if (Array.isArray(getter)) {
+        return getter;
+    }
+    if (typeof getter === 'function') {
+        return (feature: GeoJSON.Feature) => {
+            const color = getter(feature);
+            return typeof color === 'string' ? stringToColor(color) : color;
+        };
+    }
+    if (getter.type === 'property') {
+        return (feature: GeoJSON.Feature) => propertyToColor(feature, getter.property, defaultValue);
+    }
+    return undefined;
+};
+
+const propertytoNumber = (feature: GeoJSON.Feature<GeoJSON.Geometry>, property: string, defaultNumber = 0): number => {
+    if (!feature.properties || !feature.properties[property]) {
+        return 0;
+    }
+    const numberValue = feature.properties[property];
+    return typeof numberValue === 'number'
+        ? numberValue
+        : typeof numberValue === 'string'
+            ? parseInt(numberValue)
+            : defaultNumber;
+};
+
+const layerNumberGetter = (
+    getter: LayerDescription.FeatureNumber | undefined,
+    defaultValue: number | undefined
+): undefined | number | ((feature: GeoJSON.Feature) => number) => {
+    if (getter === undefined) {
+        return defaultValue;
+    }
+    if (typeof getter === 'number' || typeof getter === 'function') {
+        return getter;
+    }
+    if (getter.type === 'property') {
+        return (feature: GeoJSON.Feature) => propertytoNumber(feature, getter.property, defaultValue);
+    }
+    return undefined;
 };
 
 const getLineLayer = (props: TransitionMapLayerProps, eventsToAdd): PathLayer =>
@@ -134,24 +201,71 @@ const getPolygonLayer = (props: TransitionMapLayerProps, eventsToAdd): GeoJsonLa
         ...eventsToAdd
     });
 
-const getScatterLayer = (props: TransitionMapLayerProps, eventsToAdd): ScatterplotLayer<any> =>
-    new ScatterplotLayer({
+const getScatterLayer = (
+    props: TransitionMapLayerProps,
+    config: LayerDescription.PointLayerConfiguration,
+    eventsToAdd
+): ScatterplotLayer<any> | undefined => {
+    const layerProperties: any = {};
+    const minZoom = config.minZoom === undefined ? undefined : layerNumberGetter(config.minZoom, undefined);
+    if (typeof minZoom === 'number' && props.viewState.zoom <= minZoom) {
+        return undefined;
+    } else if (typeof minZoom === 'function') {
+        console.log('Function for minZoom level not supported yet');
+    }
+    const maxZoom = config.maxZoom === undefined ? undefined : layerNumberGetter(config.maxZoom, undefined);
+    if (typeof maxZoom === 'number' && props.viewState.zoom >= maxZoom) {
+        return undefined;
+    } else if (typeof maxZoom === 'function') {
+        console.log('Function for maxZoom level not supported yet');
+    }
+    const contourWidth =
+        config.strokeWidth === undefined ? undefined : layerNumberGetter(config.strokeWidth, undefined);
+    if (contourWidth !== undefined) {
+        layerProperties.getLineWidth = contourWidth;
+    }
+    const circleRadius = config.radius === undefined ? undefined : layerNumberGetter(config.radius, 10);
+    if (circleRadius !== undefined) {
+        layerProperties.getRadius = circleRadius;
+    }
+    const color = config.color === undefined ? undefined : layerColorGetter(config.color, '#ffffff');
+    if (color !== undefined) {
+        layerProperties.getFillColor = color;
+    }
+    const contourColor = config.strokeColor === undefined ? undefined : layerColorGetter(config.strokeColor, '#ffffff');
+    if (contourColor !== undefined) {
+        layerProperties.getLineColor = contourColor;
+    }
+    const radiusScale = config.radiusScale === undefined ? undefined : layerNumberGetter(config.radiusScale, 1);
+    if (radiusScale !== undefined) {
+        layerProperties.radiusScale = radiusScale;
+    }
+    const lineWidthScale =
+        config.strokeWidthScale === undefined ? undefined : layerNumberGetter(config.strokeWidthScale, 1);
+    if (lineWidthScale !== undefined) {
+        layerProperties.lineWidthScale = lineWidthScale;
+    }
+    const pickable =
+        config.pickable === undefined
+            ? true
+            : typeof config.pickable === 'function'
+                ? config.pickable()
+                : config.pickable;
+    return new ScatterplotLayer({
         id: props.layerDescription.id,
         data: props.layerDescription.layerData.features,
-        filled: true,
-        stroked: true,
+        filled: color !== undefined,
+        stroked: contourColor !== undefined || contourWidth !== undefined,
         getPosition: (d) => d.geometry.coordinates,
-        getFillColor: (d) => propertyToColor(d, 'color'),
-        getLineColor: [255, 255, 255, 255],
-        getRadius: (d, i) => 10,
-        radiusScale: 6,
         updateTriggers: {
             getPosition: props.updateCount,
             getFillColor: props.updateCount
         },
-        pickable: true,
-        ...eventsToAdd
+        pickable,
+        ...eventsToAdd,
+        ...layerProperties
     });
+};
 
 const addEvents = (
     events: { [evtName in layerEventNames]?: MapLayerEventHandlerDescriptor[] },
@@ -205,9 +319,9 @@ const getLayer = (props: TransitionMapLayerProps): Layer<LayerProps> | undefined
         return undefined;
     }
     const eventsToAdd = props.events !== undefined ? addEvents(props.events, props) : {};
-    if (props.layerDescription.configuration.type === 'circle') {
+    if (LayerDescription.layerIsCircle(props.layerDescription.configuration)) {
         // FIXME Try not to type as any
-        return getScatterLayer(props, eventsToAdd) as any;
+        return getScatterLayer(props, props.layerDescription.configuration, eventsToAdd) as any;
     } else if (props.layerDescription.configuration.type === 'line') {
         return getLineLayer(props, eventsToAdd) as any;
     } else if (props.layerDescription.configuration.type === 'fill') {
