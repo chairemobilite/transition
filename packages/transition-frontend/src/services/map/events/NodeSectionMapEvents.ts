@@ -158,8 +158,8 @@ const onMapClicked = (pointInfo: PointInfo, e: MjolnirEvent) => {
             // FIXME Migration to DeckGL: Reimplement
             // serviceLocator.eventManager.emit('selected.updateAutocompleteNameChoices.node', getRoadLabelAround(map, e));
             selectedTransitNode.set('geography.coordinates', pointInfo.coordinates);
-            // FIXME Migration to DeckGL: Do we need to call this event?
-            // serviceLocator.eventManager.emit('selected.dragEnd.node', coordinates);
+            // This updates the position on the map.
+            serviceLocator.eventManager.emit('selected.drag.node', pointInfo.coordinates);
             serviceLocator.selectedObjectsManager.update('node', selectedNode);
         }
     }
