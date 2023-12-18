@@ -136,6 +136,15 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
                 Cell: (props) => moment(props.value).format('YYYY-MM-DD hh:mm')
             },
             {
+                Header: props.t('transit:jobs:EndTime'),
+                accessor: 'updated_at',
+                width: 100,
+                Cell: (cellProps) =>
+                    cellProps.row.original.status === 'completed' || cellProps.row.original.status === 'failed'
+                        ? moment(cellProps.value).format('YYYY-MM-DD hh:mm')
+                        : null
+            },
+            {
                 Header: props.t('transit:jobs:Status'),
                 accessor: 'status',
                 width: 70,

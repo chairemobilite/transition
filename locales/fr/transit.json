@@ -900,6 +900,7 @@
     },
     "jobs": {
         "Date": "Date",
+        "EndTime": "Fin",
         "Status": "Status",
         "JobType": "Nom",
         "Data": "Paramètres",
