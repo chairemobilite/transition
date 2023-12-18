@@ -32,6 +32,7 @@ type TransitionMapLayerProps = {
     activeSection: string;
     setDragging: (dragging: boolean) => void;
     mapCallbacks: MapCallbacks;
+    updateCount: number;
 };
 
 const stringToColor = (hexStringColor: string): [number, number, number] | [number, number, number, number] => [
@@ -80,6 +81,10 @@ const getLineLayer = (props: TransitionMapLayerProps, eventsToAdd): PathLayer =>
         currentTime: 0,
         shadowEnabled: false,
         pickable: true,
+        updateTriggers: {
+            getPath: props.updateCount,
+            getColor: props.updateCount
+        },
         /*updateTriggers: {
       getWidth: routeIndex
     },*/
@@ -97,6 +102,10 @@ const getAnimatedArrowPathLayer = (props: TransitionMapLayerProps, eventsToAdd):
         getWidth: (d, i) => {
             return 70;
         },*/
+        updateTriggers: {
+            getPath: props.updateCount,
+            getColor: props.updateCount
+        },
         getColor: (d) => propertyToColor(d, 'color'),
         getSizeArray: [4, 4],
         speedDivider: 10,
@@ -118,6 +127,9 @@ const getPolygonLayer = (props: TransitionMapLayerProps, eventsToAdd): GeoJsonLa
     }, */
         getFillColor: (d) => propertyToColor(d, 'color'),
         getLineColor: [80, 80, 80],
+        updateTriggers: {
+            getFillColor: props.updateCount
+        },
         getLineWidth: 1,
         ...eventsToAdd
     });
@@ -133,9 +145,10 @@ const getScatterLayer = (props: TransitionMapLayerProps, eventsToAdd): Scatterpl
         getLineColor: [255, 255, 255, 255],
         getRadius: (d, i) => 10,
         radiusScale: 6,
-        /* updateTriggers: {
-          getRadius: nodeIndex
-        }, */
+        updateTriggers: {
+            getPosition: props.updateCount,
+            getFillColor: props.updateCount
+        },
         pickable: true,
         ...eventsToAdd
     });

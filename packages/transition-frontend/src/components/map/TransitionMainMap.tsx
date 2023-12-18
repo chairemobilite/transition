@@ -112,6 +112,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     private mapContainer;
     private draw: MapboxDraw | undefined;
     private mapCallbacks: MapCallbacks;
+    private updateCounts: { [layerName: string]: number } = {};
 
     constructor(props: MainMapProps & WithTranslation) {
         super(props);
@@ -514,11 +515,15 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         data: GeoJSON.FeatureCollection | ((original: GeoJSON.FeatureCollection) => GeoJSON.FeatureCollection);
     }) => {
         this.layerManager.updateLayer(args.layerName, args.data);
+        this.updateCounts[args.layerName] = (this.updateCounts[args.layerName] || 0) + 1;
         this.setState({ enabledLayers: this.layerManager.getEnabledLayers().map((layer) => layer.id) });
     };
 
     updateLayers = (geojsonByLayerName) => {
         this.layerManager.updateLayers(geojsonByLayerName);
+        Object.keys(geojsonByLayerName).forEach(
+            (layerName) => (this.updateCounts[layerName] = (this.updateCounts[layerName] || 0) + 1)
+        );
         this.setState({ enabledLayers: this.layerManager.getEnabledLayers().map((layer) => layer.id) });
     };
 
@@ -691,7 +696,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                     events: this.mapEvents.layers[layer.id],
                     activeSection: this.props.activeSection,
                     setDragging: this.setDragging,
-                    mapCallbacks: this.mapCallbacks
+                    mapCallbacks: this.mapCallbacks,
+                    updateCount: this.updateCounts[layer.id] || 0
                 })
             )
             .filter((layer) => layer !== undefined) as Layer[];
