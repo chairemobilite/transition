@@ -179,6 +179,7 @@
         "requiredUnits": "units required",
         "CalculatedInterval": "Calculated period",
         "CustomStartAt": "First trip start time (HH:MM)",
+        "CustomEndAt": "End of period (no departure from this time) (HH:MM)",
         "GenerateSchedule": "Generate timetable",
         "RemoveSchedule": "Empty timetable",
         "Service": "Service",

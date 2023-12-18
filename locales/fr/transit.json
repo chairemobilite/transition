@@ -179,6 +179,7 @@
         "requiredUnits": "unités requises",
         "CalculatedInterval": "Intervalle calculée",
         "CustomStartAt": "Heure du premier départ (HH:MM)",
+        "CustomEndAt": "Fin de la période (plus de départ à partir de cette heure) (HH:MM)",
         "GenerateSchedule": "Générer un horaire",
         "RemoveSchedule": "Supprimer cet horaire",
         "Service": "Service",
