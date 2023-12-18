@@ -4,6 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import each from 'jest-each';
 import * as DateTimeUtils from '../DateTimeUtils';
 
 test('should convert decimal hour to time string', function() {
@@ -84,3 +85,18 @@ test('roundSecondsToNearestMinute', function() {
     expect(DateTimeUtils.roundSecondsToNearestMinute(Infinity, Math.round)).toBe(Infinity);
     expect(DateTimeUtils.roundSecondsToNearestMinute(Math.PI)).toBe(60);
 });
+
+each([
+    ['seconds only', 34, '34 s'],
+    ['minutes only', 120, '2 m'],
+    ['hours only', 7200, '2 h'],
+    ['hours/minutes', 7260, '2 h 1 m'],
+    ['hours/minutes/seconds', 7263, '2 h 1 m 3 s'],
+    ['hours/seconds', 7203, '2 h 3 s'],
+    ['zero', 0, '0 s'],
+    ['negative', -7263, '-2 h 1 m 3 s'],
+    ['null', null, null],
+    ['undefined', undefined, null]
+]).test('toXXhrYYminZZsec: %s', (_title, value, expected) => {
+    expect(DateTimeUtils.toXXhrYYminZZsec(value, 'h', 'm', 's')).toEqual(expected);
+})
