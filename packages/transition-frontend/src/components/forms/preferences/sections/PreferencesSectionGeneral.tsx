@@ -15,6 +15,7 @@ import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/Input
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import PreferencesSectionProps from '../PreferencesSectionProps';
+import moment from 'moment';
 
 const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps> = (
     props: PreferencesSectionProps
@@ -92,6 +93,33 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
                     <PreferencesResetToDefaultButton
                         resetPrefToDefault={props.resetPrefToDefault}
                         path="defaultWalkingSpeedMetersPerSeconds"
+                        preferences={props.preferences}
+                    />
+                </InputWrapper>
+                <InputWrapper label={props.t('main:preferences:DateTimeFormat')}>
+                    <InputSelect
+                        id={'formFieldPreferencesDateTimeFormat'}
+                        value={prefs.dateTimeFormat}
+                        choices={[
+                            {
+                                label: props.t('main:preferences:DateTimeFormat24H', {
+                                    formatted: moment().format('YYYY-MM-DD HH:mm')
+                                }),
+                                value: 'YYYY-MM-DD HH:mm'
+                            },
+                            {
+                                label: props.t('main:preferences:DateTimeFormat12H', {
+                                    formatted: moment().format('YYYY-MM-DD hh:mm A')
+                                }),
+                                value: 'YYYY-MM-DD hh:mm A'
+                            }
+                        ]}
+                        t={props.t}
+                        onValueChange={(e) => props.onValueChange('dateTimeFormat', { value: e.target.value })}
+                    />
+                    <PreferencesResetToDefaultButton
+                        resetPrefToDefault={props.resetPrefToDefault}
+                        path="dateTimeFormat"
                         preferences={props.preferences}
                     />
                 </InputWrapper>
