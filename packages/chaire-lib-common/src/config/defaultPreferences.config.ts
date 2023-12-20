@@ -19,6 +19,7 @@ interface SectionDescription {
 export interface PreferencesModel {
     defaultSection: string;
     infoPanelPosition: string;
+    dateTimeFormat: string;
     sections: {
         [key: string]: {
             [key: string]: SectionDescription;
@@ -35,6 +36,7 @@ export interface PreferencesModel {
 const defaultPreferences: PreferencesModel = {
     defaultSection: 'agencies',
     infoPanelPosition: 'right',
+    dateTimeFormat: 'YYYY-MM-DD HH:mm',
     sections: {
         transition: {
             agencies: {
