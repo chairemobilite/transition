@@ -21,6 +21,7 @@ import Button from '../Button';
 import ButtonList from '../ButtonList';
 import ButtonCell, { ButtonCellWithConfirm } from '../ButtonCell';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
 interface ExecutableJobComponentProps {
     jobType?: string;
@@ -133,7 +134,16 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
                 Header: props.t('transit:jobs:Date'),
                 accessor: 'created_at',
                 width: 100,
-                Cell: (props) => moment(props.value).format('YYYY-MM-DD hh:mm')
+                Cell: (props) => moment(props.value).format(Preferences.get('dateTimeFormat'))
+            },
+            {
+                Header: props.t('transit:jobs:EndTime'),
+                accessor: 'updated_at',
+                width: 100,
+                Cell: (cellProps) =>
+                    cellProps.row.original.status === 'completed' || cellProps.row.original.status === 'failed'
+                        ? moment(cellProps.value).format(Preferences.get('dateTimeFormat'))
+                        : null
             },
             {
                 Header: props.t('transit:jobs:Status'),

@@ -5,3 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 jest.mock('chaire-lib-backend/lib/config/shared/db.config');
+import { enableAllMocks } from 'chaire-lib-common/lib/test';
+
+enableAllMocks();

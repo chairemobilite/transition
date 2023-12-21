@@ -18,10 +18,10 @@ export interface SpeedUnitFormatterProps extends WithTranslation {
     destinationUnit?: destinationUnitOptionsType;
 }
 
-const SpeedUnitFormatter: React.FunctionComponent<SpeedUnitFormatterProps> = (
-    props: SpeedUnitFormatterProps
-) => {
-    const [destinationUnit, setDestinationUnit] = useState<destinationUnitOptionsType | undefined>(props.destinationUnit);
+const SpeedUnitFormatter: React.FunctionComponent<SpeedUnitFormatterProps> = (props: SpeedUnitFormatterProps) => {
+    const [destinationUnit, setDestinationUnit] = useState<destinationUnitOptionsType | undefined>(
+        props.destinationUnit
+    );
 
     const valueInMetersPerSecond = props.sourceUnit === 'm/s' ? props.value : mpsToKph(props.value);
 
@@ -35,7 +35,7 @@ const SpeedUnitFormatter: React.FunctionComponent<SpeedUnitFormatterProps> = (
     const unitFormatters: Record<destinationUnitOptionsType, (value: number) => string> = {
         'm/s': (value) => `${roundToDecimals(value, 0)} ${props.t('main:mpsAbbr')}`,
         'km/h': (value) => `${roundToDecimals(mpsToKph(value), 1)} ${props.t('main:kphAbbr')}`,
-        'mph': (value) => `${roundToDecimals(mpsToMph(value), 1)} ${props.t('main:mphAbbr')}`,
+        mph: (value) => `${roundToDecimals(mpsToMph(value), 1)} ${props.t('main:mphAbbr')}`,
         'ft/s': (value) => `${roundToDecimals(mpsToFtps(value), 0)} ${props.t('main:ftpsAbbr')}`
     };
 

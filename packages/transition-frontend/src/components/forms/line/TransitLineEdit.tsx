@@ -32,6 +32,8 @@ import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/
 import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 interface LineFormProps extends WithTranslation {
     line: Line;
@@ -87,11 +89,10 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
                 serviceLocator.selectedObjectsManager.deselect('line');
                 await serviceLocator.collectionManager.get('paths').loadFromServer(serviceLocator.socketEventManager);
                 serviceLocator.collectionManager.refresh('paths');
-                serviceLocator.eventManager.emit(
-                    'map.updateLayer',
-                    'transitPaths',
-                    serviceLocator.collectionManager.get('paths').toGeojson()
-                );
+                (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                    layerName: 'transitPaths',
+                    data: serviceLocator.collectionManager.get('paths').toGeojson()
+                });
                 serviceLocator.collectionManager.refresh('lines');
                 serviceLocator.eventManager.emit('progress', { name: 'DeletingLine', progress: 1.0 });
             } else {
@@ -140,11 +141,10 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
             serviceLocator.collectionManager.refresh('lines');
             serviceLocator.collectionManager.refresh('agencies');
             serviceLocator.collectionManager.refresh('paths');
-            serviceLocator.eventManager.emit(
-                'map.updateLayer',
-                'transitPaths',
-                serviceLocator.collectionManager.get('paths').toGeojson()
-            );
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'transitPaths',
+                data: serviceLocator.collectionManager.get('paths').toGeojson()
+            });
             serviceLocator.eventManager.emit('progress', { name: 'SavingLine', progress: 1.0 });
             serviceLocator.eventManager.emit('fullSizePanel.hide');
         } catch (error) {

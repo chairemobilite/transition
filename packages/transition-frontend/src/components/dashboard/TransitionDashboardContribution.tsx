@@ -9,7 +9,7 @@ import React from 'react';
 import {
     DashboardContribution,
     Contribution,
-    LayoutSectionProps
+    PanelSectionProps
 } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import BottomPanel from './TransitionBottomPanel';
 import MenuBar from './TransitionMenuBar';
@@ -26,28 +26,28 @@ import { EvolutionAlgorithmDescriptor } from 'transition-common/lib/services/evo
  * map
  */
 export class SupplyManagementDashboardContribution extends DashboardContribution {
-    getLayoutContributions = (): Contribution<LayoutSectionProps>[] => [
+    getLayoutContributions = (): Contribution<PanelSectionProps>[] => [
         {
             id: 'agenciesBottomPanel',
             section: 'agencies',
             placement: 'bottomPanel',
-            create: (props: LayoutSectionProps) => <BottomPanel {...props}></BottomPanel>
+            create: (props: PanelSectionProps) => <BottomPanel {...props}></BottomPanel>
         },
         {
             id: 'transitionMenu',
             placement: 'menu' as const,
-            create: (props: LayoutSectionProps) => <MenuBar {...props}></MenuBar>
+            create: (props: PanelSectionProps) => <MenuBar {...props}></MenuBar>
         },
         {
             id: 'transitionToolbar',
             placement: 'toolbar' as const,
-            create: (props: LayoutSectionProps) => <Toolbar {...props}></Toolbar>
+            create: (props: PanelSectionProps) => <Toolbar {...props}></Toolbar>
         },
         {
             id: 'transitionFSPanel',
             placement: 'mapOverlay' as const,
             section: 'agencies',
-            create: (props: LayoutSectionProps) => <FullSizePanel {...props}></FullSizePanel>
+            create: (props: PanelSectionProps) => <FullSizePanel {...props}></FullSizePanel>
         },
         {
             id: 'transitionRightPanel',
@@ -65,7 +65,7 @@ Simulation.registerAlgorithm('evolutionaryAlgorithm', new EvolutionAlgorithmDesc
  * simulations
  */
 export class DemandManagementDashboardContribution extends DashboardContribution {
-    getLayoutContributions = (): Contribution<LayoutSectionProps>[] => [
+    getLayoutContributions = (): Contribution<PanelSectionProps>[] => [
         {
             id: 'simulationRightPanel',
             placement: 'primarySidebar',

@@ -20,6 +20,7 @@ import TransitNodeCollectionEdit from './TransitNodeCollectionEdit';
 import NodesImportForm from './TransitNodeImportForm';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import Node from 'transition-common/lib/services/nodes/Node';
+import { deleteUnusedNodes } from '../../../services/transitNodes/transitNodesUtils';
 
 // Using a state object instead of 2 useState hooks because we want this object
 // to be modified and cause a re-render if the selection or collection was
@@ -36,6 +37,7 @@ interface NodePanelState {
 const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslation) => {
     const [importerSelected, setImporterSelected] = React.useState(false);
     const [lastOptionIsSelectedNodes, setLastOptionIsSelectedNodes] = React.useState(false);
+    const [confirmDeleteModalIsOpened, setConfirmDeleteModalIsOpened] = React.useState(false);
     const [state, setState] = React.useState<NodePanelState>({
         stationCollection: serviceLocator.collectionManager.get('stations'),
         nodeCollection: serviceLocator.collectionManager.get('nodes'),
@@ -118,6 +120,27 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
         }
     };
 
+    const deleteAllUnusedNodes = async (e) => {
+        if (e && typeof e.stopPropagation === 'function') {
+            e.stopPropagation();
+        }
+        serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 0.0 });
+
+        try {
+            await deleteUnusedNodes();
+            // FIXME This should be somehow automatic, we should not need to do those 2 calls
+            serviceLocator.collectionManager.refresh('nodes');
+            serviceLocator.eventManager.emit('map.updateLayers', {
+                transitNodes: serviceLocator.collectionManager.get('nodes').toGeojson()
+            });
+        } catch (error) {
+            // TODO Log errors
+            console.log('Error deleting unused nodes', error);
+        } finally {
+            serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 1.0 });
+        }
+    };
+
     // TODO Review the conditions to define which part is opened. This is a bit complicated wrt the state. Can there really be both selectedNode and selectedNodes?
     return (
         <div id="tr__form-transit-nodes-panel" className="tr__form-transit-nodes-panel tr__panel">
@@ -196,12 +219,40 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
                 </div>
             )}
 
+            {!state.selectedNode &&
+                !state.selectedNodes &&
+                !state.selectedStation &&
+                !importerSelected &&
+                state.nodeCollection &&
+                state.nodeCollection.size() > 0 && (
+                <div className="tr__form-buttons-container">
+                    <Button
+                        color="red"
+                        icon={faCheck}
+                        iconClass="_icon"
+                        label={props.t('transit:transitNode:DeleteAllUnusedNodes')}
+                        onClick={() => setConfirmDeleteModalIsOpened(true)}
+                    />
+                </div>
+            )}
+
             {!state.selectedNode && !state.selectedNodes && !state.selectedStation && !importerSelected && (
                 <CollectionSaveToCacheButtons collection={state.nodeCollection} labelPrefix={'transit:transitNode'} />
             )}
 
             {!state.selectedNodes && !state.selectedNode && !importerSelected && (
                 <CollectionDownloadButtons collection={state.nodeCollection} />
+            )}
+
+            {confirmDeleteModalIsOpened && (
+                <ConfirmModal
+                    title={props.t('transit:transitNode:ConfirmAllDelete')}
+                    confirmAction={deleteAllUnusedNodes}
+                    isOpen={true}
+                    confirmButtonColor="red"
+                    confirmButtonLabel={props.t('transit:transitNode:MultipleDelete')}
+                    closeModal={() => setConfirmDeleteModalIsOpened(false)}
+                />
             )}
 
             {/* disabled for now because it is too slow and unreliable (valhalla problem with some snodes) */}

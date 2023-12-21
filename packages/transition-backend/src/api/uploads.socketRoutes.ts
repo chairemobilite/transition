@@ -4,8 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import fs from 'fs';
-import JSZip from 'jszip';
+import StreamZip from 'node-stream-zip';
 import SocketIO from 'socket.io';
 
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
@@ -29,19 +28,15 @@ const gtfsImportFunction = async (socket: SocketIO.Socket, absoluteUserDir: stri
 
     // TODO: Consider moving to an `extract` method if this is needed anywhere else
     try {
-        const zipData = fs.readFileSync(filePath);
-        const zip = new JSZip();
-        const zipFileContent = await zip.loadAsync(zipData);
-        const filePromises = Object.keys(zipFileContent.files).map(async (filename) => {
-            const fileInfo = zip.file(filename);
-            if (fileInfo === null) {
-                return;
-            }
-            const content = await fileInfo.async('nodebuffer');
-            const dest = gtfsFilesDirectoryPath + filename;
-            fs.writeFileSync(dest, content);
+        const zip = new StreamZip.async({ file: filePath });
+        zip.on('extract', (entry, file) => {
+            console.log(`GTFS import: extracted ${entry.name} to ${file}`);
         });
-        Promise.all(filePromises);
+        // This extracts in a stream-based manner so the data is never full loaded in RAM.
+        const count = await zip.extract(null, gtfsFilesDirectoryPath);
+        console.log(`GTFS import: extracted ${count} entries`);
+
+        await zip.close();
         console.log('GTFS zip file upload Complete.');
         socket.emit('gtfsImporter.gtfsFileUnzipped');
 

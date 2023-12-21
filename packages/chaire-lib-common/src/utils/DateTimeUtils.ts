@@ -127,9 +127,13 @@ const toXXhrYYminZZsec = function (seconds: number, hourUnit: string, minuteUnit
     if (_isBlank(seconds)) {
         return null;
     }
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
+    if (seconds === 0) {
+        return `0 ${secondsUnit}`;
+    }
+    const negative = seconds < 0;
+    const hours = Math.floor(Math.abs(seconds / 3600));
+    const minutes = Math.floor(Math.abs((seconds % 3600) / 60));
+    const secs = Math.floor(Math.abs(seconds % 60));
 
     const timeComponents = [
         { value: hours, unit: hourUnit },
@@ -137,10 +141,10 @@ const toXXhrYYminZZsec = function (seconds: number, hourUnit: string, minuteUnit
         { value: secs, unit: secondsUnit }
     ];
 
-    return timeComponents
+    return `${negative ? '-' : ''}${timeComponents
         .map((component) => (component.value > 0 ? component.value + ' ' + component.unit : ''))
         .filter(Boolean) // Discard empty components (ex: no seconds)
-        .join(' ');
+        .join(' ')}`;
 };
 
 /**

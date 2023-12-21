@@ -21,8 +21,9 @@ export interface DistanceUnitFormatterProps extends WithTranslation {
 const DistanceUnitFormatter: React.FunctionComponent<DistanceUnitFormatterProps> = (
     props: DistanceUnitFormatterProps
 ) => {
-
-    const [destinationUnit, setDestinationUnit] = useState<destinationUnitOptionsType | undefined>(props.destinationUnit);
+    const [destinationUnit, setDestinationUnit] = useState<destinationUnitOptionsType | undefined>(
+        props.destinationUnit
+    );
     const valueInMeters = props.sourceUnit === 'm' ? props.value : props.value / 1000;
 
     useEffect(() => {

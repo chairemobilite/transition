@@ -13,6 +13,7 @@ import SimulationRun from 'transition-common/lib/services/simulation/SimulationR
 import Button from '../../../parts/Button';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import ButtonCell from '../../../parts/ButtonCell';
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
 interface SimulationRunButtonProps extends WithTranslation {
     simulationRun: SimulationRun;
@@ -82,7 +83,7 @@ const SimulationRunButton: React.FunctionComponent<SimulationRunButtonProps> = (
                         simulationRun.attributes.completed_at ||
                             simulationRun.attributes.started_at ||
                             simulationRun.attributes.created_at
-                    ).format('YYYY-MM-DD hh:mm')}
+                    ).format(Preferences.get('dateTimeFormat'))}
                 </ButtonCell>
                 <ButtonCell
                     key={`${simulationRun.id}delete`}

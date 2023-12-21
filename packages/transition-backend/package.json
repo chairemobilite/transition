@@ -49,6 +49,7 @@
         "lodash": "^4.17.21",
         "moment": "^2.29.4",
         "morgan": "^1.10.0",
+        "node-stream-zip": "^1.15.0",
         "p-queue": "^6.6.2",
         "papaparse": "^5.3.1",
         "pbf": "^3.2.1",

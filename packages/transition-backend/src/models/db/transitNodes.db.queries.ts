@@ -240,12 +240,14 @@ const deleteIfUnused = async (id: string): Promise<string | undefined> => {
     }
 };
 
-const deleteMultipleUnused = function (ids: string[]): Promise<string[]> {
+const deleteMultipleUnused = function (ids: string[] | 'all'): Promise<string[]> {
     return new Promise((resolve, reject) => {
         const notInQuery = knex.distinct(knex.raw('unnest(nodes)')).from(pathTableName);
-        return knex(tableName)
-            .whereIn('id', ids)
-            .whereNotIn('id', notInQuery)
+        const deleteQuery = knex(tableName).whereNotIn('id', notInQuery);
+        if (ids !== 'all') {
+            deleteQuery.whereIn('id', ids);
+        }
+        return deleteQuery
             .del()
             .returning('id')
             .then((ret) => {
@@ -281,7 +283,7 @@ export default {
         return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, returning);
     },
     delete: deleteIfUnused,
-    deleteMultiple: deleteMultipleUnused,
+    deleteMultipleUnused,
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
     collection,

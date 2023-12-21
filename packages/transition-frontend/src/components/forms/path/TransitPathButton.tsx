@@ -13,6 +13,8 @@ import Path, { PathAttributesData } from 'transition-common/lib/services/path/Pa
 import Line from 'transition-common/lib/services/line/Line';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 interface PathButtonProps extends WithTranslation {
     line: Line;
@@ -49,11 +51,10 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
         if (!props.path.isNew()) {
             serviceLocator.eventManager.emit('progress', { name: 'DeletingPath', progress: 0.0 });
             await props.path.delete(serviceLocator.socketEventManager);
-            serviceLocator.eventManager.emit(
-                'map.updateLayer',
-                'transitPaths',
-                serviceLocator.collectionManager.get('paths').toGeojson()
-            );
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'transitPaths',
+                data: serviceLocator.collectionManager.get('paths').toGeojson()
+            });
             serviceLocator.eventManager.emit('progress', { name: 'DeletingPath', progress: 1.0 });
         }
 
@@ -133,10 +134,12 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                     await reversedPath.save(serviceLocator.socketEventManager);
                     serviceLocator.collectionManager.refresh('paths');
                     props.line.refreshPaths();
-                    serviceLocator.eventManager.emit(
+                    (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
                         'map.updateLayer',
-                        'transitPaths',
-                        serviceLocator.collectionManager.get('paths').toGeojson()
+                        {
+                            layerName: 'transitPaths',
+                            data: serviceLocator.collectionManager.get('paths').toGeojson()
+                        }
                     );
                     serviceLocator.selectedObjectsManager.update('line', props.line);
                     serviceLocator.collectionManager.refresh('lines');
@@ -161,11 +164,10 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                 await duplicatePath.save(serviceLocator.socketEventManager);
                 serviceLocator.collectionManager.refresh('paths');
                 props.line.refreshPaths();
-                serviceLocator.eventManager.emit(
-                    'map.updateLayer',
-                    'transitPaths',
-                    serviceLocator.collectionManager.get('paths').toGeojson()
-                );
+                (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                    layerName: 'transitPaths',
+                    data: serviceLocator.collectionManager.get('paths').toGeojson()
+                });
                 serviceLocator.selectedObjectsManager.update('line', props.line);
                 serviceLocator.collectionManager.refresh('lines');
             } catch (error) {

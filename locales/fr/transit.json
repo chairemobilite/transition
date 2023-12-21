@@ -50,10 +50,12 @@
         },
         "MultipleDelete": "Supprimer les noeuds d'arrêt",
         "ConfirmMultipleDelete": "Confirmez-vous que vous désirez bien supprimer ces noeuds d'arrêt? Seuls les noeuds ne desservant aucun trajet seront supprimés.",
+        "ConfirmAllDelete": "Confirmez-vous que vous désirez bien supprimer tous les noeuds d'arrêts inutilisés? Seuls les noeuds ne desservant aucun trajet seront supprimés.",
         "deleteSelectedNodes": "Supprimer les noeuds sélectionnés et inutilisés",
         "deleteSelectedPolygon": "Annuler la sélection",
         "editSelectedNodes": "Modifier les noeuds sélectionnés",
-        "editFrozenSelectedNodesWarning": "Seulement les noeuds non verrouillés seront sauvegardés"
+        "editFrozenSelectedNodesWarning": "Seulement les noeuds non verrouillés seront sauvegardés",
+        "DeleteAllUnusedNodes": "Supprimer tous les noeuds non utilisés"
     },
     "transitAgency": {
         "List": "Agences",
@@ -177,6 +179,7 @@
         "requiredUnits": "unités requises",
         "CalculatedInterval": "Intervalle calculée",
         "CustomStartAt": "Heure du premier départ (HH:MM)",
+        "CustomEndAt": "Fin de la période (plus de départ à partir de cette heure) (HH:MM)",
         "GenerateSchedule": "Générer un horaire",
         "RemoveSchedule": "Supprimer cet horaire",
         "Service": "Service",
@@ -737,6 +740,8 @@
         "MergeSamePeriodServices": "Combiner les services pour les mêmes périodes? (attention, le service résultant contiendra tous les services combinés)",
         "DefaultAgencyColor": "Couleur par défaut des agences",
         "DefaultNodeColor": "Couleur par défaut des noeuds et arrêts",
+        "StopAggregationWalkingRadiusSeconds": "Temps de marche maximal pour agréger les arrêts dans un noeud",
+        "StopAggregationWalkingRadiusSecondsHelp": "Si le temps de marche entre 2 arrêts est inférieur à cette valeur, ils seront rassemblés dans un seul noeud d'arrêt situé au centroïde de tous les arrêts le composant. Mettre 0 pour conserver les arrêts tels quels. Mais les temps de calcul vont augmenter avec le nombre de noeuds.",
         "ImportPaths": "Importer les trajets",
         "ImportTrips": "Importer les voyages",
         "ImportGtfsData": "Importer les données",
@@ -895,6 +900,7 @@
     },
     "jobs": {
         "Date": "Date",
+        "EndTime": "Fin",
         "Status": "Status",
         "JobType": "Nom",
         "Data": "Paramètres",

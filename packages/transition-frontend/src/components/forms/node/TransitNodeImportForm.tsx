@@ -24,11 +24,10 @@ const NodesImportForm: React.FunctionComponent<NodeImportFormProps & WithTransla
             .get('nodes')
             .loadFromServer(serviceLocator.socketEventManager, serviceLocator.collectionManager);
         serviceLocator.collectionManager.refresh('nodes');
-        serviceLocator.eventManager.emit(
-            'map.updateLayer',
-            'transitNodes',
-            serviceLocator.collectionManager.get('nodes').toGeojson()
-        );
+        serviceLocator.eventManager.emit('map.updateLayer', {
+            layerName: 'transitNodes',
+            data: serviceLocator.collectionManager.get('nodes').toGeojson()
+        });
         serviceLocator.eventManager.emit('transferableNodes.dirty');
         serviceLocator.eventManager.emit('progress', { name: 'Importing', progress: 1.0 });
         closeImporter();

@@ -17,11 +17,17 @@ import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
 import ButtonList from '../../parts/ButtonList';
 import TransitLineButton from '../line/TransitLineButton';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 interface AgencyButtonProps extends WithTranslation {
     agency: Agency;
     selectedAgency?: Agency;
     selectedLine?: Line;
+    onObjectSelected?: (objectId: string) => void;
+    isExpanded: boolean;
+    onAgencyExpanded: (agencyId: string) => void;
+    onAgencyCollapsed: (agencyId: string) => void;
 }
 
 const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: AgencyButtonProps) => {
@@ -35,6 +41,9 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
             e.stopPropagation();
         }
         props.agency.startEditing();
+        if (props.onObjectSelected) {
+            props.onObjectSelected(props.agency.getId());
+        }
         serviceLocator.selectedObjectsManager.select('agency', props.agency);
     };
 
@@ -55,11 +64,10 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
                 // reload paths
                 await serviceLocator.collectionManager.get('paths').loadFromServer(serviceLocator.socketEventManager);
                 serviceLocator.collectionManager.refresh('paths');
-                serviceLocator.eventManager.emit(
-                    'map.updateLayer',
-                    'transitPaths',
-                    serviceLocator.collectionManager.get('paths').toGeojson()
-                );
+                (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                    layerName: 'transitPaths',
+                    data: serviceLocator.collectionManager.get('paths').toGeojson()
+                });
                 await serviceLocator.collectionManager.get('lines').loadFromServer(serviceLocator.socketEventManager);
                 serviceLocator.collectionManager.refresh('lines');
             }
@@ -88,11 +96,10 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
         serviceLocator.collectionManager.refresh('paths');
         serviceLocator.collectionManager.refresh('lines');
         serviceLocator.collectionManager.refresh('agencies');
-        serviceLocator.eventManager.emit(
-            'map.updateLayer',
-            'transitPaths',
-            serviceLocator.collectionManager.get('paths').toGeojson()
-        );
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitPaths',
+            data: serviceLocator.collectionManager.get('paths').toGeojson()
+        });
         serviceLocator.eventManager.emit('progress', { name: 'SavingAgency', progress: 1.0 });
     };
 
@@ -141,6 +148,7 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
             lineIsHidden={
                 serviceLocator.pathLayerManager ? serviceLocator.pathLayerManager.lineIsHidden(line.id) : false
             }
+            onObjectSelected={props.onObjectSelected}
         />
     ));
 
@@ -217,8 +225,10 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
                     <Collapsible
                         lazyRender={true}
                         trigger={props.t('transit:transitLine:List')}
-                        open={false}
+                        open={props.isExpanded}
                         transitionTime={100}
+                        onOpen={() => props.onAgencyExpanded(props.agency.getId())}
+                        onClose={() => props.onAgencyCollapsed(props.agency.getId())}
                     >
                         <ButtonList key={`lines${props.agency.getId()}`}>
                             {linesButtons}

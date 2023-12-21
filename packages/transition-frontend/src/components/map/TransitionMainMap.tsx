@@ -28,6 +28,9 @@ import _cloneDeep from 'lodash/cloneDeep';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 
 MapboxGL.accessToken = process.env.MAPBOX_ACCESS_TOKEN || '';
 
@@ -230,7 +233,10 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
         mapCustomEvents.addEvents(serviceLocator.eventManager);
         elementResizedEvent(this.mapContainer, this.onResizeContainer);
         serviceLocator.eventManager.on('map.updateEnabledLayers', this.updateEnabledLayers);
-        serviceLocator.eventManager.on('map.updateLayer', this.updateLayer);
+        (serviceLocator.eventManager as EventManager).onEvent<MapUpdateLayerEventType>(
+            'map.updateLayer',
+            this.updateLayer
+        );
         serviceLocator.eventManager.on('map.updateLayers', this.updateLayers);
         serviceLocator.eventManager.on('map.addPopup', this.addPopup);
         serviceLocator.eventManager.on('map.removePopup', this.removePopup);
@@ -418,23 +424,26 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
     };
 
     onDeleteSelectedNodes = () => {
-        serviceLocator.eventManager.emit('progress', { name: 'DeletingNode', progress: 0.0 });
+        serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 0.0 });
         const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
 
-        Promise.all(
-            selectedNodes.map((node: Node) => {
-                return node.delete(serviceLocator.socketEventManager);
+        deleteUnusedNodes(selectedNodes.map((n) => n.getId()))
+            .then((response) => {
+                serviceLocator.selectedObjectsManager.deselect('node');
+                serviceLocator.collectionManager.refresh('nodes');
+                serviceLocator.eventManager.emit('map.updateLayers', {
+                    transitNodes: serviceLocator.collectionManager.get('nodes').toGeojson(),
+                    transitNodesSelected: turfFeatureCollection([])
+                });
             })
-        ).then((response) => {
-            serviceLocator.selectedObjectsManager.deselect('node');
-            serviceLocator.collectionManager.refresh('nodes');
-            serviceLocator.eventManager.emit('map.updateLayers', {
-                transitNodes: serviceLocator.collectionManager.get('nodes').toGeojson(),
-                transitNodesSelected: turfFeatureCollection([])
+            .catch((error) => {
+                // TODO Log errors
+                console.log('Error deleting unused nodes', error);
+            })
+            .finally(() => {
+                this.deleteSelectedPolygon();
+                serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 1.0 });
             });
-        });
-        this.deleteSelectedPolygon();
-        serviceLocator.eventManager.emit('progress', { name: 'DeletingNode', progress: 1.0 });
     };
 
     handleDrawControl = (section: string) => {
@@ -477,8 +486,11 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
         this.popupManager.removeAllPopups();
     };
 
-    updateLayer = (layerName: string, geojson: GeoJSON.FeatureCollection) => {
-        this.layerManager.updateLayer(layerName, geojson);
+    updateLayer = (args: {
+        layerName: string;
+        data: GeoJSON.FeatureCollection | ((original: GeoJSON.FeatureCollection) => GeoJSON.FeatureCollection);
+    }) => {
+        this.layerManager.updateLayer(args.layerName, args.data);
     };
 
     updateLayers = (geojsonByLayerName) => {

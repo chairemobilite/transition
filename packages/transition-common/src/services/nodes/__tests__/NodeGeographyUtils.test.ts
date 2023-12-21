@@ -84,7 +84,7 @@ test('nodesInWalkingTravelTimeRadiusSeconds with transferable nodes', async() =>
 
     let nodesInRoutedRadius = await NodeGeographyUtils.nodesInWalkingTravelTimeRadiusSeconds(node, nodeCollection, 300);
     // Make sure the object was not changed
-    expect(node).toEqual(nodeCollection.newObject(nodeOrig));
+    expect(node.attributes).toEqual(nodeCollection.newObject(nodeOrig).attributes);
     expect(nodesInRoutedRadius).toEqual({
         nodesIds: [ nodeClose1Geojson.properties.id, nodeClose2Geojson.properties.id, nodeClose3Geojson.properties.id ],
         walkingDistancesMeters: [ 0, 200, 400 ],
@@ -98,7 +98,7 @@ test('nodesInWalkingTravelTimeRadiusSeconds with transferable nodes', async() =>
     // Make a second call, but with a shorter travel time
     nodesInRoutedRadius = await NodeGeographyUtils.nodesInWalkingTravelTimeRadiusSeconds(node, nodeCollection, 150);
     // Make sure the object was not changed
-    expect(node).toEqual(nodeCollection.newObject(nodeOrig));
+    expect(node.attributes).toEqual(nodeCollection.newObject(nodeOrig).attributes);
     expect(nodesInRoutedRadius).toEqual({
         nodesIds: [ nodeClose1Geojson.properties.id, nodeClose2Geojson.properties.id ],
         walkingDistancesMeters: [ 0, 200 ],

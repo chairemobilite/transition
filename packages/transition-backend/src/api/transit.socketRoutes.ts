@@ -14,6 +14,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import nodesDbQueries from '../models/db/transitNodes.db.queries';
 import schedulesDbQueries from '../models/db/transitSchedules.db.queries';
+import { TransitApi } from 'transition-common/lib/api/transit';
 
 /**
  * Add routes specific to the transit objects
@@ -76,6 +77,27 @@ export default function (socket: EventEmitter) {
                 console.error(`An error occurred while getting schedules for line ${lineId}: ${error}`);
                 if (typeof callback === 'function') {
                     callback(Status.createError('Error getting schedules for line'));
+                }
+            }
+        }
+    );
+
+    socket.on(
+        TransitApi.DELETE_UNUSED_NODES,
+        async (nodeIds: string[] | undefined, callback: (status: Status.Status<string[]>) => void) => {
+            try {
+                const deletedNodeIds = await nodesDbQueries.deleteMultipleUnused(
+                    nodeIds === undefined || nodeIds === null ? 'all' : nodeIds
+                );
+                callback(Status.createOk(deletedNodeIds));
+            } catch (error) {
+                console.error(
+                    `An error occurred while deleting ${
+                        nodeIds === undefined || nodeIds === null ? 'all' : nodeIds.length
+                    } unused nodes: ${error}`
+                );
+                if (typeof callback === 'function') {
+                    callback(Status.createError('Error deleting unused nodes'));
                 }
             }
         }

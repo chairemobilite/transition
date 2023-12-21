@@ -50,10 +50,12 @@
         },
         "MultipleDelete": "Delete nodes",
         "ConfirmMultipleDelete": "Do you confirm deletion of those stop nodes? Only the nodes through which no path passes will be deleted.",
+        "ConfirmAllDelete": "Do you confirm deletion of all unused stop nodes? Only the nodes through which no path passes will be deleted.",
         "deleteSelectedNodes": "Delete unused selected nodes",
-        "deleteSelectedPolygon":"Cancel selection",
-        "editSelectedNodes":"Edit selected nodes",
-        "editFrozenSelectedNodesWarning":"only unfrozen nodes will be saved"
+        "deleteSelectedPolygon": "Cancel selection",
+        "editSelectedNodes": "Edit selected nodes",
+        "editFrozenSelectedNodesWarning": "only unfrozen nodes will be saved",
+        "DeleteAllUnusedNodes": "Delete all unused nodes"
     },
     "transitAgency": {
         "List": "Agencies",
@@ -177,6 +179,7 @@
         "requiredUnits": "units required",
         "CalculatedInterval": "Calculated period",
         "CustomStartAt": "First trip start time (HH:MM)",
+        "CustomEndAt": "End of period (no departure from this time) (HH:MM)",
         "GenerateSchedule": "Generate timetable",
         "RemoveSchedule": "Empty timetable",
         "Service": "Service",
@@ -466,7 +469,6 @@
         "ShowPathEditHelp": "Show path edit help",
         "HidePathEditHelp": "Hide path edit help",
         "warningFromGtfs": "Warning! This transit path was imported from a GTFS. Recomputing its path could change the geography and timings.",
-
         "directions": {
             "loop": "Loop",
             "outbound": "Outbound",
@@ -656,7 +658,7 @@
             "DataSourceDoesNotExists": "The specified data source does not exists.",
             "DataSourceAlreadyExists": "A data source with that name already exists for OD calculations.",
             "InvalidOdTripsDataSource": "Invalid OD calculations data source.",
-            "ErrorCalculatingLocation":  "Error calculating location {{id}}",
+            "ErrorCalculatingLocation": "Error calculating location {{id}}",
             "UserDiskQuotaReached": "Maximum allowed disk space has been reached. Please delete old tasks to delete their files.",
             "RoutingParametersInvalidForBatch": "Routing parameters are invalid. Make sure the scenario is set and times have a valid value."
         },
@@ -722,9 +724,7 @@
         "HH_MM__HH_MM_SS": "HH:MM or HH:MM:SS",
         "HMM": "HMM",
         "SecondsSinceMidnight": "Seconds after midnight"
-
     },
-
     "gtfs": {
         "ButtonImport": "Import",
         "Import": "Import from a GTFS feed",
@@ -740,6 +740,8 @@
         "MergeSamePeriodServices": "Merge services for same periods? (use with caution, the resulting service will contain all services for the same period)",
         "DefaultAgencyColor": "Default agencies color",
         "DefaultNodeColor": "Default nodes and stops color",
+        "StopAggregationWalkingRadiusSeconds": "Maximum walking time to aggregate stops in a node",
+        "StopAggregationWalkingRadiusSecondsHelp": "If the walking time between 2 stops is less than this value, they will be merged in the same transit node, located at the centroid of all the stops composing it. Put 0 to keep all stops in their original position. But calculation times will increase with the number of nodes.",
         "ImportPaths": "Import paths",
         "ImportTrips": "Import trips",
         "OperationInProgress": "Import operation in progress",
@@ -898,6 +900,7 @@
     },
     "jobs": {
         "Date": "Date",
+        "EndTime": "End",
         "Status": "Status",
         "JobType": "Name",
         "Data": "Parameters",

@@ -10,19 +10,19 @@ import { v4 as uuidV4 } from 'uuid';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import transitRoutes from '../transit.socketRoutes';
 import transitScheduleQueries from '../../models/db/transitSchedules.db.queries';
+import transitNodesDbQueries from '../../models/db/transitNodes.db.queries';
 
 const socketStub = new EventEmitter();
 transitRoutes(socketStub);
 
-const mockedDbQuery = jest.fn();
-
 jest.mock('../../models/db/transitNodes.db.queries', () => {
     return {
-        getAssociatedPathIds: jest.fn().mockImplementation(async () => {
-            return mockedDbQuery();
-        })
+        getAssociatedPathIds: jest.fn(),
+        deleteMultipleUnused: jest.fn()
     }
 });
+const mockedDbQuery = transitNodesDbQueries.getAssociatedPathIds as jest.MockedFunction<typeof transitNodesDbQueries.getAssociatedPathIds>;
+const deleteUnusedMock = transitNodesDbQueries.deleteMultipleUnused as jest.MockedFunction<typeof transitNodesDbQueries.deleteMultipleUnused>;
 
 jest.mock('../../models/db/transitSchedules.db.queries', () => {
     return {
@@ -108,6 +108,56 @@ describe('Schedules: get schedules for line', () => {
             expect(!Status.isStatusOk(status)).toBe(true);
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toBe('Error getting schedules for line');
+            done();
+        });
+    });
+});
+
+describe('transitNodes: delete unused', () => {
+
+    const nodeId1 = uuidV4();
+    const nodeId2 = uuidV4();
+
+    beforeEach(() => {
+        deleteUnusedMock.mockClear();
+    })
+
+    test('Delete some unused', (done) => {
+        deleteUnusedMock.mockResolvedValueOnce([nodeId1]);
+        socketStub.emit('transitNodes.deleteUnused', [nodeId1, nodeId2], function (status) {
+            expect(Status.isStatusOk(status));
+            expect(Status.unwrap(status)).toEqual([nodeId1]);
+            expect(deleteUnusedMock).toHaveBeenCalledWith([nodeId1, nodeId2]);
+            done();
+        });
+    });
+
+    test('Delete all unused', (done) => {
+        deleteUnusedMock.mockResolvedValueOnce([nodeId1]);
+        socketStub.emit('transitNodes.deleteUnused', undefined, function (status) {
+            expect(Status.isStatusOk(status));
+            expect(Status.unwrap(status)).toEqual([nodeId1]);
+            expect(deleteUnusedMock).toHaveBeenCalledWith('all');
+            done();
+        });
+    });
+
+    test('Delete all unused with null', (done) => {
+        deleteUnusedMock.mockResolvedValueOnce([nodeId1]);
+        socketStub.emit('transitNodes.deleteUnused', null, function (status) {
+            expect(Status.isStatusOk(status));
+            expect(Status.unwrap(status)).toEqual([nodeId1]);
+            expect(deleteUnusedMock).toHaveBeenCalledWith('all');
+            done();
+        });
+    });
+
+    test('Delete some unused, with error', (done) => {
+        deleteUnusedMock.mockRejectedValueOnce('error deleting nodes');
+        socketStub.emit('transitNodes.deleteUnused', [nodeId1, nodeId2], function (status) {
+            expect(!Status.isStatusOk(status)).toBe(true);
+            expect(Status.isStatusError(status)).toBe(true);
+            expect((status as any).error).toBe('Error deleting unused nodes');
             done();
         });
     });

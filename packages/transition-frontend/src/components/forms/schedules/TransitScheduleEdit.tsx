@@ -278,6 +278,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                 const calculatedNumberOfUnits = schedulePeriod.calculated_number_of_units;
                 const customStartAtStr =
                     schedulePeriod.custom_start_at_str || decimalHourToTimeStr(period.startAtHour) || undefined;
+                const customEndAtStr = schedulePeriod.custom_end_at_str || undefined;
 
                 /* temporary for calculations: TODO Do we really need this? */
                 line.attributes.data.tmpIntervalSeconds = intervalSeconds || calculatedIntervalSeconds;
@@ -402,6 +403,17 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                         value={customStartAtStr}
                                         onValueUpdated={(value) =>
                                             this.onValueChange(`periods[${i}].custom_start_at_str`, value)
+                                        }
+                                    />
+                                </div>
+                                <div className="apptr__form-input-container">
+                                    <label>{this.props.t('transit:transitSchedule:CustomEndAt')}</label>
+                                    <InputString
+                                        id={`formFieldTransitScheduleCustomEndAtPeriod${periodShortname}${scheduleId}`}
+                                        disabled={isFrozen}
+                                        value={customEndAtStr}
+                                        onValueUpdated={(value) =>
+                                            this.onValueChange(`periods[${i}].custom_end_at_str`, value)
                                         }
                                     />
                                 </div>
