@@ -114,6 +114,29 @@ const getConfirmEmailsToSend = async (user: IUserModel, strategy?: string): Prom
 };
 
 /**
+ * Send a welcome email to the user
+ * @params user The user who just registered
+ */
+export const sendWelcomeEmail = async (user: IUserModel): Promise<void> => {
+    try {
+        const email = {
+            mailText: ['customServer:welcomeEmailText', 'server:welcomeEmailText'],
+            mailSubject: ['customServer:welcomeEmailSubject', 'server:welcomeEmailSubject'],
+            toUser: {
+                id: user.id,
+                email: user.email,
+                displayName: user.displayName,
+                lang: user.langPref
+            }
+        };
+        await sendEmail(email, {});
+        console.log('Email sent for welcome email');
+    } catch (error) {
+        console.log('Error sending welcome email: ', error);
+    }
+};
+
+/**
  * Send confirmation email to the user.s who need to confirm the new user's
  * email
  * @param user The user being confirmed
