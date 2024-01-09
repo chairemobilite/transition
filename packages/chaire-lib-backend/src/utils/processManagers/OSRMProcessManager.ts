@@ -81,7 +81,8 @@ const configureAllOsrmServers = async function (startServers = true): Promise<vo
             // Only configure mode that are enabled
             if (modeConfig.enabled === true) {
                 const port = modeConfig.port;
-                let host = '';
+                // Use the host in the config even for local server starts as it allows to fine-tune the url to contact (for example ipv4 vs ipv6 names)
+                const host = modeConfig.host !== null ? modeConfig.host : '';
 
                 if (port === null || port === undefined || port <= 0) {
                     errorConfiguringMode(routingMode, 'Invalid port number');
@@ -103,7 +104,6 @@ const configureAllOsrmServers = async function (startServers = true): Promise<vo
                     }
                 } else {
                     console.log('Using external OSRM for mode ' + routingMode);
-                    host = modeConfig.host !== null ? modeConfig.host : '';
                 }
 
                 // Register OSRMMode object
