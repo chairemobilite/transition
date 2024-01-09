@@ -28,6 +28,16 @@ export type CommonLayerConfiguration = {
      */
     color?: FeatureColor;
     pickable?: boolean | (() => boolean);
+    opacity?: FeatureNumber;
+    /**
+     * Minimal zoom level at which a feature should be displayed
+     */
+    minZoom?: FeatureNumber;
+    /**
+     * Maximum zoom level at which a feature should be displayed
+     */
+    maxZoom?: FeatureNumber;
+    autoHighlight?: boolean;
 };
 
 export type PointLayerConfiguration = CommonLayerConfiguration & {
@@ -48,21 +58,50 @@ export type PointLayerConfiguration = CommonLayerConfiguration & {
     strokeWidthScale?: FeatureNumber;
     minRadiusPixels?: FeatureNumber;
     maxRadiusPixels?: FeatureNumber;
-    /**
-     * Minimal zoom level at which a feature should be displayed
-     */
-    minZoom?: FeatureNumber;
-    /**
-     * Maximum zoom level at which a feature should be displayed
-     */
-    maxZoom?: FeatureNumber;
 };
+
 export const layerIsCircle = (layer: LayerConfiguration): layer is PointLayerConfiguration => {
     return layer.type === 'circle';
 };
 
+export type BaseLineLayerConfiguration = CommonLayerConfiguration & {
+    /**
+     * The line's width and scale
+     */
+    width?: FeatureNumber;
+    widthScale?: FeatureNumber;
+    widthMinPixels?: FeatureNumber;
+    widthMaxPixels?: FeatureNumber;
+    /**
+     * Whether the end of the lines should be rounded
+     */
+    capRounded?: boolean;
+    /**
+     * Whether the line joints should be rounded
+     */
+    jointRounded?: boolean;
+};
+
+export type LineLayerConfiguration = BaseLineLayerConfiguration & {
+    type: 'line';
+};
+
+export const layerIsLine = (layer: LayerConfiguration): layer is LineLayerConfiguration => {
+    return layer.type === 'line';
+};
+
+export type AnimatedPathLayerConfiguration = BaseLineLayerConfiguration & {
+    type: 'animatedArrowPath';
+};
+
+export const layerIsAnimatedPath = (layer: LayerConfiguration): layer is AnimatedPathLayerConfiguration => {
+    return layer.type === 'animatedArrowPath';
+};
+
 export type LayerConfiguration =
     | PointLayerConfiguration
+    | LineLayerConfiguration
+    | AnimatedPathLayerConfiguration
     | {
           // TODO Type this properly. When the data in layers.config.ts is used by the new API, add it here
           [key: string]: any;
