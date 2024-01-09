@@ -6,6 +6,7 @@
  */
 import { Layer, LayerProps } from '@deck.gl/core/typed';
 import { propertiesContainsFilter } from '@turf/turf';
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import {
     layerEventNames,
     MapCallbacks,
@@ -132,53 +133,115 @@ const layerNumberGetter = (
     return undefined;
 };
 
-const getLineLayer = (props: TransitionMapLayerProps, eventsToAdd): PathLayer =>
-    new PathLayer({
+const getCommonProperties = (props: TransitionMapLayerProps, config: LayerDescription.CommonLayerConfiguration) => {
+    const layerProperties: any = {};
+    const minZoom = config.minZoom === undefined ? undefined : layerNumberGetter(config.minZoom, undefined);
+    if (typeof minZoom === 'number' && props.viewState.zoom <= minZoom) {
+        return undefined;
+    } else if (typeof minZoom === 'function') {
+        console.log('Function for minZoom level not supported yet');
+    }
+    const maxZoom = config.maxZoom === undefined ? undefined : layerNumberGetter(config.maxZoom, undefined);
+    if (typeof maxZoom === 'number' && props.viewState.zoom >= maxZoom) {
+        return undefined;
+    } else if (typeof maxZoom === 'function') {
+        console.log('Function for maxZoom level not supported yet');
+    }
+    const color = config.color === undefined ? undefined : layerColorGetter(config.color, '#ffffff');
+    if (color !== undefined) {
+        layerProperties.getColor = color;
+    }
+    const opacity = config.opacity === undefined ? undefined : layerNumberGetter(config.opacity, 1);
+    if (opacity !== undefined) {
+        layerProperties.opacity = opacity;
+    }
+    const autoHighlight = config.autoHighlight === undefined ? undefined : config.autoHighlight;
+    if (autoHighlight !== undefined) {
+        layerProperties.autoHighlight = autoHighlight;
+    }
+    return layerProperties;
+};
+
+const getCommonLineProperties = (
+    props: TransitionMapLayerProps,
+    config: LayerDescription.BaseLineLayerConfiguration
+) => {
+    const layerProperties: any = getCommonProperties(props, config);
+
+    const lineWidth = config.width === undefined ? undefined : layerNumberGetter(config.width, 10);
+    if (lineWidth !== undefined) {
+        layerProperties.getWidth = lineWidth;
+    }
+    const widthScale = config.widthScale === undefined ? undefined : layerNumberGetter(config.widthScale, 1);
+    if (widthScale !== undefined) {
+        layerProperties.lineWidthScale = widthScale;
+    }
+    const widthMinPixels =
+        config.widthMinPixels === undefined ? undefined : layerNumberGetter(config.widthMinPixels, 1);
+    if (widthMinPixels !== undefined) {
+        layerProperties.widthMinPixels = widthMinPixels;
+    }
+    const widthMaxPixels =
+        config.widthMaxPixels === undefined ? undefined : layerNumberGetter(config.widthMaxPixels, 10);
+    if (widthMaxPixels !== undefined) {
+        layerProperties.widthMaxPixels = widthMaxPixels;
+    }
+    const capRounded = config.capRounded === undefined ? undefined : config.capRounded;
+    if (capRounded !== undefined) {
+        layerProperties.capRounded = capRounded;
+    }
+    const jointRounded = config.jointRounded === undefined ? undefined : config.jointRounded;
+    if (jointRounded !== undefined) {
+        layerProperties.jointRounded = jointRounded;
+    }
+
+    const pickable =
+        config.pickable === undefined
+            ? true
+            : typeof config.pickable === 'function'
+                ? config.pickable()
+                : config.pickable;
+    layerProperties.pickable = pickable;
+    return layerProperties;
+};
+
+const getLineLayer = (
+    props: TransitionMapLayerProps,
+    config: LayerDescription.LineLayerConfiguration,
+    eventsToAdd
+): PathLayer | undefined => {
+    const layerProperties: any = getCommonLineProperties(props, config);
+
+    return new PathLayer({
         id: props.layerDescription.id,
         data: props.layerDescription.layerData.features,
         getPath: (d) => d.geometry.coordinates,
-        //getTimestamps: d => setTimestamps(d),
-        getColor: (d) => propertyToColor(d, 'color'),
-        opacity: 0.8,
-        widthMinPixels: 2,
-        widthScale: 4,
-        rounded: true,
-        fadeTrail: true,
-        trailLength: 400,
-        currentTime: 0,
-        shadowEnabled: false,
-        pickable: true,
         updateTriggers: {
             getPath: props.updateCount,
             getColor: props.updateCount
         },
-        /*updateTriggers: {
-      getWidth: routeIndex
-    },*/
-        ...eventsToAdd
+        ...eventsToAdd,
+        ...layerProperties
     });
+};
 
-const getAnimatedArrowPathLayer = (props: TransitionMapLayerProps, eventsToAdd): AnimatedArrowPathLayer =>
+const getAnimatedArrowPathLayer = (
+    props: TransitionMapLayerProps,
+    config: LayerDescription.AnimatedPathLayerConfiguration,
+    eventsToAdd
+): AnimatedArrowPathLayer =>
     new AnimatedArrowPathLayer({
         id: props.layerDescription.id,
         data: props.layerDescription.layerData.features,
         getPath: (d) => d.geometry.coordinates,
-        pickable: true,
-        getWidth: 50,
-        /*
-        getWidth: (d, i) => {
-            return 70;
-        },*/
         updateTriggers: {
             getPath: props.updateCount,
             getColor: props.updateCount
         },
-        getColor: (d) => propertyToColor(d, 'color'),
         getDistanceBetweenArrows: 8,
-        speedDivider: 10,
-        capRounded: true,
-        jointRounded: true,
-        ...eventsToAdd
+        speedDivider: Preferences.get('enableMapAnimations', true) ? 10 : 0,
+        ...eventsToAdd,
+        ...getCommonLineProperties(props, config)
     });
 
 const getPolygonLayer = (props: TransitionMapLayerProps, eventsToAdd): GeoJsonLayer =>
@@ -208,19 +271,7 @@ const getScatterLayer = (
     config: LayerDescription.PointLayerConfiguration,
     eventsToAdd
 ): ScatterplotLayer<any> | undefined => {
-    const layerProperties: any = {};
-    const minZoom = config.minZoom === undefined ? undefined : layerNumberGetter(config.minZoom, undefined);
-    if (typeof minZoom === 'number' && props.viewState.zoom <= minZoom) {
-        return undefined;
-    } else if (typeof minZoom === 'function') {
-        console.log('Function for minZoom level not supported yet');
-    }
-    const maxZoom = config.maxZoom === undefined ? undefined : layerNumberGetter(config.maxZoom, undefined);
-    if (typeof maxZoom === 'number' && props.viewState.zoom >= maxZoom) {
-        return undefined;
-    } else if (typeof maxZoom === 'function') {
-        console.log('Function for maxZoom level not supported yet');
-    }
+    const layerProperties: any = getCommonProperties(props, config);
     const contourWidth =
         config.strokeWidth === undefined ? undefined : layerNumberGetter(config.strokeWidth, undefined);
     if (contourWidth !== undefined) {
@@ -229,10 +280,6 @@ const getScatterLayer = (
     const circleRadius = config.radius === undefined ? undefined : layerNumberGetter(config.radius, 10);
     if (circleRadius !== undefined) {
         layerProperties.getRadius = circleRadius;
-    }
-    const color = config.color === undefined ? undefined : layerColorGetter(config.color, '#ffffff');
-    if (color !== undefined) {
-        layerProperties.getFillColor = color;
     }
     const contourColor = config.strokeColor === undefined ? undefined : layerColorGetter(config.strokeColor, '#ffffff');
     if (contourColor !== undefined) {
@@ -256,7 +303,7 @@ const getScatterLayer = (
     return new ScatterplotLayer({
         id: props.layerDescription.id,
         data: props.layerDescription.layerData.features,
-        filled: color !== undefined,
+        filled: layerProperties.getColor !== undefined,
         stroked: contourColor !== undefined || contourWidth !== undefined,
         getPosition: (d) => d.geometry.coordinates,
         updateTriggers: {
@@ -324,12 +371,12 @@ const getLayer = (props: TransitionMapLayerProps): Layer<LayerProps> | undefined
     if (LayerDescription.layerIsCircle(props.layerDescription.configuration)) {
         // FIXME Try not to type as any
         return getScatterLayer(props, props.layerDescription.configuration, eventsToAdd) as any;
-    } else if (props.layerDescription.configuration.type === 'line') {
-        return getLineLayer(props, eventsToAdd) as any;
+    } else if (LayerDescription.layerIsLine(props.layerDescription.configuration)) {
+        return getLineLayer(props, props.layerDescription.configuration, eventsToAdd) as any;
     } else if (props.layerDescription.configuration.type === 'fill') {
         return getPolygonLayer(props, eventsToAdd) as any;
-    } else if (props.layerDescription.configuration.type === 'animatedArrowPath') {
-        return getAnimatedArrowPathLayer(props, eventsToAdd) as any;
+    } else if (LayerDescription.layerIsAnimatedPath(props.layerDescription.configuration)) {
+        return getAnimatedArrowPathLayer(props, props.layerDescription.configuration, eventsToAdd) as any;
     }
     console.log('unknown layer', props.layerDescription.configuration);
     return undefined;
