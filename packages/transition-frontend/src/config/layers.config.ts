@@ -41,56 +41,29 @@ const layersConfig = {
 
     accessibilityMapPolygonStrokes: {
         type: 'line',
-        paint: {
-            'line-color': 'rgba(255,255,255,1.0)',
-            'line-opacity': 0.2,
-            'line-width': 1.5
-        }
+        color: '#ffffff',
+        opacity: 0.2,
+        width: 1.5
     },
 
     routingPathsStrokes: {
         type: 'line',
-        layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-        },
-        paint: {
-            'line-color': 'rgba(255,255,255,1.0)',
-            'line-opacity': 0.7,
-            'line-width': {
-                base: 6,
-                stops: [
-                    [6, 6],
-                    [12, 10],
-                    [13, 12]
-                ]
-            }
-        }
+        color: { type: 'property', property: 'color' }, //'#ffffffff',
+        opacity: 0.7,
+        width: 6,
+        widthScale: 1.5,
+        capRounded: true,
+        jointRounded: true
     },
 
     routingPaths: {
         type: 'animatedArrowPath',
-        repaint: true,
-        layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-        },
-        'custom-shader': 'lineArrow',
-        paint: {
-            'line-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'line-opacity': 1.0,
-            'line-width': {
-                base: 3,
-                stops: [
-                    [6, 3],
-                    [12, 5],
-                    [13, 7]
-                ]
-            }
-        }
+        color: { type: 'property', property: 'color' },
+        width: 50,
+        widthScale: 4,
+        widthMinPixels: 10,
+        capRounded: true,
+        jointRounded: true
     },
 
     isochronePolygons: {
@@ -106,7 +79,7 @@ const layersConfig = {
 
     transitPaths: {
         type: 'line',
-        minzoom: 9,
+        minZoom: 9,
         defaultFilter: [
             'any',
             ['all', ['==', ['string', ['get', 'mode']], 'bus'], ['>=', ['zoom'], 11]],
@@ -124,42 +97,19 @@ const layersConfig = {
             ['all', ['==', ['string', ['get', 'mode']], 'horse'], ['>=', ['zoom'], 11]],
             ['all', ['==', ['string', ['get', 'mode']], 'other'], ['>=', ['zoom'], 11]]
         ],
-        layout: {
-            'line-join': 'miter',
-            'line-cap': 'butt'
-        },
-        paint: {
-            'line-offset': {
-                // we should use turf.js to offset beforehand,
-                //but turf offset is not based on zoom and 180 degrees turns creates random coordinates
-                base: 1,
-                stops: [
-                    [13, 0],
-                    [16, 4],
-                    [20, 20]
-                ]
-            },
-            'line-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'line-opacity': 0.8 /*{ // not working???
-        'base': 0,
-        'stops': [
-          [0, 0.0],
-          [7, 0.05],
-          [10, 0.2],
-          [15, 0.5],
-          [20, 0.8]
-        ]
-      }*/,
-            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 2]
-        }
+        color: { type: 'property', property: 'color' },
+        opacity: 0.8,
+        widthScale: 4,
+        widthMinPixels: 2,
+        capRounded: true,
+        jointRounded: true,
+        autoHighlight: true
     },
 
+    // TODO Port to deck.gl: try to use a custom layer type to include stroked offset on a line. See https://deck.gl/docs/api-reference/extensions/path-style-extension for an example, with source code https://github.com/visgl/deck.gl/blob/master/modules/extensions/src/path-style/path-style-extension.ts
     transitPathsStroke: {
         type: 'line',
-        minzoom: 15,
+        minZoom: 15,
         layout: {
             'line-join': 'miter',
             'line-cap': 'butt'
@@ -260,6 +210,7 @@ const layersConfig = {
         }
     },
 
+    // TODO Port to deck.gl: Same comment as above
     transitPathsHoverStroke: {
         type: 'line',
         repaint: true,
@@ -292,45 +243,12 @@ const layersConfig = {
 
     transitPathsSelected: {
         type: 'animatedArrowPath',
-        repaint: true,
-        //"shaders": [transitPathsSelectedFragmentShader, transitPathsSelectedVertexShader],
-        layout: {
-            'line-join': 'miter',
-            'line-cap': 'butt'
-        },
-        'custom-shader': 'lineArrow',
-        paint: {
-            //"line-arrow": true,
-            'line-offset': {
-                base: 1,
-                stops: [
-                    [13, 0],
-                    [16, 4],
-                    [20, 20]
-                ]
-            },
-            //"line-color": "rgba(0,0,255,1.0)",
-            'line-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'line-opacity': 1.0,
-            'line-width': {
-                base: 1,
-                stops: [
-                    [6, 5],
-                    [12, 7],
-                    [13, 9]
-                ]
-            } //,
-            //'line-gradient': [
-            //  'interpolate',
-            //  ['linear'],
-            //  ['line-progress'],
-            //  0, "blue",
-            //  1.0, "red"
-            //]
-        }
+        color: { type: 'property', property: 'color' },
+        width: 50,
+        widthScale: 4,
+        widthMinPixels: 10,
+        capRounded: true,
+        jointRounded: true
     },
 
     transitPathWaypoints: {
@@ -365,55 +283,14 @@ const layersConfig = {
 
     transitPathsForServices: {
         type: 'line',
-        minzoom: 9,
-        defaultFilter: [
-            'any',
-            ['all', ['==', ['string', ['get', 'mode']], 'bus'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'rail'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'highSpeedRail'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'metro'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'monorail'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'tram'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'tramTrain'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'water'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'gondola'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'funicular'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'taxi'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'cableCar'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'horse'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'other'], ['>=', ['zoom'], 11]]
-        ],
-        layout: {
-            'line-join': 'miter',
-            'line-cap': 'butt'
-        },
-        paint: {
-            'line-offset': {
-                // we should use turf.js to offset beforehand,
-                //but turf offset is not based on zoom and 180 degrees turns creates random coordinates
-                base: 1,
-                stops: [
-                    [13, 0],
-                    [16, 4],
-                    [20, 20]
-                ]
-            },
-            'line-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'line-opacity': 0.8 /*{ // not working???
-        'base': 0,
-        'stops': [
-          [0, 0.0],
-          [7, 0.05],
-          [10, 0.2],
-          [15, 0.5],
-          [20, 0.8]
-        ]
-      }*/,
-            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 2]
-        }
+        minZoom: 9,
+        color: { type: 'property', property: 'color' },
+        opacity: 0.8,
+        widthScale: 4,
+        widthMinPixels: 2,
+        capRounded: true,
+        jointRounded: true,
+        autoHighlight: true
     },
 
     transitStations: {
