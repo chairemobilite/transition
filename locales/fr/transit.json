@@ -947,5 +947,16 @@
             "InputFileUnavailable": "Le fichier d'entrée n'existe pas pour cette tâche",
             "ErrorGettingReplayParameters": "Un problème est survenu lors de l'obtention de la configuration pour ré-exécuter un calcul"
         }
+    },
+    "preferences": {
+        "routing": {
+            "OriginLocationColor": "Couleur du lieu d'origine",
+            "DestinationLocationColor": "Couleur du lieu de destination",
+            "WalkingSegmentsColor": "Couleur des segments de marche",
+            "WalkingColor": "Couleur des trajets à la marche",
+            "CyclingColor": "Couleur des trajets à vélo",
+            "DrivingColor": "Couleur des trajets de voiture",
+            "DefaultColor": "Couleur par défaut"
+        }
     }
 }

@@ -947,5 +947,16 @@
             "InputFileUnavailable": "Input file does not exist for this job",
             "ErrorGettingReplayParameters": "Error getting execution data to replay calculation"
         }
+    },
+    "preferences": {
+        "routing": {
+            "OriginLocationColor": "Origin location color",
+            "DestinationLocationColor": "Destination location color",
+            "WalkingSegmentsColor": "Walking segments color",
+            "WalkingColor": "Color of walking trips",
+            "CyclingColor": "Color of cycling trips",
+            "DrivingColor": "Color of driving trips",
+            "DefaultColor": "Default color"
+        }
     }
 }
