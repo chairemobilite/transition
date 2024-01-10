@@ -164,7 +164,7 @@ const getAnimatedArrowPathLayer = (props: TransitionMapLayerProps, eventsToAdd):
         data: props.layerDescription.layerData.features,
         getPath: (d) => d.geometry.coordinates,
         pickable: true,
-        getWidth: 100,
+        getWidth: 50,
         /*
         getWidth: (d, i) => {
             return 70;
@@ -174,8 +174,10 @@ const getAnimatedArrowPathLayer = (props: TransitionMapLayerProps, eventsToAdd):
             getColor: props.updateCount
         },
         getColor: (d) => propertyToColor(d, 'color'),
-        getSizeArray: [4, 4],
+        getDistanceBetweenArrows: 8,
         speedDivider: 10,
+        capRounded: true,
+        jointRounded: true,
         ...eventsToAdd
     });
 
