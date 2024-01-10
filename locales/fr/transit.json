@@ -957,6 +957,10 @@
             "CyclingColor": "Couleur des trajets à vélo",
             "DrivingColor": "Couleur des trajets de voiture",
             "DefaultColor": "Couleur par défaut"
+        },
+        "transitAccessibilityMap": {
+            "LocationColor": "Couleur du lieu",
+            "PolygonColor": "Couleur par défaut du polygone d'accessibilité"
         }
     }
 }
