@@ -69,8 +69,8 @@ const layersConfig = {
     },
 
     routingPaths: {
+        type: 'animatedArrowPath',
         repaint: true,
-        type: 'line',
         layout: {
             'line-join': 'round',
             'line-cap': 'round'

@@ -5,27 +5,27 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { PathLayer, PathLayerProps } from '@deck.gl/layers/typed';
-import { AccessorFunction, DefaultProps } from '@deck.gl/core';
-import * as vec3 from 'gl-matrix/vec3';
+import { Accessor, DefaultProps } from '@deck.gl/core/typed';
+import * as vec3 from 'gl-matrix/vec3/';
 
 export type AnimatedArrowPathLayerProps<DataT = any> = _AnimatedArrowPathLayerProps<DataT> & PathLayerProps<DataT>;
 
 type _AnimatedArrowPathLayerProps<DataT = unknown> = {
     /**
      * [solid length, gap length] accessor.
-     * @default [4, 4]
+     * @default 8
      */
-    getSizeArray?: AccessorFunction<number, number>;
+    getDistanceBetweenArrows?: Accessor<DataT, number>;
 
     /**
-     * Arrow path speed scaling. The larger the number, the slower the path movement.
+     * Arrow path speed scaling. The larger the number, the slower the path movement. 0 prevents movement
      * @default 3
      */
     speedDivider?: number;
 };
 
 const defaultProps: DefaultProps<AnimatedArrowPathLayerProps> = {
-    getSizeArray: { type: 'accessor', value: [4, 4] },
+    getDistanceBetweenArrows: { type: 'accessor', value: 8 },
     speedDivider: 3
 };
 
@@ -63,11 +63,11 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
 
         const attributeManager = this.getAttributeManager();
         attributeManager?.addInstanced({
-            instanceArrowPathArrays: { size: 2, accessor: 'getSizeArray' },
+            instanceDistanceBetweenArrows: { size: 1, accessor: 'getDistanceBetweenArrows' },
             instanceArrowPathOffsets: {
                 size: 1,
                 accessor: 'getPath',
-                transform: this.getArrowPathOffsets.bind(this) // TODO: Check if this is executed multiple times or just at layer creation
+                transform: this.getArrowPathOffsets // TODO: Check if this is executed multiple times or just at layer creation
             }
         });
     }
@@ -78,7 +78,13 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
         super.draw(opts);
     }
 
-    getArrowPathOffsets(path) {
+    /**
+     * Get the array of distance offsets from path origin for each path segment
+     * @param path The original path
+     * @returns An array containing the distance from the origin of each point
+     * in the path
+     */
+    getArrowPathOffsets = (path) => {
         const result = [0];
         if (path === undefined) {
             return result;
@@ -100,7 +106,7 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
             prevP = p;
         }
         return result;
-    }
+    };
 
     getShaders() {
         return Object.assign({}, super.getShaders(), {
@@ -108,22 +114,24 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
 
             inject: {
                 'vs:#decl': `
-          attribute vec2 instanceArrowPathArrays;
+          attribute float instanceDistanceBetweenArrows;
           attribute float instanceArrowPathOffsets;
-          varying vec2 vArrowPathArray;
+          varying float vDistanceBetweenArrows;
           varying float vArrowPathOffset;
           uniform float arrowPathTimeStep;
           uniform float speedDivider;
           `,
 
                 'vs:#main-end': `
-          vArrowPathArray = instanceArrowPathArrays;
+          vDistanceBetweenArrows = instanceDistanceBetweenArrows;
           vArrowPathOffset = instanceArrowPathOffsets / width.x;
-          vArrowPathOffset += (arrowPathTimeStep / speedDivider);
+          if (speedDivider != 0.0) {
+            vArrowPathOffset += (arrowPathTimeStep / speedDivider);
+          }
           `,
 
                 'fs:#decl': `
-          varying vec2 vArrowPathArray;
+          varying float vDistanceBetweenArrows;
           varying float vArrowPathOffset;
           
           float round(float x) {
@@ -131,15 +139,14 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
           }
           `,
                 'fs:#main-start': `
-            float solidLength = vArrowPathArray.x;
-            float gapLength = vArrowPathArray.y;
-            float unitLength = solidLength + gapLength;
+            float unitLength = vDistanceBetweenArrows;
           
             float offset = 0.0;
             float unitOffset = 0.0;
             if (unitLength > 0.0) {
               offset = vArrowPathOffset;
-              unitOffset = mod(vPathPosition.y + offset, unitLength);
+              // The offset needs to be subtracted, otherwise the path goes in the wrong direction
+              unitOffset = mod(vPathPosition.y - offset, unitLength);
             }
           `,
                 'fs:#main-end': `\
@@ -148,16 +155,18 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
             // See this link for info about vPathPosition variable
             // https://github.com/visgl/deck.gl/blob/b7c9fcc2b6e8693b5574a498fd128919b9780b49/modules/layers/src/path-layer/path-layer-fragment.glsl.ts#L31-L35
         
-            // Draw a white arrow for the first 12% of the arrow length.
-            float arrowEnd = 0.12;
-            if (relY < arrowEnd && abs(vPathPosition.x) <= 10.0*relY) {
+            // Draw a white arrow for the last 12% of the segment length. (the point of the arrow should be where relY is 1.0)
+            float percentArrow = 0.12;
+            float arrowStart = 1.0 - percentArrow;
+            float absX = 1.0 / percentArrow;
+            if (relY > arrowStart && abs(vPathPosition.x) <= absX * (1.0 - relY)) {
               gl_FragColor = vec4(255/255, 255/255, 255/255, 1.0); // white
             } else {
               // TODO : Can this be simplified?
               // This is to make the fade start at the end of the white arrow rather than at the top.
-              float alpha = 1.0 - relY;
-              if (relY < arrowEnd) {
-                  alpha = 1.0 - alpha - arrowEnd;
+              float alpha = relY;
+              if (relY > arrowStart) {
+                  alpha = alpha - arrowStart;
               }
               gl_FragColor = vec4(vColor.r, vColor.g, vColor.b, mix(0.5, 1.0, alpha));
             }
