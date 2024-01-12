@@ -98,14 +98,26 @@ export const layerIsAnimatedPath = (layer: LayerConfiguration): layer is Animate
     return layer.type === 'animatedArrowPath';
 };
 
+export type PolygonLayerConfiguration = CommonLayerConfiguration & {
+    type: 'fill';
+    /**
+     * fill and contour's color
+     */
+    color?: FeatureColor;
+    lineColor?: FeatureColor;
+    lineWidth?: FeatureNumber;
+    lineWidthMinPixels?: FeatureNumber;
+};
+
+export const layerIsPolygon = (layer: LayerConfiguration): layer is PolygonLayerConfiguration => {
+    return layer.type === 'fill';
+};
+
 export type LayerConfiguration =
     | PointLayerConfiguration
     | LineLayerConfiguration
     | AnimatedPathLayerConfiguration
-    | {
-          // TODO Type this properly. When the data in layers.config.ts is used by the new API, add it here
-          [key: string]: any;
-      };
+    | PolygonLayerConfiguration;
 
 export type MapLayer = {
     /** Unique identifier for this layer */
