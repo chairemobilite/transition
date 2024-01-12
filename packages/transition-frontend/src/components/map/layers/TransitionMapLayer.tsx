@@ -244,27 +244,51 @@ const getAnimatedArrowPathLayer = (
         ...getCommonLineProperties(props, config)
     });
 
-const getPolygonLayer = (props: TransitionMapLayerProps, eventsToAdd): GeoJsonLayer =>
-    new GeoJsonLayer({
+const getPolygonLayer = (
+    props: TransitionMapLayerProps,
+    config: LayerDescription.PolygonLayerConfiguration,
+    eventsToAdd
+): GeoJsonLayer => {
+    const layerProperties: any = getCommonProperties(props, config);
+    if (layerProperties.getColor) {
+        layerProperties.getFillColor = layerProperties.getColor;
+        delete layerProperties.getColor;
+    }
+
+    const lineColor = config.lineColor === undefined ? undefined : layerColorGetter(config.lineColor, '#ffffff');
+    layerProperties.getLineColor = lineColor !== undefined ? lineColor : [80, 80, 80];
+
+    const lineWidth = config.lineWidth === undefined ? 1 : layerNumberGetter(config.lineWidth, 10);
+    layerProperties.getLineWidth = lineWidth;
+
+    const widthMinPixels =
+        config.lineWidthMinPixels === undefined ? undefined : layerNumberGetter(config.lineWidthMinPixels, 1);
+    if (widthMinPixels !== undefined) {
+        layerProperties.lineWidthMinPixels = widthMinPixels;
+    }
+
+    const pickable =
+        config.pickable === undefined
+            ? true
+            : typeof config.pickable === 'function'
+                ? config.pickable()
+                : config.pickable;
+    layerProperties.pickable = pickable;
+
+    return new GeoJsonLayer({
         id: props.layerDescription.id,
         data: props.layerDescription.layerData.features,
-        pickable: true,
-        stroked: true,
-        filled: true,
-        wireframe: true,
-        lineWidthMinPixels: 1,
-        /* getElevation: d => {
-        console.log('elevation', d.properties);
-        return 0;
-    }, */
-        getFillColor: (d) => propertyToColor(d, 'color'),
-        getLineColor: [80, 80, 80],
         updateTriggers: {
             getFillColor: props.updateCount
         },
-        getLineWidth: 1,
-        ...eventsToAdd
+        stroked: true,
+        filled: layerProperties.getFillColor !== undefined,
+        wireframe: true,
+        lineWidthMinPixels: 1,
+        ...eventsToAdd,
+        ...layerProperties
     });
+};
 
 const getScatterLayer = (
     props: TransitionMapLayerProps,
@@ -373,8 +397,8 @@ const getLayer = (props: TransitionMapLayerProps): Layer<LayerProps> | undefined
         return getScatterLayer(props, props.layerDescription.configuration, eventsToAdd) as any;
     } else if (LayerDescription.layerIsLine(props.layerDescription.configuration)) {
         return getLineLayer(props, props.layerDescription.configuration, eventsToAdd) as any;
-    } else if (props.layerDescription.configuration.type === 'fill') {
-        return getPolygonLayer(props, eventsToAdd) as any;
+    } else if (LayerDescription.layerIsPolygon(props.layerDescription.configuration)) {
+        return getPolygonLayer(props, props.layerDescription.configuration, eventsToAdd) as any;
     } else if (LayerDescription.layerIsAnimatedPath(props.layerDescription.configuration)) {
         return getAnimatedArrowPathLayer(props, props.layerDescription.configuration, eventsToAdd) as any;
     }

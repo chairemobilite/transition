@@ -30,20 +30,11 @@ const layersConfig = {
 
     accessibilityMapPolygons: {
         type: 'fill',
-        paint: {
-            'fill-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'fill-opacity': 0.2
-        }
-    },
-
-    accessibilityMapPolygonStrokes: {
-        type: 'line',
-        color: '#ffffff',
+        color: { type: 'property', property: 'color' },
+        lineColor: '#ffffff33',
+        lineWidth: 4,
         opacity: 0.2,
-        width: 1.5
+        pickable: false
     },
 
     routingPathsStrokes: {
