@@ -36,6 +36,11 @@ export type AccessibilityMapAttributes = AccessibilityMapCalculationAttributes &
 class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapAttributes> {
     constructor(attributes: Partial<AccessibilityMapAttributes>, isNew = false) {
         super(attributes, isNew);
+
+        // Initialize the colors to the preference.
+        // FIXME Allow to set the color from the UI as well
+        this.attributes.locationColor = Preferences.get('transit.routing.transitAccessibilityMap.locationColor');
+        this.attributes.color = Preferences.get('transit.routing.transitAccessibilityMap.polygonColor');
     }
 
     validate() {

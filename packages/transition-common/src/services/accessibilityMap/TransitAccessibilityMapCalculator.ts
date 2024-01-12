@@ -96,6 +96,7 @@ const getAttributesOrDefault = (routing: TransitAccessibilityMapRouting) => {
         walkingSpeedFactor: attributes.walkingSpeedFactor,
         scenarioId: attributes.scenarioId,
         locationColor: attributes.locationColor,
+        color: attributes.color,
         placeName: attributes.placeName
     };
 };
@@ -319,6 +320,7 @@ export class TransitAccessibilityMapCalculator {
             maxAccessEgressTravelTimeSeconds: number;
             locationGeojson: Feature<Point>;
             locationColor?: string;
+            color?: string;
             [key: string]: any;
         },
         result: TransitAccessibilityMapResultByNode,
@@ -412,7 +414,7 @@ export class TransitAccessibilityMapCalculator {
                 areaSqM: area,
                 areaSqKm: area / 1000000,
                 areaSqMiles: area / 1000000 / 2.58999,
-                color: attributes.locationColor,
+                color: attributes.color,
                 accessiblePlacesCountByCategory,
                 accessiblePlacesCountByDetailedCategory,
                 ...attributes,
