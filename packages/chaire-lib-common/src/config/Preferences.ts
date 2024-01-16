@@ -6,6 +6,7 @@
  */
 import _merge from 'lodash/merge';
 import _get from 'lodash/get';
+import _set from 'lodash/set';
 import _isNumber from 'lodash/isNumber';
 import _cloneDeep from 'lodash/cloneDeep';
 import EventEmitter from 'events';
@@ -205,9 +206,14 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         socket?: EventEmitter
     ): Promise<PreferencesModelWithIdAndData> {
         try {
-            socket ? await this.updateFromSocket(socket, valuesByPath) : await this.updateFromFetch(valuesByPath);
-            this._attributes = _cloneDeep(_merge({}, this._attributes, valuesByPath));
-            this._eventEmitter.emit(prefChangeEvent, valuesByPath);
+            const _valuesByPath = _cloneDeep(valuesByPath);
+            socket ? await this.updateFromSocket(socket, _valuesByPath) : await this.updateFromFetch(_valuesByPath);
+            if (Object.keys(_valuesByPath).length > 0) {
+                for (const path in _valuesByPath) {
+                    _set(this._attributes, path, _valuesByPath[path]);
+                }
+            }
+            this._eventEmitter.emit(prefChangeEvent, _valuesByPath);
         } catch (error) {
             console.error('Error loading preferences from server');
         }
@@ -246,7 +252,12 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
      * @param {*} valuesByPath The values to update
      */
     public updateServerPrefs(valuesByPath: Partial<PreferencesModel>): void {
-        _merge(this._runtimeServer, _cloneDeep(valuesByPath));
+        const _valuesByPath = _cloneDeep(valuesByPath);
+        if (Object.keys(_valuesByPath).length > 0) {
+            for (const path in _valuesByPath) {
+                _set(this._runtimeServer, path, _valuesByPath[path]);
+            }
+        }
         _merge(this._attributes, _cloneDeep(this._runtimeServer));
     }
 
