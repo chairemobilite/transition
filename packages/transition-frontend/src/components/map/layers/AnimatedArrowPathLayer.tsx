@@ -25,8 +25,8 @@ type _AnimatedArrowPathLayerProps<DataT = unknown> = {
 };
 
 const defaultProps: DefaultProps<AnimatedArrowPathLayerProps> = {
-    getDistanceBetweenArrows: { type: 'accessor', value: 8 },
-    speedDivider: 3
+    getDistanceBetweenArrows: { type: 'accessor', value: 20 },
+    speedDivider: 1
 };
 
 export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends object = never> extends PathLayer<
@@ -50,9 +50,7 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
         super.initializeState();
 
         const animate = () => {
-            const currentTime = this.state.time || 0;
             this.setState({
-                time: currentTime + 1, // % loopLength,
                 animationID: window.requestAnimationFrame(animate) // draw next frame
             });
         };
@@ -64,112 +62,145 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
         const attributeManager = this.getAttributeManager();
         attributeManager?.addInstanced({
             instanceDistanceBetweenArrows: { size: 1, accessor: 'getDistanceBetweenArrows' },
-            instanceArrowPathOffsets: {
+            instanceStartOffsetRatios: {
                 size: 1,
                 accessor: 'getPath',
-                transform: this.getArrowPathOffsets // TODO: Check if this is executed multiple times or just at layer creation
+                transform: this.getStartOffsetRatios
+            },
+            instanceLengthRatios: {
+                size: 1,
+                accessor: 'getPath',
+                transform: this.getLengthRatios
             }
         });
     }
 
     draw(opts) {
-        opts.uniforms.arrowPathTimeStep = this.state.time || 0;
+        opts.uniforms.arrowPathTimeStep = (performance.now() % 100000) / 100000; // resets every 100 seconds
         opts.uniforms.speedDivider = this.props.speedDivider;
         super.draw(opts);
     }
 
-    /**
-     * Get the array of distance offsets from path origin for each path segment
-     * @param path The original path
-     * @returns An array containing the distance from the origin of each point
-     * in the path
-     */
-    getArrowPathOffsets = (path) => {
-        const result = [0];
-        if (path === undefined) {
+    getStartOffsetRatios = (path): number[] => {
+        const result = [0] as number[];
+        if (path === undefined || path.length < 2) {
             return result;
         }
         const positionSize = this.props.positionFormat === 'XY' ? 2 : 3;
         const isNested = Array.isArray(path[0]);
         const geometrySize = isNested ? path.length : path.length / positionSize;
-
+        let sumLength = 0;
         let p;
         let prevP;
-        for (let i = 0; i < geometrySize - 1; i++) {
+        for (let i = 0; i < geometrySize; i++) {
             p = isNested ? path[i] : path.slice(i * positionSize, i * positionSize + positionSize);
             p = this.projectPosition(p);
-
             if (i > 0) {
-                result[i] = result[i - 1] + vec3.dist(prevP, p);
+                const distance = vec3.dist(prevP, p);
+                if (i < geometrySize - 1) {
+                    result[i] = result[i - 1] + distance;
+                }
+                sumLength += distance;
             }
-
             prevP = p;
+        }
+        for (let i = 0, count = result.length; i < count; i++) {
+            result[i] = result[i] / sumLength;
+        }
+        console.log('getStartOffsetRatios', result);
+        return result;
+    };
+
+    getLengthRatios = (path): number[] => {
+        const result = [] as number[];
+        if (path === undefined || path.length < 2) {
+            return result;
+        }
+        const positionSize = this.props.positionFormat === 'XY' ? 2 : 3;
+        const isNested = Array.isArray(path[0]);
+        const geometrySize = isNested ? path.length : path.length / positionSize;
+        let sumLength = 0;
+        let p;
+        let prevP = this.projectPosition(isNested ? path[0] : path.slice(0, positionSize));
+        for (let i = 1; i < geometrySize; i++) {
+            p = isNested ? path[i] : path.slice(i * positionSize, i * positionSize + positionSize);
+            p = this.projectPosition(p);
+            const distance = vec3.dist(prevP, p);
+            sumLength += distance;
+            result[i - 1] = distance;
+            prevP = p;
+        }
+        for (let i = 0, count = result.length; i < count; i++) {
+            result[i] = result[i] / sumLength;
         }
         return result;
     };
 
     getShaders() {
         return Object.assign({}, super.getShaders(), {
-            // Code here is largely inspired by / copied from https://github.com/visgl/deck.gl/blob/master/modules/extensions/src/path-style/path-style-extension.ts
-
             inject: {
                 'vs:#decl': `
-          attribute float instanceDistanceBetweenArrows;
-          attribute float instanceArrowPathOffsets;
-          varying float vDistanceBetweenArrows;
-          varying float vArrowPathOffset;
-          uniform float arrowPathTimeStep;
-          uniform float speedDivider;
+
+                attribute float instanceDistanceBetweenArrows;
+                attribute float instanceLengthRatios;
+                attribute float instanceStartOffsetRatios;
+                varying float vLengthRatio;
+                varying float vStartOffsetRatio;
+                varying float vDistanceBetweenArrows;
+                varying float vArrowPathOffset;
+                uniform float arrowPathTimeStep;
+                uniform float speedDivider;
           `,
 
                 'vs:#main-end': `
-          vDistanceBetweenArrows = instanceDistanceBetweenArrows;
-          vArrowPathOffset = instanceArrowPathOffsets / width.x;
-          if (speedDivider != 0.0) {
-            vArrowPathOffset += (arrowPathTimeStep / speedDivider);
-          }
+
+                vLengthRatio = instanceLengthRatios;
+                vStartOffsetRatio = instanceStartOffsetRatios;
+                vDistanceBetweenArrows = instanceDistanceBetweenArrows;
+                vArrowPathOffset = 0.0; //vPathPosition.x;// 
+
+                if (speedDivider != 0.0) {
+                  vArrowPathOffset += ((arrowPathTimeStep) / speedDivider) / width.x;
+                }
           `,
 
                 'fs:#decl': `
-          varying float vDistanceBetweenArrows;
-          varying float vArrowPathOffset;
-          
-          float round(float x) {
-            return floor(x + 0.5);
-          }
+
+                varying float vDistanceBetweenArrows;
+                varying float vStartOffsetRatio;
+                varying float vLengthRatio;
+                varying float vArrowPathOffset;
+
           `,
                 'fs:#main-start': `
-            float unitLength = vDistanceBetweenArrows;
-          
-            float offset = 0.0;
-            float unitOffset = 0.0;
-            if (unitLength > 0.0) {
-              offset = vArrowPathOffset;
-              // The offset needs to be subtracted, otherwise the path goes in the wrong direction
-              unitOffset = mod(vPathPosition.y - offset, unitLength);
-            }
+
+                if (vLengthRatio == 0.0) { // this should not happen
+                    discard;
+                }
           `,
-                'fs:#main-end': `\
-            float relY = unitOffset / unitLength;
-        
-            // See this link for info about vPathPosition variable
-            // https://github.com/visgl/deck.gl/blob/b7c9fcc2b6e8693b5574a498fd128919b9780b49/modules/layers/src/path-layer/path-layer-fragment.glsl.ts#L31-L35
-        
-            // Draw a white arrow for the last 12% of the segment length. (the point of the arrow should be where relY is 1.0)
-            float percentArrow = 0.12;
-            float arrowStart = 1.0 - percentArrow;
-            float absX = 1.0 / percentArrow;
-            if (relY > arrowStart && abs(vPathPosition.x) <= absX * (1.0 - relY)) {
-              gl_FragColor = vec4(255/255, 255/255, 255/255, 1.0); // white
-            } else {
-              // TODO : Can this be simplified?
-              // This is to make the fade start at the end of the white arrow rather than at the top.
-              float alpha = relY;
-              if (relY > arrowStart) {
-                  alpha = alpha - arrowStart;
-              }
-              gl_FragColor = vec4(vColor.r, vColor.g, vColor.b, mix(0.5, 1.0, alpha));
-            }
+                'fs:#main-end': `
+
+                float percentFromCenter = abs(vPathPosition.x);
+                float offset = vArrowPathOffset;
+                float totalLength = vPathLength / vLengthRatio;
+                float startDistance = vStartOffsetRatio * totalLength;
+                float distanceSoFar = startDistance + vPathPosition.y - offset +percentFromCenter;
+                float arrowIndex = mod(distanceSoFar, vDistanceBetweenArrows);
+                float percentOfDistanceBetweenArrows = 1.0 - arrowIndex / vDistanceBetweenArrows;
+                //float sideAttenuation = 1.0;
+                if (percentOfDistanceBetweenArrows < 0.5) {
+                    float percentBlack = percentOfDistanceBetweenArrows / 0.5 * 0.5;
+                    gl_FragColor = vec4(mix(vColor.r, 0.0, percentBlack), mix(vColor.g, 0.0, percentBlack), mix(vColor.b, 0.0, percentBlack), 1.0);
+                } else if (percentOfDistanceBetweenArrows < 0.75) {
+                    float percentWhite = (1.0 - (percentOfDistanceBetweenArrows - 0.5) * 4.0) * 0.75;
+                    gl_FragColor = vec4(mix(vColor.r, 1.0, percentWhite), mix(vColor.g, 1.0, percentWhite), mix(vColor.b, 1.0, percentWhite), 1.0);
+                } else {
+                    gl_FragColor = vec4(vColor.r, vColor.g, vColor.b, 1.0);
+                }
+
+                // See this link for info about vPathPosition variable
+                // https://github.com/visgl/deck.gl/blob/b7c9fcc2b6e8693b5574a498fd128919b9780b49/modules/layers/src/path-layer/path-layer-fragment.glsl.ts#L31-L35
+
           `
             }
         });
