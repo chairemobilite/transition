@@ -182,7 +182,7 @@ const getCommonLineProperties = (
         layerProperties.widthMinPixels = widthMinPixels;
     }
     const widthMaxPixels =
-        config.widthMaxPixels === undefined ? undefined : layerNumberGetter(config.widthMaxPixels, 10);
+        config.widthMaxPixels === undefined ? undefined : layerNumberGetter(config.widthMaxPixels, 50);
     if (widthMaxPixels !== undefined) {
         layerProperties.widthMaxPixels = widthMaxPixels;
     }
@@ -238,30 +238,35 @@ const getAnimatedArrowPathLayer = (
             getPath: props.updateCount,
             getColor: props.updateCount
         },
-        getDistanceBetweenArrows: 8,
+        getDistanceBetweenArrows: 15,
+        widthMaxPixels: 50,
         speedDivider: Preferences.get('enableMapAnimations', true) ? 10 : 0,
         ...eventsToAdd,
         ...getCommonLineProperties(props, config)
     });
 
-const getPolygonLayer = (props: TransitionMapLayerProps, config: LayerDescription.PolygonLayerConfiguration, eventsToAdd): GeoJsonLayer => {
+const getPolygonLayer = (
+    props: TransitionMapLayerProps,
+    config: LayerDescription.PolygonLayerConfiguration,
+    eventsToAdd
+): GeoJsonLayer => {
     const layerProperties: any = getCommonProperties(props, config);
     if (layerProperties.getColor) {
         layerProperties.getFillColor = layerProperties.getColor;
         delete layerProperties.getColor;
     }
-    
+
     const lineColor = config.lineColor === undefined ? undefined : layerColorGetter(config.lineColor, '#ffffff');
     layerProperties.getLineColor = lineColor !== undefined ? lineColor : [80, 80, 80];
 
     const lineWidth = config.lineWidth === undefined ? 1 : layerNumberGetter(config.lineWidth, 10);
     layerProperties.getLineWidth = lineWidth;
-    
+
     const widthMinPixels =
         config.lineWidthMinPixels === undefined ? undefined : layerNumberGetter(config.lineWidthMinPixels, 1);
     if (widthMinPixels !== undefined) {
         layerProperties.lineWidthMinPixels = widthMinPixels;
-    }   
+    }
 
     const pickable =
         config.pickable === undefined
