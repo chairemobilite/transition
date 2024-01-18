@@ -182,7 +182,7 @@ const getCommonLineProperties = (
         layerProperties.widthMinPixels = widthMinPixels;
     }
     const widthMaxPixels =
-        config.widthMaxPixels === undefined ? undefined : layerNumberGetter(config.widthMaxPixels, 10);
+        config.widthMaxPixels === undefined ? undefined : layerNumberGetter(config.widthMaxPixels, 50);
     if (widthMaxPixels !== undefined) {
         layerProperties.widthMaxPixels = widthMaxPixels;
     }
@@ -238,7 +238,8 @@ const getAnimatedArrowPathLayer = (
             getPath: props.updateCount,
             getColor: props.updateCount
         },
-        getDistanceBetweenArrows: 8,
+        getDistanceBetweenArrows: 15,
+        widthMaxPixels: 50,
         speedDivider: Preferences.get('enableMapAnimations', true) ? 10 : 0,
         ...eventsToAdd,
         ...getCommonLineProperties(props, config)
