@@ -50,9 +50,9 @@ const layersConfig = {
     routingPaths: {
         type: 'animatedArrowPath',
         color: { type: 'property', property: 'color' },
-        width: 50,
-        widthScale: 4,
-        widthMinPixels: 10,
+        width: 10,
+        widthScale: 1,
+        widthMinPixels: 5,
         capRounded: true,
         jointRounded: true
     },
@@ -235,9 +235,9 @@ const layersConfig = {
     transitPathsSelected: {
         type: 'animatedArrowPath',
         color: { type: 'property', property: 'color' },
-        width: 50,
-        widthScale: 4,
-        widthMinPixels: 10,
+        width: 10,
+        widthScale: 1,
+        widthMinPixels: 5,
         capRounded: true,
         jointRounded: true
     },
