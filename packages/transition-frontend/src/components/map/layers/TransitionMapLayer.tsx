@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { Layer, LayerProps } from '@deck.gl/core/typed';
-import { propertiesContainsFilter } from '@turf/turf';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import {
     layerEventNames,
@@ -14,7 +13,8 @@ import {
 } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import * as LayerDescription from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
 import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo, Deck } from 'deck.gl/typed';
-import { MjolnirEvent, MjolnirGestureEvent } from 'mjolnir.js';
+import { MjolnirGestureEvent } from 'mjolnir.js';
+import { DataFilterExtension } from '@deck.gl/extensions';
 import AnimatedArrowPathLayer from './AnimatedArrowPathLayer';
 
 // FIXME default color should probably be a app/user/theme preference?
@@ -133,7 +133,23 @@ const layerNumberGetter = (
     return undefined;
 };
 
-const getCommonProperties = (props: TransitionMapLayerProps, config: LayerDescription.CommonLayerConfiguration) => {
+const getLayerFeatureFilter = (props: TransitionMapLayerProps, config: LayerDescription.CommonLayerConfiguration) => {
+    const layerFilter: any = {};
+    const featureMinZoom =
+        config.featureMinZoom === undefined ? undefined : layerNumberGetter(config.featureMinZoom, 1);
+    if (featureMinZoom !== undefined) {
+        layerFilter.getFilterValue = featureMinZoom;
+        layerFilter.extensions = [new DataFilterExtension({ filterSize: 1 })];
+        // Display the feature if the min zoom is less than the current zoom
+        layerFilter.filterRange = [0, Math.floor(props.viewState.zoom)];
+    }
+    return layerFilter;
+};
+
+const getCommonProperties = (
+    props: TransitionMapLayerProps,
+    config: LayerDescription.CommonLayerConfiguration
+): { [layerProperty: string]: any } | undefined => {
     const layerProperties: any = {};
     const minZoom = config.minZoom === undefined ? undefined : layerNumberGetter(config.minZoom, undefined);
     if (typeof minZoom === 'number' && props.viewState.zoom <= minZoom) {
@@ -159,14 +175,20 @@ const getCommonProperties = (props: TransitionMapLayerProps, config: LayerDescri
     if (autoHighlight !== undefined) {
         layerProperties.autoHighlight = autoHighlight;
     }
+    const filterProperties = getLayerFeatureFilter(props, config);
+    Object.assign(layerProperties, filterProperties);
     return layerProperties;
 };
 
 const getCommonLineProperties = (
     props: TransitionMapLayerProps,
     config: LayerDescription.BaseLineLayerConfiguration
-) => {
+): { [layerProperty: string]: any } | undefined => {
     const layerProperties: any = getCommonProperties(props, config);
+    // The layer is not to be displayed, just return
+    if (layerProperties === undefined) {
+        return undefined;
+    }
 
     const lineWidth = config.width === undefined ? undefined : layerNumberGetter(config.width, 10);
     if (lineWidth !== undefined) {
@@ -211,6 +233,10 @@ const getLineLayer = (
     eventsToAdd
 ): PathLayer | undefined => {
     const layerProperties: any = getCommonLineProperties(props, config);
+    // The layer is not to be displayed, don't add it
+    if (layerProperties === undefined) {
+        return undefined;
+    }
 
     return new PathLayer({
         id: props.layerDescription.id,
@@ -229,8 +255,13 @@ const getAnimatedArrowPathLayer = (
     props: TransitionMapLayerProps,
     config: LayerDescription.AnimatedPathLayerConfiguration,
     eventsToAdd
-): AnimatedArrowPathLayer =>
-    new AnimatedArrowPathLayer({
+): AnimatedArrowPathLayer | undefined => {
+    const layerProperties: any = getCommonLineProperties(props, config);
+    // The layer is not to be displayed, don't add it
+    if (layerProperties === undefined) {
+        return undefined;
+    }
+    return new AnimatedArrowPathLayer({
         id: props.layerDescription.id,
         data: props.layerDescription.layerData.features,
         getPath: (d) => d.geometry.coordinates,
@@ -242,15 +273,20 @@ const getAnimatedArrowPathLayer = (
         widthMaxPixels: 50,
         speedDivider: Preferences.get('enableMapAnimations', true) ? 10 : 0,
         ...eventsToAdd,
-        ...getCommonLineProperties(props, config)
+        ...layerProperties
     });
+};
 
 const getPolygonLayer = (
     props: TransitionMapLayerProps,
     config: LayerDescription.PolygonLayerConfiguration,
     eventsToAdd
-): GeoJsonLayer => {
+): GeoJsonLayer | undefined => {
     const layerProperties: any = getCommonProperties(props, config);
+    // The layer is not to be displayed, don't add it
+    if (layerProperties === undefined) {
+        return undefined;
+    }
     if (layerProperties.getColor) {
         layerProperties.getFillColor = layerProperties.getColor;
         delete layerProperties.getColor;
@@ -297,6 +333,10 @@ const getScatterLayer = (
     eventsToAdd
 ): ScatterplotLayer<any> | undefined => {
     const layerProperties: any = getCommonProperties(props, config);
+    // The layer is not to be displayed, don't add it
+    if (layerProperties === undefined) {
+        return undefined;
+    }
     const contourWidth =
         config.strokeWidth === undefined ? undefined : layerNumberGetter(config.strokeWidth, undefined);
     if (contourWidth !== undefined) {
@@ -389,7 +429,6 @@ const addEvents = (
 
 const getLayer = (props: TransitionMapLayerProps): Layer<LayerProps> | undefined => {
     if (props.layerDescription.layerData === undefined) {
-        console.log('layer data is undefined', props.layerDescription.id);
         return undefined;
     }
     const eventsToAdd = props.events !== undefined ? addEvents(props.events, props) : {};

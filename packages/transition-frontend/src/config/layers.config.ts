@@ -71,23 +71,18 @@ const layersConfig = {
     transitPaths: {
         type: 'line',
         minZoom: 9,
-        defaultFilter: [
-            'any',
-            ['all', ['==', ['string', ['get', 'mode']], 'bus'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'rail'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'highSpeedRail'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'metro'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'monorail'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'tram'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'tramTrain'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'water'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'gondola'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'funicular'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'taxi'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'cableCar'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'horse'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'other'], ['>=', ['zoom'], 11]]
-        ],
+        featureMinZoom: (feature: GeoJSON.Feature) => {
+            const mode = feature.properties?.mode;
+            if (typeof mode !== 'string') {
+                // Always display this feature
+                return 0;
+            }
+            return ['rail', 'highSpeedRail', 'metro', 'water'].includes(mode)
+                ? 9
+                : ['monorail', 'tram', 'tramTrain', 'gondola', 'funicular', 'cableCar'].includes(mode)
+                    ? 10
+                    : 11;
+        },
         color: { type: 'property', property: 'color' },
         opacity: 0.8,
         widthScale: 4,
