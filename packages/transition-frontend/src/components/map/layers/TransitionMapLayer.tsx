@@ -44,6 +44,7 @@ type TransitionMapLayerProps = {
     setDragging: (dragging: boolean) => void;
     mapCallbacks: MapCallbacks;
     updateCount: number;
+    filter?: (feature: GeoJSON.Feature) => 0 | 1;
 };
 
 const stringToColor = (hexStringColor: string): [number, number, number] | [number, number, number, number] => [
@@ -133,15 +134,39 @@ const layerNumberGetter = (
     return undefined;
 };
 
+// Get the filter extension for this layer
 const getLayerFeatureFilter = (props: TransitionMapLayerProps, config: LayerDescription.CommonLayerConfiguration) => {
+    // FIXME Is it possible to change the number of filters during execution? We
+    // tried for the transitPaths layer, but apparently if we dynamically change
+    // the number of filters from 1 to 2 and vice versa, it fails. The filter
+    // range is sent to the gl shader and it may not be updated. We tried with
+    // the updateTrigger, without success.
     const layerFilter: any = {};
+    const getFilterFcts: (number | ((feature: GeoJSON.Feature) => number))[] = [];
+    const filterRanges: [number, number][] = [];
     const featureMinZoom =
         config.featureMinZoom === undefined ? undefined : layerNumberGetter(config.featureMinZoom, 1);
     if (featureMinZoom !== undefined) {
-        layerFilter.getFilterValue = featureMinZoom;
-        layerFilter.extensions = [new DataFilterExtension({ filterSize: 1 })];
+        getFilterFcts.push(featureMinZoom);
         // Display the feature if the min zoom is less than the current zoom
-        layerFilter.filterRange = [0, Math.floor(props.viewState.zoom)];
+        filterRanges.push([0, Math.floor(props.viewState.zoom)]);
+    }
+    if (config.canFilter === true) {
+        getFilterFcts.push(props.filter !== undefined ? props.filter : (feature) => 1);
+        // Display the feature if the function's return value is above 1
+        filterRanges.push([1, 10]);
+    }
+
+    // Prepare the layer properties depending on the number of filtering functions
+    if (getFilterFcts.length === 1) {
+        layerFilter.getFilterValue = getFilterFcts[0];
+        layerFilter.extensions = [new DataFilterExtension({ filterSize: 1 })];
+        layerFilter.filterRange = filterRanges[0];
+    } else if (getFilterFcts.length > 1) {
+        layerFilter.getFilterValue = (feature: GeoJSON.Feature) =>
+            getFilterFcts.map((fct) => (typeof fct === 'function' ? fct(feature) : fct));
+        layerFilter.extensions = [new DataFilterExtension({ filterSize: getFilterFcts.length })];
+        layerFilter.filterRange = filterRanges;
     }
     return layerFilter;
 };

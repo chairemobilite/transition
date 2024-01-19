@@ -15,15 +15,14 @@ const defaultGeojson = turfFeatureCollection([]) as GeoJSON.FeatureCollection<Ge
 /**
  * Layer manager for Mapbox-gl maps
  *
- * TODO See how filters are used and type them properly, make them map implementation independant ideally
- *
  * TODO: If we want to support multiple map implementation, this layer management will have to be updated
  */
-class MapboxLayerManager {
+class MapLayerManager {
     private _layersByName: { [key: string]: MapLayer } = {};
     private _enabledLayers: string[] = [];
-    private _defaultFilterByLayer = {};
-    private _filtersByLayer = {};
+    private _filtersByLayer: {
+        [layerName: string]: ((feature: GeoJSON.Feature) => 0 | 1) | undefined;
+    } = {};
 
     constructor(layersConfig: any) {
         for (const layerName in layersConfig) {
@@ -49,84 +48,25 @@ class MapboxLayerManager {
         }
     }
 
-    getFilter(layerName: string) {
-        // TODO Re-implement
-        return this._filtersByLayer[layerName] || null;
+    getFilter(layerName: string): ((feature: GeoJSON.Feature) => 0 | 1) | undefined {
+        return this._filtersByLayer[layerName];
     }
 
-    updateFilter(layerName: string, filter: boolean | any[] | null | undefined) {
-        if (this._defaultFilterByLayer[layerName]) {
-            filter = ['all', this._defaultFilterByLayer[layerName], filter];
-        }
-        this._filtersByLayer[layerName] = filter;
-        if (this.layerIsEnabled(layerName)) {
-            // this._map?.setFilter(layerName, this._filtersByLayer[layerName]);
+    updateFilter(layerName: string, filter: ((feature: GeoJSON.Feature) => 0 | 1) | undefined) {
+        if (filter === undefined) {
+            delete this._filtersByLayer[layerName];
+        } else {
+            this._filtersByLayer[layerName] = filter;
         }
     }
 
     clearFilter(layerName: string) {
-        this._filtersByLayer[layerName] = this._defaultFilterByLayer[layerName];
-        if (this.layerIsEnabled(layerName)) {
-            //this._map?.setFilter(layerName, this._defaultFilterByLayer[layerName]);
-        }
+        delete this._filtersByLayer[layerName];
     }
 
     updateEnabledLayers(enabledLayers: string[] = []) {
         this._enabledLayers = _uniq(enabledLayers).filter((layerName) => this._layersByName[layerName] !== undefined); // make sure we do not have the same layer twice (can happen with user prefs not replaced correctly after updates)
         serviceLocator.eventManager.emit('map.updatedEnabledLayers', this._enabledLayers);
-    }
-
-    showLayerObjectByAttribute(layerName: string, attribute: string, value: any) {
-        // TODO Reimplement
-        const existingFilter = this.getFilter(layerName);
-        let values: any[] = [];
-        if (
-            existingFilter &&
-            existingFilter[0] === 'match' &&
-            existingFilter[1] &&
-            existingFilter[1][0] === 'get' &&
-            existingFilter[1][1] === attribute
-        ) {
-            if (existingFilter[2] && !existingFilter[2].includes(value)) {
-                values = existingFilter[2];
-                values.push(value);
-            } else {
-                values = [value];
-            }
-            existingFilter[2] = values;
-            // TODO Map needs updating at this point
-            // this._map?.setFilter(layerName, existingFilter);
-        } else {
-            // this._map?.setFilter(layerName, ['match', ['get', attribute], values, true, false]);
-        }
-    }
-
-    hideLayerObjectByAttribute(layerName, attribute, value) {
-        // TODO Reimplement
-        const existingFilter = this.getFilter(layerName);
-        let values: any[] = [];
-        if (
-            existingFilter &&
-            existingFilter[0] === 'match' &&
-            existingFilter[1] &&
-            existingFilter[1][0] === 'get' &&
-            existingFilter[1][1] === attribute
-        ) {
-            if (existingFilter[2]) {
-                values = existingFilter[2];
-                const valueIndex = values.indexOf(value);
-                if (valueIndex < 0) {
-                    values.push(value);
-                }
-            } else {
-                values = [value];
-            }
-            existingFilter[2] = values;
-            // TODO Map needs updating at this point
-            // this._map?.setFilter(layerName, existingFilter);
-        } else {
-            // this._map?.setFilter(layerName, ['match', ['get', attribute], values, true, false]);
-        }
     }
 
     getLayer(layerName: string) {
@@ -216,4 +156,4 @@ class MapboxLayerManager {
     }
 }
 
-export default MapboxLayerManager;
+export default MapLayerManager;
