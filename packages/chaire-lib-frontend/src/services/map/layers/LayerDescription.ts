@@ -38,6 +38,7 @@ export type CommonLayerConfiguration = {
      */
     maxZoom?: FeatureNumber;
     autoHighlight?: boolean;
+    featureMinZoom?: FeatureNumber;
 };
 
 export type PointLayerConfiguration = CommonLayerConfiguration & {
