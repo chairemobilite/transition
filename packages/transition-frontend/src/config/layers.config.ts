@@ -83,6 +83,7 @@ const layersConfig = {
                     ? 10
                     : 11;
         },
+        canFilter: true,
         color: { type: 'property', property: 'color' },
         opacity: 0.8,
         widthScale: 4,
