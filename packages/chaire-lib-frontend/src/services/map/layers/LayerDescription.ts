@@ -39,6 +39,11 @@ export type CommonLayerConfiguration = {
     maxZoom?: FeatureNumber;
     autoHighlight?: boolean;
     featureMinZoom?: FeatureNumber;
+    /**
+     * Whether this layer can be filtered by additional filters.
+     * @default false
+     */
+    canFilter?: boolean;
 };
 
 export type PointLayerConfiguration = CommonLayerConfiguration & {

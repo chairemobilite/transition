@@ -9,7 +9,7 @@ import { createRoot } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import ReactDom from 'react-dom';
 import DeckGL from '@deck.gl/react/typed';
-import { FilterContext, Layer, Deck } from '@deck.gl/core/typed';
+import { Layer, Deck } from '@deck.gl/core/typed';
 
 import { Map as MapLibreMap } from 'react-map-gl/maplibre';
 import MapboxGL from 'mapbox-gl';
@@ -22,7 +22,7 @@ import globalMapEvents from 'chaire-lib-frontend/lib/services/map/events/GlobalM
 import transitionMapEvents from '../../services/map/events';
 import mapCustomEvents from '../../services/map/events/MapRelatedCustomEvents';
 import MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManager';
-import PathMapLayerManager from '../../services/map/PathMapLayerManager';
+import TransitPathFilterManager from '../../services/map/TransitPathFilterManager';
 import MapPopupManager from 'chaire-lib-frontend/lib/services/map/MapPopupManager';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { getMapBoxDraw, removeMapBoxDraw } from 'chaire-lib-frontend/lib/services/map/MapPolygonService';
@@ -33,7 +33,10 @@ import _cloneDeep from 'lodash/cloneDeep';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import {
+    MapUpdateLayerEventType,
+    MapFilterLayerEventType
+} from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import {
     layerEventNames,
@@ -85,9 +88,7 @@ interface MainMapState {
  */
 class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWithChildren, MainMapState> {
     private layerManager: MapLayerManager;
-    private pathLayerManager: PathMapLayerManager;
-    private defaultZoomArray: [number];
-    private defaultCenter: [number, number];
+    private pathFilterManager: TransitPathFilterManager;
     private mapEvents: {
         map: { [evtName in mapEventNames]?: MapEventHandlerDescriptor[] };
         layers: {
@@ -157,11 +158,9 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             isDragging: false
         };
 
-        this.defaultZoomArray = [props.zoom];
-        this.defaultCenter = props.center;
         this.layerManager = new MapLayerManager(layersConfig);
 
-        this.pathLayerManager = new PathMapLayerManager(this.layerManager);
+        this.pathFilterManager = new TransitPathFilterManager();
 
         this.popupManager = new MapPopupManager();
         this.mapContainer = createRef<HTMLDivElement>();
@@ -221,28 +220,28 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     showPathsByAttribute = (attribute: string, value: any) => {
         // attribute must be agency_id or line_id
         if (attribute === 'agency_id') {
-            this.pathLayerManager.showAgencyId(value);
+            this.pathFilterManager.showAgencyId(value);
         } else if (attribute === 'line_id') {
-            this.pathLayerManager.showLineId(value);
+            this.pathFilterManager.showLineId(value);
         }
     };
 
     hidePathsByAttribute = (attribute: string, value: any) => {
         // attribute must be agency_id or line_id
         if (attribute === 'agency_id') {
-            this.pathLayerManager.hideAgencyId(value);
+            this.pathFilterManager.hideAgencyId(value);
         } else if (attribute === 'line_id') {
-            this.pathLayerManager.hideLineId(value);
+            this.pathFilterManager.hideLineId(value);
         }
     };
 
     clearPathsFilter = () => {
-        this.pathLayerManager.clearFilter();
+        this.pathFilterManager.clearFilter();
     };
 
     componentDidMount = () => {
         serviceLocator.addService('layerManager', this.layerManager);
-        serviceLocator.addService('pathLayerManager', this.pathLayerManager);
+        serviceLocator.addService('pathLayerManager', this.pathFilterManager);
         this.layerManager.updateEnabledLayers(Preferences.current.map.layers[this.props.activeSection]);
         mapCustomEvents.addEvents(serviceLocator.eventManager);
         //elementResizedEvent(this.mapContainer, this.onResizeContainer);
@@ -252,10 +251,13 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             'map.updateLayer',
             this.updateLayer
         );
+        (serviceLocator.eventManager as EventManager).onEvent<MapFilterLayerEventType>(
+            'map.layers.updateFilter',
+            this.updateFilter
+        );
         serviceLocator.eventManager.on('map.updateLayers', this.updateLayers);
         serviceLocator.eventManager.on('map.addPopup', this.addPopup);
         serviceLocator.eventManager.on('map.removePopup', this.removePopup);
-        serviceLocator.eventManager.on('map.updateFilter', this.updateFilter);
         serviceLocator.eventManager.on('map.clearFilter', this.clearFilter);
         serviceLocator.eventManager.on('map.showLayer', this.showLayer);
         serviceLocator.eventManager.on('map.hideLayer', this.hideLayer);
@@ -289,7 +291,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.off('map.updateLayers', this.updateLayers);
         serviceLocator.eventManager.off('map.addPopup', this.addPopup);
         serviceLocator.eventManager.off('map.removePopup', this.removePopup);
-        serviceLocator.eventManager.off('map.updateFilter', this.updateFilter);
+        serviceLocator.eventManager.off('map.layers.updateFilter', this.updateFilter);
         serviceLocator.eventManager.off('map.clearFilter', this.clearFilter);
         serviceLocator.eventManager.off('map.showLayer', this.showLayer);
         serviceLocator.eventManager.off('map.hideLayer', this.hideLayer);
@@ -357,8 +359,10 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.layerManager.clearFilter(layerName);
     };
 
-    updateFilter = (layerName: string, filter) => {
-        this.layerManager.updateFilter(layerName, filter);
+    updateFilter = (args: { layerName: string; filter: ((feature: GeoJSON.Feature) => 0 | 1) | undefined }) => {
+        this.layerManager.updateFilter(args.layerName, args.filter);
+        this.updateCounts[args.layerName] = (this.updateCounts[args.layerName] || 0) + 1;
+        this.setState({ enabledLayers: this.layerManager.getEnabledLayers().map((layer) => layer.id) });
     };
 
     setRef = (ref) => {
@@ -571,10 +575,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         createRoot(contextMenu).render(<React.Fragment></React.Fragment>);
     };
 
-    onLayerFilter = (context: FilterContext): boolean => {
-        return true;
-    };
-
     private updateUserPrefs = _debounce((viewStateChange) => {
         // Save map zoom and center to user preferences
         Preferences.update(
@@ -685,7 +685,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     }): PickingInfo[] => (this.mapContainer.current as Deck).pickMultipleObjects(opts);
 
     render() {
-        // TODO: Deck.gl Migration: Should this be a state? To avoid recalculating for every render? See how often we render when the migration is complete
+        // TODO: Deck.gl Migration: Should this be a state or a local field (equivalent of useMemo)? To avoid recalculating for every render? See how often we render when the migration is complete
         const enabledLayers = this.layerManager.getEnabledLayers();
         const layers: Layer[] = enabledLayers
             .map((layer) =>
@@ -696,7 +696,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                     activeSection: this.props.activeSection,
                     setDragging: this.setDragging,
                     mapCallbacks: this.mapCallbacks,
-                    updateCount: this.updateCounts[layer.id] || 0
+                    updateCount: this.updateCounts[layer.id] || 0,
+                    filter: this.layerManager.getFilter(layer.id)
                 })
             )
             .filter((layer) => layer !== undefined) as Layer[];
