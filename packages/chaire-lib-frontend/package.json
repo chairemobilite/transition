@@ -38,7 +38,6 @@
     "i18next-http-backend": "^3.0.1",
     "json-loader": "^0.5.7",
     "lodash": "^4.17.21",
-    "mapbox-gl": "chairemobilite/mapbox-gl-js#39bbf9aeb1859424e29cff2584715fddc9d018b9",
     "mjolnir.js": "^2.7.0",
     "moment": "^2.30.1",
     "moment-business-days": "^1.2.0",

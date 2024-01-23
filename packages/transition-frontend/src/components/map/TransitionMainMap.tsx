@@ -12,8 +12,6 @@ import DeckGL from '@deck.gl/react/typed';
 import { Layer, Deck } from '@deck.gl/core/typed';
 
 import { Map as MapLibreMap } from 'react-map-gl/maplibre';
-import MapboxGL from 'mapbox-gl';
-import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import _debounce from 'lodash/debounce';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
@@ -25,7 +23,6 @@ import MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManage
 import TransitPathFilterManager from '../../services/map/TransitPathFilterManager';
 import MapPopupManager from 'chaire-lib-frontend/lib/services/map/MapPopupManager';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { getMapBoxDraw, removeMapBoxDraw } from 'chaire-lib-frontend/lib/services/map/MapPolygonService';
 import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
 import Node from 'transition-common/lib/services/nodes/Node';
 
@@ -107,10 +104,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             };
         };
     };
-    private map: MapboxGL.Map | undefined;
     private popupManager: MapPopupManager;
     private mapContainer;
-    private draw: MapboxDraw | undefined;
     private mapCallbacks: MapCallbacks;
     private updateCounts: { [layerName: string]: number } = {};
 
@@ -198,25 +193,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         };
     }
 
-    fitBounds = (coordinates: [number, number]) => {
-        this.map?.fitBounds(coordinates, {
-            padding: 20,
-            bearing: this.map.getBearing()
-        });
-    };
-
-    setCenter = (coordinates: [number, number]) => {
-        this.map?.setCenter(coordinates);
-    };
-
-    onEnableBoxZoom = () => {
-        this.map?.boxZoom.enable();
-    };
-
-    onDisableBoxZoom = () => {
-        this.map?.boxZoom.disable();
-    };
-
     showPathsByAttribute = (attribute: string, value: any) => {
         // attribute must be agency_id or line_id
         if (attribute === 'agency_id') {
@@ -256,23 +232,15 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             this.updateFilter
         );
         serviceLocator.eventManager.on('map.updateLayers', this.updateLayers);
-        serviceLocator.eventManager.on('map.addPopup', this.addPopup);
-        serviceLocator.eventManager.on('map.removePopup', this.removePopup);
         serviceLocator.eventManager.on('map.clearFilter', this.clearFilter);
         serviceLocator.eventManager.on('map.showLayer', this.showLayer);
         serviceLocator.eventManager.on('map.hideLayer', this.hideLayer);
         serviceLocator.eventManager.on('map.paths.byAttribute.show', this.showPathsByAttribute);
         serviceLocator.eventManager.on('map.paths.byAttribute.hide', this.hidePathsByAttribute);
         serviceLocator.eventManager.on('map.paths.clearFilter', this.clearPathsFilter);
-        serviceLocator.eventManager.on('map.fitBounds', this.fitBounds);
-        serviceLocator.eventManager.on('map.setCenter', this.setCenter);
-        serviceLocator.eventManager.on('map.enableBoxZoom', this.onEnableBoxZoom);
-        serviceLocator.eventManager.on('map.disableBoxZoom', this.onDisableBoxZoom);
         serviceLocator.eventManager.on('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.on('map.hideContextMenu', this.hideContextMenu);
-        serviceLocator.eventManager.on('map.handleDrawControl', this.handleDrawControl);
         //serviceLocator.eventManager.on('map.deleteSelectedNodes', this.deleteSelectedNodes);
-        serviceLocator.eventManager.on('map.deleteSelectedPolygon', this.deleteSelectedPolygon);
         serviceLocator.eventManager.emit('map.loaded');
         Preferences.addChangeListener(this.onPreferencesChange);
     };
@@ -289,8 +257,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.off('map.updateEnabledLayers', this.updateEnabledLayers);
         serviceLocator.eventManager.off('map.updateLayer', this.updateLayer);
         serviceLocator.eventManager.off('map.updateLayers', this.updateLayers);
-        serviceLocator.eventManager.off('map.addPopup', this.addPopup);
-        serviceLocator.eventManager.off('map.removePopup', this.removePopup);
         serviceLocator.eventManager.off('map.layers.updateFilter', this.updateFilter);
         serviceLocator.eventManager.off('map.clearFilter', this.clearFilter);
         serviceLocator.eventManager.off('map.showLayer', this.showLayer);
@@ -298,22 +264,9 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.off('map.paths.byAttribute.show', this.showPathsByAttribute);
         serviceLocator.eventManager.off('map.paths.byAttribute.hide', this.hidePathsByAttribute);
         serviceLocator.eventManager.off('map.paths.clearFilter', this.clearPathsFilter);
-        serviceLocator.eventManager.off('map.fitBounds', this.fitBounds);
-        serviceLocator.eventManager.off('map.setCenter', this.setCenter);
-        serviceLocator.eventManager.off('map.enableBoxZoom', this.onEnableBoxZoom);
-        serviceLocator.eventManager.off('map.disableBoxZoom', this.onDisableBoxZoom);
         serviceLocator.eventManager.off('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.off('map.hideContextMenu', this.hideContextMenu);
-        serviceLocator.eventManager.off('map.handleDrawControl', this.handleDrawControl);
         //serviceLocator.eventManager.off('map.deleteSelectedNodes', this.deleteSelectedNodes);
-        serviceLocator.eventManager.off('map.deleteSelectedPolygon', this.deleteSelectedPolygon);
-        this.map?.remove(); // this will clean up everything including events
-    };
-
-    onResizeContainer = () => {
-        if (this.map) {
-            this.map.resize();
-        }
     };
 
     private executeEvent = (event: MapEventHandlerDescriptor, pointInfo: PointInfo, e: MjolnirEvent) => {
@@ -370,20 +323,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     };
 
     setDrawPolygonService = () => {
-        const map = this.map;
-        if (!map) return;
-        this.draw = getMapBoxDraw(
-            map,
-            (data) => {
-                this.modeChangePolygonService(data);
-            },
-            (polygon) => {
-                this.handleDrawPolygonService(polygon);
-            },
-            (_polygon) => {
-                /* Nothing to do */
-            }
-        );
+        // TODO Re-implement
     };
 
     /**
@@ -432,24 +372,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         }
     };
 
-    deleteSelectedPolygon = () => {
-        if (this.draw) {
-            this.draw.deleteAll().getAll();
-        }
-        serviceLocator.selectedObjectsManager.select('selectedNodes', null);
-        serviceLocator.selectedObjectsManager.select('isContainSelectedFrozenNodes', null);
-        serviceLocator.selectedObjectsManager.select('isDrawPolygon', null);
-        serviceLocator.eventManager.emit('selected.update.nodes');
-        serviceLocator.eventManager.emit('map.updateLayers', {
-            transitNodesSelected: turfFeatureCollection([]),
-            transitNodes250mRadius: turfFeatureCollection([]),
-            transitNodes500mRadius: turfFeatureCollection([]),
-            transitNodes750mRadius: turfFeatureCollection([]),
-            transitNodes1000mRadius: turfFeatureCollection([]),
-            transitNodesRoutingRadius: turfFeatureCollection([])
-        });
-    };
-
     onDeleteSelectedNodes = () => {
         serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 0.0 });
         const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
@@ -468,49 +390,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 console.log('Error deleting unused nodes', error);
             })
             .finally(() => {
-                this.deleteSelectedPolygon();
                 serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 1.0 });
             });
-    };
-
-    handleDrawControl = (section: string) => {
-        const map = this.map;
-        if (!map) return;
-        if (section === 'nodes' && !this.draw) {
-            this.setDrawPolygonService();
-        } else if (section !== 'nodes' && this.draw) {
-            this.deleteSelectedPolygon();
-            removeMapBoxDraw(
-                map,
-                this.draw,
-                () => {
-                    /* Nothing to do */
-                },
-                () => {
-                    /* Nothing to do */
-                },
-                () => {
-                    /* Nothing to do */
-                }
-            );
-            this.draw = null;
-        }
-    };
-
-    addPopup = (popupId: string, popup: MapboxGL.Popup, removeAll = true) => {
-        this.hideContextMenu();
-        if (removeAll) {
-            this.removeAllPopups();
-        }
-        this.popupManager.addPopup(popupId, popup);
-    };
-
-    removePopup = (popupId: string) => {
-        this.popupManager.removePopup(popupId);
-    };
-
-    removeAllPopups = () => {
-        this.popupManager.removeAllPopups();
     };
 
     updateLayer = (args: {
