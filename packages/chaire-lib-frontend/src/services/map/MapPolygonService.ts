@@ -4,6 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+/*
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { Map } from 'mapbox-gl';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
@@ -43,3 +44,6 @@ const removeMapBoxDraw = (
 };
 
 export { getMapBoxDraw, removeMapBoxDraw };
+*/
+// TODO Re-implement the polygon service for deck.gl
+export default true;
