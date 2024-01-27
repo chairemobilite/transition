@@ -25,6 +25,7 @@ import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/direct
 import { UserAttributes } from 'chaire-lib-backend/lib/services/users/user';
 import config from 'chaire-lib-backend/lib/config/server.config';
 import { userAuthModel } from 'chaire-lib-backend/lib/services/auth/userAuthModel';
+import publicRoutes from './api/public.routes';
 
 export const setupServer = (app: Express) => {
     const projectShortname = config.projectShortname;
@@ -114,6 +115,9 @@ export const setupServer = (app: Express) => {
         res.set('Content-Type', 'application/json');
         next();
     });
+
+    // Set up public API
+    publicRoutes(app);
 
     // TODO File may not be at root of user directory, support path instead of just file here
     app.get('/exports/:file', (req, res) => {
