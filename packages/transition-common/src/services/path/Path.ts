@@ -30,6 +30,7 @@ import { GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
 import { EventEmitter } from 'events';
 import NodeCollection from '../nodes/NodeCollection';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const lineModesConfigByMode = {};
 for (let i = 0, countI = lineModesConfig.length; i < countI; i++) {
@@ -741,11 +742,33 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         this._updateHistory();
     }
 
-    segmentGeojson(nodeStartIndex, nodeEndIndex, properties: any = {}): GeoJSON.Feature<GeoJSON.LineString> {
+    /**
+     * Get the geography between 2 nodes.
+     *
+     * @param nodeStartIndex The index of the node at the beginning of the
+     * desired segment
+     * @param nodeEndIndex The index of the node at the end of the desired
+     * segment
+     * @param properties Any additional property to add to the segment geojson
+     * @returns A line string feature for the segment between nodes, or
+     * undefined if the segment has no geometry or indexes are invalid
+     * @throws TrError with code `PathNoGeography` if the path has no geography,
+     * or `PathInvalidSegmentIndex` if the start/end nodes are invalid
+     */
+    segmentGeojson(
+        nodeStartIndex: number,
+        nodeEndIndex: number,
+        properties: any = {}
+    ): GeoJSON.Feature<GeoJSON.LineString> {
+        if (this.attributes.geography === undefined) {
+            throw new TrError('Path has no geography', 'PathNoGeography');
+        }
+        if (nodeStartIndex > this.attributes.segments.length || nodeStartIndex >= nodeEndIndex) {
+            throw new TrError('Path segment geojson: invalid start index', 'PathInvalidSegmentIndex');
+        }
         if (properties.color === undefined) {
             properties.color = this.get('color', this.getLine()?.get('color'));
         }
-        //console.log('line', this.getLine().attributes);
         const pathCoordinates = this.attributes.geography.coordinates;
         const pathSegments = this.attributes.segments;
         const pathCoordinatesStartIndex = pathSegments[nodeStartIndex];
@@ -753,11 +776,17 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         if (!_isBlank(pathSegments[nodeEndIndex])) {
             // last coordinate
             pathCoordinatesEndIndex = pathSegments[nodeEndIndex];
-        } // last segment:
-        else {
+        } else {
+            // last segment:
             pathCoordinatesEndIndex = pathCoordinates.length - 1;
         }
         const segmentCoordinates = pathCoordinates.slice(pathCoordinatesStartIndex, pathCoordinatesEndIndex + 1); // slice does not include end index
+        // Make sure there are coordinates. If only one, repeat the coordinate to have a 0-length line string
+        if (segmentCoordinates.length < 1) {
+            throw new TrError('Path segment geojson: invalid line string length', 'PathInvalidSegmentIndex');
+        } else if (segmentCoordinates.length === 1) {
+            segmentCoordinates.push(segmentCoordinates[0]);
+        }
         return {
             type: 'Feature' as const,
             id: this.attributes.integer_id,
