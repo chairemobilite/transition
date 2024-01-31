@@ -368,23 +368,50 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         return this.updateGeography();
     }
 
-    insertWaypoint(waypointCoordinates: [number, number], waypointType = 'engine', afterNodeIndex?, insertIndex?) {
+    /**
+     * Insert a waypoint at a given location
+     *
+     * @param waypointCoordinates The coordinates of the waypoint to insert
+     * @param waypointType The type of the waypoint
+     * @param afterNodeIndex The index of the node after which to insert this
+     * waypoint. If not set, it is added at the end of the path
+     * @param insertIndex The index at which to insert this waypoint. If not
+     * set, it is added at the end of the waypoints for this path
+     * @returns The updated path
+     */
+    async insertWaypoint(
+        waypointCoordinates: [number, number],
+        waypointType = 'engine',
+        afterNodeIndex?: number,
+        insertIndex?: number
+    ): Promise<{ path: Path }> {
         const nodeIds = this.attributes.nodes;
         //console.log('inserting waypoint', waypointCoordinates, 'after node index: ' + afterNodeIndex + ' at insert index: ' + insertIndex);
         let afterNodeWaypoints: [number, number][] = [];
         let afterNodeWaypointTypes: string[] = [];
         if (_isBlank(insertIndex) && !_isBlank(afterNodeIndex)) {
+            afterNodeWaypoints = this.getAttributes().data.waypoints[afterNodeIndex as number] || [];
+            afterNodeWaypointTypes = this.getAttributes().data.waypointTypes[afterNodeIndex as number] || [];
+            afterNodeWaypoints.push(waypointCoordinates);
+            afterNodeWaypointTypes.push(waypointType);
+        } else if (!_isBlank(insertIndex) && !_isBlank(afterNodeIndex)) {
+            afterNodeWaypoints = this.getAttributes().data.waypoints[afterNodeIndex as number] || [];
+            afterNodeWaypointTypes = this.getAttributes().data.waypointTypes[afterNodeIndex as number] || [];
+            afterNodeWaypoints.splice(insertIndex as number, 0, waypointCoordinates);
+            afterNodeWaypointTypes.splice(insertIndex as number, 0, waypointType);
+        } else if (this.attributes.geography === undefined) {
+            // No geography, insert at the end, or don't insert if path is empty
+            if (this.getAttributes().nodes.length === 0) {
+                return { path: this };
+            }
+            afterNodeIndex = this.getAttributes().nodes.length - 1;
             afterNodeWaypoints = this.getAttributes().data.waypoints[afterNodeIndex] || [];
             afterNodeWaypointTypes = this.getAttributes().data.waypointTypes[afterNodeIndex] || [];
             afterNodeWaypoints.push(waypointCoordinates);
             afterNodeWaypointTypes.push(waypointType);
-        } else if (!_isBlank(insertIndex) && !_isBlank(afterNodeIndex)) {
-            afterNodeWaypoints = this.getAttributes().data.waypoints[afterNodeIndex] || [];
-            afterNodeWaypointTypes = this.getAttributes().data.waypointTypes[afterNodeIndex] || [];
-            afterNodeWaypoints.splice(insertIndex, 0, waypointCoordinates);
-            afterNodeWaypointTypes.splice(insertIndex, 0, waypointType);
-        } // we need to determine where to put waypoint on path
-        else {
+        } else {
+            // we need to determine where to put waypoint on path, if the point is close enough to the line, take this point
+            // TODO Move the search of the best location out of this function and add the waypoint at the end of the path is indexes are not set instead
             const waypointsByNodeIndex = this.getAttributes().data.waypoints;
             const waypointTypesByNodeIndex = this.getAttributes().data.waypointTypes;
             const globalCoordinates = this.attributes.geography.coordinates;
@@ -395,7 +422,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             );
             const segmentBeforeWaypointLength = turfLength(segmentBeforeWaypoint, { units: 'meters' });
             //console.log('segmentBeforeLength', segmentBeforeWaypointLength, 'segmentBeforeCoordinates', segmentBeforeWaypoint.geometry.coordinates, 'globalCoordinates', globalCoordinates);
-            afterNodeIndex = null;
+            afterNodeIndex = undefined;
             insertIndex = 0;
             const segments = this.attributes.segments;
             let segmentsLengthSoFar = 0;
@@ -408,16 +435,13 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
                     break;
                 }
             }
-            if (afterNodeIndex === null) {
+            if (afterNodeIndex === undefined) {
                 afterNodeIndex = nodeIds.length - 1;
             }
             //console.log('inserted waypoint will be after node index', afterNodeIndex);
             afterNodeWaypoints = waypointsByNodeIndex[afterNodeIndex] || [];
             afterNodeWaypointTypes = waypointTypesByNodeIndex[afterNodeIndex] || [];
-            const segmentGeojson =
-                afterNodeIndex === nodeIds.length - 1
-                    ? turfHelpers.lineString(this.attributes.geography.coordinates.slice(segments[afterNodeIndex]))
-                    : this.segmentGeojson(afterNodeIndex, afterNodeIndex + 1);
+            const segmentGeojson = this.segmentGeojson(afterNodeIndex, afterNodeIndex + 1);
             for (let i = 0, count = afterNodeWaypoints.length; i < count; i++) {
                 const waypoint = afterNodeWaypoints[i];
                 const segmentBeforeExistingWaypoint = turfLineSlice(
@@ -432,7 +456,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
                     segmentGeojson
                 );
                 const segmentBeforeLength = turfLength(segmentBeforeWaypoint, { units: 'meters' });
-                if (segmentBeforeLength > segmentBeforeExistingLength) {
+                if (segmentBeforeLength >= segmentBeforeExistingLength) {
                     insertIndex = i + 1;
                     //console.log('inserted waypoint will be after waypoint index', insertIndex);
                     //break;
@@ -445,31 +469,71 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
                 afterNodeWaypointTypes.splice(insertIndex, 0, waypointType);
             }
         }
-        this._attributes.data.waypoints[afterNodeIndex] = afterNodeWaypoints;
-        this._attributes.data.waypointTypes[afterNodeIndex] = afterNodeWaypointTypes;
+        this._attributes.data.waypoints[afterNodeIndex as number] = afterNodeWaypoints;
+        this._attributes.data.waypointTypes[afterNodeIndex as number] = afterNodeWaypointTypes;
         this._updateHistory();
         return this.updateGeography();
     }
 
-    updateWaypoint(
+    /**
+     * Replace waypoint coordinates by new ones. If the waypoint does not exist,
+     * the path is not changed.
+     *
+     * @param waypointCoordinates The new coordinates of the waypoint
+     * @param waypointType The type of this updated waypoint
+     * @param afterNodeIndex The index of the node after which the waypoint is
+     * located
+     * @param waypointIndex The index of the waypoint to update
+     * @returns The updated path
+     */
+    async updateWaypoint(
         waypointCoordinates: [number, number],
-        waypointType = null,
+        waypointType: string | undefined = undefined,
         afterNodeIndex: number,
         waypointIndex: number
-    ) {
-        //console.log('updating waypoint', waypointCoordinates, 'after node index: ' + afterNodeIndex + ' at index: ' + waypointIndex);
+    ): Promise<{ path: Path }> {
+        // Make sure waypoint exists
+        if (
+            _isBlank(this.attributes.data.waypoints[afterNodeIndex]) ||
+            _isBlank(this.attributes.data.waypoints[afterNodeIndex][waypointIndex])
+        ) {
+            // Waypoint does not exist, just return
+            return { path: this };
+        }
         const afterNodeWaypoints = this.attributes.data.waypoints[afterNodeIndex];
         const afterNodeWaypointTypes = this.attributes.data.waypointTypes[afterNodeIndex];
         afterNodeWaypoints[waypointIndex] = waypointCoordinates;
         afterNodeWaypointTypes[waypointIndex] = waypointType || afterNodeWaypointTypes[waypointIndex] || 'engine';
-        this._attributes.data.waypoints[afterNodeIndex] = afterNodeWaypoints;
-        this._attributes.data.waypointTypes[afterNodeIndex] = afterNodeWaypointTypes;
+        this.attributes.data.waypoints[afterNodeIndex] = afterNodeWaypoints;
+        this.attributes.data.waypointTypes[afterNodeIndex] = afterNodeWaypointTypes;
         this._updateHistory();
         return this.updateGeography();
     }
 
-    replaceWaypointByNodeId(nodeId: string, afterNodeIndex: number, waypointIndex: number, waypointType = 'engine') {
-        //console.log('nodeId afterNodeIndex waypointIndex', nodeId, afterNodeIndex, waypointIndex);
+    /**
+     * Replace a waypoint by a transit node. The node is expected to exist. If
+     * the waypoint does not exit, the path is not changed
+     * @param nodeId The ID of the node to replace
+     * @param afterNodeIndex The index of the node after which the waypoint to
+     * replace is located
+     * @param waypointIndex The index of the waypoint to replace
+     * @param waypointType The type of the node
+     * @returns The updated path.
+     */
+    async replaceWaypointByNodeId(
+        nodeId: string,
+        afterNodeIndex: number,
+        waypointIndex: number,
+        waypointType = 'engine'
+    ): Promise<{ path: Path }> {
+        // Make sure waypoint exists
+        if (
+            _isBlank(this.attributes.data.waypoints[afterNodeIndex]) ||
+            _isBlank(this.attributes.data.waypoints[afterNodeIndex][waypointIndex])
+        ) {
+            // Waypoint does not exist, just return
+            return { path: this };
+        }
         const waypointsByNodeIndex = this.attributes.data.waypoints;
         const waypointTypesByNodeIndex = this.attributes.data.waypointTypes;
         const afterNodeWaypoints = waypointsByNodeIndex[afterNodeIndex];
@@ -495,8 +559,22 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         return this.updateGeography();
     }
 
-    removeWaypoint(afterNodeIndex, waypointIndex) {
-        //console.log('removing waypoint', 'after node index: ' + afterNodeIndex + ' at index: ' + waypointIndex);
+    /**
+     * Remove a waypoint. If the waypoint does not exit, the path is not changed
+     * @param afterNodeIndex The index of the node after which the waypoint to
+     * replace is located
+     * @param waypointIndex The index of the waypoint to replace
+     * @returns The updated path.
+     */
+    async removeWaypoint(afterNodeIndex: number, waypointIndex: number): Promise<{ path: Path }> {
+        // Make sure waypoint exists
+        if (
+            _isBlank(this.attributes.data.waypoints[afterNodeIndex]) ||
+            _isBlank(this.attributes.data.waypoints[afterNodeIndex][waypointIndex])
+        ) {
+            // Waypoint does not exist, just return
+            return { path: this };
+        }
         const afterNodeWaypoints = this.attributes.data.waypoints[afterNodeIndex];
         const afterNodeWaypointTypes = this.attributes.data.waypointTypes[afterNodeIndex];
         afterNodeWaypoints.splice(waypointIndex, 1);

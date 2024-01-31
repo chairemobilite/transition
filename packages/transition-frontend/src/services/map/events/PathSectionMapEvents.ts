@@ -189,7 +189,7 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
                     e.lngLat.toArray() as [number, number],
                     waypointType,
                     lastNodeIndex,
-                    null
+                    undefined
                 );
             }
 
