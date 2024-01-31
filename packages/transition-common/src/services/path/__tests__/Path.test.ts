@@ -11,11 +11,13 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import EventManagerMock from 'chaire-lib-common/lib/test/services/events/EventManagerMock';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import _omit from 'lodash/omit';
+import each from 'jest-each';
 
 import Path from '../Path';
 import Node from '../../nodes/Node';
 import NodeCollection from '../../nodes/NodeCollection';
 import { getPathAttributesWithData } from './PathData.test';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const eventManager = EventManagerMock.eventManagerMock;
 
@@ -105,6 +107,7 @@ const pathAttributesNoGeometry = {
     /** TODO document? */
     segments: [],
     mode: 'monorail',
+    integer_id: 3,
     is_frozen: false,
     data: {
         ...arbitraryData
@@ -283,7 +286,7 @@ test('getClonedAttributes', () => {
 
     // Delete specifics
     const clonedAttributes = path.getClonedAttributes();
-    const { id, data, ...expected } = _cloneDeep(pathAttributesNoGeometry);
+    const { id, data, integer_id, ...expected } = _cloneDeep(pathAttributesNoGeometry);
     (expected as any).data = _omit(data, 'gtfs');
     expect(clonedAttributes).toEqual(expected);
 
@@ -353,5 +356,136 @@ describe('getDwellTimeSecondsAtNode', () => {
         instance.attributes.data.ignoreNodesDefaultDwellTimeSeconds = false;
         instance.attributes.data.defaultDwellTimeSeconds = 15.3;
         expect(instance.getDwellTimeSecondsAtNode(15.7)).toBe(16);
+    });
+});
+
+describe('Segment geojson', () => {
+    type SegmentTestData = {
+        geography?: GeoJSON.LineString;
+        segments?: number[];
+    };
+
+    const basePoint = [-73, 45];
+
+    each([
+        ['Empty geography', { }, 'PathNoGeography', 0, 1],
+        ['Path with geography, valid segment', {
+            geography: {
+                type: 'LineString',
+                coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+            },
+            segments: [ 0, 2, 3 ] }, {
+                type: 'LineString',
+                coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001]]
+            }, 0, 2],
+        ['Path with geography, identical start/end', {
+            geography: {
+                type: 'LineString',
+                coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+            },
+            segments: [ 0, 2, 3 ] }, 'PathInvalidSegmentIndex', 2, 2],
+        ['Path with geography, start index too high', {
+            geography: {
+                type: 'LineString',
+                coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+            },
+            segments: [ 0, 2, 3 ] }, 'PathInvalidSegmentIndex', 5, 6],
+        ['Path with geography, end index too high', {
+            geography: {
+                type: 'LineString',
+                coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+            },
+            segments: [ 0, 2, 3 ] }, {
+                type: 'LineString',
+                coordinates: [[basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+            }, 1, 5],
+        ['Path with geography, start higher than end', {
+            geography: {
+                type: 'LineString',
+                coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+            },
+            segments: [ 0, 2, 3 ] }, 'PathInvalidSegmentIndex', 2, 0],
+        ['Path with geography, start is the end, on a node', {
+            geography: {
+                type: 'LineString',
+                coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+            },
+            segments: [ 0, 2, 4 ] }, {
+                type: 'LineString',
+                coordinates: [[basePoint[0] - 0.0004, basePoint[1]], [basePoint[0] - 0.0004, basePoint[1]]]
+            }, 2, 3],
+        ['Path with geography, start is the end, with waypoints', {
+            geography: {
+                type: 'LineString',
+                coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+            },
+            segments: [ 0, 2, 3 ] }, {
+                type: 'LineString',
+                coordinates: [[basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+            }, 2, 3],
+        ['Path with geography, invalid segment data', {
+            geography: {
+                type: 'LineString',
+                coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+            },
+            segments: [ 0, 2, 10 ] }, 'PathInvalidSegmentIndex', 2, 3],
+    ]).test('Segment geojson: %s', (_title, preData: SegmentTestData, expected: GeoJSON.LineString | string, startIndex: number, endIndex: number) => {
+        // Prepare test data
+        const path = new Path(_cloneDeep(pathAttributesNoGeometry), true);
+        path.attributes.geography = preData.geography === undefined ? undefined as any: _cloneDeep(preData.geography);
+        path.attributes.segments = _cloneDeep(preData.segments || []);
+
+        // get segment geojson
+        let error: unknown | undefined = undefined;
+        let segmentGeojson: GeoJSON.Feature<GeoJSON.LineString> | undefined = undefined;
+        try {
+            segmentGeojson = path.segmentGeojson(startIndex, endIndex);
+        } catch (err) {
+            error = err;
+        }
+
+        // Compare with the expected data
+        if (typeof expected === 'string') {
+            expect(error).toBeDefined();
+            expect((error as TrError).getCode()).toEqual(expected)
+        } else {
+            expect(error).toBeUndefined();
+            expect(segmentGeojson).toEqual({
+                type: 'Feature',
+                id: path.attributes.integer_id,
+                properties: {
+                },
+                geometry: expected
+            });
+        }
+    });
+
+    test('With additional properties', () => {
+        const path = new Path(_cloneDeep(pathAttributesNoGeometry), true);
+        path.attributes.geography = { 
+            type: 'LineString', 
+            coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]] 
+        }
+        path.attributes.segments = [ 0, 2, 3 ];
+
+        // get segment geojson
+        const additionalProperties = {
+            test: 'abc',
+            foo: 23
+        }
+        const segmentGeojson = path.segmentGeojson(0, 1, additionalProperties);
+
+        // Compare with the expected data
+        expect(segmentGeojson).toEqual({
+            type: 'Feature',
+            id: path.attributes.integer_id,
+            properties: {
+                ...additionalProperties
+            },
+            geometry: {
+                type: 'LineString',
+                coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]]]
+            }
+        });
     });
 });
