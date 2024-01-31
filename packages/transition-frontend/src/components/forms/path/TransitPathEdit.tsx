@@ -281,7 +281,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.emit('selected.updateLayers.path');
     };
 
-    onUpdateWaypoint = (coordinates: [number, number], waypointType = null) => {
+    onUpdateWaypoint = (coordinates: [number, number], waypointType?: string) => {
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'transitPathWaypointsSelected',
             data: turfFeatureCollection([])
