@@ -40,7 +40,6 @@ const defaultFailureCallback = (err, _req: Request, res: Response, _next) => {
 };
 
 export default <U extends IUserModel>(app: express.Express, authModel: IAuthModel<U>, passport: PassportStatic) => {
-
     app.get(
         '/googlelogin',
         passport.authenticate('google', { scope: 'https://www.googleapis.com/auth/userinfo.email' })
