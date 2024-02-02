@@ -96,7 +96,7 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
     );
 
     passport.use(
-        'api-login',
+        'api-strategy',
         new LocalStrategy.Strategy(
             { usernameField: 'usernameOrEmail', passwordField: 'password' },
             (
@@ -104,7 +104,6 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
                 password: string,
                 done: (error: any, user?: any, options?: LocalStrategy.IVerifyOptions) => void
             ) => {
-                console.log('api-login strategy');
                 authModel
                     .find({ usernameOrEmail: usernameOrEmail })
                     .then(async (model) => {
