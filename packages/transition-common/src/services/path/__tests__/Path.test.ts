@@ -538,6 +538,110 @@ describe('Replace waypoint by node id', () => {
     });
 });
 
+describe('Insert node ID', () => {
+    each([
+        ['In empty path', { }, { nodes: [replacingNodeId], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]], calculateGeography: true }, undefined],
+        ['At the end of a one node path', { nodes: [node1Id], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] }, { nodes: [node1Id, replacingNodeId], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []], calculateGeography: true }, undefined],
+        ['At the end of a multiple node path', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, { nodes: [node1Id, node2Id, replacingNodeId], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], []], waypointTypes: [[], [], []], calculateGeography: true }, undefined],
+        ['At the end of a multiple node and waypoints path', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [newWaypoint] ], waypointTypes: [[], ['manual']] }, { nodes: [node1Id, node2Id, replacingNodeId], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [newWaypoint], []], waypointTypes: [[], ['manual'], []], calculateGeography: true }, undefined],
+        ['Insert at the beginning', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, { nodes: [replacingNodeId, node1Id, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], []], waypointTypes: [[], [], []], calculateGeography: true }, 0],
+        ['Insert after a node, without waypoints', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], []], waypointTypes: [[], [], []], calculateGeography: true }, 1],
+        ['Insert after a node, with waypoints', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [newWaypoint] ], waypointTypes: [[], ['manual']] }, { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], [newWaypoint]], waypointTypes: [[], [], ['manual']], calculateGeography: true }, 1],
+        ['Insert identical node', { nodes: [replacingNodeId, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [newWaypoint] ], waypointTypes: [[], ['manual']] }, { calculateGeography: true }, 1],
+    ]).test('%s', async (_title, preData: NodeAndWaypointData, expected: NodeAndWaypointData, insertIndex: number | undefined) => {
+        // Prepare test data
+        const path = new Path(_cloneDeep(pathAttributesNoGeometry), true);
+        path.attributes.nodes = _cloneDeep(preData.nodes || []);
+        path.attributes.data.nodeTypes = _cloneDeep(preData.nodeTypes || []);
+        path.attributes.data.waypoints = _cloneDeep(preData.waypoints || []);
+        path.attributes.data.waypointTypes = _cloneDeep(preData.waypointTypes || []);
+        if (preData.calculateGeography !== false) {
+            updatePathGeography(path);
+        }
+        updateGeographyMock.mockClear();
+
+        // Insert node ID
+        const response = await path.insertNodeId(replacingNodeId, insertIndex === undefined ? null : insertIndex, 'manual');
+        expect(response.path).toEqual(path);
+
+        // Validate the data
+        expect(path.attributes.nodes).toEqual(expected.nodes || preData.nodes || []);
+        expect(path.attributes.data.nodeTypes).toEqual(expected.nodeTypes || preData.nodeTypes || []);
+        expect(path.attributes.data.waypoints).toEqual(expected.waypoints || preData.waypoints || []);
+        expect(path.attributes.data.waypointTypes).toEqual(expected.waypointTypes || preData.waypointTypes || []);
+        expect(updateGeographyMock).toHaveBeenCalledTimes(expected.calculateGeography !== false ? 1 : 0);
+    });
+});
+
+describe('Remove node', () => {
+    each([
+        ['In empty path', { }, { calculateGeography: false }],
+        ['Single node of a path', { nodes: [replacingNodeId], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] }, { nodes: [], nodeTypes: [], waypoints: [], waypointTypes: [] }],
+        ['Last node of the path', { nodes: [node1Id, replacingNodeId], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, { nodes: [node1Id], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] }],
+        ['Node in the middle of a path, with waypoints after', { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], [newWaypoint] ], waypointTypes: [[], [], ['manual']] }, { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [newWaypoint]], waypointTypes: [[], ['manual']]}],
+        ['Node in the middle of a path, with waypoints before, on and after the node, waypoints are deleted', { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[[newWaypoint[0] + 0.01, newWaypoint[1] + 0.01]], [newWaypoint], [[newWaypoint[0] + 0.02, newWaypoint[1] + 0.02]] ], waypointTypes: [['manual'], ['manual'], ['manual']] }, { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [[newWaypoint[0] + 0.02, newWaypoint[1] + 0.02]]], waypointTypes: [[], ['manual']] }],
+        ['Node that is duplicated in the path, not deleted', { nodes: [replacingNodeId, node1Id, replacingNodeId], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], []], waypointTypes: [[], [], []] }, { calculateGeography: false }],
+        ['Node between 2 duplicated nodes', { nodes: [node1Id, replacingNodeId, node1Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], []], waypointTypes: [[], [], []] }, { nodes: [node1Id], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] } ],
+        ['Node not part of the path', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, { calculateGeography: false }],
+    ]).test('By ID: %s', async (_title, preData: NodeAndWaypointData, expected: NodeAndWaypointData) => {
+        // Prepare test data
+        const path = new Path(_cloneDeep(pathAttributesNoGeometry), true);
+        path.attributes.nodes = _cloneDeep(preData.nodes || []);
+        path.attributes.data.nodeTypes = _cloneDeep(preData.nodeTypes || []);
+        path.attributes.data.waypoints = _cloneDeep(preData.waypoints || []);
+        path.attributes.data.waypointTypes = _cloneDeep(preData.waypointTypes || []);
+        if (preData.calculateGeography !== false) {
+            updatePathGeography(path);
+        }
+        updateGeographyMock.mockClear();
+
+        // Remove node ID
+        const response = await path.removeNodeId(replacingNodeId);
+        expect(response.path).toEqual(path);
+
+        // Validate the data
+        expect(path.attributes.nodes).toEqual(expected.nodes || preData.nodes || []);
+        expect(path.attributes.data.nodeTypes).toEqual(expected.nodeTypes || preData.nodeTypes || []);
+        expect(path.attributes.data.waypoints).toEqual(expected.waypoints || preData.waypoints || []);
+        expect(path.attributes.data.waypointTypes).toEqual(expected.waypointTypes || preData.waypointTypes || []);
+        expect(updateGeographyMock).toHaveBeenCalledTimes(expected.calculateGeography !== false ? 1 : 0);
+    });
+
+    each([
+        ['In empty path, unexisting index', { }, { calculateGeography: false }, 2],
+        ['Single node of a path', { nodes: [replacingNodeId], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] }, { nodes: [], nodeTypes: [], waypoints: [], waypointTypes: [] }, 0],
+        ['Last node of the path', { nodes: [node1Id, replacingNodeId], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, { nodes: [node1Id], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] }, 1],
+        ['Node in the middle of a path, with waypoints after', { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], [newWaypoint] ], waypointTypes: [[], [], ['manual']] }, { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [newWaypoint]], waypointTypes: [[], ['manual']]}, 1],
+        ['Node in the middle of a path, with waypoints before, on and after the node, waypoints are deleted', { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[[newWaypoint[0] + 0.01, newWaypoint[1] + 0.01]], [newWaypoint], [[newWaypoint[0] + 0.02, newWaypoint[1] + 0.02]] ], waypointTypes: [['manual'], ['manual'], ['manual']] }, { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [[newWaypoint[0] + 0.02, newWaypoint[1] + 0.02]]], waypointTypes: [[], ['manual']] }, 1],
+        ['Node that is duplicated in the path', { nodes: [replacingNodeId, node1Id, replacingNodeId], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], []], waypointTypes: [[], [], []] }, { nodes: [node1Id, replacingNodeId], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, 0],
+        ['Node between 2 duplicated nodes', { nodes: [node1Id, replacingNodeId, node1Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], []], waypointTypes: [[], [], []] }, { nodes: [node1Id], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] }, 1 ],
+        ['Unexisting index', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, { calculateGeography: false }, 3],
+        ['Unexisting index, index is length', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, { calculateGeography: false }, 2],
+    ]).test('By index: %s', async (_title, preData: NodeAndWaypointData, expected: NodeAndWaypointData, removeIndex: number) => {
+        // Prepare test data
+        const path = new Path(_cloneDeep(pathAttributesNoGeometry), true);
+        path.attributes.nodes = _cloneDeep(preData.nodes || []);
+        path.attributes.data.nodeTypes = _cloneDeep(preData.nodeTypes || []);
+        path.attributes.data.waypoints = _cloneDeep(preData.waypoints || []);
+        path.attributes.data.waypointTypes = _cloneDeep(preData.waypointTypes || []);
+        if (preData.calculateGeography !== false) {
+            updatePathGeography(path);
+        }
+        updateGeographyMock.mockClear();
+
+        // Remove node
+        const response = await path.removeNode(removeIndex);
+        expect(response.path).toEqual(path);
+
+        // Validate the data
+        expect(path.attributes.nodes).toEqual(expected.nodes || preData.nodes || []);
+        expect(path.attributes.data.nodeTypes).toEqual(expected.nodeTypes || preData.nodeTypes || []);
+        expect(path.attributes.data.waypoints).toEqual(expected.waypoints || preData.waypoints || []);
+        expect(path.attributes.data.waypointTypes).toEqual(expected.waypointTypes || preData.waypointTypes || []);
+        expect(updateGeographyMock).toHaveBeenCalledTimes(expected.calculateGeography !== false ? 1 : 0);
+    });
+});
+
 describe('Segment geojson', () => {
     type SegmentTestData = {
         geography?: GeoJSON.LineString;

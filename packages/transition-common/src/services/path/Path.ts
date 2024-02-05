@@ -246,18 +246,6 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         };
     }
 
-    setNodesFromIntegerIds(integerIdsArray) {
-        const newNodes: string[] = [];
-        const newNodeTypes: string[] = [];
-        integerIdsArray.forEach((integerId) => {
-            newNodes.push(this._collectionManager.get('nodes').idByIntegerId.get(integerId));
-            newNodeTypes.push('engine');
-        });
-        this._attributes.nodes = newNodes;
-        this._attributes.data.nodeTypes = newNodeTypes;
-        this._updateHistory();
-    }
-
     /* This is used for manual routing only: when you import from a gtfs,
        the coordinates are imported from the shape.
        However, if routing engine is manual (click on map), we loose the
@@ -342,7 +330,14 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         this._attributes.data.waypointTypes = cleanedWaypointTypes;
     }
 
-    insertNodeId(nodeId, insertIndex, waypointType = 'engine') {
+    /**
+     * Insert a node ID at a specific location
+     * @param nodeId The ID of the node to insert
+     * @param insertIndex The index at which to insert the node
+     * @param nodeType The type of this node. Defaults to `engine`
+     * @returns The updated path
+     */
+    insertNodeId(nodeId: string, insertIndex: number | null, nodeType = 'engine'): Promise<{ path: Path }> {
         const nodeIds = this.getAttributes().nodes;
         const nodeTypes = this.getAttributes().data.nodeTypes || [];
         const waypointsByNodeIndex = this.getAttributes().data.waypoints || [];
@@ -350,12 +345,12 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         if (insertIndex === undefined || insertIndex === null) {
             insertIndex = nodeIds.length;
             nodeIds.push(nodeId);
-            nodeTypes.push(waypointType);
+            nodeTypes.push(nodeType);
             waypointsByNodeIndex.push([]);
             waypointTypesByNodeIndex.push([]);
         } else {
             nodeIds.splice(insertIndex, 0, nodeId);
-            nodeTypes.splice(insertIndex, 0, waypointType);
+            nodeTypes.splice(insertIndex, 0, nodeType);
             waypointsByNodeIndex.splice(insertIndex, 0, []);
             waypointTypesByNodeIndex.splice(insertIndex, 0, []);
         }
@@ -366,6 +361,75 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         this.removeConsecutiveDuplicateNodes();
         this._updateHistory();
         return this.updateGeography();
+    }
+
+    /**
+     * Remove a node in the path, identified by ID
+     * @param removeNodeId The ID of the node to remove
+     * @returns the updated path
+     */
+    async removeNodeId(removeNodeId: string): Promise<{ path: Path }> {
+        // only if only one instance of the node in path
+        const nodeIds = this.attributes.nodes;
+        let countInstancesOfNodeId = 0;
+        let removeNodeIndex = -1;
+        nodeIds.forEach((nodeId, nodeIdx) => {
+            if (nodeId === removeNodeId) {
+                countInstancesOfNodeId++;
+                removeNodeIndex = nodeIdx;
+            }
+        });
+        if (countInstancesOfNodeId === 1 && removeNodeIndex >= 0) {
+            return this.removeNode(removeNodeIndex);
+        }
+        // can't remove node (doesn't exist or at least two instances of the node in the path)
+        return { path: this };
+    }
+
+    /**
+     * Remove a node from the path, identified by its index in the path
+     * @param removeIndex The index of the node to remove
+     * @returns The updated path
+     */
+    async removeNode(removeIndex: number): Promise<{ path: Path }> {
+        const nodeIds = this.attributes.nodes;
+        const nodeTypes = this.attributes.data.nodeTypes;
+        let recomputePath = false;
+        if (nodeIds.length > 0 && removeIndex < nodeIds.length) {
+            nodeIds.splice(removeIndex, 1);
+            nodeTypes.splice(removeIndex, 1);
+            this.attributes.nodes = nodeIds;
+            this.attributes.data.nodeTypes = nodeTypes;
+            // FIXME: This has the effect of removing all waypoints on the node before and the node to remove. Is that desired? Or should we rather merge them?
+            const waypointsByNodeIndex = this.attributes.data.waypoints;
+            const waypointTypesByNodeIndex = this.attributes.data.waypointTypes;
+            waypointsByNodeIndex.splice(removeIndex, 1);
+            waypointTypesByNodeIndex.splice(removeIndex, 1);
+            if (waypointsByNodeIndex[removeIndex - 1]) {
+                waypointsByNodeIndex[removeIndex - 1] = []; //afterNodeWaypoints;
+                waypointTypesByNodeIndex[removeIndex - 1] = []; //afterNodeWaypointTypes;
+            }
+            this._attributes.nodes = nodeIds;
+            this._attributes.data.nodeTypes = nodeTypes;
+            this._attributes.data.waypoints = waypointsByNodeIndex;
+            this._attributes.data.waypointTypes = waypointTypesByNodeIndex;
+            if (nodeIds.length > 1) {
+                this.removeConsecutiveDuplicateNodes();
+            }
+            recomputePath = true;
+        } else if (nodeIds.length === 0) {
+            // Path has no nodes, make sure all data is initialized
+            this.attributes.nodes = [];
+            this.attributes.data.nodeTypes = [];
+            this.attributes.data.waypoints = [];
+            this.attributes.data.waypointTypes = [];
+            //this.emptyGeography();
+        } else {
+            // No node at index
+            return { path: this };
+        }
+        this._updateHistory();
+        return recomputePath ? this.updateGeography() : { path: this };
     }
 
     /**
@@ -585,24 +649,6 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         return this.updateGeography();
     }
 
-    async removeNodeId(removeNodeId) {
-        // only if only one instance of the node in path
-        const nodeIds = this.attributes.nodes;
-        let countInstancesOfNodeId = 0;
-        let removeNodeIndex = -1;
-        nodeIds.forEach((nodeId, nodeIdx) => {
-            if (nodeId === removeNodeId) {
-                countInstancesOfNodeId++;
-                removeNodeIndex = nodeIdx;
-            }
-        });
-        if (countInstancesOfNodeId === 1 && removeNodeIndex >= 0) {
-            return this.removeNode(removeNodeIndex);
-        }
-        // can't remove node (doesn't exist or at least two instances of the node in the path)
-        return { path: this };
-    }
-
     /* Get the time arrival at node index if departure is at 0 seconds (cumulative travel time up to the node).
     TODO: add test
     */
@@ -718,40 +764,6 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             }
         }
         return nodeIdsWithRoutingRadiusTooSmallForPathShape;
-    }
-
-    removeNode(removeIndex: number) {
-        const nodeIds = this.attributes.nodes;
-        const nodeTypes = this.attributes.data.nodeTypes;
-        if (nodeIds.length > 0) {
-            nodeIds.splice(removeIndex, 1);
-            nodeTypes.splice(removeIndex, 1);
-            this.attributes.nodes = nodeIds;
-            this.attributes.data.nodeTypes = nodeTypes;
-            const waypointsByNodeIndex = this.attributes.data.waypoints;
-            const waypointTypesByNodeIndex = this.attributes.data.waypointTypes;
-            waypointsByNodeIndex.splice(removeIndex, 1);
-            waypointTypesByNodeIndex.splice(removeIndex, 1);
-            if (waypointsByNodeIndex[removeIndex - 1]) {
-                waypointsByNodeIndex[removeIndex - 1] = []; //afterNodeWaypoints;
-                waypointTypesByNodeIndex[removeIndex - 1] = []; //afterNodeWaypointTypes;
-            }
-            this._attributes.nodes = nodeIds;
-            this._attributes.data.nodeTypes = nodeTypes;
-            this._attributes.data.waypoints = waypointsByNodeIndex;
-            this._attributes.data.waypointTypes = waypointTypesByNodeIndex;
-            if (nodeIds.length > 1) {
-                this.removeConsecutiveDuplicateNodes();
-            }
-        } else {
-            this.attributes.nodes = [];
-            this.attributes.data.nodeTypes = [];
-            this.attributes.data.waypoints = [];
-            this.attributes.data.waypointTypes = [];
-            //this.emptyGeography();
-        }
-        this._updateHistory();
-        return this.updateGeography();
     }
 
     nodesGeojsons() {
