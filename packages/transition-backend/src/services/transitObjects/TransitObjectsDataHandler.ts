@@ -33,9 +33,9 @@ import * as servicesCacheQueries from '../../models/capnpCache/transitServices.c
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { isSocketIo } from '../socketUtils';
+import { isSocketIo } from '../../api/socketUtils';
 
-interface TransitObjectEndpointDefinitions {
+interface TransitObjectDataHandler {
     lowerCaseName: string,
     className: string,
     classNamePlural: string,
@@ -115,13 +115,13 @@ const transitClassesConfig = {
 };
 
 // TODO Add unit tests and typings when db queries and cache queries are refactored again. See if cache/db relation needs to be revisited now
-function createObjectEndpointDefinitions(): Record<string, TransitObjectEndpointDefinitions> {
-    const allEndpointDefinitions: Record<string, TransitObjectEndpointDefinitions> = {};
+function createDataHandlers(): Record<string, TransitObjectDataHandler> {
+    const allDataHandlers: Record<string, TransitObjectDataHandler> = {};
 
     for (const lowerCasePlural in transitClassesConfig) {
         const transitClassConfig = transitClassesConfig[lowerCasePlural];
 
-        const endpointDefinitions: TransitObjectEndpointDefinitions = {
+        const dataHandler: TransitObjectDataHandler = {
             lowerCaseName: transitClassConfig.lowerCaseName,
             className: transitClassConfig.className,
             classNamePlural: transitClassConfig.classNamePlural,
@@ -245,7 +245,7 @@ function createObjectEndpointDefinitions(): Record<string, TransitObjectEndpoint
 
         // Get the geojson collection from DB if there is a geojson collection function
         if (transitClassConfig.dbQueries.geojsonCollection) {
-            endpointDefinitions.geojsonCollection = async (params = { format: 'geojson' }) => {
+            dataHandler.geojsonCollection = async (params = { format: 'geojson' }) => {
                 try {
                     const geojson = await transitClassConfig.dbQueries.geojsonCollection(params);
                     if (params.format === 'geobuf') {
@@ -263,7 +263,7 @@ function createObjectEndpointDefinitions(): Record<string, TransitObjectEndpoint
 
         // Get the collection from DB if there is a collection function
         if (transitClassConfig.dbQueries.collection) {
-            endpointDefinitions.collection = async (dataSourceId) => {
+            dataHandler.collection = async (dataSourceId) => {
                 try {
                     const collection = await transitClassConfig.dbQueries.collection();
                     return { collection };
@@ -277,7 +277,7 @@ function createObjectEndpointDefinitions(): Record<string, TransitObjectEndpoint
         // Save an object to cache
         // TODO Saving an object to cache is included in the create and update routes. And now there is not much that is not in the database (transferable nodes for instance), this route could be removed
         if (transitClassConfig.cacheQueries.objectToCache) {
-            endpointDefinitions.saveCache = async (attributes) => {
+            dataHandler.saveCache = async (attributes) => {
                 try {
                     await transitClassConfig.cacheQueries.objectToCache(attributes, attributes.data.customCachePath);
                     return {};
@@ -295,7 +295,7 @@ function createObjectEndpointDefinitions(): Record<string, TransitObjectEndpoint
         // Delete object from cache if required
         // TODO Included in the call to delete, the individual call should not exist
         if (transitClassConfig.cacheQueries.deleteObjectCache) {
-            endpointDefinitions.deleteCache = async (id: string, customCachePath: string | undefined) => {
+            dataHandler.deleteCache = async (id: string, customCachePath: string | undefined) => {
                 try {
                     await transitClassConfig.cacheQueries.deleteObjectCache(id, customCachePath);
                     return {};
@@ -312,7 +312,7 @@ function createObjectEndpointDefinitions(): Record<string, TransitObjectEndpoint
 
         // Delete multiple objects from cache if required
         if (transitClassConfig.cacheQueries.deleteObjectsCache) {
-            endpointDefinitions.deleteMultipleCache = async (ids: string[], customCachePath: string) => {
+            dataHandler.deleteMultipleCache = async (ids: string[], customCachePath: string) => {
                 try {
                     await transitClassConfig.cacheQueries.deleteObjectsCache(ids, customCachePath);
                     return {error: null};
@@ -329,7 +329,7 @@ function createObjectEndpointDefinitions(): Record<string, TransitObjectEndpoint
 
         // Load an object from the cache if available
         if (transitClassConfig.cacheQueries.objectFromCache) {
-            endpointDefinitions.loadCache = async (id: string, customCachePath: string | undefined) => {
+            dataHandler.loadCache = async (id: string, customCachePath: string | undefined) => {
                 try {
                     const object = await transitClassConfig.cacheQueries.objectFromCache(id, customCachePath);
                     return {
@@ -347,7 +347,7 @@ function createObjectEndpointDefinitions(): Record<string, TransitObjectEndpoint
         }
 
         if (transitClassConfig.cacheQueries.collectionToCache) {
-            endpointDefinitions.saveCollectionCache = async (collection = null, customCachePath) => {
+            dataHandler.saveCollectionCache = async (collection = null, customCachePath) => {
                 if (collection) {
                     try {
                         await transitClassConfig.cacheQueries.collectionToCache(collection, customCachePath);
@@ -413,7 +413,7 @@ function createObjectEndpointDefinitions(): Record<string, TransitObjectEndpoint
 
         // TODO Do we still need to load an entire collection from cache. Cache should be one-way?
         if (transitClassConfig.cacheQueries.collectionFromCache) {
-            endpointDefinitions.loadCollectionCache = async (customCachePath) => {
+            dataHandler.loadCollectionCache = async (customCachePath) => {
                 try {
                     const collection = await transitClassConfig.cacheQueries.collectionFromCache(customCachePath);
                     return {
@@ -433,11 +433,11 @@ function createObjectEndpointDefinitions(): Record<string, TransitObjectEndpoint
             }
         }
 
-        allEndpointDefinitions[lowerCasePlural] = endpointDefinitions;
+        allDataHandlers[lowerCasePlural] = dataHandler;
     }
 
-    return allEndpointDefinitions;
+    return allDataHandlers;
 }
 
-const transitObjectEndpointDefinitions: Record<string, TransitObjectEndpointDefinitions> = createObjectEndpointDefinitions();
-export default transitObjectEndpointDefinitions;
+const transitObjectDataHandlers: Record<string, TransitObjectDataHandler> = createDataHandlers();
+export default transitObjectDataHandlers;
