@@ -5,120 +5,119 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { EventEmitter } from 'events';
-import transitObjectEndpointDefinitions from './definitions/transitObjects.definitions';
-
+import transitObjectDataHandlers from '../services/transitObjects/TransitObjectsDataHandler';
 
 function setupObjectSocketRoutes(socket: EventEmitter) {
-    for (const lowerCasePlural in transitObjectEndpointDefinitions) {
-        const endpointDefinitions = transitObjectEndpointDefinitions[lowerCasePlural]
+    for (const lowerCasePlural in transitObjectDataHandlers) {
+        const dataHandler = transitObjectDataHandlers[lowerCasePlural]
 
         // Create a new object
-        socket.on(`transit${endpointDefinitions.className}.create`, async (attributes, callback) => {
-            const response = await endpointDefinitions.create(socket, attributes);
+        socket.on(`transit${dataHandler.className}.create`, async (attributes, callback) => {
+            const response = await dataHandler.create(socket, attributes);
             callback(response);
         });
 
         // Read the object from the database
         socket.on(
-            `transit${endpointDefinitions.className}.read`,
+            `transit${dataHandler.className}.read`,
             async (id: string, customCachePath: string | undefined, callback) => {
-                const response = await endpointDefinitions.read(id, customCachePath);
+                const response = await dataHandler.read(id, customCachePath);
                 callback(response);
             }
         );
 
         // Update the object in the database and cache if required
-        socket.on(`transit${endpointDefinitions.className}.update`, async (id: string, attributes, callback) => {
-            const response = await endpointDefinitions.update(socket, id, attributes);
+        socket.on(`transit${dataHandler.className}.update`, async (id: string, attributes, callback) => {
+            const response = await dataHandler.update(socket, id, attributes);
             callback(response);
         });
 
         // Delete the object from database and cache if required
         socket.on(
-            `transit${endpointDefinitions.className}.delete`,
+            `transit${dataHandler.className}.delete`,
             async (id: string, customCachePath: string | undefined, callback) => {
-                const response = await endpointDefinitions.delete(socket, id, customCachePath);
+                const response = await dataHandler.delete(socket, id, customCachePath);
                 callback(response);
             }
         );
 
         // Get the geojson collection from DB if there is a geojson collection function
-        if (endpointDefinitions.geojsonCollection) {
+        if (dataHandler.geojsonCollection) {
             socket.on(
-                `transit${endpointDefinitions.classNamePlural}.geojsonCollection`,
+                `transit${dataHandler.classNamePlural}.geojsonCollection`,
                 async (params = { format: 'geojson' }, callback) => {
-                    const response = await endpointDefinitions.geojsonCollection!(params);
+                    const response = await dataHandler.geojsonCollection!(params);
                     callback(response);
                 }
             );
         }
 
         // Get the collection from DB if there is a collection function
-        if (endpointDefinitions.collection) {
-            socket.on(`transit${endpointDefinitions.classNamePlural}.collection`, async (dataSourceId, callback) => {
-                const response = await endpointDefinitions.collection!(dataSourceId);
+        if (dataHandler.collection) {
+            socket.on(`transit${dataHandler.classNamePlural}.collection`, async (dataSourceId, callback) => {
+                const response = await dataHandler.collection!(dataSourceId);
                 callback(response);
             });
         }
 
         // Save an object to cache
         // TODO Saving an object to cache is included in the create and update routes. And now there is not much that is not in the database (transferable nodes for instance), this route could be removed
-        if (endpointDefinitions.saveCache) {
-            socket.on(`transit${endpointDefinitions.className}.saveCache`, async (attributes, callback) => {
-                const response = await endpointDefinitions.saveCache!(attributes);
+        if (dataHandler.saveCache) {
+            socket.on(`transit${dataHandler.className}.saveCache`, async (attributes, callback) => {
+                const response = await dataHandler.saveCache!(attributes);
                 callback(response);
             });
         }
 
         // Delete object from cache if required
         // TODO Included in the call to delete, the individual call should not exist
-        if (endpointDefinitions.deleteCache) {
+        if (dataHandler.deleteCache) {
             socket.on(
-                `transit${endpointDefinitions.className}.deleteCache`,
+                `transit${dataHandler.className}.deleteCache`,
                 async (id: string, customCachePath: string | undefined, callback) => {
-                    const response = await endpointDefinitions.deleteCache!(id, customCachePath);
+                    const response = await dataHandler.deleteCache!(id, customCachePath);
                     callback(response);
                 }
             );
         }
 
-        if (endpointDefinitions.deleteMultipleCache) {
+        if (dataHandler.deleteMultipleCache) {
             socket.on(
-                `transit${endpointDefinitions.className}.deleteMultipleCache`,
+                `transit${dataHandler.className}.deleteMultipleCache`,
                 async (ids, customCachePath, callback) => {
-                    const response = await endpointDefinitions.deleteMultipleCache!(ids, customCachePath);
+                    const response = await dataHandler.deleteMultipleCache!(ids, customCachePath);
                     callback(response);
                 }
             );
         }
 
         // Load an object from the cache if available
-        if (endpointDefinitions.loadCache) {
+        if (dataHandler.loadCache) {
             socket.on(
-                `transit${endpointDefinitions.className}.loadCache`,
+                `transit${dataHandler.className}.loadCache`,
                 async (id: string, customCachePath: string | undefined, callback) => {
-                    const response = await endpointDefinitions.loadCache!(id, customCachePath);
+                    const response = await dataHandler.loadCache!(id, customCachePath);
                     callback(response);
                 }
             );
         }
 
-        if (endpointDefinitions.saveCollectionCache) {
+        if (dataHandler.saveCollectionCache) {
             socket.on(
-                `transit${endpointDefinitions.classNamePlural}.saveCollectionCache`,
+                `transit${dataHandler.classNamePlural}.saveCollectionCache`,
                 async (collection = null, customCachePath, callback) => {
-                    const response = await endpointDefinitions.saveCollectionCache!(collection, customCachePath);
+                    const response = await dataHandler.saveCollectionCache!(collection, customCachePath);
                     callback(response);
                 }
             );
         }
 
         // TODO Do we still need to load an entire collection from cache. Cache should be one-way?
-        if (endpointDefinitions.loadCollectionCache) {
+        if (dataHandler.loadCollectionCache) {
             socket.on(
-                `transit${endpointDefinitions.classNamePlural}.loadCollectionCache`,
+                `transit${dataHandler.classNamePlural}.loadCollectionCache`,
                 async (customCachePath, callback) => {
-                    const response = await endpointDefinitions.loadCollectionCache!(customCachePath);
+                    const response = await dataHandler.loadCollectionCache!(customCachePath);
                     callback(response);
                 }
             );
