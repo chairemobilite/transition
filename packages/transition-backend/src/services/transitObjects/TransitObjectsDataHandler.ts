@@ -36,21 +36,21 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { isSocketIo } from '../../api/socketUtils';
 
 interface TransitObjectDataHandler {
-    lowerCaseName: string,
-    className: string,
-    classNamePlural: string,
-    create: (socket: EventEmitter, attributes: GenericAttributes) => Promise<Record<string, any>>,
-    read: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>,
-    update: (socket: EventEmitter, id: string, attributes: GenericAttributes) => Promise<Record<string, any>>,
-    delete: (socket: EventEmitter, id: string, customCachePath: string | undefined) => Promise<Record<string, any>>,
-    geojsonCollection?: (params?) => Promise<Record<string, any>>,
-    collection?: (dataSourceId) => Promise<Record<string, any>>,
-    saveCache?: (attributes) => Promise<Record<string, any>>,
-    deleteCache?: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>,
-    deleteMultipleCache?: (ids: string[], customCachePath: string) => Promise<Record<string, any>>,
-    loadCache?: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>,
-    saveCollectionCache?: (collection, customCachePath) => Promise<Record<string, any>>,
-    loadCollectionCache?: (customCachePath) => Promise<Record<string, any>>
+    lowerCaseName: string;
+    className: string;
+    classNamePlural: string;
+    create: (socket: EventEmitter, attributes: GenericAttributes) => Promise<Record<string, any>>;
+    read: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
+    update: (socket: EventEmitter, id: string, attributes: GenericAttributes) => Promise<Record<string, any>>;
+    delete: (socket: EventEmitter, id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
+    geojsonCollection?: (params?) => Promise<Record<string, any>>;
+    collection?: (dataSourceId) => Promise<Record<string, any>>;
+    saveCache?: (attributes) => Promise<Record<string, any>>;
+    deleteCache?: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
+    deleteMultipleCache?: (ids: string[], customCachePath: string) => Promise<Record<string, any>>;
+    loadCache?: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
+    saveCollectionCache?: (collection, customCachePath) => Promise<Record<string, any>>;
+    loadCollectionCache?: (customCachePath) => Promise<Record<string, any>>;
 }
 
 const transitClassesConfig = {
@@ -143,7 +143,7 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                                 attributes,
                                 attributes.data.customCachePath
                             );
-                            return {...returning};
+                            return { ...returning };
                         } catch (error) {
                             throw new TrError(
                                 `cannot save cache file ${transitClassConfig.className} because of an error: ${error}`,
@@ -153,13 +153,12 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                         }
                     } else {
                         socket.emit('cache.dirty');
-                        return {...returning};
+                        return { ...returning };
                     }
                 } catch (error) {
                     console.error(error);
                     return TrError.isTrError(error) ? error.export() : { error };
                 }
-
             },
 
             // Read the object from the database
@@ -258,7 +257,7 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                     console.error(error);
                     return TrError.isTrError(error) ? error.export() : { error };
                 }
-            }
+            };
         }
 
         // Get the collection from DB if there is a collection function
@@ -271,7 +270,7 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                     console.error(error);
                     return TrError.isTrError(error) ? error.export() : { error };
                 }
-            }
+            };
         }
 
         // Save an object to cache
@@ -289,7 +288,7 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                         'CacheCouldNotBeSavedBecauseError'
                     ).export();
                 }
-            }
+            };
         }
 
         // Delete object from cache if required
@@ -307,7 +306,7 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                         'CacheCouldNotBeDeletedBecauseError'
                     ).export();
                 }
-            }
+            };
         }
 
         // Delete multiple objects from cache if required
@@ -315,7 +314,7 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
             dataHandler.deleteMultipleCache = async (ids: string[], customCachePath: string) => {
                 try {
                     await transitClassConfig.cacheQueries.deleteObjectsCache(ids, customCachePath);
-                    return {error: null};
+                    return { error: null };
                 } catch (error) {
                     console.error(error);
                     return new TrError(
@@ -324,7 +323,7 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                         'CacheCouldNotBeDeletedBecauseError'
                     ).export();
                 }
-            }
+            };
         }
 
         // Load an object from the cache if available
@@ -343,7 +342,7 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                         'CacheCouldNotBeLoadedBecauseError'
                     ).export();
                 }
-            }
+            };
         }
 
         if (transitClassConfig.cacheQueries.collectionToCache) {
@@ -366,7 +365,10 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                         const collection = await transitClassConfig.dbQueries.geojsonCollection();
                         transitClassConfig.collection.loadFromCollection(collection.features);
                         try {
-                            await transitClassConfig.cacheQueries.collectionToCache(transitClassConfig.collection, customCachePath);
+                            await transitClassConfig.cacheQueries.collectionToCache(
+                                transitClassConfig.collection,
+                                customCachePath
+                            );
                             return {
                                 error: null
                             };
@@ -389,7 +391,10 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                         const collection = await transitClassConfig.dbQueries.collection();
                         transitClassConfig.collection.loadFromCollection(collection);
                         try {
-                            await transitClassConfig.cacheQueries.collectionToCache(transitClassConfig.collection, customCachePath);
+                            await transitClassConfig.cacheQueries.collectionToCache(
+                                transitClassConfig.collection,
+                                customCachePath
+                            );
                             return {
                                 error: null
                             };
@@ -408,7 +413,7 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                         );
                     }
                 }
-            }
+            };
         }
 
         // TODO Do we still need to load an entire collection from cache. Cache should be one-way?
@@ -426,11 +431,11 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                             'SKTTRLC0001',
                             'CacheCouldNotBeLoadedBecauseError'
                         );
-                    }  
+                    }
                     console.error(error);
                     return error.export();
                 }
-            }
+            };
         }
 
         allDataHandlers[lowerCasePlural] = dataHandler;
