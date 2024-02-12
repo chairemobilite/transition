@@ -26,6 +26,8 @@ import { UserAttributes } from 'chaire-lib-backend/lib/services/users/user';
 import config from 'chaire-lib-backend/lib/config/server.config';
 import { userAuthModel } from 'chaire-lib-backend/lib/services/auth/userAuthModel';
 import publicRoutes from './api/public.routes';
+import configurePassport from 'chaire-lib-backend/lib/config/auth';
+const auth = require('./middleware/auth')
 
 export const setupServer = (app: Express) => {
     const projectShortname = config.projectShortname;
@@ -52,7 +54,7 @@ export const setupServer = (app: Express) => {
     directoryManager.createDirectoryIfNotExists('osrm');
     directoryManager.createDirectoryIfNotExists('valhalla');
     directoryManager.createDirectoryIfNotExists('userData');
-
+    
     const indexPath = path.join(
         publicDistDirectory,
         `index-${projectShortname}${process.env.NODE_ENV === 'test' ? '_test' : ''}.html`
@@ -75,6 +77,8 @@ export const setupServer = (app: Express) => {
         saveUninitialized: false,
         store: sessionStore
     });
+    const passport = configurePassport(userAuthModel);
+
 
     app.use(
         morgan('combined', {
@@ -90,9 +94,11 @@ export const setupServer = (app: Express) => {
     app.use(session);
     app.use(requestIp.mw()); // to get users ip addresses
     app.use(favicon(path.join(publicDirectory, 'favicon.ico')));
+    app.use(passport.initialize());
+    app.use(passport.session());
 
     // Auth routes initialize passport, which needs to be initialized before the other routes
-    authRoutes(app, userAuthModel);
+    authRoutes(app, userAuthModel, passport);
 
     app.set('trust proxy', true); // allow nginx or other proxy server to send request ip address
 
@@ -117,7 +123,7 @@ export const setupServer = (app: Express) => {
     });
 
     // Set up public API
-    publicRoutes(app);
+    publicRoutes(app, passport);
 
     // TODO File may not be at root of user directory, support path instead of just file here
     app.get('/exports/:file', (req, res) => {
