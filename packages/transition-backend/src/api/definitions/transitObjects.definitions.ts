@@ -43,7 +43,7 @@ interface TransitObjectEndpointDefinitions {
     read: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>,
     update: (socket: EventEmitter, id: string, attributes: GenericAttributes) => Promise<Record<string, any>>,
     delete: (socket: EventEmitter, id: string, customCachePath: string | undefined) => Promise<Record<string, any>>,
-    geojsonCollection?: (params) => Promise<Record<string, any>>,
+    geojsonCollection?: (params?) => Promise<Record<string, any>>,
     collection?: (dataSourceId) => Promise<Record<string, any>>,
     saveCache?: (attributes) => Promise<Record<string, any>>,
     deleteCache?: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>,
@@ -439,4 +439,5 @@ function createObjectEndpointDefinitions(): Record<string, TransitObjectEndpoint
     return allEndpointDefinitions;
 }
 
-export const transitObjectEndpointDefinitions = createObjectEndpointDefinitions();
+const transitObjectEndpointDefinitions: Record<string, TransitObjectEndpointDefinitions> = createObjectEndpointDefinitions();
+export default transitObjectEndpointDefinitions;

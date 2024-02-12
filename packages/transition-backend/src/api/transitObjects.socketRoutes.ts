@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { EventEmitter } from 'events';
-import { transitObjectEndpointDefinitions } from './definitions/transitObjects.definitions';
+import transitObjectEndpointDefinitions from './definitions/transitObjects.definitions';
 
 
 function setupObjectSocketRoutes(socket: EventEmitter) {
