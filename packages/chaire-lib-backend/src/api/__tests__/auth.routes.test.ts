@@ -88,7 +88,7 @@ const app = express();
 // FIXME Since upgrading @types/node, the types are wrong and we get compilation error. It is documented for example https://github.com/DefinitelyTyped/DefinitelyTyped/issues/53584 the real fix would require upgrading a few packages and may have side-effects. Simple casting works for now.
 app.use(express.json({ limit: '500mb' }) as RequestHandler);
 app.use(express.urlencoded({extended: true}) as RequestHandler);
-authRoutes(app, userAuthModel);
+authRoutes(app, userAuthModel, passport);
 
 beforeEach(() => {
     authResponse = {
@@ -344,7 +344,7 @@ describe('Passwordless and anonymous auth routes, supported', () => {
     // FIXME Since upgrading @types/node, the types are wrong and we get compilation error. It is documented for example https://github.com/DefinitelyTyped/DefinitelyTyped/issues/53584 the real fix would require upgrading a few packages and may have side-effects. Simple casting works for now.
     secondApp.use(express.json({ limit: '500mb' }) as RequestHandler);
     secondApp.use(express.urlencoded({extended: true}) as RequestHandler);
-    authRoutes(secondApp, userAuthModel);
+    authRoutes(secondApp, userAuthModel, passport);
 
     afterAll(() => {
         config.auth = {};
