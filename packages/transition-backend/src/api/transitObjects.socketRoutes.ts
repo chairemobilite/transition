@@ -9,7 +9,7 @@ import transitObjectDataHandlers from '../services/transitObjects/TransitObjects
 
 function setupObjectSocketRoutes(socket: EventEmitter) {
     for (const lowerCasePlural in transitObjectDataHandlers) {
-        const dataHandler = transitObjectDataHandlers[lowerCasePlural]
+        const dataHandler = transitObjectDataHandlers[lowerCasePlural];
 
         // Create a new object
         socket.on(`transit${dataHandler.className}.create`, async (attributes, callback) => {
@@ -82,13 +82,10 @@ function setupObjectSocketRoutes(socket: EventEmitter) {
         }
 
         if (dataHandler.deleteMultipleCache) {
-            socket.on(
-                `transit${dataHandler.className}.deleteMultipleCache`,
-                async (ids, customCachePath, callback) => {
-                    const response = await dataHandler.deleteMultipleCache!(ids, customCachePath);
-                    callback(response);
-                }
-            );
+            socket.on(`transit${dataHandler.className}.deleteMultipleCache`, async (ids, customCachePath, callback) => {
+                const response = await dataHandler.deleteMultipleCache!(ids, customCachePath);
+                callback(response);
+            });
         }
 
         // Load an object from the cache if available
@@ -123,7 +120,7 @@ function setupObjectSocketRoutes(socket: EventEmitter) {
             );
         }
     }
-};
+}
 
 // Add operations on object socket routes for each object of Transition
 export default function (socket: EventEmitter) {

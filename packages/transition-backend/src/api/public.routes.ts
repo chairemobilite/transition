@@ -39,6 +39,6 @@ export default function (app: express.Express, passport: PassportStatic) {
     router.post('/routing-modes', async (req, res) => {
         const routingModes: RoutingOrTransitMode[] = await osrmProcessManager.availableRoutingModes();
         routingModes.push('transit');
-        res.json(routingModes)
+        res.json(routingModes);
     });
 }
