@@ -27,7 +27,6 @@ import config from 'chaire-lib-backend/lib/config/server.config';
 import { userAuthModel } from 'chaire-lib-backend/lib/services/auth/userAuthModel';
 import publicRoutes from './api/public.routes';
 import configurePassport from 'chaire-lib-backend/lib/config/auth';
-const auth = require('./middleware/auth')
 
 export const setupServer = (app: Express) => {
     const projectShortname = config.projectShortname;
