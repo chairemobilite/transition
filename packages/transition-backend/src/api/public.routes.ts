@@ -14,7 +14,7 @@ export default function (app: express.Express, passport: PassportStatic) {
 
     router.use('/', passport.authenticate('api-strategy', { failWithError: true, failureMessage: true }));
 
-    router.get('/', (req, res) => {
+    router.post('/', (req, res) => {
         res.send('The public API endpoint works!');
     });
 }
