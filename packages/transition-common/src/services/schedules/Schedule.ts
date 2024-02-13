@@ -155,22 +155,15 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
     }
 
     getAssociatedPathIds() {
-        const associatedPathIds: string[] = [];
+        const associatedPathIds: { [pathId: string]: boolean } = {};
 
         const periods = this.getAttributes().periods;
         for (let i = 0, countI = periods.length; i < countI; i++) {
             const period = periods[i];
-            const outboundPathId = period.outbound_path_id;
-            if (outboundPathId) {
-                associatedPathIds.push(outboundPathId);
-            }
-            const inboundPathId = period.inbound_path_id;
-            if (inboundPathId) {
-                associatedPathIds.push(inboundPathId);
-            }
+            period.trips.forEach((trip) => (associatedPathIds[trip.path_id] = true));
         }
 
-        return associatedPathIds;
+        return Object.keys(associatedPathIds);
     }
 
     getPeriod(periodShortname: string) {
