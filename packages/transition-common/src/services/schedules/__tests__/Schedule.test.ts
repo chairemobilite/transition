@@ -91,3 +91,43 @@ test('Delete schedule', async () => {
     expect(eventManager.emit).toHaveBeenCalledWith('transitSchedule.delete', schedule.getId(), undefined, expect.anything());
     expect(schedule.isDeleted()).toBe(true);
 });
+
+describe('getAssociatedPathIds', () => {
+
+    test('No periods', () => {
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+        expect(schedule.getAssociatedPathIds()).toEqual([]);
+    });
+
+    test('Periods with no trips', () => {
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods.forEach(period => {
+            period.trips = [];
+        })
+        const schedule = new Schedule(testAttributes, true);
+        expect(schedule.getAssociatedPathIds()).toEqual([]);
+    });
+
+    test('Multiple trips with single paths', () => {
+        const schedule = new Schedule(scheduleAttributes, true);
+        expect(schedule.getAssociatedPathIds()).toEqual([pathId]);
+    });
+
+    test('Multiple trips with multiple paths', () => {
+        const otherPathId = uuidV4();
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        // Change the first trip of each period to the other path id
+        testAttributes.periods.forEach(period => {
+            if (period.trips.length > 0) {
+                period.trips[0].path_id = otherPathId;
+            }
+        })
+        const schedule = new Schedule(testAttributes, true);
+        const pathIds = schedule.getAssociatedPathIds()
+        expect(pathIds).toContain(otherPathId);
+        expect(pathIds).toContain(pathId);
+    });
+
+});
