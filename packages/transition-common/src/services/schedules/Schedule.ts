@@ -16,6 +16,7 @@ import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { timeStrToSecondsSinceMidnight } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
+import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 
 export interface SchedulePeriodTrip extends GenericAttributes {
     schedule_id: string;
@@ -60,7 +61,7 @@ export interface ScheduleAttributes extends GenericAttributes {
 
 class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable {
     protected static displayName = 'Schedule';
-    private _collectionManager: any;
+    private _collectionManager: CollectionManager;
 
     constructor(attributes = {}, isNew: boolean, collectionManager?) {
         super(attributes, isNew);
@@ -400,14 +401,14 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             };
         }
         const outboundPath = new TransitPath(
-            this._collectionManager.get('paths').getById(outboundPathId).properties,
+            this._collectionManager.get('paths').getById(outboundPathId as string).properties,
             false,
             this._collectionManager
         );
         const inboundPathId = period.inbound_path_id;
         const inboundPath = !_isBlank(inboundPathId)
             ? new TransitPath(
-                this._collectionManager.get('paths').getById(inboundPathId).properties,
+                this._collectionManager.get('paths').getById(inboundPathId as string).properties,
                 false,
                 this._collectionManager
             )

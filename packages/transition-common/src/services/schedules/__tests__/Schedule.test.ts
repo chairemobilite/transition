@@ -12,6 +12,12 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import EventManagerMock from 'chaire-lib-common/lib/test/services/events/EventManagerMock';
 import Schedule from '../Schedule';
 import { getScheduleAttributes } from './ScheduleData.test';
+import { getPathObject } from '../../path/__tests__/PathData.test';
+import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
+import LineCollection from '../../line/LineCollection';
+import PathCollection from '../../path/PathCollection';
+import Line from '../../line/Line';
+import { timeStrToSecondsSinceMidnight } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 
 const eventManager = EventManagerMock.eventManagerMock;
 
@@ -130,4 +136,92 @@ describe('getAssociatedPathIds', () => {
         expect(pathIds).toContain(pathId);
     });
 
+});
+
+describe('updateForAllPeriods', () => {
+    // Prepare collection manager and path objects
+    const collectionManager = new CollectionManager(null);
+    const pathCollection = new PathCollection([], {});
+    const path = getPathObject({ lineId, pathCollection }, 'smallReal');
+
+    const lineCollection = new LineCollection([new Line({ id: lineId, path_ids: [pathId] }, false)], {});
+    collectionManager.add('lines', lineCollection);
+    collectionManager.add('paths', pathCollection);
+    const scheduleAttributesForUpdate = getScheduleAttributes({ lineId, serviceId, pathId: path.getId() });
+    
+    test('No periods', () => {
+        const testAttributes = _cloneDeep(scheduleAttributesForUpdate);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true, collectionManager);
+        schedule.updateForAllPeriods();
+        expect(schedule.attributes.periods).toEqual([]);
+    });
+
+    test('Periods with originally no trips', () => {
+        const testAttributes = _cloneDeep(scheduleAttributesForUpdate);
+        // Easier for calculated expected trip count to have second based schedule, this tests period update, not actual trip generation
+        testAttributes.allow_seconds_based_schedules = true;
+        testAttributes.periods.forEach(period => {
+            period.trips = [];
+            // The number of units of the test schedule is too high
+            if (period.number_of_units) {
+                period.number_of_units = 2;
+            }
+        });
+        const schedule = new Schedule(testAttributes, true, collectionManager);
+        schedule.updateForAllPeriods();
+        expect(schedule.attributes.periods.length).toEqual(scheduleAttributesForUpdate.periods.length);
+        for (let i = 0; i < schedule.attributes.periods.length; i++) {
+            const period = schedule.attributes.periods[i];
+            const periodStart = period.custom_start_at_str ? timeStrToSecondsSinceMidnight(period.custom_start_at_str) as number : period.start_at_hour * 60 * 60;
+            const periodEnd = period.custom_end_at_str ? timeStrToSecondsSinceMidnight(period.custom_end_at_str) as number : period.end_at_hour * 60 * 60;
+            
+            if (period.interval_seconds) {
+                expect(period.trips.length).toEqual(Math.ceil((periodEnd - periodStart) / period.interval_seconds));
+            } else if (period.number_of_units) {
+                expect(period.trips.length).toEqual(Math.ceil((periodEnd - periodStart) / (path?.attributes.data?.operatingTimeWithLayoverTimeSeconds as number)) * period.number_of_units);
+            }
+
+        }
+    });
+
+    test('Periods with individual trips, no outbound/inboud/frequencies/units', () => {
+        // Reset paths, intervals and units
+        const testAttributes = _cloneDeep(scheduleAttributesForUpdate);
+        testAttributes.periods.forEach(period => {
+            (period as any).outbound_path_id = null;
+            period.inbound_path_id = null;
+            period.interval_seconds = undefined;
+            period.number_of_units = undefined;
+        });
+        const schedule = new Schedule(testAttributes, true, collectionManager);
+
+        // Update schedules, there should be no change
+        schedule.updateForAllPeriods();
+        expect(schedule.attributes.periods.length).toEqual(scheduleAttributesForUpdate.periods.length);
+        for (let i = 0; i < schedule.attributes.periods.length; i++) {
+            expect(schedule.attributes.periods[i].trips).toEqual(scheduleAttributesForUpdate.periods[i].trips);
+        }
+    });
+
+    test('Update a frequency based schedule', () => {
+        // Set the interval to be a factor of the index
+        const testAttributes = _cloneDeep(scheduleAttributesForUpdate);
+        testAttributes.periods.forEach((period, idx) => {
+            period.interval_seconds = 10 * 60 * (idx + 1);
+            period.number_of_units = undefined;
+        });
+        const schedule = new Schedule(testAttributes, true, collectionManager);
+
+        // Update schedules, trips should be at a certain frequency
+        schedule.updateForAllPeriods();
+        expect(schedule.attributes.periods.length).toEqual(scheduleAttributesForUpdate.periods.length);
+        for (let i = 0; i < schedule.attributes.periods.length; i++) {
+            const period = schedule.attributes.periods[i];
+            const interval = 10 * 60 * (i + 1);
+            const periodStart = period.custom_start_at_str ? timeStrToSecondsSinceMidnight(period.custom_start_at_str) as number : period.start_at_hour * 60 * 60;
+            const periodEnd = period.custom_end_at_str ? timeStrToSecondsSinceMidnight(period.custom_end_at_str) as number : period.end_at_hour * 60 * 60;
+            expect(period.trips.length).toEqual(Math.ceil((periodEnd - periodStart)/ interval));
+        }
+    });
 });
