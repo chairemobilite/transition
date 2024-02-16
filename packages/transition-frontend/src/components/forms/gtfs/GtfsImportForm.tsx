@@ -27,6 +27,7 @@ import { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTy
 import GtfsImportServiceComponent from './GtfsImportServiceComponent';
 import GtfsImportAgenciesComponent from './GtfsImportAgenciesComponent';
 import GtfsImportNodesComponent from './GtfsImportNodesComponent';
+import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 
 type GtfsImportProps = WithTranslation;
 
@@ -463,6 +464,27 @@ class GtfsImportForm extends React.Component<GtfsImportProps, GtfsImportState> {
                                 t={this.props.t}
                                 onValueChange={(e) => this.updateValidator('periodsGroupShortname', e.target.value)}
                             />
+                        </div>
+                    )}
+                    {selectedServicesCount > 0 && (
+                        <div className="apptr__form-input-container">
+                            <InputWrapper
+                                twoColumns={true}
+                                label={''}
+                                help={this.props.t('transit:gtfs:GenerateFrequencyBasedSchedulesHelp')}
+                            >
+                                <InputCheckboxBoolean
+                                    id={`formFieldTransitGtfsImporterFrequencyBased${validatorId}`}
+                                    isChecked={availableImportData.generateFrequencyBasedSchedules}
+                                    label={this.props.t('transit:gtfs:GenerateFrequencyBasedSchedules')}
+                                    onValueChange={(e) =>
+                                        this.updateSelectedValue(
+                                            'generateFrequencyBasedSchedules',
+                                            e.target.value === true
+                                        )
+                                    }
+                                />
+                            </InputWrapper>
                         </div>
                     )}
                 </div>

@@ -750,6 +750,8 @@
         "AgencyExists": "L'agence à importer {{agency}} existe déjà. Que voulez-vous faire?",
         "NewAgencyName": "Nom de la nouvelle agence",
         "SelectExistingAgency": "Sélectionner une agence existante",
+        "GenerateFrequencyBasedSchedules": "Inférer des horaires à la fréquence (approximative)",
+        "GenerateFrequencyBasedSchedulesHelp": "[Expérimental] Au lieu d'importer les voyages aux heures exactes, une fréquence sera inférée à partir de l'horaire. La fréquence pour une période sera calculée pour conserver le nombre de voyages durant la période. Si plusieurs trajets sont utilisés, le plus fréquent de chaque direction sera associé à la période. Attention, s'il y a plusieurs directions, cette option générera des horaires symétriques.",
         "replace": "Remplacer l'agence (les lignes et horaires actuels seront supprimés)",
         "mergeAndIgnore": "Combiner du nouveau contenu dans l'agence (les lignes et horaires actuels ne seront pas ré-importés)",
         "mergeAndReplace": "Combiner et mettre à jour le contenu de l'agence (les lignes et horaires actuels seront mis à jour)",

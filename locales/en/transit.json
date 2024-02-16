@@ -750,6 +750,8 @@
         "AgencyExists": "Agency {{agency}} already exists. What do you want to do?",
         "NewAgencyName": "New agency name",
         "SelectExistingAgency": "Select and existing agency",
+        "GenerateFrequencyBasedSchedules": "Infer frequency-based schedules (approximation)",
+        "GenerateFrequencyBasedSchedulesHelp": "[Experimental] Instead of imported exact trip times, a frequency will be inferred from the schedule. The frequency for each period will be calculated to keep the same number of trips in that period. If many paths are used, the most frequent in each direction will be associated with the period. Careful, if there are multiple directions, this option will generate symetrical schedules.",
         "replace": "Replace agency content (all current lines and schedules will be deleted)",
         "mergeAndIgnore": "Merge new agency content (existing lines and schedules won't be re-imported)",
         "mergeAndReplace": "Merge and update agency content (existing lines and schedules will be updated)",
