@@ -100,4 +100,5 @@ export interface GtfsImportData {
     agencies_color?: string;
     nodes_color?: string;
     mergeSameDaysServices?: boolean;
+    generateFrequencyBasedSchedules?: boolean;
 }
