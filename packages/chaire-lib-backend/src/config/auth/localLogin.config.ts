@@ -9,11 +9,13 @@ import _dotenv from '../dotenv.config'; // eslint-disable-line @typescript-eslin
 import url from 'url';
 import { PassportStatic } from 'passport';
 import LocalStrategy from 'passport-local';
-
+import BearerStrategy from 'passport-http-bearer';
+import tokensDbQueries from '../../models/db/tokens.db.queries'
 import config from '../server.config';
 import { sendConfirmationEmail } from '../../services/auth/userEmailNotifications';
 import { v4 as uuidV4 } from 'uuid';
 import { IAuthModel, IUserModel } from '../../services/auth/authModel';
+import { string } from 'yargs';
 
 // FIXME: auth.localLogin is now the way to define local login behavior, setting variables here for legacy purposes
 // @Deprecated all config.* that is not in auth, are deprecated and have been moved to auth
@@ -68,7 +70,6 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
                     query = 'username = ? OR email = ? OR facebook_id = ? OR google_id = ?'; //password ? `(username = '${usernameOrEmail}' OR email = '${usernameOrEmail}') AND password = crypt('${password}', password)` : `(username = '${usernameOrEmail}' OR email = '${usernameOrEmail}')`;
                     binding = [usernameOrEmail, usernameOrEmail, usernameOrEmail, usernameOrEmail];
                 } */
-                console.log('Local-login strategy');
                 authModel
                     .find({ usernameOrEmail: usernameOrEmail })
                     .then(async (model) => {
@@ -96,37 +97,19 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
     );
 
     passport.use(
-        'api-strategy',
-        new LocalStrategy.Strategy(
-            { usernameField: 'usernameOrEmail', passwordField: 'password' },
-            (
-                usernameOrEmail: string,
-                password: string,
-                done: (error: any, user?: any, options?: LocalStrategy.IVerifyOptions) => void
-            ) => {
-                authModel
-                    .find({ usernameOrEmail: usernameOrEmail })
-                    .then(async (model) => {
-                        if (model === undefined) {
-                            done('UnknownUser', false);
-                            return;
-                        }
-                        if (await model.verifyPassword(password)) {
-                            if (!model.isConfirmed) {
-                                done(null, false, { message: 'UnconfirmedUser' });
-                            } else {
-                                done(null, model.sanitize());
-                            }
-                        } else {
-                            done('PasswordsDontMatch', false);
-                        }
-                    })
-                    .catch((error) => {
-                        console.error(`Error connecting to database: ${error}`);
-                        done('DatabaseError', false);
-                        return;
-                    });
+        'bearer-strategy',
+        new BearerStrategy.Strategy( (token, done) => {
+            console.log("Bearer reached")
+            try {
+                console.log("Bearer reached")
+                const user = tokensDbQueries.getUserByToken(token)
+                if (!user)
+                    throw('No such token exists in database.')
+                done(null, user)
+            } catch(err) {
+                return done(err);
             }
+          }
         )
     );
 
