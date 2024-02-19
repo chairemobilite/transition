@@ -15,10 +15,10 @@ export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', passport.authenticate('local-login', { failWithError: true, failureMessage: true }));
 
     app.post('/token', async (req, res) => {
-        const token = await tokensDbQueries.getOrCreate(req.body.usernameOrEmail)
-        res.send(token)
+        const token = await tokensDbQueries.getOrCreate(req.body.usernameOrEmail);
+        res.send(token);
     });
-    
+
     const router = express.Router();
 
     router.use('/', passport.authenticate('bearer-strategy', { session: false }));
