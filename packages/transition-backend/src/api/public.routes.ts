@@ -12,16 +12,14 @@ import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes'
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 
 export default function (app: express.Express, passport: PassportStatic) {
-    app.use('/token/', passport.authenticate('local-login', { failWithError: true, failureMessage: true }));
+    app.use('/token', passport.authenticate('local-login', { failWithError: true, failureMessage: true }));
 
-    app.get('/token/', async (req, res) => {
+    app.post('/token', async (req, res) => {
         const token = await tokensDbQueries.getOrCreate(req.body.usernameOrEmail)
         res.send(token)
     });
     
     const router = express.Router();
-
-    app.use('/api', router);
 
     router.use('/', passport.authenticate('bearer-strategy', { session: false }));
 
@@ -45,4 +43,6 @@ export default function (app: express.Express, passport: PassportStatic) {
         routingModes.push('transit');
         res.json(routingModes);
     });
+
+    app.use('/api', router);
 }

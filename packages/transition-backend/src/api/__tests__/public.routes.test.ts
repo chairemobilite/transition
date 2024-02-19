@@ -4,18 +4,13 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import supertest from 'supertest';
-import express from 'express';
+import express, { RequestHandler } from 'express';
 import publicRoutes from '../public.routes';
 import passport from 'passport'
 import request from 'supertest';
-import tokensDbQueries from 'chaire-lib-backend/src/models/db/tokens.db.queries'
-
-
 import transitObjectDataHandlers from '../../services/transitObjects/TransitObjectsDataHandler';
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
-
-const mockApp = express();
+import tokensDbQueries from 'chaire-lib-backend/lib/models/db/tokens.db.queries';
 
 // Mock passport (therefore ignoring authentication)
 jest.mock('passport');
@@ -29,84 +24,67 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-describe("token - endpoint", () => {
-    test('Bypass Authentication - Return value', async () => {
+test('Passport middleware setup', () => {
+    publicRoutes(express(), passport);
+    expect(passport.authenticate).toBeCalledTimes(2);
+    expect(passport.authenticate).toBeCalledWith('local-login', {'failWithError': true, 'failureMessage': true});
+    expect(passport.authenticate).toBeCalledWith('bearer-strategy', { session: false });
+});
 
+describe('Testing endpoints', () => {
+    const app = express();
+    app.use(express.json() as RequestHandler);
+    publicRoutes(app, passport);
 
-        const passStub = jest.fn().mockImplementation((strategy, options) => {
-            return (req, res, next) => {
-                next();
-            };
-        });
+    test('POST /token', async () => {
+        tokensDbQueries.getOrCreate = jest.fn(() => Promise.resolve()) as any;
 
-        const queryStub = jest.fn().mockImplementation((username)=>{
-            return "this-is-a-token"
-        })
+        const body = {
+            usernameOrEmail: 'testuser',
+            password: 'testpassword'
+        };
+        const response = await request(app)
+            .post('/token')
+            .send(body);
 
-        tokensDbQueries.getById = queryStub
-        
-        passport.authenticate = passStub
-        
-        publicRoutes(mockApp, passport)
-
-    const response = await supertest(mockApp).get("/token/")
-
-    expect(response.status).toEqual(200);
-    expect(passStub).toBeCalledWith('local-login', {"failWithError": true, "failureMessage": true})
+        expect(response.status).toStrictEqual(200);
+        expect(tokensDbQueries.getOrCreate).toHaveBeenCalledWith(body.usernameOrEmail);
     });
 
-    test('POST /api/paths', async () => {
+    test('GET /api/paths', async () => {
         transitObjectDataHandlers.paths.geojsonCollection! = jest.fn();
 
-        const response = await request(mockApp).post('/api/paths');
+        const response = await request(app).get('/api/paths');
 
         expect(response.status).toStrictEqual(200);
         expect(transitObjectDataHandlers.paths.geojsonCollection!).toBeCalled();
     });
 
-    test('POST /api/nodes', async () => {
+    test('GET /api/nodes', async () => {
         transitObjectDataHandlers.nodes.geojsonCollection! = jest.fn();
 
-        const response = await request(mockApp).post('/api/nodes');
+        const response = await request(app).get('/api/nodes');
 
         expect(response.status).toStrictEqual(200);
         expect(transitObjectDataHandlers.nodes.geojsonCollection!).toBeCalled();
     });
 
-    test('POST /api/scenarios', async () => {
+    test('GET /api/scenarios', async () => {
         transitObjectDataHandlers.scenarios.collection! = jest.fn();
 
-        const response = await request(mockApp).post('/api/scenarios');
+        const response = await request(app).get('/api/scenarios');
         
         expect(response.status).toStrictEqual(200);
         expect(transitObjectDataHandlers.scenarios.collection!).toBeCalledWith(null);
     });
 
-    test('POST /api/routing-modes', async () => {
+    test('GET /api/routing-modes', async () => {
         osrmProcessManager.availableRoutingModes = jest.fn(() => Promise.resolve([]));
 
-        const response = await request(mockApp).post('/api/routing-modes');
+        const response = await request(app).get('/api/routing-modes');
 
         expect(response.status).toStrictEqual(200);
         expect(response.body).toStrictEqual(['transit']);
         expect(osrmProcessManager.availableRoutingModes).toBeCalled();
     });
 });
-
-
-test('Authentication setup', () => {
-    publicRoutes(express(), passport);
-    expect(passport.authenticate).toBeCalledWith('local-login', {"failWithError": true, "failureMessage": true});
-});
-
-// describe('Testing endpoints', () => {
-//     const app = express();
-//     publicRoutes(app, passport);
-
-//     test('POST /api', async () => {
-//         const response = await request(app).post('/api');
-
-//         expect(response.status).toStrictEqual(200);
-//         expect(response.text).toStrictEqual('The public API endpoint works!');
-//     });
-// });
