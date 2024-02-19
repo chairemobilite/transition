@@ -10,7 +10,7 @@ import url from 'url';
 import { PassportStatic } from 'passport';
 import LocalStrategy from 'passport-local';
 import BearerStrategy from 'passport-http-bearer';
-import tokensDbQueries from '../../models/db/tokens.db.queries'
+import tokensDbQueries from '../../models/db/tokens.db.queries';
 import config from '../server.config';
 import { sendConfirmationEmail } from '../../services/auth/userEmailNotifications';
 import { v4 as uuidV4 } from 'uuid';
@@ -98,19 +98,17 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
 
     passport.use(
         'bearer-strategy',
-        new BearerStrategy.Strategy( (token, done) => {
-            console.log("Bearer reached")
+        new BearerStrategy.Strategy((token, done) => {
+            console.log('Bearer reached');
             try {
-                console.log("Bearer reached")
-                const user = tokensDbQueries.getUserByToken(token)
-                if (!user)
-                    throw('No such token exists in database.')
-                done(null, user)
-            } catch(err) {
+                console.log('Bearer reached');
+                const user = tokensDbQueries.getUserByToken(token);
+                if (!user) throw 'No such token exists in database.';
+                done(null, user);
+            } catch (err) {
                 return done(err);
             }
-          }
-        )
+        })
     );
 
     passport.use(
