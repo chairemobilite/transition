@@ -345,49 +345,48 @@ describe('Generate schedules for lines', () => {
         const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
         expect(scheduleAttributes).toBeDefined();
 
+        // Compare resulting schedule
         expect(scheduleAttributes).toEqual(expect.objectContaining({
             line_id: line.getId(),
             service_id: importData.serviceIdsByGtfsId[gtfsServiceId],
             periods_group_shortname: importData.periodsGroupShortname,
-            periods: [
-                expect.objectContaining({
-                    schedule_id: scheduleAttributes.id,
-                    start_at_hour: importData.periodsGroup.periods[0].startAtHour,
-                    end_at_hour: importData.periodsGroup.periods[0].endAtHour,
-                    period_shortname: importData.periodsGroup.periods[0].shortname,
-                    trips: [
-                        expect.objectContaining({
-                            schedule_id: scheduleAttributes.id,
-                            schedule_period_id: scheduleAttributes.periods[0].id,
-                            path_id: pathId,
-                            node_departure_times_seconds: [baseTripAndStopTimes.stopTimes[0].departureTimeSeconds, baseTripAndStopTimes.stopTimes[1].departureTimeSeconds, baseTripAndStopTimes.stopTimes[2].departureTimeSeconds, baseTripAndStopTimes.stopTimes[3].departureTimeSeconds],
-                            node_arrival_times_seconds: [baseTripAndStopTimes.stopTimes[0].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[1].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[2].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[3].arrivalTimeSeconds],
-                            departure_time_seconds: baseTripAndStopTimes.stopTimes[0].departureTimeSeconds,
-                            arrival_time_seconds: baseTripAndStopTimes.stopTimes[3].arrivalTimeSeconds,
-                            nodes_can_board: [true, true, true, false],
-                            nodes_can_unboard: [false, true, true, true],
-                        }),
-                        expect.objectContaining({
-                            schedule_id: scheduleAttributes.id,
-                            schedule_period_id: scheduleAttributes.periods[0].id,
-                            path_id: pathId,
-                            node_departure_times_seconds: [tripsByRouteId[routeId][1].stopTimes[0].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[1].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[2].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[3].departureTimeSeconds],
-                            node_arrival_times_seconds: [tripsByRouteId[routeId][1].stopTimes[0].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[1].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[2].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[3].arrivalTimeSeconds],
-                            departure_time_seconds: tripsByRouteId[routeId][1].stopTimes[0].departureTimeSeconds,
-                            arrival_time_seconds: tripsByRouteId[routeId][1].stopTimes[3].arrivalTimeSeconds,
-                            nodes_can_board: [true, false, true, false],
-                            nodes_can_unboard: [false, false, true, true],
-                        })
-                    ],
-                }),
-                expect.objectContaining({
-                    schedule_id: scheduleAttributes.id,
-                    start_at_hour: importData.periodsGroup.periods[1].startAtHour,
-                    end_at_hour: importData.periodsGroup.periods[1].endAtHour,
-                    period_shortname: importData.periodsGroup.periods[1].shortname,
-                    trips: []
-                })
-            ]
+        }));
+        expect(scheduleAttributes.periods.length).toEqual(2);
+        expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            start_at_hour: importData.periodsGroup.periods[0].startAtHour,
+            end_at_hour: importData.periodsGroup.periods[0].endAtHour,
+            period_shortname: importData.periodsGroup.periods[0].shortname,
+        }));
+        expect(scheduleAttributes.periods[0].trips.length).toEqual(2);
+        expect(scheduleAttributes.periods[0].trips[0]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            schedule_period_id: scheduleAttributes.periods[0].id,
+            path_id: pathId,
+            node_departure_times_seconds: [baseTripAndStopTimes.stopTimes[0].departureTimeSeconds, baseTripAndStopTimes.stopTimes[1].departureTimeSeconds, baseTripAndStopTimes.stopTimes[2].departureTimeSeconds, baseTripAndStopTimes.stopTimes[3].departureTimeSeconds],
+            node_arrival_times_seconds: [baseTripAndStopTimes.stopTimes[0].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[1].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[2].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[3].arrivalTimeSeconds],
+            departure_time_seconds: baseTripAndStopTimes.stopTimes[0].departureTimeSeconds,
+            arrival_time_seconds: baseTripAndStopTimes.stopTimes[3].arrivalTimeSeconds,
+            nodes_can_board: [true, true, true, false],
+            nodes_can_unboard: [false, true, true, true],
+        }));
+        expect(scheduleAttributes.periods[0].trips[1]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            schedule_period_id: scheduleAttributes.periods[0].id,
+            path_id: pathId,
+            node_departure_times_seconds: [tripsByRouteId[routeId][1].stopTimes[0].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[1].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[2].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[3].departureTimeSeconds],
+            node_arrival_times_seconds: [tripsByRouteId[routeId][1].stopTimes[0].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[1].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[2].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[3].arrivalTimeSeconds],
+            departure_time_seconds: tripsByRouteId[routeId][1].stopTimes[0].departureTimeSeconds,
+            arrival_time_seconds: tripsByRouteId[routeId][1].stopTimes[3].arrivalTimeSeconds,
+            nodes_can_board: [true, false, true, false],
+            nodes_can_unboard: [false, false, true, true],
+        }));
+        expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            start_at_hour: importData.periodsGroup.periods[1].startAtHour,
+            end_at_hour: importData.periodsGroup.periods[1].endAtHour,
+            period_shortname: importData.periodsGroup.periods[1].shortname,
+            trips: []
         }));
 
     });
