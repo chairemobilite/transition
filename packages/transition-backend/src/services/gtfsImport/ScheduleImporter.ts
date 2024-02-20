@@ -188,6 +188,15 @@ const isTripValid = (stopTimes: StopTime[]) => {
     return true;
 };
 
+/**
+ * Create a new, empty, schedule for the line, with all periods initialized
+ *
+ * @param line The line for which to create the schedule
+ * @param serviceId The ID of the service
+ * @param importData The import parameters
+ * @param periods The array of periods this schedule will contain
+ * @returns
+ */
 const createSchedule = (line: Line, serviceId: string, importData: GtfsInternalData, periods: Period[]) => {
     const schedule = new Schedule(
         {
@@ -216,97 +225,141 @@ const createSchedule = (line: Line, serviceId: string, importData: GtfsInternalD
     return schedule;
 };
 
+/**
+ * For the line, group the trips to import by service and periods
+ * @param line The line, with any existing schedules
+ * @param tripsWithStopTimes The trips with stop times in the GTFS
+ * @param importData The import data
+ */
+const groupSchedulesAndTripsToImport = (
+    line: Line,
+    tripsWithStopTimes: { trip: GtfsTypes.Trip; stopTimes: StopTime[] }[],
+    importData: GtfsInternalData
+): { schedule: Schedule; periods: { trip: GtfsTypes.Trip; stopTimes: StopTime[] }[][] }[] => {
+    const ignoreExisting = importData.doNotUpdateAgencies.includes(line.attributes.agency_id);
+    const existingSchedules = line.getSchedules();
+    const scheduleByServiceId: {
+        [key: string]: { schedule: Schedule; periods: { trip: GtfsTypes.Trip; stopTimes: StopTime[] }[][] };
+    } = {};
+    const periods = importData.periodsGroup.periods;
+    const periodShortnameByIndex = {};
+
+    for (let periodIdx = 0; periodIdx < periods.length; periodIdx++) {
+        const period = periods[periodIdx];
+        periodShortnameByIndex[period.shortname] = periodIdx;
+    }
+    if (!tripsWithStopTimes || tripsWithStopTimes.length === 0) {
+        return [];
+    }
+
+    for (let tripIdx = 0; tripIdx < tripsWithStopTimes.length; tripIdx++) {
+        const { trip, stopTimes } = tripsWithStopTimes[tripIdx];
+
+        if (trip && stopTimes && stopTimes.length > 0) {
+            const serviceId = importData.serviceIdsByGtfsId[trip.service_id];
+            const pathId = importData.pathIdsByTripId[trip.trip_id];
+
+            // Ignore trip is invalid, no path, or the service already exists for this line and should not be updated
+            if (!isTripValid(stopTimes) || !pathId || (existingSchedules[serviceId] !== undefined && ignoreExisting)) {
+                continue;
+            }
+            const scheduleAndTrips = scheduleByServiceId[serviceId];
+            const schedule =
+                scheduleAndTrips !== undefined
+                    ? scheduleAndTrips.schedule
+                    : createSchedule(line, serviceId, importData, periods);
+            const schedulePeriods =
+                scheduleAndTrips !== undefined
+                    ? scheduleAndTrips.periods
+                    : Array.from({ length: periods.length }, () => []);
+
+            // generate new trip for schedule/service id:
+            const tripDepartureTimeSeconds = stopTimes[0].departureTimeSeconds;
+            const periodShortname = findPeriodShortname(importData.periodsGroup.periods, tripDepartureTimeSeconds);
+            if (periodShortname === null) {
+                console.log(
+                    `GTFS Schedule import: Cannot find period for stopTime with departure time of ${tripDepartureTimeSeconds}`
+                );
+                continue;
+            }
+            const periodIndex = periodShortnameByIndex[periodShortname];
+            schedulePeriods[periodIndex].push({ trip, stopTimes });
+
+            scheduleByServiceId[serviceId] = { schedule, periods: schedulePeriods };
+        }
+    }
+    return Object.values(scheduleByServiceId);
+};
+
+/**
+ * Generate the schedules to import for the lines. The line will be modified to
+ * contain the new updated schedules.
+ * @param line The line to update
+ * @param tripsWithStopTimes The trip with stop times for this line
+ * @param importData
+ * @returns
+ */
 const generateSchedulesForLine = async (
     line: Line,
     tripsWithStopTimes: { trip: GtfsTypes.Trip; stopTimes: StopTime[] }[],
     importData: GtfsInternalData
 ): Promise<Schedule[]> => {
     try {
-        const ignoreExisting = importData.doNotUpdateAgencies.includes(line.attributes.agency_id);
         await line.refreshSchedules(serviceLocator.socketEventManager);
         const existingSchedules = line.getSchedules();
-        const scheduleByServiceId: { [key: string]: Schedule } = {};
-        const periods = importData.periodsGroup.periods;
-        const periodShortnameByIndex = {};
 
-        for (let j = 0, countJ = periods.length; j < countJ; j++) {
-            const period = periods[j];
-            periodShortnameByIndex[period.shortname] = j;
-        }
-        if (!tripsWithStopTimes || tripsWithStopTimes.length === 0) {
-            return [];
-        }
+        const groupedSchedulesForLine = groupSchedulesAndTripsToImport(line, tripsWithStopTimes, importData);
+        // For each schedule, generate the trips
+        for (let scheduleGroupIdx = 0; scheduleGroupIdx < groupedSchedulesForLine.length; scheduleGroupIdx++) {
+            const { schedule, periods } = groupedSchedulesForLine[scheduleGroupIdx];
 
-        for (let i = 0, countI = tripsWithStopTimes.length; i < countI; i++) {
-            const { trip, stopTimes } = tripsWithStopTimes[i];
+            // Generate the schedule for each period
+            for (let periodIndex = 0; periodIndex < periods.length; periodIndex++) {
+                const trips = periods[periodIndex];
+                trips.forEach(({ trip, stopTimes }) => {
+                    const pathId = importData.pathIdsByTripId[trip.trip_id];
+                    // generate new trip for schedule/service id:
+                    const tripDepartureTimeSeconds = stopTimes[0].departureTimeSeconds;
+                    const tripArrivalTimeSeconds = stopTimes[stopTimes.length - 1].arrivalTimeSeconds;
+                    const tripArrivalTimesSeconds: number[] = [];
+                    const tripDepartureTimesSeconds: number[] = [];
+                    const canBoards: boolean[] = [];
+                    const canUnboards: boolean[] = [];
 
-            if (trip && stopTimes && stopTimes.length > 0) {
-                const serviceId = importData.serviceIdsByGtfsId[trip.service_id];
-                const pathId = importData.pathIdsByTripId[trip.trip_id];
+                    for (let j = 0, countJ = stopTimes.length; j < countJ; j++) {
+                        const stopTime = stopTimes[j];
+                        tripArrivalTimesSeconds.push(stopTime.arrivalTimeSeconds);
+                        tripDepartureTimesSeconds.push(stopTime.departureTimeSeconds);
+                        canBoards.push(j === countJ - 1 ? false : stopTime.pickup_type !== 1);
+                        canUnboards.push(j === 0 ? false : stopTime.drop_off_type !== 1);
+                    }
 
-                // Ignore trip is invalid, no path, or the service already exists for this line and should not be updated
-                if (
-                    !isTripValid(stopTimes) ||
-                    !pathId ||
-                    (existingSchedules[serviceId] !== undefined && ignoreExisting)
-                ) {
-                    continue;
-                }
-                const schedule = scheduleByServiceId[serviceId]
-                    ? scheduleByServiceId[serviceId]
-                    : createSchedule(line, serviceId, importData, periods);
-                scheduleByServiceId[serviceId] = schedule;
+                    const newTrip = {
+                        id: uuidV4(),
+                        schedule_id: schedule.getId(),
+                        schedule_period_id: schedule.getAttributes().periods[periodIndex].id,
+                        path_id: pathId,
+                        departure_time_seconds: tripDepartureTimeSeconds,
+                        arrival_time_seconds: tripArrivalTimeSeconds,
+                        node_arrival_times_seconds: tripArrivalTimesSeconds,
+                        node_departure_times_seconds: tripDepartureTimesSeconds,
+                        nodes_can_board: canBoards,
+                        nodes_can_unboard: canUnboards,
+                        data: {}
+                        // TODO: We ignore the block_id during import, so we set it to null here. When we do something with the block,
+                    };
 
-                // generate new trip for schedule/service id:
-                const tripDepartureTimeSeconds = stopTimes[0].departureTimeSeconds;
-                const tripArrivalTimeSeconds = stopTimes[stopTimes.length - 1].arrivalTimeSeconds;
-                const periodShortname = findPeriodShortname(importData.periodsGroup.periods, tripDepartureTimeSeconds);
-                if (periodShortname === null) {
-                    console.log(
-                        `GTFS Schedule import: Cannot find period for stopTime with departure time of ${tripDepartureTimeSeconds}`
-                    );
-                    continue;
-                }
-                const periodIndex = periodShortnameByIndex[periodShortname];
-                const tripArrivalTimesSeconds: number[] = [];
-                const tripDepartureTimesSeconds: number[] = [];
-                const canBoards: boolean[] = [];
-                const canUnboards: boolean[] = [];
-
-                for (let j = 0, countJ = stopTimes.length; j < countJ; j++) {
-                    const stopTime = stopTimes[j];
-                    tripArrivalTimesSeconds.push(stopTime.arrivalTimeSeconds);
-                    tripDepartureTimesSeconds.push(stopTime.departureTimeSeconds);
-                    canBoards.push(j === countJ - 1 ? false : stopTime.pickup_type !== 1);
-                    canUnboards.push(j === 0 ? false : stopTime.drop_off_type !== 1);
-                }
-
-                const newTrip = {
-                    id: uuidV4(),
-                    schedule_id: schedule.getId(),
-                    schedule_period_id: schedule.getAttributes().periods[periodIndex].id,
-                    path_id: pathId,
-                    departure_time_seconds: tripDepartureTimeSeconds,
-                    arrival_time_seconds: tripArrivalTimeSeconds,
-                    node_arrival_times_seconds: tripArrivalTimesSeconds,
-                    node_departure_times_seconds: tripDepartureTimesSeconds,
-                    nodes_can_board: canBoards,
-                    nodes_can_unboard: canUnboards,
-                    data: {}
-                    // TODO: We ignore the block_id during import, so we set it to null here. When we do something with the block,
-                };
-
-                (schedule as Schedule).getAttributes().periods[periodIndex].trips.push(newTrip);
+                    (schedule as Schedule).getAttributes().periods[periodIndex].trips.push(newTrip);
+                });
             }
-        }
-        Object.keys(scheduleByServiceId).forEach(async (key) => {
-            line.addSchedule(scheduleByServiceId[key]);
-            if (existingSchedules[key]) {
+            line.addSchedule(schedule);
+            if (existingSchedules[schedule.attributes.service_id]) {
                 // Delete previous schedules for this service
-                await scheduleDbQueries.delete(existingSchedules[key].getId());
+                await scheduleDbQueries.delete(existingSchedules[schedule.attributes.service_id].getId());
             }
-        });
-        return Object.values(scheduleByServiceId);
+        }
+
+        return groupedSchedulesForLine.map((sched) => sched.schedule);
     } catch (err) {
         console.error('Error importing line %s %s', line.get('shortname'), line.get('longname'), err);
         throw {
