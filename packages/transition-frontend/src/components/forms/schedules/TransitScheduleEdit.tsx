@@ -430,15 +430,14 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                                 iconClass="_icon"
                                                 label={this.props.t('transit:transitSchedule:GenerateSchedule')}
                                                 onClick={function () {
-                                                    schedule.generateForPeriod(periodShortname).then((response) => {
-                                                        if (response.trips) {
-                                                            schedule.set(`periods[${i}].trips`, response.trips);
-                                                        }
-                                                        serviceLocator.selectedObjectsManager.update(
-                                                            'schedule',
-                                                            schedule
-                                                        );
-                                                    });
+                                                    const response = schedule.generateForPeriod(periodShortname);
+                                                    if (response.trips) {
+                                                        schedule.set(`periods[${i}].trips`, response.trips);
+                                                    }
+                                                    serviceLocator.selectedObjectsManager.update(
+                                                        'schedule',
+                                                        schedule
+                                                    );
                                                 }}
                                             />
                                         )}

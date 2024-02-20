@@ -133,7 +133,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         return clonedAttributes;
     }
 
-    async getRequiredFleetForPeriod(periodShortname) {
+    getRequiredFleetForPeriod(periodShortname) {
         // todo
         const period = this.getPeriod(periodShortname);
         if (period) {
@@ -502,7 +502,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         }
     }
 
-    async generateForPeriod(periodShortname: string): Promise<{ trips: SchedulePeriodTrip[] }> {
+    generateForPeriod(periodShortname: string): { trips: SchedulePeriodTrip[] } {
         const trips = this.generateForPeriodFunction(periodShortname);
         return { trips: trips.status === 'success' ? trips.trips : [] };
     }
