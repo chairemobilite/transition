@@ -17,6 +17,8 @@ import linesDbQueries from '../../../models/db/transitLines.db.queries';
 import schedulesDbQueries from '../../../models/db/transitSchedules.db.queries';
 // Add a simple 2 periods group, for easier testing
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import Schedule from 'transition-common/lib/services/schedules/Schedule';
+import { secondsSinceMidnightToTimeStr, timeStrToSecondsSinceMidnight } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 
 const testPeriodGroupShortname = 'test';
 const testPeriod = { 
@@ -927,4 +929,419 @@ describe('Generate schedules for lines', () => {
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(0);
     });
     
+});
+
+describe('Generate frequency based schedules for line', () => {
+    Line.prototype.refreshSchedules = jest.fn();
+    Schedule.prototype.generateForPeriod = jest.fn();
+    
+    const importData = Object.assign({}, defaultInternalImportData);
+    const routeId = uuidV4();
+    const gtfsServiceId = uuidV4();
+    importData.lineIdsByRouteGtfsId[routeId] = uuidV4();
+    importData.serviceIdsByGtfsId[gtfsServiceId] = uuidV4();
+    let line: Line;
+    let lineCollection: LineCollection;
+    const collectionManager = new CollectionManager(null);
+    importData.periodsGroupShortname = testPeriodGroupShortname;
+    importData.periodsGroup = testPeriod;
+    const generateForPeriodMock = Schedule.prototype.generateForPeriod as jest.MockedFunction<typeof Schedule.prototype.generateForPeriod>;
+
+    beforeEach(() => {
+        (linesDbQueries.update as any).mockClear();
+        (linesDbQueries.updateMultiple as any).mockClear();
+        (schedulesDbQueries.create as any).mockClear();
+        (schedulesDbQueries.delete as any).mockClear();
+        // Reset line to its original state
+        line = new Line({id: importData.lineIdsByRouteGtfsId[routeId], mode: 'metro', category: 'A', agency_id: uuidV4() }, false);
+        lineCollection = new LineCollection([line], {});
+        collectionManager.set('lines', lineCollection);
+        objectToCacheMock.mockClear();
+        generateForPeriodMock.mockClear();
+    });
+    
+    test('Single trip for one period', async () => {
+        const tripId = 'simpleTrip';
+        const tripsByRouteId = {};
+        const baseTripAndStopTimes = {
+            trip: { route_id: routeId, service_id: gtfsServiceId, trip_id: tripId, trip_headsign: 'Test West', direction_id: 0 },
+            stopTimes: [
+                { trip_id: tripId, stop_id: 'stop1', stop_sequence: 2, arrivalTimeSeconds: 36000, departureTimeSeconds: 36000 },
+                { trip_id: tripId, stop_id: 'stop2', stop_sequence: 3, arrivalTimeSeconds: 36090, departureTimeSeconds: 36100 },
+                { trip_id: tripId, stop_id: 'stop3', stop_sequence: 4, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200 },
+                { trip_id: tripId, stop_id: 'stop4', stop_sequence: 5, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300 }
+            ]
+        }
+        tripsByRouteId[routeId] = [ baseTripAndStopTimes ];
+        importData.pathIdsByTripId = {};
+        const pathId = uuidV4();
+        importData.pathIdsByTripId[tripId] = pathId;
+
+        const result = await ScheduleImporter.generateAndImportSchedules(tripsByRouteId, importData, collectionManager, true) as any;
+        expect(result.status).toEqual('success');
+        expect(result.warnings).toEqual([]);
+        const modifiedLine = lineCollection.getById(importData.lineIdsByRouteGtfsId[routeId]) as Line;
+        expect(modifiedLine).toBeDefined();
+        expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
+        expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
+        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        // One period should have been generated, no trip in the other
+        expect(generateForPeriodMock).toHaveBeenCalledTimes(1);
+        expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
+
+        expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
+        const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
+        expect(scheduleAttributes).toBeDefined();
+
+        // Compare resulting schedule periods
+        expect(scheduleAttributes).toEqual(expect.objectContaining({
+            line_id: line.getId(),
+            service_id: importData.serviceIdsByGtfsId[gtfsServiceId],
+            periods_group_shortname: importData.periodsGroupShortname,
+        }));
+        expect(scheduleAttributes.periods.length).toEqual(2);
+        expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            start_at_hour: importData.periodsGroup.periods[0].startAtHour,
+            end_at_hour: importData.periodsGroup.periods[0].endAtHour,
+            period_shortname: importData.periodsGroup.periods[0].shortname,
+            custom_start_at_str: secondsSinceMidnightToTimeStr(baseTripAndStopTimes.stopTimes[0].departureTimeSeconds),
+            custom_end_at_str: secondsSinceMidnightToTimeStr(baseTripAndStopTimes.stopTimes[0].departureTimeSeconds + 60),
+            interval_seconds: 60,
+            outbound_path_id: pathId,
+            inbound_path_id: undefined
+        }));
+        expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            start_at_hour: importData.periodsGroup.periods[1].startAtHour,
+            end_at_hour: importData.periodsGroup.periods[1].endAtHour,
+            period_shortname: importData.periodsGroup.periods[1].shortname,
+            trips: []
+        }));
+
+    });
+
+    test('Multiple periods, one already with frequencies, one with various trips', async() => {
+        const tripId = 'simpleTrip';
+        const tripsByRouteId = {};
+
+        // From 8:05 to 12:05, one trip every 15 minutes (17 trips)
+        const startTimeStr = '8:05';
+        const startTime = timeStrToSecondsSinceMidnight(startTimeStr) as number;
+        const baseTripAndStopTimes = {
+            trip: { route_id: routeId, service_id: gtfsServiceId, trip_id: tripId, trip_headsign: 'Test West', direction_id: 0 },
+            stopTimes: [
+                { trip_id: tripId, stop_id: 'stop1', stop_sequence: 2, arrivalTimeSeconds: startTime, departureTimeSeconds: startTime },
+                { trip_id: tripId, stop_id: 'stop2', stop_sequence: 3, arrivalTimeSeconds: startTime + 90, departureTimeSeconds: startTime + 100 },
+                { trip_id: tripId, stop_id: 'stop3', stop_sequence: 4, arrivalTimeSeconds: startTime + 180, departureTimeSeconds: startTime + 200 },
+                { trip_id: tripId, stop_id: 'stop4', stop_sequence: 5, arrivalTimeSeconds: startTime + 300, departureTimeSeconds: startTime + 300 }
+            ]
+        }
+        tripsByRouteId[routeId] = Array.from({ length: 17 }, (_, idx) => ({ trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, idx * 15 * 60))}));
+        // Add 2 trips at 16:00 and 18:00 for the second period (should be aggregated with last frequency trip of 12:05)
+        tripsByRouteId[routeId].push({ trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, timeStrToSecondsSinceMidnight('16:00') as number - startTime))});
+        tripsByRouteId[routeId].push({ trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, timeStrToSecondsSinceMidnight('18:00') as number - startTime))});
+
+        // Add the path to import data
+        importData.pathIdsByTripId = {};
+        const pathId = uuidV4();
+        importData.pathIdsByTripId[tripId] = pathId;
+
+        const result = await ScheduleImporter.generateAndImportSchedules(tripsByRouteId, importData, collectionManager, true) as any;
+        expect(result.status).toEqual('success');
+        expect(result.warnings).toEqual([]);
+        const modifiedLine = lineCollection.getById(importData.lineIdsByRouteGtfsId[routeId]) as Line;
+        expect(modifiedLine).toBeDefined();
+        expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
+        expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
+        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(generateForPeriodMock).toHaveBeenCalledTimes(2);
+        expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
+        expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[1].shortname);
+
+        expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
+        const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
+        expect(scheduleAttributes).toBeDefined();
+
+        // Compare resulting schedule periods
+        expect(scheduleAttributes).toEqual(expect.objectContaining({
+            line_id: line.getId(),
+            service_id: importData.serviceIdsByGtfsId[gtfsServiceId],
+            periods_group_shortname: importData.periodsGroupShortname,
+        }));
+        expect(scheduleAttributes.periods.length).toEqual(2);
+        expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            start_at_hour: importData.periodsGroup.periods[0].startAtHour,
+            end_at_hour: importData.periodsGroup.periods[0].endAtHour,
+            period_shortname: importData.periodsGroup.periods[0].shortname,
+            custom_start_at_str: startTimeStr,
+            custom_end_at_str: undefined,
+            interval_seconds: 15 * 60,
+            outbound_path_id: pathId,
+            inbound_path_id: undefined
+        }));
+        expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            start_at_hour: importData.periodsGroup.periods[1].startAtHour,
+            end_at_hour: importData.periodsGroup.periods[1].endAtHour,
+            period_shortname: importData.periodsGroup.periods[1].shortname,
+            custom_end_at_str: '18:01',
+            interval_seconds: (timeStrToSecondsSinceMidnight('18:00') as number - (timeStrToSecondsSinceMidnight('12:05') as number)) / 2,
+            outbound_path_id: pathId,
+            trips: []
+        }));
+    });
+
+    test('2 different paths, one for each period, of different direction', async() => {
+        // Prepare trips for 2 directions
+        const outboundTripId = 'outboundish';
+        const inboundTripId = 'inboundish';
+        const tripsByRouteId = {};
+        const outboundBaseTripAndStopTimes = {
+            trip: { route_id: routeId, service_id: gtfsServiceId, trip_id: outboundTripId, trip_headsign: 'Test West', direction_id: 0 },
+            stopTimes: [
+                { trip_id: outboundTripId, stop_id: 'stop1', stop_sequence: 2, arrivalTimeSeconds: 0, departureTimeSeconds: 0 },
+                { trip_id: outboundTripId, stop_id: 'stop2', stop_sequence: 3, arrivalTimeSeconds: 90, departureTimeSeconds: 100 },
+                { trip_id: outboundTripId, stop_id: 'stop3', stop_sequence: 4, arrivalTimeSeconds: 180, departureTimeSeconds: 200 },
+                { trip_id: outboundTripId, stop_id: 'stop4', stop_sequence: 5, arrivalTimeSeconds: 300, departureTimeSeconds: 300 }
+            ]
+        }
+        const reverseBaseTripAndStopTimes = {
+            trip: { route_id: routeId, service_id: gtfsServiceId, trip_id: inboundTripId, trip_headsign: 'Test East', direction_id: 1 },
+            stopTimes: [
+                { trip_id: inboundTripId, stop_id: 'stop4', stop_sequence: 2, arrivalTimeSeconds: 0, departureTimeSeconds: 0 },
+                { trip_id: inboundTripId, stop_id: 'stop3', stop_sequence: 3, arrivalTimeSeconds: 100, departureTimeSeconds: 120 },
+                { trip_id: inboundTripId, stop_id: 'stop2', stop_sequence: 4, arrivalTimeSeconds: 200, departureTimeSeconds: 210 },
+                { trip_id: inboundTripId, stop_id: 'stop1', stop_sequence: 5, arrivalTimeSeconds: 300, departureTimeSeconds: 300 }
+            ]
+        }
+        // 3 trips in the morning: 9:00, 10:00, 11:30, 3 in the afternoon in the return direction 14:00, 15:00, 15:30
+        tripsByRouteId[routeId] = [
+            { trip: outboundBaseTripAndStopTimes.trip, stopTimes: outboundBaseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, timeStrToSecondsSinceMidnight('9:00') as number))},
+            { trip: outboundBaseTripAndStopTimes.trip, stopTimes: outboundBaseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, timeStrToSecondsSinceMidnight('10:00') as number))},
+            { trip: outboundBaseTripAndStopTimes.trip, stopTimes: outboundBaseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, timeStrToSecondsSinceMidnight('11:30') as number))},
+            { trip: reverseBaseTripAndStopTimes.trip, stopTimes: reverseBaseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, timeStrToSecondsSinceMidnight('14:00') as number))},
+            { trip: reverseBaseTripAndStopTimes.trip, stopTimes: reverseBaseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, timeStrToSecondsSinceMidnight('15:00') as number))},
+            { trip: reverseBaseTripAndStopTimes.trip, stopTimes: reverseBaseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, timeStrToSecondsSinceMidnight('15:30') as number))},
+        ];
+        importData.pathIdsByTripId = {};
+        const outboundPathId = uuidV4();
+        const inboundPathId = uuidV4();
+        importData.pathIdsByTripId[outboundTripId] = outboundPathId;
+        importData.pathIdsByTripId[inboundTripId] = inboundPathId;
+
+        const result = await ScheduleImporter.generateAndImportSchedules(tripsByRouteId, importData, collectionManager, true) as any;
+        expect(result.status).toEqual('success');
+        expect(result.warnings).toEqual([]);
+        const modifiedLine = lineCollection.getById(importData.lineIdsByRouteGtfsId[routeId]) as Line;
+        expect(modifiedLine).toBeDefined();
+        expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
+        expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
+        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(generateForPeriodMock).toHaveBeenCalledTimes(2);
+        expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
+        expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[1].shortname);
+
+        expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
+        const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
+        expect(scheduleAttributes).toBeDefined();
+
+        // Compare resulting schedule periods
+        expect(scheduleAttributes).toEqual(expect.objectContaining({
+            line_id: line.getId(),
+            service_id: importData.serviceIdsByGtfsId[gtfsServiceId],
+            periods_group_shortname: importData.periodsGroupShortname,
+        }));
+        expect(scheduleAttributes.periods.length).toEqual(2);
+        expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            start_at_hour: importData.periodsGroup.periods[0].startAtHour,
+            end_at_hour: importData.periodsGroup.periods[0].endAtHour,
+            period_shortname: importData.periodsGroup.periods[0].shortname,
+            custom_start_at_str: '9:00',
+            custom_end_at_str: undefined,
+            interval_seconds: (timeStrToSecondsSinceMidnight('11:30') as number - (timeStrToSecondsSinceMidnight('9:00') as number)) / 2,
+            outbound_path_id: outboundPathId,
+            inbound_path_id: undefined
+        }));
+        expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            start_at_hour: importData.periodsGroup.periods[1].startAtHour,
+            end_at_hour: importData.periodsGroup.periods[1].endAtHour,
+            period_shortname: importData.periodsGroup.periods[1].shortname,
+            custom_start_at_str: '14:00',
+            custom_end_at_str: '15:31',
+            interval_seconds: (timeStrToSecondsSinceMidnight('15:30') as number - (timeStrToSecondsSinceMidnight('14:00') as number)) / 2,
+            outbound_path_id: inboundPathId,
+            trips: []
+        }));
+    });
+
+    test('Multiple paths and directions', async() => {
+        // Prepare trips for 2 directions
+        const outboundTripId = 'outboundish';
+        const inboundTripId = 'inboundish';
+        const tripsByRouteId = {};
+        const outboundBaseTripAndStopTimes = {
+            trip: { route_id: routeId, service_id: gtfsServiceId, trip_id: outboundTripId, trip_headsign: 'Test West', direction_id: 0 },
+            stopTimes: [
+                { trip_id: outboundTripId, stop_id: 'stop1', stop_sequence: 2, arrivalTimeSeconds: 0, departureTimeSeconds: 0 },
+                { trip_id: outboundTripId, stop_id: 'stop2', stop_sequence: 3, arrivalTimeSeconds: 90, departureTimeSeconds: 100 },
+                { trip_id: outboundTripId, stop_id: 'stop3', stop_sequence: 4, arrivalTimeSeconds: 180, departureTimeSeconds: 200 },
+                { trip_id: outboundTripId, stop_id: 'stop4', stop_sequence: 5, arrivalTimeSeconds: 300, departureTimeSeconds: 300 }
+            ]
+        }
+        const reverseBaseTripAndStopTimes = {
+            trip: { route_id: routeId, service_id: gtfsServiceId, trip_id: inboundTripId, trip_headsign: 'Test East', direction_id: 1 },
+            stopTimes: [
+                { trip_id: inboundTripId, stop_id: 'stop4', stop_sequence: 2, arrivalTimeSeconds: 0, departureTimeSeconds: 0 },
+                { trip_id: inboundTripId, stop_id: 'stop3', stop_sequence: 3, arrivalTimeSeconds: 100, departureTimeSeconds: 120 },
+                { trip_id: inboundTripId, stop_id: 'stop2', stop_sequence: 4, arrivalTimeSeconds: 200, departureTimeSeconds: 210 },
+                { trip_id: inboundTripId, stop_id: 'stop1', stop_sequence: 5, arrivalTimeSeconds: 300, departureTimeSeconds: 300 }
+            ]
+        }
+        // outbound: trips every 15 minutes from period start to end (0:05 to 11:50, 48 trips)
+        // inbound: trips every 30 minutes from start to end (0:10 to 11:40, 24)
+        const outboundStart = timeStrToSecondsSinceMidnight('0:05') as number;
+        const inboundStart = timeStrToSecondsSinceMidnight('0:10') as number;
+        tripsByRouteId[routeId] = Array.from({ length: 48 }, (_, idx) => ({ trip: outboundBaseTripAndStopTimes.trip, stopTimes: outboundBaseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, outboundStart + idx * 15 * 60))}));
+        tripsByRouteId[routeId].push(...Array.from({ length: 24 }, (_, idx) => ({ trip: reverseBaseTripAndStopTimes.trip, stopTimes: reverseBaseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, inboundStart + idx * 30 * 60))})))
+        importData.pathIdsByTripId = {};
+        const outboundPathId = uuidV4();
+        const inboundPathId = uuidV4();
+        importData.pathIdsByTripId[outboundTripId] = outboundPathId;
+        importData.pathIdsByTripId[inboundTripId] = inboundPathId;
+
+        const result = await ScheduleImporter.generateAndImportSchedules(tripsByRouteId, importData, collectionManager, true) as any;
+        expect(result.status).toEqual('success');
+        expect(result.warnings).toEqual([]);
+        const modifiedLine = lineCollection.getById(importData.lineIdsByRouteGtfsId[routeId]) as Line;
+        expect(modifiedLine).toBeDefined();
+        expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
+        expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
+        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(generateForPeriodMock).toHaveBeenCalledTimes(1);
+        expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
+
+        expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
+        const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
+        expect(scheduleAttributes).toBeDefined();
+
+        // Compare resulting schedule periods
+        expect(scheduleAttributes).toEqual(expect.objectContaining({
+            line_id: line.getId(),
+            service_id: importData.serviceIdsByGtfsId[gtfsServiceId],
+            periods_group_shortname: importData.periodsGroupShortname,
+        }));
+        expect(scheduleAttributes.periods.length).toEqual(2);
+        expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            start_at_hour: importData.periodsGroup.periods[0].startAtHour,
+            end_at_hour: importData.periodsGroup.periods[0].endAtHour,
+            period_shortname: importData.periodsGroup.periods[0].shortname,
+            interval_seconds: (15 * 60 + 30 * 60) / 2,
+            outbound_path_id: outboundPathId,
+            inbound_path_id: inboundPathId
+        }));
+        expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            start_at_hour: importData.periodsGroup.periods[1].startAtHour,
+            end_at_hour: importData.periodsGroup.periods[1].endAtHour,
+            period_shortname: importData.periodsGroup.periods[1].shortname,
+            trips: []
+        }));
+    });
+
+    test('Multiple shapes for path', async() => {
+        // Prepare trips for 2 directions
+        const outboundTripId = 'outboundish';
+        const inboundTripId = 'inboundish';
+        const inboundTripAltId = 'inboundish alt';
+        const tripsByRouteId = {};
+        const outboundBaseTripAndStopTimes = {
+            trip: { route_id: routeId, service_id: gtfsServiceId, trip_id: outboundTripId, trip_headsign: 'Test West', direction_id: 0 },
+            stopTimes: [
+                { trip_id: outboundTripId, stop_id: 'stop1', stop_sequence: 2, arrivalTimeSeconds: 0, departureTimeSeconds: 0 },
+                { trip_id: outboundTripId, stop_id: 'stop2', stop_sequence: 3, arrivalTimeSeconds: 90, departureTimeSeconds: 100 },
+                { trip_id: outboundTripId, stop_id: 'stop3', stop_sequence: 4, arrivalTimeSeconds: 180, departureTimeSeconds: 200 },
+                { trip_id: outboundTripId, stop_id: 'stop4', stop_sequence: 5, arrivalTimeSeconds: 300, departureTimeSeconds: 300 }
+            ]
+        };
+        const reverseBaseTripAndStopTimes = {
+            trip: { route_id: routeId, service_id: gtfsServiceId, trip_id: inboundTripId, trip_headsign: 'Test East', direction_id: 1 },
+            stopTimes: [
+                { trip_id: inboundTripId, stop_id: 'stop4', stop_sequence: 2, arrivalTimeSeconds: 0, departureTimeSeconds: 0 },
+                { trip_id: inboundTripId, stop_id: 'stop3', stop_sequence: 3, arrivalTimeSeconds: 100, departureTimeSeconds: 120 },
+                { trip_id: inboundTripId, stop_id: 'stop2', stop_sequence: 4, arrivalTimeSeconds: 200, departureTimeSeconds: 210 },
+                { trip_id: inboundTripId, stop_id: 'stop1', stop_sequence: 5, arrivalTimeSeconds: 300, departureTimeSeconds: 300 }
+            ]
+        };
+        const reverseBaseTripAndStopTimesAlt = {
+            trip: { route_id: routeId, service_id: gtfsServiceId, trip_id: inboundTripAltId, trip_headsign: 'Test East', direction_id: 1 },
+            stopTimes: [
+                { trip_id: inboundTripAltId, stop_id: 'stop4', stop_sequence: 2, arrivalTimeSeconds: 0, departureTimeSeconds: 0 },
+                { trip_id: inboundTripAltId, stop_id: 'stop3', stop_sequence: 3, arrivalTimeSeconds: 100, departureTimeSeconds: 120 },
+                { trip_id: inboundTripAltId, stop_id: 'stop2', stop_sequence: 4, arrivalTimeSeconds: 200, departureTimeSeconds: 210 },
+                { trip_id: inboundTripAltId, stop_id: 'stop1', stop_sequence: 5, arrivalTimeSeconds: 300, departureTimeSeconds: 320 },
+                { trip_id: inboundTripAltId, stop_id: 'stop0', stop_sequence: 6, arrivalTimeSeconds: 400, departureTimeSeconds: 450 }
+            ]
+        }
+        // outbound: trips every 30 minutes from period start to end (0:05 to 11:35, 24 trips)
+        // inbound: trips every 15 minutes from start to end (0:10 to 11:40, 48), every 4 trips is the alternative
+        const outboundStart = timeStrToSecondsSinceMidnight('0:05') as number;
+        const inboundStart = timeStrToSecondsSinceMidnight('0:10') as number;
+        tripsByRouteId[routeId] = Array.from({ length: 24 }, (_, idx) => ({ trip: outboundBaseTripAndStopTimes.trip, stopTimes: outboundBaseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, outboundStart + idx * 30 * 60))}));
+        tripsByRouteId[routeId].push(...Array.from({ length: 48 }, (_, idx) => {
+            const baseTrip = idx % 4 === 0 ? reverseBaseTripAndStopTimesAlt : reverseBaseTripAndStopTimes;
+            return { trip: baseTrip.trip, stopTimes: baseTrip.stopTimes.map(stopTime => offsetStopTimes(stopTime, inboundStart + idx * 15 * 60))}
+        }));
+        importData.pathIdsByTripId = {};
+        const outboundPathId = uuidV4();
+        const inboundPathId = uuidV4();
+        const inboundPathAlt = uuidV4();
+        importData.pathIdsByTripId[outboundTripId] = outboundPathId;
+        importData.pathIdsByTripId[inboundTripId] = inboundPathId;
+        importData.pathIdsByTripId[inboundTripAltId] = inboundPathAlt;
+
+        const result = await ScheduleImporter.generateAndImportSchedules(tripsByRouteId, importData, collectionManager, true) as any;
+        expect(result.status).toEqual('success');
+        expect(result.warnings).toEqual([]);
+        const modifiedLine = lineCollection.getById(importData.lineIdsByRouteGtfsId[routeId]) as Line;
+        expect(modifiedLine).toBeDefined();
+        expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
+        expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
+        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(generateForPeriodMock).toHaveBeenCalledTimes(1);
+        expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
+
+        expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
+        const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
+        expect(scheduleAttributes).toBeDefined();
+
+        // Compare resulting schedule periods
+        expect(scheduleAttributes).toEqual(expect.objectContaining({
+            line_id: line.getId(),
+            service_id: importData.serviceIdsByGtfsId[gtfsServiceId],
+            periods_group_shortname: importData.periodsGroupShortname,
+        }));
+        expect(scheduleAttributes.periods.length).toEqual(2);
+        expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            start_at_hour: importData.periodsGroup.periods[0].startAtHour,
+            end_at_hour: importData.periodsGroup.periods[0].endAtHour,
+            period_shortname: importData.periodsGroup.periods[0].shortname,
+            interval_seconds: (15 * 60 + 30 * 60) / 2,
+            outbound_path_id: outboundPathId,
+            inbound_path_id: inboundPathId
+        }));
+        expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
+            schedule_id: scheduleAttributes.id,
+            start_at_hour: importData.periodsGroup.periods[1].startAtHour,
+            end_at_hour: importData.periodsGroup.periods[1].endAtHour,
+            period_shortname: importData.periodsGroup.periods[1].shortname,
+            trips: []
+        }));
+    });
+
 });

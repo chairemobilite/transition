@@ -151,7 +151,7 @@ test('Test valid complete workflow with success', async() => {
         'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything() 
     }), expect.objectContaining(Object.assign({}, expectedInternalDataBeforePaths, {
         pathIdsByTripId
-    })), expect.anything());
+    })), expect.anything(), false);
 });
 
 test('Test path and schedule success, with warnings', async() => {
@@ -184,7 +184,7 @@ test('Test path and schedule success, with warnings', async() => {
         'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything() 
     }), expect.objectContaining({
         pathIdsByTripId
-    }), expect.anything());
+    }), expect.anything(), false);
 });
 
 test('Test path success, but schedule failures', async() => {
@@ -218,7 +218,7 @@ test('Test path success, but schedule failures', async() => {
         'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything() 
     }), expect.objectContaining({
         pathIdsByTripId
-    }), expect.anything());
+    }), expect.anything(), false);
 });
 
 test('Test path failure', async() => {
