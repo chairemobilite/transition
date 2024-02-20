@@ -26,6 +26,7 @@ import TripImporter from './TripImporter';
 import ScheduleImporter from './ScheduleImporter';
 import PathImporter from './PathImporter';
 import StopImporter from './StopImporter';
+import PathCollection from 'transition-common/lib/services/path/PathCollection';
 
 // Number of steps for the import, to track progress at every step
 const nbImportSteps = 6;
@@ -51,11 +52,13 @@ const importGtfsData = async (
     const nodeCollection = new NodeCollection([], {});
     const agencies = new AgencyCollection([], {});
     const services = new ServiceCollection([], {});
+    const pathCollection = new PathCollection([], {});
     const collectionManager = new CollectionManager(null, {
         lines: lineCollection,
         nodes: nodeCollection,
         agencies,
-        services
+        services,
+        paths: pathCollection
     });
 
     let nodesDirty = false;
@@ -211,10 +214,15 @@ const importGtfsData = async (
             progress: (currentStepCompleted / nbImportSteps).toFixed(2)
         });
         gtfsInternalData.pathIdsByTripId = pathResult.pathIdsByTripId;
+        // The frequency based schedules need the paths also
+        if (parameters.generateFrequencyBasedSchedules === true) {
+            await pathCollection.loadFromServer(serviceLocator.socketEventManager);
+        }
         const scheduleResponse = await ScheduleImporter.generateAndImportSchedules(
             allTrips,
             gtfsInternalData,
-            collectionManager
+            collectionManager,
+            parameters.generateFrequencyBasedSchedules === true
         );
         progressEmitter?.emit('progress', { name: 'ImportingSchedules', progress: 1.0 });
         currentStepCompleted++;
