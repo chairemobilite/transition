@@ -58,20 +58,13 @@ export default class SimulationRunBackend extends SimulationRun {
     }
 
     async restartTrRoutingInstances() {
-        await TrRoutingProcessManager.stopMultiple(
-            this.attributes.options?.numberOfThreads || 1,
-            this.getStartingPort()
-        );
-        await TrRoutingProcessManager.startMultiple(
+        await TrRoutingProcessManager.stopBatch(this.getBatchPort());
+        await TrRoutingProcessManager.startBatch(
             (this.attributes.options?.numberOfThreads as number) || 1,
-            this.getStartingPort(),
+            this.getBatchPort(),
             this.getProjectRelativeCacheDirectoryPath()
         );
-        this.poolOfTrRoutingPorts = _cloneDeep(
-            Object.keys(TrRoutingProcessManager.getAvailablePortsByStartingPort(this.getStartingPort()))
-        ).map((portStr) => parseInt(portStr));
-        console.log('this.poolOfTrRoutingPorts', this.poolOfTrRoutingPorts);
-        this.promiseQueue = new pQueue({ concurrency: this.poolOfTrRoutingPorts.length });
+        this.promiseQueue = new pQueue({ concurrency: (this.attributes.options?.numberOfThreads as number) || 1 });
     }
 
     async reloadTrRoutingData(cacheNames: ('scenarios' | 'lines' | 'services' | 'schedules')[]) {
@@ -84,10 +77,7 @@ export default class SimulationRunBackend extends SimulationRun {
     }
 
     async stopTrRoutingInstances() {
-        await TrRoutingProcessManager.stopMultiple(
-            this.attributes.options?.numberOfThreads || 1,
-            this.getStartingPort()
-        );
+        await TrRoutingProcessManager.stopBatch(this.getBatchPort());
         this.promiseQueue = undefined;
     }
 
@@ -112,7 +102,7 @@ export default class SimulationRunBackend extends SimulationRun {
             }
             const simulationFunctionPromise = new Promise<{ fitness: number; results: unknown }>((resolve, reject) => {
                 promiseQueue.add(async () => {
-                    const trRoutingPort = this.poolOfTrRoutingPorts.pop();
+                    const trRoutingPort = this.getBatchPort();
                     if (trRoutingPort === undefined) {
                         throw new TrError(
                             'Error somewhere in the code, there is not trRouting available',
@@ -129,8 +119,6 @@ export default class SimulationRunBackend extends SimulationRun {
                         resolve(results);
                     } catch (error) {
                         reject(error);
-                    } finally {
-                        this.poolOfTrRoutingPorts.push(trRoutingPort);
                     }
                 });
             });
@@ -143,7 +131,7 @@ export default class SimulationRunBackend extends SimulationRun {
         };
     }
 
-    public getStartingPort(): number {
+    public getBatchPort(): number {
         return this.attributes.options.trRoutingStartingPort || Preferences.get('trRouting.batchPortStart', 14000);
     }
 

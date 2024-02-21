@@ -22,12 +22,12 @@ import { Readable } from 'stream';
 
 const absoluteDir = `${directoryManager.userDataDirectory}/1/exports`;
 
-TrRoutingProcessManager.startMultiple = jest.fn().mockResolvedValue({
+TrRoutingProcessManager.startBatch = jest.fn().mockResolvedValue({
     status: 'started',
-    service: 'trRoutingMultiple',
-    startingPort: 14000
+    service: 'trRoutingBatch',
+    port: 14000
 });
-TrRoutingProcessManager.getAvailablePortsByStartingPort = function(startingPort = 1400) { return { [startingPort]: true, [startingPort + 1]: true, [startingPort + 2]: false }; };
+
 const socketMock = new EventEmitter();
 const isCancelledMock = jest.fn().mockReturnValue(false);
 

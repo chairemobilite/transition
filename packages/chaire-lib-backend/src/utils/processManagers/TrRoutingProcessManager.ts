@@ -14,8 +14,6 @@ import config from '../../config/server.config';
 // Set 2 threads as default, just in case we have more than one request being handled
 const DEFAULT_THREAD_COUNT = 2;
 
-const availablePortsByStartingPort: { [startingPort: number]: { [port: number]: boolean } } = {};
-
 const getServiceName = function (port) {
     return `trRouting${port}`;
 };
@@ -160,79 +158,11 @@ const stopBatch = async function (port = Preferences.get('trRouting.batchPortSta
     };
 };
 
-const startMultiple = async function (
-    numberOfInstances: number,
-    startingPort = Preferences.get('trRouting.batchPortStart', 14000),
-    cacheDirectoryPath?: string
-) {
-    for (let i = 0; i < numberOfInstances; i++) {
-        const params: { [key: string]: number | string | boolean } = {
-            port: startingPort + i
-        };
-        if (cacheDirectoryPath) {
-            params.cacheDirectoryPath = cacheDirectoryPath;
-        }
-        await start(params);
-        if (!availablePortsByStartingPort[startingPort]) {
-            availablePortsByStartingPort[startingPort] = {};
-        }
-        availablePortsByStartingPort[startingPort][startingPort + i] = true;
-    }
-    return {
-        status: 'started',
-        service: 'trRoutingMultiple',
-        startingPort: startingPort
-    };
-};
-
-const stopMultiple = async function (
-    numberOfInstances,
-    startingPort = Preferences.get('trRouting.batchPortStart', 14000)
-) {
-    for (let i = 0; i < numberOfInstances; i++) {
-        await stop({
-            port: startingPort + i
-        });
-        if (
-            availablePortsByStartingPort[startingPort] &&
-            availablePortsByStartingPort[startingPort][startingPort + i]
-        ) {
-            delete availablePortsByStartingPort[startingPort][startingPort + i];
-        }
-    }
-    return {
-        status: 'stopped',
-        service: 'trRoutingMultiple',
-        startingPort: startingPort
-    };
-};
-
-const getAvailablePortsByStartingPort = function (startingPort = Preferences.get('trRouting.batchPortStart', 14000)) {
-    return availablePortsByStartingPort[startingPort] || [];
-};
-
-const getAvailablePort = function (startingPort = Preferences.get('trRouting.batchPortStart', 14000)) {
-    if (!availablePortsByStartingPort[startingPort]) {
-        return null;
-    }
-    for (const port in availablePortsByStartingPort[startingPort]) {
-        if (availablePortsByStartingPort[startingPort][port] === true) {
-            return port;
-        }
-    }
-    return null;
-};
-
 export default {
     start,
     stop,
     restart,
     status,
     startBatch,
-    stopBatch,
-    startMultiple,
-    stopMultiple,
-    getAvailablePortsByStartingPort,
-    availablePortsByStartingPort,
-    getAvailablePort
+    stopBatch
 };

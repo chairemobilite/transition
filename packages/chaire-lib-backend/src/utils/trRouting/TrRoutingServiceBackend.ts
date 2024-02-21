@@ -23,21 +23,6 @@ import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
  * @class TrRoutingServiceBackend
  */
 class TrRoutingServiceBackend {
-    hasAvailablePortsStatus(startingPort: number = Preferences.get('trRouting.batchPortStart', 14000)): boolean {
-        const availablePorts = this.getAvailablePorts(startingPort);
-        return Object.keys(availablePorts).find((port) => availablePorts[port] === true) !== undefined;
-    }
-
-    getAvailablePorts(startingPort: number = Preferences.get('trRouting.batchPortStart', 14000)): {
-        [port: number]: boolean;
-    } {
-        return TrRoutingProcessManager.getAvailablePortsByStartingPort(startingPort);
-    }
-
-    getAvailablePort(startingPort: number = Preferences.get('trRouting.batchPortStart', 14000)) {
-        return TrRoutingProcessManager.getAvailablePort(startingPort);
-    }
-
     private request<T>(
         query: string,
         host: string | undefined,
