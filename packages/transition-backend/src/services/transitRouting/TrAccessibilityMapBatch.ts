@@ -67,8 +67,8 @@ export const batchAccessibilityMap = async (
         progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 0.0 });
         // Because of cancellation, we need to make sure processes are stopped before restarting
         // TODO trRouting should be multi-threaded, this will be useless then.
-        await TrRoutingProcessManager.stopMultiple(trRoutingInstancesCount);
-        const startStatus = await TrRoutingProcessManager.startMultiple(trRoutingInstancesCount);
+        await TrRoutingProcessManager.stopBatch();
+        const startStatus = await TrRoutingProcessManager.startBatch(trRoutingInstancesCount);
         progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 1.0 });
 
         // Assert the job is not cancelled, otherwise reject
@@ -104,14 +104,9 @@ export const batchAccessibilityMap = async (
         // Number of locations after which to report progress
         const progressStep = Math.ceil(locations.length / 100);
 
-        const poolOfTrRoutingPorts = _cloneDeep(
-            Object.keys(TrRoutingProcessManager.getAvailablePortsByStartingPort())
-        ).map((portStr) => parseInt(portStr));
-        console.log('pool of routing ports', poolOfTrRoutingPorts);
-
         let completedRoutingsCount = 0;
 
-        const promiseQueue = new pQueue({ concurrency: poolOfTrRoutingPorts.length });
+        const promiseQueue = new pQueue({ concurrency: trRoutingInstancesCount });
 
         // Log progress at most for each 1% progress
         const logInterval = Math.ceil(locationsCount / 100);
@@ -122,7 +117,7 @@ export const batchAccessibilityMap = async (
             location: AccessibilityMapLocation;
             locationIndex: number;
         }) => {
-            const trRoutingPort = poolOfTrRoutingPorts.pop();
+            const trRoutingPort = startStatus.port;
             try {
                 if (trRoutingPort === undefined) {
                     throw 'TrRoutingBatch: No available routing port. This should not happen';
@@ -182,10 +177,6 @@ export const batchAccessibilityMap = async (
                     });
                     console.error(`Error getting od trip result ${error}`);
                 }
-            } finally {
-                if (trRoutingPort !== undefined) {
-                    poolOfTrRoutingPorts.push(trRoutingPort);
-                }
             }
         };
 
@@ -205,7 +196,7 @@ export const batchAccessibilityMap = async (
         await promiseQueue.onIdle();
 
         progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
-        const stopStatus = await TrRoutingProcessManager.stopMultiple(trRoutingInstancesCount);
+        const stopStatus = await TrRoutingProcessManager.stopBatch();
         progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 1.0 });
         console.log('trRouting multiple stopStatus', stopStatus);
 

@@ -111,7 +111,7 @@ class TrRoutingBatch {
             await resultsDbQueries.deleteForJob(this.options.jobId, this.options.currentCheckpoint);
 
             // Start the trRouting instances for the odTrips
-            const trRoutingInstancesCount = await this.startTrRoutingInstances(odTripsCount);
+            const [trRoutingInstancesCount, trRoutingPort] = await this.startTrRoutingInstances(odTripsCount);
 
             // Prepare indexes for calculations and progress report
             const startIndex = this.options.currentCheckpoint || 0;
@@ -132,11 +132,7 @@ class TrRoutingBatch {
             this.transitRoutingAttributes.routingModes = routingModes;
             const routingObject = new TransitRouting(this.transitRoutingAttributes);
 
-            const poolOfTrRoutingPorts = _cloneDeep(
-                Object.keys(TrRoutingProcessManager.getAvailablePortsByStartingPort())
-            ).map((portStr) => parseInt(portStr));
-
-            const promiseQueue = new pQueue({ concurrency: poolOfTrRoutingPorts.length });
+            const promiseQueue = new pQueue({ concurrency: trRoutingInstancesCount });
 
             // Log progress at most for each 1% progress
             const logInterval = Math.ceil(odTripsCount / 100);
@@ -167,7 +163,6 @@ class TrRoutingBatch {
                     if (this.options.isCancelled()) {
                         promiseQueue.clear();
                     }
-                    const trRoutingPort = poolOfTrRoutingPorts.pop() as number;
                     try {
                         await this.odTripTask(odTripIndex, routingObject, {
                             trRoutingPort,
@@ -182,9 +177,6 @@ class TrRoutingBatch {
                                 progress: completedRoutingsCount / odTripsCount
                             });
                         }
-                        if (trRoutingPort !== undefined) {
-                            poolOfTrRoutingPorts.push(trRoutingPort);
-                        }
                         checkpointTracker.handled(odTripIndex);
                     }
                 });
@@ -196,7 +188,7 @@ class TrRoutingBatch {
             this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
             this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
 
-            const stopStatus = await TrRoutingProcessManager.stopMultiple(trRoutingInstancesCount);
+            const stopStatus = await TrRoutingProcessManager.stopBatch();
 
             this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 1.0 });
             console.log('trRouting multiple stopStatus', stopStatus);
@@ -317,26 +309,25 @@ class TrRoutingBatch {
         return { odTrips, errors };
     };
 
-    private startTrRoutingInstances = async (odTripsCount: number): Promise<number> => {
+    private startTrRoutingInstances = async (odTripsCount: number): Promise<[number, number]> => {
         // Divide odTripCount by 3 for the minimum number of calculation, to avoid creating too many processes if trip count is small
         const trRoutingInstancesCount = Math.max(
             1,
             Math.min(Math.ceil(odTripsCount / 3), this.transitRoutingAttributes.cpuCount || 1)
         );
-
         try {
             this.options.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 0.0 });
 
             // Because of cancellation, we need to make sure processes are stopped before restarting
-            // TODO trRouting should be multi-threaded, this will be useless then.
-            await TrRoutingProcessManager.stopMultiple(trRoutingInstancesCount);
-            const startStatus = await TrRoutingProcessManager.startMultiple(trRoutingInstancesCount);
-
+            await TrRoutingProcessManager.stopBatch();
+            const startStatus = await TrRoutingProcessManager.startBatch(trRoutingInstancesCount);
+            const trRoutingPort = startStatus.port;
             console.log('trRouting multiple startStatus', startStatus);
+            // We can return in here directly since we don't have a catch part
+            return [trRoutingInstancesCount, trRoutingPort];
         } finally {
             this.options.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 1.0 });
         }
-        return trRoutingInstancesCount;
     };
 
     private odTripTask = async (

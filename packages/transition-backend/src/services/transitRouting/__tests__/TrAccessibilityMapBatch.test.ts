@@ -30,21 +30,19 @@ const isCancelledMock = jest.fn().mockReturnValue(false);
 
 // Mock one process by default
 jest.mock('chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager', () => ({
-    startMultiple: jest.fn().mockResolvedValue({
+    startBatch: jest.fn().mockResolvedValue({
         status: 'started',
-        service: 'trRoutingMultiple',
-        startingPort: 14000
+        service: 'trRoutingBatch',
+        port: 14000
     }),
-    stopMultiple: jest.fn().mockResolvedValue({
+    stopBatch: jest.fn().mockResolvedValue({
         status: 'stopped',
-        service: 'trRoutingMultiple',
-        startingPort: 14000
+        service: 'trRoutingBatch',
+        port: 14000
     }),
-    getAvailablePortsByStartingPort: jest.fn().mockReturnValue({ 14000: true })
 }));
-const mockedStartMultiple = TrRoutingProcessManager.startMultiple as jest.MockedFunction<typeof TrRoutingProcessManager.startMultiple>;
-const mockedStopMultiple = TrRoutingProcessManager.stopMultiple as jest.MockedFunction<typeof TrRoutingProcessManager.stopMultiple>;
-const mockedGetAvailablePortsByStartingPort = TrRoutingProcessManager.getAvailablePortsByStartingPort as jest.MockedFunction<typeof TrRoutingProcessManager.getAvailablePortsByStartingPort>;
+const mockedStartBatch = TrRoutingProcessManager.startBatch as jest.MockedFunction<typeof TrRoutingProcessManager.startBatch>;
+const mockedStopBatch = TrRoutingProcessManager.stopBatch as jest.MockedFunction<typeof TrRoutingProcessManager.stopBatch>;
 
 jest.mock('../TrAccessibilityMapBatchResult', () => ({
     createAccessMapFileResultProcessor: jest.fn()
@@ -73,9 +71,8 @@ jest.mock('../../../models/db/transitScenarios.db.queries', () => ({
 
 beforeEach(() => {
     mockedParseLocations.mockClear();
-    mockedStartMultiple.mockClear();
-    mockedStopMultiple.mockClear();
-    mockedGetAvailablePortsByStartingPort.mockClear();
+    mockedStartBatch.mockClear();
+    mockedStopBatch.mockClear();
     mockedCreateResult.mockClear();
     mockedCalculateWithPolygon.mockClear();
     mockResultProcessor.processResult.mockClear();
@@ -149,8 +146,8 @@ test('3 locations, all successful', async() => {
     expect(mockedParseLocations).toHaveBeenCalledTimes(1);
     expect(mockResultProcessor.processResult).toHaveBeenCalledTimes(3);
     expect(mockResultProcessor.end).toHaveBeenCalledTimes(1);
-    expect(mockedStartMultiple).toHaveBeenCalledTimes(1);
-    expect(mockedStopMultiple).toHaveBeenCalledTimes(2);
+    expect(mockedStartBatch).toHaveBeenCalledTimes(1);
+    expect(mockedStopBatch).toHaveBeenCalledTimes(2);
 });
 
 test('3 locations, error on first', async() => {
@@ -169,6 +166,6 @@ test('3 locations, error on first', async() => {
     expect(mockedParseLocations).toHaveBeenCalledTimes(1);
     expect(mockResultProcessor.processResult).toHaveBeenCalledTimes(3);
     expect(mockResultProcessor.end).toHaveBeenCalledTimes(1);
-    expect(mockedStartMultiple).toHaveBeenCalledTimes(1);
-    expect(mockedStopMultiple).toHaveBeenCalledTimes(2);
+    expect(mockedStartBatch).toHaveBeenCalledTimes(1);
+    expect(mockedStopBatch).toHaveBeenCalledTimes(2);
 });
