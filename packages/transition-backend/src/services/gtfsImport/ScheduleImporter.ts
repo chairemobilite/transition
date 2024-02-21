@@ -374,16 +374,10 @@ const getPeriodDataForDirection = (trips: TripAndStopTimes[], period: SchedulePe
     const customPeriodEndSeconds = trips[trips.length - 1].stopTimes[0].departureTimeSeconds;
     const frequencySeconds =
         trips.length === 1 ? 60 : (customPeriodEndSeconds - customPeriodStartSeconds) / (trips.length - 1);
-    // Use custom start/end if the interval between start/end of period and actual is higher than frequency
+    // TODO Determine if we should use custom start/end if the interval between start/end of period and actual is higher than frequency, but for now, simply use the observed period
     return {
-        actualStart:
-            customPeriodStartSeconds - (hoursToSeconds(period.start_at_hour) as number) > frequencySeconds
-                ? customPeriodStartSeconds
-                : (hoursToSeconds(period.start_at_hour) as number),
-        actualEnd:
-            (hoursToSeconds(period.end_at_hour) as number) - customPeriodEndSeconds > frequencySeconds
-                ? customPeriodEndSeconds
-                : (hoursToSeconds(period.end_at_hour) as number),
+        actualStart: customPeriodStartSeconds,
+        actualEnd: customPeriodEndSeconds,
         frequencySeconds
     };
 };

@@ -1076,7 +1076,8 @@ describe('Generate frequency based schedules for line', () => {
             end_at_hour: importData.periodsGroup.periods[0].endAtHour,
             period_shortname: importData.periodsGroup.periods[0].shortname,
             custom_start_at_str: startTimeStr,
-            custom_end_at_str: undefined,
+            // TODO We use custom time, even if the end time is close to period end, given the frequency. Should we?
+            custom_end_at_str: '11:51',
             interval_seconds: 15 * 60,
             outbound_path_id: pathId,
             inbound_path_id: undefined
@@ -1086,6 +1087,8 @@ describe('Generate frequency based schedules for line', () => {
             start_at_hour: importData.periodsGroup.periods[1].startAtHour,
             end_at_hour: importData.periodsGroup.periods[1].endAtHour,
             period_shortname: importData.periodsGroup.periods[1].shortname,
+            // TODO We use custom time, even if the start time is close to period start, given the frequency. Should we?
+            custom_start_at_str: '12:05',
             custom_end_at_str: '18:01',
             interval_seconds: (timeStrToSecondsSinceMidnight('18:00') as number - (timeStrToSecondsSinceMidnight('12:05') as number)) / 2,
             outbound_path_id: pathId,
@@ -1160,7 +1163,8 @@ describe('Generate frequency based schedules for line', () => {
             end_at_hour: importData.periodsGroup.periods[0].endAtHour,
             period_shortname: importData.periodsGroup.periods[0].shortname,
             custom_start_at_str: '9:00',
-            custom_end_at_str: undefined,
+            // TODO We use custom time, even if the end time is close to period end, given the frequency. Should we?
+            custom_end_at_str: '11:31',
             interval_seconds: (timeStrToSecondsSinceMidnight('11:30') as number - (timeStrToSecondsSinceMidnight('9:00') as number)) / 2,
             outbound_path_id: outboundPathId,
             inbound_path_id: undefined
