@@ -112,8 +112,8 @@ const pathAttributesFromTransition = {
     is_enabled: true,
     data: {
         segments:[
-            { distanceMeters:510, travelTimeSeconds:119 },
-            { distanceMeters:515, travelTimeSeconds:89 },
+            { distanceMeters: 510, travelTimeSeconds: 120 },
+            { distanceMeters: 515, travelTimeSeconds: 90 },
             { distanceMeters: 444, travelTimeSeconds: 85 }
         ],
         from_gtfs: false,
@@ -226,6 +226,8 @@ export const getPathObject = ({
         getPathAttributesWithData(true, { lineId }) :
         pathType === 'gtfs' ? _cloneDeep(pathAttributesFromGtfs) : _cloneDeep(pathAttributesFromTransition);
     attributes.line_id = lineId;
+    // Make sure to generate paths with different IDs each time
+    attributes.id = uuidV4();
     const path = new Path(attributes, true);
     pathCollection.add(path);
     return path;

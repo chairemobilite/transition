@@ -45,6 +45,7 @@ export interface SchedulePeriod extends GenericAttributes {
     calculated_number_of_units?: number;
     start_at_hour: number;
     end_at_hour: number;
+    // FIXME: Use seconds since midnight format instead of string, which can be anything
     custom_start_at_str?: string;
     custom_end_at_str?: string;
     trips: SchedulePeriodTrip[];
@@ -68,7 +69,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         this._collectionManager = collectionManager ? collectionManager : serviceLocator.collectionManager;
     }
 
-    _prepareAttributes(attributes: Partial<ScheduleAttributes>) {
+    protected _prepareAttributes(attributes: Partial<ScheduleAttributes>) {
         if (_isBlank(attributes.allow_seconds_based_schedules)) {
             attributes.allow_seconds_based_schedules = false;
         }
@@ -133,7 +134,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         return clonedAttributes;
     }
 
-    getRequiredFleetForPeriod(periodShortname) {
+    getRequiredFleetForPeriod(periodShortname: string) {
         // todo
         const period = this.getPeriod(periodShortname);
         if (period) {
@@ -155,7 +156,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         }
     }
 
-    getAssociatedPathIds() {
+    getAssociatedPathIds(): string[] {
         const associatedPathIds: { [pathId: string]: boolean } = {};
 
         const periods = this.getAttributes().periods;
@@ -183,7 +184,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
     }
 
     // TODO Type the directions somewhere
-    getNextAvailableUnit(units: any[], direction: any, timeSeconds: number, numberOfUnits?: number) {
+    private getNextAvailableUnit(units: any[], direction: any, timeSeconds: number, numberOfUnits?: number) {
         if (numberOfUnits === undefined) {
             numberOfUnits = units.length;
         }
@@ -227,9 +228,9 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         return periodsChoices;
     }
 
-    generateTrips(
-        startAtSecondsSinceMidnight,
-        endAtSecondsSinceMidnight,
+    private generateTrips(
+        startAtSecondsSinceMidnight: number,
+        endAtSecondsSinceMidnight: number,
         intervalSeconds: number,
         outboundTotalTimeSeconds: number,
         inboundTotalTimeSeconds: number,
@@ -254,16 +255,22 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             unit.timeInCycle = Math.ceil((i * cycleTimeSeconds) / unitsCount);
         }
 
-        let timeSoFar = startAtSecondsSinceMidnight;
-
-        while (timeSoFar < endAtSecondsSinceMidnight) {
+        for (let timeSoFar = startAtSecondsSinceMidnight; timeSoFar < endAtSecondsSinceMidnight; timeSoFar++) {
+            // Handle the current time
             for (let i = 0; i < unitsCount; i++) {
+                // Verify if unit cycle needs to be reinitialized
                 const unit = units[i];
+                if (unit.timeInCycle >= cycleTimeSeconds) {
+                    if ((timeSoFar - startAtSecondsSinceMidnight) % intervalSeconds === 0) {
+                        unit.timeInCycle = 0;
+                    }
+                }
+
+                // Handle current unit
                 if (unit.timeInCycle === 0) {
                     trips.push(
                         this.generateTrip(
                             timeSoFar,
-                            'outbound',
                             unit,
                             outboundPath,
                             outboundSegments,
@@ -272,29 +279,22 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
                         )
                     );
                 } else if (inboundPath && unit.timeInCycle === outboundTotalTimeSeconds) {
+                    // FIXME The number of units is not necessarily a rounded number, so there may be more frequent return trips at the beginning of the period until it stabilizes
                     trips.push(
                         this.generateTrip(
                             timeSoFar,
-                            'inbound',
                             unit,
                             inboundPath,
                             inboundSegments,
-                            inboundNodes,
+                            inboundNodes as string[],
                             inboundDwellTimes
                         )
                     );
                 }
                 unit.timeInCycle++;
-                if (unit.timeInCycle >= cycleTimeSeconds) {
-                    if ((timeSoFar - startAtSecondsSinceMidnight) % intervalSeconds === 0) {
-                        unit.timeInCycle = 0;
-                    }
-                }
             }
-            timeSoFar++;
         }
 
-        //console.log(trips);
         return trips;
     }
 
@@ -309,7 +309,15 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         return tripsCount;
     }
 
-    generateTrip(tripStartAtSeconds, direction, unit, path, segments, nodes, dwellTimes, blockId = null) {
+    private generateTrip(
+        tripStartAtSeconds: number,
+        unit,
+        path: TransitPath,
+        segments,
+        nodes: string[],
+        dwellTimes,
+        blockId = null
+    ) {
         try {
             const tripArrivalTimesSeconds: (number | null)[] = [];
             const tripDepartureTimesSeconds: (number | null)[] = [];
@@ -359,46 +367,32 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             };
             return trip;
         } catch (error) {
-            throw `The path ${path.getId()} for line ${path.getLine().getAttributes().shortname} (${path
-                .getLine()
-                .getId()}) is not valid. Please recalculate routing for this path`;
+            throw `The path ${path.getId()} for line ${path.getLine()?.getAttributes().shortname} (${
+                path.attributes.line_id
+            }) is not valid. Please recalculate routing for this path`;
         }
     }
 
-    private generateForPeriodFunction(
-        periodShortname: string
-    ): { status: 'success'; trips: SchedulePeriodTrip[] } | { status: 'failed'; error: string } {
+    private generateForPeriodFunction(periodShortname: string): Status.Status<SchedulePeriodTrip[]> {
         const period = this.getPeriod(periodShortname);
         if (!period) {
-            return {
-                status: 'failed',
-                error: `Period ${periodShortname} does not exist`
-            };
+            return Status.createError(`Period ${periodShortname} does not exist`);
         }
         const intervalSeconds = period.interval_seconds;
         const numberOfUnits = period.number_of_units;
         if (!this._collectionManager.get('lines') || !this._collectionManager.get('paths')) {
             console.log('missing lines and/or paths collections');
-            return {
-                status: 'failed',
-                error: 'missing lines and/or paths collections'
-            };
+            return Status.createError('missing lines and/or paths collections');
         }
         if (_isBlank(intervalSeconds) && _isBlank(numberOfUnits)) {
             console.log('missing interval or number of units');
-            return {
-                status: 'failed',
-                error: 'missing interval or number of units'
-            };
+            return Status.createError('missing interval or number of units');
         }
         //const line                              = this._collectionManager.get('lines').getById(this.get('line_id'));
         const outboundPathId = period.outbound_path_id;
         if (_isBlank(outboundPathId)) {
             console.log('missing outbound path id');
-            return {
-                status: 'failed',
-                error: 'missing outbound path id'
-            };
+            return Status.createError('missing outbound path id');
         }
         const outboundPath = new TransitPath(
             this._collectionManager.get('paths').getById(outboundPathId as string).properties,
@@ -415,11 +409,11 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             : undefined;
         const customStartAtStr = period.custom_start_at_str;
         const startAtSecondsSinceMidnight = customStartAtStr
-            ? timeStrToSecondsSinceMidnight(customStartAtStr)
+            ? (timeStrToSecondsSinceMidnight(customStartAtStr) as number)
             : period.start_at_hour * 3600;
         const customEndAtStr = period.custom_end_at_str;
         const endAtSecondsSinceMidnight = customEndAtStr
-            ? timeStrToSecondsSinceMidnight(customEndAtStr)
+            ? (timeStrToSecondsSinceMidnight(customEndAtStr) as number)
             : period.end_at_hour * 3600;
 
         // get outbound/inbound paths info to calculate number of units required or minimum interval and travel times:
@@ -457,7 +451,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         }
 
         if (tripsNumberOfUnits === null) {
-            return { status: 'success', trips: [] };
+            return Status.createOk([]);
         }
 
         const units: any[] = [];
@@ -490,7 +484,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         );
         period.trips = trips;
 
-        return { status: 'success', trips };
+        return Status.createOk(trips);
     }
 
     updateForAllPeriods() {
@@ -503,8 +497,8 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
     }
 
     generateForPeriod(periodShortname: string): { trips: SchedulePeriodTrip[] } {
-        const trips = this.generateForPeriodFunction(periodShortname);
-        return { trips: trips.status === 'success' ? trips.trips : [] };
+        const resultStatus = this.generateForPeriodFunction(periodShortname);
+        return { trips: Status.isStatusOk(resultStatus) ? Status.unwrap(resultStatus) : [] };
     }
 
     async delete(socket): Promise<Status.Status<{ id: string | undefined }>> {
