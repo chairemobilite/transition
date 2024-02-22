@@ -219,6 +219,9 @@ export class TransitAccessibilityMapCalculator {
                 accessibleNodes
             });
 
+            //accessibleMap expect the port number to be in an HostPort struct
+            //TODO This should be refactored, but this is a quick fix for #861
+            queryOptions.hostPort = { port: queryOptions.port };
             promises.push(trRoutingService.accessibleMap(query, queryOptions));
         }
 
