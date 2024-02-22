@@ -50,9 +50,7 @@ export default function (app: express.Express, passport: PassportStatic) {
         res.json(routingModes);
     });
 
-    app.use('/api', router);
-
-    router.get('/od', async (req, res) => {
+    router.get('/od/:withGeo?', async (req, res) => {
         const routingParameters = req.body.routingParameters;
         if ((await trRoutingProcessManager.status({})).status === "not_running") {
             await trRoutingProcessManager.restart({});
@@ -64,14 +62,16 @@ export default function (app: express.Express, passport: PassportStatic) {
             points: routingParameters.originDestination
         };
         const routingResultsGeoJson = await osrmService.route(parameters);
-
-        const withGeo = req.body.withGeo !== undefined ? req.body.withGeo : true;
-        if (req.body.withGeo == false ) {
+        
+        const withGeo = req.params.withGeo !== 'false';
+        if (!withGeo) {
             res.json(routingResults);
-
-        }
-        else {
+        } else {
             res.json({ routingResults: routingResults, routingResultsGeoJson: routingResultsGeoJson });
         }
     });
+
+    app.use('/api', router);
+
+   
 }
