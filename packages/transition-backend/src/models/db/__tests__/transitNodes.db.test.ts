@@ -218,6 +218,26 @@ describe(`${objectName}`, () => {
 
     });
 
+    test('should read a subset geojson collection from database', async () => {
+
+        const _collection = await dbQueries.geojsonCollection({ nodeIds: [newObjectAttributes.id] });
+        const geojsonCollection = new GeojsonCollection(_collection.features, {}, undefined);
+        const _newObjectAttributes = Object.assign({}, newObjectAttributes) as any;
+        const collection = geojsonCollection.features;
+        expect(collection.length).toBe(1);
+        for (const attribute in updatedAttributes) {
+            _newObjectAttributes[attribute] = updatedAttributes[attribute];
+        }
+        delete _newObjectAttributes.data.transferableNodes;
+        delete collection[0].properties.created_at;
+        delete collection[0].properties.updated_at;
+        delete collection[0].properties.data.routingRadiusPixelsAtMaxZoom;
+
+        expect(collection[0].properties.id).toBe(_newObjectAttributes.id);
+        expect(collection[0].properties).toMatchObject(_newObjectAttributes);
+
+    });
+
 
     test('should get nodes associated path ids from database', async () => {
 

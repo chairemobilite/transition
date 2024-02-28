@@ -73,53 +73,61 @@ const collection = async () => {
     }
 };
 
-const geojsonCollection = async (): Promise<GeoJSON.FeatureCollection<GeoJSON.Point, NodeAttributes>> => {
+const geojsonCollection = async (
+    params: { nodeIds?: string[] } = {}
+): Promise<GeoJSON.FeatureCollection<GeoJSON.Point, NodeAttributes>> => {
     // TODO: we should not fetch the whole data content, we should read node when modifying one instead of creating a Node from the geojson
     try {
-        const response = await knex.raw(`
-      SELECT jsonb_build_object(
+        const { nodeIds } = params;
+        const innerQuery = knex(tableName)
+            .select(
+                'id',
+                'geography',
+                'integer_id',
+                knex.raw(`json_build_object(
+            'id', id,
+            'station_id', station_id,
+            'internal_id', internal_id,
+            'is_frozen', is_frozen,
+            'code', code,
+            'name', name,
+            'description', description,
+            'geography', ST_AsGeoJSON(geography)::jsonb, 
+            'data', data,
+            'is_enabled', is_enabled,
+            'integer_id', integer_id,
+            'routing_radius_meters', routing_radius_meters,
+            'default_dwell_time_seconds', default_dwell_time_seconds,
+            'color', COALESCE(color, '${Preferences.current.transit.nodes.defaultColor}')
+          ) AS properties`)
+            )
+            .whereRaw('is_enabled is true');
+        if (nodeIds && nodeIds.length !== 0) {
+            innerQuery.whereIn('id', nodeIds);
+        }
+        innerQuery.orderBy('integer_id').as('inputs');
+        const featureQuery = knex
+            .select(
+                knex.raw(`jsonb_build_object(
+            'type',       'Feature',
+            'id',         inputs.integer_id,
+            'geometry',   ST_AsGeoJSON(inputs.geography)::jsonb,
+            'properties', inputs.properties
+          ) AS feature`)
+            )
+            .from(innerQuery)
+            .as('features');
+        const response = await knex
+            .select(
+                knex.raw(`
+      jsonb_build_object(
         'type',     'FeatureCollection',
         'features', COALESCE(jsonb_agg(features.feature), '[]'::jsonb)
-      ) as geojson
-      FROM (
-        SELECT jsonb_build_object(
-          'type',       'Feature',
-          'id',         inputs.integer_id,
-          'geometry',   ST_AsGeoJSON(inputs.geography)::jsonb,
-          'properties', inputs.properties
-        ) AS feature
-        FROM (
-          SELECT 
-            id,
-            geography,
-            integer_id,
-            json_build_object(
-              'id', id,
-              'station_id', station_id,
-              'internal_id', internal_id,
-              'is_frozen', is_frozen,
-              'code', code,
-              'name', name,
-              'description', description,
-              'geography', ST_AsGeoJSON(geography)::jsonb, /* we should remove this, verify in code if we use geography in geojson collection */
-              'data', data,
-              'is_enabled', is_enabled,
-              /*'created_at', created_at,
-              'updated_at', updated_at,*/
-              'integer_id', integer_id,
-              'routing_radius_meters', routing_radius_meters,
-              'default_dwell_time_seconds', default_dwell_time_seconds,
-              'color', COALESCE(color, '${Preferences.current.transit.nodes.defaultColor}')
-            ) AS properties
-          FROM tr_transit_nodes 
-          WHERE is_enabled IS TRUE
-          ORDER BY integer_id
-        ) inputs
-      ) features;
-    `);
-        const geojson = response.rows[0]?.geojson;
-        if (geojson) {
-            return geojson;
+      ) as geojson`)
+            )
+            .from(featureQuery);
+        if (response[0] && (response[0] as any).geojson) {
+            return (response[0] as any).geojson;
         }
         throw new TrError(
             'cannot fetch transit nodes geojson collection because database did not return a valid geojson',
