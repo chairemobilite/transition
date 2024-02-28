@@ -115,8 +115,11 @@ function setup()
 
     speeds = Sequence {
       highway = {
-        primary         = walking_speed*0.98,
-        primary_link    = walking_speed*0.98,
+        /* These speed are adjusted to penalize less pedestrian-friendly roads like trunk, primary and secondary */
+        trunk           = walking_speed*0.96,
+        trunk_link      = walking_speed*0.96,
+        primary         = walking_speed*0.97,
+        primary_link    = walking_speed*0.97,
         secondary       = walking_speed*0.98,
         secondary_link  = walking_speed*0.98,
         tertiary        = walking_speed*0.98,
@@ -124,17 +127,17 @@ function setup()
         unclassified    = walking_speed*0.98,
         residential     = walking_speed*0.98,
         road            = walking_speed*0.98,
-        living_street   = walking_speed*1.02,
-        service         = walking_speed*0.98,
+        living_street   = walking_speed*1.0,
+        service         = walking_speed*0.97,
         track           = walking_speed*0.9,
         path            = walking_speed*0.9,
         steps           = walking_speed*0.5,
-        pedestrian      = walking_speed*1.02,
-        footway         = walking_speed*1.02,
-        cycleway        = walking_speed*1.0,
-        bridleway       = walking_speed*1.0,
-        pier            = walking_speed*0.8,
-        corridor        = walking_speed*1.0,
+        pedestrian      = walking_speed*1.0,
+        footway         = walking_speed*1.0,
+        cycleway        = walking_speed*0.99,
+        bridleway       = walking_speed*0.99,
+        pier            = walking_speed*0.99,
+        corridor        = walking_speed*0.99,
       },
 
       railway = {
