@@ -115,7 +115,7 @@ function setup()
 
     speeds = Sequence {
       highway = {
-        /* These speed are adjusted to penalize less pedestrian-friendly roads like trunk, primary and secondary */
+        -- These speed are adjusted to penalize less pedestrian-friendly roads like trunk, primary and secondary
         trunk           = walking_speed*0.96,
         trunk_link      = walking_speed*0.96,
         primary         = walking_speed*0.97,
