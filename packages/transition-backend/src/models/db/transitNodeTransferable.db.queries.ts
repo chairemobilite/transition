@@ -123,9 +123,33 @@ const getFromNode = async (nodeId: string): Promise<TransferableNodes> => {
     }
 };
 
+/**
+ * Get the ID of the nodes transferable to a given node
+ * @param nodeId The destination node ID
+ * @returns The array of node IDs with transfers to the node
+ */
+const getToNode = async (nodeId: string): Promise<string[]> => {
+    try {
+        if (!uuidValidate(nodeId)) {
+            throw `Getting transferable nodes, invalid node ID ${nodeId}`;
+        }
+
+        const transferableNodesArr = await knex(tableName).where('destination_node_id', nodeId);
+
+        return transferableNodesArr.map((node) => node.origin_node_id);
+    } catch (error) {
+        throw new TrError(
+            `Cannot save transferable nodes for ${nodeId} (knex error: ${error})`,
+            'DBTNSN0001',
+            'CannotSaveTransferableNodesForBecauseDatabaseError'
+        );
+    }
+};
+
 export default {
     saveForNode,
     getFromNode,
+    getToNode,
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex)
 };
