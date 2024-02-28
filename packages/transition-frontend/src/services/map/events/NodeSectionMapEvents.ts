@@ -16,33 +16,6 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
 /* This file encapsulates map events specific for the 'nodes' section */
 
-const getRoadLabelAround = function (map: MapboxGL.Map, e: MapboxGL.MapMouseEvent, squareRadiusMeters = 100) {
-    const searchLatitude = e.lngLat.toArray()[1];
-    const mapZoom = map.getZoom();
-    const searchSquareRadiusInPixels = metersToPixels(squareRadiusMeters, searchLatitude, mapZoom); // in fact it will be a square
-    const bbox: [[number, number], [number, number]] = [
-        [e.point.x - searchSquareRadiusInPixels, e.point.y - searchSquareRadiusInPixels],
-        [e.point.x + searchSquareRadiusInPixels, e.point.y + searchSquareRadiusInPixels]
-    ];
-    const roadLabelFeatures = map.queryRenderedFeatures(bbox, {
-        layers: ['road-label-xlarge', 'road-label-large', 'road-label-medium', 'road-label-small']
-    });
-
-    // find road labels at proximity:
-    const roadlabels = _uniq(
-        roadLabelFeatures.map((label) => {
-            return label.properties?.name;
-        })
-    );
-
-    const labelPermutations = permutationsWithRepetition(roadlabels.slice(0, 6), 2, [], false);
-    const labelPermutationsJoined = labelPermutations.map((labelsPair) => {
-        return labelsPair.join(' / ');
-    });
-
-    return labelPermutationsJoined;
-};
-
 const isNodeActiveSection = (activeSection: string) => activeSection === 'nodes';
 
 // TODO Should we split this in individual functions with conditions instead?
@@ -100,12 +73,10 @@ const onNodeSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
         );
         newTransitNode.startEditing();
         serviceLocator.selectedObjectsManager.select('node', newTransitNode);
-        serviceLocator.eventManager.emit('selected.updateAutocompleteNameChoices.node', getRoadLabelAround(map, e));
     } else if (selectedNode) {
         const selectedTransitNode = selectedNode as TransitNode;
         if (!selectedTransitNode.isFrozen()) {
             // Otherwise, update the position of the current node
-            serviceLocator.eventManager.emit('selected.updateAutocompleteNameChoices.node', getRoadLabelAround(map, e));
             selectedTransitNode.set('geography.coordinates', e.lngLat.toArray());
             serviceLocator.eventManager.emit('selected.dragEnd.node', e.lngLat.toArray());
             serviceLocator.selectedObjectsManager.update('node', selectedNode);
@@ -137,7 +108,6 @@ const onSelectedNodeMouseUp = (e: MapboxGL.MapMouseEvent) => {
     const map = e.target as any;
     // stop drag if on edit node:
     if (map._currentDraggingFeature === 'node') {
-        serviceLocator.eventManager.emit('selected.updateAutocompleteNameChoices.node', getRoadLabelAround(map, e));
         serviceLocator.eventManager.emit('selected.dragEnd.node', e.lngLat.toArray());
         map._currentDraggingFeature = null;
         e.originalEvent.stopPropagation();

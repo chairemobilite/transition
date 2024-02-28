@@ -9,7 +9,7 @@ import events from 'events';
 import { v4 as uuidV4 } from 'uuid';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
-import NodeCollectionUtils from '../NodeCollectionUtils';
+import { saveAndUpdateAllNodes } from '../NodeCollectionUtils';
 import { objectToCache } from '../../../models/capnpCache/transitNodes.cache.queries';
 import { getTransferableNodes } from '../TransferableNodeUtils';
 
@@ -21,15 +21,15 @@ const mockGetTransferableNodes = getTransferableNodes as jest.MockedFunction<typ
 jest.mock('../../../models/capnpCache/transitNodes.cache.queries', () => {
     return {
         objectToCache: jest.fn()
-    }
+    };
 });
 const mockedObjectToCache = objectToCache as jest.MockedFunction<typeof objectToCache>;
 
 const eventEmitter = new events.EventEmitter();
 const eventManager = EventManagerMock.eventManagerMock;
 const mockTableFrom = RoutingServiceManagerMock.routingServiceManagerMock.getRoutingServiceForEngine('engine').tableFrom;
-// Actual response does not matter for this test, just return 0s for every destination 
-mockTableFrom.mockImplementation(async (params) => ({ query: '', durations: params.destinations.map(d => 0), distances: params.destinations.map(d => 0) }));
+// Actual response does not matter for this test, just return 0s for every destination
+mockTableFrom.mockImplementation(async (params) => ({ query: '', durations: params.destinations.map((d) => 0), distances: params.destinations.map((d) => 0) }));
 
 const commonProperties = {
     is_enabled: true,
@@ -37,7 +37,7 @@ const commonProperties = {
     default_dwell_time_seconds: 20,
     is_frozen: false,
     data: { }
-}
+};
 
 // 4 nodes: 3 within 1km distance, one beyond
 
@@ -88,7 +88,7 @@ beforeEach(() => {
     nodeCollection = new NodeCollection([nodeClose1Geojson, nodeClose2Geojson, nodeClose3Geojson, nodeFarGeojson], {}, eventManager);
     mockTableFrom.mockClear();
     mockedObjectToCache.mockClear();
-})
+});
 
 test('saveAndUpdateAllNodes without collection manager', async() => {
     // Mock the transferable nodes for each node
@@ -113,7 +113,7 @@ test('saveAndUpdateAllNodes without collection manager', async() => {
         walkingDistancesMeters: [0]
     };
     mockGetTransferableNodes.mockImplementation(async (node, _) => node.getId() === nodeAttributesClose1.id ? node1TransferableNodes : node.getId() === nodeAttributesClose2.id ? node2TransferableNodes : node.getId() === nodeAttributesClose3.id ? node3TransferableNodes : nodeFarTransferableNodes);
-    await NodeCollectionUtils.saveAndUpdateAllNodes(nodeCollection, undefined, eventEmitter);
+    await saveAndUpdateAllNodes(nodeCollection, undefined, eventEmitter);
 
     // Make sure all save calls to object to cache were done correctly
     expect(mockedObjectToCache).toHaveBeenCalledTimes(4);

@@ -1,23 +1,29 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2024, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
 import geokdbush from 'geokdbush';
+import { lineIntersect as turfLineIntersect, distance as turfDistance } from '@turf/turf';
+import { EventEmitter } from 'events';
 
-import Node, { AccessiblePlacesPerTravelTime } from './Node';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import PlaceCollection from '../places/PlaceCollection';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
+
+import Node, { AccessiblePlacesPerTravelTime } from './Node';
+import PlaceCollection from '../places/PlaceCollection';
+
 import {
     PlaceCategory,
     PlaceDetailedCategory
 } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
+// TODO: test
 const placesInBirdRadiusMeters = (node: Node, placeCollection: PlaceCollection, birdRadiusMeters = 1000) => {
     const placesInBirdRadius = geokdbush.around(
         placeCollection.getSpatialIndex(),
@@ -34,6 +40,7 @@ const placesInBirdRadiusMeters = (node: Node, placeCollection: PlaceCollection, 
  * This function does not change the node.
  *
  * TODO: This may not be just for walking
+ * TODO: test
  */
 export const placesInWalkingTravelTimeRadiusSeconds = async (
     node: Node,
@@ -123,9 +130,105 @@ export const placesInWalkingTravelTimeRadiusSeconds = async (
 };
 
 /**
+ * Propose names for a node name based on the nearest street intersections.
+ * it fetches the nearest streets from osm, and then find intersections of
+ * these streets and generate names from these intersections, ordered by distance with node.
+ */
+export const proposeNames = async (
+    socket: EventEmitter,
+    node: Node,
+    maxRadiusMeters = 200
+): Promise<string[] | undefined> => {
+    // get nearest street intersections from osm:
+    let intersectionNames: string[] | undefined = [];
+    let radiusAroundMeters = 100;
+    const nodeGeojson = node.toGeojson();
+    while (intersectionNames !== undefined && intersectionNames.length < 2 && radiusAroundMeters <= maxRadiusMeters) {
+        intersectionNames = await new Promise((resolve, reject) => {
+            socket.emit(
+                'osm.streetsAroundPoint',
+                nodeGeojson,
+                radiusAroundMeters,
+                (status: Status.Status<GeoJSON.Feature<GeoJSON.LineString>[]>) => {
+                    if (Status.isStatusOk(status)) {
+                        const streetsGeojsonFeatures: GeoJSON.Feature<GeoJSON.LineString>[] = status.result;
+                        const streetsWithNames = streetsGeojsonFeatures.filter((f) => f.properties?.name !== undefined);
+                        const distanceFromNodeByStreetIntersectionName: { [key: string]: number } = {};
+                        // find intersections for each pair of street names:
+                        for (let i = 0, countI = streetsWithNames.length; i < countI; i++) {
+                            const street1 = streetsWithNames[i] as GeoJSON.Feature<GeoJSON.LineString>;
+                            const street1Name = street1.properties?.name;
+                            for (let j = 0, countJ = streetsWithNames.length; j < countJ; j++) {
+                                const street2 = streetsWithNames[j] as GeoJSON.Feature<GeoJSON.LineString>;
+                                const street2Name = street2.properties?.name;
+                                const intersectionName = `${street1Name} / ${street2Name}`;
+                                const reversedIntersectionName = `${street2Name} / ${street1Name}`;
+                                if (
+                                    street1Name !== street2Name &&
+                                    !distanceFromNodeByStreetIntersectionName[reversedIntersectionName]
+                                ) {
+                                    const intersectionPoints = turfLineIntersect(street1, street2);
+                                    if (intersectionPoints.features.length > 0) {
+                                        for (let k = 0, countK = intersectionPoints.features.length; k < countK; k++) {
+                                            const intersectionPoint = intersectionPoints.features[k];
+                                            const distanceFromNode = turfDistance(intersectionPoint, nodeGeojson, {
+                                                units: 'meters'
+                                            });
+                                            if (
+                                                distanceFromNodeByStreetIntersectionName[intersectionName] === undefined
+                                            ) {
+                                                distanceFromNodeByStreetIntersectionName[intersectionName] =
+                                                    distanceFromNode;
+                                                distanceFromNodeByStreetIntersectionName[reversedIntersectionName] =
+                                                    distanceFromNode;
+                                            } else if (
+                                                distanceFromNodeByStreetIntersectionName[intersectionName] >
+                                                distanceFromNode
+                                            ) {
+                                                // only update distance if we found a closer insterseciton for the same streets:
+                                                distanceFromNodeByStreetIntersectionName[intersectionName] =
+                                                    distanceFromNode;
+                                                distanceFromNodeByStreetIntersectionName[reversedIntersectionName] =
+                                                    distanceFromNode;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // sort by distance ASC:
+                        const intersectionNames = Object.keys(distanceFromNodeByStreetIntersectionName).sort(
+                            (intersectionName1, intersectionName2) => {
+                                return (
+                                    distanceFromNodeByStreetIntersectionName[intersectionName1] -
+                                    distanceFromNodeByStreetIntersectionName[intersectionName2]
+                                );
+                            }
+                        );
+
+                        if (intersectionNames.length > 0) {
+                            resolve(intersectionNames);
+                        } else {
+                            // if no intersection found, return every street names found in radius:
+                            resolve(streetsWithNames.map((f) => f.properties?.name as string));
+                        }
+                    } else if (Status.isStatusError(status)) {
+                        console.error('Error while getting street names around node: ', status.error);
+                        resolve(undefined);
+                    }
+                }
+            );
+        });
+        radiusAroundMeters += Math.min(100, maxRadiusMeters - radiusAroundMeters);
+    }
+    return intersectionNames;
+};
+
+/**
  * Update the accessible places from this node, but does not affect the other
  * nodes. The node's data is updated, but it is the responsibility of the caller
  * to save the node appropriately.
+ * TODO: test
  */
 export const updateAccessiblePlaces = async (node: Node, placeCollection: PlaceCollection) => {
     try {
