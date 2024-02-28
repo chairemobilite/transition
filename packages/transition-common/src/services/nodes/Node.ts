@@ -481,50 +481,36 @@ export class Node extends GenericPlace<NodeAttributes> implements Saveable {
 
     public async save(socket: EventEmitter) {
         if (this.hasChanged() || this.isNew()) {
-            try {
-                const geography = this._attributes.geography;
-
-                // TODO Keeping this for now, as it works and changing may have side effects, but the Node should not know about its collection. It's not its responsibility to do this. It could be a save callback though.
-                if (this._collectionManager?.get('nodes')) {
-                    const nodeGeojson = this._collectionManager?.get('nodes').getById(this._attributes.id);
-                    if (nodeGeojson) {
-                        const oldLat = nodeGeojson.geometry.coordinates[1];
-                        const oldLon = nodeGeojson.geometry.coordinates[0];
-                        const newLat = geography.coordinates[1];
-                        const newLon = geography.coordinates[0];
-
-                        if (newLat !== oldLat || newLon !== oldLon) {
-                            nodeGeojson.geometry = geography;
-                            this._collectionManager?.get('nodes').updateSpatialIndex();
+            return new Promise((resolve, reject) => {
+                this.updateRoutingRadiusInPixels();
+                const shouldUpdateGeometries = this.hasChangedGeography();
+                socket.emit(
+                    'transitNode.save',
+                    this.getAttributes(),
+                    shouldUpdateGeometries,
+                    (responseStatus: Status.Status<number>) => {
+                        if (Status.isStatusOk(responseStatus)) {
+                            this._wasFrozen = this.getAttributes().is_frozen === true;
+                            const collection = this._collectionManager?.get('nodes');
+                            if (collection) {
+                                if (collection?.getIndex(this.getAttributes().id) >= 0) {
+                                    collection.updateById(this.getAttributes().id, this);
+                                } else {
+                                    collection.add(this);
+                                }
+                                if (shouldUpdateGeometries) {
+                                    collection.updateSpatialIndex();
+                                }
+                            }
+                            resolve(Status.unwrap(responseStatus));
+                        } else {
+                            reject(responseStatus.error);
                         }
                     }
-                }
-                this.updateRoutingRadiusInPixels();
-
-                const response = await SaveUtils.save(
-                    this,
-                    socket,
-                    'transitNode',
-                    this._collectionManager?.get('nodes')
                 );
-                //resolve(response);
-                /* console.log('saving cache for node', this.id); // we keep this second save for now, wo we can send the new integer id (node idx) to cache manager: */
-                await this.saveToCache(socket);
-                return response;
-            } catch (error) {
-                if (TrError.isTrError(error)) {
-                    return error.export();
-                }
-                const trError = new TrError(
-                    `cannot fetch nodes in radius because of an error: ${error}`,
-                    'N0001',
-                    'NodesInRadiusCouldNotBeFetchedBecauseError'
-                );
-                console.error(error);
-                return trError.export();
-            }
+            });
         } else {
-            return { id: this._attributes.id };
+            return 0;
         }
     }
 

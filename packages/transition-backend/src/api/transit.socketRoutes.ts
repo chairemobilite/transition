@@ -6,6 +6,7 @@
  */
 import { EventEmitter } from 'events';
 
+import { isSocketIo } from './socketUtils';
 import NodeCollectionUtils from '../services/nodes/NodeCollectionUtils';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { ScheduleAttributes } from 'transition-common/lib/services/schedules/Schedule';
@@ -15,6 +16,8 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import nodesDbQueries from '../models/db/transitNodes.db.queries';
 import schedulesDbQueries from '../models/db/transitSchedules.db.queries';
 import { TransitApi } from 'transition-common/lib/api/transit';
+import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import { saveNode } from '../services/nodes/TransitNode';
 
 /**
  * Add routes specific to the transit objects
@@ -45,6 +48,31 @@ export default function (socket: EventEmitter) {
             }
         }
     });
+
+    // Save a single node, it can be new or already exist
+    socket.on(
+        'transitNode.save',
+        async (
+            attributes: NodeAttributes,
+            geographyChanged = false,
+            callback?: (status: Status.Status<number>) => void
+        ) => {
+            try {
+                const affectedNodes = await saveNode(attributes, geographyChanged);
+                if (isSocketIo(socket)) {
+                    socket.broadcast.emit('data.updated');
+                }
+                if (typeof callback === 'function') {
+                    callback(Status.createOk(affectedNodes));
+                }
+            } catch (error) {
+                console.error(`An error occurred while saving node: ${error}`);
+                if (typeof callback === 'function') {
+                    callback(Status.createError('Error saving node'));
+                }
+            }
+        }
+    );
 
     // get paths associated with nodes (will return an object with node id as key and array of path ids as values)
     socket.on(

@@ -26,7 +26,6 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
-import NodeGeographyUtils from 'transition-common/lib/services/nodes/NodeGeographyUtils';
 import Node, { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
@@ -240,7 +239,7 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
                         openBackConfirmModal={this.openBackConfirmModal}
                         object={node}
                         hideDelete={isFrozen === true || hasPaths}
-                        saveAction={() => {
+                        saveAction={async () => {
                             // save
                             if (isFrozen === true && node.wasFrozen()) {
                                 serviceLocator.selectedObjectsManager.deselect('node');
@@ -253,22 +252,19 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
                                         name: 'SavingNode',
                                         progress: 0.0
                                     });
-                                    NodeGeographyUtils.updateTransferableNodesWithAffected(
-                                        node,
-                                        serviceLocator.collectionManager.get('nodes'),
-                                        serviceLocator.collectionManager
-                                    ).then(async (affectedNodes) => {
-                                        await Promise.all(
-                                            affectedNodes.map((n) => n.save(serviceLocator.socketEventManager))
-                                        );
-                                        await node.save(serviceLocator.socketEventManager);
+                                    try {
+                                        const nbNodeAffected = await node.save(serviceLocator.socketEventManager);
                                         serviceLocator.selectedObjectsManager.deselect('node');
                                         serviceLocator.collectionManager.refresh('nodes');
+                                        console.log('saved nodes', nbNodeAffected);
+                                    } catch (error) {
+                                        console.log('error saving node', error);
+                                    } finally {
                                         serviceLocator.eventManager.emit('progress', {
                                             name: 'SavingNode',
                                             progress: 1.0
                                         });
-                                    });
+                                    }
                                 } else {
                                     serviceLocator.selectedObjectsManager.deselect('node');
                                 }
