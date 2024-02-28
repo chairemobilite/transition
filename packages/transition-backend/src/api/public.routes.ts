@@ -50,7 +50,7 @@ export default function (app: express.Express, passport: PassportStatic) {
         res.json(routingModes);
     });
 
-    router.get('/od/:withGeo?', async (req, res) => {
+    router.get('/route/:withGeometry?', async (req, res) => {
         const routingParameters = req.body.routingParameters;
         if ((await trRoutingProcessManager.status({})).status === "not_running") {
             await trRoutingProcessManager.restart({});
@@ -63,11 +63,11 @@ export default function (app: express.Express, passport: PassportStatic) {
         };
         const routingResultsGeoJson = await osrmService.route(parameters);
         
-        const withGeo = req.params.withGeo !== 'false';
-        if (!withGeo) {
-            res.json(routingResults);
-        } else {
+        const withGeometry = req.params.withGeometry !== 'false';
+        if (withGeometry) {
             res.json({ routingResults: routingResults, routingResultsGeoJson: routingResultsGeoJson });
+        } else {
+            res.json(routingResults);
         }
     });
 
