@@ -20,6 +20,7 @@ jest.mock('../../../models/db/transitNodes.db.queries', () => {
 const mockedGetNodesInBirdDistance = nodesDbQueries.getNodesInBirdDistance as jest.MockedFunction<typeof nodesDbQueries.getNodesInBirdDistance>;
 
 const mockTableFrom = RoutingServiceManagerMock.routingServiceManagerMock.getRoutingServiceForEngine('engine').tableFrom;
+const mockTableTo = RoutingServiceManagerMock.routingServiceManagerMock.getRoutingServiceForEngine('engine').tableTo;
 // Actual response does not matter for this test, just return 0s for every destination 
 mockTableFrom.mockImplementation(async (params) => ({ query: '', durations: params.destinations.map(d => 0), distances: params.destinations.map(d => 0) }));
 
@@ -69,12 +70,57 @@ const nodeAttributesFar = {
     ...commonProperties
 };
 
-const nodeClose1Geojson = TestUtils.makePoint(referenceNode.geography.coordinates, referenceNode) as GeoJSON.Feature<GeoJSON.Point, NodeAttributes>;
-const nodeClose2Geojson = TestUtils.makePoint(nodeAttributesClose1.geography.coordinates, nodeAttributesClose1) as GeoJSON.Feature<GeoJSON.Point, NodeAttributes>;
-const nodeClose3Geojson = TestUtils.makePoint(nodeAttributesClose2.geography.coordinates, nodeAttributesClose2) as GeoJSON.Feature<GeoJSON.Point, NodeAttributes>;
+const referenceNodeGeojson = TestUtils.makePoint(referenceNode.geography.coordinates, referenceNode) as GeoJSON.Feature<GeoJSON.Point, NodeAttributes>;
+const nodeClose1Geojson = TestUtils.makePoint(nodeAttributesClose1.geography.coordinates, nodeAttributesClose1) as GeoJSON.Feature<GeoJSON.Point, NodeAttributes>;
+const nodeClose2Geojson = TestUtils.makePoint(nodeAttributesClose2.geography.coordinates, nodeAttributesClose2) as GeoJSON.Feature<GeoJSON.Point, NodeAttributes>;
 const nodeFarGeojson = TestUtils.makePoint(nodeAttributesFar.geography.coordinates, nodeAttributesFar) as GeoJSON.Feature<GeoJSON.Point, NodeAttributes>;
 
 let nodeCollection: NodeCollection;
+
+beforeEach(() => {
+    nodeCollection = new NodeCollection([referenceNodeGeojson, nodeClose1Geojson, nodeClose2Geojson, nodeFarGeojson], {});
+    mockTableFrom.mockClear();
+    mockTableTo.mockClear();
+    mockedGetNodesInBirdDistance.mockClear();
+});
+
+describe('getNodesInBirdDistance', () => {
+    test('no data', async () => {
+        mockedGetNodesInBirdDistance.mockResolvedValueOnce([]);
+        const distance = 1000;
+        const nodesInBirdDistance = await TransferableNodeUtils.getNodesInBirdDistance(referenceNode.id, distance);
+        expect(nodesInBirdDistance).toEqual([]);
+        expect(mockedGetNodesInBirdDistance).toHaveBeenCalledWith(referenceNode.id, distance);
+    });
+
+    test('some nodes returned, not including requested one', async () => {
+        mockedGetNodesInBirdDistance.mockResolvedValueOnce([
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ]);
+        const distance = 1000;
+        const nodesInBirdDistance = await TransferableNodeUtils.getNodesInBirdDistance(referenceNode.id, distance);
+        expect(nodesInBirdDistance).toEqual([
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ]);
+        expect(mockedGetNodesInBirdDistance).toHaveBeenCalledWith(referenceNode.id, distance);
+    });
+
+    test('some nodes returned, including requested one', async () => {
+        mockedGetNodesInBirdDistance.mockResolvedValueOnce([
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ]);
+        const distance = 1000;
+        const nodesInBirdDistance = await TransferableNodeUtils.getNodesInBirdDistance(referenceNode.id, distance);
+        expect(nodesInBirdDistance).toEqual([
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ]);
+        expect(mockedGetNodesInBirdDistance).toHaveBeenCalledWith(referenceNode.id, distance);
+    });
+});
 
 describe('getTransferableNodes', () => {
 
@@ -84,7 +130,7 @@ describe('getTransferableNodes', () => {
     const distanceMeters = Math.ceil(defaultSpeedMps * travelTimeSeconds);
 
     beforeEach(() => {
-        nodeCollection = new NodeCollection([nodeClose1Geojson, nodeClose2Geojson, nodeClose3Geojson, nodeFarGeojson], {});
+        nodeCollection = new NodeCollection([referenceNodeGeojson, nodeClose1Geojson, nodeClose2Geojson, nodeFarGeojson], {});
         mockTableFrom.mockClear();
         mockedGetNodesInBirdDistance.mockClear();
         const refNodeGeo = nodeCollection.getById(referenceNode.id) as GeoJSON.Feature<GeoJSON.Point, NodeAttributes>;
@@ -171,4 +217,68 @@ describe('getTransferableNodes', () => {
         expect(mockTableFrom).not.toHaveBeenCalled();
     });
 
+});
+
+describe('getTransferableNodesWithAffected', () => {
+
+    test('With transferable nodes', async() => {
+        const node = nodeCollection.newObject(referenceNodeGeojson);
+        const nodesInBirdRadius = [ 
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ];
+        mockedGetNodesInBirdDistance.mockResolvedValueOnce(nodesInBirdRadius);
+        mockTableFrom.mockResolvedValue({
+            query: '',
+            durations: [120, 240],
+            distances: [400, 900]
+        });
+        // Make the 2 tables asymetric, to better see the results
+        mockTableTo.mockResolvedValue({
+            query: '',
+            durations: [130, 300],
+            distances: [410, 910]
+        });
+    
+        const transferableNodes = await TransferableNodeUtils.getTransferableNodesWithAffected(node, nodeCollection, nodesInBirdRadius);
+        expect(transferableNodes).toBeDefined();
+        expect((transferableNodes as any).from).toEqual({
+            nodesIds: [ referenceNodeGeojson.properties.id, nodeClose1Geojson.properties.id, nodeClose2Geojson.properties.id ],
+            walkingDistancesMeters: [ 0, 400, 900 ],
+            walkingTravelTimesSeconds: [0, 120, 240 ]
+        });
+    
+        // Make sure the table from was called with the expected parameters
+        expect(mockTableFrom).toHaveBeenCalledTimes(1);
+        expect(mockTableFrom).toHaveBeenCalledWith({ mode: 'walking', origin: node.toGeojson(), destinations: [ nodeClose1Geojson, nodeClose2Geojson ] });
+
+        // Make sure the table from was called with the expected parameters
+        expect(mockTableTo).toHaveBeenCalledTimes(1);
+        expect(mockTableTo).toHaveBeenCalledWith({ mode: 'walking', destination: node.toGeojson(), origins: [ nodeClose1Geojson, nodeClose2Geojson ] });
+        expect((transferableNodes as any).to).toEqual({
+            nodesIds: [ nodeClose1Geojson.properties.id, nodeClose2Geojson.properties.id ],
+            walkingDistancesMeters: [ 410, 910 ],
+            walkingTravelTimesSeconds: [130, 300 ]
+        });
+    });
+    
+    test('updateTransferableNodes without transferable nodes', async() => {
+        const nodeFar = nodeCollection.newObject(nodeFarGeojson);
+        const nodesInBirdRadius = [];
+        mockedGetNodesInBirdDistance.mockResolvedValueOnce(nodesInBirdRadius);
+    
+        const transferableNodes = await TransferableNodeUtils.getTransferableNodesWithAffected(nodeFar, nodeCollection, nodesInBirdRadius);
+        expect(transferableNodes).toBeDefined();
+        expect((transferableNodes as any).from).toEqual({
+            nodesIds: [ nodeFarGeojson.properties.id ],
+            walkingDistancesMeters: [ 0 ],
+            walkingTravelTimesSeconds: [0 ]
+        });
+        expect((transferableNodes as any).to).toEqual({
+            nodesIds: [ ],
+            walkingDistancesMeters: [ ],
+            walkingTravelTimesSeconds: [ ]
+        });
+    
+    });
 });
