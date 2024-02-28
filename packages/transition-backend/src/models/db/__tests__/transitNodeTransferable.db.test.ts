@@ -174,5 +174,15 @@ describe(`${objectName}`, () => {
             walkingDistancesMeters: [0, 800]
         });
     });
+
+    test('Get nodes to destination, has transferable nodes', async () => {
+        const transferableNodes = await dbQueries.getToNode(nodeAttributes[0].id);
+        expect(transferableNodes).toEqual([nodeAttributes[1].id, nodeAttributes[2].id]);
+    });
+
+    test('Get nodes to destination, node not in database', async () => {
+        const transferableNodes = await dbQueries.getToNode(uuidV4());
+        expect(transferableNodes).toEqual([]);
+    });
     
 });
