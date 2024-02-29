@@ -21,6 +21,7 @@ import KnexConnection from 'connect-session-knex';
 import morgan from 'morgan'; // http logger
 import requestIp from 'request-ip';
 import authRoutes from 'chaire-lib-backend/lib/api/auth.routes';
+import configRoutes from 'chaire-lib-backend/lib/api/config.routes';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { UserAttributes } from 'chaire-lib-backend/lib/services/users/user';
 import config from 'chaire-lib-backend/lib/config/server.config';
@@ -142,6 +143,8 @@ export const setupServer = (app: Express) => {
 
     app.use('/dist/', publicPath); // this needs to be after gzip middlewares.
     app.use('/locales/', localePath); // this needs to be after gzip middlewares.
+
+    configRoutes(app);
 
     app.get('*', (req: Request, res: Response): void => {
         res.sendFile(indexPath);

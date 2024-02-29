@@ -144,10 +144,7 @@ module.exports = (env) => {
           'CUSTOM_RASTER_TILES_XYZ_URL' : JSON.stringify(process.env.CUSTOM_RASTER_TILES_XYZ_URL || config.customRasterTilesXyzUrl),
           'CUSTOM_RASTER_TILES_MIN_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM || config.customRasterTilesMinZoom),
           'CUSTOM_RASTER_TILES_MAX_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM || config.customRasterTilesMaxZoom)
-        },
-        '__CONFIG__': JSON.stringify({
-            ...config
-        })
+        }
       }),
       new webpack.optimize.AggressiveMergingPlugin(),//Merge chunks
       new CompressionPlugin({
