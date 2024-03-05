@@ -61,10 +61,9 @@ export default function (app: express.Express, passport: PassportStatic) {
             mode: req.body.mode,
             points: routingParameters.originDestination
         };
-        const routingResultsGeoJson = await osrmService.route(parameters);
         
-        const withGeometry = req.params.withGeometry !== 'false';
-        if (withGeometry) {
+        if (req.params.withGeometry !== 'false') {
+            const routingResultsGeoJson = await osrmService.route(parameters);
             res.json({ routingResults: routingResults, routingResultsGeoJson: routingResultsGeoJson });
         } else {
             res.json(routingResults);
