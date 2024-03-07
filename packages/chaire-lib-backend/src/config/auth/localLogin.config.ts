@@ -15,7 +15,6 @@ import config from '../server.config';
 import { sendConfirmationEmail } from '../../services/auth/userEmailNotifications';
 import { v4 as uuidV4 } from 'uuid';
 import { IAuthModel, IUserModel } from '../../services/auth/authModel';
-import { string } from 'yargs';
 
 // FIXME: auth.localLogin is now the way to define local login behavior, setting variables here for legacy purposes
 // @Deprecated all config.* that is not in auth, are deprecated and have been moved to auth
@@ -99,9 +98,7 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
     passport.use(
         'bearer-strategy',
         new BearerStrategy.Strategy((token, done) => {
-            console.log('Bearer reached');
             try {
-                console.log('Bearer reached');
                 const user = tokensDbQueries.getUserByToken(token);
                 if (!user) throw 'No such token exists in database.';
                 done(null, user);
