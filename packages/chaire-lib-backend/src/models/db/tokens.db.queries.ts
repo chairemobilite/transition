@@ -11,7 +11,7 @@ import { exists, update, deleteRecord } from './default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 import { randomUUID } from 'crypto';
-import { TokenAttributes } from '../../services/tokens/token';
+import { TokenAttributes } from '../../services/auth/token';
 
 const tableName = 'tokens';
 const userTableName = 'users';
