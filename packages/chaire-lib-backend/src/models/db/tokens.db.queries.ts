@@ -16,24 +16,24 @@ import { TokenAttributes } from '../../services/auth/token';
 const tableName = 'tokens';
 const userTableName = 'users';
 
-const attributesCleaner = function (attributes: TokenAttributes): { id: number; api_token: string } {
-    const { id, api_token } = attributes;
+const attributesCleaner = function (attributes: TokenAttributes): { user_id: number; api_token: string } {
+    const { user_id, api_token } = attributes;
     const _attributes: any = {
-        number: id,
+        number: user_id,
         string: api_token
     };
 
     return _attributes;
 };
 
-const attributesParser = (dbAttributes: { id: number; api_token: string }): TokenAttributes => ({
-    id: dbAttributes.id,
+const attributesParser = (dbAttributes: { user_id: number; api_token: string }): TokenAttributes => ({
+    user_id: dbAttributes.user_id,
     api_token: dbAttributes.api_token
 });
 
 const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
     try {
-        const id = await knex(userTableName)
+        const user_id = await knex(userTableName)
             .where(function () {
                 this.where('username', usernameOrEmail).orWhere('email', usernameOrEmail);
             })
@@ -48,8 +48,8 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
                 }
             });
         const apiToken = randomUUID();
-        const newObject: TokenAttributes = { id: id, api_token: apiToken };
-        const row = await knex(tableName).where('id', id);
+        const newObject: TokenAttributes = { user_id: user_id, api_token: apiToken };
+        const row = await knex(tableName).where('user_id', user_id);
         if (row[0]) {
             return row[0].api_token;
         }
@@ -64,22 +64,22 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
     }
 };
 
-const getById = async (id: number): Promise<TokenAttributes | undefined> => {
+const getById = async (user_id: number): Promise<TokenAttributes | undefined> => {
     try {
-        const response = await knex(tableName).where({ id });
+        const response = await knex(tableName).where({ user_id });
         if (response.length === 1) {
             return response[0] as TokenAttributes;
         }
         return undefined;
     } catch (error) {
-        console.error(`cannot get token by ID ${id} (knex error: ${error})`);
+        console.error(`cannot get token by ID ${user_id} (knex error: ${error})`);
         return undefined;
     }
 };
 
-const read = async (id: string) => {
+const read = async (user_id: string) => {
     try {
-        if (!uuidValidate(id)) {
+        if (!uuidValidate(user_id)) {
             throw new TrError(
                 `Cannot read object from table ${tableName} because the required parameter id is missing, blank or not a valid uuid`,
                 '!!What is this string!!',
@@ -90,12 +90,12 @@ const read = async (id: string) => {
       SELECT
         *
       FROM ${tableName}
-      WHERE id = '${id}';
+      WHERE id = '${user_id}';
     `);
         const rows = response?.rows;
         if (rows && rows.length !== 1) {
             throw new TrError(
-                `Cannot find object with id ${id} from table ${tableName}`,
+                `Cannot find object with id ${user_id} from table ${tableName}`,
                 '!!What is this string!!',
                 'DatabaseCannotReadTokenBecauseObjectDoesNotExist'
             );
@@ -103,7 +103,7 @@ const read = async (id: string) => {
         return attributesParser(rows[0]);
     } catch (error) {
         throw new TrError(
-            `Cannot read object with id ${id} from table ${tableName} (knex error: ${error})`,
+            `Cannot read object with id ${user_id} from table ${tableName} (knex error: ${error})`,
             'DBQZONE0003',
             'DatabaseCannotReadTokenBecauseDatabaseError'
         );
@@ -125,16 +125,16 @@ const match = async (token: string) => {
 
 const getUserByToken = async (token: string) => {
     try {
-        const id = await knex(tableName).where('api_token', token)[0].id;
+        const user_id = await knex(tableName).where('api_token', token)[0].user_id;
 
-        if (!id) {
+        if (!user_id) {
             throw `No such id in ${tableName} table.`;
         }
 
-        const user = await knex(userTableName).where('id', id)[0];
+        const user = await knex(userTableName).where('user_id', user_id)[0];
 
         if (!user) {
-            throw 'Error, mismatch between user and id';
+            throw 'Error, mismatch between user and user_id';
         }
 
         return user;

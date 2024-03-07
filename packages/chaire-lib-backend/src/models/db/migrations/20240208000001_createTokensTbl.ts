@@ -1,3 +1,9 @@
+/*
+ * Copyright 2024, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
 import { Knex } from 'knex';
 import { onUpdateTrigger } from '../../../config/knexfile';
 
@@ -6,7 +12,7 @@ export async function up(knex: Knex): Promise<unknown> {
         return;
     }
     await knex.schema.createTable('tokens', (table: Knex.TableBuilder) => {
-        table.increments('id').references('id').inTable('users').unique().primary();
+        table.increments('user_id').references('id').inTable('users').unique().primary();
         table.string('api_token').unique().index();
     });
     return knex.raw(onUpdateTrigger('tokens'));

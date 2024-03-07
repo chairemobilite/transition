@@ -5,6 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 export type TokenAttributes = {
-    id: number;
+    user_id: number;
     api_token?: string | null;
 };
