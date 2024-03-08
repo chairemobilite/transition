@@ -47,13 +47,13 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
                     return row[0].id;
                 }
             });
-        const apiToken = randomUUID();
-        const newObject: TokenAttributes = { user_id: user_id, api_token: apiToken };
-        const row = await knex(tableName).where('user_id', user_id);
-        if (row[0]) {
-            return row[0].api_token;
-        }
-        await knex(tableName).insert(newObject);
+            const row = await knex(tableName).where('user_id', user_id);
+            if (row[0]) {
+                return row[0].api_token;
+            }
+            const apiToken = randomUUID();
+            const newObject: TokenAttributes = { user_id: user_id, api_token: apiToken };
+            await knex(tableName).insert(newObject);
         return apiToken;
     } catch (error) {
         throw new TrError(
@@ -70,53 +70,36 @@ const getById = async (user_id: number): Promise<TokenAttributes | undefined> =>
         if (response.length === 1) {
             return response[0] as TokenAttributes;
         }
-        return undefined;
+        throw new Error(`Cannot get token by ID ${user_id}: user_id not found.`)
     } catch (error) {
-        console.error(`cannot get token by ID ${user_id} (knex error: ${error})`);
-        return undefined;
+        throw(error)
     }
 };
 
-
-const match = async (token: string) => {
-    try {
-        const response = await knex(tableName).where('api_token', token);
-        if (response.length > 0) {
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error(`cannot get token ${token} (knex error: ${error})`);
-    }
-};
 
 const getUserByToken = async (token: string) => {
     try {
-        const user_id = (await knex(tableName).where('api_token', token))[0].user_id;
-        if (!user_id) {
-            throw `No such id in ${tableName} table.`;
+        const user_id = (await knex(tableName).where('api_token', token));
+        if (user_id.length < 1) {
+            throw new Error(`No such id in ${tableName} table.`);
         }
-        const user = (await knex(userTableName).where('id', user_id))[0];
+        const user = (await knex(userTableName).where('id', user_id[0].user_id))[0];
 
         if (!user) {
-            throw 'Error, mismatch between user and user_id';
+            throw new Error('Error, mismatch between user and user_id');
         }
 
         return user;
     } catch (error) {
-        console.error(`cannot get user with token: ${token} (knex error: ${error})`);
-        return false;
+        throw(error)
     }
 };
-
-
 
 export default {
     getOrCreate,
     update,
     getById,
     getUserByToken,
-    match,
     exists: exists.bind(null, knex, tableName),
     delete: deleteRecord.bind(null, knex, tableName),
 };

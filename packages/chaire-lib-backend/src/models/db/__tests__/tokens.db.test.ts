@@ -1,0 +1,145 @@
+/*
+ * Copyright 2024, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
+
+import knex from '../../../config/shared/db.config';
+import { TokenAttributes } from '../../../services/auth/token';
+import { UserAttributes } from '../../../services/users/user';
+import { Knex } from 'knex';
+import tokensDbQueries from '../tokens.db.queries';
+import { randomUUID } from 'crypto';
+
+const user: Partial<UserAttributes> = {
+    id: 1,
+    username: 'testname',
+    email: 'test@transition.city',
+    is_valid: true
+}
+
+const badUser: Partial<UserAttributes> = {
+    id: 2,
+    username: 'testname2',
+    email: 'test2@transition.city',
+    is_valid: true
+}
+
+const tokenRow: TokenAttributes = {
+    user_id: 1,
+    api_token: randomUUID(),
+};
+
+const badToken: TokenAttributes = {
+    user_id: 2,
+    api_token: randomUUID(),
+}
+
+const truncate = async (knex: Knex, tableName: string) => {
+    try {
+        await knex.raw(`TRUNCATE TABLE ${tableName} CASCADE`);
+    } catch (error) {
+        throw `Could not truncate test databas: ${error}`;
+    }
+};
+
+const createToken = async (knex: Knex, tableName: string, tokenRow) => {
+    try {
+        const newObject: TokenAttributes = { user_id: tokenRow.user_id, api_token: tokenRow.api_token };
+        const test = await knex(tableName).insert(newObject);
+
+    } catch (error) {
+        throw `Could not add token to tokens table: ${error}`;
+    }
+};
+
+const createUser = async (knex: Knex, tableName: string = 'users', user: UserAttributes) => {
+    try {
+        const newUser: Partial<UserAttributes> = user
+        await knex(tableName).insert(newUser)
+    } catch (error) {
+        throw `Could not add user to users table: ${error}`
+    }
+}
+
+
+
+describe(`Tokens Database: Token exists in Tokens table`, () => {
+
+    beforeAll(async () => {
+        jest.setTimeout(10000);
+        await truncate(knex, 'tokens');
+        await truncate(knex, 'users');
+        await createUser(knex, 'users', user as UserAttributes);
+        await createToken(knex, 'tokens', tokenRow);
+    });
+    
+    afterAll(async() => {
+        await truncate(knex, 'tokens');
+        await truncate(knex, 'users')
+    });
+
+    test('Should return api token', async () => {
+      
+        const testToken = await tokensDbQueries.getOrCreate(user.email as string)
+        expect(testToken).toEqual(tokenRow.api_token)
+    });
+
+    test('Should return a user when token is in database', async() => {
+
+        expect((await tokensDbQueries.getUserByToken(tokenRow.api_token as string)).email).toBe(user.email);
+        expect((await tokensDbQueries.getUserByToken(tokenRow.api_token as string)).id).toBe(user.id);
+        expect((await tokensDbQueries.getUserByToken(tokenRow.api_token as string)).username).toBe(user.username);
+
+    });
+
+    test('Should return an token when user_id is in database', async() => {
+
+        expect((await tokensDbQueries.getById(user.id as number) as TokenAttributes).api_token).toBe(tokenRow.api_token);
+        expect((await tokensDbQueries.getById(user.id as number) as TokenAttributes).user_id).toBe(tokenRow.user_id);
+
+
+    });
+
+    test('Should return an error when user not in database', async() => {
+        
+        await expect(tokensDbQueries.getOrCreate(badUser.email as string)).rejects.toThrowError();
+
+    });
+
+    test('Should return an error when api_token not in database', async() => {
+
+        await expect(tokensDbQueries.getUserByToken(badToken.api_token as string)).rejects.toThrowError();
+
+    });
+
+    test('Should return an error when user_id not in database', async() => {
+
+        await expect(tokensDbQueries.getById(badUser.id as number)).rejects.toThrowError();
+
+    });
+
+});
+
+describe(`Tokens Database: Token does not exist in Tokens table`, () => {
+
+    beforeAll(async () => {
+        jest.setTimeout(10000);
+        await truncate(knex, 'tokens');
+        await truncate(knex, 'users');
+        await createUser(knex, 'users', user as UserAttributes);
+    });
+    
+    afterAll(async() => {
+        await truncate(knex, 'tokens');
+        await truncate(knex, 'users')
+    });
+
+    test('Should create api tokens in database', async() => {
+        const query1 = await knex('tokens');
+        await tokensDbQueries.getOrCreate(user.email as string)
+        const query2 = await knex('tokens');
+        expect(query2.length).toBeGreaterThan(query1.length)
+    });
+});
