@@ -92,13 +92,11 @@ const match = async (token: string) => {
 
 const getUserByToken = async (token: string) => {
     try {
-        const user_id = await knex(tableName).where('api_token', token)[0].user_id;
-
+        const user_id = (await knex(tableName).where('api_token', token))[0].user_id;
         if (!user_id) {
             throw `No such id in ${tableName} table.`;
         }
-
-        const user = await knex(userTableName).where('user_id', user_id)[0];
+        const user = (await knex(userTableName).where('id', user_id))[0];
 
         if (!user) {
             throw 'Error, mismatch between user and user_id';

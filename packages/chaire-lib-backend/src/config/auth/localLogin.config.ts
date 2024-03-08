@@ -101,9 +101,6 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
             try {
                 const user = await tokensDbQueries.getUserByToken(token);
                 if (!user) throw 'No such token exists in database.';
-                console.log("here")
-                console.log(user)
-                console.log("there")
                 done(null, user);
             } catch (err) {
                 return done(err);
