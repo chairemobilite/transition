@@ -77,38 +77,6 @@ const getById = async (user_id: number): Promise<TokenAttributes | undefined> =>
     }
 };
 
-const read = async (user_id: string) => {
-    try {
-        if (!uuidValidate(user_id)) {
-            throw new TrError(
-                `Cannot read object from table ${tableName} because the required parameter id is missing, blank or not a valid uuid`,
-                '!!What is this string!!',
-                'DatabaseCannotReadTokenBecauseIdIsMissingOrInvalid'
-            );
-        }
-        const response = await knex.raw(`
-      SELECT
-        *
-      FROM ${tableName}
-      WHERE id = '${user_id}';
-    `);
-        const rows = response?.rows;
-        if (rows && rows.length !== 1) {
-            throw new TrError(
-                `Cannot find object with id ${user_id} from table ${tableName}`,
-                '!!What is this string!!',
-                'DatabaseCannotReadTokenBecauseObjectDoesNotExist'
-            );
-        }
-        return attributesParser(rows[0]);
-    } catch (error) {
-        throw new TrError(
-            `Cannot read object with id ${user_id} from table ${tableName} (knex error: ${error})`,
-            'DBQZONE0003',
-            'DatabaseCannotReadTokenBecauseDatabaseError'
-        );
-    }
-};
 
 const match = async (token: string) => {
     try {
@@ -119,7 +87,6 @@ const match = async (token: string) => {
         return false;
     } catch (error) {
         console.error(`cannot get token ${token} (knex error: ${error})`);
-        return false;
     }
 };
 
@@ -144,6 +111,8 @@ const getUserByToken = async (token: string) => {
     }
 };
 
+
+
 export default {
     getOrCreate,
     update,
@@ -151,6 +120,5 @@ export default {
     getUserByToken,
     match,
     exists: exists.bind(null, knex, tableName),
-    read,
-    delete: deleteRecord.bind(null, knex, tableName)
+    delete: deleteRecord.bind(null, knex, tableName),
 };
