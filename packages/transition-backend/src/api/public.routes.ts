@@ -10,6 +10,10 @@ import tokensDbQueries from 'chaire-lib-backend/lib/models/db/tokens.db.queries'
 import transitObjectDataHandlers from '../services/transitObjects/TransitObjectsDataHandler';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
+import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
+import { TransitAccessibilityMapResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
+import TransitAccessibilityMapRouting, { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', passport.authenticate('local-login', { failWithError: true, failureMessage: true }));
@@ -49,5 +53,27 @@ export default function (app: express.Express, passport: PassportStatic) {
         res.json(routingModes);
     });
 
+    router.get('/accessibility', async (req, res, next) => {
+        // Start trRouting if it is not running
+        const trRoutingStatus = await trRoutingProcessManager.status({});
+        if (trRoutingStatus.status === "not_running") {
+            await trRoutingProcessManager.start({});
+        }
+
+        const calculationAttributes: AccessibilityMapAttributes = req.body;
+        const routing = new TransitAccessibilityMapRouting(calculationAttributes);
+
+        try {
+            const accessibilityMap: TransitAccessibilityMapResult = await TransitAccessibilityMapCalculator.calculate(
+                routing,
+                false,
+                {}
+            );
+            return res.json(accessibilityMap.routingResult);
+        } catch (error) {
+            next(error);
+        }
+    })
+    
     app.use('/api', router);
 }
