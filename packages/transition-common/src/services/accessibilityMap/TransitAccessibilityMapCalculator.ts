@@ -400,10 +400,13 @@ export class TransitAccessibilityMapCalculator {
                 );
             }
 
-            serviceLocator.eventManager.emit('progress', {
-                name: 'AccessibilityMapPolygonGeneration',
-                progress: stepI++ / stepsCount
-            });
+            // The backend does not have this event manager, so we only want to use it when it exists
+            if (serviceLocator.eventManager) {
+                serviceLocator.eventManager.emit('progress', {
+                    name: 'AccessibilityMapPolygonGeneration',
+                    progress: stepI++ / stepsCount
+                });
+            }
 
             // TODO This is the veryyy sloooooow operation.
             const polygonCoordinates = await this.clipPolygon(nodeCircles, isCancelled);
@@ -458,7 +461,10 @@ export class TransitAccessibilityMapCalculator {
                 )
             );
 
-            serviceLocator.eventManager.emitProgress('AccessibilityMapPolygonGeneration', stepI++ / stepsCount);
+            // The backend does not have this event manager, so we only want to use it when it exists
+            if (serviceLocator.eventManager) {
+                serviceLocator.eventManager.emitProgress('AccessibilityMapPolygonGeneration', stepI++ / stepsCount);
+            }
         }
 
         if (isCancelled()) {
