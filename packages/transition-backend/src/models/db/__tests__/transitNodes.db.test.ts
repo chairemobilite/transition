@@ -241,6 +241,7 @@ describe(`${objectName}`, () => {
 
     test('should get nodes associated path ids from database', async () => {
 
+        // At this point, newObjectAttributes and newObjectAttributes2 are in the database
         await pathsDbQueries.createMultiple([
             new Path(newPathWithTwoAssociatedNodesAttributes, false).getAttributes(),
             new Path(newPathWithOneAssociatedNodeAttributes, true).getAttributes(),
@@ -255,9 +256,9 @@ describe(`${objectName}`, () => {
         await expect(async () => {
             await dbQueries.getAssociatedPathIds([newObjectAttributes.id, 'foo'])
         }).rejects.toThrowError("Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: At least one node id is not a valid uuid (DBQNGAP0001))");
-        await expect(async () => {
-            await dbQueries.getAssociatedPathIds([newObjectAttributes.id, newObjectAttributes3.id])
-        }).rejects.toThrowError("Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: The number of nodes received do not match the number of nodes sent in the query (DBQNGAP0003))");
+        expect(await dbQueries.getAssociatedPathIds([newObjectAttributes.id, newObjectAttributes3.id])).toEqual({
+            [newObjectAttributes.id]: [newPathWithTwoAssociatedNodesAttributes.id]
+        });
 
         // Add a third node, not associated with a path
         const newObject = new ObjectClass(newObjectAttributes3, true);

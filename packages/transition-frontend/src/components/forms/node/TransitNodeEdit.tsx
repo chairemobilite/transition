@@ -85,7 +85,7 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
             (status: Status.Status<{ [key: string]: string[] }>) => {
                 if (Status.isStatusOk(status)) {
                     this.setState({
-                        associatedPathIds: Status.unwrap(status)[nodeId]
+                        associatedPathIds: Status.unwrap(status)[nodeId] || []
                     });
                 } else {
                     // TODO: trigger error
