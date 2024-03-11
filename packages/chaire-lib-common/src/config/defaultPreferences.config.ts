@@ -102,6 +102,7 @@ const defaultPreferences: PreferencesModel = {
     map: {
         center: [config.mapDefaultCenter.lon, config.mapDefaultCenter.lat],
         zoom: 10,
+        enableMapAnimations: true,
         layers: {
             simulations: ['aggregatedOD', 'odTripsProfile', 'transitStations', 'transitNodes'],
             agencies: [
