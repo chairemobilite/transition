@@ -19,14 +19,20 @@ type _AnimatedArrowPathLayerProps<DataT = unknown> = {
 
     /**
      * Arrow path speed scaling. The larger the number, the slower the path movement. 0 prevents movement
-     * @default 3
+     * @default 1
      */
     speedDivider?: number;
+
+    /**
+     * Set to `true` to disable animation
+     */
+    disableAnimation?: boolean;
 };
 
 const defaultProps: DefaultProps<AnimatedArrowPathLayerProps> = {
     getDistanceBetweenArrows: { type: 'accessor', value: 20 },
-    speedDivider: 1
+    speedDivider: 1,
+    disableAnimation: false
 };
 
 export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends object = never> extends PathLayer<
@@ -54,7 +60,7 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
                 animationID: window.requestAnimationFrame(animate) // draw next frame
             });
         };
-        const animationID = window.requestAnimationFrame(animate);
+        const animationID = this.props.disableAnimation === true ? 0 : window.requestAnimationFrame(animate);
         this.setState({
             animationID: animationID
         });
@@ -76,7 +82,8 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
     }
 
     draw(opts) {
-        opts.uniforms.arrowPathTimeStep = (performance.now() % 100000) / 100000; // resets every 100 seconds
+        opts.uniforms.arrowPathTimeStep =
+            this.props.disableAnimation === true ? 0 : (performance.now() % 100000) / 100000; // resets every 100 seconds
         opts.uniforms.speedDivider = this.props.speedDivider;
         super.draw(opts);
     }
