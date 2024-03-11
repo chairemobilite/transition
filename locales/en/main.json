@@ -285,7 +285,8 @@
         },
         "DateTimeFormat": "Date/Time format",
         "DateTimeFormat24H": "24 hours ({{formatted}})",
-        "DateTimeFormat12H": "12 hours ({{formatted}})"
+        "DateTimeFormat12H": "12 hours ({{formatted}})",
+        "EnableMapAnimations": "Enable map animations"
     },
     "ShowingNofX": "Showing {{n}} of {{x}} results",
     "PageNofX": "Page {{n}} of {{x}}",
