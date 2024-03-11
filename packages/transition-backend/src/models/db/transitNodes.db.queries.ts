@@ -210,13 +210,6 @@ const getAssociatedPathIds = async (nodeIds: string[]): Promise<{ [key: string]:
             ORDER BY n.integer_id;
         `);
         const rows: { node_id: string; path_ids: string[] }[] = response.rows;
-        if (rows.length !== nodeIds.length) {
-            throw new TrError(
-                'The number of nodes received do not match the number of nodes sent in the query',
-                'DBQNGAP0003',
-                'DatabaseCannotGetNodesAssociatedPathsBecauseNodesCountMismatchQueryResponse'
-            );
-        }
         return rows.reduce((o, n) => ({ ...o, [n.node_id]: n.path_ids }), {}) as { [key: string]: string[] }; // convert to object with node id as key
     } catch (error) {
         throw new TrError(
