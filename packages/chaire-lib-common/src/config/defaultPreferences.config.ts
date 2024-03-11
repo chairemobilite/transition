@@ -89,7 +89,8 @@ const defaultPreferences: PreferencesModel = {
     },
     map: {
         center: [config.mapDefaultCenter.lon, config.mapDefaultCenter.lat],
-        zoom: 10
+        zoom: 10,
+        enableMapAnimations: true
     },
     showAggregatedOdTripsLayer: true,
     socketUploadChunkSize: 10240000,

@@ -286,7 +286,8 @@
         },
         "DateTimeFormat": "Format de date/heure",
         "DateTimeFormat24H": "24 heures ({{formatted}})",
-        "DateTimeFormat12H": "12 heures ({{formatted}})"
+        "DateTimeFormat12H": "12 heures ({{formatted}})",
+        "EnableMapAnimations": "Activer les animations de cartes"
     },
     "ShowingNofX": "{{n}} de {{x}} résultats",
     "PageNofX": "Page {{n}} de {{x}}",
