@@ -93,10 +93,7 @@ export class ObjectWithHistory<T extends GenericAttributes> extends GenericObjec
             return false;
         }
         if (attribute === undefined) {
-            return (
-                (this.isNew() && this.history.length > 1) ||
-                (!this.isNew() && !_isEqual(this._attributes, this.history[0]))
-            );
+            return this.isNew() || (!this.isNew() && !_isEqual(this._attributes, this.history[0]));
         } else {
             return this.history.length > 1 && !_isEqual(this._attributes[attribute], this.history[0][attribute]);
         }

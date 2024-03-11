@@ -96,43 +96,51 @@ test('Cancel edit should work', () =>
     expect(genericObject.canRedo()).toEqual(false);
 });
 
-test('Has changed', () =>
+describe('Has changed', () =>
 {
-    // Test with a new object object
-    const newObject = new ObjectWithHistory(defaultAttributes);
-    expect(newObject.hasChanged()).toEqual(false);
-    expect(newObject.hasChanged('color')).toEqual(false);
-    expect(newObject.hasChanged('name')).toEqual(false);
+    test('With a new object, not in editing mode', () => {
+        const newObject = new ObjectWithHistory(defaultAttributes);
+        expect(newObject.hasChanged()).toEqual(false);
+        expect(newObject.hasChanged('color')).toEqual(false);
+        expect(newObject.hasChanged('name')).toEqual(false);
 
-    // If the object is not in editing mode, values can be set, but they are not part of the object's history
-    newObject.set('color', 'blue');
-    expect(newObject.hasChanged()).toEqual(false);
-    expect(newObject.hasChanged('color')).toEqual(false);
+        // If the object is not in editing mode, values can be set, but they are not part of the object's history
+        newObject.set('color', 'blue');
+        expect(newObject.hasChanged()).toEqual(false);
+        expect(newObject.hasChanged('color')).toEqual(false);
+    });
 
-    // Edit the object
-    newObject.startEditing();
-    newObject.set('color', 'yellow');
-    expect(newObject.hasChanged()).toEqual(true);
-    expect(newObject.hasChanged('color')).toEqual(true);
-    expect(newObject.hasChanged('name')).toEqual(false);
+    test('With a new object, in editing mode', () => {
+        const newObject = new ObjectWithHistory(defaultAttributes);
+        newObject.startEditing();
+        expect(newObject.hasChanged()).toEqual(true);
+        newObject.set('color', 'yellow');
+        expect(newObject.hasChanged()).toEqual(true);
+        expect(newObject.hasChanged('color')).toEqual(true);
+        expect(newObject.hasChanged('name')).toEqual(false);
+    });
 
-    // Test with an existing object
-    const existingObject = new ObjectWithHistory(defaultAttributes, false);
-    expect(existingObject.hasChanged()).toEqual(false);
-    expect(existingObject.hasChanged('color')).toEqual(false);
-    expect(existingObject.hasChanged('name')).toEqual(false);
+    test('With an existing object, not in editing mode', () => {
+        const existingObject = new ObjectWithHistory(defaultAttributes, false);
+        expect(existingObject.hasChanged()).toEqual(false);
+        expect(existingObject.hasChanged('color')).toEqual(false);
+        expect(existingObject.hasChanged('name')).toEqual(false);
 
-    // If the object is not in editing mode, values can be set, but they are not part of the object's history
-    existingObject.set('color', 'blue');
-    expect(existingObject.hasChanged()).toEqual(false);
-    expect(existingObject.hasChanged('color')).toEqual(false);
+        // If the object is not in editing mode, values can be set, but they are not part of the object's history
+        existingObject.set('color', 'blue');
+        expect(existingObject.hasChanged()).toEqual(false);
+        expect(existingObject.hasChanged('color')).toEqual(false);
+    });
 
-    // Edit the object
-    existingObject.startEditing();
-    existingObject.set('color', 'yellow');
-    expect(existingObject.hasChanged()).toEqual(true);
-    expect(existingObject.hasChanged('color')).toEqual(true);
-    expect(existingObject.hasChanged('name')).toEqual(false);
+    test('With an existing object, in editing mode', () => {
+        const existingObject = new ObjectWithHistory(defaultAttributes, false);
+        expect(existingObject.hasChanged()).toEqual(false);
+        existingObject.startEditing();
+        existingObject.set('color', 'yellow');
+        expect(existingObject.hasChanged()).toEqual(true);
+        expect(existingObject.hasChanged('color')).toEqual(true);
+        expect(existingObject.hasChanged('name')).toEqual(false);
+    });
 
 });
 
