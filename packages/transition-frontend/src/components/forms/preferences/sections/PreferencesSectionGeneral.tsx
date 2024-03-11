@@ -15,6 +15,7 @@ import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/Input
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import PreferencesSectionProps from '../PreferencesSectionProps';
+import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import moment from 'moment';
 
 const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
@@ -148,6 +149,20 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
                     <PreferencesResetToDefaultButton
                         resetPrefToDefault={props.resetPrefToDefault}
                         path="dateTimeFormat"
+                        preferences={props.preferences}
+                    />
+                </InputWrapper>
+                <InputWrapper twoColumns={true} label={props.t('main:preferences:EnableMapAnimations')}>
+                    <InputCheckboxBoolean
+                        id={'formFieldPreferencesGeneralEnableMapAnimation'}
+                        isChecked={props.preferences.get('map.enableMapAnimations')}
+                        defaultChecked={true}
+                        label={props.t('main:Yes')}
+                        onValueChange={(e) => props.onValueChange('map.enableMapAnimations', { value: e.target.value })}
+                    />
+                    <PreferencesResetToDefaultButton
+                        resetPrefToDefault={props.resetPrefToDefault}
+                        path="map.enableMapAnimations"
                         preferences={props.preferences}
                     />
                 </InputWrapper>
