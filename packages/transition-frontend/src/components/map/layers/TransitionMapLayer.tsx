@@ -296,7 +296,8 @@ const getAnimatedArrowPathLayer = (
         },
         getDistanceBetweenArrows: 15,
         widthMaxPixels: 50,
-        speedDivider: Preferences.get('enableMapAnimations', true) ? 10 : 0,
+        speedDivider: 10,
+        disableAnimation: Preferences.get('map.enableMapAnimations', true) ? false : true,
         ...eventsToAdd,
         ...layerProperties
     });
