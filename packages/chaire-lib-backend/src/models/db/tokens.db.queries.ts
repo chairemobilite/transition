@@ -36,10 +36,18 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
             })
             .then(async (row) => {
                 if (row === undefined) {
-                    throw 'An error has occured: No username or email to this name.';
+                    throw new TrError(
+                        `Could not match ${usernameOrEmail} in table ${tableName} database`,
+                        'ERRORCODE',
+                        'NoUserMatchError'
+                    );
                 }
                 if (row.length < 1) {
-                    throw 'An error has occured: No match found';
+                    throw new TrError(
+                        `Could not match ${usernameOrEmail} in table ${tableName} database`,
+                        'ERRORCODE',
+                        'NoUserMatchError'
+                    );
                 } else {
                     return row[0].id;
                 }
