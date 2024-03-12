@@ -12,7 +12,9 @@ import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes'
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
 import { TransitAccessibilityMapResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
-import TransitAccessibilityMapRouting, { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import TransitAccessibilityMapRouting, {
+    AccessibilityMapAttributes
+} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
@@ -63,7 +65,7 @@ export default function (app: express.Express, passport: PassportStatic) {
     router.post('/accessibility/:withGeometry?', async (req, res, next) => {
         // Start trRouting if it is not running
         const trRoutingStatus = await trRoutingProcessManager.status({});
-        if (trRoutingStatus.status === "not_running") {
+        if (trRoutingStatus.status === 'not_running') {
             await trRoutingProcessManager.start({});
         }
 
@@ -81,17 +83,10 @@ export default function (app: express.Express, passport: PassportStatic) {
                 const nodeCollection = new NodeCollection(nodes.geojson.features, {});
                 collectionManager.update('nodes', nodeCollection);
 
-                routingResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(
-                    routing,
-                    false,
-                    {}
-                )
+                routingResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(routing, false, {});
             } else {
-                const accessibilityMap: TransitAccessibilityMapResult = await TransitAccessibilityMapCalculator.calculate(
-                    routing,
-                    false,
-                    {}
-                );
+                const accessibilityMap: TransitAccessibilityMapResult =
+                    await TransitAccessibilityMapCalculator.calculate(routing, false, {});
                 routingResult = {
                     resultByNode: accessibilityMap.routingResult
                 };
@@ -101,7 +96,7 @@ export default function (app: express.Express, passport: PassportStatic) {
         } catch (error) {
             next(error);
         }
-    })
-    
+    });
+
     app.use('/api', router);
 }
