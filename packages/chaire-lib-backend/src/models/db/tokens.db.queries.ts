@@ -72,20 +72,12 @@ const getById = async (user_id: number): Promise<TokenAttributes | undefined> =>
 const getUserByToken = async (token: string) => {
     const user_id = await knex(tableName).where('api_token', token);
     if (user_id.length < 1) {
-        throw new TrError(
-            `No such id in ${tableName} table.`,
-            'ERRORCODE',
-            'DatabaseNoUserMatchesProvidedToken'
-        );
+        throw new TrError(`No such id in ${tableName} table.`, 'ERRORCODE', 'DatabaseNoUserMatchesProvidedToken');
     }
     const user = (await knex(userTableName).where('id', user_id[0].user_id))[0];
 
     if (!user) {
-        throw new TrError(
-            'Error, mismatch between user and user_id',
-            'ERRORCODE',
-            'DatabaseNoUserMatchesToken'
-        );
+        throw new TrError('Error, mismatch between user and user_id', 'ERRORCODE', 'DatabaseNoUserMatchesToken');
     }
 
     return user;
