@@ -11,7 +11,11 @@ import request from 'supertest';
 import transitObjectDataHandlers from '../../services/transitObjects/TransitObjectsDataHandler';
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import tokensDbQueries from 'chaire-lib-backend/lib/models/db/tokens.db.queries';
-import TrError from 'chaire-lib-common/lib/utils/TrError';
+import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
+import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
+
+// Required to test POST /api/accessibility endpoint
+jest.mock('transition-common/lib/services/nodes/NodeCollection');
 
 // Mock passport (therefore ignoring authentication)
 jest.mock('passport');
@@ -111,5 +115,61 @@ describe('Testing endpoints', () => {
         expect(response.status).toStrictEqual(200);
         expect(response.body).toStrictEqual(['transit']);
         expect(osrmProcessManager.availableRoutingModes).toBeCalled();
+    });
+
+    test('POST /api/accessibility, without geometry', async () => {
+        const routingResult = 'routingResult';
+        
+        trRoutingProcessManager.status = jest.fn(() => Promise.resolve({
+            status: 'started'
+        } as any));
+        TransitAccessibilityMapCalculator.calculate = jest.fn(() => Promise.resolve({
+            routingResult: routingResult
+        } as any));
+
+        const response = await request(app).post('/api/accessibility/false');
+
+        expect(response.status).toStrictEqual(200);
+        expect(response.body).toStrictEqual({resultByNode: routingResult});
+        expect(TransitAccessibilityMapCalculator.calculate).toBeCalled();
+    });
+
+    test('POST /api/accessibility, with geometry', async () => {
+        const result = {
+            polygons: 'polygons',
+            strokes: 'strokes',
+            resultByNode: 'resultByNode',
+        };
+        
+        trRoutingProcessManager.status = jest.fn(() => Promise.resolve({
+            status: 'started'
+        } as any));
+        transitObjectDataHandlers.nodes.geojsonCollection! = jest.fn(() => Promise.resolve({
+            geojson: {
+                features: 'features'
+            }
+        }));
+        TransitAccessibilityMapCalculator.calculateWithPolygons = jest.fn(() => Promise.resolve(result as any));
+
+        const response = await request(app).post('/api/accessibility/true');
+
+        expect(response.status).toStrictEqual(200);
+        expect(response.body).toStrictEqual(result);
+        expect(transitObjectDataHandlers.nodes.geojsonCollection).toBeCalled();
+        expect(TransitAccessibilityMapCalculator.calculateWithPolygons).toBeCalled();
+    });
+
+    test('POST /api/accessibility, with error', async () => {
+        trRoutingProcessManager.status = jest.fn(() => Promise.resolve({
+            status: 'started'
+        } as any));
+        TransitAccessibilityMapCalculator.calculate = jest.fn(() => {
+            throw new Error();
+        });
+
+        const response = await request(app).post('/api/accessibility/false');
+
+        expect(response.status).toStrictEqual(500);
+        expect(TransitAccessibilityMapCalculator.calculate).toBeCalled();
     });
 });
