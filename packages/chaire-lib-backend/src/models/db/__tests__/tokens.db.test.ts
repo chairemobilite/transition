@@ -11,6 +11,12 @@ import { UserAttributes } from '../../../services/users/user';
 import { Knex } from 'knex';
 import tokensDbQueries from '../tokens.db.queries';
 import { randomUUID } from 'crypto';
+import crypto from 'crypto';
+
+interface Token {
+    user_id: number;
+    api_token: string;
+}
 
 const user: Partial<UserAttributes> = {
     id: 1,
@@ -35,6 +41,8 @@ const badToken: TokenAttributes = {
     user_id: 2,
     api_token: randomUUID(),
 }
+
+
 
 const truncate = async (knex: Knex, tableName: string) => {
     try {
@@ -87,17 +95,17 @@ describe(`Tokens Database: Token exists in Tokens table`, () => {
     });
 
     test('Should return a user when token is in database', async() => {
-
-        expect((await tokensDbQueries.getUserByToken(tokenRow.api_token as string)).email).toBe(user.email);
-        expect((await tokensDbQueries.getUserByToken(tokenRow.api_token as string)).id).toBe(user.id);
-        expect((await tokensDbQueries.getUserByToken(tokenRow.api_token as string)).username).toBe(user.username);
+        const query = await tokensDbQueries.getUserByToken(tokenRow.api_token as string)
+        expect(query.email).toBe(user.email);
+        expect(query.id).toBe(user.id);
+        expect(query.username).toBe(user.username);
 
     });
 
     test('Should return an token when user_id is in database', async() => {
-
-        expect((await tokensDbQueries.getById(user.id as number) as TokenAttributes).api_token).toBe(tokenRow.api_token);
-        expect((await tokensDbQueries.getById(user.id as number) as TokenAttributes).user_id).toBe(tokenRow.user_id);
+        const query = await tokensDbQueries.getById(user.id as number) as TokenAttributes 
+        expect(query.api_token).toBe(tokenRow.api_token);
+        expect(query.user_id).toBe(tokenRow.user_id);
 
 
     });
@@ -137,9 +145,11 @@ describe(`Tokens Database: Token does not exist in Tokens table`, () => {
     });
 
     test('Should create api tokens in database', async() => {
+        jest.spyOn(crypto, 'randomUUID').mockImplementation(() => (tokenRow.api_token) as `${string}-${string}-${string}-${string}-${string}`)
         const query1 = await knex('tokens');
         await tokensDbQueries.getOrCreate(user.email as string)
         const query2 = await knex('tokens');
         expect(query2.length).toBeGreaterThan(query1.length)
+        expect(query2[0].api_token).toEqual(tokenRow.api_token)
     });
 });
