@@ -54,6 +54,7 @@ class PwdLessDirectSignupStrategy<A> {
             // Otherwise, add the user to the database and consider him as signed up
             try {
                 const newUser = await this.addNewUser(emailOrSms);
+                newUser.recordLogin();
                 this.success(newUser.sanitize());
             } catch (error) {
                 console.log('Error signing up new user:', error);

@@ -28,10 +28,12 @@ const logInFct = jest.fn().mockImplementation((_a, _b, callback) => {
 
 jest.mock('../../../models/db/users.db.queries', () => ({
     find: jest.fn().mockResolvedValue(undefined),
-    create: jest.fn()
+    create: jest.fn(),
+    setLastLogin: jest.fn()
 }));
 const mockFind = usersDbQueries.find as jest.MockedFunction<typeof usersDbQueries.find>;
 const mockCreate = usersDbQueries.create as jest.MockedFunction<typeof usersDbQueries.create>;
+const mockSetLastLogin = usersDbQueries.setLastLogin as jest.MockedFunction<typeof usersDbQueries.setLastLogin>;
 
 // Initialize various user data
 const newUserEmail = 'newUser@transition.city';
@@ -61,6 +63,7 @@ beforeEach(() => {
             ...attribs
         }
     });
+    mockSetLastLogin.mockClear();
 });
 
 test('Passwordless login, first entry, direct access', async () => {
@@ -102,6 +105,7 @@ test('Passwordless login, first entry, direct access', async () => {
     });
 
     expect(logInFct).toHaveBeenCalledWith({ id: newUserId, username: newUserEmail, email: newUserEmail, firstName: '', lastName: '', preferences: {}, serializedPermissions: []}, expect.anything(), expect.anything());
+    expect(mockSetLastLogin).toHaveBeenCalledTimes(1);
 });
 
 describe('Complete send/verify flow for existing user', () => {
@@ -142,6 +146,7 @@ describe('Complete send/verify flow for existing user', () => {
             mailSubject: ['customServer:magicLinkEmailSubject', 'server:magicLinkEmailSubject']
         }, { magicLinkUrl: { url: expect.stringContaining('/magic/verify') } });
         verifyUrl = mockedSendEmail.mock.calls[0][1].magicLinkUrl.url;
+        expect(mockSetLastLogin).not.toHaveBeenCalled();
     });
     
     test('Verify link url', async () => {
@@ -172,6 +177,7 @@ describe('Complete send/verify flow for existing user', () => {
         expect(authResult.result).toBeUndefined();
         expect(logInFct).toHaveBeenCalledTimes(1);
         expect(logInFct).toHaveBeenCalledWith({ id: existingUser.id, username: existingUser.username, email: existingUser.email, firstName: undefined, lastName: undefined, preferences: {}, serializedPermissions: []}, expect.anything(), expect.anything());
+        expect(mockSetLastLogin).toHaveBeenCalledTimes(1);
     });
 });
 
@@ -195,5 +201,6 @@ test('Verify invalid token', async () => {
     expect(authResult.err).toBeDefined();
     expect(authResult.result).toBeFalsy();
     expect(logInFct).not.toHaveBeenCalled();
+    expect(mockSetLastLogin).not.toHaveBeenCalled();
 });
 

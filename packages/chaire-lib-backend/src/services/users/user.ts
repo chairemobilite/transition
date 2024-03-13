@@ -35,4 +35,5 @@ export type UserAttributes = UserAttributesBase & {
     is_test?: boolean | null;
     // TODO What is this?
     batch_shortname?: string | null;
+    last_login_at?: string | null;
 };

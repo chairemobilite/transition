@@ -95,6 +95,7 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
                     throw 'Invalid token, no email address';
                 }
                 const user = await getOrCreateUserWithEmail(payload.destination);
+                user.recordLogin();
                 done(undefined, user.sanitize(), { referrer: payload.referrer });
             } catch (err) {
                 done(typeof err === 'string' ? new Error(err) : (err as Error), undefined);

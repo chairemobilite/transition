@@ -29,9 +29,11 @@ export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic 
                         .then(async (user) => {
                             if (user !== undefined) {
                                 // TODO Should sanitize user, but see if other fields need to be included
+                                user.recordLogin();
                                 done(null, user.sanitize());
                             } else {
                                 const newUser = await authModel.createAndSave({ googleId: profile.id, isTest: false });
+                                newUser.recordLogin();
                                 done(null, newUser !== null ? newUser.sanitize() : false);
                             }
                             return null;
@@ -58,12 +60,14 @@ export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic 
                         .then(async (user) => {
                             if (user !== undefined) {
                                 // TODO Should sanitize user, but see if other fields need to be included
+                                user.recordLogin();
                                 done(null, user.sanitize());
                             } else {
                                 const newUser = await authModel.createAndSave({
                                     facebookId: profile.id,
                                     isTest: false
                                 });
+                                newUser.recordLogin();
                                 done(null, newUser !== null ? newUser.sanitize() : false);
                             }
                             return null;

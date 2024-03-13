@@ -170,6 +170,34 @@ test('Collection', async () => {
     expect(dbUser).toEqual(expect.objectContaining(user2));
 });
 
+test('set last login', async () => {
+    // Make sure last login is null at the beginning
+    const { last_login_at } = await dbQueries.getById(user.id) as UserAttributes;
+    expect(last_login_at).toEqual(null);
+    const now = new Date();
+
+    // Set last login and see if the time is between now and after the query setting it
+    await dbQueries.setLastLogin(user.id);
+    const { last_login_at: lastLoginAfterSet } = await dbQueries.getById(user.id) as UserAttributes;
+    expect(lastLoginAfterSet).not.toEqual(null);
+    const after = new Date();
+    const lastLoginDate = new Date(lastLoginAfterSet as string);
+    expect(now.valueOf()).toBeLessThanOrEqual(lastLoginDate.valueOf());
+    expect(lastLoginDate.valueOf()).toBeLessThanOrEqual(after.valueOf());
+
+    // Set last login again, after 1 second wait, and make sure it is now later than previous time
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for one second
+    await dbQueries.setLastLogin(user.id);
+    const { last_login_at: lastLoginAfterSetTwice } = await dbQueries.getById(user.id) as UserAttributes;
+    expect(lastLoginAfterSetTwice).not.toEqual(null);
+    const afterTwice = new Date();
+    const lastLoginDateSecond = new Date(lastLoginAfterSetTwice as string);
+    expect(lastLoginAfterSetTwice).not.toEqual(lastLoginDate);
+    expect(after.valueOf()).toBeLessThanOrEqual(lastLoginDateSecond.valueOf());
+    expect(lastLoginDateSecond.valueOf()).toBeLessThanOrEqual(afterTwice.valueOf());
+
+});
+
 describe('list users', () => {
 
     const nbUsers = 3;
