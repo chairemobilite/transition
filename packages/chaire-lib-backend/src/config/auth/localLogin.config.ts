@@ -32,6 +32,7 @@ const sendEmailIfRequired = async (
     done: (error: any, user?: any, options?: LocalStrategy.IVerifyOptions) => void
 ) => {
     if (getConfirmEmail() !== true) {
+        user.recordLogin();
         done(null, user.sanitize());
         return;
     }
@@ -80,6 +81,7 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
                             if (!model.isConfirmed) {
                                 done(null, false, { message: 'UnconfirmedUser' });
                             } else {
+                                model.recordLogin();
                                 done(null, model.sanitize());
                             }
                         } else {
@@ -103,7 +105,7 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
                 if (!user) throw 'InvalidToken';
                 done(null, user);
             } catch (err) {
-                return done("InvalidToken");
+                return done('InvalidToken');
             }
         })
     );

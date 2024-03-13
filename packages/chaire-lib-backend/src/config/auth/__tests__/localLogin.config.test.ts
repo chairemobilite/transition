@@ -15,7 +15,8 @@ import tokensDbQueries from '../../../models/db/tokens.db.queries';
 
 jest.mock('../../../models/db/users.db.queries', () => ({
     find: jest.fn(),
-    create: jest.fn()
+    create: jest.fn(),
+    setLastLogin: jest.fn()
 }));
 jest.mock('../../../models/db/tokens.db.queries', () => ({
     getUserByToken: jest.fn()
@@ -23,6 +24,7 @@ jest.mock('../../../models/db/tokens.db.queries', () => ({
 const mockFind = usersDbQueries.find as jest.MockedFunction<typeof usersDbQueries.find>;
 const mockCreate = usersDbQueries.create as jest.MockedFunction<typeof usersDbQueries.create>;
 const mockFindToken = tokensDbQueries.getUserByToken as jest.MockedFunction<typeof tokensDbQueries.getUserByToken>
+const mockSetLastLogin = usersDbQueries.setLastLogin as jest.MockedFunction<typeof usersDbQueries.setLastLogin>;
 
 localLogin(passport, userAuthModel);
 
@@ -76,6 +78,7 @@ beforeEach(() => {
         }
     });
     process.env.HOST = url;
+    mockSetLastLogin.mockClear();
 })
 
 test('Local login strategy, valid user', async () => {
@@ -94,6 +97,7 @@ test('Local login strategy, valid user', async () => {
     expect(logInFct).toHaveBeenCalledWith({ id: validUser.id, username: validUser.username, email: undefined, firstName: undefined, lastName: undefined, preferences: {}, serializedPermissions: []}, expect.anything(), expect.anything());
     expect(mockFind).toHaveBeenCalledTimes(1);
     expect(mockFind).toHaveBeenCalledWith({ usernameOrEmail: validUsername }, false);
+    expect(mockSetLastLogin).toHaveBeenCalledTimes(1);
 });
 
 test('Local login strategy, invalid password', async () => {
@@ -109,6 +113,7 @@ test('Local login strategy, invalid password', async () => {
     expect(logInFct).not.toHaveBeenCalled();
     expect(mockFind).toHaveBeenCalledTimes(1);
     expect(mockFind).toHaveBeenCalledWith({ usernameOrEmail: validUsername }, false);
+    expect(mockSetLastLogin).not.toHaveBeenCalled();
 });
 
 test('Local login strategy, unknown user', async () => {
@@ -124,6 +129,7 @@ test('Local login strategy, unknown user', async () => {
     expect(logInFct).not.toHaveBeenCalled();
     expect(mockFind).toHaveBeenCalledTimes(1);
     expect(mockFind).toHaveBeenCalledWith({ usernameOrEmail: 'unknown user' }, false);
+    expect(mockSetLastLogin).not.toHaveBeenCalled();
 });
 
 test('Local login strategy, unconfirmed user', async () => {
@@ -149,6 +155,7 @@ test('Local login strategy, unconfirmed user', async () => {
     expect(logInFct).not.toHaveBeenCalled();
     expect(mockFind).toHaveBeenCalledTimes(1);
     expect(mockFind).toHaveBeenCalledWith({ usernameOrEmail: unconfirmedUsername }, false);
+    expect(mockSetLastLogin).not.toHaveBeenCalled();
 });
 
 test('Local login strategy, unconfirmed user, wrong password', async () => {
@@ -172,6 +179,7 @@ test('Local login strategy, unconfirmed user, wrong password', async () => {
     expect(logInFct).not.toHaveBeenCalled();
     expect(mockFind).toHaveBeenCalledTimes(1);
     expect(mockFind).toHaveBeenCalledWith({ usernameOrEmail: unconfirmedUsername }, false);
+    expect(mockSetLastLogin).not.toHaveBeenCalled();
 });
 
 test('Local signup strategy, auto-signon username and email', async () => {
@@ -214,6 +222,7 @@ test('Local signup strategy, auto-signon username and email', async () => {
         confirmation_token: null,
         preferences: null
     });
+    expect(mockSetLastLogin).toHaveBeenCalledTimes(1);
 });
 
 test('Local signup strategy, auto-signon user exists', async () => {
@@ -240,6 +249,7 @@ test('Local signup strategy, auto-signon user exists', async () => {
     expect(mockFind).toHaveBeenCalledTimes(1);
     expect(mockFind).toHaveBeenCalledWith({ username: validUsername, email: newUserEmail }, true);
     expect(mockCreate).not.toHaveBeenCalled();
+    expect(mockSetLastLogin).not.toHaveBeenCalled();
 
 });
 
@@ -290,6 +300,7 @@ test('Local signup strategy, with email confirmation by user', async () => {
             strategy: 'confirmByUser',
             confirmUrl: `${url}verify/${insertedUser.confirmation_token}`
         });
+    expect(mockSetLastLogin).not.toHaveBeenCalled();
     
 });
 
@@ -344,6 +355,7 @@ test('Local signup strategy, with email confirmation by admin', async () => {
             strategy: 'confirmByAdmin',
             confirmUrl: `${url}verify/${insertedUser.confirmation_token}`
         });
+    expect(mockSetLastLogin).not.toHaveBeenCalled();
 });
 
 test('Local signup strategy, with email confirmation by admin, urls without ending slash', async () => {

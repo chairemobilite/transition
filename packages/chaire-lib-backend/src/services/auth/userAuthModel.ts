@@ -117,4 +117,9 @@ export default class UserModel extends UserModelBase {
     sanitize = (): BaseUser => {
         return sanitizeUserAttributes(this.attributes);
     };
+
+    recordLogin = async (): Promise<void> => {
+        // Record current datetime as login
+        dbQueries.setLastLogin(this.attributes.id);
+    };
 }
