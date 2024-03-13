@@ -52,34 +52,43 @@ describe('Testing endpoints', () => {
     });
 
     test('GET /api/paths', async () => {
-        transitObjectDataHandlers.paths.geojsonCollection! = jest.fn();
+        const result = 'pathsResult';
+
+        transitObjectDataHandlers.paths.geojsonCollection! = jest.fn().mockResolvedValue(result);
 
         const response = await request(app).get('/api/paths');
 
         expect(response.status).toStrictEqual(200);
+        expect(response.body).toStrictEqual(result);
         expect(transitObjectDataHandlers.paths.geojsonCollection!).toBeCalled();
     });
 
     test('GET /api/nodes', async () => {
-        transitObjectDataHandlers.nodes.geojsonCollection! = jest.fn();
+        const result = 'nodesResult';
+        
+        transitObjectDataHandlers.nodes.geojsonCollection! = jest.fn().mockResolvedValue(result);
 
         const response = await request(app).get('/api/nodes');
 
         expect(response.status).toStrictEqual(200);
+        expect(response.body).toStrictEqual(result);
         expect(transitObjectDataHandlers.nodes.geojsonCollection!).toBeCalled();
     });
 
     test('GET /api/scenarios', async () => {
-        transitObjectDataHandlers.scenarios.collection! = jest.fn();
+        const result = 'scenariosResult';
+
+        transitObjectDataHandlers.scenarios.collection! = jest.fn().mockResolvedValue(result);
 
         const response = await request(app).get('/api/scenarios');
         
         expect(response.status).toStrictEqual(200);
+        expect(response.body).toStrictEqual(result);
         expect(transitObjectDataHandlers.scenarios.collection!).toBeCalledWith(null);
     });
 
     test('GET /api/routing-modes', async () => {
-        osrmProcessManager.availableRoutingModes = jest.fn(() => Promise.resolve([]));
+        osrmProcessManager.availableRoutingModes = jest.fn().mockResolvedValue([]);
 
         const response = await request(app).get('/api/routing-modes');
 
