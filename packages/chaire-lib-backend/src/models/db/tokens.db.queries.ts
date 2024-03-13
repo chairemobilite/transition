@@ -38,14 +38,14 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
                 if (row === undefined) {
                     throw new TrError(
                         `Could not match ${usernameOrEmail} in table ${tableName} database`,
-                        'ERRORCODE',
+                        'DBUTK0001',
                         'NoUserMatchError'
                     );
                 }
                 if (row.length < 1) {
                     throw new TrError(
                         `Could not match ${usernameOrEmail} in table ${tableName} database`,
-                        'ERRORCODE',
+                        'DBUTK0002',
                         'NoUserMatchError'
                     );
                 } else {
@@ -61,34 +61,51 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
         await knex(tableName).insert(newObject);
         return apiToken;
     } catch (error) {
-        throw new TrError(
-            `Cannot add api_token to user ${usernameOrEmail} in table ${tableName} database (knex error: ${error})`,
-            'ERRORCODE',
-            'DatabaseCannotCreateBecauseDatabaseError'
-        );
+        throw TrError.isTrError(error)
+            ? error
+            : new TrError(
+                `Cannot add api_token to user ${usernameOrEmail} in table ${tableName} database (knex error: ${error})`,
+                'DBUTK0003',
+                'DatabaseCannotCreateBecauseDatabaseError'
+            );
     }
 };
 
 const getById = async (user_id: number): Promise<TokenAttributes | undefined> => {
-    const response = await knex(tableName).where({ user_id });
-    if (response.length === 1) {
-        return response[0] as TokenAttributes;
+    try {
+        const response = await knex(tableName).where({ user_id });
+        if (response.length === 1) {
+            return response[0] as TokenAttributes;
+        }
+    } catch {
+        throw new Error(`Cannot get token by ID ${user_id}: user_id not found.`);
     }
-    throw new Error(`Cannot get token by ID ${user_id}: user_id not found.`);
 };
 
 const getUserByToken = async (token: string) => {
-    const user_id = await knex(tableName).where('api_token', token);
-    if (user_id.length < 1) {
-        throw new TrError(`No such id in ${tableName} table.`, 'ERRORCODE', 'DatabaseNoUserMatchesProvidedToken');
-    }
-    const user = (await knex(userTableName).where('id', user_id[0].user_id))[0];
+    /*eslint-disable: no-useless-catch*/
+    try {
+        const user_id = await knex(tableName).where('api_token', token);
+        if (user_id.length < 1) {
+            throw new TrError(`No such id in ${tableName} table.`, 'DBUTK0004', 'DatabaseNoUserMatchesProvidedToken');
+        }
+        const user = (await knex(userTableName).where('id', user_id[0].user_id))[0];
 
-    if (!user) {
-        throw new TrError('Error, mismatch between user and user_id', 'ERRORCODE', 'DatabaseNoUserMatchesToken');
-    }
+        if (!user) {
+            throw new TrError('Error, mismatch between user and user_id', 'DBUTK0005', 'DatabaseNoUserMatchesToken');
+        }
 
-    return user;
+        return user;
+    } catch (error) {
+        throw TrError.isTrError(error)
+            ? error
+            : new TrError(
+                `Cannot get user in table ${tableName} database from token ${token}: (knex error: ${error})`,
+                'DBUTK0003',
+                'DatabaseCannotCreateBecauseDatabaseError'
+            );
+    }
+    /*eslint-enable: no-useless-catch*/
 };
 
 export default {
