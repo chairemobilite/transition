@@ -100,7 +100,7 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
         new BearerStrategy.Strategy(async (token, done) => {
             try {
                 const user = await tokensDbQueries.getUserByToken(token);
-                if (!user) throw 'No such token exists in database.';
+                if (!user) throw 'InvalidToken';
                 done(null, user);
             } catch (err) {
                 return done(err);

@@ -15,8 +15,13 @@ export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', passport.authenticate('local-login', { failWithError: true, failureMessage: true }));
 
     app.post('/token', async (req, res) => {
-        const token = await tokensDbQueries.getOrCreate(req.body.usernameOrEmail);
-        res.send(token);
+        try {
+            const token = await tokensDbQueries.getOrCreate(req.body.usernameOrEmail);
+            res.send(token);
+        } catch (error) {
+            res.status(500);
+            res.send(error);
+        }
     });
 
     const router = express.Router();

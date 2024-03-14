@@ -12,6 +12,7 @@ import { Knex } from 'knex';
 import tokensDbQueries from '../tokens.db.queries';
 import { randomUUID } from 'crypto';
 import crypto from 'crypto';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 interface Token {
     user_id: number;
@@ -112,19 +113,18 @@ describe(`Tokens Database: Token exists in Tokens table`, () => {
 
     test('Should return an error when user not in database', async() => {
         
-        await expect(tokensDbQueries.getOrCreate(badUser.email as string)).rejects.toThrowError();
+        await expect(tokensDbQueries.getOrCreate(badUser.email as string)).rejects.toThrowError(TrError);
 
     });
 
     test('Should return an error when api_token not in database', async() => {
 
-        await expect(tokensDbQueries.getUserByToken(badToken.api_token as string)).rejects.toThrowError();
+        await expect(tokensDbQueries.getUserByToken(badToken.api_token as string)).rejects.toThrowError(TrError);
 
     });
 
     test('Should return an error when user_id not in database', async() => {
-
-        await expect(tokensDbQueries.getById(badUser.id as number)).rejects.toThrowError();
+        await expect(tokensDbQueries.getById(badUser.id as number)).rejects.toThrowError(TrError);
 
     });
 
