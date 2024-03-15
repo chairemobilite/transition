@@ -7,7 +7,7 @@
 import { EventEmitter } from 'events';
 
 import { isSocketIo } from './socketUtils';
-import NodeCollectionUtils from '../services/nodes/NodeCollectionUtils';
+import { saveAndUpdateAllNodes } from '../services/nodes/NodeCollectionUtils';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { ScheduleAttributes } from 'transition-common/lib/services/schedules/Schedule';
 import PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
@@ -37,7 +37,7 @@ export default function (socket: EventEmitter) {
             await nodeCollection.loadFromServer(serviceLocator.socketEventManager);
             const placeCollection = new PlaceCollection([], {}, undefined);
             await placeCollection.loadFromServer(serviceLocator.socketEventManager);
-            await NodeCollectionUtils.saveAndUpdateAllNodes(nodeCollection, placeCollection, socket);
+            await saveAndUpdateAllNodes(nodeCollection, placeCollection, socket);
             if (typeof callback === 'function') {
                 callback(Status.createOk(1));
             }

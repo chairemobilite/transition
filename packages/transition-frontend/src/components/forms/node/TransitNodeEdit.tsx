@@ -10,6 +10,7 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import _cloneDeep from 'lodash/cloneDeep';
 import _toString from 'lodash/toString';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
+import _uniq from 'lodash/uniq';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputText from 'chaire-lib-frontend/lib/components/input/InputText';
@@ -31,6 +32,7 @@ import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/Input
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import NodeStatistics from './TransitNodeStatistics';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
+import { proposeNames } from 'transition-common/lib/services/nodes/NodeGeographyUtils';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
@@ -74,11 +76,10 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
         serviceLocator.eventManager.on('selected.deselect.node', this.onDeselect);
         serviceLocator.eventManager.on('selected.drag.node', this.onDrag);
         serviceLocator.eventManager.on('selected.dragEnd.node', this.onDragEnd);
-        serviceLocator.eventManager.on(
-            'selected.updateAutocompleteNameChoices.node',
-            this.updateAutocompleteNameChoices
-        );
         this.fillAutocompleteCode();
+        if (this.props.node?.isNew()) {
+            this.fillAutocompleteName();
+        }
         serviceLocator.socketEventManager.emit(
             'transitNodes.getAssociatedPathIdsByNodeId',
             [nodeId],
@@ -98,10 +99,6 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
         serviceLocator.eventManager.off('selected.deselect.node', this.onDeselect);
         serviceLocator.eventManager.off('selected.drag.node', this.onDrag);
         serviceLocator.eventManager.off('selected.dragEnd.node', this.onDragEnd);
-        serviceLocator.eventManager.off(
-            'selected.updateAutocompleteNameChoices.node',
-            this.updateAutocompleteNameChoices
-        );
     }
 
     protected async onDelete(e: any): Promise<void> {
@@ -121,6 +118,10 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
         super.onValueChange(path, newValue);
         if (['color', 'geography', 'geography.coordinates', 'routing_radius_meters'].includes(path)) {
             this.updateLayers();
+        }
+        if (['geography', 'geography.coordinates'].includes(path)) {
+            // get nearest street intersections:
+            this.fillAutocompleteName();
         }
     }
 
@@ -184,12 +185,6 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
         });
     }
 
-    private updateAutocompleteNameChoices = (choices = []) => {
-        this.setState({
-            nameAutocompleteChoices: choices
-        });
-    };
-
     private fillAutocompleteCode = async () => {
         // Get the autocomplete choices for node code
 
@@ -206,6 +201,39 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
         this.setState({
             codeAutocompleteChoices: codeAutocompleteChoices
         });
+    };
+
+    private fillAutocompleteName = async () => {
+        /* TODO: enable progress event. Right now in Chrome, the result appears before the progress event completion is emitted.
+            but as soone as the progress event completion is emitted, it refreshes the state or chrome detects
+            a change and the autocomplete menu is closed, which is weird. In Firefox, the two events seems
+            to be waiting for each other, so no problem.
+            Other TODO: fetch addresses nearest to node if no intersection found.
+        */
+        /*serviceLocator.eventManager.emit('progress', {
+            name: 'SearchingNearestStreetsAndIntersections',
+            progress: 0.0
+        });*/
+        this.setState({
+            nameAutocompleteChoices: []
+        });
+
+        // get nearest street intersections from osm:
+        const intersectionNames: string[] | undefined = await proposeNames(
+            serviceLocator.socketEventManager,
+            this.state.object,
+            200
+        );
+
+        if (intersectionNames !== undefined) {
+            this.setState({
+                nameAutocompleteChoices: intersectionNames as string[]
+            });
+        }
+        /*serviceLocator.eventManager.emit('progress', {
+            name: 'SearchingNearestStreetsAndIntersections',
+            progress: 1.0
+        });*/
     };
 
     render() {

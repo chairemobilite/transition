@@ -19,6 +19,7 @@ import transitObjectsSocketRoutes from './transitObjects.socketRoutes';
 import transitPathsSocketRoutes from './transitPaths.socketRoutes';
 import placesSocketRoutes from './places.socketRoutes';
 import jobsSocketRoutes from './jobs.socketRoutes';
+import osmSocketRoutes from './osm.socketRoutes';
 
 export default function (socket: EventEmitter, userId?: number) {
     dataSourcesSocketRoutes(socket, userId);
@@ -30,6 +31,7 @@ export default function (socket: EventEmitter, userId?: number) {
     simulationsSocketRoutes(socket);
     odPairsSocketRoutes(socket);
     placesSocketRoutes(socket);
+    osmSocketRoutes(socket);
 
     // Routes only to add if there is an authenticated user
     if (userId !== undefined) {

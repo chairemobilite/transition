@@ -87,7 +87,7 @@ const shapeToLine = (shape: GtfsTypes.Shapes[]) => {
             })
         }
     };
-}
+};
 
 describe('Calculate distances on shape, fast approach', () => {
 
@@ -141,7 +141,7 @@ describe('Calculate distances on shape, fast approach', () => {
         // In such a loop, this approach should fail
         expect(result.status).toEqual('failed');
     });
-    
+
 });
 
 describe('Calculate distances on shape, slow approach', () => {
@@ -206,7 +206,7 @@ describe('Calculate distances on shape, slow approach', () => {
         // Check last stop
         expect(stopTimeDistances[loopShape.stopTimes.length - 1].distanceTraveled).toEqual(totalDistanceInMeters);
     });
-    
+
 });
 
 describe('Calculate distances, call both approaches', () => {
@@ -273,5 +273,5 @@ describe('Calculate distances, call both approaches', () => {
         // Check last stop
         expect(stopTimeDistances[loopShape.stopTimes.length - 1].distanceTraveled).toEqual(totalDistanceInMeters);
     });
-    
+
 });

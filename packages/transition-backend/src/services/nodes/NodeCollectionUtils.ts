@@ -9,7 +9,7 @@ import PQueue from 'p-queue';
 import Node, { TransferableNodes } from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
-import NodeGeographyUtils from 'transition-common/lib/services/nodes/NodeGeographyUtils';
+import { updateAccessiblePlaces } from 'transition-common/lib/services/nodes/NodeGeographyUtils';
 import { getTransferableNodes } from './TransferableNodeUtils';
 import { EventEmitter } from 'events';
 import { objectToCache } from '../../models/capnpCache/transitNodes.cache.queries';
@@ -59,7 +59,7 @@ export const saveAndUpdateAllNodes = async (
         node.setData('transferableNodes', reachableNodes);
 
         if (placeCollection) {
-            await NodeGeographyUtils.updateAccessiblePlaces(node, placeCollection);
+            await updateAccessiblePlaces(node, placeCollection);
             await nodesDbQueries.update(node.getId(), node.attributes);
         }
         // Save both to database and cache
@@ -78,8 +78,4 @@ export const saveAndUpdateAllNodes = async (
     // TODO: What about failures? Should we track them, reject upon first failure (using Promise.all), just console.error them?
     await Promise.allSettled(addPromises);
     progressEmitter?.emit('progress', { name: 'UpdatingTransferableNodes', progress: 1.0 });
-};
-
-export default {
-    saveAndUpdateAllNodes
 };
