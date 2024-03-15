@@ -19,6 +19,10 @@ import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManager
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
+import { ResultsByMode, TransitRoutingCalculator } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
+import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
 
 export default function (app: express.Express, passport: PassportStatic) {
     // A CollectionManager is required for the POST /accessibility endpoint
@@ -62,6 +66,41 @@ export default function (app: express.Express, passport: PassportStatic) {
         res.json(routingModes);
     });
 
+    router.post('/route/:withGeojson?', async (req, res, next) => {
+        // Start trRouting if it is not running
+        const trRoutingStatus = await trRoutingProcessManager.status({});
+        if (trRoutingStatus.status === 'not_running') {
+            await trRoutingProcessManager.start({});
+        }
+
+        const calculationAttributes: TransitRoutingAttributes = req.body;
+        const routing: TransitRouting = new TransitRouting(calculationAttributes);
+        const withGeojson = req.params.withGeojson === 'true';
+        
+        try {
+            const resultsByMode: ResultsByMode = await TransitRoutingCalculator.calculate(routing, false, {});
+
+            const routingResult = {};
+            for (const routingMode in resultsByMode) {
+                const modeResult: UnimodalRouteCalculationResult | TransitRoutingResult = resultsByMode[routingMode];
+                routingResult[routingMode] = modeResult.getParams();
+
+                if (withGeojson) {
+                    const pathsGeojson: GeoJSON.FeatureCollection[] = [];
+                    for (let i = 0; i < modeResult.getAlternativesCount(); i++) {
+                        const geojson = await modeResult.getPathGeojson(i);
+                        pathsGeojson.push(geojson);
+                    }
+                    routingResult[routingMode].pathsGeojson = pathsGeojson;
+                }
+            }
+
+            res.json(routingResult);
+        } catch (error) {
+            next(error);
+        }
+    });
+
     router.post('/accessibility/:withGeometry?', async (req, res, next) => {
         // Start trRouting if it is not running
         const trRoutingStatus = await trRoutingProcessManager.status({});
@@ -92,11 +131,11 @@ export default function (app: express.Express, passport: PassportStatic) {
                 };
             }
 
-            return res.json(routingResult);
+            res.json(routingResult);
         } catch (error) {
             next(error);
         }
     });
 
-    app.use('/api', router);
+    app.use('/api', router);   
 }
