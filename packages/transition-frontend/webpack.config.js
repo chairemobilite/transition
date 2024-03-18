@@ -53,9 +53,12 @@ module.exports = (env) => {
   ];
 
   return {
-
+    node: {
+      Buffer: false,
+      process: false,
+    },
     mode: process.env.NODE_ENV,
-    entry: entry,
+    entry,
     output: {
       path: bundleOutputPath,
       filename: bundleFileName,
@@ -73,12 +76,20 @@ module.exports = (env) => {
           exclude: /node_modules/,
         },
         {
-          loader: 'json-loader',
+          use: 'json-loader',
           test: /\.geojson$/,
           include: includeDirectories
         },
         {
           test: /\.(ttf|woff2|woff|eot|svg)$/,
+/*
+          type: 'asset/inline',
+          parser: {
+            dataUrlCondition: {
+              maxSize: 100000
+            }
+          }
+*/
           loader: 'url-loader',
           options: {
             limit: 100000
@@ -86,7 +97,7 @@ module.exports = (env) => {
         },
         {
           test: /\.glsl$/,
-          loader: 'ts-shader-loader'
+          use: 'ts-shader-loader'
         },
         {
           test: /\.s?css$/,
