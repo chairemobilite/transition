@@ -37,7 +37,7 @@
     "bcryptjs": "^2.4.3",
     "chaire-lib-common": "^0.2.2",
     "child_process": "^1.0.2",
-    "date-fns": "^2.16.1",
+    "date-fns": "^2.30.0",
     "font-awesome": "^4.7.0",
     "geojson": "^0.5.0",
     "history": "^4.9.0",
