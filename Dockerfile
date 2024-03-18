@@ -24,6 +24,8 @@ COPY packages/chaire-lib-frontend packages/chaire-lib-frontend
 COPY packages/transition-common packages/transition-common
 COPY packages/transition-backend packages/transition-backend
 COPY packages/transition-frontend packages/transition-frontend
+# Add a 300 seconds timeout to avoid build failures in docker hub, which seems to be an acceptable workaround (see for example https://github.com/yarnpkg/yarn/issues/5540)
+RUN yarn config set network-timeout 300000
 RUN yarn install
 
 # Copy the rest. (node_modules are excluded in .dockerignore)
