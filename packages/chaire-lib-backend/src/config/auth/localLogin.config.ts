@@ -9,7 +9,8 @@ import _dotenv from '../dotenv.config'; // eslint-disable-line @typescript-eslin
 import url from 'url';
 import { PassportStatic } from 'passport';
 import LocalStrategy from 'passport-local';
-
+import BearerStrategy from 'passport-http-bearer';
+import tokensDbQueries from '../../models/db/tokens.db.queries';
 import config from '../server.config';
 import { sendConfirmationEmail } from '../../services/auth/userEmailNotifications';
 import { v4 as uuidV4 } from 'uuid';
@@ -92,6 +93,19 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
                     });
             }
         )
+    );
+
+    passport.use(
+        'bearer-strategy',
+        new BearerStrategy.Strategy(async (token, done) => {
+            try {
+                const user = await tokensDbQueries.getUserByToken(token);
+                if (!user) throw 'InvalidToken';
+                done(null, user);
+            } catch (err) {
+                return done("InvalidToken");
+            }
+        })
     );
 
     passport.use(

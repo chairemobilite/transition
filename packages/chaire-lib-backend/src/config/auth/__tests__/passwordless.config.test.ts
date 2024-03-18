@@ -183,8 +183,9 @@ test('Verify invalid token', async () => {
             {
                 logIn: logInFct,
                 query: {token }
-            }, {
-                end: endFct.mockImplementation((message) => resolve({ result: null, err: message }))
+            }, { 
+                end: endFct.mockImplementation((message) => resolve({ result: null, err: message })),
+                setHeader: jest.fn()
             }, (err, result) => {
                 resolve({ result, err });
             }
