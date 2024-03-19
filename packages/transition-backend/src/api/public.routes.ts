@@ -70,7 +70,7 @@ export default function (app: express.Express, passport: PassportStatic) {
         res.json(routingModes);
     });
 
-    router.post('/route/:withGeojson?', async (req, res, next) => {
+    router.post('/route', async (req, res, next) => {
         // Start trRouting if it is not running
         const trRoutingStatus = await trRoutingProcessManager.status({});
         if (trRoutingStatus.status === 'not_running') {
@@ -79,7 +79,7 @@ export default function (app: express.Express, passport: PassportStatic) {
 
         const calculationAttributes: TransitRoutingAttributes = req.body;
         const routing: TransitRouting = new TransitRouting(calculationAttributes);
-        const withGeojson = req.params.withGeojson === 'true';
+        const withGeojson = req.query.withGeojson === 'false' ? false : true;
 
         try {
             const resultsByMode: ResultsByMode = await TransitRoutingCalculator.calculate(routing, false, {});
@@ -111,7 +111,7 @@ export default function (app: express.Express, passport: PassportStatic) {
         }
     });
 
-    router.post('/accessibility/:withGeometry?', async (req, res, next) => {
+    router.post('/accessibility', async (req, res, next) => {
         // Start trRouting if it is not running
         const trRoutingStatus = await trRoutingProcessManager.status({});
         if (trRoutingStatus.status === 'not_running') {
@@ -120,12 +120,12 @@ export default function (app: express.Express, passport: PassportStatic) {
 
         const calculationAttributes: AccessibilityMapAttributes = req.body;
         const routing = new TransitAccessibilityMapRouting(calculationAttributes);
-        const withGeometry = req.params.withGeometry === 'true';
+        const withGeojson = req.query.withGeojson === 'false' ? false : true;
 
         try {
             let routingResult;
 
-            if (withGeometry) {
+            if (withGeojson) {
                 // The calculateWithPolygons function in TransitAccessibilityMapCalculator requires a node collection,
                 // so the nodes currently in the database are loaded here
                 const nodes = await transitObjectDataHandlers.nodes.geojsonCollection!();
