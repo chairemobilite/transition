@@ -29,8 +29,6 @@ import ScenariosAPIResponse from './public/ScenariosAPIResponse';
 import RoutingModesAPIResponse from './public/RoutingModesAPIResponse';
 import RouteAPIResponse from './public/RouteAPIResponse';
 import AccessibilityMapAPIResponse from './public/AccessibilityMapAPIResponse';
-import swaggerUi from 'swagger-ui-express';
-import swaggerJson from 'transition-backend/docs/API.json';
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
@@ -193,5 +191,4 @@ export default function (app: express.Express, passport: PassportStatic) {
             defaultModelsExpandDepth: -1
         }
     };
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJson, options));
 }
