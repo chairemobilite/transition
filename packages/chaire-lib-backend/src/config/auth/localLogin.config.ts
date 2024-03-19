@@ -105,7 +105,7 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
                 if (!user) throw 'InvalidToken';
                 done(null, user);
             } catch (err) {
-                return done("InvalidToken");
+                return done('InvalidToken');
             }
         })
     );
