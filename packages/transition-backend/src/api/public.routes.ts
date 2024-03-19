@@ -23,6 +23,7 @@ import { ResultsByMode, TransitRoutingCalculator } from 'transition-common/lib/s
 import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
+import PathCollection from 'transition-common/lib/services/path/PathCollection';
 
 export default function (app: express.Express, passport: PassportStatic) {
     // A CollectionManager is required for the POST /accessibility endpoint
@@ -86,9 +87,15 @@ export default function (app: express.Express, passport: PassportStatic) {
                 routingResult[routingMode] = modeResult.getParams();
 
                 if (withGeojson) {
+                    // The generatePathGeojson function in TransitRoutingResult requires a path collection,
+                    // so the paths currently in the database are loaded here
+                    const paths = await transitObjectDataHandlers.paths.geojsonCollection!();
+                    const pathCollection = new PathCollection(paths.geojson.features, {});
+                    const options = { completeData: false, pathCollection: pathCollection };
+
                     const pathsGeojson: GeoJSON.FeatureCollection[] = [];
                     for (let i = 0; i < modeResult.getAlternativesCount(); i++) {
-                        const geojson = await modeResult.getPathGeojson(i);
+                        const geojson = await modeResult.getPathGeojson(i, options);
                         pathsGeojson.push(geojson);
                     }
                     routingResult[routingMode].pathsGeojson = pathsGeojson;
