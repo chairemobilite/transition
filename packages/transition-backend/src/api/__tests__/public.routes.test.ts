@@ -14,6 +14,7 @@ import tokensDbQueries from 'chaire-lib-backend/lib/models/db/tokens.db.queries'
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
 import { TransitRoutingCalculator } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 // Required to test POST /api/accessibility endpoint
 jest.mock('transition-common/lib/services/nodes/NodeCollection');
