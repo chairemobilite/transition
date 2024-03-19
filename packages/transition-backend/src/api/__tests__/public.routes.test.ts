@@ -122,7 +122,7 @@ describe('Testing endpoints', () => {
         expect(osrmProcessManager.availableRoutingModes).toBeCalled();
     });
 
-    test('POST /api/accessibility, without geometry', async () => {
+    test('POST /api/accessibility, without geojson', async () => {
         const routingResult = 'routingResult';
         
         trRoutingProcessManager.status = jest.fn(() => Promise.resolve({
@@ -132,14 +132,14 @@ describe('Testing endpoints', () => {
             routingResult: routingResult
         } as any));
 
-        const response = await request(app).post('/api/accessibility/false');
+        const response = await request(app).post('/api/accessibility?withGeojson=false');
 
         expect(response.status).toStrictEqual(200);
         expect(response.body).toStrictEqual({resultByNode: routingResult});
         expect(TransitAccessibilityMapCalculator.calculate).toBeCalled();
     });
 
-    test('POST /api/accessibility, with geometry', async () => {
+    test('POST /api/accessibility, with geojson', async () => {
         const result = {
             polygons: 'polygons',
             strokes: 'strokes',
@@ -156,7 +156,7 @@ describe('Testing endpoints', () => {
         }));
         TransitAccessibilityMapCalculator.calculateWithPolygons = jest.fn(() => Promise.resolve(result as any));
 
-        const response = await request(app).post('/api/accessibility/true');
+        const response = await request(app).post('/api/accessibility?withGeojson=true');
 
         expect(response.status).toStrictEqual(200);
         expect(response.body).toStrictEqual(result);
@@ -172,13 +172,13 @@ describe('Testing endpoints', () => {
             throw new Error();
         });
 
-        const response = await request(app).post('/api/accessibility/false');
+        const response = await request(app).post('/api/accessibility?withGeojson=false');
 
         expect(response.status).toStrictEqual(500);
         expect(TransitAccessibilityMapCalculator.calculate).toBeCalled();
     });
 
-    test('POST /api/route, without geometry', async () => {
+    test('POST /api/route, without geojson', async () => {
         const transitResult = 'transitResult';
         const walkingResult = 'walkingResult';
         const drivingResult = 'drivingResult';
@@ -200,7 +200,7 @@ describe('Testing endpoints', () => {
         } as any);
         TransitRoutingCalculator.calculate = jest.fn().mockResolvedValue(resultsByMode);
 
-        const response = await request(app).post('/api/route/false');
+        const response = await request(app).post('/api/route?withGeojson=false');
 
         expect(response.status).toStrictEqual(200);
         expect(response.body).toStrictEqual({
@@ -211,7 +211,7 @@ describe('Testing endpoints', () => {
         expect(TransitRoutingCalculator.calculate).toBeCalled();
     });
 
-    test('POST /api/route, with geometry', async () => {
+    test('POST /api/route, with geojson', async () => {
         const transitResult = 'transitResult';
         const walkingResult = 'walkingResult';
         const drivingResult = 'drivingResult';
@@ -253,7 +253,7 @@ describe('Testing endpoints', () => {
             }
         });
 
-        const response = await request(app).post('/api/route/true');
+        const response = await request(app).post('/api/route?withGeojson=true');
 
         expect(response.status).toStrictEqual(200);
         expect(response.body).toStrictEqual({
@@ -273,7 +273,7 @@ describe('Testing endpoints', () => {
         expect(TransitRoutingCalculator.calculate).toBeCalled();
     });
 
-    test('POST /api/route, with geometry and alternatives', async () => {
+    test('POST /api/route, with geojson and alternatives', async () => {
         const transitResult = 'transitResult';
         const walkingResult = 'walkingResult';
         const drivingResult = 'drivingResult';
@@ -315,7 +315,7 @@ describe('Testing endpoints', () => {
             }
         });
 
-        const response = await request(app).post('/api/route/true');
+        const response = await request(app).post('/api/route?withGeojson=true');
 
         expect(response.status).toStrictEqual(200);
         expect(response.body).toStrictEqual({
@@ -343,7 +343,7 @@ describe('Testing endpoints', () => {
             throw new Error();
         });
 
-        const response = await request(app).post('/api/route/false');
+        const response = await request(app).post('/api/route');
 
         expect(response.status).toStrictEqual(500);
         expect(TransitRoutingCalculator.calculate).toBeCalled();
