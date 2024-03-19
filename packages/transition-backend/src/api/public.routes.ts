@@ -19,7 +19,10 @@ import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManager
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
-import { ResultsByMode, TransitRoutingCalculator } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
+import {
+    ResultsByMode,
+    TransitRoutingCalculator
+} from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
@@ -77,7 +80,7 @@ export default function (app: express.Express, passport: PassportStatic) {
         const calculationAttributes: TransitRoutingAttributes = req.body;
         const routing: TransitRouting = new TransitRouting(calculationAttributes);
         const withGeojson = req.params.withGeojson === 'true';
-        
+
         try {
             const resultsByMode: ResultsByMode = await TransitRoutingCalculator.calculate(routing, false, {});
 
@@ -144,5 +147,5 @@ export default function (app: express.Express, passport: PassportStatic) {
         }
     });
 
-    app.use('/api', router);   
+    app.use('/api', router);
 }
