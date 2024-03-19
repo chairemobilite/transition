@@ -27,6 +27,26 @@
             }
         }
     },
+    "nodes": {
+        "/api/nodes": {
+            "post": {
+                "tags": ["Transition Objects"],
+                "description": "Returns all nodes which are currently loaded in Transition.",
+                "responses": {
+                    "200": {
+                        "description": "All nodes currently loaded in Transition in GeoJSON format.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Nodes"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
     "components": {
         "schemas": {
             "Paths": {

@@ -1,0 +1,18 @@
+openapi: '3.0.2'
+info:
+  title: TrRouting
+  version: '2.0-beta'
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /paths:
+    post:
+      description: Returns all paths which are currently loaded in Transition.
+      responses:
+        '200':
+          description: All paths currently loaded in Transition in GeoJSON format.
+          content:
+            application/json:
+              schema:
+                $ref: 'paths.yml#/paths'
