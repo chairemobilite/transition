@@ -4,6 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import fs from 'fs';
 import inquirer from 'inquirer';
 
 import osmDownloader from '../../utils/osm/OsmOverpassDownloader';
@@ -68,6 +69,7 @@ export class DownloadOsmNetworkData implements GenericTask {
         // Make sure the number of retries is between 0 and 6
         const retryAttempts = isNaN(retry) ? 0 : Math.min(Math.max(retry, 0), 6);
         const importDir = this._fileManager.directoryManager.projectDirectory + '/imports/';
+        fs.mkdirSync(importDir, { recursive: true });
         const polygonFile = filePath ? (filePath as string) : importDir + 'polygon.geojson';
         const osmRawDataFile = osmRawFile ? (osmRawFile as string) : importDir + 'osm_network_data.osm';
 
