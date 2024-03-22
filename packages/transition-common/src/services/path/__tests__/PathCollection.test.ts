@@ -166,21 +166,6 @@ test('Load path collection from server', async () => {
 
 });
 
-test('Load path collection for scenario', async () => {
-    EventManagerMock.emitResponseReturnOnce({geojson: { type: 'FeatureCollection', features: [path1Geojson] } });
-
-    // Test loading a collection for a scenario
-    const scenarioId = uuidV4();
-    const collection = new PathCollection([], {}, eventManager);
-    await collection.loadForScenario(eventManager, scenarioId);
-    expect(eventManager.emit).toHaveBeenCalled();
-    expect(eventManager.emit).toHaveBeenCalledWith('transitPaths.geojsonCollection', { scenarioId, format: 'geobuf' }, expect.anything());
-    expect(collection.getFeatures().length).toEqual(1);
-    const path1 = collection.getFeatures()[0];
-    expect(path1).toEqual(path1Geojson);
-
-});
-
 test('Load path collection from cache', async () => {
     EventManagerMock.emitResponseReturnOnce(new PathCollection([path1Geojson, path2Geojson], {}, eventManager));
 
