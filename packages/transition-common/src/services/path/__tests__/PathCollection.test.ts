@@ -13,6 +13,7 @@ import Path from '../Path';
 import PathCollection from '../PathCollection';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 // TODO Bring the collection manager to a mocking library
 const eventManager = EventManagerMock.eventManagerMock;
@@ -151,7 +152,7 @@ test('Save path collection to cache', async () => {
 });
 
 test('Load path collection from server', async () => {
-    EventManagerMock.emitResponseReturnOnce({geojson: { type: 'FeatureCollection', features: [path1Geojson, path2Geojson] } });
+    EventManagerMock.emitResponseReturnOnce(Status.createOk({ type: 'geojson', geojson: { type: 'FeatureCollection', features: [path1Geojson, path2Geojson] } }));
 
     // Test loading a simple collection
     const collection = new PathCollection([], {}, eventManager);
