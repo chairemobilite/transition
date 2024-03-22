@@ -34,6 +34,7 @@ import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericOb
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { isSocketIo } from '../../api/socketUtils';
+import { FeatureCollection } from '@turf/turf';
 
 interface TransitObjectDataHandler {
     lowerCaseName: string;
@@ -43,7 +44,9 @@ interface TransitObjectDataHandler {
     read: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
     update: (socket: EventEmitter, id: string, attributes: GenericAttributes) => Promise<Record<string, any>>;
     delete: (socket: EventEmitter, id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
-    geojsonCollection?: (params?) => Promise<Record<string, any>>;
+    geojsonCollection?: (
+        params?
+    ) => Promise<Status.Status<{ type: 'geojson'; geojson: FeatureCollection } | { type: 'geobuf'; geobuf: Buffer }>>;
     collection?: (dataSourceId) => Promise<Record<string, any>>;
     saveCache?: (attributes) => Promise<Record<string, any>>;
     deleteCache?: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
@@ -249,13 +252,13 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                     const geojson = await transitClassConfig.dbQueries.geojsonCollection(params);
                     if (params.format === 'geobuf') {
                         const geobufjson = Buffer.from(geobuf.encode(geojson, new Pbf()));
-                        return { geobuf: geobufjson };
+                        return Status.createOk({ type: 'geobuf', geobuf: geobufjson });
                     } else {
-                        return { geojson };
+                        return Status.createOk({ type: 'geojson', geojson });
                     }
                 } catch (error) {
                     console.error(error);
-                    return TrError.isTrError(error) ? error.export() : { error };
+                    return Status.createError(TrError.isTrError(error) ? error.export() : { error });
                 }
             };
         }
