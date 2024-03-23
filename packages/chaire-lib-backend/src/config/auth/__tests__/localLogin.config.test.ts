@@ -21,9 +21,6 @@ jest.mock('../../../models/db/users.db.queries', () => ({
 jest.mock('../../../models/db/tokens.db.queries', () => ({
     getUserByToken: jest.fn()
 }));
-jest.mock('../../../models/db/tokens.db.queries', () => ({
-    getUserByToken: jest.fn()
-}));
 const mockFind = usersDbQueries.find as jest.MockedFunction<typeof usersDbQueries.find>;
 const mockCreate = usersDbQueries.create as jest.MockedFunction<typeof usersDbQueries.create>;
 const mockFindToken = tokensDbQueries.getUserByToken as jest.MockedFunction<typeof tokensDbQueries.getUserByToken>
