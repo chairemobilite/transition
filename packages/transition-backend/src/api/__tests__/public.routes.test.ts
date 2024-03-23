@@ -13,6 +13,7 @@ import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSR
 import tokensDbQueries from 'chaire-lib-backend/lib/models/db/tokens.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { calculateAccessibilityMap, calculateRoute } from '../../services/routingCalculation/RoutingCalculator';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 jest.mock('../../services/routingCalculation/RoutingCalculator');
 
@@ -71,26 +72,36 @@ describe('Testing endpoints', () => {
     });
 
     test('GET /api/paths', async () => {
-        const result = 'pathsResult';
+        const pathsGeojson = 'pathsGeojson';
 
-        transitObjectDataHandlers.paths.geojsonCollection! = jest.fn().mockResolvedValue(result);
+        transitObjectDataHandlers.paths.geojsonCollection! = jest.fn().mockResolvedValue(
+            Status.createOk({
+                type: 'geojson',
+                geojson: pathsGeojson
+            })
+        );
 
         const response = await request(app).get('/api/paths');
 
         expect(response.status).toStrictEqual(200);
-        expect(response.body).toStrictEqual(result);
+        expect(response.body).toStrictEqual(pathsGeojson);
         expect(transitObjectDataHandlers.paths.geojsonCollection!).toBeCalled();
     });
 
     test('GET /api/nodes', async () => {
-        const result = 'nodesResult';
+        const nodesGeojson = 'nodesGeojson';
         
-        transitObjectDataHandlers.nodes.geojsonCollection! = jest.fn().mockResolvedValue(result);
+        transitObjectDataHandlers.nodes.geojsonCollection! = jest.fn().mockResolvedValue(
+            Status.createOk({
+                type: 'geojson',
+                geojson: nodesGeojson
+            })
+        );
 
         const response = await request(app).get('/api/nodes');
 
         expect(response.status).toStrictEqual(200);
-        expect(response.body).toStrictEqual(result);
+        expect(response.body).toStrictEqual(nodesGeojson);
         expect(transitObjectDataHandlers.nodes.geojsonCollection!).toBeCalled();
     });
 

@@ -9,6 +9,7 @@ import { TransitAccessibilityMapCalculator } from 'transition-common/lib/service
 import { calculateAccessibilityMap, calculateRoute } from '../RoutingCalculator';
 import transitObjectDataHandlers from '../../transitObjects/TransitObjectsDataHandler';
 import { TransitRoutingCalculator } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 jest.mock('transition-common/lib/services/nodes/NodeCollection');
 jest.mock('transition-common/lib/services/path/PathCollection');
@@ -43,11 +44,12 @@ test('calculateAccessibilityMap, with geojson', async () => {
     trRoutingProcessManager.status = jest.fn().mockResolvedValue({
         status: 'started'
     } as any);
-    transitObjectDataHandlers.nodes.geojsonCollection! = jest.fn().mockResolvedValue({
-        geojson: {
-            features: 'features'
-        }
-    });
+    transitObjectDataHandlers.nodes.geojsonCollection! = jest.fn().mockResolvedValue(
+        Status.createOk({
+            geojson: {
+                features: 'features'
+            }
+    }));
     TransitAccessibilityMapCalculator.calculateWithPolygons = jest.fn().mockResolvedValue(expectedResult as any);
 
     const result = await calculateAccessibilityMap({} as any, true);
@@ -125,11 +127,12 @@ test('calculateRoute, with geojson', async () => {
         status: 'started'
     } as any);
     TransitRoutingCalculator.calculate = jest.fn().mockResolvedValue(resultsByMode);
-    transitObjectDataHandlers.paths.geojsonCollection! = jest.fn().mockResolvedValue({
-        geojson: {
-            features: 'features'
-        }
-    });
+    transitObjectDataHandlers.paths.geojsonCollection! = jest.fn().mockResolvedValue(
+        Status.createOk({
+            geojson: {
+                features: 'features'
+            }
+    }));
 
     const result = await calculateRoute({} as any, true);
 
@@ -186,11 +189,12 @@ test('calculateRoute, with geojson and alternatives', async () => {
         status: 'started'
     } as any);
     TransitRoutingCalculator.calculate = jest.fn().mockResolvedValue(resultsByMode);
-    transitObjectDataHandlers.paths.geojsonCollection! = jest.fn().mockResolvedValue({
-        geojson: {
-            features: 'features'
-        }
-    });
+    transitObjectDataHandlers.paths.geojsonCollection! = jest.fn().mockResolvedValue(
+        Status.createOk({
+            geojson: {
+                features: 'features'
+            }
+    }));
 
     const result = await calculateRoute({} as any, true);
 
