@@ -5,128 +5,29 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 /** This file encapsulates map events that apply to the path* layer, in any section */
-import MapboxGL, { Popup } from 'mapbox-gl';
+import { PickingInfo } from 'deck.gl/typed';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Path from 'transition-common/lib/services/path/Path';
 
-const hoverPath = (pathId: string, coordinates: [number, number], pathName: string) => {
-    const popup = new Popup({
-        offset: 10,
-        anchor: 'bottom'
-    });
-    popup.setLngLat(coordinates);
-    popup.setHTML(`<p>${pathName}</p>`);
-    serviceLocator.eventManager.emit('map.addPopup', pathId, popup);
-};
+export const onPathTooltip = (info: PickingInfo): string | undefined | { text: string; containsHtml: boolean } => {
+    const pathId = info.object!.properties.id;
+    const path = new Path(
+        serviceLocator.collectionManager.get('paths').getById(pathId).properties,
+        false,
+        serviceLocator.collectionManager
+    );
+    const line = path.getLine();
 
-export const unhoverPath = (pathId: string) => {
-    serviceLocator.eventManager.emit('map.removePopup', pathId);
-};
-
-const onTransitPathSelectedMouseEnter = (e: MapboxGL.MapLayerMouseEvent) => {
-    if (e.features && e.features[0]) {
-        e.target.getCanvas().style.cursor = 'pointer';
-    }
-};
-
-const onTransitPathSelectedMouseLeave = (e: MapboxGL.MapLayerMouseEvent) => {
-    e.target.getCanvas().style.cursor = '';
-};
-
-const onTransitPathWaypointMouseEnter = (e: MapboxGL.MapLayerMouseEvent) => {
-    if (e.features && e.features[0]) {
-        e.target.getCanvas().style.cursor = 'pointer';
-    }
-};
-
-const onTransitPathWaypointMouseLeave = (e: MapboxGL.MapLayerMouseEvent) => {
-    e.target.getCanvas().style.cursor = '';
-};
-
-export const onTransitPathsMouseEnter = (e: MapboxGL.MapLayerMouseEvent) => {
-    if (e.target.getZoom() >= 12 && e.features && e.features[0]) {
-        const map = e.target as any;
-        e.target.getCanvas().style.cursor = 'pointer';
-        const pathGeojson = e.features[0];
-        const path = new Path(
-            serviceLocator.collectionManager.get('paths').getById(pathGeojson.properties?.id).properties,
-            false,
-            serviceLocator.collectionManager
-        );
-        const line = path.getLine();
-
-        if (map._hoverPathIntegerId) {
-            unhoverPath(map._hoverPathId);
-            e.target.setFeatureState(
-                { source: map._hoverPathSource, id: map._hoverPathIntegerId },
-                { size: 2, hover: false }
-            );
-        }
-
-        e.target.setFeatureState({ source: pathGeojson.source, id: pathGeojson.id }, { size: 3, hover: true });
-
-        // See https://github.com/alex3165/react-mapbox-gl/issues/506
-        map._hoverPathIntegerId = pathGeojson.id;
-        map._hoverPathId = pathGeojson.properties?.id;
-        map._hoverPathSource = pathGeojson.source;
-
-        hoverPath(
-            path.getId(),
-            e.lngLat.toArray() as [number, number],
-            `${line ? line.toString() : ''} • ${path.toString(false)} (${path.getAttributes().direction})`
-        );
-
-        e.originalEvent.stopPropagation();
-    }
-};
-
-export const onTransitPathsMouseLeave = (e: MapboxGL.MapLayerMouseEvent) => {
-    e.target.getCanvas().style.cursor = '';
-
-    const map = e.target as any;
-
-    if (map._hoverPathIntegerId) {
-        unhoverPath(map._hoverPathId);
-        e.target.setFeatureState(
-            { source: map._hoverPathSource, id: map._hoverPathIntegerId },
-            { size: 2, hover: false }
-        );
-    }
-
-    map._hoverPathIntegerId = null;
-    map._hoverPathId = null;
-    map._hoverPathSource = null;
+    return {
+        text: `${line ? line.toString() : ''} • ${path.toString(false)} (${path.getAttributes().direction})`,
+        containsHtml: true
+    };
 };
 
 const nodeLayerEventDescriptors: MapEventHandlerDescription[] = [
-    {
-        type: 'layer',
-        layerName: 'transitPathsSelected',
-        eventName: 'mouseenter',
-        handler: onTransitPathSelectedMouseEnter
-    },
-    {
-        type: 'layer',
-        layerName: 'transitPathsSelected',
-        eventName: 'mouseleave',
-        handler: onTransitPathSelectedMouseLeave
-    },
-    {
-        type: 'layer',
-        layerName: 'transitPathWaypoints',
-        eventName: 'mouseenter',
-        handler: onTransitPathWaypointMouseEnter
-    },
-    {
-        type: 'layer',
-        layerName: 'transitPathWaypoints',
-        eventName: 'mouseleave',
-        handler: onTransitPathWaypointMouseLeave
-    },
-    { type: 'layer', layerName: 'transitPaths', eventName: 'mouseenter', handler: onTransitPathsMouseEnter },
-    { type: 'layer', layerName: 'transitPaths', eventName: 'mouseleave', handler: onTransitPathsMouseLeave }
+    { type: 'tooltip', layerName: 'transitPaths', eventName: 'onTooltip', handler: onPathTooltip }
 ];
 
 export default nodeLayerEventDescriptors;

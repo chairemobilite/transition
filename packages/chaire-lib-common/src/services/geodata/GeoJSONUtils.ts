@@ -19,3 +19,5 @@ export const isPolygon = <P extends GeoJSON.GeoJsonProperties>(
 ): feature is GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, P> => {
     return feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon';
 };
+
+export const emptyFeatureCollection = { type: 'FeatureCollection', features: [] } as GeoJSON.FeatureCollection;

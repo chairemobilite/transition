@@ -7,7 +7,6 @@
 import nodeSectionMapEvents from './NodeSectionMapEvents';
 import nodeLayerMapEvents from './NodeLayerMapEvents';
 import routingSectionMapEvents from './RoutingSectionMapEvents';
-import routingLayerMapEvents from './RoutingLayerMapEvents';
 import pathLayerMapEvents from './PathLayerMapEvents';
 import pathSectionMapEvents from './PathSectionMapEvents';
 import scenarioSectionMapEvents from './ScenarioSectionMapEvents';
@@ -17,7 +16,6 @@ const transitionEvents = [
     nodeSectionMapEvents,
     nodeLayerMapEvents,
     routingSectionMapEvents,
-    routingLayerMapEvents,
     accessMapSectionMapEvents,
     pathLayerMapEvents,
     pathSectionMapEvents,

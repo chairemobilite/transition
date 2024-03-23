@@ -4,133 +4,57 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+
 const layersConfig = {
     routingPoints: {
         // for routing origin, destination and waypoints
         type: 'circle',
-        paint: {
-            'circle-radius': {
-                base: 1,
-                stops: [
-                    [5, 1],
-                    [10, 2],
-                    [15, 10]
-                ]
-            },
-            'circle-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'circle-opacity': 1.0,
-            'circle-stroke-width': {
-                base: 1,
-                stops: [
-                    [5, 1],
-                    [11, 1],
-                    [12, 2],
-                    [14, 3],
-                    [15, 4]
-                ]
-            },
-            'circle-stroke-opacity': 1.0,
-            'circle-stroke-color': 'rgba(255,255,255,1.0)'
-        }
+        color: { type: 'property', property: 'color' },
+        strokeColor: [255, 255, 255],
+        strokeWidth: 1,
+        radius: 5,
+        radiusScale: 3,
+        strokeWidthScale: 3
     },
 
     accessibilityMapPoints: {
         type: 'circle',
-        paint: {
-            'circle-radius': {
-                base: 1,
-                stops: [
-                    [5, 1],
-                    [10, 2],
-                    [15, 10]
-                ]
-            },
-            'circle-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'circle-opacity': 1.0,
-            'circle-stroke-width': {
-                base: 1,
-                stops: [
-                    [5, 1],
-                    [11, 1],
-                    [12, 2],
-                    [14, 3],
-                    [15, 4]
-                ]
-            },
-            'circle-stroke-opacity': 1.0,
-            'circle-stroke-color': 'rgba(255,255,255,1.0)'
-        }
+        color: { type: 'property', property: 'color' },
+        strokeColor: [255, 255, 255],
+        strokeWidth: 1,
+        radius: 5,
+        radiusScale: 3,
+        strokeWidthScale: 3
     },
 
     accessibilityMapPolygons: {
         type: 'fill',
-        paint: {
-            'fill-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'fill-opacity': 0.2
-        }
-    },
-
-    accessibilityMapPolygonStrokes: {
-        type: 'line',
-        paint: {
-            'line-color': 'rgba(255,255,255,1.0)',
-            'line-opacity': 0.2,
-            'line-width': 1.5
-        }
+        color: { type: 'property', property: 'color' },
+        lineColor: '#ffffff33',
+        lineWidth: 4,
+        opacity: 0.2,
+        pickable: false
     },
 
     routingPathsStrokes: {
         type: 'line',
-        layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-        },
-        paint: {
-            'line-color': 'rgba(255,255,255,1.0)',
-            'line-opacity': 0.7,
-            'line-width': {
-                base: 6,
-                stops: [
-                    [6, 6],
-                    [12, 10],
-                    [13, 12]
-                ]
-            }
-        }
+        color: { type: 'property', property: 'color' }, //'#ffffffff',
+        opacity: 0.7,
+        width: 6,
+        widthScale: 1.5,
+        capRounded: true,
+        jointRounded: true
     },
 
     routingPaths: {
-        repaint: true,
-        type: 'line',
-        layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-        },
-        'custom-shader': 'lineArrow',
-        paint: {
-            'line-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'line-opacity': 1.0,
-            'line-width': {
-                base: 3,
-                stops: [
-                    [6, 3],
-                    [12, 5],
-                    [13, 7]
-                ]
-            }
-        }
+        type: 'animatedArrowPath',
+        color: { type: 'property', property: 'color' },
+        width: 10,
+        widthScale: 1,
+        widthMinPixels: 5,
+        capRounded: true,
+        jointRounded: true
     },
 
     isochronePolygons: {
@@ -146,60 +70,33 @@ const layersConfig = {
 
     transitPaths: {
         type: 'line',
-        minzoom: 9,
-        defaultFilter: [
-            'any',
-            ['all', ['==', ['string', ['get', 'mode']], 'bus'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'rail'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'highSpeedRail'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'metro'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'monorail'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'tram'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'tramTrain'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'water'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'gondola'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'funicular'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'taxi'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'cableCar'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'horse'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'other'], ['>=', ['zoom'], 11]]
-        ],
-        layout: {
-            'line-join': 'miter',
-            'line-cap': 'butt'
+        minZoom: 9,
+        featureMinZoom: (feature: GeoJSON.Feature) => {
+            const mode = feature.properties?.mode;
+            if (typeof mode !== 'string') {
+                // Always display this feature
+                return 0;
+            }
+            return ['rail', 'highSpeedRail', 'metro', 'water'].includes(mode)
+                ? 9
+                : ['monorail', 'tram', 'tramTrain', 'gondola', 'funicular', 'cableCar'].includes(mode)
+                    ? 10
+                    : 11;
         },
-        paint: {
-            'line-offset': {
-                // we should use turf.js to offset beforehand,
-                //but turf offset is not based on zoom and 180 degrees turns creates random coordinates
-                base: 1,
-                stops: [
-                    [13, 0],
-                    [16, 4],
-                    [20, 20]
-                ]
-            },
-            'line-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'line-opacity': 0.8 /*{ // not working???
-        'base': 0,
-        'stops': [
-          [0, 0.0],
-          [7, 0.05],
-          [10, 0.2],
-          [15, 0.5],
-          [20, 0.8]
-        ]
-      }*/,
-            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 2]
-        }
+        canFilter: true,
+        color: { type: 'property', property: 'color' },
+        opacity: 0.8,
+        widthScale: 4,
+        widthMinPixels: 2,
+        capRounded: true,
+        jointRounded: true,
+        autoHighlight: true
     },
 
+    // TODO Port to deck.gl: try to use a custom layer type to include stroked offset on a line. See https://deck.gl/docs/api-reference/extensions/path-style-extension for an example, with source code https://github.com/visgl/deck.gl/blob/master/modules/extensions/src/path-style/path-style-extension.ts
     transitPathsStroke: {
         type: 'line',
-        minzoom: 15,
+        minZoom: 15,
         layout: {
             'line-join': 'miter',
             'line-cap': 'butt'
@@ -300,6 +197,7 @@ const layersConfig = {
         }
     },
 
+    // TODO Port to deck.gl: Same comment as above
     transitPathsHoverStroke: {
         type: 'line',
         repaint: true,
@@ -331,182 +229,55 @@ const layersConfig = {
     },
 
     transitPathsSelected: {
-        type: 'line',
-        repaint: true,
-        //"shaders": [transitPathsSelectedFragmentShader, transitPathsSelectedVertexShader],
-        layout: {
-            'line-join': 'miter',
-            'line-cap': 'butt'
-        },
-        'custom-shader': 'lineArrow',
-        paint: {
-            //"line-arrow": true,
-            'line-offset': {
-                base: 1,
-                stops: [
-                    [13, 0],
-                    [16, 4],
-                    [20, 20]
-                ]
-            },
-            //"line-color": "rgba(0,0,255,1.0)",
-            'line-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'line-opacity': 1.0,
-            'line-width': {
-                base: 1,
-                stops: [
-                    [6, 5],
-                    [12, 7],
-                    [13, 9]
-                ]
-            } //,
-            //'line-gradient': [
-            //  'interpolate',
-            //  ['linear'],
-            //  ['line-progress'],
-            //  0, "blue",
-            //  1.0, "red"
-            //]
-        }
+        type: 'animatedArrowPath',
+        color: { type: 'property', property: 'color' },
+        width: 10,
+        widthScale: 1,
+        widthMinPixels: 5,
+        capRounded: true,
+        jointRounded: true
     },
 
     transitPathWaypoints: {
         type: 'circle',
-        paint: {
-            'circle-radius': {
-                base: 1,
-                stops: [
-                    [5, 1],
-                    [10, 2],
-                    [15, 5]
-                ]
-            },
-            'circle-color': 'rgba(0,0,0,1.0)',
-            'circle-opacity': 0.5,
-            'circle-stroke-width': {
-                base: 1,
-                stops: [
-                    [5, 1],
-                    [11, 1],
-                    [12, 2],
-                    [14, 2],
-                    [15, 3]
-                ]
-            },
-            'circle-stroke-opacity': 0.7,
-            'circle-stroke-color': 'rgba(255,255,255,1.0)'
-        }
+        color: [0, 0, 0, 128],
+        strokeColor: [255, 255, 255, 180],
+        strokeWidth: 1,
+        radius: 4,
+        radiusScale: 3,
+        strokeWidthScale: 3
     },
 
     transitPathWaypointsSelected: {
         type: 'circle',
-        paint: {
-            'circle-radius': {
-                base: 1,
-                stops: [
-                    [5, 1],
-                    [10, 3],
-                    [15, 6]
-                ]
-            },
-            'circle-color': 'rgba(0,0,0,1.0)',
-            'circle-opacity': 0.5,
-            'circle-stroke-width': {
-                base: 1,
-                stops: [
-                    [5, 1],
-                    [11, 1],
-                    [12, 2],
-                    [14, 2],
-                    [15, 3]
-                ]
-            },
-            'circle-stroke-opacity': 0.85,
-            'circle-stroke-color': 'rgba(255,255,255,1.0)'
-        }
+        color: [0, 0, 0, 128],
+        strokeColor: [255, 255, 255, 220],
+        strokeWidth: 1,
+        radius: 4,
+        radiusScale: 3,
+        strokeWidthScale: 3
     },
 
     transitPathWaypointsErrors: {
         type: 'circle',
-        paint: {
-            'circle-radius': {
-                base: 1,
-                stops: [
-                    [5, 1],
-                    [10, 2],
-                    [15, 5]
-                ]
-            },
-            'circle-opacity': 0,
-            'circle-stroke-width': {
-                base: 1,
-                stops: [
-                    [5, 2],
-                    [11, 2],
-                    [12, 4],
-                    [14, 4],
-                    [15, 6]
-                ]
-            },
-            'circle-stroke-opacity': 0.7,
-            'circle-stroke-color': 'rgba(255,0,0,1.0)'
-        }
+        color: [0, 0, 0, 128],
+        strokeColor: [255, 0, 0, 180],
+        strokeWidth: 1,
+        radius: 4,
+        radiusScale: 3,
+        strokeWidthScale: 3
     },
 
     transitPathsForServices: {
         type: 'line',
-        minzoom: 9,
-        defaultFilter: [
-            'any',
-            ['all', ['==', ['string', ['get', 'mode']], 'bus'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'rail'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'highSpeedRail'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'metro'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'monorail'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'tram'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'tramTrain'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'water'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'gondola'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'funicular'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'taxi'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'cableCar'], ['>=', ['zoom'], 10]],
-            ['all', ['==', ['string', ['get', 'mode']], 'horse'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'other'], ['>=', ['zoom'], 11]]
-        ],
-        layout: {
-            'line-join': 'miter',
-            'line-cap': 'butt'
-        },
-        paint: {
-            'line-offset': {
-                // we should use turf.js to offset beforehand,
-                //but turf offset is not based on zoom and 180 degrees turns creates random coordinates
-                base: 1,
-                stops: [
-                    [13, 0],
-                    [16, 4],
-                    [20, 20]
-                ]
-            },
-            'line-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'line-opacity': 0.8 /*{ // not working???
-        'base': 0,
-        'stops': [
-          [0, 0.0],
-          [7, 0.05],
-          [10, 0.2],
-          [15, 0.5],
-          [20, 0.8]
-        ]
-      }*/,
-            'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 2]
-        }
+        minZoom: 9,
+        color: { type: 'property', property: 'color' },
+        opacity: 0.8,
+        widthScale: 4,
+        widthMinPixels: 2,
+        capRounded: true,
+        jointRounded: true,
+        autoHighlight: true
     },
 
     transitStations: {
@@ -637,138 +408,62 @@ const layersConfig = {
 
     transitNodes: {
         type: 'circle',
-        minzoom: 11,
-        paint: {
-            'circle-radius': [
-                'interpolate',
-                ['exponential', 2],
-                ['zoom'],
-                0,
-                ['*', ['number', ['feature-state', 'size'], 1], 0],
-                10,
-                ['*', ['number', ['feature-state', 'size'], 1], 1.5],
-                15,
-                ['*', ['number', ['feature-state', 'size'], 1], 8],
-                20,
-                ['*', ['number', ['feature-state', 'size'], 1], 15]
-            ],
-            'circle-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'circle-opacity': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                10,
-                ['case', ['boolean', ['feature-state', 'hover'], false], 1.0, 0.1],
-                15,
-                ['case', ['boolean', ['feature-state', 'hover'], false], 1.0, 0.8],
-                20,
-                ['case', ['boolean', ['feature-state', 'hover'], false], 1.0, 0.9]
-            ],
-            'circle-stroke-width': [
-                'interpolate',
-                ['exponential', 2],
-                ['zoom'],
-                0,
-                ['*', ['number', ['feature-state', 'size'], 1], 0],
-                10,
-                ['*', ['number', ['feature-state', 'size'], 1], 0.2],
-                15,
-                ['*', ['number', ['feature-state', 'size'], 1], 3],
-                20,
-                ['*', ['number', ['feature-state', 'size'], 1], 5]
-            ],
-            'circle-stroke-opacity': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                10,
-                ['case', ['boolean', ['feature-state', 'hover'], false], 1.0, 0.1],
-                15,
-                ['case', ['boolean', ['feature-state', 'hover'], false], 1.0, 0.8],
-                20,
-                ['case', ['boolean', ['feature-state', 'hover'], false], 1.0, 0.9]
-            ],
-            'circle-stroke-color': 'rgba(255,255,255,1.0)'
-        }
+        minZoom: 11,
+        color: { type: 'property', property: 'color' },
+        strokeColor: [255, 255, 255],
+        strokeWidth: 2,
+        radius: 5,
+        radiusScale: 3,
+        strokeWidthScale: 3,
+        autoHighlight: true,
+        pickable: () => serviceLocator.selectedObjectsManager.get('node') === undefined
     },
 
     transitNodes250mRadius: {
         type: 'circle',
-        paint: {
-            'circle-radius': [
-                'interpolate',
-                ['exponential', 2],
-                ['zoom'],
-                0,
-                0,
-                20,
-                ['get', '_250mRadiusPixelsAtMaxZoom']
-            ],
-            'circle-color': 'hsla(93, 100%, 63%, 0.08)',
-            'circle-stroke-width': 3,
-            'circle-stroke-color': 'hsla(93, 100%, 63%, 0.10)'
-        }
+        color: [151, 255, 66, 20],
+        strokeColor: [151, 255, 66, 25],
+        strokeWidth: 3,
+        radius: 250,
+        pickable: false
     },
 
     transitNodes500mRadius: {
         type: 'circle',
-        paint: {
-            'circle-radius': [
-                'interpolate',
-                ['exponential', 2],
-                ['zoom'],
-                0,
-                0,
-                20,
-                ['get', '_500mRadiusPixelsAtMaxZoom']
-            ],
-            'circle-color': 'hsla(74, 100%, 63%, 0.06)',
-            'circle-stroke-width': 2,
-            'circle-stroke-color': 'hsla(74, 100%, 63%, 0.075)'
-        }
+        color: [211, 255, 66, 16],
+        strokeColor: [211, 255, 66, 20],
+        strokeWidth: 3,
+        radius: 500,
+        pickable: false
     },
 
     transitNodes750mRadius: {
         type: 'circle',
-        paint: {
-            'circle-radius': [
-                'interpolate',
-                ['exponential', 2],
-                ['zoom'],
-                0,
-                0,
-                20,
-                ['get', '_750mRadiusPixelsAtMaxZoom']
-            ],
-            'circle-color': 'hsla(49, 100%, 63%, 0.025)',
-            'circle-stroke-width': 1,
-            'circle-stroke-color': 'hsla(49, 100%, 63%, 0.075)'
-        }
+        color: [255, 220, 66, 6],
+        strokeColor: [255, 220, 66, 10],
+        strokeWidth: 3,
+        radius: 750,
+        pickable: false
     },
 
     transitNodes1000mRadius: {
         type: 'circle',
-        paint: {
-            'circle-radius': [
-                'interpolate',
-                ['exponential', 2],
-                ['zoom'],
-                0,
-                0,
-                20,
-                ['get', '_1000mRadiusPixelsAtMaxZoom']
-            ],
-            'circle-color': 'hsla(6, 100%, 63%, 0.02)',
-            'circle-stroke-width': 1,
-            'circle-stroke-color': 'hsla(6, 100%, 63%, 0.075)'
-        }
+        color: [255, 85, 66, 16],
+        strokeColor: [255, 85, 66, 20],
+        strokeWidth: 3,
+        radius: 1000,
+        pickable: false
     },
 
     transitNodesSelected: {
         type: 'circle',
+        minZoom: 11,
+        color: { type: 'property', property: 'color' },
+        strokeColor: [255, 255, 255],
+        strokeWidth: 2,
+        radius: 7,
+        radiusScale: 3,
+        strokeWidthScale: 3,
         'custom-shader': 'circleSpinner',
         repaint: true,
         paint: {
@@ -801,32 +496,44 @@ const layersConfig = {
 
     transitNodesRoutingRadius: {
         type: 'circle',
-        paint: {
-            'circle-radius': [
-                'interpolate',
-                ['exponential', 2],
-                ['zoom'],
-                0,
-                0,
-                20,
-                ['get', '_routingRadiusPixelsAtMaxZoom']
-            ],
-            'circle-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'circle-opacity': 0.2,
-            //"circle-color"       : {
-            //  property: 'color',
-            //  type: 'identity'
-            //},
-            'circle-stroke-width': 1,
-            'circle-stroke-opacity': 0.3,
-            'circle-stroke-color': {
-                property: 'color',
-                type: 'identity'
+        color: (node: GeoJSON.Feature) => {
+            const opacity = Math.floor(0.2 * 255); // 20%
+            const color = node.properties?.color;
+            if (typeof color === 'string' && color.startsWith('#')) {
+                return `${color.substring(0, 7)}${opacity.toString(16)}`;
             }
-        }
+            if (Array.isArray(color)) {
+                if (color.length === 3) {
+                    color.push(opacity);
+                } else if (color.length > 3) {
+                    color[3] = opacity;
+                }
+                return color;
+            }
+            return '#0086FF33';
+        },
+        strokeColor: (node: GeoJSON.Feature) => {
+            const opacity = Math.floor(0.3 * 255); // 30%
+            const color = node.properties?.color;
+            if (typeof color === 'string' && color.startsWith('#')) {
+                return `${color.substring(0, 7)}${opacity.toString(16)}`;
+            }
+            if (Array.isArray(color)) {
+                if (color.length === 3) {
+                    color.push(opacity);
+                } else if (color.length > 3) {
+                    color[3] = opacity;
+                }
+                return color;
+            }
+            return '#0086FF4C';
+        },
+        strokeWidth: 3,
+        radius: {
+            type: 'property',
+            property: 'routing_radius_meters'
+        },
+        pickable: false
     },
 
     transitNodesStationSelected: {
