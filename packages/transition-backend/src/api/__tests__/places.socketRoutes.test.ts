@@ -213,7 +213,8 @@ describe('Places: geojson collection', () => {
         socketStub.emit('places.geojsonCollection', {}, (response) => {
             expect(mockedGeojsonCollection).toHaveBeenCalledTimes(1);
             expect(mockedGeojsonCollection).toHaveBeenCalledWith(undefined, undefined);
-            expect(response.geojson).toEqual(geojsonCollection);
+            expect(Status.isStatusOk(response)).toBeTruthy();
+            expect((Status.unwrap(response) as any).geojson).toEqual(geojsonCollection);
             done();
         });
     });
@@ -227,7 +228,8 @@ describe('Places: geojson collection', () => {
         }, (response) => {
             expect(mockedGeojsonCollection).toHaveBeenCalledTimes(1);
             expect(mockedGeojsonCollection).toHaveBeenCalledWith([placeAttributes1.data_source_id], 2);
-            expect(response.geojson).toEqual(geojsonCollection);
+            expect(Status.isStatusOk(response)).toBeTruthy();
+            expect((Status.unwrap(response) as any).geojson).toEqual(geojsonCollection);
             done();
         });
     });
@@ -238,9 +240,11 @@ describe('Places: geojson collection', () => {
             dataSourceIds: [placeAttributes1.data_source_id],
             sampleSize: 2,
             format: 'geobuf'
-        }, (response) => {
+        }, (responseStatus) => {
             expect(mockedGeojsonCollection).toHaveBeenCalledTimes(1);
             expect(mockedGeojsonCollection).toHaveBeenCalledWith([placeAttributes1.data_source_id], 2);
+            expect(Status.isStatusOk(responseStatus)).toBeTruthy();
+            const response = Status.unwrap(responseStatus) as any;
             expect(response.geobuf).toBeDefined();
             const geojson = geobuf.decode(new Pbf(response.geobuf));
             expect(geojson).toEqual(geojsonCollection);
@@ -254,8 +258,11 @@ describe('Places: geojson collection', () => {
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
         mockedGeojsonCollection.mockRejectedValueOnce(error);
-        socketStub.emit('places.geojsonCollection', {}, function (response) {
+        socketStub.emit('places.geojsonCollection', {}, function (responseStatus) {
             expect(mockedGeojsonCollection).toHaveBeenCalledTimes(1);
+            expect(Status.isStatusOk(responseStatus)).toBeFalsy();
+            expect(Status.isStatusError(responseStatus)).toBeTruthy();
+            const response = responseStatus.error as any;
             expect(response.id).toBeUndefined();
             expect(response.error).toEqual(message);
             expect(response.localizedMessage).toEqual(localizedMessage);
