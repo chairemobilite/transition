@@ -18,6 +18,8 @@ import {
     calculateAccessibilityMap,
     calculateRoute
 } from '../services/routingCalculation/RoutingCalculator';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
+import { FeatureCollection } from 'geojson';
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', passport.authenticate('local-login', { failWithError: true, failureMessage: true }));
@@ -27,8 +29,7 @@ export default function (app: express.Express, passport: PassportStatic) {
             const token = await tokensDbQueries.getOrCreate(req.body.usernameOrEmail);
             res.send(token);
         } catch (error) {
-            res.status(500);
-            res.send(error);
+            res.status(500).send(error);
         }
     });
 
@@ -36,25 +37,43 @@ export default function (app: express.Express, passport: PassportStatic) {
 
     router.use('/', passport.authenticate('bearer-strategy', { session: false }));
 
-    router.get('/paths', async (req, res) => {
-        const geojson = await transitObjectDataHandlers.paths.geojsonCollection!();
-        res.json(geojson);
+    router.get('/paths', async (req, res, next) => {
+        try {
+            const status = await transitObjectDataHandlers.paths.geojsonCollection!();
+            const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection };
+            res.json(result.geojson);
+        } catch (error) {
+            next(error);
+        }
     });
 
-    router.get('/nodes', async (req, res) => {
-        const geojson = await transitObjectDataHandlers.nodes.geojsonCollection!();
-        res.json(geojson);
+    router.get('/nodes', async (req, res, next) => {
+        try {
+            const status = await transitObjectDataHandlers.nodes.geojsonCollection!();
+            const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection };
+            res.json(result.geojson);
+        } catch (error) {
+            next(error);
+        }
     });
 
-    router.get('/scenarios', async (req, res) => {
-        const attributes = await transitObjectDataHandlers.scenarios.collection!(null);
-        res.json(attributes);
+    router.get('/scenarios', async (req, res, next) => {
+        try {
+            const attributes = await transitObjectDataHandlers.scenarios.collection!(null);
+            res.json(attributes);
+        } catch (error) {
+            next(error);
+        }
     });
 
-    router.get('/routing-modes', async (req, res) => {
-        const routingModes: RoutingOrTransitMode[] = await osrmProcessManager.availableRoutingModes();
-        routingModes.push('transit');
-        res.json(routingModes);
+    router.get('/routing-modes', async (req, res, next) => {
+        try {
+            const routingModes: RoutingOrTransitMode[] = await osrmProcessManager.availableRoutingModes();
+            routingModes.push('transit');
+            res.json(routingModes);
+        } catch (error) {
+            next(error);
+        }
     });
 
     router.post('/route', async (req, res, next) => {
@@ -83,6 +102,23 @@ export default function (app: express.Express, passport: PassportStatic) {
         } catch (error) {
             next(error);
         }
+    });
+
+    // This is the default error handler used for the API, but all errors here are returned with the HTTP status code 500.
+    // When relevant, more specific checks should be done within individual endpoints to return a more appropriate status code.
+    router.use((err, req, res, next) => {
+        console.error(err);
+
+        if (Object.hasOwn(err, 'message')) {
+            return res.status(500).send(err.message);
+        }
+
+        // This property can be generated, for example, by the TrError.export() function and may contain a relevant error message
+        if (Object.hasOwn(err, 'error')) {
+            return res.status(500).send(err.error);
+        }
+
+        res.status(500).send(err);
     });
 
     app.use('/api', router);

@@ -30,6 +30,10 @@ import {
     TransitAccessibilityMapWithPolygonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
+import { FeatureCollection, LineString, Point } from 'geojson';
+import { PathAttributes } from 'transition-common/lib/services/path/Path';
+import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 
 export type SingleRouteCalculationResult =
     | (ResultParams & {
@@ -65,7 +69,11 @@ export async function calculateRoute(
         if (withGeojson) {
             // The generatePathGeojson function in TransitRoutingResult requires a path collection,
             // so the paths currently in the database are loaded here
-            const paths = await transitObjectDataHandlers.paths.geojsonCollection!();
+            const status = await transitObjectDataHandlers.paths.geojsonCollection!();
+            const paths = Status.unwrap(status) as {
+                type: 'geojson';
+                geojson: FeatureCollection<LineString, PathAttributes>;
+            };
             const pathCollection = new PathCollection(paths.geojson.features, {});
             const options = { completeData: false, pathCollection: pathCollection };
 
@@ -119,8 +127,8 @@ async function updateNodeCollection() {
         serviceLocator.addService('collectionManager', new CollectionManager(undefined));
     }
 
-    const collectionManager = serviceLocator.collectionManager;
-    const nodes = await transitObjectDataHandlers.nodes.geojsonCollection!();
+    const status = await transitObjectDataHandlers.nodes.geojsonCollection!();
+    const nodes = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection<Point, NodeAttributes> };
     const nodeCollection = new NodeCollection(nodes.geojson.features, {});
-    collectionManager.update('nodes', nodeCollection);
+    serviceLocator.collectionManager.update('nodes', nodeCollection);
 }
