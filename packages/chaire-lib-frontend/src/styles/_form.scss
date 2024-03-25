@@ -71,14 +71,14 @@ select {
   text-overflow: ellipsis;
   border: 1px solid $border-white;
   padding-top: $xxxxs-size;
-  padding-bottom: $xxxxs-size; 
+  padding-bottom: $xxxxs-size;
   padding-left: $xs-size;
   border-radius: 1.2rem;
 
   // Unfortunately we can't change the color of the chevron on the select input.
   // We must add our own.
   appearance: none;
-  background-image: url("/dist/images/icons/interface/select_chevron_white.svg");
+  background-image: url("~transition-frontend/src/assets/images/icons/interface/select_chevron_white.svg");
   padding-right: 1.8rem; // Give a little more space for the chevron image
   background-repeat: no-repeat;
   background-position: 98% 50%;
@@ -144,7 +144,7 @@ select {
 .tr__form-section {
   padding:   $xs-size;
   font-size: $font-size-medium;
-  
+
   &._flex-column {
     width: 10rem;
   }
@@ -203,7 +203,7 @@ select {
       input, ._input, ._input-proxy {
         flex: 1;
       }
-  
+
       label, .apptr__form__label-standalone, ._label-proxy {
         flex: 2;
       }
@@ -216,7 +216,7 @@ select {
   flex-direction: row;
   flex-wrap: wrap;
 
-  
+
   &.no-wrap {
     flex-direction: column;
     flex-wrap: nowrap;
@@ -270,7 +270,7 @@ select {
   text-align: right;
   margin: $xs-size 0;
   padding: 0 $xs-size;
-  
+
   &._left {
     justify-content: flex-start;
   }
