@@ -9,7 +9,7 @@ import { POIWeightCategory } from '../POIWeightCategoryType';
 //TODO detail and separate into multiple weight categories for better precision from more samples
 
 const poiWeightCategory: POIWeightCategory = {
-    description: 'Community centers',
+    description: 'Golf clubhouses',
     osmQueryOr: [
         /*{
         tags: {
