@@ -29,6 +29,7 @@ import {
     TransitAccessibilityMapWithPolygonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { getAttributesOrDefault } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
 
 export type SingleRouteCalculationResult =
     | (ResultParams & {
@@ -96,7 +97,13 @@ export async function calculateAccessibilityMap(
         await trRoutingProcessManager.start({});
     }
 
+    // Update attributes with default optionnal values
+    attributes = {
+        ...attributes, // Original attributes
+        ...getAttributesOrDefault(attributes) // New values eventually updated
+    }
     const routing = new TransitAccessibilityMapRouting(attributes);
+
     if (!routing.validate()) {
         const errorMessage = "Validation failed for accessibility map attributes:\n" + routing.errors.join('\n');
         const error = new Error(errorMessage);
