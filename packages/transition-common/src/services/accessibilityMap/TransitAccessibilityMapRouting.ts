@@ -157,11 +157,6 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
             this.errors.push(...queryAttrErrors);
         }
 
-        if (!attributes.scenarioId) {
-            this._isValid = false;
-            this.errors.push('transit:transitRouting:errors:ScenarioIsMissing');
-        }
-
         return this._isValid;
     }
 
