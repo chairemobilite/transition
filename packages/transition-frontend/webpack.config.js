@@ -30,9 +30,15 @@ const entryFileName =  './lib/app-transition.js';
 
 module.exports = (env) => {
   console.log(`building js for project ${config.projectShortname}`);
+  console.log('process.env.NODE_ENV', process.env.NODE_ENV);
+  console.log('ENV ARG', env);
+  if (env.production) env = 'production'
+  else if (env.development) env = 'development'
+  else if (env.test) env = 'test'
+  else throw new Error(`Unexpected --env used calling webpack: ${JSON.stringify(env)}`)
+  console.log('ENV (processed) ARG', env);
 
   const isProduction = env === 'production';
-  console.log('process.env.NODE_ENV', process.env.NODE_ENV);
 
   const bundleFileName = isProduction ? `transition-${config.projectShortname}-bundle-${env}.[contenthash].js` : `transition-${config.projectShortname}-bundle-${env}.dev.js`;
   const styleFileName = isProduction ? `transition-${config.projectShortname}-styles.[contenthash].css` : `transition-${config.projectShortname}-styles.dev.css`;
