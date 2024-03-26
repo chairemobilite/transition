@@ -7,9 +7,9 @@
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
 import { calculateAccessibilityMap, calculateRoute } from '../RoutingCalculator';
-import transitObjectDataHandlers from '../../transitObjects/TransitObjectsDataHandler';
 import { TransitRoutingCalculator } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
-import * as Status from 'chaire-lib-common/lib/utils/Status';
+import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
+import PathCollection from 'transition-common/lib/services/path/PathCollection';
 
 jest.mock('transition-common/lib/services/nodes/NodeCollection');
 jest.mock('transition-common/lib/services/path/PathCollection');
@@ -40,22 +40,23 @@ test('calculateAccessibilityMap, with geojson', async () => {
         strokes: 'strokes',
         resultByNode: 'resultByNode',
     };
+
+    const mockLoadFromServer = jest.fn(() => Promise.resolve());
     
     trRoutingProcessManager.status = jest.fn().mockResolvedValue({
         status: 'started'
     } as any);
-    transitObjectDataHandlers.nodes.geojsonCollection! = jest.fn().mockResolvedValue(
-        Status.createOk({
-            geojson: {
-                features: 'features'
-            }
-    }));
+    (NodeCollection as any).mockImplementation(() => {
+        return {
+            loadFromServer: mockLoadFromServer
+        }
+    });
     TransitAccessibilityMapCalculator.calculateWithPolygons = jest.fn().mockResolvedValue(expectedResult as any);
 
     const result = await calculateAccessibilityMap({} as any, true);
 
     expect(result).toStrictEqual(expectedResult);
-    expect(transitObjectDataHandlers.nodes.geojsonCollection).toBeCalled();
+    expect(mockLoadFromServer).toBeCalled();
     expect(TransitAccessibilityMapCalculator.calculateWithPolygons).toBeCalled();
 });
 
@@ -123,16 +124,17 @@ test('calculateRoute, with geojson', async () => {
         },
     }
     
+    const mockLoadFromServer = jest.fn(() => Promise.resolve());
+
     trRoutingProcessManager.status = jest.fn().mockResolvedValue({
         status: 'started'
     } as any);
     TransitRoutingCalculator.calculate = jest.fn().mockResolvedValue(resultsByMode);
-    transitObjectDataHandlers.paths.geojsonCollection! = jest.fn().mockResolvedValue(
-        Status.createOk({
-            geojson: {
-                features: 'features'
-            }
-    }));
+    (PathCollection as any).mockImplementation(() => {
+        return {
+            loadFromServer: mockLoadFromServer
+        }
+    });
 
     const result = await calculateRoute({} as any, true);
 
@@ -151,6 +153,7 @@ test('calculateRoute, with geojson', async () => {
         }
     });
     expect(TransitRoutingCalculator.calculate).toBeCalled();
+    expect(mockLoadFromServer).toBeCalled();
 });
 
 test('calculateRoute, with geojson and alternatives', async () => {
@@ -184,17 +187,18 @@ test('calculateRoute, with geojson and alternatives', async () => {
             getPathGeojson: async () => drivingGeojson
         },
     }
+
+    const mockLoadFromServer = jest.fn(() => Promise.resolve());
     
     trRoutingProcessManager.status = jest.fn().mockResolvedValue({
         status: 'started'
     } as any);
     TransitRoutingCalculator.calculate = jest.fn().mockResolvedValue(resultsByMode);
-    transitObjectDataHandlers.paths.geojsonCollection! = jest.fn().mockResolvedValue(
-        Status.createOk({
-            geojson: {
-                features: 'features'
-            }
-    }));
+    (PathCollection as any).mockImplementation(() => {
+        return {
+            loadFromServer: mockLoadFromServer
+        }
+    });
 
     const result = await calculateRoute({} as any, true);
 
@@ -213,4 +217,5 @@ test('calculateRoute, with geojson and alternatives', async () => {
         }
     });
     expect(TransitRoutingCalculator.calculate).toBeCalled();
+    expect(mockLoadFromServer).toBeCalled();
 });

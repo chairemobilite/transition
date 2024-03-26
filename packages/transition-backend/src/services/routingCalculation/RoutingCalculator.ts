@@ -16,7 +16,6 @@ import {
     TransitRoutingCalculator
 } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
-import transitObjectDataHandlers from '../transitObjects/TransitObjectsDataHandler';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TransitAccessibilityMapRouting, {
     AccessibilityMapAttributes
@@ -30,10 +29,6 @@ import {
     TransitAccessibilityMapWithPolygonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
-import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { FeatureCollection, LineString, Point } from 'geojson';
-import { PathAttributes } from 'transition-common/lib/services/path/Path';
-import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 
 export type SingleRouteCalculationResult =
     | (ResultParams & {
@@ -69,12 +64,8 @@ export async function calculateRoute(
         if (withGeojson) {
             // The generatePathGeojson function in TransitRoutingResult requires a path collection,
             // so the paths currently in the database are loaded here
-            const status = await transitObjectDataHandlers.paths.geojsonCollection!();
-            const paths = Status.unwrap(status) as {
-                type: 'geojson';
-                geojson: FeatureCollection<LineString, PathAttributes>;
-            };
-            const pathCollection = new PathCollection(paths.geojson.features, {});
+            const pathCollection = new PathCollection([], {});
+            await pathCollection.loadFromServer(serviceLocator.socketEventManager);
             const options = { completeData: false, pathCollection: pathCollection };
 
             const pathsGeojson: GeoJSON.FeatureCollection[] = [];
@@ -127,8 +118,7 @@ async function updateNodeCollection() {
         serviceLocator.addService('collectionManager', new CollectionManager(undefined));
     }
 
-    const status = await transitObjectDataHandlers.nodes.geojsonCollection!();
-    const nodes = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection<Point, NodeAttributes> };
-    const nodeCollection = new NodeCollection(nodes.geojson.features, {});
+    const nodeCollection = new NodeCollection([], {});
+    await nodeCollection.loadFromServer(serviceLocator.socketEventManager);
     serviceLocator.collectionManager.update('nodes', nodeCollection);
 }
