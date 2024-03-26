@@ -55,7 +55,8 @@ export async function calculateRoute(
 
     const routing: TransitRouting = new TransitRouting(attributes);
     if (!routing.validate()) {
-        const errorMessage = "Validation failed for routing attributes:\n" + routing.errors.join('\n');
+        const formattedErrors = routing.errors.map(e => { return e.split(':').pop() });
+        const errorMessage = "Validation failed for routing attributes:\n" + formattedErrors.join('\n');
         const error = new Error(errorMessage);
         (error as any).statusCode = 400;
         throw error;
@@ -105,7 +106,8 @@ export async function calculateAccessibilityMap(
     const routing = new TransitAccessibilityMapRouting(attributes);
 
     if (!routing.validate()) {
-        const errorMessage = "Validation failed for accessibility map attributes:\n" + routing.errors.join('\n');
+        const formattedErrors = routing.errors.map(e => { return e.split(':').pop() });
+        const errorMessage = "Validation failed for accessibility map attributes:\n" + formattedErrors.join('\n');
         const error = new Error(errorMessage);
         (error as any).statusCode = 400;
         throw error;
