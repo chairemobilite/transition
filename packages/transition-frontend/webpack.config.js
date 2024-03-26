@@ -30,13 +30,15 @@ const entryFileName =  './lib/app-transition.js';
 
 module.exports = (env) => {
   console.log(`building js for project ${config.projectShortname}`);
-
-  const isProduction = env === 'production';
   console.log('process.env.NODE_ENV', process.env.NODE_ENV);
 
-  const bundleFileName = isProduction ? `transition-${config.projectShortname}-bundle-${env}.[contenthash].js` : `transition-${config.projectShortname}-bundle-${env}.dev.js`;
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Make sure all builds have different names if not a production bundle
+  const bundleFileName = isProduction ? `transition-${config.projectShortname}-bundle-${process.env.NODE_ENV}.[contenthash].js` : `transition-${config.projectShortname}-bundle-${process.env.NODE_ENV}.dev.js`;
   const styleFileName = isProduction ? `transition-${config.projectShortname}-styles.[contenthash].css` : `transition-${config.projectShortname}-styles.dev.css`;
-  const htmlFileName = path.join(`index-${config.projectShortname}${env === 'test' ? `_${env}` : ''}.html`);
+  // HTML main file name
+  const htmlFileName = path.join(`index-${config.projectShortname}.html`);
 
   const languages = config.languages || ['fr', 'en'];
   const languagesFilter = `/${languages.join("|")}/`;
@@ -53,9 +55,14 @@ module.exports = (env) => {
   ];
 
   return {
+    // Controls which information to display (see https://webpack.js.org/configuration/stats/)
+    stats: {
+      errorDetails: true,
+      children: true,
+    },
     node: {
-      Buffer: false,
-      process: false,
+      // global will be deprecated at next major release, see where it is being used
+      global: 'warn'
     },
     mode: process.env.NODE_ENV,
     entry,
@@ -82,10 +89,7 @@ module.exports = (env) => {
         },
         {
           test: /\.(ttf|woff2|woff|eot|svg)$/,
-          loader: 'url-loader',
-          options: {
-            limit: 100000
-          }
+          type: 'asset'
         },
         {
           test: /\.glsl$/,
@@ -138,8 +142,7 @@ module.exports = (env) => {
           'HOST'                        : JSON.stringify(process.env.HOST),
           'TRROUTING_HOST'              : JSON.stringify(process.env.TRROUTING_HOST),
           'PROJECT_SOURCE'              : JSON.stringify(process.env.PROJECT_SOURCE),
-          'NODE_ENV'                    : JSON.stringify(process.env.NODE_ENV),
-          'IS_TESTING'                  : JSON.stringify(env === 'test'),
+          'IS_TESTING'                  : JSON.stringify(process.env.NODE_ENV === 'test'),
           'GOOGLE_API_KEY'              : JSON.stringify(process.env.GOOGLE_API_KEY),
           'MAPBOX_ACCESS_TOKEN'         : JSON.stringify(process.env.MAPBOX_ACCESS_TOKEN),
           'MAPBOX_USER_ID'              : JSON.stringify(process.env.MAPBOX_USER_ID || config.mapboxUserId),
@@ -154,7 +157,7 @@ module.exports = (env) => {
       }),
       new webpack.optimize.AggressiveMergingPlugin(),//Merge chunks
       new CompressionPlugin({
-        filename: "[path].gz[query]",
+        filename: "[path][base].gz[query]",
         algorithm: "gzip",
         test: /\.js$|\.css$/,
         threshold: 0,
@@ -176,8 +179,10 @@ module.exports = (env) => {
       )
     ],
     resolve: {
+      mainFields: ['browser', 'main', 'module'],
       modules: ['node_modules'],
-      extensions: ['.json', '.js', '.css', '.scss', '.ts', '.tsx'],
+      extensions: ['.json', '.js', '.ts', '.tsx'],
+      fallback: { path: false },
     },
     devtool: isProduction ? 'cheap-source-map' : 'eval-source-map',
     devServer: {
