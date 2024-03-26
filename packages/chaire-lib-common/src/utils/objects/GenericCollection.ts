@@ -90,16 +90,6 @@ export default abstract class GenericCollection<F> extends GenericImmutableColle
         }
     }
 
-    /**
-     * @deprecated The 'empty' can be confused with boolean isEmpty(). Use the
-     * clear() method instead
-     *
-     * TODO This does not seem to be called anywhere. Can we safely remove?
-     */
-    public empty() {
-        this.clear();
-    }
-
     public clear() {
         this.setFeatures([]);
     }

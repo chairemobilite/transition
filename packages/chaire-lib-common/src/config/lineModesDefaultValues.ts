@@ -172,6 +172,6 @@ export default {
         defaultDeceleration: 1.5,
         defaultDwellTimeSeconds: 0,
         customLayoverMinutes: 0,
-        maxRunningSpeedKmH: 5
+        maxRunningSpeedKmH: 50 // allow higher speeds for cycling transfers and fictional/simulation data
     }
 };

@@ -63,34 +63,6 @@ export class PathCollection
         return CollectionLoadable.loadGeojsonFromServer(this, socket);
     }
 
-    async loadForScenario(socket, scenarioId: string) {
-        return new Promise((resolve, reject) => {
-            this.progress('LoadingFromServer', 0.0);
-            const socketPrefix = this.socketPrefix;
-
-            socket.emit(`${socketPrefix}.geojsonCollection`, { scenarioId, format: 'geobuf' }, (geojsonResponse) => {
-                if ((geojsonResponse && geojsonResponse.geojson) || geojsonResponse.geobuf) {
-                    //console.log(`parsing ${geojsonResponse.geobuf ? 'geobuf' : 'geojson'}`);
-                    const geojson = geojsonResponse.geobuf
-                        ? geobuf.decode(new Pbf(geojsonResponse.geobuf))
-                        : geojsonResponse.geojson;
-                    if (geojson && geojson.features && this.loadFromCollection(geojson.features).status === 'success') {
-                        this.progress('LoadingFromServer', 1.0);
-                        resolve(geojson);
-                    }
-                }
-                this.progress('LoadingFromServer', 1.0);
-                reject(
-                    new TrError(
-                        `cannot load ${socketPrefix} geojson collection from server`,
-                        'CLG0003',
-                        `${socketPrefix}GeojsonCollectionCouldNotBeFetchedFromServerBecauseServerError`
-                    ).export()
-                );
-            });
-        });
-    }
-
     loadFromCollection(collection) {
         return CollectionLoadable.loadGeojsonFromCollection(this, collection);
     }

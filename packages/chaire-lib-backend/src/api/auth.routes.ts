@@ -18,7 +18,7 @@ import config from '../config/server.config';
 import { getConfirmEmailStrategy } from '../config/auth/localLogin.config';
 import { UserAttributes } from '../services/users/user';
 import { IAuthModel, IUserModel } from '../services/auth/authModel';
-import configurePassport from '../config/auth';
+import { PassportStatic } from 'passport';
 
 const defaultSuccessCallback = (req: Request, res: Response) => {
     // Handle success
@@ -39,11 +39,7 @@ const defaultFailureCallback = (err, _req: Request, res: Response, _next) => {
     });
 };
 
-export default <U extends IUserModel>(app: express.Express, authModel: IAuthModel<U>) => {
-    const passport = configurePassport(authModel);
-    app.use(passport.initialize());
-    app.use(passport.session());
-
+export default <U extends IUserModel>(app: express.Express, authModel: IAuthModel<U>, passport: PassportStatic) => {
     app.get(
         '/googlelogin',
         passport.authenticate('google', { scope: 'https://www.googleapis.com/auth/userinfo.email' })

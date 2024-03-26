@@ -167,7 +167,8 @@ function setup()
         unclassified    = 30,
         residential     = 30,
         living_street   = 10,
-        service         = 20
+        service         = 20,
+        busway          = 50
       }
     },
 
@@ -194,7 +195,8 @@ function setup()
       'residential',
       'living_street',
       'unclassified',
-      'service'
+      'service',
+      'busway'
     },
 
     construction_whitelist = Set {

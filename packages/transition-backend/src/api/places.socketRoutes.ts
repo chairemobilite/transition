@@ -57,14 +57,16 @@ export default function (socket: EventEmitter) {
                 const geojson = await placesDbQueries.geojsonCollection(params.dataSourceIds, params.sampleSize);
                 if (params.format === 'geobuf') {
                     const geobufjson = Buffer.from(geobuf.encode(geojson, new Pbf()));
-                    callback({ geobuf: geobufjson });
+                    callback(Status.createOk({ type: 'geobuf', geobuf: geobufjson }));
                 } else {
-                    callback({ geojson });
+                    callback(Status.createOk({ type: 'geojson', geojson }));
                 }
             } catch (error) {
                 console.error(error);
                 callback(
-                    TrError.isTrError(error) ? error.export() : { error: 'Error getting place geojson collection' }
+                    Status.createError(
+                        TrError.isTrError(error) ? error.export() : { error: 'Error getting place geojson collection' }
+                    )
                 );
             }
         }

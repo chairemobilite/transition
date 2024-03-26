@@ -12,6 +12,7 @@ import GenericMapObjectCollection from '../../utils/objects/GenericMapObjectColl
 import { GenericAttributes, GenericObject } from '../../utils/objects/GenericObject';
 import { isProgressable } from '../../utils/objects/Progressable';
 import TrError from '../../utils/TrError';
+import * as Status from '../../utils/Status';
 
 /**
  *
@@ -159,12 +160,17 @@ const loadGeojsonFromServer = function (
         socket.emit(
             socketEventName ? socketEventName : `${socketPrefix}.geojsonCollection`,
             { dataSourceIds, sampleSize, format: 'geobuf' },
-            (geojsonResponse) => {
-                if ((geojsonResponse && geojsonResponse.geojson) || geojsonResponse.geobuf) {
-                    //console.log(`parsing ${geojsonResponse.geobuf ? 'geobuf' : 'geojson'}`);
-                    const geojson = geojsonResponse.geobuf
-                        ? geobuf.decode(new Pbf(geojsonResponse.geobuf))
-                        : geojsonResponse.geojson;
+            (
+                responseStatus: Status.Status<
+                    { type: 'geojson'; geojson: GeoJSON.FeatureCollection } | { type: 'geobuf'; geobuf: Buffer }
+                >
+            ) => {
+                if (Status.isStatusOk(responseStatus)) {
+                    const geojsonResponse = Status.unwrap(responseStatus);
+                    const geojson =
+                        geojsonResponse.type === 'geobuf'
+                            ? geobuf.decode(new Pbf(geojsonResponse.geobuf))
+                            : geojsonResponse.geojson;
                     if (
                         geojson &&
                         geojson.features &&

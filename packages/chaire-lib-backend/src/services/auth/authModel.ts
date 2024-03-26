@@ -26,6 +26,10 @@ export interface IUserModel {
     sanitize: () => BaseUser;
     verifyPassword: (password: string) => Promise<boolean>;
     updateAndSave(newAttribs: unknown): Promise<void>;
+    /**
+     * Function called when the user has just logged in the application.
+     */
+    recordLogin: () => Promise<void>;
 }
 
 export type NewUserParams = {
@@ -56,6 +60,15 @@ export interface IAuthModel<U extends IUserModel> {
 
     createAndSave: (userData: NewUserParams) => Promise<U>;
 
+    /**
+     * Finds a user by various fields
+     *
+     * @param findBy The attributes by which to find the user
+     * @param orWhere If there are more than one findBy attribute, whether they
+     * should all be as specified or only one
+     * @returns A single user object if found, or `undefined` if the user with
+     * those attributes does not exist
+     */
     find: (
         findBy: {
             usernameOrEmail?: string;
@@ -179,6 +192,10 @@ export abstract class UserModelBase implements IUserModel {
     /** Update the current user and save update in the database. `id`, `uuid`
      * and `username` fields cannot be updated */
     abstract updateAndSave(newAttribs: Partial<Omit<UserAttributesBase, 'id' | 'username'>>): Promise<void>;
+
+    recordLogin = async (): Promise<void> => {
+        // By default, do nothing
+    };
 
     get id(): number {
         return this.attributes.id;

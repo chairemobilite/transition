@@ -237,6 +237,19 @@ const getList = async (params: {
     }
 };
 
+const setLastLogin = async (id: number): Promise<boolean> => {
+    try {
+        const nbAffected = await knex(tableName).update({ last_login_at: knex.fn.now() }).where('id', id);
+        return nbAffected > 0 ? true : false;
+    } catch (error) {
+        throw new TrError(
+            `Cannot set user last login for user with id ${id} (knex error: ${error})`,
+            'DBQUP0004',
+            'DatabaseCannotUpdateBecauseDatabaseError'
+        );
+    }
+};
+
 export default {
     create,
     find,
@@ -244,5 +257,6 @@ export default {
     getById,
     getByUuid,
     collection,
-    getList
+    getList,
+    setLastLogin
 };

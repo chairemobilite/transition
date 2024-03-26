@@ -14,6 +14,7 @@ import NodeCollection from '../NodeCollection';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { TestUtils } from 'chaire-lib-common/lib/test';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 // TODO Bring the collection manager to a mocking library
 const eventManager = EventManagerMock.eventManagerMock;
@@ -105,7 +106,7 @@ test('update node feature', () => {
 });
 
 test('Load from server', async () => {
-    EventManagerMock.emitResponseReturnOnce({geojson: { type: 'FeatureCollection', features: [node1Geojson, node2Geojson] } });
+    EventManagerMock.emitResponseReturnOnce(Status.createOk({ type: 'geojson', geojson: { type: 'FeatureCollection', features: [node1Geojson, node2Geojson] } }));
 
     // Test loading a simple collection
     const collection = new NodeCollection([], {}, eventManager);

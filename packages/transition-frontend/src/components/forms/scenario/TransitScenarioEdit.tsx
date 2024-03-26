@@ -28,6 +28,7 @@ import ScenarioLinesDetail from './TransitScenarioLinesDetail';
 import { PathAttributes } from 'transition-common/lib/services/path/Path';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import Line from 'transition-common/lib/services/line/Line';
 
 interface ScenarioFormProps extends WithTranslation {
     scenario: Scenario;
@@ -120,17 +121,18 @@ class TransitScenarioEdit extends SaveableObjectForm<Scenario, ScenarioFormProps
         const exceptModes = scenario.attributes.except_modes;
         let modesChoices: { value: string; label: string }[] = [];
 
-        agenciesChoices = serviceLocator.collectionManager.get('agencies').features.map((agency) => {
+        const allAgencies = serviceLocator.collectionManager.get('agencies');
+        agenciesChoices = allAgencies.features.map((agency) => {
             return {
                 value: agency.id,
                 label: agency.toString()
             };
         });
 
-        linesChoices = serviceLocator.collectionManager.get('lines').features.map((line) => {
+        linesChoices = serviceLocator.collectionManager.get('lines').features.map((line: Line) => {
             return {
                 value: line.id,
-                label: line.toString()
+                label: `${line.toString()} (${allAgencies.getById(line.attributes.agency_id)?.attributes.acronym})`
             };
         });
 

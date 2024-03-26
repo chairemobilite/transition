@@ -13,6 +13,7 @@ import Path from '../Path';
 import PathCollection from '../PathCollection';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 // TODO Bring the collection manager to a mocking library
 const eventManager = EventManagerMock.eventManagerMock;
@@ -151,7 +152,7 @@ test('Save path collection to cache', async () => {
 });
 
 test('Load path collection from server', async () => {
-    EventManagerMock.emitResponseReturnOnce({geojson: { type: 'FeatureCollection', features: [path1Geojson, path2Geojson] } });
+    EventManagerMock.emitResponseReturnOnce(Status.createOk({ type: 'geojson', geojson: { type: 'FeatureCollection', features: [path1Geojson, path2Geojson] } }));
 
     // Test loading a simple collection
     const collection = new PathCollection([], {}, eventManager);
@@ -163,21 +164,6 @@ test('Load path collection from server', async () => {
     const path2 = collection.getFeatures()[1];
     expect(path1).toEqual(path1Geojson);
     expect(path2).toEqual(path2Geojson);
-
-});
-
-test('Load path collection for scenario', async () => {
-    EventManagerMock.emitResponseReturnOnce({geojson: { type: 'FeatureCollection', features: [path1Geojson] } });
-
-    // Test loading a collection for a scenario
-    const scenarioId = uuidV4();
-    const collection = new PathCollection([], {}, eventManager);
-    await collection.loadForScenario(eventManager, scenarioId);
-    expect(eventManager.emit).toHaveBeenCalled();
-    expect(eventManager.emit).toHaveBeenCalledWith('transitPaths.geojsonCollection', { scenarioId, format: 'geobuf' }, expect.anything());
-    expect(collection.getFeatures().length).toEqual(1);
-    const path1 = collection.getFeatures()[0];
-    expect(path1).toEqual(path1Geojson);
 
 });
 
