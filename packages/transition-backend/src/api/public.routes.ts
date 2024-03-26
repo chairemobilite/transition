@@ -110,7 +110,7 @@ export default function (app: express.Express, passport: PassportStatic) {
         console.error(err);
 
         if (Object.hasOwn(err, 'message')) {
-            return res.status(500).send(err.message);
+            return res.status(err.statusCode? err.statusCode : 500).send(err.message);
         }
 
         // This property can be generated, for example, by the TrError.export() function and may contain a relevant error message
