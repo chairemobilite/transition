@@ -8,9 +8,9 @@
   "repository": "github.com/chairemobilite/transition",
   "license": "MIT",
   "scripts": {
-    "build:dev": "cross-env NODE_OPTIONS=\"--max_old_space_size=4096 --openssl-legacy-provider\" webpack --watch --progress --color --env development --mode development",
-    "build:prod": "cross-env NODE_OPTIONS=\"--max_old_space_size=4096 --openssl-legacy-provider\" webpack --progress --color --env production --mode production",
-    "build:test": "cross-env NODE_ENV=\"test --openssl-legacy-provider\" webpack --env test --mode development --watch --progress --color",
+    "build:dev": "cross-env NODE_OPTIONS=\"--trace-deprecation --max_old_space_size=4096 --openssl-legacy-provider\" webpack watch --progress --color --env development --mode development",
+    "build:prod": "cross-env NODE_OPTIONS=\"--trace-deprecation --max_old_space_size=4096 --openssl-legacy-provider\" webpack --progress --color --env production --mode production",
+    "build:test": "cross-env NODE_ENV=\"test\" NODE_OPTIONS=\"--openssl-legacy-provider\" webpack watch --env test --mode development --progress --color",
     "compile": "tsc && yarn copy-files",
     "compile:dev": "yarn copy-files && tsc -w",
     "clean": "rimraf lib/",
@@ -115,7 +115,7 @@
     "ts-loader": "^8.4.0",
     "ts-shader-loader": "^2.0.2",
     "url-loader": "^4.1.0",
-    "webpack": "^4.47.0",
+    "webpack": "^5.91.0",
     "webpack-cli": "^4.10.0"
   }
 }
