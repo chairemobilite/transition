@@ -51,6 +51,7 @@ module.exports = (env) => {
   const customStylesFilePath  = `${config.projectDir}/styles/styles.scss`;
   const customLocalesFilePath = `${config.projectDir}/locales`;
   const entry                 = fs.existsSync('./'+customStylesFilePath) ? [entryFileName, './'+customStylesFilePath] : [entryFileName];
+  console.log("ENTRY", entry.join("\n"))
   const includeDirectories    = [
     path.join(__dirname, 'lib'),
 
@@ -59,9 +60,9 @@ module.exports = (env) => {
   ];
 
   return {
-    node: {
-      Buffer: false,
-      process: false,
+    stats: {
+      errorDetails: true,
+      children: true,
     },
     mode: process.env.NODE_ENV,
     entry,
@@ -152,7 +153,7 @@ module.exports = (env) => {
           'HOST'                        : JSON.stringify(process.env.HOST),
           'TRROUTING_HOST'              : JSON.stringify(process.env.TRROUTING_HOST),
           'PROJECT_SOURCE'              : JSON.stringify(process.env.PROJECT_SOURCE),
-          'NODE_ENV'                    : JSON.stringify(process.env.NODE_ENV),
+          'process.env.NODE_ENV'                    : JSON.stringify(process.env.NODE_ENV),
           'IS_TESTING'                  : JSON.stringify(env === 'test'),
           'GOOGLE_API_KEY'              : JSON.stringify(process.env.GOOGLE_API_KEY),
           'MAPBOX_ACCESS_TOKEN'         : JSON.stringify(process.env.MAPBOX_ACCESS_TOKEN),
@@ -190,8 +191,10 @@ module.exports = (env) => {
       )
     ],
     resolve: {
+      mainFields: ['browser', 'main', 'module'],
       modules: ['node_modules'],
       extensions: ['.json', '.js', '.css', '.scss', '.ts', '.tsx'],
+      fallback: { path: false },
     },
     devtool: isProduction ? 'cheap-source-map' : 'eval-source-map',
     devServer: {
