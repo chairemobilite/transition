@@ -100,16 +100,16 @@ export default {
     exists: exists.bind(null, knex, tableName),
     read,
     create: (newObject: SimulationAttributes, returning?: string) => {
-        return create(knex, tableName, attributesCleaner, newObject, returning);
+        return create(knex, tableName, attributesCleaner, newObject, { returning });
     },
     createMultiple: (newObjects: SimulationAttributes[], returning?: string[]) => {
-        return createMultiple(knex, tableName, attributesCleaner, newObjects, returning);
+        return createMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
     },
     update: (id: string, updatedObject: Partial<SimulationAttributes>, returning?: string) => {
-        return update(knex, tableName, attributesCleaner, id, updatedObject, returning);
+        return update(knex, tableName, attributesCleaner, id, updatedObject, { returning });
     },
     updateMultiple: (updatedObjects: Partial<SimulationAttributes>[], returning?: string) => {
-        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, returning);
+        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
     },
     delete: deleteRecord.bind(null, knex, tableName),
     deleteMultiple: deleteMultiple.bind(null, knex, tableName),

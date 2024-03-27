@@ -121,16 +121,16 @@ export default {
     exists: exists.bind(null, knex, tableName),
     read,
     create: (newObject: DataSourceAttributes, returning?: string) => {
-        return create(knex, tableName, undefined, newObject, returning);
+        return create(knex, tableName, undefined, newObject, { returning });
     },
     createMultiple: (newObjects: DataSourceAttributes[], returning?: string[]) => {
-        return createMultiple(knex, tableName, undefined, newObjects, returning);
+        return createMultiple(knex, tableName, undefined, newObjects, { returning });
     },
     update: (id: string, updatedObject: Partial<DataSourceAttributes>, returning?: string) => {
-        return update(knex, tableName, undefined, id, updatedObject, returning);
+        return update(knex, tableName, undefined, id, updatedObject, { returning });
     },
     updateMultiple: (updatedObjects: Partial<DataSourceAttributes>[], returning?: string) => {
-        return updateMultiple(knex, tableName, undefined, updatedObjects, returning);
+        return updateMultiple(knex, tableName, undefined, updatedObjects, { returning });
     },
     delete: deleteRecord.bind(null, knex, tableName),
     deleteMultiple: deleteMultiple.bind(null, knex, tableName),

@@ -170,18 +170,18 @@ export default {
     exists: exists.bind(null, knex, tableName),
     read,
     create: (newObject: LineAttributes, returning?: string) => {
-        return create(knex, tableName, attributesCleaner, newObject, returning);
+        return create(knex, tableName, attributesCleaner, newObject, { returning });
     },
     // TODO Create multiple will have to handle schedules too or do we suppose it's only the line attributes?
     createMultiple: (newObjects: LineAttributes[], returning?: string[]) => {
-        return createMultiple(knex, tableName, attributesCleaner, newObjects, returning);
+        return createMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
     },
     update: (id: string, updatedObject: Partial<LineAttributes>, returning?: string) => {
-        return update(knex, tableName, attributesCleaner, id, updatedObject, returning);
+        return update(knex, tableName, attributesCleaner, id, updatedObject, { returning });
     },
     // TODO Update multiple will have to handle schedules too or do we suppose it's only the line attributes?
     updateMultiple: (updatedObjects: Partial<LineAttributes>[], returning?: string) => {
-        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, returning);
+        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
     },
     delete: deleteRecord.bind(null, knex, tableName),
     deleteMultiple: deleteMultiple.bind(null, knex, tableName),

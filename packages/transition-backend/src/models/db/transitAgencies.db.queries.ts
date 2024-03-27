@@ -75,16 +75,16 @@ export default {
     exists: exists.bind(null, knex, tableName),
     read: read.bind(null, knex, tableName, undefined, '*'),
     create: (newObject: AgencyAttributes, returning?: string) => {
-        return create(knex, tableName, attributesCleaner, newObject, returning);
+        return create(knex, tableName, attributesCleaner, newObject, { returning });
     },
     createMultiple: (newObjects: AgencyAttributes[], returning?: string[]) => {
-        return createMultiple(knex, tableName, attributesCleaner, newObjects, returning);
+        return createMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
     },
     update: (id: string, updatedObject: Partial<AgencyAttributes>, returning?: string) => {
-        return update(knex, tableName, attributesCleaner, id, updatedObject, returning);
+        return update(knex, tableName, attributesCleaner, id, updatedObject, { returning });
     },
     updateMultiple: (updatedObjects: Partial<AgencyAttributes>[], returning?: string) => {
-        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, returning);
+        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
     },
     delete: deleteRecord.bind(null, knex, tableName),
     deleteMultiple: deleteMultiple.bind(null, knex, tableName),
