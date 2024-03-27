@@ -25,7 +25,7 @@ export interface RouteCalculatorResult<InputParams> {
     getParams: () => InputParams;
 }
 
-interface ResultParams {
+export interface ResultParams {
     routingMode: RoutingMode;
     origin: GeoJSON.Feature<GeoJSON.Point>;
     destination: GeoJSON.Feature<GeoJSON.Point>;
