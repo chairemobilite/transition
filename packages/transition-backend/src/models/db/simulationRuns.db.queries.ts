@@ -243,16 +243,16 @@ export default {
     exists: exists.bind(null, knex, tableName),
     read,
     create: (newObject: SimulationRunAttributes, returning?: string) => {
-        return create(knex, tableName, attributesCleaner, newObject, returning);
+        return create(knex, tableName, attributesCleaner, newObject, { returning });
     },
     createMultiple: (newObjects: SimulationRunAttributes[], returning?: string[]) => {
-        return createMultiple(knex, tableName, attributesCleaner, newObjects, returning);
+        return createMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
     },
     update: (id: string, updatedObject: Partial<SimulationRunAttributes>, returning?: string) => {
-        return update(knex, tableName, attributesCleaner, id, updatedObject, returning);
+        return update(knex, tableName, attributesCleaner, id, updatedObject, { returning });
     },
     updateMultiple: (updatedObjects: Partial<SimulationRunAttributes>[], returning?: string) => {
-        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, returning);
+        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
     },
     delete: deleteRun,
     deleteMultiple: deleteMultipleRun,

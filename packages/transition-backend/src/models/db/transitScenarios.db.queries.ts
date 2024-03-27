@@ -115,7 +115,7 @@ const read = async (id: string) => {
 const create = async (newObject: ScenarioAttributes, returning?: string) => {
     const services = newObject.services || [];
     // Create the main object in main table
-    const created = await defaultCreate(knex, tableName, attributesCleaner, newObject, returning);
+    const created = await defaultCreate(knex, tableName, attributesCleaner, newObject, { returning });
     try {
         if (services.length > 0) {
             // Fill the service table
@@ -140,7 +140,7 @@ const createMultiple = async (newObjects: ScenarioAttributes[], returning?: stri
         .map((newObject) => ({ scenario_id: newObject.id, services: newObject.services || [] }))
         .filter((scServices) => scServices.services.length > 0);
     // Create the main object in main table
-    const created = await defaultCreateMultiple(knex, tableName, attributesCleaner, newObjects, returning);
+    const created = await defaultCreateMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
     try {
         if (services.length > 0) {
             // Fill the service table
@@ -184,7 +184,7 @@ const getNewAndDeletedServicesForScenario = (
 
 const update = async (id: string, updatedObject: Partial<ScenarioAttributes>, returning?: string) => {
     // Create the main object in main table
-    const updated = await defaultUpdate(knex, tableName, attributesCleaner, id, updatedObject, returning);
+    const updated = await defaultUpdate(knex, tableName, attributesCleaner, id, updatedObject, { returning });
     try {
         // Update services if they are not undefined (partial update)
         const services = updatedObject.services;
@@ -215,7 +215,7 @@ const update = async (id: string, updatedObject: Partial<ScenarioAttributes>, re
 };
 
 const updateMultiple = async (updatedObjects: Partial<ScenarioAttributes>[], returning?: string) => {
-    const updated = await defaultUpdateMultiple(knex, tableName, attributesCleaner, updatedObjects, returning);
+    const updated = await defaultUpdateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
     try {
         // Update services if they are not undefined (partial update)
         const objectsToUpdate = updatedObjects.filter((object) => object.services !== undefined);
