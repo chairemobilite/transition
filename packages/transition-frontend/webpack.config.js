@@ -31,12 +31,12 @@ const entryFileName =  './lib/app-transition.js';
 module.exports = (env) => {
   console.log(`building js for project ${config.projectShortname}`);
   console.log('process.env.NODE_ENV', process.env.NODE_ENV);
-  console.log('ENV ARG', env);
+
+  // Converted from webpack 4
   if (env.production) env = 'production'
   else if (env.development) env = 'development'
   else if (env.test) env = 'test'
   else throw new Error(`Unexpected --env used calling webpack: ${JSON.stringify(env)}`)
-  console.log('ENV (processed) ARG', env);
 
   const isProduction = env === 'production';
 
@@ -169,7 +169,7 @@ module.exports = (env) => {
       }),
       new webpack.optimize.AggressiveMergingPlugin(),//Merge chunks
       new CompressionPlugin({
-        filename: "[path].gz[query]",
+        filename: "[path][base].gz[query]",
         algorithm: "gzip",
         test: /\.js$|\.css$/,
         threshold: 0,
@@ -193,7 +193,8 @@ module.exports = (env) => {
     resolve: {
       mainFields: ['browser', 'main', 'module'],
       modules: ['node_modules'],
-      extensions: ['.json', '.js', '.css', '.scss', '.ts', '.tsx'],
+      // extensions: ['.json', '.js', '.css', '.scss', '.ts', '.tsx'],
+      extensions: ['.json', '.js', '.ts', '.tsx'],
       fallback: { path: false },
     },
     devtool: isProduction ? 'cheap-source-map' : 'eval-source-map',
