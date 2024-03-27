@@ -95,7 +95,7 @@
         "@types/stream-chain": "^2.0.1",
         "@types/stream-json": "^1.7.1",
         "@types/validator": "^13.6.6",
-        "@typescript-eslint/eslint-plugin": "^5.45.1",
+        "@typescript-eslint/eslint-plugin": "^5.62.0",
         "@typescript-eslint/parser": "^5.45.1",
         "cross-env": "^7.0.2",
         "eslint": "^8.29.0",

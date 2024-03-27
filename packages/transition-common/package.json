@@ -55,7 +55,7 @@
     "@types/kdbush": "^3.0.0",
     "@types/lodash": "^4.14.198",
     "@types/p-queue": "^3.2.1",
-    "@typescript-eslint/eslint-plugin": "^5.45.1",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.45.1",
     "cross-env": "^7.0.2",
     "dotenv": "^8.2.0",
@@ -66,6 +66,6 @@
     "jest-fetch-mock": "^3.0.3",
     "prettier-eslint-cli": "^7.1.0",
     "ts-jest": "^27.0.7",
-    "ts-loader": "^7.0.5"
+    "ts-loader": "^9.5.1"
   }
 }

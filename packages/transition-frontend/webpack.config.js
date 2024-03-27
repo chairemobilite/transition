@@ -30,9 +30,15 @@ const entryFileName =  './lib/app-transition.js';
 
 module.exports = (env) => {
   console.log(`building js for project ${config.projectShortname}`);
+  console.log('process.env.NODE_ENV', process.env.NODE_ENV);
+
+  // Converted from webpack 4
+  if (env.production) env = 'production'
+  else if (env.development) env = 'development'
+  else if (env.test) env = 'test'
+  else throw new Error(`Unexpected --env used calling webpack: ${JSON.stringify(env)}`)
 
   const isProduction = env === 'production';
-  console.log('process.env.NODE_ENV', process.env.NODE_ENV);
 
   const bundleFileName = isProduction ? `transition-${config.projectShortname}-bundle-${env}.[contenthash].js` : `transition-${config.projectShortname}-bundle-${env}.dev.js`;
   const styleFileName = isProduction ? `transition-${config.projectShortname}-styles.[contenthash].css` : `transition-${config.projectShortname}-styles.dev.css`;
@@ -45,6 +51,7 @@ module.exports = (env) => {
   const customStylesFilePath  = `${config.projectDir}/styles/styles.scss`;
   const customLocalesFilePath = `${config.projectDir}/locales`;
   const entry                 = fs.existsSync('./'+customStylesFilePath) ? [entryFileName, './'+customStylesFilePath] : [entryFileName];
+  console.log("ENTRY", entry.join("\n"))
   const includeDirectories    = [
     path.join(__dirname, 'lib'),
 
@@ -53,9 +60,12 @@ module.exports = (env) => {
   ];
 
   return {
-
+    stats: {
+      errorDetails: true,
+      children: true,
+    },
     mode: process.env.NODE_ENV,
-    entry: entry,
+    entry,
     output: {
       path: bundleOutputPath,
       filename: bundleFileName,
@@ -73,12 +83,20 @@ module.exports = (env) => {
           exclude: /node_modules/,
         },
         {
-          loader: 'json-loader',
+          use: 'json-loader',
           test: /\.geojson$/,
           include: includeDirectories
         },
         {
           test: /\.(ttf|woff2|woff|eot|svg)$/,
+/*
+          type: 'asset/inline',
+          parser: {
+            dataUrlCondition: {
+              maxSize: 100000
+            }
+          }
+*/
           loader: 'url-loader',
           options: {
             limit: 100000
@@ -86,7 +104,7 @@ module.exports = (env) => {
         },
         {
           test: /\.glsl$/,
-          loader: 'ts-shader-loader'
+          use: 'ts-shader-loader'
         },
         {
           test: /\.s?css$/,
@@ -135,7 +153,7 @@ module.exports = (env) => {
           'HOST'                        : JSON.stringify(process.env.HOST),
           'TRROUTING_HOST'              : JSON.stringify(process.env.TRROUTING_HOST),
           'PROJECT_SOURCE'              : JSON.stringify(process.env.PROJECT_SOURCE),
-          'NODE_ENV'                    : JSON.stringify(process.env.NODE_ENV),
+          'process.env.NODE_ENV'                    : JSON.stringify(process.env.NODE_ENV),
           'IS_TESTING'                  : JSON.stringify(env === 'test'),
           'GOOGLE_API_KEY'              : JSON.stringify(process.env.GOOGLE_API_KEY),
           'MAPBOX_ACCESS_TOKEN'         : JSON.stringify(process.env.MAPBOX_ACCESS_TOKEN),
@@ -151,7 +169,7 @@ module.exports = (env) => {
       }),
       new webpack.optimize.AggressiveMergingPlugin(),//Merge chunks
       new CompressionPlugin({
-        filename: "[path].gz[query]",
+        filename: "[path][base].gz[query]",
         algorithm: "gzip",
         test: /\.js$|\.css$/,
         threshold: 0,
@@ -173,8 +191,11 @@ module.exports = (env) => {
       )
     ],
     resolve: {
+      mainFields: ['browser', 'main', 'module'],
       modules: ['node_modules'],
-      extensions: ['.json', '.js', '.css', '.scss', '.ts', '.tsx'],
+      // extensions: ['.json', '.js', '.css', '.scss', '.ts', '.tsx'],
+      extensions: ['.json', '.js', '.ts', '.tsx'],
+      fallback: { path: false },
     },
     devtool: isProduction ? 'cheap-source-map' : 'eval-source-map',
     devServer: {
