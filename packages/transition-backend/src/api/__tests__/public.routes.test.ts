@@ -14,8 +14,12 @@ import tokensDbQueries from 'chaire-lib-backend/lib/models/db/tokens.db.queries'
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { calculateAccessibilityMap, calculateRoute } from '../../services/routingCalculation/RoutingCalculator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
+import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
 
 jest.mock('../../services/routingCalculation/RoutingCalculator');
+jest.mock('transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting');
+jest.mock('transition-common/lib/services/transitRouting/TransitRouting');
 
 // Mock passport (therefore ignoring authentication)
 jest.mock('passport');
@@ -128,10 +132,15 @@ describe('Testing endpoints', () => {
     });
 
     test('POST /api/accessibility, without geojson', async () => {
-        const attributes = { attribute: 'value' };
+        const attributes = { locationGeojson: 'value' };
         const result = 'result';
 
+        const mockTransitAccessibilityMapRouting = {
+            validate: () => true
+        };
+
         (calculateAccessibilityMap as jest.Mock).mockResolvedValue(result);
+        (TransitAccessibilityMapRouting as any).mockImplementation(() => mockTransitAccessibilityMapRouting);
 
         const response = await request(app)
             .post('/api/accessibility?withGeojson=false')
@@ -139,14 +148,19 @@ describe('Testing endpoints', () => {
 
         expect(response.status).toStrictEqual(200);
         expect(response.body).toStrictEqual(result);
-        expect(calculateAccessibilityMap).toBeCalledWith(attributes, false);
+        expect(calculateAccessibilityMap).toBeCalledWith(mockTransitAccessibilityMapRouting, false);
     });
 
     test('POST /api/accessibility, with geojson', async () => {
-        const attributes = { attribute: 'value' };
+        const attributes = { locationGeojson: 'value' };
         const result = 'result';
 
+        const mockTransitAccessibilityMapRouting = {
+            validate: () => true
+        };
+
         (calculateAccessibilityMap as jest.Mock).mockResolvedValue(result);
+        (TransitAccessibilityMapRouting as any).mockImplementation(() => mockTransitAccessibilityMapRouting);
 
         const response = await request(app)
             .post('/api/accessibility?withGeojson=true')
@@ -154,54 +168,152 @@ describe('Testing endpoints', () => {
 
         expect(response.status).toStrictEqual(200);
         expect(response.body).toStrictEqual(result);
-        expect(calculateAccessibilityMap).toBeCalledWith(attributes, true);
+        expect(calculateAccessibilityMap).toBeCalledWith(mockTransitAccessibilityMapRouting, true);
+    });
+
+    test('POST /api/accessibility, without locationGeojson', async () => {
+        const attributes = { notLocationGeojson: 'value' };
+
+        const response = await request(app)
+            .post('/api/accessibility')
+            .send(attributes);
+
+        expect(response.status).toStrictEqual(400);
+        expect(calculateAccessibilityMap).toBeCalledTimes(0);
+    });
+
+    test('POST /api/accessibility, routing validation fails', async () => {
+        const attributes = { locationGeojson: 'value' };
+
+        const mockTransitAccessibilityMapRouting = {
+            validate: () => false,
+            errors: []
+        };
+
+        (TransitAccessibilityMapRouting as any).mockImplementation(() => mockTransitAccessibilityMapRouting);
+
+        const response = await request(app)
+            .post('/api/accessibility?withGeojson=true')
+            .send(attributes);
+
+        expect(response.status).toStrictEqual(400);
+        expect(calculateAccessibilityMap).toBeCalledTimes(0);
     });
 
     test('POST /api/accessibility, with error', async () => {
+        const attributes = { locationGeojson: 'value' };
+
+        const mockTransitAccessibilityMapRouting = {
+            validate: () => true
+        };
+
         (calculateAccessibilityMap as jest.Mock).mockImplementation(() => {
             throw new Error();
         });
+        (TransitAccessibilityMapRouting as any).mockImplementation(() => mockTransitAccessibilityMapRouting);
 
-        const response = await request(app).post('/api/accessibility');
+        const response = await request(app)
+            .post('/api/accessibility')
+            .send(attributes);
 
         expect(response.status).toStrictEqual(500);
         expect(calculateAccessibilityMap).toBeCalled();
     });
 
     test('POST /api/route, without geojson', async () => {
-        const attributes = { attribute: 'value' };
         const result = 'result';
 
-        (calculateRoute as jest.Mock).mockResolvedValue(result);
+        const mockTransitRouting = {
+            originDestinationToGeojson: () => ({
+                features: {
+                    length: 2
+                }
+            }),
+            validate: () => true
+        };
 
-        const response = await request(app)
-            .post('/api/route?withGeojson=false')
-            .send(attributes);
+        (calculateRoute as jest.Mock).mockResolvedValue(result);
+        (TransitRouting as any).mockImplementation(() => mockTransitRouting);
+
+        const response = await request(app).post('/api/route?withGeojson=false');
 
         expect(response.status).toStrictEqual(200);
         expect(response.body).toStrictEqual(result);
-        expect(calculateRoute).toBeCalledWith(attributes, false);
+        expect(calculateRoute).toBeCalledWith(mockTransitRouting, false);
     });
 
     test('POST /api/route, with geojson', async () => {
-        const attributes = { attribute: 'value' };
         const result = 'result';
 
-        (calculateRoute as jest.Mock).mockResolvedValue(result);
+        const mockTransitRouting = {
+            originDestinationToGeojson: () => ({
+                features: {
+                    length: 2
+                }
+            }),
+            validate: () => true
+        };
 
-        const response = await request(app)
-            .post('/api/route?withGeojson=true')
-            .send(attributes);
+        (calculateRoute as jest.Mock).mockResolvedValue(result);
+        (TransitRouting as any).mockImplementation(() => mockTransitRouting);
+
+        const response = await request(app).post('/api/route?withGeojson=true');
 
         expect(response.status).toStrictEqual(200);
         expect(response.body).toStrictEqual(result);
-        expect(calculateRoute).toBeCalledWith(attributes, true);
+        expect(calculateRoute).toBeCalledWith(mockTransitRouting, true);
+    });
+
+    test('POST /api/route, without origin/destination', async () => {
+        const mockTransitRouting = {
+            originDestinationToGeojson: () => ({
+                features: {
+                    length: 0
+                }
+            })
+        };
+
+        (TransitRouting as any).mockImplementation(() => mockTransitRouting);
+
+        const response = await request(app).post('/api/route');
+
+        expect(response.status).toStrictEqual(400);
+        expect(calculateRoute).toBeCalledTimes(0);
+    });
+
+    test('POST /api/route, routing validation fails', async () => {
+        const mockTransitRouting = {
+            originDestinationToGeojson: () => ({
+                features: {
+                    length: 2
+                }
+            }),
+            validate: () => false,
+            errors: []
+        };
+
+        (TransitRouting as any).mockImplementation(() => mockTransitRouting);
+
+        const response = await request(app).post('/api/route');
+
+        expect(response.status).toStrictEqual(400);
+        expect(calculateRoute).toBeCalledTimes(0);
     });
 
     test('POST /api/route, with error', async () => {
+        const mockTransitRouting = {
+            originDestinationToGeojson: () => ({
+                features: {
+                    length: 2
+                }
+            }),
+            validate: () => true
+        };
+
         (calculateRoute as jest.Mock).mockImplementation(() => {
             throw new Error();
         });
+        (TransitRouting as any).mockImplementation(() => mockTransitRouting);
 
         const response = await request(app).post('/api/route');
 
