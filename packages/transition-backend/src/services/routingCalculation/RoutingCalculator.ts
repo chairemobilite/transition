@@ -29,7 +29,6 @@ import {
     TransitAccessibilityMapWithPolygonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
-import { getAttributesOrDefault } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
 
 export type SingleRouteCalculationResult =
     | (ResultParams & {
@@ -44,22 +43,13 @@ export type SingleAccessibilityMapCalculationResult =
       };
 
 export async function calculateRoute(
-    attributes: TransitRoutingAttributes,
+    routing: TransitRouting,
     withGeojson: boolean
 ): Promise<SingleRouteCalculationResult> {
     // Start trRouting if it is not running
     const trRoutingStatus = await trRoutingProcessManager.status({});
     if (trRoutingStatus.status === 'not_running') {
         await trRoutingProcessManager.start({});
-    }
-
-    const routing: TransitRouting = new TransitRouting(attributes);
-    if (!routing.validate()) {
-        const formattedErrors = routing.errors.map(e => { return e.split(':').pop() });
-        const errorMessage = "Validation failed for routing attributes:\n" + formattedErrors.join('\n');
-        const error = new Error(errorMessage);
-        (error as any).statusCode = 400;
-        throw error;
     }
 
     const resultsByMode: ResultsByMode = await TransitRoutingCalculator.calculate(routing, false, {});
@@ -89,28 +79,13 @@ export async function calculateRoute(
 }
 
 export async function calculateAccessibilityMap(
-    attributes: AccessibilityMapAttributes,
+    routing: TransitAccessibilityMapRouting,
     withGeojson: boolean
 ): Promise<SingleAccessibilityMapCalculationResult> {
     // Start trRouting if it is not running
     const trRoutingStatus = await trRoutingProcessManager.status({});
     if (trRoutingStatus.status === 'not_running') {
         await trRoutingProcessManager.start({});
-    }
-
-    // Update attributes with default optionnal values
-    attributes = {
-        ...attributes, // Original attributes
-        ...getAttributesOrDefault(attributes) // New values eventually updated
-    }
-    const routing = new TransitAccessibilityMapRouting(attributes);
-
-    if (!routing.validate()) {
-        const formattedErrors = routing.errors.map(e => { return e.split(':').pop() });
-        const errorMessage = "Validation failed for accessibility map attributes:\n" + formattedErrors.join('\n');
-        const error = new Error(errorMessage);
-        (error as any).statusCode = 400;
-        throw error;
     }
 
     let routingResult: SingleAccessibilityMapCalculationResult;
