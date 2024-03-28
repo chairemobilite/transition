@@ -10,7 +10,9 @@ import tokensDbQueries from 'chaire-lib-backend/lib/models/db/tokens.db.queries'
 import transitObjectDataHandlers from '../services/transitObjects/TransitObjectsDataHandler';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
-import TransitAccessibilityMapRouting, { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import TransitAccessibilityMapRouting, {
+    AccessibilityMapAttributes
+} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import {
     SingleAccessibilityMapCalculationResult,
@@ -86,17 +88,14 @@ export default function (app: express.Express, passport: PassportStatic) {
                 const message = 'Invalid origin/destination';
                 return res.status(400).send(message);
             }
-            
+
             if (!routing.validate()) {
-                const formattedErrors = routing.errors.map(e => e.split(':').pop());
+                const formattedErrors = routing.errors.map((e) => e.split(':').pop());
                 const message = 'Validation failed for routing attributes:\n' + formattedErrors.join('\n');
                 return res.status(400).send(message);
             }
 
-            const routingResult: SingleRouteCalculationResult = await calculateRoute(
-                routing,
-                withGeojson
-            );
+            const routingResult: SingleRouteCalculationResult = await calculateRoute(routing, withGeojson);
             res.status(200).json(routingResult);
         } catch (error) {
             next(error);
@@ -114,10 +113,10 @@ export default function (app: express.Express, passport: PassportStatic) {
 
             const routing = new TransitAccessibilityMapRouting(getAttributesOrDefault(calculationAttributes));
             if (!routing.validate()) {
-                const formattedErrors = routing.errors.map(e => e.split(':').pop());
+                const formattedErrors = routing.errors.map((e) => e.split(':').pop());
                 const message = 'Validation failed for routing attributes:\n' + formattedErrors.join('\n');
                 return res.status(400).send(message);
-            } 
+            }
 
             const routingResult: SingleAccessibilityMapCalculationResult = await calculateAccessibilityMap(
                 routing,
@@ -144,7 +143,7 @@ export default function (app: express.Express, passport: PassportStatic) {
             body = err;
         }
 
-        res.status(500).send(body)
+        res.status(500).send(body);
     });
 
     app.use('/api', router);
