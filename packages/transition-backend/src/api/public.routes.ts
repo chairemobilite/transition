@@ -133,17 +133,8 @@ export default function (app: express.Express, passport: PassportStatic) {
     router.use((err, req, res, next) => {
         console.error(err);
 
-        let body;
-        if (Object.hasOwn(err, 'message')) {
-            body = err.message;
-        } else if (Object.hasOwn(err, 'error')) {
-            // This property can be generated, for example, by the TrError.export() function and may contain a relevant error message
-            body = err.error;
-        } else {
-            body = err;
-        }
-
-        res.status(500).send(body);
+        const message = 'Internal Server Error';
+        res.status(500).send(message);
     });
 
     app.use('/api', router);
