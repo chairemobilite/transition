@@ -89,14 +89,6 @@ module.exports = (env) => {
         },
         {
           test: /\.(ttf|woff2|woff|eot|svg)$/,
-/*
-          type: 'asset/inline',
-          parser: {
-            dataUrlCondition: {
-              maxSize: 100000
-            }
-          }
-*/
           loader: 'url-loader',
           options: {
             limit: 100000
@@ -193,7 +185,6 @@ module.exports = (env) => {
     resolve: {
       mainFields: ['browser', 'main', 'module'],
       modules: ['node_modules'],
-      // extensions: ['.json', '.js', '.css', '.scss', '.ts', '.tsx'],
       extensions: ['.json', '.js', '.ts', '.tsx'],
       fallback: { path: false },
     },
