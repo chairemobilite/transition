@@ -8,9 +8,9 @@
   "repository": "github.com/chairemobilite/transition",
   "license": "MIT",
   "scripts": {
-    "build:dev": "cross-env NODE_OPTIONS=\"--trace-deprecation --max_old_space_size=4096 --openssl-legacy-provider\" webpack watch --progress --color --env development --mode development",
-    "build:prod": "cross-env NODE_OPTIONS=\"--trace-deprecation --max_old_space_size=4096 --openssl-legacy-provider\" webpack --progress --color --env production --mode production",
-    "build:test": "cross-env NODE_ENV=\"test\" NODE_OPTIONS=\"--openssl-legacy-provider\" webpack watch --env test --mode development --progress --color",
+    "build:dev": "cross-env NODE_OPTIONS=\"--trace-deprecation --max_old_space_size=4096\" webpack watch --progress --color --env development --mode development",
+    "build:prod": "cross-env NODE_OPTIONS=\"--trace-deprecation --max_old_space_size=4096\" webpack --progress --color --env production --mode production",
+    "build:test": "cross-env NODE_ENV=\"test\" webpack watch --env test --mode development --progress --color",
     "compile": "tsc && yarn copy-files",
     "compile:dev": "yarn copy-files && tsc -w",
     "clean": "rimraf lib/",
