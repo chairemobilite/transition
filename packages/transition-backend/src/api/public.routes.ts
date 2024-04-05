@@ -21,8 +21,9 @@ import {
     calculateRoute
 } from '../services/routingCalculation/RoutingCalculator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { FeatureCollection } from 'geojson';
 import { getAttributesOrDefault } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
+import { FeatureCollection } from 'geojson';
+
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
@@ -73,7 +74,8 @@ export default function (app: express.Express, passport: PassportStatic) {
         try {
             const status = await transitObjectDataHandlers.paths.geojsonCollection!();
             const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection };
-            res.status(200).json(result.geojson);
+            const response = createPathsApiResponse(result.geojson)
+            res.status(200).json(response);
         } catch (error) {
             next(error);
         }
@@ -83,7 +85,8 @@ export default function (app: express.Express, passport: PassportStatic) {
         try {
             const status = await transitObjectDataHandlers.nodes.geojsonCollection!();
             const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection };
-            res.status(200).json(result.geojson);
+            const response = createNodesApiResponse(result.geojson);
+            res.status(200).json(response);
         } catch (error) {
             next(error);
         }
@@ -139,8 +142,8 @@ export default function (app: express.Express, passport: PassportStatic) {
                 const message = 'There should be a valid location';
                 return res.status(400).send(message);
             }
-
-            const routing = new TransitAccessibilityMapRouting(getAttributesOrDefault(calculationAttributes));
+            const attributes = getAttributesOrDefault(calculationAttributes)
+            const routing = new TransitAccessibilityMapRouting(attributes);
             if (!routing.validate()) {
                 const formattedErrors = routing.errors.map((e) => e.split(':').pop());
                 const message = 'Validation failed for routing attributes:\n' + formattedErrors.join('\n');
@@ -151,6 +154,7 @@ export default function (app: express.Express, passport: PassportStatic) {
                 routing,
                 withGeojson
             );
+            //const response = createAccessibilityApiResponse(, attributes) 
             res.status(200).json(routingResult);
         } catch (error) {
             next(error);
@@ -167,4 +171,35 @@ export default function (app: express.Express, passport: PassportStatic) {
     });
 
     app.use('/api', router);
+}
+
+function createPathsApiResponse(geojson: FeatureCollection) {
+    for (const feature of geojson.features) {
+        feature.properties = {
+            id: feature.properties?.id,
+            mode: feature.properties?.mode,
+            name: feature.properties?.name,
+            nodes: feature.properties?.nodes,
+            line_id: feature.properties?.line_id,
+            direction: feature.properties?.direction
+        }
+    }
+    return geojson
+}
+
+function createNodesApiResponse(geojson: FeatureCollection) {
+    for (const feature of geojson.features) {
+        feature.properties = {
+            id: feature.properties?.id,
+            code: feature.properties?.code,
+            name: feature.properties?.name,
+            stops: feature.properties?.data.stops.map((stop) => ({
+                id: stop.id,
+                code: stop.code,
+                name: stop.name,
+                geography: stop.geography
+            }))
+        }
+    }
+    return geojson
 }
