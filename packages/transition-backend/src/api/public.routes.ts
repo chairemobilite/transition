@@ -22,8 +22,8 @@ import {
 } from '../services/routingCalculation/RoutingCalculator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { getAttributesOrDefault } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
-import { FeatureCollection } from 'geojson';
-
+import { FeatureCollection, LineString, Point } from 'geojson';
+import { ScenarioAttributes } from 'transition-common/lib/services/scenario/Scenario';
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
@@ -73,7 +73,7 @@ export default function (app: express.Express, passport: PassportStatic) {
     router.get('/paths', async (req, res, next) => {
         try {
             const status = await transitObjectDataHandlers.paths.geojsonCollection!();
-            const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection };
+            const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection<LineString> };
             const response = createPathsApiResponse(result.geojson)
             res.status(200).json(response);
         } catch (error) {
@@ -84,7 +84,7 @@ export default function (app: express.Express, passport: PassportStatic) {
     router.get('/nodes', async (req, res, next) => {
         try {
             const status = await transitObjectDataHandlers.nodes.geojsonCollection!();
-            const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection };
+            const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection<Point> };
             const response = createNodesApiResponse(result.geojson);
             res.status(200).json(response);
         } catch (error) {
@@ -94,8 +94,9 @@ export default function (app: express.Express, passport: PassportStatic) {
 
     router.get('/scenarios', async (req, res, next) => {
         try {
-            const attributes = await transitObjectDataHandlers.scenarios.collection!(null);
-            res.status(200).json(attributes);
+            const scenarios = await transitObjectDataHandlers.scenarios.collection!(null);
+            const response = createScenariosApiResponse(scenarios.collection);
+            res.status(200).json(response);
         } catch (error) {
             next(error);
         }
@@ -173,8 +174,8 @@ export default function (app: express.Express, passport: PassportStatic) {
     app.use('/api', router);
 }
 
-function createPathsApiResponse(geojson: FeatureCollection) {
-    for (const feature of geojson.features) {
+function createPathsApiResponse(pathsGeojson: FeatureCollection<LineString>) {
+    for (const feature of pathsGeojson.features) {
         feature.properties = {
             id: feature.properties?.id,
             mode: feature.properties?.mode,
@@ -184,11 +185,11 @@ function createPathsApiResponse(geojson: FeatureCollection) {
             direction: feature.properties?.direction
         }
     }
-    return geojson
+    return pathsGeojson
 }
 
-function createNodesApiResponse(geojson: FeatureCollection) {
-    for (const feature of geojson.features) {
+function createNodesApiResponse(nodesGeojson: FeatureCollection<Point>) {
+    for (const feature of nodesGeojson.features) {
         feature.properties = {
             id: feature.properties?.id,
             code: feature.properties?.code,
@@ -201,5 +202,21 @@ function createNodesApiResponse(geojson: FeatureCollection) {
             }))
         }
     }
-    return geojson
+    return nodesGeojson
+}
+
+function createScenariosApiResponse(scenarios: Array<ScenarioAttributes>) {
+    return scenarios.map((scenario: ScenarioAttributes) => ({
+        id: scenario.id,
+        name: scenario.name,
+        services: scenario.services,
+        only_agencies: scenario.only_agencies,
+        except_agencies: scenario.except_agencies,
+        only_lines: scenario.only_lines,
+        except_lines: scenario.except_lines,
+        only_nodes: scenario.only_nodes,
+        except_nodes: scenario.except_agencies,
+        only_modes: scenario.only_modes,
+        except_modes: scenario.except_modes
+    }));
 }
