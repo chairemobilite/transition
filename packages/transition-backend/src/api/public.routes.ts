@@ -30,7 +30,7 @@ export default function (app: express.Express, passport: PassportStatic) {
             if (err) {
                 console.error(err);
 
-                if (err == 'UnknownUser' || err == 'PasswordsDontMatch') {
+                if (err === 'UnknownUser' || err === 'PasswordsDontMatch') {
                     return res.status(400).send(err);
                 } else {
                     const message = 'Internal Server Error';
@@ -39,7 +39,7 @@ export default function (app: express.Express, passport: PassportStatic) {
             }
 
             next();
-        })(req, res, next)
+        })(req, res, next);
     });
 
     app.post('/token', async (req, res, next) => {
