@@ -29,19 +29,27 @@ export default function (app: express.Express, passport: PassportStatic) {
         passport.authenticate('local-login', (err, user, info) => {
             if (err) {
                 console.error(err);
-                // TODO: Return the correct HTTP status code depending on the error encountered
-                return res.status(500).send(err);
+
+                if (err == 'UnknownUser' || err == 'PasswordsDontMatch') {
+                    return res.status(400).send(err);
+                } else {
+                    const message = 'Internal Server Error';
+                    return res.status(500).send(message);
+                }
             }
+
             next();
-        })(req, res, next);
+        })(req, res, next)
     });
 
-    app.post('/token', async (req, res) => {
+    app.post('/token', async (req, res, next) => {
         try {
             const token = await tokensDbQueries.getOrCreate(req.body.usernameOrEmail);
             res.status(200).send(token);
         } catch (error) {
-            res.status(500).send(error);
+            console.error(error);
+            const message = 'Internal Server Error';
+            res.status(500).send(message);
         }
     });
 
