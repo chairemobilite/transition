@@ -25,7 +25,16 @@ import { FeatureCollection } from 'geojson';
 import { getAttributesOrDefault } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
 
 export default function (app: express.Express, passport: PassportStatic) {
-    app.use('/token', passport.authenticate('local-login', { failWithError: true, failureMessage: true }));
+    app.use('/token', (req, res, next) => {
+        passport.authenticate('local-login', (err, user, info) => {
+            if (err) {
+                console.error(err);
+                // TODO: Return the correct HTTP status code depending on the error encountered
+                return res.status(500).send(err);
+            }
+            next();
+        })(req, res, next);
+    });
 
     app.post('/token', async (req, res) => {
         try {
