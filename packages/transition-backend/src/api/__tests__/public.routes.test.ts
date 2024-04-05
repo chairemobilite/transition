@@ -20,27 +20,31 @@ import TransitRouting from 'transition-common/lib/services/transitRouting/Transi
 jest.mock('../../services/routingCalculation/RoutingCalculator');
 jest.mock('transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting');
 jest.mock('transition-common/lib/services/transitRouting/TransitRouting');
-
-// Mock passport (therefore ignoring authentication)
 jest.mock('passport');
-(passport.authenticate as jest.Mock).mockImplementation(() => {
-    return (req, res, next) => {
-        next();
-    }
-});
 
 beforeEach(() => {
     jest.clearAllMocks();
 });
 
-test('Passport middleware setup', () => {
+test('Passport bearer-strategy middleware setup', () => {
+    (passport.authenticate as jest.Mock).mockImplementation(() => {
+        return (req, res, next) => {
+            next();
+        };
+    });
+
     publicRoutes(express(), passport);
-    expect(passport.authenticate).toBeCalledTimes(2);
-    expect(passport.authenticate).toBeCalledWith('local-login', {'failWithError': true, 'failureMessage': true});
+    expect(passport.authenticate).toBeCalledTimes(1);
     expect(passport.authenticate).toBeCalledWith('bearer-strategy', { session: false });
 });
 
-describe('Testing endpoints', () => {
+describe('Testing POST /token endpoint', () => {
+    (passport.authenticate as jest.Mock).mockImplementation(() => {
+        return (req, res, next) => {
+            next();
+        };
+    });
+
     const app = express();
     app.use(express.json() as RequestHandler);
     publicRoutes(app, passport);
@@ -61,7 +65,7 @@ describe('Testing endpoints', () => {
     });
 
     test('POST /token, should return 500 when DB error', async () => {
-        tokensDbQueries.getOrCreate = jest.fn(() => {throw new TrError('This is an error', 'ERRORCODE')} ) as any;
+        tokensDbQueries.getOrCreate = jest.fn(() => { throw new TrError('This is an error', 'ERRORCODE') }) as any;
 
         const body = {
             usernameOrEmail: 'testuser',
@@ -74,6 +78,62 @@ describe('Testing endpoints', () => {
         expect(response.status).toStrictEqual(500);
         expect(tokensDbQueries.getOrCreate).toHaveBeenCalledWith(body.usernameOrEmail);
     });
+
+    test('POST /token, should return 400 when unknown user', async () => {
+        const error = 'UnknownUser';
+
+        tokensDbQueries.getOrCreate = jest.fn(() => Promise.resolve()) as any;
+        (passport.authenticate as jest.Mock).mockImplementation((strategy, options, callback) => {
+            return () => {
+                callback(error);
+            }
+        });
+
+        const body = {
+            usernameOrEmail: 'testuser',
+            password: 'testpassword'
+        };
+        const response = await request(app)
+            .post('/token')
+            .send(body);
+
+        expect(response.status).toStrictEqual(400);
+        expect(passport.authenticate).toHaveBeenCalledTimes(1);
+    });
+
+    test('POST /token, should return 400 when password does not match', async () => {
+        const error = 'PasswordsDontMatch';
+
+        tokensDbQueries.getOrCreate = jest.fn(() => Promise.resolve()) as any;
+        (passport.authenticate as jest.Mock).mockImplementation((strategy, options, callback) => {
+            return () => {
+                callback(error);
+            }
+        });
+
+        const body = {
+            usernameOrEmail: 'testuser',
+            password: 'testpassword'
+        };
+        const response = await request(app)
+            .post('/token')
+            .send(body);
+
+        expect(response.status).toStrictEqual(400);
+        expect(passport.authenticate).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('Testing API endpoints', () => {
+    (passport.authenticate as jest.Mock).mockImplementation(() => {
+        return (req, res, next) => {
+            next();
+        };
+    });
+
+    const app = express();
+    app.use(express.json() as RequestHandler);
+    publicRoutes(app, passport);
 
     test('GET /api/paths', async () => {
         const pathsGeojson = 'pathsGeojson';

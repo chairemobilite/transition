@@ -26,7 +26,7 @@ import { getAttributesOrDefault } from 'transition-common/lib/services/accessibi
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
-        passport.authenticate('local-login', (err, user, info) => {
+        passport.authenticate('local-login', { failWithError: true, failureMessage: true }, (err, user, info) => {
             if (err) {
                 console.error(err);
 
