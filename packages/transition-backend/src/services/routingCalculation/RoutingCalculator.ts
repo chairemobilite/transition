@@ -10,16 +10,17 @@ import {
     ResultParams,
     UnimodalRouteCalculationResult
 } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
-import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
 import {
     ResultsByMode,
     TransitRoutingCalculator
 } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
-import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+import {
+    TransitResultParams,
+    TransitRoutingResult
+} from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
-import TransitAccessibilityMapRouting, {
-    AccessibilityMapAttributes
-} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -29,14 +30,23 @@ import {
     TransitAccessibilityMapWithPolygonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
-export type SingleRouteCalculationResult =
-    | (ResultParams & {
-          pathsGeojson?: GeoJSON.FeatureCollection<GeoJSON.LineString>[];
-      })
-    | undefined;
+type UnimodalRouteCalculationResultParams = ResultParams & {
+    pathsGeojson?: GeoJSON.FeatureCollection<GeoJSON.LineString>[];
+};
 
-export type SingleAccessibilityMapCalculationResult =
+type TransitRouteCalculationResultParams = TransitResultParams & {
+    pathsGeojson?: GeoJSON.FeatureCollection<GeoJSON.LineString>[];
+};
+
+export type RouteCalculationResultParamsByMode = {
+    [key in RoutingMode]?: UnimodalRouteCalculationResultParams;
+} & {
+    transit?: TransitRouteCalculationResultParams;
+};
+
+export type AccessibilityMapCalculationResult =
     | TransitAccessibilityMapWithPolygonResult
     | {
           resultByNode: TrRoutingResultAccessibilityMap | undefined;
@@ -45,7 +55,7 @@ export type SingleAccessibilityMapCalculationResult =
 export async function calculateRoute(
     routing: TransitRouting,
     withGeojson: boolean
-): Promise<SingleRouteCalculationResult> {
+): Promise<RouteCalculationResultParamsByMode> {
     // Start trRouting if it is not running
     const trRoutingStatus = await trRoutingProcessManager.status({});
     if (trRoutingStatus.status === 'not_running') {
@@ -54,7 +64,7 @@ export async function calculateRoute(
 
     const resultsByMode: ResultsByMode = await TransitRoutingCalculator.calculate(routing, false, {});
 
-    const routingResult = {};
+    const routingResult: RouteCalculationResultParamsByMode = {};
     for (const routingMode in resultsByMode) {
         const modeResult: UnimodalRouteCalculationResult | TransitRoutingResult = resultsByMode[routingMode];
         routingResult[routingMode] = modeResult.getParams();
@@ -75,20 +85,20 @@ export async function calculateRoute(
         }
     }
 
-    return _isEmpty(routingResult) ? undefined : (routingResult as SingleRouteCalculationResult);
+    return routingResult;
 }
 
 export async function calculateAccessibilityMap(
     routing: TransitAccessibilityMapRouting,
     withGeojson: boolean
-): Promise<SingleAccessibilityMapCalculationResult> {
+): Promise<AccessibilityMapCalculationResult> {
     // Start trRouting if it is not running
     const trRoutingStatus = await trRoutingProcessManager.status({});
     if (trRoutingStatus.status === 'not_running') {
         await trRoutingProcessManager.start({});
     }
 
-    let routingResult: SingleAccessibilityMapCalculationResult;
+    let routingResult: AccessibilityMapCalculationResult;
 
     if (withGeojson) {
         // The calculateWithPolygons function in TransitAccessibilityMapCalculator requires a node collection,

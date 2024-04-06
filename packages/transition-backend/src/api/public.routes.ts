@@ -15,8 +15,8 @@ import TransitAccessibilityMapRouting, {
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import {
-    SingleAccessibilityMapCalculationResult,
-    SingleRouteCalculationResult,
+    AccessibilityMapCalculationResult,
+    RouteCalculationResultParamsByMode,
     calculateAccessibilityMap,
     calculateRoute
 } from '../services/routingCalculation/RoutingCalculator';
@@ -74,7 +74,7 @@ export default function (app: express.Express, passport: PassportStatic) {
         try {
             const status = await transitObjectDataHandlers.paths.geojsonCollection!();
             const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection<LineString> };
-            const response = createPathsApiResponse(result.geojson)
+            const response = createPathsApiResponse(result.geojson);
             res.status(200).json(response);
         } catch (error) {
             next(error);
@@ -128,7 +128,7 @@ export default function (app: express.Express, passport: PassportStatic) {
                 return res.status(400).send(message);
             }
 
-            const routingResult: SingleRouteCalculationResult = await calculateRoute(routing, withGeojson);
+            const routingResult: RouteCalculationResultParamsByMode = await calculateRoute(routing, withGeojson);
             res.status(200).json(routingResult);
         } catch (error) {
             next(error);
@@ -143,7 +143,7 @@ export default function (app: express.Express, passport: PassportStatic) {
                 const message = 'There should be a valid location';
                 return res.status(400).send(message);
             }
-            const attributes = getAttributesOrDefault(calculationAttributes)
+            const attributes = getAttributesOrDefault(calculationAttributes);
             const routing = new TransitAccessibilityMapRouting(attributes);
             if (!routing.validate()) {
                 const formattedErrors = routing.errors.map((e) => e.split(':').pop());
@@ -151,11 +151,11 @@ export default function (app: express.Express, passport: PassportStatic) {
                 return res.status(400).send(message);
             }
 
-            const routingResult: SingleAccessibilityMapCalculationResult = await calculateAccessibilityMap(
+            const routingResult: AccessibilityMapCalculationResult = await calculateAccessibilityMap(
                 routing,
                 withGeojson
             );
-            //const response = createAccessibilityApiResponse(, attributes) 
+            //const response = createAccessibilityApiResponse(, attributes)
             res.status(200).json(routingResult);
         } catch (error) {
             next(error);
@@ -183,9 +183,9 @@ function createPathsApiResponse(pathsGeojson: FeatureCollection<LineString>) {
             nodes: feature.properties?.nodes,
             line_id: feature.properties?.line_id,
             direction: feature.properties?.direction
-        }
+        };
     }
-    return pathsGeojson
+    return pathsGeojson;
 }
 
 function createNodesApiResponse(nodesGeojson: FeatureCollection<Point>) {
@@ -200,9 +200,9 @@ function createNodesApiResponse(nodesGeojson: FeatureCollection<Point>) {
                 name: stop.name,
                 geography: stop.geography
             }))
-        }
+        };
     }
-    return nodesGeojson
+    return nodesGeojson;
 }
 
 function createScenariosApiResponse(scenarios: Array<ScenarioAttributes>) {
