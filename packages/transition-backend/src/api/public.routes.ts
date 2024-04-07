@@ -160,7 +160,7 @@ export default function (app: express.Express, passport: PassportStatic) {
                 routing,
                 withGeojson
             );
-            const response = createAccessibilityMapApiResponse(routingResult);
+            const response = createAccessibilityMapApiResponse(routingResult, attributes);
             res.status(200).json(response);
         } catch (error) {
             next(error);
@@ -305,12 +305,39 @@ function createRoutingApiResponse(routingResult: RouteCalculationResultParamsByM
     return response;
 }
 
-function createAccessibilityMapApiResponse(routingResult: AccessibilityMapCalculationResult) {
+function createAccessibilityMapApiResponse(
+    routingResult: AccessibilityMapCalculationResult,
+    inputAttributes: Partial<AccessibilityMapAttributes>
+) {
+    const query = {
+        locationGeojson: {
+            type: inputAttributes.locationGeojson?.type,
+            geometry: inputAttributes.locationGeojson?.geometry,
+            properties: {}
+        },
+        scenarioId: inputAttributes.scenarioId,
+        departureTimeSecondsSinceMidnight: inputAttributes.departureTimeSecondsSinceMidnight ?? undefined,
+        arrivalTimeSecondsSinceMidnight: inputAttributes.arrivalTimeSecondsSinceMidnight ?? undefined,
+        numberOfPolygons: inputAttributes.numberOfPolygons,
+        deltaSeconds: inputAttributes.deltaSeconds,
+        deltaIntervalSeconds: inputAttributes.deltaIntervalSeconds,
+        maxTotalTravelTimeSeconds: inputAttributes.maxTotalTravelTimeSeconds,
+        minWaitingTimeSeconds: inputAttributes.minWaitingTimeSeconds,
+        maxAccessEgressTravelTimeSeconds: inputAttributes.maxAccessEgressTravelTimeSeconds,
+        maxTransferTravelTimeSeconds: inputAttributes.maxTransferTravelTimeSeconds,
+        maxFirstWaitingTimeSeconds: inputAttributes.maxFirstWaitingTimeSeconds,
+        walkingSpeedMps: inputAttributes.walkingSpeedMps
+    };
+
     if ('polygons' in routingResult) {
         routingResult.polygons.features = routingResult.polygons.features.map((feature: Feature<MultiPolygon>) => ({
             ...feature,
             properties: {}
         }));
     }
-    return routingResult;
+
+    return {
+        query: query,
+        ...routingResult
+    };
 }
