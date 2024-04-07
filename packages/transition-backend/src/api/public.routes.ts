@@ -31,7 +31,7 @@ export default function (app: express.Express, passport: PassportStatic) {
                 console.error(err);
 
                 if (err === 'UnknownUser' || err === 'PasswordsDontMatch') {
-                    return res.status(400).send(err);
+                    return res.status(401).send(err);
                 } else {
                     const message = 'Internal Server Error';
                     return res.status(500).send(message);
