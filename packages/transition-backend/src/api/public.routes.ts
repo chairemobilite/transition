@@ -28,6 +28,8 @@ import { Feature, FeatureCollection, LineString, MultiPolygon, Point } from 'geo
 import { ScenarioAttributes } from 'transition-common/lib/services/scenario/Scenario';
 import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
+import { getTransitRouteQueryOptionsOrDefault } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
+import { TransitRouteQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
@@ -133,7 +135,7 @@ export default function (app: express.Express, passport: PassportStatic) {
             }
 
             const routingResult: RouteCalculationResultParamsByMode = await calculateRoute(routing, withGeojson);
-            const response = createRoutingApiResponse(routingResult);
+            const response = createRoutingApiResponse(routingResult, calculationAttributes);
             res.status(200).json(response);
         } catch (error) {
             next(error);
@@ -226,8 +228,48 @@ function createScenariosApiResponse(scenarios: Array<ScenarioAttributes>) {
     }));
 }
 
-function createRoutingApiResponse(routingResult: RouteCalculationResultParamsByMode) {
-    const response = {};
+function createRoutingApiResponse(
+    routingResult: RouteCalculationResultParamsByMode,
+    inputAttributes: TransitRoutingAttributes
+) {
+    const query: any = {
+        routingModes: inputAttributes.routingModes,
+        originGeojson: {
+            type: inputAttributes.originGeojson!.type,
+            properties: {
+                location: inputAttributes.originGeojson!.properties?.location
+            },
+            geometry: inputAttributes.originGeojson!.geometry
+        },
+        destinationGeojson: {
+            type: inputAttributes.destinationGeojson!.type,
+            properties: {
+                locations: inputAttributes.destinationGeojson!.properties?.location
+            },
+            geometry: inputAttributes.destinationGeojson!.geometry
+        }
+    };
+
+    if ('transit' in routingResult) {
+        const transitRouteQueryOptions: TransitRouteQueryOptions = getTransitRouteQueryOptionsOrDefault(
+            inputAttributes,
+            [inputAttributes.originGeojson!, inputAttributes.destinationGeojson!]
+        );
+        query.scenarioId = inputAttributes.scenarioId;
+        query.departureTimeSecondsSinceMidnight = inputAttributes.departureTimeSecondsSinceMidnight ?? undefined;
+        query.arrivalTimeSecondsSinceMidnight = inputAttributes.arrivalTimeSecondsSinceMidnight ?? undefined;
+        query.maxTotalTravelTimeSeconds = transitRouteQueryOptions.maxTravelTime;
+        query.minWaitingTimeSeconds = transitRouteQueryOptions.minWaitingTime;
+        query.maxTransferTravelTimeSeconds = transitRouteQueryOptions.maxTransferTravelTime;
+        query.maxAccessEgressTravelTimeSeconds = transitRouteQueryOptions.maxAccessTravelTime;
+        query.maxFirstWaitingTimeSeconds = transitRouteQueryOptions.maxFirstWaitingTime;
+        query.withAlternatives = transitRouteQueryOptions.alternatives;
+    }
+
+    const response = {
+        query: query
+    };
+
     for (const mode in routingResult) {
         if (mode === 'transit') {
             const transitResultParams: TransitRouteCalculationResultParams = routingResult[mode]!;
