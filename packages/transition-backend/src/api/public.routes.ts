@@ -30,6 +30,7 @@ import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRouti
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { getTransitRouteQueryOptionsOrDefault } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 import { TransitRouteQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
+import PathsAPIResponse from './public/PathsAPIResponse';
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
@@ -80,8 +81,8 @@ export default function (app: express.Express, passport: PassportStatic) {
         try {
             const status = await transitObjectDataHandlers.paths.geojsonCollection!();
             const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection<LineString> };
-            const response = createPathsApiResponse(result.geojson);
-            res.status(200).json(response);
+            const response: PathsAPIResponse = new PathsAPIResponse(result.geojson);
+            res.status(200).json(response.getResponse());
         } catch (error) {
             next(error);
         }
@@ -179,20 +180,6 @@ export default function (app: express.Express, passport: PassportStatic) {
     });
 
     app.use('/api', router);
-}
-
-function createPathsApiResponse(pathsGeojson: FeatureCollection<LineString>) {
-    for (const feature of pathsGeojson.features) {
-        feature.properties = {
-            id: feature.properties?.id,
-            mode: feature.properties?.mode,
-            name: feature.properties?.name,
-            nodes: feature.properties?.nodes,
-            line_id: feature.properties?.line_id,
-            direction: feature.properties?.direction
-        };
-    }
-    return pathsGeojson;
 }
 
 function createNodesApiResponse(nodesGeojson: FeatureCollection<Point>) {
