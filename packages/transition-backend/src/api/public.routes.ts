@@ -244,7 +244,7 @@ function createRoutingApiResponse(
         destinationGeojson: {
             type: inputAttributes.destinationGeojson!.type,
             properties: {
-                locations: inputAttributes.destinationGeojson!.properties?.location
+                location: inputAttributes.destinationGeojson!.properties?.location
             },
             geometry: inputAttributes.destinationGeojson!.geometry
         }
@@ -284,7 +284,7 @@ function createRoutingApiResponse(
                 destination: {
                     type: transitResultParams.destination.type,
                     properties: {
-                        locations: transitResultParams.destination.properties?.location
+                        location: transitResultParams.destination.properties?.location
                     },
                     geometry: transitResultParams.destination.geometry
                 },
@@ -320,7 +320,7 @@ function createRoutingApiResponse(
                 destination: {
                     type: unimodalResultParams.destination.type,
                     properties: {
-                        locations: unimodalResultParams.destination.properties?.location
+                        location: unimodalResultParams.destination.properties?.location
                     },
                     geometry: unimodalResultParams.destination.geometry
                 },
