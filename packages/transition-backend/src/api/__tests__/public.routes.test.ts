@@ -79,7 +79,85 @@ describe('Testing POST /token endpoint', () => {
         expect(tokensDbQueries.getOrCreate).toHaveBeenCalledWith(body.usernameOrEmail);
     });
 
-    test('POST /token, should return 400 when unknown user', async () => {
+    test('POST /token, should return 400 with empty user', async () => {
+        tokensDbQueries.getOrCreate = jest.fn(() => Promise.resolve()) as any;
+        (passport.authenticate as jest.Mock).mockImplementation((strategy, options, callback) => {
+            return () => {
+                callback();
+            }
+        });
+
+        const body = {
+            usernameOrEmail: '',
+            password: 'testpassword'
+        };
+        const response = await request(app)
+            .post('/token')
+            .send(body);
+
+        expect(response.status).toStrictEqual(400);
+        expect(passport.authenticate).toHaveBeenCalledTimes(1);
+    });
+
+    test('POST /token, should return 400 with missing user', async () => {
+        tokensDbQueries.getOrCreate = jest.fn(() => Promise.resolve()) as any;
+        (passport.authenticate as jest.Mock).mockImplementation((strategy, options, callback) => {
+            return () => {
+                callback();
+            }
+        });
+
+        const body = {
+            password: 'testpassword'
+        };
+        const response = await request(app)
+            .post('/token')
+            .send(body);
+
+        expect(response.status).toStrictEqual(400);
+        expect(passport.authenticate).toHaveBeenCalledTimes(1);
+    });
+
+    test('POST /token, should return 400 with empty password', async () => {
+        tokensDbQueries.getOrCreate = jest.fn(() => Promise.resolve()) as any;
+        (passport.authenticate as jest.Mock).mockImplementation((strategy, options, callback) => {
+            return () => {
+                callback();
+            }
+        });
+
+        const body = {
+            usernameOrEmail: 'testuser',
+            password: ''
+        };
+        const response = await request(app)
+            .post('/token')
+            .send(body);
+
+        expect(response.status).toStrictEqual(400);
+        expect(passport.authenticate).toHaveBeenCalledTimes(1);
+    });
+
+    test('POST /token, should return 400 with missing password', async () => {
+        tokensDbQueries.getOrCreate = jest.fn(() => Promise.resolve()) as any;
+        (passport.authenticate as jest.Mock).mockImplementation((strategy, options, callback) => {
+            return () => {
+                callback();
+            }
+        });
+
+        const body = {
+            usernameOrEmail: 'testuser'
+        };
+        const response = await request(app)
+            .post('/token')
+            .send(body);
+
+        expect(response.status).toStrictEqual(400);
+        expect(passport.authenticate).toHaveBeenCalledTimes(1);
+    });
+
+    test('POST /token, should return 401 when unknown user', async () => {
         const error = 'UnknownUser';
 
         tokensDbQueries.getOrCreate = jest.fn(() => Promise.resolve()) as any;
@@ -97,11 +175,11 @@ describe('Testing POST /token endpoint', () => {
             .post('/token')
             .send(body);
 
-        expect(response.status).toStrictEqual(400);
+        expect(response.status).toStrictEqual(401);
         expect(passport.authenticate).toHaveBeenCalledTimes(1);
     });
 
-    test('POST /token, should return 400 when password does not match', async () => {
+    test('POST /token, should return 401 when password does not match', async () => {
         const error = 'PasswordsDontMatch';
 
         tokensDbQueries.getOrCreate = jest.fn(() => Promise.resolve()) as any;
@@ -119,7 +197,7 @@ describe('Testing POST /token endpoint', () => {
             .post('/token')
             .send(body);
 
-        expect(response.status).toStrictEqual(400);
+        expect(response.status).toStrictEqual(401);
         expect(passport.authenticate).toHaveBeenCalledTimes(1);
     });
 });

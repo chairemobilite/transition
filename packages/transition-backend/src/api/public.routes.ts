@@ -27,6 +27,18 @@ import { getAttributesOrDefault } from 'transition-common/lib/services/accessibi
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
         passport.authenticate('local-login', { failWithError: true, failureMessage: true }, (err, user, info) => {
+            const credentials = req.body;
+            if (!credentials.usernameOrEmail) {
+                const message = 'MissingUsernameOrEmail';
+                console.error(message);
+                return res.status(400).send(message);
+            }
+            if (!credentials.password) {
+                const message = 'MissingPassword';
+                console.error(message);
+                return res.status(400).send(message);
+            }
+
             if (err) {
                 console.error(err);
 
