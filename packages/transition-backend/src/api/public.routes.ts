@@ -17,13 +17,17 @@ import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/
 import {
     AccessibilityMapCalculationResult,
     RouteCalculationResultParamsByMode,
+    TransitRouteCalculationResultParams,
+    UnimodalRouteCalculationResultParams,
     calculateAccessibilityMap,
     calculateRoute
 } from '../services/routingCalculation/RoutingCalculator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { getAttributesOrDefault } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
-import { FeatureCollection, LineString, Point } from 'geojson';
+import { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import { ScenarioAttributes } from 'transition-common/lib/services/scenario/Scenario';
+import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
@@ -129,7 +133,8 @@ export default function (app: express.Express, passport: PassportStatic) {
             }
 
             const routingResult: RouteCalculationResultParamsByMode = await calculateRoute(routing, withGeojson);
-            res.status(200).json(routingResult);
+            const response = createRoutingApiResponse(routingResult);
+            res.status(200).json(response);
         } catch (error) {
             next(error);
         }
@@ -219,4 +224,85 @@ function createScenariosApiResponse(scenarios: Array<ScenarioAttributes>) {
         only_modes: scenario.only_modes,
         except_modes: scenario.except_modes
     }));
+}
+
+function createRoutingApiResponse(routingResult: RouteCalculationResultParamsByMode) {
+    const response = {};
+    for (const mode in routingResult) {
+        if (mode === 'transit') {
+            const transitResultParams: TransitRouteCalculationResultParams = routingResult[mode]!;
+            response[mode] = {
+                origin: {
+                    type: transitResultParams.origin.type,
+                    properties: {
+                        location: transitResultParams.origin.properties?.location
+                    },
+                    geometry: transitResultParams.origin.geometry
+                },
+                destination: {
+                    type: transitResultParams.destination.type,
+                    properties: {
+                        locations: transitResultParams.destination.properties?.location
+                    },
+                    geometry: transitResultParams.destination.geometry
+                },
+                paths: transitResultParams.paths.map((path: TrRoutingRoute) => {
+                    const { originDestination, timeOfTrip, timeOfTripType, ...rest } = path;
+                    return rest;
+                }),
+                pathsGeojson: transitResultParams.pathsGeojson?.map((pathGeojson: FeatureCollection) => ({
+                    type: pathGeojson.type,
+                    features: pathGeojson.features.map((feature: Feature) => ({
+                        id: feature.id,
+                        type: feature.type,
+                        geometry: feature.geometry,
+                        properties: {
+                            stepSequence: feature.properties?.stepSequence,
+                            action: feature.properties?.action,
+                            distanceMeters: feature.properties?.distanceMeters,
+                            travelTimeSeconds: feature.properties?.travelTimeSeconds
+                        }
+                    }))
+                }))
+            };
+        } else {
+            const unimodalResultParams: UnimodalRouteCalculationResultParams = routingResult[mode];
+            response[mode] = {
+                routingMode: unimodalResultParams.routingMode,
+                origin: {
+                    type: unimodalResultParams.origin.type,
+                    properties: {
+                        location: unimodalResultParams.origin.properties?.location
+                    },
+                    geometry: unimodalResultParams.origin.geometry
+                },
+                destination: {
+                    type: unimodalResultParams.destination.type,
+                    properties: {
+                        locations: unimodalResultParams.destination.properties?.location
+                    },
+                    geometry: unimodalResultParams.destination.geometry
+                },
+                paths: unimodalResultParams.paths.map((path: Route) => ({
+                    geometry: path.geometry,
+                    distanceMeters: path.distance,
+                    travelTimeSeconds: path.duration
+                })),
+                pathsGeojson: unimodalResultParams.pathsGeojson?.map((pathGeojson: FeatureCollection) => ({
+                    type: pathGeojson.type,
+                    features: pathGeojson.features.map((feature: Feature) => ({
+                        id: feature.id,
+                        type: feature.type,
+                        geometry: feature.geometry,
+                        properties: {
+                            mode: feature.properties?.mode,
+                            distanceMeters: feature.properties?.distanceMeters,
+                            travelTimeSeconds: feature.properties?.travelTimeSeconds
+                        }
+                    }))
+                }))
+            };
+        }
+    }
+    return response;
 }

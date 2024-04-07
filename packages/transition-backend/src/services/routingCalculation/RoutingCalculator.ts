@@ -32,11 +32,11 @@ import {
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
-type UnimodalRouteCalculationResultParams = ResultParams & {
+export type UnimodalRouteCalculationResultParams = ResultParams & {
     pathsGeojson?: GeoJSON.FeatureCollection<GeoJSON.LineString>[];
 };
 
-type TransitRouteCalculationResultParams = TransitResultParams & {
+export type TransitRouteCalculationResultParams = TransitResultParams & {
     pathsGeojson?: GeoJSON.FeatureCollection<GeoJSON.LineString>[];
 };
 
