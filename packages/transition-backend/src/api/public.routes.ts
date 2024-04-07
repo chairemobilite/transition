@@ -24,7 +24,7 @@ import {
 } from '../services/routingCalculation/RoutingCalculator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { getAttributesOrDefault } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
-import { Feature, FeatureCollection, LineString, Point } from 'geojson';
+import { Feature, FeatureCollection, LineString, MultiPolygon, Point } from 'geojson';
 import { ScenarioAttributes } from 'transition-common/lib/services/scenario/Scenario';
 import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
@@ -160,8 +160,8 @@ export default function (app: express.Express, passport: PassportStatic) {
                 routing,
                 withGeojson
             );
-            //const response = createAccessibilityApiResponse(, attributes)
-            res.status(200).json(routingResult);
+            const response = createAccessibilityMapApiResponse(routingResult);
+            res.status(200).json(response);
         } catch (error) {
             next(error);
         }
@@ -253,7 +253,6 @@ function createRoutingApiResponse(routingResult: RouteCalculationResultParamsByM
                 pathsGeojson: transitResultParams.pathsGeojson?.map((pathGeojson: FeatureCollection) => ({
                     type: pathGeojson.type,
                     features: pathGeojson.features.map((feature: Feature) => ({
-                        id: feature.id,
                         type: feature.type,
                         geometry: feature.geometry,
                         properties: {
@@ -291,7 +290,6 @@ function createRoutingApiResponse(routingResult: RouteCalculationResultParamsByM
                 pathsGeojson: unimodalResultParams.pathsGeojson?.map((pathGeojson: FeatureCollection) => ({
                     type: pathGeojson.type,
                     features: pathGeojson.features.map((feature: Feature) => ({
-                        id: feature.id,
                         type: feature.type,
                         geometry: feature.geometry,
                         properties: {
@@ -305,4 +303,14 @@ function createRoutingApiResponse(routingResult: RouteCalculationResultParamsByM
         }
     }
     return response;
+}
+
+function createAccessibilityMapApiResponse(routingResult: AccessibilityMapCalculationResult) {
+    if ('polygons' in routingResult) {
+        routingResult.polygons.features = routingResult.polygons.features.map((feature: Feature<MultiPolygon>) => ({
+            ...feature,
+            properties: {}
+        }));
+    }
+    return routingResult;
 }
