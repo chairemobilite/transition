@@ -25,13 +25,14 @@ import {
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { getAttributesOrDefault } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
 import { Feature, FeatureCollection, LineString, MultiPolygon, Point } from 'geojson';
-import { ScenarioAttributes } from 'transition-common/lib/services/scenario/Scenario';
 import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { getTransitRouteQueryOptionsOrDefault } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 import { TransitRouteQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 import PathsAPIResponse from './public/PathsAPIResponse';
 import NodesAPIResponse from './public/NodesAPIResponse';
+import ScenariosAPIResponse from './public/ScenariosAPIResponse';
+import RoutingModesAPIResponse from './public/RoutingModesAPIResponse';
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
@@ -103,8 +104,8 @@ export default function (app: express.Express, passport: PassportStatic) {
     router.get('/scenarios', async (req, res, next) => {
         try {
             const scenarios = await transitObjectDataHandlers.scenarios.collection!(null);
-            const response = createScenariosApiResponse(scenarios.collection);
-            res.status(200).json(response);
+            const response: ScenariosAPIResponse = new ScenariosAPIResponse(scenarios.collection);
+            res.status(200).json(response.getResponse());
         } catch (error) {
             next(error);
         }
@@ -114,7 +115,8 @@ export default function (app: express.Express, passport: PassportStatic) {
         try {
             const routingModes: RoutingOrTransitMode[] = await osrmProcessManager.availableRoutingModes();
             routingModes.push('transit');
-            res.status(200).json(routingModes);
+            const response: RoutingModesAPIResponse = new RoutingModesAPIResponse(routingModes);
+            res.status(200).json(response.getResponse());
         } catch (error) {
             next(error);
         }
@@ -181,22 +183,6 @@ export default function (app: express.Express, passport: PassportStatic) {
     });
 
     app.use('/api', router);
-}
-
-function createScenariosApiResponse(scenarios: Array<ScenarioAttributes>) {
-    return scenarios.map((scenario: ScenarioAttributes) => ({
-        id: scenario.id,
-        name: scenario.name,
-        services: scenario.services,
-        only_agencies: scenario.only_agencies,
-        except_agencies: scenario.except_agencies,
-        only_lines: scenario.only_lines,
-        except_lines: scenario.except_lines,
-        only_nodes: scenario.only_nodes,
-        except_nodes: scenario.except_agencies,
-        only_modes: scenario.only_modes,
-        except_modes: scenario.except_modes
-    }));
 }
 
 function createRoutingApiResponse(

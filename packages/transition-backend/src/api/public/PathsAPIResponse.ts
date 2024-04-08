@@ -7,7 +7,7 @@
 import { Feature, FeatureCollection, LineString } from 'geojson';
 import APIResponseBase from './APIResponseBase';
 
-export type PathsAPIResponseAttributes = {
+export type PathsAPIResponseFormat = {
     type: 'FeatureCollection';
     features: Array<{
         type: 'Feature';
@@ -24,11 +24,8 @@ export type PathsAPIResponseAttributes = {
     }>;
 };
 
-export default class PathsAPIResponse extends APIResponseBase<
-    PathsAPIResponseAttributes,
-    FeatureCollection<LineString>
-> {
-    protected createResponse(input: FeatureCollection<LineString>): PathsAPIResponseAttributes {
+export default class PathsAPIResponse extends APIResponseBase<PathsAPIResponseFormat, FeatureCollection<LineString>> {
+    protected createResponse(input: FeatureCollection<LineString>): PathsAPIResponseFormat {
         return {
             type: input.type,
             features: input.features.map((feature: Feature<LineString>) => ({

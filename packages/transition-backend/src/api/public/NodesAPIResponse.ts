@@ -4,11 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-
 import { Feature, FeatureCollection, Point } from 'geojson';
 import APIResponseBase from './APIResponseBase';
 
-export type NodesAPIResponseAttributes = {
+export type NodesAPIResponseFormat = {
     type: 'FeatureCollection';
     features: Array<{
         type: 'Feature';
@@ -28,8 +27,8 @@ export type NodesAPIResponseAttributes = {
     }>;
 };
 
-export default class NodesAPIResponse extends APIResponseBase<NodesAPIResponseAttributes, FeatureCollection<Point>> {
-    protected createResponse(input: FeatureCollection<Point>): NodesAPIResponseAttributes {
+export default class NodesAPIResponse extends APIResponseBase<NodesAPIResponseFormat, FeatureCollection<Point>> {
+    protected createResponse(input: FeatureCollection<Point>): NodesAPIResponseFormat {
         return {
             type: input.type,
             features: input.features.map((feature: Feature<Point>) => ({
