@@ -14,7 +14,8 @@ class CleanupApiTokenRun implements GenericTask {
     async run(argv: { [key: string]: unknown }): Promise<void> {
         console.log("CleanupApiToken..")
         try {
-            tokensDbQueries.cleanExpiredApiTokens()
+            console.log("inside try")
+            await tokensDbQueries.cleanExpiredApiTokens()
         } catch (error) {
             throw(error)
         }

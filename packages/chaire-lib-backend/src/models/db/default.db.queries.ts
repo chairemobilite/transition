@@ -207,7 +207,7 @@ const updateMultiple = async <T extends GenericAttributes, U>(
 
 const deleteRecord = async (knex: Knex, tableName: string, id: string) => {
     try {
-        if (!uuidValidate(id)) {
+        if (id && (!uuidValidate(id) && (await knex(tableName).where('id', id)).length < 1)) {
             throw new TrError(
                 `Cannot verify if object exists in table ${tableName} because the required parameter id is missing, blank or not a valid uuid`,
                 'DBQDL0001',
