@@ -17,22 +17,17 @@ import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/
 import {
     AccessibilityMapCalculationResult,
     RouteCalculationResultParamsByMode,
-    TransitRouteCalculationResultParams,
-    UnimodalRouteCalculationResultParams,
     calculateAccessibilityMap,
     calculateRoute
 } from '../services/routingCalculation/RoutingCalculator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { getAttributesOrDefault } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
 import { Feature, FeatureCollection, LineString, MultiPolygon, Point } from 'geojson';
-import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
-import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { getTransitRouteQueryOptionsOrDefault } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
-import { TransitRouteQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 import PathsAPIResponse from './public/PathsAPIResponse';
 import NodesAPIResponse from './public/NodesAPIResponse';
 import ScenariosAPIResponse from './public/ScenariosAPIResponse';
 import RoutingModesAPIResponse from './public/RoutingModesAPIResponse';
+import RouteAPIResponse from './public/RouteAPIResponse';
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
@@ -139,8 +134,11 @@ export default function (app: express.Express, passport: PassportStatic) {
             }
 
             const routingResult: RouteCalculationResultParamsByMode = await calculateRoute(routing, withGeojson);
-            const response = createRoutingApiResponse(routingResult, calculationAttributes);
-            res.status(200).json(response);
+            const response: RouteAPIResponse = new RouteAPIResponse({
+                queryParams: calculationAttributes,
+                resultParams: routingResult
+            });
+            res.status(200).json(response.getResponse());
         } catch (error) {
             next(error);
         }
@@ -183,98 +181,6 @@ export default function (app: express.Express, passport: PassportStatic) {
     });
 
     app.use('/api', router);
-}
-
-function createRoutingApiResponse(
-    routingResult: RouteCalculationResultParamsByMode,
-    inputAttributes: TransitRoutingAttributes
-) {
-    const query: any = {
-        routingModes: inputAttributes.routingModes,
-        originGeojson: {
-            type: inputAttributes.originGeojson!.type,
-            properties: {
-                location: inputAttributes.originGeojson!.properties?.location
-            },
-            geometry: inputAttributes.originGeojson!.geometry
-        },
-        destinationGeojson: {
-            type: inputAttributes.destinationGeojson!.type,
-            properties: {
-                location: inputAttributes.destinationGeojson!.properties?.location
-            },
-            geometry: inputAttributes.destinationGeojson!.geometry
-        }
-    };
-
-    if ('transit' in routingResult) {
-        const transitRouteQueryOptions: TransitRouteQueryOptions = getTransitRouteQueryOptionsOrDefault(
-            inputAttributes,
-            [inputAttributes.originGeojson!, inputAttributes.destinationGeojson!]
-        );
-        query.scenarioId = inputAttributes.scenarioId;
-        query.departureTimeSecondsSinceMidnight = inputAttributes.departureTimeSecondsSinceMidnight ?? undefined;
-        query.arrivalTimeSecondsSinceMidnight = inputAttributes.arrivalTimeSecondsSinceMidnight ?? undefined;
-        query.maxTotalTravelTimeSeconds = transitRouteQueryOptions.maxTravelTime;
-        query.minWaitingTimeSeconds = transitRouteQueryOptions.minWaitingTime;
-        query.maxTransferTravelTimeSeconds = transitRouteQueryOptions.maxTransferTravelTime;
-        query.maxAccessEgressTravelTimeSeconds = transitRouteQueryOptions.maxAccessTravelTime;
-        query.maxFirstWaitingTimeSeconds = transitRouteQueryOptions.maxFirstWaitingTime;
-        query.withAlternatives = transitRouteQueryOptions.alternatives;
-    }
-
-    const result = {};
-
-    for (const mode in routingResult) {
-        if (mode === 'transit') {
-            const transitResultParams: TransitRouteCalculationResultParams = routingResult[mode]!;
-            result[mode] = {
-                paths: transitResultParams.paths.map((path: TrRoutingRoute) => {
-                    const { originDestination, timeOfTrip, timeOfTripType, ...rest } = path;
-                    return rest;
-                }),
-                pathsGeojson: transitResultParams.pathsGeojson?.map((pathGeojson: FeatureCollection) => ({
-                    type: pathGeojson.type,
-                    features: pathGeojson.features.map((feature: Feature) => ({
-                        type: feature.type,
-                        geometry: feature.geometry,
-                        properties: {
-                            stepSequence: feature.properties?.stepSequence,
-                            action: feature.properties?.action,
-                            distanceMeters: feature.properties?.distanceMeters,
-                            travelTimeSeconds: feature.properties?.travelTimeSeconds
-                        }
-                    }))
-                }))
-            };
-        } else {
-            const unimodalResultParams: UnimodalRouteCalculationResultParams = routingResult[mode];
-            result[mode] = {
-                paths: unimodalResultParams.paths.map((path: Route) => ({
-                    geometry: path.geometry,
-                    distanceMeters: path.distance,
-                    travelTimeSeconds: path.duration
-                })),
-                pathsGeojson: unimodalResultParams.pathsGeojson?.map((pathGeojson: FeatureCollection) => ({
-                    type: pathGeojson.type,
-                    features: pathGeojson.features.map((feature: Feature) => ({
-                        type: feature.type,
-                        geometry: feature.geometry,
-                        properties: {
-                            mode: feature.properties?.mode,
-                            distanceMeters: feature.properties?.distanceMeters,
-                            travelTimeSeconds: feature.properties?.travelTimeSeconds
-                        }
-                    }))
-                }))
-            };
-        }
-    }
-
-    return {
-        query: query,
-        result: result
-    };
 }
 
 function createAccessibilityMapApiResponse(
