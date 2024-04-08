@@ -223,28 +223,12 @@ function createRoutingApiResponse(
         query.withAlternatives = transitRouteQueryOptions.alternatives;
     }
 
-    const response = {
-        query: query
-    };
+    const result = {};
 
     for (const mode in routingResult) {
         if (mode === 'transit') {
             const transitResultParams: TransitRouteCalculationResultParams = routingResult[mode]!;
-            response[mode] = {
-                origin: {
-                    type: transitResultParams.origin.type,
-                    properties: {
-                        location: transitResultParams.origin.properties?.location
-                    },
-                    geometry: transitResultParams.origin.geometry
-                },
-                destination: {
-                    type: transitResultParams.destination.type,
-                    properties: {
-                        location: transitResultParams.destination.properties?.location
-                    },
-                    geometry: transitResultParams.destination.geometry
-                },
+            result[mode] = {
                 paths: transitResultParams.paths.map((path: TrRoutingRoute) => {
                     const { originDestination, timeOfTrip, timeOfTripType, ...rest } = path;
                     return rest;
@@ -265,22 +249,7 @@ function createRoutingApiResponse(
             };
         } else {
             const unimodalResultParams: UnimodalRouteCalculationResultParams = routingResult[mode];
-            response[mode] = {
-                routingMode: unimodalResultParams.routingMode,
-                origin: {
-                    type: unimodalResultParams.origin.type,
-                    properties: {
-                        location: unimodalResultParams.origin.properties?.location
-                    },
-                    geometry: unimodalResultParams.origin.geometry
-                },
-                destination: {
-                    type: unimodalResultParams.destination.type,
-                    properties: {
-                        location: unimodalResultParams.destination.properties?.location
-                    },
-                    geometry: unimodalResultParams.destination.geometry
-                },
+            result[mode] = {
                 paths: unimodalResultParams.paths.map((path: Route) => ({
                     geometry: path.geometry,
                     distanceMeters: path.distance,
@@ -301,7 +270,11 @@ function createRoutingApiResponse(
             };
         }
     }
-    return response;
+
+    return {
+        query: query,
+        result: result
+    };
 }
 
 function createAccessibilityMapApiResponse(
@@ -337,6 +310,6 @@ function createAccessibilityMapApiResponse(
 
     return {
         query: query,
-        ...routingResult
+        result: routingResult
     };
 }
