@@ -14,7 +14,7 @@ type AccessibilityMapAPIQueryResponse = {
     locationGeojson: {
         type: 'Feature';
         geometry: Point;
-        properties: {};
+        properties: Record<string, never>; // Empty object
     };
     scenarioId: string;
     departureTimeSecondsSinceMidnight?: number;
@@ -36,7 +36,7 @@ type AccessibilityMapAPIResultResponse = {
         features: Array<{
             type: 'Feature';
             geometry: MultiPolygon;
-            properties: {};
+            properties: Record<string, never>; // Empty object
         }>;
     };
     strokes?: {
@@ -44,7 +44,7 @@ type AccessibilityMapAPIResultResponse = {
         features: Array<{
             type: 'Feature';
             geometry: MultiLineString;
-            properties: {};
+            properties: Record<string, never>; // Empty object
         }>;
     };
 };
