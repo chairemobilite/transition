@@ -22,7 +22,7 @@ import {
 } from '../services/routingCalculation/RoutingCalculator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { getAttributesOrDefault } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
-import { Feature, FeatureCollection, LineString, MultiPolygon, Point } from 'geojson';
+import { FeatureCollection, LineString, Point } from 'geojson';
 import PathsAPIResponse from './public/PathsAPIResponse';
 import NodesAPIResponse from './public/NodesAPIResponse';
 import ScenariosAPIResponse from './public/ScenariosAPIResponse';

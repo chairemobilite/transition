@@ -113,20 +113,20 @@ export default class RouteAPIResponse extends APIResponseBase<
             originGeojson: {
                 type: queryParams.originGeojson!.type,
                 properties: {
-                    location: queryParams.originGeojson!.properties!.location
+                    location: 'origin'
                 },
                 geometry: queryParams.originGeojson!.geometry
             },
             destinationGeojson: {
                 type: queryParams.destinationGeojson!.type,
                 properties: {
-                    location: queryParams.destinationGeojson!.properties!.location
+                    location: 'destination'
                 },
                 geometry: queryParams.destinationGeojson!.geometry
             }
         };
 
-        if ('transit' in queryParams.routingModes!) {
+        if (queryParams.routingModes!.includes('transit')) {
             const transitRouteQueryOptions: TrRoutingApi.TransitRouteQueryOptions =
                 getTransitRouteQueryOptionsOrDefault(queryParams, [
                     queryParams.originGeojson!,
