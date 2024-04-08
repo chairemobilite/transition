@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-
 export default abstract class APIResponseBase<ResponseType, InputType = ResponseType> {
     private response: ResponseType;
 

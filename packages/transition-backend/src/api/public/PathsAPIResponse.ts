@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-
 import { Feature, FeatureCollection, LineString } from 'geojson';
 import APIResponseBase from './APIResponseBase';
 
