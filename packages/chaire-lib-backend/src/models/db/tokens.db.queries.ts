@@ -129,7 +129,6 @@ const getUserByToken = async (token: string) => {
 async function cleanExpiredApiTokens() {
     try {
         const tokenLifespan = new Date();
-        tokenLifespan.setDate(tokenLifespan.getDate() - tokenLifespanDays);
         const rowsToDelete = await knex(tableName).where('expiry_date', '<', tokenLifespan);
         for (const row of rowsToDelete) {
             await deleteRecord(knex, tableName, row['id']);
