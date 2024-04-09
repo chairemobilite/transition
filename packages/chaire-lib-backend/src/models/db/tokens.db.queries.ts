@@ -13,13 +13,15 @@ import { TokenAttributes } from '../../services/auth/token';
 
 const tableName = 'tokens';
 const userTableName = 'users';
-const tokenLifespanDays = 7
+const tokenLifespanDays = 14 // two weeks expiry
 
 const attributesCleaner = function (attributes: TokenAttributes): { user_id: number; api_token: string } {
-    const { user_id, api_token, expiry_date } = attributes;
+    const { user_id, api_token, expiry_date, creation_date } = attributes;
     const _attributes: any = {
         number: user_id,
-        string: api_token
+        string: api_token,
+        expiry_date: expiry_date,
+        creation_date: creation_date
     };
 
     return _attributes;
