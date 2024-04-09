@@ -14,8 +14,8 @@ export async function up(knex: Knex): Promise<unknown> {
     await knex.schema.createTable('tokens', (table: Knex.TableBuilder) => {
         table.increments('user_id').references('id').inTable('users').unique().primary();
         table.string('api_token').unique().index();
-        table.timestamp('creation_date')
-        table.timestamp('expiry_date')
+        table.timestamp('creation_date');
+        table.timestamp('expiry_date');
     });
     return knex.raw(onUpdateTrigger('tokens'));
 }

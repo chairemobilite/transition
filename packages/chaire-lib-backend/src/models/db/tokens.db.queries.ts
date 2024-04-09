@@ -10,10 +10,9 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { randomUUID } from 'crypto';
 import { TokenAttributes } from '../../services/auth/token';
 
-
 const tableName = 'tokens';
 const userTableName = 'users';
-const tokenLifespanDays = 14 // two weeks expiry
+const tokenLifespanDays = 14; // two weeks expiry
 
 const attributesCleaner = function (attributes: TokenAttributes): { user_id: number; api_token: string } {
     const { user_id, api_token, expiry_date, creation_date } = attributes;
@@ -27,7 +26,12 @@ const attributesCleaner = function (attributes: TokenAttributes): { user_id: num
     return _attributes;
 };
 
-const attributesParser = (dbAttributes: { user_id: number; apiToken: string; expiryDate:string; creationDate:string }): TokenAttributes => ({
+const attributesParser = (dbAttributes: {
+    user_id: number;
+    apiToken: string;
+    expiryDate: string;
+    creationDate: string;
+}): TokenAttributes => ({
     user_id: dbAttributes.user_id,
     api_token: dbAttributes.apiToken,
     expiry_date: dbAttributes.expiryDate,
@@ -64,8 +68,13 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
         }
         const apiToken = randomUUID();
         const tokenLifespan = new Date();
-        tokenLifespan.setDate(tokenLifespan.getDate() + tokenLifespanDays)
-        const newObject: TokenAttributes = { user_id: user_id, api_token: apiToken, expiry_date: tokenLifespan, creation_date: knex.raw('CURRENT_TIMESTAMP')};
+        tokenLifespan.setDate(tokenLifespan.getDate() + tokenLifespanDays);
+        const newObject: TokenAttributes = {
+            user_id: user_id,
+            api_token: apiToken,
+            expiry_date: tokenLifespan,
+            creation_date: knex.raw('CURRENT_TIMESTAMP')
+        };
         await knex(tableName).insert(newObject);
         return apiToken;
     } catch (error) {
@@ -117,13 +126,13 @@ const getUserByToken = async (token: string) => {
     }
 };
 
-async function cleanExpiredApiTokens(){
+async function cleanExpiredApiTokens() {
     try {
         const tokenLifespan = new Date();
-        tokenLifespan.setDate(tokenLifespan.getDate() - tokenLifespanDays)
-        const rowsToDelete = await knex(tableName).where('expiry_date','<', tokenLifespan)
-        for (var row of rowsToDelete) {
-            await deleteRecord(knex, tableName, row['id'])
+        tokenLifespan.setDate(tokenLifespan.getDate() - tokenLifespanDays);
+        const rowsToDelete = await knex(tableName).where('expiry_date', '<', tokenLifespan);
+        for (const row of rowsToDelete) {
+            await deleteRecord(knex, tableName, row['id']);
         }
     } catch (error) {
         throw new TrError(
@@ -131,7 +140,7 @@ async function cleanExpiredApiTokens(){
             'DatabaseCleanupDatabaseApiTokensTokenBecauseDatabaseError'
         );
     }
-};
+}
 
 export default {
     getOrCreate,
@@ -140,5 +149,5 @@ export default {
     getUserByToken,
     exists: exists.bind(null, knex, tableName),
     delete: deleteRecord.bind(null, knex, tableName),
-    cleanExpiredApiTokens,
+    cleanExpiredApiTokens
 };
