@@ -15,8 +15,6 @@ export type ScenariosAPIResponseFormat = Array<{
     except_agencies: string[];
     only_lines: string[];
     except_lines: string[];
-    only_nodes: string[];
-    except_nodes: string[];
     only_modes: string[];
     except_modes: string[];
 }>;
@@ -31,8 +29,6 @@ export default class ScenariosAPIResponse extends APIResponseBase<ScenariosAPIRe
             except_agencies: scenario.except_agencies,
             only_lines: scenario.only_lines,
             except_lines: scenario.except_lines,
-            only_nodes: scenario.only_nodes,
-            except_nodes: scenario.except_agencies,
             only_modes: scenario.only_modes,
             except_modes: scenario.except_modes
         }));
