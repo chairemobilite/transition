@@ -19,11 +19,5 @@
     "i18n-ally.review.enabled": false,
     "i18n-ally.namespace": true,
     "i18n-ally.pathMatcher": "{locale}/{namespaces}.json",
-    "i18n-ally.indent": 4,
-    "yaml.schemas": {
-        "file:///c%3A/Users/vince/.vscode/extensions/atlassian.atlascode-3.0.10/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml",
-        "file:///home/vincent/.vscode/extensions/atlassian.atlascode-3.0.10/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml",
-        "openapi:v3": "file:///home/vincent/sources/transition/docs/API.yml",
-        "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.0/schema.json": "file:///c%3A/Users/vince/Documents/transition-api/docs/routing-modes.yml"
-    }
+    "i18n-ally.indent": 4
 }
