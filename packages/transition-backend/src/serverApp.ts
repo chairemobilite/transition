@@ -100,9 +100,6 @@ export const setupServer = (app: Express) => {
 
     app.set('trust proxy', true); // allow nginx or other proxy server to send request ip address
 
-    // Set up public API, which must be initialized before the js and css compression middleware since these file formats must be uncompressed for the Swagger UI
-    publicRoutes(app, passport);
-
     // send js and css compressed (gzip) to save bandwidth:
     app.get('*.js', (req, res, next) => {
         req.url = req.url + '.gz';
@@ -122,6 +119,9 @@ export const setupServer = (app: Express) => {
         res.set('Content-Type', 'application/json');
         next();
     });
+
+    // Set up public API
+    publicRoutes(app, passport);
 
     // TODO File may not be at root of user directory, support path instead of just file here
     app.get('/exports/:file', (req, res) => {

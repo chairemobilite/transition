@@ -185,10 +185,4 @@ export default function (app: express.Express, passport: PassportStatic) {
     });
 
     app.use('/api', router);
-
-    const options = {
-        swaggerOptions: {
-            defaultModelsExpandDepth: -1
-        }
-    };
 }
