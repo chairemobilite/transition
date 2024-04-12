@@ -116,6 +116,10 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
         app.get('/anonymous', passport.authenticate('anonymous-login'), defaultSuccessCallback, defaultFailureCallback);
     }
 
+    if (config.auth && config.auth.directToken !== undefined && config.auth.directToken !== false) {
+        app.get('/direct-token', passport.authenticate('direct-token'), defaultSuccessCallback, defaultFailureCallback);
+    }
+
     app.post('/verify', async (req, res) => {
         try {
             let callback: ((user: U) => void) | undefined = undefined;
