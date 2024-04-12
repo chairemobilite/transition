@@ -46,7 +46,8 @@ const authMockFunctions = {
     'local-signup': jest.fn().mockImplementation(authMockImplementation),
     'passwordless-enter-login': jest.fn().mockImplementation(authMockImplementation),
     'passwordless-login': jest.fn().mockImplementation(authMockImplementation),
-    'anonymous-login': jest.fn().mockImplementation(authMockImplementation)
+    'anonymous-login': jest.fn().mockImplementation(authMockImplementation),
+    'direct-token': jest.fn().mockImplementation(authMockImplementation)
 }
 
 jest.mock('passport', () => {
@@ -302,7 +303,7 @@ test('Reset password, post with exception', async () => {
     expect(mockResetPassword).toHaveBeenCalledWith(token, newPassword);
 });
 
-describe('Passwordless and anonymous auth routes, unsupported', () => {
+describe('Passwordless, anonymous and direct token auth routes, unsupported', () => {
     test('Test the passwordless first route', async () => {
         const res = await request(app)
             .post(`/pwdless`)
@@ -328,6 +329,14 @@ describe('Passwordless and anonymous auth routes, unsupported', () => {
             .expect('Content-Type', 'text/html; charset=utf-8')
             .expect(404);
     });
+
+    test('Test direct token login route', async () => {
+        const res = await request(app)
+            .get(`/direct-token`)
+            .set('Accept', 'application/json')
+            .expect('Content-Type', 'text/html; charset=utf-8')
+            .expect(404);
+    });
 });
 
 describe('Passwordless and anonymous auth routes, supported', () => {
@@ -336,6 +345,9 @@ describe('Passwordless and anonymous auth routes, supported', () => {
         anonymous: true,
         passwordless: {
             directFirstLogin: true
+        },
+        directToken: {
+            tokenFormat: /^[\d]{10}$/
         }
     }
 
@@ -427,5 +439,20 @@ describe('Passwordless and anonymous auth routes, supported', () => {
         expect(res.body.status).toEqual('Login successful!');
         expect(res.body.user).toEqual({ username: validUsername });
         expect(authMockFunctions['anonymous-login']).toHaveBeenCalledTimes(1);
+    });
+
+    test('Test direct token login route', async () => {
+        authResponse = {
+            error: null,
+            user: { username: validUsername }
+        };
+        const res = await session(secondApp)
+            .get('/direct-token')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200);
+        expect(res.body.status).toEqual('Login successful!');
+        expect(res.body.user).toEqual({ username: validUsername });
+        expect(authMockFunctions['direct-token']).toHaveBeenCalledTimes(1);
     });
 });
