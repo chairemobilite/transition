@@ -130,7 +130,7 @@ module.exports = {
           }
         }
       }
-    }
-  
+    },
+    tokenLifespanDays: 14
 };
   

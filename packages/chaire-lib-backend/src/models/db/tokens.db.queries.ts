@@ -9,10 +9,11 @@ import { exists, update, deleteRecord } from './default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { randomUUID } from 'crypto';
 import { TokenAttributes } from '../../services/auth/token';
+import { table } from 'console';
+import config from '../../../../../examples/config';
 
 const tableName = 'tokens';
 const userTableName = 'users';
-const tokenLifespanDays = 14; // two weeks expiry
 
 const attributesCleaner = function (attributes: TokenAttributes): { user_id: number; api_token: string } {
     const { user_id, api_token, expiry_date, creation_date } = attributes;
@@ -68,7 +69,7 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
         }
         const apiToken = randomUUID();
         const tokenLifespan = new Date();
-        tokenLifespan.setDate(tokenLifespan.getDate() + tokenLifespanDays);
+        tokenLifespan.setDate(tokenLifespan.getDate() +  config.tokenLifespanDays);
         const newObject: TokenAttributes = {
             user_id: user_id,
             api_token: apiToken,
@@ -108,7 +109,7 @@ const getUserByToken = async (token: string) => {
         if (user_id.length < 1) {
             throw new TrError(`No such id in ${tableName} table.`, 'DBUTK0004', 'DatabaseNoUserMatchesProvidedToken');
         }
-        const user = (await knex(userTableName).where('id', user_id[0].user_id))[0];
+        const user = (await knex(userTableName).where('user_id', user_id[0].user_id))[0];
 
         if (!user) {
             throw new TrError('Error, mismatch between user and user_id', 'DBUTK0005', 'DatabaseNoUserMatchesToken');
@@ -128,11 +129,7 @@ const getUserByToken = async (token: string) => {
 
 async function cleanExpiredApiTokens() {
     try {
-        const tokenLifespan = new Date();
-        const rowsToDelete = await knex(tableName).where('expiry_date', '<', tokenLifespan);
-        for (const row of rowsToDelete) {
-            await deleteRecord(knex, tableName, row['id']);
-        }
+        await knex.raw(`DELETE FROM ${tableName} WHERE expiry_date < NOW()`);
     } catch (error) {
         throw new TrError(
             `Cannot cleanup expired tokens from table ${tableName} (knex error: ${error})`,
