@@ -14,6 +14,7 @@ import config from '../../../../../examples/config';
 
 const tableName = 'tokens';
 const userTableName = 'users';
+const defaultTokenLifespanDays = 10
 
 const attributesCleaner = function (attributes: TokenAttributes): { user_id: number; api_token: string } {
     const { user_id, api_token, expiry_date, creation_date } = attributes;
@@ -69,7 +70,7 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
         }
         const apiToken = randomUUID();
         const tokenLifespan = new Date();
-        tokenLifespan.setDate(tokenLifespan.getDate() +  config.tokenLifespanDays);
+        tokenLifespan.setDate(tokenLifespan.getDate() +  (config.tokenLifespanDays || defaultTokenLifespanDays));
         const newObject: TokenAttributes = {
             user_id: user_id,
             api_token: apiToken,
