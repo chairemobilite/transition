@@ -20,6 +20,32 @@ export type ProjectConfiguration<AdditionalConfig> = {
             confirmEmail?: boolean;
             confirmEmailStrategy?: 'confirmByAdmin' | 'confirmByUser';
         };
+        /**
+         * Configures authentication by direct token access. The user is
+         * identified by the value of a token added as a query parameter to the
+         * login page, in the `access_token` field (ex.
+         * http://localhost:8080?access_token=token)
+         *
+         * Value can be `false` to deactivate this login method, `true` to
+         * activate with any token in parameter, or an object with the token
+         * format.
+         */
+        directToken?:
+            | boolean
+            | {
+                  /**
+                   * If specified, the token will have to match this regular
+                   * expression. See the official javascript documentation for the
+                   * regular expression format
+                   * (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions)
+                   *
+                   * example:
+                   * - /^[\d]{10}$/ for 10-number values
+                   * - /^[0-9A-F]{4}-[0-9A-F]{4}$/i for 2 dash separated sets of 4
+                   *   hexadecimal characters
+                   */
+                  tokenFormat: RegExp;
+              };
     };
     separateAdminLoginPage: boolean;
     // @deprecated

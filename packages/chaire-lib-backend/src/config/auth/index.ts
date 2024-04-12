@@ -97,6 +97,12 @@ export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic 
             : anonymousLoginStrategy;
         passport.use('anonymous-login', new AnonymousLoginStrategy(authModel));
     }
+    if (config.auth && config.auth.directToken !== undefined && config.auth.directToken !== false) {
+        const directTokenConfig = require('./directToken.config');
+        // FIXME It used to work without the next line, not anymore... probably some compilation issue
+        const directToken = directTokenConfig.default ? directTokenConfig.default : directTokenConfig;
+        directToken(passport, authModel, config.auth.directTokenFormat);
+    }
 
     // TODO user is Express.User type and does not have an id type
     passport.serializeUser((user: any, done) => {
