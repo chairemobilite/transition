@@ -36,7 +36,7 @@ paths:
               schema:
                 $ref: 'token.yml#/tokenResponseUnauthorized'       
 
-  /api/paths:
+  /api/v1/paths:
     get:
       summary: Get all paths
       description: Get all paths which are currently loaded in Transition
@@ -48,7 +48,7 @@ paths:
               schema:
                 $ref: 'paths.yml#/paths'
 
-  /api/nodes:
+  /api/v1/nodes:
     get:
       summary: Get all nodes
       description: Get all nodes which are currently loaded in Transition
@@ -60,7 +60,7 @@ paths:
               schema:
                 $ref: 'nodes.yml#/nodes'
   
-  /api/scenarios:
+  /api/v1/scenarios:
     get:
       summary: Get all scenarios
       description: Get all scenarios which are currently loaded in Transition
@@ -72,7 +72,7 @@ paths:
               schema:
                 $ref: 'scenarios.yml#/scenarios'
 
-  /api/routing-modes:
+  /api/v1/routing-modes:
     get: 
       summary: Get all routing modes
       description: Get all routing modes which are currently availible in Transition
@@ -84,7 +84,7 @@ paths:
               schema:
                 $ref: 'routingModes.yml#/routingModes'
 
-  /api/route:
+  /api/v1/route:
     post:
       summary: Calculate route between two locations
       description: Calculate a route between a given origin and destination with the provided modes of transport
@@ -114,7 +114,7 @@ paths:
               schema:
                 $ref: 'route.yml#/routeResponseBadRequest'
 
-  /api/accessibility:
+  /api/v1/accessibility:
     post: 
       summary: Calculate accessibility map
       description: Calculate a map of all accessible locations within a specified time frame from or to a given location

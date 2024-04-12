@@ -184,5 +184,5 @@ export default function (app: express.Express, passport: PassportStatic) {
         res.status(500).send(message);
     });
 
-    app.use('/api', router);
+    app.use('/api/v1', router);
 }
