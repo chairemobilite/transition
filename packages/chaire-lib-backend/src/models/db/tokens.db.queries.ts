@@ -109,7 +109,7 @@ const getUserByToken = async (token: string) => {
         if (user_id.length < 1) {
             throw new TrError(`No such id in ${tableName} table.`, 'DBUTK0004', 'DatabaseNoUserMatchesProvidedToken');
         }
-        const user = (await knex(userTableName).where('user_id', user_id[0].user_id))[0];
+        const user = (await knex(userTableName).where('id', user_id[0].user_id))[0];
 
         if (!user) {
             throw new TrError('Error, mismatch between user and user_id', 'DBUTK0005', 'DatabaseNoUserMatchesToken');
