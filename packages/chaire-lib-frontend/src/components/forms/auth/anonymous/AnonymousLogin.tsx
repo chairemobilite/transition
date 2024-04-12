@@ -1,9 +1,14 @@
+/*
+ * Copyright 2022, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
 import React from 'react';
 import { connect } from 'react-redux';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { History, Location } from 'history';
 
-import FormErrors from '../../../pageParts/FormErrors';
 import { startAnonymousLogin } from '../../../../actions/Auth';
 
 export interface AnonymousLoginProps {
