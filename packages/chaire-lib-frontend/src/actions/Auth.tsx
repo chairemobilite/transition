@@ -47,7 +47,7 @@ export const logout = (): AuthAction => ({
     register: false
 });
 
-const redirectAfterLogin = (user: BaseUser, history: History, location?: Location, referrer?: string) => {
+export const redirectAfterLogin = (user: BaseUser, history: History, location?: Location, referrer?: string) => {
     const requestedPath =
         location && location.state && (location.state as any).referrer ? (location.state as any).referrer : undefined;
     history.push(requestedPath ? requestedPath : user.homePage ? user.homePage : appConfiguration.homePage);
