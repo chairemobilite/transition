@@ -110,8 +110,6 @@ accessibilityMapResultResponse:
       $ref: '#/accessibilityMapResultResponseNodes' 
     polygons:
       $ref: '#/accessibilityMapResultResponsePolygons'
-    strokes:
-      $ref: '#/accessibilityMapResultResponseStrokes'
 
 accessibilityMapResultResponseNodes:
   type: array
@@ -209,71 +207,6 @@ accessibilityMapResultResponsePolygons:
                           -73.52573820359419,
                           45.53003563676973
                       ]
-                    ]
-                  ]
-                ]
-          properties:
-            type: object
-
-accessibilityMapResultResponseStrokes:
-  type: object
-  description: The accessibility map perimeter as a GeoJSON MultiLineString FeatureCollection object. This object is only provided if the withGeojson query parameter is set to true
-  required:
-    - type
-    - features
-  properties:
-    type: 
-      type: string
-      enum: [FeatureCollection]
-    features:
-      type: array
-      items:
-        type: object
-        required:
-          - type
-          - geometry
-        properties:
-          type: 
-            type: string
-            enum: [Feature]
-          geometry:
-            type: object
-            required:
-              - type
-              - coordinates
-            properties:
-              type: 
-                type: string
-                enum: [MultiLineString]
-              coordinates:
-                type: array
-                items:
-                  type: array
-                  items:
-                    type: array
-                    items:
-                      type: number
-                    minItems: 2
-                    maxItems: 2 
-                example: [
-                  [
-                    [
-                        -73.52605901846881,
-                        45.531549758125095
-                    ],
-                    [
-                        -73.52602309649474,
-                        45.53103849735206
-                    ]
-                  ],
-                  [
-                    [
-                        -73.52591581318252,
-                        45.53053216488021
-                    ],
-                    [
-                        -73.52573820359419,
-                        45.53003563676973
                     ]
                   ]
                 ]

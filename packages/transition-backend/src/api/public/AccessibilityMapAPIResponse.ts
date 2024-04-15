@@ -39,14 +39,6 @@ type AccessibilityMapAPIResultResponse = {
             properties: Record<string, never>; // Empty object
         }>;
     };
-    strokes?: {
-        type: 'FeatureCollection';
-        features: Array<{
-            type: 'Feature';
-            geometry: MultiLineString;
-            properties: Record<string, never>; // Empty object
-        }>;
-    };
 };
 
 export type AccessibilityMapAPIResponseFormat = {
@@ -97,17 +89,6 @@ export default class AccessibilityMapAPIResponse extends APIResponseBase<
                     ? {
                         type: 'FeatureCollection',
                         features: resultParams.polygons.features.map((feature: Feature<MultiPolygon>) => ({
-                            type: feature.type,
-                            geometry: feature.geometry,
-                            properties: {}
-                        }))
-                    }
-                    : undefined,
-            strokes:
-                'strokes' in resultParams
-                    ? {
-                        type: 'FeatureCollection',
-                        features: resultParams.strokes.features.map((feature: Feature<MultiLineString>) => ({
                             type: feature.type,
                             geometry: feature.geometry,
                             properties: {}
