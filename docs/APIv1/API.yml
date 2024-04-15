@@ -1,0 +1,145 @@
+openapi: '3.0.2'
+info:
+  title: Transition-API
+  version: '1.0'
+servers:
+  - url: http://localhost:8080/
+
+paths:
+  /token:
+    post:
+      summary: Retrieve authentication token for specified user
+      description: Returns an authentication token. This token is required in the Authentication header of requests to other endpoints.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'token.yml#/tokenRequest'
+      responses:
+        '200':
+          description: Returns the generated token for specified user
+          content:
+            text/plain:
+              schema:
+                $ref: 'token.yml#/tokenResponseSuccess'
+        '400':
+          description: User credentials are missing
+          content:
+            text/plain:
+              schema:
+                $ref: 'token.yml#/tokenResponseBadRequest'
+        '401':
+          description: User credentials are invalid
+          content:
+            text/plain:
+              schema:
+                $ref: 'token.yml#/tokenResponseUnauthorized'       
+
+  /api/v1/paths:
+    get:
+      summary: Get all paths
+      description: Get all paths which are currently loaded in Transition
+      responses:
+        '200':
+          description: Returns all paths currently loaded in Transition as a GeoJSON LineString FeatureCollection object
+          content:
+            application/json:
+              schema:
+                $ref: 'paths.yml#/paths'
+
+  /api/v1/nodes:
+    get:
+      summary: Get all nodes
+      description: Get all nodes which are currently loaded in Transition
+      responses:
+        '200':
+          description: Returns all nodes currently loaded in Transition as a GeoJSON Point FeatureCollection object
+          content:
+            application/json:
+              schema:
+                $ref: 'nodes.yml#/nodes'
+  
+  /api/v1/scenarios:
+    get:
+      summary: Get all scenarios
+      description: Get all scenarios which are currently loaded in Transition
+      responses:
+        '200':
+          description: Returns a list of all scenarios currently loaded in Transition with their parameters
+          content:
+            application/json:
+              schema:
+                $ref: 'scenarios.yml#/scenarios'
+
+  /api/v1/routing-modes:
+    get: 
+      summary: Get all routing modes
+      description: Get all routing modes which are currently availible in Transition
+      responses:
+        '200':
+          description: Returns all currently availible routing modes in Transition as a list of strings
+          content:
+            application/json:
+              schema:
+                $ref: 'routingModes.yml#/routingModes'
+
+  /api/v1/route:
+    post:
+      summary: Calculate route between two locations
+      description: Calculate a route between a given origin and destination with the provided modes of transport
+      parameters:
+        - in: query
+          name: withGeojson
+          schema:
+            type: boolean
+          description: Whether or not to also provide the calculated routes in GeoJSON format in the response. The default value is true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'route.yml#/routeRequest'
+      responses:
+        '200':
+          description: Successful query, returns a routing result
+          content:
+            application/json:
+              schema:
+                $ref: 'route.yml#/routeResponseSuccess'
+        '400':
+          description: Query parameters are invalid
+          content:
+            application/json:
+              schema:
+                $ref: 'route.yml#/routeResponseBadRequest'
+
+  /api/v1/accessibility:
+    post: 
+      summary: Calculate accessibility map
+      description: Calculate a map of all accessible locations within a specified time frame from or to a given location
+      parameters:
+        - in: query
+          name: withGeojson
+          schema:
+            type: boolean
+          description: Whether or not to also provide the accessibility map in GeoJSON format in the response. Otherwise, only a list of accessible nodes will be provided. The default value is true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'accessibilityMap.yml#/accessibilityMapRequest'
+      responses:
+        '200':
+          description: Successful query, returns an accessibility map
+          content:
+            application/json:
+              schema:
+                $ref: 'accessibilityMap.yml#/accessibilityMapResponseSuccess'
+        '400':
+          description: Query parameters are invalid
+          content:
+            application/json:
+              schema:
+                $ref: 'accessibilityMap.yml#/accessibilityMapResponseBadRequest'

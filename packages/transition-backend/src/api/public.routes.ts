@@ -15,14 +15,20 @@ import TransitAccessibilityMapRouting, {
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import {
-    SingleAccessibilityMapCalculationResult,
-    SingleRouteCalculationResult,
+    AccessibilityMapCalculationResult,
+    RouteCalculationResultParamsByMode,
     calculateAccessibilityMap,
     calculateRoute
 } from '../services/routingCalculation/RoutingCalculator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { FeatureCollection } from 'geojson';
 import { getAttributesOrDefault } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
+import { FeatureCollection, LineString, Point } from 'geojson';
+import PathsAPIResponse from './public/PathsAPIResponse';
+import NodesAPIResponse from './public/NodesAPIResponse';
+import ScenariosAPIResponse from './public/ScenariosAPIResponse';
+import RoutingModesAPIResponse from './public/RoutingModesAPIResponse';
+import RouteAPIResponse from './public/RouteAPIResponse';
+import AccessibilityMapAPIResponse from './public/AccessibilityMapAPIResponse';
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
@@ -72,8 +78,9 @@ export default function (app: express.Express, passport: PassportStatic) {
     router.get('/paths', async (req, res, next) => {
         try {
             const status = await transitObjectDataHandlers.paths.geojsonCollection!();
-            const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection };
-            res.status(200).json(result.geojson);
+            const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection<LineString> };
+            const response: PathsAPIResponse = new PathsAPIResponse(result.geojson);
+            res.status(200).json(response.getResponse());
         } catch (error) {
             next(error);
         }
@@ -82,8 +89,9 @@ export default function (app: express.Express, passport: PassportStatic) {
     router.get('/nodes', async (req, res, next) => {
         try {
             const status = await transitObjectDataHandlers.nodes.geojsonCollection!();
-            const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection };
-            res.status(200).json(result.geojson);
+            const result = Status.unwrap(status) as { type: 'geojson'; geojson: FeatureCollection<Point> };
+            const response: NodesAPIResponse = new NodesAPIResponse(result.geojson);
+            res.status(200).json(response.getResponse());
         } catch (error) {
             next(error);
         }
@@ -91,8 +99,9 @@ export default function (app: express.Express, passport: PassportStatic) {
 
     router.get('/scenarios', async (req, res, next) => {
         try {
-            const attributes = await transitObjectDataHandlers.scenarios.collection!(null);
-            res.status(200).json(attributes);
+            const scenarios = await transitObjectDataHandlers.scenarios.collection!(null);
+            const response: ScenariosAPIResponse = new ScenariosAPIResponse(scenarios.collection);
+            res.status(200).json(response.getResponse());
         } catch (error) {
             next(error);
         }
@@ -102,7 +111,8 @@ export default function (app: express.Express, passport: PassportStatic) {
         try {
             const routingModes: RoutingOrTransitMode[] = await osrmProcessManager.availableRoutingModes();
             routingModes.push('transit');
-            res.status(200).json(routingModes);
+            const response: RoutingModesAPIResponse = new RoutingModesAPIResponse(routingModes);
+            res.status(200).json(response.getResponse());
         } catch (error) {
             next(error);
         }
@@ -124,8 +134,12 @@ export default function (app: express.Express, passport: PassportStatic) {
                 return res.status(400).send(message);
             }
 
-            const routingResult: SingleRouteCalculationResult = await calculateRoute(routing, withGeojson);
-            res.status(200).json(routingResult);
+            const routingResult: RouteCalculationResultParamsByMode = await calculateRoute(routing, withGeojson);
+            const response: RouteAPIResponse = new RouteAPIResponse({
+                queryParams: calculationAttributes,
+                resultParams: routingResult
+            });
+            res.status(200).json(response.getResponse());
         } catch (error) {
             next(error);
         }
@@ -139,19 +153,23 @@ export default function (app: express.Express, passport: PassportStatic) {
                 const message = 'There should be a valid location';
                 return res.status(400).send(message);
             }
-
-            const routing = new TransitAccessibilityMapRouting(getAttributesOrDefault(calculationAttributes));
+            const attributes = getAttributesOrDefault(calculationAttributes);
+            const routing = new TransitAccessibilityMapRouting(attributes);
             if (!routing.validate()) {
                 const formattedErrors = routing.errors.map((e) => e.split(':').pop());
                 const message = 'Validation failed for routing attributes:\n' + formattedErrors.join('\n');
                 return res.status(400).send(message);
             }
 
-            const routingResult: SingleAccessibilityMapCalculationResult = await calculateAccessibilityMap(
+            const routingResult: AccessibilityMapCalculationResult = await calculateAccessibilityMap(
                 routing,
                 withGeojson
             );
-            res.status(200).json(routingResult);
+            const response: AccessibilityMapAPIResponse = new AccessibilityMapAPIResponse({
+                queryParams: attributes,
+                resultParams: routingResult
+            });
+            res.status(200).json(response.getResponse());
         } catch (error) {
             next(error);
         }
@@ -166,5 +184,5 @@ export default function (app: express.Express, passport: PassportStatic) {
         res.status(500).send(message);
     });
 
-    app.use('/api', router);
+    app.use('/api/v1', router);
 }

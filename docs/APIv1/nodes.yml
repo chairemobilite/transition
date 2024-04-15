@@ -1,0 +1,102 @@
+nodes:
+  type: object
+  required:
+    - type
+    - features
+  properties:
+    type: 
+      type: string
+      enum: [FeatureCollection]
+    features:
+      type: array
+      items:
+        type: object
+        required:
+          - id
+          - type
+          - geometry
+          - properties
+        properties:
+          id:
+            type: number
+            minimum: 0
+            example: 1
+          type:
+            type: string
+            enum: [Feature]
+          geometry:
+            type: object
+            required:
+              - type
+              - coordinates
+            properties:
+              type: 
+                type: string
+                enum: [Point]
+              coordinates:
+                type: array
+                items:
+                  type: number
+                  minItems: 2
+                  maxItems: 2
+                example: [-73.461867011, 45.494932982]
+          properties:
+            type: object
+            required:
+              - id
+              - code
+              - name
+              - stops
+            properties:
+              id: 
+                type: string
+                description: UUID of this node Transition object
+                example: 9f24a677-4771-46b1-b7cc-019a54538200
+              code:
+                type: string
+                description: Code of an arbitrary stop in this node
+                example: 39999
+              name:
+                type: string
+                description: Name of an arbitrary stop in this node
+                example: Terminus Longueuil                
+              stops:
+                type: array
+                description: List of all the stops in this node
+                items:
+                  type: object
+                  required:
+                    - id
+                    - code
+                    - name
+                    - geography
+                  properties:
+                    id: 
+                      type: string
+                      description: ID of this stop
+                      example: 9999
+                    code:
+                      type: string
+                      description: Code of this stop
+                      example: 39999
+                    name:
+                      type: string
+                      description: Name of this stop
+                      example: Terminus Longueuil
+                    geography:
+                      type: object
+                      required:
+                        - type
+                        - coordinates
+                      description: GeoJSON Point object corresponding to this stop
+                      properties:
+                        type:
+                          type: string
+                          enum: [Point]
+                        coordinates:
+                          type: array
+                          items:
+                            type: number
+                            minItems: 2
+                            maxItems: 2
+                          example: [-73.461867011, 45.494932982]   

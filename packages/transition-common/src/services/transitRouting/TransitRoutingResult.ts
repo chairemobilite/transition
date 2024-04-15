@@ -38,7 +38,7 @@ interface StepGeojsonProperties {
 }
 
 // TODO tahini: paths and walkOnlyPath should share a same type
-interface TransitResultParams {
+export interface TransitResultParams {
     origin: GeoJSON.Feature<GeoJSON.Point>;
     destination: GeoJSON.Feature<GeoJSON.Point>;
     paths: TrRoutingRoute[];

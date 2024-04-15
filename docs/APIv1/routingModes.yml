@@ -1,0 +1,12 @@
+routingModes:
+  type: array
+  items:
+    type: string
+  example: [
+    driving, 
+    cycling, 
+    walking, 
+    bus_suburb, 
+    bus_urban, 
+    transit
+  ]

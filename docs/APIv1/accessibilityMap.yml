@@ -1,0 +1,218 @@
+accessibilityMapRequest:
+  type: object
+  description: Parameters used for the accessibility map calculation
+  required:
+    - locationGeojson
+    - scenarioId
+    - departureTimeSecondsSinceMidnight
+    - arrivalTimeSecondsSinceMidnight
+  properties:
+    locationGeojson:
+      type: object
+      description: Location from which the accessibility map will be calculated, as a GeoJSON Point object
+      required:
+        - type
+        - geometry
+      properties:
+        type:
+          type: string
+          enum: [Feature]
+        geometry:
+          type: object
+          required:
+            - type
+            - coordinates
+          properties:
+            type: 
+              type: string
+              enum: [Point]
+            coordinates:
+              type: array
+              items:
+                type: number
+              example: [-73.49334331928837, 45.519260090884075]
+        properties:
+          type: object
+    scenarioId: 
+      type: string
+      description: UUID of the scenario to query. A scenario defines the services, agencies and lines to use for a transit calculation.
+      example: d95c46a0-980c-4a33-b003-d3bcf66d5a48
+    departureTimeSecondsSinceMidnight:
+      type: number
+      description: The departure time of the trip, in seconds since midnight. There is no timezone associated with the time, Transition is timezone agnostic as a scenario typically covers a single timezone and the 0 is the midnight in the agency of that scenario. The arrivalTimeSecondsSinceMidnight parameter may be provided instead.
+      example: 28800
+    arrivalTimeSecondsSinceMidnight: 
+      type: number
+      description: The arrival time of the trip, in seconds since midnight. See description for the departureTimeSecondsSinceMidnight parameter, which may be included instead.
+      example: 61200
+    numberOfPolygons: 
+      type: number
+      description: "If the withGeojson query parameter is set to true, this determines the number of accessibility polygons that will be computed. For example, A maxTotalTravelTimeSeconds value of 60 minutes with a number of polygons of 3 implies that we will obtain three polygons: accessibility at 20 minutes, 40 minutes and 60 minutes."
+      example: 3
+    deltaSeconds: 
+      type: number
+      description: If the withGeojson query parameter is set to true, this determines the time window before and after the specified departure/arrival time within which accessibility polygons will be averaged. For example, a deltaSeconds of 15 minutes with a deltaIntervalSeconds of 5 minutes implies that the polygon area will be averaged over polygons obtained 15 minutes before, 10 minutes before, 5 minutes before, at specified time, 5 minutes after, 10 minutes after and 15 minutes after the specified departure or arrival time.
+      example: 900
+    deltaIntervalSeconds:
+      type: number
+      description: If the withGeojson query parameter is set to true, this determines at which interval (within the time window specified in the deltaSeconds parameter) accessilibility polygons will be calculated and averaged. See description for the deltaSeconds parameter.
+      example: 300
+    maxTotalTravelTimeSeconds: 
+      type: number
+      description: The maximum total travel time between origin and destination, including access, transfer and egress times
+      example: 900
+    minWaitingTimeSeconds: 
+      type: number
+      description: "The minimum time to wait at a stop/station, in seconds, to cope with uncertainties in the vehicle arrival times. Suggested value: 180"
+      example: 180
+    maxAccessEgressTravelTimeSeconds: 
+      type: number
+      description:  Maximum time, in seconds, to reach the first stop/station in the trip, and to reach the destination from the last stop/station.
+      example: 900
+    maxTransferTravelTimeSeconds: 
+      type: number
+      description: Maximum time, in seconds, for each transfer between stop/station during the trip
+      example: 900
+    walkingSpeedMps: 
+      type: number
+      description: Assumed walking speed, in meters per second
+      example: 1.3888888888
+
+accessibilityMapResponseSuccess:
+  type: object
+  required:
+    - query
+    - result
+  properties:
+    query:
+      allOf:
+        - $ref: '#/accessibilityMapRequest'
+        - type: object
+          required:
+            - numberOfPolygons
+            - deltaSeconds
+            - deltaIntervalSeconds
+            - maxTotalTravelTimeSeconds
+            - minWaitingTimeSeconds
+            - maxAccessEgressTravelTimeSeconds
+            - maxTransferTravelTimeSeconds
+            - walkingSpeedMps
+    result:
+      $ref: '#/accessibilityMapResultResponse'  
+
+accessibilityMapResultResponse:
+  type: object
+  description: All accessible nodes as well as an accessibility map, if requested
+  required:
+    - nodes
+  properties:  
+    nodes:
+      $ref: '#/accessibilityMapResultResponseNodes' 
+    polygons:
+      $ref: '#/accessibilityMapResultResponsePolygons'
+
+accessibilityMapResultResponseNodes:
+  type: array
+  description: A list of all accessible nodes
+  items:
+    type: object
+    required:
+      - departureTimeSeconds
+      - arrivalTimeSeconds
+      - id
+      - numberOfTransfers
+      - totalTravelTimeSeconds
+    properties:
+      departureTimeSeconds:
+        type: number
+        description: This property is only present if the requested time is an arrival time. This is the latest possible time the transit user needs to be at the node to take transit.
+        example: 29640
+      arrivalTimeSeconds: 
+        type: number
+        description: This property is only present if the requested time is a departure time. This is the transit user's earliest possible arrival time at this node.
+        example: 29491
+      id: 
+        type: string
+        description: UUID of the current node
+        example: 00b1a324-5be1-4ab9-8d74-4a99ff4ccde6
+      numberOfTransfers:
+        type: number
+        description: Number of transfers required to access this node.
+        example: 0
+      totalTravelTimeSeconds:
+        type: number
+        description: Total travel time, from/to the requested place to/from this node, in seconds, including any additional waiting time at origin or destination to depart/arrive exactly at the requested time.
+        example: 897
+
+accessibilityMapResultResponsePolygons: 
+  type: object
+  description: The accessibility map polygon as a GeoJSON MultiPolygon FeatureCollection object. This object is only provided if the withGeojson query parameter is set to true
+  required:
+    - type
+    - features
+  properties:
+    type: 
+      type: string
+      enum: [FeatureCollection]
+    features:
+      type: array
+      items:
+        type: object
+        required:
+          - type
+          - geometry
+        properties:
+          type: 
+            type: string
+            enum: [Feature]
+          geometry:
+            type: object
+            required:
+              - type
+              - coordinates
+            properties:
+              type: 
+                type: string
+                enum: [MultiPolygon]
+              coordinates:
+                type: array
+                items:
+                  type: array
+                  items:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                      minItems: 2
+                      maxItems: 2
+                example: [
+                  [
+                    [
+                      [
+                          -73.52605901846881,
+                          45.531549758125095
+                      ],
+                      [
+                          -73.52602309649474,
+                          45.53103849735206
+                      ]
+                    ],
+                    [
+                      [
+                          -73.52591581318252,
+                          45.53053216488021
+                      ],
+                      [
+                          -73.52573820359419,
+                          45.53003563676973
+                      ]
+                    ]
+                  ]
+                ]
+          properties:
+            type: object
+
+accessibilityMapResponseBadRequest:
+  type: string
+  description: Description of the encountered error
