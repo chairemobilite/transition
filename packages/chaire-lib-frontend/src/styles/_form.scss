@@ -78,7 +78,7 @@ select {
   // Unfortunately we can't change the color of the chevron on the select input.
   // We must add our own.
   appearance: none;
-  background-image: url("~transition-frontend/src/assets/images/icons/interface/select_chevron_white.svg");
+  background-image: url("./dist/images/icons/interface/select_chevron_white.svg");
   padding-right: 1.8rem; // Give a little more space for the chevron image
   background-repeat: no-repeat;
   background-position: 98% 50%;

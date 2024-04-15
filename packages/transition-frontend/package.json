@@ -8,9 +8,9 @@
   "repository": "github.com/chairemobilite/transition",
   "license": "MIT",
   "scripts": {
-    "build:dev": "cross-env NODE_OPTIONS=\"--trace-deprecation --max_old_space_size=4096\" webpack watch --progress --color --env development --mode development",
-    "build:prod": "cross-env NODE_OPTIONS=\"--trace-deprecation --max_old_space_size=4096\" webpack --progress --color --env production --mode production",
-    "build:test": "cross-env NODE_ENV=\"test\" webpack watch --env test --mode development --progress --color",
+    "build:dev": "cross-env NODE_OPTIONS=\"--trace-deprecation --max_old_space_size=4096 --openssl-legacy-provider\" webpack watch --progress --color --env development --mode development",
+    "build:prod": "cross-env NODE_OPTIONS=\"--trace-deprecation --max_old_space_size=4096 --openssl-legacy-provider\" webpack --progress --color --env production --mode production",
+    "build:test": "cross-env NODE_ENV=\"test\" NODE_OPTIONS=\"--openssl-legacy-provider\" webpack watch --env test --mode development --progress --color",
     "compile": "tsc && yarn copy-files",
     "compile:dev": "yarn copy-files && tsc -w",
     "clean": "rimraf lib/",
@@ -96,7 +96,6 @@
     "eslint": "^8.29.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-react": "^7.31.11",
-    "file-loader": "^6.0.0",
     "html-webpack-plugin": "^5.6.0",
     "jest": "^27.3.1",
     "jest-fetch-mock": "^3.0.3",
@@ -114,7 +113,6 @@
     "ts-jest": "^27.0.7",
     "ts-loader": "^9.5.1",
     "ts-shader-loader": "^2.0.2",
-    "url-loader": "^4.1.0",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4"
   }

@@ -89,10 +89,7 @@ module.exports = (env) => {
         },
         {
           test: /\.(ttf|woff2|woff|eot|svg)$/,
-          loader: 'url-loader',
-          options: {
-            limit: 100000
-          }
+          type: 'asset'
         },
         {
           test: /\.glsl$/,
