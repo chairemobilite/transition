@@ -10,11 +10,12 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { randomUUID } from 'crypto';
 import { TokenAttributes } from '../../services/auth/token';
 import { table } from 'console';
-import config from '../../../../../examples/config';
+import config from '../../config/server.config';
 
 const tableName = 'tokens';
 const userTableName = 'users';
-const defaultTokenLifespanDays = 10
+// Verify if config is number, else return default value
+const defaultTokenLifespanDays: number = isNaN(Number(config.tokenLifespanDays))? 10 : config.tokenLifespanDays;
 
 const attributesCleaner = function (attributes: TokenAttributes): { user_id: number; api_token: string } {
     const { user_id, api_token, expiry_date, creation_date } = attributes;
@@ -69,12 +70,12 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
             return row[0].api_token;
         }
         const apiToken = randomUUID();
-        const tokenLifespan = new Date();
-        tokenLifespan.setDate(tokenLifespan.getDate() +  (config.tokenLifespanDays || defaultTokenLifespanDays));
+        const tokenExpiryDate = new Date();
+        tokenExpiryDate.setDate(tokenExpiryDate.getDate() + defaultTokenLifespanDays);
         const newObject: TokenAttributes = {
             user_id: user_id,
             api_token: apiToken,
-            expiry_date: tokenLifespan,
+            expiry_date: tokenExpiryDate,
             creation_date: knex.raw('CURRENT_TIMESTAMP')
         };
         await knex(tableName).insert(newObject);
@@ -114,6 +115,9 @@ const getUserByToken = async (token: string) => {
 
         if (!user) {
             throw new TrError('Error, mismatch between user and user_id', 'DBUTK0005', 'DatabaseNoUserMatchesToken');
+        }
+        if (user[0].expiry_date < (await knex.fn.now()) + defaultTokenLifespanDays) {
+            throw new TrError('Error, token expired', 'DBUTKN006', 'DatabaseExpiredToken')
         }
 
         return user;

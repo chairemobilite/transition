@@ -268,14 +268,12 @@ describe(`${objectName}`, () => {
 
     test('should delete objects from database', async() => {
         
-        newObjectAttributes.id = "id not in table"
-        const id = await dbQueries.delete(newObjectAttributes.id)
-        expect(id).toThrow();
-    });
-
-    test('should return an error from database', async() => {
         const id = await dbQueries.delete(newObjectAttributes.id)
         expect(id).toBe(newObjectAttributes.id);
+
+        const ids = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
+        expect(ids).toEqual([newObjectAttributes.id, newObjectAttributes2.id]);
+
     });
 
     test('create multiple with errors, it should be a transaction', async() => {
