@@ -18,7 +18,7 @@ import polygonClipping from 'polygon-clipping';
 import _cloneDeep from 'lodash/cloneDeep';
 import _sum from 'lodash/sum';
 
-import TransitAccessibilityMapRouting from './TransitAccessibilityMapRouting';
+import TransitAccessibilityMapRouting, { AccessibilityMapAttributes } from './TransitAccessibilityMapRouting';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-common/lib/services/trRouting/TrRoutingServiceManager';
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
@@ -70,8 +70,7 @@ const isNumber = (val: any): val is number => {
     return Number.isFinite(val);
 };
 
-const getAttributesOrDefault = (routing: TransitAccessibilityMapRouting) => {
-    const attributes = routing.getAttributes();
+export const getAttributesOrDefault = (attributes: Partial<AccessibilityMapAttributes>) => {
     if (!attributes.locationGeojson) {
         throw 'There should be a valid location';
     }
@@ -185,7 +184,7 @@ export class TransitAccessibilityMapCalculator {
             routing.updateRoutingPrefs();
         }
 
-        const attributes = getAttributesOrDefault(routing);
+        const attributes = getAttributesOrDefault(routing.getAttributes());
         const durations = getDurations(attributes.maxTotalTravelTimeSeconds, attributes.numberOfPolygons);
         const departureTime = attributes.departureTimeSecondsSinceMidnight;
         const arrivalTime = attributes.arrivalTimeSecondsSinceMidnight;
@@ -282,7 +281,7 @@ export class TransitAccessibilityMapCalculator {
             updatePreferences,
             options
         );
-        const attributes = getAttributesOrDefault(routing);
+        const attributes = getAttributesOrDefault(routing.getAttributes());
         const { isCancelled, additionalProperties } = options;
 
         try {
@@ -400,10 +399,13 @@ export class TransitAccessibilityMapCalculator {
                 );
             }
 
-            serviceLocator.eventManager.emit('progress', {
-                name: 'AccessibilityMapPolygonGeneration',
-                progress: stepI++ / stepsCount
-            });
+            // The backend does not have this event manager, so we only want to use it when it exists
+            if (serviceLocator.eventManager) {
+                serviceLocator.eventManager.emit('progress', {
+                    name: 'AccessibilityMapPolygonGeneration',
+                    progress: stepI++ / stepsCount
+                });
+            }
 
             // TODO This is the veryyy sloooooow operation.
             const polygonCoordinates = await this.clipPolygon(nodeCircles, isCancelled);
@@ -458,7 +460,10 @@ export class TransitAccessibilityMapCalculator {
                 )
             );
 
-            serviceLocator.eventManager.emitProgress('AccessibilityMapPolygonGeneration', stepI++ / stepsCount);
+            // The backend does not have this event manager, so we only want to use it when it exists
+            if (serviceLocator.eventManager) {
+                serviceLocator.eventManager.emitProgress('AccessibilityMapPolygonGeneration', stepI++ / stepsCount);
+            }
         }
 
         if (isCancelled()) {

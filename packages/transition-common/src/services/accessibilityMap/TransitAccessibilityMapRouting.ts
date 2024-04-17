@@ -92,7 +92,7 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
         }
 
         const deltaSeconds = attributes.deltaSeconds;
-        if (!deltaSeconds) {
+        if (deltaSeconds === undefined) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:DeltaIsMissing');
         } else if (isNaN(deltaSeconds) || deltaSeconds < 0) {
@@ -155,11 +155,6 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
         if (!queryAttrValid) {
             this._isValid = false;
             this.errors.push(...queryAttrErrors);
-        }
-
-        if (!attributes.scenarioId) {
-            this._isValid = false;
-            this.errors.push('transit:transitRouting:errors:ScenarioIsMissing');
         }
 
         return this._isValid;

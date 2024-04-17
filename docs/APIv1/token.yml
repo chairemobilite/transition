@@ -1,0 +1,27 @@
+tokenRequest:
+  type: object
+  required:
+    - usernameOrEmail
+    - password
+  properties:
+    usernameOrEmail:
+      type: string
+      description: Username or email of Transition user
+      example: exampleUsername
+    password:
+      type: string
+      description: Password of Transition user
+      example: examplePassword
+
+tokenResponseSuccess:
+  type: string
+  description: Unique token for specified user
+  example: 01f9d37f-c24a-4c4f-80f9-4d0cfc80899a
+
+tokenResponseBadRequest:
+  type: string
+  description: Description of the encountered error
+
+tokenResponseUnauthorized:
+  type: string
+  description: Description of the encountered error

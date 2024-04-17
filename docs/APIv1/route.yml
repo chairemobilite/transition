@@ -1,0 +1,692 @@
+routeRequest:
+  description: Parameters used for the routing calculation
+  oneOf:
+    - $ref: '#/routeUnimodalRequest'
+    - $ref: '#/routeTransitRequest'
+
+routeUnimodalRequest:
+  type: object
+  title: routingModes does not include "transit"
+  required:
+    - routingModes
+    - originGeojson
+    - destinationGeojson
+  properties:
+    routingModes:
+      type: array
+      description: List of the names of all modes of transport for which to do a routing calculation. These names can be retrieved from the /api/routing-modes endpoint.
+      items:
+        type: string
+      example: [
+        driving, 
+        cycling, 
+        walking
+      ] 
+    originGeojson:
+      $ref: '#/originGeojson'
+    destinationGeojson:
+      $ref: '#/destinationGeojson'
+
+routeTransitRequest:
+  type: object
+  title: routingModes includes "transit"
+  required:
+    - routingModes
+    - originGeojson
+    - destinationGeojson
+    - scenarioId
+    - departureTimeSecondsSinceMidnight
+    - arrivalTimeSecondsSinceMidnight
+  properties:
+    routingModes:
+      type: array
+      description: List of the names of all modes of transport for which to do a routing calculation. These names can be retrieved from the /api/routing-modes endpoint.
+      items:
+        type: string
+      example: [
+        transit, 
+        cycling, 
+        walking
+      ] 
+    originGeojson:
+      $ref: '#/originGeojson'
+    destinationGeojson:
+      $ref: '#/destinationGeojson'
+    scenarioId: 
+      type: string
+      description: UUID of the scenario to query. A scenario defines the services, agencies and lines to use for a transit calculation.
+      example: d95c46a0-980c-4a33-b003-d3bcf66d5a48
+    departureTimeSecondsSinceMidnight:
+      type: number
+      description: The departure time of the trip, in seconds since midnight. There is no timezone associated with the time, Transition is timezone agnostic as a scenario typically covers a single timezone and the 0 is the midnight in the agency of that scenario. The arrivalTimeSecondsSinceMidnight parameter may be provided instead.
+      example: 28800
+    arrivalTimeSecondsSinceMidnight: 
+      type: number
+      description: The arrival time of the trip, in seconds since midnight. See description for the departureTimeSecondsSinceMidnight parameter, which may be included instead.
+      example: 61200
+    maxTotalTravelTimeSeconds: 
+      type: number
+      description: The maximum total travel time between origin and destination, including access, transfer and egress times.
+      example: 10800
+    minWaitingTimeSeconds:
+      type: number
+      description: "The minimum time to wait at a stop/station, in seconds, to cope with uncertainties in the vehicle arrival times. Suggested value: 180"
+      example: 180
+    maxTransferTravelTimeSeconds: 
+      type: number
+      description: Maximum time, in seconds, for each transfer between stop/station during the trip.
+      example: 900
+    maxAccessEgressTravelTimeSeconds: 
+      type: number
+      description: Maximum time, in seconds, to reach the first stop/station in the trip, and to reach the destination from the last stop/station.
+      example: 900
+    maxFirstWaitingTimeSeconds: 
+      type: number
+      description: The maximum time, in seconds, one can wait at first stop/station to consider this trip valid.
+      example: 300
+    withAlternatives:
+      type: boolean
+      description: Whether the results should return various alternatives if available or just a single result. Defaults to false, no alternatives
+      example: false
+
+originGeojson:
+  type: object
+  description: GeoJSON Point object corresponding to the origin of the route
+  required:
+    - type
+    - geometry
+  properties:
+    type:
+      type: string
+      enum: [Feature]
+    geometry:
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type: 
+          type: string
+          enum: [Point]
+        coordinates:
+          type: array
+          items:
+            type: number
+          example: [-73.49334331928837, 45.519260090884075]
+    properties:
+      type: object
+
+destinationGeojson:
+  type: object
+  description: GeoJSON Point object corresponding to the destination of the route
+  required:
+    - type
+    - geometry
+  properties:
+    type:
+      type: string
+      enum: [Feature]
+    geometry:
+      type: object
+      required:
+        - type
+        - coordinates
+      properties:
+        type: 
+          type: string
+          enum: [Point]
+        coordinates:
+          type: array
+          items:
+            type: number
+          example: [-73.49334331928837, 45.519260090884075]
+    properties:
+      type: object
+
+routeResponseSuccess:
+  type: object
+  required:
+    - query
+    - result
+  properties:
+    query:
+      allOf:
+        - $ref: '#/routeRequest'
+        - type: object
+          required:
+            - maxTotalTravelTimeSeconds
+            - minWaitingTimeSeconds
+            - maxTransferTravelTimeSeconds
+            - maxAccessEgressTravelTimeSeconds
+            - maxFirstWaitingTimeSeconds
+            - withAlternatives
+    result:
+      $ref: '#/routeResultResponse'
+
+routeResultResponse:
+  type: object
+  description: Result of the routing calculation
+  properties:
+    transit:
+      $ref: '#/routeTransitResultResponse'
+  additionalProperties:
+    $ref: '#/routeUnimodalResultResponse'
+        
+routeUnimodalResultResponse:
+  type: object
+  description: Each mode of transportation in routingModes will have their own result in this format, except for "transit". The property names correspond directly to the names of the modes of transportation provided
+  required:
+    - paths
+  properties:
+    paths:
+      $ref: '#/routeUnimodalResultResponsePaths'
+    pathsGeoJson:
+      $ref: '#/routeUnimodalResultResponsePathsGeojson'
+
+routeTransitResultResponse:
+  type: object
+  description: Result of the calculation for the "transit" mode, if it was provided in the routingModes query parameter
+  required:
+    - paths
+  properties:
+    paths:
+      $ref: '#/routeTransitResultResponsePaths'
+    pathsGeoJson:
+      $ref: '#/routeTransitResultResponsePathsGeojson'
+
+routeUnimodalResultResponsePaths:
+  type: array
+  description: A list of all calculated routes
+  items:
+    type: object
+    required:
+      - geometry
+      - distanceMeters
+      - travelTimeSeconds
+    properties:
+      geometry:
+        type: object
+        description: A GeoJSON LineString object representing this route
+        required:
+          - type
+          - coordinates
+        properties:
+          type:
+            type: string
+            enum: [LineString]
+          coordinates:
+            type: array
+            items:
+              type: array
+              items:
+                type: number
+              minItems: 2
+              maxItems: 2
+            example: [
+              [-73.461867011, 45.494932982], 
+              [-73.490097701, 45.499422248]
+            ]
+      distanceMeters:
+        type: number
+        description: The distance travalled along this route, in meters
+        example: 4282.6  
+      travelTimeSeconds:
+        type: number
+        description: The estimated duration of the trip along this route, in seconds
+        example: 3171.6
+
+routeUnimodalResultResponsePathsGeojson:
+  type: array
+  description: A list of all calculated routes as GeoJSON LineString FeatureCollection objects. Each FeatureCollection object represents one path. This object is only provided if the withGeojson query parameter is set to true
+  items:
+    type: object
+    required:
+      - type
+      - features
+    properties:
+      type: 
+        type: string
+        enum: [FeatureCollection]
+      features:
+        type: array
+        items:
+          type: object
+          required:
+            - type
+            - geometry
+            - properties
+          properties:
+            type:
+              type: string
+              enum: [Feature]
+            geometry:
+              type: object
+              required:
+                - type
+                - coordinates
+              properties:
+                type:
+                  type: string
+                  enum: [LineString]
+                coordinates:
+                  type: array
+                  items:
+                    type: array
+                    items:
+                      type: number
+                    minItems: 2
+                    maxItems: 2
+                  example: [
+                    [-73.461867011, 45.494932982], 
+                    [-73.490097701, 45.499422248]
+                  ]
+            properties:
+              type: object
+              required:
+                - mode
+                - distanceMeters
+                - travelTimeSeconds
+              properties:
+                mode:
+                  type: string
+                  description: The mode of transportation used for this route
+                  example: cycling
+                distanceMeters:
+                  type: number
+                  description: The distance travalled along this route, in meters
+                  example: 4282.6  
+                travelTimeSeconds:
+                  type: number
+                  description: The estimated duration of the trip along this route, in seconds
+                  example: 3171.6
+
+routeTransitResultResponsePaths:
+  type: array
+  description: A list of all calculated transit routes. Does not include geometry
+  items:
+    $ref: '#/singleRouteResponse'
+
+routeTransitResultResponsePathsGeojson:
+  type: array
+  description: A list of all calculated transit routes as GeoJSON LineString FeatureCollection objects. Each FeatureCollection object represents one path. This object is only provided if the withGeojson query parameter is set to true
+  items:
+    type: object
+    required:
+      - type
+      - features
+    properties:
+      type: 
+        type: string
+        enum: [FeatureCollection]
+      features:
+        type: array
+        items:
+          type: object
+          required:
+            - type
+            - geometry
+            - properties
+          properties:
+            type:
+              type: string
+              enum: [Feature]
+            geometry:
+              type: object
+              required:
+                - type
+                - coordinates
+              properties:
+                type:
+                  type: string
+                  enum: [LineString]
+                coordinates:
+                  type: array
+                  items:
+                    type: array
+                    items:
+                      type: number
+                    minItems: 2
+                    maxItems: 2
+                  example: [
+                    [-73.461867011, 45.494932982], 
+                    [-73.490097701, 45.499422248]
+                  ]
+            properties:
+              type: object
+              required:
+                - action
+                - stepSequence
+                - distanceMeters
+                - travelTimeSeconds
+              properties:
+                stepSequence:
+                  type: number
+                  description: The current step number for this section of the route. The count starts at 0
+                  minimum: 0
+                  example: 2
+                action:
+                  type: string
+                  description: Whether this section of the route is travelled while walking or while on transportation
+                  enum: [walking, ride]
+                  example: walking
+                distanceMeters: 
+                  type: number
+                  description: The estimated duration of the trip along this section of the route, in seconds
+                  example: 3475
+                travelTimeSeconds: 
+                  type: number
+                  description: The estimated duration of the trip along this section of the route route, in seconds
+                  example: 600
+
+singleRouteResponse:
+  type: object
+  required:
+    - departureTime
+    - arrivalTime
+    - totalTravelTime
+    - totalDistance
+    - totalInVehicleTime
+    - totalInVehicleDistance
+    - totalNonTransitTravelTime
+    - totalNonTransitDistance
+    - numberOfBoardings
+    - numberOfTransfers
+    - transferWalkingTime
+    - transferWalkingDistance
+    - accessTravelTime
+    - accessDistance
+    - egressTravelTime
+    - egressDistance
+    - transferWaitingTime
+    - firstWaitingTime
+    - totalWaitingTime
+    - steps
+  properties:
+    departureTime:
+      type: number
+      description: Optimized departure time in seconds since midnight
+      example: 28915
+    arrivalTime:
+      type: number
+      description: Arrival time in seconds since midnight
+      example: 31520
+    totalTravelTime:
+      type: number
+      description: Total travel time, from the optimized departure time to the arrival time, in seconds
+      example: 2605
+    totalDistance:
+      type: number
+      description: Total distance traveled, from departure to arrival
+      example: 6727
+    totalInVehicleTime:
+      type: number
+      description: Total time spent in a transit vehicle, in seconds
+      example: 897
+    totalInVehicleDistance:
+      type: number
+      description: Total distance traveled in a vehicle, in meters
+      example: 5057
+    totalNonTransitTravelTime:
+      type: number
+      description: Total time spent traveling, but not in a transit vehicle. This excludes waiting time. In seconds
+      example: 1254
+    totalNonTransitDistance:
+      type: number
+      description: Total distance traveled not in a vehicle, in meters
+      example: 1670
+    numberOfBoardings:
+      type: number
+      description: Number of times a vehicle is boarded in the trip
+      example: 2
+    numberOfTransfers:
+      type: number
+      description: Number of transfers in this trip
+      example: 1
+    transferWalkingTime:
+      type: number
+      description: Time spent walking to transfer from a transit route to another transit route, in seconds
+      example: 71
+    transferWalkingDistance:
+      type: number
+      description: Distance traveled to transfer between transit trips, in meters
+      example: 96
+    accessTravelTime:
+      type: number
+      description: Time spent traveling to access the first transit stop of the trip, in seconds
+      example: 581
+    accessDistance:
+      type: number
+      description: Distance traveled to access the first transit stop of the trip, in meters
+      example: 771
+    egressTravelTime:
+      type: number
+      description: Time spent traveling from the last transit stop of the trip, to the destination, in seconds
+      example: 602
+    egressDistance:
+      type: number
+      description: Distance traveled from the last transit stop of the trip to the destination, in meters
+      example: 802
+    transferWaitingTime:
+      type: number
+      description: Time spent waiting at a transit stop for a transfer (ie exluding the time spent waiting at the first stop), in seconds
+      example: 454
+    firstWaitingTime:
+      type: number
+      description: Time spent waiting at the first transit stop of the trip, in seconds
+      example: 180
+    totalWaitingTime:
+      type: number
+      description: Total time spent waiting for a transit vehicle, in seconds
+      example: 454
+    steps:
+      type: array
+      description: List of steps which form this trip
+      items:
+        $ref: '#/tripStep'
+
+tripStep:
+  type: object
+  oneOf:
+    - $ref: '#/tripStepWalking'
+    - $ref: '#/tripStepBoarding'
+    - $ref: '#/tripStepUnboarding'
+
+tripStepWalking:
+  type: object
+  title: walking
+  discriminator:
+    propertyName: type
+    mapping:
+      access: '#/tripStepWalkingWithBoarding'
+      egress: '#/tripStepWalkingEgress'
+      transfer: '#/tripStepWalkingWithBoarding'
+  required:
+    - action
+    - travelTime
+    - distance
+    - departureTime
+    - arrivalTime
+    - type
+  properties:
+    action:
+      type: string
+      enum: [walking]
+    travelTime:
+      type: number
+      description: Time spent walking in this step, in seconds
+      example: 581
+    distance:
+      type: number
+      description: Distance traveled in this step, in meters
+      example: 771
+    departureTime:
+      type: number
+      description: Time of the beginning of this step, in seconds since midnight
+      example: 28915
+    arrivalTime:
+      type: number
+      description: Time of arrival to destination for this step, in seconds since midnight
+      example: 29496
+    type:
+      type: string
+      example: access
+
+tripStepWalkingEgress:
+  $ref: '#/tripStepWalking'
+
+tripStepWalkingWithBoarding:
+  allOf:
+  - $ref: '#/tripStepWalking'
+  - type: object
+    required:
+      - readyToBoardAt
+    properties:
+      readyToBoardAt:
+        type: number
+        description: Time at which boarding is possible, this includes a waiting time buffer at the stop, so is usually arrival_time + minimum waiting time. Time format is seconds since midnight.
+        example: 29676
+
+tripStepBoarding:
+  allOf:
+    - type: object
+      title: boarding
+      required:
+        - action
+        - departureTime
+        - waitingTime
+      properties:
+        action:
+          type: string
+          enum: [boarding]
+        departureTime:
+          type: number
+          description: Departure time of the vehicle, in seconds since midnight
+          example: 29676
+        waitingTime:
+          type: number
+          description: Time spent waiting for the vehicle at the stops. Includes the minimal wait period specified in the query parameters. In seconds
+          example: 180
+    - $ref: '#/tripStepTripEnterOrExit'
+
+tripStepUnboarding:
+  allOf:
+    - type: object
+      title: unboarding
+      required:
+        - action
+        - arrivalTime
+        - inVehicleTime
+        - inVehicleDistance
+      properties:
+        action:
+          type: string
+          enum: [unboarding]
+        arrivalTime:
+          type: number
+          description: Arrival time of the vehicle, in seconds since midnight
+          example: 30409
+        inVehicleTime:
+          type: number
+          description: Time spent in the vehicle, in seconds
+          example: 733
+        inVehicleDistance:
+          type: number
+          description: Distance covered in the vehicle, in meters
+          example: 4073
+    - $ref: '#/tripStepTripEnterOrExit'
+
+tripStepTripEnterOrExit:
+  type: object
+  required:
+    - agencyAcronym
+    - agencyName
+    - agencyUuid
+    - lineShortname
+    - lineLongname
+    - lineUuid
+    - pathUuid
+    - modeName
+    - mode
+    - tripUuid
+    - legSequenceInTrip
+    - stopSequenceInTrip
+    - nodeName
+    - nodeCode
+    - nodeUuid
+    - nodeCoordinates
+  properties:
+    agencyAcronym:
+      type: string
+      description: Acronym of the agency serving the route being boarded/unboarded
+      example: RTL
+    agencyName:
+      type: string
+      description: Name of the agency serving the route being boarded/unboarded
+      example: Réseau de transport de Longueuil
+    agencyUuid:
+      type: string
+      description: UUID of the agency serving the route being boarded/unboarded
+      example: be3e7c8c-de2b-4bd5-b619-db3bb665504e
+    lineShortname:
+      type: string
+      description: Shortname of the route being boarded/unboarded
+      example: 123
+    lineLongname:
+      type: string
+      description: Long name of the route being boarded/unboarded
+      example: Jacques-Cartier / Parcs industriels
+    lineUuid:
+      type: string
+      description: UUID of the line being boarded/unboarded
+      example: 5f2bd7e8-d0ba-47ca-8f06-4198e438ddcc
+    pathUuid:
+      type: string
+      description: UUID of the path being boarded/unboarded
+      example: c764e5fc-1d44-4e91-93af-abbe8175f795
+    modeName:
+      type: string
+      description: Full name of the route's mode
+      example: Bus
+    mode:
+      type: string
+      description: Code name of the route's mode
+      example: bus
+    tripUuid:
+      type: string
+      description: UUID of the route's trip involved in this action
+      example: a84c5795-9982-4a1e-8b7b-9b0d664e4196
+    legSequenceInTrip:
+      type: number
+      description: Sequence number, in the complete trip, of the sequence starting at the stop to be boarded/unboarded. 1 would mean the first sequence.
+      example: 9
+    stopSequenceInTrip:
+      type: number
+      description: Sequence number, in the complete trip, of the stop boarded/unboarded at. 1 would mean the first stop
+      example: 9
+    nodeName:
+      type: string
+      description: Name of the node where the action takes place
+      example: Ste-Hélène / St-Édouard
+    nodeCode:
+      type: string
+      description: Code of the node where the action takes place
+      example: 31863
+    nodeUuid:
+      type: string
+      description: UUID of the node where the action takes place
+      example: 9acc4e90-829e-4806-861b-4319572c7ceb
+    nodeCoordinates:
+      type: array
+      items:
+        type: number
+      minItems: 2
+      maxItems: 2
+      description: longitude and latitude of the node where the action takes place, in the WSG84 coordinates system
+      example: [
+        -73.5,
+        45.518258
+      ]
+
+routeResponseBadRequest:
+  type: string
+  description: Description of the encountered error

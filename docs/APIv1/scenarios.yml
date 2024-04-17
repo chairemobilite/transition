@@ -1,0 +1,87 @@
+scenarios:
+  type: array
+  items: 
+    type: object
+    required:
+      - id
+      - name
+      - services
+      - only_agencies
+      - only_lines
+      - only_modes
+      - except_agencies
+      - except_lines
+      - except_modes
+    properties: 
+      id: 
+        type: string
+        description: UUID of this scenario
+        example: 29829bef-39fd-481b-86ee-9d781146352d
+      name: 
+        type: string
+        description: Name of this scenario
+        example: Example scenario name
+      services: 
+        type: array
+        description: List of the UUID's of the services included in this scenario
+        items: 
+          type: string
+        example: [
+          a35ad717-f719-4373-9edd-71db67630b5c,
+          5ca06471-a35c-4837-a593-c0cdf36548dc
+        ]
+      only_agencies: 
+        type: array
+        description: List of the UUID's of the agencies exclusively included in this scenario (all included if empty)
+        items: 
+          type: string
+        example: [
+          be3e7c8c-de2b-4bd5-b619-db3bb665504e,
+          5b46d0ae-218e-459b-81e2-508a7939e17a
+        ]
+      except_agencies: 
+        type: array
+        description: List of the UUID's of the agencies excluded from this scenario
+        items: 
+          type: string
+        example: [
+          5b46d0ae-218e-459b-81e2-508a7939e17a
+        ]
+      only_lines: 
+        type: array
+        description: List of the UUID's of the lines exclusively included in this scenario (all included if empty)
+        items: 
+          type: string
+        example: [
+          d06b3039-c115-41d8-a9e0-4faad51234f7,
+          fb28481d-8271-4791-ae55-229e2dcddd27,
+          ac59a2ab-443d-4a6e-a4fa-1b4632a00540,
+          480a3e8e-dee1-4024-a0fe-35f2f5d5273c
+        ]
+      except_lines: 
+        type: array
+        description: List of the UUID's of the lines excluded from this scenario
+        items: 
+          type: string
+        example: [
+          ac59a2ab-443d-4a6e-a4fa-1b4632a00540,
+          480a3e8e-dee1-4024-a0fe-35f2f5d5273c
+        ]
+      only_modes: 
+        type: array
+        description: List of the UUID's of the modes of transportation exclusively included in this scenario (all included if empty)
+        items: 
+          type: string
+        example: [
+          bus,
+          highSpeedRail,
+          metro
+        ]
+      except_modes: 
+        type: array
+        description: List of the UUID's of the modes of transportation excluded from this scenario
+        items: 
+          type: string
+        example: [
+          highSpeedRail
+        ]

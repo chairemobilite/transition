@@ -8,7 +8,7 @@ import _cloneDeep from 'lodash/cloneDeep';
 import GeoJSON from 'geojson';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
-import { TransitRouting } from './TransitRouting';
+import { TransitRouting, TransitRoutingAttributes } from './TransitRouting';
 import { getRouteByMode } from 'chaire-lib-common/lib/services/routing/RoutingUtils';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-common/lib/services/trRouting/TrRoutingServiceManager';
@@ -16,7 +16,7 @@ import { TransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingMo
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { TransitRoutingResult } from './TransitRoutingResult';
-import { UnimodalRouteCalculationResult, RouteCalculatorResult } from './RouteCalculatorResult';
+import { UnimodalRouteCalculationResult } from './RouteCalculatorResult';
 import { HostPort, TransitRouteQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 
 type TransitOrRouteCalculatorResult =
@@ -39,6 +39,27 @@ export type ResultsByMode = {
     [key in RoutingMode]?: UnimodalRouteCalculationResult;
 } & {
     transit?: TransitRoutingResult;
+};
+
+export const getTransitRouteQueryOptionsOrDefault = (
+    attributes: TransitRoutingAttributes,
+    od: [GeoJSON.Feature<GeoJSON.Point>, GeoJSON.Feature<GeoJSON.Point>]
+): TransitRouteQueryOptions => {
+    const departureTime = attributes.departureTimeSecondsSinceMidnight;
+    const arrivalTime = attributes.arrivalTimeSecondsSinceMidnight;
+    return {
+        minWaitingTime: attributes.minWaitingTimeSeconds || 180,
+        maxAccessTravelTime: attributes.maxAccessEgressTravelTimeSeconds || 900,
+        maxEgressTravelTime: attributes.maxAccessEgressTravelTimeSeconds || 900,
+        maxTransferTravelTime: attributes.maxTransferTravelTimeSeconds || 900,
+        maxTravelTime: attributes.maxTotalTravelTimeSeconds || 10800,
+        alternatives: attributes.withAlternatives || false,
+        scenarioId: attributes.scenarioId || '',
+        originDestination: od,
+        timeOfTrip: !_isBlank(departureTime) ? (departureTime as number) : (arrivalTime as number),
+        timeOfTripType: !_isBlank(departureTime) ? ('departure' as const) : ('arrival' as const),
+        maxFirstWaitingTime: attributes.maxFirstWaitingTimeSeconds || undefined
+    };
 };
 
 export class TransitRoutingCalculator {
@@ -87,23 +108,8 @@ export class TransitRoutingCalculator {
         routing: TransitRouting,
         queryOptions: HostPort
     ) {
-        const departureTime = routing.getAttributes().departureTimeSecondsSinceMidnight;
-        const arrivalTime = routing.getAttributes().arrivalTimeSecondsSinceMidnight;
         const trRoutingService = trRoutingServiceManager.getService();
-
-        const queryParams: TransitRouteQueryOptions = {
-            minWaitingTime: routing.getAttributes().minWaitingTimeSeconds || 180,
-            maxAccessTravelTime: routing.getAttributes().maxAccessEgressTravelTimeSeconds || 900,
-            maxEgressTravelTime: routing.getAttributes().maxAccessEgressTravelTimeSeconds || 900,
-            maxTransferTravelTime: routing.getAttributes().maxTransferTravelTimeSeconds || 900,
-            maxTravelTime: routing.getAttributes().maxTotalTravelTimeSeconds || 10800,
-            alternatives: routing.getAttributes().withAlternatives || false,
-            scenarioId: routing.getAttributes().scenarioId || '',
-            originDestination: od,
-            timeOfTrip: !_isBlank(departureTime) ? (departureTime as number) : (arrivalTime as number),
-            timeOfTripType: !_isBlank(departureTime) ? ('departure' as const) : ('arrival' as const),
-            maxFirstWaitingTime: routing.getAttributes().maxFirstWaitingTimeSeconds || undefined
-        };
+        const queryParams: TransitRouteQueryOptions = getTransitRouteQueryOptionsOrDefault(routing.getAttributes(), od);
         return await trRoutingService.route(queryParams, queryOptions);
     }
 
