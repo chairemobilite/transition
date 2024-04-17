@@ -212,6 +212,18 @@ accessibilityMapResultResponsePolygons:
                 ]
           properties:
             type: object
+            required:
+              - durationSeconds
+              - areaSqM
+            properties:
+              durationSeconds: 
+                type: number
+                description: The maximum trip duration included in this polygon, in seconds
+                example: 300
+              areaSqM:
+                type: number
+                description: The total area of the polygon, in square meters
+                example: 2309327.161000439
 
 accessibilityMapResponseBadRequest:
   type: string
