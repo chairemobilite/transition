@@ -43,7 +43,7 @@ const attributesParser = (dbAttributes: {
 
 const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
     try {
-        const user_id = await knex(userTableName)
+        const userId = await knex(userTableName)
             .where(function () {
                 this.where('username', usernameOrEmail).orWhere('email', usernameOrEmail);
             })
@@ -65,18 +65,22 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
                     return row[0].id;
                 }
             });
-        const row = await knex(tableName).where('user_id', user_id);
+        const now = new Date()
+        const row = await knex(tableName).where('user_id', userId);
         if (row[0]) {
-            return row[0].api_token;
+            if(row[0].expiry_date < now) {
+                deleteToken(userId)
+            } else {
+                return row[0].api_token;
+            }
         }
         const apiToken = randomUUID();
-        const tokenExpiryDate = new Date();
-        tokenExpiryDate.setDate(tokenExpiryDate.getDate() + defaultTokenLifespanDays);
+        const tokenExpiryDate = new Date(now.setDate(now.getDate() + defaultTokenLifespanDays));
         const newObject: TokenAttributes = {
-            user_id: user_id,
+            user_id: userId,
             api_token: apiToken,
             expiry_date: tokenExpiryDate,
-            creation_date: knex.raw('CURRENT_TIMESTAMP')
+            creation_date: new Date()
         };
         await knex(tableName).insert(newObject);
         return apiToken;
@@ -107,19 +111,20 @@ const getById = async (user_id: number): Promise<TokenAttributes | undefined> =>
 
 const getUserByToken = async (token: string) => {
     try {
-        const user_id = await knex(tableName).where('api_token', token);
-        if (user_id.length < 1) {
+        const userToken = await knex(tableName).where('api_token', token);
+        if (userToken.length < 1) {
             throw new TrError(`No such id in ${tableName} table.`, 'DBUTK0004', 'DatabaseNoUserMatchesProvidedToken');
         }
-        const user = (await knex(userTableName).where('id', user_id[0].user_id))[0];
+
+        if (userToken[0].expiry_date < new Date()){
+            throw new TrError('Error, Token expired', 'DBUTK0006', 'DatabaseTokenExpired');
+        }
+        
+        const user = (await knex(userTableName).where('id', userToken[0].user_id))[0];
 
         if (!user) {
             throw new TrError('Error, mismatch between user and user_id', 'DBUTK0005', 'DatabaseNoUserMatchesToken');
         }
-        if (user[0].expiry_date < (await knex.fn.now()) + defaultTokenLifespanDays) {
-            throw new TrError('Error, token expired', 'DBUTKN006', 'DatabaseExpiredToken')
-        }
-
         return user;
     } catch (error) {
         throw TrError.isTrError(error)
@@ -131,6 +136,20 @@ const getUserByToken = async (token: string) => {
             );
     }
 };
+
+const deleteToken = async (userId: string) => {
+    try{
+        await knex(tableName).where('user_id', userId).del()
+    } catch (error) {
+        throw TrError.isTrError(error)
+            ? error
+            : new TrError(
+                `Cannot delete token in table ${tableName} database: (knex error: ${error})`,
+                'DBUTK0003',
+                'DatabaseCannotCreateBecauseDatabaseError'
+            );
+    }
+}
 
 async function cleanExpiredApiTokens() {
     try {
@@ -150,5 +169,7 @@ export default {
     getUserByToken,
     exists: exists.bind(null, knex, tableName),
     delete: deleteRecord.bind(null, knex, tableName),
-    cleanExpiredApiTokens
+    deleteToken,
+    cleanExpiredApiTokens,
+    defaultTokenLifespanDays
 };
