@@ -36,7 +36,10 @@ type AccessibilityMapAPIResultResponse = {
         features: Array<{
             type: 'Feature';
             geometry: MultiPolygon;
-            properties: Record<string, never>; // Empty object
+            properties: {
+                durationSeconds: number;
+                areaSqM: number;
+            }
         }>;
     };
 };
@@ -91,7 +94,10 @@ export default class AccessibilityMapAPIResponse extends APIResponseBase<
                         features: resultParams.polygons.features.map((feature: Feature<MultiPolygon>) => ({
                             type: feature.type,
                             geometry: feature.geometry,
-                            properties: {}
+                            properties: {
+                                durationSeconds: feature.properties!.durationSeconds,
+                                areaSqM: feature.properties!.areaSqM
+                            }
                         }))
                     }
                     : undefined
