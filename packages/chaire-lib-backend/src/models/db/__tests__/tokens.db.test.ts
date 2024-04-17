@@ -13,12 +13,8 @@ import tokensDbQueries from '../tokens.db.queries';
 import { randomUUID } from 'crypto';
 import crypto from 'crypto';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { random } from 'lodash';
 
-interface Token {
-    user_id: number;
-    api_token: string;
-}
+const now = new Date()
 
 const user: Partial<UserAttributes> = {
     id: 1,
@@ -41,26 +37,40 @@ const expiredTokenUser: Partial<UserAttributes> = {
     is_valid: true
 }
 
-const tokenRow: TokenAttributes = {
+const user2: Partial<UserAttributes> = {
+    id: 4,
+    username: 'testname4',
+    email: 'test4@transition.city',
+    is_valid: true
+}
+
+const validToken: TokenAttributes = {
     user_id: 1,
     api_token: randomUUID(),
-    creation_date: [knex.fn.now()],
-    expiry_date:[knex.fn.now(), 30],
+    creation_date: now,
+    expiry_date:  new Date((new Date()).setDate(now.getDate() + tokensDbQueries.defaultTokenLifespanDays)),
 };
 
 const badToken: TokenAttributes = {
     user_id: 2,
     api_token: randomUUID(),
-    creation_date: [knex.fn.now()],
-    expiry_date:[knex.fn.now(), 30],
+    creation_date: new Date(),
+    expiry_date:  new Date(1659633411001) ,
 }
 
 const expiredToken: TokenAttributes = {
     user_id: 3,
     api_token: randomUUID(),
-    creation_date: [knex.fn.now(), -8],
-    expiry_date:[knex.fn.now(),-1]
+    creation_date: now,
+    expiry_date:  new Date(0),
 }
+
+const validToken2: TokenAttributes = {
+    user_id: 4,
+    api_token: randomUUID(),
+    creation_date: now,
+    expiry_date:  new Date((new Date()).setDate(now.getDate() + tokensDbQueries.defaultTokenLifespanDays)),
+};
 
 
 
@@ -77,8 +87,8 @@ const createToken = async (knex: Knex, tableName: string, tokenRow) => {
         const newObject: TokenAttributes = { 
             user_id: tokenRow.user_id, 
             api_token: tokenRow.api_token,
-            creation_date: '',
-            expiry_date: '', 
+            creation_date: tokenRow.creation_date,
+            expiry_date: tokenRow.expiry_date, 
         };
         const test = await knex(tableName).insert(newObject);
 
@@ -105,7 +115,7 @@ describe(`Tokens Database: Token exists in Tokens table`, () => {
         await truncate(knex, 'tokens');
         await truncate(knex, 'users');
         await createUser(knex, 'users', user as UserAttributes);
-        await createToken(knex, 'tokens', tokenRow);
+        await createToken(knex, 'tokens', validToken);
     });
     
     afterAll(async() => {
@@ -114,13 +124,12 @@ describe(`Tokens Database: Token exists in Tokens table`, () => {
     });
 
     test('Should return api token', async () => {
-      
         const testToken = await tokensDbQueries.getOrCreate(user.email as string)
-        expect(testToken).toEqual(tokenRow.api_token)
+        expect(testToken).toEqual(validToken.api_token)
     });
 
     test('Should return a user when token is in database', async() => {
-        const query = await tokensDbQueries.getUserByToken(tokenRow.api_token as string)
+        const query = await tokensDbQueries.getUserByToken(validToken.api_token as string)
         expect(query.email).toBe(user.email);
         expect(query.id).toBe(user.id);
         expect(query.username).toBe(user.username);
@@ -129,8 +138,8 @@ describe(`Tokens Database: Token exists in Tokens table`, () => {
 
     test('Should return an token when user_id is in database', async() => {
         const query = await tokensDbQueries.getById(user.id as number) as TokenAttributes 
-        expect(query.api_token).toBe(tokenRow.api_token);
-        expect(query.user_id).toBe(tokenRow.user_id);
+        expect(query.api_token).toBe(validToken.api_token);
+        expect(query.user_id).toBe(validToken.user_id);
 
 
     });
@@ -169,24 +178,26 @@ describe(`Tokens Database: Token does not exist in Tokens table`, () => {
     });
 
     test('Should create api tokens in database', async() => {
-        jest.spyOn(crypto, 'randomUUID').mockImplementation(() => (tokenRow.api_token) as `${string}-${string}-${string}-${string}-${string}`)
+        jest.spyOn(crypto, 'randomUUID').mockImplementation(() => (validToken.api_token) as `${string}-${string}-${string}-${string}-${string}`)
+        
         const query1 = await knex('tokens');
         await tokensDbQueries.getOrCreate(user.email as string)
         const query2 = await knex('tokens');
         expect(query2.length).toBeGreaterThan(query1.length)
-        expect(query2[0].api_token).toEqual(tokenRow.api_token)
+        expect(query2[0].api_token).toEqual(validToken.api_token)
     });
 });
 
 describe(`Tokens Database: Expiry`, () => {
 
-    beforeAll(async () => {
+    beforeEach(async () => {
         jest.setTimeout(10000);
         await truncate(knex, 'tokens');
         await truncate(knex, 'users');
-        await createUser(knex, 'users', user as UserAttributes);
-        await createToken(knex, 'tokens', tokenRow);
-        jest.mock('../../config/server.config', () => ({
+        jest.spyOn(crypto, 'randomUUID').mockImplementation(() => (expiredToken.api_token) as `${string}-${string}-${string}-${string}-${string}`)
+        await createUser(knex, 'users', expiredTokenUser as UserAttributes);
+        await createToken(knex, 'tokens', expiredToken);
+        jest.mock('../../../config/server.config', () => ({
             tokenLifespanDays: 1
         }));
     });
@@ -196,10 +207,48 @@ describe(`Tokens Database: Expiry`, () => {
         await truncate(knex, 'users')
     });
 
-    test('Should create api tokens in database', async() => {
-        jest.spyOn(crypto, 'randomUUID').mockImplementation(() => (tokenRow.api_token) as `${string}-${string}-${string}-${string}-${string}`)
+    test('Should return new token expired', async() => {
+        jest.spyOn(crypto, 'randomUUID').mockImplementation(() => (validToken.api_token) as `${string}-${string}-${string}-${string}-${string}`)
+        const query = await tokensDbQueries.getOrCreate(expiredTokenUser.email as string)
+        expect(query).toEqual(validToken.api_token)
+    });
+
+    test('Should throw when trying to get user by id if token is expired', async() => {
+        await expect(tokensDbQueries.getUserByToken(expiredToken.api_token as string)).rejects.toThrowError (TrError)
+    });
+
+
+});
+describe(`Tokens Database: Cleanup`, () => {
+
+    beforeEach(async () => {
+        jest.setTimeout(10000);
+        await truncate(knex, 'tokens');
+        await truncate(knex, 'users');
+        jest.spyOn(crypto, 'randomUUID').mockImplementation(() => (expiredToken.api_token) as `${string}-${string}-${string}-${string}-${string}`)
         await createUser(knex, 'users', expiredTokenUser as UserAttributes);
         await createToken(knex, 'tokens', expiredToken);
-        expect(await tokensDbQueries.getOrCreate(user.email as string)).rejects.toThrowError(TrError)
+        jest.mock('../../../config/server.config', () => ({
+            tokenLifespanDays: 1
+        }));
+    });
+    
+    afterAll(async() => {
+        await truncate(knex, 'tokens');
+        await truncate(knex, 'users')
+    });
+
+    test('Should remove all expired rows with expired token', async() => {
+        await createUser(knex, 'users', user as UserAttributes);
+        await createUser(knex, 'users', user2 as UserAttributes);
+        await createToken(knex, 'tokens', validToken);
+        await createToken(knex, 'tokens', validToken2);
+        const query1 = await knex('tokens');
+        await tokensDbQueries.cleanExpiredApiTokens()
+        const query2 = await knex('tokens');
+        const query3 = await knex('tokens').where('expiry_date','<',new Date());
+        expect(query1.length).toEqual(3)
+        expect(query2.length).toEqual(2)
+        expect(query3.length).toEqual(0)
     });
 });
