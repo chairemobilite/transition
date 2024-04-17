@@ -15,7 +15,7 @@ import config from '../../config/server.config';
 const tableName = 'tokens';
 const userTableName = 'users';
 // Verify if config is number, else return default value
-const defaultTokenLifespanDays: number = isNaN(Number(config.tokenLifespanDays))? 10 : config.tokenLifespanDays;
+const defaultTokenLifespanDays: number = isNaN(Number(config.tokenLifespanDays)) ? 10 : config.tokenLifespanDays;
 
 const attributesCleaner = function (attributes: TokenAttributes): { user_id: number; api_token: string } {
     const { user_id, api_token, expiry_date, creation_date } = attributes;
@@ -65,11 +65,11 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
                     return row[0].id;
                 }
             });
-        const now = new Date()
+        const now = new Date();
         const row = await knex(tableName).where('user_id', userId);
         if (row[0]) {
-            if(row[0].expiry_date < now) {
-                deleteToken(userId)
+            if (row[0].expiry_date < now) {
+                deleteToken(userId);
             } else {
                 return row[0].api_token;
             }
@@ -116,10 +116,10 @@ const getUserByToken = async (token: string) => {
             throw new TrError(`No such id in ${tableName} table.`, 'DBUTK0004', 'DatabaseNoUserMatchesProvidedToken');
         }
 
-        if (userToken[0].expiry_date < new Date()){
+        if (userToken[0].expiry_date < new Date()) {
             throw new TrError('Error, Token expired', 'DBUTK0006', 'DatabaseTokenExpired');
         }
-        
+
         const user = (await knex(userTableName).where('id', userToken[0].user_id))[0];
 
         if (!user) {
@@ -138,8 +138,8 @@ const getUserByToken = async (token: string) => {
 };
 
 const deleteToken = async (userId: string) => {
-    try{
-        await knex(tableName).where('user_id', userId).del()
+    try {
+        await knex(tableName).where('user_id', userId).del();
     } catch (error) {
         throw TrError.isTrError(error)
             ? error
@@ -149,7 +149,7 @@ const deleteToken = async (userId: string) => {
                 'DatabaseCannotCreateBecauseDatabaseError'
             );
     }
-}
+};
 
 async function cleanExpiredApiTokens() {
     try {
