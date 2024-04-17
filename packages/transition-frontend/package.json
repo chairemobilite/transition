@@ -80,7 +80,7 @@
     "@types/react-mathjax": "^1.0.1",
     "@types/react-redux": "^7.1.9",
     "@types/react-router-dom": "^5.1.5",
-    "@types/react-test-renderer": "^16.9.2",
+    "@types/react-test-renderer": "16.9.2",
     "@types/socket.io-client": "^1.4.36",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.45.1",
