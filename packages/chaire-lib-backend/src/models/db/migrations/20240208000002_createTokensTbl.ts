@@ -11,12 +11,14 @@ const tableName = 'tokens';
 
 export async function up(knex: Knex): Promise<unknown> {
     return knex.schema.alterTable(tableName, (table: Knex.TableBuilder) => {
+        table.timestamp('expiry_date');
         table.timestamp('creation_date');
     });
 }
 
 export async function down(knex: Knex): Promise<unknown> {
     return knex.schema.alterTable(tableName, (table: Knex.TableBuilder) => {
+        table.timestamp('expiry_date');
         table.timestamp('creation_date');
     });
 }
