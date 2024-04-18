@@ -106,7 +106,7 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
                 if (!user) throw 'InvalidToken';
                 done(null, user);
             } catch (err) {
-                const message = TrError.isTrError(err) ? err.export().localizedMessage : err 
+                const message = TrError.isTrError(err) ? err.export().localizedMessage : err;
                 return done(message);
             }
         })
