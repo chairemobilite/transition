@@ -79,7 +79,12 @@ export default function (app: express.Express, passport: PassportStatic) {
                 console.error(err);
                 if (err === 'DatabaseTokenExpired') {
                     return res.status(401).send(err);
-                } else {
+                } 
+                else if (err == 'DatabaseNoUserMatchesProvidedToken' || err == 'DatabaseNoUserMatchesToken' || err == 'InvalidToken')  {
+                    const message = 'Unauthorized'
+                    return res.status(401).send(message);
+                }
+                else {
                     const message = 'Internal Server Error';
                     return res.status(500).send(message);
                 }
