@@ -15,6 +15,7 @@ import config from '../server.config';
 import { sendConfirmationEmail } from '../../services/auth/userEmailNotifications';
 import { v4 as uuidV4 } from 'uuid';
 import { IAuthModel, IUserModel } from '../../services/auth/authModel';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 // FIXME: auth.localLogin is now the way to define local login behavior, setting variables here for legacy purposes
 // @Deprecated all config.* that is not in auth, are deprecated and have been moved to auth
@@ -105,7 +106,8 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
                 if (!user) throw 'InvalidToken';
                 done(null, user);
             } catch (err) {
-                return done('InvalidToken');
+                const message = TrError.isTrError(err) ? err.export().localizedMessage : err 
+                return done(message);
             }
         })
     );
