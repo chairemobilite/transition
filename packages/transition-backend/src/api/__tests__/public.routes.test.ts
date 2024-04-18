@@ -34,33 +34,21 @@ jest.mock('../public/AccessibilityMapAPIResponse');
 jest.mock('../public/RouteAPIResponse');
 jest.mock('passport');
 
+const app = express();
+app.use(express.json() as RequestHandler);
+publicRoutes(app, passport);
+
 beforeEach(() => {
     jest.clearAllMocks();
-});
 
-test('Passport bearer-strategy middleware setup', () => {
     (passport.authenticate as jest.Mock).mockImplementation(() => {
         return (req, res, next) => {
             next();
         };
     });
-
-    publicRoutes(express(), passport);
-    expect(passport.authenticate).toBeCalledTimes(1);
-    expect(passport.authenticate).toBeCalledWith('bearer-strategy', { session: false });
 });
 
 describe('Testing POST /token endpoint', () => {
-    (passport.authenticate as jest.Mock).mockImplementation(() => {
-        return (req, res, next) => {
-            next();
-        };
-    });
-
-    const app = express();
-    app.use(express.json() as RequestHandler);
-    publicRoutes(app, passport);
-
     test('POST /token', async () => {
         tokensDbQueries.getOrCreate = jest.fn(() => Promise.resolve()) as any;
 
@@ -214,17 +202,74 @@ describe('Testing POST /token endpoint', () => {
     });
 });
 
-describe('Testing API endpoints', () => {
-    (passport.authenticate as jest.Mock).mockImplementation(() => {
-        return (req, res, next) => {
-            next();
-        };
+describe('Testing passport bearer-strategy middleware', () => {
+    test('Should return 401 when token is expired', async () => {
+        const error = 'DatabaseTokenExpired';
+
+        (passport.authenticate as jest.Mock).mockImplementation((strategy, options, callback) => {
+            return () => {
+                callback(error);
+            }
+        });
+
+        const response = await request(app).get('/api/v1');
+
+        expect(response.status).toEqual(401);
+        expect(passport.authenticate).toHaveBeenCalledTimes(1);
     });
 
-    const app = express();
-    app.use(express.json() as RequestHandler);
-    publicRoutes(app, passport);
+    test('Should return 401 when token is invalid', async () => {
+        const error1 = 'DatabaseNoUserMatchesProvidedToken';
+        const error2 = 'DatabaseNoUserMatchesToken';
+        const error3 = 'InvalidToken';
 
+        (passport.authenticate as jest.Mock).mockImplementation((strategy, options, callback) => {
+            return () => {
+                callback(error1);
+            }
+        });
+
+        const response1 = await request(app).get('/api/v1');
+
+        (passport.authenticate as jest.Mock).mockImplementation((strategy, options, callback) => {
+            return () => {
+                callback(error2);
+            }
+        });
+
+        const response2 = await request(app).get('/api/v1');
+
+        (passport.authenticate as jest.Mock).mockImplementation((strategy, options, callback) => {
+            return () => {
+                callback(error3);
+            }
+        });
+
+        const response3 = await request(app).get('/api/v1');
+
+        expect(response1.status).toEqual(401);
+        expect(response2.status).toEqual(401);
+        expect(response3.status).toEqual(401);
+        expect(passport.authenticate).toHaveBeenCalledTimes(3);
+    });
+
+    test('Should return 500 when other error is encountered', async () => {
+        const error = 'testerror';
+
+        (passport.authenticate as jest.Mock).mockImplementation((strategy, options, callback) => {
+            return () => {
+                callback(error);
+            }
+        });
+
+        const response = await request(app).get('/api/v1');
+
+        expect(response.status).toEqual(500);
+        expect(passport.authenticate).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('Testing API endpoints', () => {
     test('GET /api/v1/paths', async () => {
         const pathsGeojson = 'pathsGeojson';
 
