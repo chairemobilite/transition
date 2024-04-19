@@ -14,7 +14,9 @@ import config from '../../config/server.config';
 const tableName = 'tokens';
 const userTableName = 'users';
 // Verify if config is number, else return default value
-const defaultTokenLifespanDays: number = isNaN(Number(config.tokenLifespanDays)) ? 10 : Number(config.tokenLifespanDays);
+const defaultTokenLifespanDays: number = isNaN(Number(config.tokenLifespanDays))
+    ? 10
+    : Number(config.tokenLifespanDays);
 
 const attributesCleaner = function (attributes: TokenAttributes): { user_id: number; api_token: string } {
     const { user_id, api_token, expiry_date, creation_date } = attributes;

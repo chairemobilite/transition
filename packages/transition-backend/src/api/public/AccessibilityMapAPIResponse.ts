@@ -39,7 +39,7 @@ type AccessibilityMapAPIResultResponse = {
             properties: {
                 durationSeconds: number;
                 areaSqM: number;
-            }
+            };
         }>;
     };
 };

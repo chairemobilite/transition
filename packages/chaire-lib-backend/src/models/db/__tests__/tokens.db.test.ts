@@ -207,17 +207,15 @@ describe(`Tokens Database: Expiry`, () => {
         await truncate(knex, 'users')
     });
 
-    test('Should return new token if tokenexpired for specified user, async() => {
+    test('Should return new token expired', async() => {
         jest.spyOn(crypto, 'randomUUID').mockImplementation(() => (validToken.api_token) as `${string}-${string}-${string}-${string}-${string}`)
         const query = await tokensDbQueries.getOrCreate(expiredTokenUser.email as string)
         expect(query).toEqual(validToken.api_token)
     });
 
     test('Should throw when trying to get user by id if token is expired', async() => {
-        await expect(tokensDbQueries.getUserByToken(expiredToken.api_token as string)).rejects.toThrowError (TrError)
+        await expect(tokensDbQueries.getUserByToken(expiredToken.api_token as string)).rejects.toThrowError (TrError.)
     });
-
-
 });
 describe(`Tokens Database: Cleanup`, () => {
 
