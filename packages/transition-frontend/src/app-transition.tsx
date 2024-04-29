@@ -25,6 +25,7 @@ import {
 } from './components/dashboard/TransitionDashboardContribution';
 import { SupplyDemandAnalysisDashboardContribution } from './components/dashboard/supplyDemandAnalysisModule/SupplyDemandAnalysisDashboardContribution';
 import { setApplicationConfiguration } from 'chaire-lib-frontend/lib/config/application.config';
+import verifyAuthentication from 'chaire-lib-frontend/lib/services/auth/verifyAuthentication';
 
 import 'chaire-lib-frontend/lib/styles/styles-transition.scss';
 import './styles/transition.scss';
@@ -70,26 +71,4 @@ const renderApp = () => {
     }
 };
 
-fetch('/verifyAuthentication', { credentials: 'include' })
-    .then((response) => {
-        if (response.status === 200) {
-            // authorized (user authentication succeeded)
-            response.json().then((body) => {
-                if (body.user) {
-                    store.dispatch(login(body.user, true));
-                } else {
-                    store.dispatch(logout());
-                }
-                renderApp();
-            });
-        } else if (response.status === 401) {
-            store.dispatch(logout());
-            renderApp();
-        } else {
-            renderApp();
-        }
-    })
-    .catch((err) => {
-        console.log('Error logging in.', err);
-        renderApp();
-    });
+verifyAuthentication(store.dispatch).finally(() => renderApp());
