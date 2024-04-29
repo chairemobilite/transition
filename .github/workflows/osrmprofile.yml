@@ -1,0 +1,29 @@
+# Workflow that validates the OSRM profiles written in LUA
+
+name: OSRM Lua profiles
+
+on:
+  push:
+    branches: [ main ]
+    # Runs on all push to main, to make sure there's no other side effet
+  pull_request:
+    branches: [ main ]
+    # But only runs on PR that touches lua files
+    paths:
+      - '**/*.lua'
+
+jobs:
+  compile-lua:
+    runs-on: ubuntu-latest  # Specify the runner
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4  # Check out the repository content
+
+    - name: Setup Lua
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lua5.3  # Install Lua version 5.3
+
+    - name: Compile Lua script
+      run: luac5.3 -p packages/chaire-lib-backend/src/utils/processManagers/osrmProfiles/*.lua  # Compile all Lua OSRM profiles
