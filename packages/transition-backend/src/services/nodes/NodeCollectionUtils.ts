@@ -128,3 +128,14 @@ export const getNodesInBirdDistance = async (
     nodeId: string,
     distanceMeters: number
 ): Promise<{ id: string; distance: number }[]> => nodesDbQueries.getNodesInBirdDistance(nodeId, distanceMeters);
+
+/**
+ * Get nodes within bird distance of a point
+ * @param point The point from which to get nodes within bird distance
+ * @param distanceMeters The distance within which the node should be located
+ * @returns An array of objects containing the node ID and the distance
+ */
+export const getNodesInBirdDistanceFromPoint = async (
+    point: GeoJSON.Point,
+    distanceMeters: number
+): Promise<{ id: string; distance: number }[]> => nodesDbQueries.getNodesInBirdDistanceFromPoint(point, distanceMeters);

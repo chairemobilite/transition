@@ -298,6 +298,33 @@ const getNodesInBirdDistance = async (
     }
 };
 
+/**
+ * Get all nodes within a given distance of a reference node
+ *
+ * @param nodeId The ID of the reference node
+ * @param distanceMeters The maximum distance of the nodes, in meters
+ * @returns An array of the id and distances for each node within distance.
+ */
+const getNodesInBirdDistanceFromPoint = async (
+    point: GeoJSON.Point,
+    distanceMeters: number
+): Promise<{ id: string; distance: number }[]> => {
+    try {
+        const pointGeometry = st.geomFromGeoJSON(JSON.stringify(point));
+        const nodesInBirdDistance = knex(`${tableName} as n1`)
+            .select('id', st.distance(pointGeometry, 'n1.geography').as('distance'))
+            .where(st.dwithin(pointGeometry, 'n1.geography', distanceMeters))
+            .orderBy('distance');
+        return await nodesInBirdDistance;
+    } catch (error) {
+        throw new TrError(
+            `Cannot get nodes in bird distance of ${distanceMeters} meters from point ${point} (knex error: ${error})`,
+            'DBTNBD0003',
+            'CannotGetNodesInBirdDistanceFromPointBecauseDatabaseError'
+        );
+    }
+};
+
 // TODO: export each separately so we can import a single function at a time
 export default {
     exists: exists.bind(null, knex, tableName),
@@ -321,5 +348,6 @@ export default {
     collection,
     geojsonCollection,
     getAssociatedPathIds,
-    getNodesInBirdDistance
+    getNodesInBirdDistance,
+    getNodesInBirdDistanceFromPoint
 };
