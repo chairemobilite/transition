@@ -9,7 +9,7 @@ import { EventEmitter } from 'events';
 import { lineString as turfLineString } from '@turf/helpers';
 
 import serviceLocator   from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { saveAndUpdateAllNodes } from '../../nodes/NodeCollectionUtils';
+import { saveAndUpdateAllNodes, saveAllNodesToCache } from '../../nodes/NodeCollectionUtils';
 
 import { recreateCache } from '../dbToCache';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
@@ -248,6 +248,7 @@ jest.mock('../../../models/db/places.db.queries', () => {
 });
 jest.mock('../../nodes/NodeCollectionUtils');
 const mockedSaveAndUpdateAllNodes = saveAndUpdateAllNodes as jest.MockedFunction<typeof saveAndUpdateAllNodes>;
+const mockedSaveAllNodesToCache = saveAllNodesToCache as jest.MockedFunction<typeof saveAllNodesToCache>;
 const mockedNodesToCache = jest.fn();
 jest.mock('../../../models/capnpCache/transitNodes.cache.queries', () => {
     return {
@@ -313,15 +314,7 @@ jest.mock('../../../models/capnpCache/transitPaths.cache.queries', () => {
 
 describe('Recreate cache', () => {
     beforeEach(() => {
-        mockedDsToCache.mockClear();
-        mockedAgToCache.mockClear();
-        mockedServiceToCache.mockClear();
-        mockedScenariosToCache.mockClear();
-        mockedLinesToCache.mockClear();
-        mockedLinesWithSchedules.mockClear();
-        mockedObjectsToCache.mockClear();
-        mockedPathToCache.mockClear();
-        mockedNodesToCache.mockClear();
+        jest.clearAllMocks();
     });
 
     test('no refresh nodes, no schedules', async () => {
@@ -359,6 +352,13 @@ describe('Recreate cache', () => {
             })]
         }), undefined);
         expect(mockedSaveAndUpdateAllNodes).not.toHaveBeenCalled();
+        expect(mockedSaveAllNodesToCache).toHaveBeenLastCalledWith(expect.objectContaining({
+            _features: [expect.objectContaining({
+                type: 'Feature' as const,
+                properties: nodeAttributes,
+                geometry: nodeGeography
+            })]
+        }), expect.anything(), undefined);
     });
 
     test('refresh nodes, no schedules', async () => {
@@ -402,6 +402,7 @@ describe('Recreate cache', () => {
                 geometry: nodeGeography
             })]
         }), expect.anything(), EventManagerMock.eventManagerMock, expect.anything(), undefined);
+        expect(mockedSaveAllNodesToCache).not.toHaveBeenCalled();
     });
 
     test('no refresh nodes, refresh schedules', async () => {
@@ -440,13 +441,14 @@ describe('Recreate cache', () => {
                 geometry: nodeGeography
             })]
         }), undefined);
-        expect(mockedSaveAndUpdateAllNodes).toHaveBeenCalledWith(expect.objectContaining({
+        expect(mockedSaveAndUpdateAllNodes).not.toHaveBeenCalled();
+        expect(mockedSaveAllNodesToCache).toHaveBeenLastCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({
                 type: 'Feature' as const,
                 properties: nodeAttributes,
                 geometry: nodeGeography
             })]
-        }), expect.anything(), EventManagerMock.eventManagerMock, expect.anything(), undefined);
+        }), expect.anything(), undefined);
     });
 
     test('refresh nodes and schedules', async () => {
@@ -485,7 +487,7 @@ describe('Recreate cache', () => {
                 geometry: nodeGeography
             })]
         }), undefined);
-        expect(mockedSaveAndUpdateAllNodes).toHaveBeenCalledTimes(2);
+        expect(mockedSaveAndUpdateAllNodes).toHaveBeenCalledTimes(1);
         expect(mockedSaveAndUpdateAllNodes).toHaveBeenLastCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({
                 type: 'Feature' as const,
@@ -493,5 +495,6 @@ describe('Recreate cache', () => {
                 geometry: nodeGeography
             })]
         }), expect.anything(), EventManagerMock.eventManagerMock, expect.anything(), undefined);
+        expect(mockedSaveAllNodesToCache).not.toHaveBeenCalled();
     });
 });

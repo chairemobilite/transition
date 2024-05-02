@@ -79,3 +79,41 @@ export const saveAndUpdateAllNodes = async (
     await Promise.allSettled(addPromises);
     progressEmitter?.emit('progress', { name: 'UpdatingTransferableNodes', progress: 1.0 });
 };
+
+/**
+ * Save the nodes to cache including the transferable node
+ * We do the saving in batch, to not overload json2capnp
+ *
+ * @param nodeCollection The collection containing the nodes to update and save
+ * @param collectionManager The collection manager, used to create the nodes
+ */
+export const saveAllNodesToCache = async (
+    nodeCollection: NodeCollection,
+    collectionManager?,
+    cachePathDirectory?: string
+): Promise<void> => {
+    const features = nodeCollection.getFeatures();
+    // The number of current save was chosen arbitrarily. If we send them
+    // all "at once", json2capnp will create a thread of each and ultimately
+    // ran out of memory. This number seem a good tradeoff between speed of execution
+    // and presentation of resources
+    const promiseQueue = new PQueue({ concurrency: 250 });
+
+    const promiseProducer = async (nodeGeojson, index) => {
+        const node = new Node(nodeGeojson.properties, false, collectionManager);
+        // TODO This is ugly, we should not have to manually fetch the transferable nodes
+        // This need to be refactored, part of a Node refactor
+        // Copied from TransitNode.saveNode
+        const transferableNodes = await transferableNodesDbQueries.getFromNode(node.id);
+        node.setData('transferableNodes', transferableNodes);
+        await objectToCache(node, cachePathDirectory);
+    };
+
+    const addPromises = features.map(async (feature, index) =>
+        promiseQueue.add(async () => promiseProducer(feature, index))
+    );
+
+    // Run all the promises, no matter their result.
+    // TODO: What about failures? Should we track them, reject upon first failure (using Promise.all), just console.error them?
+    await Promise.allSettled(addPromises);
+};

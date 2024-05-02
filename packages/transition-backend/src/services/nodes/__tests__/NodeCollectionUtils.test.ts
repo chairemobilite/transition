@@ -9,10 +9,13 @@ import events from 'events';
 import { v4 as uuidV4 } from 'uuid';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
-import { saveAndUpdateAllNodes } from '../NodeCollectionUtils';
+import { saveAndUpdateAllNodes, saveAllNodesToCache } from '../NodeCollectionUtils';
 import { objectToCache } from '../../../models/capnpCache/transitNodes.cache.queries';
 import { getTransferableNodes } from '../TransferableNodeUtils';
+import transferableNodesDbQueries from '../../../models/db/transitNodeTransferable.db.queries';
 
+// Mock all DB queries about transferable nodes
+jest.mock('../../../models/db/transitNodeTransferable.db.queries');
 jest.mock('../TransferableNodeUtils', () => ({
     getTransferableNodes: jest.fn()
 }));
@@ -131,4 +134,22 @@ test('saveAndUpdateAllNodes without collection manager', async() => {
     expect(savedObject3.getData('transferableNodes')).toEqual(node3TransferableNodes);
     expect(savedObject4.getId()).toEqual(nodeAttributesFar.id);
     expect(savedObject4.getData('transferableNodes')).toEqual(nodeFarTransferableNodes);
+});
+
+test('saveAllNodesToCache without collection manager', async() => {
+
+    await saveAllNodesToCache(nodeCollection);
+
+    // Make sure all save calls to object to cache were done correctly
+    expect(mockedObjectToCache).toHaveBeenCalledTimes(4);
+    // Make sure nodes have been updated
+    const savedObject1 = mockedObjectToCache.mock.calls[0][0];
+    const savedObject2 = mockedObjectToCache.mock.calls[1][0];
+    const savedObject3 = mockedObjectToCache.mock.calls[2][0];
+    const savedObject4 = mockedObjectToCache.mock.calls[3][0];
+    // Validate node data was successfully saved
+    expect(savedObject1.getId()).toEqual(nodeAttributesClose1.id);
+    expect(savedObject2.getId()).toEqual(nodeAttributesClose2.id);
+    expect(savedObject3.getId()).toEqual(nodeAttributesClose3.id);
+    expect(savedObject4.getId()).toEqual(nodeAttributesFar.id);
 });

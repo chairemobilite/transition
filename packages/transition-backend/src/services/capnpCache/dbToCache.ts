@@ -25,7 +25,7 @@ import {
 
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import nodesDbQueries from '../../models/db/transitNodes.db.queries';
-import { saveAndUpdateAllNodes } from '../nodes/NodeCollectionUtils';
+import { saveAndUpdateAllNodes, saveAllNodesToCache } from '../nodes/NodeCollectionUtils';
 import { collectionToCache as nodeCollectionToCache } from '../../models/capnpCache/transitNodes.cache.queries';
 
 import PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
@@ -107,6 +107,7 @@ export const recreateCache = async (
     console.log('saved nodes collection to cache');
     // TODO saveAndUpdateAll requires the serviceLocator to have a socketEventManager, which the main server process does not have. Only tasks can update them
     if (options.refreshTransferrableNodes) {
+        console.log('refreshing transferrable nodes');
         // Only the collection should be required, not a collection manager, but the side effects to change this go deep...
         const nodeCollManager = new CollectionManager(undefined);
         const placesGeojson = await placesDbQueries.geojsonCollection([]);
@@ -124,6 +125,13 @@ export const recreateCache = async (
         } catch (error) {
             console.error('Could save the nodes to cache', error);
         }
+    } else {
+        const nodeCollManager = new CollectionManager(undefined);
+        const placesGeojson = await placesDbQueries.geojsonCollection([]);
+        placeCollection.loadFromCollection(placesGeojson.features);
+        nodeCollManager.add('nodes', nodeCollection);
+        await saveAllNodesToCache(nodeCollection, nodeCollManager, options.cachePathDirectory);
+        console.log('saved individual nodes with transferable nodes to cache (from DB)');
     }
 
     const pathsGeojson = await pathsDbQueries.geojsonCollection({ noNullGeo: true });
