@@ -7,6 +7,7 @@
 import { v4 as uuidV4 } from 'uuid';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import Node from 'transition-common/lib/services/nodes/Node';
+import { getNodesInBirdDistanceFromPoint } from '../../nodes/NodeCollectionUtils';
 
 import { gtfsValidSimpleData, defaultImportData, gtfsValidTransitionGeneratedData } from './GtfsImportData.test';
 import StopImporter from '../StopImporter';
@@ -14,6 +15,10 @@ import StopImporter from '../StopImporter';
 let currentData: any = gtfsValidSimpleData;
 const nodeSaveFct = Node.prototype.save = jest.fn();
 const nodesInRangeFct = NodeCollection.prototype.nodesInWalkingTravelTimeRadiusSecondsAround = jest.fn();
+jest.mock('../../nodes/NodeCollectionUtils', () => ({
+    getNodesInBirdDistanceFromPoint: jest.fn()
+}));
+const mockGetNodesInBirdDistanceFromPoint = getNodesInBirdDistanceFromPoint as jest.MockedFunction<typeof getNodesInBirdDistanceFromPoint>;
 
 const getNodesInRangeImplementation = (nodeCollection: NodeCollection) => {
     return (geometry, maxWalkingTravelTimeRadiusSeconds) => {
@@ -64,7 +69,7 @@ const stopToImportData = (data) => {
 } 
 
 beforeEach(() => {
-    nodeSaveFct.mockClear();
+    jest.clearAllMocks();
 });
 
 describe('GTFS Stop import preparation', () => {
@@ -240,9 +245,78 @@ describe('GTFS Stops import', () => {
         const objectImporter = new StopImporter({ directoryPath: '', nodes: collection });
         const data = await objectImporter.import(importData, Object.assign({}, defaultImportData, { stopAggregationWalkingRadiusSeconds: 1 }));
 
-        // 4 nodes should have been aggregated, so there are 3 less nodes
+        // No nodes should have been aggregated
         expect(collection.size()).toEqual(importData.length);
         expect(nodeSaveFct).toHaveBeenCalledTimes(importData.length);
+
+        // Make sure the number of stops matches
+        const nbStops = collection.getFeatures().map(node => (node.properties.data.stops || []).length).reduce((sum, val) => sum+= val);
+        expect(nbStops).toEqual(importData.length);
+    });
+
+    test('Test import stop data, aggregation radius of 0 (no aggregation), nodes do not previously exist', async () => {
+        currentData = gtfsValidSimpleData;
+        const collection = new NodeCollection([], {}, undefined)
+        mockGetNodesInBirdDistanceFromPoint.mockResolvedValue([]);
+
+        const importData = gtfsValidSimpleData['stops.txt'].map(stop => ({
+            stop: stopToImportData(stop)
+        }));
+
+        const objectImporter = new StopImporter({ directoryPath: '', nodes: collection });
+        const data = await objectImporter.import(importData, Object.assign({}, defaultImportData, { stopAggregationWalkingRadiusSeconds: 0 }));
+
+        // All nodes should be present
+        expect(collection.size()).toEqual(importData.length);
+        expect(nodeSaveFct).toHaveBeenCalledTimes(importData.length);
+        expect(nodesInRangeFct).not.toHaveBeenCalled();
+        expect(mockGetNodesInBirdDistanceFromPoint).toHaveBeenCalledTimes(importData.length);
+
+        // Make sure the number of stops matches
+        const nbStops = collection.getFeatures().map(node => (node.properties.data.stops || []).length).reduce((sum, val) => sum+= val);
+        expect(nbStops).toEqual(importData.length);
+    });
+
+    test('Test import stop data, aggregation radius of 0 (no aggregation), nodes previously exist', async () => {
+        currentData = gtfsValidSimpleData;
+        // Map each stop to a node to add to the collection
+        const existingNodes = gtfsValidSimpleData['stops.txt'].map(stop => ({
+            type: 'Feature' as const,
+            geometry: { type: 'Point' as const, coordinates: [parseFloat(stop.stop_lon), parseFloat(stop.stop_lat)] },
+            properties: {
+                id: uuidV4(),
+                code: stop.stop_code,
+                geography: { type: 'Point' as const, coordinates: [parseFloat(stop.stop_lon), parseFloat(stop.stop_lat)] },
+                name: stop.stop_name,
+                routing_radius_meters: 20,
+                default_dwell_time_seconds: 30,
+                data: {
+                    stops: []
+                }
+            }
+        }));
+
+        const collection = new NodeCollection(existingNodes, {}, undefined);
+        expect(collection.size()).toEqual(existingNodes.length);
+        nodesInRangeFct.mockImplementation(getNodesInRangeImplementation(collection));
+        mockGetNodesInBirdDistanceFromPoint.mockImplementation(async (point, distance) => {
+            const existingNode = existingNodes.find(node => node.geometry.coordinates[0] === point.coordinates[0] && node.geometry.coordinates[1] === point.coordinates[1]);
+            return existingNode ? [{ id: existingNode.properties.id, distance: 0 }] : [];
+        });
+
+        const importData = gtfsValidSimpleData['stops.txt'].map(stop => ({
+            stop: stopToImportData(stop)
+        }));
+
+        const objectImporter = new StopImporter({ directoryPath: '', nodes: collection });
+
+        const data = await objectImporter.import(importData, Object.assign({}, defaultImportData, { stopAggregationWalkingRadiusSeconds: 0 }));
+
+        // All nodes should be present, collection should be same size as originally
+        expect(collection.size()).toEqual(existingNodes.length);
+        expect(nodeSaveFct).toHaveBeenCalledTimes(importData.length);
+        expect(nodesInRangeFct).not.toHaveBeenCalled();
+        expect(mockGetNodesInBirdDistanceFromPoint).toHaveBeenCalledTimes(importData.length);
 
         // Make sure the number of stops matches
         const nbStops = collection.getFeatures().map(node => (node.properties.data.stops || []).length).reduce((sum, val) => sum+= val);
