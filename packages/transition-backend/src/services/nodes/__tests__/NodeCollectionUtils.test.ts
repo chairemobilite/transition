@@ -31,10 +31,12 @@ const mockedObjectToCache = objectToCache as jest.MockedFunction<typeof objectTo
 
 jest.mock('../../../models/db/transitNodes.db.queries', () => {
     return {
-        getNodesInBirdDistance: jest.fn()
+        getNodesInBirdDistance: jest.fn(),
+        getNodesInBirdDistanceFromPoint: jest.fn()
     }
 });
 const mockedGetNodesInBirdDistance = nodesDbQueries.getNodesInBirdDistance as jest.MockedFunction<typeof nodesDbQueries.getNodesInBirdDistance>;
+const mockedGetNodesInBirdDistanceFromPoint = nodesDbQueries.getNodesInBirdDistanceFromPoint as jest.MockedFunction<typeof nodesDbQueries.getNodesInBirdDistanceFromPoint>;
 
 const eventEmitter = new events.EventEmitter();
 const eventManager = EventManagerMock.eventManagerMock;
@@ -97,8 +99,7 @@ let nodeCollection: NodeCollection;
 
 beforeEach(() => {
     nodeCollection = new NodeCollection([nodeClose1Geojson, nodeClose2Geojson, nodeClose3Geojson, nodeFarGeojson], {}, eventManager);
-    mockTableFrom.mockClear();
-    mockedObjectToCache.mockClear();
+    jest.clearAllMocks()
 });
 
 test('saveAndUpdateAllNodes without collection manager', async() => {
@@ -198,5 +199,45 @@ describe('getNodesInBirdDistance', () => {
             { id: nodeAttributesClose2.id, distance: 700 }
         ]);
         expect(mockedGetNodesInBirdDistance).toHaveBeenCalledWith(nodeAttributesClose1.id, distance);
+    });
+});
+
+describe('getNodesInBirdDistanceFromPoint', () => {
+    const point = nodeAttributesClose1.geography;
+
+    test('no data', async () => {
+        mockedGetNodesInBirdDistanceFromPoint.mockResolvedValueOnce([]);
+        const distance = 1000;
+        const nodesInBirdDistance = await NodeCollectionUtils.getNodesInBirdDistanceFromPoint(point, distance);
+        expect(nodesInBirdDistance).toEqual([]);
+        expect(mockedGetNodesInBirdDistanceFromPoint).toHaveBeenCalledWith(point, distance);
+    });
+
+    test('some nodes returned, not including requested one', async () => {
+        mockedGetNodesInBirdDistanceFromPoint.mockResolvedValueOnce([
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ]);
+        const distance = 1000;
+        const nodesInBirdDistance = await NodeCollectionUtils.getNodesInBirdDistanceFromPoint(point, distance);
+        expect(nodesInBirdDistance).toEqual([
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ]);
+        expect(mockedGetNodesInBirdDistanceFromPoint).toHaveBeenCalledWith(point, distance);
+    });
+
+    test('some nodes returned, including requested one', async () => {
+        mockedGetNodesInBirdDistanceFromPoint.mockResolvedValueOnce([
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ]);
+        const distance = 1000;
+        const nodesInBirdDistance = await NodeCollectionUtils.getNodesInBirdDistanceFromPoint(point, distance);
+        expect(nodesInBirdDistance).toEqual([
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ]);
+        expect(mockedGetNodesInBirdDistanceFromPoint).toHaveBeenCalledWith(point, distance);
     });
 });
