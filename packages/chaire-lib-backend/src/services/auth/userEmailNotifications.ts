@@ -133,6 +133,7 @@ export const sendWelcomeEmail = async (user: IUserModel): Promise<void> => {
         console.log('Email sent for welcome email');
     } catch (error) {
         console.log('Error sending welcome email: ', error);
+        throw error;
     }
 };
 
@@ -148,26 +149,36 @@ export const sendConfirmationEmail = async (
     user: IUserModel,
     options: { strategy?: string; confirmUrl: string }
 ): Promise<void> => {
-    const emails = await getConfirmEmailsToSend(user, options.strategy);
-    emails.forEach(async (email) => {
-        await sendEmail(email, { userConfirmationUrl: { url: options.confirmUrl }, usermail: user.email });
-    });
-    console.log('Email sent for account confirmation');
+    try {
+        const emails = await getConfirmEmailsToSend(user, options.strategy);
+        emails.forEach(async (email) => {
+            await sendEmail(email, { userConfirmationUrl: { url: options.confirmUrl }, usermail: user.email });
+        });
+        console.log('Email sent for account confirmation');
+    } catch (error) {
+        console.log('Error sending confirmation email: ', error);
+        throw error;
+    }
 };
 
 export const sendConfirmedByAdminEmail = async (user: IUserModel): Promise<void> => {
-    const email = {
-        mailText: 'server:confirmedByAdminEmailText',
-        mailSubject: 'server:confirmedByAdminEmailSubject',
-        toUser: {
-            id: user.id,
-            email: user.email,
-            displayName: user.displayName,
-            lang: user.langPref
-        }
-    };
-    await sendEmail(email, {});
-    console.log('Email sent for confirmation by admin');
+    try {
+        const email = {
+            mailText: 'server:confirmedByAdminEmailText',
+            mailSubject: 'server:confirmedByAdminEmailSubject',
+            toUser: {
+                id: user.id,
+                email: user.email,
+                displayName: user.displayName,
+                lang: user.langPref
+            }
+        };
+        await sendEmail(email, {});
+        console.log('Email sent for confirmation by admin');
+    } catch (error) {
+        console.log('Error sending confirmation by admin email: ', error);
+        throw error;
+    }
 };
 
 /**
@@ -176,16 +187,21 @@ export const sendConfirmedByAdminEmail = async (user: IUserModel): Promise<void>
  * @param options Options
  */
 export const resetPasswordEmail = async (user: IUserModel, options: { resetPasswordUrl: string }): Promise<void> => {
-    const email = {
-        mailText: 'server:resetPasswordEmailText',
-        mailSubject: 'server:resetPasswordEmailSubject',
-        toUser: {
-            id: user.id,
-            email: user.email,
-            displayName: user.displayName,
-            lang: user.langPref
-        }
-    };
-    await sendEmail(email, { resetPasswordUrl: { url: options.resetPasswordUrl } });
-    console.log('Email sent for password reset');
+    try {
+        const email = {
+            mailText: 'server:resetPasswordEmailText',
+            mailSubject: 'server:resetPasswordEmailSubject',
+            toUser: {
+                id: user.id,
+                email: user.email,
+                displayName: user.displayName,
+                lang: user.langPref
+            }
+        };
+        await sendEmail(email, { resetPasswordUrl: { url: options.resetPasswordUrl } });
+        console.log('Email sent for password reset');
+    } catch (error) {
+        console.log('Error sending password reset email: ', error);
+        throw error;
+    }
 };
