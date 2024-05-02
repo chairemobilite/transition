@@ -84,44 +84,6 @@ beforeEach(() => {
     mockedGetNodesInBirdDistance.mockClear();
 });
 
-describe('getNodesInBirdDistance', () => {
-    test('no data', async () => {
-        mockedGetNodesInBirdDistance.mockResolvedValueOnce([]);
-        const distance = 1000;
-        const nodesInBirdDistance = await TransferableNodeUtils.getNodesInBirdDistance(referenceNode.id, distance);
-        expect(nodesInBirdDistance).toEqual([]);
-        expect(mockedGetNodesInBirdDistance).toHaveBeenCalledWith(referenceNode.id, distance);
-    });
-
-    test('some nodes returned, not including requested one', async () => {
-        mockedGetNodesInBirdDistance.mockResolvedValueOnce([
-            { id: nodeAttributesClose1.id, distance: 300 }, 
-            { id: nodeAttributesClose2.id, distance: 700 }
-        ]);
-        const distance = 1000;
-        const nodesInBirdDistance = await TransferableNodeUtils.getNodesInBirdDistance(referenceNode.id, distance);
-        expect(nodesInBirdDistance).toEqual([
-            { id: nodeAttributesClose1.id, distance: 300 }, 
-            { id: nodeAttributesClose2.id, distance: 700 }
-        ]);
-        expect(mockedGetNodesInBirdDistance).toHaveBeenCalledWith(referenceNode.id, distance);
-    });
-
-    test('some nodes returned, including requested one', async () => {
-        mockedGetNodesInBirdDistance.mockResolvedValueOnce([
-            { id: nodeAttributesClose1.id, distance: 300 }, 
-            { id: nodeAttributesClose2.id, distance: 700 }
-        ]);
-        const distance = 1000;
-        const nodesInBirdDistance = await TransferableNodeUtils.getNodesInBirdDistance(referenceNode.id, distance);
-        expect(nodesInBirdDistance).toEqual([
-            { id: nodeAttributesClose1.id, distance: 300 }, 
-            { id: nodeAttributesClose2.id, distance: 700 }
-        ]);
-        expect(mockedGetNodesInBirdDistance).toHaveBeenCalledWith(referenceNode.id, distance);
-    });
-});
-
 describe('getTransferableNodes', () => {
 
     let refNode: Node;

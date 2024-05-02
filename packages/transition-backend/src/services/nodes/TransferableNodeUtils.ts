@@ -6,10 +6,10 @@
  */
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
-import transitNodesDbQueries from '../../models/db/transitNodes.db.queries';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import TransitNode, { TransferableNodes } from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
+import { getNodesInBirdDistance } from './NodeCollectionUtils';
 
 const getTransferableNodesFromBirdRadius = (
     nodesInBirdRadius: { id: string; distance: number }[],
@@ -117,9 +117,6 @@ export const getDefaultTransferableNodeDistance = (
     const walkingSpeedMetersPerSeconds = Preferences.get('defaultWalkingSpeedMetersPerSeconds');
     return maxWalkingTravelTimeRadiusSeconds * walkingSpeedMetersPerSeconds;
 };
-
-export const getNodesInBirdDistance = async (nodeId: string, distanceMeters: number) =>
-    transitNodesDbQueries.getNodesInBirdDistance(nodeId, distanceMeters);
 
 /**
  * Get the nodes in the collection that are within a certain distance of the

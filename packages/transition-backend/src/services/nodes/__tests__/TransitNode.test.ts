@@ -9,6 +9,7 @@ import { TestUtils, RoutingServiceManagerMock } from 'chaire-lib-common/lib/test
 import TransitNode, { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import { v4 as uuidV4 } from 'uuid';
 import * as TransferableNodeUtils from '../TransferableNodeUtils';
+import * as NodeCollectionUtils from '../NodeCollectionUtils';
 import transitNodesDbQueries from '../../../models/db/transitNodes.db.queries';
 import transferableNodesDbQueries from '../../../models/db/transitNodeTransferable.db.queries';
 import { objectToCache } from '../../../models/capnpCache/transitNodes.cache.queries';
@@ -42,12 +43,15 @@ const mockGetForNode = transferableNodesDbQueries.getFromNode as jest.MockedFunc
 const mockSaveForNode = transferableNodesDbQueries.saveForNode as jest.MockedFunction<typeof transferableNodesDbQueries.saveForNode>;
 
 jest.mock('../TransferableNodeUtils', () => ({
-    getNodesInBirdDistance: jest.fn().mockResolvedValue([]),
     getTransferableNodesWithAffected: jest.fn(),
     getDefaultTransferableNodeDistance: jest.fn().mockReturnValue(1000)
 }));
-const mockGetNodesInBirdDistance = TransferableNodeUtils.getNodesInBirdDistance as jest.MockedFunction<typeof TransferableNodeUtils.getNodesInBirdDistance>;
 const mockGetTNodeWithAffected = TransferableNodeUtils.getTransferableNodesWithAffected as jest.MockedFunction<typeof TransferableNodeUtils.getTransferableNodesWithAffected>;
+
+jest.mock('../NodeCollectionUtils', () => ({
+    getNodesInBirdDistance: jest.fn().mockResolvedValue([]),
+}));
+const mockGetNodesInBirdDistance = NodeCollectionUtils.getNodesInBirdDistance as jest.MockedFunction<typeof NodeCollectionUtils.getNodesInBirdDistance>;
 
 jest.mock('../../../models/capnpCache/transitNodes.cache.queries', () => ({
     objectToCache: jest.fn()

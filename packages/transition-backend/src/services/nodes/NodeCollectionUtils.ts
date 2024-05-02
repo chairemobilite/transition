@@ -117,3 +117,14 @@ export const saveAllNodesToCache = async (
     // TODO: What about failures? Should we track them, reject upon first failure (using Promise.all), just console.error them?
     await Promise.allSettled(addPromises);
 };
+
+/**
+ * Get nodes within bird distance of a given existing node
+ * @param nodeId The ID of the node from which to get nodes within bird distance
+ * @param distanceMeters The distance within which the node should be located
+ * @returns An array of objects containing the node ID and the distance
+ */
+export const getNodesInBirdDistance = async (
+    nodeId: string,
+    distanceMeters: number
+): Promise<{ id: string; distance: number }[]> => nodesDbQueries.getNodesInBirdDistance(nodeId, distanceMeters);
