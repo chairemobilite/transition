@@ -49,7 +49,8 @@ const setupSocketServerApp = async function (server, session) {
     if (_booleish(process.env.STARTUP_RECREATE_CACHE)) {
         console.log('Recreating cache files');
         // TODO get cachePathDIrectory from params
-        await recreateCache({ refreshTransferrableNodes: true, saveLines: true });
+        // We don't need to refresh the transferrable nodes on startup as they are saved in the DB
+        await recreateCache({ refreshTransferrableNodes: false, saveLines: true });
     }
 
     // Enqueue/resume running and pending tasks
