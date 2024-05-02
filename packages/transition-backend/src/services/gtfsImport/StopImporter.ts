@@ -17,6 +17,7 @@ import { StopImportData, GtfsImportData, GtfsStop } from 'transition-common/lib/
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 import { GtfsObjectPreparator } from './GtfsObjectPreparator';
+import { getNodesInBirdDistanceFromPoint } from '../nodes/NodeCollectionUtils';
 
 export class StopImporter implements GtfsObjectPreparator<StopImportData> {
     private _filePath: string;
@@ -96,16 +97,28 @@ export class StopImporter implements GtfsObjectPreparator<StopImportData> {
 
         // Split the nodes to import into already existing nodes to update and new nodes
         const promiseQueue = new PQueue({ concurrency: 1 });
-
         const promiseProducer = async (stopData: StopImportData) => {
-            // Even if aggregation radius is 0, we still run the query in case the node already exists in the database
-            const nodesInRadius = await this._existingNodes.nodesInWalkingTravelTimeRadiusSecondsAround(
-                {
-                    type: 'Point',
-                    coordinates: [stopData.stop.stop_lon, stopData.stop.stop_lat]
-                },
-                aggregationWalkingRadiusSeconds
-            );
+            // FIXME When radius is 0, KDBush sometimes does not return a node
+            // even if one at the exact same location exists, so we force the
+            // use of postgis in this case, we don't need osrm calculations
+            // anyway. Ideally, getting nodes within radius should be done in
+            // complete backend code and benefit from postgis (see
+            // https://github.com/chairemobilite/transition/issues/921). We'll
+            // need to refactor the current
+            // nodesInWalkingTravelTimeRadiusSecondsAround methods to do so.
+            const nodesInRadius =
+                aggregationWalkingRadiusSeconds === 0
+                    ? await getNodesInBirdDistanceFromPoint(
+                        { type: 'Point' as const, coordinates: [stopData.stop.stop_lon, stopData.stop.stop_lat] },
+                        0
+                    )
+                    : await this._existingNodes.nodesInWalkingTravelTimeRadiusSecondsAround(
+                        {
+                            type: 'Point',
+                            coordinates: [stopData.stop.stop_lon, stopData.stop.stop_lat]
+                        },
+                        aggregationWalkingRadiusSeconds
+                    );
             nodesInRadius.sort(
                 (nodeInRadius1, nodeInRadius2) =>
                     nodeInRadius1.walkingTravelTimesSeconds - nodeInRadius2.walkingTravelTimesSeconds
