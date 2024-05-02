@@ -9,10 +9,11 @@ import events from 'events';
 import { v4 as uuidV4 } from 'uuid';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
-import { saveAndUpdateAllNodes, saveAllNodesToCache } from '../NodeCollectionUtils';
+import * as NodeCollectionUtils from '../NodeCollectionUtils';
 import { objectToCache } from '../../../models/capnpCache/transitNodes.cache.queries';
 import { getTransferableNodes } from '../TransferableNodeUtils';
 import transferableNodesDbQueries from '../../../models/db/transitNodeTransferable.db.queries';
+import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
 
 // Mock all DB queries about transferable nodes
 jest.mock('../../../models/db/transitNodeTransferable.db.queries');
@@ -27,6 +28,13 @@ jest.mock('../../../models/capnpCache/transitNodes.cache.queries', () => {
     };
 });
 const mockedObjectToCache = objectToCache as jest.MockedFunction<typeof objectToCache>;
+
+jest.mock('../../../models/db/transitNodes.db.queries', () => {
+    return {
+        getNodesInBirdDistance: jest.fn()
+    }
+});
+const mockedGetNodesInBirdDistance = nodesDbQueries.getNodesInBirdDistance as jest.MockedFunction<typeof nodesDbQueries.getNodesInBirdDistance>;
 
 const eventEmitter = new events.EventEmitter();
 const eventManager = EventManagerMock.eventManagerMock;
@@ -116,7 +124,7 @@ test('saveAndUpdateAllNodes without collection manager', async() => {
         walkingDistancesMeters: [0]
     };
     mockGetTransferableNodes.mockImplementation(async (node, _) => node.getId() === nodeAttributesClose1.id ? node1TransferableNodes : node.getId() === nodeAttributesClose2.id ? node2TransferableNodes : node.getId() === nodeAttributesClose3.id ? node3TransferableNodes : nodeFarTransferableNodes);
-    await saveAndUpdateAllNodes(nodeCollection, undefined, eventEmitter);
+    await NodeCollectionUtils.saveAndUpdateAllNodes(nodeCollection, undefined, eventEmitter);
 
     // Make sure all save calls to object to cache were done correctly
     expect(mockedObjectToCache).toHaveBeenCalledTimes(4);
@@ -138,7 +146,7 @@ test('saveAndUpdateAllNodes without collection manager', async() => {
 
 test('saveAllNodesToCache without collection manager', async() => {
 
-    await saveAllNodesToCache(nodeCollection);
+    await NodeCollectionUtils.saveAllNodesToCache(nodeCollection);
 
     // Make sure all save calls to object to cache were done correctly
     expect(mockedObjectToCache).toHaveBeenCalledTimes(4);
@@ -152,4 +160,43 @@ test('saveAllNodesToCache without collection manager', async() => {
     expect(savedObject2.getId()).toEqual(nodeAttributesClose2.id);
     expect(savedObject3.getId()).toEqual(nodeAttributesClose3.id);
     expect(savedObject4.getId()).toEqual(nodeAttributesFar.id);
+
+});
+
+describe('getNodesInBirdDistance', () => {
+    test('no data', async () => {
+        mockedGetNodesInBirdDistance.mockResolvedValueOnce([]);
+        const distance = 1000;
+        const nodesInBirdDistance = await NodeCollectionUtils.getNodesInBirdDistance(nodeAttributesClose1.id, distance);
+        expect(nodesInBirdDistance).toEqual([]);
+        expect(mockedGetNodesInBirdDistance).toHaveBeenCalledWith(nodeAttributesClose1.id, distance);
+    });
+
+    test('some nodes returned, not including requested one', async () => {
+        mockedGetNodesInBirdDistance.mockResolvedValueOnce([
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ]);
+        const distance = 1000;
+        const nodesInBirdDistance = await NodeCollectionUtils.getNodesInBirdDistance(nodeAttributesClose1.id, distance);
+        expect(nodesInBirdDistance).toEqual([
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ]);
+        expect(mockedGetNodesInBirdDistance).toHaveBeenCalledWith(nodeAttributesClose1.id, distance);
+    });
+
+    test('some nodes returned, including requested one', async () => {
+        mockedGetNodesInBirdDistance.mockResolvedValueOnce([
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ]);
+        const distance = 1000;
+        const nodesInBirdDistance = await NodeCollectionUtils.getNodesInBirdDistance(nodeAttributesClose1.id, distance);
+        expect(nodesInBirdDistance).toEqual([
+            { id: nodeAttributesClose1.id, distance: 300 }, 
+            { id: nodeAttributesClose2.id, distance: 700 }
+        ]);
+        expect(mockedGetNodesInBirdDistance).toHaveBeenCalledWith(nodeAttributesClose1.id, distance);
+    });
 });

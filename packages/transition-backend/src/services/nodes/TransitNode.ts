@@ -9,12 +9,9 @@ import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import nodesDbQueries from '../../models/db/transitNodes.db.queries';
 import transitNodeTransferableDbQueries from '../../models/db/transitNodeTransferable.db.queries';
-import {
-    getDefaultTransferableNodeDistance,
-    getNodesInBirdDistance,
-    getTransferableNodesWithAffected
-} from './TransferableNodeUtils';
+import { getDefaultTransferableNodeDistance, getTransferableNodesWithAffected } from './TransferableNodeUtils';
 import { objectToCache } from '../../models/capnpCache/transitNodes.cache.queries';
+import { getNodesInBirdDistance } from './NodeCollectionUtils';
 
 /**
  * Saves a node to the database and to cache. If the geography has changed, it
