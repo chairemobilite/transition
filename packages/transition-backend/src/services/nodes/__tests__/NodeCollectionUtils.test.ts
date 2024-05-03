@@ -15,8 +15,13 @@ import { getTransferableNodes } from '../TransferableNodeUtils';
 import transferableNodesDbQueries from '../../../models/db/transitNodeTransferable.db.queries';
 import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
 
-// Mock all DB queries about transferable nodes
-jest.mock('../../../models/db/transitNodeTransferable.db.queries');
+// Mock DB queries about transferable nodes
+jest.mock('../../../models/db/transitNodeTransferable.db.queries', () => ({
+    getFromNode: jest.fn(),
+    saveForNode: jest.fn()
+}));
+const mockGetTransferableNodesFrom = transferableNodesDbQueries.getFromNode as jest.MockedFunction<typeof transferableNodesDbQueries.getFromNode>;
+
 jest.mock('../TransferableNodeUtils', () => ({
     getTransferableNodes: jest.fn()
 }));
@@ -102,7 +107,8 @@ beforeEach(() => {
     jest.clearAllMocks()
 });
 
-test('saveAndUpdateAllNodes without collection manager', async() => {
+describe('Saving nodes to cache', () => {
+
     // Mock the transferable nodes for each node
     const node1TransferableNodes = {
         nodesIds: [nodeAttributesClose1.id, nodeAttributesClose2.id, nodeAttributesClose3.id],
@@ -124,43 +130,60 @@ test('saveAndUpdateAllNodes without collection manager', async() => {
         walkingTravelTimesSeconds: [0],
         walkingDistancesMeters: [0]
     };
-    mockGetTransferableNodes.mockImplementation(async (node, _) => node.getId() === nodeAttributesClose1.id ? node1TransferableNodes : node.getId() === nodeAttributesClose2.id ? node2TransferableNodes : node.getId() === nodeAttributesClose3.id ? node3TransferableNodes : nodeFarTransferableNodes);
-    await NodeCollectionUtils.saveAndUpdateAllNodes(nodeCollection, undefined, eventEmitter);
 
-    // Make sure all save calls to object to cache were done correctly
-    expect(mockedObjectToCache).toHaveBeenCalledTimes(4);
-    // Make sure nodes have been updated
-    const savedObject1 = mockedObjectToCache.mock.calls[0][0];
-    const savedObject2 = mockedObjectToCache.mock.calls[1][0];
-    const savedObject3 = mockedObjectToCache.mock.calls[2][0];
-    const savedObject4 = mockedObjectToCache.mock.calls[3][0];
-    // Validate transferable node data was successfully saved
-    expect(savedObject1.getId()).toEqual(nodeAttributesClose1.id);
-    expect(savedObject1.getData('transferableNodes')).toEqual(node1TransferableNodes);
-    expect(savedObject2.getId()).toEqual(nodeAttributesClose2.id);
-    expect(savedObject2.getData('transferableNodes')).toEqual(node2TransferableNodes);
-    expect(savedObject3.getId()).toEqual(nodeAttributesClose3.id);
-    expect(savedObject3.getData('transferableNodes')).toEqual(node3TransferableNodes);
-    expect(savedObject4.getId()).toEqual(nodeAttributesFar.id);
-    expect(savedObject4.getData('transferableNodes')).toEqual(nodeFarTransferableNodes);
-});
-
-test('saveAllNodesToCache without collection manager', async() => {
-
-    await NodeCollectionUtils.saveAllNodesToCache(nodeCollection);
-
-    // Make sure all save calls to object to cache were done correctly
-    expect(mockedObjectToCache).toHaveBeenCalledTimes(4);
-    // Make sure nodes have been updated
-    const savedObject1 = mockedObjectToCache.mock.calls[0][0];
-    const savedObject2 = mockedObjectToCache.mock.calls[1][0];
-    const savedObject3 = mockedObjectToCache.mock.calls[2][0];
-    const savedObject4 = mockedObjectToCache.mock.calls[3][0];
-    // Validate node data was successfully saved
-    expect(savedObject1.getId()).toEqual(nodeAttributesClose1.id);
-    expect(savedObject2.getId()).toEqual(nodeAttributesClose2.id);
-    expect(savedObject3.getId()).toEqual(nodeAttributesClose3.id);
-    expect(savedObject4.getId()).toEqual(nodeAttributesFar.id);
+    test('saveAndUpdateAllNodes without collection manager', async() => {
+    
+        mockGetTransferableNodes.mockResolvedValueOnce(node1TransferableNodes);
+        mockGetTransferableNodes.mockResolvedValueOnce(node2TransferableNodes);
+        mockGetTransferableNodes.mockResolvedValueOnce(node3TransferableNodes);
+        mockGetTransferableNodes.mockResolvedValueOnce(nodeFarTransferableNodes);
+        await NodeCollectionUtils.saveAndUpdateAllNodes(nodeCollection, undefined, eventEmitter);
+    
+        // Make sure all save calls to object to cache were done correctly
+        expect(mockGetTransferableNodes).toHaveBeenCalledTimes(4);
+        expect(mockedObjectToCache).toHaveBeenCalledTimes(4);
+        // Make sure nodes have been updated
+        const savedObject1 = mockedObjectToCache.mock.calls[0][0];
+        const savedObject2 = mockedObjectToCache.mock.calls[1][0];
+        const savedObject3 = mockedObjectToCache.mock.calls[2][0];
+        const savedObject4 = mockedObjectToCache.mock.calls[3][0];
+        // Validate transferable node data was successfully saved
+        expect(savedObject1.getId()).toEqual(nodeAttributesClose1.id);
+        expect(savedObject1.getData('transferableNodes')).toEqual(node1TransferableNodes);
+        expect(savedObject2.getId()).toEqual(nodeAttributesClose2.id);
+        expect(savedObject2.getData('transferableNodes')).toEqual(node2TransferableNodes);
+        expect(savedObject3.getId()).toEqual(nodeAttributesClose3.id);
+        expect(savedObject3.getData('transferableNodes')).toEqual(node3TransferableNodes);
+        expect(savedObject4.getId()).toEqual(nodeAttributesFar.id);
+        expect(savedObject4.getData('transferableNodes')).toEqual(nodeFarTransferableNodes);
+    });
+    
+    test('saveAllNodesToCache without collection manager (no transferable node calculation)', async() => {
+        mockGetTransferableNodesFrom.mockResolvedValueOnce(node1TransferableNodes);
+        mockGetTransferableNodesFrom.mockResolvedValueOnce(node2TransferableNodes);
+        mockGetTransferableNodesFrom.mockResolvedValueOnce(node3TransferableNodes);
+        mockGetTransferableNodesFrom.mockResolvedValueOnce(nodeFarTransferableNodes);
+    
+        await NodeCollectionUtils.saveAllNodesToCache(nodeCollection);
+    
+        // Make sure all save calls to object to cache were done correctly
+        expect(mockGetTransferableNodesFrom).toHaveBeenCalledTimes(4);
+        expect(mockedObjectToCache).toHaveBeenCalledTimes(4);
+        // Make sure nodes have been updated
+        const savedObject1 = mockedObjectToCache.mock.calls[0][0];
+        const savedObject2 = mockedObjectToCache.mock.calls[1][0];
+        const savedObject3 = mockedObjectToCache.mock.calls[2][0];
+        const savedObject4 = mockedObjectToCache.mock.calls[3][0];
+        // Validate transferable node data was successfully saved
+        expect(savedObject1.getId()).toEqual(nodeAttributesClose1.id);
+        expect(savedObject1.getData('transferableNodes')).toEqual(node1TransferableNodes);
+        expect(savedObject2.getId()).toEqual(nodeAttributesClose2.id);
+        expect(savedObject2.getData('transferableNodes')).toEqual(node2TransferableNodes);
+        expect(savedObject3.getId()).toEqual(nodeAttributesClose3.id);
+        expect(savedObject3.getData('transferableNodes')).toEqual(node3TransferableNodes);
+        expect(savedObject4.getId()).toEqual(nodeAttributesFar.id);
+        expect(savedObject4.getData('transferableNodes')).toEqual(nodeFarTransferableNodes);
+    });
 
 });
 
