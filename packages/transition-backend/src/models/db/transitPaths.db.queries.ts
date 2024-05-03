@@ -235,50 +235,24 @@ const read = async (id: string) => {
     }
 };
 
-const deleteForLines = async (lineIds: string[]): Promise<string[]> => {
-    try {
-        if (_isBlank(lineIds) && lineIds.length > 0) {
-            throw new TrError(
-                'Cannot verify if transit paths exist because the required parameter lineIds is missing, blank or not a valid id/uuid',
-                'DBQDLP0001',
-                'TransitPathsCannotDeleteBecauseLineIdsIsMissingOrInvalid'
-            );
-        }
-        const numberOfDeleteObjects = await knex('tr_transit_paths').whereIn('line_id', lineIds).del();
-        if (numberOfDeleteObjects >= 0) {
-            return lineIds;
-        }
-        throw new TrError(`Error while deleting transit paths with line ids ${lineIds} in database`, 'DBQDLP0002');
-    } catch (error) {
-        throw new TrError(
-            `Cannot delete transit paths with for line ids ${lineIds} in database (knex error: ${error})`,
-            'DBQDLP0003',
-            'TransitPathsCannotDeleteBecauseDatabaseError'
-        );
-    }
-};
-
 export default {
     exists: exists.bind(null, knex, tableName),
     read,
-    create: (newObject: PathAttributes, returning?: string) => {
-        return create(knex, tableName, attributesCleaner, newObject, { returning });
-    },
-    createMultiple: (newObjects: PathAttributes[], returning?: string[]) => {
-        return createMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
-    },
-    update: (id: string, updatedObject: Partial<PathAttributes>, returning?: string) => {
-        return update(knex, tableName, attributesCleaner, id, updatedObject, { returning });
-    },
-    updateMultiple: (updatedObjects: Partial<PathAttributes>[], returning?: string) => {
-        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
-    },
-    delete: deleteRecord.bind(null, knex, tableName),
-    deleteMultiple: deleteMultiple.bind(null, knex, tableName),
+    create: async (newObject: PathAttributes, options?: Parameters<typeof create>[4]) =>
+        create(knex, tableName, attributesCleaner, newObject, options),
+    createMultiple: async (newObjects: PathAttributes[], options?: Parameters<typeof createMultiple>[4]) =>
+        createMultiple(knex, tableName, attributesCleaner, newObjects, options),
+    update: async (id: string, updatedObject: Partial<PathAttributes>, options?: Parameters<typeof update>[5]) =>
+        update(knex, tableName, attributesCleaner, id, updatedObject, options),
+    updateMultiple: async (updatedObjects: Partial<PathAttributes>[], options?: Parameters<typeof updateMultiple>[4]) =>
+        updateMultiple(knex, tableName, attributesCleaner, updatedObjects, options),
+    delete: async (id: string, options?: Parameters<typeof deleteRecord>[3]) =>
+        deleteRecord(knex, tableName, id, options),
+    deleteMultiple: async (ids: string[], options?: Parameters<typeof deleteMultiple>[3]) =>
+        deleteMultiple(knex, tableName, ids, options),
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
     collection,
     geojsonCollection,
-    deleteForLines,
     geojsonCollectionForServices
 };
