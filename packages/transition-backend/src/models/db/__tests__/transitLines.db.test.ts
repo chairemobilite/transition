@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
+import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import dbQueries         from '../transitLines.db.queries';
@@ -334,6 +335,95 @@ describe(`${objectName}`, () => {
         const ids = await dbQueries.deleteMultiple([newObjectAttributesWithSchedule.id, newObjectAttributes2.id]);
         expect(ids).toEqual([newObjectAttributesWithSchedule.id, newObjectAttributes2.id]);
 
+    });
+
+});
+
+describe('Lines, with transactions', () => {
+
+    beforeEach(async () => {
+        // Empty the table and add 1 object
+        await dbQueries.truncate();
+        const newObject = new ObjectClass(newObjectAttributesWithSchedule, true);
+        await dbQueries.create(newObject.getAttributes());
+    });
+
+    test('Create, update with success', async() => {
+        const currentLineNewName = 'new line name';
+        const attributesWihoutSched = _cloneDeep(newObjectAttributesWithSchedule) as any;
+        delete attributesWihoutSched.scheduleByServiceId;
+        const attributesWihoutSched2 = _cloneDeep(newObjectAttributes2) as any;
+        delete attributesWihoutSched2.scheduleByServiceId;
+        await knex.transaction(async (trx) => {
+            const newObject = new ObjectClass(newObjectAttributes2, true);
+            await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+            await dbQueries.update(newObjectAttributesWithSchedule.id, { shortname: currentLineNewName }, { transaction: trx });
+        });
+
+        // Make sure the new object is there and the old has been updated
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(2);
+        const { shortname, ...currentObject } = attributesWihoutSched
+        const object1 = collection.find((obj) => obj.id === attributesWihoutSched.id);
+        expect(object1).toBeDefined();
+        expect(object1).toEqual(expect.objectContaining({
+            shortname: currentLineNewName,
+            ...currentObject
+        }));
+
+        const object2 = collection.find((obj) => obj.id === newObjectAttributes2.id);
+        expect(object2).toBeDefined();
+        expect(object2).toEqual(expect.objectContaining(attributesWihoutSched2));
+    });
+
+    test('Create, update with error', async() => {
+        const attributesWihoutSched = _cloneDeep(newObjectAttributesWithSchedule) as any;
+        delete attributesWihoutSched.scheduleByServiceId;
+        let error: any = undefined;
+        try {
+            await knex.transaction(async (trx) => {
+                const newObject = new ObjectClass(newObjectAttributes2, true);
+                await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+                // Update with unexisting agency ID, should throw an error
+                await dbQueries.update(newObjectAttributesWithSchedule.id, { agency_id: uuidV4() }, { transaction: trx });
+            });
+        } catch(err) {
+            error = err;
+        }
+        expect(error).toBeDefined();
+
+        // The new object should not have been added and the one in DB should not have been updated
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(1);
+        const object1 = collection.find((obj) => obj.id === attributesWihoutSched.id);
+        expect(object1).toBeDefined();
+        expect(object1).toEqual(expect.objectContaining(attributesWihoutSched));
+    });
+
+    test('Create, update, delete with error', async() => {
+        const currentLineNewName = 'new agency name';
+        const attributesWihoutSched = _cloneDeep(newObjectAttributesWithSchedule) as any;
+        delete attributesWihoutSched.scheduleByServiceId;
+        let error: any = undefined;
+        try {
+            await knex.transaction(async (trx) => {
+                const newObject = new ObjectClass(newObjectAttributes2, true);
+                await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+                await dbQueries.update(newObjectAttributesWithSchedule.id, { shortname: currentLineNewName }, { transaction: trx });
+                await dbQueries.delete(newObjectAttributesWithSchedule.id, { transaction: trx });
+                throw 'error';
+            });
+        } catch(err) {
+            error = err;
+        }
+        expect(error).toEqual('error');
+
+        // Make sure the existing object is still there and no new one has been added
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(1);
+        const object1 = collection.find((obj) => obj.id === attributesWihoutSched.id);
+        expect(object1).toBeDefined();
+        expect(object1).toEqual(expect.objectContaining(attributesWihoutSched));
     });
 
 });
