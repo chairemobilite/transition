@@ -118,20 +118,22 @@ const read = async (id: string) => {
 export default {
     exists: exists.bind(null, knex, tableName),
     read,
-    create: (newObject: ServiceAttributes, returning?: string) => {
-        return create(knex, tableName, attributesCleaner, newObject, { returning });
+    create: (newObject: ServiceAttributes, options?: Parameters<typeof create>[4]) => {
+        return create(knex, tableName, attributesCleaner, newObject, options);
     },
-    createMultiple: (newObjects: ServiceAttributes[], returning?: string[]) => {
-        return createMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
+    createMultiple: (newObjects: ServiceAttributes[], options?: Parameters<typeof createMultiple>[4]) => {
+        return createMultiple(knex, tableName, attributesCleaner, newObjects, options);
     },
-    update: (id: string, updatedObject: Partial<ServiceAttributes>, returning?: string) => {
-        return update(knex, tableName, attributesCleaner, id, updatedObject, { returning });
+    update: (id: string, updatedObject: Partial<ServiceAttributes>, options?: Parameters<typeof update>[5]) => {
+        return update(knex, tableName, attributesCleaner, id, updatedObject, options);
     },
-    updateMultiple: (updatedObjects: Partial<ServiceAttributes>[], returning?: string) => {
-        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
+    updateMultiple: (updatedObjects: Partial<ServiceAttributes>[], options?: Parameters<typeof updateMultiple>[4]) => {
+        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, options);
     },
-    delete: deleteRecord.bind(null, knex, tableName),
-    deleteMultiple: deleteMultiple.bind(null, knex, tableName),
+    delete: async (id: string, options?: Parameters<typeof deleteRecord>[3]) =>
+        deleteRecord(knex, tableName, id, options),
+    deleteMultiple: async (ids: string[], options?: Parameters<typeof deleteMultiple>[3]) =>
+        deleteMultiple(knex, tableName, ids, options),
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
     collection
