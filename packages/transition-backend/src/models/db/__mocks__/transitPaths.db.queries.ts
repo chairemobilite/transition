@@ -18,6 +18,5 @@ export default {
     truncate: jest.fn(),
     destroy: jest.fn(),
     collection: jest.fn().mockImplementation(() => []),
-    geojsonCollection: jest.fn().mockImplementation(() => []),
-    deleteForLines: jest.fn()
+    geojsonCollection: jest.fn().mockImplementation(() => [])
 };
