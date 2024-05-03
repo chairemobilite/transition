@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
+import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import dbQueries           from '../transitAgencies.db.queries';
 import simulationDbQueries from '../simulations.db.queries';
@@ -246,6 +247,87 @@ describe(`${objectName}`, () => {
         const _collection = await dbQueries.collection();
         expect(_collection.length).toEqual(2);
 
+    });
+
+});
+
+describe('Agency, with transactions', () => {
+
+    beforeEach(async () => {
+        // Empty the table and add 1 object
+        await dbQueries.truncate();
+        const newObject = new ObjectClass(newObjectAttributes, true);
+        await dbQueries.create(newObject.getAttributes());
+    });
+
+    test('Create, update with success', async() => {
+        const currentAgencyNewName = 'new agency name';
+        await knex.transaction(async (trx) => {
+            const newObject = new ObjectClass(newObjectAttributes2, true);
+            await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+            await dbQueries.update(newObjectAttributes.id, { name: currentAgencyNewName }, { transaction: trx });
+        });
+
+        // Make sure the new object is there and the old has been updated
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(2);
+        const { name, ...currentObject } = newObjectAttributes
+        const object1 = collection.find((obj) => obj.id === newObjectAttributes.id);
+        expect(object1).toBeDefined();
+        expect(object1).toEqual(expect.objectContaining({
+            name: currentAgencyNewName,
+            ...currentObject
+        }));
+
+        const object2 = collection.find((obj) => obj.id === newObjectAttributes2.id);
+        expect(object2).toBeDefined();
+        expect(object2).toEqual(expect.objectContaining(newObjectAttributes2));
+    });
+
+    test('Create, update with error', async() => {
+        let error: any = undefined;
+        try {
+            await knex.transaction(async (trx) => {
+                const newObject = new ObjectClass(newObjectAttributes2, true);
+                await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+                // Update with unexisting simulation ID, should throw an error
+                await dbQueries.update(newObjectAttributes.id, { simulation_id: uuidV4() }, { transaction: trx });
+            });
+        } catch(err) {
+            error = err;
+        }
+        expect(error).toBeDefined();
+
+        // The new object should not have been added and the one in DB should not have been updated
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(1);
+        const object1 = collection.find((obj) => obj.id === newObjectAttributes.id);
+        expect(object1).toBeDefined();
+        expect(object1).toEqual(expect.objectContaining(newObjectAttributes));
+    });
+
+    test('Create, update, delete with error', async() => {
+        const currentAgencyNewName = 'new agency name';
+        let error: any = undefined;
+        try {
+            await knex.transaction(async (trx) => {
+                const newObject = new ObjectClass(newObjectAttributes2, true);
+                await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+                await dbQueries.update(newObjectAttributes.id, { name: currentAgencyNewName }, { transaction: trx });
+                await dbQueries.delete(newObjectAttributes.id, { transaction: trx });
+                throw 'error';
+            });
+        } catch(err) {
+            error = err;
+        }
+        expect(error).toEqual('error');
+
+        // Make sure the existing object is still there and no new one has been added
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(1);
+        const object1 = collection.find((obj) => obj.id === newObjectAttributes.id);
+        expect(object1).toBeDefined();
+        expect(object1).toEqual(expect.objectContaining(newObjectAttributes));
     });
 
 });

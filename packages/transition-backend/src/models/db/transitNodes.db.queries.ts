@@ -21,6 +21,7 @@ import {
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import { Knex } from 'knex';
 
 const tableName = 'tr_transit_nodes';
 const pathTableName = 'tr_transit_paths';
@@ -220,7 +221,12 @@ const getAssociatedPathIds = async (nodeIds: string[]): Promise<{ [key: string]:
     }
 };
 
-const deleteIfUnused = async (id: string): Promise<string | undefined> => {
+const deleteIfUnused = async (
+    id: string,
+    options: {
+        transaction?: Knex.Transaction;
+    } = {}
+): Promise<string | undefined> => {
     try {
         if (!uuidValidate(id)) {
             throw new TrError(
@@ -230,7 +236,11 @@ const deleteIfUnused = async (id: string): Promise<string | undefined> => {
             );
         }
         const notInQuery = knex.distinct(knex.raw('unnest(nodes)')).from(pathTableName);
-        const response = await knex(tableName).where('id', id).whereNotIn('id', notInQuery).del().returning('id');
+        const query = knex(tableName).where('id', id).whereNotIn('id', notInQuery).del().returning('id');
+        if (options.transaction) {
+            query.transacting(options.transaction);
+        }
+        const response = await query;
         return response.length === 1 ? response[0]['id'] : undefined;
     } catch (error) {
         throw new TrError(
@@ -241,12 +251,20 @@ const deleteIfUnused = async (id: string): Promise<string | undefined> => {
     }
 };
 
-const deleteMultipleUnused = function (ids: string[] | 'all'): Promise<string[]> {
+const deleteMultipleUnused = function (
+    ids: string[] | 'all',
+    options: {
+        transaction?: Knex.Transaction;
+    } = {}
+): Promise<string[]> {
     return new Promise((resolve, reject) => {
         const notInQuery = knex.distinct(knex.raw('unnest(nodes)')).from(pathTableName);
         const deleteQuery = knex(tableName).whereNotIn('id', notInQuery);
         if (ids !== 'all') {
             deleteQuery.whereIn('id', ids);
+        }
+        if (options.transaction) {
+            deleteQuery.transacting(options.transaction);
         }
         return deleteQuery
             .del()
@@ -329,18 +347,14 @@ const getNodesInBirdDistanceFromPoint = async (
 export default {
     exists: exists.bind(null, knex, tableName),
     read,
-    create: (newObject: NodeAttributes, returning?: string | string[]) => {
-        return create(knex, tableName, attributesCleaner, newObject, { returning });
-    },
-    createMultiple: (newObjects: NodeAttributes[], returning?: string[]) => {
-        return createMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
-    },
-    update: (id: string, updatedObject: Partial<NodeAttributes>, returning?: string) => {
-        return update(knex, tableName, attributesCleaner, id, updatedObject, { returning });
-    },
-    updateMultiple: (updatedObjects: Partial<NodeAttributes>[], returning?: string) => {
-        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
-    },
+    create: async (newObject: NodeAttributes, options?: Parameters<typeof create>[4]) =>
+        create(knex, tableName, attributesCleaner, newObject, options),
+    createMultiple: async (newObjects: NodeAttributes[], options?: Parameters<typeof createMultiple>[4]) =>
+        createMultiple(knex, tableName, attributesCleaner, newObjects, options),
+    update: async (id: string, updatedObject: Partial<NodeAttributes>, options?: Parameters<typeof update>[5]) =>
+        update(knex, tableName, attributesCleaner, id, updatedObject, options),
+    updateMultiple: async (updatedObjects: Partial<NodeAttributes>[], options?: Parameters<typeof updateMultiple>[4]) =>
+        updateMultiple(knex, tableName, attributesCleaner, updatedObjects, options),
     delete: deleteIfUnused,
     deleteMultipleUnused,
     truncate: truncate.bind(null, knex, tableName),

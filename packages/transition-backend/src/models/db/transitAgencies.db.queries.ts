@@ -23,6 +23,7 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
 import { AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
+import { Knex } from 'knex';
 
 const tableName = 'tr_transit_agencies';
 
@@ -74,20 +75,20 @@ const collection = async (): Promise<AgencyAttributes[]> => {
 export default {
     exists: exists.bind(null, knex, tableName),
     read: read.bind(null, knex, tableName, undefined, '*'),
-    create: (newObject: AgencyAttributes, returning?: string) => {
-        return create(knex, tableName, attributesCleaner, newObject, { returning });
-    },
-    createMultiple: (newObjects: AgencyAttributes[], returning?: string[]) => {
-        return createMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
-    },
-    update: (id: string, updatedObject: Partial<AgencyAttributes>, returning?: string) => {
-        return update(knex, tableName, attributesCleaner, id, updatedObject, { returning });
-    },
-    updateMultiple: (updatedObjects: Partial<AgencyAttributes>[], returning?: string) => {
-        return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
-    },
-    delete: deleteRecord.bind(null, knex, tableName),
-    deleteMultiple: deleteMultiple.bind(null, knex, tableName),
+    create: async (newObject: AgencyAttributes, options?: Parameters<typeof create>[4]) =>
+        create(knex, tableName, attributesCleaner, newObject, options),
+    createMultiple: async (newObjects: AgencyAttributes[], options?: Parameters<typeof createMultiple>[4]) =>
+        createMultiple(knex, tableName, attributesCleaner, newObjects, options),
+    update: async (id: string, updatedObject: Partial<AgencyAttributes>, options?: Parameters<typeof update>[5]) =>
+        update(knex, tableName, attributesCleaner, id, updatedObject, options),
+    updateMultiple: async (
+        updatedObjects: Partial<AgencyAttributes>[],
+        options?: Parameters<typeof updateMultiple>[4]
+    ) => updateMultiple(knex, tableName, attributesCleaner, updatedObjects, options),
+    delete: async (id: string, options?: Parameters<typeof deleteRecord>[3]) =>
+        deleteRecord(knex, tableName, id, options),
+    deleteMultiple: async (ids: string[], options?: Parameters<typeof deleteMultiple>[3]) =>
+        deleteMultiple(knex, tableName, ids, options),
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
     collection

@@ -9,11 +9,7 @@ import { v4 as uuidV4 } from 'uuid';
 import _cloneDeep from 'lodash/cloneDeep';
 import pQueue from 'p-queue';
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
-import {
-    hoursToSeconds,
-    minutesToSeconds,
-    secondsSinceMidnightToTimeStr
-} from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import { hoursToSeconds, secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
 import { GtfsInternalData, StopTime, Frequencies, Period } from './GtfsImportTypes';
 import Schedule, { SchedulePeriod } from 'transition-common/lib/services/schedules/Schedule';
@@ -136,7 +132,7 @@ const generateAndImportSchedules = async (
                 );
                 // save line and its schedules to cache file:
                 // FIXME: Remove this step? Line is not supposed to be modified
-                await linesDbQueries.update(line.getId(), line.attributes, 'id');
+                await linesDbQueries.update(line.getId(), line.attributes, { returning: 'id' });
                 // Save schedules for line
                 const saveSchedPromises = newSchedules.map((schedule) => {
                     scheduleDbQueries.create(schedule.attributes);
