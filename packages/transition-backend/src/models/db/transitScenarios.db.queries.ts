@@ -20,10 +20,11 @@ import {
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { ScenarioAttributes } from 'transition-common/lib/services/scenario/Scenario';
-import servicesDbQueries from './transitServices.db.queries';
+import { Knex } from 'knex';
 
 const tableName = 'tr_transit_scenarios';
-const serviceTableName = 'tr_transit_scenario_services';
+const scenarioServiceTableName = 'tr_transit_scenario_services';
+const servicesTableName = 'tr_transit_services';
 
 // TODO Type the return values
 const attributesCleaner = function (attributes: Partial<ScenarioAttributes>): { [key: string]: any } {
@@ -112,192 +113,227 @@ const read = async (id: string) => {
     }
 };
 
-const create = async (newObject: ScenarioAttributes, returning?: string) => {
-    const services = newObject.services || [];
-    // Create the main object in main table
-    const created = await defaultCreate(knex, tableName, attributesCleaner, newObject, { returning });
+const create = async (
+    newObject: ScenarioAttributes,
+    { transaction, ...options }: Parameters<typeof defaultCreate>[4] = {}
+) => {
     try {
-        if (services.length > 0) {
-            // Fill the service table
-            const scenarioServices = services.map((serviceId) => ({
-                scenario_id: newObject.id,
-                service_id: serviceId
-            }));
-            await knex(serviceTableName).insert(scenarioServices);
-        }
-        return created;
+        // Nested function to require a transaction around the insert
+        const createWithTransaction = async (trx: Knex.Transaction) => {
+            const services = newObject.services || [];
+            // Create the main object in main table
+            const created = await defaultCreate(knex, tableName, attributesCleaner, newObject, {
+                transaction: trx,
+                ...options
+            });
+
+            if (services.length > 0) {
+                // Fill the service table
+                const scenarioServices = services.map((serviceId: string) => ({
+                    scenario_id: newObject.id,
+                    service_id: serviceId
+                }));
+                await knex(scenarioServiceTableName).insert(scenarioServices).transacting(trx);
+            }
+            return created;
+        };
+        // Make sure the insert is done in a transaction, use the one in the options if available
+        return transaction ? await createWithTransaction(transaction) : await knex.transaction(createWithTransaction);
     } catch (error) {
         throw new TrError(
-            `Cannot insert services for scenario with id ${newObject.id} in table ${serviceTableName} database (knex error: ${error})`,
+            `Cannot insert services for scenario with id ${newObject.id} in table ${scenarioServiceTableName} database (knex error: ${error})`,
             'THQGC0003',
             'TransitScenarioCannotInsertServicesBecauseDatabaseError'
         );
     }
 };
 
-const createMultiple = async (newObjects: ScenarioAttributes[], returning?: string[]) => {
-    const services = newObjects
-        .map((newObject) => ({ scenario_id: newObject.id, services: newObject.services || [] }))
-        .filter((scServices) => scServices.services.length > 0);
-    // Create the main object in main table
-    const created = await defaultCreateMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
+const createMultiple = async (
+    newObjects: ScenarioAttributes[],
+    { transaction, ...options }: Parameters<typeof defaultCreateMultiple>[4] = {}
+) => {
     try {
-        if (services.length > 0) {
-            // Fill the service table
-            const scenarioServices = services.flatMap((scServices) =>
-                scServices.services.map((service) => ({ scenario_id: scServices.scenario_id, service_id: service }))
-            );
-            await knex(serviceTableName).insert(scenarioServices);
-        }
-        return created;
+        // Nested function to require a transaction around the inserts
+        const createWithTransaction = async (trx: Knex.Transaction) => {
+            const services = newObjects
+                .map((newObject) => ({ scenario_id: newObject.id, services: newObject.services || [] }))
+                .filter((scServices) => scServices.services.length > 0);
+            // Create the main object in main table
+            const created = await defaultCreateMultiple(knex, tableName, attributesCleaner, newObjects, {
+                transaction: trx,
+                ...options
+            });
+
+            if (services.length > 0) {
+                // Fill the service table
+                const scenarioServices = services.flatMap((scServices) =>
+                    scServices.services.map((service) => ({ scenario_id: scServices.scenario_id, service_id: service }))
+                );
+                await knex(scenarioServiceTableName).insert(scenarioServices).transacting(trx);
+            }
+            return created;
+        };
+        // Make sure the inserts are done in a transaction, use the one in the options if available
+        return transaction ? await createWithTransaction(transaction) : await knex.transaction(createWithTransaction);
     } catch (error) {
         throw new TrError(
-            `Cannot insert services for scenarios in table ${serviceTableName} database (knex error: ${error})`,
+            `Cannot insert services for scenarios in table ${scenarioServiceTableName} database (knex error: ${error})`,
             'THQGC0004',
             'TransitScenarioCannotInsertServicesBecauseDatabaseError'
         );
     }
 };
 
-const getNewAndDeletedServicesForScenario = (
-    scenarioId: string,
-    currentServiceIds: string[],
-    previousServices: { scenario_id: string; service_id: string }[]
-): {
-    newServices: { scenario_id: string; service_id: string }[];
-    deletedServices: { scenario_id: string; service_id: string }[];
-} => {
-    const current: { [serviceId: string]: boolean } = {};
-    previousServices
-        .filter((scService) => scService.scenario_id === scenarioId)
-        .forEach((service) => (current[service.service_id] = currentServiceIds.includes(service.service_id)));
+// Private function to delete old services and add new ones
+const _updateServicesForScenario = async (scenario_id: string, services: string[], transaction: Knex.Transaction) => {
+    // Delete services that are not in the scenario anymore
+    await knex(scenarioServiceTableName)
+        .where('scenario_id', scenario_id)
+        .whereNotIn('service_id', services)
+        .del()
+        .transacting(transaction);
 
-    // Get new and deleted services
-    const deletedServices = Object.keys(current)
-        .filter((serviceId) => current[serviceId] === false)
-        .map((serviceId) => ({ scenario_id: scenarioId, service_id: serviceId }));
-    const newServices = currentServiceIds
-        .filter((serviceId) => current[serviceId] === undefined)
-        .map((serviceId) => ({ scenario_id: scenarioId, service_id: serviceId }));
-    return { newServices, deletedServices };
+    // Upsert the updated services
+    if (services.length > 0) {
+        const updatedServices = services.map((serviceId) => ({ scenario_id: scenario_id, service_id: serviceId }));
+        await knex(scenarioServiceTableName).insert(updatedServices).onConflict().ignore().transacting(transaction);
+    }
 };
 
-const update = async (id: string, updatedObject: Partial<ScenarioAttributes>, returning?: string) => {
-    // Create the main object in main table
-    const updated = await defaultUpdate(knex, tableName, attributesCleaner, id, updatedObject, { returning });
+const update = async (
+    id: string,
+    updatedObject: Partial<ScenarioAttributes>,
+    { transaction, ...options }: Parameters<typeof defaultUpdate>[5] = {}
+) => {
     try {
-        // Update services if they are not undefined (partial update)
-        const services = updatedObject.services;
-        if (services !== undefined) {
-            // Prepare current services for scenario
-            const currentServices = await knex(serviceTableName).select().where('scenario_id', id);
-            const { newServices, deletedServices } = getNewAndDeletedServicesForScenario(id, services, currentServices);
+        // Nested function to require a transaction around the update
+        const updateWithTransaction = async (trx: Knex.Transaction) => {
+            // Update the main object in main table
+            const updated = await defaultUpdate(knex, tableName, attributesCleaner, id, updatedObject, {
+                transaction: trx,
+                ...options
+            });
 
-            // Insert and delete services if required
-            if (newServices.length > 0) {
-                await knex(serviceTableName).insert(newServices);
+            // Update services if they are not undefined (partial update)
+            const services = updatedObject.services;
+            if (services !== undefined) {
+                await _updateServicesForScenario(id, services, trx);
             }
-            if (deletedServices.length > 0) {
-                const deletePromises = deletedServices.map((deletedService) =>
-                    knex(serviceTableName).delete().where(deletedService)
-                );
-                await Promise.all(deletePromises);
-            }
-        }
-        return updated;
+            return updated;
+        };
+        // Make sure the update is done in a transaction, use the one in the options if available
+        return transaction ? await updateWithTransaction(transaction) : await knex.transaction(updateWithTransaction);
     } catch (error) {
         throw new TrError(
-            `Cannot update services for scenarios in table ${serviceTableName} database (knex error: ${error})`,
+            `Cannot update services for scenarios in table ${scenarioServiceTableName} database (knex error: ${error})`,
             'THQGC0004',
             'TransitScenarioCannotInsertServicesBecauseDatabaseError'
         );
     }
 };
 
-const updateMultiple = async (updatedObjects: Partial<ScenarioAttributes>[], returning?: string) => {
-    const updated = await defaultUpdateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
+const updateMultiple = async (
+    updatedObjects: Partial<ScenarioAttributes>[],
+    { transaction, ...options }: Parameters<typeof defaultUpdateMultiple>[4] = {}
+) => {
     try {
-        // Update services if they are not undefined (partial update)
-        const objectsToUpdate = updatedObjects.filter((object) => object.services !== undefined);
-        if (objectsToUpdate.length > 0) {
-            // Prepare current services for scenario
-            const scenarioIds = objectsToUpdate.map((object) => object.id as string);
-            const currentServices = await knex(serviceTableName).select().whereIn('scenario_id', scenarioIds);
+        // Nested function to require a transaction around the updates
+        const updateWithTransaction = async (trx: Knex.Transaction) => {
+            // Update multiple scenarios
+            const updated = await defaultUpdateMultiple(knex, tableName, attributesCleaner, updatedObjects, {
+                transaction: trx,
+                ...options
+            });
 
-            const allNewServices: { scenario_id: string; service_id: string }[] = [];
-            const allDeletedServices: { scenario_id: string; service_id: string }[] = [];
-
-            for (let objectIdx = 0; objectIdx < objectsToUpdate.length; objectIdx++) {
-                const { newServices, deletedServices } = getNewAndDeletedServicesForScenario(
-                    objectsToUpdate[objectIdx].id as string,
-                    objectsToUpdate[objectIdx].services || [],
-                    currentServices
+            // Update services if they are not undefined (partial update)
+            const objectsToUpdate = updatedObjects.filter((object) => object.services !== undefined);
+            if (objectsToUpdate.length > 0) {
+                // Update services for each scenario individually
+                const updateServicesPromises = objectsToUpdate.map((objectToUpdate) =>
+                    _updateServicesForScenario(objectToUpdate.id as string, objectToUpdate.services as string[], trx)
                 );
-                allNewServices.push(...newServices);
-                allDeletedServices.push(...deletedServices);
+                await Promise.all(updateServicesPromises);
             }
-
-            // Insert and delete services if required
-            if (allNewServices.length > 0) {
-                await knex(serviceTableName).insert(allNewServices);
-            }
-            if (allDeletedServices.length > 0) {
-                const deletePromises = allDeletedServices.map((deletedService) =>
-                    knex(serviceTableName).delete().where(deletedService)
-                );
-                await Promise.all(deletePromises);
-            }
-        }
-        return updated;
+            return updated;
+        };
+        // Make sure the updates are done in a transaction, use the one in the options if available
+        return transaction ? await updateWithTransaction(transaction) : await knex.transaction(updateWithTransaction);
     } catch (error) {
         throw new TrError(
-            `Cannot update services for scenarios in table ${serviceTableName} database (knex error: ${error})`,
+            `Cannot update services for scenarios in table ${scenarioServiceTableName} database (knex error: ${error})`,
             'THQGC0004',
             'TransitScenarioCannotInsertServicesBecauseDatabaseError'
         );
     }
 };
 
-const cascadeDeleteServices = async (id: string) => {
+// private function to completely delete the services if they were used only the
+// scenario with given ID
+const _cascadeDeleteServices = async (scenarioId: string, { transaction }: { transaction: Knex.Transaction }) => {
+    const innerScenarioServiceQuery = knex
+        .select('service_id')
+        .from(`${scenarioServiceTableName}`)
+        .where('scenario_id', scenarioId);
+    const countServiceQuery = knex
+        .select('service_id')
+        .from(`${scenarioServiceTableName}`)
+        .count()
+        .whereIn('service_id', innerScenarioServiceQuery)
+        .groupBy('service_id')
+        .as('servCount');
+    const servicesOnlyInThisScenarioQuery = knex.select('service_id').from(countServiceQuery).where('count', '=', 1);
+    return knex(servicesTableName).whereIn('id', servicesOnlyInThisScenarioQuery).del().transacting(transaction);
+};
+
+const deleteScenario = async (
+    id: string,
+    cascade = false,
+    { transaction, ...options }: Parameters<typeof deleteRecord>[3] = {}
+) => {
     try {
-        const scenarioServices = knex.select('service_id').from(`${serviceTableName}`).where('scenario_id', id);
-        const countServiceQuery = knex
-            .select('service_id')
-            .from(`${serviceTableName}`)
-            .count()
-            .whereIn('service_id', scenarioServices)
-            .groupBy('service_id')
-            .as('servCount');
-        const servicesOnlyInThisScenario = (
-            await knex.select('service_id').from(countServiceQuery).where('count', '=', 1)
-        ).map((service) => service.service_id);
-        if (servicesOnlyInThisScenario.length > 0) {
-            servicesDbQueries.deleteMultiple(servicesOnlyInThisScenario);
-        }
+        // Nested function to require a transaction around the delete
+        const deleteWithTransaction = async (trx: Knex.Transaction) => {
+            if (cascade) {
+                await _cascadeDeleteServices(id, { transaction: trx });
+            }
+            return deleteRecord(knex, tableName, id, { transaction: trx, ...options });
+        };
+        // Make sure the delete is done in a transaction, use the one in the options if available
+        return await (transaction ? deleteWithTransaction(transaction) : knex.transaction(deleteWithTransaction));
     } catch (error) {
         throw new TrError(
-            `cannot delete services for scenario because of a database error (knex error: ${error})`,
+            `cannot delete scenario because of a database error (knex error: ${error})`,
             'THQGC0005',
-            'TransitScenarioCannotDeleteServicesBecauseDatabaseError'
+            'TransitScenarioCannotDeleteBecauseDatabaseError'
         );
     }
 };
 
-const deleteScenario = async (id: string, cascade = false) => {
-    if (cascade) {
-        await cascadeDeleteServices(id);
+const deleteMultipleScenarios = async (
+    ids: string[],
+    cascade = false,
+    { transaction, ...options }: Parameters<typeof deleteMultiple>[3] = {}
+) => {
+    try {
+        // Nested function to require a transaction around the deletes
+        const deleteWithTransaction = async (trx: Knex.Transaction) => {
+            if (cascade) {
+                // cascade delete has to be called synchronously for each scenario, otherwise some scenarios do not get deleted if used by more than one run
+                for (let i = 0; i < ids.length; i++) {
+                    await _cascadeDeleteServices(ids[i], { transaction: trx });
+                }
+            }
+            return deleteMultiple(knex, tableName, ids, { transaction: trx, ...options });
+        };
+        // Make sure the deletes are done in a transaction, use the one in the options if available
+        return await (transaction ? deleteWithTransaction(transaction) : knex.transaction(deleteWithTransaction));
+    } catch (error) {
+        throw new TrError(
+            `cannot delete multiple scenarios because of a database error (knex error: ${error})`,
+            'THQGC0006',
+            'TransitScenarioCannotDeleteMultipleBecauseDatabaseError'
+        );
     }
-    return deleteRecord(knex, tableName, id);
-};
-
-const deleteMultipleScenarios = async (ids: string[], cascade = false) => {
-    if (cascade) {
-        // cascade delete has to be called synchronously for each scenario, otherwise some scenarios do not get deleted if used by more than one run
-        for (let i = 0; i < ids.length; i++) {
-            await cascadeDeleteServices(ids[i]);
-        }
-    }
-    return deleteMultiple(knex, tableName, ids);
 };
 
 export default {

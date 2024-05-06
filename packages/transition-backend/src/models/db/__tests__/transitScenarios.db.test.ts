@@ -5,12 +5,15 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
+import knex from 'chaire-lib-backend/lib/config/shared/db.config';
+import _cloneDeep from 'lodash/cloneDeep';
 
 import dbQueries           from '../transitScenarios.db.queries';
-import servicesDbQueries           from '../transitServices.db.queries';
+import servicesDbQueries   from '../transitServices.db.queries';
 import simulationDbQueries from '../simulations.db.queries';
 import Collection          from 'transition-common/lib/services/scenario/ScenarioCollection';
 import ObjectClass         from 'transition-common/lib/services/scenario/Scenario';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const objectName   = 'scenario';
 const simulationId = '373a583c-df49-440f-8f44-f39fb0033c56';
@@ -328,6 +331,176 @@ describe(`${objectName}`, () => {
         await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id], true);
         const serviceCollection2 = await servicesDbQueries.collection();
         expect(serviceCollection2.length).toEqual(0);
+    });
+
+});
+
+describe('Scenarios, single queries with transaction errors', () => {
+
+    beforeEach(async () => {
+        // Empty the table
+        await dbQueries.truncate();
+        servicesDbQueries.truncate();
+        await servicesDbQueries.createMultiple([{
+            id: serviceId1,
+            name: 'Service test 1',
+            ...defaultServiceAttribs
+        }, {
+            id: serviceId2,
+            name: 'Service test 2',
+            ...defaultServiceAttribs
+        }, {
+            id: serviceId3,
+            name: 'Service test 3',
+            ...defaultServiceAttribs
+        }]);
+    });
+
+    test('Create with services transaction, with error', async() => {
+        const newScenario = _cloneDeep(newObjectAttributes);
+        // Add services that are not in the database, should throw error
+        newScenario.services = [uuidV4(), uuidV4()];
+        await expect(dbQueries.create(newScenario)).rejects.toThrowError(TrError);
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(0);
+    });
+
+    test('Create multiple with services transaction, with error', async() => {
+        const newScenario = _cloneDeep(newObjectAttributes);
+        const newScenario2 = newObjectAttributes2;
+        // Add services that are not in the database for one of the scenarios, should throw error
+        newScenario.services = [uuidV4(), uuidV4()];
+        await expect(dbQueries.createMultiple([newScenario, newScenario2])).rejects.toThrowError(TrError);
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(0);
+    });
+
+    test('Update with services transaction, with error', async() => {
+        // Insert object
+        const updatedName = 'Scenario to update';
+        const newScenario = _cloneDeep(newObjectAttributes);
+        await dbQueries.create(newScenario);
+
+        // Update the object, with invalid services
+        await expect(dbQueries.update(newScenario.id, { services: [uuidV4(), uuidV4()], name: updatedName })).rejects.toThrowError(TrError);
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(1);
+        expect(collection[0]).toEqual(expect.objectContaining(newObjectAttributes));
+        
+    });
+
+    test('Update multiple with services transaction, with error', async() => {
+        // Insert object
+        const updatedName = 'Scenario to update';
+        const newScenario = _cloneDeep(newObjectAttributes);
+        await dbQueries.create(newScenario);
+        const newScenario2 = _cloneDeep(newObjectAttributes2);
+        await dbQueries.create(newScenario2);
+
+        // Update both names, but add invalid services to second
+        await expect(dbQueries.updateMultiple([
+            { name: updatedName, id: newScenario.id },
+            { services: [uuidV4(), uuidV4()], name: `${updatedName}2`, id: newScenario2.id }
+        ])).rejects.toThrowError(TrError);
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(2);
+        expect(collection[0]).toEqual(expect.objectContaining(newObjectAttributes));
+        expect(collection.find((scenario) => scenario.name === newObjectAttributes.name)).toBeDefined();
+        expect(collection.find((scenario) => scenario.name === newObjectAttributes2.name)).toBeDefined();
+    });
+})
+
+describe('Scenarios, with transactions', () => {
+
+    beforeEach(async () => {
+        // Empty the table and add 1 object
+        await dbQueries.truncate();
+        servicesDbQueries.truncate();
+        await servicesDbQueries.createMultiple([{
+            id: serviceId1,
+            name: 'Service test 1',
+            ...defaultServiceAttribs
+        }, {
+            id: serviceId2,
+            name: 'Service test 2',
+            ...defaultServiceAttribs
+        }, {
+            id: serviceId3,
+            name: 'Service test 3',
+            ...defaultServiceAttribs
+        }]);
+        const newObject = new ObjectClass(newObjectAttributes, true);
+        await dbQueries.create(newObject.getAttributes());
+    });
+
+    test('Create, update with success', async() => {
+        const currentObjectNewName = 'new scenario name';
+        await knex.transaction(async (trx) => {
+            const newObject = new ObjectClass(newObjectAttributes2, true);
+            await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+            await dbQueries.update(newObjectAttributes.id, { name: currentObjectNewName }, { transaction: trx });
+        });
+
+        // Make sure the new object is there and the old has been updated
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(2);
+        const { name, ...currentObject } = newObjectAttributes
+        const object1 = collection.find((obj) => obj.id === newObjectAttributes.id);
+        expect(object1).toBeDefined();
+        expect(object1).toEqual(expect.objectContaining({
+            name: currentObjectNewName,
+            ...currentObject
+        }));
+
+        const object2 = collection.find((obj) => obj.id === newObjectAttributes2.id);
+        expect(object2).toBeDefined();
+        expect(object2).toEqual(expect.objectContaining(newObjectAttributes2));
+    });
+
+    test('Create, update with error', async() => {
+        let error: any = undefined;
+        try {
+            await knex.transaction(async (trx) => {
+                const newObject = new ObjectClass(newObjectAttributes2, true);
+                await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+                // Update with unexisting simulation ID, should throw an error
+                await dbQueries.update(newObjectAttributes.id, { simulation_id: uuidV4() }, { transaction: trx });
+            });
+        } catch(err) {
+            error = err;
+        }
+        expect(error).toBeDefined();
+
+        // The new object should not have been added and the one in DB should not have been updated
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(1);
+        const object1 = collection.find((obj) => obj.id === newObjectAttributes.id);
+        expect(object1).toBeDefined();
+        expect(object1).toEqual(expect.objectContaining(newObjectAttributes));
+    });
+
+    test('Create, update, delete with error', async() => {
+        const currentObjectNewName = 'new scenario name';
+        let error: any = undefined;
+        try {
+            await knex.transaction(async (trx) => {
+                const newObject = new ObjectClass(newObjectAttributes2, true);
+                await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+                await dbQueries.update(newObjectAttributes.id, { name: currentObjectNewName }, { transaction: trx });
+                await dbQueries.delete(newObjectAttributes.id, false, { transaction: trx });
+                throw 'error';
+            });
+        } catch(err) {
+            error = err;
+        }
+        expect(error).toEqual('error');
+
+        // Make sure the existing object is still there and no new one has been added
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(1);
+        const object1 = collection.find((obj) => obj.id === newObjectAttributes.id);
+        expect(object1).toBeDefined();
+        expect(object1).toEqual(expect.objectContaining(newObjectAttributes));
     });
 
 });
