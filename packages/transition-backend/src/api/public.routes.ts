@@ -73,7 +73,28 @@ export default function (app: express.Express, passport: PassportStatic) {
 
     const router = express.Router();
 
-    router.use('/', passport.authenticate('bearer-strategy', { session: false }));
+    router.use('/', (req, res, next) => {
+        passport.authenticate('bearer-strategy', { session: false }, (err, user, info) => {
+            if (err) {
+                console.error(err);
+                if (err === 'DatabaseTokenExpired') {
+                    return res.status(401).send(err);
+                } else if (
+                    err === 'DatabaseNoUserMatchesProvidedToken' ||
+                    err === 'DatabaseNoUserMatchesToken' ||
+                    err === 'InvalidToken'
+                ) {
+                    const message = 'Unauthorized';
+                    return res.status(401).send(message);
+                } else {
+                    const message = 'Internal Server Error';
+                    return res.status(500).send(message);
+                }
+            }
+
+            next();
+        })(req, res, next);
+    });
 
     router.get('/paths', async (req, res, next) => {
         try {
