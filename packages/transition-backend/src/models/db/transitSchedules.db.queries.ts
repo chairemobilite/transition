@@ -13,7 +13,10 @@ import {
     update,
     truncate,
     deleteRecord,
-    destroy
+    destroy,
+    createMultiple,
+    deleteMultiple,
+    updateMultiple
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import _cloneDeep from 'lodash/cloneDeep';
 import {
@@ -26,6 +29,8 @@ import {
     secondsSinceMidnightToTimeStr,
     timeStrToSecondsSinceMidnight
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import { Knex } from 'knex';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const scheduleTable = 'tr_transit_schedules';
 const periodTable = 'tr_transit_schedule_periods';
@@ -101,128 +106,298 @@ const scheduleTripsAttributesParser = function (attributes: any): SchedulePeriod
     };
 };
 
-const createFromTrip = async function (periodTrip: SchedulePeriodTrip, scheduleId: string, periodId: string) {
-    if (!periodTrip.id) {
-        periodTrip.id = uuidV4();
-    }
-    if (!periodTrip.schedule_id) {
-        periodTrip.schedule_id = scheduleId;
-    }
-    if (!periodTrip.schedule_period_id) {
-        periodTrip.schedule_period_id = periodId;
-    }
-    const id = (await create(knex, tripTable, scheduleTripsAttributesCleaner, periodTrip, {
-        returning: 'id'
-    })) as string;
-    return id;
+// Private function to insert trips, with a transaction
+const _createTrips = async function (
+    periodTrips: SchedulePeriodTrip[],
+    options: { transaction: Knex.Transaction }
+): Promise<{ id: string }[]> {
+    const ids = (await createMultiple(knex, tripTable, scheduleTripsAttributesCleaner, periodTrips, {
+        returning: 'id',
+        transaction: options.transaction
+    })) as { id: string }[];
+    return ids;
 };
 
-const createFromPeriod = async function (periodSchedule: SchedulePeriod, schedule_id: string) {
-    if (!periodSchedule.id) {
-        periodSchedule.id = uuidV4();
-    }
-    if (!periodSchedule.schedule_id) {
-        periodSchedule.schedule_id = schedule_id;
-    }
-    const id = (await create(knex, periodTable, schedulePeriodsAttributesCleaner, periodSchedule, {
-        returning: 'id'
-    })) as string;
-    if (periodSchedule.trips) {
-        for (let i = 0; i < periodSchedule.trips.length; i++) {
-            await createFromTrip(periodSchedule.trips[i], schedule_id, id);
+// Private function to insert periods, with a transaction
+const _createPeriods = async function (
+    schedulePeriods: SchedulePeriod[],
+    scheduleId: string,
+    options: { transaction: Knex.Transaction }
+): Promise<{ id: string }[]> {
+    schedulePeriods.forEach((period) => {
+        if (!period.id) {
+            period.id = uuidV4();
         }
-    }
-    return id;
-};
-
-// create all needed inserts from scheduleData (from scheduleByServiceId[serviceId])
-const createFromScheduleData = async function (scheduleData: ScheduleAttributes) {
-    const id = (await create(knex, scheduleTable, scheduleAttributesCleaner, scheduleData, {
-        returning: 'id'
-    })) as string;
-    for (let i = 0; i < scheduleData.periods.length; i++) {
-        await createFromPeriod(scheduleData.periods[i], id);
-    }
-    return id;
-};
-
-const updateFromTrip = async function (periodTrip: Partial<SchedulePeriodTrip>) {
-    if (!periodTrip.id || !periodTrip.schedule_id || !periodTrip.schedule_period_id) {
-        throw 'Missing trip, schedule or period id for trip, cannot update';
-    }
-    const id = (await update(knex, tripTable, scheduleTripsAttributesCleaner, periodTrip.id, periodTrip, {
-        returning: 'id'
-    })) as string;
-    return id;
-};
-
-const updateFromPeriod = async function (periodSchedule: Partial<SchedulePeriod>) {
-    if (!periodSchedule.id || !periodSchedule.schedule_id) {
-        throw 'Missing schedule or period id for period, cannot update';
-    }
-    const id = await update(knex, periodTable, schedulePeriodsAttributesCleaner, periodSchedule.id, periodSchedule, {
-        returning: 'id'
+        period.schedule_id = scheduleId;
     });
-    const tripIds = await getTripIdsForPeriod(id);
-    const currentTrips: string[] = [];
-    // Update or create periods in schedule
-    if (periodSchedule.trips) {
-        for (let i = 0; i < periodSchedule.trips.length; i++) {
-            const trip = periodSchedule.trips[i];
-            if (tripIds.includes(trip.id)) {
-                currentTrips.push(await updateFromTrip(trip));
+
+    const ids = (await createMultiple(knex, periodTable, schedulePeriodsAttributesCleaner, schedulePeriods, {
+        returning: 'id',
+        transaction: options.transaction
+    })) as { id: string }[];
+    const tripPromises = schedulePeriods
+        .filter((period) => period.trips !== undefined)
+        .map((period) => {
+            period.trips.forEach((trip) => {
+                if (!trip.id) {
+                    trip.id = uuidV4();
+                }
+                trip.schedule_id = scheduleId;
+                trip.schedule_period_id = period.id;
+            });
+            return _createTrips(period.trips, options);
+        });
+    await Promise.all(tripPromises);
+    return ids;
+};
+
+/**
+ * Insert the complete schedule with periods and trips.
+ *
+ * @param scheduleData The schedule attributes
+ * @param options Additional query options. `transaction` is an
+ * optional transaction of which this insert is part of.
+ * @returns The ID of the newly inserted schedule
+ */
+const createFromScheduleData = async (
+    scheduleData: ScheduleAttributes,
+    { transaction }: { transaction?: Knex.Transaction } = {}
+): Promise<string> => {
+    try {
+        // Nested function to require a transaction around the insert
+        const createWithTransaction = async (trx: Knex.Transaction) => {
+            const id = (await create(knex, scheduleTable, scheduleAttributesCleaner, scheduleData, {
+                returning: 'id',
+                transaction: trx
+            })) as string;
+            if (scheduleData.periods) {
+                await _createPeriods(scheduleData.periods, id, { transaction: trx });
+            }
+            return id;
+        };
+        // Make sure the insert is done in a transaction, use the one in argument if available
+        return await (transaction ? createWithTransaction(transaction) : knex.transaction(createWithTransaction));
+    } catch (error) {
+        throw new TrError(
+            `Cannot insert schedules with id ${scheduleData.id} in database (knex error: ${error})`,
+            'DBSCHED0001',
+            'TransitScheduleCannotInsertBecauseDatabaseError'
+        );
+    }
+};
+
+// Private function to update trips within a transaction
+const _updateTrips = async function (
+    periodTrips: Partial<SchedulePeriodTrip>[],
+    options: { transaction: Knex.Transaction }
+) {
+    periodTrips.forEach((periodTrip) => {
+        if (!periodTrip.id || !periodTrip.schedule_id || !periodTrip.schedule_period_id) {
+            throw 'Missing trip, schedule or period id for trip, cannot update';
+        }
+    });
+
+    const ids = await updateMultiple(knex, tripTable, scheduleTripsAttributesCleaner, periodTrips, {
+        returning: 'id',
+        transaction: options.transaction
+    });
+    return ids;
+};
+
+// Private function to update the trips for periods, within a transaction. Trips
+// may need to be created, updated or deleted. This function properly decides
+// which operation needs to be executed for each trip.
+const _updateTripsForPeriods = async (
+    schedulePeriods: Partial<SchedulePeriod>[],
+    scheduleId: string,
+    options: { transaction: Knex.Transaction }
+) => {
+    // Trips need to be inserted, updated or deleted
+    const createUpdateDeletePromises: Promise<unknown>[] = [];
+
+    // Get the previous trips for those periods
+    const previousTripIds = await _getTripIdsForPeriods(
+        schedulePeriods.map((period) => period.id as string),
+        options
+    );
+    const currentTripIds: string[] = [];
+    const tripsToInsert: SchedulePeriodTrip[] = [];
+    const tripsToUpdate: SchedulePeriodTrip[] = [];
+
+    // Update or create trips in updated periods
+    schedulePeriods.forEach((period) => {
+        const trips = period.trips || [];
+        for (let tripIdx = 0; tripIdx < trips.length; tripIdx++) {
+            const trip = trips[tripIdx];
+            if (previousTripIds.includes(trip.id)) {
+                // Add to current trips and to trips to update
+                currentTripIds.push(trip.id);
+                tripsToUpdate.push(trip);
             } else {
-                currentTrips.push(await createFromTrip(trip, periodSchedule.schedule_id, id));
+                // Add to trips to insert
+                trip.schedule_id = scheduleId;
+                trip.schedule_period_id = period.id as string;
+                tripsToInsert.push(trip);
             }
         }
+    });
+    if (tripsToInsert.length > 0) {
+        createUpdateDeletePromises.push(_createTrips(tripsToInsert, options));
     }
+    if (tripsToUpdate.length > 0) {
+        createUpdateDeletePromises.push(_updateTrips(tripsToUpdate, options));
+    }
+
     // Delete any period that was deleted
-    const deletedTrips = tripIds.filter((periodId) => !currentTrips.includes(periodId));
-    await Promise.all(deletedTrips.map(deleteSchedulePeriodTrip));
-    return id;
+    const deletedTrips = previousTripIds.filter((tripId) => !currentTripIds.includes(tripId));
+    if (deletedTrips.length > 0) {
+        createUpdateDeletePromises.push(_deleteSchedulePeriodTrips(deletedTrips, options));
+    }
+    await Promise.all(createUpdateDeletePromises);
 };
 
-const updateFromScheduleData = async function (scheduleId: string, scheduleData: ScheduleAttributes) {
-    const id = (await update(knex, scheduleTable, scheduleAttributesCleaner, scheduleId, scheduleData, {
-        returning: 'id'
-    })) as string;
-    const periodIds = await getPeriodIdsForSchedule(id);
-    const currentPeriods: string[] = [];
-    // Update or create periods in schedule
-    for (let i = 0; i < scheduleData.periods.length; i++) {
-        const period = scheduleData.periods[i];
-        if (periodIds.includes(period.id)) {
-            currentPeriods.push(await updateFromPeriod(period));
-        } else {
-            currentPeriods.push(await createFromPeriod(period, id));
+// Private function to update periods, with transaction
+const _updatePeriods = async (
+    schedulePeriods: Partial<SchedulePeriod>[],
+    scheduleId: string,
+    options: { transaction: Knex.Transaction }
+) => {
+    schedulePeriods.forEach((schedulePeriod) => {
+        if (!schedulePeriod.id || !schedulePeriod.schedule_id) {
+            throw 'Missing schedule or period id for period, cannot update';
         }
+    });
+
+    const ids = await updateMultiple(knex, periodTable, schedulePeriodsAttributesCleaner, schedulePeriods, {
+        returning: 'id',
+        transaction: options.transaction
+    });
+
+    const periodsWithTrips = schedulePeriods.filter((period) => period.trips !== undefined);
+    if (periodsWithTrips.length > 0) {
+        await _updateTripsForPeriods(periodsWithTrips, scheduleId, options);
     }
-    // Delete any period that was deleted
-    const deletedPeriods = periodIds.filter((periodId) => !currentPeriods.includes(periodId));
-    await Promise.all(deletedPeriods.map(deleteSchedulePeriod));
-    return id;
+    return ids;
 };
 
-const save = async function (scheduleData: ScheduleAttributes) {
+/**
+ * Update the complete schedule with periods and trips. The update is done in a
+ * transaction, that can be passed as an option.
+ *
+ * @param scheduleId The ID of the schedule to update
+ * @param scheduleData The schedule attributes
+ * @param options Additional query options. `transaction` is an optional
+ * transaction of which this insert is part of.
+ * @returns The ID of the updated schedule
+ */
+const updateFromScheduleData = async (
+    scheduleId: string,
+    scheduleData: ScheduleAttributes,
+    { transaction }: { transaction?: Knex.Transaction } = {}
+): Promise<string> => {
+    try {
+        // Nested function to require a transaction around the update
+        const updateWithTransaction = async (trx: Knex.Transaction) => {
+            // Update the object itself
+            const id = (await update(knex, scheduleTable, scheduleAttributesCleaner, scheduleId, scheduleData, {
+                returning: 'id',
+                transaction: trx
+            })) as string;
+
+            // Quick return if there are no periods to update
+            if (scheduleData.periods === undefined) {
+                return id;
+            }
+
+            // Periods need to be inserted, updated or deleted
+            const createUpdateDeletePromises: Promise<unknown>[] = [];
+
+            const previousPeriodIds = await _getPeriodIdsForSchedule(id, { transaction: trx });
+            const currentPeriods: string[] = [];
+            const periodsToInsert: SchedulePeriod[] = [];
+            const periodsToUpdate: SchedulePeriod[] = [];
+            // Update or create periods in schedule
+            for (let i = 0; i < scheduleData.periods.length; i++) {
+                const period = scheduleData.periods[i];
+                if (previousPeriodIds.includes(period.id)) {
+                    // Add to current periods and to periods to update
+                    currentPeriods.push(period.id);
+                    periodsToUpdate.push(period);
+                } else {
+                    // Add to periods to insert
+                    periodsToInsert.push(period);
+                }
+            }
+            if (periodsToInsert.length > 0) {
+                createUpdateDeletePromises.push(_createPeriods(periodsToInsert, scheduleId, { transaction: trx }));
+            }
+            if (periodsToUpdate.length > 0) {
+                createUpdateDeletePromises.push(_updatePeriods(periodsToUpdate, scheduleId, { transaction: trx }));
+            }
+
+            // Delete any period that was deleted
+            const deletedPeriods = previousPeriodIds.filter((periodId) => !currentPeriods.includes(periodId));
+            if (deletedPeriods.length > 0) {
+                createUpdateDeletePromises.push(_deleteSchedulePeriods(deletedPeriods, { transaction: trx }));
+            }
+            await Promise.all(createUpdateDeletePromises);
+
+            return id;
+        };
+        // Make sure the update is done in a transaction, use the one in argument if available
+        return await (transaction ? updateWithTransaction(transaction) : knex.transaction(updateWithTransaction));
+    } catch (error) {
+        throw new TrError(
+            `Cannot update schedule with id ${scheduleData.id} in database (knex error: ${error})`,
+            'DBSCHED0002',
+            'TransitScheduleCannotUpdateBecauseDatabaseError'
+        );
+    }
+};
+
+const save = async function (scheduleData: ScheduleAttributes, options: { transaction?: Knex.Transaction } = {}) {
     const scheduleExists = await exists(knex, scheduleTable, scheduleData.id);
     return scheduleExists
-        ? await updateFromScheduleData(scheduleData.id, scheduleData)
-        : await createFromScheduleData(scheduleData);
+        ? await updateFromScheduleData(scheduleData.id, scheduleData, options)
+        : await createFromScheduleData(scheduleData, options);
 };
 
-const getPeriodIdsForSchedule = async function (schedule_id: string) {
-    const rows = await knex(periodTable).select(knex.raw('id')).where('schedule_id', schedule_id);
+// Private function to get the period ids for a given schedule, select within
+// the current transaction
+const _getPeriodIdsForSchedule = async function (
+    schedule_id: string,
+    options: { transaction: Knex.Transaction }
+): Promise<string[]> {
+    const periodQueries = knex(periodTable)
+        .select('id')
+        .where('schedule_id', schedule_id)
+        .transacting(options.transaction);
+    const rows = await periodQueries;
     // TODO Figure out if we can type this, examples like https://github.com/bkonkle/node-knex-typescript-example/blob/master/src/users/UserData.ts seem to cast the return value to an interface first
     return rows.map((row) => (row as any).id);
 };
 
-const getTripIdsForPeriod = async function (period_id: string) {
-    const rows = await knex(tripTable).select(knex.raw('id')).where('schedule_period_id', period_id);
-    return rows.map((row) => (row as any).id);
+// Private function to get the trip ids for the given periods, select within the
+// current transaction
+const _getTripIdsForPeriods = async function (periodIds: string[], options: { transaction: Knex.Transaction }) {
+    const trips = await knex(tripTable)
+        .select('id')
+        .whereIn('schedule_period_id', periodIds)
+        .transacting(options.transaction);
+    return trips.map((trip) => (trip as any).id);
 };
 
-const getScheduleIdsForLine = async function (line_id: string) {
-    const rows = await knex(scheduleTable).select(knex.raw('id')).where('line_id', line_id);
+const getScheduleIdsForLine = async function (
+    line_id: string,
+    options: {
+        transaction?: Knex.Transaction;
+    } = {}
+) {
+    const scheduleQueries = knex(scheduleTable).select(knex.raw('id')).where('line_id', line_id);
+    if (options.transaction) {
+        scheduleQueries.transacting(options.transaction);
+    }
+    const rows = await scheduleQueries;
     return rows.map((row) => (row as any).id);
 };
 
@@ -260,16 +435,18 @@ const readForLine = async function (lineId: string) {
     return await Promise.all(scheduleIds.map(readScheduleData));
 };
 
-const deleteSchedulePeriod = async function (id: string) {
-    return await deleteRecord(knex, periodTable, id);
+// Private function to delete periods by ids, within a transaction
+const _deleteSchedulePeriods = async function (ids: string[], options: { transaction: Knex.Transaction }) {
+    return await deleteMultiple(knex, periodTable, ids, options);
 };
 
-const deleteSchedulePeriodTrip = async function (id: string) {
-    return await deleteRecord(knex, tripTable, id);
+// Private function to delete trips by id, within a transaction
+const _deleteSchedulePeriodTrips = async function (ids: string[], options: { transaction: Knex.Transaction }) {
+    return await deleteMultiple(knex, tripTable, ids, options);
 };
 
-const deleteScheduleData = async function (id: string) {
-    return await deleteRecord(knex, scheduleTable, id);
+const deleteScheduleData = async function (id: string, options: Parameters<typeof deleteRecord>[3] = {}) {
+    return await deleteRecord(knex, scheduleTable, id, options);
 };
 
 const getCollectionSubquery = () => {
@@ -340,7 +517,6 @@ export default {
     readForLine,
     create: createFromScheduleData,
     /** Use the 'save' method instead as it will either create or update if necessary */
-
     update: updateFromScheduleData,
     save,
     delete: deleteScheduleData,

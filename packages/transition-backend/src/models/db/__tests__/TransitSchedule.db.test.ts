@@ -6,6 +6,7 @@
  */
 import { v4 as uuidV4 } from 'uuid';
 import _cloneDeep from 'lodash/cloneDeep';
+import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import dbQueries from '../transitSchedules.db.queries';
 import linesDbQueries from '../transitLines.db.queries';
@@ -13,6 +14,8 @@ import agenciesDbQueries from '../transitAgencies.db.queries';
 import servicesDbQueries from '../transitServices.db.queries';
 import pathsDbQueries from '../transitPaths.db.queries';
 import ScheduleDataValidator from 'transition-common/lib/services/schedules/ScheduleDataValidator';
+import { ScheduleAttributes, SchedulePeriod } from 'transition-common/lib/services/schedules/Schedule';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const agencyId = uuidV4();
 const lineId = uuidV4();
@@ -170,6 +173,36 @@ const scheduleForServiceId = {
     "periods_group_shortname": "all_day",
 };
 
+/** Function to verify 2 schedules are identical to the trip level. It's easier
+ * to debug failed test than a matchObject on the scheduleAttributes */
+const expectSchedulesSame = (actual: ScheduleAttributes, expected: ScheduleAttributes) => {
+    const { periods, ...scheduleAttributes } = actual;
+    const { periods: expectedPeriods, ...expectedScheduleAttributes } = expected;
+    expect(scheduleAttributes).toEqual(expect.objectContaining(expectedScheduleAttributes));
+    // Make sure all expected periods are there
+    for (let periodIdx = 0; periodIdx < expectedPeriods.length; periodIdx++) {
+        // Find the matching period
+        const { trips: expectedTrips, ...expectedPeriodAttributes } = expectedPeriods[periodIdx];
+        const matchingPeriod = periods.find(period => period.id === expectedPeriodAttributes.id);
+        expect(matchingPeriod).toBeDefined();
+        // Validate period attributes
+        const { trips, ...periodAttributes } = matchingPeriod as SchedulePeriod;
+        if (expectedTrips === undefined) {
+            expect(trips).toEqual([]);
+            continue;
+        }
+        expect(periodAttributes).toEqual(expect.objectContaining(expectedPeriodAttributes));
+        // Make sure all expected trips are there
+        for (let tripIdx = 0; tripIdx < expectedTrips.length; tripIdx++) {
+            const matchingTrip = trips.find(trip => trip.id === expectedTrips[tripIdx].id);
+            expect(matchingTrip).toBeDefined();
+            expect(matchingTrip).toEqual(expect.objectContaining(expectedTrips[tripIdx]));
+        }
+        expect(trips.length).toEqual(expectedTrips.length);
+    }
+    expect(periods.length).toEqual(expectedPeriods.length);
+}
+
 describe(`schedules`, function () {
 
     test('schedule exists should return false if object is not in database', async function () {
@@ -253,7 +286,7 @@ describe(`schedules`, function () {
 
         // Read the object again and make sure it matches
         const scheduleDataUpdatedRead = await dbQueries.read(scheduleForServiceId.id);
-        expect(scheduleDataUpdatedRead).toMatchObject(updatedSchedule);
+        expectSchedulesSame(scheduleDataUpdatedRead, updatedSchedule);
         expect(scheduleDataUpdatedRead.updated_at).not.toBeNull();
         expect(scheduleDataUpdatedRead.created_at).not.toBeNull();
 
@@ -282,9 +315,12 @@ describe(`schedules`, function () {
 
         // Read the object again and make sure it matches
         const scheduleDataUpdatedRead = await dbQueries.read(scheduleForServiceId.id);
-        //console.log('scheduleDataUpdatedRead');
-        expect(scheduleDataUpdatedRead).toMatchObject(updatedSchedule);
-
+        // Recursively remove the updated_at field
+        scheduleDataUpdatedRead.periods.forEach((period) => {
+            delete period.updated_at;
+            period.trips.forEach((trip) => delete trip.updated_at);
+        });
+        expectSchedulesSame(scheduleDataUpdatedRead, updatedSchedule);
     });
 
     test('Update a schedule after adding trips and periods', async () => {
@@ -312,7 +348,7 @@ describe(`schedules`, function () {
 
         // Read the object again and make sure it matches
         const scheduleDataUpdatedRead = await dbQueries.read(scheduleForServiceId.id);
-        expect(scheduleDataUpdatedRead).toMatchObject(updatedSchedule);
+        expectSchedulesSame(scheduleDataUpdatedRead, updatedSchedule);
 
     });
 
@@ -348,6 +384,135 @@ describe(`schedules`, function () {
         scheduleDataRead = await dbQueries.read(scheduleForServiceId.id);
         expect(scheduleDataRead).toMatchObject(objectCopy);
 
+    });
+
+});
+
+describe('Schedules, single queries with transaction errors', () => {
+
+    beforeEach(async () => {
+        // Empty the tables
+        await dbQueries.truncateSchedules();
+        await dbQueries.truncateSchedulePeriods();
+        await dbQueries.truncateScheduleTrips();
+    });
+
+    test('Create with periods and trips, with error', async() => {
+        const newSchedule = _cloneDeep(scheduleForServiceId);
+
+        // Save a schedule with invalid UUID for ids in one of the trips
+        (newSchedule.periods[0] as any).trips[0].id = 'not a uuid';
+        await expect(dbQueries.save(newSchedule as any)).rejects.toThrowError(TrError);
+
+        // Read the object from DB and make sure it has not changed
+        const dataExists = await dbQueries.exists(scheduleForServiceId.id);
+        expect(dataExists).toEqual(false);
+    });
+
+    test('update with periods and trips, with error', async() => {
+        // Insert the schedule
+        await dbQueries.create(scheduleForServiceId as any);
+        // Read the object from DB and make sure it has not changed
+        const originalData = await dbQueries.read(scheduleForServiceId.id);
+
+        // Force and invalid data for period field custom_start_at_str
+        const updatedSchedule = _cloneDeep(scheduleForServiceId);
+        updatedSchedule.periods_group_shortname = 'New_period_name';
+        updatedSchedule.periods[1].custom_start_at_str = ["13:45"] as any;
+        delete updatedSchedule.periods[0];
+        await expect(dbQueries.save(updatedSchedule as any)).rejects.toThrowError(TrError);
+
+        // Read the object from DB and make sure it has not changed
+        const dataAfterFail = await dbQueries.read(scheduleForServiceId.id);
+        expectSchedulesSame(dataAfterFail, originalData);
+    });
+
+});
+
+describe('Schedules, with transactions', () => {
+
+    beforeEach(async () => {
+        // Empty the tables
+        await dbQueries.truncateSchedules();
+        await dbQueries.truncateSchedulePeriods();
+        await dbQueries.truncateScheduleTrips();
+    });
+
+    test('Create, update with success', async() => {
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+
+        const updatedSchedule = _cloneDeep(originalSchedule);
+        // Remove 2nd period and a trip from first period, then
+        updatedSchedule.periods.splice(1, 1);
+        updatedSchedule.periods[0].trips.splice(2, 1);
+        await knex.transaction(async (trx) => {
+            // Save the original schedule
+            await dbQueries.save(originalSchedule, { transaction: trx });
+
+            // Save the updated schedule with one less period and trip
+            await dbQueries.update(updatedSchedule.id, updatedSchedule, { transaction: trx });
+        });
+
+        // Make sure the object is there and updated
+        const dataRead = await dbQueries.read(scheduleForServiceId.id);
+        expectSchedulesSame(dataRead, updatedSchedule);
+    });
+
+    test('Create, update with error', async() => {
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+
+        const updatedSchedule = _cloneDeep(originalSchedule);
+        // Update some fields, but change uuid of one trip for not a uuid
+        updatedSchedule.allow_seconds_based_schedules = true;
+        updatedSchedule.periods.splice(1, 1);
+        updatedSchedule.periods[0].trips[0].id = 'not a uuid';
+
+        let error: any = undefined;
+        try {
+            await knex.transaction(async (trx) => {
+                 // Save the original schedule
+                await dbQueries.save(originalSchedule, { transaction: trx });
+
+                // Save the updated schedule with one less period and trip
+                await dbQueries.update(updatedSchedule.id, updatedSchedule, { transaction: trx });
+            });
+        } catch(err) {
+            error = err;
+        }
+        expect(error).toBeDefined();
+
+        // Read the object from DB and make sure it has not changed
+        const dataExists = await dbQueries.exists(scheduleForServiceId.id);
+        expect(dataExists).toEqual(false);
+    });
+
+    test('Update, delete with error', async() => {
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+        // Add the original schedule out of the transaction
+        await dbQueries.save(originalSchedule);
+
+        const updatedSchedule = _cloneDeep(originalSchedule);
+        // Remove 2nd period and a trip from first period, then
+        updatedSchedule.periods.splice(1, 1);
+        updatedSchedule.periods[0].trips.splice(2, 1);
+
+        let error: any = undefined;
+        try {
+            await knex.transaction(async (trx) => {
+                // Update, then delete the schedule, then throw an error
+                await dbQueries.update(updatedSchedule.id, updatedSchedule, { transaction: trx });
+                await dbQueries.delete(scheduleForServiceId.id, { transaction: trx });
+                throw 'error';
+            });
+        } catch(err) {
+            error = err;
+        }
+        expect(error).toBeDefined();
+
+        // Make sure the original object is unchanged
+        // Make sure the object is there and updated
+        const dataRead = await dbQueries.read(scheduleForServiceId.id);
+        expectSchedulesSame(dataRead, originalSchedule);
     });
 
 });
