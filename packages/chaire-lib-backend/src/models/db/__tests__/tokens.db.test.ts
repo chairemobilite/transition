@@ -214,7 +214,7 @@ describe(`Tokens Database: Expiry`, () => {
     });
 
     test('Should throw when trying to get user by id if token is expired', async() => {
-        await expect(tokensDbQueries.getUserByToken(expiredToken.api_token as string)).rejects.toThrowError (TrError.)
+        await expect(tokensDbQueries.getUserByToken(expiredToken.api_token as string)).rejects.toThrowError (TrError)
     });
 });
 describe(`Tokens Database: Cleanup`, () => {
