@@ -15,6 +15,7 @@
         "migrate": "knex migrate:latest --knexfile lib/config/knexfile.js",
         "migrate:rollback": "knex migrate:down --knexfile lib/config/knexfile.js",
         "migrate-test": "cross-env NODE_ENV=test knex migrate:latest --knexfile lib/config/knexfile.js",
+        "migrate-test:rollback": "cross-env NODE_ENV=test knex migrate:down --knexfile lib/config/knexfile.js",
         "start": "yarn node --max-old-space-size=4096 lib/server.js",
         "start:tracing": "yarn node -r ../../tracing.js  --max-old-space-size=4096 lib/server.js",
         "start:debug": "cross-env DEBUG=express:* yarn node --trace-warnings --max-old-space-size=4096 lib/server.js",
