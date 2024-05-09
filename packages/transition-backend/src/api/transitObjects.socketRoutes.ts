@@ -6,6 +6,7 @@
  */
 import { EventEmitter } from 'events';
 import transitObjectDataHandlers from '../services/transitObjects/TransitObjectsDataHandler';
+import { duplicateServices } from '../services/transitObjects/transitServices/ServiceDuplicator';
 
 function setupObjectSocketRoutes(socket: EventEmitter) {
     for (const lowerCasePlural in transitObjectDataHandlers) {
@@ -120,6 +121,16 @@ function setupObjectSocketRoutes(socket: EventEmitter) {
             );
         }
     }
+
+    // Add duplication sockets routes. We can't add them in the loop above
+    // because they are not part of the transitObjectsDataHandlers, as each
+    // object's duplication has different additional options
+
+    // Duplicate a service
+    socket.on('transitServices.duplicate', async (serviceIds: string[], options, callback) => {
+        const response = await duplicateServices(serviceIds, options);
+        callback(response);
+    });
 }
 
 // Add operations on object socket routes for each object of Transition
