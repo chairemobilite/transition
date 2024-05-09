@@ -20,6 +20,8 @@ import {
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { ServiceAttributes } from 'transition-common/lib/services/service/Service';
+import { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
+import { Knex } from 'knex';
 
 const tableName = 'tr_transit_services';
 
@@ -115,6 +117,29 @@ const read = async (id: string) => {
     }
 };
 
+/**
+ * Get the names of the services starting with the given prefix
+ *
+ * @param servicePrefix The prefix to search for
+ * @returns An array of service names
+ */
+const getServiceNamesStartingWith = async (servicePrefix: string, options: WithTransaction = {}): Promise<string[]> => {
+    try {
+        const query = knex.select('name').from(tableName).where('name', 'ilike', `${servicePrefix}%`);
+        if (options.transaction) {
+            query.transacting(options.transaction);
+        }
+        const response = await query;
+        return response.map((service) => service.name);
+    } catch (error) {
+        throw new TrError(
+            `Cannot fetch records with name starting with ${servicePrefix} from table ${tableName} (knex error: ${error})`,
+            'THQGC0003',
+            'TransitServiceNamesStartingWithCannotBeFetchedBecauseDatabaseError'
+        );
+    }
+};
+
 export default {
     exists: exists.bind(null, knex, tableName),
     read,
@@ -136,5 +161,6 @@ export default {
         deleteMultiple(knex, tableName, ids, options),
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
-    collection
+    collection,
+    getServiceNamesStartingWith
 };

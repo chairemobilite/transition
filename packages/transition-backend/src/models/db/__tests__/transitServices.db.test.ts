@@ -324,6 +324,30 @@ describe(`${objectName}`, function() {
 
     });
 
+    test('getServiceNamesStartingWith: should return an empty array if no services match the given prefix', async () => {
+        const prefix = 'XYZ';
+        const result = await dbQueries.getServiceNamesStartingWith(prefix);
+        expect(result).toEqual([]);
+    });
+
+    test('getServiceNamesStartingWith: should return an array of service names starting with the given prefix', async () => {
+        const prefix = 'Service test';
+        const result = await dbQueries.getServiceNamesStartingWith(prefix);
+        expect(result).toEqual(['Service test', 'Service test 2']);
+    });
+
+    test('getServiceNamesStartingWith: should return an array of service names starting with the given prefix (case-insensitive)', async () => {
+        const prefix = 'service';
+        const result = await dbQueries.getServiceNamesStartingWith(prefix);
+        expect(result).toEqual(['Service test', 'Service test 2']);
+    });
+
+    test('getServiceNamesStartingWith: should return an array of service names starting with the given prefix (with whitespace)', async () => {
+        const prefix = 'Service ';
+        const result = await dbQueries.getServiceNamesStartingWith(prefix);
+        expect(result).toEqual(['Service test', 'Service test 2']);
+    });
+
 });
 
 describe('Services, with transactions', () => {
@@ -357,6 +381,21 @@ describe('Services, with transactions', () => {
         const object2 = collection.find((obj) => obj.id === newObjectAttributes2.id);
         expect(object2).toBeDefined();
         expect(object2).toEqual(expect.objectContaining(newObjectAttributes2));
+    });
+
+    test('Create, then select name starting with', (done) => {
+        knex.transaction(async (trx) => {
+            const newObject = new ObjectClass(newObjectAttributes2, true);
+            await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+            // Get without the transaction, the name should not be there
+            const names = await dbQueries.getServiceNamesStartingWith(newObject.getAttributes().name as string);
+            expect(names).toEqual([]);
+
+            // Get with the transaction, the name should be there
+            const namesInTransaction = await dbQueries.getServiceNamesStartingWith(newObject.getAttributes().name as string, { transaction: trx });
+            expect(namesInTransaction).toEqual([newObject.getAttributes().name]);
+            done();
+        });
     });
 
     test('Create, update with error', async() => {
