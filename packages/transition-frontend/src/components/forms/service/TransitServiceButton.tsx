@@ -9,9 +9,9 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Service from 'transition-common/lib/services/service/Service';
-import { duplicateService } from 'transition-common/lib/services/service/ServiceDuplicator';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 interface ScheduleButtonProps extends WithTranslation {
     service: Service;
@@ -48,23 +48,21 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
             e.stopPropagation();
         }
 
-        serviceLocator.socketEventManager.emit('transitService.read', props.service.getId(), null, async (response) => {
-            try {
-                const serviceToDuplicate = new Service(
-                    { ...response.service },
-                    false,
-                    serviceLocator.collectionManager
-                );
-                await duplicateService(serviceToDuplicate, {
-                    socket: serviceLocator.socketEventManager,
-                    serviceCollection: serviceLocator.collectionManager.get('services'),
-                    newServiceSuffix: props.t('main:copy')
-                });
-                serviceLocator.collectionManager.refresh('services');
-            } catch (error) {
-                console.error(error); // todo: better error handling
+        serviceLocator.socketEventManager.emit(
+            'transitServices.duplicate',
+            [props.service.getId()],
+            { newServiceSuffix: props.t('main:copy') },
+            async (response: Status.Status<string[]>) => {
+                if (Status.isStatusOk(response)) {
+                    await serviceLocator.collectionManager
+                        .get('services')
+                        .loadFromServer(serviceLocator.socketEventManager, serviceLocator.collectionManager);
+                    serviceLocator.collectionManager.refresh('services');
+                } else {
+                    console.error(response.error); // todo: better error handling
+                }
             }
-        });
+        );
     };
 
     const service = props.service;
