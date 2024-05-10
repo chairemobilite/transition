@@ -17,6 +17,7 @@ export interface DuplicateServiceOptions {
     serviceCollection?: ServiceCollection;
 }
 
+// @deprecated Service duplication should be done in the backend, but this function is still used in the frontend by other object's duplication
 export const duplicateService = async (
     service: Service,
     { socket, serviceCollection, newServiceSuffix = '' }: DuplicateServiceOptions

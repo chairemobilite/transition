@@ -16,7 +16,7 @@ import ServiceCollection from 'transition-common/lib/services/service/ServiceCol
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { ServiceImportData, GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { getUniqueServiceName } from 'transition-common/lib/services/service/ServiceUtils';
+import { getUniqueServiceName } from '../transitObjects/transitServices/ServiceUtils';
 import { GtfsObjectImporter } from './GtfsObjectImporter';
 import { formatColor, GtfsInternalData } from './GtfsImportTypes';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
@@ -346,7 +346,7 @@ export class ServiceImporter implements GtfsObjectImporter<ServiceImportData, Se
         if (existingService) {
             return existingService;
         }
-        serviceAttributes.name = getUniqueServiceName(this._existingServices, serviceAttributes.name || '');
+        serviceAttributes.name = await getUniqueServiceName(serviceAttributes.name || '');
         // Create a new service
         const newService = new Service(serviceAttributes, true);
         // TODO Save only at the end of the whole import, with a batch save

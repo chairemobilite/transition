@@ -14,6 +14,7 @@ import each from 'jest-each';
 import { gtfsValidSimpleData, defaultImportData, defaultInternalImportData, gtfsValidTransitionGeneratedData } from './GtfsImportData.test';
 import ServiceImporter, { gtfsToObjectAttributes } from '../ServiceImporter';
 import Line from 'transition-common/lib/services/line/Line';
+import { getUniqueServiceName } from '../../transitObjects/transitServices/ServiceUtils';
 
 let currentData: any = gtfsValidSimpleData;
 const serviceSaveFct = Service.prototype.save = jest.fn();
@@ -30,6 +31,11 @@ jest.mock('chaire-lib-backend/lib/services/files/CsvFile', () => {
         })
     }
 });
+
+jest.mock('../../transitObjects/transitServices/ServiceUtils', () => ({
+    getUniqueServiceName: jest.fn().mockImplementation((name: string) => name)
+}));
+const mockGetUniqueServiceName = getUniqueServiceName as jest.MockedFunction<typeof getUniqueServiceName>;
 
 const lines = new LineCollection([], {});
 const importedAgencyId = uuidV4();
@@ -54,7 +60,7 @@ const convertToServiceAttributes = (data) => {
 } 
 
 beforeEach(() => {
-    serviceSaveFct.mockClear();
+    jest.clearAllMocks();
 });
 
 describe('GTFS Service import preparation', () => {
@@ -255,6 +261,11 @@ describe('GTFS Service import', () => {
     ]).test('Test import service data, existing service, %s', async (_name: string, customAttributes: Partial<ServiceAttributes>, expectExisting: boolean, existingLines: Line[] = []) => {
         currentData = gtfsValidSimpleData;
 
+        if (!expectExisting) {
+            // Return a different unique name for this service
+            mockGetUniqueServiceName.mockResolvedValueOnce(service0ForImport.data?.gtfs?.service_id + '-1');
+        }
+        
         lines.clear();
         lines.setFeatures(existingLines);
         // Customize the existing service
@@ -294,6 +305,7 @@ describe('GTFS Service import', () => {
             expect(serviceSaveFct).toHaveBeenCalledTimes(0);
             expect(importedService.getAttributes()).toEqual(expect.objectContaining(existingServiceAttribs1));
         } else {
+            expect(mockGetUniqueServiceName).toHaveBeenCalledTimes(1);
             expect(serviceSaveFct).toHaveBeenCalledTimes(1);
             expect(importedService.getAttributes()).toEqual(expect.objectContaining({
                 id: expect.anything(),
