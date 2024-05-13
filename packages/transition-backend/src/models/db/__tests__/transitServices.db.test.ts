@@ -219,6 +219,26 @@ describe(`${objectName}`, function() {
         
     });
 
+    test('should read partial collection from database', async() => {
+        
+        const _collection = await dbQueries.collection({ serviceIds: [newObjectAttributes.id] });
+        const objectCollection = new Collection([], {});
+        objectCollection.loadFromCollection(_collection);
+        const collection = objectCollection.features;
+        const _newObjectAttributes = Object.assign({}, newObjectAttributes);
+        expect(collection.length).toBe(1);
+        for (const attribute in updatedAttributes)
+        {
+            _newObjectAttributes[attribute] = updatedAttributes[attribute];
+        }
+        delete collection[0].attributes.created_at;
+        delete collection[0].attributes.updated_at;
+        // Compare objects in DB with expected
+        expect(collection[0].id).toBe(_newObjectAttributes.id);
+        expect(collection[0].getAttributes()).toEqual(_newObjectAttributes);
+        
+    });
+
     test('update multiple objects, with error, none should be updated', async() => {
         
         // Reset the first object to its original state
@@ -242,7 +262,7 @@ describe(`${objectName}`, function() {
         expect(object).toBeDefined();
         for (const attribute in updatedAttributes)
         {
-            expect(object[attribute]).toEqual(updatedAttributes[attribute]);
+            expect((object as any)[attribute]).toEqual(updatedAttributes[attribute]);
         }
     });
 
@@ -394,6 +414,21 @@ describe('Services, with transactions', () => {
             // Get with the transaction, the name should be there
             const namesInTransaction = await dbQueries.getServiceNamesStartingWith(newObject.getAttributes().name as string, { transaction: trx });
             expect(namesInTransaction).toEqual([newObject.getAttributes().name]);
+            done();
+        });
+    });
+
+    test('Create, then get collection', (done) => {
+        knex.transaction(async (trx) => {
+            const newObject = new ObjectClass(newObjectAttributes2, true);
+            await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+            // Get without the transaction, the new service should not be there
+            const services = await dbQueries.collection();
+            expect(services.length).toEqual(1);
+
+            // Get with the transaction, the new service should be there
+            const servicesInTransaction = await dbQueries.collection({ transaction: trx });
+            expect(servicesInTransaction.length).toEqual(2);
             done();
         });
     });
