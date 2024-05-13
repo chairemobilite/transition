@@ -45,27 +45,31 @@ const attributesParser = (dbAttributes: {
     return dbAttributes as unknown as ServiceAttributes;
 };
 
-const collection = async () => {
+const collection = async (options: { serviceIds?: string[] } & WithTransaction = {}) => {
     try {
         // TODO When the complete collection is not sent to the client directly, there should be a sort option to this method
-        const response = await knex.raw(
-            `
-      SELECT 
-        s.*,
+        const query = knex
+            .select(
+                knex.raw(`s.*,
         TO_CHAR(start_date, 'YYYY-MM-DD') as start_date,
         TO_CHAR(end_date, 'YYYY-MM-DD') as end_date,
         ARRAY(SELECT TO_CHAR(UNNEST(only_dates), 'YYYY-MM-DD')) as only_dates,
         ARRAY(SELECT TO_CHAR(UNNEST(except_dates), 'YYYY-MM-DD')) as except_dates,
         COALESCE(color, '${Preferences.current.transit.services.defaultColor}') as color,
-        array_remove(ARRAY_AGG(DISTINCT sched.line_id), null) as scheduled_lines
-      FROM tr_transit_services as s
-      LEFT JOIN tr_transit_schedules sched ON s.id = sched.service_id
-      WHERE is_enabled IS TRUE
-      GROUP BY s.id
-      ORDER BY s.name;
-    `
-        );
-        const collection = response.rows;
+        array_remove(ARRAY_AGG(DISTINCT sched.line_id), null) as scheduled_lines`)
+            )
+            .from(`${tableName} as s`)
+            .leftJoin('tr_transit_schedules as sched', 's.id', 'sched.service_id')
+            .groupBy('s.id')
+            .where('is_enabled', true)
+            .orderBy('s.name');
+        if (options.serviceIds) {
+            query.whereIn('s.id', options.serviceIds);
+        }
+        if (options.transaction) {
+            query.transacting(options.transaction);
+        }
+        const collection = await query;
         if (collection) {
             return collection.map(attributesParser);
         }
