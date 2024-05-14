@@ -148,7 +148,7 @@ const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
     return (
         <header className="header">
             <div className="header__content">
-                <nav className="header__nav-left">
+                <nav className="header__nav-left" id="item-nav-title">
                     {appTitle !== undefined && (
                         <h1>
                             {appTitle} • <strong>{title}</strong>
