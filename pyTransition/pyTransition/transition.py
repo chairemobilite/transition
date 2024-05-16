@@ -29,7 +29,11 @@ class Transition:
     def __init__(self, url, username, password, token=None):
         if url is None or url == "":
             raise ValueError("URL cannot be empty.")
-        self.base_url = url
+
+        # Clean up extra characters in the URL, like a last /
+        cleaned_url = url.rstrip("/")
+
+        self.base_url = cleaned_url
 
         # To instantiate Transition instance from token only
         if username is None and password is None and token is not None:
