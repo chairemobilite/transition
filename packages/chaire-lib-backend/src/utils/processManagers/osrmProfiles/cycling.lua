@@ -51,7 +51,8 @@ function setup()
       'routing:bicycle',
       'bicycle',
       'permissive',
-      'designated'
+      'designated',
+      'discouraged' -- discouraged is for where it is dangerous, or bicycles should find another way, but permitted
     },
 
     access_tag_blacklist = Set {

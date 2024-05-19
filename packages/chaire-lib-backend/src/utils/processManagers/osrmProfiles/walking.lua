@@ -35,7 +35,8 @@ function setup()
       'foot',
       'routing:foot',
       'permissive',
-      'designated'
+      'designated',
+      'discouraged' -- discouraged is for where it is dangerous, or pedestrian should find another way, but permitted
     },
 
     service_access_tag_blacklist = Set {
