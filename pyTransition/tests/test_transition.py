@@ -58,6 +58,15 @@ class TestTransition(unittest.TestCase):
                 self.test_url, self.test_username, self.test_password
             )
 
+    def test_url_cleanup(self):
+         with requests_mock.Mocker() as m:
+            m.post(f"{self.test_url}/token", text=self.test_token, status_code=200)
+
+            url_with_extra_chars = self.test_url+"/"
+            transition_instance = Transition(url_with_extra_chars, self.test_username, self.test_password)
+            self.assertEqual(transition_instance.base_url, self.test_url)
+            self.assertEqual(transition_instance.token, self.test_token)
+
     def test_creation_username_password(self):
         with requests_mock.Mocker() as m:
             m.post(f"{self.test_url}/token", text=self.test_token, status_code=200)
