@@ -36,7 +36,7 @@ function setup()
       'routing:foot',
       'permissive',
       'designated',
-      'discouraged' -- discouraged is for where it is dangerous, or pedestrian should find another way, but permitted
+      'discouraged' -- discouraged is for where it is dangerous, or pedestrian should find another way, but permitted, see https://wiki.openstreetmap.org/wiki/Key:access#access-discouraged
     },
 
     service_access_tag_blacklist = Set {
