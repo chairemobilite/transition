@@ -52,7 +52,7 @@ function setup()
       'bicycle',
       'permissive',
       'designated',
-      'discouraged' -- discouraged is for where it is dangerous, or bicycles should find another way, but permitted
+      'discouraged' -- discouraged is for where it is dangerous, or bicycles should find another way, but permitted. See https://wiki.openstreetmap.org/wiki/Key:access#access-discouraged and https://wiki.openstreetmap.org/wiki/Key:bicycle
     },
 
     access_tag_blacklist = Set {
