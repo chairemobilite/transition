@@ -23,13 +23,16 @@
 import requests
 from datetime import time
 import json
+from urllib.parse import urlparse, urlunparse, urlencode, parse_qs
 
 
 class Transition:
     def __init__(self, url, username, password, token=None):
         if url is None or url == "":
             raise ValueError("URL cannot be empty.")
-        self.base_url = url
+
+        # Parse and normalize the URL
+        self.base_url = self.__normalize_url(url)
 
         # To instantiate Transition instance from token only
         if username is None and password is None and token is not None:
@@ -38,6 +41,48 @@ class Transition:
         # To instantiate Transition instance from username and password authentication
         else:
             self.token = self.__request_token(username, password)
+
+    @staticmethod
+    def __normalize_url(url):
+        """Normalize the URL.
+
+        Remove extra characters from the URL
+        """
+        parsed_url = urlparse(url)
+        netloc = parsed_url.netloc.lower()
+
+        # Remove port number if we use the standard ones
+        if netloc.endswith(':80') and parsed_url.scheme == 'http':
+            netloc = netloc[:-3]
+        elif netloc.endswith(':443') and parsed_url.scheme == 'https':
+            netloc = netloc[:-4]
+
+        # Remove extra "/"
+        path = parsed_url.path.rstrip('/')
+        normalized_url = urlunparse((parsed_url.scheme, netloc, path, parsed_url.params, parsed_url.query, parsed_url.fragment))
+        return normalized_url
+
+    def build_url(self, path='', params=None):
+        """Construct the full URL with path and params
+
+        Args:
+            path (string): path to add the base url
+            params (dict): parameters to add to the request
+
+        Returns:
+            string: Full url to use in the request
+        """
+        if params is None:
+            params = {}
+
+        parsed_base_url = urlparse(self.base_url)
+        combined_path = parsed_base_url.path.rstrip('/') + '/' + path.lstrip('/')
+        query_params = parse_qs(parsed_base_url.query)
+        query_params.update(params)
+        query_string = urlencode(query_params, doseq=True)
+
+        new_url = urlunparse((parsed_base_url.scheme, parsed_base_url.netloc, combined_path, parsed_base_url.params, query_string, parsed_base_url.fragment))
+        return new_url
 
     def __build_authentication_body(self, username, password):
         """Builds the body for the token request.
@@ -86,7 +131,7 @@ class Transition:
             string: the user's authentication token
         """
         body = self.__build_authentication_body(username, password)
-        response = requests.post(f"{self.base_url}/token", json=body)
+        response = requests.post(self.build_url('/token'), json=body)
         response.raise_for_status()
         return response.text
 
@@ -97,7 +142,7 @@ class Transition:
             geojson: Transition paths as a GeoJSON LineString FeatureCollection object
         """
         headers = self.__build_headers()
-        response = requests.get(f"{self.base_url}/api/v1/paths", headers=headers)
+        response = requests.get(self.build_url('/api/v1/paths'), headers=headers)
         response.raise_for_status()
         return response.json()
 
@@ -108,7 +153,7 @@ class Transition:
             geojson: Transition nodes as a GeoJSON Point FeatureCollection object
         """
         headers = self.__build_headers()
-        response = requests.get(f"{self.base_url}/api/v1/nodes", headers=headers)
+        response = requests.get(self.build_url('/api/v1/nodes'), headers=headers)
         response.raise_for_status()
         return response.json()
 
@@ -119,7 +164,7 @@ class Transition:
             List: List of Transition scenarios with their parameters
         """
         headers = self.__build_headers()
-        response = requests.get(f"{self.base_url}/api/v1/scenarios", headers=headers)
+        response = requests.get(self.build_url('/api/v1/scenarios'), headers=headers)
         response.raise_for_status()
         return response.json()
 
@@ -130,7 +175,7 @@ class Transition:
             List: List of routing modes as a list of strings
         """
         headers = self.__build_headers()
-        response = requests.get(f"{self.base_url}/api/v1/routing-modes", headers=headers)
+        response = requests.get(self.build_url('/api/v1/routing-modes'), headers=headers)
         response.raise_for_status()
         return json.loads(response.text)
 
@@ -208,7 +253,7 @@ class Transition:
         headers = self.__build_headers()
         params = {"withGeojson": "true" if with_geojson else "false"}
         response = requests.post(
-            f"{self.base_url}/api/v1/route", headers=headers, json=body, params=params
+            self.build_url('/api/v1/route', params=params), headers=headers, json=body
         )
         response.raise_for_status()
         return response.json()
@@ -291,7 +336,7 @@ class Transition:
         headers = self.__build_headers()
         params = {"withGeojson": "true" if with_geojson else "false"}
         response = requests.post(
-            f"{self.base_url}/api/v1/accessibility", headers=headers, json=body, params=params
+            self.build_url('/api/v1/accessibility', params=params), headers=headers, json=body
         )
         response.raise_for_status()
         return response.json()
