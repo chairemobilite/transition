@@ -21,6 +21,17 @@ export interface RoutingResult<TResultData> {
     hasAlternatives: () => boolean;
     getAlternativesCount: () => number;
     originDestinationToGeojson: () => GeoJSON.FeatureCollection<GeoJSON.Point>;
+    /**
+     * Get the geojson geometry of the path at the given index
+     *
+     * TODO Type the options so they are common for all routing results
+     *
+     * TODO Type the FeatureCollection properties
+     *
+     * @param index The index of the alternative path to fetch
+     * @param options Additional options to pass to generate geometries
+     * @returns A feature collection with the steps of the path
+     */
     getPathGeojson: (index: number, options: { [key: string]: any }) => Promise<GeoJSON.FeatureCollection>;
     getPath: (index: number) => TrRoutingRoute | Route | undefined;
     getRoutingMode(): RoutingOrTransitMode;

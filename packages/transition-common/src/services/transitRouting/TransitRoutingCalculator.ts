@@ -15,7 +15,7 @@ import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-com
 import { TransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
-import { TransitRoutingResult } from './TransitRoutingResult';
+import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import { HostPort, TransitRouteQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 
@@ -78,7 +78,9 @@ export class TransitRoutingCalculator {
                 // walking is always added when calculating transit, so it can't be undefined
                 const walkingRouteResult = routingResults.find((result) => result.routingMode === 'walking');
                 const walkOnlyPath =
-                    walkingRouteResult && !TrError.isTrError(walkingRouteResult.result)
+                    walkingRouteResult &&
+                    !TrError.isTrError(walkingRouteResult.result) &&
+                    (walkingRouteResult.result as RouteResults).routes[0].duration <= maxWalkingTime
                         ? (walkingRouteResult.result as RouteResults).routes[0]
                         : undefined;
 
@@ -87,7 +89,6 @@ export class TransitRoutingCalculator {
                     destination: originDestination.features[1],
                     paths: TrError.isTrError(routingResult.result) ? [] : routingResult.result.routes,
                     walkOnlyPath,
-                    maxWalkingTime: maxWalkingTime,
                     error: TrError.isTrError(routingResult.result) ? routingResult.result.export() : undefined
                 });
             } else if (routingMode !== 'transit') {

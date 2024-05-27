@@ -12,7 +12,7 @@ import { simplePathResult, transferPathResult, alternativesResult } from './TrRo
 import { TransitRoutingCalculator } from '../TransitRoutingCalculator';
 import { TransitRouting, TransitRoutingAttributes } from '../TransitRouting';
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { TransitRoutingResult } from '../TransitRoutingResult';
+import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
