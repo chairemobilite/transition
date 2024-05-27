@@ -14,11 +14,13 @@ import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+
 export interface RoutingResultStatus {
     routingResult: UnimodalRoutingResult | TransitRoutingResult;
     alternativeIndex: number;
@@ -31,7 +33,10 @@ export interface TransitRoutingResultsProps extends WithTranslation {
 }
 
 const showCurrentAlternative = async (result, alternativeIndex) => {
-    const pathGeojson = await result.getPathGeojson(alternativeIndex, {});
+    const pathCollection = serviceLocator.collectionManager.get('paths');
+    const segmentToGeojson = new SegmentToGeoJSONFromPaths(pathCollection);
+    const options = { completeData: false, segmentToGeojson: segmentToGeojson.segmentToGeoJSONFromPaths };
+    const pathGeojson = await result.getPathGeojson(alternativeIndex, options);
     (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
         layerName: 'routingPoints',
         data: result.originDestinationToGeojson()

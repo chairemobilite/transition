@@ -10,7 +10,7 @@ import { truncate, destroy } from 'chaire-lib-backend/lib/models/db/default.db.q
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import { ResultsByMode } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
-import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { OdTripRouteResult } from '../../services/transitRouting/types';
 
 const tableName = 'tr_batch_route_results';

@@ -12,7 +12,7 @@ import { batchRoute, saveOdPairs } from '../TrRoutingBatch';
 import DataSource, { DataSourceType } from 'chaire-lib-common/lib/services/dataSource/DataSource';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { simplePathResult } from './TrRoutingResultStub';
 import odPairsDbQueries from '../../../models/db/odPairs.db.queries';
 import resultDbQueries from '../../../models/db/batchRouteResults.db.queries';
@@ -82,8 +82,7 @@ routeOdTripMock.mockImplementation(async (odTrip: BaseOdTrip) => ({
         transit: new TransitRoutingResult({
             origin: { type: 'Feature' as const, geometry: odTrip.attributes.origin_geography, properties: {} },
             destination: { type: 'Feature' as const, geometry: odTrip.attributes.destination_geography, properties: {} },
-            paths: simplePathResult.routes,
-            maxWalkingTime: 300
+            paths: simplePathResult.routes
         })
     }
 }));
