@@ -14,7 +14,7 @@ import { getRouteByMode } from 'chaire-lib-common/lib/services/routing/RoutingUt
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import PathCollection from '../path/PathCollection';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
-import { RouteCalculatorResult } from './RouteCalculatorResult';
+import { RoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 
 interface StepGeojsonProperties {
@@ -47,7 +47,7 @@ export interface TransitResultParams {
     error?: { localizedMessage: ErrorMessage; error: string; errorCode: string };
 }
 
-export class TransitRoutingResult implements RouteCalculatorResult<TransitResultParams> {
+export class TransitRoutingResult implements RoutingResult<TransitResultParams> {
     private _hasAlternatives: boolean;
     private _walkOnlyPathIndex: number;
 

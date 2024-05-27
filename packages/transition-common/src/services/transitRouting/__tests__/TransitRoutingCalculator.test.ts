@@ -14,7 +14,7 @@ import { TransitRouting, TransitRoutingAttributes } from '../TransitRouting';
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { TransitRoutingResult } from '../TransitRoutingResult';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
-import { UnimodalRouteCalculationResult } from '../RouteCalculatorResult';
+import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { TrRoutingV2 } from 'chaire-lib-common/src/api/TrRouting';
 
@@ -196,7 +196,7 @@ describe('TransitRoutingCalculator', () => {
 
         expect(Object.keys(result)).toEqual(routingModes);
         for (let i = 0; i < routingModes.length; i++) {
-            const resultForMode = result[routingModes[i]] as UnimodalRouteCalculationResult;
+            const resultForMode = result[routingModes[i]] as UnimodalRoutingResult;
             expect(resultForMode).toBeDefined();
             expect(resultForMode.hasError()).toBeFalsy();
             expect(resultForMode.getError()).toBeUndefined();
@@ -220,7 +220,7 @@ describe('TransitRoutingCalculator', () => {
 
         expect(Object.keys(result)).toEqual(routingModes);
         for (let i = 0; i < routingModes.length; i++) {
-            const resultForMode = result[routingModes[i]] as UnimodalRouteCalculationResult;
+            const resultForMode = result[routingModes[i]] as UnimodalRoutingResult;
             expect(resultForMode).toBeDefined();
             expect(resultForMode.hasError()).toBeTruthy();
             expect(TrError.isTrError(resultForMode.getError())).toBe(true);

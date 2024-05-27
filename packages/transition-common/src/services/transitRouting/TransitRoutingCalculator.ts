@@ -16,7 +16,7 @@ import { TransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingMo
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { TransitRoutingResult } from './TransitRoutingResult';
-import { UnimodalRouteCalculationResult } from './RouteCalculatorResult';
+import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import { HostPort, TransitRouteQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 
 type TransitOrRouteCalculatorResult =
@@ -36,7 +36,7 @@ const resultIsRouting = (
 };
 
 export type ResultsByMode = {
-    [key in RoutingMode]?: UnimodalRouteCalculationResult;
+    [key in RoutingMode]?: UnimodalRoutingResult;
 } & {
     transit?: TransitRoutingResult;
 };
@@ -91,7 +91,7 @@ export class TransitRoutingCalculator {
                     error: TrError.isTrError(routingResult.result) ? routingResult.result.export() : undefined
                 });
             } else if (routingMode !== 'transit') {
-                results[routingMode] = new UnimodalRouteCalculationResult({
+                results[routingMode] = new UnimodalRoutingResult({
                     routingMode,
                     origin: originDestination.features[0],
                     destination: originDestination.features[1],

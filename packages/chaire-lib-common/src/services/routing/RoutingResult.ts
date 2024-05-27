@@ -6,14 +6,18 @@
  */
 import _get from 'lodash/get';
 
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { RoutingOrTransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
-import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
-import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import Preferences from '../../config/Preferences';
+import { Route } from './RoutingService';
+import { RoutingOrTransitMode, RoutingMode } from '../../config/routingModes';
+import TrError, { ErrorMessage } from '../../utils/TrError';
+import { TrRoutingRoute } from '../trRouting/TrRoutingService';
 
 // TODO Add a common type to getPath(index)
-export interface RouteCalculatorResult<InputParams> {
+// TODO Have a common type for all results, not requiring the TResultData generic type
+/**
+ * Represents a routing result, for either uni or multimodal routing.
+ */
+export interface RoutingResult<TResultData> {
     hasAlternatives: () => boolean;
     getAlternativesCount: () => number;
     originDestinationToGeojson: () => GeoJSON.FeatureCollection<GeoJSON.Point>;
@@ -22,10 +26,15 @@ export interface RouteCalculatorResult<InputParams> {
     getRoutingMode(): RoutingOrTransitMode;
     hasError: () => boolean;
     getError: () => TrError | undefined;
-    getParams: () => InputParams;
+    getParams: () => TResultData;
 }
 
-export interface ResultParams {
+/**
+ * Describe a unimodal routing result data
+ *
+ * TODO Have one single type for the routing results, whether uni or multi-modal
+ */
+export interface UnimodalRoutingResultData {
     routingMode: RoutingMode;
     origin: GeoJSON.Feature<GeoJSON.Point>;
     destination: GeoJSON.Feature<GeoJSON.Point>;
@@ -33,9 +42,12 @@ export interface ResultParams {
     error?: { localizedMessage: ErrorMessage; error: string; errorCode: string };
 }
 
-export class UnimodalRouteCalculationResult implements RouteCalculatorResult<ResultParams> {
-    constructor(private _params: ResultParams) {
-        /** Nothin to do */
+/**
+ * Represents a unimodal routing result
+ */
+export class UnimodalRoutingResult implements RoutingResult<UnimodalRoutingResultData> {
+    constructor(private _params: UnimodalRoutingResultData) {
+        /** Nothing to do */
     }
 
     getRoutingMode(): RoutingOrTransitMode {
@@ -98,5 +110,5 @@ export class UnimodalRouteCalculationResult implements RouteCalculatorResult<Res
         return error !== undefined ? new TrError(error.error, error.errorCode, error.localizedMessage) : undefined;
     }
 
-    getParams = (): ResultParams => this._params;
+    getParams = (): UnimodalRoutingResultData => this._params;
 }

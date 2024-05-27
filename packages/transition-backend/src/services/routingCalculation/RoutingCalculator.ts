@@ -6,10 +6,7 @@
  */
 import _isEmpty from 'lodash/isEmpty';
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
-import {
-    ResultParams,
-    UnimodalRouteCalculationResult
-} from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
+import { UnimodalRoutingResultData, UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
 import {
     ResultsByMode,
@@ -32,7 +29,7 @@ import {
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
-export type UnimodalRouteCalculationResultParams = ResultParams & {
+export type UnimodalRouteCalculationResultParams = UnimodalRoutingResultData & {
     pathsGeojson?: GeoJSON.FeatureCollection<GeoJSON.LineString>[];
 };
 
@@ -66,7 +63,7 @@ export async function calculateRoute(
 
     const routingResult: RouteCalculationResultParamsByMode = {};
     for (const routingMode in resultsByMode) {
-        const modeResult: UnimodalRouteCalculationResult | TransitRoutingResult = resultsByMode[routingMode];
+        const modeResult: UnimodalRoutingResult | TransitRoutingResult = resultsByMode[routingMode];
         routingResult[routingMode] = modeResult.getParams();
 
         if (withGeojson) {
