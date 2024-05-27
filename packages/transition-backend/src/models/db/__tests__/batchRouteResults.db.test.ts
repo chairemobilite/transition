@@ -13,7 +13,7 @@ import { userAuthModel } from 'chaire-lib-backend/lib/services/auth/userAuthMode
 import { JobAttributes } from 'transition-common/lib/services/jobs/Job';
 import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import { cyclingRouteResult, simplePathResult, walkingRouteResult } from '../../../services/transitRouting/__tests__/TrRoutingResultStub';
-import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
+import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 
 
 const objectName   = 'job';
@@ -72,7 +72,7 @@ const resultByMode = { transit:
         paths: simplePathResult.routes,
         maxWalkingTime: 300
     }),
-    walking: new UnimodalRouteCalculationResult({
+    walking: new UnimodalRoutingResult({
         routingMode: 'walking',
         origin: origin,
         destination: destination,
@@ -82,7 +82,7 @@ const resultByMode = { transit:
 
 const resultByMode2 = {
     ...resultByMode,
-    cycling: new UnimodalRouteCalculationResult({
+    cycling: new UnimodalRoutingResult({
         routingMode: 'walking',
         origin: origin,
         destination: destination,

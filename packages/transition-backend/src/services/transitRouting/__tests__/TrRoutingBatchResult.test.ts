@@ -13,10 +13,9 @@ import { simplePathResult, transferPathResult, alternativesResult, walkingRouteR
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { createRoutingFileResultProcessor, generateFileOutputResults } from '../TrRoutingBatchResult';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { getDefaultCsvAttributes, getDefaultStepsAttributes } from '../ResultAttributes';
 import { routeToUserObject, TrRoutingBoardingStep, TrRoutingUnboardingStep, TrRoutingWalkingStep } from 'chaire-lib-common/src/services/trRouting/TrRoutingResultConversion';
-import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
+import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import Path from 'transition-common/lib/services/path/Path';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -366,13 +365,13 @@ describe('Generate CSV results only', () => {
                 paths: simplePathResult.routes,
                 maxWalkingTime: 300
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -423,13 +422,13 @@ describe('Generate CSV results only', () => {
                 paths: alternativesResult.routes,
                 maxWalkingTime: 300
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -507,13 +506,13 @@ describe('Generate CSV results only', () => {
                     'transit:transitRouting:errors:NoResultFound'
                 ).export()
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -625,13 +624,13 @@ describe('detailed csv only result', () => {
                 paths: simplePathResult.routes,
                 maxWalkingTime: 300
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -949,13 +948,13 @@ describe('geometries result', () => {
                 paths: simplePathResult.routes,
                 maxWalkingTime: 300
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,

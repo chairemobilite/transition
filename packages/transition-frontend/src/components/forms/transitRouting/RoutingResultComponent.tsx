@@ -12,10 +12,7 @@ import { faAngleLeft } from '@fortawesome/free-solid-svg-icons/faAngleLeft';
 import TransitRoutingResults from './TransitRoutingResultComponent';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import {
-    RouteCalculatorResult,
-    UnimodalRouteCalculationResult
-} from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
+import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
@@ -23,13 +20,13 @@ import { TransitRoutingAttributes } from 'transition-common/lib/services/transit
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 export interface RoutingResultStatus {
-    routingResult: UnimodalRouteCalculationResult | TransitRoutingResult;
+    routingResult: UnimodalRoutingResult | TransitRoutingResult;
     alternativeIndex: number;
     activeStepIndex: number | null;
 }
 
 export interface TransitRoutingResultsProps extends WithTranslation {
-    result: UnimodalRouteCalculationResult | TransitRoutingResult;
+    result: UnimodalRoutingResult | TransitRoutingResult;
     request: TransitRoutingAttributes;
 }
 
@@ -46,7 +43,7 @@ const showCurrentAlternative = async (result, alternativeIndex) => {
 };
 
 const resultIsTransitRoutingResult = (
-    result: UnimodalRouteCalculationResult | TransitRoutingResult
+    result: UnimodalRoutingResult | TransitRoutingResult
 ): result is TransitRoutingResult => {
     return typeof (result as any).getWalkOnlyRoute === 'function';
 };

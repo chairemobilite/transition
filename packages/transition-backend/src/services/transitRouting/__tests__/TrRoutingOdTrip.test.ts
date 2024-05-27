@@ -11,7 +11,7 @@ import { simplePathResult,  alternativesResult, walkingRouteResult, cyclingRoute
 import { TransitRouting, TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
-import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
+import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ErrorCodes } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { routeToUserObject } from 'chaire-lib-common/src/services/trRouting/TrRoutingResultConversion';
@@ -101,13 +101,13 @@ describe('Various scenario of trip calculation', () => {
                 paths: simplePathResult.routes,
                 maxWalkingTime: 300
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -145,13 +145,13 @@ describe('Various scenario of trip calculation', () => {
                 paths: alternativesResult.routes,
                 maxWalkingTime: 300
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -193,13 +193,13 @@ describe('Various scenario of trip calculation', () => {
                     'transit:transitRouting:errors:NoResultFound'
                 ).export()
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
