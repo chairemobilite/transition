@@ -17,6 +17,7 @@ import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes'
 import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { TrRoutingV2 } from 'chaire-lib-common/src/api/TrRouting';
+import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 
 let attributes: TransitRoutingAttributes;
 let transitRouting: TransitRouting;
@@ -63,7 +64,7 @@ describe('TransitRoutingCalculator', () => {
 		expect(transitResult.getPath(1)).toEqual(simplePathResult.routes[0]);
 		expect(transitResult.getPath(2)).toEqual(undefined);
 
-		const path1step = transitResult.getPath(1)?.steps as TrRoutingV2.TripStep[];
+		const path1step = (transitResult.getPath(1) as TrRoutingRoute).steps as TrRoutingV2.TripStep[];
 		expect(path1step).toEqual(simplePathResult.routes[0].steps);
 		expect(path1step.length).toEqual(simplePathResult.routes[0].steps.length);
 		expect(path1step[0].action).toEqual("walking");
@@ -91,7 +92,7 @@ describe('TransitRoutingCalculator', () => {
 		expect(transitResult.getPath(1)).toEqual(simplePathResult.routes[0]);
 		expect(transitResult.getPath(2)).toEqual(undefined);
 
-		const path1step = transitResult.getPath(1)?.steps as TrRoutingV2.TripStep[];
+		const path1step = (transitResult.getPath(1) as TrRoutingRoute).steps as TrRoutingV2.TripStep[];
 		expect(path1step).toEqual(simplePathResult.routes[0].steps);
 		expect(path1step.length).toEqual(simplePathResult.routes[0].steps.length);
 		expect(path1step[0].action).toEqual("walking");
@@ -117,11 +118,11 @@ describe('TransitRoutingCalculator', () => {
 		expect(transitResult.hasAlternatives()).toEqual(true);
 		expect(transitResult.getAlternativesCount()).toEqual(2);
 
-        expect(transitResult.getPath(0)).toEqual(undefined);
+        expect(transitResult.getPath(0)).toEqual(walkingRouteNoWaypointTest.routes[0]);
 		expect(transitResult.getPath(1)).toEqual(transferPathResult.routes[0]);
 		expect(transitResult.getPath(2)).toEqual(undefined);
 
-		const path1step = transitResult.getPath(1)?.steps as TrRoutingV2.TripStep[];
+		const path1step = (transitResult.getPath(1) as TrRoutingRoute).steps as TrRoutingV2.TripStep[];
 		expect(path1step.length).toEqual(transferPathResult.routes[0].steps.length);
 		expect(path1step[0].action).toEqual("walking");
 		expect(path1step[1].action).toEqual("boarding");
@@ -151,7 +152,7 @@ describe('TransitRoutingCalculator', () => {
 		const simplePathResultPath = alternativesResult.routes[0];
 		const transferPathResultPath = alternativesResult.routes[1];
 
-		expect(transitResult.getPath(0)).toEqual(undefined);
+		expect(transitResult.getPath(0)).toEqual(walkingRouteNoWaypointTest.routes[0]);
 		expect(transitResult.getPath(1)).toEqual(simplePathResultPath);
 		expect(transitResult.getPath(2)).toEqual(transferPathResultPath);
 	});

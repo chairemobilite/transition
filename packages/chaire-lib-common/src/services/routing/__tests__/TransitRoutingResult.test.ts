@@ -67,10 +67,6 @@ describe('TransitRoutingResult, with valid single route, no walk only route', ()
         });
     });
 
-    test('Should return the right walk only route', () => {
-        expect(routingResult.getWalkOnlyRoute()).toBeUndefined();
-    });
-
     test('Should return the right path geojson', async () => {
         // Just mock a simple boarding to unboarding location feature
         const segmentToGeojson: SegmentToGeoJSON = jest.fn().mockImplementation(async (boardingStep, unboardingStep, completeData, index) => ({
@@ -189,7 +185,7 @@ describe('TransitRoutingResult, with valid single route, with walk only route', 
 
     test('Should return the right path', () => {
         // FIXME The walk only path should be returned as the first path
-        expect(routingResult.getPath(0)).toBeUndefined();
+        expect(routingResult.getPath(0)).toEqual(walkOnlyRoute);
         expect(routingResult.getPath(1)).toEqual(pathNoTransferRouteResult);
         expect(routingResult.getPath(2)).toBeUndefined();
     });
@@ -199,10 +195,6 @@ describe('TransitRoutingResult, with valid single route, with walk only route', 
             type: 'FeatureCollection',
             features: [...pathNoTransferRouteResult.originDestination]
         });
-    });
-
-    test('Should return the right walk only route', () => {
-        expect(routingResult.getWalkOnlyRoute()).toEqual(walkOnlyRoute);
     });
 
     test('Should return the right path geojson for the transit path', async () => {
@@ -344,10 +336,6 @@ describe('TransitRoutingResult, with error parameters', () => {
             type: 'FeatureCollection',
             features: [...pathNoTransferRouteResult.originDestination]
         });
-    });
-
-    test('Should return the right walk only route', () => {
-        expect(routingResult.getWalkOnlyRoute()).toBeUndefined();
     });
 
     test('Should return the right path geojson', async () => {

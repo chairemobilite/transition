@@ -19,14 +19,10 @@ import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { pathIsRoute } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 
-// TODO: extract these typeguards elsewhere:
-const pathIsRoute = (path: Route | TrRoutingRoute | undefined): path is Route => {
-    return typeof (path as any).distance === 'number';
-};
 export interface TransitRoutingResultsProps extends WithTranslation {
-    path?: TrRoutingRoute | Route;
-    walkOnly?: Route;
+    path: TrRoutingRoute | Route;
     routingMode: RoutingOrTransitMode;
     request: TransitRoutingAttributes;
 }
@@ -38,24 +34,15 @@ const TransitRoutingResults: React.FunctionComponent<TransitRoutingResultsProps>
 
     const stepsButtons: JSX.Element[] = [];
     const path = props.path;
-    const walkOnly = props.walkOnly;
 
-    if ((!path && walkOnly) || pathIsRoute(path)) {
-        const pathToDisplay = walkOnly || path;
+    if (pathIsRoute(path)) {
+        const pathToDisplay = path;
         return (
             <React.Fragment>
                 {pathToDisplay && (
                     <div className="tr__form-section">
                         <table className="_statistics">
                             <tbody>
-                                {walkOnly && (
-                                    <tr>
-                                        <th className="_header">
-                                            {props.t('transit:transitPath:routingModes:walking')}
-                                        </th>
-                                        <td></td>
-                                    </tr>
-                                )}
                                 <tr>
                                     <th>{props.t('transit:transitRouting:results:TravelTime')}</th>
                                     <td title={`${pathToDisplay.duration} ${props.t('main:secondAbbr')}.`}>
@@ -75,8 +62,10 @@ const TransitRoutingResults: React.FunctionComponent<TransitRoutingResultsProps>
                                 <RouteButton
                                     travelTimeSeconds={pathToDisplay.duration}
                                     distanceMeters={pathToDisplay.distance}
-                                    key={'walkOnlyButton'}
-                                    routingMode={walkOnly ? 'walking' : props.routingMode}
+                                    key={'singleModeButton'}
+                                    // Single mode if main mode is transit means walking
+                                    // FIXME This is a hack, we should have a proper way to know if the path mode is walking
+                                    routingMode={props.routingMode === 'transit' ? 'walking' : props.routingMode}
                                 />
                             </ul>
                         </div>
@@ -85,6 +74,7 @@ const TransitRoutingResults: React.FunctionComponent<TransitRoutingResultsProps>
             </React.Fragment>
         );
     } else if (path) {
+        // Display a TrRoutingRoute
         path.steps.forEach((step, stepIndex) => {
             if (step.action === 'walking') {
                 const boardingStep = path.steps[stepIndex + 1] as TrRoutingV2.TripStepBoarding;

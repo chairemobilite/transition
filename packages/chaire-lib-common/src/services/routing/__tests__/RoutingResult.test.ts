@@ -75,10 +75,6 @@ describe('UnimodalRoutingResult, with valid parameters', () => {
         });
     });
 
-    test('Should return the right walk only route', () => {
-        expect(routingResult.getWalkOnlyRoute()).toBeUndefined();
-    });
-
     test('Should return the right path geojson', async () => {
         const geojson = await routingResult.getPathGeojson(0);
         expect(geojson).toEqual({
@@ -148,10 +144,6 @@ describe('UnimodalRoutingResult, with error parameters', () => {
             type: 'FeatureCollection',
             features: [origin, destination]
         });
-    });
-
-    test('Should return the right walk only route', () => {
-        expect(routingResult.getWalkOnlyRoute()).toBeUndefined();
     });
 
     test('Should throw error if request and undefined path geojson', async () => {

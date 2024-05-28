@@ -80,17 +80,12 @@ export class TransitRoutingResult implements RoutingResult<TransitRoutingResultD
         return 'transit';
     }
 
-    // TODO Why do we return undefined for the walk only path? It should be a path. Refactor when the routing calculations are generalized
-    getPath(index: number): TrRoutingRoute | undefined {
+    getPath(index: number): Route | TrRoutingRoute | undefined {
         return index === this._walkOnlyPathIndex
-            ? undefined
+            ? this._params.walkOnlyPath
             : this._walkOnlyPathIndex !== -1 && index >= this._walkOnlyPathIndex
                 ? this._params.paths[index - 1]
                 : this._params.paths[index];
-    }
-
-    getWalkOnlyRoute(): Route | undefined {
-        return this._params.walkOnlyPath;
     }
 
     originDestinationToGeojson(): GeoJSON.FeatureCollection<GeoJSON.Point> {
@@ -161,7 +156,7 @@ export class TransitRoutingResult implements RoutingResult<TransitRoutingResultD
         };
     }
 
-    getWalkPathGeojson(): GeoJSON.FeatureCollection {
+    private getWalkPathGeojson(): GeoJSON.FeatureCollection {
         // TODO tahini: A route to geojson should be somewhere else than here
         if (!this._params.walkOnlyPath) {
             throw 'Walk only path not available!';

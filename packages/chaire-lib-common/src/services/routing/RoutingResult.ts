@@ -12,6 +12,10 @@ import { RoutingOrTransitMode, RoutingMode } from '../../config/routingModes';
 import TrError, { ErrorMessage } from '../../utils/TrError';
 import { TrRoutingRoute } from '../trRouting/TrRoutingService';
 
+export const pathIsRoute = (path: Route | TrRoutingRoute | undefined): path is Route => {
+    return typeof (path as any).distance === 'number';
+};
+
 // TODO Add a common type to getPath(index)
 // TODO Have a common type for all results, not requiring the TResultData generic type
 /**
@@ -82,10 +86,6 @@ export class UnimodalRoutingResult implements RoutingResult<UnimodalRoutingResul
             type: 'FeatureCollection',
             features: [this._params.origin, this._params.destination]
         };
-    }
-
-    getWalkOnlyRoute(): Route | undefined {
-        return undefined;
     }
 
     async getPathGeojson(index: number, _options: { [key: string]: any } = {}): Promise<GeoJSON.FeatureCollection> {

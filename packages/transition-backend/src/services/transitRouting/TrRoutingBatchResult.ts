@@ -23,6 +23,7 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import { pathIsRoute } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 
 const CSV_FILE_NAME = 'batchRoutingResults.csv';
 const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';
@@ -263,7 +264,7 @@ const generateCsvWithTransit = (
     let alternativeSequence = 0;
     for (let i = 0, countI = transitResult.getAlternativesCount(); i < countI; i++) {
         const alternative = transitResult.getPath(i);
-        if (alternative === undefined) {
+        if (pathIsRoute(alternative) || alternative === undefined) {
             // This is the walk only path
             continue;
         }
