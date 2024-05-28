@@ -47,12 +47,6 @@ const showCurrentAlternative = async (result, alternativeIndex) => {
     });
 };
 
-const resultIsTransitRoutingResult = (
-    result: UnimodalRoutingResult | TransitRoutingResult
-): result is TransitRoutingResult => {
-    return typeof (result as any).getWalkOnlyRoute === 'function';
-};
-
 const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (props: TransitRoutingResultsProps) => {
     const [alternativeIndex, setAlternativeIndex] = useState(0);
 
@@ -65,8 +59,6 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
 
     const alternativesCount = result.getAlternativesCount();
     const path = result.getPath(alternativeIndex);
-    // TODO There should be no need of a separate walkOnlyRoute once all results share a same interface
-    const walkOnlyRoute = resultIsTransitRoutingResult(result) ? result.getWalkOnlyRoute() : undefined;
 
     // TODO This may be racy (it already was) if the user switches alternative rapidly. Make it cancellable.
     showCurrentAlternative(result, alternativeIndex);
@@ -117,13 +109,8 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
                     )}
                 </div>
             </div>
-            {(path || walkOnlyRoute) && (
-                <TransitRoutingResults
-                    path={path}
-                    walkOnly={walkOnlyRoute}
-                    request={props.request}
-                    routingMode={result.getRoutingMode()}
-                />
+            {path && (
+                <TransitRoutingResults path={path} request={props.request} routingMode={result.getRoutingMode()} />
             )}
         </React.Fragment>
     );
