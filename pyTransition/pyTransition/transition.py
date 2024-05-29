@@ -135,6 +135,22 @@ class Transition:
         response.raise_for_status()
         return response.text
 
+    def is_token_valid(self):
+        """Check if we can connect to the server with the currently stored access information.
+
+        Returns:
+            boolean: Can we access the server with the current token
+
+        """
+        try:
+            # Currently use the simplest call which is get_routing_modes
+            # Could be changed to something simpler is we add one
+            self.get_routing_modes()
+        except:
+            # Return false if we got an exception why doing the query
+            return False
+        return True
+
     def get_paths(self):
         """Gets all paths currently loaded in the Transition application
 

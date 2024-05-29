@@ -124,6 +124,27 @@ class TestTransition(unittest.TestCase):
             )
             self.assertTrue(m.called_once)
 
+    def test_is_token_valid_true(self):
+         with requests_mock.Mocker() as m:
+            m.get(f"{self.test_url}/api/v1/routing-modes", text='["mode1","mode2"]', status_code=200)
+            valid = self.test_transition_instance.is_token_valid()
+            self.assertTrue(m.called_once)
+            self.assertTrue(valid)
+
+    def test_is_token_valid_false(self):
+         with requests_mock.Mocker() as m:
+            m.get(f"{self.test_url}/api/v1/routing-modes", text='', status_code=400)
+            valid = self.test_transition_instance.is_token_valid()
+            self.assertTrue(m.called_once)
+            self.assertFalse(valid)
+
+    def test_is_token_valid_no_connection(self):
+         with requests_mock.Mocker() as m:
+            m.get(f"{self.test_url}/api/v1/routing-modes", exc=requests.exceptions.ConnectTimeout)
+            valid = self.test_transition_instance.is_token_valid()
+            self.assertTrue(m.called_once)
+            self.assertFalse(valid)
+
     def test_get_paths(self):
         with requests_mock.Mocker() as m:
             m.get(f"{self.test_url}/api/v1/paths", json={"key": "value"}, status_code=200)
