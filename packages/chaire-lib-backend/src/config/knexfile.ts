@@ -14,20 +14,23 @@ if (
 )
     throw 'database is not set';
 
+const dbName = process.env[`PG_DATABASE_${process.env.NODE_ENV.toUpperCase()}`];
+const dbSchema = process.env.PG_DATABASE_SCHEMA || config.projectShortname || 'public';
+console.log('Using database: ', dbName, '; schema: ', dbSchema);
+
 export const onUpdateTrigger = function (table: string) {
     return `
   CREATE TRIGGER ${table}_updated_at
   BEFORE UPDATE ON ${table}
   FOR EACH ROW
-  EXECUTE PROCEDURE ${process.env.PG_DATABASE_SCHEMA || config.projectShortname}.on_update_timestamp();
+  EXECUTE PROCEDURE ${dbSchema}.on_update_timestamp();
 `;
 };
 
 export default {
     client: 'pg',
-    connection:
-        process.env['PG_CONNECTION_STRING_PREFIX'] + process.env[`PG_DATABASE_${process.env.NODE_ENV.toUpperCase()}`],
-    searchPath: [process.env.PG_DATABASE_SCHEMA || config.projectShortname || 'public', 'public'],
+    connection: process.env['PG_CONNECTION_STRING_PREFIX'] + dbName,
+    searchPath: [dbSchema, 'public'],
     migrations: {
         directory: __dirname + '/../models/db/migrations',
         tableName: 'knex_migrations_lib',
