@@ -32,9 +32,10 @@ class RoutingServiceManagerImpl implements RoutingServiceManager {
         };
     }
 
-    public getRoutingServiceForEngine = (engine: string): RoutingService => {
-        const service = this._routingServices[engine];
-        return service ? service : this._defaultService;
+    public getRoutingServiceForEngine = (engine: string | string[]): RoutingService => {
+        const engineArray = Array.isArray(engine) ? engine : [engine];
+        const availableEngine = engineArray.find((engine) => engine in this._routingServices);
+        return availableEngine ? this._routingServices[availableEngine] : this._defaultService;
     };
 }
 
