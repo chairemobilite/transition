@@ -5,7 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import { RoutingOrTransitMode } from '../../config/routingModes';
+import { RoutingOrTransitMode, RoutingMode } from '../../config/routingModes';
+import { TransitRoutingResultData } from './TransitRoutingResult';
+import { UnimodalRoutingResultData } from './RoutingResult';
 
 // This file contains the types for routing functions, used by both frontend and backend
 
@@ -63,4 +65,14 @@ export type TripRoutingQueryAttributes = TransitRoutingQueryAttributes & {
     originGeojson: GeoJSON.Feature<GeoJSON.Point>;
     destinationGeojson: GeoJSON.Feature<GeoJSON.Point>;
     waypoints?: GeoJSON.Feature<GeoJSON.Point>[];
+};
+
+/**
+ * Routing result type, where the key is the routing mode and value the actual
+ * result.
+ */
+export type RoutingResultsByMode = {
+    [key in RoutingMode]?: UnimodalRoutingResultData;
+} & {
+    transit?: TransitRoutingResultData;
 };
