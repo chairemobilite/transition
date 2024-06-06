@@ -14,10 +14,8 @@ import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWit
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _toInteger, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import {
-    TransitRoutingQueryAttributes,
-    validateTrQueryAttributes
-} from '../transitRouting/TransitRoutingQueryAttributes';
+import { validateTrQueryAttributes } from '../transitRouting/TransitRoutingQueryAttributes';
+import { TransitQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
 export interface AccessibilityMapCalculationAttributes extends GenericAttributes {
     departureTimeSecondsSinceMidnight?: number;
@@ -31,7 +29,7 @@ export interface AccessibilityMapCalculationAttributes extends GenericAttributes
     placeName?: string;
 }
 
-export type AccessibilityMapAttributes = AccessibilityMapCalculationAttributes & TransitRoutingQueryAttributes;
+export type AccessibilityMapAttributes = AccessibilityMapCalculationAttributes & TransitQueryAttributes;
 
 class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapAttributes> {
     constructor(attributes: Partial<AccessibilityMapAttributes>, isNew = false) {

@@ -14,7 +14,7 @@ import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GenericAttributes, GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import { AlgorithmConfiguration } from './Simulation';
 import { SimulationParameters } from './SimulationParameters';
-import { TransitRoutingBaseAttributes } from '../transitRouting/TransitRoutingQueryAttributes';
+import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
 export type SimulationRuntimeOptions = {
     numberOfThreads: number;

@@ -10,7 +10,7 @@ import { point as turfPoint } from '@turf/turf';
 
 import { SimulationAlgorithmDescriptor } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
 import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
-import { TransitRoutingBaseAttributes } from 'transition-common/lib/services/transitRouting/TransitRoutingQueryAttributes';
+import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
 import dataSourceDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import placesDbQueries from '../../../models/db/places.db.queries';

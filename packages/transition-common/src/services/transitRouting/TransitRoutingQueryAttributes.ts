@@ -6,37 +6,17 @@
  */
 import { minutesToSeconds } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-
-/**
- * Attributes to parameterize a transit routing calculation, that can be used in
- * many contexts of transit routing, not necessarily a calculation.
- */
-export interface TransitRoutingBaseAttributes {
-    minWaitingTimeSeconds?: number;
-    maxTransferTravelTimeSeconds?: number;
-    maxAccessEgressTravelTimeSeconds?: number;
-    maxWalkingOnlyTravelTimeSeconds?: number;
-    maxFirstWaitingTimeSeconds?: number;
-    maxTotalTravelTimeSeconds?: number;
-    walkingSpeedMps?: number;
-    walkingSpeedFactor?: number;
-}
-
-/**
- * Attributes to parameterize a transit routing calculation, that are not
- * specific to a trip, but specific to a calculation query
- */
-export interface TransitRoutingQueryAttributes extends TransitRoutingBaseAttributes {
-    scenarioId?: string;
-    withAlternatives?: boolean;
-}
+import {
+    TransitRoutingBaseAttributes,
+    TransitRoutingQueryAttributes
+} from 'chaire-lib-common/lib/services/routing/types';
 
 const MAX_MAX_ACCESS_EGRESS = minutesToSeconds(40) as number;
 const MAX_MAX_TRANSFER_TIME = minutesToSeconds(20) as number;
 const MIN_MIN_WAITING_TIME = minutesToSeconds(1) as number;
 
 export const validateTrBaseAttributes = (
-    attributes: TransitRoutingBaseAttributes
+    attributes: Partial<TransitRoutingBaseAttributes>
 ): { valid: boolean; errors: string[] } => {
     let valid = true;
     const errors: string[] = [];
@@ -72,7 +52,7 @@ export const validateTrBaseAttributes = (
 };
 
 export const validateTrQueryAttributes = (
-    attributes: TransitRoutingQueryAttributes
+    attributes: Partial<TransitRoutingQueryAttributes>
 ): { valid: boolean; errors: string[] } => {
     const baseResult = validateTrBaseAttributes(attributes);
     let valid = baseResult.valid;

@@ -10,7 +10,7 @@ import _toString from 'lodash/toString';
 
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
-import { TransitRoutingBaseAttributes } from 'transition-common/lib/services/transitRouting/TransitRoutingQueryAttributes';
+import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import { secondsToMinutes, minutesToSeconds } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 
 export interface TransitRoutingBaseComponentProps extends WithTranslation {

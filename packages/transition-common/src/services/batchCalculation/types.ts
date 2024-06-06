@@ -1,10 +1,12 @@
-import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+/*
+ * Copyright 2022, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
-import {
-    TransitRoutingQueryAttributes,
-    validateTrQueryAttributes
-} from '../transitRouting/TransitRoutingQueryAttributes';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { validateTrQueryAttributes } from '../transitRouting/TransitRoutingQueryAttributes';
+import { TransitRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
 export const isBatchParametersValid = (parameters: BatchCalculationParameters) => {
     let parametersValid = true;
@@ -36,7 +38,6 @@ export const isBatchParametersValid = (parameters: BatchCalculationParameters) =
 };
 
 export type BatchCalculationParameters = {
-    routingModes: RoutingOrTransitMode[];
     withGeometries: boolean;
     detailed: boolean;
     // TODO Remove these from this object once trRouting is parallel
