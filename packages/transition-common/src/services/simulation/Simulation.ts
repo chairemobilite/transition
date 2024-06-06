@@ -15,10 +15,8 @@ import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import {
-    TransitRoutingBaseAttributes,
-    validateTrBaseAttributes
-} from '../transitRouting/TransitRoutingQueryAttributes';
+import { validateTrBaseAttributes } from '../transitRouting/TransitRoutingQueryAttributes';
+import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import { SimulationParameters, validateSimulationParameters } from './SimulationParameters';
 import { SimulationAlgorithmDescriptor } from './SimulationAlgorithm';
 

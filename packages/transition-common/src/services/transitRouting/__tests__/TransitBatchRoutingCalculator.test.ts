@@ -51,6 +51,8 @@ describe('Test Calculate', () => {
         scenarioId: 'scenarioId',
         detailed:false,
         withGeometries: false,
+        engines: [],
+        withAlternatives: false,
         // TODO Remove these from this object once trRouting is parallel
         cpuCount: 1,
         maxCpuCount: 2,

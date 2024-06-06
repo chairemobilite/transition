@@ -6,7 +6,7 @@
  */
 import { SimulationAlgorithmDescriptor } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
 import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
-import { TransitRoutingBaseAttributes } from 'transition-common/lib/services/transitRouting/TransitRoutingQueryAttributes';
+import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
 export interface SimulationMethod {
     simulate: (

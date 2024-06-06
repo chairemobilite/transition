@@ -8,7 +8,7 @@ import { BatchCalculationParameters, isBatchParametersValid } from '../types';
 
 describe('Test isBatchParametersValid', () => {
     test('Test valid, without transit', () => {
-        const parameters = { routingModes: ['walking' as const], withGeometries: true, detailed: true };
+        const parameters = { routingModes: ['walking' as const], withGeometries: true, detailed: true, withAlternatives: false, engines: [] };
         expect(isBatchParametersValid(parameters)).toEqual({ valid: true, errors: []});
     });
 
@@ -17,7 +17,8 @@ describe('Test isBatchParametersValid', () => {
             routingModes: ['walking' as const, 'transit' as const],
             scenarioId: 'arbitrary',
             withGeometries: true,
-            detailed: true
+            detailed: true,
+            withAlternatives: false
         };
         expect(isBatchParametersValid(parameters)).toEqual({ valid: true, errors: []});
     });
@@ -42,13 +43,13 @@ describe('Test isBatchParametersValid', () => {
     });
 
     test('Test invalid, missing routing modes', () => {
-        const parameters = { routingModes: [], withGeometries: true, detailed: true};
+        const parameters = { routingModes: [], withGeometries: true, detailed: true, withAlternatives: false };
         expect(isBatchParametersValid(parameters)).toEqual({ valid: false, errors: ['transit:transitRouting:errors:RoutingModesIsEmpty']});
     });
 
     test('Test invalid, with transit missing scenario id', () => {
         const parameters: BatchCalculationParameters = { 
-            routingModes: ['walking' as const, 'transit' as const], withGeometries: true, detailed: true
+            routingModes: ['walking' as const, 'transit' as const], withGeometries: true, detailed: true, withAlternatives: false
         };
         expect(isBatchParametersValid(parameters)).toEqual({ valid: false, errors: ['transit:transitRouting:errors:ScenarioIsMissing']});
     });
@@ -58,7 +59,8 @@ describe('Test isBatchParametersValid', () => {
             routingModes: ['walking' as const, 'transit' as const],
             scenarioId: 'arbitrary',
             withGeometries: true,
-            detailed: true
+            detailed: true,
+            withAlternatives: false
         };
         
         // all cpu count has not been set, they should remain unset

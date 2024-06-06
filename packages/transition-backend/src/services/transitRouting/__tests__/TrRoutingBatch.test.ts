@@ -149,6 +149,7 @@ const defaultParameters = {
 const defaultBatchParameters = {
     routingModes: ['walking' as const ],
     withGeometries: false,
+    withAlternatives: false,
     detailed: false,
     cpuCount: 2
 }

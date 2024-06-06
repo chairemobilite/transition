@@ -13,8 +13,8 @@ import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWit
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
-import { TransitRoutingQueryAttributes, validateTrQueryAttributes } from './TransitRoutingQueryAttributes';
+import { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import { validateTrQueryAttributes } from './TransitRoutingQueryAttributes';
 
 export interface TransitRoutingQuery {
     routingName?: string;
@@ -25,13 +25,10 @@ export interface TransitRoutingQuery {
 }
 
 interface TransitRoutingSingleCalcAttributes extends GenericAttributes {
-    routingName?: string;
-    routingModes?: RoutingOrTransitMode[]; // default to transit only
+    // FIXME Refactor to use timeSecondsSinceMidnight and timeType instead
     departureTimeSecondsSinceMidnight?: number;
     arrivalTimeSecondsSinceMidnight?: number;
     odTripUuid?: string;
-    originGeojson?: GeoJSON.Feature<GeoJSON.Point>;
-    destinationGeojson?: GeoJSON.Feature<GeoJSON.Point>;
     // TODO Remove these attributes?
     pathGeojson?: GeoJSON.FeatureCollection;
     // TODO Remove these attributes?
@@ -45,7 +42,7 @@ interface TransitRoutingSingleCalcAttributes extends GenericAttributes {
     routingPort?: number; // TODO deprecate this or allow different port for each routing mode
 }
 
-export type TransitRoutingAttributes = TransitRoutingSingleCalcAttributes & TransitRoutingQueryAttributes;
+export type TransitRoutingAttributes = TransitRoutingSingleCalcAttributes & Partial<TripRoutingQueryAttributes>;
 
 const MAX_BATCH_ELEMENTS = 100;
 
