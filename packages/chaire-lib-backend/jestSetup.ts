@@ -5,3 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 jest.mock('./src/config/shared/db.config');
+import { enableAllMocks } from 'chaire-lib-common/lib/test';
+
+enableAllMocks();
