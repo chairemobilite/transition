@@ -85,9 +85,25 @@ export class ParamsValidatorUtils {
         }
     }
 
+    static isInteger(attribute: string, value: unknown, displayName: string): Error[] {
+        if (value !== undefined && !Number.isInteger(value)) {
+            return [new Error(`${displayName} validateParams: ${attribute} should be an integer`)];
+        } else {
+            return [];
+        }
+    }
+
     static isPositiveNumber(attribute: string, value: unknown, displayName: string): Error[] {
         if ((value !== undefined && typeof value !== 'number') || Number(value) < 0) {
             return [new Error(`${displayName} validateParams: ${attribute} should be a positive number`)];
+        } else {
+            return [];
+        }
+    }
+
+    static isNumber(attribute: string, value: unknown, displayName: string): Error[] {
+        if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value))) {
+            return [new Error(`${displayName} validateParams: ${attribute} should be a number`)];
         } else {
             return [];
         }
