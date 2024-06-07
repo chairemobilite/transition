@@ -385,6 +385,20 @@ const getScatterLayer = (
     if (lineWidthScale !== undefined) {
         layerProperties.lineWidthScale = lineWidthScale;
     }
+    const minRadiusPixels =
+        config.minRadiusPixels === undefined ? undefined : layerNumberGetter(config.minRadiusPixels, 1);
+    if (minRadiusPixels !== undefined) {
+        layerProperties.radiusMinPixels = minRadiusPixels;
+        // Keep the contour width at 1/3 of the circle radius if the radius is a number
+        layerProperties.lineWidthMinPixels = typeof minRadiusPixels === 'number' ? minRadiusPixels / 3 : undefined;
+    }
+    const maxRadiusPixels =
+        config.maxRadiusPixels === undefined ? undefined : layerNumberGetter(config.maxRadiusPixels, 1);
+    if (maxRadiusPixels !== undefined) {
+        layerProperties.radiusMaxPixels = maxRadiusPixels;
+        // Keep the contour width at 1/3 of the circle radius if the radius is a number
+        layerProperties.lineWidthMaxPixels = typeof maxRadiusPixels === 'number' ? maxRadiusPixels / 3 : undefined;
+    }
     const pickable =
         config.pickable === undefined
             ? true
