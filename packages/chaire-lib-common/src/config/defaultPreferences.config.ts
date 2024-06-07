@@ -21,6 +21,7 @@ export interface PreferencesModel {
     infoPanelPosition: string;
     dateTimeFormat: string;
     mapStyleURL: string;
+    mapTileLayerOpacity: number;
     sections: {
         [key: string]: {
             [key: string]: SectionDescription;
@@ -39,6 +40,7 @@ const defaultPreferences: PreferencesModel = {
     infoPanelPosition: 'right',
     dateTimeFormat: 'YYYY-MM-DD HH:mm',
     mapStyleURL: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    mapTileLayerOpacity: 0.3,
     sections: {
         transition: {
             agencies: {

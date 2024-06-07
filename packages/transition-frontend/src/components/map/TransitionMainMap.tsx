@@ -78,6 +78,34 @@ interface MainMapState {
     isDragging: boolean;
 }
 
+const getTileLayer = () => {
+    const opacity = Math.max(0, Math.min(Preferences.get('mapTileLayerOpacity'), 1));
+    return process.env.CUSTOM_RASTER_TILES_XYZ_URL && opacity > 0
+        ? new TileLayer({
+            data: process.env.CUSTOM_RASTER_TILES_XYZ_URL,
+            minZoom: process.env.CUSTOM_RASTER_TILES_MIN_ZOOM
+                ? parseFloat(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM)
+                : 0,
+            maxZoom: process.env.CUSTOM_RASTER_TILES_MAX_ZOOM
+                ? parseFloat(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM)
+                : 22,
+            opacity,
+            tileSize: 256,
+            renderSubLayers: (props) => {
+                const {
+                    bbox: { west, south, east, north }
+                } = props.tile;
+
+                return new BitmapLayer(props, {
+                    data: null,
+                    image: props.data,
+                    bounds: [west, south, east, north]
+                });
+            }
+        })
+        : undefined;
+};
+
 /**
  * TODO: For now, hard code the map for Transition here. But it should be in
  * chaire-lib and offer the possibility to pass the application modules when the
@@ -113,31 +141,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         super(props);
 
         // TODO: This should not be here
-        let xyzTileLayer = undefined;
-        if (process.env.CUSTOM_RASTER_TILES_XYZ_URL) {
-            xyzTileLayer = new TileLayer({
-                data: process.env.CUSTOM_RASTER_TILES_XYZ_URL,
-                minZoom: process.env.CUSTOM_RASTER_TILES_MIN_ZOOM
-                    ? parseFloat(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM)
-                    : 0,
-                maxZoom: process.env.CUSTOM_RASTER_TILES_MAX_ZOOM
-                    ? parseFloat(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM)
-                    : 22,
-                opacity: 0.5,
-                tileSize: 256,
-                renderSubLayers: (props) => {
-                    const {
-                        bbox: { west, south, east, north }
-                    } = props.tile;
-
-                    return new BitmapLayer(props, {
-                        data: null,
-                        image: props.data,
-                        bounds: [west, south, east, north]
-                    });
-                }
-            });
-        }
+        const xyzTileLayer = getTileLayer();
 
         this.state = {
             viewState: {
@@ -246,7 +250,12 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     };
 
     onPreferencesChange = (updates: any) => {
-        this.setState({ mapStyleURL: Preferences.get('mapStyleURL') });
+        if (Object.keys(updates).some((key) => ['mapStyleURL', 'mapTileLayerOpacity'].includes(key))) {
+            this.setState({
+                mapStyleURL: Preferences.get('mapStyleURL'),
+                xyzTileLayer: getTileLayer()
+            });
+        }
     };
 
     componentWillUnmount = () => {

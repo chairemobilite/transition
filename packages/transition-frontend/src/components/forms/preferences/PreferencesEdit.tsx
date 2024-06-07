@@ -23,6 +23,7 @@ import PreferencesSectionTransitScenarios from './sections/PreferencesSectionTra
 import PreferencesSectionFeatures from './sections/PreferencesSectionFeatures';
 import PreferencesSectionRouting from './sections/PreferencesSectionRouting';
 import PreferencesSectionAccessMap from './sections/PreferencesSectionAccessibility';
+import PreferencesSectionMap from './sections/PreferencesSectionMap';
 
 type PreferencesPanelProps = WithTranslation;
 
@@ -98,6 +99,13 @@ class PreferencesPanel extends SaveableObjectForm<PreferencesClass, PreferencesP
                     />
                 </div>
                 <PreferencesSectionGeneral
+                    preferences={this.state.object}
+                    onValueChange={this.onValueChange}
+                    resetChangesCount={this.resetChangesCount}
+                    resetPrefToDefault={this.resetPrefToDefault}
+                />
+
+                <PreferencesSectionMap
                     preferences={this.state.object}
                     onValueChange={this.onValueChange}
                     resetChangesCount={this.resetChangesCount}
