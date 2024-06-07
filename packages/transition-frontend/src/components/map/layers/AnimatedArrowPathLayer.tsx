@@ -82,7 +82,8 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
     }
 
     draw(opts) {
-        opts.uniforms.arrowPathTimeStep = this.props.disableAnimation === true ? 0 : (performance.now() % 100000) / 100000; // resets every 100 seconds
+        opts.uniforms.arrowPathTimeStep =
+            this.props.disableAnimation === true ? 0 : (performance.now() % 100000) / 100000; // resets every 100 seconds
         opts.uniforms.speedDivider = this.props.speedDivider;
         super.draw(opts);
     }

@@ -158,9 +158,7 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
                         isChecked={props.preferences.get('map.enableMapAnimations')}
                         defaultChecked={true}
                         label={props.t('main:Yes')}
-                        onValueChange={(e) =>
-                            props.onValueChange('map.enableMapAnimations', { value: e.target.value })
-                        }
+                        onValueChange={(e) => props.onValueChange('map.enableMapAnimations', { value: e.target.value })}
                     />
                     <PreferencesResetToDefaultButton
                         resetPrefToDefault={props.resetPrefToDefault}
