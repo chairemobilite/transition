@@ -11,7 +11,6 @@ import { EventEmitter } from 'events';
 
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import routeOdTrip from './TrRoutingOdTrip';
-import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
@@ -39,7 +38,7 @@ const CHECKPOINT_INTERVAL = 250;
  * Do batch calculation on a csv file input
  *
  * @param demandParameters The parameters for the batch calculation task
- * @param transitRoutingAttributes The transit routing parameters, for
+ * @param batchRoutingQueryAttributes The transit routing parameters, for
  * individual calculation
  * @param options Options for this calculation: the absoluteBaseDirectory is the
  * directory where the source files are and where the output files should be
@@ -52,7 +51,7 @@ const CHECKPOINT_INTERVAL = 250;
  */
 export const batchRoute = async (
     demandParameters: TransitBatchRoutingDemandAttributes,
-    transitRoutingAttributes: BatchCalculationParameters,
+    batchRoutingQueryAttributes: BatchCalculationParameters,
     options: {
         jobId: number;
         absoluteBaseDirectory: string;
@@ -66,7 +65,7 @@ export const batchRoute = async (
         files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
     }
 > => {
-    return new TrRoutingBatch(demandParameters.configuration, transitRoutingAttributes, options).run();
+    return new TrRoutingBatch(demandParameters.configuration, batchRoutingQueryAttributes, options).run();
 };
 
 class TrRoutingBatch {
@@ -76,7 +75,7 @@ class TrRoutingBatch {
 
     constructor(
         private demandParameters: TransitDemandFromCsvRoutingAttributes,
-        private transitRoutingAttributes: BatchCalculationParameters,
+        private batchRoutingQueryAttributes: BatchCalculationParameters,
         private options: {
             jobId: number;
             absoluteBaseDirectory: string;
@@ -125,12 +124,11 @@ class TrRoutingBatch {
             });
 
             // force add walking when selecting transit mode, so we can check if walking is better
-            const routingModes = this.transitRoutingAttributes.routingModes;
+            const routingModes = this.batchRoutingQueryAttributes.routingModes;
             if (routingModes.includes('transit') && !routingModes.includes('walking')) {
                 routingModes.push('walking');
             }
-            this.transitRoutingAttributes.routingModes = routingModes;
-            const routingObject = new TransitRouting(this.transitRoutingAttributes);
+            this.batchRoutingQueryAttributes.routingModes = routingModes;
 
             const promiseQueue = new pQueue({ concurrency: trRoutingInstancesCount });
 
@@ -164,7 +162,7 @@ class TrRoutingBatch {
                         promiseQueue.clear();
                     }
                     try {
-                        await this.odTripTask(odTripIndex, routingObject, {
+                        await this.odTripTask(odTripIndex, {
                             trRoutingPort,
                             logBefore: logOdTripBefore,
                             logAfter: logOdTripAfter
@@ -195,12 +193,12 @@ class TrRoutingBatch {
 
             // Generate the output files
             this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
-            const files = await this.generateResultFiles(routingObject);
+            const files = await this.generateResultFiles();
             this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 1.0 });
 
             const routingResult = {
                 calculationName: parameters.calculationName,
-                detailed: this.transitRoutingAttributes.detailed,
+                detailed: this.batchRoutingQueryAttributes.detailed,
                 completed: true,
                 errors: [],
                 warnings: this.errors,
@@ -246,20 +244,27 @@ class TrRoutingBatch {
         }
     };
 
-    private generateResultFiles = async (
-        routing: TransitRouting
-    ): Promise<{ input: string; csv?: string; detailedCsv?: string; geojson?: string }> => {
-        const { resultHandler, pathCollection } = await this.prepareResultData(routing);
+    private generateResultFiles = async (): Promise<{
+        input: string;
+        csv?: string;
+        detailedCsv?: string;
+        geojson?: string;
+    }> => {
+        const { resultHandler, pathCollection } = await this.prepareResultData();
         const resultStream = resultsDbQueries.streamResults(this.options.jobId);
         for await (const row of resultStream) {
             // TODO Try to pipe the result generator and processor directly into this database result stream, to avoid all the awaits
             const result = resultsDbQueries.resultParser(row);
-            const processedResults = await generateFileOutputResults(result.data, routing.attributes.routingModes, {
-                exportCsv: true,
-                exportDetailed: this.transitRoutingAttributes.detailed === true,
-                withGeometries: this.transitRoutingAttributes.withGeometries === true,
-                pathCollection
-            });
+            const processedResults = await generateFileOutputResults(
+                result.data,
+                this.batchRoutingQueryAttributes.routingModes,
+                {
+                    exportCsv: true,
+                    exportDetailed: this.batchRoutingQueryAttributes.detailed === true,
+                    withGeometries: this.batchRoutingQueryAttributes.withGeometries === true,
+                    pathCollection
+                }
+            );
             resultHandler.processResult(processedResults);
         }
 
@@ -267,22 +272,23 @@ class TrRoutingBatch {
         return resultHandler.getFiles();
     };
 
-    private prepareResultData = async (
-        routing: TransitRouting
-    ): Promise<{ resultHandler: BatchRoutingResultProcessor; pathCollection?: PathCollection }> => {
+    private prepareResultData = async (): Promise<{
+        resultHandler: BatchRoutingResultProcessor;
+        pathCollection?: PathCollection;
+    }> => {
         const resultHandler = createRoutingFileResultProcessor(
             this.options.absoluteBaseDirectory,
             this.demandParameters,
-            this.transitRoutingAttributes,
+            this.batchRoutingQueryAttributes,
             this.options.inputFileName
         );
 
         let pathCollection: PathCollection | undefined = undefined;
-        if (this.transitRoutingAttributes.withGeometries) {
+        if (this.batchRoutingQueryAttributes.withGeometries) {
             pathCollection = new PathCollection([], {});
-            if (routing.attributes.scenarioId) {
+            if (this.batchRoutingQueryAttributes.scenarioId) {
                 const pathGeojson = await pathDbQueries.geojsonCollection({
-                    scenarioId: routing.attributes.scenarioId
+                    scenarioId: this.batchRoutingQueryAttributes.scenarioId
                 });
                 pathCollection.loadFromCollection(pathGeojson.features);
             }
@@ -313,7 +319,7 @@ class TrRoutingBatch {
         // Divide odTripCount by 3 for the minimum number of calculation, to avoid creating too many processes if trip count is small
         const trRoutingInstancesCount = Math.max(
             1,
-            Math.min(Math.ceil(odTripsCount / 3), this.transitRoutingAttributes.cpuCount || 1)
+            Math.min(Math.ceil(odTripsCount / 3), this.batchRoutingQueryAttributes.cpuCount || 1)
         );
         try {
             this.options.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 0.0 });
@@ -332,7 +338,6 @@ class TrRoutingBatch {
 
     private odTripTask = async (
         odTripIndex: number,
-        routingObject: TransitRouting,
         options: {
             trRoutingPort?: number;
             logBefore: (index: number) => void;
@@ -350,7 +355,7 @@ class TrRoutingBatch {
                 trRoutingPort: options.trRoutingPort,
                 odTripIndex: odTripIndex,
                 odTripsCount: this.odTrips.length,
-                routing: routingObject,
+                routing: this.batchRoutingQueryAttributes,
                 reverseOD: false,
                 pathCollection: this.pathCollection
             });

@@ -42,10 +42,6 @@ describe('TransitRoutingResult, with valid single route, no walk only route', ()
 
     const routingResult = new TransitRoutingResult(validParams);
 
-    test('Should return right params', () => {
-        expect(routingResult.getParams()).toEqual(validParams);
-    });
-
     test('Should return the right routing mode', () => {
         expect(routingResult.getRoutingMode()).toEqual('transit');
     });
@@ -169,10 +165,6 @@ describe('TransitRoutingResult, with valid single route, with walk only route', 
     }
 
     const routingResult = new TransitRoutingResult(validParams);
-
-    test('Should return right params', () => {
-        expect(routingResult.getParams()).toEqual(validParams);
-    });
 
     test('Should return the right routing mode', () => {
         expect(routingResult.getRoutingMode()).toEqual('transit');
@@ -312,10 +304,6 @@ describe('TransitRoutingResult, with error parameters', () => {
     }
 
     const routingResult = new TransitRoutingResult(validParams);
-
-    test('Should return right params', () => {
-        expect(routingResult.getParams()).toEqual(validParams);
-    });
 
     test('Should return the right routing mode', () => {
         expect(routingResult.getRoutingMode()).toEqual('transit');

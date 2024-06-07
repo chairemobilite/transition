@@ -6,16 +6,11 @@
  */
 import _isEmpty from 'lodash/isEmpty';
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
-import { UnimodalRoutingResultData, UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
-import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
-import {
-    ResultsByMode,
-    TransitRoutingCalculator
-} from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
-import {
-    TransitRoutingResultData,
-    TransitRoutingResult
-} from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
+import { UnimodalRoutingResultData } from 'chaire-lib-common/lib/services/routing/RoutingResult';
+import { Routing } from 'chaire-lib-backend/lib/services/routing/Routing';
+import { RoutingResultsByMode, TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import { TransitRoutingResultData } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
+import { resultToObject } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
@@ -51,7 +46,7 @@ export type AccessibilityMapCalculationResult =
       };
 
 export async function calculateRoute(
-    routing: TransitRouting,
+    routingAttributes: TripRoutingQueryAttributes,
     withGeojson: boolean
 ): Promise<RouteCalculationResultParamsByMode> {
     // Start trRouting if it is not running
@@ -60,14 +55,15 @@ export async function calculateRoute(
         await trRoutingProcessManager.start({});
     }
 
-    const resultsByMode: ResultsByMode = await TransitRoutingCalculator.calculate(routing, false, {});
+    const resultsByMode: RoutingResultsByMode = await Routing.calculate(routingAttributes);
 
     const routingResult: RouteCalculationResultParamsByMode = {};
     for (const routingMode in resultsByMode) {
-        const modeResult: UnimodalRoutingResult | TransitRoutingResult = resultsByMode[routingMode];
-        routingResult[routingMode] = modeResult.getParams();
+        const modeResult = resultsByMode[routingMode];
+        routingResult[routingMode] = modeResult;
 
         if (withGeojson) {
+            const resultObject = resultToObject(modeResult);
             // The generatePathGeojson function in TransitRoutingResult requires a path collection,
             // so the paths currently in the database are loaded here
             const pathCollection = new PathCollection([], {});
@@ -76,8 +72,8 @@ export async function calculateRoute(
             const options = { completeData: false, segmentToGeojson: segmentToGeojson.segmentToGeoJSONFromPaths };
 
             const pathsGeojson: GeoJSON.FeatureCollection[] = [];
-            for (let i = 0; i < modeResult.getAlternativesCount(); i++) {
-                const geojson = await modeResult.getPathGeojson(i, options);
+            for (let i = 0; i < resultObject.getAlternativesCount(); i++) {
+                const geojson = await resultObject.getPathGeojson(i, options);
                 pathsGeojson.push(geojson);
             }
             routingResult[routingMode].pathsGeojson = pathsGeojson;

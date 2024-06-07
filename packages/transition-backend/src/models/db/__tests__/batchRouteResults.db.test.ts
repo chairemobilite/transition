@@ -11,10 +11,7 @@ import dbQueries from '../batchRouteResults.db.queries';
 import jobsDbQueries from '../jobs.db.queries';
 import { userAuthModel } from 'chaire-lib-backend/lib/services/auth/userAuthModel';
 import { JobAttributes } from 'transition-common/lib/services/jobs/Job';
-import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { cyclingRouteResult, simplePathResult, walkingRouteResult } from '../../../services/transitRouting/__tests__/TrRoutingResultStub';
-import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
-
 
 const objectName   = 'job';
 
@@ -65,28 +62,28 @@ const trip3Data = {
     uuid: uuidV4(),
     internalId: 'tripWithError'
 };
-const resultByMode = { transit:
-    new TransitRoutingResult({
+const resultByMode = { 
+    transit: {
         origin: origin,
         destination: destination,
         paths: simplePathResult.routes
-    }),
-    walking: new UnimodalRoutingResult({
-        routingMode: 'walking',
+    },
+    walking: {
+        routingMode: 'walking' as const,
         origin: origin,
         destination: destination,
         paths: walkingRouteResult.routes
-    })
+    }
 };
 
 const resultByMode2 = {
     ...resultByMode,
-    cycling: new UnimodalRoutingResult({
-        routingMode: 'walking',
+    cycling: {
+        routingMode: 'cycling' as const,
         origin: origin,
         destination: destination,
         paths: cyclingRouteResult.routes
-    })
+    }
 };
 
 beforeAll(async () => {
@@ -181,7 +178,7 @@ describe(`${objectName}`, () => {
             data: expect.objectContaining(trip1Data)
         }));
         expect(Object.keys(tripResults[0].data.results as any)).toEqual(Object.keys(resultByMode));
-        expect((tripResults[0].data.results as any)['transit']?.getParams()).toEqual(resultByMode.transit.getParams());
+        expect((tripResults[0].data.results as any)['transit']).toEqual(resultByMode.transit);
 
         expect(tripResults[1]).toEqual(expect.objectContaining({
             jobId,
@@ -189,8 +186,8 @@ describe(`${objectName}`, () => {
             data: expect.objectContaining(trip2Data)
         }));
         expect(Object.keys(tripResults[1].data.results as any)).toEqual(Object.keys(resultByMode2));
-        expect((tripResults[1].data.results as any)['transit']?.getParams()).toEqual(resultByMode2.transit.getParams());
-        expect((tripResults[1].data.results as any)['cycling']?.getParams()).toEqual(resultByMode2.cycling.getParams());
+        expect((tripResults[1].data.results as any)['transit']).toEqual(resultByMode2.transit);
+        expect((tripResults[1].data.results as any)['cycling']).toEqual(resultByMode2.cycling);
 
         expect(tripResults[2]).toEqual({
             jobId,
@@ -210,7 +207,7 @@ describe(`${objectName}`, () => {
             data: expect.objectContaining(trip1Data)
         }));
         expect(Object.keys((tripResults[0].data.results as any))).toEqual(Object.keys(resultByMode));
-        expect((tripResults[0].data.results as any)['transit']?.getParams()).toEqual(resultByMode.transit.getParams());
+        expect((tripResults[0].data.results as any)['transit']).toEqual(resultByMode.transit);
 
         const { totalCount: tcPage2, tripResults: resultsPage2 } = await dbQueries.collection(jobId as number, { pageSize: 1, pageIndex: 1 });
         expect(tcPage2).toEqual(3);
@@ -220,8 +217,8 @@ describe(`${objectName}`, () => {
             data: expect.objectContaining(trip2Data)
         }));
         expect(Object.keys(resultsPage2[0].data.results as any)).toEqual(Object.keys(resultByMode2));
-        expect((resultsPage2[0].data.results as any)['transit']?.getParams()).toEqual(resultByMode2.transit.getParams());
-        expect((resultsPage2[0].data.results as any)['cycling']?.getParams()).toEqual(resultByMode2.cycling.getParams());
+        expect((resultsPage2[0].data.results as any)['transit']).toEqual(resultByMode2.transit);
+        expect((resultsPage2[0].data.results as any)['cycling']).toEqual(resultByMode2.cycling);
     });
 
     test('should stream empty results when no data', (done) => {
@@ -260,7 +257,7 @@ describe(`${objectName}`, () => {
                     data: expect.objectContaining(trip1Data)
                 }));
                 expect(Object.keys(tripResults[0].data.results as any)).toEqual(Object.keys(resultByMode));
-                expect((tripResults[0].data.results as any)['transit']?.getParams()).toEqual(resultByMode.transit.getParams());
+                expect((tripResults[0].data.results as any)['transit']).toEqual(resultByMode.transit);
 
                 expect(tripResults[1]).toEqual(expect.objectContaining({
                     jobId,
@@ -268,8 +265,8 @@ describe(`${objectName}`, () => {
                     data: expect.objectContaining(trip2Data)
                 }));
                 expect(Object.keys(tripResults[1].data.results as any)).toEqual(Object.keys(resultByMode2));
-                expect((tripResults[1].data.results as any)['transit']?.getParams()).toEqual(resultByMode2.transit.getParams());
-                expect((tripResults[1].data.results as any)['cycling']?.getParams()).toEqual(resultByMode2.cycling.getParams());
+                expect((tripResults[1].data.results as any)['transit']).toEqual(resultByMode2.transit);
+                expect((tripResults[1].data.results as any)['cycling']).toEqual(resultByMode2.cycling);
 
                 expect(tripResults[2]).toEqual({
                     jobId,

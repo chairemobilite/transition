@@ -21,7 +21,7 @@ export const pathIsRoute = (path: Route | TrRoutingRoute | undefined): path is R
 /**
  * Represents a routing result, for either uni or multimodal routing.
  */
-export interface RoutingResult<TResultData> {
+export interface RoutingResult {
     hasAlternatives: () => boolean;
     getAlternativesCount: () => number;
     originDestinationToGeojson: () => GeoJSON.FeatureCollection<GeoJSON.Point>;
@@ -41,7 +41,6 @@ export interface RoutingResult<TResultData> {
     getRoutingMode(): RoutingOrTransitMode;
     hasError: () => boolean;
     getError: () => TrError | undefined;
-    getParams: () => TResultData;
 }
 
 /**
@@ -60,7 +59,7 @@ export interface UnimodalRoutingResultData {
 /**
  * Represents a unimodal routing result
  */
-export class UnimodalRoutingResult implements RoutingResult<UnimodalRoutingResultData> {
+export class UnimodalRoutingResult implements RoutingResult {
     constructor(private _params: UnimodalRoutingResultData) {
         /** Nothing to do */
     }
@@ -120,6 +119,4 @@ export class UnimodalRoutingResult implements RoutingResult<UnimodalRoutingResul
         const error = this._params.error;
         return error !== undefined ? new TrError(error.error, error.errorCode, error.localizedMessage) : undefined;
     }
-
-    getParams = (): UnimodalRoutingResultData => this._params;
 }

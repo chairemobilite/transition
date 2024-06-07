@@ -50,10 +50,6 @@ describe('UnimodalRoutingResult, with valid parameters', () => {
 
     const routingResult = new UnimodalRoutingResult(validParams);
 
-    test('Should return right params', () => {
-        expect(routingResult.getParams()).toEqual(validParams);
-    });
-
     test('Should return the right routing mode', () => {
         expect(routingResult.getRoutingMode()).toEqual(routingMode);
     });
@@ -120,10 +116,6 @@ describe('UnimodalRoutingResult, with error parameters', () => {
     };
 
     const routingResult = new UnimodalRoutingResult(paramsWithError);
-
-    it('Should return right params', () => {
-        expect(routingResult.getParams()).toEqual(paramsWithError);
-    });
 
     test('Should return the right routing mode', () => {
         expect(routingResult.getRoutingMode()).toEqual(routingMode);

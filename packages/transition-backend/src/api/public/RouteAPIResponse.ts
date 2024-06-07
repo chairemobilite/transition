@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import {
     RouteCalculationResultParamsByMode,
     TransitRouteCalculationResultParams,
@@ -13,10 +12,10 @@ import {
 import { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import { RoutingMode, RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
-import { getTransitRouteQueryOptionsOrDefault } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import APIResponseBase from './APIResponseBase';
+import { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
 type RouteAPIUnimodalResultResponse = {
     paths: Array<{
@@ -95,10 +94,10 @@ export type RouteAPIResponseFormat = {
 
 export default class RouteAPIResponse extends APIResponseBase<
     RouteAPIResponseFormat,
-    { queryParams: TransitRoutingAttributes; resultParams: RouteCalculationResultParamsByMode }
+    { queryParams: TripRoutingQueryAttributes; resultParams: RouteCalculationResultParamsByMode }
 > {
     protected createResponse(input: {
-        queryParams: TransitRoutingAttributes;
+        queryParams: TripRoutingQueryAttributes;
         resultParams: RouteCalculationResultParamsByMode;
     }): RouteAPIResponseFormat {
         return {
@@ -107,40 +106,37 @@ export default class RouteAPIResponse extends APIResponseBase<
         };
     }
 
-    private createQueryResponse(queryParams: TransitRoutingAttributes): RouteAPIQueryResponse {
+    private createQueryResponse(queryParams: TripRoutingQueryAttributes): RouteAPIQueryResponse {
         const query: RouteAPIQueryResponse = {
-            routingModes: queryParams.routingModes!,
+            routingModes: queryParams.routingModes,
             originGeojson: {
-                type: queryParams.originGeojson!.type,
+                type: queryParams.originGeojson.type,
                 properties: {
                     location: 'origin'
                 },
-                geometry: queryParams.originGeojson!.geometry
+                geometry: queryParams.originGeojson.geometry
             },
             destinationGeojson: {
-                type: queryParams.destinationGeojson!.type,
+                type: queryParams.destinationGeojson.type,
                 properties: {
                     location: 'destination'
                 },
-                geometry: queryParams.destinationGeojson!.geometry
-            }
+                geometry: queryParams.destinationGeojson.geometry
+            },
+            withAlternatives: queryParams.withAlternatives
         };
 
         if (queryParams.routingModes!.includes('transit')) {
-            const transitRouteQueryOptions: TrRoutingApi.TransitRouteQueryOptions =
-                getTransitRouteQueryOptionsOrDefault(queryParams, [
-                    queryParams.originGeojson!,
-                    queryParams.destinationGeojson!
-                ]);
             query.scenarioId = queryParams.scenarioId;
-            query.departureTimeSecondsSinceMidnight = queryParams.departureTimeSecondsSinceMidnight ?? undefined;
-            query.arrivalTimeSecondsSinceMidnight = queryParams.arrivalTimeSecondsSinceMidnight ?? undefined;
-            query.maxTotalTravelTimeSeconds = transitRouteQueryOptions.maxTravelTime;
-            query.minWaitingTimeSeconds = transitRouteQueryOptions.minWaitingTime;
-            query.maxTransferTravelTimeSeconds = transitRouteQueryOptions.maxTransferTravelTime;
-            query.maxAccessEgressTravelTimeSeconds = transitRouteQueryOptions.maxAccessTravelTime;
-            query.maxFirstWaitingTimeSeconds = transitRouteQueryOptions.maxFirstWaitingTime;
-            query.withAlternatives = transitRouteQueryOptions.alternatives;
+            query.departureTimeSecondsSinceMidnight =
+                queryParams.timeType === 'departure' ? queryParams.timeSecondsSinceMidnight : undefined;
+            query.arrivalTimeSecondsSinceMidnight =
+                queryParams.timeType === 'arrival' ? queryParams.timeSecondsSinceMidnight : undefined;
+            query.maxTotalTravelTimeSeconds = queryParams.maxTotalTravelTimeSeconds;
+            query.minWaitingTimeSeconds = queryParams.minWaitingTimeSeconds;
+            query.maxTransferTravelTimeSeconds = queryParams.maxTransferTravelTimeSeconds;
+            query.maxAccessEgressTravelTimeSeconds = queryParams.maxAccessEgressTravelTimeSeconds;
+            query.maxFirstWaitingTimeSeconds = queryParams.maxFirstWaitingTimeSeconds;
         }
 
         return query;

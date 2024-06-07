@@ -8,32 +8,25 @@ import _cloneDeep from 'lodash/cloneDeep';
 
 import routeOdTrip from '../TrRoutingOdTrip';
 import { simplePathResult,  alternativesResult, walkingRouteResult, cyclingRouteResult } from './TrRoutingResultStub';
-import { TransitRouting, TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
-import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ErrorCodes } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { routeToUserObject } from 'chaire-lib-common/src/services/trRouting/TrRoutingResultConversion';
+import { Routing } from 'chaire-lib-backend/lib/services/routing/Routing';
+import { TransitRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
-const calculateMock = jest.fn();
-
-jest.mock('transition-common/lib/services/transitRouting/TransitRoutingCalculator', () => {
+jest.mock('chaire-lib-backend/lib/services/routing/Routing', () => {
     return {
-        TransitRoutingCalculator: {
-            calculate: jest.fn().mockImplementation(async (
-                routing: TransitRouting,
-                updatePreferences = false,
-                options: { isCancelled?: () => void; [key: string]: any } = {}
-            ) => calculateMock(routing, updatePreferences, options))
+        Routing: {
+            calculate: jest.fn()
         }
     }
 });
+const calculateMock = Routing.calculate as jest.MockedFunction<typeof Routing.calculate>;
 
-const transitRoutingAttributes: TransitRoutingAttributes = {
-    id: 'arbitrary',
-    data: {},
-    savedForBatch: [],
+const transitRoutingAttributes: TransitRoutingQueryAttributes = {
+    routingModes: ['transit', 'walking'],
+    withAlternatives: true
 }
 
 beforeEach(() => {
@@ -56,18 +49,17 @@ describe('Various scenario of trip calculation', () => {
         // Prepare test data
         const routingAttributes = _cloneDeep(transitRoutingAttributes);
         routingAttributes.routingModes = ['transit'];
-        const routing = new TransitRouting(routingAttributes);
-        const resultByMode = { transit:
-            new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: simplePathResult.routes
-            })
+            }
         };
         calculateMock.mockResolvedValue(resultByMode);
 
         const result = await routeOdTrip(odTrip, {
-            routing,
+            routing: routingAttributes,
             odTripIndex: 0,
             odTripsCount: 1,
             reverseOD: false,
@@ -81,41 +73,38 @@ describe('Various scenario of trip calculation', () => {
             results: resultByMode
         });
         expect(calculateMock).toHaveBeenCalledWith(expect.objectContaining({
-            _attributes: expect.objectContaining({
-                originGeojson: origin,
-                destinationGeojson: destination
-            })
-        }), false, expect.anything());
+            originGeojson: origin,
+            destinationGeojson: destination
+        }));
     });
 
     test('Multiple modes', async () => {
         // Prepare test data
         const routingAttributes = _cloneDeep(transitRoutingAttributes);
         routingAttributes.routingModes = ['transit', 'walking', 'cycling'];
-        const routing = new TransitRouting(routingAttributes);
-        const resultByMode = { transit:
-            new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: simplePathResult.routes
-            }),
-            walking: new UnimodalRoutingResult({
-                routingMode: 'walking',
+            },
+            walking: {
+                routingMode: 'walking' as const,
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
-            }),
-            cycling: new UnimodalRoutingResult({
-                routingMode: 'cycling',
+            },
+            cycling: {
+                routingMode: 'cycling' as const,
                 origin: origin,
                 destination: destination,
                 paths: cyclingRouteResult.routes
-            })
+            }
         };
         calculateMock.mockResolvedValue(resultByMode);
 
         const result = await routeOdTrip(odTrip, {
-            routing,
+            routing: routingAttributes,
             odTripIndex: 0,
             odTripsCount: 1,
             reverseOD: false,
@@ -135,30 +124,29 @@ describe('Various scenario of trip calculation', () => {
         // Prepare test data
         const routingAttributes = _cloneDeep(transitRoutingAttributes);
         routingAttributes.routingModes = ['transit', 'walking', 'cycling'];
-        const routing = new TransitRouting(routingAttributes);
-        const resultByMode = { transit:
-            new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: alternativesResult.routes
-            }),
-            walking: new UnimodalRoutingResult({
-                routingMode: 'walking',
+            },
+            walking: {
+                routingMode: 'walking' as const,
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
-            }),
-            cycling: new UnimodalRoutingResult({
-                routingMode: 'cycling',
+            },
+            cycling: {
+                routingMode: 'cycling' as const,
                 origin: origin,
                 destination: destination,
                 paths: cyclingRouteResult.routes
-            })
+            }
         };
         calculateMock.mockResolvedValue(resultByMode);
 
         const result = await routeOdTrip(odTrip, {
-            routing,
+            routing: routingAttributes,
             odTripIndex: 0,
             odTripsCount: 1,
             reverseOD: false,
@@ -178,8 +166,8 @@ describe('Various scenario of trip calculation', () => {
         // Prepare test data
         const routingAttributes = _cloneDeep(transitRoutingAttributes);
         routingAttributes.routingModes = ['transit', 'walking', 'cycling'];
-        const routing = new TransitRouting(routingAttributes);
-        const resultByMode = { transit: new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: [],
@@ -188,24 +176,24 @@ describe('Various scenario of trip calculation', () => {
                     ErrorCodes.NoRoutingFound,
                     'transit:transitRouting:errors:NoResultFound'
                 ).export()
-            }),
-            walking: new UnimodalRoutingResult({
-                routingMode: 'walking',
+            },
+            walking: {
+                routingMode: 'walking' as const,
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
-            }),
-            cycling: new UnimodalRoutingResult({
-                routingMode: 'cycling',
+            },
+            cycling: {
+                routingMode: 'cycling' as const,
                 origin: origin,
                 destination: destination,
                 paths: cyclingRouteResult.routes
-            })
+            }
         };
         calculateMock.mockResolvedValue(resultByMode);
 
         const result = await routeOdTrip(odTrip, {
-            routing,
+            routing: routingAttributes,
             odTripIndex: 0,
             odTripsCount: 1,
             reverseOD: false,
@@ -225,26 +213,23 @@ test('Test reverse OD', async () => {
     // The returned data has no relation with the query, it is the same as before, nothing to test here, just that the parameters are right
     const routingAttributes = _cloneDeep(transitRoutingAttributes);
     routingAttributes.routingModes = ['transit'];
-    const routing = new TransitRouting(routingAttributes);
-    const resultByMode = { transit:
-        new TransitRoutingResult({
+    const resultByMode = {
+        transit:{
             origin: origin,
             destination: destination,
             paths: simplePathResult.routes
-        })
+        }
     };
     calculateMock.mockResolvedValue(resultByMode);
 
     const result = await routeOdTrip(odTrip, {
-        routing,
+        routing: routingAttributes,
         odTripIndex: 0,
         odTripsCount: 1,
         reverseOD: true,
     });
     expect(calculateMock).toHaveBeenCalledWith(expect.objectContaining({
-        _attributes: expect.objectContaining({
-            originGeojson: destination,
-            destinationGeojson: origin
-        })
-    }), false, expect.anything());
+        originGeojson: destination,
+        destinationGeojson: origin
+    }));
 });
