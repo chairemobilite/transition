@@ -13,7 +13,7 @@ import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSR
 import TransitAccessibilityMapRouting, {
     AccessibilityMapAttributes
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import {
     AccessibilityMapCalculationResult,
     RouteCalculationResultParamsByMode,
@@ -29,6 +29,8 @@ import ScenariosAPIResponse from './public/ScenariosAPIResponse';
 import RoutingModesAPIResponse from './public/RoutingModesAPIResponse';
 import RouteAPIResponse from './public/RouteAPIResponse';
 import AccessibilityMapAPIResponse from './public/AccessibilityMapAPIResponse';
+import { validateAndCreateTripRoutingAttributes } from 'chaire-lib-common/lib/services/routing/RoutingAttributes';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
@@ -143,25 +145,50 @@ export default function (app: express.Express, passport: PassportStatic) {
         const calculationAttributes: TransitRoutingAttributes = req.body;
         const withGeojson = req.query.withGeojson === 'false' ? false : true;
         try {
-            const routing: TransitRouting = new TransitRouting(calculationAttributes);
-            if (routing.originDestinationToGeojson().features.length < 2) {
-                const message = 'Invalid origin/destination';
-                return res.status(400).send(message);
+            // FIXME Convert the attributes to RoutingAttributes
+            const {
+                departureTimeSecondsSinceMidnight,
+                arrivalTimeSecondsSinceMidnight,
+                originGeojson,
+                destinationGeojson,
+                ...rest
+            } = calculationAttributes;
+            // Make sure the geojson features have properties for the validity check
+            if (originGeojson && originGeojson.type === 'Feature' && originGeojson.properties === undefined) {
+                originGeojson.properties = {};
             }
-
-            if (!routing.validate()) {
-                const formattedErrors = routing.errors.map((e) => e.split(':').pop());
-                const message = 'Validation failed for routing attributes:\n' + formattedErrors.join('\n');
-                return res.status(400).send(message);
+            if (
+                destinationGeojson &&
+                destinationGeojson.type === 'Feature' &&
+                destinationGeojson.properties === undefined
+            ) {
+                destinationGeojson.properties = {};
             }
+            const routingAttributes = validateAndCreateTripRoutingAttributes({
+                ...rest,
+                originGeojson,
+                destinationGeojson,
+                timeSecondsSinceMidnight:
+                    typeof arrivalTimeSecondsSinceMidnight === 'number'
+                        ? arrivalTimeSecondsSinceMidnight
+                        : departureTimeSecondsSinceMidnight,
+                timeType: arrivalTimeSecondsSinceMidnight !== undefined ? 'arrival' : 'departure'
+            });
 
-            const routingResult: RouteCalculationResultParamsByMode = await calculateRoute(routing, withGeojson);
+            const routingResult: RouteCalculationResultParamsByMode = await calculateRoute(
+                routingAttributes,
+                withGeojson
+            );
             const response: RouteAPIResponse = new RouteAPIResponse({
-                queryParams: calculationAttributes,
+                queryParams: routingAttributes,
                 resultParams: routingResult
             });
             res.status(200).json(response.getResponse());
         } catch (error) {
+            console.log(error);
+            if (TrError.isTrError(error) && error.getCode() === 'tripRoutingQueryAttributesValidationError') {
+                return res.status(400).send(error.message);
+            }
             next(error);
         }
     });

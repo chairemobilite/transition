@@ -104,20 +104,10 @@ jest.mock('../../../models/db/batchRouteResults.db.queries', () => {
     return {
         resultParser: originalModule.default.resultParser,
         create: jest.fn().mockImplementation(({ jobId, tripIndex, data }) => {
-            const { results, ...rest } = data;
-            const resultParams = {};
-            if (results !== undefined) {
-                Object.keys(results).forEach((key) => {
-                    resultParams[key] = results[key].getParams();
-                });
-            }
             resultsInDb.push({
                 job_id: jobId,
                 trip_index: tripIndex,
-                data: {
-                    ...rest,
-                    results: results !== undefined ? resultParams : undefined
-                }
+                data
             })
         }),
         collection: jest.fn().mockImplementation((jobId, options) => ({ totalCount: resultsInDb.length, tripResults: resultsInDb })),

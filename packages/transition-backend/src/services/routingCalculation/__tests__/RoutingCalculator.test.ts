@@ -7,12 +7,26 @@
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
 import { calculateAccessibilityMap, calculateRoute } from '../RoutingCalculator';
-import { TransitRoutingCalculator } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
+import { Routing } from 'chaire-lib-backend/lib/services/routing/Routing';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
+import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/trRouting/TrRoutingConstantsStubs';
+import TestUtils from 'chaire-lib-common/src/test/TestUtils';
+import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 
 jest.mock('transition-common/lib/services/nodes/NodeCollection');
 jest.mock('transition-common/lib/services/path/PathCollection');
+// Mock the route calculation function
+jest.mock('chaire-lib-backend/lib/services/routing/Routing', () => ({
+    Routing: {
+        calculate: jest.fn()
+    }
+}));
+const mockedCalculate = Routing.calculate as jest.MockedFunction<typeof Routing.calculate>;
+// Mock the transit result getPathGeojson function to return just an empty feature collection
+TransitRoutingResult.prototype.getPathGeojson = jest.fn();
+const mockedGetTransitPathGeojson = TransitRoutingResult.prototype.getPathGeojson as jest.MockedFunction<typeof TransitRoutingResult.prototype.getPathGeojson>;
+mockedGetTransitPathGeojson.mockResolvedValue({ type: 'FeatureCollection', features: [] });
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -60,162 +74,188 @@ test('calculateAccessibilityMap, with geojson', async () => {
     expect(TransitAccessibilityMapCalculator.calculateWithPolygons).toBeCalled();
 });
 
-test('calculateRoute, without geojson', async () => {
-    const transitResult = 'transitResult';
-    const walkingResult = 'walkingResult';
-    const drivingResult = 'drivingResult';
+describe('calculateRoute', () => {
+    // Constants for route responses
+    const origin = TestUtils.makePoint([1, 1]);
+    const destination = TestUtils.makePoint([2, 2]);
+    const attributes = {
+        originGeojson: origin,
+        destinationGeojson: destination,
+        routingModes: ['transit' as const, 'walking' as const, 'driving' as const],
+        engines: [],
+        timeSecondsSinceMidnight: 0,
+        timeType: 'departure' as const,
+        withAlternatives: false
+    };
 
-    const resultsByMode = {
-        transit: {
-            getParams: () => transitResult
-        },
-        walking: {
-            getParams: () => walkingResult
-        },
-        driving: {
-            getParams: () => drivingResult
-        },
-    }
-    
-    trRoutingProcessManager.status = jest.fn().mockResolvedValue({
-        status: 'started'
-    } as any);
-    TransitRoutingCalculator.calculate = jest.fn().mockResolvedValue(resultsByMode);
+    const walkingRouteNoWaypointTest = {
+        distance: 500,
+        duration: 500,
+        legs: [],
+        geometry: { type: 'LineString' as const, coordinates: [[1, 1], [2, 2]]}
+    };
 
-    const result = await calculateRoute({} as any, false);
+    const drivingRouteTest = {
+        distance: 20000,
+        duration: 3600,
+        legs: [],
+        geometry: { type: 'LineString' as const, coordinates: [[1, 1], [1, 2], [2, 2]]}
+    };
 
-    expect(result).toStrictEqual({
-        transit: transitResult,
-        walking: walkingResult,
-        driving: drivingResult
-    });
-    expect(TransitRoutingCalculator.calculate).toBeCalled();
-});
 
-test('calculateRoute, with geojson', async () => {
-    const transitResult = 'transitResult';
-    const walkingResult = 'walkingResult';
-    const drivingResult = 'drivingResult';
-    const transitGeojson = 'transitGeojson';
-    const walkingGeojson = 'walkingGeojson';
-    const drivingGeojson = 'drivingGeojson';
-
-    const resultsByMode = {
-        transit: {
-            getParams: () =>  {
-                return { result: transitResult }
+    test('calculateRoute, without geojson', async () => {
+        const resultsByMode = {
+            transit: {
+                origin,
+                destination,
+                paths: [pathNoTransferRouteResult],
+                walkOnlyPath: undefined,
+                error: undefined
             },
-            getAlternativesCount: () => 1,
-            getPathGeojson: async () => transitGeojson
-        },
-        walking: {
-            getParams: () => {
-                return { result: walkingResult }
+            walking: {
+                origin,
+                destination,
+                paths: [walkingRouteNoWaypointTest],
+                routingMode: 'walking' as const,
+                error: undefined
             },
-            getAlternativesCount: () => 1,
-            getPathGeojson: async () => walkingGeojson
-        },
-        driving: {
-            getParams: () => {
-                return { result: drivingResult }
+            driving: {
+                origin,
+                destination,
+                paths: [drivingRouteTest],
+                routingMode: 'driving' as const,
+                error: undefined
             },
-            getAlternativesCount: () => 1,
-            getPathGeojson: async () => drivingGeojson
-        },
-    }
-    
-    const mockLoadFromServer = jest.fn(() => Promise.resolve());
-
-    trRoutingProcessManager.status = jest.fn().mockResolvedValue({
-        status: 'started'
-    } as any);
-    TransitRoutingCalculator.calculate = jest.fn().mockResolvedValue(resultsByMode);
-    (PathCollection as any).mockImplementation(() => {
-        return {
-            loadFromServer: mockLoadFromServer
         }
+        
+        trRoutingProcessManager.status = jest.fn().mockResolvedValue({
+            status: 'started'
+        } as any);
+        mockedCalculate.mockResolvedValue(resultsByMode);
+
+        const result = await calculateRoute(attributes, false);
+
+        expect(result).toStrictEqual(resultsByMode);
+        expect(mockedCalculate).toHaveBeenCalledWith(attributes);
     });
 
-    const result = await calculateRoute({} as any, true);
-
-    expect(result).toStrictEqual({
-        transit: {
-            result: transitResult,
-            pathsGeojson: [transitGeojson]
-        },
-        walking: {
-            result: walkingResult,
-            pathsGeojson: [walkingGeojson]
-        },
-        driving: {
-            result: drivingResult,
-            pathsGeojson: [drivingGeojson]
-        }
-    });
-    expect(TransitRoutingCalculator.calculate).toBeCalled();
-    expect(mockLoadFromServer).toBeCalled();
-});
-
-test('calculateRoute, with geojson and alternatives', async () => {
-    const transitResult = 'transitResult';
-    const walkingResult = 'walkingResult';
-    const drivingResult = 'drivingResult';
-    const transitGeojson = 'transitGeojson';
-    const walkingGeojson = 'walkingGeojson';
-    const drivingGeojson = 'drivingGeojson';
-
-    const resultsByMode = {
-        transit: {
-            getParams: () =>  {
-                return { result: transitResult }
+    test('calculateRoute, with geojson', async () => {
+        const resultsByMode = {
+            transit: {
+                origin,
+                destination,
+                paths: [pathNoTransferRouteResult],
+                walkOnlyPath: undefined,
+                error: undefined
             },
-            getAlternativesCount: () => 3,
-            getPathGeojson: async () => transitGeojson
-        },
-        walking: {
-            getParams: () => {
-                return { result: walkingResult }
+            walking: {
+                origin,
+                destination,
+                paths: [walkingRouteNoWaypointTest],
+                routingMode: 'walking' as const,
+                error: undefined
             },
-            getAlternativesCount: () => 2,
-            getPathGeojson: async () => walkingGeojson
-        },
-        driving: {
-            getParams: () => {
-                return { result: drivingResult }
+            driving: {
+                origin,
+                destination,
+                paths: [drivingRouteTest],
+                routingMode: 'driving' as const,
+                error: undefined
             },
-            getAlternativesCount: () => 4,
-            getPathGeojson: async () => drivingGeojson
-        },
-    }
-
-    const mockLoadFromServer = jest.fn(() => Promise.resolve());
-    
-    trRoutingProcessManager.status = jest.fn().mockResolvedValue({
-        status: 'started'
-    } as any);
-    TransitRoutingCalculator.calculate = jest.fn().mockResolvedValue(resultsByMode);
-    (PathCollection as any).mockImplementation(() => {
-        return {
-            loadFromServer: mockLoadFromServer
         }
+        
+        const mockLoadFromServer = jest.fn(() => Promise.resolve());
+
+        trRoutingProcessManager.status = jest.fn().mockResolvedValue({
+            status: 'started'
+        } as any);
+        mockedCalculate.mockResolvedValue(resultsByMode);
+        (PathCollection as any).mockImplementation(() => {
+            return {
+                loadFromServer: mockLoadFromServer
+            }
+        });
+
+        const result = await calculateRoute(attributes, true);
+
+        // Routing result unit test have tested the geometry generation, we just make sure it exists in this case
+        expect(result).toStrictEqual({
+            transit: {
+                ...resultsByMode.transit,
+                pathsGeojson: expect.anything()
+            },
+            walking: {
+                ...resultsByMode.walking,
+                pathsGeojson: expect.anything()
+            },
+            driving: {
+                ...resultsByMode.driving,
+                pathsGeojson: expect.anything()
+            }
+        });
+        expect(mockedCalculate).toHaveBeenCalledWith(attributes);
+        // Get path geojson should have been called once
+        expect(mockedGetTransitPathGeojson).toHaveBeenCalledTimes(1);
+        expect(mockLoadFromServer).toBeCalled();
     });
 
-    const result = await calculateRoute({} as any, true);
-
-    expect(result).toStrictEqual({
-        transit: {
-            result: transitResult,
-            pathsGeojson: [transitGeojson, transitGeojson, transitGeojson]
-        },
-        walking: {
-            result: walkingResult,
-            pathsGeojson: [walkingGeojson, walkingGeojson]
-        },
-        driving: {
-            result: drivingResult,
-            pathsGeojson: [drivingGeojson, drivingGeojson, drivingGeojson, drivingGeojson]
+    test('calculateRoute, with geojson and alternatives', async () => {
+        const resultsByMode = {
+            transit: {
+                origin,
+                destination,
+                paths: [pathNoTransferRouteResult, pathOneTransferRouteResult],
+                walkOnlyPath: walkingRouteNoWaypointTest,
+                error: undefined
+            },
+            walking: {
+                origin,
+                destination,
+                paths: [walkingRouteNoWaypointTest],
+                routingMode: 'walking' as const,
+                error: undefined
+            },
+            driving: {
+                origin,
+                destination,
+                paths: [drivingRouteTest],
+                routingMode: 'driving' as const,
+                error: undefined
+            },
         }
+
+        const mockLoadFromServer = jest.fn(() => Promise.resolve());
+        
+        trRoutingProcessManager.status = jest.fn().mockResolvedValue({
+            status: 'started'
+        } as any);
+        mockedCalculate.mockResolvedValue(resultsByMode);
+        (PathCollection as any).mockImplementation(() => {
+            return {
+                loadFromServer: mockLoadFromServer
+            }
+        });
+
+        const result = await calculateRoute(attributes, true);
+
+        // Routing result unit test have tested the geometry generation, we just make sure it exists in this case
+        expect(result).toStrictEqual({
+            transit: {
+                ...resultsByMode.transit,
+                pathsGeojson: expect.anything()
+            },
+            walking: {
+                ...resultsByMode.walking,
+                pathsGeojson: expect.anything()
+            },
+            driving: {
+                ...resultsByMode.driving,
+                pathsGeojson: expect.anything()
+            }
+        });
+        expect(mockedCalculate).toHaveBeenCalledWith(attributes);
+        // Get path geojson should have been called for each alternative, including walk only
+        expect(mockedGetTransitPathGeojson).toHaveBeenCalledTimes(3);
+        expect(mockLoadFromServer).toBeCalled();
     });
-    expect(TransitRoutingCalculator.calculate).toBeCalled();
-    expect(mockLoadFromServer).toBeCalled();
 });

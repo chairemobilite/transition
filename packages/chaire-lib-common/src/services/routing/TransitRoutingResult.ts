@@ -51,7 +51,7 @@ export type SegmentToGeoJSON = (
     currentStepIndex: number
 ) => Promise<GeoJSON.Feature<GeoJSON.LineString>>;
 
-export class TransitRoutingResult implements RoutingResult<TransitRoutingResultData> {
+export class TransitRoutingResult implements RoutingResult {
     private _hasAlternatives: boolean;
     private _walkOnlyPathIndex: number;
 
@@ -293,6 +293,4 @@ export class TransitRoutingResult implements RoutingResult<TransitRoutingResultD
         const error = this._params.error;
         return error !== undefined ? new TrError(error.error, error.errorCode, error.localizedMessage) : undefined;
     }
-
-    getParams = (): TransitRoutingResultData => this._params;
 }

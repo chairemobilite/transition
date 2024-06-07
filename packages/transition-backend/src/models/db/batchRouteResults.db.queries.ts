@@ -8,9 +8,6 @@ import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import { truncate, destroy } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
-import { ResultsByMode } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
-import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { OdTripRouteResult } from '../../services/transitRouting/types';
 
 const tableName = 'tr_batch_route_results';
@@ -23,20 +20,10 @@ type TripJobResult = {
 
 const create = async (result: TripJobResult): Promise<void> => {
     try {
-        const { results, ...rest } = result.data;
-        const resultParams = {};
-        if (results !== undefined) {
-            Object.keys(results).forEach((key) => {
-                resultParams[key] = results[key].getParams();
-            });
-        }
         await knex(tableName).insert({
             job_id: result.jobId,
             trip_index: result.tripIndex,
-            data: {
-                ...rest,
-                results: results !== undefined ? resultParams : undefined
-            }
+            data: result.data
         });
     } catch (error) {
         throw new TrError(
@@ -61,28 +48,11 @@ const attributesParser = ({
         destination?: GeoJSON.Point;
         results?: any;
     };
-}): TripJobResult => {
-    const resultObject: ResultsByMode = {};
-    const { results, ...rest } = data;
-    if (results !== undefined) {
-        Object.keys(results).forEach((key) => {
-            if (key === 'transit') {
-                resultObject[key] = new TransitRoutingResult(results[key]);
-            } else {
-                resultObject[key] = new UnimodalRoutingResult(results[key]);
-            }
-        });
-    }
-
-    return {
-        jobId: job_id,
-        tripIndex: trip_index,
-        data: {
-            ...rest,
-            results: results !== undefined ? resultObject : undefined
-        }
-    };
-};
+}): TripJobResult => ({
+    jobId: job_id,
+    tripIndex: trip_index,
+    data
+});
 
 /**
  * Get a paginated collection results for a job

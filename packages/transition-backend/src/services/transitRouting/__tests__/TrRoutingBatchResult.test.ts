@@ -314,12 +314,12 @@ describe('Generate CSV results only', () => {
 
     test('One mode', async () => {
         // Prepare test data
-        const resultByMode = { transit:
-            new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: simplePathResult.routes
-            })
+            }
         };
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({
             uuid: odTripWithResult.attributes.id,
@@ -356,24 +356,24 @@ describe('Generate CSV results only', () => {
 
     test('Multiple modes', async () => {
         // Prepare test data
-        const resultByMode = { transit:
-            new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: simplePathResult.routes
-            }),
-            walking: new UnimodalRoutingResult({
-                routingMode: 'walking',
+            },
+            walking: {
+                routingMode: 'walking' as const,
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
-            }),
-            cycling: new UnimodalRoutingResult({
-                routingMode: 'cycling',
+            },
+            cycling: {
+                routingMode: 'cycling' as const,
                 origin: origin,
                 destination: destination,
                 paths: cyclingRouteResult.routes
-            })
+            }
         };
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({
             uuid: odTripWithResult.attributes.id,
@@ -412,24 +412,24 @@ describe('Generate CSV results only', () => {
 
     test('With alternatives', async () => {
         // Prepare test data
-        const resultByMode = { transit:
-            new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: alternativesResult.routes
-            }),
-            walking: new UnimodalRoutingResult({
-                routingMode: 'walking',
+            },
+            walking: {
+                routingMode: 'walking' as const,
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
-            }),
-            cycling: new UnimodalRoutingResult({
-                routingMode: 'cycling',
+            },
+            cycling: {
+                routingMode: 'cycling' as const,
                 origin: origin,
                 destination: destination,
                 paths: cyclingRouteResult.routes
-            })
+            }
         };
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({
             uuid: odTripWithResult.attributes.id,
@@ -491,7 +491,8 @@ describe('Generate CSV results only', () => {
 
     test('No routing found', async () => {
         // Prepare test data
-        const resultByMode = { transit: new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: [],
@@ -500,19 +501,19 @@ describe('Generate CSV results only', () => {
                     ErrorCodes.NoRoutingFound,
                     'transit:transitRouting:errors:NoResultFound'
                 ).export()
-            }),
-            walking: new UnimodalRoutingResult({
-                routingMode: 'walking',
+            },
+            walking: {
+                routingMode: 'walking' as const,
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
-            }),
-            cycling: new UnimodalRoutingResult({
-                routingMode: 'cycling',
+            },
+            cycling: {
+                routingMode: 'cycling' as const,
                 origin: origin,
                 destination: destination,
                 paths: cyclingRouteResult.routes
-            })
+            }
         };
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({
             uuid: odTripWithResult.attributes.id,
@@ -541,12 +542,12 @@ describe('detailed csv only result', () => {
 
     test('One mode', async () => {
         // Prepare test data
-        const resultByMode = { transit:
-            new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: simplePathResult.routes
-            })
+            }
         };
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({
             uuid: odTripWithResult.attributes.id,
@@ -611,24 +612,24 @@ describe('detailed csv only result', () => {
         // Detailed steps should be same as single transit mode
 
         // Prepare test data
-        const resultByMode = { transit:
-            new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: simplePathResult.routes
-            }),
-            walking: new UnimodalRoutingResult({
-                routingMode: 'walking',
+            },
+            walking: {
+                routingMode: 'walking' as const,
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
-            }),
-            cycling: new UnimodalRoutingResult({
-                routingMode: 'cycling',
+            },
+            cycling: {
+                routingMode: 'cycling' as const,
                 origin: origin,
                 destination: destination,
                 paths: cyclingRouteResult.routes
-            })
+            }
         };
 
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({
@@ -692,12 +693,12 @@ describe('detailed csv only result', () => {
 
     test('With alternatives', async () => {
         // Prepare test data
-        const resultByMode = { transit:
-            new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: alternativesResult.routes
-            })
+            }
         };
 
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({
@@ -848,7 +849,8 @@ describe('detailed csv only result', () => {
 
     test('No routing found', async () => {
         // Prepare test data
-        const resultByMode = { transit: new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: [],
@@ -857,7 +859,7 @@ describe('detailed csv only result', () => {
                     ErrorCodes.NoRoutingFound,
                     'transit:transitRouting:errors:NoResultFound'
                 ).export()
-            })
+            }
         };
         
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({
@@ -894,12 +896,12 @@ describe('geometries result', () => {
 
     test('One mode', async () => {
         // Prepare test data
-        const resultByMode = { transit:
-            new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: simplePathResult.routes
-            })
+            }
         };
         
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({
@@ -931,24 +933,24 @@ describe('geometries result', () => {
 
     test('Multiple modes', async () => {
         // Prepare test data
-        const resultByMode = { transit:
-            new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: simplePathResult.routes
-            }),
-            walking: new UnimodalRoutingResult({
-                routingMode: 'walking',
+            },
+            walking: {
+                routingMode: 'walking' as const,
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
-            }),
-            cycling: new UnimodalRoutingResult({
-                routingMode: 'cycling',
+            },
+            cycling: {
+                routingMode: 'cycling' as const,
                 origin: origin,
                 destination: destination,
                 paths: cyclingRouteResult.routes
-            })
+            }
         };
         
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({
@@ -996,7 +998,8 @@ describe('geometries result', () => {
 
     test('No routing found', async () => {
         // Prepare test data
-        const resultByMode = { transit: new TransitRoutingResult({
+        const resultByMode = {
+            transit: {
                 origin: origin,
                 destination: destination,
                 paths: [],
@@ -1005,7 +1008,7 @@ describe('geometries result', () => {
                     ErrorCodes.NoRoutingFound,
                     'transit:transitRouting:errors:NoResultFound'
                 ).export()
-            })
+            }
         };
         
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({

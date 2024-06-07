@@ -7,19 +7,15 @@
 import { feature as turfFeature } from '@turf/turf';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import {
-    TransitRoutingCalculator,
-    ResultsByMode
-} from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
-import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { OdTripRouteResult } from './types';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-// TODO Should this file go in the backend?
+import { Routing } from 'chaire-lib-backend/lib/services/routing/Routing';
+import { TransitRoutingQueryAttributes, RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 
 interface RouteOdTripParameters {
-    routing: TransitRouting;
+    routing: TransitRoutingQueryAttributes;
     trRoutingPort?: number;
     odTripIndex: number;
     odTripsCount: number;
@@ -35,7 +31,7 @@ interface RouteOdTripParameters {
 }
 
 const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripParameters): Promise<OdTripRouteResult> {
-    const routingAttributes: TransitRoutingAttributes = Object.assign({}, parameters.routing.getAttributes());
+    const routingAttributes = Object.assign({}, parameters.routing);
     // TODO Manage routing port in a better way
     (routingAttributes as any).routingPort = parameters.trRoutingPort;
 
@@ -56,22 +52,20 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
     const originGeojson = turfFeature(origin);
     const destinationGeojson = turfFeature(destination);
 
-    routingAttributes.originGeojson = originGeojson;
-    routingAttributes.destinationGeojson = destinationGeojson;
-
-    routingAttributes.arrivalTimeSecondsSinceMidnight =
-        odTrip.attributes.timeType === 'arrival' ? odTrip.attributes.timeOfTrip : undefined;
-    routingAttributes.departureTimeSecondsSinceMidnight =
-        odTrip.attributes.timeType === 'departure' ? odTrip.attributes.timeOfTrip : undefined;
+    const tripQueryAttributes = {
+        ...routingAttributes,
+        originGeojson,
+        destinationGeojson,
+        timeSecondsSinceMidnight: odTrip.attributes.timeOfTrip,
+        timeType: odTrip.attributes.timeType
+    };
 
     try {
-        const results: ResultsByMode = await TransitRoutingCalculator.calculate(
-            new TransitRouting(routingAttributes),
-            false
-        );
+        const results: RoutingResultsByMode = await Routing.calculate(tripQueryAttributes);
 
+        // We do not need the walkOnlyPath in the results, as it is already present in the other modes
         if (results.transit) {
-            delete results.transit.getParams().walkOnlyPath;
+            delete results.transit.walkOnlyPath;
         }
 
         return {

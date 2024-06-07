@@ -12,10 +12,9 @@ import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import { getDefaultCsvAttributes, getDefaultStepsAttributes } from './ResultAttributes';
 import { OdTripRouteOutput, OdTripRouteResult } from './types';
-import { ResultsByMode } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 import { unparse } from 'papaparse';
 import { ErrorCodes, TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
-import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
+import { TransitRoutingResultData } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { routeToUserObject } from 'chaire-lib-common/lib/services/trRouting/TrRoutingResultConversion';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
@@ -24,6 +23,8 @@ import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes'
 import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { pathIsRoute } from 'chaire-lib-common/lib/services/routing/RoutingResult';
+import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import { resultToObject } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
 
 const CSV_FILE_NAME = 'batchRoutingResults.csv';
 const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';
@@ -170,7 +171,7 @@ export const generateFileOutputResults = async (
 };
 
 const generateCsvContent = (
-    results: ResultsByMode,
+    results: RoutingResultsByMode,
     csvAttributes: { [key: string]: string | number | null },
     options: {
         uuid: string;
@@ -247,13 +248,14 @@ const getStepSummaries = (
 };
 
 const generateCsvWithTransit = (
-    transitResult: TransitRoutingResult,
-    results: ResultsByMode,
+    transitResultData: TransitRoutingResultData,
+    results: RoutingResultsByMode,
     preFilledCsvAttributes: { [key: string]: string | number | null },
     options: { exportCsvDetailed: boolean }
 ): { csv: string[]; csvDetailed: string[] } => {
     const csvContent: string[] = [];
     const csvDetailedContent: string[] = [];
+    const transitResult = resultToObject(transitResultData);
 
     if (transitResult.hasError()) {
         return {
@@ -334,7 +336,7 @@ const generateCsvWithTransit = (
 const generateCsvErrorRow = (
     error: any,
     csvAttributes: { [key: string]: string | number | null },
-    results?: ResultsByMode
+    results?: RoutingResultsByMode
 ): string => {
     csvAttributes.status = error !== undefined && TrError.isTrError(error) ? error.getCode() : 'error';
 
@@ -349,15 +351,18 @@ const generateCsvErrorRow = (
     return unparse([csvAttributes], { header: false });
 };
 
-const addAdditionalModes = (results: ResultsByMode, csvAttributes: { [key: string]: string | number | null }) => {
+const addAdditionalModes = (
+    results: RoutingResultsByMode,
+    csvAttributes: { [key: string]: string | number | null }
+) => {
     // Add the value of the time for each mode
     Object.keys(results).forEach((key) => {
         if (key !== 'transit' && results[key]) {
-            const resultForMode = results[key];
+            const resultForMode = resultToObject(results[key]);
             const pathForMode = !resultForMode.hasError() ? (resultForMode.getPath(0) as Route) : undefined;
             csvAttributes[`only${key.charAt(0).toUpperCase() + key.slice(1)}TravelTimeSeconds`] = pathForMode
                 ? pathForMode.duration
-                : resultForMode.getError().getCode();
+                : resultForMode.getError()?.getCode() || null;
             csvAttributes[`only${key.charAt(0).toUpperCase() + key.slice(1)}DistanceMeters`] = pathForMode
                 ? pathForMode.distance
                 : null;
@@ -366,7 +371,7 @@ const addAdditionalModes = (results: ResultsByMode, csvAttributes: { [key: strin
 };
 
 const generateShapeGeojsons = async (
-    results: ResultsByMode,
+    results: RoutingResultsByMode,
     options: { internalId: string },
     pathCollection: PathCollection
 ): Promise<GeoJSON.Feature[]> => {
@@ -374,7 +379,7 @@ const generateShapeGeojsons = async (
     const segmentToGeojson = new SegmentToGeoJSONFromPaths(pathCollection);
     const modes = Object.keys(results);
     for (let modeIndex = 0; modeIndex < modes.length; modeIndex++) {
-        const result = results[modes[modeIndex]];
+        const result = resultToObject(results[modes[modeIndex]]);
         try {
             for (let i = 0, alternativeCount = result.getAlternativesCount(); i < alternativeCount; i++) {
                 const featureColl = await result.getPathGeojson(i, {

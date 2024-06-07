@@ -4,15 +4,15 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 import { Feature, GeoJsonProperties, Geometry } from 'geojson';
-import { ResultsByMode } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 
 export type OdTripRouteResult = {
     uuid: string;
     internalId: string;
     origin?: GeoJSON.Point;
     destination?: GeoJSON.Point;
-    results?: ResultsByMode;
+    results?: RoutingResultsByMode;
     error?: string | { error: string; errorCode: string };
 };
 
