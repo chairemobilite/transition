@@ -15,6 +15,7 @@ const layersConfig = {
         strokeWidth: 1,
         radius: 5,
         radiusScale: 3,
+        maxRadiusPixels: 10,
         strokeWidthScale: 3
     },
 
@@ -25,6 +26,7 @@ const layersConfig = {
         strokeWidth: 1,
         radius: 5,
         radiusScale: 3,
+        maxRadiusPixels: 10,
         strokeWidthScale: 3
     },
 
@@ -415,6 +417,7 @@ const layersConfig = {
         radius: 5,
         radiusScale: 3,
         strokeWidthScale: 3,
+        maxRadiusPixels: 10,
         autoHighlight: true,
         pickable: () => serviceLocator.selectedObjectsManager.get('node') === undefined
     },
@@ -462,6 +465,7 @@ const layersConfig = {
         strokeColor: [255, 255, 255],
         strokeWidth: 2,
         radius: 7,
+        maxRadiusPixels: 15,
         radiusScale: 3,
         strokeWidthScale: 3,
         'custom-shader': 'circleSpinner',
