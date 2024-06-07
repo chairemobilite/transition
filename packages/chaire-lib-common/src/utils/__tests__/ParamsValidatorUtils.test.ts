@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-
+import each from 'jest-each';
 import { ParamsValidatorUtils } from '../ParamsValidatorUtils';
 import { v4 as uuidV4 } from 'uuid';
 
@@ -173,6 +173,30 @@ describe('ParamsValidatorUtils', () => {
         });
     });
 
+    describe('isInteger', () => {
+        each([
+            [123],
+            [0],
+            [-123],
+            [undefined]
+        ]).test('should return no errors for %s', (number) => {
+            const errors = ParamsValidatorUtils.isInteger('attr', number, 'TestClass');
+            expect(errors).toEqual([]);
+        });
+
+        each([
+            ['a string'],
+            ['123'],
+            [[0, 1, 3]],
+            [1.23],
+            [Number.NaN]
+        ]).test('should return an error for %s', (number) => {
+            const errors = ParamsValidatorUtils.isInteger('attr', number, 'TestClass');
+            expect(errors).toHaveLength(1);
+            expect(errors[0].message).toContain('should be an integer');
+        });
+    });
+
     describe('isPositiveNumber', () => {
         test('should return no errors for a positive number', () => {
             const errors = ParamsValidatorUtils.isPositiveNumber('attr', 123.45, 'TestClass');
@@ -188,6 +212,30 @@ describe('ParamsValidatorUtils', () => {
             const errors = ParamsValidatorUtils.isPositiveNumber('attr', -123.45, 'TestClass');
             expect(errors).toHaveLength(1);
             expect(errors[0].message).toContain('should be a positive number');
+        });
+    });
+
+    describe('isNumber', () => {
+        each([
+            [123],
+            [0],
+            [-123],
+            [1.23],
+            [undefined]
+        ]).test('should return no errors for %s', (number) => {
+            const errors = ParamsValidatorUtils.isNumber('attr', number, 'TestClass');
+            expect(errors).toEqual([]);
+        });
+
+        each([
+            ['a string'],
+            ['123'],
+            [[0, 1, 3]],
+            [Number.NaN]
+        ]).test('should return an error for %s', (number) => {
+            const errors = ParamsValidatorUtils.isNumber('attr', number, 'TestClass');
+            expect(errors).toHaveLength(1);
+            expect(errors[0].message).toContain('should be a number');
         });
     });
 
