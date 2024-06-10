@@ -11,9 +11,9 @@ import dbQueries from '../batchRouteResults.db.queries';
 import jobsDbQueries from '../jobs.db.queries';
 import { userAuthModel } from 'chaire-lib-backend/lib/services/auth/userAuthModel';
 import { JobAttributes } from 'transition-common/lib/services/jobs/Job';
-import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { cyclingRouteResult, simplePathResult, walkingRouteResult } from '../../../services/transitRouting/__tests__/TrRoutingResultStub';
-import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
+import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 
 
 const objectName   = 'job';
@@ -69,10 +69,9 @@ const resultByMode = { transit:
     new TransitRoutingResult({
         origin: origin,
         destination: destination,
-        paths: simplePathResult.routes,
-        maxWalkingTime: 300
+        paths: simplePathResult.routes
     }),
-    walking: new UnimodalRouteCalculationResult({
+    walking: new UnimodalRoutingResult({
         routingMode: 'walking',
         origin: origin,
         destination: destination,
@@ -82,7 +81,7 @@ const resultByMode = { transit:
 
 const resultByMode2 = {
     ...resultByMode,
-    cycling: new UnimodalRouteCalculationResult({
+    cycling: new UnimodalRoutingResult({
         routingMode: 'walking',
         origin: origin,
         destination: destination,

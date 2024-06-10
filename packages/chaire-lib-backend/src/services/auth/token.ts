@@ -8,5 +8,5 @@ export type TokenAttributes = {
     user_id: number;
     api_token?: string | null;
     expiry_date;
-    creation_date;
+    created_at;
 };

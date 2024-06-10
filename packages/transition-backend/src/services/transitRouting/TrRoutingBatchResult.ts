@@ -9,13 +9,13 @@ import _omit from 'lodash/omit';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
-import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
+import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import { getDefaultCsvAttributes, getDefaultStepsAttributes } from './ResultAttributes';
 import { OdTripRouteOutput, OdTripRouteResult } from './types';
 import { ResultsByMode } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 import { unparse } from 'papaparse';
 import { ErrorCodes, TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
-import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { routeToUserObject } from 'chaire-lib-common/lib/services/trRouting/TrRoutingResultConversion';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
@@ -23,6 +23,7 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import { pathIsRoute } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 
 const CSV_FILE_NAME = 'batchRoutingResults.csv';
 const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';
@@ -157,9 +158,10 @@ export const generateFileOutputResults = async (
         exportCsv: options.exportCsv,
         exportCsvDetailed: options.exportDetailed
     });
-    const geometries = options.withGeometries
-        ? await generateShapeGeojsons(result.results, { internalId: result.internalId }, options.pathCollection)
-        : [];
+    const geometries =
+        options.withGeometries && options.pathCollection
+            ? await generateShapeGeojsons(result.results, { internalId: result.internalId }, options.pathCollection)
+            : [];
     return {
         csv,
         csvDetailed,
@@ -262,7 +264,7 @@ const generateCsvWithTransit = (
     let alternativeSequence = 0;
     for (let i = 0, countI = transitResult.getAlternativesCount(); i < countI; i++) {
         const alternative = transitResult.getPath(i);
-        if (alternative === undefined) {
+        if (pathIsRoute(alternative) || alternative === undefined) {
             // This is the walk only path
             continue;
         }
@@ -366,16 +368,19 @@ const addAdditionalModes = (results: ResultsByMode, csvAttributes: { [key: strin
 const generateShapeGeojsons = async (
     results: ResultsByMode,
     options: { internalId: string },
-    pathCollection?: PathCollection
+    pathCollection: PathCollection
 ): Promise<GeoJSON.Feature[]> => {
     let features: GeoJSON.Feature[] = [];
-
+    const segmentToGeojson = new SegmentToGeoJSONFromPaths(pathCollection);
     const modes = Object.keys(results);
     for (let modeIndex = 0; modeIndex < modes.length; modeIndex++) {
         const result = results[modes[modeIndex]];
         try {
             for (let i = 0, alternativeCount = result.getAlternativesCount(); i < alternativeCount; i++) {
-                const featureColl = await result.getPathGeojson(i, { completeData: true, pathCollection });
+                const featureColl = await result.getPathGeojson(i, {
+                    completeData: true,
+                    segmentToGeojson: segmentToGeojson.segmentToGeoJSONFromPaths
+                });
                 features = features.concat(
                     featureColl.features.map((feature) => ({
                         type: 'Feature',

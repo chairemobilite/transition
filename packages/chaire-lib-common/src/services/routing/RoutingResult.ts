@@ -6,26 +6,50 @@
  */
 import _get from 'lodash/get';
 
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { RoutingOrTransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
-import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
-import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import Preferences from '../../config/Preferences';
+import { Route } from './RoutingService';
+import { RoutingOrTransitMode, RoutingMode } from '../../config/routingModes';
+import TrError, { ErrorMessage } from '../../utils/TrError';
+import { TrRoutingRoute } from '../trRouting/TrRoutingService';
+
+export const pathIsRoute = (path: Route | TrRoutingRoute | undefined): path is Route => {
+    return typeof (path as any).distance === 'number';
+};
 
 // TODO Add a common type to getPath(index)
-export interface RouteCalculatorResult<InputParams> {
+// TODO Have a common type for all results, not requiring the TResultData generic type
+/**
+ * Represents a routing result, for either uni or multimodal routing.
+ */
+export interface RoutingResult<TResultData> {
     hasAlternatives: () => boolean;
     getAlternativesCount: () => number;
     originDestinationToGeojson: () => GeoJSON.FeatureCollection<GeoJSON.Point>;
+    /**
+     * Get the geojson geometry of the path at the given index
+     *
+     * TODO Type the options so they are common for all routing results
+     *
+     * TODO Type the FeatureCollection properties
+     *
+     * @param index The index of the alternative path to fetch
+     * @param options Additional options to pass to generate geometries
+     * @returns A feature collection with the steps of the path
+     */
     getPathGeojson: (index: number, options: { [key: string]: any }) => Promise<GeoJSON.FeatureCollection>;
     getPath: (index: number) => TrRoutingRoute | Route | undefined;
     getRoutingMode(): RoutingOrTransitMode;
     hasError: () => boolean;
     getError: () => TrError | undefined;
-    getParams: () => InputParams;
+    getParams: () => TResultData;
 }
 
-export interface ResultParams {
+/**
+ * Describe a unimodal routing result data
+ *
+ * TODO Have one single type for the routing results, whether uni or multi-modal
+ */
+export interface UnimodalRoutingResultData {
     routingMode: RoutingMode;
     origin: GeoJSON.Feature<GeoJSON.Point>;
     destination: GeoJSON.Feature<GeoJSON.Point>;
@@ -33,9 +57,12 @@ export interface ResultParams {
     error?: { localizedMessage: ErrorMessage; error: string; errorCode: string };
 }
 
-export class UnimodalRouteCalculationResult implements RouteCalculatorResult<ResultParams> {
-    constructor(private _params: ResultParams) {
-        /** Nothin to do */
+/**
+ * Represents a unimodal routing result
+ */
+export class UnimodalRoutingResult implements RoutingResult<UnimodalRoutingResultData> {
+    constructor(private _params: UnimodalRoutingResultData) {
+        /** Nothing to do */
     }
 
     getRoutingMode(): RoutingOrTransitMode {
@@ -59,10 +86,6 @@ export class UnimodalRouteCalculationResult implements RouteCalculatorResult<Res
             type: 'FeatureCollection',
             features: [this._params.origin, this._params.destination]
         };
-    }
-
-    getWalkOnlyRoute(): Route | undefined {
-        return undefined;
     }
 
     async getPathGeojson(index: number, _options: { [key: string]: any } = {}): Promise<GeoJSON.FeatureCollection> {
@@ -98,5 +121,5 @@ export class UnimodalRouteCalculationResult implements RouteCalculatorResult<Res
         return error !== undefined ? new TrError(error.error, error.errorCode, error.localizedMessage) : undefined;
     }
 
-    getParams = (): ResultParams => this._params;
+    getParams = (): UnimodalRoutingResultData => this._params;
 }

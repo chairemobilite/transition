@@ -8,15 +8,14 @@ import _cloneDeep from 'lodash/cloneDeep';
 import { ObjectWritableMock } from 'stream-mock';
 
 
-import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
-import { simplePathResult, transferPathResult, alternativesResult, walkingRouteResult, cyclingRouteResult } from './TrRoutingResultStub';
+import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
+import { simplePathResult, alternativesResult, walkingRouteResult, cyclingRouteResult } from './TrRoutingResultStub';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { createRoutingFileResultProcessor, generateFileOutputResults } from '../TrRoutingBatchResult';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { getDefaultCsvAttributes, getDefaultStepsAttributes } from '../ResultAttributes';
 import { routeToUserObject, TrRoutingBoardingStep, TrRoutingUnboardingStep, TrRoutingWalkingStep } from 'chaire-lib-common/src/services/trRouting/TrRoutingResultConversion';
-import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
+import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import Path from 'transition-common/lib/services/path/Path';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -72,8 +71,7 @@ const results = {
     result: new TransitRoutingResult({
         origin: { type: 'Feature' as const, geometry: odTrip.attributes.origin_geography, properties: {} },
         destination: { type: 'Feature' as const, geometry: odTrip.attributes.destination_geography, properties: {} },
-        paths: simplePathResult.routes,
-        maxWalkingTime: 300
+        paths: simplePathResult.routes
     })
 }
 
@@ -320,8 +318,7 @@ describe('Generate CSV results only', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                paths: simplePathResult.routes,
-                maxWalkingTime: 300
+                paths: simplePathResult.routes
             })
         };
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({
@@ -363,16 +360,15 @@ describe('Generate CSV results only', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                paths: simplePathResult.routes,
-                maxWalkingTime: 300
+                paths: simplePathResult.routes
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -420,16 +416,15 @@ describe('Generate CSV results only', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                paths: alternativesResult.routes,
-                maxWalkingTime: 300
+                paths: alternativesResult.routes
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -500,20 +495,19 @@ describe('Generate CSV results only', () => {
                 origin: origin,
                 destination: destination,
                 paths: [],
-                maxWalkingTime: 300,
                 error: new TrError(
                     `cannot calculate transit route with trRouting: no_routing_found`,
                     ErrorCodes.NoRoutingFound,
                     'transit:transitRouting:errors:NoResultFound'
                 ).export()
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -551,8 +545,7 @@ describe('detailed csv only result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                paths: simplePathResult.routes,
-                maxWalkingTime: 300
+                paths: simplePathResult.routes
             })
         };
         const { csv, csvDetailed, geometries } = await generateFileOutputResults({
@@ -622,16 +615,15 @@ describe('detailed csv only result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                paths: simplePathResult.routes,
-                maxWalkingTime: 300
+                paths: simplePathResult.routes
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -704,8 +696,7 @@ describe('detailed csv only result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                paths: alternativesResult.routes,
-                maxWalkingTime: 300
+                paths: alternativesResult.routes
             })
         };
 
@@ -861,7 +852,6 @@ describe('detailed csv only result', () => {
                 origin: origin,
                 destination: destination,
                 paths: [],
-                maxWalkingTime: 300,
                 error: new TrError(
                     `cannot calculate transit route with trRouting: no_routing_found`,
                     ErrorCodes.NoRoutingFound,
@@ -908,8 +898,7 @@ describe('geometries result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                paths: simplePathResult.routes,
-                maxWalkingTime: 300
+                paths: simplePathResult.routes
             })
         };
         
@@ -946,16 +935,15 @@ describe('geometries result', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                paths: simplePathResult.routes,
-                maxWalkingTime: 300
+                paths: simplePathResult.routes
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -1012,7 +1000,6 @@ describe('geometries result', () => {
                 origin: origin,
                 destination: destination,
                 paths: [],
-                maxWalkingTime: 300,
                 error: new TrError(
                     `cannot calculate transit route with trRouting: no_routing_found`,
                     ErrorCodes.NoRoutingFound,

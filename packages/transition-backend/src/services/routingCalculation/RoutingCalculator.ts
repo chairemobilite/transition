@@ -6,19 +6,16 @@
  */
 import _isEmpty from 'lodash/isEmpty';
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
-import {
-    ResultParams,
-    UnimodalRouteCalculationResult
-} from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
+import { UnimodalRoutingResultData, UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
 import {
     ResultsByMode,
     TransitRoutingCalculator
 } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 import {
-    TransitResultParams,
+    TransitRoutingResultData,
     TransitRoutingResult
-} from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+} from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
@@ -31,12 +28,13 @@ import {
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 
-export type UnimodalRouteCalculationResultParams = ResultParams & {
+export type UnimodalRouteCalculationResultParams = UnimodalRoutingResultData & {
     pathsGeojson?: GeoJSON.FeatureCollection<GeoJSON.LineString>[];
 };
 
-export type TransitRouteCalculationResultParams = TransitResultParams & {
+export type TransitRouteCalculationResultParams = TransitRoutingResultData & {
     pathsGeojson?: GeoJSON.FeatureCollection<GeoJSON.LineString>[];
 };
 
@@ -66,7 +64,7 @@ export async function calculateRoute(
 
     const routingResult: RouteCalculationResultParamsByMode = {};
     for (const routingMode in resultsByMode) {
-        const modeResult: UnimodalRouteCalculationResult | TransitRoutingResult = resultsByMode[routingMode];
+        const modeResult: UnimodalRoutingResult | TransitRoutingResult = resultsByMode[routingMode];
         routingResult[routingMode] = modeResult.getParams();
 
         if (withGeojson) {
@@ -74,7 +72,8 @@ export async function calculateRoute(
             // so the paths currently in the database are loaded here
             const pathCollection = new PathCollection([], {});
             await pathCollection.loadFromServer(serviceLocator.socketEventManager);
-            const options = { completeData: false, pathCollection: pathCollection };
+            const segmentToGeojson = new SegmentToGeoJSONFromPaths(pathCollection);
+            const options = { completeData: false, segmentToGeojson: segmentToGeojson.segmentToGeoJSONFromPaths };
 
             const pathsGeojson: GeoJSON.FeatureCollection[] = [];
             for (let i = 0; i < modeResult.getAlternativesCount(); i++) {

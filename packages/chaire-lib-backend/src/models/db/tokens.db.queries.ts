@@ -18,30 +18,6 @@ const defaultTokenLifespanDays: number = isNaN(Number(config.tokenLifespanDays))
     ? 10
     : Number(config.tokenLifespanDays);
 
-const attributesCleaner = function (attributes: TokenAttributes): { user_id: number; api_token: string } {
-    const { user_id, api_token, expiry_date, creation_date } = attributes;
-    const _attributes: any = {
-        number: user_id,
-        string: api_token,
-        expiry_date: expiry_date,
-        creation_date: creation_date
-    };
-
-    return _attributes;
-};
-
-const attributesParser = (dbAttributes: {
-    user_id: number;
-    apiToken: string;
-    expiryDate: string;
-    creationDate: string;
-}): TokenAttributes => ({
-    user_id: dbAttributes.user_id,
-    api_token: dbAttributes.apiToken,
-    expiry_date: dbAttributes.expiryDate,
-    creation_date: dbAttributes.creationDate
-});
-
 const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
     try {
         const userId = await knex(userTableName)
@@ -81,7 +57,7 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
             user_id: userId,
             api_token: apiToken,
             expiry_date: tokenExpiryDate,
-            creation_date: new Date()
+            created_at: new Date()
         };
         await knex(tableName).insert(newObject);
         return apiToken;

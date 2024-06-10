@@ -19,3 +19,29 @@ export const isPolygon = <P extends GeoJSON.GeoJsonProperties>(
 ): feature is GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon, P> => {
     return feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon';
 };
+
+/**
+ * Get the coordinates of a point from the geojson object. The geojson object
+ * can be a point, a feature with a point geometry, or a feature collection with
+ * a single feature with a point geometry.
+ *
+ * @param geojson Any geojson object
+ * @returns The coordinates of the point, or undefined if the object is not a
+ * point
+ */
+export const getPointCoordinates = (geojson: GeoJSON.GeoJSON): number[] | undefined => {
+    if (geojson.type === 'Point') {
+        return geojson.coordinates;
+    }
+    if (geojson.type === 'Feature' && geojson.geometry.type === 'Point') {
+        return geojson.geometry.coordinates;
+    }
+    if (
+        geojson.type === 'FeatureCollection' &&
+        geojson.features.length === 1 &&
+        geojson.features[0].geometry.type === 'Point'
+    ) {
+        return geojson.features[0].geometry.coordinates;
+    }
+    return undefined;
+};

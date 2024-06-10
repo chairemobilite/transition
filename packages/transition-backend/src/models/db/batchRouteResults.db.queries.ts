@@ -8,9 +8,9 @@ import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import { truncate, destroy } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
+import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import { ResultsByMode } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
-import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { OdTripRouteResult } from '../../services/transitRouting/types';
 
 const tableName = 'tr_batch_route_results';
@@ -69,7 +69,7 @@ const attributesParser = ({
             if (key === 'transit') {
                 resultObject[key] = new TransitRoutingResult(results[key]);
             } else {
-                resultObject[key] = new UnimodalRouteCalculationResult(results[key]);
+                resultObject[key] = new UnimodalRoutingResult(results[key]);
             }
         });
     }

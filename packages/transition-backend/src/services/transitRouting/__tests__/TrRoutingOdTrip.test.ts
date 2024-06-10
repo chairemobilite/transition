@@ -10,8 +10,8 @@ import routeOdTrip from '../TrRoutingOdTrip';
 import { simplePathResult,  alternativesResult, walkingRouteResult, cyclingRouteResult } from './TrRoutingResultStub';
 import { TransitRouting, TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import { TransitRoutingResult } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
-import { UnimodalRouteCalculationResult } from 'transition-common/lib/services/transitRouting/RouteCalculatorResult';
+import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
+import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ErrorCodes } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
 import { routeToUserObject } from 'chaire-lib-common/src/services/trRouting/TrRoutingResultConversion';
@@ -61,8 +61,7 @@ describe('Various scenario of trip calculation', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                paths: simplePathResult.routes,
-                maxWalkingTime: 300
+                paths: simplePathResult.routes
             })
         };
         calculateMock.mockResolvedValue(resultByMode);
@@ -98,16 +97,15 @@ describe('Various scenario of trip calculation', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                paths: simplePathResult.routes,
-                maxWalkingTime: 300
+                paths: simplePathResult.routes
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -142,16 +140,15 @@ describe('Various scenario of trip calculation', () => {
             new TransitRoutingResult({
                 origin: origin,
                 destination: destination,
-                paths: alternativesResult.routes,
-                maxWalkingTime: 300
+                paths: alternativesResult.routes
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -186,20 +183,19 @@ describe('Various scenario of trip calculation', () => {
                 origin: origin,
                 destination: destination,
                 paths: [],
-                maxWalkingTime: 300,
                 error: new TrError(
                     `cannot calculate transit route with trRouting: no_routing_found`,
                     ErrorCodes.NoRoutingFound,
                     'transit:transitRouting:errors:NoResultFound'
                 ).export()
             }),
-            walking: new UnimodalRouteCalculationResult({
+            walking: new UnimodalRoutingResult({
                 routingMode: 'walking',
                 origin: origin,
                 destination: destination,
                 paths: walkingRouteResult.routes
             }),
-            cycling: new UnimodalRouteCalculationResult({
+            cycling: new UnimodalRoutingResult({
                 routingMode: 'cycling',
                 origin: origin,
                 destination: destination,
@@ -234,8 +230,7 @@ test('Test reverse OD', async () => {
         new TransitRoutingResult({
             origin: origin,
             destination: destination,
-            paths: simplePathResult.routes,
-            maxWalkingTime: 300
+            paths: simplePathResult.routes
         })
     };
     calculateMock.mockResolvedValue(resultByMode);

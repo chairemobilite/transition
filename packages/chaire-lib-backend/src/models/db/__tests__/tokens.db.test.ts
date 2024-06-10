@@ -47,28 +47,28 @@ const user2: Partial<UserAttributes> = {
 const validToken: TokenAttributes = {
     user_id: 1,
     api_token: randomUUID(),
-    creation_date: now,
+    created_at: now,
     expiry_date:  new Date((new Date()).setDate(now.getDate() + tokensDbQueries.defaultTokenLifespanDays)),
 };
 
 const badToken: TokenAttributes = {
     user_id: 2,
     api_token: randomUUID(),
-    creation_date: new Date(),
+    created_at: new Date(),
     expiry_date:  new Date(1659633411001) ,
 }
 
 const expiredToken: TokenAttributes = {
     user_id: 3,
     api_token: randomUUID(),
-    creation_date: now,
+    created_at: now,
     expiry_date:  new Date(0),
 }
 
 const validToken2: TokenAttributes = {
     user_id: 4,
     api_token: randomUUID(),
-    creation_date: now,
+    created_at: now,
     expiry_date:  new Date((new Date()).setDate(now.getDate() + tokensDbQueries.defaultTokenLifespanDays)),
 };
 
@@ -87,7 +87,7 @@ const createToken = async (knex: Knex, tableName: string, tokenRow) => {
         const newObject: TokenAttributes = { 
             user_id: tokenRow.user_id, 
             api_token: tokenRow.api_token,
-            creation_date: tokenRow.creation_date,
+            created_at: tokenRow.created_at,
             expiry_date: tokenRow.expiry_date, 
         };
         const test = await knex(tableName).insert(newObject);

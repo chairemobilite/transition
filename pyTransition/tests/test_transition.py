@@ -58,6 +58,15 @@ class TestTransition(unittest.TestCase):
                 self.test_url, self.test_username, self.test_password
             )
 
+    def test_url_cleanup(self):
+         with requests_mock.Mocker() as m:
+            m.post(f"{self.test_url}/token", text=self.test_token, status_code=200)
+
+            url_with_extra_chars = self.test_url+"/"
+            transition_instance = Transition(url_with_extra_chars, self.test_username, self.test_password)
+            self.assertEqual(transition_instance.base_url, self.test_url)
+            self.assertEqual(transition_instance.token, self.test_token)
+
     def test_creation_username_password(self):
         with requests_mock.Mocker() as m:
             m.post(f"{self.test_url}/token", text=self.test_token, status_code=200)
@@ -114,6 +123,27 @@ class TestTransition(unittest.TestCase):
                 self.test_password,
             )
             self.assertTrue(m.called_once)
+
+    def test_is_token_valid_true(self):
+         with requests_mock.Mocker() as m:
+            m.get(f"{self.test_url}/api/v1/routing-modes", text='["mode1","mode2"]', status_code=200)
+            valid = self.test_transition_instance.is_token_valid()
+            self.assertTrue(m.called_once)
+            self.assertTrue(valid)
+
+    def test_is_token_valid_false(self):
+         with requests_mock.Mocker() as m:
+            m.get(f"{self.test_url}/api/v1/routing-modes", text='', status_code=400)
+            valid = self.test_transition_instance.is_token_valid()
+            self.assertTrue(m.called_once)
+            self.assertFalse(valid)
+
+    def test_is_token_valid_no_connection(self):
+         with requests_mock.Mocker() as m:
+            m.get(f"{self.test_url}/api/v1/routing-modes", exc=requests.exceptions.ConnectTimeout)
+            valid = self.test_transition_instance.is_token_valid()
+            self.assertTrue(m.called_once)
+            self.assertFalse(valid)
 
     def test_get_paths(self):
         with requests_mock.Mocker() as m:
