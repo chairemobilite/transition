@@ -8,6 +8,7 @@ import { EventEmitter } from 'events';
 
 import { isSocketIo } from './socketUtils';
 import uploadsSocketRoutes from './uploads.socketRoutes';
+import routingSocketRoutes from 'chaire-lib-backend/lib/api/routing.socketRoutes';
 import gtfsSocketRoutes from './gtfs.socketRoutes';
 import cacheSocketRoutes from './cache.socketRoutes';
 import servicesSocketRoutes from './services.socketRoutes';
@@ -39,6 +40,7 @@ export default function (socket: EventEmitter, userId?: number) {
         jobsSocketRoutes(socket, userId);
         if (isSocketIo(socket)) {
             uploadsSocketRoutes(socket, userId);
+            routingSocketRoutes(socket, userId);
         }
     }
 }

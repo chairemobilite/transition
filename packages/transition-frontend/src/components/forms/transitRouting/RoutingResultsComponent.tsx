@@ -9,13 +9,14 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { ResultsByMode } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import RoutingResultComponent from './RoutingResultComponent';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import { resultToObject } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
 
 export interface TransitRoutingResultsProps extends WithTranslation {
-    results: ResultsByMode;
+    results: RoutingResultsByMode;
     request: TransitRoutingAttributes;
     selectedMode?: RoutingOrTransitMode;
     setSelectedMode: (mode: RoutingOrTransitMode) => void;
@@ -40,7 +41,7 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
         );
         routingModesResultsTabPanels.push(
             <TabPanel key={selectedRoutingModes[i]}>
-                <RoutingResultComponent result={result} request={props.request} />
+                <RoutingResultComponent result={resultToObject(result)} request={props.request} />
             </TabPanel>
         );
     }
