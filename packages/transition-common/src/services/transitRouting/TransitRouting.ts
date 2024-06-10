@@ -15,6 +15,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import { validateTrQueryAttributes } from './TransitRoutingQueryAttributes';
+import { validateAndCreateTripRoutingAttributes } from 'chaire-lib-common/lib/services/routing/RoutingAttributes';
 
 export interface TransitRoutingQuery {
     routingName?: string;
@@ -29,10 +30,6 @@ interface TransitRoutingSingleCalcAttributes extends GenericAttributes {
     departureTimeSecondsSinceMidnight?: number;
     arrivalTimeSecondsSinceMidnight?: number;
     odTripUuid?: string;
-    // TODO Remove these attributes?
-    pathGeojson?: GeoJSON.FeatureCollection;
-    // TODO Remove these attributes?
-    walkingOnlyPathGeojson?: GeoJSON.FeatureCollection;
     // TODO: Should we have a type for colors?
     // FIXME: Move to the form
     originLocationColor?: string;
@@ -159,28 +156,6 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
         };
     }
 
-    pathToGeojson() {
-        const pathGeojson = this.getAttributes().pathGeojson;
-        if (pathGeojson) {
-            return pathGeojson;
-        }
-        return {
-            type: 'FeatureCollection',
-            features: []
-        };
-    }
-
-    walkingOnlyPathToGeojson() {
-        const pathGeojson = this.attributes.walkingOnlyPathGeojson;
-        if (pathGeojson) {
-            return pathGeojson;
-        }
-        return {
-            type: 'FeatureCollection',
-            features: []
-        };
-    }
-
     originLat() {
         const origin = this.getAttributes().originGeojson;
         if (origin) {
@@ -218,8 +193,6 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
             const exportedAttributes = _cloneDeep(this._attributes) as Partial<TransitRoutingAttributes>;
             // Data and paths are volatile, do not save it in preferences
             exportedAttributes.data = {};
-            delete exportedAttributes.pathGeojson;
-            delete exportedAttributes.walkingOnlyPathGeojson;
             delete exportedAttributes.id;
             Preferences.update(
                 {
@@ -255,6 +228,17 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
         this._attributes.savedForBatch.splice(0, this._attributes.savedForBatch.length);
         this.updateRoutingPrefs();
     }
+
+    toTripRoutingQueryAttributes = (): TripRoutingQueryAttributes => {
+        const attributes = validateAndCreateTripRoutingAttributes(this.getAttributes());
+        attributes.timeSecondsSinceMidnight = !_isBlank(this.attributes.departureTimeSecondsSinceMidnight)
+            ? (this.attributes.departureTimeSecondsSinceMidnight as number)
+            : !_isBlank(this.attributes.arrivalTimeSecondsSinceMidnight)
+                ? (this.attributes.arrivalTimeSecondsSinceMidnight as number)
+                : 0;
+        attributes.timeType = !_isBlank(this.attributes.arrivalTimeSecondsSinceMidnight) ? 'arrival' : 'departure';
+        return attributes;
+    };
 }
 
 export default TransitRouting;

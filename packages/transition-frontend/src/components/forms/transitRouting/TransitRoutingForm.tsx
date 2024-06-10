@@ -24,7 +24,6 @@ import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pagePa
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
-import { TransitRoutingCalculator } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
@@ -33,13 +32,14 @@ import RoutingResultsComponent from './RoutingResultsComponent';
 import { _toInteger, _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import TransitRoutingBatchForm from './TransitRoutingBatchForm';
-import { ResultsByMode } from 'transition-common/lib/services/transitRouting/TransitRoutingCalculator';
 import TransitRoutingBaseComponent from './widgets/TransitRoutingBaseComponent';
 import ODCoordinatesComponent from './widgets/ODCoordinatesComponent';
 import TimeOfTripComponent from './widgets/TimeOfTripComponent';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import { calculateRouting } from '../../../services/routing/RoutingUtils';
+import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 
 export interface TransitRoutingFormProps extends WithTranslation {
     // TODO tahini batch routing
@@ -51,7 +51,7 @@ export interface TransitRoutingFormProps extends WithTranslation {
 }
 
 interface TransitRoutingFormState extends ChangeEventsState<TransitRouting> {
-    currentResult?: ResultsByMode;
+    currentResult?: RoutingResultsByMode;
     scenarioCollection: any;
     loading: boolean;
     routingErrors?: ErrorMessage[];
@@ -171,7 +171,11 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
 
         try {
             // TODO tahini: Do something about the walk only route
-            const results = await TransitRoutingCalculator.calculate(routing, refresh, { isCancelled });
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'routingPoints',
+                data: routing.originDestinationToGeojson()
+            });
+            const results = await calculateRouting(routing, refresh, { isCancelled });
             if (isCancelled()) {
                 return;
             }

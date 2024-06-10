@@ -4,6 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import _cloneDeep from 'lodash/cloneDeep'
 import { TransitRouting, TransitRoutingAttributes } from '../TransitRouting';
 import GeoJSON from 'geojson';
 import { minutesToSeconds } from 'chaire-lib-common/lib/utils/DateTimeUtils';
@@ -215,120 +216,6 @@ describe('Validate function', () => {
     })
 });
 
-describe('GeoJSON function', () => {
-    test('pathToGeojson empty', () => {
-        let pathToGeojson = transitRouting.pathToGeojson();
-
-        expect(pathToGeojson.type).toEqual('FeatureCollection');
-        expect(pathToGeojson.features).toEqual([]);
-    });
-
-    test('valid pathToGeojson', () => {
-        let attrPathGeojson: GeoJSON.FeatureCollection = {
-            'type': 'FeatureCollection',
-            'features': [
-                {
-                    'type': 'Feature',
-                    'properties': {
-                        'shortname': 'saintJerome',
-                        'code': '11430',
-                        'name': 'Saint-Jérôme',
-                        'internalId': 140
-                    },
-                    'geometry': {
-                        'type': 'Point',
-                        'coordinates': [
-                            -73.999116574088,
-                            45.7731786028551
-                        ]
-                    }
-                },
-                {
-                    'type': 'Feature',
-                    'properties': {
-                        'shortname': 'blainville',
-                        'code': '11410',
-                        'name': 'Blainville',
-                        'internalId': 138
-                    },
-                    'geometry': {
-                        'type': 'Point',
-                        'coordinates': [
-                            -73.8661597194296,
-                            45.672417585119
-                        ]
-                    }
-                }
-            ]
-        };
-
-        attributes.pathGeojson = attrPathGeojson;
-        transitRouting.setAttributes(attributes);
-
-        let pathToGeojson = transitRouting.pathToGeojson();
-
-        expect(pathToGeojson).toEqual(attrPathGeojson);
-        expect(pathToGeojson.type).toEqual('FeatureCollection');
-        expect(pathToGeojson.features).toEqual(attrPathGeojson.features);
-    });
-
-    test('walkingOnlyPathToGeojson empty', () => {
-        let pathToGeojson = transitRouting.pathToGeojson();
-
-        expect(pathToGeojson.type).toEqual('FeatureCollection');
-        expect(pathToGeojson.features).toEqual([]);
-    });
-
-    test('walkingOnlyPathToGeojson valide', () => {
-        let attrPathGeojson: GeoJSON.FeatureCollection = {
-            'type': 'FeatureCollection',
-            'features': [
-                {
-                    'type': 'Feature',
-                    'properties': {
-                        'shortname': 'saintJerome',
-                        'code': '11430',
-                        'name': 'Saint-Jérôme',
-                        'internalId': 140
-                    },
-                    'geometry': {
-                        'type': 'Point',
-                        'coordinates': [
-                            -73.999116574088,
-                            45.7731786028551
-                        ]
-                    }
-                },
-                {
-                    'type': 'Feature',
-                    'properties': {
-                        'shortname': 'blainville',
-                        'code': '11410',
-                        'name': 'Blainville',
-                        'internalId': 138
-                    },
-                    'geometry': {
-                        'type': 'Point',
-                        'coordinates': [
-                            -73.8661597194296,
-                            45.672417585119
-                        ]
-                    }
-                }
-            ]
-        };
-
-        attributes.walkingOnlyPathGeojson = attrPathGeojson;
-        transitRouting.setAttributes(attributes);
-
-        let pathToGeojson = transitRouting.walkingOnlyPathToGeojson();
-
-        expect(pathToGeojson).toEqual(pathToGeojson);
-        expect(pathToGeojson.type).toEqual('FeatureCollection');
-        expect(pathToGeojson.features).toEqual(attrPathGeojson.features);
-    });
-});
-
 describe('Test add elements for batch', () => {
     const orig1: [number, number] = [-73, 45];
     const dest1: [number, number] = [-73.4, 45.4];
@@ -391,5 +278,57 @@ describe('Test add elements for batch', () => {
         expect(batchRoutingQueries.length).toEqual(2);
         expect(batchRoutingQueries).toContainEqual(element1);
         expect(batchRoutingQueries).toContainEqual(element2);
+    });
+});
+
+describe('toTripRoutingQueryAttributes', () => {
+    const defaultParameters = { 
+        routingModes: ['transit' as const],
+        scenarioId: '0',
+        maxAccessEgressTravelTimeSeconds: 0,
+        maxTransferTravelTimeSeconds: 0,
+        minWaitingTimeSeconds: MIN_MIN_WAITING_TIME,
+        originGeojson: TestUtils.makePoint([0, 1]),
+        destinationGeojson: TestUtils.makePoint([1, 0])
+    };
+
+    test('departure and arrival unset', () => {
+        const params = _cloneDeep(defaultParameters);
+        transitRouting = new TransitRouting(params);
+
+        expect(transitRouting.toTripRoutingQueryAttributes()).toEqual(expect.objectContaining({
+            ...defaultParameters,
+            timeSecondsSinceMidnight: 0,
+            timeType: 'departure'
+        }));
+
+    });
+
+    test('departure set', () => {
+        const params = _cloneDeep(defaultParameters);
+        transitRouting = new TransitRouting({
+            ...params,
+            departureTimeSecondsSinceMidnight: 800
+        });
+
+        expect(transitRouting.toTripRoutingQueryAttributes()).toEqual(expect.objectContaining({
+            ...defaultParameters,
+            timeSecondsSinceMidnight: 800,
+            timeType: 'departure'
+        }));
+    });
+
+    test('arrival set', () => {
+        const params = _cloneDeep(defaultParameters);
+        transitRouting = new TransitRouting({
+            ...params,
+            arrivalTimeSecondsSinceMidnight: 800
+        });
+
+        expect(transitRouting.toTripRoutingQueryAttributes()).toEqual(expect.objectContaining({
+            ...defaultParameters,
+            timeSecondsSinceMidnight: 800,
+            timeType: 'arrival'
+        }));
     });
 });

@@ -12,9 +12,8 @@ import { faAngleLeft } from '@fortawesome/free-solid-svg-icons/faAngleLeft';
 import TransitRoutingResults from './TransitRoutingResultComponent';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
+import { RoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
@@ -22,13 +21,13 @@ import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/ev
 import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 
 export interface RoutingResultStatus {
-    routingResult: UnimodalRoutingResult | TransitRoutingResult;
+    routingResult: RoutingResult;
     alternativeIndex: number;
     activeStepIndex: number | null;
 }
 
 export interface TransitRoutingResultsProps extends WithTranslation {
-    result: UnimodalRoutingResult | TransitRoutingResult;
+    result: RoutingResult;
     request: TransitRoutingAttributes;
 }
 
