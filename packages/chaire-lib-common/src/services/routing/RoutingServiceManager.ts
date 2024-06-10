@@ -32,8 +32,8 @@ class RoutingServiceManagerImpl implements RoutingServiceManager {
         };
     }
 
-    public getRoutingServiceForEngine = (engine: string): RoutingService => {
-        const service = this._routingServices[engine];
+    public getRoutingServiceForEngine = (engine?: string): RoutingService => {
+        const service = engine ? this._routingServices[engine] : undefined;
         return service ? service : this._defaultService;
     };
 }

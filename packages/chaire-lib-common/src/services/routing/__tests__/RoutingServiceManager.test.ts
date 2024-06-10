@@ -17,9 +17,14 @@ test('Service Manager for Engines', () => {
 
 test('Service Manager Default Engine', () => {
     // Cannot type check, so checking with what is expected to be the default
-    const baseRoutingService = routingServiceManager.getRoutingServiceForEngine('manual');
+    const defaultRoutingService = routingServiceManager.getRoutingServiceForEngine('manual');
+    // Empty string should return the default
     let routingService = routingServiceManager.getRoutingServiceForEngine('');
-    expect(routingService).toBe(baseRoutingService);
+    expect(routingService).toBe(defaultRoutingService);
+    // Unknown engine should return the default
     routingService = routingServiceManager.getRoutingServiceForEngine('not an engine');
-    expect(routingService).toBe(baseRoutingService);
+    expect(routingService).toBe(defaultRoutingService);
+    // Undefined should return the default
+    routingService = routingServiceManager.getRoutingServiceForEngine();
+    expect(routingService).toBe(defaultRoutingService);
 });
