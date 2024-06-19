@@ -67,7 +67,7 @@
         "passport-magic-login": "^1.0.9",
         "pg": "^8.11.3",
         "pg-query-stream": "^4.5.3",
-        "socket.io": "^2.4.0",
+        "socket.io": "^2.5.0",
         "socket.io-file": "^2.0.31",
         "stream-chain": "^2.2.4",
         "stream-json": "^1.7.3",
