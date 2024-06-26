@@ -7,25 +7,19 @@
 import { Feature, FeatureCollection, Point } from 'geojson';
 import APIResponseBase from './APIResponseBase';
 
-export type NodesAPIResponseFormat = {
-    type: 'FeatureCollection';
-    features: Array<{
-        type: 'Feature';
-        id: number;
-        geometry: Point;
-        properties: {
-            id: string;
-            code: string;
-            name: string;
-            stops: Array<{
-                id: string;
-                code: string;
-                name: string;
-                geography: Point;
-            }>;
-        };
-    }>;
+type NodesAPIProperties = {
+    id: string;
+    code: string;
+    name: string;
+    stops: {
+        id: string;
+        code: string;
+        name: string;
+        geography: Point;
+    }[];
 };
+
+export type NodesAPIResponseFormat = FeatureCollection<Point, NodesAPIProperties>;
 
 export default class NodesAPIResponse extends APIResponseBase<NodesAPIResponseFormat, FeatureCollection<Point>> {
     protected createResponse(input: FeatureCollection<Point>): NodesAPIResponseFormat {
@@ -39,12 +33,13 @@ export default class NodesAPIResponse extends APIResponseBase<NodesAPIResponseFo
                     id: feature.properties!.id,
                     code: feature.properties!.code,
                     name: feature.properties!.name,
-                    stops: feature.properties!.data.stops.map((stop) => ({
-                        id: stop.id,
-                        code: stop.code,
-                        name: stop.name,
-                        geography: stop.geography
-                    }))
+                    stops:
+                        feature.properties!.data.stops?.map((stop) => ({
+                            id: stop.id,
+                            code: stop.code,
+                            name: stop.name,
+                            geography: stop.geography
+                        })) || []
                 }
             }))
         };
