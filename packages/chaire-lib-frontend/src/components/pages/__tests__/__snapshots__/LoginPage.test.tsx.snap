@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Login page rendering Allow forget password 1`] = `
-Array [
+[
   <form
     className="apptr__form apptr__form-auth"
     onKeyPress={[Function]}
@@ -74,7 +74,7 @@ Array [
     </div>
     <div
       className="center"
-      style={Object {}}
+      style={{}}
     >
       <button
         className="button green large"
@@ -103,7 +103,7 @@ Array [
 `;
 
 exports[`Login page rendering Allow registration 1`] = `
-Array [
+[
   <form
     className="apptr__form apptr__form-auth"
     onKeyPress={[Function]}
@@ -166,7 +166,7 @@ Array [
     </div>
     <div
       className="center"
-      style={Object {}}
+      style={{}}
     >
       <button
         className="button green large"
@@ -195,7 +195,7 @@ Array [
 `;
 
 exports[`Login page rendering Registration not allowed 1`] = `
-Array [
+[
   <form
     className="apptr__form apptr__form-auth"
     onKeyPress={[Function]}
@@ -258,7 +258,7 @@ Array [
     </div>
     <div
       className="center"
-      style={Object {}}
+      style={{}}
     >
       <button
         className="button green large"

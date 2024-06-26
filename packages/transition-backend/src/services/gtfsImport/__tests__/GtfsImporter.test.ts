@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import { mocked } from 'ts-jest/utils'
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import Line from 'transition-common/lib/services/line/Line';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
@@ -37,9 +36,9 @@ jest.mock('../../../models/db/transitPaths.db.queries');
  * */
 
 jest.mock('../PathImporter');
-const mockedPathImport = mocked(PathImporter.generateAndImportPaths, true);
+const mockedPathImport = jest.mocked(PathImporter.generateAndImportPaths, { shallow: true });
 jest.spyOn(ScheduleImporter, 'generateAndImportSchedules');
-const mockedScheduleImport = mocked(ScheduleImporter.generateAndImportSchedules, true);
+const mockedScheduleImport = jest.mocked(ScheduleImporter.generateAndImportSchedules, { shallow: true });
 
 LineCollection.prototype.loadFromServer = jest.fn();
 NodeCollection.prototype.loadFromServer = jest.fn();

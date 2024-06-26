@@ -8,7 +8,7 @@ exports[`All props 1`] = `
   name="SelectWidgetId"
   onChange={[MockFunction]}
   style={
-    Object {
+    {
       "overflow": "hidden",
       "textOverflow": "ellipsis",
       "whiteSpace": "nowrap",
@@ -56,7 +56,7 @@ exports[`Default props 1`] = `
   id="SelectWidgetId"
   name="SelectWidgetId"
   style={
-    Object {
+    {
       "overflow": "hidden",
       "textOverflow": "ellipsis",
       "whiteSpace": "nowrap",
@@ -79,7 +79,7 @@ exports[`Disabled 1`] = `
   name="SelectWidgetId"
   onChange={[MockFunction]}
   style={
-    Object {
+    {
       "overflow": "hidden",
       "textOverflow": "ellipsis",
       "whiteSpace": "nowrap",
@@ -101,7 +101,7 @@ exports[`With blank choice 1`] = `
   name="SelectWidgetId"
   onChange={[MockFunction]}
   style={
-    Object {
+    {
       "overflow": "hidden",
       "textOverflow": "ellipsis",
       "whiteSpace": "nowrap",

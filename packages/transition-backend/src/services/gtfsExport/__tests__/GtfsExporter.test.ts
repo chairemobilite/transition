@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import { mocked } from 'ts-jest/utils'
 
 import { exportGtfs } from '../GtfsExporter';
 import { exportStop } from '../StopExporter';
@@ -37,27 +36,27 @@ const paths = [uuidV4(), uuidV4(), uuidV4()];
 
 // Mock the export methods and return a success by default
 jest.mock('../AgencyExporter');
-const mockedAgencyExport = mocked(exportAgency, true);
+const mockedAgencyExport = jest.mocked(exportAgency, { shallow: true });
 mockedAgencyExport.mockResolvedValue({ status: 'success', lineIds: lines, agencyToGtfsId });
 
 jest.mock('../LineExporter');
-const mockedLineExport = mocked(exportLine, true);
+const mockedLineExport = jest.mocked(exportLine, { shallow: true });
 mockedLineExport.mockResolvedValue({ status: 'success', serviceIds });
 
 jest.mock('../ServiceExporter');
-const mockedServiceExport = mocked(exportService, true);
+const mockedServiceExport = jest.mocked(exportService, { shallow: true });
 mockedServiceExport.mockResolvedValue({ status: 'success', serviceToGtfsId });
 
 jest.mock('../ScheduleExporter');
-const mockedScheduleExport = mocked(exportSchedule, true);
+const mockedScheduleExport = jest.mocked(exportSchedule, { shallow: true });
 mockedScheduleExport.mockResolvedValue({ status: 'success', pathIds: paths, nodeIds: nodes });
 
 jest.mock('../StopExporter');
-const mockedStopExport = mocked(exportStop, true);
+const mockedStopExport = jest.mocked(exportStop, { shallow: true });
 mockedStopExport.mockResolvedValue({ status: 'success' });
 
 jest.mock('../PathExporter');
-const mockedPathExport = mocked(exportPath, true);
+const mockedPathExport = jest.mocked(exportPath, { shallow: true });
 mockedPathExport.mockResolvedValue({ status: 'success' });
 
 beforeEach(() => {

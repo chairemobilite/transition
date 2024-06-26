@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`All props 1`] = `
-Array [
+[
   <li
     className="_list _active"
     onClick={[MockFunction]}
@@ -59,7 +59,7 @@ Array [
 `;
 
 exports[`Flush action buttons 1`] = `
-Array [
+[
   <li
     className="_list _active"
     onClick={[MockFunction]}
@@ -117,7 +117,7 @@ Array [
 `;
 
 exports[`Flush action buttons, just delete 1`] = `
-Array [
+[
   <li
     className="_list _active"
   >
@@ -145,7 +145,7 @@ Array [
 `;
 
 exports[`Minimal props 1`] = `
-Array [
+[
   <li
     className="_list _active"
   >
@@ -158,7 +158,7 @@ Array [
 `;
 
 exports[`Not selected, with altText 1`] = `
-Array [
+[
   <li
     className="_list"
     onClick={[MockFunction]}

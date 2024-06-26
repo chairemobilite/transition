@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import { mocked } from 'ts-jest/utils'
+
 import { defaultInternalImportData, offsetStopTimes } from './GtfsImportData.test';
 import Line from 'transition-common/lib/services/line/Line';
 import Path from 'transition-common/lib/services/path/Path';
@@ -19,7 +19,7 @@ import pathsDbQueries from '../../../models/db/transitPaths.db.queries';
 jest.mock('../../../models/db/transitPaths.db.queries');
 
 jest.mock('../../path/PathGtfsGeographyGenerator');
-const mockedPathGeneration = mocked(generateGeographyAndSegmentsFromGtfs, true);
+const mockedPathGeneration = jest.mocked(generateGeographyAndSegmentsFromGtfs, { shallow: true });
 const setPathGeography = (path: Path, nodeIds: string[], gtfsShapeId: string) => {
     path.getAttributes().nodes = nodeIds;
     path.getAttributes().geography = {

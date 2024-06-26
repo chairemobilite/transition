@@ -15,7 +15,7 @@ exports[`All props 1`] = `
 `;
 
 exports[`Autocomplete choices 1`] = `
-Array [
+[
   <input
     id="StringWidgetId"
     list="datalist_for_StringWidgetId"
