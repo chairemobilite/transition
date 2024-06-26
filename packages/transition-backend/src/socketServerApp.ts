@@ -65,7 +65,8 @@ const setupSocketServerApp = async function (server, session) {
 
     const io = socketIO(server, {
         pingTimeout: 60000,
-        transports: ['websocket']
+        transports: ['websocket'],
+        maxHttpBufferSize: 1e8 // 100MB
     });
 
     // FIXME Call to restore unsecure behavior from socket.io < 2.4.0 (https://socket.io/blog/socket-io-2-4-0/). We should eventually pass to socket.io v3 and make sure the app is secure.
