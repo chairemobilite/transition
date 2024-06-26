@@ -4,19 +4,19 @@ exports[`Active section change 1`] = `
 <withI18nextTranslation(BottomPanel)
   activeSection="test"
   contributions={
-    Array [
-      Object {
+    [
+      {
         "create": [Function],
         "id": "testBottomPanel",
         "placement": "bottomPanel",
         "section": "test",
       },
-      Object {
+      {
         "create": [Function],
         "id": "mainBottomPanel",
         "placement": "bottomPanel",
       },
-      Object {
+      {
         "create": [Function],
         "id": "fooBottomPanel",
         "placement": "bottomPanel",
@@ -28,19 +28,19 @@ exports[`Active section change 1`] = `
   <BottomPanel
     activeSection="test"
     contributions={
-      Array [
-        Object {
+      [
+        {
           "create": [Function],
           "id": "testBottomPanel",
           "placement": "bottomPanel",
           "section": "test",
         },
-        Object {
+        {
           "create": [Function],
           "id": "mainBottomPanel",
           "placement": "bottomPanel",
         },
-        Object {
+        {
           "create": [Function],
           "id": "fooBottomPanel",
           "placement": "bottomPanel",
@@ -48,7 +48,7 @@ exports[`Active section change 1`] = `
         },
       ]
     }
-    i18n={Object {}}
+    i18n={{}}
     t={[Function]}
     tReady={false}
   >
@@ -70,19 +70,19 @@ exports[`Active section change 2`] = `
 <withI18nextTranslation(BottomPanel)
   activeSection="other"
   contributions={
-    Array [
-      Object {
+    [
+      {
         "create": [Function],
         "id": "testBottomPanel",
         "placement": "bottomPanel",
         "section": "test",
       },
-      Object {
+      {
         "create": [Function],
         "id": "mainBottomPanel",
         "placement": "bottomPanel",
       },
-      Object {
+      {
         "create": [Function],
         "id": "fooBottomPanel",
         "placement": "bottomPanel",
@@ -94,19 +94,19 @@ exports[`Active section change 2`] = `
   <BottomPanel
     activeSection="other"
     contributions={
-      Array [
-        Object {
+      [
+        {
           "create": [Function],
           "id": "testBottomPanel",
           "placement": "bottomPanel",
           "section": "test",
         },
-        Object {
+        {
           "create": [Function],
           "id": "mainBottomPanel",
           "placement": "bottomPanel",
         },
-        Object {
+        {
           "create": [Function],
           "id": "fooBottomPanel",
           "placement": "bottomPanel",
@@ -114,7 +114,7 @@ exports[`Active section change 2`] = `
         },
       ]
     }
-    i18n={Object {}}
+    i18n={{}}
     t={[Function]}
     tReady={false}
   >
@@ -151,7 +151,7 @@ exports[`One active section with contribution and props 1`] = `
   </div>
   <div
     activeSection="foo"
-    i18n={Object {}}
+    i18n={{}}
     t={[Function]}
     tReady={false}
   >

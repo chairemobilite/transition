@@ -4,7 +4,7 @@ exports[`Should correctly render Unauthorized page 1`] = `
 <BrowserRouter>
   <Router
     history={
-      Object {
+      {
         "action": "POP",
         "block": [Function],
         "createHref": [Function],
@@ -13,7 +13,7 @@ exports[`Should correctly render Unauthorized page 1`] = `
         "goForward": [Function],
         "length": 1,
         "listen": [Function],
-        "location": Object {
+        "location": {
           "hash": "",
           "pathname": "/",
           "search": "",
@@ -26,7 +26,7 @@ exports[`Should correctly render Unauthorized page 1`] = `
   >
     <withI18nextTranslation(UnauthorizedPage)>
       <UnauthorizedPage
-        i18n={Object {}}
+        i18n={{}}
         t={[Function]}
         tReady={false}
       >

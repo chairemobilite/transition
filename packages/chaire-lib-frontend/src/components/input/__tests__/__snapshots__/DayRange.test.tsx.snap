@@ -16,7 +16,7 @@ exports[`All props 1`] = `
       name="DayRangeWidgetId_periodGroup"
       onChange={[Function]}
       style={
-        Object {
+        {
           "overflow": "hidden",
           "textOverflow": "ellipsis",
           "whiteSpace": "nowrap",
@@ -189,7 +189,7 @@ exports[`Disabled 1`] = `
       name="DayRangeWidgetId_periodGroup"
       onChange={[Function]}
       style={
-        Object {
+        {
           "overflow": "hidden",
           "textOverflow": "ellipsis",
           "whiteSpace": "nowrap",

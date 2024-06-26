@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { EventEmitter } from 'events';
-import { mocked } from 'ts-jest/utils'
 
 import gtfsRoutes from '../gtfs.socketRoutes';
 import { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
@@ -22,7 +21,7 @@ gtfsRoutes(socketStub, userId);
 // Set up mocks
 const mockGtfsImport = GtfsImporter.importGtfsData = jest.fn() as jest.MockedFunction<typeof GtfsImporter.importGtfsData>;
 jest.mock('../../services/gtfsExport/GtfsExporter');
-const mockedGtfsExport = mocked(exportGtfs, true);
+const mockedGtfsExport = jest.mocked(exportGtfs, { shallow: true });
 
 describe('GTFS data import', () => {
 

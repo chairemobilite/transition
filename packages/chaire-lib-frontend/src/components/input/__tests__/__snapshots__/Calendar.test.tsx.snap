@@ -4,14 +4,14 @@ exports[`All props 1`] = `
 <div
   className="apptr__form-input-container"
   style={
-    Object {
+    {
       "flexWrap": "wrap",
     }
   }
 >
   <div
     style={
-      Object {
+      {
         "display": "inline-flex",
       }
     }
@@ -21,7 +21,7 @@ exports[`All props 1`] = `
       id="CalendarWidgetId_startDate"
       onClick={[Function]}
       style={
-        Object {
+        {
           "cursor": "context-menu",
           "textAlign": "center",
           "width": "auto",
@@ -35,7 +35,7 @@ exports[`All props 1`] = `
       id="CalendarWidgetId_endDate"
       onClick={[Function]}
       style={
-        Object {
+        {
           "cursor": "context-menu",
           "textAlign": "center",
           "width": "auto",
@@ -47,7 +47,7 @@ exports[`All props 1`] = `
   </div>
   <div
     style={
-      Object {
+      {
         "width": "-webkit-fill-available",
       }
     }
@@ -1673,14 +1673,14 @@ exports[`Disabled 1`] = `
 <div
   className="apptr__form-input-container"
   style={
-    Object {
+    {
       "flexWrap": "wrap",
     }
   }
 >
   <div
     style={
-      Object {
+      {
         "display": "inline-flex",
       }
     }
@@ -1690,7 +1690,7 @@ exports[`Disabled 1`] = `
       id="CalendarWidgetId_startDate"
       onClick={[Function]}
       style={
-        Object {
+        {
           "cursor": "context-menu",
           "textAlign": "center",
           "width": "auto",
@@ -1704,7 +1704,7 @@ exports[`Disabled 1`] = `
       id="CalendarWidgetId_endDate"
       onClick={[Function]}
       style={
-        Object {
+        {
           "cursor": "context-menu",
           "textAlign": "center",
           "width": "auto",
@@ -1721,14 +1721,14 @@ exports[`Localization 1`] = `
 <div
   className="apptr__form-input-container"
   style={
-    Object {
+    {
       "flexWrap": "wrap",
     }
   }
 >
   <div
     style={
-      Object {
+      {
         "display": "inline-flex",
       }
     }
@@ -1738,7 +1738,7 @@ exports[`Localization 1`] = `
       id="CalendarWidgetId_startDate"
       onClick={[Function]}
       style={
-        Object {
+        {
           "cursor": "context-menu",
           "textAlign": "center",
           "width": "auto",
@@ -1752,7 +1752,7 @@ exports[`Localization 1`] = `
       id="CalendarWidgetId_endDate"
       onClick={[Function]}
       style={
-        Object {
+        {
           "cursor": "context-menu",
           "textAlign": "center",
           "width": "auto",
@@ -1764,7 +1764,7 @@ exports[`Localization 1`] = `
   </div>
   <div
     style={
-      Object {
+      {
         "width": "-webkit-fill-available",
       }
     }
