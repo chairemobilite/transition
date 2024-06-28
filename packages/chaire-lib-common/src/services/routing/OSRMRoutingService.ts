@@ -101,7 +101,7 @@ export default class OSRMRoutingService extends RoutingService.default {
     }
 
     private async callOsrmMap(
-        params: OSRMRoutingAPI.transitionMatchOptions
+        params: OSRMRoutingAPI.TransitionMatchOptions
     ): Promise<Status.Status<osrm.MatchResults>> {
         //console.log("osrm params", params);
         return new Promise((resolve) => {
@@ -117,7 +117,7 @@ export default class OSRMRoutingService extends RoutingService.default {
     }
 
     private async callOsrmRoute(
-        params: OSRMRoutingAPI.transitionRouteOptions
+        params: OSRMRoutingAPI.TransitionRouteOptions
     ): Promise<Status.Status<osrm.RouteResults>> {
         //console.log("osrm params", params);
         return new Promise((resolve) => {
@@ -182,7 +182,7 @@ export default class OSRMRoutingService extends RoutingService.default {
         return this.processMapMatchingResult(routingResult);
     }
 
-    public async route(params: RoutingService.MapMatchParameters): Promise<RoutingService.RouteResults> {
+    public async route(params: RoutingService.RouteParameters): Promise<RoutingService.RouteResults> {
         const routingResult = await this.callOsrmRoute({
             mode: params.mode,
             points: params.points.features,
@@ -192,7 +192,8 @@ export default class OSRMRoutingService extends RoutingService.default {
             // gaps      : 'ignore',
             continue_straight:
                 // TODO: Migrate this value from preferences to config like the osrm modes. See issue #1140
-                Preferences.current.osrmRouting.useContinueStraightForMapMatching === true ? true : undefined // see comment in chaire-lib-common/lib/config/defaultPreferences.config.js
+                Preferences.current.osrmRouting.useContinueStraightForMapMatching === true ? true : undefined, // see comment in chaire-lib-common/lib/config/defaultPreferences.config.js
+            withAlternatives: params.withAlternatives === true ? true : false
         });
         return this.processRoutingResult(routingResult);
     }

@@ -9,17 +9,16 @@ import serviceLocator from '../../../utils/ServiceLocator';
 import TestUtils from '../../../test/TestUtils';
 import { EventEmitter } from 'events';
 import * as Status from '../../../utils/Status';
+import { TripRoutingQueryAttributes } from '../types';
 
-
-let eventManager;
-let routingService;
+// Setup a fresh routingService and eventManager for each tests
+const routingService = new OSRMRoutingService();
+const eventManager = new EventEmitter();
+serviceLocator.socketEventManager = eventManager;
 
 beforeEach(() => {
-    // Setup a fresh routingService and eventManager for each tests
-    routingService = new OSRMRoutingService();
-    eventManager = new EventEmitter();
-    serviceLocator.socketEventManager = eventManager;
-    
+    jest.clearAllMocks();
+    eventManager.removeAllListeners();
 });
 
 test('Table from', async () => {
@@ -87,13 +86,11 @@ test('Route', async () => {
     const mockRoute = jest.fn().mockImplementation((params, callback) => callback(Status.createOk(osrmResponse)));
     eventManager.on('service.osrmRouting.route', mockRoute);
     
-
-    const routeResult = await routingService.route({mode: 'walking', points: { type: 'FeatureCollection', features: stubPlaces}});
+    const routeResult = await routingService.route({ mode: 'walking', points: { type: 'FeatureCollection', features: stubPlaces}, withAlternatives: true });
     expect(mockRoute).toHaveBeenCalledTimes(1);
-    expect(mockRoute).toHaveBeenCalledWith({mode: 'walking', points: stubPlaces, annotations: true, steps: false, continue_straight: undefined, overview: "full", }, expect.anything())
+    expect(mockRoute).toHaveBeenCalledWith({mode: 'walking', points: stubPlaces, annotations: true, steps: false, continue_straight: undefined, overview: "full", withAlternatives: true }, expect.any(Function))
     expect(routeResult).toEqual(expectedResponse);
 });
-
 
 test('Route fail', async () => {
 
@@ -109,7 +106,7 @@ test('Route fail', async () => {
         haveThrown = true;
     }
     expect(mockRoute).toHaveBeenCalledTimes(1);
-    expect(mockRoute).toHaveBeenCalledWith({mode: 'walking', points: stubPlaces, annotations: true, steps: false, continue_straight: undefined, overview: "full", }, expect.anything())
+    expect(mockRoute).toHaveBeenCalledWith({ mode: 'walking', points: stubPlaces, annotations: true, steps: false, continue_straight: undefined, overview: "full", withAlternatives: false }, expect.any(Function))
     expect(routeResult).toBeUndefined();
     expect(haveThrown).toBe(true);
 });

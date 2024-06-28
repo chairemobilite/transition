@@ -7,6 +7,7 @@
 import * as RoutingService from './RoutingService';
 import * as turf from '@turf/turf';
 import _cloneDeep from 'lodash/cloneDeep';
+import { TripRoutingQueryAttributes } from './types';
 
 /**
  * This class provides routing services using manual routing. This mode will always return return results
@@ -82,7 +83,7 @@ export default class ManualRoutingService extends RoutingService.default {
         return this.routeToMapResults(routingResult);
     }
 
-    public async route(params: RoutingService.MapMatchParameters): Promise<RoutingService.RouteResults> {
+    public async route(params: RoutingService.RouteParameters): Promise<RoutingService.RouteResults> {
         const routingResult = await this.directRouting(params.points.features, params.defaultRunningSpeed, true);
 
         return routingResult;

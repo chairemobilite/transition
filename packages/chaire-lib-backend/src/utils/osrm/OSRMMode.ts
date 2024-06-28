@@ -13,7 +13,7 @@ import osrm from 'osrm'; // Types from the osrm API definition see https://githu
 
 import * as RoutingService from 'chaire-lib-common/lib/services/routing/RoutingService';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { transitionRouteOptions, transitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
+import { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
 
 //TODO replace this fetch-retry library with one compatible with TS
 const fetch = require('@zeit/fetch-retry')(require('node-fetch'));
@@ -66,14 +66,14 @@ class OSRMMode {
         }
     }
 
-    public async route(params: transitionRouteOptions): Promise<Status.Status<osrm.RouteResults>> {
+    public async route(params: TransitionRouteOptions): Promise<Status.Status<osrm.RouteResults>> {
         this.validateParamMode(params.mode);
         //TODO validate that points is not empty?? Does it make sense ?
 
         // Fill in default values if they are not defined
         const parameters = _merge(
             {
-                alternatives: false,
+                alternatives: params?.withAlternatives === true ? true : false,
                 steps: false,
                 annotations: false, // use "nodes" to get all osm nodes ids
                 geometries: 'geojson',
@@ -102,7 +102,7 @@ class OSRMMode {
         }
     }
 
-    public async match(params: transitionMatchOptions): Promise<Status.Status<osrm.MatchResults>> {
+    public async match(params: TransitionMatchOptions): Promise<Status.Status<osrm.MatchResults>> {
         this.validateParamMode(params.mode);
 
         //TODO validate that points is not empty?? Does it make sense ?
