@@ -110,7 +110,7 @@ const getDefaultGeojsonPolygon = (locationColor) =>
             type: 'MultiPolygon',
             coordinates: []
         }
-    } as Feature<MultiPolygon>);
+    }) as Feature<MultiPolygon>;
 
 export class TransitAccessibilityMapCalculator {
     private static generateQuery(

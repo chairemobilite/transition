@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-/* eslint-disable node/no-unpublished-require */
+/* eslint-disable n/no-unpublished-require */
 const baseConfig = require('../../tests/jest.config.base');
 
 // Run the db and integration tests

@@ -26,7 +26,7 @@ export const dataSourceTypesArray = [
     'places'
 ] as const;
 
-export type DataSourceType = typeof dataSourceTypesArray[number];
+export type DataSourceType = (typeof dataSourceTypesArray)[number];
 
 export interface DataSourceAttributes extends GenericAttributes {
     type: DataSourceType;

@@ -10,7 +10,7 @@ import { toXXhrYYminZZsec } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 
 const destinationUnitOptions = ['hrMinSec', 's', 'm', 'h'] as const;
-type destinationUnitOptionsType = typeof destinationUnitOptions[number];
+type destinationUnitOptionsType = (typeof destinationUnitOptions)[number];
 
 export interface DurationUnitFormatterProps extends WithTranslation {
     value: number;

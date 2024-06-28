@@ -26,7 +26,10 @@ const landRoleFieldMapping = {
 class PlaceStream {
     private _currentPointPos = 0;
     private _currentCount = 0;
-    constructor(private pointArray: GeoJSON.Feature[], private countFunction: (feature: GeoJSON.Feature) => number) {
+    constructor(
+        private pointArray: GeoJSON.Feature[],
+        private countFunction: (feature: GeoJSON.Feature) => number
+    ) {
         /* nothing to do */
     }
 

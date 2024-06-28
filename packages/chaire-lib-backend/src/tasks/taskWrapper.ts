@@ -9,7 +9,7 @@ import '../config/dotenv.config';
 // Just make sure the config is initialized in the task, so tasks that are in common workspaces can have the right config
 import '../config/server.config';
 // The inspector feature does not have a version, it says "(none yet)" so eslint complained, disabling this rule
-// eslint-disable-next-line node/no-unsupported-features/node-builtins
+// eslint-disable-next-line n/no-unsupported-features/node-builtins
 import Inspector from 'inspector';
 import moment from 'moment';
 import yargs from 'yargs/yargs';

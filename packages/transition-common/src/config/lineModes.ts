@@ -26,7 +26,7 @@ export const lineModesArray = [
 ] as const;
 
 /** An enumeration of line modes */
-export type LineMode = typeof lineModesArray[number];
+export type LineMode = (typeof lineModesArray)[number];
 
 export default [
     {

@@ -36,7 +36,10 @@ export const evolutionaryAlgorithmFactory: SimulationAlgorithmFactory<EvolutionA
 export class EvolutionaryAlgorithm implements SimulationAlgorithm<EvolutionAlgorithmOptions> {
     private currentIteration = 1;
 
-    constructor(private options: EvolutionAlgorithmOptions, private simulationRun: SimulationRun) {
+    constructor(
+        private options: EvolutionAlgorithmOptions,
+        private simulationRun: SimulationRun
+    ) {
         // Nothing to do
     }
 

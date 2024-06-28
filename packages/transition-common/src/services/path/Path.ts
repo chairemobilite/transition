@@ -55,7 +55,7 @@ export interface TimeAndDistance {
 }
 
 export const pathDirectionArray = ['loop', 'outbound', 'inbound', 'other'] as const;
-export type PathDirection = typeof pathDirectionArray[number];
+export type PathDirection = (typeof pathDirectionArray)[number];
 
 export interface PathAttributesData {
     defaultLayoverRatioOverTotalTravelTime?: number;

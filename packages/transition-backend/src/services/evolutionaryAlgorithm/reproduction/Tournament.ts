@@ -14,7 +14,10 @@ import * as AlgoTypes from '../internalTypes';
  * see https://en.wikipedia.org/wiki/Tournament_selection
  */
 class Tournament {
-    constructor(private options: AlgoTypes.RuntimeAlgorithmData, private candidates: NetworkCandidate[]) {
+    constructor(
+        private options: AlgoTypes.RuntimeAlgorithmData,
+        private candidates: NetworkCandidate[]
+    ) {
         // Nothing to do
     }
 

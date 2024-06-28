@@ -26,7 +26,7 @@ export const categories = [
 ] as const;
 
 /** An enumeration of amenities categories */
-export type PlaceCategory = typeof categories[number];
+export type PlaceCategory = (typeof categories)[number];
 
 export const detailedCategoryToCategory = {
     conference_center: 'service',
@@ -108,4 +108,4 @@ export const detailedCategoryToCategory = {
 };
 
 export const detailedCategories = Object.keys(detailedCategoryToCategory);
-export type PlaceDetailedCategory = typeof detailedCategories[number];
+export type PlaceDetailedCategory = (typeof detailedCategories)[number];
