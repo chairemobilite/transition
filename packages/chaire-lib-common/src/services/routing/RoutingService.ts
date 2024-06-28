@@ -6,7 +6,9 @@
  */
 import GeoJSON from 'geojson';
 import { RoutingMode } from '../../config/routingModes';
+import { TripRoutingQueryAttributes } from './types';
 
+// FIXME Make sure these parameters are those that apply to map matching as the name implies
 export interface MapMatchParameters {
     mode: RoutingMode;
     /**
@@ -20,6 +22,23 @@ export interface MapMatchParameters {
     showSteps?: boolean;
     annotations?: boolean;
     overview?: string;
+}
+
+// FIXME See if those parameters can/should be merged with TripRoutingQueryAttributes, using this one instead
+export interface RouteParameters {
+    mode: RoutingMode;
+    /**
+     * The collection of features by which the path should pass.
+     */
+    points: GeoJSON.FeatureCollection<GeoJSON.Point>;
+    defaultRunningSpeed?: number | undefined | null; // we need default running speed for manual routing
+    /**
+     * Whether to return steps for each route
+     */
+    showSteps?: boolean;
+    annotations?: boolean;
+    overview?: string;
+    withAlternatives?: boolean;
 }
 
 export interface TableFromParameters {
@@ -117,10 +136,10 @@ export interface RoutingService {
      * The array of 'points' parameter can contain all the features in the
      * route. Various implementations may use them differently.
      *
-     * @param params
+     * @param params The query parameters.
      * @returns Route matching result
      */
-    route(params: MapMatchParameters): Promise<RouteResults>;
+    route(params: RouteParameters): Promise<RouteResults>;
 
     /**
      * Compute the durations and distances of the fastest route between the

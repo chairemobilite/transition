@@ -18,6 +18,7 @@ import { ExecutableJob } from '../../services/executableJob/ExecutableJob';
 import jobsDbQueries from '../../models/db/jobs.db.queries';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import { TransitAccessibilityMapCalculator } from '../../services/accessibilityMap/TransitAccessibilityMapCalculator';
+import { TripRoutingQueryAttributes } from 'chaire-lib-common/src/services/routing/types';
 
 const socketStub = new EventEmitter();
 routes(socketStub, 1);
@@ -74,7 +75,8 @@ describe('osrm service routes', () => {
     // Route and match parameters are the same here for this test
     const routeParameters = {
         mode: 'walking',
-        points: [TestUtils.makePoint([-73, 45]), TestUtils.makePoint([ -73.1, 45.1 ])]
+        points: [TestUtils.makePoint([-73, 45]), TestUtils.makePoint([ -73.1, 45.1 ])],
+        withAlternatives: true
     };
 
     test('Route correctly', (done) => {

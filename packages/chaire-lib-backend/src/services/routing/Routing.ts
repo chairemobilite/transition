@@ -107,7 +107,7 @@ const calculateRoute = async (
     routingMode: RoutingMode
 ): Promise<RouteResults> => {
     // FIXME This code path will use a fake socket route to do the calculation. Move this code to the backend too
-    return await getRouteByMode(od[0], od[1], routingMode);
+    return await getRouteByMode(od[0], od[1], routingMode, routingAttributes);
 };
 
 export class Routing {

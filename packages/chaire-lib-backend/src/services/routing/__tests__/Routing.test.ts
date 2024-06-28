@@ -88,7 +88,7 @@ describe('Routing Calculations', () => {
 
         expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
         expect(mockGetRouteByMode).toHaveBeenCalledTimes(1);
-        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking', attributes);
 
         expect(Object.keys(result)).toEqual(['transit', 'walking']);
         const transitResult = result['transit'] as TransitRoutingResultData;
@@ -115,7 +115,7 @@ describe('Routing Calculations', () => {
 
         expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
         expect(mockGetRouteByMode).toHaveBeenCalledTimes(1);
-        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking', attributes);
 
         expect(Object.keys(result)).toEqual(['transit', 'walking']);
         const transitResult = result['transit'] as TransitRoutingResultData;
@@ -146,7 +146,7 @@ describe('Routing Calculations', () => {
 
         expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
         expect(mockGetRouteByMode).toHaveBeenCalledTimes(1);
-        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking', attributes);
 
         expect(transitResult.paths.length).toEqual(1);
 
@@ -175,7 +175,7 @@ describe('Routing Calculations', () => {
 
         expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
         expect(mockGetRouteByMode).toHaveBeenCalledTimes(1);
-        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking', attributes);
 
         expect(transitResult.paths.length).toEqual(2);
 
@@ -192,7 +192,7 @@ describe('Routing Calculations', () => {
 
         expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
         expect(mockGetRouteByMode).toHaveBeenCalledTimes(1);
-        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking', attributes);
 
         expect(Object.keys(result)).toEqual(['transit', 'walking']);
         const transitResult = result['transit'] as TransitRoutingResultData;
@@ -214,9 +214,9 @@ describe('Routing Calculations', () => {
 
         expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
         expect(mockGetRouteByMode).toHaveBeenCalledTimes(3);
-        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
-        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'cycling');
-        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'rail');
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking', attributes);
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'cycling', attributes);
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'rail', attributes);
 
         expect(Object.keys(result)).toEqual(routingModes);
         for (let i = 0; i < routingModes.length; i++) {
@@ -237,9 +237,9 @@ describe('Routing Calculations', () => {
 
         expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
         expect(mockGetRouteByMode).toHaveBeenCalledTimes(3);
-        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
-        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'cycling');
-        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'rail');
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking', attributes);
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'cycling', attributes);
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'rail', attributes);
 
         expect(Object.keys(result)).toEqual(routingModes);
         for (let i = 0; i < routingModes.length; i++) {

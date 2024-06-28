@@ -15,7 +15,7 @@ import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManager
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import osrmService from 'chaire-lib-backend/lib/utils/osrm/OSRMService';
 import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
-import { transitionRouteOptions, transitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
+import { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import {
     TransitBatchRoutingDemandAttributes,
@@ -47,7 +47,7 @@ export default function (socket: EventEmitter, userId?: number) {
 
     socket.on(
         'service.osrmRouting.route',
-        async (parameters: transitionRouteOptions, callback: (status: Status.Status<osrm.RouteResults>) => void) => {
+        async (parameters: TransitionRouteOptions, callback: (status: Status.Status<osrm.RouteResults>) => void) => {
             try {
                 const routingResults = await osrmService.route(parameters);
                 callback(routingResults);
@@ -81,7 +81,7 @@ export default function (socket: EventEmitter, userId?: number) {
     // TODO: Better type the match method and the status in the callback (see PR #1719)
     socket.on(
         'service.osrmRouting.match',
-        async (parameters: transitionMatchOptions, callback: (status: unknown) => void) => {
+        async (parameters: TransitionMatchOptions, callback: (status: unknown) => void) => {
             try {
                 const routingResults = await osrmService.match(parameters);
                 callback(routingResults);
