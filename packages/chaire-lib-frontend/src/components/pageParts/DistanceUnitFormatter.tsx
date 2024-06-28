@@ -10,7 +10,7 @@ import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import { metersToMiles, metersToFeet } from 'chaire-lib-common/lib/utils/PhysicsUtils';
 
 const destinationUnitOptions = ['km', 'm', 'mi', 'ft'] as const;
-type destinationUnitOptionsType = typeof destinationUnitOptions[number];
+type destinationUnitOptionsType = (typeof destinationUnitOptions)[number];
 
 export interface DistanceUnitFormatterProps extends WithTranslation {
     value: number;

@@ -10,7 +10,7 @@ const globalEvents = ['progress', 'progressCount', 'executableJob.updated'] as c
 
 /** An enumeration of events that all clients registered for a given user will
  * be notified of, if using this event emitter */
-export type GlobalEvents = typeof globalEvents[number];
+export type GlobalEvents = (typeof globalEvents)[number];
 
 class ClientEventManager {
     private _socketsByUser: {

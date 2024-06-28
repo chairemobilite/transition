@@ -18,7 +18,10 @@ import { IAuthModel, IUserModel } from './authModel';
 class PwdLessDirectSignupStrategy<A> {
     name = 'pwdlessdirectsignup';
 
-    constructor(private _magicLoginStrategy: MagicLoginStrategy, private authModel: IAuthModel<IUserModel>) {
+    constructor(
+        private _magicLoginStrategy: MagicLoginStrategy,
+        private authModel: IAuthModel<IUserModel>
+    ) {
         // Nothing to do
     }
 

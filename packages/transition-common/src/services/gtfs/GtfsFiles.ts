@@ -28,7 +28,7 @@ export const GtfsFileType = [
     'attributions'
 ];
 
-export const gtfsFiles: { [key: typeof GtfsFileType[number]]: FileDescription } = {
+export const gtfsFiles: { [key: (typeof GtfsFileType)[number]]: FileDescription } = {
     agency: {
         name: 'agency.txt',
         required: 'yes'

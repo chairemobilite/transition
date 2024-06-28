@@ -1,3 +1,6 @@
 {
-  "extends": "../../configs/base.eslintrc.json"
+  "extends": "../../configs/base.eslintrc.json",
+  "rules": {
+    "n/no-process-exit": "off" // Tasks need to use process.exit() (or needed?), throw, as suggested, keeps the process running
+  }
 }

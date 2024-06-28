@@ -112,14 +112,13 @@ export type SingleRouteResult = {
     steps: TripStep[];
 };
 
-export type TripStepWalking =
-    | {
-          action: 'walking';
-          travelTime: number;
-          distance: number;
-          departureTime: number;
-          arrivalTime: number;
-      } & ({ type: 'egress' } | { type: 'access' | 'transfer'; readyToBoardAt: number });
+export type TripStepWalking = {
+    action: 'walking';
+    travelTime: number;
+    distance: number;
+    departureTime: number;
+    arrivalTime: number;
+} & ({ type: 'egress' } | { type: 'access' | 'transfer'; readyToBoardAt: number });
 
 export type TripStepEnterOrExit = {
     agencyAcronym: string;

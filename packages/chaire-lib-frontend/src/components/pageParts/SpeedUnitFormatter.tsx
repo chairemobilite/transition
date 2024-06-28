@@ -10,7 +10,7 @@ import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import { mpsToKph, mpsToMph, mpsToFtps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
 
 const destinationUnitOptions = ['km/h', 'm/s', 'mph', 'ft/s'] as const;
-type destinationUnitOptionsType = typeof destinationUnitOptions[number];
+type destinationUnitOptionsType = (typeof destinationUnitOptions)[number];
 
 export interface SpeedUnitFormatterProps extends WithTranslation {
     value: number;

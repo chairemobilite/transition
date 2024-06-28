@@ -28,7 +28,11 @@ export class CheckpointTracker {
      * @param currentCheckpoint If resuming a task, this is the last checkpoint
      * that was registered in previous run
      */
-    constructor(private chunkSize: number, private progressEmitter: EventEmitter, currentCheckpoint = 0) {
+    constructor(
+        private chunkSize: number,
+        private progressEmitter: EventEmitter,
+        currentCheckpoint = 0
+    ) {
         this.lastCheckpointIdx = Math.floor(currentCheckpoint / chunkSize) - 1;
         // Add items to the last checkpoint, in case the chunk size is not a multiple of the current checkpoint
         const lastChunkItems = currentCheckpoint % chunkSize;

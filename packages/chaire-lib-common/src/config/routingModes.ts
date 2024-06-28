@@ -23,7 +23,7 @@ export const routingModes = [
 ] as const;
 
 /** An enumeration of modes that can be routed */
-export type RoutingMode = typeof routingModes[number];
+export type RoutingMode = (typeof routingModes)[number];
 
 /** A type for the transit mode */
 export type TransitMode = 'transit';
