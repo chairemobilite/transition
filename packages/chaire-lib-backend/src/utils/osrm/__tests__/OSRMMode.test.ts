@@ -78,7 +78,7 @@ describe('OSRM Mode tests', function() {
         let params = {mode: 'walking' as const,
                       points: [origin, destination1] };
 
-        fetchMock.mockOnce('{ "status"');
+        fetchMock.mockOnce('{ "status":');
          await expect(aMode.route(params)).rejects.toThrow('invalid json response body at  reason: Unexpected end of JSON input');
          
      });
