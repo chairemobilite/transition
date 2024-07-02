@@ -30,7 +30,7 @@ export interface ConfirmModalProps extends WithTranslation {
 export class ConfirmModal extends React.Component<ConfirmModalProps> {
     constructor(props) {
         super(props);
-        if (process.env.NODE_ENV !== 'test') {
+        if (!process.env.IS_TESTING) {
             Modal.setAppElement('#app');
         }
     }
