@@ -12,6 +12,7 @@ https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/osrm/index.
 */
 
 import { RoutingMode } from '../config/routingModes';
+import { TripRoutingQueryAttributes } from '../services/routing/types';
 
 export interface transitionMatchOptions extends osrm.MatchOptions {
     mode: RoutingMode;
@@ -21,4 +22,5 @@ export interface transitionMatchOptions extends osrm.MatchOptions {
 export interface transitionRouteOptions extends osrm.RouteOptions {
     mode: RoutingMode;
     points: GeoJSON.Feature<GeoJSON.Point>[];
+    routingAttributes?: TripRoutingQueryAttributes;
 }

@@ -18,6 +18,7 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { ExecutableJob } from '../../services/executableJob/ExecutableJob';
 import jobsDbQueries from '../../models/db/jobs.db.queries';
 import Users from 'chaire-lib-backend/lib/services/users/users';
+import { TripRoutingQueryAttributes } from 'chaire-lib-common/src/services/routing/types';
 
 const socketStub = new EventEmitter();
 routes(socketStub, 1);
@@ -97,8 +98,28 @@ describe('osrm service routes', () => {
 
     test('Route correctly', (done) => {
         mockedRoute.mockResolvedValueOnce(Status.createOk({ routes: [], waypoints: [] }));
-        socketStub.emit('service.osrmRouting.route', routeParameters, (status) => {
-            expect(mockedRoute).toHaveBeenCalledWith(routeParameters);
+        socketStub.emit('service.osrmRouting.route', routeParameters, undefined, (status) => {
+            expect(mockedRoute).toHaveBeenCalledWith(routeParameters, undefined);
+            expect(Status.isStatusOk(status)).toBe(true);
+            expect(Status.unwrap(status)).toEqual({
+                routes: [], waypoints: []
+            });
+            done();
+        });
+    });
+
+    test('Route correctly with routing attributes', (done) => {
+        const routingAttributes: TripRoutingQueryAttributes = {
+            routingModes: ['walking'],
+            withAlternatives: true,
+            timeSecondsSinceMidnight: 0,
+            timeType: 'arrival',
+            originGeojson: routeParameters.points[0],
+            destinationGeojson: routeParameters.points[1]
+        };
+        mockedRoute.mockResolvedValueOnce(Status.createOk({ routes: [], waypoints: [] }));
+        socketStub.emit('service.osrmRouting.route', routeParameters, routingAttributes, (status) => {
+            expect(mockedRoute).toHaveBeenCalledWith(routeParameters, routingAttributes);
             expect(Status.isStatusOk(status)).toBe(true);
             expect(Status.unwrap(status)).toEqual({
                 routes: [], waypoints: []
@@ -113,8 +134,8 @@ describe('osrm service routes', () => {
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
         mockedRoute.mockRejectedValueOnce(error);
-        socketStub.emit('service.osrmRouting.route', routeParameters, function (status) {
-            expect(mockedRoute).toHaveBeenCalledWith(routeParameters);
+        socketStub.emit('service.osrmRouting.route', routeParameters, undefined, function (status) {
+            expect(mockedRoute).toHaveBeenCalledWith(routeParameters, undefined);
             expect(!Status.isStatusOk(status)).toBe(true);
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual(message);
