@@ -19,7 +19,6 @@ import favicon from 'serve-favicon';
 import expressSession from 'express-session';
 import KnexConnection from 'connect-session-knex';
 import morgan from 'morgan'; // http logger
-import requestIp from 'request-ip';
 import authRoutes from 'chaire-lib-backend/lib/api/auth.routes';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { UserAttributes } from 'chaire-lib-backend/lib/services/users/user';
@@ -90,7 +89,6 @@ export const setupServer = (app: Express) => {
     app.use(express.json({ limit: '500mb' }) as RequestHandler);
     app.use(express.urlencoded({ limit: '500mb', extended: true }) as RequestHandler);
     app.use(session);
-    app.use(requestIp.mw()); // to get users ip addresses
     app.use(favicon(path.join(publicDirectory, 'favicon.ico')));
     app.use(passport.initialize());
     app.use(passport.session());
