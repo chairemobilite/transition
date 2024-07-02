@@ -326,6 +326,8 @@ class TrRoutingBatch {
 
             // Because of cancellation, we need to make sure processes are stopped before restarting
             await TrRoutingProcessManager.stopBatch();
+            // TODO Instead of handling port number everywhere, this (or a wrapper), should return
+            // and instance which represent the TrRouting instance, like the OSRMMode for OSRM
             const startStatus = await TrRoutingProcessManager.startBatch(trRoutingInstancesCount);
             const trRoutingPort = startStatus.port;
             console.log('trRouting multiple startStatus', startStatus);

@@ -65,6 +65,7 @@ export type TripRoutingQueryAttributes = TransitRoutingQueryAttributes & {
     originGeojson: GeoJSON.Feature<GeoJSON.Point>;
     destinationGeojson: GeoJSON.Feature<GeoJSON.Point>;
     waypoints?: GeoJSON.Feature<GeoJSON.Point>[];
+    routingPort?: number; // Added by batch calculation and custom advanced field //TODO should be reworked
 };
 
 /**
