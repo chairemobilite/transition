@@ -32,6 +32,7 @@ import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 import { fileKey } from 'transition-common/lib/services/jobs/Job';
+import { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
 // TODO The socket routes should validate parameters as even typescript cannot guarantee the types over the network
 // TODO Add more unit tests as the called methods are cleaned up
@@ -46,9 +47,13 @@ export default function (socket: EventEmitter, userId?: number) {
 
     socket.on(
         'service.osrmRouting.route',
-        async (parameters: transitionRouteOptions, callback: (status: Status.Status<osrm.RouteResults>) => void) => {
+        async (
+            parameters: transitionRouteOptions,
+            routingAttributes: TripRoutingQueryAttributes | undefined,
+            callback: (status: Status.Status<osrm.RouteResults>) => void
+        ) => {
             try {
-                const routingResults = await osrmService.route(parameters);
+                const routingResults = await osrmService.route(parameters, routingAttributes);
                 callback(routingResults);
             } catch (error) {
                 console.error(error);

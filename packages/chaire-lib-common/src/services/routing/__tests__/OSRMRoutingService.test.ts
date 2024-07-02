@@ -9,17 +9,16 @@ import serviceLocator from '../../../utils/ServiceLocator';
 import TestUtils from '../../../test/TestUtils';
 import { EventEmitter } from 'events';
 import * as Status from '../../../utils/Status';
+import { TripRoutingQueryAttributes } from '../types';
 
-
-let eventManager;
-let routingService;
+// Setup a fresh routingService and eventManager for each tests
+const routingService = new OSRMRoutingService();
+const eventManager = new EventEmitter();
+serviceLocator.socketEventManager = eventManager;
 
 beforeEach(() => {
-    // Setup a fresh routingService and eventManager for each tests
-    routingService = new OSRMRoutingService();
-    eventManager = new EventEmitter();
-    serviceLocator.socketEventManager = eventManager;
-    
+    jest.clearAllMocks();
+    eventManager.removeAllListeners();
 });
 
 test('Table from', async () => {
@@ -84,13 +83,41 @@ test('Route', async () => {
     // TODO fill the routes fields with something
     const expectedResponse = {waypoints: [point1.geometry, point2.geometry], routes: []};
     const osrmResponse = {waypoints: [osrmWaypoint1, osrmWaypoint2], routes: []};
-    const mockRoute = jest.fn().mockImplementation((params, callback) => callback(Status.createOk(osrmResponse)));
+    const mockRoute = jest.fn().mockImplementation((params, routingAttributes, callback) => callback(Status.createOk(osrmResponse)));
     eventManager.on('service.osrmRouting.route', mockRoute);
     
 
     const routeResult = await routingService.route({mode: 'walking', points: { type: 'FeatureCollection', features: stubPlaces}});
     expect(mockRoute).toHaveBeenCalledTimes(1);
-    expect(mockRoute).toHaveBeenCalledWith({mode: 'walking', points: stubPlaces, annotations: true, steps: false, continue_straight: undefined, overview: "full", }, expect.anything())
+    expect(mockRoute).toHaveBeenCalledWith({mode: 'walking', points: stubPlaces, annotations: true, steps: false, continue_straight: undefined, overview: "full", }, undefined, expect.anything())
+    expect(routeResult).toEqual(expectedResponse);
+});
+
+test('Route with routingAttributes', async () => {
+    const point1 = TestUtils.makePoint([-73.1, 45.1]);
+    const point2 =TestUtils.makePoint([-73.1, 44.9]);
+
+    const osrmWaypoint1 = {location: [-73.1, 45.1]}
+    const osrmWaypoint2 = {location: [-73.1, 44.9]}
+
+    // TODO fill the routes fields with something
+    const expectedResponse = {waypoints: [point1.geometry, point2.geometry], routes: []};
+    const osrmResponse = {waypoints: [osrmWaypoint1, osrmWaypoint2], routes: []};
+    const mockRoute = jest.fn().mockImplementation((params, routingAttributes, callback) => callback(Status.createOk(osrmResponse)));
+    eventManager.on('service.osrmRouting.route', mockRoute);
+
+    const routingAttributes: TripRoutingQueryAttributes = {
+        routingModes: ['walking'],
+        withAlternatives: true,
+        timeSecondsSinceMidnight: 0,
+        timeType: 'arrival',
+        originGeojson: stubPlaces[0],
+        destinationGeojson: stubPlaces[1]
+    };
+
+    const routeResult = await routingService.route({mode: 'walking', points: { type: 'FeatureCollection', features: stubPlaces}}, routingAttributes);
+    expect(mockRoute).toHaveBeenCalledTimes(1);
+    expect(mockRoute).toHaveBeenCalledWith({mode: 'walking', points: stubPlaces, annotations: true, steps: false, continue_straight: undefined, overview: "full", }, routingAttributes, expect.anything())
     expect(routeResult).toEqual(expectedResponse);
 });
 
@@ -109,7 +136,7 @@ test('Route fail', async () => {
         haveThrown = true;
     }
     expect(mockRoute).toHaveBeenCalledTimes(1);
-    expect(mockRoute).toHaveBeenCalledWith({mode: 'walking', points: stubPlaces, annotations: true, steps: false, continue_straight: undefined, overview: "full", }, expect.anything())
+    expect(mockRoute).toHaveBeenCalledWith({mode: 'walking', points: stubPlaces, annotations: true, steps: false, continue_straight: undefined, overview: "full", }, undefined, expect.anything())
     expect(routeResult).toBeUndefined();
     expect(haveThrown).toBe(true);
 });

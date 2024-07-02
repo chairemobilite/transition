@@ -15,6 +15,7 @@ import { _isBlank } from '../../utils/LodashExtensions';
 import Preferences from '../../config/Preferences';
 import * as Status from '../../utils/Status';
 import * as OSRMRoutingAPI from '../../api/OSRMRouting';
+import { TripRoutingQueryAttributes } from './types';
 
 const defaultRoutingRadiusMeters = 20;
 
@@ -116,13 +117,15 @@ export default class OSRMRoutingService extends RoutingService.default {
     }
 
     private async callOsrmRoute(
-        params: OSRMRoutingAPI.transitionRouteOptions
+        params: OSRMRoutingAPI.transitionRouteOptions,
+        routingAttributes?: TripRoutingQueryAttributes
     ): Promise<Status.Status<osrm.RouteResults>> {
         //console.log("osrm params", params);
         return new Promise((resolve) => {
             serviceLocator.socketEventManager.emit(
                 'service.osrmRouting.route',
                 params,
+                routingAttributes,
                 (routingResult: Status.Status<osrm.RouteResults>) => {
                     //console.log('routingResult', routingResult);
                     resolve(routingResult);
@@ -181,17 +184,24 @@ export default class OSRMRoutingService extends RoutingService.default {
         return this.processMapMatchingResult(routingResult);
     }
 
-    public async route(params: RoutingService.MapMatchParameters): Promise<RoutingService.RouteResults> {
-        const routingResult = await this.callOsrmRoute({
-            mode: params.mode,
-            points: params.points.features,
-            steps: params.showSteps || false,
-            overview: params.overview === 'simplified' ? 'simplified' : params.overview === 'false' ? 'false' : 'full',
-            annotations: _isBlank(params.annotations) ? true : params.annotations,
-            // gaps      : 'ignore',
-            continue_straight:
-                Preferences.current.osrmRouting.useContinueStraightForMapMatching === true ? true : undefined // see comment in chaire-lib-common/lib/config/defaultPreferences.config.js
-        });
+    public async route(
+        params: RoutingService.MapMatchParameters,
+        routingAttributes?: TripRoutingQueryAttributes
+    ): Promise<RoutingService.RouteResults> {
+        const routingResult = await this.callOsrmRoute(
+            {
+                mode: params.mode,
+                points: params.points.features,
+                steps: params.showSteps || false,
+                overview:
+                    params.overview === 'simplified' ? 'simplified' : params.overview === 'false' ? 'false' : 'full',
+                annotations: _isBlank(params.annotations) ? true : params.annotations,
+                // gaps      : 'ignore',
+                continue_straight:
+                    Preferences.current.osrmRouting.useContinueStraightForMapMatching === true ? true : undefined // see comment in chaire-lib-common/lib/config/defaultPreferences.config.js
+            },
+            routingAttributes
+        );
         return this.processRoutingResult(routingResult);
     }
 
