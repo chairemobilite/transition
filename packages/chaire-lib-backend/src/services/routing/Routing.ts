@@ -15,7 +15,7 @@ import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-com
 import { TransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
-import { TransitRouteQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
+import { TransitRouteQueryOptions, HostPort } from 'chaire-lib-common/lib/api/TrRouting';
 
 type TransitOrRouteCalculatorResult =
     | { routingMode: TransitMode; result: TrRoutingRouteResult | TrError }
@@ -97,7 +97,11 @@ const calculateTransit = async (
     // FIXME This code path will use a fake socket route to do the calculation. Move this code to the backend too
     const trRoutingService = trRoutingServiceManager.getService();
     const queryParams: TransitRouteQueryOptions = getTransitRouteQueryOptionsOrDefault(routingAttributes, od);
-    return await trRoutingService.route(queryParams);
+
+    // Build an HostPort
+    // TODO reflect the comment in TrRoutingOdTrip.ts, we should manage the port in a better way
+    const hostPort: HostPort = { port: routingAttributes.routingPort };
+    return await trRoutingService.route(queryParams, hostPort);
 };
 
 const calculateRoute = async (
