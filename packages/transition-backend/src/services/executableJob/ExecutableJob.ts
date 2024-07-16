@@ -214,12 +214,14 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         const jobProgressEmitter =
             jobListener !== undefined ? jobListener : clientEventManager.getUserEventEmitter(this.attributes.user_id);
         const { resources, data, internal_data } = this.attributes;
+        console.log('Updating job with checkpoint', internal_data.checkpoint);
         const updatedId = await jobsDbQueries.update(this.attributes.id, {
             status: this.status,
             resources,
             data,
             internal_data
         });
+        console.log('Updated job with checkpoint', internal_data.checkpoint);
         jobProgressEmitter.emit('executableJob.updated', { id: updatedId, name: this.attributes.name });
         return updatedId;
     }
