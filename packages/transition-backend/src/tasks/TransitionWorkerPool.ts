@@ -29,6 +29,7 @@ function newProgressEmitter(task: ExecutableJob<JobDataType>) {
         });
     });
     eventEmitter.on('checkpoint', (checkpoint: number) => {
+        console.log('Task received checkpoint ', checkpoint);
         task.attributes.internal_data.checkpoint = checkpoint;
         task.save();
     });

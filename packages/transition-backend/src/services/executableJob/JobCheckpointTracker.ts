@@ -67,12 +67,14 @@ export class CheckpointTracker {
         // If the previous checkpoint is completed, then notify for the next
         // checkpoint, otherwise do nothing, we need to wait for the previous to
         // complete first
+        console.log('Maybe notify checkpoint at index', chkIndex, this.lastCheckpointIdx);
         if (this.lastCheckpointIdx === chkIndex - 1) {
             let indexToNotify = chkIndex;
             // Get the last completed checkpoint
             while (this.indexes[indexToNotify + 1] === this.chunkSize) {
                 indexToNotify++;
             }
+            console.log('Emitting checkpoint at index ', chkIndex);
             this.progressEmitter.emit('checkpoint', (indexToNotify + 1) * this.chunkSize);
             this.lastCheckpointIdx = indexToNotify;
         }
