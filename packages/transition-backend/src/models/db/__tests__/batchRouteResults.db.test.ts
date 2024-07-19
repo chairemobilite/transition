@@ -278,6 +278,16 @@ describe(`${objectName}`, () => {
             });
     });
 
+    test('should count 0 result when job does not exist', async () => {
+        const count = await dbQueries.countResults(jobId as number + 1);
+        expect(count).toEqual(0);
+    });
+
+    test('should count the results for an existing job', async () => {
+        const count = await dbQueries.countResults(jobId as number);
+        expect(count).toEqual(3);
+    });
+
     test('should correctly delete even for unexisting jobs', async() => {
         await dbQueries.deleteForJob(jobId as number + 1);
 
