@@ -122,6 +122,30 @@ const streamResults = (jobId: number) => {
 };
 
 /**
+ * Count the results for a specific job
+ *
+ * @param jobId The ID of the job for which to count the results
+ * @returns The number of results for the job
+ */
+const countResults = async (jobId: number) => {
+    try {
+        const countResult = await knex.count().from(tableName).where('job_id', jobId);
+
+        return countResult.length === 1
+            ? typeof countResult[0].count === 'string'
+                ? parseInt(countResult[0].count)
+                : countResult[0].count
+            : 0;
+    } catch (error) {
+        throw new TrError(
+            `cannot count results for job because of a database error (knex error: ${error})`,
+            'DBBRR0002',
+            'TransitTaskResultCouldNotBeCountedBecauseDatabaseError'
+        );
+    }
+};
+
+/**
  * Delete the results for a specific job
  *
  * @param jobId The ID of the job for which to delete
@@ -149,6 +173,7 @@ export default {
     create,
     collection,
     streamResults,
+    countResults,
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
     deleteForJob,
