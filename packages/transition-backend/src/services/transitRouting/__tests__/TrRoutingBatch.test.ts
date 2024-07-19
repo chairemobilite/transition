@@ -112,7 +112,8 @@ jest.mock('../../../models/db/batchRouteResults.db.queries', () => {
         }),
         collection: jest.fn().mockImplementation((jobId, options) => ({ totalCount: resultsInDb.length, tripResults: resultsInDb })),
         deleteForJob: jest.fn(),
-        streamResults: jest.fn().mockImplementation((jobId) => mockedResultStream)
+        streamResults: jest.fn().mockImplementation((jobId) => mockedResultStream),
+        countResults: jest.fn().mockResolvedValue(0) // The result is used for logging, any value works
     };
 });
 const mockResultCreate = resultDbQueries.create as jest.MockedFunction<typeof resultDbQueries.create>;

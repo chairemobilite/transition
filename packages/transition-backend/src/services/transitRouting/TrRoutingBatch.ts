@@ -181,6 +181,7 @@ class TrRoutingBatch {
             }
 
             await promiseQueue.onIdle();
+            console.log('Batch odTrip routing completed for job %d', this.options.jobId);
             checkpointTracker.completed();
 
             this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
@@ -229,6 +230,7 @@ class TrRoutingBatch {
             return routingResult;
         } catch (error) {
             if (Array.isArray(error)) {
+                console.log('Multiple errors in batch route calculations for job %d', this.options.jobId);
                 return {
                     calculationName: parameters.calculationName,
                     detailed: false,
@@ -238,7 +240,7 @@ class TrRoutingBatch {
                     files: { input: this.options.inputFileName }
                 };
             } else {
-                console.error(`Error in batch routing calculation: ${error}`);
+                console.error(`Error in batch routing calculation job ${this.options.jobId}: ${error}`);
                 throw error;
             }
         }
@@ -250,9 +252,28 @@ class TrRoutingBatch {
         detailedCsv?: string;
         geojson?: string;
     }> => {
+        console.log('Preparing result files for job %d...', this.options.jobId);
         const { resultHandler, pathCollection } = await this.prepareResultData();
+        console.log('Prepared result files for job %d', this.options.jobId);
+
+        // Log every 1% of the results
+        const resultCount = await resultsDbQueries.countResults(this.options.jobId);
+        const logInterval = Math.ceil(resultCount / 100);
+        let currentResultIdx = 0;
+
+        console.log('Generating %d results for job %d...', resultCount, this.options.jobId);
         const resultStream = resultsDbQueries.streamResults(this.options.jobId);
+
         for await (const row of resultStream) {
+            currentResultIdx++;
+            if (currentResultIdx % logInterval === 0 || currentResultIdx === resultCount) {
+                console.log(
+                    'Generating results %d of %d for job %d...',
+                    currentResultIdx,
+                    resultCount,
+                    this.options.jobId
+                );
+            }
             // TODO Try to pipe the result generator and processor directly into this database result stream, to avoid all the awaits
             const result = resultsDbQueries.resultParser(row);
             const processedResults = await generateFileOutputResults(
@@ -267,6 +288,7 @@ class TrRoutingBatch {
             );
             resultHandler.processResult(processedResults);
         }
+        console.log('Generated results for job %d', this.options.jobId);
 
         resultHandler.end();
         return resultHandler.getFiles();
