@@ -12,6 +12,7 @@ import events from 'events';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import OSRMProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
+import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import { _booleish } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 import { recreateCache } from './services/capnpCache/dbToCache';
@@ -26,17 +27,6 @@ const socketWildCard = socketMiddleWare();
 const setupSocketServerApp = async function (server, session) {
     // Start the worker pool for worker threads
     startPool();
-
-    // Cleanup trRouting processes
-    const trRoutingDirectoryPath = process.env.TR_ROUTING_PATH !== undefined ? process.env.TR_ROUTING_PATH : undefined;
-    console.log('exiting old trRouting engines from directory', trRoutingDirectoryPath);
-
-    // killall trRoutingCSA (should not have any except if node exited with Exception):
-    spawn('killall trRouting || echo "Process was not running."', [], {
-        shell: true,
-        detached: false,
-        cwd: trRoutingDirectoryPath
-    });
 
     await OSRMProcessManager.configureAllOsrmServers(true);
     // Add socket routes to an event emitter for the server process to use
@@ -53,6 +43,11 @@ const setupSocketServerApp = async function (server, session) {
         await recreateCache({ refreshTransferrableNodes: false, saveLines: true });
     }
 
+    // Now that we have the cache ready, we can start TrRouting
+    // We use restart, to cleanup old leftover from previous execution
+    // We do the await later to let toher processes run while this is starting
+    const trRoutingStartAsync =  trRoutingProcessManager.restart({});
+
     // Enqueue/resume running and pending tasks
     // FIXME This implies a single server process for a given database. We don't
     // know if the job is enqueued in another process somewhere and may be
@@ -61,6 +56,11 @@ const setupSocketServerApp = async function (server, session) {
     // not
     if (process.env.STARTUP_RESTART_JOBS === undefined || _booleish(process.env.STARTUP_RESTART_JOBS)) {
         await ExecutableJob.enqueueRunningAndPendingJobs();
+    }
+
+    const response = await trRoutingStartAsync;
+    if (response.status !== 'started') {
+        console.log('failed to start trRouting at startup');
     }
 
     const io = socketIO(server, {
