@@ -38,12 +38,9 @@ import TimeOfTripComponent from './widgets/TimeOfTripComponent';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
-<<<<<<< HEAD
 import { calculateRouting } from '../../../services/routing/RoutingUtils';
 import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
-=======
 import { emptyFeatureCollection } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
->>>>>>> 573dd6c (deck.gl: Support events on map and map layers)
 
 export interface TransitRoutingFormProps extends WithTranslation {
     // TODO tahini batch routing
