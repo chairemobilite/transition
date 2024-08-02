@@ -14,6 +14,9 @@ module.exports = {
     // Maximum number of parallel calculation
     // TODO trRouting should support multi-threading so we shouldn't have to start multiple instances
     // maxParallelCalculators: 2,
+
+    // Enable caching of connections for all scenarios in trRouting. Will use more memory
+    trRoutingCacheAllScenarios: false,
   
     mapDefaultCenter: {
       lat: 45.5092960,
