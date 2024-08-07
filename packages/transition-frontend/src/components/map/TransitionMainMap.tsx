@@ -4,12 +4,14 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import React, { createRef } from 'react';
 import ReactDom from 'react-dom';
 import { withTranslation } from 'react-i18next';
-import MapboxGL from 'mapbox-gl';
-import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import { default as elementResizedEvent, unbind as removeResizeListener } from 'element-resize-event';
+import DeckGL from '@deck.gl/react/typed';
+import { Layer, Deck } from '@deck.gl/core/typed';
+
+import { Map as MapLibreMap } from 'react-map-gl/maplibre';
+import _debounce from 'lodash/debounce';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import layersConfig from '../../config/layers.config';
@@ -17,26 +19,44 @@ import globalMapEvents from 'chaire-lib-frontend/lib/services/map/events/GlobalM
 import transitionMapEvents from '../../services/map/events';
 import mapCustomEvents from '../../services/map/events/MapRelatedCustomEvents';
 import MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManager';
-import PathMapLayerManager from '../../services/map/PathMapLayerManager';
+import TransitPathFilterManager from '../../services/map/TransitPathFilterManager';
 import MapPopupManager from 'chaire-lib-frontend/lib/services/map/MapPopupManager';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { getMapBoxDraw, removeMapBoxDraw } from 'chaire-lib-frontend/lib/services/map/MapPolygonService';
 import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
 import Node from 'transition-common/lib/services/nodes/Node';
-import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
+
 import _cloneDeep from 'lodash/cloneDeep';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
-import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import {
+    MapUpdateLayerEventType,
+    MapFilterLayerEventType
+} from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import {
+    layerEventNames,
+    tooltipEventNames,
+    MapEventHandlerDescriptor,
+    MapLayerEventHandlerDescriptor,
+    mapEventNames,
+    PointInfo,
+    TooltipEventHandlerDescriptor,
+    MapSelectEventHandlerDescriptor,
+    MapCallbacks
+} from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import getLayer from './layers/TransitionMapLayer';
+import { PickingInfo } from 'deck.gl/typed';
 
-MapboxGL.accessToken = process.env.MAPBOX_ACCESS_TOKEN || '';
+import { BitmapLayer } from '@deck.gl/layers';
+import { TileLayer } from '@deck.gl/geo-layers';
+import { MjolnirEvent, MjolnirGestureEvent } from 'mjolnir.js';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 export interface MainMapProps extends LayoutSectionProps {
     zoom: number;
     center: [number, number];
+    //onMapDataChange: () => void;
     // TODO : put layers and events together in an application configuration received as props here
     // layersConfig: { [key: string]: any };
     // mapEvents: MapEventHandlerDescription[];
@@ -44,10 +64,46 @@ export interface MainMapProps extends LayoutSectionProps {
 }
 
 interface MainMapState {
-    layers: string[];
-    confirmModalDeleteIsOpen: boolean;
-    mapLoaded: boolean;
+    viewState: {
+        longitude: number;
+        latitude: number;
+        zoom: number;
+        pitch: number;
+        bearing: number;
+    };
+    enabledLayers: string[];
+    mapStyleURL: string;
+    xyzTileLayer?: Layer; // Temporary! Move this somewhere else
+    isDragging: boolean;
 }
+
+const getTileLayer = () => {
+    const opacity = Math.max(0, Math.min(Preferences.get('mapTileLayerOpacity'), 1));
+    return process.env.CUSTOM_RASTER_TILES_XYZ_URL && opacity > 0
+        ? new TileLayer({
+            data: process.env.CUSTOM_RASTER_TILES_XYZ_URL,
+            minZoom: process.env.CUSTOM_RASTER_TILES_MIN_ZOOM
+                ? parseFloat(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM)
+                : 0,
+            maxZoom: process.env.CUSTOM_RASTER_TILES_MAX_ZOOM
+                ? parseFloat(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM)
+                : 22,
+            opacity,
+            tileSize: 256,
+            renderSubLayers: (props) => {
+                const {
+                    bbox: { west, south, east, north }
+                } = props.tile;
+
+                return new BitmapLayer(props, {
+                    data: null,
+                    image: props.data,
+                    bounds: [west, south, east, north]
+                });
+            }
+        })
+        : undefined;
+};
 
 /**
  * TODO: For now, hard code the map for Transition here. But it should be in
@@ -56,265 +112,201 @@ interface MainMapState {
  */
 class MainMap extends React.Component<MainMapProps, MainMapState> {
     private layerManager: MapLayerManager;
-    private pathLayerManager: PathMapLayerManager;
-    private defaultZoomArray: [number];
-    private defaultCenter: [number, number];
-    private mapEvents: { [key: string]: { [key: string]: MapEventHandlerDescription[] } };
-    private map: MapboxGL.Map | undefined;
+    private pathFilterManager: TransitPathFilterManager;
+    private mapEvents: {
+        map: { [evtName in mapEventNames]?: MapEventHandlerDescriptor[] };
+        layers: {
+            [layerName: string]: {
+                [evtName in layerEventNames]?: MapLayerEventHandlerDescriptor[];
+            };
+        };
+        tooltips: {
+            [layerName: string]: {
+                [evtName in tooltipEventNames]?: TooltipEventHandlerDescriptor[];
+            };
+        };
+        mapSelect: {
+            [layerName: string]: {
+                [evtName in mapEventNames]?: MapSelectEventHandlerDescriptor[];
+            };
+        };
+    };
     private popupManager: MapPopupManager;
     private mapContainer;
-    private draw: MapboxDraw | undefined;
+    private mapCallbacks: MapCallbacks;
+    private updateCounts: { [layerName: string]: number } = {};
 
     constructor(props: MainMapProps) {
         super(props);
 
+        // TODO: This should not be here
+        const xyzTileLayer = getTileLayer();
+
         this.state = {
-            layers: Preferences.current.map.layers[this.props.activeSection],
-            confirmModalDeleteIsOpen: false,
-            mapLoaded: false
+            viewState: {
+                longitude: props.center[0],
+                latitude: props.center[1],
+                zoom: props.zoom,
+                pitch: 0,
+                bearing: 0
+            },
+            enabledLayers: [],
+            mapStyleURL: Preferences.get('mapStyleURL'),
+            xyzTileLayer: xyzTileLayer,
+            isDragging: false
         };
 
-        this.defaultZoomArray = [props.zoom];
-        this.defaultCenter = props.center;
         this.layerManager = new MapLayerManager(layersConfig);
-        this.pathLayerManager = new PathMapLayerManager(this.layerManager);
+
+        this.pathFilterManager = new TransitPathFilterManager();
 
         this.popupManager = new MapPopupManager();
-        this.mapContainer = HTMLElement;
+        this.mapContainer = createRef<HTMLDivElement>();
 
-        this.mapEvents = {};
+        this.mapEvents = { map: {}, layers: {}, tooltips: {}, mapSelect: {} };
         const newEvents = [globalMapEvents, transitionMapEvents];
         const newEventsArr = newEvents.flatMap((ev) => ev);
         newEventsArr.forEach((eventDescriptor) => {
-            this.mapEvents[eventDescriptor.eventName] = this.mapEvents[eventDescriptor.eventName] || {};
             if (eventDescriptor.type === 'layer') {
-                const events = this.mapEvents[eventDescriptor.eventName][eventDescriptor.layerName] || [];
+                this.mapEvents.layers[eventDescriptor.layerName] =
+                    this.mapEvents.layers[eventDescriptor.layerName] || {};
+                const events = this.mapEvents.layers[eventDescriptor.layerName][eventDescriptor.eventName] || [];
                 events.push(eventDescriptor);
-                this.mapEvents[eventDescriptor.eventName][eventDescriptor.layerName] = events;
+                this.mapEvents.layers[eventDescriptor.layerName][eventDescriptor.eventName] = events;
+            } else if (eventDescriptor.type === 'tooltip') {
+                this.mapEvents.tooltips[eventDescriptor.layerName] =
+                    this.mapEvents.tooltips[eventDescriptor.layerName] || {};
+                const events = this.mapEvents.tooltips[eventDescriptor.layerName][eventDescriptor.eventName] || [];
+                events.push(eventDescriptor);
+                this.mapEvents.tooltips[eventDescriptor.layerName][eventDescriptor.eventName] = events;
+            } else if (eventDescriptor.type === 'mapSelect') {
+                this.mapEvents.mapSelect[eventDescriptor.layerName] =
+                    this.mapEvents.mapSelect[eventDescriptor.layerName] || {};
+                const events = this.mapEvents.mapSelect[eventDescriptor.layerName][eventDescriptor.eventName] || [];
+                events.push(eventDescriptor);
+                this.mapEvents.mapSelect[eventDescriptor.layerName][eventDescriptor.eventName] = events;
             } else {
-                const events = this.mapEvents[eventDescriptor.eventName]['map'] || [];
+                const events = this.mapEvents.map[eventDescriptor.eventName] || [];
                 events.push(eventDescriptor);
-                this.mapEvents[eventDescriptor.eventName]['map'] = events;
+                this.mapEvents.map[eventDescriptor.eventName] = events;
             }
         });
+        this.mapCallbacks = {
+            pickMultipleObjects: this.pickMultipleObjects
+        };
     }
-
-    fitBounds = (coordinates: [number, number]) => {
-        this.map?.fitBounds(coordinates, {
-            padding: 20,
-            bearing: this.map.getBearing()
-        });
-    };
-
-    setCenter = (coordinates: [number, number]) => {
-        this.map?.setCenter(coordinates);
-    };
-
-    onEnableBoxZoom = () => {
-        this.map?.boxZoom.enable();
-    };
-
-    onDisableBoxZoom = () => {
-        this.map?.boxZoom.disable();
-    };
-
-    onEnableDragPan = () => {
-        this.map?.dragPan.enable();
-    };
-
-    onDisableDragPan = () => {
-        this.map?.dragPan.disable();
-    };
-
-    onMapError = (e: any) => {
-        console.log('Map error:', e);
-        if (!this.state.mapLoaded) {
-            // Even if there was a map error, call the map.loaded event so the
-            // application can continue loading
-            this.setState({ mapLoaded: true });
-            serviceLocator.eventManager.emit('map.loaded');
-        }
-    };
-
-    setMap = (e: MapboxGL.MapboxEvent) => {
-        this.layerManager.setMap(e.target);
-        this.popupManager.setMap(e.target);
-        this.layerManager.updateEnabledLayers(this.state.layers);
-        if (process.env.CUSTOM_RASTER_TILES_XYZ_URL && this.map) {
-            const mapLayers = this.map.getStyle().layers || [];
-            let beforeLayerId = mapLayers.length > 0 ? mapLayers[0].id : undefined;
-
-            for (let i = 0, count = mapLayers.length; i < count; i++) {
-                const layer = mapLayers[i];
-                if (layer.type === 'background') {
-                    beforeLayerId = layer.id;
-                    break;
-                }
-            }
-
-            if (beforeLayerId) {
-                this.map.addSource('custom_tiles', {
-                    type: 'raster',
-                    tiles: [process.env.CUSTOM_RASTER_TILES_XYZ_URL],
-                    tileSize: 256
-                });
-                this.map?.addLayer(
-                    {
-                        id: 'custom_tiles',
-                        type: 'raster',
-                        source: 'custom_tiles',
-                        minzoom: process.env.CUSTOM_RASTER_TILES_MIN_ZOOM
-                            ? parseFloat(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM)
-                            : 0,
-                        maxzoom: process.env.CUSTOM_RASTER_TILES_MAX_ZOOM
-                            ? parseFloat(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM)
-                            : 22
-                    },
-                    beforeLayerId
-                );
-            }
-        }
-
-        this.setState({ mapLoaded: true });
-        serviceLocator.eventManager.emit('map.loaded');
-    };
 
     showPathsByAttribute = (attribute: string, value: any) => {
         // attribute must be agency_id or line_id
         if (attribute === 'agency_id') {
-            this.pathLayerManager.showAgencyId(value);
+            this.pathFilterManager.showAgencyId(value);
         } else if (attribute === 'line_id') {
-            this.pathLayerManager.showLineId(value);
+            this.pathFilterManager.showLineId(value);
         }
     };
 
     hidePathsByAttribute = (attribute: string, value: any) => {
         // attribute must be agency_id or line_id
         if (attribute === 'agency_id') {
-            this.pathLayerManager.hideAgencyId(value);
+            this.pathFilterManager.hideAgencyId(value);
         } else if (attribute === 'line_id') {
-            this.pathLayerManager.hideLineId(value);
+            this.pathFilterManager.hideLineId(value);
         }
     };
 
     clearPathsFilter = () => {
-        this.pathLayerManager.clearFilter();
+        this.pathFilterManager.clearFilter();
     };
 
     componentDidMount = () => {
-        this.map = new MapboxGL.Map({
-            container: this.mapContainer,
-            style: `mapbox://styles/${process.env.MAPBOX_USER_ID}/${process.env.MAPBOX_STYLE_ID}?fresh=true`,
-            center: this.defaultCenter,
-            zoom: this.defaultZoomArray[0],
-            maxZoom: 20,
-            hash: true
-        });
-
-        this.map.addControl(new MapboxGL.ScaleControl(), 'bottom-right');
-
-        for (const eventName in this.mapEvents) {
-            for (const layerName in this.mapEvents[eventName]) {
-                if (layerName === 'map') {
-                    this.map.on(eventName, this.getEventHandler(this.mapEvents[eventName][layerName]));
-                } else {
-                    this.map.on(
-                        eventName as any,
-                        layerName,
-                        this.getEventHandler(this.mapEvents[eventName][layerName])
-                    );
-                }
-            }
-        }
-        this.map.on('load', this.setMap);
-        this.map.on('error', this.onMapError);
         serviceLocator.addService('layerManager', this.layerManager);
-        serviceLocator.addService('pathLayerManager', this.pathLayerManager);
+        serviceLocator.addService('pathLayerManager', this.pathFilterManager);
+        this.layerManager.updateEnabledLayers(Preferences.current.map.layers[this.props.activeSection]);
         mapCustomEvents.addEvents(serviceLocator.eventManager);
-        elementResizedEvent(this.mapContainer, this.onResizeContainer);
+        //elementResizedEvent(this.mapContainer, this.onResizeContainer);
+        // TODO Are those events all ours? Or are some mapbox's? In any case, they should all be documented in a map API file: who should use when, and which parameters are expected
         serviceLocator.eventManager.on('map.updateEnabledLayers', this.updateEnabledLayers);
         (serviceLocator.eventManager as EventManager).onEvent<MapUpdateLayerEventType>(
             'map.updateLayer',
             this.updateLayer
         );
+        (serviceLocator.eventManager as EventManager).onEvent<MapFilterLayerEventType>(
+            'map.layers.updateFilter',
+            this.updateFilter
+        );
         serviceLocator.eventManager.on('map.updateLayers', this.updateLayers);
-        serviceLocator.eventManager.on('map.addPopup', this.addPopup);
-        serviceLocator.eventManager.on('map.removePopup', this.removePopup);
-        serviceLocator.eventManager.on('map.updateFilter', this.updateFilter);
         serviceLocator.eventManager.on('map.clearFilter', this.clearFilter);
         serviceLocator.eventManager.on('map.showLayer', this.showLayer);
         serviceLocator.eventManager.on('map.hideLayer', this.hideLayer);
         serviceLocator.eventManager.on('map.paths.byAttribute.show', this.showPathsByAttribute);
         serviceLocator.eventManager.on('map.paths.byAttribute.hide', this.hidePathsByAttribute);
         serviceLocator.eventManager.on('map.paths.clearFilter', this.clearPathsFilter);
-        serviceLocator.eventManager.on('map.fitBounds', this.fitBounds);
-        serviceLocator.eventManager.on('map.setCenter', this.setCenter);
-        serviceLocator.eventManager.on('map.enableBoxZoom', this.onEnableBoxZoom);
-        serviceLocator.eventManager.on('map.disableBoxZoom', this.onDisableBoxZoom);
-        serviceLocator.eventManager.on('map.enableDragPan', this.onEnableDragPan);
-        serviceLocator.eventManager.on('map.disableDragPan', this.onDisableDragPan);
         serviceLocator.eventManager.on('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.on('map.hideContextMenu', this.hideContextMenu);
-        serviceLocator.eventManager.on('map.handleDrawControl', this.handleDrawControl);
-        serviceLocator.eventManager.on('map.deleteSelectedNodes', this.deleteSelectedNodes);
-        serviceLocator.eventManager.on('map.deleteSelectedPolygon', this.deleteSelectedPolygon);
+        //serviceLocator.eventManager.on('map.deleteSelectedNodes', this.deleteSelectedNodes);
+        serviceLocator.eventManager.emit('map.loaded');
+        Preferences.addChangeListener(this.onPreferencesChange);
+    };
+
+    onPreferencesChange = (updates: any) => {
+        if (Object.keys(updates).some((key) => ['mapStyleURL', 'mapTileLayerOpacity'].includes(key))) {
+            this.setState({
+                mapStyleURL: Preferences.get('mapStyleURL'),
+                xyzTileLayer: getTileLayer()
+            });
+        }
     };
 
     componentWillUnmount = () => {
         serviceLocator.removeService('layerManager');
         serviceLocator.removeService('pathLayerManager');
         mapCustomEvents.removeEvents(serviceLocator.eventManager);
-        removeResizeListener(this.mapContainer, this.onResizeContainer);
+        // removeResizeListener(this.mapContainer, this.onResizeContainer);
         serviceLocator.eventManager.off('map.updateEnabledLayers', this.updateEnabledLayers);
         serviceLocator.eventManager.off('map.updateLayer', this.updateLayer);
         serviceLocator.eventManager.off('map.updateLayers', this.updateLayers);
-        serviceLocator.eventManager.off('map.addPopup', this.addPopup);
-        serviceLocator.eventManager.off('map.removePopup', this.removePopup);
-        serviceLocator.eventManager.off('map.updateFilter', this.updateFilter);
+        serviceLocator.eventManager.off('map.layers.updateFilter', this.updateFilter);
         serviceLocator.eventManager.off('map.clearFilter', this.clearFilter);
         serviceLocator.eventManager.off('map.showLayer', this.showLayer);
         serviceLocator.eventManager.off('map.hideLayer', this.hideLayer);
         serviceLocator.eventManager.off('map.paths.byAttribute.show', this.showPathsByAttribute);
         serviceLocator.eventManager.off('map.paths.byAttribute.hide', this.hidePathsByAttribute);
         serviceLocator.eventManager.off('map.paths.clearFilter', this.clearPathsFilter);
-        serviceLocator.eventManager.off('map.fitBounds', this.fitBounds);
-        serviceLocator.eventManager.off('map.setCenter', this.setCenter);
-        serviceLocator.eventManager.off('map.enableBoxZoom', this.onEnableBoxZoom);
-        serviceLocator.eventManager.off('map.disableBoxZoom', this.onDisableBoxZoom);
-        serviceLocator.eventManager.off('map.enableDragPan', this.onEnableDragPan);
-        serviceLocator.eventManager.off('map.disableDragPan', this.onDisableDragPan);
         serviceLocator.eventManager.off('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.off('map.hideContextMenu', this.hideContextMenu);
-        serviceLocator.eventManager.off('map.handleDrawControl', this.handleDrawControl);
-        serviceLocator.eventManager.off('map.deleteSelectedNodes', this.deleteSelectedNodes);
-        serviceLocator.eventManager.off('map.deleteSelectedPolygon', this.deleteSelectedPolygon);
-        this.map?.remove(); // this will clean up everything including events
+        //serviceLocator.eventManager.off('map.deleteSelectedNodes', this.deleteSelectedNodes);
     };
 
-    onResizeContainer = () => {
-        if (this.map) {
-            this.map.resize();
+    private executeEvent = (event: MapEventHandlerDescriptor, pointInfo: PointInfo, e: MjolnirEvent) => {
+        if (event.condition === undefined || event.condition(this.props.activeSection)) {
+            event.handler(pointInfo, e, this.mapCallbacks);
         }
     };
 
-    private executeEvents = (e, events: MapEventHandlerDescription[]) => {
-        if (e.originalEvent && e.originalEvent.cancelBubble === true) {
-            return;
+    private executeTooltipEvent = (
+        event: TooltipEventHandlerDescriptor,
+        pickInfo: PickingInfo
+    ): string | undefined | { text: string; containsHtml: boolean } => {
+        if (event.condition === undefined || event.condition(this.props.activeSection)) {
+            return event.handler(pickInfo, this.mapCallbacks);
         }
-        for (let eventIndex = 0; eventIndex < events.length; eventIndex++) {
-            const event = events[eventIndex];
-            if (event.condition === undefined || event.condition(this.props.activeSection)) {
-                event.handler(e);
-            }
-            if (e.originalEvent && e.originalEvent.cancelBubble === true) {
-                break;
-            }
-        }
+        return undefined;
     };
 
-    getEventHandler = (events: MapEventHandlerDescription[]) => {
+    private executeMapSelectEvent = (
+        event: MapSelectEventHandlerDescriptor,
+        pickInfo: PickingInfo[],
+        e: MjolnirEvent
+    ) => {
+        if (event.condition === undefined || event.condition(this.props.activeSection)) {
+            return event.handler(pickInfo, e, this.mapCallbacks);
+        }
+        return undefined;
+    };
+
+    /* getEventHandler = (events: MapEventHandlerDescription[]) => {
         return (e) => this.executeEvents(e, events);
-    };
+    }; */
 
     showLayer = (layerName: string) => {
         this.layerManager.showLayer(layerName);
@@ -328,8 +320,10 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
         this.layerManager.clearFilter(layerName);
     };
 
-    updateFilter = (layerName: string, filter) => {
-        this.layerManager.updateFilter(layerName, filter);
+    updateFilter = (args: { layerName: string; filter: ((feature: GeoJSON.Feature) => 0 | 1) | undefined }) => {
+        this.layerManager.updateFilter(args.layerName, args.filter);
+        this.updateCounts[args.layerName] = (this.updateCounts[args.layerName] || 0) + 1;
+        this.setState({ enabledLayers: this.layerManager.getEnabledLayers().map((layer) => layer.id) });
     };
 
     setRef = (ref) => {
@@ -337,20 +331,7 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
     };
 
     setDrawPolygonService = () => {
-        const map = this.map;
-        if (!map) return;
-        this.draw = getMapBoxDraw(
-            map,
-            (data) => {
-                this.modeChangePolygonService(data);
-            },
-            (polygon) => {
-                this.handleDrawPolygonService(polygon);
-            },
-            (polygon) => {
-                /* Nothing to do */
-            }
-        );
+        // TODO Re-implement
     };
 
     /**
@@ -399,30 +380,6 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
         }
     };
 
-    deleteSelectedPolygon = () => {
-        if (this.draw) {
-            this.draw.deleteAll().getAll();
-        }
-        serviceLocator.selectedObjectsManager.select('selectedNodes', null);
-        serviceLocator.selectedObjectsManager.select('isContainSelectedFrozenNodes', null);
-        serviceLocator.selectedObjectsManager.select('isDrawPolygon', null);
-        serviceLocator.eventManager.emit('selected.update.nodes');
-        serviceLocator.eventManager.emit('map.updateLayers', {
-            transitNodesSelected: turfFeatureCollection([]),
-            transitNodes250mRadius: turfFeatureCollection([]),
-            transitNodes500mRadius: turfFeatureCollection([]),
-            transitNodes750mRadius: turfFeatureCollection([]),
-            transitNodes1000mRadius: turfFeatureCollection([]),
-            transitNodesRoutingRadius: turfFeatureCollection([])
-        });
-    };
-
-    deleteSelectedNodes = () => {
-        this.setState({
-            confirmModalDeleteIsOpen: true
-        });
-    };
-
     onDeleteSelectedNodes = () => {
         serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 0.0 });
         const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
@@ -441,49 +398,8 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
                 console.log('Error deleting unused nodes', error);
             })
             .finally(() => {
-                this.deleteSelectedPolygon();
                 serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 1.0 });
             });
-    };
-
-    handleDrawControl = (section: string) => {
-        const map = this.map;
-        if (!map) return;
-        if (section === 'nodes' && !this.draw) {
-            this.setDrawPolygonService();
-        } else if (section !== 'nodes' && this.draw) {
-            this.deleteSelectedPolygon();
-            removeMapBoxDraw(
-                map,
-                this.draw,
-                () => {
-                    /* Nothing to do */
-                },
-                () => {
-                    /* Nothing to do */
-                },
-                () => {
-                    /* Nothing to do */
-                }
-            );
-            this.draw = null;
-        }
-    };
-
-    addPopup = (popupId: string, popup: MapboxGL.Popup, removeAll = true) => {
-        this.hideContextMenu();
-        if (removeAll) {
-            this.removeAllPopups();
-        }
-        this.popupManager.addPopup(popupId, popup);
-    };
-
-    removePopup = (popupId: string) => {
-        this.popupManager.removePopup(popupId);
-    };
-
-    removeAllPopups = () => {
-        this.popupManager.removeAllPopups();
     };
 
     updateLayer = (args: {
@@ -491,24 +407,33 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
         data: GeoJSON.FeatureCollection | ((original: GeoJSON.FeatureCollection) => GeoJSON.FeatureCollection);
     }) => {
         this.layerManager.updateLayer(args.layerName, args.data);
+        this.updateCounts[args.layerName] = (this.updateCounts[args.layerName] || 0) + 1;
+        this.setState({ enabledLayers: this.layerManager.getEnabledLayers().map((layer) => layer.id) });
     };
 
     updateLayers = (geojsonByLayerName) => {
-        //console.log('updating map layers', Object.keys(geojsonByLayerName));
         this.layerManager.updateLayers(geojsonByLayerName);
+        Object.keys(geojsonByLayerName).forEach(
+            (layerName) => (this.updateCounts[layerName] = (this.updateCounts[layerName] || 0) + 1)
+        );
+        this.setState({ enabledLayers: this.layerManager.getEnabledLayers().map((layer) => layer.id) });
     };
 
     updateEnabledLayers = (enabledLayers: string[]) => {
         this.layerManager.updateEnabledLayers(enabledLayers);
+        this.setState({ enabledLayers });
     };
 
-    showContextMenu = (e, elements) => {
+    showContextMenu = (
+        position: [number, number],
+        elements: { key?: string; title: string; onClick: () => void; onHover?: () => void }[]
+    ) => {
         const contextMenu = document.getElementById('tr__main-map-context-menu');
         if (!contextMenu) {
             return;
         }
-        contextMenu.style.left = e.point.x + 'px';
-        contextMenu.style.top = e.point.y + 'px';
+        contextMenu.style.left = position[0] + 'px';
+        contextMenu.style.top = position[1] + 'px';
         contextMenu.style.display = 'block';
 
         ReactDom.render(
@@ -540,22 +465,154 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
         ReactDom.render(<React.Fragment></React.Fragment>, contextMenu);
     };
 
+    private updateUserPrefs = _debounce((viewStateChange) => {
+        // Save map zoom and center to user preferences
+        Preferences.update(
+            {
+                'map.zoom': viewStateChange.viewState.zoom,
+                'map.center': [viewStateChange.viewState.longitude, viewStateChange.viewState.latitude]
+            },
+            serviceLocator.socketEventManager
+        );
+    }, 500);
+
+    // FIXME: Find the type for this
+    onViewStateChange = (viewStateChange) => {
+        this.setState({ viewState: viewStateChange.viewState });
+        this.updateUserPrefs(viewStateChange);
+    };
+
+    onClick = (pickInfo: PickingInfo, event: MjolnirGestureEvent) => {
+        if (event.handled) return;
+        if (pickInfo.picked === false) {
+            if (event.leftButton) {
+                // Do the map's click events
+                const events = this.mapEvents.map.onLeftClick || [];
+                events.forEach((ev) =>
+                    this.executeEvent(
+                        ev,
+                        { coordinates: pickInfo.coordinate as number[], pixel: pickInfo.pixel as [number, number] },
+                        event
+                    )
+                );
+            } else if (event.rightButton) {
+                // Do the map's right click events
+                const events = this.mapEvents.map.onRightClick || [];
+                events.forEach((ev) =>
+                    this.executeEvent(
+                        ev,
+                        { coordinates: pickInfo.coordinate as number[], pixel: pickInfo.pixel as [number, number] },
+                        event
+                    )
+                );
+            }
+        } else {
+            const eventName = event.leftButton ? 'onLeftClick' : event.rightButton ? 'onRightClick' : undefined;
+            if (!eventName) return;
+
+            // See if there are multiple picks to call proper mapSelect events
+            // TODO Update the radius to not have an hard-coded value, fine-tune as necessary
+            const objects: PickingInfo[] = (this.mapContainer.current as Deck).pickMultipleObjects({
+                x: pickInfo.x,
+                y: pickInfo.y,
+                radius: 4,
+                layerIds: this.state.enabledLayers
+            });
+            const objectsByLayer: { [layerName: string]: PickingInfo[] } = {};
+            objects.forEach((picked) => {
+                if (picked.layer && picked.object) {
+                    const allPicked = objectsByLayer[picked.layer.id] || [];
+                    allPicked.push(picked);
+                    objectsByLayer[picked.layer.id] = allPicked;
+                }
+            });
+            Object.keys(objectsByLayer).forEach((layerName) => {
+                if (this.mapEvents.mapSelect[layerName] && this.mapEvents.mapSelect[layerName][eventName]) {
+                    (this.mapEvents.mapSelect[layerName][eventName] as MapSelectEventHandlerDescriptor[]).forEach(
+                        (ev) => {
+                            this.executeMapSelectEvent(ev, objectsByLayer[layerName], event);
+                        }
+                    );
+                }
+            });
+        }
+    };
+
+    onTooltip = (pickInfo: PickingInfo) => {
+        if (pickInfo.picked === true && pickInfo.layer) {
+            if (pickInfo.layer && !pickInfo.object) {
+                console.log('it is indeed possible to have a layer and no object', pickInfo.layer.id);
+                return null;
+            }
+            const tooltipEvents = (this.mapEvents.tooltips[pickInfo.layer.id] || {}).onTooltip;
+            if (tooltipEvents) {
+                for (let i = 0; i < tooltipEvents.length; i++) {
+                    const tooltip = this.executeTooltipEvent(tooltipEvents[i], pickInfo);
+                    if (tooltip !== undefined) {
+                        return typeof tooltip === 'string'
+                            ? tooltip
+                            : tooltip.containsHtml === true
+                                ? { html: tooltip.text }
+                                : tooltip.text;
+                    }
+                }
+            }
+        }
+        return null;
+    };
+
+    setDragging = (dragging: boolean) => {
+        this.setState({ isDragging: dragging });
+    };
+
+    pickMultipleObjects: typeof Deck.prototype.pickMultipleObjects = (opts: {
+        x: number;
+        y: number;
+        radius?: number | undefined;
+        depth?: number | undefined;
+        layerIds?: string[] | undefined;
+        unproject3D?: boolean | undefined;
+    }): PickingInfo[] => (this.mapContainer.current as Deck).pickMultipleObjects(opts);
+
     render() {
+        // TODO: Deck.gl Migration: Should this be a state or a local field (equivalent of useMemo)? To avoid recalculating for every render? See how often we render when the migration is complete
+        const enabledLayers = this.layerManager.getEnabledLayers();
+        const layers: Layer[] = enabledLayers
+            .map((layer) =>
+                getLayer({
+                    layerDescription: layer,
+                    viewState: this.state.viewState,
+                    events: this.mapEvents.layers[layer.id],
+                    activeSection: this.props.activeSection,
+                    setDragging: this.setDragging,
+                    mapCallbacks: this.mapCallbacks,
+                    updateCount: this.updateCounts[layer.id] || 0,
+                    filter: this.layerManager.getFilter(layer.id)
+                })
+            )
+            .filter((layer) => layer !== undefined) as Layer[];
+
+        if (this.state.xyzTileLayer) {
+            layers.unshift(this.state.xyzTileLayer);
+        }
+
         return (
             <section id="tr__main-map">
                 <div id="tr__main-map-context-menu" className="tr__main-map-context-menu"></div>
                 {this.props.children}
-                <div id="mapboxgl-map" ref={this.setRef} style={{ height: '100%', width: '100%' }}></div>
-                {this.state.confirmModalDeleteIsOpen && (
-                    <ConfirmModal
-                        title={this.props.t('transit:transitNode:ConfirmMultipleDelete')}
-                        confirmAction={this.onDeleteSelectedNodes}
-                        isOpen={true}
-                        confirmButtonColor="red"
-                        confirmButtonLabel={this.props.t('transit:transitNode:MultipleDelete')}
-                        closeModal={() => this.setState({ confirmModalDeleteIsOpen: false })}
-                    />
-                )}
+                <div onContextMenu={(evt) => evt.preventDefault()}>
+                    <DeckGL
+                        ref={this.mapContainer}
+                        viewState={this.state.viewState}
+                        controller={{ scrollZoom: true, dragPan: !this.state.isDragging }}
+                        layers={layers}
+                        onViewStateChange={this.onViewStateChange}
+                        onClick={this.onClick}
+                        getTooltip={this.onTooltip}
+                    >
+                        <MapLibreMap mapStyle={this.state.mapStyleURL} />
+                    </DeckGL>
+                </div>
             </section>
         );
     }

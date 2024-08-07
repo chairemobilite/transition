@@ -79,7 +79,7 @@ describe('OSRM Mode tests', function() {
                       points: [origin, destination1] };
 
         fetchMock.mockOnce('{ "status"');
-         await expect(aMode.route(params)).rejects.toThrow('invalid json response body at  reason: Unexpected end of JSON input');
+         await expect(aMode.route(params)).rejects.toThrow('invalid json response body at  reason: Expected \':\'');
          
      });
     
