@@ -14,7 +14,7 @@ import config from '../../config/server.config';
 // Set 2 threads as default, just in case we have more than one request being handled
 const DEFAULT_THREAD_COUNT = 2;
 
-const getServiceName = function (port) {
+const getServiceName = function (port: number) {
     return `trRouting${port}`;
 };
 
@@ -22,7 +22,11 @@ const startTrRoutingProcess = async (
     port: number,
     attemptRestart = false,
     threadCount = 1,
-    parameters: { debug?: boolean; cacheDirectoryPath?: string } = { debug: false, cacheDirectoryPath: undefined }
+    parameters: { debug?: boolean; cacheDirectoryPath?: string; cacheAllScenarios?: boolean } = {
+        debug: false,
+        cacheDirectoryPath: undefined,
+        cacheAllScenarios: false // Flag to enable the trRouting connection cache for all scenario
+    }
 ) => {
     const osrmWalkingServerInfo = osrmService.getMode('walking').getHostPort();
     const serviceName = getServiceName(port);
@@ -50,6 +54,11 @@ const startTrRoutingProcess = async (
         commandArgs.push(`--threads=${threadCount}`);
     }
 
+    // Enable the caching of all scenario. This consume lot of memory, so it's disabled by default
+    if (parameters.cacheAllScenarios) {
+        commandArgs.push('--cacheAllConnectionSets=true');
+    }
+
     const waitString = 'ready.';
 
     const processStatus = await ProcessManager.startProcess(
@@ -74,12 +83,20 @@ const startTrRoutingProcess = async (
 
 const start = async (parameters: { port?: number; debug?: boolean; cacheDirectoryPath?: string }) => {
     const port = parameters.port || Preferences.get('trRouting.port');
+    const cacheAllScenarios =
+        config.trRoutingCacheAllScenarios === undefined ? false : config.trRoutingCacheAllScenarios;
+
+    const params: Parameters<typeof startTrRoutingProcess>[3] = {
+        debug: parameters.debug,
+        cacheDirectoryPath: parameters.cacheDirectoryPath,
+        cacheAllScenarios: cacheAllScenarios
+    };
 
     // TODO Check why we need this await, should not be useful before returning
-    return await startTrRoutingProcess(port, false, DEFAULT_THREAD_COUNT, parameters);
+    return await startTrRoutingProcess(port, false, DEFAULT_THREAD_COUNT, params);
 };
 
-const stop = async (parameters) => {
+const stop = async (parameters: { port?: number; debug?: boolean; cacheDirectoryPath?: string }) => {
     const port = parameters.port || Preferences.get('trRouting.port');
     const serviceName = getServiceName(port);
     const tagName = 'trRouting';
@@ -87,9 +104,22 @@ const stop = async (parameters) => {
     return await ProcessManager.stopProcess(serviceName, tagName);
 };
 
-const restart = async (parameters) => {
+const restart = async (parameters: {
+    port?: number;
+    debug?: boolean;
+    cacheDirectoryPath?: string;
+    doNotStartIfStopped?: boolean;
+}) => {
     const port = parameters.port || Preferences.get('trRouting.port');
     const serviceName = getServiceName(port);
+    const cacheAllScenarios =
+        config.trRoutingCacheAllScenarios === undefined ? false : config.trRoutingCacheAllScenarios;
+
+    const params: Parameters<typeof startTrRoutingProcess>[3] = {
+        debug: parameters.debug,
+        cacheDirectoryPath: parameters.cacheDirectoryPath,
+        cacheAllScenarios: cacheAllScenarios
+    };
 
     if (parameters.doNotStartIfStopped && !(await ProcessManager.isServiceRunning(serviceName))) {
         console.log('trRouting was not running and does not need to be started');
@@ -101,11 +131,11 @@ const restart = async (parameters) => {
         };
     } else {
         // TODO Check why we need this await, should be be useful before returning
-        return await startTrRoutingProcess(port, true, DEFAULT_THREAD_COUNT, parameters);
+        return await startTrRoutingProcess(port, true, DEFAULT_THREAD_COUNT, params);
     }
 };
 
-const status = async (parameters) => {
+const status = async (parameters: { port?: number }) => {
     const port = parameters.port || Preferences.get('trRouting.port');
     const serviceName = getServiceName(port);
 
@@ -148,7 +178,7 @@ const startBatch = async function (
     };
 };
 
-const stopBatch = async function (port = Preferences.get('trRouting.batchPortStart', 14000)) {
+const stopBatch = async function (port: number = Preferences.get('trRouting.batchPortStart', 14000)) {
     await stop({ port: port });
 
     return {
