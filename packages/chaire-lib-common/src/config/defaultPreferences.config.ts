@@ -106,7 +106,13 @@ const defaultPreferences: PreferencesModel = {
         zoom: 10,
         enableMapAnimations: true,
         layers: {
-            simulations: ['aggregatedOD', 'odTripsProfile', 'transitStations', 'transitNodes'],
+            simulations: [
+                'aggregatedOD',
+                'odTripsProfile',
+                'transitStations',
+                'transitNodes',
+                'measureTool'
+            ],
             agencies: [
                 'aggregatedOD',
                 'transitNodesRoutingRadius',
@@ -119,7 +125,9 @@ const defaultPreferences: PreferencesModel = {
                 'transitNodes',
                 'transitNodesSelected',
                 'transitNodesSelectedErrors',
-                'transitPathWaypointsErrors'
+                'transitPathWaypointsErrors',
+                'selectTool',
+                'measureTool'
             ],
             nodes: [
                 'aggregatedOD',
@@ -133,22 +141,30 @@ const defaultPreferences: PreferencesModel = {
                 'transitStations',
                 'transitStationsSelected',
                 'transitNodes',
-                'transitNodesSelected'
+                'transitNodesSelected',
+                'selectTool',
+                'measureTool'
             ],
             scenarios: ['transitPathsForServices'],
             routing: [
                 'aggregatedOD' /*'transitPaths', 'transitNodes', 'transitStations', */,
                 'routingPathsStrokes',
                 'routingPaths',
-                'routingPoints'
+                'routingPoints',
+                'measureTool'
             ],
             accessibilityMap: [
                 'aggregatedOD',
                 'accessibilityMapPolygons',
                 'accessibilityMapPolygonStrokes',
-                'accessibilityMapPoints'
+                'accessibilityMapPoints',
+                'measureTool'
             ],
-            odRouting: ['aggregatedOD', 'odTripsProfile'],
+            odRouting: [
+                'aggregatedOD',
+                'odTripsProfile',
+                'measureTool'
+            ],
             gtfsImport: [
                 'aggregatedOD',
                 'transitNodesRoutingRadius',

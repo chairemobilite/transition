@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import _uniq from 'lodash/uniq';
-import { PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl';
 import { MjolnirEvent } from 'mjolnir.js';
 
 import { MapEventHandlerDescription, PointInfo } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';

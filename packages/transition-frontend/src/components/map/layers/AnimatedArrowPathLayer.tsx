@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { PathLayer, PathLayerProps } from '@deck.gl/layers/typed';
-import { Accessor, DefaultProps } from '@deck.gl/core/typed';
+import { PathLayer, PathLayerProps } from '@deck.gl/layers';
+import { Accessor, DefaultProps } from '@deck.gl/core';
 import * as vec3 from 'gl-matrix/vec3/';
 
 export type AnimatedArrowPathLayerProps<DataT = any> = _AnimatedArrowPathLayerProps<DataT> & PathLayerProps<DataT>;

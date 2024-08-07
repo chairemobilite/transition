@@ -7,8 +7,8 @@
 import React, { createRef } from 'react';
 import ReactDom from 'react-dom';
 import { withTranslation } from 'react-i18next';
-import DeckGL from '@deck.gl/react/typed';
-import { Layer, Deck } from '@deck.gl/core/typed';
+import DeckGL from '@deck.gl/react';
+import { Layer, Deck } from '@deck.gl/core';
 
 import { Map as MapLibreMap } from 'react-map-gl/maplibre';
 import _debounce from 'lodash/debounce';
@@ -24,6 +24,7 @@ import MapPopupManager from 'chaire-lib-frontend/lib/services/map/MapPopupManage
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
 import Node from 'transition-common/lib/services/nodes/Node';
+import MapButton from '../parts/MapButton';
 
 import _cloneDeep from 'lodash/cloneDeep';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
@@ -46,11 +47,19 @@ import {
     MapCallbacks
 } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import getLayer from './layers/TransitionMapLayer';
-import { PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl';
 
 import { BitmapLayer } from '@deck.gl/layers';
 import { TileLayer } from '@deck.gl/geo-layers';
 import { MjolnirEvent, MjolnirGestureEvent } from 'mjolnir.js';
+
+import {
+    EditableGeoJsonLayer,
+    DrawLineStringMode,
+    DrawPolygonMode
+} from '@deck.gl-community/editable-layers';
+
+
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 export interface MainMapProps extends LayoutSectionProps {
@@ -75,6 +84,9 @@ interface MainMapState {
     mapStyleURL: string;
     xyzTileLayer?: Layer; // Temporary! Move this somewhere else
     isDragging: boolean;
+    drawMode: typeof DrawPolygonMode | typeof DrawLineStringMode | null;
+    measureToolGeojson: GeoJSON.FeatureCollection<GeoJSON.LineString>;
+    selectToolGeojson: GeoJSON.FeatureCollection<GeoJSON.Polygon>;
 }
 
 const getTileLayer = () => {
@@ -92,11 +104,11 @@ const getTileLayer = () => {
             tileSize: 256,
             renderSubLayers: (props) => {
                 const {
-                    bbox: { west, south, east, north }
+                    boundingBox: [[west, south], [east, north]]
                 } = props.tile;
 
                 return new BitmapLayer(props, {
-                    data: null,
+                    data: undefined,
                     image: props.data,
                     bounds: [west, south, east, north]
                 });
@@ -113,6 +125,8 @@ const getTileLayer = () => {
 class MainMap extends React.Component<MainMapProps, MainMapState> {
     private layerManager: MapLayerManager;
     private pathFilterManager: TransitPathFilterManager;
+    private measureToolLayer: EditableGeoJsonLayer;
+    private selectToolLayer: EditableGeoJsonLayer;
     private mapEvents: {
         map: { [evtName in mapEventNames]?: MapEventHandlerDescriptor[] };
         layers: {
@@ -153,8 +167,35 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
             enabledLayers: [],
             mapStyleURL: Preferences.get('mapStyleURL'),
             xyzTileLayer: xyzTileLayer,
-            isDragging: false
+            isDragging: false,
+            drawMode: DrawPolygonMode,
+            measureToolGeojson: {
+                type: 'FeatureCollection',
+                features: []
+            },
+            selectToolGeojson: {
+                type: 'FeatureCollection',
+                features: []
+            }
         };
+
+        this.measureToolLayer = new EditableGeoJsonLayer({
+            data: this.state.measureToolGeojson as any, // type should be GeoJSON.FeatureCollection but it does not match deck.gl geojson types
+            mode: DrawLineStringMode,
+            selectedFeatureIndexes: [],
+            onEdit: ({ updatedData }) => {
+                this.updateMeasureToolLayer(updatedData);
+            }
+        });
+
+        this.selectToolLayer = new EditableGeoJsonLayer({
+            data: this.state.selectToolGeojson as any,
+            mode: DrawPolygonMode,
+            selectedFeatureIndexes: [],
+            onEdit: ({ updatedData }) => {
+                this.updateSelectToolLayer(updatedData);
+            }
+        });
 
         this.layerManager = new MapLayerManager(layersConfig);
 
@@ -195,6 +236,24 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
             pickMultipleObjects: this.pickMultipleObjects
         };
     }
+
+    updateMeasureToolLayer = (featureCollection) => {
+        this.setState({
+            measureToolGeojson: featureCollection
+        });
+        this.layerManager.updateLayer('measureToolLayer', featureCollection);
+    };
+
+    updateSelectToolLayer = (featureCollection) => {
+        this.setState({
+            selectToolGeojson: featureCollection
+        });
+        this.layerManager.updateLayer('selectToolLayer', featureCollection);
+    };
+
+    setDrawMode = (mode: typeof DrawPolygonMode | typeof DrawLineStringMode) => {
+        this.setState({ drawMode: mode });
+    };
 
     showPathsByAttribute = (attribute: string, value: any) => {
         // attribute must be agency_id or line_id
@@ -612,6 +671,20 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
                     >
                         <MapLibreMap mapStyle={this.state.mapStyleURL} />
                     </DeckGL>
+                    <div className='tr__map-button-container'>
+                        {this.layerManager.layerIsEnabled('measureTool') && <MapButton
+                            title="main:MeasureTool"
+                            className={`${this.state.drawMode === DrawLineStringMode ? 'active' : ''}`}
+                            onClick={() => this.setDrawMode(DrawLineStringMode)}
+                            iconPath={'/dist/images/icons/interface/ruler_white.svg'}
+                        />}
+                        {this.layerManager.layerIsEnabled('selectTool') && <MapButton
+                            title="main:SelectTool"
+                            className={`${this.state.drawMode === DrawPolygonMode ? 'active' : ''}`}
+                            onClick={() => this.setDrawMode(DrawPolygonMode)}
+                            iconPath={'/dist/images/icons/interface/select_white.svg'}
+                        />}
+                    </div>
                 </div>
             </section>
         );

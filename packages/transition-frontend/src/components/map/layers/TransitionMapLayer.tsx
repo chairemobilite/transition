@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Layer, LayerProps } from '@deck.gl/core/typed';
+import { Layer, LayerProps } from '@deck.gl/core';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import {
     layerEventNames,
@@ -12,7 +12,7 @@ import {
     MapLayerEventHandlerDescriptor
 } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import * as LayerDescription from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
-import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo, Deck } from 'deck.gl/typed';
+import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo, Deck } from 'deck.gl';
 import { MjolnirGestureEvent } from 'mjolnir.js';
 import { DataFilterExtension } from '@deck.gl/extensions';
 import AnimatedArrowPathLayer from './AnimatedArrowPathLayer';
@@ -165,7 +165,7 @@ const getLayerFeatureFilter = (props: TransitionMapLayerProps, config: LayerDesc
     } else if (getFilterFcts.length > 1) {
         layerFilter.getFilterValue = (feature: GeoJSON.Feature) =>
             getFilterFcts.map((fct) => (typeof fct === 'function' ? fct(feature) : fct));
-        layerFilter.extensions = [new DataFilterExtension({ filterSize: getFilterFcts.length })];
+        layerFilter.extensions = [new DataFilterExtension({ filterSize: getFilterFcts.length as 0 | 1 | 2 | 3 | 4 | undefined })];
         layerFilter.filterRange = filterRanges;
     }
     return layerFilter;

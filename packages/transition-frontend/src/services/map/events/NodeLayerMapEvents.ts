@@ -8,7 +8,7 @@
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitNode from 'transition-common/lib/services/nodes/Node';
-import { PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl';
 
 const hoverNode = (node: TransitNode, nodeTitle = node.toString(false)) => {
     if (serviceLocator && serviceLocator.keyboardManager && serviceLocator.keyboardManager.keyIsPressed('alt')) {

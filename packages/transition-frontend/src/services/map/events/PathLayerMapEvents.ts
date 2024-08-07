@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 /** This file encapsulates map events that apply to the path* layer, in any section */
-import { PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
