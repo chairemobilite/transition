@@ -38,7 +38,7 @@
     "chaire-lib-frontend": "^0.2.2",
     "child_process": "^1.0.2",
     "date-fns": "^2.30.0",
-    "deck.gl": "^8.9.36",
+    "deck.gl": "8.9.36",
     "element-resize-event": "^3.0.6",
     "gl-matrix": "^3.4.3",
     "i18next": "^24.0.5",

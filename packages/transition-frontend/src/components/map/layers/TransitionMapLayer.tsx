@@ -12,10 +12,14 @@ import {
     MapLayerEventHandlerDescriptor
 } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import * as LayerDescription from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
-import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
+import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo, TextLayer } from 'deck.gl/typed';
 import { MjolnirGestureEvent } from 'mjolnir.js';
 import { DataFilterExtension } from '@deck.gl/extensions';
 import AnimatedArrowPathLayer from './AnimatedArrowPathLayer';
+
+/*const layer = new ScatterplotLayer({
+    lineWidthUnits
+})*/
 
 // FIXME default color should probably be a app/user/theme preference?
 const DEFAULT_COLOR = '#0086FF';
@@ -165,7 +169,9 @@ const getLayerFeatureFilter = (props: TransitionMapLayerProps, config: LayerDesc
     } else if (getFilterFcts.length > 1) {
         layerFilter.getFilterValue = (feature: GeoJSON.Feature) =>
             getFilterFcts.map((fct) => (typeof fct === 'function' ? fct(feature) : fct));
-        layerFilter.extensions = [new DataFilterExtension({ filterSize: getFilterFcts.length })];
+        layerFilter.extensions = [
+            new DataFilterExtension({ filterSize: getFilterFcts.length as 0 | 1 | 2 | 3 | 4 | undefined })
+        ];
         layerFilter.filterRange = filterRanges;
     }
     return layerFilter;
@@ -192,6 +198,10 @@ const getCommonProperties = (
     if (color !== undefined) {
         layerProperties.getColor = color;
     }
+    const fillColor = config.fillColor === undefined ? undefined : layerColorGetter(config.fillColor, '#ffffff');
+    if (fillColor !== undefined) {
+        layerProperties.getFillColor = fillColor;
+    }
     const opacity = config.opacity === undefined ? undefined : layerNumberGetter(config.opacity, 1);
     if (opacity !== undefined) {
         layerProperties.opacity = opacity;
@@ -215,6 +225,10 @@ const getCommonLineProperties = (
         return undefined;
     }
 
+    const widthUnits = config.widthUnits === undefined ? undefined : config.widthUnits;
+    if (widthUnits !== undefined) {
+        layerProperties.widthUnits = widthUnits;
+    }
     const lineWidth = config.width === undefined ? undefined : layerNumberGetter(config.width, 10);
     if (lineWidth !== undefined) {
         layerProperties.getWidth = lineWidth;
@@ -353,6 +367,35 @@ const getPolygonLayer = (
     });
 };
 
+const getTextLayer = (
+    props: TransitionMapLayerProps,
+    config: LayerDescription.TextLayerConfiguration,
+    eventsToAdd
+): TextLayer | undefined => {
+    const layerProperties: any = getCommonProperties(props, config);
+    // The layer is not to be displayed, don't add it
+    if (layerProperties === undefined) {
+        return undefined;
+    }
+    return new TextLayer({
+        id: props.layerDescription.id,
+        data: props.layerDescription.layerData.features,
+        getText: (d) => d.properties.name.toString(),
+        getPosition: (d) => d.geometry.coordinates,
+        getAlignmentBaseline: 'bottom',
+        getSize: 12,
+        getBackgroundColor: [0, 0, 0, 100],
+        background: true,
+        fontFamily: 'Lato, sans-serif',
+        getColor: [255, 255, 255, 150],
+        getAngle: (d) => d.properties.angle,
+        getTextAnchor: 'middle',
+        // TODO: add other attributes
+        ...eventsToAdd,
+        ...layerProperties
+    });
+};
+
 const getScatterLayer = (
     props: TransitionMapLayerProps,
     config: LayerDescription.PointLayerConfiguration,
@@ -368,6 +411,7 @@ const getScatterLayer = (
     if (contourWidth !== undefined) {
         layerProperties.getLineWidth = contourWidth;
     }
+
     const circleRadius = config.radius === undefined ? undefined : layerNumberGetter(config.radius, 10);
     if (circleRadius !== undefined) {
         layerProperties.getRadius = circleRadius;
@@ -380,8 +424,25 @@ const getScatterLayer = (
     if (radiusScale !== undefined) {
         layerProperties.radiusScale = radiusScale;
     }
+    const radiusUnits = config.radiusUnits === undefined ? undefined : config.radiusUnits;
+    if (radiusUnits !== undefined) {
+        layerProperties.radiusUnits = radiusUnits;
+    }
+    const strokeRadiusScale =
+        config.strokeRadiusScale === undefined ? undefined : layerNumberGetter(config.strokeRadiusScale, 1);
+    if (strokeRadiusScale !== undefined) {
+        layerProperties.strokeRadiusScale = strokeRadiusScale;
+    }
+    const strokeRadiusUnits = config.strokeRadiusUnits === undefined ? undefined : config.strokeRadiusUnits;
+    if (strokeRadiusUnits !== undefined) {
+        layerProperties.strokeRadiusUnits = strokeRadiusUnits;
+    }
+    const lineWidthUnits = config.lineWidthUnits === undefined ? undefined : config.lineWidthUnits;
+    if (lineWidthUnits !== undefined) {
+        layerProperties.lineWidthUnits = lineWidthUnits;
+    }
     const lineWidthScale =
-        config.strokeWidthScale === undefined ? undefined : layerNumberGetter(config.strokeWidthScale, 1);
+        config.lineWidthScale === undefined ? undefined : layerNumberGetter(config.lineWidthScale, 1);
     if (lineWidthScale !== undefined) {
         layerProperties.lineWidthScale = lineWidthScale;
     }
@@ -408,7 +469,7 @@ const getScatterLayer = (
     return new ScatterplotLayer({
         id: props.layerDescription.id,
         data: props.layerDescription.layerData.features,
-        filled: layerProperties.getColor !== undefined,
+        filled: layerProperties.getColor !== undefined || layerProperties.getFillColor !== undefined,
         stroked: contourColor !== undefined || contourWidth !== undefined,
         getPosition: (d) => d.geometry.coordinates,
         updateTriggers: {
@@ -472,7 +533,9 @@ const getLayer = (props: TransitionMapLayerProps): Layer<LayerProps> | undefined
         return undefined;
     }
     const eventsToAdd = props.events !== undefined ? addEvents(props.events, props) : {};
-    if (LayerDescription.layerIsCircle(props.layerDescription.configuration)) {
+    if (LayerDescription.layerIsText(props.layerDescription.configuration)) {
+        return getTextLayer(props, props.layerDescription.configuration, eventsToAdd) as any;
+    } else if (LayerDescription.layerIsCircle(props.layerDescription.configuration)) {
         // FIXME Try not to type as any
         return getScatterLayer(props, props.layerDescription.configuration, eventsToAdd) as any;
     } else if (LayerDescription.layerIsLine(props.layerDescription.configuration)) {

@@ -7,33 +7,34 @@
 import React, { createRef, PropsWithChildren } from 'react';
 import { createRoot } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import DeckGL from '@deck.gl/react/typed';
-import { Layer, Deck } from '@deck.gl/core/typed';
-
-import { Map as MapLibreMap } from 'react-map-gl/maplibre';
-import _debounce from 'lodash/debounce';
-
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import layersConfig from '../../config/layers.config';
-import globalMapEvents from 'chaire-lib-frontend/lib/services/map/events/GlobalMapEvents';
-import transitionMapEvents from '../../services/map/events';
-import mapCustomEvents from '../../services/map/events/MapRelatedCustomEvents';
-import MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManager';
-import TransitPathFilterManager from '../../services/map/TransitPathFilterManager';
-import MapPopupManager from 'chaire-lib-frontend/lib/services/map/MapPopupManager';
-import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
-import Node from 'transition-common/lib/services/nodes/Node';
-
 import _cloneDeep from 'lodash/cloneDeep';
+import _debounce from 'lodash/debounce';
+import { MjolnirGestureEvent } from 'mjolnir.js';
+
+// deck.gl and maps
+import DeckGL from '@deck.gl/react';
+import { Layer, Deck, PickingInfo } from '@deck.gl/core';
+import { BitmapLayer } from '@deck.gl/layers';
+import { TileLayer } from '@deck.gl/geo-layers';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
+import { Map as MapLibreMap } from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
+
+// chaire-lib-common:
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+
+// chaire-lib-frontend:
+import globalMapEvents from 'chaire-lib-frontend/lib/services/map/events/GlobalMapEvents';
+import MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManager';
+import MapPopupManager from 'chaire-lib-frontend/lib/services/map/MapPopupManager';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
-import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
 import {
     MapUpdateLayerEventType,
     MapFilterLayerEventType
 } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import {
     layerEventNames,
     tooltipEventNames,
@@ -45,13 +46,20 @@ import {
     MapSelectEventHandlerDescriptor,
     MapCallbacks
 } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
-import getLayer from './layers/TransitionMapLayer';
-import { PickingInfo } from 'deck.gl/typed';
 
-import { BitmapLayer } from '@deck.gl/layers';
-import { TileLayer } from '@deck.gl/geo-layers';
-import { MjolnirEvent, MjolnirGestureEvent } from 'mjolnir.js';
-import 'maplibre-gl/dist/maplibre-gl.css';
+// transition-common:
+import Node from 'transition-common/lib/services/nodes/Node';
+import { MeasureTool } from 'transition-common/lib/services/measureTool/MeasureTool';
+
+// transition-frontend:
+import transitionMapEvents from '../../services/map/events';
+import mapCustomEvents from '../../services/map/events/MapRelatedCustomEvents';
+import TransitPathFilterManager from '../../services/map/TransitPathFilterManager';
+import MapButton from '../parts/MapButton';
+import layersConfig from '../../config/layers.config';
+import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
+import getLayer from './layers/TransitionMapLayer';
+import MeasureDistanceDisplay from '../parts/MeasureDistanceDisplay';
 
 export interface MainMapProps extends LayoutSectionProps {
     zoom: number;
@@ -75,6 +83,8 @@ interface MainMapState {
     mapStyleURL: string;
     xyzTileLayer?: Layer; // Temporary! Move this somewhere else
     isDragging: boolean;
+    measureToolEnabled: boolean;
+    measureDistance: number | undefined;
 }
 
 const getTileLayer = () => {
@@ -92,11 +102,11 @@ const getTileLayer = () => {
             tileSize: 256,
             renderSubLayers: (props) => {
                 const {
-                    bbox: { west, south, east, north }
+                    boundingBox: [[west, south], [east, north]]
                 } = props.tile;
 
                 return new BitmapLayer(props, {
-                    data: null,
+                    data: undefined,
                     image: props.data,
                     bounds: [west, south, east, north]
                 });
@@ -153,7 +163,9 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             enabledLayers: [],
             mapStyleURL: Preferences.get('mapStyleURL'),
             xyzTileLayer: xyzTileLayer,
-            isDragging: false
+            isDragging: false,
+            measureToolEnabled: false,
+            measureDistance: undefined
         };
 
         this.layerManager = new MapLayerManager(layersConfig);
@@ -194,8 +206,35 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.mapCallbacks = {
             pickMultipleObjects: this.pickMultipleObjects
         };
+
+        serviceLocator.eventManager.on('selected.deselect.measureTool', this.disableMeasureTool);
     }
 
+    enableMeasureTool = () => {
+        //this.setDrawMode(DrawLineStringMode);
+        const measureTool = new MeasureTool(undefined, undefined, undefined);
+        serviceLocator.selectedObjectsManager.select('measureTool', measureTool);
+        this.setState({
+            measureToolEnabled: true,
+            measureDistance: undefined
+        });
+    };
+
+    disableMeasureTool = () => {
+        //this.setDrawMode(null);
+        this.setState({
+            measureToolEnabled: false,
+            measureDistance: undefined
+        });
+    };
+
+    updateMeasureToolDistance = () => {
+        const measureTool = serviceLocator.selectedObjectsManager.get('measureTool') as MeasureTool;
+        const distances = measureTool.getDistances();
+        this.setState({
+            measureDistance: distances.totalDistanceM
+        });
+    };
     showPathsByAttribute = (attribute: string, value: any) => {
         // attribute must be agency_id or line_id
         if (attribute === 'agency_id') {
@@ -234,6 +273,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             'map.layers.updateFilter',
             this.updateFilter
         );
+        serviceLocator.eventManager.on('selected.update.measureTool', this.updateMeasureToolDistance);
+        serviceLocator.eventManager.on('selected.deselect.measureTool', this.disableMeasureTool);
         serviceLocator.eventManager.on('map.updateLayers', this.updateLayers);
         serviceLocator.eventManager.on('map.clearFilter', this.clearFilter);
         serviceLocator.eventManager.on('map.showLayer', this.showLayer);
@@ -262,6 +303,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.removeService('pathLayerManager');
         mapCustomEvents.removeEvents(serviceLocator.eventManager);
         // removeResizeListener(this.mapContainer, this.onResizeContainer);
+        serviceLocator.eventManager.off('selected.update.measureTool', this.updateMeasureToolDistance);
+        serviceLocator.eventManager.off('selected.deselect.measureTool', this.disableMeasureTool);
         serviceLocator.eventManager.off('map.updateEnabledLayers', this.updateEnabledLayers);
         serviceLocator.eventManager.off('map.updateLayer', this.updateLayer);
         serviceLocator.eventManager.off('map.updateLayers', this.updateLayers);
@@ -277,7 +320,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         //serviceLocator.eventManager.off('map.deleteSelectedNodes', this.deleteSelectedNodes);
     };
 
-    private executeEvent = (event: MapEventHandlerDescriptor, pointInfo: PointInfo, e: MjolnirEvent) => {
+    private executeEvent = (event: MapEventHandlerDescriptor, pointInfo: PointInfo, e: MjolnirGestureEvent) => {
         if (event.condition === undefined || event.condition(this.props.activeSection)) {
             event.handler(pointInfo, e, this.mapCallbacks);
         }
@@ -296,7 +339,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     private executeMapSelectEvent = (
         event: MapSelectEventHandlerDescriptor,
         pickInfo: PickingInfo[],
-        e: MjolnirEvent
+        e: MjolnirGestureEvent
     ) => {
         if (event.condition === undefined || event.condition(this.props.activeSection)) {
             return event.handler(pickInfo, e, this.mapCallbacks);
@@ -561,6 +604,9 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     };
 
     setDragging = (dragging: boolean) => {
+        if (this.state.measureToolEnabled) {
+            return;
+        }
         this.setState({ isDragging: dragging });
     };
 
@@ -603,7 +649,11 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                     <DeckGL
                         ref={this.mapContainer}
                         viewState={this.state.viewState}
-                        controller={{ scrollZoom: true, dragPan: !this.state.isDragging }}
+                        controller={{
+                            scrollZoom: true,
+                            doubleClickZoom: false,
+                            dragPan: !this.state.isDragging
+                        }}
                         layers={layers}
                         onViewStateChange={this.onViewStateChange}
                         onClick={this.onClick}
@@ -611,6 +661,28 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                     >
                         <MapLibreMap mapStyle={this.state.mapStyleURL} />
                     </DeckGL>
+                    <div className="tr__map-button-container">
+                        {this.layerManager.layerIsEnabled('measureToolPoint') && (
+                            <MapButton
+                                title="main:MeasureTool"
+                                className={`${this.state.measureToolEnabled ? 'active' : ''}`}
+                                onClick={() => {
+                                    if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
+                                        serviceLocator.selectedObjectsManager.deselect('measureTool');
+                                        serviceLocator.eventManager.emit('map.updateLayers', {
+                                            measureToolPoint: turfFeatureCollection([]),
+                                            measureToolLine: turfFeatureCollection([]),
+                                            measureToolText: turfFeatureCollection([])
+                                        });
+                                    } else {
+                                        this.enableMeasureTool();
+                                    }
+                                }}
+                                iconPath={'/dist/images/icons/interface/ruler_white.svg'}
+                            />
+                        )}
+                    </div>
+                    {this.state.measureToolEnabled && <MeasureDistanceDisplay distance={this.state.measureDistance} />}
                 </div>
             </section>
         );

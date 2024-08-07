@@ -11,6 +11,7 @@ import pathLayerMapEvents from './PathLayerMapEvents';
 import pathSectionMapEvents from './PathSectionMapEvents';
 import scenarioSectionMapEvents from './ScenarioSectionMapEvents';
 import accessMapSectionMapEvents from './AccessibilityMapSectionMapEvents';
+import measureToolLayerMapEvents from './MeasureToolLayerMapEvents';
 
 const transitionEvents = [
     nodeSectionMapEvents,
@@ -19,7 +20,8 @@ const transitionEvents = [
     accessMapSectionMapEvents,
     pathLayerMapEvents,
     pathSectionMapEvents,
-    scenarioSectionMapEvents
+    scenarioSectionMapEvents,
+    measureToolLayerMapEvents
 ];
 const transitionEventsArr = transitionEvents.flatMap((ev) => ev);
 export default transitionEventsArr;
