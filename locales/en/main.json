@@ -296,5 +296,6 @@
     "ShowingNofX": "Showing {{n}} of {{x}} results",
     "PageNofX": "Page {{n}} of {{x}}",
     "GoToPage": "Go to page",
-    "ShowN": "Show {{n}}"
+    "ShowN": "Show {{n}}",
+    "MeasureTool": "Measure tool"
 }
