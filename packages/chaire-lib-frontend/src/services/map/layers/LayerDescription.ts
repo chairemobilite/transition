@@ -21,12 +21,15 @@ export type FeatureColor =
     | ConfigurationGetter
     | ((feature: GeoJSON.Feature) => string | [number, number, number] | [number, number, number, number]);
 export type FeatureNumber = number | ConfigurationGetter | ((feature: GeoJSON.Feature) => number);
+export type FeatureString = string | ConfigurationGetter | ((feature: GeoJSON.Feature) => string);
 
 export type CommonLayerConfiguration = {
     /**
      * Color of the feature
      */
     color?: FeatureColor;
+    fillColor?: FeatureColor;
+    lineColor?: FeatureColor;
     pickable?: boolean | (() => boolean);
     opacity?: FeatureNumber;
     /**
@@ -70,6 +73,26 @@ export const layerIsCircle = (layer: LayerConfiguration): layer is PointLayerCon
     return layer.type === 'circle';
 };
 
+export type BaseTextLayerConfiguration = CommonLayerConfiguration & {
+    sizeScale?: FeatureNumber;
+    sizeUnits?: 'pixels' | 'common' | 'meters';
+    sizeMinPixels?: FeatureNumber;
+    sizeMaxPixels?: FeatureNumber;
+    background?: boolean;
+    backgroundPadding?: FeatureNumber;
+    fontFamily?: FeatureString;
+    fontWeight?: FeatureString;
+    // TODO: complete these from deck.gl TextLayer config
+};
+
+export type TextLayerConfiguration = BaseTextLayerConfiguration & {
+    type: 'text';
+};
+
+export const layerIsText = (layer: LayerConfiguration): layer is TextLayerConfiguration => {
+    return layer.type === 'text';
+};
+
 export type BaseLineLayerConfiguration = CommonLayerConfiguration & {
     /**
      * The line's width and scale
@@ -110,7 +133,6 @@ export type PolygonLayerConfiguration = CommonLayerConfiguration & {
      * fill and contour's color
      */
     color?: FeatureColor;
-    lineColor?: FeatureColor;
     lineWidth?: FeatureNumber;
     lineWidthMinPixels?: FeatureNumber;
 };
@@ -121,6 +143,7 @@ export const layerIsPolygon = (layer: LayerConfiguration): layer is PolygonLayer
 
 export type LayerConfiguration =
     | PointLayerConfiguration
+    | TextLayerConfiguration
     | LineLayerConfiguration
     | AnimatedPathLayerConfiguration
     | PolygonLayerConfiguration;

@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { MjolnirEvent } from 'mjolnir.js';
-import { PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl';
 
 import {
     MapCallbacks,
@@ -16,7 +16,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitPath from 'transition-common/lib/services/path/Path';
 import TransitLine from 'transition-common/lib/services/line/Line';
 
-/* This file encapsulates map events specific for the 'nodes' section */
+/* This file encapsulates map events specific for the 'agencies' section */
 
 const isAgenciesActiveSection = (activeSection: string) => activeSection === 'agencies';
 
@@ -64,6 +64,12 @@ const selectPath = (pathGeojson) => {
 };
 
 const onSelectedPathMapClicked = (pointInfo: PointInfo, e: MjolnirEvent) => {
+
+    // disable map click if measure tool is selected:
+    if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
+        return;
+    }
+
     // Add a waypoint at the location of the click
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
@@ -86,6 +92,12 @@ const onSelectedPathMapClicked = (pointInfo: PointInfo, e: MjolnirEvent) => {
 };
 
 const onPathsClicked = (pickInfo: PickingInfo[], e: MjolnirEvent) => {
+
+    // disable map click if measure tool is selected:
+    if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
+        return;
+    }
+
     if (pickInfo.length === 1) {
         selectPath(pickInfo[0].object);
     } else {
@@ -110,6 +122,7 @@ const onPathsClicked = (pickInfo: PickingInfo[], e: MjolnirEvent) => {
 };
 
 const onSelectedWaypointDrag = (info: PickingInfo, e: MjolnirEvent) => {
+
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
@@ -158,6 +171,12 @@ const onSelectedWaypointDragEnd = (info: PickingInfo, e: MjolnirEvent, mapCallba
 };
 
 const onSelectedPathClicked = (info: PickingInfo, e: MjolnirEvent) => {
+
+    // disable map click if measure tool is selected:
+    if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
+        return;
+    }
+
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
@@ -188,6 +207,12 @@ const addNode = (path: TransitPath, nodeId: string, atEnd = true) => {
 };
 
 const onNodeClickedForPath = (info: PickingInfo, e: MjolnirEvent) => {
+
+    // disable map click if measure tool is selected:
+    if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
+        return;
+    }
+
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
 

@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import _uniq from 'lodash/uniq';
-import { PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl';
 import { MjolnirEvent } from 'mjolnir.js';
 
 import { MapEventHandlerDescription, PointInfo } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
@@ -93,6 +93,12 @@ const onNodeSectionContextMenu = (pointInfo: PointInfo, event: MjolnirEvent) => 
  * @returns
  */
 const onNodeSelected = (info: PickingInfo, e: MjolnirEvent) => {
+
+    // disable map click if measure tool is selected:
+    if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
+        return;
+    }
+
     const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
     const selectedNode = serviceLocator.selectedObjectsManager.get('node');
 
@@ -127,6 +133,12 @@ const onNodeSelected = (info: PickingInfo, e: MjolnirEvent) => {
 // it still needed? If we have problems, there should be an event handler of
 // higher priority to check it before running any other
 const onMapClicked = (pointInfo: PointInfo, e: MjolnirEvent) => {
+
+    // disable map click if measure tool is selected:
+    if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
+        return;
+    }
+
     const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
     // Ignore the event if there is a multiple selection
     if (selectedNodes) return;
