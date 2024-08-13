@@ -121,51 +121,30 @@ export class Routing {
         const { isCancelled } = options;
 
         // ** backend
-        const routingResult: TransitOrRouteCalculatorResult[] = [];
+        const routingPromises: Promise<TransitOrRouteCalculatorResult>[] = [];
 
-        for (let i = 0, count = routingAttributes.routingModes.length; i < count; i++) {
+        console.log(`Routing beginning with ${routingAttributes.routingModes.length} modes`);
+        for (const routingMode of routingAttributes.routingModes) {
             if (isCancelled && isCancelled()) {
                 throw 'Cancelled';
             }
-
-            const routingMode = routingAttributes.routingModes[i];
-            try {
-                if (routingMode === 'transit') {
-                    routingResult.push({
-                        routingMode,
-                        result: await calculateTransit(
-                            [routingAttributes.originGeojson, routingAttributes.destinationGeojson],
-                            routingAttributes
-                        )
-                    });
-                } else {
-                    routingResult.push({
-                        routingMode,
-                        result: await calculateRoute(
-                            [routingAttributes.originGeojson, routingAttributes.destinationGeojson],
-                            routingAttributes,
-                            routingMode
-                        )
-                    });
-                }
-            } catch (error) {
-                routingResult.push({
-                    routingMode,
-                    result: !TrError.isTrError(error)
-                        ? new TrError(
-                            `cannot calculate routing for mode ${routingMode}:  ${error}`,
-                            'TRCalculatorError',
-                            { text: 'transit:transitRouting:errors:ErrorForMode', params: { mode: routingMode } }
-                        )
-                        : error
-                });
-            }
+            routingPromises.push(this.calculateRoutingMode(routingMode, routingAttributes));
         }
 
         // Cancel further processing if the request was cancelled
         if (isCancelled && isCancelled()) {
             throw 'Cancelled';
         }
+
+        const routingResults = await Promise.all(routingPromises);
+        // TODO with the switch to Promise.all we cannot really cancel while
+        // the calls are all started. Need to investigate if we really need this cancellation feature
+        // Cancel further processing if the request was cancelled
+        if (isCancelled && isCancelled()) {
+            throw 'Cancelled';
+        }
+
+        console.log('Routing done');
         const maxWalkingTime = Math.min(
             routingAttributes.maxTotalTravelTimeSeconds || 10800,
             2 * (routingAttributes.maxAccessEgressTravelTimeSeconds || 1200)
@@ -173,8 +152,46 @@ export class Routing {
 
         return prepareResults(
             [routingAttributes.originGeojson, routingAttributes.destinationGeojson],
-            routingResult,
+            routingResults,
             maxWalkingTime
         );
+    }
+
+    // Function to encapsulate the selection of the right calculate function. This make it
+    // simpler to handle the async in the for loop in the main calculate function.
+    private static async calculateRoutingMode(
+        routingMode: RoutingMode | TransitMode,
+        routingAttributes: TripRoutingQueryAttributes
+    ): Promise<TransitOrRouteCalculatorResult> {
+        try {
+            if (routingMode === 'transit') {
+                return {
+                    routingMode,
+                    result: await calculateTransit(
+                        [routingAttributes.originGeojson, routingAttributes.destinationGeojson],
+                        routingAttributes
+                    )
+                };
+            } else {
+                return {
+                    routingMode,
+                    result: await calculateRoute(
+                        [routingAttributes.originGeojson, routingAttributes.destinationGeojson],
+                        routingAttributes,
+                        routingMode
+                    )
+                };
+            }
+        } catch (error) {
+            return {
+                routingMode,
+                result: !TrError.isTrError(error)
+                    ? new TrError(`cannot calculate routing for mode ${routingMode}:  ${error}`, 'TRCalculatorError', {
+                        text: 'transit:transitRouting:errors:ErrorForMode',
+                        params: { mode: routingMode }
+                    })
+                    : error
+            };
+        }
     }
 }
