@@ -1,0 +1,221 @@
+successResponse:
+  required:
+    - status
+  type: object
+  properties:
+    status:
+      type: string
+      enum: [success]
+    query:
+      $ref: '#/summaryQueryResponse'
+    result:
+      $ref: '#/summaryResultResponse'
+
+summaryQueryResponse:
+  type: object
+  properties:
+    origin:
+      type: array
+      items:
+        type: number
+      minItems: 2
+      maxItems: 2
+      description: Longitude and latitude of the origin, in the WSG84 coordiantes system
+    destination:
+      type: array
+      items:
+        type: number
+      minItems: 2
+      maxItems: 2
+      description: Longitude and latitude of the destination, in the WSG84 coordiantes system
+    timeOfTrip:
+      type: integer
+      description: |
+        The requested time of the trip, in seconds since midnight.
+        The time_type field will determine if it represents a departure or arrival time.
+    timeType:
+      type: integer
+      enum:
+        - 0
+        - 1
+      description: The type of the requestTime. 0 means it is the departure time; 1 means arrival time
+
+summaryResultResponse:
+  type: object
+  properties:
+    nbRoutes:
+      type: integer
+      description: Number of route alternatives that were calculated in this query
+    lines:
+      type: array
+      items:
+        $ref: '#/lineSummary'  
+
+lineSummary:
+  type: object
+  properties:
+    lineUuid:
+      type: string
+      description: UUID of the line used
+    lineShortname:
+      type: string
+      description: Shortname of the line
+    lineLongname:
+      type: string
+      description: Long name of the line
+    agencyUuid:
+      type: string
+      description: UUID of the agency serving the line
+    agencyAcronym:
+      type: string
+      description: Acronym of the agency serving the line
+    agencyName:
+      type: string
+      description: Name of the agency serving the lineLongname
+    alternativeCount:
+      type: integer
+      description: Number of alternatives in which this line appears
+
+originParam:
+  in: query
+  name: originGeojson
+  schema:
+    type: GeoJSON.Feature<GeoJSON.Point>
+  required: true
+  description: GeoJson with the longitude/latitude coordinates of the origin, in the WSG84 coordinates system
+
+destinationParam:
+  in: query
+  name: destinationGeojson
+  schema:
+    type: GeoJSON.Feature<GeoJSON.Point>
+  required: true
+  description: GeoJson with the longitude/latitude coordinates of the destination, in the WSG84 coordinates system
+
+scenarioParam:
+  in: query
+  name: scenarioId
+  schema:
+    type: scenarioId
+  required: true
+  # TODO: Scenario is very transition centric. Can't trRouting be used with a GTFS or some other type, without a scenario
+  description: ID of the scenario to query. A scenario defines the services, agencies and lines to use for this transit calculation
+
+departureTimeParam:
+  in: query
+  name: departureTimeSecondsSinceMidnight
+  schema:
+    type: integer
+  required: false
+  description: |
+    The departure time of the trip, in seconds since midnight. 
+    There is no timezone associated with the time, Transition is timezone agnostic as a scenario typically covers a single timezone and the 0 is the midnight in the agency of that scenario. 
+    The arrivalTimeSecondsSinceMidnight parameter may be provided instead.
+
+arrivalTimeParam:
+  in: query
+  name: arrivalTimeSecondsSinceMidnight
+  schema:
+    type: integer
+  required: false
+  description: |
+    The arrival time of the trip, in seconds since midnight. 
+    See description for the departureTimeSecondsSinceMidnight parameter, which may be included instead.
+
+alternativesParam:
+  in: query
+  name: withAlternatives
+  schema:
+    type: boolean
+  required: false
+  description: Whether the results should return various alternatives if available or just a single result. Defaults to false, no alternatives
+
+minWaitingTimeParam:
+  in: query
+  name: minWaitingTimeSeconds
+  schema:
+    type: integer
+  required: false
+  description: "The minimum time to wait at a stop/station, in seconds, to cope with uncertainties in the vehicle arrival times. Suggested value: 180"
+
+maxAccessTravelTimeParam:
+  in: query
+  name: maxAccessTravelTimeSeconds
+  schema:
+    type: integer
+  required: false
+  description: "Maximum time, in seconds, to reach the first stop/station in the trip"
+
+maxEgressTravelTimeParam:
+  in: query
+  name: maxEgressTravelTimeSeconds
+  schema:
+    type: integer
+  required: false
+  description: "Maximum time, in seconds, from the last stop/station, to reach the destination"
+
+maxTransferTravelTimeParam:
+  in: query
+  name: maxTransferTravelTimeSeconds
+  schema:
+    type: integer
+  required: false
+  description: "Maximum time, in seconds, for each transfer between stop/station during the trip"
+
+maxTravelTimeParam:
+  in: query
+  name: maxTotalTravelTimeSeconds
+  schema:
+    type: integer
+  required: false
+  description: The maximum total travel time between origin and destination, including access, transfer and egress times
+
+maxFirstWaitingTime:
+  in: query
+  name: maxFirstWaitingTimeSeconds
+  schema:
+    type: integer
+  required: false
+  description: The maximum time, in seconds, one can wait at first stop/station to consider this trip valid
+
+data_error: # 'data_error' is a value for the status (discriminator)
+  required:
+    - status
+  type: object
+  properties:
+    status:
+      type: string
+      enum: [data_error]
+    errorCode:
+      type: string
+      enum:
+        - 'DATA_ERROR'
+        - 'MISSING_DATA_AGENCIES'
+        - 'MISSING_DATA_SERVICES'
+        - 'MISSING_DATA_NODES'
+        - 'MISSING_DATA_LINES'
+        - 'MISSING_DATA_PATHS'
+        - 'MISSING_DATA_SCENARIOS'
+        - 'MISSING_DATA_SCHEDULES'
+
+query_error: # 'query_error' is a value for the status (discriminator)
+  required:
+    - status
+  type: object
+  properties:
+    status:
+      type: string
+      enum: [query_error]
+    errorCode:
+      type: string
+      enum:
+        - 'EMPTY_SCENARIO'
+        - 'MISSING_PARAM_SCENARIO'
+        - 'MISSING_PARAM_ORIGIN'
+        - 'MISSING_PARAM_DESTINATION'
+        - 'MISSING_PARAM_TIME_OF_TRIP'
+        - 'INVALID_SCENARIO'
+        - 'INVALID_ORIGIN'
+        - 'INVALID_DESTINATION'
+        - 'INVALID_NUMERICAL_DATA'
+        - 'PARAM_ERROR_UNKNOWN'
