@@ -23,6 +23,7 @@ import RoutingModesAPIResponse from '../public/RoutingModesAPIResponse';
 import AccessibilityMapAPIResponse from '../public/AccessibilityMapAPIResponse';
 import RouteAPIResponse from '../public/RouteAPIResponse';
 import { TestUtils } from 'chaire-lib-common/lib/test';
+import TrRoutingServiceBackend from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
 
 jest.mock('../../services/routingCalculation/RoutingCalculator');
 jest.mock('transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting');
@@ -33,7 +34,12 @@ jest.mock('../public/ScenariosAPIResponse');
 jest.mock('../public/RoutingModesAPIResponse');
 jest.mock('../public/AccessibilityMapAPIResponse');
 jest.mock('../public/RouteAPIResponse');
+jest.mock('chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend', () => ({
+    summary: jest.fn()
+}));
 jest.mock('passport');
+
+const mockSummary = TrRoutingServiceBackend.summary as jest.MockedFunction<typeof TrRoutingServiceBackend.summary>;
 
 const app = express();
 app.use(express.json() as RequestHandler);
@@ -329,6 +335,28 @@ describe('Testing API endpoints', () => {
         expect(response.body).toStrictEqual(result);
         expect(transitObjectDataHandlers.scenarios.collection!).toBeCalledWith(null);
         expect(ScenariosAPIResponse).toBeCalled();
+    });
+
+    test('GET /api/v1/summary', async () => {
+        const attributes = { 
+            originGeojson: TestUtils.makePoint([1, 2]),
+            destinationGeojson: TestUtils.makePoint([3, 4]),
+            scenarioId: 'ID',
+            arrivalTimeSecondsSinceMidnight: 0,
+        };
+
+        const result = {
+            status: 'query_error' as const,
+            errorCode: 'INVALID_DESTINATION' as const
+        };
+
+        mockSummary.mockResolvedValueOnce(result);
+
+        const response = await request(app).get('/api/v1/summary').send(attributes);
+        
+        expect(response.status).toStrictEqual(200);
+        expect(response.body).toStrictEqual(result);
+        expect(mockSummary).toHaveBeenCalled();
     });
 
     test('GET /api/v1/routing-modes', async () => {

@@ -83,6 +83,51 @@ paths:
             application/json:
               schema:
                 $ref: 'routingModes.yml#/routingModes'
+  
+  /api/v1/summary:
+    get:
+      summary: Get summary of route calculation result
+      description: Return a summary of each transit object of a certain type used by the route calculation result 
+      parameters:
+      - $ref: "summary.yml#/originParam"
+      - $ref: "summary.yml#/destinationParam"
+      - $ref: "summary.yml#/scenarioParam"
+      - $ref: "summary.yml#/departureTimeParam"
+      - $ref: "summary.yml#/arrivalTimeParam"
+      - $ref: "summary.yml#/alternativesParam"
+      - $ref: "summary.yml#/minWaitingTimeParam"
+      - $ref: "summary.yml#/maxAccessTravelTimeParam"
+      - $ref: "summary.yml#/maxEgressTravelTimeParam"
+      - $ref: "summary.yml#/maxTransferTravelTimeParam"
+      - $ref: "summary.yml#/maxTravelTimeParam"
+      - $ref: "summary.yml#/maxFirstWaitingTime"
+      - in: query
+        name: type
+        schema:
+          type: string
+          enum: [line]
+        required: true
+        description: The type of objects for which to get the summary
+      responses:
+        '200':
+          description: Successful query, but may not have returned a routing result
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: 'summary.yml#/data_error'
+                  - $ref: 'summary.yml#/successResponse'
+                discriminator:
+                  propertyName: status
+                  mapping:
+                    success: 'summary.yml#/successResponse'
+                    data_error: 'summary.yml#/data_error'
+        '400':
+          description: Query parameters are invalid
+          content:
+            application/json:
+              schema:
+                $ref: 'summary.yml#/query_error'
 
   /api/v1/route:
     post:
