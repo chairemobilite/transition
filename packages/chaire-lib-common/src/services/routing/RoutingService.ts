@@ -6,6 +6,7 @@
  */
 import GeoJSON from 'geojson';
 import { RoutingMode } from '../../config/routingModes';
+import { TripRoutingQueryAttributes } from './types';
 
 export interface MapMatchParameters {
     mode: RoutingMode;
@@ -118,9 +119,11 @@ export interface RoutingService {
      * route. Various implementations may use them differently.
      *
      * @param params
+     * @param routingAttributes Additional attributes related to the trip
+     * calculation
      * @returns Route matching result
      */
-    route(params: MapMatchParameters): Promise<RouteResults>;
+    route(params: MapMatchParameters, routingAttributes?: TripRoutingQueryAttributes): Promise<RouteResults>;
 
     /**
      * Compute the durations and distances of the fastest route between the
