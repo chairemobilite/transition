@@ -49,7 +49,7 @@ function setup()
 
     access_tag_whitelist = Set {
       'yes',
-      'routing:bicycle',
+      'routing:bicycle', -- This tag is custom and should no longer be used, see discussion at https://community.openstreetmap.org/t/whats-the-purpose-of-routing-bicycle/118139
       'bicycle',
       'permissive',
       'designated',
@@ -339,6 +339,7 @@ function handle_bicycle_tags(profile,way,result,data)
   data.oneway = way:get_value_by_key("oneway")
   data.oneway_bicycle = way:get_value_by_key("oneway:bicycle")
   data.cycleway = way:get_value_by_key("cycleway")
+  data.cycleway_both = way:get_value_by_key("cycleway:both")
   data.cycleway_left = way:get_value_by_key("cycleway:left")
   data.cycleway_right = way:get_value_by_key("cycleway:right")
   data.duration = way:get_value_by_key("duration")
@@ -564,7 +565,24 @@ function bike_push_handler(profile,way,result,data)
     result.backward_speed = profile.walking_speed
   end
 
+  -- This tag is custom and should no longer be used, see discussion at https://community.openstreetmap.org/t/whats-the-purpose-of-routing-bicycle/118139
   if data.bicycle_routing == "use_sidepath" then
+    result.forward_mode = mode.inaccessible
+    result.backward_mode = mode.inaccessible
+  end
+
+  -- prefer the use of cycleway tags over routing:bicycle = use_sidepath
+  if data.cycleway == 'separate' or data.cycleway_both == 'separate' then
+    result.forward_mode = mode.inaccessible
+    result.backward_mode = mode.inaccessible
+  end
+
+  if data.cycleway_left == 'separate' and data.cycleway_right == 'separate' then
+    result.forward_mode = mode.inaccessible
+    result.backward_mode = mode.inaccessible
+  end
+
+  if (data.cycleway_left == 'separate' and data.cycleway_right == 'no') or (data.cycleway_left == 'no' and data.cycleway_right == 'separate') then
     result.forward_mode = mode.inaccessible
     result.backward_mode = mode.inaccessible
   end
