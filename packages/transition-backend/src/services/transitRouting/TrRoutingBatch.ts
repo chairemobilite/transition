@@ -162,20 +162,26 @@ class TrRoutingBatch {
                         promiseQueue.clear();
                     }
                     try {
+                        console.log('Start handling batch routing odTrip %d', odTripIndex);
                         await this.odTripTask(odTripIndex, {
                             trRoutingPort,
                             logBefore: logOdTripBefore,
                             logAfter: logOdTripAfter
                         });
                     } finally {
-                        completedRoutingsCount++;
-                        if (completedRoutingsCount % progressStep === 0) {
-                            this.options.progressEmitter.emit('progress', {
-                                name: 'BatchRouting',
-                                progress: completedRoutingsCount / odTripsCount
-                            });
+                        try {
+                            completedRoutingsCount++;
+                            if (completedRoutingsCount % progressStep === 0) {
+                                this.options.progressEmitter.emit('progress', {
+                                    name: 'BatchRouting',
+                                    progress: completedRoutingsCount / odTripsCount
+                                });
+                            }
+                            console.log('Handled batch routing odTrip %d', odTripIndex);
+                            checkpointTracker.handled(odTripIndex);
+                        } catch(error) {
+                            console.error(`Error completing od trip handling. The checkpoint will be missed: ${odTripIndex}: ${error}`);
                         }
-                        checkpointTracker.handled(odTripIndex);
                     }
                 });
             }
