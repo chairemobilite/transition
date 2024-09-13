@@ -164,7 +164,7 @@ class TrRoutingBatch {
                         promiseQueue.clear();
                     }
                     try {
-                        console.log('Start handling batch routing odTrip %d', odTripIndex);
+                        console.log('tripRouting: Start handling batch routing odTrip %d', odTripIndex);
                         await this.odTripTask(odTripIndex, {
                             trRoutingPort,
                             logBefore: logOdTripBefore,
@@ -179,10 +179,12 @@ class TrRoutingBatch {
                                     progress: completedRoutingsCount / odTripsCount
                                 });
                             }
-                            console.log('Handled batch routing odTrip %d', odTripIndex);
+                            console.log('tripRouting: Handled batch routing odTrip %d', odTripIndex);
                             checkpointTracker.handled(odTripIndex);
-                        } catch(error) {
-                            console.error(`Error completing od trip handling. The checkpoint will be missed: ${odTripIndex}: ${error}`);
+                        } catch (error) {
+                            console.error(
+                                `tripRouting: Error completing od trip handling. The checkpoint will be missed: ${odTripIndex}: ${error}`
+                            );
                         }
                     }
                 });
@@ -383,6 +385,8 @@ class TrRoutingBatch {
             }
             options.logBefore(odTripIndex);
 
+            const origDestStr = `${odTrip.attributes.origin_geography.coordinates.join(',')} to ${odTrip.attributes.destination_geography.coordinates.join(',')}`;
+            console.log('tripRouting: Routing odTrip %d with coordinates %s', odTripIndex, origDestStr);
             const routingResult = await routeOdTrip(odTrip, {
                 trRoutingPort: options.trRoutingPort,
                 odTripIndex: odTripIndex,
@@ -405,7 +409,7 @@ class TrRoutingBatch {
                 text: 'transit:transitRouting:errors:ErrorCalculatingOdTrip',
                 params: { id: odTrip.attributes.internal_id || String(odTripIndex) }
             });
-            console.error(`Error getting od trip result ${error}`);
+            console.error(`Error getting od trip result for ${odTripIndex}: ${error}`);
         }
     };
 }
