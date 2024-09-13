@@ -142,10 +142,12 @@ class TrRoutingBatch {
             };
             const logOdTripAfter = (index: number) => {
                 if (benchmarkStart >= 0 && index > 0 && index % 100 === 0) {
+                    // Log the calculation speed every 100 calculations. Divide the number of completed calculation (substract startIndex if the task was resumed) by the time taken in seconds. Round to 2 decimals
                     console.log(
                         'calc/sec',
                         Math.round(
-                            (100 * completedRoutingsCount) / ((1 / 1000) * (performance.now() - benchmarkStart))
+                            (100 * (completedRoutingsCount - startIndex)) /
+                                ((performance.now() - benchmarkStart) / 1000)
                         ) / 100
                     );
                 }
