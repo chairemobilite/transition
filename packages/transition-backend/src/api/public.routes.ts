@@ -30,7 +30,10 @@ import RoutingModesAPIResponse from './public/RoutingModesAPIResponse';
 import RouteAPIResponse from './public/RouteAPIResponse';
 import AccessibilityMapAPIResponse from './public/AccessibilityMapAPIResponse';
 import { validateAndCreateTripRoutingAttributes } from 'chaire-lib-common/lib/services/routing/RoutingAttributes';
-import { validateAndCreateSummaryAttributes, SummaryQueryAttributes } from 'chaire-lib-common/lib/services/routing/SummaryAttributes';
+import {
+    validateAndCreateSummaryAttributes,
+    SummaryQueryAttributes
+} from 'chaire-lib-common/lib/services/routing/SummaryAttributes';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
 import { SummaryResponse } from 'chaire-lib-common/lib/api/TrRouting/trRoutingApiV2';
@@ -144,7 +147,7 @@ export default function (app: express.Express, passport: PassportStatic) {
         }
     });
 
-    router.get('/summary', async (req, res, next) => {
+    router.post('/summary', async (req, res, next) => {
         try {
             const body: SummaryQueryAttributes = req.body;
             const summaryAttributes = validateAndCreateSummaryAttributes(body);

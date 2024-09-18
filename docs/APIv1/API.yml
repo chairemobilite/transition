@@ -85,7 +85,7 @@ paths:
                 $ref: 'routingModes.yml#/routingModes'
   
   /api/v1/summary:
-    get:
+    post:
       summary: Get summary of route calculation result
       description: Return a summary of each transit object of a certain type used by the route calculation result 
       parameters:

@@ -337,7 +337,7 @@ describe('Testing API endpoints', () => {
         expect(ScenariosAPIResponse).toBeCalled();
     });
 
-    test('GET /api/v1/summary', async () => {
+    test('POST /api/v1/summary', async () => {
         const attributes = { 
             originGeojson: TestUtils.makePoint([1, 2]),
             destinationGeojson: TestUtils.makePoint([3, 4]),
@@ -352,7 +352,7 @@ describe('Testing API endpoints', () => {
 
         mockSummary.mockResolvedValueOnce(result);
 
-        const response = await request(app).get('/api/v1/summary').send(attributes);
+        const response = await request(app).post('/api/v1/summary').send(attributes);
         
         expect(response.status).toStrictEqual(200);
         expect(response.body).toStrictEqual(result);
