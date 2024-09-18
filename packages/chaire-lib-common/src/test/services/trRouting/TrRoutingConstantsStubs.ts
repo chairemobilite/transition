@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { TrRoutingPath, TrRoutingV2 } from '../../../api/TrRouting';
-import { TrRoutingRoute } from '../../../services/trRouting/TrRoutingService';
+import { TrRoutingRoute } from '../../../services/trRouting/types';
 import TestUtils from '../../TestUtils';
 
 // TODO These constant paths seem to have as base an actual reply from trRouting

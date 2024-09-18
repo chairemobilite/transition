@@ -21,7 +21,7 @@ import _sum from 'lodash/sum';
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-common/lib/services/trRouting/TrRoutingServiceManager';
-import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/types';
 import { AccessibilityMapQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { _toInteger, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';

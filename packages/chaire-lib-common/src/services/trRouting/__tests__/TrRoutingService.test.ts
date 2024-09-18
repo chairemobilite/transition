@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TrRoutingService, ErrorCodes } from '../TrRoutingService';
+import { TrRoutingService } from '../TrRoutingService';
 import { TransitRouteQueryOptions, TrRoutingConstants } from '../../../api/TrRouting';
 import serviceLocator from '../../../utils/ServiceLocator';
 import TrError from '../../../utils/TrError';
@@ -12,8 +12,9 @@ import { TestUtils } from '../../../test';
 import fetchMock from 'jest-fetch-mock';
 import * as Status from '../../../utils/Status';
 import { pathNoTransferRouteV2 } from '../../../test/services/trRouting/TrRoutingConstantsStubs';
+import { ErrorCodes } from '../types';
 
-const trRoutingService = new TrRoutingService;
+const trRoutingService = new TrRoutingService();
 
 const origin = TestUtils.makePoint([-73.745618, 45.368994]);
 const destination = TestUtils.makePoint([-73.742861, 45.361682]);

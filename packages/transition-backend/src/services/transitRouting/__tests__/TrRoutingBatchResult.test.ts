@@ -19,7 +19,7 @@ import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/Ro
 import Path from 'transition-common/lib/services/path/Path';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { ErrorCodes } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { ErrorCodes } from 'chaire-lib-common/lib/services/trRouting/types';
 
 
 const absoluteDir = `${directoryManager.userDataDirectory}/1/exports`;

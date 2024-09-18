@@ -9,7 +9,7 @@ import { default as mockedTrRouting } from 'chaire-lib-common/lib/test/services/
 import { TestUtils } from 'chaire-lib-common/lib/test';
 
 import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/trRouting/TrRoutingConstantsStubs';
-import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/types';
 import { Routing } from '../Routing';
 import { validateAndCreateTripRoutingAttributes } from 'chaire-lib-common/lib/services/routing/RoutingAttributes';
 import { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';

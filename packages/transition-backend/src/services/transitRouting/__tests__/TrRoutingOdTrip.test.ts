@@ -10,7 +10,7 @@ import routeOdTrip from '../TrRoutingOdTrip';
 import { simplePathResult,  alternativesResult, walkingRouteResult, cyclingRouteResult } from './TrRoutingResultStub';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { ErrorCodes } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { ErrorCodes } from 'chaire-lib-common/lib/services/trRouting/types';
 import { routeToUserObject } from 'chaire-lib-common/src/services/trRouting/TrRoutingResultConversion';
 import { Routing } from 'chaire-lib-backend/lib/services/routing/Routing';
 import { TransitRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';

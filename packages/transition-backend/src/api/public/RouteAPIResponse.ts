@@ -12,7 +12,7 @@ import {
 import { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import { RoutingMode, RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
-import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/types';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import APIResponseBase from './APIResponseBase';
 import { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
