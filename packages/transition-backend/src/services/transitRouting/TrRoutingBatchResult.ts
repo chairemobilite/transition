@@ -13,7 +13,7 @@ import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transi
 import { getDefaultCsvAttributes, getDefaultStepsAttributes } from './ResultAttributes';
 import { OdTripRouteOutput, OdTripRouteResult } from './types';
 import { unparse } from 'papaparse';
-import { ErrorCodes, TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { ErrorCodes, TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/types';
 import { TransitRoutingResultData } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { routeToUserObject } from 'chaire-lib-common/lib/services/trRouting/TrRoutingResultConversion';
 import TrError from 'chaire-lib-common/lib/utils/TrError';

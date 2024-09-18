@@ -10,7 +10,7 @@ import Preferences from '../../config/Preferences';
 import { Route } from './RoutingService';
 import { RoutingOrTransitMode, RoutingMode } from '../../config/routingModes';
 import TrError, { ErrorMessage } from '../../utils/TrError';
-import { TrRoutingRoute } from '../trRouting/TrRoutingService';
+import { TrRoutingRoute } from '../trRouting/types';
 
 export const pathIsRoute = (path: Route | TrRoutingRoute | undefined): path is Route => {
     return typeof (path as any).distance === 'number';

@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/types';
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/trRouting/TrRoutingConstantsStubs';
 

@@ -14,7 +14,7 @@ import { getRouteByMode } from 'chaire-lib-common/lib/services/routing/RoutingUt
 import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-common/lib/services/trRouting/TrRoutingServiceManager';
 import { TransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
+import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/types';
 import { TransitRouteQueryOptions, HostPort } from 'chaire-lib-common/lib/api/TrRouting';
 
 type TransitOrRouteCalculatorResult =
