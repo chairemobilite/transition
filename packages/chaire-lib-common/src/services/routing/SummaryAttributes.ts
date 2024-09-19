@@ -55,8 +55,10 @@ export const validateAndCreateSummaryAttributes = (
         summaryAttributes.destinationGeojson.properties = {};
     }
 
-    const timeSecondsSinceMidnight = typeof summaryAttributes.arrivalTimeSecondsSinceMidnight === 'number'
-                                                ? summaryAttributes.arrivalTimeSecondsSinceMidnight : summaryAttributes.departureTimeSecondsSinceMidnight;
+    const timeSecondsSinceMidnight =
+        typeof summaryAttributes.arrivalTimeSecondsSinceMidnight === 'number'
+            ? summaryAttributes.arrivalTimeSecondsSinceMidnight
+            : summaryAttributes.departureTimeSecondsSinceMidnight;
 
     const timeType = summaryAttributes.arrivalTimeSecondsSinceMidnight !== undefined ? 'arrival' : 'departure';
 
@@ -80,18 +82,12 @@ export const validateAndCreateSummaryAttributes = (
     );
 
     if (mandatoryErrors.length > 0) {
-        throw new TrError(
-            mandatoryErrors.map((e) => e.message).join('\n'),
-            'summaryQueryAttributesValidationError'
-        );
+        throw new TrError(mandatoryErrors.map((e) => e.message).join('\n'), 'summaryQueryAttributesValidationError');
     }
-
 
     const errors: Error[] = [];
     // Validate type of mandatory attributes
-    errors.push(
-        ...ParamsValidatorUtils.isString('scenarioId', summaryAttributes.scenarioId, 'summaryQueryAttributes')
-    );
+    errors.push(...ParamsValidatorUtils.isString('scenarioId', summaryAttributes.scenarioId, 'summaryQueryAttributes'));
 
     errors.push(
         ...ParamsValidatorUtils.isPositiveInteger(
@@ -101,12 +97,7 @@ export const validateAndCreateSummaryAttributes = (
         )
     );
 
-    errors.push(
-        ...ParamsValidatorUtils.isIn('timeType', timeType, 'summaryQueryAttributes', [
-            'arrival',
-            'departure'
-        ])
-    );
+    errors.push(...ParamsValidatorUtils.isIn('timeType', timeType, 'summaryQueryAttributes', ['arrival', 'departure']));
 
     errors.push(
         ...ParamsValidatorUtils.isGeojsonPoint(
