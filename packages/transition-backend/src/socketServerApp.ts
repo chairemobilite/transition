@@ -46,7 +46,7 @@ const setupSocketServerApp = async function (server, session) {
     // Now that we have the cache ready, we can start TrRouting
     // We use restart, to cleanup old leftover from previous execution
     // We do the await later to let toher processes run while this is starting
-    const trRoutingStartAsync =  trRoutingProcessManager.restart({});
+    const trRoutingStartAsync = trRoutingProcessManager.restart({});
 
     // Enqueue/resume running and pending tasks
     // FIXME This implies a single server process for a given database. We don't
