@@ -11,7 +11,7 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 import { TripRoutingQueryAttributes, RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 import { getRouteByMode } from 'chaire-lib-common/lib/services/routing/RoutingUtils';
-import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-common/lib/services/transitRouting/TransitRoutingServiceManager';
+import transitRoutingService from '../transitRouting/TransitRoutingService';
 import { TransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/transitRouting/types';
@@ -94,14 +94,12 @@ const calculateTransit = async (
     od: [GeoJSON.Feature<GeoJSON.Point>, GeoJSON.Feature<GeoJSON.Point>],
     routingAttributes: TripRoutingQueryAttributes
 ): Promise<TrRoutingRouteResult> => {
-    // FIXME This code path will use a fake socket route to do the calculation. Move this code to the backend too
-    const trRoutingService = trRoutingServiceManager.getService();
     const queryParams: TransitRouteQueryOptions = getTransitRouteQueryOptionsOrDefault(routingAttributes, od);
 
     // Build an HostPort
     // TODO reflect the comment in TrRoutingOdTrip.ts, we should manage the port in a better way
     const hostPort: HostPort = { port: routingAttributes.routingPort };
-    return await trRoutingService.route(queryParams, hostPort);
+    return await transitRoutingService.route(queryParams, hostPort);
 };
 
 const calculateRoute = async (

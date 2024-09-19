@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { circle as turfCircle } from '@turf/turf';
-import { default as mockedTrRouting } from 'chaire-lib-common/lib/test/services/transitRouting/TransitRoutingServiceMock';
+import transitRoutingService from 'chaire-lib-backend/lib/services/transitRouting/TransitRoutingService';
 import { TestUtils } from 'chaire-lib-common/lib/test';
 import polygonClipping from 'polygon-clipping';
 
@@ -24,6 +24,10 @@ jest.mock('../../../models/db/transitNodes.db.queries', () => ({
     geojsonCollection: jest.fn()
 }));
 const mockedNodesDbCollection = nodesDbQueries.geojsonCollection as jest.MockedFunction<typeof nodesDbQueries.geojsonCollection>;
+jest.mock('chaire-lib-backend/lib/services/transitRouting/TransitRoutingService', () => ({
+    accessibleMap: jest.fn()
+}));
+const mockedAccessibilityMap = transitRoutingService.accessibleMap as jest.MockedFunction<typeof transitRoutingService.accessibleMap>;
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -32,11 +36,7 @@ beforeEach(() => {
 describe('Test trRouting calls with various parameters', () => {
 
     beforeAll(() => {
-        mockedTrRouting.mockAccessibleMapFunction.mockRejectedValue('Result does not matter');
-    });
-
-    beforeEach(function () {
-        mockedTrRouting.mockClear();
+        mockedAccessibilityMap.mockRejectedValue('Result does not matter');
     });
 
     test('Test the accessibility map default values', async () => {
@@ -45,8 +45,8 @@ describe('Test trRouting calls with various parameters', () => {
         } catch(e) {
             /* it's normal to fail */
         }
-        expect(mockedTrRouting.mockAccessibleMapFunction).toHaveBeenCalledTimes(1);
-        expect(mockedTrRouting.mockAccessibleMapFunction).toHaveBeenCalledWith(expect.objectContaining({
+        expect(mockedAccessibilityMap).toHaveBeenCalledTimes(1);
+        expect(mockedAccessibilityMap).toHaveBeenCalledWith(expect.objectContaining({
             minWaitingTime: 180,
             maxAccessTravelTime: 900,
             maxEgressTravelTime: 900,
@@ -72,8 +72,8 @@ describe('Test trRouting calls with various parameters', () => {
         } catch(e) {
             /* it's normal to fail */
         }
-        expect(mockedTrRouting.mockAccessibleMapFunction).toHaveBeenCalledTimes(1);
-        expect(mockedTrRouting.mockAccessibleMapFunction).toHaveBeenCalledWith(expect.objectContaining({
+        expect(mockedAccessibilityMap).toHaveBeenCalledTimes(1);
+        expect(mockedAccessibilityMap).toHaveBeenCalledWith(expect.objectContaining({
             minWaitingTime: attributes.minWaitingTimeSeconds,
             maxAccessTravelTime: attributes.maxAccessEgressTravelTimeSeconds,
             maxEgressTravelTime: attributes.maxAccessEgressTravelTimeSeconds,
@@ -101,15 +101,15 @@ describe('Test trRouting calls with various parameters', () => {
         } catch(e) {
             /* it's normal to fail */
         }
-        expect(mockedTrRouting.mockAccessibleMapFunction).toHaveBeenCalledTimes(7);
-        expect(mockedTrRouting.mockAccessibleMapFunction).toHaveBeenCalledWith(expect.objectContaining({
+        expect(mockedAccessibilityMap).toHaveBeenCalledTimes(7);
+        expect(mockedAccessibilityMap).toHaveBeenCalledWith(expect.objectContaining({
             timeOfTrip: defaultAttributes.arrivalTimeSecondsSinceMidnight,
         }), expect.anything());
         let countChecks = 0;
         for (let time = defaultAttributes.arrivalTimeSecondsSinceMidnight - attributes.deltaSeconds; 
             time <= defaultAttributes.arrivalTimeSecondsSinceMidnight + attributes.deltaSeconds; 
             time += attributes.deltaIntervalSeconds) {
-            expect(mockedTrRouting.mockAccessibleMapFunction).toHaveBeenCalledWith(expect.objectContaining({
+            expect(mockedAccessibilityMap).toHaveBeenCalledWith(expect.objectContaining({
                 timeOfTrip: time
             }), expect.anything());
             countChecks++;
@@ -166,10 +166,6 @@ describe('Test accessibility map with results', () => {
     };
     mockedNodesDbCollection.mockResolvedValue({ type: 'FeatureCollection', features: [ node1, node2, node3 ] });
 
-    beforeEach(function () {
-        mockedTrRouting.mockClear();
-    });
-
     test('Test one polygon, 2 nodes, with additional properties', async() => {
         const attributes = {
             ...defaultAttributes,
@@ -179,7 +175,7 @@ describe('Test accessibility map with results', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1
         }
-        mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
+        mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
                 departureTime: '06:55',
@@ -234,7 +230,7 @@ describe('Test accessibility map with results', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 2
         }
-        mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
+        mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
                 departureTime: '06:55',
@@ -285,7 +281,7 @@ describe('Test accessibility map with results', () => {
             walkingSpeedMps: 1,
             numberOfPolygons: 2
         }
-        mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
+        mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
                 departureTime: '06:55',
@@ -357,7 +353,7 @@ describe('Test accessibility map with results', () => {
             deltaSeconds: 300,
             deltaIntervalSeconds: 300
         }
-        mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
+        mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
                 departureTime: '06:52',
@@ -367,7 +363,7 @@ describe('Test accessibility map with results', () => {
                 totalTravelTimeSeconds: 500
             }]
         });
-        mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
+        mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
                 departureTime: '06:55',
@@ -384,7 +380,7 @@ describe('Test accessibility map with results', () => {
                 totalTravelTimeSeconds: 500
             }]
         });
-        mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
+        mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
                 departureTime: '07:00',
@@ -457,7 +453,7 @@ describe('Test accessibility map with results', () => {
             };
             return node;
         })
-        mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
+        mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: testNodes.map((node) => ({
                 departureTime: '06:55',
@@ -484,7 +480,7 @@ describe('Test accessibility map with results', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1
         }
-        mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
+        mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
                 departureTime: '06:55',
@@ -544,7 +540,7 @@ describe('Test accessibility map with results', () => {
             return node;
         });
         mockedNodesDbCollection.mockResolvedValueOnce({ type: 'FeatureCollection', features: testNodes});
-        mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
+        mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: testNodes.map((node) => ({
                 departureTime: '06:55',
