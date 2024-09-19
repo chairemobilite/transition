@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { circle as turfCircle } from '@turf/turf';
-import { default as mockedTrRouting } from 'chaire-lib-common/lib/test/services/trRouting/TrRoutingServiceMock';
+import { default as mockedTrRouting } from 'chaire-lib-common/lib/test/services/transitRouting/TransitRoutingServiceMock';
 import { TestUtils } from 'chaire-lib-common/lib/test';
 import polygonClipping from 'polygon-clipping';
 

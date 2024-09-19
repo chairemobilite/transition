@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { default as RoutingUtilsMock } from './services/routing/RoutingUtilsMock';
-import { default as TrRoutingServiceMock } from './services/trRouting/TrRoutingServiceMock';
+import { default as TrRoutingServiceMock } from './services/transitRouting/TransitRoutingServiceMock';
 import { default as RoutingServiceManagerMock } from './services/routing/RoutingServiceManagerMock';
 import { default as EventManagerMock } from './services/events/EventManagerMock';
 

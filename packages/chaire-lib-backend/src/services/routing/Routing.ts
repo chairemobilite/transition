@@ -11,10 +11,10 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 import { TripRoutingQueryAttributes, RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 import { getRouteByMode } from 'chaire-lib-common/lib/services/routing/RoutingUtils';
-import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-common/lib/services/trRouting/TrRoutingServiceManager';
+import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-common/lib/services/transitRouting/TransitRoutingServiceManager';
 import { TransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/types';
+import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/transitRouting/types';
 import { TransitRouteQueryOptions, HostPort } from 'chaire-lib-common/lib/api/TrRouting';
 
 type TransitOrRouteCalculatorResult =

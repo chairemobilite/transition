@@ -6,7 +6,7 @@
  */
 import TrError from "../../../utils/TrError";
 import { SegmentToGeoJSON, TransitRoutingResult } from "../TransitRoutingResult";
-import { pathNoTransferRouteResult } from '../../../test/services/trRouting/TrRoutingConstantsStubs';
+import { pathNoTransferRouteResult } from '../../../test/services/transitRouting/TrRoutingConstantsStubs';
 import { getRouteByMode } from "../RoutingUtils";
 
 jest.mock("../RoutingUtils", () => ({

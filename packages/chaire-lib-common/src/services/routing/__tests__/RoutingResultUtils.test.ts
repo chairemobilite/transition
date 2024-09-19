@@ -6,7 +6,7 @@
  */
 import { UnimodalRoutingResult } from "../RoutingResult";
 import { resultToObject } from "../RoutingResultUtils";
-import { pathNoTransferRouteResult } from '../../../test/services/trRouting/TrRoutingConstantsStubs';
+import { pathNoTransferRouteResult } from '../../../test/services/transitRouting/TrRoutingConstantsStubs';
 import TestUtils from "../../../test/TestUtils";
 import { TransitRoutingResult } from "../TransitRoutingResult";
 

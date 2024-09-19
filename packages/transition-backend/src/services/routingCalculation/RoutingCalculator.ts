@@ -21,7 +21,7 @@ import {
     TransitAccessibilityMapResult,
     TransitAccessibilityMapWithPolygonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
-import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/types';
+import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/transitRouting/types';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 

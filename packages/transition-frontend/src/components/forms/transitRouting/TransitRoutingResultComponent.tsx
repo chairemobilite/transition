@@ -18,7 +18,7 @@ import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
-import { TrRoutingRoute } from 'chaire-lib-common/lib/services/trRouting/types';
+import { TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
 import { pathIsRoute } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 
 export interface TransitRoutingResultsProps extends WithTranslation {

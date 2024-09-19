@@ -5,11 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { default as mockedRoutingUtils } from 'chaire-lib-common/lib/test/services/routing/RoutingUtilsMock';
-import { default as mockedTrRouting } from 'chaire-lib-common/lib/test/services/trRouting/TrRoutingServiceMock';
+import { default as mockedTrRouting } from 'chaire-lib-common/lib/test/services/transitRouting/TransitRoutingServiceMock';
 import { TestUtils } from 'chaire-lib-common/lib/test';
 
-import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/trRouting/TrRoutingConstantsStubs';
-import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/types';
+import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/transitRouting/TrRoutingConstantsStubs';
+import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/transitRouting/types';
 import { Routing } from '../Routing';
 import { validateAndCreateTripRoutingAttributes } from 'chaire-lib-common/lib/services/routing/RoutingAttributes';
 import { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';

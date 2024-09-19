@@ -7,7 +7,7 @@
 import _sum from 'lodash/sum';
 import _uniq from 'lodash/uniq';
 
-import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/types';
+import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/transitRouting/types';
 import {
     categories,
     detailedCategories,

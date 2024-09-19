@@ -10,7 +10,7 @@ import { calculateAccessibilityMap, calculateRoute } from '../RoutingCalculator'
 import { Routing } from 'chaire-lib-backend/lib/services/routing/Routing';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
-import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/trRouting/TrRoutingConstantsStubs';
+import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/transitRouting/TrRoutingConstantsStubs';
 import TestUtils from 'chaire-lib-common/src/test/TestUtils';
 import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';

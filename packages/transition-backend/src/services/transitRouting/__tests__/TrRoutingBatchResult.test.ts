@@ -14,12 +14,12 @@ import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/direct
 import { createRoutingFileResultProcessor, generateFileOutputResults } from '../TrRoutingBatchResult';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { getDefaultCsvAttributes, getDefaultStepsAttributes } from '../ResultAttributes';
-import { routeToUserObject, TrRoutingBoardingStep, TrRoutingUnboardingStep, TrRoutingWalkingStep } from 'chaire-lib-common/src/services/trRouting/TrRoutingResultConversion';
+import { routeToUserObject, TrRoutingBoardingStep, TrRoutingUnboardingStep, TrRoutingWalkingStep } from 'chaire-lib-common/src/services/transitRouting/TrRoutingResultConversion';
 import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import Path from 'transition-common/lib/services/path/Path';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { ErrorCodes } from 'chaire-lib-common/lib/services/trRouting/types';
+import { ErrorCodes } from 'chaire-lib-common/lib/services/transitRouting/types';
 
 
 const absoluteDir = `${directoryManager.userDataDirectory}/1/exports`;
