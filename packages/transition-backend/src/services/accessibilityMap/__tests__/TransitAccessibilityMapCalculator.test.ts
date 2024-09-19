@@ -10,11 +10,7 @@ import { TestUtils } from 'chaire-lib-common/lib/test';
 import polygonClipping from 'polygon-clipping';
 
 import { TransitAccessibilityMapCalculator } from '../TransitAccessibilityMapCalculator';
-import TransitAccessibilityMapRouting from '../TransitAccessibilityMapRouting';
-import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-// TODO, add a test utility method generate a collection manager
-import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
-import NodeCollection from '../../nodes/NodeCollection';
+import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
 
 const defaultAttributes = {
     locationGeojson: TestUtils.makePoint([-73, 45]),
@@ -23,7 +19,15 @@ const defaultAttributes = {
     data: {},
     arrivalTimeSecondsSinceMidnight: 25200
 }
-let accessMapRouting: TransitAccessibilityMapRouting;
+
+jest.mock('../../../models/db/transitNodes.db.queries', () => ({
+    geojsonCollection: jest.fn()
+}));
+const mockedNodesDbCollection = nodesDbQueries.geojsonCollection as jest.MockedFunction<typeof nodesDbQueries.geojsonCollection>;
+
+beforeEach(() => {
+    jest.clearAllMocks();
+})
 
 describe('Test trRouting calls with various parameters', () => {
 
@@ -36,9 +40,8 @@ describe('Test trRouting calls with various parameters', () => {
     });
 
     test('Test the accessibility map default values', async () => {
-        accessMapRouting = new TransitAccessibilityMapRouting(defaultAttributes);
         try {
-            await TransitAccessibilityMapCalculator.calculate(accessMapRouting);
+            await TransitAccessibilityMapCalculator.calculate(defaultAttributes);
         } catch(e) {
             /* it's normal to fail */
         }
@@ -64,9 +67,8 @@ describe('Test trRouting calls with various parameters', () => {
             maxAccessEgressTravelTimeSeconds: 180,
             maxTransferTravelTimeSeconds: 120
         }
-        accessMapRouting = new TransitAccessibilityMapRouting(attributes);
         try {
-            await TransitAccessibilityMapCalculator.calculate(accessMapRouting);
+            await TransitAccessibilityMapCalculator.calculate(attributes);
         } catch(e) {
             /* it's normal to fail */
         }
@@ -94,9 +96,8 @@ describe('Test trRouting calls with various parameters', () => {
             deltaSeconds: 180,
             deltaIntervalSeconds: 60
         }
-        accessMapRouting = new TransitAccessibilityMapRouting(attributes);
         try {
-            await TransitAccessibilityMapCalculator.calculate(accessMapRouting);
+            await TransitAccessibilityMapCalculator.calculate(attributes);
         } catch(e) {
             /* it's normal to fail */
         }
@@ -118,11 +119,9 @@ describe('Test trRouting calls with various parameters', () => {
 
 });
 
-// FIXME: Will be brought back and fixed a few patches later with the NodeCollection. Easier than to temporarily fix the test
 describe('Test accessibility map with results', () => {
 
-    // Create a node collection
-    const collectionManager = new CollectionManager(null);
+    // Create node objects
     const node1Point = { type: 'Point' as const, coordinates: [-73.1, 45] };
     const node2Point = { type: 'Point' as const, coordinates: [-73.2, 45] };
     const node3Point = { type: 'Point' as const, coordinates: [-73.3, 45] };
@@ -165,10 +164,7 @@ describe('Test accessibility map with results', () => {
             geography: node3Point
         }
     };
-    
-    const nodeCollection = new NodeCollection([ node1, node2, node3 ], {});
-    collectionManager.add('nodes', nodeCollection);
-    serviceLocator.addService('collectionManager', collectionManager);
+    mockedNodesDbCollection.mockResolvedValue({ type: 'FeatureCollection', features: [ node1, node2, node3 ] });
 
     beforeEach(function () {
         mockedTrRouting.mockClear();
@@ -183,7 +179,6 @@ describe('Test accessibility map with results', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1
         }
-        accessMapRouting = new TransitAccessibilityMapRouting(attributes);
         mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
@@ -208,7 +203,7 @@ describe('Test accessibility map with results', () => {
             turfCircle(attributes.locationGeojson, maxWalkingDistanceKm, { units: 'kilometers', steps: 64 }).geometry.coordinates
         ]
         const additionalProperties = { test: 'this is a test', other: 3 };
-        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(accessMapRouting, false, { additionalProperties });
+        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes, { additionalProperties });
         // Test that there is one polygon, with 2 disjoint circles
         const polygons = accessibilityPolygon.polygons;
         expect(polygons.features.length).toEqual(1);
@@ -239,7 +234,6 @@ describe('Test accessibility map with results', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 2
         }
-        accessMapRouting = new TransitAccessibilityMapRouting(attributes);
         mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
@@ -263,7 +257,7 @@ describe('Test accessibility map with results', () => {
             turfCircle(node1Point.coordinates, (attributes.maxAccessEgressTravelTimeSeconds * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
             turfCircle(attributes.locationGeojson, maxWalkingDistanceKm, { units: 'kilometers', steps: 64 }).geometry.coordinates
         ]
-        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(accessMapRouting);
+        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
         // Test that there is one polygon, with 2 disjoint circles
         const polygons = accessibilityPolygon.polygons;
         expect(polygons.features.length).toEqual(1);
@@ -291,7 +285,6 @@ describe('Test accessibility map with results', () => {
             walkingSpeedMps: 1,
             numberOfPolygons: 2
         }
-        accessMapRouting = new TransitAccessibilityMapRouting(attributes);
         mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
@@ -319,7 +312,7 @@ describe('Test accessibility map with results', () => {
             turfCircle(node1Point.coordinates, (50 * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
             turfCircle(attributes.locationGeojson, maxWalkingDistanceKm, { units: 'kilometers', steps: 64 }).geometry.coordinates
         ];
-        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(accessMapRouting);
+        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
         // Test that there is one polygon, with 2 disjoint circles
         const polygons = accessibilityPolygon.polygons;
         expect(polygons.features.length).toEqual(2);
@@ -350,6 +343,7 @@ describe('Test accessibility map with results', () => {
                 expect(actualString).toContain(expected[j].toString());
             }
         }
+        expect(mockedNodesDbCollection).toHaveBeenCalledWith({ nodeIds: [ node1.properties.id, node2.properties.id ] });
     });
 
     test('Test one polygon, with delta', async() => {
@@ -363,7 +357,6 @@ describe('Test accessibility map with results', () => {
             deltaSeconds: 300,
             deltaIntervalSeconds: 300
         }
-        accessMapRouting = new TransitAccessibilityMapRouting(attributes);
         mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
@@ -415,7 +408,7 @@ describe('Test accessibility map with results', () => {
             turfCircle(node1Point.coordinates, (attributes.maxAccessEgressTravelTimeSeconds * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
             turfCircle(attributes.locationGeojson, maxWalkingDistanceKm, { units: 'kilometers', steps: 64 }).geometry.coordinates
         ];
-        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(accessMapRouting);
+        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
         // Test that there is one polygon, with 2 disjoint circles
         const polygons = accessibilityPolygon.polygons;
         expect(polygons.features.length).toEqual(1);
@@ -447,7 +440,6 @@ describe('Test accessibility map with results', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1
         }
-        accessMapRouting = new TransitAccessibilityMapRouting(attributes);
         const testNodes = Array(50).fill(1).map((_, index) => {
             const geometry = { type: 'Point' as const, coordinates: [ -73 + index / 100, 45 + index / 100] };
             const node = {
@@ -463,7 +455,6 @@ describe('Test accessibility map with results', () => {
                     geography: geometry
                 }
             };
-            nodeCollection.add(node);
             return node;
         })
         mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
@@ -476,10 +467,12 @@ describe('Test accessibility map with results', () => {
                 totalTravelTimeSeconds: 250
             }))
         });
-        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(accessMapRouting);
+        mockedNodesDbCollection.mockResolvedValueOnce({ type: 'FeatureCollection', features: testNodes });
+        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
         // Test that there is one polygon, with 2 disjoint circles
         const polygons = accessibilityPolygon.polygons;
         expect(polygons.features.length).toEqual(1);
+        expect(mockedNodesDbCollection).toHaveBeenCalledWith({ nodeIds: testNodes.map(node => node.properties.id) });
     });
 
     test('Test one polygon, error in polygon clipping', async() => {
@@ -491,7 +484,6 @@ describe('Test accessibility map with results', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1
         }
-        accessMapRouting = new TransitAccessibilityMapRouting(attributes);
         mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
@@ -513,7 +505,7 @@ describe('Test accessibility map with results', () => {
         const polygonClippingUnion = jest.spyOn(polygonClipping, 'union').mockImplementation(() => { throw 'error in polygon clipping'; });
 
         try {
-            await TransitAccessibilityMapCalculator.calculateWithPolygons(accessMapRouting, false);
+            await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
         } catch (err) {
             error = err;
         } finally {
@@ -534,7 +526,6 @@ describe('Test accessibility map with results', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1
         }
-        accessMapRouting = new TransitAccessibilityMapRouting(attributes);
         const testNodes = Array(50).fill(1).map((_, index) => {
             const geometry = { type: 'Point' as const, coordinates: [ -73 + index / 100, 45 + index / 100] };
             const node = {
@@ -550,9 +541,9 @@ describe('Test accessibility map with results', () => {
                     geography: geometry
                 }
             };
-            nodeCollection.add(node);
             return node;
-        })
+        });
+        mockedNodesDbCollection.mockResolvedValueOnce({ type: 'FeatureCollection', features: testNodes});
         mockedTrRouting.mockAccessibleMapFunction.mockResolvedValueOnce({
             type: 'nodes',
             nodes: testNodes.map((node) => ({
@@ -570,7 +561,7 @@ describe('Test accessibility map with results', () => {
         polygonClippingUnion.mockImplementationOnce(() => { throw 'error in polygon clipping'; })
 
         try {
-            await TransitAccessibilityMapCalculator.calculateWithPolygons(accessMapRouting, false);
+            await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
         } catch (err) {
             error = err;
         } finally {
@@ -578,5 +569,6 @@ describe('Test accessibility map with results', () => {
         }
         console.log(error);
         expect(error).toBeDefined();
+        expect(mockedNodesDbCollection).toHaveBeenCalledWith({ nodeIds: testNodes.map(node => node.properties.id) });
     });
 });

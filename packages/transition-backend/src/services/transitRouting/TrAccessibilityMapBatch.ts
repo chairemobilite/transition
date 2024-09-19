@@ -10,9 +10,7 @@ import { EventEmitter } from 'events';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
-import TransitAccessibilityMapRouting, {
-    AccessibilityMapAttributes
-} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import { parseLocationsFromCsv } from '../accessMapLocation/AccessMapLocationProvider';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import nodeDbQueries from '../../models/db/transitNodes.db.queries';
@@ -20,7 +18,7 @@ import scenariosDbQueries from '../../models/db/transitScenarios.db.queries';
 import { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { createAccessMapFileResultProcessor } from './TrAccessibilityMapBatchResult';
-import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
+import { TransitAccessibilityMapCalculator } from '../accessibilityMap/TransitAccessibilityMapCalculator';
 import { AccessibilityMapLocation } from 'transition-common/lib/services/accessibilityMap/AccessibiltyMapLocation';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
@@ -139,12 +137,10 @@ export const batchAccessibilityMap = async (
                     calculationAttributes.arrivalTimeSecondsSinceMidnight = location.timeOfTrip;
                     calculationAttributes.departureTimeSecondsSinceMidnight = undefined;
                 }
-                const accessMapRouting = new TransitAccessibilityMapRouting(calculationAttributes);
 
                 try {
                     const routingResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(
-                        accessMapRouting,
-                        false,
+                        calculationAttributes,
                         {
                             port: trRoutingPort,
                             additionalProperties: {

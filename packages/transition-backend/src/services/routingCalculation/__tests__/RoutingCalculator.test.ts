@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
-import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
+import { TransitAccessibilityMapCalculator } from '../../accessibilityMap/TransitAccessibilityMapCalculator';
 import { calculateAccessibilityMap, calculateRoute } from '../RoutingCalculator';
 import { Routing } from 'chaire-lib-backend/lib/services/routing/Routing';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
@@ -13,6 +13,7 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/trRouting/TrRoutingConstantsStubs';
 import TestUtils from 'chaire-lib-common/src/test/TestUtils';
 import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
+import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 
 jest.mock('transition-common/lib/services/nodes/NodeCollection');
 jest.mock('transition-common/lib/services/path/PathCollection');
@@ -32,46 +33,64 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-test('calculateAccessibilityMap, without geojson', async () => {
-    const routingResult = 'routingResult';
-    
-    trRoutingProcessManager.status = jest.fn().mockResolvedValue({
-        status: 'started'
-    } as any);
-    TransitAccessibilityMapCalculator.calculate = jest.fn().mockResolvedValue({
-        routingResult: routingResult 
-    } as any);
-
-    const result = await calculateAccessibilityMap({} as any, false);
-
-    expect(result).toStrictEqual({resultByNode: routingResult});
-    expect(TransitAccessibilityMapCalculator.calculate).toBeCalled();
-});
-
-test('calculateAccessibilityMap, with geojson', async () => {
-    const expectedResult = {
-        polygons: 'polygons',
-        strokes: 'strokes',
-        resultByNode: 'resultByNode',
+describe('calculateAccessibilityMap', () => {
+    const defaultAttributes = {
+        locationGeojson: TestUtils.makePoint([-73, 45]),
+        scenarioId: 'abc',
+        id: 'abcdef',
+        data: {},
+        arrivalTimeSecondsSinceMidnight: 25200,
+        maxTotalTravelTimeSeconds: 1800,
+        minWaitingTimeSeconds: 120,
+        maxAccessEgressTravelTimeSeconds: 180,
+        maxTransferTravelTimeSeconds: 120,
+        deltaSeconds: 180,
+        deltaIntervalSeconds: 60
     };
 
-    const mockLoadFromServer = jest.fn(() => Promise.resolve());
-    
-    trRoutingProcessManager.status = jest.fn().mockResolvedValue({
-        status: 'started'
-    } as any);
-    (NodeCollection as any).mockImplementation(() => {
-        return {
-            loadFromServer: mockLoadFromServer
-        }
+    test('calculateAccessibilityMap, without geojson', async () => {
+        const routingResult = 'routingResult';
+        
+        trRoutingProcessManager.status = jest.fn().mockResolvedValue({
+            status: 'started'
+        } as any);
+        TransitAccessibilityMapCalculator.calculate = jest.fn().mockResolvedValue({
+            routingResult: routingResult 
+        } as any);
+
+        const result = await calculateAccessibilityMap(new TransitAccessibilityMapRouting(defaultAttributes), false);
+
+        expect(result).toStrictEqual({resultByNode: routingResult});
+        expect(TransitAccessibilityMapCalculator.calculate).toHaveBeenCalled();
+        expect(TransitAccessibilityMapCalculator.calculate).toHaveBeenCalledWith(expect.objectContaining(defaultAttributes), {});
     });
-    TransitAccessibilityMapCalculator.calculateWithPolygons = jest.fn().mockResolvedValue(expectedResult as any);
 
-    const result = await calculateAccessibilityMap({} as any, true);
+    test('calculateAccessibilityMap, with geojson', async () => {
+        const expectedResult = {
+            polygons: 'polygons',
+            strokes: 'strokes',
+            resultByNode: 'resultByNode',
+        };
 
-    expect(result).toStrictEqual(expectedResult);
-    expect(mockLoadFromServer).toBeCalled();
-    expect(TransitAccessibilityMapCalculator.calculateWithPolygons).toBeCalled();
+        const mockLoadFromServer = jest.fn(() => Promise.resolve());
+        
+        trRoutingProcessManager.status = jest.fn().mockResolvedValue({
+            status: 'started'
+        } as any);
+        (NodeCollection as any).mockImplementation(() => {
+            return {
+                loadFromServer: mockLoadFromServer
+            }
+        });
+        TransitAccessibilityMapCalculator.calculateWithPolygons = jest.fn().mockResolvedValue(expectedResult as any);
+
+        const result = await calculateAccessibilityMap(new TransitAccessibilityMapRouting(defaultAttributes), true);
+
+        expect(result).toStrictEqual(expectedResult);
+        expect(mockLoadFromServer).toHaveBeenCalled();
+        expect(TransitAccessibilityMapCalculator.calculateWithPolygons).toHaveBeenCalled();
+        expect(TransitAccessibilityMapCalculator.calculateWithPolygons).toHaveBeenCalledWith(expect.objectContaining(defaultAttributes), {});
+    });
 });
 
 describe('calculateRoute', () => {
@@ -196,7 +215,7 @@ describe('calculateRoute', () => {
         expect(mockedCalculate).toHaveBeenCalledWith(attributes);
         // Get path geojson should have been called once
         expect(mockedGetTransitPathGeojson).toHaveBeenCalledTimes(1);
-        expect(mockLoadFromServer).toBeCalled();
+        expect(mockLoadFromServer).toHaveBeenCalled();
     });
 
     test('calculateRoute, with geojson and alternatives', async () => {
@@ -256,6 +275,6 @@ describe('calculateRoute', () => {
         expect(mockedCalculate).toHaveBeenCalledWith(attributes);
         // Get path geojson should have been called for each alternative, including walk only
         expect(mockedGetTransitPathGeojson).toHaveBeenCalledTimes(3);
-        expect(mockLoadFromServer).toBeCalled();
+        expect(mockLoadFromServer).toHaveBeenCalled();
     });
 });

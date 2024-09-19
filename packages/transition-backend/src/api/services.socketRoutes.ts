@@ -32,6 +32,9 @@ import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 import { fileKey } from 'transition-common/lib/services/jobs/Job';
+import { TransitMapCalculationOptions } from 'transition-common/lib/services/accessibilityMap/types';
+import { TransitAccessibilityMapCalculator } from '../services/accessibilityMap/TransitAccessibilityMapCalculator';
+import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 
 // TODO The socket routes should validate parameters as even typescript cannot guarantee the types over the network
 // TODO Add more unit tests as the called methods are cleaned up
@@ -173,6 +176,30 @@ export default function (socket: EventEmitter, userId?: number) {
             callback(Status.createError(TrError.isTrError(error) ? error.message : error));
         }
     });
+
+    socket.on(
+        'accessibiliyMap.calculateWithPolygons',
+        async (
+            routingAttributes: AccessibilityMapAttributes,
+            options: TransitMapCalculationOptions,
+            callback: (status: Status.Status<TransitAccessibilityMapWithPolygonResult>) => void
+        ) => {
+            try {
+                const resultsWithPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(
+                    routingAttributes,
+                    options
+                );
+                callback(Status.createOk(resultsWithPolygon));
+            } catch (error) {
+                console.error(error);
+                callback(
+                    Status.createError(
+                        error instanceof Error ? error.message : 'Error occurred while calculating route'
+                    )
+                );
+            }
+        }
+    );
 
     // These routes create tasks, which need to be associated to a user. If
     // there is no userId here, it means the socket routes are set from CLI and

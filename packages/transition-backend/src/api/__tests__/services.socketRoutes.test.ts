@@ -14,10 +14,10 @@ import TestUtils from 'chaire-lib-common/lib/test/TestUtils';
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
 import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { ExecutableJob } from '../../services/executableJob/ExecutableJob';
 import jobsDbQueries from '../../models/db/jobs.db.queries';
 import Users from 'chaire-lib-backend/lib/services/users/users';
+import { TransitAccessibilityMapCalculator } from '../../services/accessibilityMap/TransitAccessibilityMapCalculator';
 
 const socketStub = new EventEmitter();
 routes(socketStub, 1);
@@ -67,25 +67,18 @@ jest.mock('../../models/db/jobs.db.queries', () => {
 });
 const mockedJobCreate = jobsDbQueries.create as jest.MockedFunction<typeof jobsDbQueries.create>;
 
+jest.mock('../../services/accessibilityMap/TransitAccessibilityMapCalculator', () => ({
+    TransitAccessibilityMapCalculator: {
+        calculateWithPolygons: jest.fn()
+    }
+}))
+const mockedCalculateMapWithPolygon = TransitAccessibilityMapCalculator.calculateWithPolygons as jest.MockedFunction<typeof TransitAccessibilityMapCalculator.calculateWithPolygons>;
+
 const mockedEnqueue = ExecutableJob.prototype.enqueue = jest.fn().mockResolvedValue(true);
 const mockedRefresh = ExecutableJob.prototype.refresh = jest.fn().mockResolvedValue(true);
 
 beforeEach(() => {
-    mockedRoute.mockClear();
-    mockedTableFrom.mockClear();
-    mockedTableTo.mockClear();
-    mockedMatch.mockClear();
-
-    mockedStop.mockClear();
-    mockedRestart.mockClear();
-    mockedStatus.mockClear();
-
-    mockedTrRoutingRoute.mockClear();
-    mockedTrRoutingV1Transit.mockClear();
-    mockedTrRoutingAccessibilityMap.mockClear();
-    mockedEnqueue.mockClear();
-    mockedRefresh.mockClear();
-    mockedJobCreate.mockClear();
+    jest.clearAllMocks();
 });
 
 describe('osrm service routes', () => {
@@ -517,6 +510,58 @@ describe('trRouting routes', () => {
             expect((status as any).error).toEqual('UserDiskQuotaReached');
             expect(mockedJobCreate).not.toHaveBeenCalled();
             expect(mockedEnqueue).not.toHaveBeenCalled();
+            done();
+        });
+    });
+
+});
+
+describe('accessibility map calculation routes', () => {
+
+    // Parameter to pass to socket route for `accessibility map`
+    const accessibilytMapCalculationAttributes = {
+        locationGeojson: TestUtils.makePoint([-73, 45]),
+        scenarioId: 'abc',
+        id: 'abcdef',
+        data: {},
+        arrivalTimeSecondsSinceMidnight: 25200,
+        maxTotalTravelTimeSeconds: 1800,
+        minWaitingTimeSeconds: 120,
+        maxAccessEgressTravelTimeSeconds: 180,
+        maxTransferTravelTimeSeconds: 120,
+        deltaSeconds: 180,
+        deltaIntervalSeconds: 60
+    };
+    const options = {
+        port: 4000,
+        additionalProperties: { foo: 'bar' }
+    }
+
+    test('Accessibility map correct', (done) => {
+        const results = {
+            polygons: { type: 'FeatureCollection' as const, features: [] },
+            strokes: { type: 'FeatureCollection' as const, features: [] },
+            resultByNode: undefined
+        };
+        mockedCalculateMapWithPolygon.mockResolvedValueOnce(results);
+        socketStub.emit('accessibiliyMap.calculateWithPolygons', accessibilytMapCalculationAttributes, options, (response) => {
+            expect(Status.isStatusOk(response)).toBe(true);
+            expect(mockedCalculateMapWithPolygon).toHaveBeenCalledWith(accessibilytMapCalculationAttributes, options);
+            expect(response).toEqual(Status.createOk(results));
+            done();
+        });
+    });
+
+    test('Accessibility map with error', (done) => {
+        const message = 'Error routing transit';
+        const code = 'CODE';
+        const localizedMessage = 'transit:Message';
+        const error = new TrError(message, code, localizedMessage);
+        mockedCalculateMapWithPolygon.mockRejectedValueOnce(error);
+        socketStub.emit('accessibiliyMap.calculateWithPolygons', accessibilytMapCalculationAttributes, options, function (status) {
+            expect(mockedCalculateMapWithPolygon).toHaveBeenCalledWith(accessibilytMapCalculationAttributes, options);
+            expect(Status.isStatusError(status)).toBe(true);
+            expect((status as any).error).toEqual(message);
             done();
         });
     });

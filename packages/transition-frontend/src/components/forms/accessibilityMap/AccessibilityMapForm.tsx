@@ -26,7 +26,7 @@ import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pagePa
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
+import { calculateAccessibilityMap } from '../../../services/routing/RoutingUtils';
 import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
@@ -127,7 +127,7 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
             const scenarioName = routing.attributes.scenarioId
                 ? this.state.scenarioCollection.getById(routing.attributes.scenarioId).get('name')
                 : '';
-            const currentResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(routing, refresh, {
+            const currentResult = await calculateAccessibilityMap(routing, refresh, {
                 isCancelled,
                 additionalProperties: { scenarioName }
             });

@@ -14,7 +14,7 @@ import { resultToObject } from 'chaire-lib-common/lib/services/routing/RoutingRe
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
-import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
+import { TransitAccessibilityMapCalculator } from '../accessibilityMap/TransitAccessibilityMapCalculator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import {
@@ -99,11 +99,10 @@ export async function calculateAccessibilityMap(
         // The calculateWithPolygons function in TransitAccessibilityMapCalculator requires a node collection,
         // so the nodes currently in the database are loaded here
         await updateNodeCollection();
-        routingResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(routing, false, {});
+        routingResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(routing.getAttributes(), {});
     } else {
         const accessibilityMap: TransitAccessibilityMapResult = await TransitAccessibilityMapCalculator.calculate(
-            routing,
-            false,
+            routing.getAttributes(),
             {}
         );
         routingResult = {
