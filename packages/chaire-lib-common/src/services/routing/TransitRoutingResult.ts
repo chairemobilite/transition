@@ -8,7 +8,7 @@ import _get from 'lodash/get';
 
 import Preferences from '../../config/Preferences';
 import { TrRoutingV2 } from '../../api/TrRouting';
-import { TrRoutingRoute } from '../trRouting/types';
+import { TrRoutingRoute } from '../transitRouting/types';
 import { Route, RouteResults } from './RoutingService';
 import { getRouteByMode } from './RoutingUtils';
 import TrError, { ErrorMessage } from '../../utils/TrError';

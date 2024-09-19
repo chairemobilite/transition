@@ -6,7 +6,7 @@
  */
 import _cloneDeep from 'lodash/cloneDeep';
 import { SegmentToGeoJSONFromPaths } from "../TransitRoutingResult";
-import { pathNoTransferRouteResult } from 'chaire-lib-common/lib/test/services/trRouting/TrRoutingConstantsStubs';
+import { pathNoTransferRouteResult } from 'chaire-lib-common/lib/test/services/transitRouting/TrRoutingConstantsStubs';
 import { PathCollection } from '../../path/PathCollection';
 import { getPathObject } from '../../path/__tests__/PathData.test';
 import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';

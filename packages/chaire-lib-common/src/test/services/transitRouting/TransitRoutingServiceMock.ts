@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import * as TrRoutingService from '../../../services/trRouting/TrRoutingService';
+import * as TrRoutingService from '../../../services/transitRouting/TransitRoutingService';
 import { pathNoTransferRouteResult } from './TrRoutingConstantsStubs';
 
 const mockRouteFunction: jest.MockedFunction<typeof TrRoutingService.TrRoutingService.prototype.route> = jest.fn();

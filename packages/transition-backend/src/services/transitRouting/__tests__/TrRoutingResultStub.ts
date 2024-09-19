@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/trRouting/types';
+import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/transitRouting/types';
 import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/trRouting/TrRoutingConstantsStubs';
+import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/transitRouting/TrRoutingConstantsStubs';
 
 // TODO tahini: this is considered a test file, so we need a test, should be a mock
 test('Dummy', () => {

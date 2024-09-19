@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import _cloneDeep from 'lodash/cloneDeep';
-import { pathNoTransferRouteResult, pathNoTransfer } from '../../../test/services/trRouting/TrRoutingConstantsStubs';
+import { pathNoTransferRouteResult, pathNoTransfer } from '../../../test/services/transitRouting/TrRoutingConstantsStubs';
 import { routeToUserObject } from '../TrRoutingResultConversion';
 
 test('Test result conversion', () => {

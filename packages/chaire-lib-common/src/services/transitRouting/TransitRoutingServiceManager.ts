@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TrRoutingService } from './TrRoutingService';
+import { TrRoutingService } from './TransitRoutingService';
 
 /**
  * This class manages the various routing services and engines for the application
