@@ -5,12 +5,21 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { point as turfPoint } from '@turf/turf';
-
-import serviceLocator from '../../utils/ServiceLocator';
-import TrError from '../../utils/TrError';
-import * as TrRoutingApi from '../../api/TrRouting';
-import * as Status from '../../utils/Status';
-import { ErrorCodes, TrRoutingResultAccessibilityMap, TrRoutingRouteResult } from './types';
+import trRoutingServiceBackend from '../../utils/trRouting/TrRoutingServiceBackend';
+import { TransitRouteQueryOptions, HostPort, AccessibilityMapQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
+import {
+    SummaryResponse,
+    RouteResponse,
+    AccessibilityMapResponse
+} from 'chaire-lib-common/lib/api/TrRouting/trRoutingApiV2';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
+import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
+import {
+    ErrorCodes,
+    TrRoutingResultAccessibilityMap,
+    TrRoutingRouteResult
+} from 'chaire-lib-common/lib/services/transitRouting/types';
 
 const errorCodeByReason = (
     reason: TrRoutingApi.TrRoutingNoRoutingReason | TrRoutingApi.TrRoutingV2.NoRoutingAccessibilityReason
@@ -71,47 +80,49 @@ const apiV2ToAccessMapResult = (
     };
 };
 
-type ApiCall = { socketRoute?: string; url: string };
-const apiCalls = {
-    route: {
-        socketRoute: TrRoutingApi.TrRoutingConstants.ROUTE,
-        url: TrRoutingApi.TrRoutingConstants.FETCH_ROUTE_URL
-    },
-    summary: { url: TrRoutingApi.TrRoutingConstants.FETCH_SUMMARY_URL },
-    accessibilityMap: {
-        socketRoute: TrRoutingApi.TrRoutingConstants.ACCESSIBILITY_MAP,
-        url: TrRoutingApi.TrRoutingConstants.FETCH_ACCESSIBILITY_MAP_URL
-    }
-};
-
-export class TrRoutingService {
-    private async callTrRoutingWithSocket<T, U>(socketRoute: string, params: T): Promise<Status.Status<U>> {
-        return new Promise((resolve, _reject) => {
-            serviceLocator.socketEventManager.emit(socketRoute, params, (routingResult: any) => {
-                resolve(routingResult);
-            });
-        });
-    }
-
-    private async callTrRoutingWithFetch<T, U>(url: string, params: T): Promise<Status.Status<U>> {
-        const response = await fetch(url, {
-            method: 'POST',
-            body: JSON.stringify(params),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        if (response.status !== 200) {
-            throw new TrError('Error querying trRouting from server', ErrorCodes.OtherError);
+/**
+ * TransitRoutingService class that does calculation of various transit
+ * operation like routes, summaries and accessibility maps. This service wraps
+ * the tools that does the actual calculation
+ *
+ * FIXME: The API of this class is heavily linked to the API of the trRouting
+ * service. This should be refactored to be more generic and support various
+ * tools.
+ */
+class TransitRoutingService {
+    private async callSummary(params: TransitRouteQueryOptions): Promise<Status.Status<SummaryResponse>> {
+        try {
+            const routingResults = await trRoutingServiceBackend.summary(params);
+            return Status.createOk(routingResults);
+        } catch (error) {
+            console.error(error);
+            return Status.createError(TrError.isTrError(error) ? error.message : error);
         }
-        return await response.json();
     }
 
-    private async callTrRouting<T, U>(apiCall: ApiCall, params: T): Promise<Status.Status<U>> {
-        if (serviceLocator.socketEventManager && apiCall.socketRoute !== undefined) {
-            return this.callTrRoutingWithSocket(apiCall.socketRoute, params);
-        } else {
-            return this.callTrRoutingWithFetch(apiCall.url, params);
+    private async callRoute(params: {
+        parameters: TransitRouteQueryOptions;
+        hostPort?: HostPort;
+    }): Promise<Status.Status<RouteResponse>> {
+        try {
+            const routingResults = await trRoutingServiceBackend.route(params.parameters, params.hostPort);
+            return Status.createOk(routingResults);
+        } catch (error) {
+            console.error(error);
+            return Status.createError(TrError.isTrError(error) ? error.message : error);
+        }
+    }
+
+    private async callAccessibilityMap(params: {
+        parameters: AccessibilityMapQueryOptions;
+        hostPort?: HostPort;
+    }): Promise<Status.Status<AccessibilityMapResponse>> {
+        try {
+            const routingResults = await trRoutingServiceBackend.accessibilityMap(params.parameters, params.hostPort);
+            return Status.createOk(routingResults);
+        } catch (error) {
+            console.error(error);
+            return Status.createError(TrError.isTrError(error) ? error.message : error);
         }
     }
 
@@ -136,10 +147,7 @@ export class TrRoutingService {
     private async internalSummary(
         params: TrRoutingApi.TransitRouteQueryOptions
     ): Promise<TrRoutingApi.TrRoutingV2.SummaryResponse> {
-        const responseStatus = await this.callTrRouting<
-            TrRoutingApi.TransitRouteQueryOptions,
-            TrRoutingApi.TrRoutingV2.SummaryResponse
-        >(apiCalls.summary, params);
+        const responseStatus = await this.callSummary(params);
         if (Status.isStatusError(responseStatus)) {
             this.handleErrorStatus(responseStatus);
         }
@@ -244,10 +252,7 @@ export class TrRoutingService {
     ): Promise<TrRoutingRouteResult> {
         const origDestStr = `${params.originDestination[0].geometry.coordinates.join(',')} to ${params.originDestination[1].geometry.coordinates.join(',')}`;
         console.log(`tripRouting: Getting route from trRouting service for ${origDestStr}`);
-        const responseStatus = await this.callTrRouting<
-            { parameters: TrRoutingApi.TransitRouteQueryOptions; hostPort?: TrRoutingApi.HostPort },
-            TrRoutingApi.TrRoutingV2.RouteResponse
-        >(apiCalls.route, { parameters: params, hostPort });
+        const responseStatus = await this.callRoute({ parameters: params, hostPort });
         console.log(`tripRouting: Received route response from trRouting service for ${origDestStr}`);
         if (Status.isStatusError(responseStatus)) {
             this.handleErrorStatus(responseStatus);
@@ -260,10 +265,7 @@ export class TrRoutingService {
         params: TrRoutingApi.AccessibilityMapQueryOptions,
         options: { hostPort?: TrRoutingApi.HostPort; [key: string]: unknown } = {}
     ): Promise<TrRoutingResultAccessibilityMap> {
-        const responseStatus = await this.callTrRouting<
-            { parameters: TrRoutingApi.AccessibilityMapQueryOptions; hostPort?: TrRoutingApi.HostPort },
-            TrRoutingApi.TrRoutingV2.AccessibilityMapResponse
-        >(apiCalls.accessibilityMap, { parameters: params, hostPort: options?.hostPort });
+        const responseStatus = await this.callAccessibilityMap({ parameters: params, hostPort: options?.hostPort });
         if (Status.isStatusError(responseStatus)) {
             this.handleErrorStatus(responseStatus);
         }
@@ -277,3 +279,6 @@ export class TrRoutingService {
         return await this.internalSummary(params);
     }
 }
+
+const instance = new TransitRoutingService();
+export default instance;

@@ -4,8 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { default as mockedRoutingUtils } from 'chaire-lib-common/lib/test/services/routing/RoutingUtilsMock';
-import { default as mockedTrRouting } from 'chaire-lib-common/lib/test/services/transitRouting/TransitRoutingServiceMock';
 import { TestUtils } from 'chaire-lib-common/lib/test';
 
 import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/transitRouting/TrRoutingConstantsStubs';
@@ -19,6 +17,17 @@ import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes'
 import { UnimodalRoutingResultData } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { TrRoutingV2 } from 'chaire-lib-common/src/api/TrRouting';
+import transitRoutingService from '../../transitRouting/TransitRoutingService';
+import { getRouteByMode } from 'chaire-lib-common/lib/services/routing/RoutingUtils';
+
+jest.mock('chaire-lib-common/lib/services/routing/RoutingUtils', () => ({
+    getRouteByMode: jest.fn()
+}));
+const mockGetRouteByMode = getRouteByMode as jest.MockedFunction<typeof getRouteByMode>;
+jest.mock('../../transitRouting/TransitRoutingService', () => ({
+    route: jest.fn()
+}));
+const mockedRouteFunction = transitRoutingService.route as jest.MockedFunction<typeof transitRoutingService.route>;
 
 // A simple path without transfer
 export const simplePathResult: TrRoutingRouteResult = {
@@ -72,14 +81,14 @@ describe('Routing Calculations', () => {
     });
 
     test('simple path without transfer no way point', async () => {
-        mockedTrRouting.mockRouteFunction.mockResolvedValue(simplePathResult);
-        mockedRoutingUtils.mockGetRouteByMode.mockResolvedValue(walkingRouteNoWaypointTest)
+        mockedRouteFunction.mockResolvedValue(simplePathResult);
+        mockGetRouteByMode.mockResolvedValue(walkingRouteNoWaypointTest)
 
         const result = await Routing.calculate(attributes);
 
-        expect(mockedTrRouting.mockRouteFunction).toHaveBeenCalledTimes(1);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledTimes(1);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
+        expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
 
         expect(Object.keys(result)).toEqual(['transit', 'walking']);
         const transitResult = result['transit'] as TransitRoutingResultData;
@@ -99,14 +108,14 @@ describe('Routing Calculations', () => {
     });
 
     test('simple path without transfer no way point', async () => {
-        mockedTrRouting.mockRouteFunction.mockResolvedValue(simplePathResult);
-        mockedRoutingUtils.mockGetRouteByMode.mockResolvedValue(walkingRouteNoWaypointTest);
+        mockedRouteFunction.mockResolvedValue(simplePathResult);
+        mockGetRouteByMode.mockResolvedValue(walkingRouteNoWaypointTest);
 
         const result = await Routing.calculate(attributes);
 
-        expect(mockedTrRouting.mockRouteFunction).toHaveBeenCalledTimes(1);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledTimes(1);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
+        expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
 
         expect(Object.keys(result)).toEqual(['transit', 'walking']);
         const transitResult = result['transit'] as TransitRoutingResultData;
@@ -127,17 +136,17 @@ describe('Routing Calculations', () => {
 
     test('path with transfer no way point', async () => {
 
-        mockedTrRouting.mockRouteFunction.mockResolvedValue(transferPathResult);
-        mockedRoutingUtils.mockGetRouteByMode.mockResolvedValue(walkingRouteNoWaypointTest);
+        mockedRouteFunction.mockResolvedValue(transferPathResult);
+        mockGetRouteByMode.mockResolvedValue(walkingRouteNoWaypointTest);
 
         const result = await Routing.calculate(attributes);
 
         expect(Object.keys(result)).toEqual(['transit', 'walking']);
         const transitResult = result['transit'] as TransitRoutingResultData;
 
-        expect(mockedTrRouting.mockRouteFunction).toHaveBeenCalledTimes(1);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledTimes(1);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
+        expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
 
         expect(transitResult.paths.length).toEqual(1);
 
@@ -156,17 +165,17 @@ describe('Routing Calculations', () => {
     });
 
     test('alternative path', async () => {
-        mockedTrRouting.mockRouteFunction.mockResolvedValue(alternativesResult);
-        mockedRoutingUtils.mockGetRouteByMode.mockResolvedValue(walkingRouteNoWaypointTest);
+        mockedRouteFunction.mockResolvedValue(alternativesResult);
+        mockGetRouteByMode.mockResolvedValue(walkingRouteNoWaypointTest);
 
         const result = await Routing.calculate(attributes);
 
         expect(Object.keys(result)).toEqual(['transit', 'walking']);
         const transitResult = result['transit'] as TransitRoutingResultData;
 
-        expect(mockedTrRouting.mockRouteFunction).toHaveBeenCalledTimes(1);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledTimes(1);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
+        expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
 
         expect(transitResult.paths.length).toEqual(2);
 
@@ -176,14 +185,14 @@ describe('Routing Calculations', () => {
     });
 
     test('alternative path 60 minutes duration', async () => {
-        mockedTrRouting.mockRouteFunction.mockResolvedValue(alternativesResult);
-        mockedRoutingUtils.mockGetRouteByMode.mockResolvedValue(walkingRoute60MinutesDurationTest);
+        mockedRouteFunction.mockResolvedValue(alternativesResult);
+        mockGetRouteByMode.mockResolvedValue(walkingRoute60MinutesDurationTest);
 
         const result = await Routing.calculate(attributes);
 
-        expect(mockedTrRouting.mockRouteFunction).toHaveBeenCalledTimes(1);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledTimes(1);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
+        expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
 
         expect(Object.keys(result)).toEqual(['transit', 'walking']);
         const transitResult = result['transit'] as TransitRoutingResultData;
@@ -198,16 +207,16 @@ describe('Routing Calculations', () => {
     test('multiple modes, with correct results', async () => {
         const routingModes = ['transit', 'cycling', 'walking', 'rail'] as RoutingOrTransitMode[];
         attributes.routingModes = routingModes;
-        mockedTrRouting.mockRouteFunction.mockResolvedValue(alternativesResult);
-        mockedRoutingUtils.mockGetRouteByMode.mockResolvedValue(walkingRoute60MinutesDurationTest);
+        mockedRouteFunction.mockResolvedValue(alternativesResult);
+        mockGetRouteByMode.mockResolvedValue(walkingRoute60MinutesDurationTest);
 
         const result = await Routing.calculate(attributes);
 
-        expect(mockedTrRouting.mockRouteFunction).toHaveBeenCalledTimes(1);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledTimes(3);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'cycling');
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'rail');
+        expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledTimes(3);
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'cycling');
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'rail');
 
         expect(Object.keys(result)).toEqual(routingModes);
         for (let i = 0; i < routingModes.length; i++) {
@@ -220,17 +229,17 @@ describe('Routing Calculations', () => {
     test('multiple modes, with rejected results', async () => {
         const routingModes = ['transit', 'cycling', 'walking', 'rail'] as RoutingOrTransitMode[];
         attributes.routingModes = routingModes;
-        mockedTrRouting.mockRouteFunction.mockRejectedValue(new TrError('test', 'ERRORCODE'));
-        mockedRoutingUtils.mockGetRouteByMode.mockRejectedValueOnce('Just a string');
-        mockedRoutingUtils.mockGetRouteByMode.mockRejectedValue(new TrError('test', 'ERRORCODE'));
+        mockedRouteFunction.mockRejectedValue(new TrError('test', 'ERRORCODE'));
+        mockGetRouteByMode.mockRejectedValueOnce('Just a string');
+        mockGetRouteByMode.mockRejectedValue(new TrError('test', 'ERRORCODE'));
 
         const result = await Routing.calculate(attributes);
 
-        expect(mockedTrRouting.mockRouteFunction).toHaveBeenCalledTimes(1);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledTimes(3);
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'cycling');
-        expect(mockedRoutingUtils.mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'rail');
+        expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledTimes(3);
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking');
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'cycling');
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'rail');
 
         expect(Object.keys(result)).toEqual(routingModes);
         for (let i = 0; i < routingModes.length; i++) {

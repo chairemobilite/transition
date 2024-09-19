@@ -149,34 +149,6 @@ export default function (socket: EventEmitter, userId?: number) {
             });
     });
 
-    socket.on(TrRoutingConstants.ROUTE, async ({ parameters, hostPort }, callback) => {
-        const origDestStr = `${parameters.originDestination[0].geometry.coordinates.join(',')} to ${parameters.originDestination[1].geometry.coordinates.join(',')}`;
-        try {
-            console.log(`tripRouting: Received route request from socket route for ${origDestStr}`);
-            const routingResults = await trRoutingService.route(parameters, hostPort);
-            callback(Status.createOk(routingResults));
-            console.log(
-                `tripRouting: Called callback after successful route request from socket route for ${origDestStr}`
-            );
-        } catch (error) {
-            console.error(error);
-            callback(Status.createError(TrError.isTrError(error) ? error.message : error));
-            console.log(
-                `tripRouting: Called callback after erroneous route request from socket route for ${origDestStr}`
-            );
-        }
-    });
-
-    socket.on(TrRoutingConstants.ACCESSIBILITY_MAP, async ({ parameters, hostPort }, callback) => {
-        try {
-            const routingResults = await trRoutingService.accessibilityMap(parameters, hostPort);
-            callback(Status.createOk(routingResults));
-        } catch (error) {
-            console.error(error);
-            callback(Status.createError(TrError.isTrError(error) ? error.message : error));
-        }
-    });
-
     socket.on(
         'accessibiliyMap.calculateWithPolygons',
         async (

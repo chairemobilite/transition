@@ -20,12 +20,12 @@ import _sum from 'lodash/sum';
 
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-common/lib/services/transitRouting/TransitRoutingServiceManager';
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/transitRouting/types';
 import { AccessibilityMapQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { _toInteger, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import transitRoutingService from 'chaire-lib-backend/lib/services/transitRouting/TransitRoutingService';
 import {
     TransitAccessibilityMapResultByNode,
     TransitAccessibilityMapWithPolygonResult,
@@ -178,7 +178,6 @@ export class TransitAccessibilityMapCalculator {
         const { isCancelled, additionalProperties, accessibleNodes, ...queryOptions } = options;
         const promises: Promise<TrRoutingResultAccessibilityMap>[] = [];
         let specifiedTimeIndex = 0;
-        const trRoutingService = trRoutingServiceManager.getService();
 
         const baseQuery = {
             minWaitingTime: attributes.minWaitingTimeSeconds,
@@ -205,7 +204,7 @@ export class TransitAccessibilityMapCalculator {
             //accessibleMap expect the port number to be in an HostPort struct
             //TODO This should be refactored, but this is a quick fix for #861
             queryOptions.hostPort = { port: queryOptions.port };
-            promises.push(trRoutingService.accessibleMap(query, queryOptions));
+            promises.push(transitRoutingService.accessibleMap(query, queryOptions));
         }
 
         try {
