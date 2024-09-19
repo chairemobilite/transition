@@ -18,7 +18,7 @@ import polygonClipping from 'polygon-clipping';
 import _cloneDeep from 'lodash/cloneDeep';
 import _sum from 'lodash/sum';
 
-import TransitAccessibilityMapRouting, { AccessibilityMapAttributes } from './TransitAccessibilityMapRouting';
+import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { routingServiceManager as trRoutingServiceManager } from 'chaire-lib-common/lib/services/trRouting/TrRoutingServiceManager';
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/trRouting/TrRoutingService';
@@ -30,21 +30,10 @@ import {
     TransitAccessibilityMapResultByNode,
     TransitAccessibilityMapWithPolygonResult,
     TransitAccessibilityMapResult
-} from './TransitAccessibilityMapResult';
-
-export interface TransitMapCalculationOptions {
-    isCancelled?: (() => boolean) | false;
-    port?: number;
-    /**
-     * Additional properties to add to each accessibility polygon calculated
-     *
-     * @type {{ [key: string]: any }}
-     * @memberof TransitMapCalculationOptions
-     */
-    additionalProperties?: { [key: string]: any };
-    accessibleNodes?: { ids: string[]; durations: number[] };
-    [key: string]: any;
-}
+} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
+import { TransitMapCalculationOptions } from 'transition-common/lib/services/accessibilityMap/types';
+import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
+import nodeDbQueries from '../../models/db/transitNodes.db.queries';
 
 const getDurations = (maxDuration: number, numberOfPolygons: number): number[] => {
     const durations = [maxDuration];
@@ -176,15 +165,10 @@ export class TransitAccessibilityMapCalculator {
 
     // FIXME: Type the options
     static async calculate(
-        routing: TransitAccessibilityMapRouting,
-        updatePreferences = false,
+        routingAttributes: AccessibilityMapAttributes,
         options: TransitMapCalculationOptions = {}
     ): Promise<TransitAccessibilityMapResult> {
-        if (updatePreferences) {
-            routing.updateRoutingPrefs();
-        }
-
-        const attributes = getAttributesOrDefault(routing.getAttributes());
+        const attributes = getAttributesOrDefault(routingAttributes);
         const durations = getDurations(attributes.maxTotalTravelTimeSeconds, attributes.numberOfPolygons);
         const departureTime = attributes.departureTimeSecondsSinceMidnight;
         const arrivalTime = attributes.arrivalTimeSecondsSinceMidnight;
@@ -272,16 +256,14 @@ export class TransitAccessibilityMapCalculator {
 
     // FIXME: Type the options
     static async calculateWithPolygons(
-        routing: TransitAccessibilityMapRouting,
-        updatePreferences = false,
+        routingAttributes: AccessibilityMapAttributes,
         options: TransitMapCalculationOptions = {}
     ): Promise<TransitAccessibilityMapWithPolygonResult> {
         const { result, durations, nbCalculations, routingResult } = await TransitAccessibilityMapCalculator.calculate(
-            routing,
-            updatePreferences,
+            routingAttributes,
             options
         );
-        const attributes = getAttributesOrDefault(routing.getAttributes());
+        const attributes = getAttributesOrDefault(routingAttributes);
         const { isCancelled, additionalProperties } = options;
 
         try {
@@ -350,7 +332,12 @@ export class TransitAccessibilityMapCalculator {
                 .geometry.coordinates
         ];
         const defaultGeojsonPolygon = getDefaultGeojsonPolygon(attributes.locationColor);
-        const nodeCollection = serviceLocator.collectionManager.get('nodes');
+
+        // Get the accessible node collection for this request
+        const accessibleNodeIds = Object.keys(result.getTraveTimesByNodeId());
+        const nodeCollection = new NodeCollection([], {});
+        const nodeGeojson = await nodeDbQueries.geojsonCollection({ nodeIds: accessibleNodeIds });
+        nodeCollection.loadFromCollection(nodeGeojson.features);
 
         for (let d = 0, size = durations.length; d < size; d++) {
             const duration = durations[d];
@@ -372,9 +359,11 @@ export class TransitAccessibilityMapCalculator {
             const travelTimesByNodeId = result.getTraveTimesByNodeId();
 
             for (const nodeId in travelTimesByNodeId) {
-                const node = nodeCollection.getById(nodeId);
-                // TODO node collection manager is in legacy code and is a geojson attribute, but unit test use Node objects, which need to be converted to geojson
-                const nodeGeometry = node.geometry ? node : node.toGeojson();
+                const nodeFeature = nodeCollection.getById(nodeId);
+                if (nodeFeature === undefined) {
+                    console.error('Node not found in collection: %s', nodeId);
+                    continue;
+                }
                 const remainingTimesSeconds = travelTimesByNodeId[nodeId].map((travelTimeSeconds) => {
                     return travelTimeSeconds < duration ? duration - travelTimeSeconds : 0;
                 });
@@ -394,7 +383,7 @@ export class TransitAccessibilityMapCalculator {
                 let nodeRemainingDistanceMeters = Math.floor(avgRemainingTimeSeconds * walkingSpeedMps);
                 nodeRemainingDistanceMeters = Math.min(maxDistanceMeters, nodeRemainingDistanceMeters);
                 nodeCircles.push(
-                    turfCircle(nodeGeometry, nodeRemainingDistanceMeters / 1000, { units: 'kilometers', steps: 64 })
+                    turfCircle(nodeFeature, nodeRemainingDistanceMeters / 1000, { units: 'kilometers', steps: 64 })
                         .geometry.coordinates
                 );
             }

@@ -21,7 +21,7 @@ import {
     calculateRoute
 } from '../services/routingCalculation/RoutingCalculator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { getAttributesOrDefault } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
+import { getAttributesOrDefault } from '../services/accessibilityMap/TransitAccessibilityMapCalculator';
 import { FeatureCollection, LineString, Point } from 'geojson';
 import PathsAPIResponse from './public/PathsAPIResponse';
 import NodesAPIResponse from './public/NodesAPIResponse';

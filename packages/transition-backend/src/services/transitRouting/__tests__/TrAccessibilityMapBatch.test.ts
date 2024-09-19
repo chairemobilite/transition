@@ -10,7 +10,7 @@ import { EventEmitter } from 'events';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import { parseLocationsFromCsv } from '../../accessMapLocation/AccessMapLocationProvider';
 import { createAccessMapFileResultProcessor } from '../TrAccessibilityMapBatchResult';
-import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
+import { TransitAccessibilityMapCalculator } from '../../accessibilityMap/TransitAccessibilityMapCalculator';
 import { batchAccessibilityMap } from '../TrAccessibilityMapBatch';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';

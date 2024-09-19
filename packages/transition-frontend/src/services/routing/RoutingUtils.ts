@@ -10,6 +10,9 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import { TransitMapCalculationOptions } from 'transition-common/lib/services/accessibilityMap/types';
+import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 
 export const calculateRouting = async (
     routing: TransitRouting,
@@ -50,6 +53,35 @@ export const calculateRouting = async (
                     resolve(requestedResults);
                 } else {
                     reject(routingResult.error);
+                }
+            }
+        );
+    });
+};
+
+export const calculateAccessibilityMap = async (
+    routing: TransitAccessibilityMapRouting,
+    updatePreferences = false,
+    options: TransitMapCalculationOptions = {}
+): Promise<TransitAccessibilityMapWithPolygonResult> => {
+    return new Promise((resolve, reject) => {
+        // Update preferences if needed
+        if (updatePreferences) {
+            routing.updateRoutingPrefs();
+        }
+
+        serviceLocator.socketEventManager.emit(
+            'accessibiliyMap.calculateWithPolygons',
+            routing.getAttributes(),
+            options,
+            (mapResult: Status.Status<TransitAccessibilityMapWithPolygonResult>) => {
+                if (options.isCancelled && options.isCancelled()) {
+                    reject('Cancelled');
+                }
+                if (Status.isStatusOk(mapResult)) {
+                    resolve(Status.unwrap(mapResult));
+                } else {
+                    reject(mapResult.error);
                 }
             }
         );

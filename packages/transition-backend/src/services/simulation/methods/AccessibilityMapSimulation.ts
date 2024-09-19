@@ -15,7 +15,7 @@ import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
 import dataSourceDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import placesDbQueries from '../../../models/db/places.db.queries';
 import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
-import { TransitAccessibilityMapCalculator } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapCalculator';
+import { TransitAccessibilityMapCalculator } from '../../accessibilityMap/TransitAccessibilityMapCalculator';
 import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import AccessibleNodeCache from './AccessibleNodeCache';
@@ -202,10 +202,13 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
                 accessMapRouting.attributes.locationGeojson = turfPoint(place.geography.coordinates);
                 accessMapRouting.attributes.departureTimeSecondsSinceMidnight = randomDepartureTime;
                 try {
-                    const { result } = await TransitAccessibilityMapCalculator.calculate(accessMapRouting, false, {
-                        port: options.trRoutingPort,
-                        accessibleNodes
-                    });
+                    const { result } = await TransitAccessibilityMapCalculator.calculate(
+                        accessMapRouting.getAttributes(),
+                        {
+                            port: options.trRoutingPort,
+                            accessibleNodes
+                        }
+                    );
 
                     const nodeStats = result.getAccessibilityStatsForDuration(
                         options.transitRoutingParameters.maxTotalTravelTimeSeconds || 3600,
