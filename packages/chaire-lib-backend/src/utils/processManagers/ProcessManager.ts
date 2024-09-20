@@ -12,6 +12,8 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import ProcessUtils from './ProcessUtils';
 
 const PID_DIRECTORY = 'pids';
+const DEFAULT_LOG_FILE_COUNT = 3; // 3 files
+const DEFAULT_LOG_FILE_SIZE_KB = 5000; // 5MB
 
 directoryManager.createDirectoryIfNotExists(PID_DIRECTORY);
 
@@ -60,7 +62,17 @@ const getLoggerName = function (tagName: string, serviceName: string) {
     return `${tagName}Logger_${serviceName}_`;
 };
 
-const setupLogger = function ({ tagName, serviceName }: { tagName: string; serviceName: string }) {
+const setupLogger = function ({
+    tagName,
+    serviceName,
+    nbFiles = DEFAULT_LOG_FILE_COUNT,
+    maxFileSizeKB = DEFAULT_LOG_FILE_SIZE_KB
+}: {
+    tagName: string;
+    serviceName: string;
+    nbFiles?: number;
+    maxFileSizeKB?: number;
+}) {
     const loggerName = getLoggerName(tagName, serviceName);
     serviceLocator.addService(
         loggerName,
@@ -70,8 +82,9 @@ const setupLogger = function ({ tagName, serviceName }: { tagName: string; servi
             transports: [
                 new winston.transports.File({
                     filename: fileManager.directoryManager.getAbsolutePath(`logs/${loggerName}.log`),
-                    maxsize: 1000000,
-                    maxFiles: 1,
+                    // In winston, size is in bytes
+                    maxsize: maxFileSizeKB * 1024,
+                    maxFiles: nbFiles,
                     timestamp: true
                 } as any)
             ]
@@ -86,18 +99,23 @@ const startProcess = async function ({
     command,
     commandArgs,
     waitString,
-    useShell,
+    useShell = false,
     cwd,
-    attemptRestart = false
+    attemptRestart = false,
+    logFiles
 }: {
     serviceName: string;
     tagName: string;
     command: string;
     commandArgs: any;
     waitString: string;
-    useShell: boolean;
+    useShell?: boolean;
     cwd?: string;
     attemptRestart?: boolean;
+    logFiles?: {
+        maxFileSizeKB?: number;
+        nbLogFiles?: number;
+    };
 }): Promise<any> {
     return new Promise((resolve) => {
         // Check if we already a process running for that serviceName
@@ -108,7 +126,12 @@ const startProcess = async function ({
             const doStart = function () {
                 // If we reached this point, we don't have a process running or it was stopped
 
-                const loggerName = setupLogger({ tagName, serviceName });
+                const loggerName = setupLogger({
+                    tagName,
+                    serviceName,
+                    maxFileSizeKB: logFiles?.maxFileSizeKB,
+                    nbFiles: logFiles?.nbLogFiles
+                });
 
                 const spawnParams = {
                     shell: useShell,
