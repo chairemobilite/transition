@@ -55,7 +55,14 @@ describe('Process Manager testing', function() {
         expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
 
         // Start service
-        var result = await ProcessManager.startProcess(testServiceName, "TEST", "ls", ["-l"], "All Good", false);      
+        var result = await ProcessManager.startProcess({
+            serviceName: testServiceName,
+            tagName: "TEST",
+            command: "ls",
+            commandArgs: ["-l"],
+            waitString: "All Good",
+            useShell: false
+        });      
         expect(result.status).toBe('started');
         expect(testSpawn.calls[0].command).toBe('ls');
         expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
@@ -85,7 +92,14 @@ describe('Process Manager testing', function() {
         expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
         
         // Start service
-        var result = await ProcessManager.startProcess(testServiceName, "TEST", "ls", ["-l"], "All Good", false);      
+        var result = await ProcessManager.startProcess({
+            serviceName: testServiceName,
+            tagName: "TEST",
+            command: "ls",
+            commandArgs: ["-l"],
+            waitString: "All Good",
+            useShell: false
+        });      
         expect(result.status).toBe('started');
         expect(testSpawn.calls[0].command).toBe('ls');
         expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
@@ -94,7 +108,15 @@ describe('Process Manager testing', function() {
 
         // Restart serivce
         mockPidRunning.mockReturnValueOnce(true).mockReturnValueOnce(true).mockReturnValueOnce(false);
-        var resultRestart = await ProcessManager.startProcess(testServiceName, "TEST", "ls", ["-l"], "All Good", false, undefined, true);
+        var resultRestart = await ProcessManager.startProcess({
+            serviceName: testServiceName,
+            tagName: "TEST",
+            command: "ls",
+            commandArgs: ["-l"],
+            waitString: "All Good",
+            useShell: false,
+            attemptRestart: true
+        });
         expect(resultRestart.status).toBe('started');
         expect(mockPidRunning).toHaveBeenCalled();
         expect(mockKill).toHaveBeenCalled();
@@ -117,7 +139,14 @@ describe('Process Manager testing', function() {
         testSpawn.sequence.add(testSpawn.simple(0, 'All Not Good!'));
 
         // Start service
-        var result = await ProcessManager.startProcess(testServiceName, "TEST", "ls", ["-l"], "All Good", false);
+        var result = await ProcessManager.startProcess({
+            serviceName: testServiceName,
+            tagName: "TEST",
+            command: "ls",
+            commandArgs: ["-l"],
+            waitString: "All Good",
+            useShell: false
+        });
         // TODO, the spawn mock simulate a process that exit immediatly, so this is not fully
         // representative of a process that would still run, but don't have the right output. Still
         // covering some of the code path
@@ -131,13 +160,28 @@ describe('Process Manager testing', function() {
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
 
         // Start service
-        var result = await ProcessManager.startProcess(testServiceName, "TEST", "ls", ["-l"], "All Good", false);
+        var result = await ProcessManager.startProcess({
+            serviceName: testServiceName,
+            tagName: "TEST",
+            command: "ls",
+            commandArgs: ["-l"],
+            waitString: "All Good",
+            useShell: false
+        });
         expect(result.status).toBe('started');
         expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
         
         // Restart service
         mockPidRunning.mockReturnValue(true);
-        var resultRestart = await ProcessManager.startProcess(testServiceName, "TEST", "ls", ["-l"], "All Good", false, undefined, true);
+        var resultRestart = await ProcessManager.startProcess({
+            serviceName: testServiceName,
+            tagName: "TEST",
+            command: "ls",
+            commandArgs: ["-l"],
+            waitString: "All Good",
+            useShell: false,
+            attemptRestart: true
+        });
         expect(resultRestart.status).toBe('could_not_restart');
         expect(mockPidRunning).toHaveBeenCalled();
         expect(mockKill).toHaveBeenCalled();
@@ -196,14 +240,28 @@ describe('Process Manager testing', function() {
         mockPidRunning.mockReturnValue(true);
         
         // Start service
-        var result = await ProcessManager.startProcess(testServiceName, "TEST", "ls", ["-l"], "All Good", false);
+        var result = await ProcessManager.startProcess({
+            serviceName: testServiceName,
+            tagName: "TEST",
+            command: "ls",
+            commandArgs: ["-l"],
+            waitString: "All Good",
+            useShell: false
+        });
         expect(result.status).toBe('started');
         expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
         expect(fileManager.readFile("pids/TestService1.pid")).toBe("6");
 
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
         // Start same service
-        var result = await ProcessManager.startProcess(testServiceName, "TEST", "ls", ["-l"], "All Good", false);
+        var result = await ProcessManager.startProcess({
+            serviceName: testServiceName,
+            tagName: "TEST",
+            command: "ls",
+            commandArgs: ["-l"],
+            waitString: "All Good",
+            useShell: false
+        });
         expect(result.status).toBe('already_running');
         expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
         expect(fileManager.readFile("pids/TestService1.pid")).toBe("6");
@@ -223,13 +281,27 @@ describe('Process Manager testing', function() {
         mockPidRunning.mockReturnValue(true);
         
         // Start first service
-        var result = await ProcessManager.startProcess(testServiceName, "TEST", "ls", ["-l"], "All Good", false);
+        var result = await ProcessManager.startProcess({
+            serviceName: testServiceName,
+            tagName: "TEST",
+            command: "ls",
+            commandArgs: ["-l"],
+            waitString: "All Good",
+            useShell: false
+        });
         expect(result.status).toBe('started');
         expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
         expect(fileManager.readFile("pids/TestService1.pid")).toBe("7");
         // Start other service
         
-        var resultOther = await ProcessManager.startProcess("OtherService", "TEST", "cat", ["-l"], "Other Good", false);
+        var resultOther = await ProcessManager.startProcess({
+            serviceName: "OtherService",
+            tagName: "TEST",
+            command: "cat",
+            commandArgs: ["-l"],
+            waitString: "Other Good",
+            useShell: false
+        });
         expect(resultOther.status).toBe('started');
         expect(fileManager.fileExists("pids/OtherService.pid")).toBe(true);
         expect(fileManager.readFile("pids/OtherService.pid")).toBe("8");
@@ -246,7 +318,14 @@ describe('Process Manager testing', function() {
         expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
 
         // Start service
-        var result = await ProcessManager.startProcess(testServiceName, "TEST", "ls", ["-l"], "All Good", false);
+        var result = await ProcessManager.startProcess({
+            serviceName: testServiceName,
+            tagName: "TEST",
+            command: "ls",
+            commandArgs: ["-l"],
+            waitString: "All Good",
+            useShell: false
+        });
         expect(result.status).toBe('started');
         expect(testSpawn.calls[0].command).toBe('ls');
         expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
@@ -278,7 +357,14 @@ describe('Process Manager testing', function() {
 
         
         // Start service
-        var result = await ProcessManager.startProcess(testServiceName, "TEST", "ls", ["-l"], "All Good", false); 
+        var result = await ProcessManager.startProcess({
+            serviceName: testServiceName,
+            tagName: "TEST",
+            command: "ls",
+            commandArgs: ["-l"],
+            waitString: "All Good",
+            useShell: false
+        }); 
         expect(result.status).toBe('started');
         expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
 
