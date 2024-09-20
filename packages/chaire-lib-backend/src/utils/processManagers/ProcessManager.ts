@@ -60,7 +60,7 @@ const getLoggerName = function (tagName: string, serviceName: string) {
     return `${tagName}Logger_${serviceName}_`;
 };
 
-const setupLogger = function (tagName: string, serviceName: string) {
+const setupLogger = function ({ tagName, serviceName }: { tagName: string; serviceName: string }) {
     const loggerName = getLoggerName(tagName, serviceName);
     serviceLocator.addService(
         loggerName,
@@ -80,16 +80,25 @@ const setupLogger = function (tagName: string, serviceName: string) {
     return loggerName;
 };
 
-const startProcess = async function (
-    serviceName: string,
-    tagName: string,
-    command: string,
-    commandArgs: any,
-    waitString: string,
-    useShell: boolean,
-    cwd?: string,
+const startProcess = async function ({
+    serviceName,
+    tagName,
+    command,
+    commandArgs,
+    waitString,
+    useShell,
+    cwd,
     attemptRestart = false
-): Promise<any> {
+}: {
+    serviceName: string;
+    tagName: string;
+    command: string;
+    commandArgs: any;
+    waitString: string;
+    useShell: boolean;
+    cwd?: string;
+    attemptRestart?: boolean;
+}): Promise<any> {
     return new Promise((resolve) => {
         // Check if we already a process running for that serviceName
         // TODO Should be an await instead of then but need to rework the promise to make it work
@@ -99,7 +108,7 @@ const startProcess = async function (
             const doStart = function () {
                 // If we reached this point, we don't have a process running or it was stopped
 
-                const loggerName = setupLogger(tagName, serviceName);
+                const loggerName = setupLogger({ tagName, serviceName });
 
                 const spawnParams = {
                     shell: useShell,

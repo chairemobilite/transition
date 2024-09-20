@@ -139,7 +139,9 @@ const start = function (parameters = {} as any): Promise<any> {
         const commandArgs = getOsrmRoutedStartArgs(osrmDirectoryPath, mode, port);
         const waitString = 'running and waiting for requests';
 
-        resolve(ProcessManager.startProcess(serviceName, tagName, command, commandArgs, waitString, true));
+        resolve(
+            ProcessManager.startProcess({ serviceName, tagName, command, commandArgs, waitString, useShell: true })
+        );
     });
 };
 
@@ -167,7 +169,15 @@ const restart = function (parameters): Promise<any> {
         const waitString = 'running and waiting for requests';
 
         resolve(
-            ProcessManager.startProcess(serviceName, tagName, command, commandArgs, waitString, true, undefined, true)
+            ProcessManager.startProcess({
+                serviceName,
+                tagName,
+                command,
+                commandArgs,
+                waitString,
+                useShell: true,
+                attemptRestart: true
+            })
         );
     });
 };

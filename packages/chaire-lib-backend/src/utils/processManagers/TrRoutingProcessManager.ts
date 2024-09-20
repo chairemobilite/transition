@@ -61,16 +61,16 @@ const startTrRoutingProcess = async (
 
     const waitString = 'ready.';
 
-    const processStatus = await ProcessManager.startProcess(
+    const processStatus = await ProcessManager.startProcess({
         serviceName,
         tagName,
         command,
         commandArgs,
         waitString,
-        false,
+        useShell: false,
         cwd,
         attemptRestart
-    );
+    });
     if (processStatus.status === 'error' && processStatus.error.code === 'ENOENT') {
         console.error(
             `trRouting executable does not exist in path ${
