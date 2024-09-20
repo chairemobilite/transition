@@ -140,23 +140,14 @@ class TrRoutingServiceBackend {
         parameters: TrRoutingApi.TransitRouteQueryOptions,
         hostPort: TrRoutingApi.HostPort = {}
     ): Promise<TrRoutingApi.TrRoutingV2.RouteResponse> {
-        const origDestStr = `${parameters.originDestination[0].geometry.coordinates.join(',')} to ${parameters.originDestination[1].geometry.coordinates.join(',')}`;
-        console.log(`tripRouting: Getting route from trRouting for ${origDestStr}`);
-        try {
-            const trRoutingQuery = this.routeOptionsToQueryString(parameters);
+        const trRoutingQuery = this.routeOptionsToQueryString(parameters);
 
-            const result = this.request<TrRoutingApi.TrRoutingV2.RouteResponse>(
-                trRoutingQuery,
-                hostPort.host,
-                hostPort.port,
-                'v2/route'
-            );
-            console.log(`tripRouting: Done getting route from trRouting for ${origDestStr}`);
-            return result;
-        } catch (error) {
-            console.log(`tripRouting: Error getting route from trRouting for ${origDestStr}`);
-            throw error;
-        }
+        return this.request<TrRoutingApi.TrRoutingV2.RouteResponse>(
+            trRoutingQuery,
+            hostPort.host,
+            hostPort.port,
+            'v2/route'
+        );
     }
 
     summary(parameters: TrRoutingApi.TransitRouteQueryOptions): Promise<TrRoutingApi.TrRoutingV2.SummaryResponse> {
