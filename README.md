@@ -163,6 +163,41 @@ For example, to run yarn test in the chaire-lib backend:
 You can also run the app this way with:
 `docker run -a STDOUT -it -v "${PWD}:/home/project" -w=/home/project/ testtransition yarn start`
 
+### UI testing with Playwright
+
+To execute UI tests with Playwright, you first have to create an account that will be used for logging in to Transition during the tests. This only needs to be done once:
+```
+yarn create-user --username testUser --email user@test.ts --password testPassword --admin
+```
+
+You will also need some files used by the "Import GTFS" test. First, create a 'ui-tests-resources' directory in 'packages/chaire-lib-frontend'. Then, download the files 'gtfs.zip' and 'invalid-gtfs.zip' found here: https://github.com/chairemobilite/transition/releases/tag/playwright, and add these files to the newly created 'ui-tests-resources' folder.
+
+Next, configure Playwright by copying the example config file and select the browser to test in:
+```
+cp packages/chaire-lib-frontend/playwright-example.config.ts packages/chaire-lib-frontend/playwright.config.ts
+```
+
+Next, install browser dependencies to correctly execute the tests. If it is not done, an arror message should tell you the command when attempting to run the test. It is possible to install each browser separaly with the following command, for example `firefox`:
+```
+npx playwright install --with-deps firefox
+```
+
+Now that Playwright is configured, you need to start the application as you would to run it normally:
+```
+yarn build:dev or yarn build:prod
+yarn start
+```
+
+Then, to run the tests:
+```
+yarn test:ui
+```
+
+You can also use this command to open a graphic interface that allows you to run tests individually and gives more info:
+```
+yarn test:ui --ui
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)

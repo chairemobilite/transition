@@ -65,7 +65,7 @@ module.exports = {
                 port     : 5999,
                 osrmPath : null,
                 autoStart: true,
-                enabled  : false
+                enabled  : true
             },
             driving_congestion: {
                 port     : 8899,

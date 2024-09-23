@@ -28,7 +28,13 @@ const startTrRoutingProcess = async (
         cacheAllScenarios: false // Flag to enable the trRouting connection cache for all scenario
     }
 ) => {
-    const osrmWalkingServerInfo = osrmService.getMode('walking').getHostPort();
+    const modes = config.defaultPreferences.osrmRouting.modes;
+    const walkingEnabled = modes.walking.enabled as boolean;
+    let osrmWalkingServerInfo;
+    if (walkingEnabled) {
+        osrmWalkingServerInfo = osrmService.getMode('walking').getHostPort();
+    }
+
     const serviceName = getServiceName(port);
     const tagName = 'trRouting';
 
@@ -39,8 +45,9 @@ const startTrRoutingProcess = async (
     const commandArgs = [
         // FIXME Extract to constant the 'cache/' part of the directory somewhere
         `--port=${port}`,
-        `--osrmPort=${osrmWalkingServerInfo.port}`,
-        `--osrmHost=${osrmWalkingServerInfo.host}`,
+        `--useEuclideanDistance=${walkingEnabled ? '0' : '1'}`,
+        `--osrmPort=${osrmWalkingServerInfo?.port}`,
+        `--osrmHost=${osrmWalkingServerInfo?.host}`,
         `--debug=${parameters.debug === true ? 1 : 0}`
     ];
     if (parameters.cacheDirectoryPath) {

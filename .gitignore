@@ -89,3 +89,12 @@ profilingData*
 
 #example apps
 examples/runtime
+examples/config.js
+
+# playwright test output
+**/playwright-report/
+**/test-results/
+**/playwright.config.ts
+
+# playwright test resources
+**/ui-tests-resources/

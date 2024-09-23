@@ -15,5 +15,6 @@ module.exports = {
         './jestSetup.ts'
     ],
     testEnvironment: 'jsdom',
-    snapshotSerializers: ['enzyme-to-json/serializer']
+    snapshotSerializers: ['enzyme-to-json/serializer'],
+    modulePathIgnorePatterns: ["spec.ts"],
 };
