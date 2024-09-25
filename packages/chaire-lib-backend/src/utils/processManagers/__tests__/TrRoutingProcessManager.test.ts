@@ -70,7 +70,11 @@ describe('TrRouting Process Manager: start', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: false
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
 
@@ -92,7 +96,11 @@ describe('TrRouting Process Manager: start', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: __dirname,
-            attemptRestart: false
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
     test('start process with a specific port number', async () => {
@@ -113,7 +121,11 @@ describe('TrRouting Process Manager: start', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: __dirname,
-            attemptRestart: false
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
     test('start process with a custom cache directory', async () => {
@@ -134,7 +146,11 @@ describe('TrRouting Process Manager: start', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: __dirname,
-            attemptRestart: false
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
     test('start process with configured port and cacheAllScenarios for single trRouting', async () => {
@@ -157,7 +173,11 @@ describe('TrRouting Process Manager: start', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: false
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
         
     });
@@ -182,7 +202,10 @@ describe('TrRouting Process Manager: start', () => {
             useShell: false,
             cwd: undefined,
             attemptRestart: false,
-
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
     test('start process with deprecated trRoutingCacheAllScenarios configuration option', async () => {
@@ -204,7 +227,37 @@ describe('TrRouting Process Manager: start', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: false
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
+        });
+    });
+    test('With debug and logFiles in the config', async () => {
+        const logFiles = { maxFileSizeKB: 1500, nbFiles: 5 };
+        setProjectConfiguration({ routing: { transit: { engines: { trRouting: { single: { debug: true, logs: logFiles } } as any } } as any } });
+        const status = await TrRoutingProcessManager.start({});
+        expect(status).toEqual({
+            status: 'started',
+            action: 'start',
+            service: 'trRouting',
+            name: 'trRouting4000'
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith({
+            serviceName: 'trRouting4000',
+            tagName: 'trRouting',
+            command: 'trRouting',
+            commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: undefined,
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: logFiles.nbFiles,
+                maxFileSizeKB: logFiles.maxFileSizeKB
+            }
         });
     });
 });
@@ -233,7 +286,11 @@ describe('TrRouting Process Manager: restart', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: true
+            attemptRestart: true,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
 
@@ -255,7 +312,11 @@ describe('TrRouting Process Manager: restart', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: __dirname,
-            attemptRestart: true
+            attemptRestart: true,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
     test('with a specific port number', async () => {
@@ -276,7 +337,11 @@ describe('TrRouting Process Manager: restart', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: __dirname,
-            attemptRestart: true
+            attemptRestart: true,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
     test('with a custom cache directory', async () => {
@@ -297,7 +362,11 @@ describe('TrRouting Process Manager: restart', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: __dirname,
-            attemptRestart: true
+            attemptRestart: true,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
     test('start process with configured port and cacheAllScenarios for single trRouting', async () => {
@@ -320,7 +389,11 @@ describe('TrRouting Process Manager: restart', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: true
+            attemptRestart: true,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
         
     });
@@ -346,7 +419,11 @@ describe('TrRouting Process Manager: restart', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: true
+            attemptRestart: true,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
     test('doNotStartIfStopped true, process not running', async () => {
@@ -379,7 +456,37 @@ describe('TrRouting Process Manager: restart', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: true
+            attemptRestart: true,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
+        });
+    });
+    test('With debug and logFiles in the config', async () => {
+        const logFiles = { maxFileSizeKB: 1500, nbFiles: 5 };
+        setProjectConfiguration({ routing: { transit: { engines: { trRouting: { single: { debug: true, logs: logFiles } } as any } } as any } });
+        const status = await TrRoutingProcessManager.restart({});
+        expect(status).toEqual({
+            status: 'started',
+            action: 'start',
+            service: 'trRouting',
+            name: 'trRouting4000'
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith({
+            serviceName: 'trRouting4000',
+            tagName: 'trRouting',
+            command: 'trRouting',
+            commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: undefined,
+            attemptRestart: true,
+            logFiles: {
+                nbLogFiles: logFiles.nbFiles,
+                maxFileSizeKB: logFiles.maxFileSizeKB
+            }
         });
     });
 });
@@ -407,7 +514,11 @@ describe('TrRouting Process Manager: startBatch', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: false
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
     test('start batch process with 4 cpus', async () => {
@@ -426,7 +537,11 @@ describe('TrRouting Process Manager: startBatch', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: false
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
     test('start batch process with 4 cpus with 2 limit', async () => {
@@ -449,7 +564,11 @@ describe('TrRouting Process Manager: startBatch', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: false
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
     test('start batch process with 4 cpus on a custom port', async () => {
@@ -468,7 +587,11 @@ describe('TrRouting Process Manager: startBatch', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: false
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
     test('start batch process with 4 cpus with port and cacheAll configuration', async () => {
@@ -490,7 +613,11 @@ describe('TrRouting Process Manager: startBatch', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: false
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
         });
     });
 
@@ -513,8 +640,36 @@ describe('TrRouting Process Manager: startBatch', () => {
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
-            attemptRestart: false
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
+        });
+    });
+    test('With debug and logFiles in the config', async () => {
+        const logFiles = { maxFileSizeKB: 1500, nbFiles: 5 };
+        setProjectConfiguration({ routing: { transit: { engines: { trRouting: { batch: { debug: true, logs: logFiles } } as any } } as any } });
+        const status = await TrRoutingProcessManager.startBatch(4);
+        expect(status).toEqual({
+            status: 'started',
+            service: 'trRoutingBatch',
+            port: 14000
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith({
+            serviceName: 'trRouting14000',
+            tagName: 'trRouting',
+            command: 'trRouting',
+            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: undefined,
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: logFiles.nbFiles,
+                maxFileSizeKB: logFiles.maxFileSizeKB
+            }
         });
     });
 });
-

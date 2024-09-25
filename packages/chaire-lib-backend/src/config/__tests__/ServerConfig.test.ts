@@ -28,7 +28,10 @@ describe('get routing mode and engine configs', () => {
         expect(ServerConfig.getRoutingModeConfig('transit')).toEqual({
             defaultEngine: 'trRouting',
             engines: {
-                trRouting: { single: { port: 5000, cacheAllScenarios: false }, batch: { port: 14000, cacheAllScenarios: false } }
+                trRouting: {
+                    single: { port: 5000, cacheAllScenarios: false, debug: false, logs: { nbFiles: 3, maxFileSizeKB: 5120 } },
+                    batch: { port: 14000, cacheAllScenarios: false, debug: false, logs: { nbFiles: 3, maxFileSizeKB: 5120 } }
+                }
             }
         });
     });
@@ -39,8 +42,8 @@ describe('get routing mode and engine configs', () => {
 
     test('getRoutingEngineConfigForMode, mode and engine exist', () => {
         expect(ServerConfig.getRoutingEngineConfigForMode('transit', 'trRouting')).toEqual({
-            single: { port: 5000, cacheAllScenarios: false }, 
-            batch: { port: 14000, cacheAllScenarios: false }
+            single: { port: 5000, cacheAllScenarios: false, debug: false, logs: { nbFiles: 3, maxFileSizeKB: 5120 } }, 
+            batch: { port: 14000, cacheAllScenarios: false, debug: false, logs: { nbFiles: 3, maxFileSizeKB: 5120 } }
         });
     });
 

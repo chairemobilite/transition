@@ -25,6 +25,24 @@ export type TrRoutingConfig = {
      * trRouting. Will use more memory
      */
     cacheAllScenarios: boolean;
+    /**
+     * Whether to run trRouting in debug mode. Defaults to `false`
+     */
+    debug: boolean;
+    /**
+     * Allow to configure the amount of logging to do for the trRouting process
+     */
+    logs: {
+        // FIXME Add more logging options, for say, something else than files
+        /**
+         * The number of log files to keep. Defaults to 3
+         */
+        nbFiles?: number;
+        /**
+         * The maximum size of a log file in KB. Defaults to 5120 (5MB)
+         */
+        maxFileSizeKB?: number;
+    };
     // FIXME Do we need to configure a host here? If so, we need to properly
     // support it in both batch and single calculation
 };
@@ -126,11 +144,21 @@ setProjectConfigurationCommon<ServerSideProjectConfiguration>({
                 trRouting: {
                     single: {
                         port: 4000,
-                        cacheAllScenarios: false
+                        cacheAllScenarios: false,
+                        debug: false,
+                        logs: {
+                            nbFiles: 3,
+                            maxFileSizeKB: 5120
+                        }
                     },
                     batch: {
                         port: 14000,
-                        cacheAllScenarios: false
+                        cacheAllScenarios: false,
+                        debug: false,
+                        logs: {
+                            nbFiles: 3,
+                            maxFileSizeKB: 5120
+                        }
                     }
                 }
             }
