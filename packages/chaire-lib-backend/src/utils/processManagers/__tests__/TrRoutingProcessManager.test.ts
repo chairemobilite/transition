@@ -14,13 +14,15 @@ import config , { setProjectConfiguration }from '../../../config/server.config';
 
 jest.mock('../ProcessManager', () => ({
     startProcess: jest.fn(),
-    stopProcess: jest.fn()
+    stopProcess: jest.fn(),
+    isServiceRunning: jest.fn().mockResolvedValue(false)
 }));
 jest.mock('../../osrm/OSRMService', () => ({
     getMode: jest.fn()
 }));
 const startProcessMock = ProcessManager.startProcess as jest.MockedFunction<typeof ProcessManager.startProcess>;
 const stopProcessMock = ProcessManager.stopProcess as jest.MockedFunction<typeof ProcessManager.stopProcess>;
+const isServiceRunningMock = ProcessManager.isServiceRunning as jest.MockedFunction<typeof ProcessManager.isServiceRunning>;
 const getModeMock = osrmService.getMode as jest.MockedFunction<typeof osrmService.getMode>;
 const walkingOsrmMode = new OSRMMode('walking', 'localhost', 1234, true);
 getModeMock.mockImplementation((mode) => walkingOsrmMode);
@@ -40,6 +42,8 @@ beforeEach(function () {
     // Override max parallel setting
     // TODO might be a better way to do this
     config.maxParallelCalculators = 8;
+    // Need to delete this option as the setProjectConfiguration does not overwrite but adds to the config, so if set in a test, it won't be removed
+    delete config.trRoutingCacheAllScenarios;
 });
 
 describe('TrRouting Process Manager: start', () => {
@@ -203,6 +207,190 @@ describe('TrRouting Process Manager: start', () => {
             attemptRestart: false
         });
     });
+});
+
+describe('TrRouting Process Manager: restart', () => {
+
+    beforeEach(function () {
+        // Reset TR_ROUTING_PATH environment variable
+        delete process.env.TR_ROUTING_PATH;
+    });
+
+    test('from default path', async () => {
+        const status = await TrRoutingProcessManager.restart({});
+        expect(status).toEqual({
+            status: 'started',
+            action: 'start',
+            service: 'trRouting',
+            name: 'trRouting4000'
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith({
+            serviceName: 'trRouting4000',
+            tagName: 'trRouting',
+            command: 'trRouting',
+            commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: undefined,
+            attemptRestart: true
+        });
+    });
+
+    test('from TR_ROUTING_PATH environment variable', async () => {
+        process.env.TR_ROUTING_PATH = __dirname;
+        const status = await TrRoutingProcessManager.restart({});
+        expect(status).toEqual({
+            status: 'started',
+            action: 'start',
+            service: 'trRouting',
+            name: 'trRouting4000'
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith({
+            serviceName: 'trRouting4000',
+            tagName: 'trRouting',
+            command: './trRouting',
+            commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: __dirname,
+            attemptRestart: true
+        });
+    });
+    test('with a specific port number', async () => {
+        process.env.TR_ROUTING_PATH = __dirname;
+        const status = await TrRoutingProcessManager.restart({port: 1234});
+        expect(status).toEqual({
+            status: 'started',
+            action: 'start',
+            service: 'trRouting',
+            name: 'trRouting1234'
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith({
+            serviceName: 'trRouting1234',
+            tagName: 'trRouting',
+            command: './trRouting',
+            commandArgs: ['--port=1234', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: __dirname,
+            attemptRestart: true
+        });
+    });
+    test('with a custom cache directory', async () => {
+        process.env.TR_ROUTING_PATH = __dirname;
+        const status = await TrRoutingProcessManager.restart({cacheDirectoryPath:"/tmp/cache"});
+        expect(status).toEqual({
+            status: 'started',
+            action: 'start',
+            service: 'trRouting',
+            name: 'trRouting4000'
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith({
+            serviceName: 'trRouting4000',
+            tagName: 'trRouting',
+            command: './trRouting',
+            commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=/tmp/cache`, '--threads=2'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: __dirname,
+            attemptRestart: true
+        });
+    });
+    test('start process with configured port and cacheAllScenarios for single trRouting', async () => {
+        // Add a port and cacheAllScenarios to the trRouting single config
+        const port = 4002;
+        setProjectConfiguration({ routing: { transit: { engines: { trRouting: { single: { port, cacheAllScenarios: true } } as any } } as any } });
+        const status = await TrRoutingProcessManager.restart({});
+        expect(status).toEqual({
+            status: 'started',
+            action: 'start',
+            service: 'trRouting',
+            name: `trRouting${port}`
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith({
+            serviceName: `trRouting${port}`,
+            tagName: 'trRouting',
+            command: 'trRouting',
+            commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2', '--cacheAllConnectionSets=true'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: undefined,
+            attemptRestart: true
+        });
+        
+    });
+    test('with all parameters set', async () => {
+        // Return service is running, it should not affect the outcome in this case
+        isServiceRunningMock.mockResolvedValue(true);
+        const port = 1234;
+        const debug = true;
+        const cacheDirectoryPath = "/tmp/cache";
+        const status = await TrRoutingProcessManager.restart({ port, debug, cacheDirectoryPath });
+        expect(status).toEqual({
+            status: 'started',
+            action: 'start',
+            service: 'trRouting',
+            name: `trRouting${port}`
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith({
+            serviceName: `trRouting${port}`,
+            tagName: 'trRouting',
+            command: 'trRouting',
+            commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${cacheDirectoryPath}`, '--threads=2'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: undefined,
+            attemptRestart: true
+        });
+    });
+    test('doNotStartIfStopped true, process not running', async () => {
+        // Return that the process is not running, ti should not be started
+        isServiceRunningMock.mockResolvedValue(false);
+        const status = await TrRoutingProcessManager.restart({ doNotStartIfStopped: true});
+        expect(status).toEqual({
+            status: 'no_restart_required',
+            service: 'trRouting',
+            name: 'trRouting4000'
+        });
+        expect(startProcessMock).not.toHaveBeenCalled();
+    });
+    test('doNotStartIfStopped true, process running', async () => {
+        // Return that the process is running, should attempt restart
+        isServiceRunningMock.mockResolvedValueOnce(true);
+        const status = await TrRoutingProcessManager.restart({ doNotStartIfStopped: true});
+        expect(status).toEqual({
+            status: 'started',
+            action: 'start',
+            service: 'trRouting',
+            name: 'trRouting4000'
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith({
+            serviceName: 'trRouting4000',
+            tagName: 'trRouting',
+            command: 'trRouting',
+            commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: undefined,
+            attemptRestart: true
+        });
+    });
+});
+
+describe('TrRouting Process Manager: startBatch', () => {
+
+    beforeEach(function () {
+        // Reset TR_ROUTING_PATH environment variable
+        delete process.env.TR_ROUTING_PATH;
+    });
+
     test('start batch process with 1 cpu', async () => {
         const status = await TrRoutingProcessManager.startBatch(1);
         expect(status).toEqual({
@@ -329,3 +517,4 @@ describe('TrRouting Process Manager: start', () => {
         });
     });
 });
+
