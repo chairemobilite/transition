@@ -14,8 +14,8 @@ test('Expected default with env', () => {
     expect(config.projectShortname).toEqual('unitTest');
     expect(config.maxParallelCalculators).toEqual(1);
     expect(config.projectDirectory).toEqual(path.normalize(`${__dirname}/../../../../../tests/dir`));
-    expect(config.routing.transit.engines.trRouting!.single).toEqual({ port: 4000, cacheAllScenarios: false });
-    expect(config.routing.transit.engines.trRouting!.batch).toEqual({ port: 14000, cacheAllScenarios: false });
+    expect(config.routing.transit.engines.trRouting!.single).toEqual({ port: 4000, cacheAllScenarios: false, debug: false, logs: { nbFiles: 3, maxFileSizeKB: 5120 } });
+    expect(config.routing.transit.engines.trRouting!.batch).toEqual({ port: 14000, cacheAllScenarios: false, debug: false, logs: { nbFiles: 3, maxFileSizeKB: 5120 }});
 });
 
 test('setProjectConfiguration', () => {
@@ -26,7 +26,7 @@ test('setProjectConfiguration', () => {
             transit: {
                 defaultEngine: 'trRouting',
                 engines: {
-                    trRouting: { single: { port: 5000 } } as any 
+                    trRouting: { single: { port: 5000 }, batch: { logs: { maxFileSizeKB: 10000 } } } as any 
                 }
             }
         }
@@ -35,6 +35,6 @@ test('setProjectConfiguration', () => {
     expect(config.separateAdminLoginPage).toEqual(false);
     expect(config.projectShortname).toEqual('newProject');
     // Make sure the deep merge works for object configs
-    expect(config.routing.transit.engines.trRouting!.single).toEqual({ port: 5000, cacheAllScenarios: false });
-    expect(config.routing.transit.engines.trRouting!.batch).toEqual({ port: 14000, cacheAllScenarios: false });
+    expect(config.routing.transit.engines.trRouting!.single).toEqual({ port: 5000, cacheAllScenarios: false, debug: false, logs: { nbFiles: 3, maxFileSizeKB: 5120 } });
+    expect(config.routing.transit.engines.trRouting!.batch).toEqual({ port: 14000, cacheAllScenarios: false, debug: false, logs: { nbFiles: 3, maxFileSizeKB: 10000 } });
 });

@@ -8,7 +8,7 @@ import os from 'os';
 import { directoryManager } from '../filesystem/directoryManager';
 import ProcessManager from './ProcessManager';
 import osrmService from '../osrm/OSRMService';
-import config from '../../config/server.config';
+import config, { TrRoutingConfig } from '../../config/server.config';
 import serverConfig from '../../config/ServerConfig';
 
 // Set 2 threads as default, just in case we have more than one request being handled
@@ -31,13 +31,15 @@ const startTrRoutingProcess = async (
     attemptRestart = false,
     threadCount = 1,
     {
-        debug = false,
+        debug = undefined,
         cacheDirectoryPath,
-        cacheAllScenarios = false
+        cacheAllScenarios = false,
+        logFiles
     }: {
         debug?: boolean;
         cacheDirectoryPath?: string;
-        cacheAllScenarios?: boolean; // Flag to enable the trRouting connection cache for all scenario
+        cacheAllScenarios?: boolean; // Flag to enable the trRouting connection cache for all scenario`
+        logFiles: TrRoutingConfig['logs'];
     }
 ) => {
     const osrmWalkingServerInfo = osrmService.getMode('walking').getHostPort();
@@ -81,7 +83,11 @@ const startTrRoutingProcess = async (
         waitString,
         useShell: false,
         cwd,
-        attemptRestart
+        attemptRestart,
+        logFiles: {
+            nbLogFiles: logFiles.nbFiles,
+            maxFileSizeKB: logFiles.maxFileSizeKB
+        }
     });
     if (processStatus.status === 'error' && processStatus.error.code === 'ENOENT') {
         console.error(
@@ -94,14 +100,17 @@ const startTrRoutingProcess = async (
 };
 
 const start = async (parameters: TrRoutingStartParameters) => {
+    // Get trRouting process configuration
     const trRoutingSingleConfig = serverConfig.getTrRoutingConfig('single');
     const port = parameters.port || trRoutingSingleConfig.port;
     const cacheAllScenarios = trRoutingSingleConfig.cacheAllScenarios;
+    const debugFromParamOrConfig = parameters.debug !== undefined ? parameters.debug : trRoutingSingleConfig.debug;
 
     const params: Parameters<typeof startTrRoutingProcess>[3] = {
-        debug: parameters.debug,
+        debug: debugFromParamOrConfig,
         cacheDirectoryPath: parameters.cacheDirectoryPath,
-        cacheAllScenarios: cacheAllScenarios
+        cacheAllScenarios: cacheAllScenarios,
+        logFiles: trRoutingSingleConfig.logs
     };
 
     // TODO Check why we need this await, should not be useful before returning
@@ -122,15 +131,18 @@ const restart = async (
         doNotStartIfStopped?: boolean;
     }
 ) => {
+    // Get trRouting process configuration
     const trRoutingSingleConfig = serverConfig.getTrRoutingConfig('single');
     const port = parameters.port || trRoutingSingleConfig.port;
     const serviceName = getServiceName(port);
     const cacheAllScenarios = trRoutingSingleConfig.cacheAllScenarios;
+    const debugFromParamOrConfig = parameters.debug !== undefined ? parameters.debug : trRoutingSingleConfig.debug;
 
     const params: Parameters<typeof startTrRoutingProcess>[3] = {
-        debug: parameters.debug,
+        debug: debugFromParamOrConfig,
         cacheDirectoryPath: parameters.cacheDirectoryPath,
-        cacheAllScenarios: cacheAllScenarios
+        cacheAllScenarios: cacheAllScenarios,
+        logFiles: trRoutingSingleConfig.logs
     };
 
     if (parameters.doNotStartIfStopped && !(await ProcessManager.isServiceRunning(serviceName))) {
@@ -171,7 +183,7 @@ const startBatch = async function (
     {
         port = serverConfig.getTrRoutingConfig('batch').port,
         cacheDirectoryPath = undefined,
-        debug = false
+        debug = undefined
     }: TrRoutingStartParameters = {}
 ) {
     // Ensure we don't use more CPU than configured
@@ -183,9 +195,18 @@ const startBatch = async function (
         console.warn('Asking for too many trRouting threads (%d), reducing to %d', numberOfCpus, maxThreadCount);
         numberOfCpus = maxThreadCount;
     }
-    const cacheAllScenarios = serverConfig.getTrRoutingConfig('batch').cacheAllScenarios;
 
-    const params = { cacheDirectoryPath: cacheDirectoryPath, cacheAllScenarios, debug };
+    // Get trRouting process configuration
+    const batchTrRoutingConfig = serverConfig.getTrRoutingConfig('batch');
+    const cacheAllScenarios = batchTrRoutingConfig.cacheAllScenarios;
+    const debugFromParamOrConfig = debug !== undefined ? debug : batchTrRoutingConfig.debug;
+
+    const params = {
+        cacheDirectoryPath: cacheDirectoryPath,
+        cacheAllScenarios,
+        debug: debugFromParamOrConfig,
+        logFiles: batchTrRoutingConfig.logs
+    };
 
     await startTrRoutingProcess(port, false, numberOfCpus, params);
 
