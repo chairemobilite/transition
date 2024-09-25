@@ -10,10 +10,9 @@ import { fileManager } from '../filesystem/fileManager';
 import { directoryManager } from '../filesystem/directoryManager';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import ProcessUtils from './ProcessUtils';
+import { DEFAULT_LOG_FILE_COUNT, DEFAULT_LOG_FILE_SIZE_KB } from '../../config/server.config';
 
 const PID_DIRECTORY = 'pids';
-const DEFAULT_LOG_FILE_COUNT = 3; // 3 files
-const DEFAULT_LOG_FILE_SIZE_KB = 5000; // 5MB
 
 directoryManager.createDirectoryIfNotExists(PID_DIRECTORY);
 

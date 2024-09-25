@@ -15,6 +15,9 @@ import config, {
 import fs from 'fs';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
+export const DEFAULT_LOG_FILE_COUNT = 3; // 3 files
+export const DEFAULT_LOG_FILE_SIZE_KB = 5 * 1024; // 5MB
+
 export type TrRoutingConfig = {
     /**
      * Port to use for this trRouting instance
@@ -25,6 +28,24 @@ export type TrRoutingConfig = {
      * trRouting. Will use more memory
      */
     cacheAllScenarios: boolean;
+    /**
+     * Whether to run trRouting in debug mode. Defaults to `false`
+     */
+    debug: boolean;
+    /**
+     * Allow to configure the amount of logging to do for the trRouting process
+     */
+    logs: {
+        // FIXME Add more logging options, for say, something else than files
+        /**
+         * The number of log files to keep. Defaults to 3
+         */
+        nbFiles?: number;
+        /**
+         * The maximum size of a log file in KB. Defaults to 5120 (5MB)
+         */
+        maxFileSizeKB?: number;
+    };
     // FIXME Do we need to configure a host here? If so, we need to properly
     // support it in both batch and single calculation
 };
@@ -126,11 +147,21 @@ setProjectConfigurationCommon<ServerSideProjectConfiguration>({
                 trRouting: {
                     single: {
                         port: 4000,
-                        cacheAllScenarios: false
+                        cacheAllScenarios: false,
+                        debug: false,
+                        logs: {
+                            nbFiles: DEFAULT_LOG_FILE_COUNT,
+                            maxFileSizeKB: DEFAULT_LOG_FILE_SIZE_KB
+                        }
                     },
                     batch: {
                         port: 14000,
-                        cacheAllScenarios: false
+                        cacheAllScenarios: false,
+                        debug: false,
+                        logs: {
+                            nbFiles: DEFAULT_LOG_FILE_COUNT,
+                            maxFileSizeKB: DEFAULT_LOG_FILE_SIZE_KB
+                        }
                     }
                 }
             }

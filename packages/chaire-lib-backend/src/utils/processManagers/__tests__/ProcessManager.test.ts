@@ -8,6 +8,7 @@ var mockSpawn = require('mock-spawn');
 
 var testSpawn = mockSpawn();
 
+import { DEFAULT_LOG_FILE_SIZE_KB } from '../../../config/server.config';
 //TODO maybe use just fs object calls
 import { fileManager } from '../../filesystem/fileManager';
 import ProcessManager from '../ProcessManager';
@@ -91,7 +92,7 @@ describe('Process Manager testing', function() {
         }));
         const logger = createLoggerMock.mock.calls[0][0];
         const fileTransport = (logger as any).transports[0] as winston.transports.FileTransportInstance;
-        expect(fileTransport.maxsize).toEqual(5120000);
+        expect(fileTransport.maxsize).toEqual(DEFAULT_LOG_FILE_SIZE_KB * 1024);
         expect(fileTransport.maxFiles).toEqual(3);
 
         // CHeck isServiceRunning

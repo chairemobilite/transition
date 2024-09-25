@@ -19,7 +19,10 @@ if (!process.env.NODE_ENV) {
 }
 
 const configuration = require('chaire-lib-backend/lib/config/server.config');
-const config = configuration.default ? configuration.default : configuration;
+// Extract from the config all options that we should not send to the frontend.
+// The `{ ...config }` will be sent to the frontend
+// TODO This won't be necessary once we have frontend and backend configuration separated
+const { trRoutingCacheAllScenarios, routing, ...config } = configuration.default ? configuration.default : configuration;
 
 // Public directory from which files are served
 const publicDirectory = path.join(__dirname, '..', '..', 'public');
