@@ -144,6 +144,16 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
     // TODO Review the conditions to define which part is opened. This is a bit complicated wrt the state. Can there really be both selectedNode and selectedNodes?
     return (
         <div id="tr__form-transit-nodes-panel" className="tr__form-transit-nodes-panel tr__panel">
+            {!state.selectedNode && !state.selectedNodes && !state.selectedStation && !importerSelected && (
+                <h3>
+                    <img
+                        src={'/dist/images/icons/transit/node_white.svg'}
+                        className="_icon"
+                        alt={props.t('transit:transitNode:Nodes')}
+                    />{' '}
+                    {props.t('transit:transitNode:Nodes')}
+                </h3>
+            )}
             {state.selectedNodes && state.selectedNode && state.selectedNode.hasChanged() && (
                 <ConfirmModal
                     isOpen={true}
