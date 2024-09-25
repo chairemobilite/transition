@@ -155,6 +155,31 @@ describe('TrRouting Process Manager: start', () => {
             cwd: undefined,
             attemptRestart: false
         });
+        
+    });
+    test('start process with all parameters set', async () => {
+        const port = 1234;
+        const debug = true;
+        const cacheDirectoryPath = "/tmp/cache";
+        const status = await TrRoutingProcessManager.start({ port, debug, cacheDirectoryPath });
+        expect(status).toEqual({
+            status: 'started',
+            action: 'start',
+            service: 'trRouting',
+            name: `trRouting${port}`
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith({
+            serviceName: `trRouting${port}`,
+            tagName: 'trRouting',
+            command: 'trRouting',
+            commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${cacheDirectoryPath}`, '--threads=2'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: undefined,
+            attemptRestart: false,
+
+        });
     });
     test('start process with deprecated trRoutingCacheAllScenarios configuration option', async () => {
         // Add a port and cacheAllScenarios to the trRouting single config
@@ -240,7 +265,7 @@ describe('TrRouting Process Manager: start', () => {
         });
     });
     test('start batch process with 4 cpus on a custom port', async () => {
-        const status = await TrRoutingProcessManager.startBatch(4, 12345);
+        const status = await TrRoutingProcessManager.startBatch(4, { port: 12345 });
         expect(status).toEqual({
             status: 'started',
             service: 'trRoutingBatch',
@@ -274,6 +299,29 @@ describe('TrRouting Process Manager: start', () => {
             tagName: 'trRouting',
             command: 'trRouting',
             commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--cacheAllConnectionSets=true'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: undefined,
+            attemptRestart: false
+        });
+    });
+
+    test('start batch process with all parameters set', async () => {
+        const port = 12345;
+        const debug = true;
+        const cacheDirectoryPath = "/tmp/cache";
+        const status = await TrRoutingProcessManager.startBatch(4, { port, debug, cacheDirectoryPath });
+        expect(status).toEqual({
+            status: 'started',
+            service: 'trRoutingBatch',
+            port: 12345
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith({
+            serviceName: 'trRouting12345',
+            tagName: 'trRouting',
+            command: 'trRouting',
+            commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${cacheDirectoryPath}`, '--threads=4'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
