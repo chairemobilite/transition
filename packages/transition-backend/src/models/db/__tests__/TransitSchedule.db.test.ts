@@ -14,7 +14,7 @@ import agenciesDbQueries from '../transitAgencies.db.queries';
 import servicesDbQueries from '../transitServices.db.queries';
 import pathsDbQueries from '../transitPaths.db.queries';
 import ScheduleDataValidator from 'transition-common/lib/services/schedules/ScheduleDataValidator';
-import { ScheduleAttributes, SchedulePeriod } from 'transition-common/lib/services/schedules/Schedule';
+import { ScheduleAttributes, SchedulePeriod, SchedulePeriodTrip } from 'transition-common/lib/services/schedules/Schedule';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const agencyId = uuidV4();
@@ -266,37 +266,46 @@ const scheduleForServiceId2Period = [{
 
 /** Function to verify 2 schedules are identical to the trip level. It's easier
  * to debug failed test than a matchObject on the scheduleAttributes */
-const expectSchedulesSame = (actual: ScheduleAttributes, expected: ScheduleAttributes) => {
-    const { periods, ...scheduleAttributes } = actual;
-    const { periods: expectedPeriods, integer_id, ...expectedScheduleAttributes } = expected;
+const expectSchedulesSame = (actual: ScheduleAttributes, expected: ScheduleAttributes, { matchIds = true, lineIdMapping = {}, serviceIdMapping = {}, pathIdMapping = {} } = {}) => {
+    const { id, integer_id, line_id, service_id, periods, ...scheduleAttributes } = actual;
+    const { periods: expectedPeriods, id: originalUuid, integer_id: originalIntegerId, line_id: originalLineId, service_id: originalServiceId, ...expectedScheduleAttributes } = expected;
     expect(scheduleAttributes).toEqual(expect.objectContaining(expectedScheduleAttributes));
-    if (integer_id !== undefined) {
-        expect(scheduleAttributes.integer_id).toEqual(integer_id);
+    expect(line_id).toEqual(lineIdMapping[originalLineId] || originalLineId);
+    expect(service_id).toEqual(serviceIdMapping[originalServiceId] || originalServiceId);
+    if (originalIntegerId !== undefined && matchIds) {
+        expect(integer_id).toEqual(originalIntegerId);
+        expect(id).toEqual(originalUuid);
     }
     // Make sure all expected periods are there
     for (let periodIdx = 0; periodIdx < expectedPeriods.length; periodIdx++) {
         // Find the matching period
-        const { trips: expectedTrips, integer_id: periodIntId, ...expectedPeriodAttributes } = expectedPeriods[periodIdx];
-        const matchingPeriod = periods.find(period => period.id === expectedPeriodAttributes.id);
+        const { trips: expectedTrips, id: expectedUuid, integer_id: expectedPeriodId, schedule_id: originalScheduleId, inbound_path_id: originalInboundId, outbound_path_id: originalOutboundId, ...expectedPeriodAttributes } = expectedPeriods[periodIdx];
+        const matchingPeriod = matchIds === true ? periods.find(period => period.id === expectedUuid) : periods[periodIdx];
         expect(matchingPeriod).toBeDefined();
         // Validate period attributes
-        const { trips, ...periodAttributes } = matchingPeriod as SchedulePeriod;
+        const { integer_id: actualPeriodId, id: actualUuid, schedule_id, inbound_path_id, outbound_path_id, trips, ...periodAttributes } = matchingPeriod as SchedulePeriod;
         if (expectedTrips === undefined) {
             expect(trips).toEqual([]);
             continue;
         }
         expect(periodAttributes).toEqual(expect.objectContaining(expectedPeriodAttributes));
-        if (periodIntId !== undefined) {
-            expect(periodAttributes.integer_id).toEqual(periodIntId);
+        expect(inbound_path_id).toEqual(originalInboundId ? pathIdMapping[originalInboundId] || originalInboundId : null);
+        expect(outbound_path_id).toEqual(originalOutboundId ? pathIdMapping[originalOutboundId] || originalOutboundId : null);
+        if (expectedPeriodId !== undefined && matchIds) {
+            expect(actualPeriodId).toEqual(expectedPeriodId);
+            expect(actualUuid).toEqual(expectedUuid);
         }
         // Make sure all expected trips are there
         for (let tripIdx = 0; tripIdx < expectedTrips.length; tripIdx++) {
-            const matchingTrip = trips.find(trip => trip.id === expectedTrips[tripIdx].id);
+            const { id: expectedTripUuid, integer_id: expectedTripId, schedule_period_id, path_id: originalPathId, ...expectedTripAttributes } = expectedTrips[tripIdx];
+            const matchingTrip = matchIds === true ? trips.find(trip => trip.id === expectedTrips[tripIdx].id) : trips[tripIdx];
             expect(matchingTrip).toBeDefined();
-            const { integer_id: tripIntId, ...expectedTripAttributes } = expectedTrips[tripIdx];
             expect(matchingTrip).toEqual(expect.objectContaining(expectedTripAttributes));
-            if (tripIntId !== undefined) {
-                expect(matchingTrip!.integer_id).toEqual(tripIntId);
+            expect(matchingTrip!.path_id).toEqual(pathIdMapping[originalPathId] || originalPathId);
+            if (expectedTripId !== undefined && matchIds) {
+                expect(matchingTrip!.integer_id).toEqual(expectedTripId);
+                expect(matchingTrip!.id).toEqual(expectedTripUuid);
+                expect(schedule_period_id).toEqual(expectedPeriodId);
             }
         }
         expect(trips.length).toEqual(expectedTrips.length);
@@ -315,12 +324,12 @@ describe(`schedules`, function () {
     });
 
     test('should create schedule object with periods and trips from schedule data', async function() {
-
-        const scheduleDataValidation = ScheduleDataValidator.validate(scheduleForServiceId);
+        const scheduleAttributes = _cloneDeep(scheduleForServiceId);
+        const scheduleDataValidation = ScheduleDataValidator.validate(scheduleAttributes);
         expect(scheduleDataValidation.isValid).toBe(true);
-        expect(ScheduleDataValidator.validate(scheduleForServiceId, pathStub1).isValid).toBe(true);
-        expect(ScheduleDataValidator.validate(scheduleForServiceId, pathStub2).isValid).toBe(false);
-        const newId = await dbQueries.save(scheduleForServiceId as any);
+        expect(ScheduleDataValidator.validate(scheduleAttributes, pathStub1).isValid).toBe(true);
+        expect(ScheduleDataValidator.validate(scheduleAttributes, pathStub2).isValid).toBe(false);
+        const newId = await dbQueries.save(scheduleAttributes as any);
         expect(newId).not.toBe(scheduleForServiceId.integer_id);
         scheduleIntegerId = newId;
     });
@@ -479,7 +488,8 @@ describe(`schedules`, function () {
     test('should delete object from database by uuid', async () => {
         // FIXME We should not support deletion by uuid, remove when it is not supported anymore
         // Insert the new object in the DB
-        const newId = await dbQueries.save(scheduleForServiceId as any);
+        const scheduleAttributes = _cloneDeep(scheduleForServiceId);
+        const newId = await dbQueries.save(scheduleAttributes as any);
         const existsBefore = await dbQueries.exists(newId as number);
         expect(existsBefore).toBe(true);
 
@@ -508,7 +518,7 @@ describe('Schedules, single queries with transaction errors', () => {
 
         // Save a schedule with invalid UUID for ids in one of the trips
         (newSchedule.periods[0] as any).trips[0].id = 'not a uuid';
-        await expect(dbQueries.save(newSchedule as any)).rejects.toThrowError(TrError);
+        await expect(dbQueries.save(newSchedule as any)).rejects.toThrow(TrError);
 
         // Read the object from DB and make sure it has not changed
         const dataExists = await dbQueries.exists(scheduleIntegerId as number);
@@ -705,4 +715,355 @@ describe('Schedules save', () => {
             expectSchedulesSame(readSchedules[i], originalUpdatedSchedules[i]);
         }
     });
+});
+
+describe('Schedules duplication', () => {
+
+    beforeEach(async () => {
+        // Empty the tables
+        await dbQueries.truncateSchedules();
+        await dbQueries.truncateSchedulePeriods();
+        await dbQueries.truncateScheduleTrips();
+    });
+
+    test('Duplicate for new line ID', async() => {
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+
+        // Save the original schedule
+        const originalScheduleId = await dbQueries.save(originalSchedule);
+        // Add new line for which to duplicate
+        const newLineId = uuidV4();
+        await linesDbQueries.create({
+            id: newLineId,
+            agency_id: agencyId
+        } as any);
+
+        // Duplicate the schedule with a line id mapping
+        const scheduleIdMapping = await dbQueries.duplicateSchedule({lineIdMapping: { [lineId]: newLineId } });
+
+        // Make sure there are now 2 schedules
+        const schedulesInDb = await dbQueries.collection();
+        expect(schedulesInDb.length).toEqual(2);
+
+        // Find the duplicated schedule and make sure it is as expected
+        originalSchedule.updated_at = null;
+        originalSchedule.created_at = expect.anything();
+        originalSchedule.data = null;
+        const duplicatedSchedule = schedulesInDb.find(sched => sched.integer_id !== originalScheduleId);
+        expect(duplicatedSchedule).toBeDefined();
+        expect(scheduleIdMapping[originalScheduleId]).toEqual((duplicatedSchedule as ScheduleAttributes).integer_id);
+        expectSchedulesSame(duplicatedSchedule as ScheduleAttributes, originalSchedule, { matchIds: false, lineIdMapping: { [lineId]: newLineId } });
+    });
+
+    test('Duplicate for new service ID', async() => {
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+
+        // Save the original schedule
+        const originalScheduleId = await dbQueries.save(originalSchedule);
+        // Add new line for which to duplicate
+        const newServiceId = uuidV4();
+        await servicesDbQueries.create({
+            id: newServiceId
+        } as any);
+
+        // Duplicate the schedule with a service id mapping
+        const scheduleIdMapping = await dbQueries.duplicateSchedule({serviceIdMapping: { [serviceId]: newServiceId } });
+
+        // Make sure there are now 2 schedules
+        const schedulesInDb = await dbQueries.collection();
+        expect(schedulesInDb.length).toEqual(2);
+
+        // Find the duplicated schedule and make sure it is as expected
+        originalSchedule.updated_at = null;
+        originalSchedule.created_at = expect.anything();
+        originalSchedule.data = null;
+        const duplicatedSchedule = schedulesInDb.find(sched => sched.integer_id !== originalScheduleId);
+        expect(duplicatedSchedule).toBeDefined();
+        expect(scheduleIdMapping[originalScheduleId]).toEqual((duplicatedSchedule as ScheduleAttributes).integer_id);
+        expectSchedulesSame(duplicatedSchedule as ScheduleAttributes, originalSchedule, { matchIds: false, serviceIdMapping: { [serviceId]: newServiceId } });
+    });
+
+    test('Duplicate for new line and path ID', async() => {
+        // Create uuids for the new line and paths and add an inbound path for one of the periods
+        const [inboundPathId, newLineId, newOutboundPathId, newInboundPathId] = [uuidV4(), uuidV4(), uuidV4(), uuidV4()];
+        // Add new lines and path for which to duplicate
+        await linesDbQueries.create({
+            id: newLineId,
+            agency_id: agencyId
+        } as any);
+        await pathsDbQueries.createMultiple([
+            { id: inboundPathId, line_id: lineId } as any,
+            { id: newOutboundPathId, line_id: newLineId } as any,
+            { id: newInboundPathId, line_id: newLineId } as any
+        ]);
+
+        // Save the original schedule, after adding inbound path to one of the periods
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+        originalSchedule.periods[0].inbound_path_id = inboundPathId;
+        originalSchedule.periods[0].trips[0].path_id = inboundPathId;
+        
+        const originalScheduleId = await dbQueries.save(originalSchedule);
+
+        // Duplicate the schedule with a line and path id mapping
+        const scheduleIdMapping = await dbQueries.duplicateSchedule({lineIdMapping: { [lineId]: newLineId }, pathIdMapping: { [pathId]: newOutboundPathId, [inboundPathId]: newInboundPathId } });
+
+        // Make sure there are now 2 schedules
+        const schedulesInDb = await dbQueries.collection();
+        expect(schedulesInDb.length).toEqual(2);
+
+        // Find the duplicated schedule and make sure it is as expected
+        originalSchedule.updated_at = null;
+        originalSchedule.created_at = expect.anything();
+        originalSchedule.data = null;
+        const duplicatedSchedule = schedulesInDb.find(sched => sched.integer_id !== originalScheduleId);
+        expect(duplicatedSchedule).toBeDefined();
+        expect(scheduleIdMapping[originalScheduleId]).toEqual((duplicatedSchedule as ScheduleAttributes).integer_id);
+        expectSchedulesSame(duplicatedSchedule as ScheduleAttributes, originalSchedule, { matchIds: false, lineIdMapping: { [lineId]: newLineId }, pathIdMapping: { [pathId]: newOutboundPathId, [inboundPathId]: newInboundPathId } });
+    });
+
+    test('Duplicate for both line and service ID at the same time', async() => {
+        // Add 2 lines and 3 services (one service won't be duplicated)
+        const [originalLineId1, originalLineId2, originalServiceId1, originalServiceId2, otherServiceId] = [uuidV4(), uuidV4(), uuidV4(), uuidV4(), uuidV4()];
+        await linesDbQueries.createMultiple([
+            { id: originalLineId1, agency_id: agencyId },
+            { id: originalLineId2, agency_id: agencyId }] as any);
+        await servicesDbQueries.createMultiple([
+            { id: originalServiceId1 },
+            { id: originalServiceId2 },
+            { id: otherServiceId }] as any);
+
+        // Create 2 schedules for 2 of the lines and 2 of the services, and one extra for the other service, so 5 schedules total
+        const getScheduleData = (lineId: string, serviceId: string) => {
+            const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+            // Reset all uuids
+            originalSchedule.id = undefined;
+            originalSchedule.periods.forEach((period) => {
+                period.id = undefined;
+                period.integer_id = undefined;
+                period.trips?.forEach((trip) => {
+                    trip.id = undefined;
+                    trip.integer_id = undefined;
+                });
+            });
+            originalSchedule.line_id = lineId;
+            originalSchedule.service_id = serviceId;
+            return originalSchedule;
+        };     
+        const scheduleIdLine1Service1 = await dbQueries.save(getScheduleData(originalLineId1, originalServiceId1));
+        const scheduleIdLine1Service2 = await dbQueries.save(getScheduleData(originalLineId1, originalServiceId2));
+        const scheduleIdLine2Service1 = await dbQueries.save(getScheduleData(originalLineId2, originalServiceId1));
+        const scheduleIdLine2Service2 = await dbQueries.save(getScheduleData(originalLineId2, originalServiceId2));
+        const notDuplicatedSchedule = await dbQueries.save(getScheduleData(originalLineId2, otherServiceId));
+
+        // Add another 2 lines and 2 services and duplicate all 4 schedules to the new lines and services
+        const [newLineId1, newLineId2, newServiceId1, newServiceId2] = [uuidV4(), uuidV4(), uuidV4(), uuidV4()];
+        await linesDbQueries.createMultiple([
+            { id: newLineId1, agency_id: agencyId },
+            { id: newLineId2, agency_id: agencyId }] as any);
+        await servicesDbQueries.createMultiple([
+            { id: newServiceId1 },
+            { id: newServiceId2 }] as any);
+        const lineIdMapping = { [originalLineId1]: newLineId1, [originalLineId2]: newLineId2 };
+        const serviceIdMapping = { [originalServiceId1]: newServiceId1, [originalServiceId2]: newServiceId2 };
+
+        // Duplicate shedules with line and service id mappings
+        const scheduleIdMapping = await dbQueries.duplicateSchedule({
+            lineIdMapping,
+            serviceIdMapping
+        });
+
+        // There should now be 8 schedules
+        const schedulesInDb = await dbQueries.collection();
+        expect(schedulesInDb.length).toEqual(9);
+
+        // Verify all 4 schedules have been correctly duplicated
+        const removeAutoFields = (schedule) => {
+            delete schedule.created_at;
+            delete schedule.updated_at;
+            delete schedule.data;
+            // Reset all uuids
+            schedule.periods.forEach((period) => {
+                delete period.created_at;
+                delete period.updated_at;
+                delete period.data;
+                period.trips?.forEach((trip) => {
+                    delete trip.created_at;
+                    delete trip.updated_at;
+                    delete trip.data;
+                });
+            });
+            return schedule;
+        }  
+        const [originalL1S1, newL1S1] = [schedulesInDb.find(sched => sched.integer_id === scheduleIdLine1Service1), schedulesInDb.find(sched => sched.integer_id === scheduleIdMapping[scheduleIdLine1Service1])]
+        expect(originalL1S1).toBeDefined();
+        expect(newL1S1).toBeDefined();
+        expectSchedulesSame(newL1S1 as ScheduleAttributes, removeAutoFields(originalL1S1) as ScheduleAttributes, { matchIds: false, serviceIdMapping, lineIdMapping });
+
+        const [originalL1S2, newL1S2] = [schedulesInDb.find(sched => sched.integer_id === scheduleIdLine1Service2), schedulesInDb.find(sched => sched.integer_id === scheduleIdMapping[scheduleIdLine1Service2])]
+        expect(originalL1S2).toBeDefined();
+        expect(newL1S2).toBeDefined();
+        expectSchedulesSame(newL1S2 as ScheduleAttributes, removeAutoFields(originalL1S2) as ScheduleAttributes, { matchIds: false, serviceIdMapping, lineIdMapping });
+
+        const [originalL2S1, newL2S1] = [schedulesInDb.find(sched => sched.integer_id === scheduleIdLine2Service1), schedulesInDb.find(sched => sched.integer_id === scheduleIdMapping[scheduleIdLine2Service1])]
+        expect(originalL2S1).toBeDefined();
+        expect(newL2S1).toBeDefined();
+        expectSchedulesSame(newL2S1 as ScheduleAttributes, removeAutoFields(originalL2S1) as ScheduleAttributes, { matchIds: false, serviceIdMapping, lineIdMapping });
+
+        const [originalL2S2, newL2S2] = [schedulesInDb.find(sched => sched.integer_id === scheduleIdLine2Service2), schedulesInDb.find(sched => sched.integer_id === scheduleIdMapping[scheduleIdLine2Service2])]
+        expect(originalL2S2).toBeDefined();
+        expect(newL2S2).toBeDefined();
+        expectSchedulesSame(newL2S2 as ScheduleAttributes, removeAutoFields(originalL2S2) as ScheduleAttributes, { matchIds: false, serviceIdMapping, lineIdMapping });
+
+        // Make sure the schedule for the other service was not duplicated
+        expect(scheduleIdMapping[notDuplicatedSchedule]).toBeUndefined();
+    });
+
+    test('Duplicate when there are no schedules for the line', async() => {
+        // Add new line for which to duplicate
+        const newLineId = uuidV4();
+        await linesDbQueries.create({
+            id: newLineId,
+            agency_id: agencyId
+        } as any);
+
+        // Duplicate the schedule with a line id mapping, it should return an empty object
+        const scheduleIdMapping = await dbQueries.duplicateSchedule({lineIdMapping: { [lineId]: newLineId } });
+        expect(scheduleIdMapping).toEqual({});
+
+        // Make sure there are now 2 schedules
+        const schedulesInDb = await dbQueries.collection();
+        expect(schedulesInDb.length).toEqual(0);
+    });
+
+    test('Duplicate when there are no schedules for the line, but no periods', async() => {
+        // Save the original schedule, without periods
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+        originalSchedule.periods = [];
+        const originalScheduleId = await dbQueries.save(originalSchedule);
+
+        // Add new line for which to duplicate
+        const newLineId = uuidV4();
+        await linesDbQueries.create({
+            id: newLineId,
+            agency_id: agencyId
+        } as any);
+
+        // Duplicate the schedule with a line id mapping, duplication should succeed
+        const scheduleIdMapping = await dbQueries.duplicateSchedule({lineIdMapping: { [lineId]: newLineId } });
+        expect(scheduleIdMapping).toEqual({ [originalScheduleId]: expect.anything() });
+
+        // Make sure there are now 2 schedules
+        const schedulesInDb = await dbQueries.collection();
+        expect(schedulesInDb.length).toEqual(2);
+    });
+
+    test('Duplicate when there are no schedules and periods for the line, but no trips', async() => {
+        // Save the original schedule, without trips
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+        originalSchedule.periods.forEach(period => {
+            period.trips = [];
+        });
+        const originalScheduleId = await dbQueries.save(originalSchedule);
+
+        // Add new line for which to duplicate
+        const newLineId = uuidV4();
+        await linesDbQueries.create({
+            id: newLineId,
+            agency_id: agencyId
+        } as any);
+
+        // Duplicate the schedule with a line id mapping, duplication should succeed
+        const scheduleIdMapping = await dbQueries.duplicateSchedule({lineIdMapping: { [lineId]: newLineId } });
+        expect(scheduleIdMapping).toEqual({ [originalScheduleId]: expect.anything() });
+
+        // Make sure there are now 2 schedules
+        const schedulesInDb = await dbQueries.collection();
+        expect(schedulesInDb.length).toEqual(2);
+    });
+
+    test('Test transaction: duplicate for new line and, but unexisting path IDs', async() => {
+        // Create uuids for the new line and paths and add an inbound path for one of the periods
+        const [inboundPathId, newLineId, newOutboundPathId, newInboundPathId] = [uuidV4(), uuidV4(), uuidV4(), uuidV4()];
+        // Add new lines and path for which to duplicate
+        await linesDbQueries.create({
+            id: newLineId,
+            agency_id: agencyId
+        } as any);
+        // Do not add paths for new inbound and outbound IDs, schedule should duplicate fine, but not periods and trips
+        await pathsDbQueries.createMultiple([
+            { id: inboundPathId, line_id: lineId } as any,
+        ]);
+
+        // Save the original schedule, after adding inbound path to one of the periods
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+        originalSchedule.periods[0].inbound_path_id = inboundPathId;
+        originalSchedule.periods[0].trips[0].path_id = inboundPathId;
+        await dbQueries.save(originalSchedule);
+
+        // Duplicate the schedule with a line and path id mapping
+        await expect(dbQueries.duplicateSchedule({lineIdMapping: { [lineId]: newLineId }, pathIdMapping: { [pathId]: newOutboundPathId, [inboundPathId]: newInboundPathId } })).rejects.toThrow(TrError);
+
+        // Make sure there is still only 1 schedule
+        const schedulesInDb = await dbQueries.collection();
+        expect(schedulesInDb.length).toEqual(1);
+    });
+
+    test('Test transaction: duplication fine, but transaction fails later', async() => {
+        // Test preparation same as for the service ID mapping test
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+
+        // Save the original schedule
+        await dbQueries.save(originalSchedule);
+        // Add new service for which to duplicate
+        const newServiceId = uuidV4();
+        await servicesDbQueries.create({
+            id: newServiceId
+        } as any);
+
+        let error: any = undefined;
+        try {
+            // Wrap in a transaction
+            await knex.transaction(async (trx) => {
+                // Update, then delete the schedule, then throw an error
+                await dbQueries.duplicateSchedule({serviceIdMapping: { [serviceId]: newServiceId }, transaction: trx });
+                // Throw an error to make transaction fail
+                throw 'manualTransactionFailure';
+            });
+        } catch(err) {
+            error = err;
+        }
+        expect(error).toEqual('manualTransactionFailure');
+
+        // Make sure there is still only 1 schedule
+        const schedulesInDb = await dbQueries.collection();
+        expect(schedulesInDb.length).toEqual(1);
+    });
+
+    test('No mapping provided, should throw error', async () => {
+        // Add at least one schedule
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+        await dbQueries.save(originalSchedule);
+
+        // Duplicate the schedule without mapping, should throw an error
+        await expect(dbQueries.duplicateSchedule({ })).rejects.toThrow(TrError);
+    });
+
+    test('Mapping to non uuid line ids, should throw error', async () => {
+        // Add at least one schedule
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+        await dbQueries.save(originalSchedule);
+
+        // Duplicate the schedule without mapping, should throw an error
+        await expect(dbQueries.duplicateSchedule({ lineIdMapping: { notAUuid: 'other' } })).rejects.toThrow(TrError);
+    });
+
+    test('Mapping to non uuid service ids, should throw error', async () => {
+        // Add at least one schedule
+        const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
+        await dbQueries.save(originalSchedule);
+
+        // Duplicate the schedule without mapping, should throw an error
+        await expect(dbQueries.duplicateSchedule({ serviceIdMapping: { notAUuid: 'other' } })).rejects.toThrow(TrError);
+    });
+
 });
