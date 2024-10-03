@@ -6,10 +6,10 @@
  */
 import os from 'os';
 import { directoryManager } from '../filesystem/directoryManager';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import ProcessManager from './ProcessManager';
 import osrmService from '../osrm/OSRMService';
 import config from '../../config/server.config';
+import serverConfig from '../../config/ServerConfig';
 
 // Set 2 threads as default, just in case we have more than one request being handled
 const DEFAULT_THREAD_COUNT = 2;
@@ -82,9 +82,9 @@ const startTrRoutingProcess = async (
 };
 
 const start = async (parameters: { port?: number; debug?: boolean; cacheDirectoryPath?: string }) => {
-    const port = parameters.port || Preferences.get('trRouting.port');
-    const cacheAllScenarios =
-        config.trRoutingCacheAllScenarios === undefined ? false : config.trRoutingCacheAllScenarios;
+    const trRoutingSingleConfig = serverConfig.getTrRoutingConfig('single');
+    const port = parameters.port || trRoutingSingleConfig.port;
+    const cacheAllScenarios = trRoutingSingleConfig.cacheAllScenarios;
 
     const params: Parameters<typeof startTrRoutingProcess>[3] = {
         debug: parameters.debug,
@@ -97,7 +97,8 @@ const start = async (parameters: { port?: number; debug?: boolean; cacheDirector
 };
 
 const stop = async (parameters: { port?: number; debug?: boolean; cacheDirectoryPath?: string }) => {
-    const port = parameters.port || Preferences.get('trRouting.port');
+    const trRoutingSingleConfig = serverConfig.getTrRoutingConfig('single');
+    const port = parameters.port || trRoutingSingleConfig.port;
     const serviceName = getServiceName(port);
     const tagName = 'trRouting';
 
@@ -110,10 +111,10 @@ const restart = async (parameters: {
     cacheDirectoryPath?: string;
     doNotStartIfStopped?: boolean;
 }) => {
-    const port = parameters.port || Preferences.get('trRouting.port');
+    const trRoutingSingleConfig = serverConfig.getTrRoutingConfig('single');
+    const port = parameters.port || trRoutingSingleConfig.port;
     const serviceName = getServiceName(port);
-    const cacheAllScenarios =
-        config.trRoutingCacheAllScenarios === undefined ? false : config.trRoutingCacheAllScenarios;
+    const cacheAllScenarios = trRoutingSingleConfig.cacheAllScenarios;
 
     const params: Parameters<typeof startTrRoutingProcess>[3] = {
         debug: parameters.debug,
@@ -136,7 +137,7 @@ const restart = async (parameters: {
 };
 
 const status = async (parameters: { port?: number }) => {
-    const port = parameters.port || Preferences.get('trRouting.port');
+    const port = parameters.port || serverConfig.getTrRoutingConfig('single').port;
     const serviceName = getServiceName(port);
 
     if (await ProcessManager.isServiceRunning(serviceName)) {
@@ -156,7 +157,7 @@ const status = async (parameters: { port?: number }) => {
 
 const startBatch = async function (
     numberOfCpus: number,
-    port: number = Preferences.get('trRouting.batchPortStart', 14000),
+    port: number = serverConfig.getTrRoutingConfig('batch').port,
     cacheDirectoryPath?: string
 ) {
     // Ensure we don't use more CPU than configured
@@ -166,8 +167,9 @@ const startBatch = async function (
         console.warn('Asking for too many trRouting threads (%d), reducing to %d', numberOfCpus, maxThreadCount);
         numberOfCpus = maxThreadCount;
     }
+    const cacheAllScenarios = serverConfig.getTrRoutingConfig('batch').cacheAllScenarios;
 
-    const params = { cacheDirectoryPath: cacheDirectoryPath };
+    const params = { cacheDirectoryPath: cacheDirectoryPath, cacheAllScenarios };
 
     await startTrRoutingProcess(port, false, numberOfCpus, params);
 
@@ -178,7 +180,7 @@ const startBatch = async function (
     };
 };
 
-const stopBatch = async function (port: number = Preferences.get('trRouting.batchPortStart', 14000)) {
+const stopBatch = async function (port: number = serverConfig.getTrRoutingConfig('batch').port) {
     await stop({ port: port });
 
     return {

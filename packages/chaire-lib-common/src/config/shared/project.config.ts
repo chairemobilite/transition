@@ -4,6 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import _merge from 'lodash/merge';
+
 // TODO Some project config option depend on the application, so should not be
 // typed in chaire-lib. Each app (transition , evolution, etc) should add types
 // to the config and should have a project.config file which imports this one
@@ -91,6 +93,10 @@ const projectConfig: ProjectConfiguration<any> = {
  * @returns
  */
 export const setProjectConfiguration = <AdditionalConfig>(config: Partial<ProjectConfiguration<AdditionalConfig>>) =>
-    Object.keys(config).forEach((configKey) => (projectConfig[configKey] = config[configKey]));
+    Object.keys(config).forEach((configKey) =>
+        typeof projectConfig[configKey] === 'object'
+            ? _merge(projectConfig[configKey], config[configKey])
+            : (projectConfig[configKey] = config[configKey])
+    );
 
 export default projectConfig;

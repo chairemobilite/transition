@@ -10,8 +10,8 @@ import pQueue from 'p-queue';
 import _cloneDeep from 'lodash/cloneDeep';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import config from 'chaire-lib-backend/lib/config/server.config';
+import ServerConfig from 'chaire-lib-backend/lib/config/ServerConfig';
 
 import Simulation, { SimulationDataAttributes } from 'transition-common/lib/services/simulation/Simulation';
 import SimulationRun, {
@@ -132,7 +132,7 @@ export default class SimulationRunBackend extends SimulationRun {
     }
 
     public getBatchPort(): number {
-        return this.attributes.options.trRoutingStartingPort || Preferences.get('trRouting.batchPortStart', 14000);
+        return this.attributes.options.trRoutingStartingPort || ServerConfig.getTrRoutingConfig('batch').port;
     }
 
     public getCacheDirectoryPath(): string {

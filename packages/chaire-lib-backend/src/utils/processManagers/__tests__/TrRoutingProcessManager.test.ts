@@ -1,9 +1,16 @@
+/*
+ * Copyright 2022, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
+import _cloneDeep from 'lodash/cloneDeep';
 import { directoryManager } from '../../filesystem/directoryManager';
 import TrRoutingProcessManager from '../TrRoutingProcessManager';
 import ProcessManager from '../ProcessManager';
 import osrmService from '../../osrm/OSRMService';
 import OSRMMode from '../../osrm/OSRMMode';
-import config from '../../../config/server.config';
+import config , { setProjectConfiguration }from '../../../config/server.config';
 
 jest.mock('../ProcessManager', () => ({
     startProcess: jest.fn(),
@@ -31,9 +38,13 @@ startProcessMock.mockImplementation(async (serviceName: string,
     service: tagName,
     name: serviceName
 }));
+// Clone the original config to reset it after each test
+let originalTestConfig = _cloneDeep(config);
 beforeEach(function () {
     startProcessMock.mockClear();
     stopProcessMock.mockClear();
+    // Reset the config to default
+    setProjectConfiguration(originalTestConfig);
     // Override max parallel setting
     // TODO might be a better way to do this
     config.maxParallelCalculators = 8;
@@ -130,6 +141,51 @@ describe('TrRouting Process Manager: start', () => {
             false
         );
     });
+    test('start process with configured port and cacheAllScenarios for single trRouting', async () => {
+        // Add a port and cacheAllScenarios to the trRouting single config
+        const port = 4002;
+        setProjectConfiguration({ routing: { transit: { engines: { trRouting: { single: { port, cacheAllScenarios: true } } as any } } as any } });
+        const status = await TrRoutingProcessManager.start({});
+        expect(status).toEqual({
+            status: 'started',
+            action: 'start',
+            service: 'trRouting',
+            name: `trRouting${port}`
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith(
+            `trRouting${port}`,
+            'trRouting',
+            'trRouting',
+            [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2', '--cacheAllConnectionSets=true'],
+            'ready.',
+            false,
+            undefined,
+            false
+        );
+    });
+    test('start process with deprecated trRoutingCacheAllScenarios configuration option', async () => {
+        // Add a port and cacheAllScenarios to the trRouting single config
+        setProjectConfiguration({ trRoutingCacheAllScenarios: true });
+        const status = await TrRoutingProcessManager.start({});
+        expect(status).toEqual({
+            status: 'started',
+            action: 'start',
+            service: 'trRouting',
+            name: 'trRouting4000'
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith(
+            'trRouting4000',
+            'trRouting',
+            'trRouting',
+            ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2', '--cacheAllConnectionSets=true'],
+            'ready.',
+            false,
+            undefined,
+            false
+        );
+    });
     test('start batch process with 1 cpu', async () => {
         const status = await TrRoutingProcessManager.startBatch(1);
         expect(status).toEqual({
@@ -204,6 +260,28 @@ describe('TrRouting Process Manager: start', () => {
             'trRouting',
             'trRouting',
             ['--port=12345', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4'],
+            'ready.',
+            false,
+            undefined,
+            false
+        );
+    });
+    test('start batch process with 4 cpus with port and cacheAll configuration', async () => {
+        // Add a port and cacheAllScenarios to the trRouting batch config
+        const port = 14002;
+        setProjectConfiguration({ routing: { transit: { engines: { trRouting: { batch: { port, cacheAllScenarios: true } } as any } } as any } });
+        const status = await TrRoutingProcessManager.startBatch(4);
+        expect(status).toEqual({
+            status: 'started',
+            service: 'trRoutingBatch',
+            port
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenCalledWith(
+            `trRouting${port}`,
+            'trRouting',
+            'trRouting',
+            [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--cacheAllConnectionSets=true'],
             'ready.',
             false,
             undefined,

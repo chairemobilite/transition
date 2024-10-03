@@ -173,10 +173,6 @@ const defaultPreferences: PreferencesModel = {
     showAggregatedOdTripsLayer: true,
     socketUploadChunkSize: 10240000,
     defaultWalkingSpeedMetersPerSeconds: 5 / 3.6,
-    trRouting: {
-        port: 4000,
-        autoStart: false
-    },
     geoNames: {
         host: 'http://api.geonames.org/findNearestIntersectionOSMJSON'
     },

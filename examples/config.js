@@ -11,12 +11,31 @@ module.exports = {
     },
     maxParallelCalculators: 2,
     
-    // Maximum number of parallel calculation
-    // TODO trRouting should support multi-threading so we shouldn't have to start multiple instances
+    // Maximum number of parallel calculation. Used in tasks to start the calculator with this number of threads.
     // maxParallelCalculators: 2,
 
-    // Enable caching of connections for all scenarios in trRouting. Will use more memory
-    trRoutingCacheAllScenarios: false,
+    // @deprecated: Use the cacheAllScenarios in the 'routing.transit.engines.trRouting' configuration instead
+    // trRoutingCacheAllScenarios: false,
+    // Configuration for the trRouting services. Single is for the single calculation instance (from the UI and public API), while batch is for the batch calculation instance, for tasks
+    // routing: {
+    //   transit: {
+    //     defaultEngine: 'trRouting',
+    //     engines: {
+    //       trRouting: {
+    //         single: {
+    //           port: 4000,
+    //           // Enable caching of connections for all scenarios in trRouting. Will use more memory
+    //           cacheAllScenarios: false
+    //         },
+    //         batch: {
+    //           port: 14000,
+    //           // Enable caching of connections for all scenarios in trRouting. Will use more memory and may not be necessary for batch calculations as currently there's only one scenario per task
+    //           cacheAllScenarios: false
+    //         }
+    //       }
+    //     }
+    //   }
+    // },
   
     mapDefaultCenter: {
       lat: 45.5092960,
