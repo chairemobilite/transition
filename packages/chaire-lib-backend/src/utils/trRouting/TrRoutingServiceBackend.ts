@@ -8,9 +8,8 @@ import _get from 'lodash/get';
 //TODO replace this fetch-retry library with one compatible with TS
 const fetch = require('@zeit/fetch-retry')(require('node-fetch'));
 
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import ServerConfig from '../../config/ServerConfig';
 import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
-import TrRoutingProcessManager from '../processManagers/TrRoutingProcessManager';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 /**
@@ -191,9 +190,11 @@ class TrRoutingServiceBackend {
         port: string | number | undefined,
         customRequestPath: string
     ): string {
-        const trRoutingConfig = Preferences.get('trRouting');
+        // FIXME We should not get the port from here, as we assume here it is for the single instance and not the batch.
+        const trRoutingConfig = ServerConfig.getTrRoutingConfig('single');
         if (host === undefined) {
-            host = process.env.TR_ROUTING_HOST_URL || trRoutingConfig.host || 'http://localhost';
+            // There used to be a host in the config, but we do not support it, it either comes from the environment or is localhost
+            host = process.env.TR_ROUTING_HOST_URL || 'http://localhost';
         }
         if (port === undefined) {
             port = process.env.TR_ROUTING_HOST_PORT || trRoutingConfig.port;

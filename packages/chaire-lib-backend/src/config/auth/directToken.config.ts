@@ -17,7 +17,7 @@ const isTokenValid = (token: string): boolean => {
     // TODO The token regex format could be validated at the start instead of
     // in this method. But this is called only for new users and it is easier to
     // unit test as it is now, so we keep this here.
-    const tokenFormat = config.auth?.directToken?.tokenFormat;
+    const tokenFormat = (config.auth?.directToken as any)?.tokenFormat;
     let tokenFormatRegex: RegExp | boolean = true;
     try {
         tokenFormatRegex = tokenFormat !== undefined ? new RegExp(tokenFormat) : true;

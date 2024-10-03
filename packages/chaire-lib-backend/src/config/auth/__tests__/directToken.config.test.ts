@@ -103,7 +103,7 @@ each([
 test('Complete flow with valid token', async() => {
     config.auth = {
         directToken: {
-            tokenFormat: undefined
+            tokenFormat: undefined as any
         }
     };
     directTokenLogin(passport, userAuthModel)
