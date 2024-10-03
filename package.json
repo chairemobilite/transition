@@ -28,7 +28,7 @@
         "test": "yarn workspaces run test",
         "test:unit": "yarn workspaces run test:unit",
         "test:sequential": "yarn workspaces run test:sequential",
-        "test:ui": "yarn workspaces run test:ui",
+        "test:ui": "yarn workspace chaire-lib-frontend run test:ui",
         "lint": "yarn workspaces run lint",
         "format": "yarn workspaces run format",
         "list-tasks": "yarn workspace transition-backend run list-tasks",

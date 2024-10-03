@@ -89,3 +89,8 @@ profilingData*
 
 #example apps
 examples/runtime
+
+# playwright test output
+**/playwright-report/
+**/test-results/
+**/playwright.config.ts
