@@ -12,10 +12,8 @@ import osrm from 'osrm';
 import { isSocketIo } from './socketUtils';
 import serverConfig from 'chaire-lib-backend/lib/config/server.config';
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
-import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import osrmService from 'chaire-lib-backend/lib/utils/osrm/OSRMService';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
 import { transitionRouteOptions, transitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
@@ -128,25 +126,6 @@ export default function (socket: EventEmitter, userId?: number) {
             console.error(error);
             callback(Status.createError(TrError.isTrError(error) ? error.message : error));
         }
-    });
-
-    socket.on(TrRoutingConstants.UPDATE_CACHE, (parameters, callback) => {
-        trRoutingService
-            .updateCache(
-                parameters,
-                parameters.host || 'http://localhost',
-                parameters.port || Preferences.get('trRouting.port')
-            )
-            .then((response) => {
-                callback(response);
-            })
-            .catch((error) => {
-                console.error(error);
-                callback({
-                    status: 'error',
-                    error
-                });
-            });
     });
 
     socket.on(

@@ -26,7 +26,6 @@ export class TrRoutingConstants {
      * @memberof TrRoutingConstants
      */
     static readonly ROUTE = 'service.trRouting.route';
-    static readonly UPDATE_CACHE = 'service.trRouting.updateCache';
     /**
      * Socket route name to call a batch routing calculation. It takes
      * parameter of type {@link TransitBatchRoutingDemandAttributes}. It returns a
