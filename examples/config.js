@@ -25,12 +25,16 @@ module.exports = {
     //         single: {
     //           port: 4000,
     //           // Enable caching of connections for all scenarios in trRouting. Will use more memory
-    //           cacheAllScenarios: false
+    //           cacheAllScenarios: false,
+    //           debug: false,
+    //           logs: { maxFileSizeKB: 5120, nbFiles: 3 }
     //         },
     //         batch: {
     //           port: 14000,
     //           // Enable caching of connections for all scenarios in trRouting. Will use more memory and may not be necessary for batch calculations as currently there's only one scenario per task
-    //           cacheAllScenarios: false
+    //           cacheAllScenarios: false,
+    //           debug: false,
+    //           logs: { maxFileSizeKB: 5120, nbFiles: 3 }
     //         }
     //       }
     //     }

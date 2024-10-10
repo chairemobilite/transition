@@ -59,11 +59,10 @@ export default class SimulationRunBackend extends SimulationRun {
 
     async restartTrRoutingInstances() {
         await TrRoutingProcessManager.stopBatch(this.getBatchPort());
-        await TrRoutingProcessManager.startBatch(
-            (this.attributes.options?.numberOfThreads as number) || 1,
-            this.getBatchPort(),
-            this.getProjectRelativeCacheDirectoryPath()
-        );
+        await TrRoutingProcessManager.startBatch((this.attributes.options?.numberOfThreads as number) || 1, {
+            port: this.getBatchPort(),
+            cacheDirectoryPath: this.getProjectRelativeCacheDirectoryPath()
+        });
         this.promiseQueue = new pQueue({ concurrency: (this.attributes.options?.numberOfThreads as number) || 1 });
     }
 
