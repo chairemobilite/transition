@@ -12,15 +12,39 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
     strategy:
       matrix:
         node-version: [18.x, 20.x]
     env:
       PROJECT_CONFIG: ${{ github.workspace }}/examples/config.js
+      PG_CONNECTION_STRING_PREFIX: postgres://testuser:testpassword@localhost:5432/
+      PG_DATABASE_PRODUCTION: testdb
+      PG_DATABASE_DEVELOPMENT: testdb
+      CI: true ## This is to make sure that the tests run in CI mode
+      PLAYWRIGHT_TEST_USER: testUser
+      PLAYWRIGHT_TEST_EMAIL: user@test.ts
+      PLAYWRIGHT_TEST_PASSWORD: testPassword
+      IS_TESTING_PLAYWRIGHT: true
     steps:
     - uses: actions/checkout@v4
     - name: copy env file
       run: cp .env.example .env
+    - name: copy config file
+      run: cp examples/config-example-no-osrm.js examples/config.js
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
@@ -33,8 +57,37 @@ jobs:
       run: yarn build:prod
     - name: Unit Test
       run: yarn test
-    - name: UI Test
+    # Following configure the automated UI tests
+    - name: Create DB
+      run: yarn setup && yarn migrate
+      env:
+        NODE_ENV: production
+    - name: Get Playwright config
+      run: cp packages/chaire-lib-frontend/playwright-example.config.ts packages/chaire-lib-frontend/playwright.config.ts
+    - name: Create test user
+      run: yarn create-user --username $PLAYWRIGHT_TEST_USER --email $PLAYWRIGHT_TEST_EMAIL --password $PLAYWRIGHT_TEST_PASSWORD --admin
+    - name: Create test resources directory
+      run: mkdir -p packages/chaire-lib-frontend/ui-tests-resources
+    - name: Download gtfs feed
+      run: curl -L -o packages/chaire-lib-frontend/ui-tests-resources/gtfs.zip https://github.com/chairemobilite/transition/releases/download/playwright/gtfs.zip
+    - name: Download invalid gtfs feed
+      run: curl -L -o packages/chaire-lib-frontend/ui-tests-resources/invalid-gtfs.zip https://github.com/chairemobilite/transition/releases/download/playwright/invalid-gtfs.zip
+    - name: Start application
+      run: yarn start &
+      env:
+        NODE_ENV: production
+    - name: Start cache
+      run: yarn start:json2capnp -- 2000 $PWD/examples/runtime/cache/demo_transition
+    - name: Run UI tests
       run: yarn test:ui
+    - name: Archive UI Test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-results-${{matrix.node-version}} # This is to make sure that the results are stored in a unique name
+        path: packages/chaire-lib-frontend/test-results
+        retention-days: 2
+    # End of automated UI tests
   
   code-lint:
     runs-on: ubuntu-latest

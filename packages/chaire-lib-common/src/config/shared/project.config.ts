@@ -72,6 +72,18 @@ export type ProjectConfiguration<AdditionalConfig> = {
      */
     projectDirectory: string;
     maxParallelCalculators: number;
+    defaultPreferences: {
+        osrmRouting: {
+            modes: any;
+        };
+        transit: {
+            routing: {
+                batch: {
+                    allowSavingOdTripsToDb: boolean;
+                }
+            }
+        }
+    };
 } & AdditionalConfig;
 
 // Initialize default configuration

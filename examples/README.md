@@ -4,17 +4,19 @@ This folder contains an example configuration file, as well as necessary files t
 
 1. Make sure all the pre-requisites are installed. For complete installation instructions of all dependencies, see the [instructions for Ubuntu](../../docs/setupDevEnvironmentUbuntu20.04.md).
 
-2. Update the .env file and set the `PROJECT_CONFIG` to point to the config file in this directory
+2. Copy the config-example-osrm.js file, place the copy in the same directory, and rename is config.js. If you want to use the default routing engine instead of OSRM, you may copy config-example-no-osrm.js instead.
+
+3. Update the .env file and set the `PROJECT_CONFIG` to point to the config file in this directory
 
 ```
-PROJECT_CONFIG=</path/to/this/repo>/examples/transition/config.js
+PROJECT_CONFIG=</path/to/this/repo>/examples/config.js
 ```
 
-3. Follow the [installation instructions](../../README.md#installation) at the root of this repo to setup the database and create users
+4. Follow the [installation instructions](../../README.md#installation) at the root of this repo to setup the database and create users
 
-4. Follow the [build and start instructions](../../README.md#build-and-start) at the root of this repo to compile and build the code, but do not start the nodejs server yet.
+5. Follow the [build and start instructions](../../README.md#build-and-start) at the root of this repo to compile and build the code, but do not start the nodejs server yet.
 
-5. Get and prepare the road network for `osrm` to route. This step is optional, but required to create new lines that properly follow the road network. The first line will download the Open Street Map network data from the overpass API. The second line will prepare the data for the `osrm` servers. Data is prepared differently for different modes of transportation. Selecting `driving` and `walking` are mandatory modes, as `driving` is the default mode for vehicles and `walking` is required to calculate access, transfer and egress times from transit.
+6. Get and prepare the road network for `osrm` to route. This step is optional, but required to create new lines that properly follow the road network. The first line will download the Open Street Map network data from the overpass API. The second line will prepare the data for the `osrm` servers. Data is prepared differently for different modes of transportation. Selecting `driving` and `walking` are mandatory modes, as `driving` is the default mode for vehicles and `walking` is required to calculate access, transfer and egress times from transit.
 
 ```shell
 yarn node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/downloadOsmNetworkData.task.js --polygon-file examples/polygon_rtl_area.geojson
@@ -22,11 +24,11 @@ yarn node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm
 yarn node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/prepareOsmNetworkData.task.js
 ```
 
-6. Start the Node.js server with `yarn start:demo`.
+7. Start the Node.js server with `yarn start:demo`.
 
-7. Navigate to `http://localhost:8080` and log into the application.
+8. Navigate to `http://localhost:8080` and log into the application.
 
-8. Import [transit data for the Réseau de Transport de Longueuil](https://transitfeeds.com/p/reseau-de-transport-de-longueuil/37), that will work for the area of this demo. Lines and paths can be edited and added within this territory.
+9. Import [transit data for the Réseau de Transport de Longueuil](https://transitfeeds.com/p/reseau-de-transport-de-longueuil/37), that will work for the area of this demo. Lines and paths can be edited and added within this territory.
 
 # Running the application for another territory
 

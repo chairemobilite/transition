@@ -33,8 +33,13 @@ class RoutingServiceManagerImpl implements RoutingServiceManager {
     }
 
     public getRoutingServiceForEngine = (engine?: string): RoutingService => {
-        const service = engine ? this._routingServices[engine] : undefined;
-        return service ? service : this._defaultService;
+        if (process.env.IS_TESTING_PLAYWRIGHT) {
+            return this._defaultService;
+        }
+        else {
+            const service = engine ? this._routingServices[engine] : undefined;
+            return service ? service : this._defaultService;
+        }
     };
 }
 
