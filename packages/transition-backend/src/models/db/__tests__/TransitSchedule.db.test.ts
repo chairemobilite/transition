@@ -219,7 +219,7 @@ describe(`schedules`, function () {
         expect(scheduleDataValidation.isValid).toBe(true);
         expect(ScheduleDataValidator.validate(scheduleForServiceId, pathStub1).isValid).toBe(true);
         expect(ScheduleDataValidator.validate(scheduleForServiceId, pathStub2).isValid).toBe(false);
-        const newId = await dbQueries.create(scheduleForServiceId as any);
+        const newId = await dbQueries.save(scheduleForServiceId as any);
         expect(newId).toBe(scheduleForServiceId.id);
 
     });
@@ -231,7 +231,7 @@ describe(`schedules`, function () {
         existingServiceLineSchedule.periods = [];
         let exception: any = undefined;
         try {
-            await dbQueries.create(existingServiceLineSchedule as any);
+            await dbQueries.save(existingServiceLineSchedule as any);
         } catch(error) {
             exception = error;
         }
@@ -274,7 +274,7 @@ describe(`schedules`, function () {
         updatedSchedule.periods[1].trips[0].seated_capacity = 30;
 
         // Update the object
-        const newId = await dbQueries.update(updatedSchedule.id, updatedSchedule);
+        const newId = await dbQueries.save(updatedSchedule);
         expect(newId).toBe(scheduleForServiceId.id);
 
         // Delete the updated_at fields
@@ -303,7 +303,7 @@ describe(`schedules`, function () {
         updatedSchedule.periods[0].trips.splice(2, 1);
 
         // Update the object
-        const newId = await dbQueries.update(updatedSchedule.id, updatedSchedule);
+        const newId = await dbQueries.save(updatedSchedule);
         expect(newId).toBe(scheduleForServiceId.id);
 
         // Expect anything for the updated_at fields
@@ -336,7 +336,7 @@ describe(`schedules`, function () {
         updatedSchedule.periods[0].trips.push(newTrip as any);
 
         // Update the object
-        const newId = await dbQueries.update(updatedSchedule.id, updatedSchedule);
+        const newId = await dbQueries.save(updatedSchedule);
         expect(newId).toBe(scheduleForServiceId.id);
 
         // Expect anything for the updated_at fields
@@ -360,29 +360,6 @@ describe(`schedules`, function () {
         // Verify the object does not exist anymore
         const exists = await dbQueries.exists(scheduleForServiceId.id);
         expect(exists).toBe(false);
-
-    });
-
-    test('Test save method it should create or update the object', async () => {
-
-        // Clone the object, then save, it should be created
-        const objectCopy = _cloneDeep(scheduleForServiceId) as any;
-
-        let newId = await dbQueries.save(objectCopy);
-        expect(newId).toBe(scheduleForServiceId.id);
-
-        // Read the object from DB
-        let scheduleDataRead = await dbQueries.read(scheduleForServiceId.id);
-        expect(scheduleDataRead).toMatchObject(objectCopy);
-
-        // Update the object, then save and read again
-        objectCopy.allow_seconds_based_schedules = true;
-        newId = await dbQueries.save(objectCopy);
-        expect(newId).toBe(scheduleForServiceId.id);
-
-        // Read the object from DB
-        scheduleDataRead = await dbQueries.read(scheduleForServiceId.id);
-        expect(scheduleDataRead).toMatchObject(objectCopy);
 
     });
 
@@ -411,7 +388,7 @@ describe('Schedules, single queries with transaction errors', () => {
 
     test('update with periods and trips, with error', async() => {
         // Insert the schedule
-        await dbQueries.create(scheduleForServiceId as any);
+        await dbQueries.save(scheduleForServiceId as any);
         // Read the object from DB and make sure it has not changed
         const originalData = await dbQueries.read(scheduleForServiceId.id);
 
@@ -450,7 +427,7 @@ describe('Schedules, with transactions', () => {
             await dbQueries.save(originalSchedule, { transaction: trx });
 
             // Save the updated schedule with one less period and trip
-            await dbQueries.update(updatedSchedule.id, updatedSchedule, { transaction: trx });
+            await dbQueries.save(updatedSchedule, { transaction: trx });
         });
 
         // Make sure the object is there and updated
@@ -474,7 +451,7 @@ describe('Schedules, with transactions', () => {
                 await dbQueries.save(originalSchedule, { transaction: trx });
 
                 // Save the updated schedule with one less period and trip
-                await dbQueries.update(updatedSchedule.id, updatedSchedule, { transaction: trx });
+                await dbQueries.save(updatedSchedule, { transaction: trx });
             });
         } catch(err) {
             error = err;
@@ -500,7 +477,7 @@ describe('Schedules, with transactions', () => {
         try {
             await knex.transaction(async (trx) => {
                 // Update, then delete the schedule, then throw an error
-                await dbQueries.update(updatedSchedule.id, updatedSchedule, { transaction: trx });
+                await dbQueries.save(updatedSchedule, { transaction: trx });
                 await dbQueries.delete(scheduleForServiceId.id, { transaction: trx });
                 throw 'error';
             });
