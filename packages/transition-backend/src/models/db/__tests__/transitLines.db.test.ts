@@ -221,8 +221,8 @@ describe(`${objectName}`, () => {
         const _updatedAttributes = Object.assign({}, newObjectAttributesWithSchedule);
         const updatedObject = new ObjectClass(_updatedAttributes, false);
         const id = await dbQueries.update(newObjectAttributesWithSchedule.id, updatedObject.getAttributes());
-        await schedulesDbQueries.create(scheduleForServiceId);
-        await schedulesDbQueries.create(scheduleForServiceId2);
+        await schedulesDbQueries.save(scheduleForServiceId);
+        await schedulesDbQueries.save(scheduleForServiceId2);
         await pathsDbQueries.create(pathAttributes);
         expect(id).toBe(newObjectAttributesWithSchedule.id);
 

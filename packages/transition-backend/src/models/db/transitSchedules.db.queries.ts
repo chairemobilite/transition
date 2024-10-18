@@ -356,7 +356,7 @@ const updateFromScheduleData = async (
 };
 
 const save = async function (scheduleData: ScheduleAttributes, options: { transaction?: Knex.Transaction } = {}) {
-    const scheduleExists = await exists(knex, scheduleTable, scheduleData.id);
+    const scheduleExists = await exists(knex, scheduleTable, scheduleData.id, { transaction: options.transaction });
     return scheduleExists
         ? await updateFromScheduleData(scheduleData.id, scheduleData, options)
         : await createFromScheduleData(scheduleData, options);
@@ -515,9 +515,18 @@ export default {
     exists: exists.bind(null, knex, scheduleTable),
     read: readScheduleData,
     readForLine,
-    create: createFromScheduleData,
-    /** Use the 'save' method instead as it will either create or update if necessary */
-    update: updateFromScheduleData,
+    /**
+     * TODO This function needs to remain for now as TransitObjectHandler makes use of it
+     * @deprecated Use the `save` function instead */
+    create: save,
+    /**
+     * TODO This function needs to remain for now as TransitObjectHandler makes use of it
+     * @deprecated Use the `save` function instead */
+    update: (
+        scheduleId: string,
+        scheduleData: ScheduleAttributes,
+        { transaction }: { transaction?: Knex.Transaction } = {}
+    ) => save({ ...scheduleData, id: scheduleId }, { transaction }),
     save,
     delete: deleteScheduleData,
     getScheduleIdsForLine,

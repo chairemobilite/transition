@@ -135,7 +135,7 @@ const generateAndImportSchedules = async (
                 await linesDbQueries.update(line.getId(), line.attributes, { returning: 'id' });
                 // Save schedules for line
                 const saveSchedPromises = newSchedules.map((schedule) => {
-                    scheduleDbQueries.create(schedule.attributes);
+                    scheduleDbQueries.save(schedule.attributes);
                 });
                 await Promise.all(saveSchedPromises);
                 await lineObjectToCache(line);

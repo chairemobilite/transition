@@ -298,15 +298,11 @@ describe('Generate schedules for lines', () => {
     importData.periodsGroup = testPeriod;
 
     beforeEach(() => {
-        (linesDbQueries.update as any).mockClear();
-        (linesDbQueries.updateMultiple as any).mockClear();
-        (schedulesDbQueries.create as any).mockClear();
-        (schedulesDbQueries.delete as any).mockClear();
+        jest.clearAllMocks();
         // Reset line to its original state
         line = new Line({id: importData.lineIdsByRouteGtfsId[routeId], mode: 'metro', category: 'A', agency_id: uuidV4() }, false);
         lineCollection = new LineCollection([line], {});
         collectionManager.set('lines', lineCollection);
-        objectToCacheMock.mockClear();
     });
     
     test('One line, simple trips, second with various pick_up/drop', async () => {
@@ -341,7 +337,7 @@ describe('Generate schedules for lines', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
         const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
@@ -422,7 +418,7 @@ describe('Generate schedules for lines', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
         const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
@@ -516,7 +512,7 @@ describe('Generate schedules for lines', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(2);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(2);
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(2);
         const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
@@ -620,7 +616,7 @@ describe('Generate schedules for lines', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
 
@@ -640,7 +636,7 @@ describe('Generate schedules for lines', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(2);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(2);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(2);
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(2);
 
@@ -769,7 +765,7 @@ describe('Generate schedules for lines', () => {
         expect(linesDbQueries.update).toHaveBeenCalledTimes(2);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[expressRouteId], modifiedLine2.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(2);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(2);
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
         const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
@@ -888,12 +884,12 @@ describe('Generate schedules for lines', () => {
         if (shouldUpdateSchedule) {
             expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
             expect(linesDbQueries.update).toHaveBeenCalledWith(localImportData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-            expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+            expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
             expect(schedulesDbQueries.delete).toHaveBeenCalledTimes(1);
             expect(modifiedLine.getAttributes().scheduleByServiceId[serviceId].id).not.toEqual(previousScheduleId);
         } else {
             expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
-            expect(schedulesDbQueries.create).not.toHaveBeenCalled();
+            expect(schedulesDbQueries.save).not.toHaveBeenCalled();
             expect(schedulesDbQueries.delete).not.toHaveBeenCalled();
             expect(modifiedLine.getAttributes().scheduleByServiceId[serviceId].id).toEqual(previousScheduleId);
         }
@@ -924,7 +920,7 @@ describe('Generate schedules for lines', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).not.toHaveBeenCalled();
+        expect(schedulesDbQueries.save).not.toHaveBeenCalled();
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(0);
     });
@@ -948,16 +944,11 @@ describe('Generate frequency based schedules for line', () => {
     const generateForPeriodMock = Schedule.prototype.generateForPeriod as jest.MockedFunction<typeof Schedule.prototype.generateForPeriod>;
 
     beforeEach(() => {
-        (linesDbQueries.update as any).mockClear();
-        (linesDbQueries.updateMultiple as any).mockClear();
-        (schedulesDbQueries.create as any).mockClear();
-        (schedulesDbQueries.delete as any).mockClear();
+        jest.clearAllMocks();
         // Reset line to its original state
         line = new Line({id: importData.lineIdsByRouteGtfsId[routeId], mode: 'metro', category: 'A', agency_id: uuidV4() }, false);
         lineCollection = new LineCollection([line], {});
         collectionManager.set('lines', lineCollection);
-        objectToCacheMock.mockClear();
-        generateForPeriodMock.mockClear();
     });
     
     test('Single trip for one period', async () => {
@@ -984,7 +975,7 @@ describe('Generate frequency based schedules for line', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
         // One period should have been generated, no trip in the other
         expect(generateForPeriodMock).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
@@ -1054,7 +1045,7 @@ describe('Generate frequency based schedules for line', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledTimes(2);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[1].shortname);
@@ -1141,7 +1132,7 @@ describe('Generate frequency based schedules for line', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledTimes(2);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[1].shortname);
@@ -1224,7 +1215,7 @@ describe('Generate frequency based schedules for line', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
 
@@ -1315,7 +1306,7 @@ describe('Generate frequency based schedules for line', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
 
