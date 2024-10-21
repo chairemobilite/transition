@@ -104,7 +104,7 @@ const prepareServicesForLines = async (
         schedule.attributes.periods.push(
             Object.assign({}, periodAttributes, {
                 id: uuidV4(),
-                schedule_id: schedule.getId(),
+                schedule_id: schedule.attributes.integer_id || -1,
                 outbound_path_id: outboundPathId,
                 inbound_path_id: inboundPathId,
                 number_of_units: nbVehicles,
