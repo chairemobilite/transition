@@ -16,6 +16,8 @@ export interface DuplicateScheduleOptions {
 
 /**
  * duplicate a schedule object, with all trips and periods
+ *
+ * FIXME Will be moved to backend for easier copy of schedules
  */
 export const duplicateSchedule = async (
     baseSchedule: Schedule,
@@ -23,6 +25,7 @@ export const duplicateSchedule = async (
 ): Promise<Schedule> => {
     const newScheduleAttribs = baseSchedule.getClonedAttributes(true);
     newScheduleAttribs.id = uuidV4();
+    delete newScheduleAttribs.integer_id;
 
     if (serviceId) newScheduleAttribs.service_id = serviceId;
     if (lineId) newScheduleAttribs.line_id = lineId;
@@ -31,7 +34,7 @@ export const duplicateSchedule = async (
         for (let periodI = 0, countPeriods = newScheduleAttribs.periods.length; periodI < countPeriods; periodI++) {
             const period = newScheduleAttribs.periods[periodI];
             period.id = uuidV4();
-            period.schedule_id = newScheduleAttribs.id;
+            delete period.schedule_id;
 
             if (period.inbound_path_id && pathIdsMapping[period.inbound_path_id]) {
                 period.inbound_path_id = pathIdsMapping[period.inbound_path_id];
@@ -43,8 +46,7 @@ export const duplicateSchedule = async (
                 for (let tripI = 0, countTrips = period.trips.length; tripI < countTrips; tripI++) {
                     const trip = period.trips[tripI];
                     trip.id = uuidV4();
-                    trip.schedule_period_id = period.id;
-                    trip.schedule_id = newScheduleAttribs.id;
+                    delete trip.schedule_period_id;
                     if (trip.path_id && pathIdsMapping[trip.path_id]) {
                         trip.path_id = pathIdsMapping[trip.path_id];
                     }

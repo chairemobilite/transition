@@ -69,19 +69,22 @@ const pathDistances = path.getCoordinatesDistanceTraveledMeters().map(dist => Ma
 const lineId = uuidV4();
 const serviceId = uuidV4();
 const serviceId2 = uuidV4();
+const scheduleIntegerId = 4;
 
 // Schedule with many periods/trips, but one path
 const scheduleAttributes1: ScheduleAttributes = {
     allow_seconds_based_schedules: false,
     id: uuidV4(),
+    integer_id: scheduleIntegerId,
     line_id: lineId,
     service_id: serviceId,
     is_frozen: false,
     data: {},
     periods: [{
         // Period with start and end hours and multiple trips
-        schedule_id: uuidV4(),
+        schedule_id: scheduleIntegerId,
         id: uuidV4(),
+        integer_id: 1,
         data: {},
         end_at_hour: 12,
         inbound_path_id: undefined,
@@ -102,8 +105,7 @@ const scheduleAttributes1: ScheduleAttributes = {
             path_id: pathAttributes.id,
             seated_capacity: 20,
             total_capacity: 50,
-            schedule_id: uuidV4(),
-            schedule_period_id: uuidV4(),
+            schedule_period_id: 1,
             data: {}
         }, {
             arrival_time_seconds: 32416,
@@ -116,8 +118,7 @@ const scheduleAttributes1: ScheduleAttributes = {
             path_id: pathAttributes.id,
             seated_capacity: 20,
             total_capacity: 50,
-            schedule_id: uuidV4(),
-            schedule_period_id: uuidV4(),
+            schedule_period_id: 1,
             data: {}
         }, {
             arrival_time_seconds: 34216,
@@ -130,13 +131,13 @@ const scheduleAttributes1: ScheduleAttributes = {
             path_id: pathAttributes.id,
             seated_capacity: 20,
             total_capacity: 50,
-            schedule_id: uuidV4(),
-            schedule_period_id: uuidV4(),
+            schedule_period_id: 1,
             data: {}
         }]
     }, {
-        schedule_id: uuidV4(),
+        schedule_id: scheduleIntegerId,
         id: uuidV4(),
+        integer_id: 4,
         data: {},
         custom_start_at_str: "13:15",
         custom_end_at_str: "17:24",
@@ -156,13 +157,12 @@ const scheduleAttributes1: ScheduleAttributes = {
             path_id: pathAttributes.id,
             seated_capacity: 20,
             total_capacity: 50,
-            schedule_id: uuidV4(),
-            schedule_period_id: uuidV4(),
+            schedule_period_id: 4,
             data: {}
         }]
     }, {
         // Period with custom start and end, without trips
-        schedule_id: uuidV4(),
+        schedule_id: scheduleIntegerId,
         id: uuidV4(),
         data: {},
         custom_start_at_str: "18:00",
@@ -178,16 +178,19 @@ const scheduleAttributes1: ScheduleAttributes = {
 };
 
 // Simple second schedule, one trip in each direction, the actual coordinates and routability are not important
+const scheduleIntegerId2 = 5;
 const scheduleAttributes2: ScheduleAttributes = {
     allow_seconds_based_schedules: false,
     id: uuidV4(),
+    integer_id: scheduleIntegerId2,
     line_id: lineId,
     service_id: serviceId2,
     is_frozen: false,
     data: {},
     periods: [{
-        schedule_id: uuidV4(),
+        schedule_id: scheduleIntegerId2,
         id: uuidV4(),
+        integer_id: 2,
         data: {},
         end_at_hour: 12,
         inbound_path_id: pathAttributes2.id,
@@ -207,8 +210,7 @@ const scheduleAttributes2: ScheduleAttributes = {
             path_id: pathAttributes.id,
             seated_capacity: 20,
             total_capacity: 50,
-            schedule_id: uuidV4(),
-            schedule_period_id: uuidV4(),
+            schedule_period_id: 2,
             data: {}
         },
         {
@@ -223,8 +225,7 @@ const scheduleAttributes2: ScheduleAttributes = {
             path_id: pathAttributes2.id,
             seated_capacity: 20,
             total_capacity: 50,
-            schedule_id: uuidV4(),
-            schedule_period_id: uuidV4(),
+            schedule_period_id: 2,
             data: {}
         }]
     }],

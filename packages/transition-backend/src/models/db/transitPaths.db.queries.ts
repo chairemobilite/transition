@@ -28,6 +28,7 @@ import { PathAttributes } from 'transition-common/lib/services/path/Path';
 const tableName = 'tr_transit_paths';
 const linesTableName = 'tr_transit_lines';
 const schedulesTableName = 'tr_transit_schedules';
+const periodsTableName = 'tr_transit_schedule_periods';
 const tripsTableName = 'tr_transit_schedule_trips';
 const scenariosServicesTableName = 'tr_transit_scenario_services';
 const st = knexPostgis(knex);
@@ -162,7 +163,8 @@ const geojsonCollection = async (
     if (params.scenarioId) {
         baseQuery
             .innerJoin(`${tripsTableName} as trips`, 'trips.path_id', 'p.id')
-            .innerJoin(`${schedulesTableName} as sched`, 'sched.id', 'trips.schedule_id')
+            .innerJoin(`${periodsTableName} as periods`, 'periods.id', 'trips.schedule_period_id')
+            .innerJoin(`${schedulesTableName} as sched`, 'sched.id', 'periods.schedule_id')
             .innerJoin(`${scenariosServicesTableName} as sc`, 'sched.service_id', 'sc.service_id')
             .andWhere('sc.scenario_id', params.scenarioId)
             .groupBy('p.id', 'l.color', 'l.mode');
@@ -179,7 +181,8 @@ const geojsonCollectionForServices = async (
     const baseQuery = getGeojsonBaseQuery(true);
     baseQuery
         .innerJoin(`${tripsTableName} as trips`, 'trips.path_id', 'p.id')
-        .innerJoin(`${schedulesTableName} as sched`, 'sched.id', 'trips.schedule_id')
+        .innerJoin(`${periodsTableName} as periods`, 'periods.id', 'trips.schedule_period_id')
+        .innerJoin(`${schedulesTableName} as sched`, 'sched.id', 'periods.schedule_id')
         .whereIn('sched.service_id', serviceIds)
         .groupBy('p.id', 'l.color', 'l.mode');
     return await geojsonCollectionFromQuery(baseQuery);

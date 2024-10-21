@@ -76,7 +76,7 @@ const importParser = function (cacheObject: CacheObjectClass) {
             const periodShortname = periodCache.getPeriodShortname();
             const period: Partial<SchedulePeriod> = {
                 period_shortname: periodShortname,
-                schedule_id: schedule.id,
+                schedule_id: schedule.integer_id,
                 outbound_path_id: periodCache.getOutboundPathUuid(),
                 inbound_path_id: _emptyStringToNull(periodCache.getInboundPathUuid()),
                 custom_start_at_str:
