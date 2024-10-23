@@ -37,7 +37,7 @@ describe('get routing mode and engine configs', () => {
     });
 
     test('getRoutingModeConfig, mode does not exist', () => {
-        expect(ServerConfig.getRoutingModeConfig('walking')).toBeUndefined();
+        expect(ServerConfig.getRoutingModeConfig('walking_way_data_as_name')).toBeUndefined();
     });
 
     test('getRoutingEngineConfigForMode, mode and engine exist', () => {
@@ -52,7 +52,29 @@ describe('get routing mode and engine configs', () => {
     });
 
     test('getRoutingEngineConfigForMode, mode does not exist', () => {
-        expect(ServerConfig.getRoutingEngineConfigForMode('walking', 'osrm')).toBeUndefined();
+        expect(ServerConfig.getRoutingEngineConfigForMode('walking_way_data_as_name', 'osrmRouting')).toBeUndefined();
     });
 
+    test('getAllModesForEngine, at least one mode uses engine', () => {
+        expect(ServerConfig.getAllModesForEngine('trRouting')).toEqual(['transit']);
+        expect(ServerConfig.getAllModesForEngine('osrmRouting')).toEqual([
+            'driving',
+            'driving_congestion',
+            'cycling',
+            'walking',
+            'bus_suburb',
+            'bus_urban',
+            'bus_congestion',
+            'rail',
+            'tram',
+            'tram_train',
+            'metro',
+            'monorail',
+            'cable_car'
+        ]);
+    });
+
+    test('getAllModesForEngine, no mode uses engine', () => {
+        expect(ServerConfig.getAllModesForEngine('valhalla')).toEqual([]);
+    });
 });

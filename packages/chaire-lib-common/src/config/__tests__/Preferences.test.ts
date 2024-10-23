@@ -44,11 +44,13 @@ test('Test current match attributes', () => {
 
 test('Test initialize PreferencesClass with custom attributes', () => {
     const preferences = new PreferencesClass({ data: { foo: 'bar' }, osrmRouting: { directoryPrefix: 'newPrefix' } });
+    // TODO: Migrate this value from preferences to config like the osrm modes. See issue #1140
     expect(preferences.get('osrmRouting.directoryPrefix')).toBe('newPrefix');
     expect(preferences.getData('foo')).toBe('bar');
 });
 
 test('Test get preferences', () => {
+    // TODO: Migrate this value from preferences to config like the osrm modes. See issue #1140
     expect(Preferences.get('osrmRouting.directoryPrefix')).toBe('test');
 });
 
