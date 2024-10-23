@@ -58,6 +58,17 @@ class ServerConfig {
         }
         return engineConfiguration[instance] || { port: 4000, cacheAllScenarios: false };
     };
+
+    getAllModesForEngine = (engine: string): string[] => {
+        const modesForEngine: string[] = [];
+        for (const modeName in config.routing) {
+            if (config.routing[modeName].engines[engine] !== undefined) {
+                modesForEngine.push(modeName);
+            }
+        }
+
+        return modesForEngine;
+    };
 }
 
 const instance = new ServerConfig();

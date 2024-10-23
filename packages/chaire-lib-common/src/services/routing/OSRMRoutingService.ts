@@ -88,6 +88,7 @@ export default class OSRMRoutingService extends RoutingService.default {
             const origin = waypoints[0];
             const destination = waypoints[waypoints.length - 1];
 
+            // TODO: Migrate this value from preferences to config like the osrm modes. See issue #1140
             const maxDistance = Preferences.get('osrmRouting.maxDistanceFromNearestNetworkNodeMeters');
 
             if (origin.distance > maxDistance || destination.distance > maxDistance) {
@@ -190,6 +191,7 @@ export default class OSRMRoutingService extends RoutingService.default {
             annotations: _isBlank(params.annotations) ? true : params.annotations,
             // gaps      : 'ignore',
             continue_straight:
+                // TODO: Migrate this value from preferences to config like the osrm modes. See issue #1140
                 Preferences.current.osrmRouting.useContinueStraightForMapMatching === true ? true : undefined // see comment in chaire-lib-common/lib/config/defaultPreferences.config.js
         });
         return this.processRoutingResult(routingResult);

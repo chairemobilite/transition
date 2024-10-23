@@ -11,7 +11,8 @@ import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
 const defaultDirectoryPrefix = process.env.OSRM_DIRECTORY_PREFIX
     ? process.env.OSRM_DIRECTORY_PREFIX
-    : Preferences.get('osrmRouting.directoryPrefix', '');
+    : // TODO: Migrate this value from preferences to config like the osrm modes. See issue #1140
+    Preferences.get('osrmRouting.directoryPrefix', '');
 
 const getDirectoryPrefix = function (directoryPrefix = defaultDirectoryPrefix) {
     return !_isBlank(directoryPrefix) ? directoryPrefix + '_' : '';

@@ -12,11 +12,13 @@ require('child_process').spawn = osrmSpawn;
 
 import { directoryManager } from '../../filesystem/directoryManager';
 import { fileManager } from '../../filesystem/fileManager';
-
+import _cloneDeep from 'lodash/cloneDeep';
 import OSRMProcessManager from '../OSRMProcessManager';
 import OSRMServicePreparation from '../OSRMServicePreparation';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import OSRMService from '../../osrm/OSRMService';
+import config, { setProjectConfiguration } from '../../../config/server.config';
+import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import ServerConfig from '../../../config/ServerConfig';
 
 // Mock process.kill to make sure we don't kill random processes
 //const mockKill = jest.fn();
@@ -26,6 +28,9 @@ import OSRMService from '../../osrm/OSRMService';
 jest.setTimeout(30000);
 
 const existingOsmFilePath = path.normalize(`${__dirname}/../../../../../../tests/files/osm_network_data.osm`);
+
+// Clone the original config to reset it after each test
+let originalTestConfig = _cloneDeep(config);
 
 beforeAll(function(done) {
   directoryManager.emptyDirectory('osrm');
@@ -50,6 +55,7 @@ describe('OSRM Service Manager', function() {
     osrmSpawn = mockSpawn(verbose);
     osrmSpawn.setStrategy(null);
     require('child_process').spawn = osrmSpawn;
+    setProjectConfiguration(originalTestConfig);
   });
 
   test('should extract, contract and/or prepare osm file for single mode walking with default config', async function() {
@@ -176,9 +182,17 @@ describe('OSRM Service Manager', function() {
   // TODO is this test title the right one?
   test('should start only walking and update preferences', async () => {
 
-      // Clean up pids file, so that configureAllOsrmServers to not attempt a restart and try to kill
-      // a random process
-      fileManager.deleteFile("pids/osrmMode__driving__port7999.pid");
+    setProjectConfiguration({
+        routing: { 
+            driving: { engines: { osrmRouting: { port: 7999 } } },
+            bus_suburb: { engines: { osrmRouting: { port: 7889 } } },
+            bus_urban: { engines: { osrmRouting: { port: 7879 } } }
+        } as any
+    });
+
+    // Clean up pids file, so that configureAllOsrmServers to not attempt a restart and try to kill
+    // a random process
+    fileManager.deleteFile("pids/osrmMode__driving__port7999.pid");
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, '[info] To prepare the data for routing, run:' /* stdout */));
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, '[info] finished preprocessing' /* stdout */));
     osrmSpawn.sequence.add(osrmSpawn.simple(0 /* exit code */, 'running and waiting for requests' /* stdout */));
@@ -188,13 +202,16 @@ describe('OSRM Service Manager', function() {
     const prepareResult = await OSRMServicePreparation.prepare(existingOsmFilePath, ['walking']);
     expect(prepareResult.status).toBe('prepared');
 
+    const osrmModes = ServerConfig.getAllModesForEngine("osrmRouting");
+
     // Make sure the list of osrms to auto-start is longer than 1
     const autoStartOsrm : string[] = [];
-    const osrmServerPrefsBefore = Preferences.current.osrmRouting;
-    for (const routingMode in osrmServerPrefsBefore.modes) {
-      if (osrmServerPrefsBefore.modes[routingMode].autoStart === true) {
-        autoStartOsrm.push(routingMode);
-      }
+    for (const routingModeStr of osrmModes) {
+        const routingMode = routingModeStr as RoutingMode;
+        const osrmConfig = ServerConfig.getRoutingEngineConfigForMode(routingMode, 'osrmRouting');
+        if (osrmConfig.autoStart === true) {
+            autoStartOsrm.push(routingMode);
+        }
     }
 
     await OSRMProcessManager.configureAllOsrmServers();
@@ -204,11 +221,12 @@ describe('OSRM Service Manager', function() {
     expect(osrmSpawn.calls[4].command).toBe('osrm-routed');
 
     const availableOsrms : string[] = [];
-    const osrmServerPrefsAfter = Preferences.current.osrmRouting;
-    for (const routingMode in osrmServerPrefsAfter.modes) {
-      if (osrmServerPrefsAfter.modes[routingMode].enabled === true) {
-        availableOsrms.push(routingMode);
-      }
+    for (const routingModeStr of osrmModes) {
+        const routingMode = routingModeStr as RoutingMode;
+        const osrmConfig = ServerConfig.getRoutingEngineConfigForMode(routingMode, 'osrmRouting');
+        if (osrmConfig.enabled === true) {
+            availableOsrms.push(routingMode);
+        }
     }
 
     let containsAll = (baseArray, contained) => contained.every(v => baseArray.includes(v));
@@ -219,15 +237,25 @@ describe('OSRM Service Manager', function() {
 
   test('should not start servers if start is not request, even if autostart is true', async () => {
 
+    setProjectConfiguration({
+        routing: { 
+            bus_suburb: { engines: { osrmRouting: { enabled: false } } },
+            bus_urban: { engines: { osrmRouting: { enabled: false } } }
+        } as any
+    });
+
     // Clean up pids file, so that configureAllOsrmServers to not attempt a restart and try to kill
     // a random process
-    fileManager.deleteFile("pids/osrmMode__driving__port7999.pid");
+    fileManager.deleteFile("pids/osrmMode__driving__port7000.pid");
+
+    const osrmModes = ServerConfig.getAllModesForEngine("osrmRouting");
 
     // Make sure the list of osrms to auto-start is longer than 1
     const autoStartOsrm : string[] = [];
-    const osrmServerPrefsBefore = Preferences.current.osrmRouting;
-    for (const routingMode in osrmServerPrefsBefore.modes) {
-        if (osrmServerPrefsBefore.modes[routingMode].autoStart === true) {
+    for (const routingModeStr of osrmModes) {
+        const routingMode = routingModeStr as RoutingMode;
+        const osrmConfig = ServerConfig.getRoutingEngineConfigForMode(routingMode, 'osrmRouting');
+        if (osrmConfig.autoStart === true) {
             autoStartOsrm.push(routingMode);
         }
     }
@@ -237,9 +265,10 @@ describe('OSRM Service Manager', function() {
     expect(osrmSpawn.calls.length).toBe(0);
 
     const availableOsrms : string[] = [];
-    const osrmServerPrefsAfter = Preferences.current.osrmRouting;
-    for (const routingMode in osrmServerPrefsAfter.modes) {
-        if (osrmServerPrefsAfter.modes[routingMode].enabled === true) {
+    for (const routingModeStr of osrmModes) {
+        const routingMode = routingModeStr as RoutingMode;
+        const osrmConfig = ServerConfig.getRoutingEngineConfigForMode(routingMode, 'osrmRouting');
+        if (osrmConfig.enabled === true) {
             availableOsrms.push(routingMode);
         }
     }
