@@ -16,6 +16,7 @@ test('Expected default with env', () => {
     expect(config.projectDirectory).toEqual(path.normalize(`${__dirname}/../../../../../tests/dir`));
     expect(config.routing.transit.engines.trRouting!.single).toEqual({ port: 4000, cacheAllScenarios: false, debug: false, logs: { nbFiles: 3, maxFileSizeKB: 5120 } });
     expect(config.routing.transit.engines.trRouting!.batch).toEqual({ port: 14000, cacheAllScenarios: false, debug: false, logs: { nbFiles: 3, maxFileSizeKB: 5120 }});
+    expect(config.routing.driving!.engines.osrmRouting).toEqual({ port: 7000, host: null, autoStart: true, enabled: true });
 });
 
 test('setProjectConfiguration', () => {
@@ -28,6 +29,12 @@ test('setProjectConfiguration', () => {
                 engines: {
                     trRouting: { single: { port: 5000 }, batch: { logs: { maxFileSizeKB: 10000 } } } as any 
                 }
+            },
+            driving: {
+                defaultEngine: 'osrmRouting',
+                engines: {
+                    osrmRouting: { port: 1234, enabled: false } as any
+                }
             }
         }
     });
@@ -37,4 +44,5 @@ test('setProjectConfiguration', () => {
     // Make sure the deep merge works for object configs
     expect(config.routing.transit.engines.trRouting!.single).toEqual({ port: 5000, cacheAllScenarios: false, debug: false, logs: { nbFiles: 3, maxFileSizeKB: 5120 } });
     expect(config.routing.transit.engines.trRouting!.batch).toEqual({ port: 14000, cacheAllScenarios: false, debug: false, logs: { nbFiles: 3, maxFileSizeKB: 10000 } });
+    expect(config.routing.driving!.engines.osrmRouting).toEqual({ port: 1234, host: null, autoStart: true, enabled: false });
 });

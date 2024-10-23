@@ -38,7 +38,79 @@ module.exports = {
     //         }
     //       }
     //     }
-    //   }
+    //   },
+    //   // Configuration for simple routing modes, using OSRM-like engines 
+    //   driving: {
+    //     defaultEngine: 'osrmRouting',
+    //     engines: {
+    //       osrmRouting: { 
+    //         port: 7000, // Port used to access OSRM, either locally or remotely
+    //         host: null, // If set to null, localhost will be used. Ignored if autoStart set to true
+    //         autoStart: true, // If true, a local instance of OSRM will be started
+    //         enabled: true // If true, this mode will be configured, otherwise will be left out
+    //       }
+    //     }
+    //   },
+    //   cycling: {
+    //     defaultEngine: 'osrmRouting',
+    //     engines: {
+    //       osrmRouting: { port: 8000, host: null, autoStart: true, enabled: true }
+    //     }
+    //   },
+    //   walking: {
+    //     defaultEngine: 'osrmRouting',
+    //     engines: {
+    //       osrmRouting: { port: 5001, host: null, autoStart: true, enabled: true }
+    //     }
+    //   },
+    //   bus_suburb: {
+    //     defaultEngine: 'osrmRouting',
+    //     engines: {
+    //       osrmRouting: { port: 7110, host: null, autoStart: true, enabled: true }
+    //     }
+    //   },
+    //   bus_urban: {
+    //     defaultEngine: 'osrmRouting',
+    //     engines: {
+    //       osrmRouting: { port: 7120, host: null, autoStart: true, enabled: true }
+    //     }
+    //   },
+    //   rail: {
+    //     defaultEngine: 'osrmRouting',
+    //     engines: {
+    //       osrmRouting: { port: 9000, host: null, autoStart: false, enabled: false }
+    //     }
+    //   },
+    //   tram: {
+    //     defaultEngine: 'osrmRouting',
+    //     engines: {
+    //       osrmRouting: { port: 9100, host: null, autoStart: false, enabled: false }
+    //     }
+    //   },
+    //   tram_train: {
+    //     defaultEngine: 'osrmRouting',
+    //     engines: {
+    //       osrmRouting: { port: 9200, host: null, autoStart: false, enabled: false }
+    //     }
+    //   },
+    //   metro: {
+    //     defaultEngine: 'osrmRouting',
+    //     engines: {
+    //       osrmRouting: { port: 9300, host: null, autoStart: false, enabled: false }
+    //     }
+    //   },
+    //   monorail: {
+    //     defaultEngine: 'osrmRouting',
+    //     engines: {
+    //       osrmRouting: { port: 9400, host: null, autoStart: false, enabled: false }
+    //     }
+    //   },
+    //   cable_car: {
+    //     defaultEngine: 'osrmRouting',
+    //     engines: {
+    //       osrmRouting: { port: 9500, host: null, autoStart: false, enabled: false }
+    //     }
+    //   },
     // },
   
     mapDefaultCenter: {
@@ -78,77 +150,6 @@ module.exports = {
     },
   
     defaultPreferences: {
-        osrmRouting: {
-            modes: {
-                driving: {
-                    // !!! Be careful: use your own server, since you may be blocked on the osrm demo server after too many queries
-                    port     : 7000, // Port used to access OSRM, either locally or remotely
-                    host     : null, // If set to null, localhost will be used. Ignored if autoStart set to true
-                    autoStart: true, // If true, a local instance of OSRM will be started
-                    enabled  : true  // If true, this mode will be configured, otherwise will be left out 
-                },
-                cycling: {
-                    port     : 8000,
-                    host : null,
-                    autoStart: true,
-                    enabled  : true
-                },
-                walking: {
-                    port     : 5001,
-                    host : null,
-                    autoStart: true,
-                    enabled  : true
-                },
-                bus_suburb: {
-                    port     : 7110,
-                    host : null,
-                    autoStart: true,
-                    enabled  : true
-                },
-                bus_urban: {
-                    port     : 7120,
-                    host : null,
-                    autoStart: true,
-                    enabled  : true
-                },
-                rail: {
-                    port     : 9000,
-                    host : null,
-                    autoStart: false,
-                    enabled  : false
-                },
-                tram: {
-                    port     : 9100,
-                    host : null,
-                    autoStart: false,
-                    enabled  : false
-                },
-                tram_train: {
-                    port     : 9200,
-                    host : null,
-                    autoStart: false,
-                    enabled  : false
-                },
-                metro: {
-                    port     : 9300,
-                    host : null,
-                    autoStart: false,
-                    enabled  : false
-                },
-                monorail: {
-                    port     : 9400,
-                    host : null,
-                    autoStart: false,
-                    enabled  : false
-                },
-                cable_car: {
-                    port     : 9500,
-                    host : null,
-                    autoStart: false,
-                    enabled  : false
-                }
-            }
-      },
       transit: {
         routing: {
           batch: {
