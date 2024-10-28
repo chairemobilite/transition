@@ -99,7 +99,7 @@ This method allows users to fetch all routing modes which are currently loaded i
 **Raises :**&emsp;**&emsp;**&emsp;***RequestException***\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;If response code is not 200.
 
-### get_routing_result:
+### request_routing_result:
 This method allows users to send calculation parameters to the Transition server to request a new route. The request can be made for different transit modes. In case of a successful request, the new route is returned in JSON format.\
 **Parameters :**&emsp;***modes*** : *list*\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Transit modes for which to calculate the routes.\
@@ -136,7 +136,7 @@ This method allows users to send calculation parameters to the Transition server
 **Raises :**&emsp;***RequestException***\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;If response code is not 200.
 
-### get_accessibility_map
+### request_accessibility_map
 This method allows users to send accessibility map parameters to the Transition server to request a new accessibility map. In case of a successful request, the accessibility map is returned in JSON format.\
 **Parameters :**&emsp;***coordinates*** : *list*\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Coordinates of the starting point of the accessibility map. Must be sent as [longitude, latitude]\

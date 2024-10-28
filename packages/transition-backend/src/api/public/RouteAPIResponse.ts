@@ -35,6 +35,10 @@ type RouteAPIUnimodalResultResponse = {
             };
         }>;
     }>;
+    noRoutingReason?: {
+        message: string;
+        code: string;
+    };
 };
 
 type RouteAPITransitResultResponse = {
@@ -52,6 +56,10 @@ type RouteAPITransitResultResponse = {
             };
         }>;
     }>;
+    noRoutingReason?: {
+        message: string;
+        code: string;
+    };
 };
 
 type RouteAPIQueryResponse = {
@@ -178,7 +186,11 @@ export default class RouteAPIResponse extends APIResponseBase<
                         travelTimeSeconds: feature.properties!.travelTimeSeconds
                     }
                 }))
-            }))
+            })),
+            noRoutingReason:
+                transitResultParams.error === undefined
+                    ? undefined
+                    : { message: transitResultParams.error?.error, code: transitResultParams.error?.errorCode }
         };
     }
 
@@ -202,7 +214,11 @@ export default class RouteAPIResponse extends APIResponseBase<
                         travelTimeSeconds: feature.properties!.travelTimeSeconds
                     }
                 }))
-            }))
+            })),
+            noRoutingReason:
+                unimodalResultParams.error === undefined
+                    ? undefined
+                    : { message: unimodalResultParams.error?.error, code: unimodalResultParams.error?.errorCode }
         };
     }
 }
