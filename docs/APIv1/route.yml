@@ -182,6 +182,8 @@ routeUnimodalResultResponse:
       $ref: '#/routeUnimodalResultResponsePaths'
     pathsGeoJson:
       $ref: '#/routeUnimodalResultResponsePathsGeojson'
+    noRoutingReason:
+      $ref: '#/routeResultNoRoutingReason'
 
 routeTransitResultResponse:
   type: object
@@ -193,6 +195,8 @@ routeTransitResultResponse:
       $ref: '#/routeTransitResultResponsePaths'
     pathsGeoJson:
       $ref: '#/routeTransitResultResponsePathsGeojson'
+    noRoutingReason:
+      $ref: '#/routeResultNoRoutingReason'
 
 routeUnimodalResultResponsePaths:
   type: array
@@ -377,6 +381,21 @@ routeTransitResultResponsePathsGeojson:
                   type: number
                   description: The estimated duration of the trip along this section of the route route, in seconds
                   example: 600
+
+routeResultNoRoutingReason:
+  type: object
+  description: An overview of the server side error in case of failure while executing the route request. If there is no error, this will not be included in the response.
+  required:
+    - message
+    - code
+  properties:
+    message:
+      type: string
+      example: 'cannot calculate transit route with trRouting because of an error on server: MISSING_DATA_AGENCIES'
+    code:
+      type: string
+      enum: [ErrorCodes]
+      example: 'TRROUTING_MISSING_DATA'
 
 singleRouteResponse:
   type: object

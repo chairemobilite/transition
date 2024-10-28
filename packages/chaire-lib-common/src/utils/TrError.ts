@@ -39,7 +39,6 @@ export default class TrError extends Error {
 
     export() {
         return {
-            flash: this.localizedMessage, // deprecated
             localizedMessage: this.localizedMessage,
             error: this.message,
             errorCode: this.code
