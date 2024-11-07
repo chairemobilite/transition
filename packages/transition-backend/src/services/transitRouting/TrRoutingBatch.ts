@@ -195,12 +195,9 @@ class TrRoutingBatch {
             checkpointTracker.completed();
 
             this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
-            this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
 
-            const stopStatus = await TrRoutingProcessManager.stopBatch();
-
-            this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 1.0 });
-            console.log('trRouting multiple stopStatus', stopStatus);
+            // FIXME Should we return here if the job is cancelled? Or we still
+            // generate the results that have been calculated since now?
 
             // Generate the output files
             this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
@@ -253,6 +250,14 @@ class TrRoutingBatch {
                 console.error(`Error in batch routing calculation job ${this.options.jobId}: ${error}`);
                 throw error;
             }
+        } finally {
+            // Make sure to stop the trRouting processes, even if an error occurred
+            this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
+
+            const stopStatus = await TrRoutingProcessManager.stopBatch();
+
+            this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 1.0 });
+            console.log('trRouting multiple stopStatus', stopStatus);
         }
     };
 
