@@ -30,8 +30,14 @@ function newProgressEmitter(task: ExecutableJob<JobDataType>) {
     });
     eventEmitter.on('checkpoint', (checkpoint: number) => {
         console.log('Task received checkpoint ', checkpoint);
-        task.attributes.internal_data.checkpoint = checkpoint;
-        task.save();
+        // Refresh the task before saving the checkpoint
+        task.refresh()
+            .then(() => {
+                // Add checkpoint, then save the task
+                task.attributes.internal_data.checkpoint = checkpoint;
+                task.save().catch(() => console.error('Error saving task after checkpoint'));
+            })
+            .catch(() => console.error('Error refreshing task before saving checkpoint')); // This will catch deleted jobs
     });
     return eventEmitter;
 }
@@ -65,7 +71,7 @@ const getTaskCancelledFct = (task: ExecutableJob<JobDataType>) => {
                     clearInterval(intervalObj);
                 }
             })
-            .catch(() => (refreshError = true));
+            .catch(() => (refreshError = true)); // This will catch deleted jobs
     }, 5000);
     return () => refreshError || task.status === 'cancelled';
 };
