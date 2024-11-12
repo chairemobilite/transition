@@ -6,7 +6,7 @@
  */
 
 import each from 'jest-each';
-import fs               from 'fs';
+import fs from 'fs';
 import { DataFileOsmRaw, DataOsmRaw } from '../data/dataOsmRaw';
 import { DataFileGeojson, DataGeojson } from '../data/dataGeojson';
 import OsmDataPreparationResidential from '../OsmDataPreparationResidential';
@@ -24,7 +24,7 @@ const geojsonCompare = (element1: GeoJSON.Feature, element2: GeoJSON.Feature) =>
         return coord1[0] === coord2[0] ? numberCompare(coord1[1], coord2[1]) : numberCompare(coord1[0], coord2[0]);
     }
     return 0;
-}
+};
 
 const getData = (dir: string): { osmRawData: DataOsmRaw, osmGeojsonData: DataGeojson } => {
     return {
@@ -36,8 +36,8 @@ const getData = (dir: string): { osmRawData: DataOsmRaw, osmGeojsonData: DataGeo
             '',
             { readFileAbsolute: () => fs.readFileSync(`${__dirname}/imports/${dir}/osmData.geojson`) }
         )
-    }
-}
+    };
+};
 
 each([
     ['residential-zone-without-building-count-matches'],
@@ -55,14 +55,14 @@ each([
     let fileContent = fs.readFileSync(`${__dirname}/imports/${testDir}/residentialEntrances.geojson`);
     expect(fileContent).not.toBeNull();
     let expectedFeatures = JSON.parse(fileContent.toString() as string).features;
-    expectedFeatures = expectedFeatures.map(f => {return {...f , id: expect.any(String)}});
+    expectedFeatures = expectedFeatures.map((f) => { return { ...f, id: expect.any(String) }; });
     expect(residentialEntrances.sort(geojsonCompare)).toEqual(expectedFeatures.sort(geojsonCompare));
 
     // Validte the zones data
     fileContent = fs.readFileSync(`${__dirname}/imports/${testDir}/residentialZones.geojson`);
     expect(fileContent).not.toBeNull();
     expectedFeatures = JSON.parse(fileContent.toString() as string).features;
-    expectedFeatures = expectedFeatures.map(f => {return {...f , id: expect.any(String)}});
+    expectedFeatures = expectedFeatures.map((f) => { return { ...f, id: expect.any(String) }; });
     expect(zonesWithResidences.sort(geojsonCompare)).toEqual(expectedFeatures.sort(geojsonCompare));
 
 });

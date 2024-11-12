@@ -180,7 +180,7 @@ const getOverlappingOnBuffer = (
         diff = diff / 2;
         buffer = lastCount < options.expectedApproximateCount ? buffer + diff : buffer - diff;
         const bufferedFeature = turf.buffer(originalFeature, buffer / 1000);
-        if (bufferedFeature.geometry === null) {
+        if (!bufferedFeature || bufferedFeature.geometry === null) {
             break;
         }
         lastIndices = getOverlappingIndices(bufferedFeature, featuresToSplit);
@@ -211,7 +211,7 @@ const getMaxBufferSize = (feature: GeoJSON.Feature, featuresToSplit: GeoJSON.Fea
     // feature on a buffer of the size of the shape, then calculate the smallest
     // distance between features in that area as the buffer size.
     const bufferedShape = turf.buffer(feature, defaultBufferSizeInMeters / 1000);
-    if (bufferedShape.geometry === null) {
+    if (!bufferedShape || bufferedShape.geometry === null) {
         return defaultBufferSizeInMeters;
     }
     const splitSubset = getOverlappingIndices(bufferedShape, featuresToSplit);

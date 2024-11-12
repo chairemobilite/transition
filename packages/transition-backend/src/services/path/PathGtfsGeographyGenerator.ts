@@ -12,7 +12,7 @@ import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import {
     length as turfLength,
     cleanCoords as turfCleanCoords,
-    pointOnLine as turfNearestPointOnLine,
+    nearestPointOnLine as turfNearestPointOnLine,
     lineSliceAlong as turfLineSliceAlong,
     helpers as turfHelpers
 } from '@turf/turf';

@@ -10,7 +10,7 @@
             "entrance_type": "entrance",
             "retirement_home": false,
             "from_landrole": false,
-            "area": 242.66835859963368
+            "area": 242.12624982520123
         },
         "geometry": {
             "type": "Point",
@@ -27,7 +27,7 @@
             "entrance_type": "entrance",
             "retirement_home": false,
             "from_landrole": false,
-            "area": 242.66835859963368
+            "area": 242.12624982520123
         },
         "geometry": {
             "type": "Point",
@@ -44,7 +44,7 @@
             "entrance_type": "entrance",
             "retirement_home": true,
             "from_landrole": false,
-            "area": 276.0667297772118
+            "area": 275.450010732325
         },
         "geometry": {
             "type": "Point",
