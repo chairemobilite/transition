@@ -19,7 +19,7 @@
     "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write"
   },
   "dependencies": {
-    "@casl/ability": "^5.4.3",
+    "@casl/ability": "^5.4.4",
     "@mapbox/polyline": "^1.1.1",
     "@turf/turf": "^6.3.0",
     "@types/node": "^17.0.38",
