@@ -89,3 +89,4 @@ profilingData*
 
 #example apps
 examples/runtime
+examples/cache
