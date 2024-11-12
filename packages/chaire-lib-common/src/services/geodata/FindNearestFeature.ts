@@ -58,7 +58,7 @@ const findNearestFromPolygon = <P extends GeoJSON.GeoJsonProperties>(
     }
     let nearest: GeoJSON.Feature<GeoJSON.Point, P> | undefined = undefined;
     let shortestDistance = Number.MAX_VALUE;
-    const polygonLines = turf.polygonToLineString(feature);
+    const polygonLines = turf.polygonToLine(feature);
     const lines = polygonLines.type === 'FeatureCollection' ? polygonLines.features : [polygonLines];
     for (let i = 0; i < features.length; i++) {
         for (let lineI = 0; lineI < lines.length; lineI++) {

@@ -34,7 +34,6 @@ import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericOb
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { isSocketIo } from '../../api/socketUtils';
-import { FeatureCollection } from '@turf/turf';
 
 interface TransitObjectDataHandler {
     lowerCaseName: string;
@@ -46,7 +45,9 @@ interface TransitObjectDataHandler {
     delete: (socket: EventEmitter, id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
     geojsonCollection?: (
         params?
-    ) => Promise<Status.Status<{ type: 'geojson'; geojson: FeatureCollection } | { type: 'geobuf'; geobuf: Buffer }>>;
+    ) => Promise<
+        Status.Status<{ type: 'geojson'; geojson: GeoJSON.FeatureCollection } | { type: 'geobuf'; geobuf: Buffer }>
+    >;
     collection?: (dataSourceId) => Promise<Record<string, any>>;
     saveCache?: (attributes) => Promise<Record<string, any>>;
     deleteCache?: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;

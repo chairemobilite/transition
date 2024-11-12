@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import geokdbush from 'geokdbush';
-import { lineIntersect as turfLineIntersect, distance as turfDistance } from '@turf/turf';
+import { lineIntersect as turfLineIntersect, distance as turfDistance, point as turfPoint } from '@turf/turf';
 import { EventEmitter } from 'events';
 
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -33,6 +33,49 @@ const placesInBirdRadiusMeters = (node: Node, placeCollection: PlaceCollection, 
         birdRadiusMeters / 1000
     );
     return placesInBirdRadius;
+};
+
+/**
+ * Find the touching point between two lines.
+ * It will return point only if the first line as a common point
+ * with second line and both are extremities.
+ * @param line1: a GeoJSON.Feature<GeoJSON.LineString>
+ * @param line2: a GeoJSON.Feature<GeoJSON.LineString>
+ * @returns a GeoJSON.Feature<GeoJSON.Point> or undefined
+ */
+const findTouchingPoint = (
+    line1: GeoJSON.Feature<GeoJSON.LineString>,
+    line2: GeoJSON.Feature<GeoJSON.LineString>
+): GeoJSON.Feature<GeoJSON.Point> | undefined => {
+    // Extract start and end points of both lines
+    const line1StartCoordinates = line1.geometry.coordinates[0] as GeoJSON.Position;
+    const line1EndCoordinates = line1.geometry.coordinates[line1.geometry.coordinates.length - 1] as GeoJSON.Position;
+    const line2StartCoordinates = line2.geometry.coordinates[0] as GeoJSON.Position;
+    const line2EndCoordinates = line2.geometry.coordinates[line2.geometry.coordinates.length - 1] as GeoJSON.Position;
+
+    // Helper function to check if two points are equal (within a small epsilon)
+    const arePointsEqual = (p1: GeoJSON.Position, p2: GeoJSON.Position): boolean => {
+        return p1[0] === p2[0] && p1[1] === p2[1];
+    };
+
+    // Check all possible endpoint combinations
+    if (arePointsEqual(line1StartCoordinates, line2StartCoordinates)) {
+        return turfPoint(line1StartCoordinates) as GeoJSON.Feature<GeoJSON.Point>;
+    }
+
+    if (arePointsEqual(line1StartCoordinates, line2EndCoordinates)) {
+        return turfPoint(line1StartCoordinates) as GeoJSON.Feature<GeoJSON.Point>;
+    }
+
+    if (arePointsEqual(line1EndCoordinates, line2StartCoordinates)) {
+        return turfPoint(line1EndCoordinates) as GeoJSON.Feature<GeoJSON.Point>;
+    }
+
+    if (arePointsEqual(line1EndCoordinates, line2EndCoordinates)) {
+        return turfPoint(line1EndCoordinates) as GeoJSON.Feature<GeoJSON.Point>;
+    }
+
+    return undefined;
 };
 
 /**
@@ -167,7 +210,16 @@ export const proposeNames = async (
                                     street1Name !== street2Name &&
                                     !distanceFromNodeByStreetIntersectionName[reversedIntersectionName]
                                 ) {
+                                    /*
+                                        new version of turf.lineIntersect (since v7) does not return the touching point for
+                                        lines that are touching at extremities, so we need to find the touching point manually:
+                                        See https://github.com/Turfjs/turf/issues/2667
+                                    */
                                     const intersectionPoints = turfLineIntersect(street1, street2);
+                                    const touchingPoint = findTouchingPoint(street1, street2);
+                                    if (touchingPoint) {
+                                        intersectionPoints.features.push(touchingPoint);
+                                    }
                                     if (intersectionPoints.features.length > 0) {
                                         for (let k = 0, countK = intersectionPoints.features.length; k < countK; k++) {
                                             const intersectionPoint = intersectionPoints.features[k];

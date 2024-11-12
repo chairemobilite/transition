@@ -6,7 +6,7 @@
  */
 
 import { offsetOverlappingLines, OFFSET_WIDTH, getLinesInView } from '../ManageOverlappingLines';
-import { lineOffset, inside, circle, union, bboxPolygon } from '@turf/turf';
+import { lineOffset, booleanPointInPolygon, circle, union, bboxPolygon, featureCollection } from '@turf/turf';
 import GeoJSON, { LineString } from 'geojson';
 import _cloneDeep from 'lodash/cloneDeep';
 
@@ -163,10 +163,10 @@ test('Test overlaps between multiple segments of the same line with another line
     let polygon = _cloneDeep(featureSkeleton) as GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon>;
     polygon.geometry.type = 'Polygon';
     collection.features[0].geometry.coordinates.forEach((coord) => {
-        polygon = union(polygon, (circle(coord, OFFSET_WIDTH + 1, { units: 'meters' })));
+        polygon = union(featureCollection([polygon, circle(coord, OFFSET_WIDTH + 1, { units: 'meters' }) as any])) as any;
     });
     offsetCollection.features[1].geometry.coordinates.forEach((coord) => {
-        expect(inside(coord, polygon)).toBeTruthy();
+        expect(booleanPointInPolygon(coord, polygon as any)).toBeTruthy();
     });
 });
 

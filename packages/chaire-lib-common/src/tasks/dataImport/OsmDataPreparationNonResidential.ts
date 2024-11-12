@@ -302,7 +302,7 @@ export default class OsmDataPreparationNonResidential {
                     !isPolygon(poiBuildings[index].geojson) ||
                     (isPolygon(poi) &&
                         isPolygon(poiBuildings[index].geojson) &&
-                        turf.intersect(poi, poiBuildings[index].geojson as any) !== null))
+                        turf.booleanIntersects(poi, poiBuildings[index].geojson as any)))
         );
         if (educationBuildingIndexes.length > 0) {
             const educationPois = educationBuildingIndexes.flatMap((educationBuildingIndex) => {
@@ -505,7 +505,7 @@ export default class OsmDataPreparationNonResidential {
                 if (
                     isPolygon(poi) &&
                     isPolygon(poiBuilding.geojson) &&
-                    turf.intersect(poi, poiBuilding.geojson) === null
+                    turf.booleanIntersects(poi, poiBuilding.geojson) === null
                 ) {
                     remainingPoiTags.push(poi);
                     return;
