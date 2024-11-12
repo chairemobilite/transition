@@ -26,7 +26,7 @@
         "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write"
     },
     "dependencies": {
-        "@casl/ability": "^5.4.3",
+        "@casl/ability": "^5.4.4",
         "@opentelemetry/api": "^1.9.0",
         "@opentelemetry/core": "^1.25.1",
         "@opentelemetry/exporter-trace-otlp-grpc": "^0.52.1",
