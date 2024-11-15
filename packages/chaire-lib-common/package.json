@@ -47,7 +47,7 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "@types/geojson": "^7946.0.7",
+    "@types/geojson": "^7946.0.14",
     "@types/geokdbush": "^1.1.2",
     "@types/jest": "^29.5.12",
     "@types/kdbush": "^3.0.0",
