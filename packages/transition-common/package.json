@@ -54,7 +54,7 @@
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "cross-env": "^7.0.2",
-    "dotenv": "^8.2.0",
+    "dotenv": "^8.6.0",
     "eslint": "^8.57.0",
     "eslint-plugin-n": "^15.7.0",
     "jest": "^29.7.0",
