@@ -72,7 +72,7 @@
     "@types/enzyme": "^3.10.8",
     "@types/enzyme-adapter-react-16": "^1.0.6",
     "@types/geojson": "^7946.0.14",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.14",
     "@types/lodash": "^4.14.198",
     "@types/mapbox-gl": "^2.3.1",
     "@types/osrm": "^5.22.0",
@@ -103,6 +103,6 @@
     "react-test-renderer": "^16.13.1",
     "redux-mock-store": "^1.5.4",
     "rimraf": "^3.0.2",
-    "ts-jest": "^29.1.5"
+    "ts-jest": "^29.2.5"
   }
 }
