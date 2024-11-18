@@ -6,6 +6,7 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import MathJax from 'react-mathjax';
 import { faFileUpload } from '@fortawesome/free-solid-svg-icons/faFileUpload';
 import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
 
@@ -15,6 +16,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionDownloadButtons from 'chaire-lib-frontend/lib/components/pageParts/CollectionDownloadButtons';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import CollectionSaveToCacheButtons from '../../parts/CollectionSaveToCacheButtons';
+import DocumentationTooltip from '../../parts/DocumentationTooltip';
 import TransitNodeEdit from './TransitNodeEdit';
 import TransitNodeCollectionEdit from './TransitNodeCollectionEdit';
 import NodesImportForm from './TransitNodeImportForm';
@@ -145,14 +147,20 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
     return (
         <div id="tr__form-transit-nodes-panel" className="tr__form-transit-nodes-panel tr__panel">
             {!state.selectedNode && !state.selectedNodes && !state.selectedStation && !importerSelected && (
-                <h3>
-                    <img
-                        src={'/dist/images/icons/transit/node_white.svg'}
-                        className="_icon"
-                        alt={props.t('transit:transitNode:Nodes')}
-                    />{' '}
-                    {props.t('transit:transitNode:Nodes')}
-                </h3>
+                <>
+                    <h3>
+                        <img
+                            src={'/dist/images/icons/transit/node_white.svg'}
+                            className="_icon"
+                            alt={props.t('transit:transitNode:Nodes')}
+                        />{' '}
+                        {props.t('transit:transitNode:Nodes')}&nbsp;
+                        <MathJax.Provider>
+                            <MathJax.Node inline formula={'q'} data-tooltip-id="node-tooltip" />
+                        </MathJax.Provider>
+                    </h3>
+                    <DocumentationTooltip dataTooltipId="node-tooltip" documentationLabel="node" />
+                </>
             )}
             {state.selectedNodes && state.selectedNode && state.selectedNode.hasChanged() && (
                 <ConfirmModal

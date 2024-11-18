@@ -6,6 +6,7 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import MathJax from 'react-mathjax';
 import _get from 'lodash/get';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 
@@ -17,6 +18,7 @@ import Line from 'transition-common/lib/services/line/Line';
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import TransitAgencyButton from './TransitAgencyButton';
 import ButtonList from '../../parts/ButtonList';
+import DocumentationTooltip from '../../parts/DocumentationTooltip';
 
 export type AgencyListState = {
     expanded: string[];
@@ -34,6 +36,7 @@ interface AgencyListProps extends WithTranslation {
 
 const TransitAgencyList: React.FunctionComponent<AgencyListProps> = (props: AgencyListProps) => {
     const [expandedAgencies, setExpandedAgencies] = React.useState(props.agenciesListState.expanded);
+
     const newAgency = function () {
         const defaultColor = Preferences.get('transit.agencies.defaultColor', '#0086FF');
         const newAgency = new Agency({ color: defaultColor }, true, serviceLocator.collectionManager);
@@ -82,8 +85,12 @@ const TransitAgencyList: React.FunctionComponent<AgencyListProps> = (props: Agen
                     className="_icon"
                     alt={props.t('transit:transitAgency:List')}
                 />{' '}
-                {props.t('transit:transitAgency:List')}
+                {props.t('transit:transitAgency:List')}&nbsp;
+                <MathJax.Provider>
+                    <MathJax.Node inline formula={'A^G'} data-tooltip-id="agency-tooltip" />
+                </MathJax.Provider>
             </h3>
+            <DocumentationTooltip dataTooltipId="agency-tooltip" documentationLabel="agency" />
             <ButtonList key="agencies">
                 {props.agencyCollection &&
                     props.agencyCollection

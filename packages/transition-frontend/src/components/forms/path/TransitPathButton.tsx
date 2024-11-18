@@ -176,6 +176,12 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
         });
     };
 
+    const stopClick: React.MouseEventHandler = React.useCallback((e: React.MouseEvent) => {
+        if (e && typeof e.stopPropagation === 'function') {
+            e.stopPropagation();
+        }
+    }, []);
+
     const isFrozen = props.path.isFrozen();
     const halfCycleTimeSeconds = props.path.getAttributes().data.operatingTimeWithLayoverTimeSeconds;
     const halfCycleTimeMinutes = halfCycleTimeSeconds ? halfCycleTimeSeconds / 60 : undefined;
@@ -222,12 +228,14 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                     : props.t('transit:transitPath:nNode', { n: props.path.countNodes() })}
             </ButtonCell>
             {halfCycleTimeMinutes && (
-                <MathJax.Provider>
-                    <ButtonCell alignment="right">
-                        <MathJax.Node inline formula={'{T_c}_p'} />
-                        &nbsp;{Math.round(halfCycleTimeMinutes * 100) / 100}&nbsp;min
-                    </ButtonCell>
-                </MathJax.Provider>
+                <ButtonCell alignment="right">
+                    <div onClick={stopClick}>
+                        <MathJax.Provider>
+                            <MathJax.Node inline formula={'{T_c}_p'} data-tooltip-id="half-cycle-time-tooltip" />
+                        </MathJax.Provider>
+                    </div>
+                    &nbsp;{Math.round(halfCycleTimeMinutes * 100) / 100}&nbsp;min
+                </ButtonCell>
             )}
             {!props.selectedSchedule && (
                 <ButtonCell

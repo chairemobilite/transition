@@ -964,5 +964,14 @@
             "LocationColor": "Location color",
             "PolygonColor": "Accessibility polygon default color"
         }
+    },
+    "documentationTooltip": {
+        "Symbol": "Symbol",
+        "Unit": "Unit",
+        "Expression": "Expression",
+        "Description": "Description",
+        "errors": {
+            "DefinitionNotFound": "An error occured while searching for this symbol's information on the server."
+        }
     }
 }
