@@ -7,6 +7,7 @@
 import React from 'react';
 import Collapsible from 'react-collapsible';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import MathJax from 'react-mathjax';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
@@ -16,6 +17,7 @@ import { duplicateAgency } from 'transition-common/lib/services/agency/AgencyDup
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
 import ButtonList from '../../parts/ButtonList';
+import DocumentationTooltip from '../../parts/DocumentationTooltip';
 import TransitLineButton from '../line/TransitLineButton';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
@@ -34,6 +36,7 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
     const [agencyIsHidden, setAgencyIsHidden] = React.useState(
         serviceLocator.pathLayerManager.agencyIsHidden(props.agency.getId())
     );
+
     const agencyIsSelected = (props.selectedAgency && props.selectedAgency.getId() === props.agency.getId()) || false;
 
     const onSelect: React.MouseEventHandler = async (e: React.MouseEvent) => {
@@ -137,6 +140,12 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
         setAgencyIsHidden(true);
     };
 
+    const stopClick: React.MouseEventHandler = React.useCallback((e: React.MouseEvent) => {
+        if (e && typeof e.stopPropagation === 'function') {
+            e.stopPropagation();
+        }
+    }, []);
+
     const isFrozen = props.agency.isFrozen();
     const lines = props.agency.getLines();
 
@@ -222,9 +231,17 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
             </Button>
             <div className="tr__form-agencies-panel-lines-list">
                 <Button key={`lines${props.agency.getId()}`} isSelected={agencyIsSelected} flushActionButtons={false}>
+                    <DocumentationTooltip dataTooltipId="line-tooltip" documentationLabel="line" />
                     <Collapsible
                         lazyRender={true}
-                        trigger={props.t('transit:transitLine:List')}
+                        trigger={
+                            <MathJax.Provider>
+                                {props.t('transit:transitLine:List')}&nbsp;
+                                <span onClick={stopClick}>
+                                    <MathJax.Node inline formula={'L'} data-tooltip-id="line-tooltip" />
+                                </span>
+                            </MathJax.Provider>
+                        }
                         open={props.isExpanded}
                         transitionTime={100}
                         onOpen={() => props.onAgencyExpanded(props.agency.getId())}

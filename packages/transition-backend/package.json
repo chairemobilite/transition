@@ -29,6 +29,9 @@
     },
     "dependencies": {
         "@turf/turf": "^7.1.0",
+        "@unified-latex/unified-latex-util-align": "^1.8.1",
+        "@unified-latex/unified-latex-util-parse": "^1.8.1",
+        "@unified-latex/unified-latex-util-to-string": "^1.8.1",
         "capnp-ts": "^0.4.0",
         "chaire-lib-backend": "^0.2.2",
         "chaire-lib-common": "^0.2.2",

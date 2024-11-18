@@ -18,6 +18,7 @@ import GtfsExportForm from '../forms/gtfs/GtfsExportForm';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import PreferencesPanel from '../forms/preferences/PreferencesEdit';
+
 interface RightPanelProps extends LayoutSectionProps {
     availableRoutingModes: string[];
     parentRef?: React.RefObject<HTMLDivElement>;
