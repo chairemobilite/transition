@@ -5,25 +5,37 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import json2CapnpService from '../Json2CapnpService';
-import fetchMock from 'jest-fetch-mock';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import fetch from 'node-fetch';
+
+jest.mock('node-fetch', () => jest.fn());
+const mockedFetch = fetch as jest.MockedFunction<typeof fetch>;
 
 const jsonCapnpDefaultPrefs = Preferences.get('json2Capnp');
 
 beforeEach(() => {
-    fetchMock.doMock();
-    fetchMock.mockClear();
+    jest.resetAllMocks();
 });
 
 describe('Valid calls and return values', () => {
     test('Read value', async () => {
+
         const jsonObject = {
             field1: 3
         };
-        fetchMock.mockOnce(JSON.stringify(jsonObject));
+
+        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
+        jsonResponse.mockResolvedValue(jsonObject);
+        const response = Promise.resolve({
+            ok: true,
+            status: 200,
+            json: jsonResponse
+        });
+        mockedFetch.mockResolvedValue(response);
+
         const result = await json2CapnpService.readCache('test', {});
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(fetchMock).toHaveBeenCalledWith('http://localhost:2000/test?', expect.objectContaining({ method: 'GET' }));
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        expect(mockedFetch).toHaveBeenCalledWith('http://localhost:2000/test?', expect.objectContaining({ method: 'GET' }));
         expect(result).toEqual(jsonObject);
     });
 
@@ -32,10 +44,21 @@ describe('Valid calls and return values', () => {
             field: 3,
             data: 'hello'
         };
-        fetchMock.mockOnce('{ "status": "OK" }');
+        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
+        jsonResponse.mockResolvedValue({
+            status: 'OK'
+        });
+        const response = Promise.resolve({
+            ok: true,
+            status: 200,
+            json: jsonResponse
+        });
+        mockedFetch.mockResolvedValue(response);
+
+        //fetchMock.mockOnce('{ "status": "OK" }');
         const result = await json2CapnpService.writeCache('test', jsonObject);
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(fetchMock).toHaveBeenCalledWith('http://localhost:2000/test', expect.objectContaining({ method: 'POST', headers: expect.anything(), body: JSON.stringify(jsonObject) }));
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        expect(mockedFetch).toHaveBeenCalledWith('http://localhost:2000/test', expect.objectContaining({ method: 'POST', headers: expect.anything(), body: JSON.stringify(jsonObject) }));
     });
 });
 
@@ -54,10 +77,17 @@ describe('Valid calls, with default preferences changes', () => {
         const jsonObject = {
             field1: 3
         };
-        fetchMock.mockOnce(JSON.stringify(jsonObject));
+        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
+        jsonResponse.mockResolvedValue(jsonObject);
+        const response = Promise.resolve({
+            ok: true,
+            status: 200,
+            json: jsonResponse
+        });
+        mockedFetch.mockResolvedValue(response);
         const result = await json2CapnpService.readCache('test', {});
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(fetchMock).toHaveBeenCalledWith(`${host}:${port}/test?`, expect.objectContaining({ method: 'GET' }));
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        expect(mockedFetch).toHaveBeenCalledWith(`${host}:${port}/test?`, expect.objectContaining({ method: 'GET' }));
         expect(result).toEqual(jsonObject);
     });
 
@@ -66,21 +96,30 @@ describe('Valid calls, with default preferences changes', () => {
             field: 3,
             data: 'hello'
         };
-        fetchMock.mockOnce('{ "status": "OK" }');
+        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
+        jsonResponse.mockResolvedValue({
+            status: 'OK'
+        });
+        const response = Promise.resolve({
+            ok: true,
+            status: 200,
+            json: jsonResponse
+        });
+        mockedFetch.mockResolvedValue(response);
         const result = await json2CapnpService.writeCache('test', jsonObject);
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(fetchMock).toHaveBeenCalledWith(`${host}:${port}/test`, expect.objectContaining({ method: 'POST', headers: expect.anything(), body: JSON.stringify(jsonObject) }));
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        expect(mockedFetch).toHaveBeenCalledWith(`${host}:${port}/test`, expect.objectContaining({ method: 'POST', headers: expect.anything(), body: JSON.stringify(jsonObject) }));
     });
 });
 
 describe('Call errors', () => {
     beforeEach(() => {
-        fetchMock.mockReject(new Error('wrong'));
+        mockedFetch.mockRejectedValue(new Error('wrong'));
     });
 
     afterEach(() => {
         jest.setTimeout(5000);
-        fetchMock.mockClear();
+        mockedFetch.mockClear();
     });
 
     test('Read value', async () => {
@@ -89,9 +128,9 @@ describe('Call errors', () => {
         jest.setTimeout(10000);
         await expect(json2CapnpService.readCache('test', {}))
             .rejects
-            .toThrowError();
-        expect(fetchMock).toHaveBeenCalledTimes(5);
-        expect(fetchMock).toHaveBeenCalledWith('http://localhost:2000/test?', expect.objectContaining({ method: 'GET' }));
+            .toThrow();
+        expect(mockedFetch).toHaveBeenCalledTimes(5);
+        expect(mockedFetch).toHaveBeenCalledWith('http://localhost:2000/test?', expect.objectContaining({ method: 'GET' }));
     });
 
     test('Read value', async () => {
@@ -104,8 +143,8 @@ describe('Call errors', () => {
         };
         await expect(json2CapnpService.writeCache('test', jsonObject))
             .rejects
-            .toThrowError();
-        expect(fetchMock).toHaveBeenCalledTimes(5);
-        expect(fetchMock).toHaveBeenCalledWith('http://localhost:2000/test', expect.objectContaining({ method: 'POST', headers: expect.anything(), body: JSON.stringify(jsonObject) }));
+            .toThrow();
+        expect(mockedFetch).toHaveBeenCalledTimes(5);
+        expect(mockedFetch).toHaveBeenCalledWith('http://localhost:2000/test', expect.objectContaining({ method: 'POST', headers: expect.anything(), body: JSON.stringify(jsonObject) }));
     });
 });

@@ -7,7 +7,10 @@
 
 import OsmOverpassDownloader from '../OsmOverpassDownloader';
 import GeoJSON from 'geojson';
-import fetchMock from 'jest-fetch-mock'
+import fetch from 'node-fetch';
+
+jest.mock('node-fetch', () => jest.fn());
+const mockedFetch = fetch as jest.MockedFunction<typeof fetch>;
 
 const overpassQuery = `<osm-script output="OUTPUT" output-config="" timeout="120">
     <union into="_">
@@ -18,86 +21,86 @@ const overpassQuery = `<osm-script output="OUTPUT" output-config="" timeout="120
 </osm-script>`;
 
 const geojsonBoundaryPolygon = {
-    type: "Polygon" as const,
+    type: 'Polygon' as const,
     coordinates: [
         [
-            [ -73.9510, 45.4047 ],
-            [ -73.9990, 45.4013 ],
-            [ -73.9983, 45.3725 ],
-            [ -73.9500, 45.3750 ],
-            [ -73.9510, 45.4047 ]
+            [-73.9510, 45.4047],
+            [-73.9990, 45.4013],
+            [-73.9983, 45.3725],
+            [-73.9500, 45.3750],
+            [-73.9510, 45.4047]
         ]
     ]
 };
 
 const polyboundary = '45.4047 -73.951 45.4013 -73.999 45.3725 -73.9983 45.375 -73.95 45.4047 -73.951';
 
-const responseObject = {
-    "version": 0.6,
-    "generator": "Overpass API 0.7.56.8 7d656e78",
-    "osm3s": {
-        "timestamp_osm_base": "2021-01-11T19:36:03Z",
-        "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+const jsonData = {
+    'version': 0.6,
+    'generator': 'Overpass API 0.7.56.8 7d656e78',
+    'osm3s': {
+        'timestamp_osm_base': '2021-01-11T19:36:03Z',
+        'copyright': 'The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.'
     },
-    "elements": [
+    'elements': [
         {
-            "type": "node",
-            "id": 123,
-            "lat": 45.3941161,
-            "lon": -73.9678132,
-            "timestamp": "2020-02-08T17:16:30Z",
-            "version": 1,
-            "user": "osmUser",
-            "changeset": 1,
-            "uid": 1,
+            'type': 'node',
+            'id': 123,
+            'lat': 45.3941161,
+            'lon': -73.9678132,
+            'timestamp': '2020-02-08T17:16:30Z',
+            'version': 1,
+            'user': 'osmUser',
+            'changeset': 1,
+            'uid': 1,
         },
         {
-            "type": "node",
-            "id": 234,
-            "lat": 45.3752717,
-            "lon": -73.9544677,
-            "timestamp": "2020-02-08T17:16:30Z",
-            "version": 1,
-            "user": "osmUser",
-            "changeset": 1,
-            "uid": 1,
+            'type': 'node',
+            'id': 234,
+            'lat': 45.3752717,
+            'lon': -73.9544677,
+            'timestamp': '2020-02-08T17:16:30Z',
+            'version': 1,
+            'user': 'osmUser',
+            'changeset': 1,
+            'uid': 1,
         },
         {
-            "type": "node",
-            "id": 345,
-            "lat": 45.3751139,
-            "lon": -73.9545144,
-            "timestamp": "2020-02-08T17:16:30Z",
-            "version": 1,
-            "user": "osmUser",
-            "changeset": 1,
-            "uid": 1,
+            'type': 'node',
+            'id': 345,
+            'lat': 45.3751139,
+            'lon': -73.9545144,
+            'timestamp': '2020-02-08T17:16:30Z',
+            'version': 1,
+            'user': 'osmUser',
+            'changeset': 1,
+            'uid': 1,
         },
         {
-            "type": "way",
-            "id": 456,
-            "timestamp": "2020-02-08T17:16:30Z",
-            "version": 1,
-            "user": "osmUser",
-            "changeset": 1,
-            "uid": 1,
-            "nodes": [
+            'type': 'way',
+            'id': 456,
+            'timestamp': '2020-02-08T17:16:30Z',
+            'version': 1,
+            'user': 'osmUser',
+            'changeset': 1,
+            'uid': 1,
+            'nodes': [
                 123,
                 234,
                 345
             ],
-            "tags": {
-                "highway": "residential",
-                "lanes": "2",
-                "maxspeed": "30",
-                "name": "Sesame street",
-                "sidewalk": "no"
+            'tags': {
+                'highway': 'residential',
+                'lanes': '2',
+                'maxspeed': '30',
+                'name': 'Sesame street',
+                'sidewalk': 'no'
             }
         },
     ]
 };
 
-const xmlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+const xmlData = `<?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6" generator="Overpass API 0.7.56.8 7d656e78">
 <note>The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.</note>
 <meta osm_base="2021-01-12T15:25:02Z"/>
@@ -118,36 +121,54 @@ const xmlResponse = `<?xml version="1.0" encoding="UTF-8"?>
 </osm>`;
 
 beforeEach(() => {
-    fetchMock.doMock();
-    fetchMock.mockIf(/^https?:\/\/overpass-api\.de\/api\/interpreter.*$/, async req => {
-        const body = await req.text();
-
-        // Make sure the polyboundary is in the query
-        if (!body.includes(`bounds="${polyboundary}"`)) {
-            throw "Invalid poly boundary in request body: " + body;
-        }
-
-        // Return proper response depending on output
-        if (body.includes('output="xml"')) {
-            return xmlResponse;
-        } else if (body.includes('output="json"')) {
-            return JSON.stringify(responseObject);
-        }
-        throw "No valid output specified in request body: " + body;
-    })
+    jest.resetAllMocks(); // otherwise the mocks will accumulate the calls and haveBeenCalledTimes will not be accurate
 });
 
-test('download json data from overpass', async function() {
+test('download json data from overpass', async () => {
+
+    const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
+    jsonResponse.mockResolvedValue(jsonData);
+    const response = Promise.resolve({
+        ok: true,
+        status: 200,
+        json: jsonResponse
+    });
+    mockedFetch.mockResolvedValue(response);
 
     const jsonContent = await OsmOverpassDownloader.downloadJson(geojsonBoundaryPolygon, overpassQuery);
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
+    expect(mockedFetch).toHaveBeenCalledWith('http://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/xml'
+        },
+        body: overpassQuery.replace('BOUNDARY', polyboundary).replace('OUTPUT', 'json')
+    });
     expect(jsonContent.elements).toBeDefined();
-    expect(jsonContent.elements).toEqual(responseObject.elements);
+    expect(jsonContent.elements).toEqual(jsonData.elements);
 
 });
 
-test('download geojson data from overpass', async function() {
+test('download geojson data from overpass', async () => {
+
+    const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
+    jsonResponse.mockResolvedValue(jsonData);
+    const response = Promise.resolve({
+        ok: true,
+        status: 200,
+        json: jsonResponse
+    });
+    mockedFetch.mockResolvedValue(response);
 
     const geojsonContent = await OsmOverpassDownloader.downloadGeojson(geojsonBoundaryPolygon, overpassQuery);
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
+    expect(mockedFetch).toHaveBeenCalledWith('http://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/xml'
+        },
+        body: overpassQuery.replace('BOUNDARY', polyboundary).replace('OUTPUT', 'json')
+    });
     expect(geojsonContent.type).toBe('FeatureCollection');
     expect(geojsonContent.features).toBeDefined();
     expect(geojsonContent.features.length).toEqual(1);
@@ -161,9 +182,26 @@ test('download geojson data from overpass', async function() {
 
 });
 
-test('download xml data from overpass', async function() {
+test('download xml data from overpass', async () => {
+
+    const xmlResponse = jest.fn() as jest.MockedFunction<Response['text']>;
+    xmlResponse.mockResolvedValue(xmlData);
+    const response = Promise.resolve({
+        ok: true,
+        status: 200,
+        text: xmlResponse
+    });
+    mockedFetch.mockResolvedValue(response);
 
     const xmlContent = await OsmOverpassDownloader.downloadXml(geojsonBoundaryPolygon, overpassQuery);
-    expect(xmlContent).toEqual(xmlResponse);
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
+    expect(mockedFetch).toHaveBeenCalledWith('http://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/xml'
+        },
+        body: overpassQuery.replace('BOUNDARY', polyboundary).replace('OUTPUT', 'xml')
+    });
+    expect(xmlContent).toEqual(xmlData);
 
 });

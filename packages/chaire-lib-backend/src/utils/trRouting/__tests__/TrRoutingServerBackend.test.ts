@@ -5,12 +5,14 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import TrRoutingServiceBackend from '../TrRoutingServiceBackend';
-import fetchMock from 'jest-fetch-mock';
 import TestUtils from 'chaire-lib-common/lib/test/TestUtils';
+import fetch from 'node-fetch';
+
+jest.mock('node-fetch', () => jest.fn());
+const mockedFetch = fetch as jest.MockedFunction<typeof fetch>;
 
 beforeEach(() => {
-    fetchMock.doMock();
-    fetchMock.mockClear();
+    jest.resetAllMocks(); // otherwise the mocks will accumulate the calls and haveBeenCalledTimes will not be accurate
 });
 
 const defaultParameters = {
@@ -26,17 +28,24 @@ describe('Route queries', () => {
         const jsonObject = {
             status: 'success'
         };
-        fetchMock.mockOnce(JSON.stringify(jsonObject));
+        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
+        jsonResponse.mockResolvedValue(jsonObject);
+        const response = Promise.resolve({
+            ok: true,
+            status: 200,
+            json: jsonResponse
+        });
+        mockedFetch.mockResolvedValue(response);
 
         const expectedQueryString = `origin=${defaultParameters.originDestination[0].geometry.coordinates[0]},${defaultParameters.originDestination[0].geometry.coordinates[1]}&` +
             `destination=${defaultParameters.originDestination[1].geometry.coordinates[0]},${defaultParameters.originDestination[1].geometry.coordinates[1]}&` +
             `scenario_id=${defaultParameters.scenarioId}&` +
             `time_of_trip=${defaultParameters.timeOfTrip}&` +
-            `time_type=0&` +
-            `alternatives=false`;
+            'time_type=0&' +
+            'alternatives=false';
         const result = await TrRoutingServiceBackend.route(defaultParameters);
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(fetchMock).toHaveBeenCalledWith(`http://localhost:4000/v2/route?${expectedQueryString}`, expect.objectContaining({ method: 'GET' }));
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        expect(mockedFetch).toHaveBeenCalledWith(`http://localhost:4000/v2/route?${expectedQueryString}`, expect.objectContaining({ method: 'GET' }));
         expect(result).toEqual(jsonObject);
     });
 
@@ -47,17 +56,24 @@ describe('Route queries', () => {
         const jsonObject = {
             status: 'success'
         };
-        fetchMock.mockOnce(JSON.stringify(jsonObject));
+        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
+        jsonResponse.mockResolvedValue(jsonObject);
+        const response = Promise.resolve({
+            ok: true,
+            status: 200,
+            json: jsonResponse
+        });
+        mockedFetch.mockResolvedValue(response);
 
         const expectedQueryString = `origin=${defaultParameters.originDestination[0].geometry.coordinates[0]},${defaultParameters.originDestination[0].geometry.coordinates[1]}&` +
             `destination=${defaultParameters.originDestination[1].geometry.coordinates[0]},${defaultParameters.originDestination[1].geometry.coordinates[1]}&` +
             `scenario_id=${defaultParameters.scenarioId}&` +
             `time_of_trip=${defaultParameters.timeOfTrip}&` +
-            `time_type=0&` +
-            `alternatives=false`;
+            'time_type=0&' +
+            'alternatives=false';
         const result = await TrRoutingServiceBackend.route(defaultParameters, { host, port });
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(fetchMock).toHaveBeenCalledWith(`${host}:${port}/v2/route?${expectedQueryString}`, expect.objectContaining({ method: 'GET' }));
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        expect(mockedFetch).toHaveBeenCalledWith(`${host}:${port}/v2/route?${expectedQueryString}`, expect.objectContaining({ method: 'GET' }));
         expect(result).toEqual(jsonObject);
     });
 
@@ -65,7 +81,14 @@ describe('Route queries', () => {
         const jsonObject = {
             status: 'success'
         };
-        fetchMock.mockOnce(JSON.stringify(jsonObject));
+        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
+        jsonResponse.mockResolvedValue(jsonObject);
+        const response = Promise.resolve({
+            ok: true,
+            status: 200,
+            json: jsonResponse
+        });
+        mockedFetch.mockResolvedValue(response);
 
         const params = {
             originDestination: [TestUtils.makePoint([-73, 45]), TestUtils.makePoint([-74, 45.5])] as [GeoJSON.Feature<GeoJSON.Point>, GeoJSON.Feature<GeoJSON.Point>],
@@ -79,14 +102,14 @@ describe('Route queries', () => {
             maxTransferTravelTime: 200,
             maxTravelTime: 1800,
             maxFirstWaitingTime: 180
-        }
-        
+        };
+
         const expectedQueryString = `origin=${params.originDestination[0].geometry.coordinates[0]},${params.originDestination[0].geometry.coordinates[1]}&` +
             `destination=${params.originDestination[1].geometry.coordinates[0]},${params.originDestination[1].geometry.coordinates[1]}&` +
             `scenario_id=${params.scenarioId}&` +
             `time_of_trip=${params.timeOfTrip}&` +
-            `time_type=1&` +
-            `alternatives=true&` +
+            'time_type=1&' +
+            'alternatives=true&' +
             `min_waiting_time=${params.minWaitingTime}&` +
             `max_access_travel_time=${params.maxAccessTravelTime}&` +
             `max_egress_travel_time=${params.maxEgressTravelTime}&` +
@@ -94,8 +117,8 @@ describe('Route queries', () => {
             `max_travel_time=${params.maxTravelTime}&` +
             `max_first_waiting_time=${params.maxFirstWaitingTime}`;
         const result = await TrRoutingServiceBackend.route(params);
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(fetchMock).toHaveBeenCalledWith(`http://localhost:4000/v2/route?${expectedQueryString}`, expect.objectContaining({ method: 'GET' }));
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        expect(mockedFetch).toHaveBeenCalledWith(`http://localhost:4000/v2/route?${expectedQueryString}`, expect.objectContaining({ method: 'GET' }));
         expect(result).toEqual(jsonObject);
     });
 
@@ -109,22 +132,29 @@ describe('Legacy transit queries', () => {
         const jsonObject = {
             status: 'success'
         };
-        fetchMock.mockOnce(JSON.stringify(jsonObject));
+        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
+        jsonResponse.mockResolvedValue(jsonObject);
+        const response = Promise.resolve({
+            ok: true,
+            status: 200,
+            json: jsonResponse
+        });
+        mockedFetch.mockResolvedValue(response);
 
         const params = {
             originDestination: [TestUtils.makePoint([-73, 45]), TestUtils.makePoint([-74, 45.5])] as [GeoJSON.Feature<GeoJSON.Point>, GeoJSON.Feature<GeoJSON.Point>],
             scenarioId: 'arbitraryId',
             alternatives: true,
             departureTime: 36000,
-        }
+        };
         const queryString = `origin=${params.originDestination[0].geometry.coordinates[1]},${params.originDestination[0].geometry.coordinates[0]}&` +
             `destination=${params.originDestination[1].geometry.coordinates[1]},${params.originDestination[1].geometry.coordinates[0]}&` +
             `scenario_uuid=${params.scenarioId}&` +
-            `alternatives=1&` +
+            'alternatives=1&' +
             `departure_time=${params.departureTime}`;
         const result = await TrRoutingServiceBackend.v1TransitCall(queryString, host, port);
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(fetchMock).toHaveBeenCalledWith(`${host}:${port}/route/v1/transit?${queryString}`, expect.objectContaining({ method: 'GET' }));
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        expect(mockedFetch).toHaveBeenCalledWith(`${host}:${port}/route/v1/transit?${queryString}`, expect.objectContaining({ method: 'GET' }));
         expect(result).toEqual(jsonObject);
     });
 
@@ -136,17 +166,24 @@ describe('Summary queries', () => {
         const jsonObject = {
             status: 'success'
         };
-        fetchMock.mockOnce(JSON.stringify(jsonObject));
-        
+        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
+        jsonResponse.mockResolvedValue(jsonObject);
+        const response = Promise.resolve({
+            ok: true,
+            status: 200,
+            json: jsonResponse
+        });
+        mockedFetch.mockResolvedValue(response);
+
         const expectedQueryString = `origin=${defaultParameters.originDestination[0].geometry.coordinates[0]},${defaultParameters.originDestination[0].geometry.coordinates[1]}&` +
         `destination=${defaultParameters.originDestination[1].geometry.coordinates[0]},${defaultParameters.originDestination[1].geometry.coordinates[1]}&` +
         `scenario_id=${defaultParameters.scenarioId}&` +
         `time_of_trip=${defaultParameters.timeOfTrip}&` +
-        `time_type=0&` +
-        `alternatives=false`;
+        'time_type=0&' +
+        'alternatives=false';
         const result = await TrRoutingServiceBackend.summary(defaultParameters);
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(fetchMock).toHaveBeenCalledWith(`http://localhost:4000/v2/summary?${expectedQueryString}`, expect.objectContaining({ method: 'GET' }));
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        expect(mockedFetch).toHaveBeenCalledWith(`http://localhost:4000/v2/summary?${expectedQueryString}`, expect.objectContaining({ method: 'GET' }));
         expect(result).toEqual(jsonObject);
     });
 
@@ -154,7 +191,14 @@ describe('Summary queries', () => {
         const jsonObject = {
             status: 'success'
         };
-        fetchMock.mockOnce(JSON.stringify(jsonObject));
+        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
+        jsonResponse.mockResolvedValue(jsonObject);
+        const response = Promise.resolve({
+            ok: true,
+            status: 200,
+            json: jsonResponse
+        });
+        mockedFetch.mockResolvedValue(response);
 
         const params = {
             originDestination: [TestUtils.makePoint([-73, 45]), TestUtils.makePoint([-74, 45.5])] as [GeoJSON.Feature<GeoJSON.Point>, GeoJSON.Feature<GeoJSON.Point>],
@@ -168,14 +212,14 @@ describe('Summary queries', () => {
             maxTransferTravelTime: 200,
             maxTravelTime: 1800,
             maxFirstWaitingTime: 180
-        }
-        
+        };
+
         const expectedQueryString = `origin=${params.originDestination[0].geometry.coordinates[0]},${params.originDestination[0].geometry.coordinates[1]}&` +
         `destination=${params.originDestination[1].geometry.coordinates[0]},${params.originDestination[1].geometry.coordinates[1]}&` +
         `scenario_id=${params.scenarioId}&` +
         `time_of_trip=${params.timeOfTrip}&` +
-        `time_type=1&` +
-        `alternatives=true&` +
+        'time_type=1&' +
+        'alternatives=true&' +
         `min_waiting_time=${params.minWaitingTime}&` +
         `max_access_travel_time=${params.maxAccessTravelTime}&` +
         `max_egress_travel_time=${params.maxEgressTravelTime}&` +
@@ -183,8 +227,8 @@ describe('Summary queries', () => {
         `max_travel_time=${params.maxTravelTime}&` +
         `max_first_waiting_time=${params.maxFirstWaitingTime}`;
         const result = await TrRoutingServiceBackend.summary(params);
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(fetchMock).toHaveBeenCalledWith(`http://localhost:4000/v2/summary?${expectedQueryString}`, expect.objectContaining({ method: 'GET' }));
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        expect(mockedFetch).toHaveBeenCalledWith(`http://localhost:4000/v2/summary?${expectedQueryString}`, expect.objectContaining({ method: 'GET' }));
         expect(result).toEqual(jsonObject);
     });
 
