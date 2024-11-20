@@ -8,8 +8,8 @@ import { listTasks } from '../listTasks';
 import { listTasks as listLibTasks } from 'chaire-lib-backend/lib/scripts/listTasks';
 
 const tasks = [
-    `cache/recreateCache.task.ts`,
-    `simulations/simulation.task.ts`
+    'cache/recreateCache.task.ts',
+    'simulations/simulation.task.ts'
 ];
 
 const libTasks = listLibTasks();
@@ -20,6 +20,6 @@ test('Test list tasks', () => {
         expect.arrayContaining(libTasks)
     );
     expect(allTasks).toEqual(
-        expect.arrayContaining(tasks.map(task => expect.stringContaining(task)))
+        expect.arrayContaining(tasks.map((task) => expect.stringContaining(task)))
     );
 });
