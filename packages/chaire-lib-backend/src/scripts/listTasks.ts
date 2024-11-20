@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import glob from 'glob';
+import * as glob from 'glob';
 
 export const listTasks = (): string[] => {
     const tasksFilePaths = glob.sync(`${__dirname}/**/*.task.[j|t]s`);

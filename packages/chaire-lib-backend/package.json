@@ -1,6 +1,6 @@
 {
     "engines": {
-        "node": ">=18.0.0"
+        "node": ">=22.0.0"
     },
     "name": "chaire-lib-backend",
     "version": "0.2.2",
@@ -47,7 +47,7 @@
         "express-session": "^1.18.1",
         "fs-extra": "^11.2.0",
         "geojson": "^0.5.0",
-        "glob": "^7.2.3",
+        "glob": "^11.0.0",
         "i18next": "^23.16.5",
         "i18next-fs-backend": "^2.3.2",
         "inquirer": "^7.3.3",

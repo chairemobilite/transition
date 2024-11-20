@@ -5,8 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import path from 'path';
-import glob from 'glob';
-import util from 'util';
+import * as glob from 'glob';
 import fs from 'fs-extra';
 
 import '../../config/dotenv.config';
@@ -132,13 +131,12 @@ export class DirectoryManager {
         return this.getFilesAbsolute(this.getAbsolutePath(projectRelativePath), includePath);
     }
 
-    async getFilesWithExtension(projectRelativePath: string, extension = '') {
+    getFilesWithExtension(projectRelativePath: string, extension = '') {
         return this.getFilesWithExtensionAbsolute(this.getAbsolutePath(projectRelativePath), extension);
     }
 
-    async getFilesWithExtensionAbsolute(absoluteDirectoryPath: string, extension = '') {
-        const prGlob = util.promisify(glob);
-        return await prGlob(`${absoluteDirectoryPath}/*.${extension}`);
+    getFilesWithExtensionAbsolute(absoluteDirectoryPath: string, extension = '') {
+        return glob.sync(`${absoluteDirectoryPath}/*.${extension}`);
     }
 
     getFilesAbsolute(absoluteDirectoryPath: string, includePath = false) {
