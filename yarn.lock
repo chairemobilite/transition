@@ -3510,10 +3510,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.18.63.tgz#1788fa8da838dbb5f9ea994b834278205db6ca2b"
   integrity sha512-fAtCfv4jJg+ExtXhvCkCqUKZ+4ok/JQk01qDKhL5BDDoS3AxKXhV5/MAVUZyQnSEd2GT92fkgZl0pz0Q0AzcIQ==
 
-"@types/nodemailer@^6.4.1":
-  version "6.4.1"
-  resolved "https://registry.yarnpkg.com/@types/nodemailer/-/nodemailer-6.4.1.tgz#31f96f4410632f781d3613bd1f4293649e423f75"
-  integrity sha512-8081UY/0XTTDpuGqCnDc8IY+Q3DSg604wB3dBH0CaZlj4nZWHWuxtZ3NRZ9c9WUrz1Vfm6wioAUnqL3bsh49uQ==
+"@types/nodemailer@^6.4.17":
+  version "6.4.17"
+  resolved "https://registry.yarnpkg.com/@types/nodemailer/-/nodemailer-6.4.17.tgz#5c82a42aee16a3dd6ea31446a1bd6a447f1ac1a4"
+  integrity sha512-I9CCaIp6DTldEg7vyUTZi8+9Vo0hi1/T8gv3C89yk1rSAAzoKQ8H8ki/jBYJSFoH/BisgLP8tkZMlQ91CIquww==
   dependencies:
     "@types/node" "*"
 
@@ -10185,18 +10185,17 @@ node-stream-zip@^1.15.0:
   resolved "https://registry.yarnpkg.com/node-stream-zip/-/node-stream-zip-1.15.0.tgz#158adb88ed8004c6c49a396b50a6a5de3bca33ea"
   integrity sha512-LN4fydt9TqhZhThkZIVQnF9cwjU3qmUH9h78Mx/K7d3VvfRqqwthLwJEUOEL0QPZ0XQmNN7be5Ggit5+4dq3Bw==
 
-nodemailer-mock@^1.5.8:
-  version "1.5.8"
-  resolved "https://registry.yarnpkg.com/nodemailer-mock/-/nodemailer-mock-1.5.8.tgz#22e3d54db735f426fc590a0f975ded3a8cbd6b12"
-  integrity sha512-yA7dAwOd7vIcE4YYhWsH0M0ORxHBTdkk54TiuHBHVH8EtMDlb0CsMA7pQHSkay0KfdAi7MySkw2SY8r95+hL6A==
+nodemailer-mock@^2.0.6:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/nodemailer-mock/-/nodemailer-mock-2.0.6.tgz#0dd3e522df73682d47f4f2b1ee905aacd22e2c8e"
+  integrity sha512-9x/QN1AbKy4PJ7yIQnToly3c7gUCSGABeB10/c5jgO986fAOMghzVedbZe8UDsu2PEStCoOd+MayX09CduYSHQ==
   dependencies:
-    debug "^4.3.1"
-    nodemailer "^6.x"
+    debug "^4.3.4"
 
-nodemailer@^6.9.9, nodemailer@^6.x:
-  version "6.9.9"
-  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.9.9.tgz#4549bfbf710cc6addec5064dd0f19874d24248d9"
-  integrity sha512-dexTll8zqQoVJEZPwQAKzxxtFn0qTnjdQTchoU6Re9BUUGBJiOy3YMn/0ShTW6J5M0dfQ1NeDeRTTl4oIWgQMA==
+nodemailer@^6.9.16:
+  version "6.9.16"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.9.16.tgz#3ebdf6c6f477c571c0facb0727b33892635e0b8b"
+  integrity sha512-psAuZdTIRN08HKVd/E8ObdV6NO7NTBY3KsC30F7M4H1OnmLCUNaS56FpYxyb26zWLSyYF9Ozch9KYHhHegsiOQ==
 
 noms@0.0.0:
   version "0.0.0"
