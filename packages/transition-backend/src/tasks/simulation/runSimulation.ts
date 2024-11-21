@@ -35,7 +35,7 @@ export default class RunSimulation implements GenericTask {
     private t: TFunction;
 
     constructor(lang?: string) {
-        this.t = i18n().getFixedT(lang || i18n().language, ['main', 'server', 'transit']);
+        this.t = i18n().getFixedT(lang || i18n().language, ['main', 'server', 'transit']) as TFunction;
     }
 
     getSimulation = async (shortname: string | undefined): Promise<Simulation | undefined> => {
@@ -77,7 +77,7 @@ export default class RunSimulation implements GenericTask {
 
     async run(argv: { [key: string]: unknown }): Promise<void> {
         if (typeof argv.lang === 'string') {
-            this.t = i18n().getFixedT(argv.lang || i18n().language, ['main', 'server', 'transit']);
+            this.t = i18n().getFixedT(argv.lang || i18n().language, ['main', 'server', 'transit']) as TFunction;
         }
 
         // Request simulation to run
