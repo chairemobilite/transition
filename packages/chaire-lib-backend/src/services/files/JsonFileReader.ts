@@ -49,7 +49,7 @@ export const parseJsonFile = async (
             if (options.filter) {
                 pipelineArray.splice(2, 0, jsonPick(options.filter));
             }
-            const pipeline = chain(pipelineArray);
+            const pipeline = chain(pipelineArray as [any]);
 
             pipeline.on('data', (data) => {
                 try {
