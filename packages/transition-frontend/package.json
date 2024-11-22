@@ -60,7 +60,7 @@
     "redux": "^4.0.5",
     "redux-thunk": "^2.3.0",
     "slugify": "^1.4.7",
-    "socket.io-client": "^2.4.0",
+    "socket.io-client": "^2.5.0",
     "socket.io-file-client": "^2.0.2",
     "timezone": "^1.0.23",
     "transition-common": "0.2.0-2",
