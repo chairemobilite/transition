@@ -73,7 +73,7 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
     const scheduledLineCount = hasScheduledLines ? service.scheduledLineIds().length : 0;
 
     const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    const serviceWeekdays = [];
+    const serviceWeekdays: string[] = [];
     let serviceWeekdaysStr = '';
     for (let i = 0, count = weekdays.length; i < count; i++) {
         if (service.attributes[weekdays[i]] === true) {

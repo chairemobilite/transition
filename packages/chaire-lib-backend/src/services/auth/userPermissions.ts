@@ -115,7 +115,7 @@ export const addRoleHomePage = (roleName: string, homePage: string) => {
  * @returns The home page if defined for the user, otherwise undefined
  */
 export const getHomePage = (user: UserAttributes): string | undefined => {
-    const userPermissions = { ...user.permissions } || {};
+    const userPermissions = user.permissions ? { ...user.permissions } : {};
     if (user.is_admin === true) {
         userPermissions[ADMIN_ROLE_NAME] = true;
     } else if (Object.keys(userPermissions).length === 0) {
