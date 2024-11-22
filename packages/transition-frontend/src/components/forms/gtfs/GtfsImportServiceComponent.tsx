@@ -39,7 +39,7 @@ const GtfsImportServiceComponent: React.FunctionComponent<GtfsImportServiceCompo
     const servicesChoices =
         filteredServices.map((serviceData) => {
             let label = serviceData.service.name;
-            const serviceWeekdays = [];
+            const serviceWeekdays: string[] = [];
             for (let i = 0, count = serviceDays.length; i < count; i++) {
                 if (serviceData.service[serviceDays[i]] === 1) {
                     serviceWeekdays.push(props.t(`main:dateTime:weekdaysAbbr:${serviceDays[i]}`));
