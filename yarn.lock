@@ -3582,10 +3582,10 @@
     "@types/koa" "*"
     "@types/passport" "*"
 
-"@types/passport-local@^1.0.34":
-  version "1.0.34"
-  resolved "https://registry.yarnpkg.com/@types/passport-local/-/passport-local-1.0.34.tgz#84d3b35b2fd4d36295039ded17fe5f3eaa62f4f6"
-  integrity sha512-PSc07UdYx+jhadySxxIYWuv6sAnY5e+gesn/5lkPKfBeGuIYn9OPR+AAEDq73VRUh6NBTpvE/iPE62rzZUslog==
+"@types/passport-local@^1.0.38":
+  version "1.0.38"
+  resolved "https://registry.yarnpkg.com/@types/passport-local/-/passport-local-1.0.38.tgz#8073758188645dde3515808999b1c218a6fe7141"
+  integrity sha512-nsrW4A963lYE7lNTv9cr5WmiUD1ibYJvWrpE13oxApFsRt77b0RdtZvKbCdNIY4v/QZ6TRQWaDDEwV1kCTmcXg==
   dependencies:
     "@types/express" "*"
     "@types/passport" "*"
@@ -3599,10 +3599,10 @@
     "@types/express" "*"
     "@types/passport" "*"
 
-"@types/passport@*", "@types/passport@^1.0.11":
-  version "1.0.11"
-  resolved "https://registry.yarnpkg.com/@types/passport/-/passport-1.0.11.tgz#d046b41e28b280f4e7994614fb976e9b449cb7c6"
-  integrity sha512-pz1cx9ptZvozyGKKKIPLcVDVHwae4hrH5d6g5J+DkMRRjR3cVETb4jMabhXAUbg3Ov7T22nFHEgaK2jj+5CBpw==
+"@types/passport@*", "@types/passport@^1.0.17":
+  version "1.0.17"
+  resolved "https://registry.yarnpkg.com/@types/passport/-/passport-1.0.17.tgz#718a8d1f7000ebcf6bbc0853da1bc8c4bc7ea5e6"
+  integrity sha512-aciLyx+wDwT2t2/kJGJR2AEeBz0nJU4WuRX04Wu9Dqc5lSUtwu0WERPHYsLhF9PtseiAMPBGNUOtFjxZ56prsg==
   dependencies:
     "@types/express" "*"
 
@@ -3757,10 +3757,10 @@
   resolved "https://registry.yarnpkg.com/@types/socket.io-client/-/socket.io-client-1.4.36.tgz#e4f1ca065f84c20939e9850e70222202bd76ff3f"
   integrity sha512-ZJWjtFBeBy1kRSYpVbeGYTElf6BqPQUkXDlHHD4k/42byCN5Rh027f4yARHCink9sKAkbtGZXEAmR0ZCnc2/Ag==
 
-"@types/socket.io-file@^2.0.4":
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/@types/socket.io-file/-/socket.io-file-2.0.4.tgz#70a3d61325f759ad277768ceec83991d1c013fa2"
-  integrity sha512-9fxkGyIknJ+o1Qexr3jRHPob2w75iD/aKHv4zBnwyHcQriUoRnNLh7WYyKPDmCK/MauzrEZ7K2YL4ZpxzdkCLg==
+"@types/socket.io-file@^2.0.7":
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/@types/socket.io-file/-/socket.io-file-2.0.7.tgz#ca47e82f17f3f20efd3ead5f5d650f746e5e8643"
+  integrity sha512-aUMkYPZequKgi9eFeirx9Bu/DyrjHdTN7ZBqvQ7Ay5NFuvst3eV9m/SQOqNHT3bJID+fJ8MYYSVIR0Zis2TWgw==
   dependencies:
     "@types/socket.io" "2.1.13"
 
@@ -3798,17 +3798,17 @@
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.1.tgz#20f18294f797f2209b5f65c8e3b5c8e8261d127c"
   integrity sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==
 
-"@types/stream-chain@*", "@types/stream-chain@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@types/stream-chain/-/stream-chain-2.0.1.tgz#4d3cc47a32609878bc188de0bae420bcfd3bf1f5"
-  integrity sha512-D+Id9XpcBpampptkegH7WMsEk6fUdf9LlCIX7UhLydILsqDin4L0QT7ryJR0oycwC7OqohIzdfcMHVZ34ezNGg==
+"@types/stream-chain@*", "@types/stream-chain@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@types/stream-chain/-/stream-chain-2.1.0.tgz#54f1496eb653482c44b5015abe2e6ae0eae594a1"
+  integrity sha512-guDyAl6s/CAzXUOWpGK2bHvdiopLIwpGu8v10+lb9hnQOyo4oj/ZUQFOvqFjKGsE3wJP1fpIesCcMvbXuWsqOg==
   dependencies:
     "@types/node" "*"
 
-"@types/stream-json@^1.7.1":
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/@types/stream-json/-/stream-json-1.7.1.tgz#58b82a41161f2936c9bfc6c725a30e956bbd443b"
-  integrity sha512-BNIK/ix6iJvWvoXbDVVJhw5LNG1wie/rXcUo7jw4hBqY3FhIrg0e+RMXFN5UreKclBIStl9FDEHNSDLuuQ9/MQ==
+"@types/stream-json@^1.7.8":
+  version "1.7.8"
+  resolved "https://registry.yarnpkg.com/@types/stream-json/-/stream-json-1.7.8.tgz#e247ca207f73b679f840d3807ef44e49b12cb77a"
+  integrity sha512-MU1OB1eFLcYWd1LjwKXrxdoPtXSRzRmAnnxs4Js/ayB5O/NvHraWwuOaqMWIebpYwM6khFlsJOHEhI9xK/ab4Q==
   dependencies:
     "@types/node" "*"
     "@types/stream-chain" "*"
@@ -3864,10 +3864,10 @@
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-8.3.1.tgz#1a32969cf8f0364b3d8c8af9cc3555b7805df14f"
   integrity sha512-Y2mHTRAbqfFkpjldbkHGY8JIzRN6XqYRliG8/24FcHm2D2PwW24fl5xMRTVGdrb7iMrwCaIEbLWerGIkXuFWVg==
 
-"@types/validator@^13.6.6":
-  version "13.6.6"
-  resolved "https://registry.yarnpkg.com/@types/validator/-/validator-13.6.6.tgz#6e6e2d086148db5ae14851614971b715670cbd52"
-  integrity sha512-+qogUELb4gMhrMjSh/seKmGVvN+uQLfyqJAqYRWqVHsvBsUO2xDBCL8CJ/ZSukbd8vXaoYbpIssAmfLEzzBHEw==
+"@types/validator@^13.12.2":
+  version "13.12.2"
+  resolved "https://registry.yarnpkg.com/@types/validator/-/validator-13.12.2.tgz#760329e756e18a4aab82fc502b51ebdfebbe49f5"
+  integrity sha512-6SlHBzUW8Jhf3liqrGGXyTJSIFe4nqlJ5A5KaMZ2l/vbM3Wh3KSybots/wfWVzNLK4D1NZluDlSQIbIEPx6oyA==
 
 "@types/webpack-sources@*":
   version "1.4.0"
