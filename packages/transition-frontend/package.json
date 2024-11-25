@@ -74,7 +74,7 @@
     "@testing-library/react": "^10.4.7",
     "@types/geojson": "^7946.0.14",
     "@types/jest": "^29.5.14",
-    "@types/lodash": "^4.14.198",
+    "@types/lodash": "^4.17.13",
     "@types/mapbox-gl": "^2.3.1",
     "@types/osrm": "^5.22.0",
     "@types/react-datepicker": "^4.1.6",
