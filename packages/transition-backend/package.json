@@ -66,7 +66,7 @@
         "socketio-wildcard": "^2.0.0",
         "transition-common": "^0.2.0-2",
         "typescript": "^5.7.2",
-        "uuid": "^10.0.0",
+        "uuid": "^11.0.3",
         "workerpool": "^6.2.1",
         "yargs": "^17.5.1",
         "zod": "^3.22.3"
