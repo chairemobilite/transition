@@ -21,7 +21,6 @@
   "dependencies": {
     "@mapbox/polyline": "^1.1.1",
     "@turf/turf": "^7.1.0",
-    "@types/node": "^22.9.3",
     "chaire-lib-common": "^0.2.2",
     "child_process": "^1.0.2",
     "geobuf": "^3.0.2",
@@ -49,6 +48,7 @@
     "@types/jest": "^29.5.14",
     "@types/kdbush": "^3.0.0",
     "@types/lodash": "^4.17.13",
+    "@types/node": "^22.9.3",
     "@types/p-queue": "^3.2.1",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
