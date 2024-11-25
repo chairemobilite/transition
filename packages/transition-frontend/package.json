@@ -28,7 +28,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mapbox/mapbox-gl-draw": "^1.4.3",
     "@turf/turf": "^7.1.0",
-    "@types/node": "^22.9.0",
+    "@types/node": "^22.9.3",
     "@types/react": "^16.9.0",
     "@types/react-dom": "^16.9.0",
     "bcryptjs": "^2.4.3",
