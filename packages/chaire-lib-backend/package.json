@@ -79,7 +79,7 @@
         "yargs": "^17.7.2"
     },
     "devDependencies": {
-        "@types/bcryptjs": "^2.4.2",
+        "@types/bcryptjs": "^2.4.6",
         "@types/express": "^4.17.21",
         "@types/express-session": "^1.18.0",
         "@types/fs-extra": "^11.0.4",
