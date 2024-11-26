@@ -86,7 +86,7 @@
         "@types/geojson": "^7946.0.14",
         "@types/jest": "^29.5.14",
         "@types/lodash": "^4.17.13",
-        "@types/node": "^22.9.3",
+        "@types/node": "^22.10.0",
         "@types/nodemailer": "^6.4.17",
         "@types/passport": "^1.0.17",
         "@types/passport-http-bearer": "^1.0.41",
