@@ -3542,10 +3542,10 @@
   resolved "https://registry.yarnpkg.com/@types/normalize-package-data/-/normalize-package-data-2.4.0.tgz#e486d0d97396d79beedd0a6e33f4534ff6b4973e"
   integrity sha512-f5j5b/Gf71L+dbqxIpQ4Z2WlmI/mPJ0fOkGGmFgtb6sAu97EPczzbS3/tJKxmcYDj55OX6ssqwDAWOHIYDRDGA==
 
-"@types/osmtogeojson@^2.2.29":
-  version "2.2.29"
-  resolved "https://registry.yarnpkg.com/@types/osmtogeojson/-/osmtogeojson-2.2.29.tgz#20f1af9febe7527752e8f8c9e0abc6205d24185f"
-  integrity sha1-IPGvn+vnUndS6PjJ4KvGIF0kGF8=
+"@types/osmtogeojson@^2.2.34":
+  version "2.2.34"
+  resolved "https://registry.yarnpkg.com/@types/osmtogeojson/-/osmtogeojson-2.2.34.tgz#2f028a65b5203410fdaac96d4287930b522ea440"
+  integrity sha512-UUDXofjOv2ox5b4oxnvDNoHL1aPhmZsbn4hnHvgHYi/kX/3toakMjCmiiPUF++1c+iwstjRz3BXWhTVyqUM7FA==
 
 "@types/osrm@^5.22.0":
   version "5.22.0"
