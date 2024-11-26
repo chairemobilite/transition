@@ -153,7 +153,10 @@ class OSRMMode {
 
         const optionKeys = ['sources', 'annotations'];
 
-        const options = { sources: 0, annotations: ['duration', 'distance'] };
+        const options = {
+            sources: [0],
+            annotations: ['duration', 'distance'] as ('duration' | 'distance')[]
+        };
 
         // Add origin as the first element of the feature list
         // Copy the array with slice (will keep reference to the same internal objects)
@@ -207,7 +210,10 @@ class OSRMMode {
 
         const optionKeys = ['destinations', 'annotations'];
 
-        const options = { destinations: 0, annotations: ['duration', 'distance'] };
+        const options = {
+            destinations: [0],
+            annotations: ['duration', 'distance'] as ('duration' | 'distance')[]
+        };
 
         // Add destination as the first element of the feature list
         // Copy the array with slice (will keep reference to the same internal objects)
