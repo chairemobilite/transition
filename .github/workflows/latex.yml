@@ -1,0 +1,25 @@
+# Workflow that validate latex files
+name: latex definition files
+
+on:
+  push:
+    branches: [ main ]
+    # Runs on all push to main, to make sure there's no other side effet
+  pull_request:
+    branches: [ main ]
+    # But only runs on PR that touches tex files
+    paths:
+      - '**/*.tex'
+
+jobs:
+  latex-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install latex packages
+        run: sudo apt install texlive-latex-base texlive-latex-extra
+      - name: Builds latex files
+        working-directory: packages/transition-backend/file/definitions
+        run: |
+          pdflatex definitions-en.tex
+          pdflatex definitions-fr.tex
