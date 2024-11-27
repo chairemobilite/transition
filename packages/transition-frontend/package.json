@@ -35,7 +35,7 @@
     "date-fns": "^2.30.0",
     "element-resize-event": "^3.0.6",
     "history": "^4.9.0",
-    "i18next": "^23.16.8",
+    "i18next": "^24.0.2",
     "lodash": "^4.17.21",
     "mapbox-gl": "chairemobilite/mapbox-gl-js#39bbf9aeb1859424e29cff2584715fddc9d018b9",
     "moment": "^2.30.1",
