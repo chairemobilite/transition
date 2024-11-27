@@ -84,4 +84,4 @@ const BatchAttributesSelectionComponent: React.FunctionComponent<BatchAttributes
     );
 };
 
-export default withTranslation(['transit', 'main'])(BatchAttributesSelectionComponent);
+export default withTranslation('main')(BatchAttributesSelectionComponent);

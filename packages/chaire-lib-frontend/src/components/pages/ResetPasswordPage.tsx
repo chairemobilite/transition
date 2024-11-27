@@ -45,7 +45,7 @@ const SimpleMessage: React.FunctionComponent<SimpleMessageProps> = (props: Simpl
     );
 };
 
-const SimpleMessageWidget = withTranslation()(SimpleMessage);
+const SimpleMessageWidget = withTranslation('auth')(SimpleMessage);
 
 export class ResetPasswordPage extends React.Component<ResetPasswordPageProps, ResetPasswordState> {
     private submitButtonRef;

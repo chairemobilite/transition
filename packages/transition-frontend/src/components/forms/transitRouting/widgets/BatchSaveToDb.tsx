@@ -122,7 +122,7 @@ const SaveToDbChoiceComponent: React.FunctionComponent<SaveToDbChoiceComponentPr
     );
 };
 
-const SaveToDbChoiceComponentTranslated = withTranslation(['transit', 'main'])(SaveToDbChoiceComponent);
+const SaveToDbChoiceComponentTranslated = withTranslation('transit')(SaveToDbChoiceComponent);
 
 const BatchSaveToDbComponent: React.FunctionComponent<BatchAttributesSelectionComponentProps> = (
     props: BatchAttributesSelectionComponentProps
@@ -167,4 +167,4 @@ const BatchSaveToDbComponent: React.FunctionComponent<BatchAttributesSelectionCo
     );
 };
 
-export default withTranslation(['transit', 'main'])(BatchSaveToDbComponent);
+export default withTranslation('transit')(BatchSaveToDbComponent);

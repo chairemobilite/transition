@@ -83,4 +83,4 @@ const DocumentationTooltip: React.FunctionComponent<DocumentationTooltipProps> =
     }
 };
 
-export default withTranslation(['transit'])(DocumentationTooltip);
+export default withTranslation('transit')(DocumentationTooltip);

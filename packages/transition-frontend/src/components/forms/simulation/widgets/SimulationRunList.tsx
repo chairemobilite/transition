@@ -61,4 +61,4 @@ const SimulationRunList: React.FunctionComponent<SimulationRunListProps> = (prop
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(SimulationRunList);
+export default withTranslation('transit')(SimulationRunList);

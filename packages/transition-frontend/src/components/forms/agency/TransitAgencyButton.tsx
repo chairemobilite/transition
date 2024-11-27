@@ -274,4 +274,4 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitAgencyButton);
+export default withTranslation(['transit', 'main', 'notifications'])(TransitAgencyButton);

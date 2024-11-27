@@ -50,4 +50,4 @@ const LineImportForm: React.FunctionComponent<LineImportFormProps & WithTranslat
     );
 };
 
-export default withTranslation(['transit', 'main'])(LineImportForm);
+export default withTranslation(['main', 'notifications'])(LineImportForm);

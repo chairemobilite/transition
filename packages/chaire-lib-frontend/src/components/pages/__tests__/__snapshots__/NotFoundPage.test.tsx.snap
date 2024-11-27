@@ -43,7 +43,7 @@ exports[`Should correctly render NotFound page 1`] = `
                 href="/"
                 onClick={[Function]}
               >
-                BackToHomePage
+                auth:BackToHomePage
               </a>
             </LinkAnchor>
           </Link>

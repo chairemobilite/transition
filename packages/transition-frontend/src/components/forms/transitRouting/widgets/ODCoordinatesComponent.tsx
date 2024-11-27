@@ -284,4 +284,4 @@ class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps
     }
 }
 
-export default withTranslation(['transit', 'main'])(ODCoordinatesComponent);
+export default withTranslation('transit')(ODCoordinatesComponent);

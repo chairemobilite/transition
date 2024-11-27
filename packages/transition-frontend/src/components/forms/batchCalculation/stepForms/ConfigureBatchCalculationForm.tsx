@@ -156,4 +156,4 @@ const ConfigureCalculationParametersForm: React.FunctionComponent<
     );
 };
 
-export default withTranslation(['transit', 'main'])(ConfigureCalculationParametersForm);
+export default withTranslation('transit')(ConfigureCalculationParametersForm);

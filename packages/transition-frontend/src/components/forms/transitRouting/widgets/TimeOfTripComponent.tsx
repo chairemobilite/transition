@@ -48,4 +48,4 @@ const TimeOfTripComponent: React.FunctionComponent<TimeOfTripComponentProps> = (
     );
 };
 
-export default withTranslation(['transit', 'main'])(TimeOfTripComponent);
+export default withTranslation('transit')(TimeOfTripComponent);

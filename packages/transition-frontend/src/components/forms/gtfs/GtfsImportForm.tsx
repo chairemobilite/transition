@@ -518,4 +518,4 @@ class GtfsImportForm extends React.Component<GtfsImportProps, GtfsImportState> {
     }
 }
 
-export default withTranslation(['transit', 'main', 'notifications'])(GtfsImportForm);
+export default withTranslation(['transit', 'notifications'])(GtfsImportForm);

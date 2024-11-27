@@ -94,4 +94,4 @@ const TransitScheduleButton: React.FunctionComponent<ScheduleButtonProps> = (pro
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitScheduleButton);
+export default withTranslation(['transit', 'notifications'])(TransitScheduleButton);

@@ -14,10 +14,10 @@ interface MaintenancePageProps extends WithTranslation {
 
 export const MaintenancePage: React.FunctionComponent<MaintenancePageProps> = (props: MaintenancePageProps) => (
     <div>
-        {props.t('Maintenance')}
+        {props.t('auth:Maintenance')}
         <br />
-        <Link to={props.linkPath ? props.linkPath : '/home'}>{props.t('BackToHomePage')}</Link>
+        <Link to={props.linkPath ? props.linkPath : '/home'}>{props.t('auth:BackToHomePage')}</Link>
     </div>
 );
 
-export default withTranslation(['auth'])(MaintenancePage);
+export default withTranslation('auth')(MaintenancePage);

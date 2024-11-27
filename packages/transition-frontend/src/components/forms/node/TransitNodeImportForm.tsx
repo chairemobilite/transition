@@ -51,4 +51,4 @@ const NodesImportForm: React.FunctionComponent<NodeImportFormProps & WithTransla
     );
 };
 
-export default withTranslation(['transit', 'main'])(NodesImportForm);
+export default withTranslation(['notifications', 'main'])(NodesImportForm);

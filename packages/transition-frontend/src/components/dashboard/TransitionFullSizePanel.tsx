@@ -56,4 +56,4 @@ const FullSizePanel: React.FunctionComponent<LayoutSectionProps> = (props: Layou
     );
 };
 
-export default withTranslation(['transit', 'main', 'form'])(FullSizePanel);
+export default withTranslation()(FullSizePanel);

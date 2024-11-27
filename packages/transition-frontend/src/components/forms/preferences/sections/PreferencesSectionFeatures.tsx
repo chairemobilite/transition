@@ -41,4 +41,4 @@ const PreferencesSectionFeatures: React.FunctionComponent<PreferencesSectionProp
     );
 };
 
-export default withTranslation(['main', 'transit'])(PreferencesSectionFeatures);
+export default withTranslation('main')(PreferencesSectionFeatures);

@@ -69,4 +69,4 @@ const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps & Wit
     );
 };
 
-export default withTranslation(['transit', 'main', 'form'])(CalculationPanel);
+export default withTranslation()(CalculationPanel);

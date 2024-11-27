@@ -45,4 +45,4 @@ const ScenariosImportForm: React.FunctionComponent<ScenarioImportFormProps & Wit
     );
 };
 
-export default withTranslation(['transit', 'main'])(ScenariosImportForm);
+export default withTranslation(['main', 'notifications'])(ScenariosImportForm);

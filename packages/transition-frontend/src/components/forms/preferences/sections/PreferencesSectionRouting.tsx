@@ -54,4 +54,4 @@ const PreferencesSectionTransitRouting: React.FunctionComponent<PreferencesSecti
     </Collapsible>
 );
 
-export default withTranslation(['main', 'transit'])(PreferencesSectionTransitRouting);
+export default withTranslation('transit')(PreferencesSectionTransitRouting);

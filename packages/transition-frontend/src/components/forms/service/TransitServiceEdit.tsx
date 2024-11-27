@@ -377,4 +377,4 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
     }
 }
 
-export default withTranslation(['transit', 'main', 'notifications'])(TransitServiceEdit);
+export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitServiceEdit);

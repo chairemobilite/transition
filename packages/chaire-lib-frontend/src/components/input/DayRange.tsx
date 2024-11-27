@@ -125,4 +125,4 @@ export class DayRange extends React.Component<DayRangeProps> {
     }
 }
 
-export default withTranslation(['main'])(DayRange);
+export default withTranslation('main')(DayRange);

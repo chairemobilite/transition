@@ -191,4 +191,4 @@ class PreferencesPanel extends SaveableObjectForm<PreferencesClass, PreferencesP
     }
 }
 
-export default withTranslation(['transit', 'main', 'form'])(PreferencesPanel);
+export default withTranslation('main')(PreferencesPanel);

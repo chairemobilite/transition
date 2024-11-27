@@ -631,4 +631,4 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
     }
 }
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitScheduleEdit);
+export default withTranslation(['transit', 'main', 'notifications'])(TransitScheduleEdit);

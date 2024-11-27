@@ -400,4 +400,4 @@ class Toolbar extends React.Component<LayoutSectionProps, TransitionToolbarState
     }
 }
 
-export default withTranslation(['transit', 'main'])(Toolbar);
+export default withTranslation(['transit', 'main', 'od', 'notifications'])(Toolbar);

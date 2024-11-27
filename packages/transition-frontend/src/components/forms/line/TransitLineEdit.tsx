@@ -467,4 +467,4 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
     }
 }
 
-export default withTranslation(['transit', 'main'])(TransitLineEdit);
+export default withTranslation(['transit', 'form', 'main', 'notifications'])(TransitLineEdit);

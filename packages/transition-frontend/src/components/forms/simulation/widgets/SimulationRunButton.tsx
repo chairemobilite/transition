@@ -127,4 +127,4 @@ const SimulationRunButton: React.FunctionComponent<SimulationRunButtonProps> = (
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(SimulationRunButton);
+export default withTranslation(['transit', 'notifications'])(SimulationRunButton);

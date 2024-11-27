@@ -323,4 +323,4 @@ class TransitNodeCollectionEdit extends React.Component<
     }
 }
 
-export default withTranslation(['transit', 'main', 'notifications'])(TransitNodeCollectionEdit);
+export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitNodeCollectionEdit);

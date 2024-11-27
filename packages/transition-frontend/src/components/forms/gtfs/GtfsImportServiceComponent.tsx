@@ -74,4 +74,4 @@ const GtfsImportServiceComponent: React.FunctionComponent<GtfsImportServiceCompo
     );
 };
 
-export default withTranslation(['transit', 'main'])(GtfsImportServiceComponent);
+export default withTranslation('main')(GtfsImportServiceComponent);

@@ -117,4 +117,4 @@ const GtfsExistingAgencyImport: React.FunctionComponent<GtfsExistingAgencyImport
     );
 };
 
-export default withTranslation(['transit', 'main'])(GtfsExistingAgencyImport);
+export default withTranslation('transit')(GtfsExistingAgencyImport);

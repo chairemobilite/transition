@@ -62,4 +62,4 @@ const BaseSimulationComponent: React.FunctionComponent<BaseSimulationComponentPr
     );
 };
 
-export default withTranslation(['transit', 'main'])(BaseSimulationComponent);
+export default withTranslation('transit')(BaseSimulationComponent);

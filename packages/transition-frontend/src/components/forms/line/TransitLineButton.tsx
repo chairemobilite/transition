@@ -187,4 +187,4 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitLineButton);
+export default withTranslation(['transit', 'main', 'notifications'])(TransitLineButton);

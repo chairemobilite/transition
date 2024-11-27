@@ -77,4 +77,4 @@ const NotificationArea: React.FunctionComponent<WithTranslation> = (props: WithT
     );
 };
 
-export default withTranslation([])(NotificationArea);
+export default withTranslation()(NotificationArea);

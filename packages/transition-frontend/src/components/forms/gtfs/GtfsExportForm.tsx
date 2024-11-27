@@ -155,4 +155,4 @@ class GtfsExportForm extends ChangeEventsForm<WithTranslation, ChangeEventsState
     }
 }
 
-export default withTranslation(['transit', 'main'])(GtfsExportForm);
+export default withTranslation('transit')(GtfsExportForm);

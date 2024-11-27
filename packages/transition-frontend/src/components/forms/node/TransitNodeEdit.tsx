@@ -496,4 +496,4 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
     }
 }
 
-export default withTranslation(['transit', 'main', 'notifications'])(TransitNodeEdit);
+export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitNodeEdit);

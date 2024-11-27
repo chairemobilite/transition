@@ -32,4 +32,4 @@ const BottomPanel: React.FunctionComponent<LayoutSectionProps> = (props: LayoutS
     return <React.Fragment>{path.path && <TransitPathNodesList selectedPath={path.path} />}</React.Fragment>;
 };
 
-export default withTranslation(['transit', 'main', 'form'])(BottomPanel);
+export default withTranslation()(BottomPanel);

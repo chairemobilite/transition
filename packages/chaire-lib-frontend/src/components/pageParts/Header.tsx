@@ -74,7 +74,7 @@ const UserMenuButton: React.FunctionComponent<UserMenuButtonProps & WithTranslat
         </React.Fragment>
     );
 };
-const TranslatableUserMenuButton = withTranslation('menu')(UserMenuButton);
+const TranslatableUserMenuButton = withTranslation()(UserMenuButton);
 
 interface UserMenuProps {
     user: CliUser;
@@ -115,7 +115,7 @@ const UserMenu: React.FunctionComponent<UserMenuProps & WithTranslation> = (prop
         </div>
     );
 };
-const TranslatableUserMenu = withTranslation('menu')(UserMenu);
+const TranslatableUserMenu = withTranslation()(UserMenu);
 
 const User: React.FunctionComponent<UserProps & WithTranslation> = (props: UserProps & WithTranslation) => {
     const [display, setDisplay] = React.useState('none');

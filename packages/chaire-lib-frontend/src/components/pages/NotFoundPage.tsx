@@ -10,8 +10,8 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 
 export const NotFoundPage: React.FunctionComponent<WithTranslation> = (props: WithTranslation) => (
     <div>
-        404 - <Link to="/">{props.t('BackToHomePage')}</Link>
+        404 - <Link to="/">{props.t('auth:BackToHomePage')}</Link>
     </div>
 );
 
-export default withTranslation(['auth'])(NotFoundPage);
+export default withTranslation('auth')(NotFoundPage);

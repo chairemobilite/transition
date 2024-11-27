@@ -99,4 +99,4 @@ const TransitNodeStatistics: React.FunctionComponent<NodeStatsProps> = (props: N
     );
 };
 
-export default withTranslation(['transit'])(TransitNodeStatistics);
+export default withTranslation('transit')(TransitNodeStatistics);

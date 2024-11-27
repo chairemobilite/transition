@@ -254,4 +254,4 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitPathButton);
+export default withTranslation(['transit', 'main', 'notifications'])(TransitPathButton);

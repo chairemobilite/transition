@@ -100,4 +100,4 @@ const TransitRoutingBaseComponent: React.FunctionComponent<TransitRoutingBaseCom
     );
 };
 
-export default withTranslation(['transit', 'main'])(TransitRoutingBaseComponent);
+export default withTranslation('transit')(TransitRoutingBaseComponent);

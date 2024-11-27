@@ -60,4 +60,4 @@ const PathsImportForm: React.FunctionComponent<PathImportFormProps & WithTransla
     );
 };
 
-export default withTranslation(['transit', 'main'])(PathsImportForm);
+export default withTranslation(['main', 'notifications'])(PathsImportForm);

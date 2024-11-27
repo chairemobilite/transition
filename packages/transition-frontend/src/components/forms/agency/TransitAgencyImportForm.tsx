@@ -46,4 +46,4 @@ const AgenciesImportForm: React.FunctionComponent<AgencyImportFormProps & WithTr
     );
 };
 
-export default withTranslation(['transit', 'main'])(AgenciesImportForm);
+export default withTranslation(['main', 'notifications'])(AgenciesImportForm);
