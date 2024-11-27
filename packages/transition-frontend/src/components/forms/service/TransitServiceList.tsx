@@ -117,4 +117,4 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitServiceList);
+export default withTranslation(['transit', 'main', 'notifications'])(TransitServiceList);

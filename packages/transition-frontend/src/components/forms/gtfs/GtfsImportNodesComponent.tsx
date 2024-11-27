@@ -56,4 +56,4 @@ const GtfsImportNodesComponent: React.FunctionComponent<GtfsImportNodesComponent
     );
 };
 
-export default withTranslation(['transit', 'main'])(GtfsImportNodesComponent);
+export default withTranslation('transit')(GtfsImportNodesComponent);

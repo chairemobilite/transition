@@ -37,4 +37,4 @@ const mapDispatchToProps = (dispatch, props: Omit<AnonymousLoginProps, 'startAno
         dispatch(startAnonymousLogin(props.history, props.location, callback))
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(withTranslation('auth')(AnonymousLogin));
+export default connect(mapStateToProps, mapDispatchToProps)(withTranslation()(AnonymousLogin));

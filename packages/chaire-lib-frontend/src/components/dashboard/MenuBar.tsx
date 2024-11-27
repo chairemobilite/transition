@@ -31,4 +31,4 @@ const MenuBar: React.FunctionComponent<MenuBarProps> = ({ contributions, ...prop
     return <nav id="tr__left-menu">{contributionElements}</nav>;
 };
 
-export default withTranslation(['transit', 'main'])(MenuBar);
+export default withTranslation()(MenuBar);

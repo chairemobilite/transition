@@ -195,4 +195,4 @@ const SelectedObjectButtons: React.FunctionComponent<SelectedObjectButtonsProps<
     );
 };
 
-export default withTranslation([])(SelectedObjectButtons);
+export default withTranslation(['main', 'notifications'])(SelectedObjectButtons);

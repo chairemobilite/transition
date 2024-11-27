@@ -95,4 +95,4 @@ const ScenarioPanel: React.FunctionComponent<WithTranslation> = (props: WithTran
     );
 };
 
-export default withTranslation(['transit', 'main', 'form'])(ScenarioPanel);
+export default withTranslation('transit')(ScenarioPanel);

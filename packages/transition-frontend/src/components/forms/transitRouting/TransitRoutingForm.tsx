@@ -493,4 +493,4 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
     }
 }
 
-export default withTranslation(['transit', 'main'])(TransitRoutingForm);
+export default withTranslation(['transit', 'main', 'form'])(TransitRoutingForm);

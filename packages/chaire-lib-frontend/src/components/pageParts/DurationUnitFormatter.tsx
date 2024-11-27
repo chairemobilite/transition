@@ -65,4 +65,4 @@ const DurationUnitFormatter: React.FunctionComponent<DurationUnitFormatterProps>
     return <span onClick={cycleThroughDestinationUnits}>{formattedValue}</span>;
 };
 
-export default withTranslation([])(DurationUnitFormatter);
+export default withTranslation('main')(DurationUnitFormatter);

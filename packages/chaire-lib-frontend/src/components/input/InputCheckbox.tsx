@@ -267,6 +267,6 @@ class InputCheckboxBooleanInner extends React.Component<InputCheckboxBoolProps> 
     }
 }
 
-export const InputCheckboxBoolean = withTranslation(['main'])(InputCheckboxBooleanInner);
+export const InputCheckboxBoolean = withTranslation('main')(InputCheckboxBooleanInner);
 
 export default InputCheckbox;

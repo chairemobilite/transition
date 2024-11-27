@@ -69,4 +69,4 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitScenarioList);
+export default withTranslation('transit')(TransitScenarioList);

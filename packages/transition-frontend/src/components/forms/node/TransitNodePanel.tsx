@@ -315,4 +315,4 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
     );
 };
 
-export default withTranslation(['transit', 'main', 'form'])(NodePanel);
+export default withTranslation(['transit', 'main', 'notifications'])(NodePanel);

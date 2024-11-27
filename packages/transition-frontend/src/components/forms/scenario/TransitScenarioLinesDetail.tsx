@@ -56,4 +56,4 @@ const TransitScenarioLinesDetail: React.FunctionComponent<TransitScenarioLinesDe
     );
 };
 
-export default withTranslation(['transit', 'main'])(TransitScenarioLinesDetail);
+export default withTranslation()(TransitScenarioLinesDetail);

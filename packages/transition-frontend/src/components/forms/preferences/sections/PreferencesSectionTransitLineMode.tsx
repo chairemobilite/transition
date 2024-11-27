@@ -194,4 +194,4 @@ const PreferencesSectionTransitLineMode: React.FunctionComponent<PreferencesSect
     );
 };
 
-export default withTranslation(['main', 'transit'])(PreferencesSectionTransitLineMode);
+export default withTranslation('transit')(PreferencesSectionTransitLineMode);

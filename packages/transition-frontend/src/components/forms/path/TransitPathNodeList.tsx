@@ -96,4 +96,4 @@ const TransitPathNodeList: React.FunctionComponent<PathListProps> = (props: Path
     );
 };
 
-export default withTranslation(['transit', 'main'])(TransitPathNodeList);
+export default withTranslation('transit')(TransitPathNodeList);

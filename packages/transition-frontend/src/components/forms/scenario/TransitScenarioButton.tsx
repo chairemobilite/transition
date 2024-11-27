@@ -90,4 +90,4 @@ const TransitScenarioButton: React.FunctionComponent<ScenarioButtonProps> = (pro
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitScenarioButton);
+export default withTranslation(['transit', 'main'])(TransitScenarioButton);

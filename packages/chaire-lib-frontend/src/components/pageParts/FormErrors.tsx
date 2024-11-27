@@ -47,4 +47,4 @@ const FormErrors: React.FunctionComponent<FormErrorsProps> = (props: FormErrorsP
     }
 };
 
-export default withTranslation([])(FormErrors);
+export default withTranslation('auth')(FormErrors);

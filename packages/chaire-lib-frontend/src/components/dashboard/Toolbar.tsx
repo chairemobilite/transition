@@ -37,4 +37,4 @@ const Toolbar: React.FunctionComponent<MenuBarProps> = ({ contributions, ...prop
     );
 };
 
-export default withTranslation(['transit', 'main'])(Toolbar);
+export default withTranslation()(Toolbar);

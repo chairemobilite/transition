@@ -200,4 +200,4 @@ class SimulationEdit extends SaveableObjectForm<Simulation, SimulationFormProps,
     }
 }
 
-export default withTranslation(['transit', 'main', 'notifications'])(SimulationEdit);
+export default withTranslation(['transit', 'main', 'form'])(SimulationEdit);

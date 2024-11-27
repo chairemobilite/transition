@@ -65,4 +65,4 @@ class TransitRoutingBatchForm extends ChangeEventsForm<
 
 // ** File upload
 //export default FileUploaderHOC(TransitRoutingForm, null, false);
-export default withTranslation(['transit', 'main'])(TransitRoutingBatchForm);
+export default withTranslation('transit')(TransitRoutingBatchForm);

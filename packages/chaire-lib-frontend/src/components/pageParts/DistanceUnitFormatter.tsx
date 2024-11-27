@@ -59,4 +59,4 @@ const DistanceUnitFormatter: React.FunctionComponent<DistanceUnitFormatterProps>
     return <span onClick={cycleThroughDestinationUnits}>{formattedValue}</span>;
 };
 
-export default withTranslation([])(DistanceUnitFormatter);
+export default withTranslation('main')(DistanceUnitFormatter);

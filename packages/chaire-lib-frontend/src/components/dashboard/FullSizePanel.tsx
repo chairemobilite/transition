@@ -38,4 +38,4 @@ const FullSizePanel: React.FunctionComponent<FullSizePanelProps> = ({
     return <section id="tr__full-size-panel">{contributionElements}</section>;
 };
 
-export default withTranslation(['transit', 'main'])(FullSizePanel);
+export default withTranslation()(FullSizePanel);

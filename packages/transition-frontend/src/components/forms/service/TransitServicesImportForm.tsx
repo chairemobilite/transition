@@ -45,4 +45,4 @@ const ServicesImportForm: React.FunctionComponent<ServicesImportFormProps & With
     );
 };
 
-export default withTranslation(['transit', 'main'])(ServicesImportForm);
+export default withTranslation(['main', 'notifications'])(ServicesImportForm);

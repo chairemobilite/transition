@@ -109,4 +109,4 @@ const Button: React.FunctionComponent<ButtonProps> = (props: ButtonProps) => {
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(Button);
+export default withTranslation('main')(Button);

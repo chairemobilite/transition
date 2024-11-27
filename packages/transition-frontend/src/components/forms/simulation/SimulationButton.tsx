@@ -100,4 +100,4 @@ const SimulationButton: React.FunctionComponent<SimulationButtonProps> = (props:
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(SimulationButton);
+export default withTranslation(['transit', 'main', 'notifications'])(SimulationButton);

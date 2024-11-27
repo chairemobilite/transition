@@ -120,4 +120,4 @@ const UsersComponent: React.FunctionComponent<WithTranslation> = (props: WithTra
     );
 };
 
-export default withTranslation(['admin', 'main'])(UsersComponent);
+export default withTranslation('admin')(UsersComponent);

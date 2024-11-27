@@ -145,4 +145,4 @@ const TransitServiceFilter: React.FunctionComponent<TransitServiceFilterProps> =
     );
 };
 
-export default withTranslation(['transit', 'main'])(TransitServiceFilter);
+export default withTranslation('transit')(TransitServiceFilter);

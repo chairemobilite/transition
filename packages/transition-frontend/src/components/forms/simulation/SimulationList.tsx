@@ -70,4 +70,4 @@ const SimulationList: React.FunctionComponent<SimulationListProps> = (props: Sim
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(SimulationList);
+export default withTranslation('transit')(SimulationList);

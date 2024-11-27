@@ -64,4 +64,4 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
     );
 };
 
-export default withTranslation(['transit', 'main'])(RoutingResults);
+export default withTranslation('transit')(RoutingResults);

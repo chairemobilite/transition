@@ -120,4 +120,4 @@ const CollectionDownloadButtons = function (props: CollectionDownloadButtonsProp
     );
 };
 
-export default withTranslation('main')(CollectionDownloadButtons);
+export default withTranslation()(CollectionDownloadButtons);

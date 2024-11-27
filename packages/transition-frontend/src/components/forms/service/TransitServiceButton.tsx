@@ -135,4 +135,4 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitServiceButton);
+export default withTranslation(['transit', 'main'])(TransitServiceButton);

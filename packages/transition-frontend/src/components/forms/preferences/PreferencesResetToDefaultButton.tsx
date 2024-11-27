@@ -33,4 +33,4 @@ const PreferencesResetToDefaultButton: React.FunctionComponent<PreferencesResetT
     );
 };
 
-export default withTranslation(['main'])(PreferencesResetToDefaultButton);
+export default withTranslation('main')(PreferencesResetToDefaultButton);

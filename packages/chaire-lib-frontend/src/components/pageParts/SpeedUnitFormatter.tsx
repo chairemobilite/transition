@@ -54,4 +54,4 @@ const SpeedUnitFormatter: React.FunctionComponent<SpeedUnitFormatterProps> = (pr
     return <span onClick={cycleThroughDestinationUnits}>{formattedValue}</span>;
 };
 
-export default withTranslation([])(SpeedUnitFormatter);
+export default withTranslation('main')(SpeedUnitFormatter);

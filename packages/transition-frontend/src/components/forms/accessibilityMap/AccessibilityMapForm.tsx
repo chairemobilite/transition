@@ -466,4 +466,4 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
     }
 }
 
-export default withTranslation(['transit', 'main'])(AccessibilityMapForm);
+export default withTranslation(['transit', 'main', 'form', 'notifications'])(AccessibilityMapForm);

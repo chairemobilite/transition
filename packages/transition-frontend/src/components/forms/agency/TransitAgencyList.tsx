@@ -136,4 +136,4 @@ const TransitAgencyList: React.FunctionComponent<AgencyListProps> = (props: Agen
     );
 };
 
-export default withTranslation(['transit', 'main'])(TransitAgencyList);
+export default withTranslation('transit')(TransitAgencyList);

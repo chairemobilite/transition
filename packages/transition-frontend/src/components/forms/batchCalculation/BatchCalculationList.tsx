@@ -69,4 +69,4 @@ const BatchCalculationList: React.FunctionComponent<BatchCalculationListProps> =
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(BatchCalculationList);
+export default withTranslation('transit')(BatchCalculationList);

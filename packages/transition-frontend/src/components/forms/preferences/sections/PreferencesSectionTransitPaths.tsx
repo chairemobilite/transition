@@ -20,4 +20,4 @@ const PreferencesSectionTransitPaths: React.FunctionComponent<PreferencesSection
     return null;
 };
 
-export default withTranslation(['main', 'transit'])(PreferencesSectionTransitPaths);
+export default withTranslation()(PreferencesSectionTransitPaths);

@@ -52,4 +52,4 @@ const TransitServiceFilterableList: React.FunctionComponent<TransitServiceFilter
     );
 };
 
-export default withTranslation(['transit', 'main'])(TransitServiceFilterableList);
+export default withTranslation()(TransitServiceFilterableList);

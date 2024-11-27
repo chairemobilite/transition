@@ -31,7 +31,7 @@ exports[`Should correctly render Unauthorized page 1`] = `
         tReady={false}
       >
         <div>
-          Unauthorized
+          auth:Unauthorized
            - 
           <Link
             to="/login"
@@ -44,7 +44,7 @@ exports[`Should correctly render Unauthorized page 1`] = `
                 href="/login"
                 onClick={[Function]}
               >
-                BackToLoginPage
+                auth:BackToLoginPage
               </a>
             </LinkAnchor>
           </Link>

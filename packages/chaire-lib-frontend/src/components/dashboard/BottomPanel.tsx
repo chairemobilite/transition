@@ -32,4 +32,4 @@ const BottomPanel: React.FunctionComponent<BottomPanelProps> = ({ contributions,
     return <section id="tr__bottom-panel">{contributionElements}</section>;
 };
 
-export default withTranslation(['transit', 'main'])(BottomPanel);
+export default withTranslation()(BottomPanel);

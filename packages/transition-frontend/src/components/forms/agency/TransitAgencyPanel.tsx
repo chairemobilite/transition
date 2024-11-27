@@ -228,4 +228,4 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
     );
 };
 
-export default withTranslation(['transit', 'main', 'form'])(AgencyPanel);
+export default withTranslation(['transit', 'form'])(AgencyPanel);

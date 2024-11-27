@@ -859,4 +859,4 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
     }
 }
 
-export default withTranslation(['transit', 'main'])(TransitPathEdit);
+export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitPathEdit);

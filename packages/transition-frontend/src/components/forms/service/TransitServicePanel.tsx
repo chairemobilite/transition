@@ -104,4 +104,4 @@ const ServicesPanel: React.FunctionComponent<WithTranslation> = (props: WithTran
     );
 };
 
-export default withTranslation(['transit', 'main', 'form'])(ServicesPanel);
+export default withTranslation('transit')(ServicesPanel);

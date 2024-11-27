@@ -104,4 +104,4 @@ const SimulationsPanel: React.FunctionComponent<WithTranslation> = (props: WithT
     );
 };
 
-export default withTranslation(['transit', 'main', 'form'])(SimulationsPanel);
+export default withTranslation()(SimulationsPanel);

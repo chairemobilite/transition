@@ -125,4 +125,4 @@ const TransitScheduleList: React.FunctionComponent<ScheduleListProps> = (props: 
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitScheduleList);
+export default withTranslation('transit')(TransitScheduleList);

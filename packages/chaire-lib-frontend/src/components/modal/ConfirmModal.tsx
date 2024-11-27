@@ -113,4 +113,4 @@ export class ConfirmModal extends React.Component<ConfirmModalProps> {
     }
 }
 
-export default withTranslation()(ConfirmModal);
+export default withTranslation('main')(ConfirmModal);

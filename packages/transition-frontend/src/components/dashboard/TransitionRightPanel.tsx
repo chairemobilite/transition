@@ -52,4 +52,4 @@ const RightPanel: React.FunctionComponent<RightPanelProps> = (props: RightPanelP
     );
 };
 
-export default withTranslation(['transit', 'main', 'form'])(RightPanel);
+export default withTranslation()(RightPanel);

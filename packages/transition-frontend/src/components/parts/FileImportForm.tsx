@@ -80,7 +80,4 @@ const FileImportForm: React.FunctionComponent<FileImportFormProps & WithTranslat
     );
 };
 
-export default FileUploaderHOC(
-    withTranslation(['transit', 'main', 'form', 'notifications'])(FileImportForm),
-    ImporterValidator
-);
+export default FileUploaderHOC(withTranslation('main')(FileImportForm), ImporterValidator);

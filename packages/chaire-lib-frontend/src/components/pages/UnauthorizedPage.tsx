@@ -10,8 +10,8 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 
 export const UnauthorizedPage: React.FunctionComponent<WithTranslation> = (props: WithTranslation) => (
     <div>
-        {props.t('Unauthorized')} - <Link to="/login">{props.t('BackToLoginPage')}</Link>
+        {props.t('auth:Unauthorized')} - <Link to="/login">{props.t('auth:BackToLoginPage')}</Link>
     </div>
 );
 
-export default withTranslation(['auth'])(UnauthorizedPage);
+export default withTranslation('auth')(UnauthorizedPage);

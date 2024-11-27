@@ -355,4 +355,4 @@ class TransitScenarioEdit extends SaveableObjectForm<Scenario, ScenarioFormProps
     }
 }
 
-export default withTranslation(['transit', 'main', 'notifications'])(TransitScenarioEdit);
+export default withTranslation(['transit', 'main', 'form'])(TransitScenarioEdit);

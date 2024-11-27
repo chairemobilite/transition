@@ -139,4 +139,4 @@ const SimulationParametersComponent: React.FunctionComponent<SimulationParameter
     );
 };
 
-export default withTranslation(['transit', 'main'])(SimulationParametersComponent);
+export default withTranslation('transit')(SimulationParametersComponent);

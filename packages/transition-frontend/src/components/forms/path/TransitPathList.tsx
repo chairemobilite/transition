@@ -54,4 +54,4 @@ const TransitPathList: React.FunctionComponent<PathListProps> = (props: PathList
     );
 };
 
-export default withTranslation(['transit', 'main', 'form', 'notifications'])(TransitPathList);
+export default withTranslation('transit')(TransitPathList);
