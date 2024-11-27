@@ -281,9 +281,9 @@ const generateCsvWithTransit = (
         csvAttributes.originLon = origin[0];
         csvAttributes.destinationLat = destination[1];
         csvAttributes.destinationLon = destination[0];
-        (csvAttributes.alternativeSequence = alternativeSequence),
-        (csvAttributes.alternativeTotalSequence = transitResult.getAlternativesCount()),
-        (csvAttributes.status = 'success');
+        csvAttributes.alternativeSequence = alternativeSequence;
+        csvAttributes.alternativeTotalSequence = transitResult.getAlternativesCount();
+        csvAttributes.status = 'success';
 
         for (const attribute in _omit(rest, ['steps'])) {
             if (csvAttributes[attribute] !== undefined) {

@@ -18,8 +18,7 @@ import { MapUpdateLayerEventType } from './MapEventsCallbacks';
 
 // TODO: Make zoomLimit modifiable by user
 const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation
-// eslint-disable-next-line @typescript-eslint/ban-types
-let applyAestheticChangesNonce: Object = new Object();
+let applyAestheticChangesNonce: object = new Object();
 
 /* This file encapsulates global map events, that do not require a specific context */
 

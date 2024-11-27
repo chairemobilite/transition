@@ -132,7 +132,11 @@ const splitOverlapping = <G extends GeoJSON.Geometry, P extends GeoJSON.GeoJsonP
     const notOverlapping: GeoJSON.Feature<G, P>[] = [];
 
     featuresToSplit.forEach((feature, index) => {
-        overlappingIndices.includes(index) ? overlapping.push(feature) : notOverlapping.push(feature);
+        if (overlappingIndices.includes(index)) {
+            overlapping.push(feature);
+        } else {
+            notOverlapping.push(feature);
+        }
     });
     return { overlapping, notOverlapping };
 };

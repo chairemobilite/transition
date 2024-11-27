@@ -226,9 +226,17 @@ class PathGeographyUtils {
         const nodesWithErrors: Feature[] = [];
         const waypointsWithErrors: Feature[] = [];
         const firstPoint = nodesAndWaypointsGeojsons.features[0];
-        firstPoint.properties?.isNode ? nodesWithErrors.push(firstPoint) : waypointsWithErrors.push(firstPoint);
+        if (firstPoint.properties?.isNode) {
+            nodesWithErrors.push(firstPoint);
+        } else {
+            waypointsWithErrors.push(firstPoint);
+        }
         const lastPoint = nodesAndWaypointsGeojsons.features[nodesAndWaypointsGeojsons.features.length - 1];
-        lastPoint.properties?.isNode ? nodesWithErrors.push(lastPoint) : waypointsWithErrors.push(lastPoint);
+        if (lastPoint.properties?.isNode) {
+            nodesWithErrors.push(lastPoint);
+        } else {
+            waypointsWithErrors.push(lastPoint);
+        }
         const pointErrors: { nodes: Feature[]; waypoints: Feature[]; error?: string } = {
             nodes: nodesWithErrors,
             waypoints: waypointsWithErrors
