@@ -39,7 +39,7 @@ const eventManagerMock = {
 
 const enableMocks = () => {
     jest.mock('../../../../lib/services/events/EventManager', () => {
-        () => eventManagerMock;
+        return () => eventManagerMock;
     });
     // Replace the service locator's event manager by the mock
     serviceLocator.addService('eventManager', eventManagerMock);

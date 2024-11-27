@@ -73,7 +73,8 @@ const DocumentationTooltip: React.FunctionComponent<DocumentationTooltipProps> =
                             </p>
                         )}
                         <p>
-                            {props.t('transit:documentationTooltip:Description')}: {definition[props.i18n.language]?.description}
+                            {props.t('transit:documentationTooltip:Description')}:{' '}
+                            {definition[props.i18n.language]?.description}
                         </p>
                     </MathJax.Provider>
                 )}

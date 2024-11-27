@@ -207,7 +207,11 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
     ): Promise<PreferencesModelWithIdAndData> {
         try {
             const _valuesByPath = _cloneDeep(valuesByPath);
-            socket ? await this.updateFromSocket(socket, _valuesByPath) : await this.updateFromFetch(_valuesByPath);
+            if (socket) {
+                await this.updateFromSocket(socket, _valuesByPath);
+            } else {
+                await this.updateFromFetch(_valuesByPath);
+            }
             if (Object.keys(_valuesByPath).length > 0) {
                 for (const path in _valuesByPath) {
                     _set(this._attributes, path, _valuesByPath[path]);
@@ -226,7 +230,11 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
      */
     public async save(socket?: EventEmitter, eventManager?: EventEmitter): Promise<PreferencesModel> {
         try {
-            socket ? await this.updateFromSocket(socket, this.attributes) : await this.updateFromFetch(this.attributes);
+            if (socket) {
+                await this.updateFromSocket(socket, this.attributes);
+            } else {
+                await this.updateFromFetch(this.attributes);
+            }
             eventManager?.emit('preferences.updated');
             this._eventEmitter.emit(prefChangeEvent, this._attributes);
         } catch (error) {

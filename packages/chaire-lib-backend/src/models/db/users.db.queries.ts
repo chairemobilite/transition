@@ -83,9 +83,17 @@ const find = async (
         }
         Object.keys(whereData).forEach((key) => {
             if (key === 'email') {
-                orWhere ? query.orWhereILike(key, whereData[key]) : query.andWhereILike(key, whereData[key]);
+                if (orWhere) {
+                    query.orWhereILike(key, whereData[key]);
+                } else {
+                    query.andWhereILike(key, whereData[key]);
+                }
             } else {
-                orWhere ? query.orWhere(key, whereData[key]) : query.andWhere(key, whereData[key]);
+                if (orWhere) {
+                    query.orWhere(key, whereData[key]);
+                } else {
+                    query.andWhere(key, whereData[key]);
+                }
             }
         });
 
