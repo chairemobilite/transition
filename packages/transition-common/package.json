@@ -19,7 +19,7 @@
     "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write"
   },
   "dependencies": {
-    "@mapbox/polyline": "^1.1.1",
+    "@mapbox/polyline": "^1.2.1",
     "@turf/turf": "^7.1.0",
     "chaire-lib-common": "^0.2.2",
     "child_process": "^1.0.2",
