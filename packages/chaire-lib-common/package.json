@@ -38,7 +38,7 @@
     "node-fetch": "^2.7.0",
     "osmtogeojson": "^3.0.0-beta.5",
     "papaparse": "^5.4.1",
-    "pbf": "^3.2.1",
+    "pbf": "^3.3.0",
     "point-in-polygon-hao": "^0.0.7",
     "random": "^3.0.6",
     "timezone": "^1.0.23",
