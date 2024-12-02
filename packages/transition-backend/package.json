@@ -82,7 +82,6 @@
         "@types/proj4": "^2.5.2",
         "@types/socket.io-client": "^1.4.36",
         "@types/socketio-wildcard": "^2.0.4",
-        "@types/uuid": "^8.3.1",
         "@types/workerpool": "^6.1.0",
         "@typescript-eslint/eslint-plugin": "^8.16.0",
         "@typescript-eslint/parser": "^8.16.0",
