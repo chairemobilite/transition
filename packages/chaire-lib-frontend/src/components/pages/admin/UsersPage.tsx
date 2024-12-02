@@ -5,12 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
 import { History } from 'history';
 import Loadable from 'react-loadable';
 import Loader from 'react-spinners/HashLoader';
 
-export interface UsersPageProps extends WithTranslation {
+export interface UsersPageProps {
     isAuthenticated: boolean;
     history: History;
     // TODO Type the user
@@ -44,4 +43,4 @@ class UsersPage extends React.Component<UsersPageProps> {
     }
 }
 
-export default withTranslation()(UsersPage);
+export default UsersPage;

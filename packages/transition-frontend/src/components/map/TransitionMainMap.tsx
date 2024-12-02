@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import ReactDom from 'react-dom';
-import { withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 import MapboxGL from 'mapbox-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { default as elementResizedEvent, unbind as removeResizeListener } from 'element-resize-event';
@@ -54,7 +54,7 @@ interface MainMapState {
  * chaire-lib and offer the possibility to pass the application modules when the
  * API for it has stabilised.
  */
-class MainMap extends React.Component<MainMapProps, MainMapState> {
+class MainMap extends React.Component<MainMapProps & WithTranslation, MainMapState> {
     private layerManager: MapLayerManager;
     private pathLayerManager: PathMapLayerManager;
     private defaultZoomArray: [number];
@@ -65,7 +65,7 @@ class MainMap extends React.Component<MainMapProps, MainMapState> {
     private mapContainer;
     private draw: MapboxDraw | undefined;
 
-    constructor(props: MainMapProps) {
+    constructor(props: MainMapProps & WithTranslation) {
         super(props);
 
         this.state = {

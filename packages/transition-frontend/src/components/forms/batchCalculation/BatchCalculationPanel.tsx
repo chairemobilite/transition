@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import BatchCalculationList from './BatchCalculationList';
@@ -18,9 +17,7 @@ export interface CalculationPanelPanelProps {
     availableRoutingModes?: string[];
 }
 
-const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps & WithTranslation> = (
-    props: CalculationPanelPanelProps & WithTranslation
-) => {
+const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps> = (props: CalculationPanelPanelProps) => {
     const [scenarioCollection, setScenarioCollection] = React.useState<ScenarioCollection | undefined>(
         serviceLocator.collectionManager.get('scenarios')
     );
@@ -69,4 +66,4 @@ const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps & Wit
     );
 };
 
-export default withTranslation()(CalculationPanel);
+export default CalculationPanel;

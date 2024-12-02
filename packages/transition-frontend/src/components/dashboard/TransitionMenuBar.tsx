@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
@@ -14,7 +14,9 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 // TODO Menu items should not be provided directly by widgets, it should be
 // built from descriptive elements, or contributions should register their own
 // menu. This is just a copy-paste from the legacy workspace.
-const MenuBar: React.FunctionComponent<LayoutSectionProps> = (props: LayoutSectionProps) => {
+const MenuBar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
+    props: LayoutSectionProps & WithTranslation
+) => {
     const sectionsConfig = Preferences.get('sections.transition');
 
     const onClickHandler = function (e) {

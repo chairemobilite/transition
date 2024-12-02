@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation } from 'react-i18next';
 
 import { Contribution, LayoutSectionProps, PanelSectionProps } from '../../services/dashboard/DashboardContribution';
 import ErrorBoundary from '../pageParts/ErrorBoundary';
@@ -47,4 +46,4 @@ const RightPanel: React.FunctionComponent<RightPanelProps> = ({ contributions, .
     );
 };
 
-export default withTranslation()(RightPanel);
+export default RightPanel;

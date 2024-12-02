@@ -6,7 +6,6 @@
  */
 import React from 'react';
 import { connect } from 'react-redux';
-import { withTranslation, WithTranslation } from 'react-i18next';
 import { History, Location } from 'history';
 
 import { startAnonymousLogin } from '../../../../actions/Auth';
@@ -19,9 +18,7 @@ export interface AnonymousLoginProps {
     login?: boolean;
 }
 
-export const AnonymousLogin: React.FunctionComponent<AnonymousLoginProps & WithTranslation> = (
-    props: AnonymousLoginProps & WithTranslation
-) => {
+export const AnonymousLogin: React.FunctionComponent<AnonymousLoginProps> = (props: AnonymousLoginProps) => {
     React.useEffect(() => {
         props.startAnonymousLogin();
     }, []);
@@ -37,4 +34,4 @@ const mapDispatchToProps = (dispatch, props: Omit<AnonymousLoginProps, 'startAno
         dispatch(startAnonymousLogin(props.history, props.location, callback))
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(withTranslation()(AnonymousLogin));
+export default connect(mapStateToProps, mapDispatchToProps)(AnonymousLogin);

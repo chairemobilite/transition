@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
@@ -15,8 +15,8 @@ import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/Input
 import PreferencesSectionLineModeProps from '../PreferencesSectionLineModeProps';
 import { parseIntOrNull, parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 
-const PreferencesSectionTransitLineMode: React.FunctionComponent<PreferencesSectionLineModeProps> = (
-    props: PreferencesSectionLineModeProps
+const PreferencesSectionTransitLineMode: React.FunctionComponent<PreferencesSectionLineModeProps & WithTranslation> = (
+    props: PreferencesSectionLineModeProps & WithTranslation
 ) => {
     const prefs = props.preferences.getAttributes();
 

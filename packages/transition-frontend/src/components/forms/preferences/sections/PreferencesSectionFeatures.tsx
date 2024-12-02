@@ -6,14 +6,14 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { withTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import PreferencesSectionProps from '../PreferencesSectionProps';
 
-const PreferencesSectionFeatures: React.FunctionComponent<PreferencesSectionProps> = (
-    props: PreferencesSectionProps
+const PreferencesSectionFeatures: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
+    props: PreferencesSectionProps & WithTranslation
 ) => {
     const prefs = props.preferences.getAttributes();
 

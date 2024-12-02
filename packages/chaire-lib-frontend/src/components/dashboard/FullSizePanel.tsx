@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation } from 'react-i18next';
 
 import { Contribution, LayoutSectionProps } from '../../services/dashboard/DashboardContribution';
 
@@ -38,4 +37,4 @@ const FullSizePanel: React.FunctionComponent<FullSizePanelProps> = ({
     return <section id="tr__full-size-panel">{contributionElements}</section>;
 };
 
-export default withTranslation()(FullSizePanel);
+export default FullSizePanel;

@@ -11,7 +11,7 @@ import { AgencyImportData } from 'transition-common/lib/services/gtfs/GtfsImport
 import { InputCheckbox } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import GtfsExistingAgencyImport from './GtfsExistingAgencyImport';
 
-export interface GtfsImportAgenciesComponentProps extends WithTranslation {
+export interface GtfsImportAgenciesComponentProps {
     id: string;
     disabled?: boolean;
     value?: string[];
@@ -67,4 +67,4 @@ const GtfsImportAgenciesComponent: React.FunctionComponent<GtfsImportAgenciesCom
     );
 };
 
-export default withTranslation()(GtfsImportAgenciesComponent);
+export default GtfsImportAgenciesComponent;

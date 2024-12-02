@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Active section change 1`] = `
-<withI18nextTranslation(BottomPanel)
+<BottomPanel
   activeSection="test"
   contributions={
     [
@@ -25,49 +25,21 @@ exports[`Active section change 1`] = `
     ]
   }
 >
-  <BottomPanel
-    activeSection="test"
-    contributions={
-      [
-        {
-          "create": [Function],
-          "id": "testBottomPanel",
-          "placement": "bottomPanel",
-          "section": "test",
-        },
-        {
-          "create": [Function],
-          "id": "mainBottomPanel",
-          "placement": "bottomPanel",
-        },
-        {
-          "create": [Function],
-          "id": "fooBottomPanel",
-          "placement": "bottomPanel",
-          "section": "foo",
-        },
-      ]
-    }
-    i18n={{}}
-    t={[Function]}
-    tReady={false}
+  <section
+    id="tr__bottom-panel"
   >
-    <section
-      id="tr__bottom-panel"
-    >
-      <div>
-        test
-      </div>
-      <div>
-        Should always be there
-      </div>
-    </section>
-  </BottomPanel>
-</withI18nextTranslation(BottomPanel)>
+    <div>
+      test
+    </div>
+    <div>
+      Should always be there
+    </div>
+  </section>
+</BottomPanel>
 `;
 
 exports[`Active section change 2`] = `
-<withI18nextTranslation(BottomPanel)
+<BottomPanel
   activeSection="other"
   contributions={
     [
@@ -91,42 +63,14 @@ exports[`Active section change 2`] = `
     ]
   }
 >
-  <BottomPanel
-    activeSection="other"
-    contributions={
-      [
-        {
-          "create": [Function],
-          "id": "testBottomPanel",
-          "placement": "bottomPanel",
-          "section": "test",
-        },
-        {
-          "create": [Function],
-          "id": "mainBottomPanel",
-          "placement": "bottomPanel",
-        },
-        {
-          "create": [Function],
-          "id": "fooBottomPanel",
-          "placement": "bottomPanel",
-          "section": "foo",
-        },
-      ]
-    }
-    i18n={{}}
-    t={[Function]}
-    tReady={false}
+  <section
+    id="tr__bottom-panel"
   >
-    <section
-      id="tr__bottom-panel"
-    >
-      <div>
-        Should always be there
-      </div>
-    </section>
-  </BottomPanel>
-</withI18nextTranslation(BottomPanel)>
+    <div>
+      Should always be there
+    </div>
+  </section>
+</BottomPanel>
 `;
 
 exports[`One active section with contribution 1`] = `
@@ -151,9 +95,6 @@ exports[`One active section with contribution and props 1`] = `
   </div>
   <div
     activeSection="foo"
-    i18n={{}}
-    t={[Function]}
-    tReady={false}
   >
     Foo section, with props
   </div>

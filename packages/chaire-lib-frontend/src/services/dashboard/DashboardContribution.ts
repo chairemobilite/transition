@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { WithTranslation } from 'react-i18next';
 
 /** These are various locations in the layout where a widget can be drawn.
  *
@@ -23,7 +22,7 @@ export type layoutPieces = 'menu' | 'toolbar' | 'primarySidebar' | 'secondarySid
  * @interface LayoutSectionProps
  * @extends {WithTranslation}
  */
-export interface LayoutSectionProps extends WithTranslation {
+export interface LayoutSectionProps {
     activeSection: string;
     key?: string;
 }

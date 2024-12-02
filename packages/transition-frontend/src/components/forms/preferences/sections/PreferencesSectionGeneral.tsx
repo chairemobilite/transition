@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
@@ -17,8 +17,8 @@ import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import PreferencesSectionProps from '../PreferencesSectionProps';
 import moment from 'moment';
 
-const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps> = (
-    props: PreferencesSectionProps
+const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
+    props: PreferencesSectionProps & WithTranslation
 ) => {
     const prefs = props.preferences.getAttributes();
 

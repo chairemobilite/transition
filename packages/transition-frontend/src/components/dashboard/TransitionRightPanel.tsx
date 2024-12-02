@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation } from 'react-i18next';
 
 import TransitNodesPanel from '../forms/node/TransitNodePanel';
 import TransitAgenciesPanel from '../forms/agency/TransitAgencyPanel';
@@ -52,4 +51,4 @@ const RightPanel: React.FunctionComponent<RightPanelProps> = (props: RightPanelP
     );
 };
 
-export default withTranslation()(RightPanel);
+export default RightPanel;

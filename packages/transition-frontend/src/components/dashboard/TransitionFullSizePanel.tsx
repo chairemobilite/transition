@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
@@ -56,4 +55,4 @@ const FullSizePanel: React.FunctionComponent<LayoutSectionProps> = (props: Layou
     );
 };
 
-export default withTranslation()(FullSizePanel);
+export default FullSizePanel;

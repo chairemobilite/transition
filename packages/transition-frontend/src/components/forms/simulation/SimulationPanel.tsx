@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
@@ -21,7 +20,7 @@ interface SimulationPanelState {
     selectedSimulation?: Simulation;
 }
 
-const SimulationsPanel: React.FunctionComponent<WithTranslation> = (props: WithTranslation) => {
+const SimulationsPanel: React.FunctionComponent = () => {
     const serviceCollection = serviceLocator.collectionManager.get('services');
     const agencyCollection = serviceLocator.collectionManager.get('agencies');
     const lineCollection = serviceLocator.collectionManager.get('lines');
@@ -104,4 +103,4 @@ const SimulationsPanel: React.FunctionComponent<WithTranslation> = (props: WithT
     );
 };
 
-export default withTranslation()(SimulationsPanel);
+export default SimulationsPanel;
