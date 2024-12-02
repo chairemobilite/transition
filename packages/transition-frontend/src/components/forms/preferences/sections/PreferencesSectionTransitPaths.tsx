@@ -5,11 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import Collapsible from 'react-collapsible';
-import { withTranslation } from 'react-i18next';
-import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
-import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
-import InputColor from 'chaire-lib-frontend/lib/components/input/InputColor';
+
 import PreferencesSectionProps from '../PreferencesSectionProps';
 
 const PreferencesSectionTransitPaths: React.FunctionComponent<PreferencesSectionProps> = (
@@ -20,4 +16,4 @@ const PreferencesSectionTransitPaths: React.FunctionComponent<PreferencesSection
     return null;
 };
 
-export default withTranslation()(PreferencesSectionTransitPaths);
+export default PreferencesSectionTransitPaths;

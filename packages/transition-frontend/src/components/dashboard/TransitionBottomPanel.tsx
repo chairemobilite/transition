@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation } from 'react-i18next';
 
 import TransitPathNodesList from '../forms/path/TransitPathNodeList';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -32,4 +31,4 @@ const BottomPanel: React.FunctionComponent<LayoutSectionProps> = (props: LayoutS
     return <React.Fragment>{path.path && <TransitPathNodesList selectedPath={path.path} />}</React.Fragment>;
 };
 
-export default withTranslation()(BottomPanel);
+export default BottomPanel;

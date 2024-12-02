@@ -323,14 +323,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         const Map = this.props.mainMap;
 
         const mapComponent = (
-            <Map
-                i18n={this.props.i18n}
-                t={this.props.t}
-                tReady={this.props.tReady}
-                center={mapCenter}
-                zoom={mapZoom}
-                activeSection={this.state.activeSection}
-            >
+            <Map center={mapCenter} zoom={mapZoom} activeSection={this.state.activeSection}>
                 {this.state.showFullSizePanel && (
                     <FullSizePanel
                         activeSection={this.state.activeSection}

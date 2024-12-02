@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation } from 'react-i18next';
 
 import { Contribution, LayoutSectionProps } from '../../services/dashboard/DashboardContribution';
 
@@ -31,4 +30,4 @@ const MenuBar: React.FunctionComponent<MenuBarProps> = ({ contributions, ...prop
     return <nav id="tr__left-menu">{contributionElements}</nav>;
 };
 
-export default withTranslation()(MenuBar);
+export default MenuBar;

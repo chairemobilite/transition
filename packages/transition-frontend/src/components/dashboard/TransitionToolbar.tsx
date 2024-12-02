@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 import Menu, { MenuItem } from 'rc-menu';
 
 import 'rc-menu/assets/index.css';
@@ -26,8 +26,8 @@ interface TransitionToolbarState {
     dataNeedsUpdate: boolean;
 }
 
-class Toolbar extends React.Component<LayoutSectionProps, TransitionToolbarState> {
-    constructor(props: LayoutSectionProps) {
+class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, TransitionToolbarState> {
+    constructor(props: LayoutSectionProps & WithTranslation) {
         super(props);
 
         this.state = {

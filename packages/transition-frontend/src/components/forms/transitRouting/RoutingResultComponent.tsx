@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { useState } from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons/faAngleRight';
 import { faAngleLeft } from '@fortawesome/free-solid-svg-icons/faAngleLeft';
 
@@ -26,7 +25,7 @@ export interface RoutingResultStatus {
     activeStepIndex: number | null;
 }
 
-export interface TransitRoutingResultsProps extends WithTranslation {
+export interface TransitRoutingResultsProps {
     result: RoutingResult;
     request: TransitRoutingAttributes;
 }
@@ -115,4 +114,4 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
     );
 };
 
-export default withTranslation()(RoutingResults);
+export default RoutingResults;

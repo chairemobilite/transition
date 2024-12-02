@@ -17,7 +17,7 @@ import appConfiguration, { UserMenuItem } from '../../config/application.config'
 import { History } from 'history';
 import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
 
-export interface HeaderProps extends WithTranslation {
+interface HeaderProps {
     user: CliUser;
     path: any;
     startLogout: () => void;
@@ -25,19 +25,17 @@ export interface HeaderProps extends WithTranslation {
     history: History;
 }
 
-interface UserProps {
+interface UserProps extends WithTranslation {
     user: CliUser;
 }
 
-interface UserMenuButtonProps {
+interface UserMenuButtonProps extends WithTranslation {
     menuItem: UserMenuItem;
     modalOpenedCallback: (isOpened: boolean) => void;
     closeMenu: () => void;
 }
 
-const UserMenuButton: React.FunctionComponent<UserMenuButtonProps & WithTranslation> = (
-    props: UserMenuButtonProps & WithTranslation
-) => {
+const UserMenuButton: React.FunctionComponent<UserMenuButtonProps> = (props: UserMenuButtonProps) => {
     const [modalIsOpened, setModalIsOpened] = React.useState(false);
     const toggleModal = (opened: boolean) => {
         setModalIsOpened(opened);
@@ -82,7 +80,7 @@ interface UserMenuProps {
     closeMenu: () => void;
 }
 
-const UserMenu: React.FunctionComponent<UserMenuProps & WithTranslation> = (props: UserMenuProps & WithTranslation) => {
+const UserMenu: React.FunctionComponent<UserMenuProps> = (props: UserMenuProps) => {
     const [hasModalOpened, setHasModalOpened] = React.useState(false);
     React.useLayoutEffect(() => {
         function handleClickOutside(event) {
@@ -115,9 +113,8 @@ const UserMenu: React.FunctionComponent<UserMenuProps & WithTranslation> = (prop
         </div>
     );
 };
-const TranslatableUserMenu = withTranslation()(UserMenu);
 
-const User: React.FunctionComponent<UserProps & WithTranslation> = (props: UserProps & WithTranslation) => {
+const User: React.FunctionComponent<UserProps> = (props: UserProps) => {
     const [display, setDisplay] = React.useState('none');
     const wrapperRef = React.useRef(null);
     return (
@@ -134,7 +131,7 @@ const User: React.FunctionComponent<UserProps & WithTranslation> = (props: UserP
                 {props.user.username || props.user.email || props.t('menu:User')}
             </button>
             {display !== 'none' && (
-                <TranslatableUserMenu wrapperRef={wrapperRef} user={props.user} closeMenu={() => setDisplay('none')} />
+                <UserMenu wrapperRef={wrapperRef} user={props.user} closeMenu={() => setDisplay('none')} />
             )}
         </li>
     );
@@ -142,7 +139,7 @@ const User: React.FunctionComponent<UserProps & WithTranslation> = (props: UserP
 
 const TranslatableUser = withTranslation('menu')(User);
 
-const Header: React.FunctionComponent<HeaderProps> = (props: HeaderProps) => {
+const Header: React.FunctionComponent<HeaderProps & WithTranslation> = (props: HeaderProps & WithTranslation) => {
     const appTitle = config.appTitle;
     const title = config.title[props.i18n.language];
     return (

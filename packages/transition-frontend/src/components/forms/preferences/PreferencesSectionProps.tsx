@@ -5,9 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { PreferencesClass } from 'chaire-lib-common/lib/config/Preferences';
-import { WithTranslation } from 'react-i18next';
 
-interface PreferencesSectionProps extends WithTranslation {
+interface PreferencesSectionProps {
     preferences: PreferencesClass;
     onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
     resetPrefToDefault: (path: string) => void;

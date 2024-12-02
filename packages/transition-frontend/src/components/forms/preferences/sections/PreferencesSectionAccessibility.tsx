@@ -6,12 +6,12 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 import PreferencesSectionProps from '../PreferencesSectionProps';
 import PreferencesColorComponent from '../PreferencesColorComponent';
 
-const PreferencesSectionTransitRouting: React.FunctionComponent<PreferencesSectionProps> = (
-    props: PreferencesSectionProps
+const PreferencesSectionTransitRouting: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
+    props: PreferencesSectionProps & WithTranslation
 ) => (
     <Collapsible trigger={props.t('transit:transitRouting:AccessibilityMap')} open={true} transitionTime={100}>
         <div className="tr__form-section">

@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
 import _uniq from 'lodash/uniq';
 
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
@@ -14,7 +13,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Line from 'transition-common/lib/services/line/Line';
 import Agency from 'transition-common/lib/services/agency/Agency';
 
-export interface TransitScenarioLinesDetailProps extends WithTranslation {
+export interface TransitScenarioLinesDetailProps {
     scenario: Scenario;
     paths: GeoJSON.FeatureCollection<GeoJSON.LineString, PathAttributes>;
 }
@@ -56,4 +55,4 @@ const TransitScenarioLinesDetail: React.FunctionComponent<TransitScenarioLinesDe
     );
 };
 
-export default withTranslation()(TransitScenarioLinesDetail);
+export default TransitScenarioLinesDetail;

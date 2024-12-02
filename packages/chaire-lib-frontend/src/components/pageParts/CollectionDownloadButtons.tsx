@@ -8,13 +8,12 @@ import React from 'react';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons/faFileDownload';
 import moment from 'moment';
 import { unparse } from 'papaparse';
-import { withTranslation, WithTranslation } from 'react-i18next';
 
 import Button from '../input/Button';
 import DownloadsUtils from '../../services/DownloadsService';
 import GenericCollection from 'chaire-lib-common/lib/utils/objects/GenericCollection';
 
-export interface CollectionDownloadButtonsProps extends WithTranslation {
+export interface CollectionDownloadButtonsProps {
     collection: GenericCollection<any>;
 }
 
@@ -120,4 +119,4 @@ const CollectionDownloadButtons = function (props: CollectionDownloadButtonsProp
     );
 };
 
-export default withTranslation()(CollectionDownloadButtons);
+export default CollectionDownloadButtons;

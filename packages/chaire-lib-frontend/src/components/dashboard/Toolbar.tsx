@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation } from 'react-i18next';
 
 import { Contribution, LayoutSectionProps } from '../../services/dashboard/DashboardContribution';
 import NotificationArea from './NotificationArea';
@@ -37,4 +36,4 @@ const Toolbar: React.FunctionComponent<MenuBarProps> = ({ contributions, ...prop
     );
 };
 
-export default withTranslation()(Toolbar);
+export default Toolbar;

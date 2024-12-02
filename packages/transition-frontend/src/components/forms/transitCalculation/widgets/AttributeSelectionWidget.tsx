@@ -57,9 +57,11 @@ function CsvAttributeSelectionWidgetBase<T extends object>(
     );
 }
 
-export const CsvAttributeSelectionWidget = withTranslation('transit')(
-    CsvAttributeSelectionWidgetBase
-) as unknown as <T extends object>(props: BatchCsvAttributeSelectionComponentProps<T>) => JSX.Element;
+export const CsvAttributeSelectionWidget = withTranslation('transit')(CsvAttributeSelectionWidgetBase) as unknown as <
+    T extends object
+>(
+    props: BatchCsvAttributeSelectionComponentProps<T>
+) => JSX.Element;
 
 function BooleanAttributeSelectionWidgetBase<T extends object>(
     props: BatchAttributeSelectionComponentProps<T> & WithTranslation
@@ -172,6 +174,4 @@ function TimeFormatAttributeSelectionWidgetBase<T extends Partial<TransitDemandF
     );
 }
 
-export const TimeFormatAttributeSelectionWidget = withTranslation('transit')(
-    TimeFormatAttributeSelectionWidgetBase
-);
+export const TimeFormatAttributeSelectionWidget = withTranslation('transit')(TimeFormatAttributeSelectionWidgetBase);

@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation } from 'react-i18next';
 
 import { Contribution, LayoutSectionProps } from '../../services/dashboard/DashboardContribution';
 
@@ -32,4 +31,4 @@ const BottomPanel: React.FunctionComponent<BottomPanelProps> = ({ contributions,
     return <section id="tr__bottom-panel">{contributionElements}</section>;
 };
 
-export default withTranslation()(BottomPanel);
+export default BottomPanel;
