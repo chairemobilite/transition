@@ -37,7 +37,7 @@
     "moment-business-days": "^1.2.0",
     "p-queue": "^6.6.2",
     "pbf": "^3.3.0",
-    "random": "^3.0.6",
+    "random": "^5.1.1",
     "slugify": "^1.6.5",
     "typescript": "^5.7.2",
     "uuid": "^11.0.3"
