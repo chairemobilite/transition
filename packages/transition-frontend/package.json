@@ -34,7 +34,7 @@
     "child_process": "^1.0.2",
     "date-fns": "^2.30.0",
     "element-resize-event": "^3.0.6",
-    "history": "^4.9.0",
+    "history": "^4.10.1",
     "i18next": "^24.0.2",
     "lodash": "^4.17.21",
     "mapbox-gl": "chairemobilite/mapbox-gl-js#39bbf9aeb1859424e29cff2584715fddc9d018b9",
