@@ -10914,12 +10914,10 @@ random-bytes@~1.0.0:
   resolved "https://registry.yarnpkg.com/random-bytes/-/random-bytes-1.0.0.tgz#4f68a1dc0ae58bd3fb95848c30324db75d64360b"
   integrity sha1-T2ih3Arli9P7lYSMMDJNt11kNgs=
 
-random@^3.0.6:
-  version "3.0.6"
-  resolved "https://registry.yarnpkg.com/random/-/random-3.0.6.tgz#c918e9498dee461affde72986c79ac4d9ef486cf"
-  integrity sha512-B53pp/8eFBxULg6sfQgjjmy3vZ2CWVt0Nk4OgkSpvmAf3VXfcEUgGASbNWbXiTiExWe8hCIf5HlddNHzrte9jg==
-  dependencies:
-    seedrandom "^3.0.5"
+random@^5.1.1:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/random/-/random-5.1.1.tgz#fc721bcfcc586e73d3dc93e2d8571cf8f452ab81"
+  integrity sha512-iidvORUvXY1ItoYxO0eduHCKl22QV0G6460vRHe862dUagJKPhRyjUGwK8ioOCG4NRuFvExHFpqMngsnr2miwA==
 
 randombytes@^2.1.0:
   version "2.1.0"

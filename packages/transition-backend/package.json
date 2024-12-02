@@ -59,7 +59,7 @@
         "pbf": "^3.3.0",
         "polygon-clipping": "^0.15.3",
         "proj4": "^2.7.5",
-        "random": "^3.0.6",
+        "random": "^5.1.1",
         "serve-favicon": "^2.5.0",
         "slugify": "^1.6.3",
         "socket.io": "^2.5.1",
