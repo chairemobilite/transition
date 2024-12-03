@@ -116,7 +116,6 @@ export class LoginPage extends React.Component<LoginPageProps & WithTranslation,
                         id="password"
                         type="password"
                         className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
-                        autoFocus
                         onChange={this.onPasswordChange}
                     />
                     {this.props.withForgotPassword === true && (

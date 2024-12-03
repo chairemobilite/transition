@@ -53,7 +53,6 @@ exports[`Login page rendering Allow forget password 1`] = `
           auth:Password
         </label>
         <input
-          autoFocus={true}
           className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
           id="password"
           name="password"
@@ -155,7 +154,6 @@ exports[`Login page rendering Allow registration 1`] = `
           auth:Password
         </label>
         <input
-          autoFocus={true}
           className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
           id="password"
           name="password"
@@ -247,7 +245,6 @@ exports[`Login page rendering Registration not allowed 1`] = `
           auth:Password
         </label>
         <input
-          autoFocus={true}
           className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
           id="password"
           name="password"
