@@ -23,8 +23,8 @@
     "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.6.0",
-    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@fortawesome/fontawesome-svg-core": "^6.7.1",
+    "@fortawesome/free-solid-svg-icons": "^6.7.1",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mapbox/mapbox-gl-draw": "^1.4.3",
     "@turf/turf": "^7.1.0",
