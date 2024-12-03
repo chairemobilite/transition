@@ -35,7 +35,7 @@
     "history": "^4.10.1",
     "i18next": "^24.0.5",
     "i18next-browser-languagedetector": "^8.0.0",
-    "i18next-http-backend": "^2.7.1",
+    "i18next-http-backend": "^3.0.1",
     "json-loader": "^0.5.7",
     "lodash": "^4.17.21",
     "mapbox-gl": "chairemobilite/mapbox-gl-js#39bbf9aeb1859424e29cff2584715fddc9d018b9",
