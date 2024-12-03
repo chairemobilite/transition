@@ -79,7 +79,7 @@ exports[`All props 1`] = `
           className="react-datepicker__month-container"
         >
           <div
-            className="react-datepicker__header"
+            className="react-datepicker__header "
           >
             <div
               className="react-datepicker__current-month react-datepicker__current-month--hasYearDropdown react-datepicker__current-month--hasMonthDropdown"
@@ -1796,7 +1796,7 @@ exports[`Localization 1`] = `
           className="react-datepicker__month-container"
         >
           <div
-            className="react-datepicker__header"
+            className="react-datepicker__header "
           >
             <div
               className="react-datepicker__current-month react-datepicker__current-month--hasYearDropdown react-datepicker__current-month--hasMonthDropdown"
