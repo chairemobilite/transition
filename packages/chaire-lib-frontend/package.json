@@ -33,7 +33,7 @@
     "font-awesome": "^4.7.0",
     "geojson": "^0.5.0",
     "history": "^4.10.1",
-    "i18next": "^24.0.2",
+    "i18next": "^24.0.5",
     "i18next-browser-languagedetector": "^8.0.0",
     "i18next-http-backend": "^2.7.1",
     "json-loader": "^0.5.7",
