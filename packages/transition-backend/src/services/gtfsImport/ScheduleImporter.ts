@@ -135,7 +135,7 @@ const generateAndImportSchedules = async (
                 await linesDbQueries.update(line.getId(), line.attributes, { returning: 'id' });
                 // Save schedules for line
                 const saveSchedPromises = newSchedules.map((schedule) => {
-                    scheduleDbQueries.create(schedule.attributes);
+                    scheduleDbQueries.save(schedule.attributes);
                 });
                 await Promise.all(saveSchedPromises);
                 await lineObjectToCache(line);
@@ -229,7 +229,7 @@ const createSchedule = (
         const period = periods[j];
         const periodSchedule = {
             id: uuidV4(),
-            schedule_id: schedule.getId(),
+            schedule_id: schedule.attributes.integer_id,
             start_at_hour: period.startAtHour,
             end_at_hour: period.endAtHour,
             period_shortname: period.shortname,
@@ -332,8 +332,7 @@ const generateExactTrips = (schedule: Schedule, periods: TripAndStopTimes[][], i
 
             const newTrip = {
                 id: uuidV4(),
-                schedule_id: schedule.getId(),
-                schedule_period_id: schedule.getAttributes().periods[periodIndex].id,
+                schedule_period_id: schedule.getAttributes().periods[periodIndex].integer_id,
                 path_id: pathId,
                 departure_time_seconds: tripDepartureTimeSeconds,
                 arrival_time_seconds: tripArrivalTimeSeconds,
@@ -477,9 +476,14 @@ const generateSchedulesForLine = async (
             }
 
             line.addSchedule(schedule);
-            if (existingSchedules[schedule.attributes.service_id]) {
+            if (
+                existingSchedules[schedule.attributes.service_id] &&
+                typeof existingSchedules[schedule.attributes.service_id].attributes.integer_id === 'number'
+            ) {
                 // Delete previous schedules for this service
-                await scheduleDbQueries.delete(existingSchedules[schedule.attributes.service_id].getId());
+                await scheduleDbQueries.delete(
+                    existingSchedules[schedule.attributes.service_id].attributes.integer_id as number
+                );
             }
         }
 

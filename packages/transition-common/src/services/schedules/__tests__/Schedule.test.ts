@@ -243,7 +243,7 @@ describe('generateForPeriod', () => {
     const smallPeriodsForUpdate: SchedulePeriod[] = [{
         // Period with start and end hours and multiple trips
         id: uuidV4(),
-        schedule_id: scheduleAttributesForUpdate.id,
+        schedule_id: scheduleAttributesForUpdate.integer_id,
         inbound_path_id: undefined,
         outbound_path_id: path.getId(),       
         period_shortname: "period1",
@@ -253,7 +253,7 @@ describe('generateForPeriod', () => {
         trips: []
     }, {
         id: uuidV4(),
-        schedule_id: scheduleAttributesForUpdate.id,
+        schedule_id: scheduleAttributesForUpdate.integer_id,
         inbound_path_id: undefined,
         outbound_path_id: path.getId(),
         period_shortname: "period2",

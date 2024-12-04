@@ -39,11 +39,22 @@ export const stringifyDataSourceIds = function (dataSourceIds: string[]): string
  *
  * @param knex The database configuration object
  * @param tableName The name of the table on which to execute the operation
- * @param id The ID of the object
+ * @param {string|number} id The ID of the object, numeric for tables that have
+ * numeric primary keys, or uuid strings for tables that have uuid primary keys
+ * @param {Object} options Additional options parameter.
+ * @param {Knex.Transaction} [options.transaction] - transaction that this query
+ * is part of
  * @returns Whether an object with the given ID exists in the table
  */
-export const exists = async (knex: Knex, tableName: string, id: string): Promise<boolean> => {
-    if (!uuidValidate(id)) {
+export const exists = async (
+    knex: Knex,
+    tableName: string,
+    id: string | number,
+    options: {
+        transaction?: Knex.Transaction;
+    } = {}
+): Promise<boolean> => {
+    if (typeof id === 'string' && !uuidValidate(id)) {
         throw new TrError(
             `Cannot verify if the object exists in ${tableName} because the required parameter id is missing, blank or not a valid uuid`,
             'DBQEX0001',
@@ -51,7 +62,11 @@ export const exists = async (knex: Knex, tableName: string, id: string): Promise
         );
     }
     try {
-        const rows = await knex(tableName).count('*').where('id', id);
+        const query = knex(tableName).count('*').where('id', id);
+        if (options.transaction) {
+            query.transacting(options.transaction);
+        }
+        const rows = await query;
 
         const count = rows.length > 0 ? rows[0].count : 0;
         if (count) {
@@ -177,9 +192,14 @@ export const createMultiple = async <T extends GenericAttributes, U>(
  * @param tableName The name of the table on which to execute the operation
  * @param parser A parser function which converts the database fields to  an
  * object's attributes
- * @param query The raw select fields to query. Defaults to `*` to read all
+ * @param select The raw select fields to query. Defaults to `*` to read all
  * fields in the table
- * @param id The ID of the object to read
+ * @param {string|number} id The ID of the object to fetch, numeric for tables
+ * that have numeric primary keys, or uuid strings for tables that have uuid
+ * primary keys
+ * @param {Object} options Additional options parameter.
+ * @param {Knex.Transaction} [options.transaction] - transaction that this query
+ * is part of
  * @returns The object attributes obtained after the `parser` function was run
  * on the read record.
  */
@@ -187,18 +207,25 @@ export const read = async <T extends GenericAttributes, U>(
     knex: Knex,
     tableName: string,
     parser: ((arg: U) => Partial<T>) | undefined,
-    query = '*',
-    id: string
+    select = '*',
+    id: string | number,
+    options: {
+        transaction?: Knex.Transaction;
+    } = {}
 ): Promise<Partial<T>> => {
     try {
-        if (!uuidValidate(id)) {
+        if (typeof id === 'string' && !uuidValidate(id)) {
             throw new TrError(
                 `Cannot read object from table ${tableName} because the required parameter id is missing, blank or not a valid uuid`,
                 'DBQRD0001',
                 'DatabaseCannotReadBecauseIdIsMissingOrInvalid'
             );
         }
-        const rows = await knex(tableName).select(knex.raw(query)).where('id', id);
+        const query = knex(tableName).select(knex.raw(select)).where('id', id);
+        if (options.transaction) {
+            query.transacting(options.transaction);
+        }
+        const rows = await query;
 
         if (rows.length !== 1) {
             throw new TrError(
@@ -226,7 +253,9 @@ export const read = async <T extends GenericAttributes, U>(
  * @param tableName The name of the table on which to execute the operation
  * @param parser A parser function which converts an object's attributes to db
  * fields
- * @param id The ID of the record to update
+ * @param {string|number} id The ID of the object to update, numeric for tables
+ * that have numeric primary keys, or uuid strings for tables that have uuid
+ * primary keys
  * @param attributes A subset of the object's attributes to update
  * @param options Additional options parameter. `returning` specifies which
  * field's or fields' values to return after update. `transaction` is an
@@ -237,15 +266,15 @@ export const update = async <T extends GenericAttributes, U>(
     knex: Knex,
     tableName: string,
     parser: ((arg: Partial<T>) => U) | undefined,
-    id: string,
+    id: string | number,
     attributes: Partial<T>,
     options: {
         returning?: string;
         transaction?: Knex.Transaction;
     } = {}
-): Promise<string> => {
+): Promise<string | number> => {
     try {
-        if (!uuidValidate(id)) {
+        if (typeof id === 'string' && !uuidValidate(id)) {
             throw new TrError(
                 `Cannot update object with id ${id} from table ${tableName} because the required parameter id is missing, blank or not a valid uuid`,
                 'DBQUP0001',
@@ -337,7 +366,9 @@ export const updateMultiple = async <T extends GenericAttributes, U>(
  *
  * @param knex The database configuration object
  * @param tableName The name of the table on which to execute the operation
- * @param id The ID of the record to delete
+ * @param {string|number} id The ID of the record to delete, numeric for tables
+ * that have numeric primary keys, or uuid strings for tables that have uuid
+ * primary keys
  * @param options Additional options parameter. `transaction` is an optional
  * transaction of which this delete is part of.
  * @returns The ID of the deleted object
@@ -345,13 +376,13 @@ export const updateMultiple = async <T extends GenericAttributes, U>(
 export const deleteRecord = async (
     knex: Knex,
     tableName: string,
-    id: string,
+    id: string | number,
     options: {
         transaction?: Knex.Transaction;
     } = {}
 ) => {
     try {
-        if (!uuidValidate(id)) {
+        if (typeof id === 'string' && !uuidValidate(id)) {
             throw new TrError(
                 `Cannot verify if object exists in table ${tableName} because the required parameter id is missing, blank or not a valid uuid`,
                 'DBQDL0001',
@@ -378,7 +409,9 @@ export const deleteRecord = async (
  *
  * @param knex The database configuration object
  * @param tableName The name of the table on which to execute the operation
- * @param ids An array of record IDs to delete
+ * @param {string[]|number[]} ids An array of record IDs to delete, numeric for
+ * tables that have numeric primary keys, or uuid strings for tables that have
+ * uuid primary keys
  * @param options Additional options parameter. `transaction` is an optional
  * transaction of which this delete is part of.
  * @returns The array of deleted IDs
@@ -386,11 +419,11 @@ export const deleteRecord = async (
 export const deleteMultiple = async (
     knex: Knex,
     tableName: string,
-    ids: string[],
+    ids: string[] | number[],
     options: {
         transaction?: Knex.Transaction;
     } = {}
-): Promise<string[]> => {
+): Promise<string[] | number[]> => {
     try {
         const query = knex(tableName).whereIn('id', ids).del();
         if (options.transaction) {

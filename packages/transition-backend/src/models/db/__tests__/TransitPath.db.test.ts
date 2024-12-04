@@ -264,7 +264,7 @@ describe(`${objectName}`, function() {
             }],
             "periods_group_shortname": "all_day",
         } as any;
-        await schedulesDbQueries.create(scheduleForServiceId);
+        await schedulesDbQueries.save(scheduleForServiceId);
 
         const geojsonCollection = await dbQueries.geojsonCollection({ scenarioId })
         expect(geojsonCollection.features.length).toBe(1);

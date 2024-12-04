@@ -163,7 +163,7 @@ describe(`${objectName}`, function() {
         expect(id).toBe(newObjectAttributes2.id);
 
         // Also create a schedule
-        await schedulesDbQueries.create({
+        await schedulesDbQueries.save({
             id: uuidV4(),
             line_id: lineId,
             service_id: newObjectAttributes2.id,

@@ -19,8 +19,7 @@ import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 
 export interface SchedulePeriodTrip extends GenericAttributes {
-    schedule_id: string;
-    schedule_period_id: string;
+    schedule_period_id?: number;
     path_id: string;
     unit_id?: string;
     block_id?: string;
@@ -35,7 +34,7 @@ export interface SchedulePeriodTrip extends GenericAttributes {
 }
 
 export interface SchedulePeriod extends GenericAttributes {
-    schedule_id: string;
+    schedule_id?: number;
     outbound_path_id?: string;
     inbound_path_id?: string;
     period_shortname?: string;
@@ -109,11 +108,13 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
     getClonedAttributes(deleteSpecifics = true): Partial<ScheduleAttributes> {
         const clonedAttributes = super.getClonedAttributes(deleteSpecifics);
         if (deleteSpecifics) {
+            delete clonedAttributes.integer_id;
             const periods = clonedAttributes.periods;
             if (periods) {
                 for (let i = 0; i < periods.length; i++) {
                     const period = periods[i] as Partial<SchedulePeriod>;
                     delete period.id;
+                    delete period.integer_id;
                     delete period.schedule_id;
                     delete period.created_at;
                     delete period.updated_at;
@@ -122,7 +123,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
                         for (let j = 0; j < trips.length; j++) {
                             const trip = trips[j] as Partial<SchedulePeriodTrip>;
                             delete trip.id;
-                            delete trip.schedule_id;
+                            delete trip.integer_id;
                             delete trip.schedule_period_id;
                             delete trip.created_at;
                             delete trip.updated_at;

@@ -24,7 +24,7 @@ test('Duplicate schedule, same line path and services', async () => {
     // Validate the schedule's data
     const expectedSched = getScheduleAttributes({ pathId, scheduleId: newSchedule.getId() });
     const actualSched = newSchedule.getAttributes();
-    const expectedBaseSchedules = _omit(expectedSched, 'periods');
+    const expectedBaseSchedules = _omit(expectedSched, 'periods', 'integer_id');
     const actualSchedule = _omit(actualSched, 'periods');
     const expectedPeriods = expectedSched.periods;
     const actualPeriods = actualSched.periods;
@@ -32,18 +32,17 @@ test('Duplicate schedule, same line path and services', async () => {
 
     // Validate the period's data and id propagation
     for (let i = 0; i < expectedPeriods.length; i++) {
-        const expectedPeriod = _omit(expectedPeriods[i], ['id', 'trips']);
+        const expectedPeriod = _omit(expectedPeriods[i], ['id', 'trips', 'integer_id', 'schedule_id']);
         const actualPeriod = _omit(actualPeriods[i], ['id', 'trips']);
         const expectedTrips = expectedPeriods[i].trips;
         const actualTrips = actualPeriods[i].trips;
-        const periodId = actualPeriods[i].id;
+        const periodId = actualPeriods[i].integer_id;
         expect(actualPeriod).toEqual(expectedPeriod);
 
         // Validate the trip's data and id propagation
         for (let j = 0; j < expectedTrips.length; j++) {
-            const expectedTrip = _omit(expectedTrips[j], 'id');
+            const expectedTrip = _omit(expectedTrips[j], 'id', 'integer_id', 'schedule_period_id');
             const actualTrip = _omit(actualTrips[j], 'id');
-            expectedTrip.schedule_period_id = periodId;
             expect(actualTrip).toEqual(expectedTrip);
         }
     }
@@ -65,7 +64,7 @@ test('Duplicate schedule, different line, path and services', async () => {
     // Validate the schedule's data
     const expectedSched = getScheduleAttributes({ pathId: newPathId, lineId: newLineId, serviceId: newServiceId, scheduleId: newSchedule.getId() });
     const actualSched = newSchedule.getAttributes();
-    const expectedBaseSchedules = _omit(expectedSched, 'periods');
+    const expectedBaseSchedules = _omit(expectedSched, 'periods', 'integer_id');
     const actualSchedule = _omit(actualSched, 'periods');
     const expectedPeriods = expectedSched.periods;
     const actualPeriods = actualSched.periods;
@@ -73,19 +72,17 @@ test('Duplicate schedule, different line, path and services', async () => {
 
     // Validate the period's data and id propagation
     for (let i = 0; i < expectedPeriods.length; i++) {
-        const expectedPeriod = _omit(expectedPeriods[i], ['id', 'trips']);
+        const expectedPeriod = _omit(expectedPeriods[i], ['id', 'trips', 'integer_id', 'schedule_id']);
         const actualPeriod = _omit(actualPeriods[i], ['id', 'trips']);
         expect(actualPeriod.outbound_path_id).not.toEqual(schedule.getAttributes().periods[i].outbound_path_id);
         const expectedTrips = expectedPeriods[i].trips;
         const actualTrips = actualPeriods[i].trips;
-        const periodId = actualPeriods[i].id;
         expect(actualPeriod).toEqual(expectedPeriod);
 
         // Validate the trip's data and id propagation
         for (let j = 0; j < expectedTrips.length; j++) {
-            const expectedTrip = _omit(expectedTrips[j], 'id');
+            const expectedTrip = _omit(expectedTrips[j], 'id', 'integer_id', 'schedule_period_id');
             const actualTrip = _omit(actualTrips[j], 'id');
-            expectedTrip.schedule_period_id = periodId;
             expect(actualTrip).toEqual(expectedTrip);
         }
     }

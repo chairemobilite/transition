@@ -298,15 +298,11 @@ describe('Generate schedules for lines', () => {
     importData.periodsGroup = testPeriod;
 
     beforeEach(() => {
-        (linesDbQueries.update as any).mockClear();
-        (linesDbQueries.updateMultiple as any).mockClear();
-        (schedulesDbQueries.create as any).mockClear();
-        (schedulesDbQueries.delete as any).mockClear();
+        jest.clearAllMocks();
         // Reset line to its original state
         line = new Line({id: importData.lineIdsByRouteGtfsId[routeId], mode: 'metro', category: 'A', agency_id: uuidV4() }, false);
         lineCollection = new LineCollection([line], {});
         collectionManager.set('lines', lineCollection);
-        objectToCacheMock.mockClear();
     });
     
     test('One line, simple trips, second with various pick_up/drop', async () => {
@@ -341,7 +337,7 @@ describe('Generate schedules for lines', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
         const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
@@ -355,15 +351,14 @@ describe('Generate schedules for lines', () => {
         }));
         expect(scheduleAttributes.periods.length).toEqual(2);
         expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[0].startAtHour,
             end_at_hour: importData.periodsGroup.periods[0].endAtHour,
             period_shortname: importData.periodsGroup.periods[0].shortname,
         }));
         expect(scheduleAttributes.periods[0].trips.length).toEqual(2);
         expect(scheduleAttributes.periods[0].trips[0]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
-            schedule_period_id: scheduleAttributes.periods[0].id,
+            schedule_period_id: scheduleAttributes.periods[0].integer_id,
             path_id: pathId,
             node_departure_times_seconds: [baseTripAndStopTimes.stopTimes[0].departureTimeSeconds, baseTripAndStopTimes.stopTimes[1].departureTimeSeconds, baseTripAndStopTimes.stopTimes[2].departureTimeSeconds, baseTripAndStopTimes.stopTimes[3].departureTimeSeconds],
             node_arrival_times_seconds: [baseTripAndStopTimes.stopTimes[0].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[1].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[2].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[3].arrivalTimeSeconds],
@@ -373,8 +368,7 @@ describe('Generate schedules for lines', () => {
             nodes_can_unboard: [false, true, true, true],
         }));
         expect(scheduleAttributes.periods[0].trips[1]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
-            schedule_period_id: scheduleAttributes.periods[0].id,
+            schedule_period_id: scheduleAttributes.periods[0].integer_id,
             path_id: pathId,
             node_departure_times_seconds: [tripsByRouteId[routeId][1].stopTimes[0].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[1].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[2].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[3].departureTimeSeconds],
             node_arrival_times_seconds: [tripsByRouteId[routeId][1].stopTimes[0].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[1].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[2].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[3].arrivalTimeSeconds],
@@ -384,7 +378,6 @@ describe('Generate schedules for lines', () => {
             nodes_can_unboard: [false, false, true, true],
         }));
         expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
             start_at_hour: importData.periodsGroup.periods[1].startAtHour,
             end_at_hour: importData.periodsGroup.periods[1].endAtHour,
             period_shortname: importData.periodsGroup.periods[1].shortname,
@@ -422,7 +415,7 @@ describe('Generate schedules for lines', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
         const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
@@ -436,15 +429,14 @@ describe('Generate schedules for lines', () => {
         expect(scheduleAttributes.periods.length).toEqual(2);
         // Check first period
         expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[0].startAtHour,
             end_at_hour: importData.periodsGroup.periods[0].endAtHour,
             period_shortname: importData.periodsGroup.periods[0].shortname
         }));
         expect(scheduleAttributes.periods[0].trips.length).toEqual(1);
         expect(scheduleAttributes.periods[0].trips[0]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
-            schedule_period_id: scheduleAttributes.periods[0].id,
+            schedule_period_id: scheduleAttributes.periods[0].integer_id,
             path_id: pathId,
             node_departure_times_seconds: [baseTripAndStopTimes.stopTimes[0].departureTimeSeconds, baseTripAndStopTimes.stopTimes[1].departureTimeSeconds, baseTripAndStopTimes.stopTimes[2].departureTimeSeconds, baseTripAndStopTimes.stopTimes[3].departureTimeSeconds],
             node_arrival_times_seconds: [baseTripAndStopTimes.stopTimes[0].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[1].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[2].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[3].arrivalTimeSeconds],
@@ -456,15 +448,14 @@ describe('Generate schedules for lines', () => {
 
         // Check second period
         expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[1].startAtHour,
             end_at_hour: importData.periodsGroup.periods[1].endAtHour,
             period_shortname: importData.periodsGroup.periods[1].shortname,
         }));
         expect(scheduleAttributes.periods[1].trips.length).toEqual(2);
         expect(scheduleAttributes.periods[1].trips[0]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
-            schedule_period_id: scheduleAttributes.periods[1].id,
+            schedule_period_id: scheduleAttributes.periods[1].integer_id,
             path_id: pathId,
             node_departure_times_seconds: [tripsByRouteId[routeId][1].stopTimes[0].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[1].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[2].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[3].departureTimeSeconds],
             node_arrival_times_seconds: [tripsByRouteId[routeId][1].stopTimes[0].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[1].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[2].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[3].arrivalTimeSeconds],
@@ -474,8 +465,7 @@ describe('Generate schedules for lines', () => {
             nodes_can_unboard: [false, true, true, true],
         }));
         expect(scheduleAttributes.periods[1].trips[1]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
-            schedule_period_id: scheduleAttributes.periods[1].id,
+            schedule_period_id: scheduleAttributes.periods[1].integer_id,
             path_id: pathId,
             node_departure_times_seconds: [tripsByRouteId[routeId][2].stopTimes[0].departureTimeSeconds, tripsByRouteId[routeId][2].stopTimes[1].departureTimeSeconds, tripsByRouteId[routeId][2].stopTimes[2].departureTimeSeconds, tripsByRouteId[routeId][2].stopTimes[3].departureTimeSeconds],
             node_arrival_times_seconds: [tripsByRouteId[routeId][2].stopTimes[0].arrivalTimeSeconds, tripsByRouteId[routeId][2].stopTimes[1].arrivalTimeSeconds, tripsByRouteId[routeId][2].stopTimes[2].arrivalTimeSeconds, tripsByRouteId[routeId][2].stopTimes[3].arrivalTimeSeconds],
@@ -516,7 +506,7 @@ describe('Generate schedules for lines', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(2);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(2);
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(2);
         const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
@@ -528,14 +518,13 @@ describe('Generate schedules for lines', () => {
             periods_group_shortname: importData.periodsGroupShortname,
             periods: [
                 expect.objectContaining({
-                    schedule_id: scheduleAttributes.id,
+                    schedule_id: scheduleAttributes.integer_id,
                     start_at_hour: importData.periodsGroup.periods[0].startAtHour,
                     end_at_hour: importData.periodsGroup.periods[0].endAtHour,
                     period_shortname: importData.periodsGroup.periods[0].shortname,
                     trips: [
                         expect.objectContaining({
-                            schedule_id: scheduleAttributes.id,
-                            schedule_period_id: scheduleAttributes.periods[0].id,
+                            schedule_period_id: scheduleAttributes.periods[0].integer_id,
                             path_id: pathId,
                             node_departure_times_seconds: [baseTripAndStopTimes.stopTimes[0].departureTimeSeconds, baseTripAndStopTimes.stopTimes[1].departureTimeSeconds, baseTripAndStopTimes.stopTimes[2].departureTimeSeconds, baseTripAndStopTimes.stopTimes[3].departureTimeSeconds],
                             node_arrival_times_seconds: [baseTripAndStopTimes.stopTimes[0].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[1].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[2].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[3].arrivalTimeSeconds],
@@ -547,7 +536,7 @@ describe('Generate schedules for lines', () => {
                     ],
                 }),
                 expect.objectContaining({
-                    schedule_id: scheduleAttributes.id,
+                    schedule_id: scheduleAttributes.integer_id,
                     start_at_hour: importData.periodsGroup.periods[1].startAtHour,
                     end_at_hour: importData.periodsGroup.periods[1].endAtHour,
                     period_shortname: importData.periodsGroup.periods[1].shortname,
@@ -565,14 +554,13 @@ describe('Generate schedules for lines', () => {
             periods_group_shortname: importData.periodsGroupShortname,
             periods: [
                 expect.objectContaining({
-                    schedule_id: secondScheduleAttributes.id,
+                    schedule_id: secondScheduleAttributes.integer_id,
                     start_at_hour: importData.periodsGroup.periods[0].startAtHour,
                     end_at_hour: importData.periodsGroup.periods[0].endAtHour,
                     period_shortname: importData.periodsGroup.periods[0].shortname,
                     trips: [
                         expect.objectContaining({
-                            schedule_id: secondScheduleAttributes.id,
-                            schedule_period_id: secondScheduleAttributes.periods[0].id,
+                            schedule_period_id: secondScheduleAttributes.periods[0].integer_id,
                             path_id: pathId,
                             node_departure_times_seconds: [tripsByRouteId[routeId][1].stopTimes[0].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[1].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[2].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[3].departureTimeSeconds],
                             node_arrival_times_seconds: [tripsByRouteId[routeId][1].stopTimes[0].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[1].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[2].arrivalTimeSeconds, tripsByRouteId[routeId][1].stopTimes[3].arrivalTimeSeconds],
@@ -584,7 +572,7 @@ describe('Generate schedules for lines', () => {
                     ],
                 }),
                 expect.objectContaining({
-                    schedule_id: secondScheduleAttributes.id,
+                    schedule_id: secondScheduleAttributes.integer_id,
                     start_at_hour: importData.periodsGroup.periods[1].startAtHour,
                     end_at_hour: importData.periodsGroup.periods[1].endAtHour,
                     period_shortname: importData.periodsGroup.periods[1].shortname,
@@ -620,7 +608,7 @@ describe('Generate schedules for lines', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
 
@@ -640,7 +628,7 @@ describe('Generate schedules for lines', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(2);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(2);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(2);
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(2);
 
@@ -653,14 +641,13 @@ describe('Generate schedules for lines', () => {
             periods_group_shortname: importData.periodsGroupShortname,
             periods: [
                 expect.objectContaining({
-                    schedule_id: scheduleAttributes.id,
+                    schedule_id: scheduleAttributes.integer_id,
                     start_at_hour: importData.periodsGroup.periods[0].startAtHour,
                     end_at_hour: importData.periodsGroup.periods[0].endAtHour,
                     period_shortname: importData.periodsGroup.periods[0].shortname,
                     trips: [
                         expect.objectContaining({
-                            schedule_id: scheduleAttributes.id,
-                            schedule_period_id: scheduleAttributes.periods[0].id,
+                            schedule_period_id: scheduleAttributes.periods[0].integer_id,
                             path_id: pathId,
                             node_departure_times_seconds: [baseTripAndStopTimes.stopTimes[0].departureTimeSeconds, baseTripAndStopTimes.stopTimes[1].departureTimeSeconds, baseTripAndStopTimes.stopTimes[2].departureTimeSeconds, baseTripAndStopTimes.stopTimes[3].departureTimeSeconds],
                             node_arrival_times_seconds: [baseTripAndStopTimes.stopTimes[0].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[1].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[2].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[3].arrivalTimeSeconds],
@@ -672,7 +659,7 @@ describe('Generate schedules for lines', () => {
                     ],
                 }),
                 expect.objectContaining({
-                    schedule_id: scheduleAttributes.id,
+                    schedule_id: scheduleAttributes.integer_id,
                     start_at_hour: importData.periodsGroup.periods[1].startAtHour,
                     end_at_hour: importData.periodsGroup.periods[1].endAtHour,
                     period_shortname: importData.periodsGroup.periods[1].shortname,
@@ -690,14 +677,13 @@ describe('Generate schedules for lines', () => {
             periods_group_shortname: importData.periodsGroupShortname,
             periods: [
                 expect.objectContaining({
-                    schedule_id: secondScheduleAttributes.id,
+                    schedule_id: secondScheduleAttributes.integer_id,
                     start_at_hour: importData.periodsGroup.periods[0].startAtHour,
                     end_at_hour: importData.periodsGroup.periods[0].endAtHour,
                     period_shortname: importData.periodsGroup.periods[0].shortname,
                     trips: [
                         expect.objectContaining({
-                            schedule_id: secondScheduleAttributes.id,
-                            schedule_period_id: secondScheduleAttributes.periods[0].id,
+                            schedule_period_id: secondScheduleAttributes.periods[0].integer_id,
                             path_id: pathId,
                             node_departure_times_seconds: [tripsByRouteId[routeId][0].stopTimes[0].departureTimeSeconds, tripsByRouteId[routeId][0].stopTimes[1].departureTimeSeconds, tripsByRouteId[routeId][0].stopTimes[2].departureTimeSeconds, tripsByRouteId[routeId][0].stopTimes[3].departureTimeSeconds],
                             node_arrival_times_seconds: [tripsByRouteId[routeId][0].stopTimes[0].arrivalTimeSeconds, tripsByRouteId[routeId][0].stopTimes[1].arrivalTimeSeconds, tripsByRouteId[routeId][0].stopTimes[2].arrivalTimeSeconds, tripsByRouteId[routeId][0].stopTimes[3].arrivalTimeSeconds],
@@ -709,7 +695,7 @@ describe('Generate schedules for lines', () => {
                     ],
                 }),
                 expect.objectContaining({
-                    schedule_id: secondScheduleAttributes.id,
+                    schedule_id: secondScheduleAttributes.integer_id,
                     start_at_hour: importData.periodsGroup.periods[1].startAtHour,
                     end_at_hour: importData.periodsGroup.periods[1].endAtHour,
                     period_shortname: importData.periodsGroup.periods[1].shortname,
@@ -769,7 +755,7 @@ describe('Generate schedules for lines', () => {
         expect(linesDbQueries.update).toHaveBeenCalledTimes(2);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[expressRouteId], modifiedLine2.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(2);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(2);
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(1);
         const scheduleAttributes = modifiedLine.getAttributes().scheduleByServiceId[importData.serviceIdsByGtfsId[gtfsServiceId]];
@@ -781,14 +767,13 @@ describe('Generate schedules for lines', () => {
             periods_group_shortname: importData.periodsGroupShortname,
             periods: [
                 expect.objectContaining({
-                    schedule_id: scheduleAttributes.id,
+                    schedule_id: scheduleAttributes.integer_id,
                     start_at_hour: importData.periodsGroup.periods[0].startAtHour,
                     end_at_hour: importData.periodsGroup.periods[0].endAtHour,
                     period_shortname: importData.periodsGroup.periods[0].shortname,
                     trips: [
                         expect.objectContaining({
-                            schedule_id: scheduleAttributes.id,
-                            schedule_period_id: scheduleAttributes.periods[0].id,
+                            schedule_period_id: scheduleAttributes.periods[0].integer_id,
                             path_id: pathId1,
                             node_departure_times_seconds: [baseTripAndStopTimes.stopTimes[0].departureTimeSeconds, baseTripAndStopTimes.stopTimes[1].departureTimeSeconds, baseTripAndStopTimes.stopTimes[2].departureTimeSeconds, baseTripAndStopTimes.stopTimes[3].departureTimeSeconds],
                             node_arrival_times_seconds: [baseTripAndStopTimes.stopTimes[0].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[1].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[2].arrivalTimeSeconds, baseTripAndStopTimes.stopTimes[3].arrivalTimeSeconds],
@@ -800,7 +785,7 @@ describe('Generate schedules for lines', () => {
                     ],
                 }),
                 expect.objectContaining({
-                    schedule_id: scheduleAttributes.id,
+                    schedule_id: scheduleAttributes.integer_id,
                     start_at_hour: importData.periodsGroup.periods[1].startAtHour,
                     end_at_hour: importData.periodsGroup.periods[1].endAtHour,
                     period_shortname: importData.periodsGroup.periods[1].shortname,
@@ -818,14 +803,13 @@ describe('Generate schedules for lines', () => {
             periods_group_shortname: importData.periodsGroupShortname,
             periods: [
                 expect.objectContaining({
-                    schedule_id: scheduleAttributesLine2.id,
+                    schedule_id: scheduleAttributesLine2.integer_id,
                     start_at_hour: importData.periodsGroup.periods[0].startAtHour,
                     end_at_hour: importData.periodsGroup.periods[0].endAtHour,
                     period_shortname: importData.periodsGroup.periods[0].shortname,
                     trips: [
                         expect.objectContaining({
-                            schedule_id: scheduleAttributesLine2.id,
-                            schedule_period_id: scheduleAttributesLine2.periods[0].id,
+                            schedule_period_id: scheduleAttributesLine2.periods[0].integer_id,
                             path_id: pathId2,
                             node_departure_times_seconds: [tripsByRouteId[expressRouteId][0].stopTimes[0].departureTimeSeconds, tripsByRouteId[expressRouteId][0].stopTimes[1].departureTimeSeconds],
                             node_arrival_times_seconds: [tripsByRouteId[expressRouteId][0].stopTimes[0].arrivalTimeSeconds, tripsByRouteId[expressRouteId][0].stopTimes[1].arrivalTimeSeconds],
@@ -837,7 +821,7 @@ describe('Generate schedules for lines', () => {
                     ],
                 }),
                 expect.objectContaining({
-                    schedule_id: scheduleAttributesLine2.id,
+                    schedule_id: scheduleAttributesLine2.integer_id,
                     start_at_hour: importData.periodsGroup.periods[1].startAtHour,
                     end_at_hour: importData.periodsGroup.periods[1].endAtHour,
                     period_shortname: importData.periodsGroup.periods[1].shortname,
@@ -873,6 +857,7 @@ describe('Generate schedules for lines', () => {
         const previousScheduleId = uuidV4();
         line.attributes.scheduleByServiceId[serviceId] = { 
             id: previousScheduleId,
+            integer_id: 4,
             line_id: line.getId(),
             service_id: serviceId,
             periods: [],
@@ -888,12 +873,12 @@ describe('Generate schedules for lines', () => {
         if (shouldUpdateSchedule) {
             expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
             expect(linesDbQueries.update).toHaveBeenCalledWith(localImportData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-            expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+            expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
             expect(schedulesDbQueries.delete).toHaveBeenCalledTimes(1);
             expect(modifiedLine.getAttributes().scheduleByServiceId[serviceId].id).not.toEqual(previousScheduleId);
         } else {
             expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
-            expect(schedulesDbQueries.create).not.toHaveBeenCalled();
+            expect(schedulesDbQueries.save).not.toHaveBeenCalled();
             expect(schedulesDbQueries.delete).not.toHaveBeenCalled();
             expect(modifiedLine.getAttributes().scheduleByServiceId[serviceId].id).toEqual(previousScheduleId);
         }
@@ -924,7 +909,7 @@ describe('Generate schedules for lines', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).not.toHaveBeenCalled();
+        expect(schedulesDbQueries.save).not.toHaveBeenCalled();
 
         expect(Object.keys(modifiedLine.getAttributes().scheduleByServiceId).length).toEqual(0);
     });
@@ -948,16 +933,11 @@ describe('Generate frequency based schedules for line', () => {
     const generateForPeriodMock = Schedule.prototype.generateForPeriod as jest.MockedFunction<typeof Schedule.prototype.generateForPeriod>;
 
     beforeEach(() => {
-        (linesDbQueries.update as any).mockClear();
-        (linesDbQueries.updateMultiple as any).mockClear();
-        (schedulesDbQueries.create as any).mockClear();
-        (schedulesDbQueries.delete as any).mockClear();
+        jest.clearAllMocks();
         // Reset line to its original state
         line = new Line({id: importData.lineIdsByRouteGtfsId[routeId], mode: 'metro', category: 'A', agency_id: uuidV4() }, false);
         lineCollection = new LineCollection([line], {});
         collectionManager.set('lines', lineCollection);
-        objectToCacheMock.mockClear();
-        generateForPeriodMock.mockClear();
     });
     
     test('Single trip for one period', async () => {
@@ -984,7 +964,7 @@ describe('Generate frequency based schedules for line', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
         // One period should have been generated, no trip in the other
         expect(generateForPeriodMock).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
@@ -1001,7 +981,7 @@ describe('Generate frequency based schedules for line', () => {
         }));
         expect(scheduleAttributes.periods.length).toEqual(2);
         expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[0].startAtHour,
             end_at_hour: importData.periodsGroup.periods[0].endAtHour,
             period_shortname: importData.periodsGroup.periods[0].shortname,
@@ -1012,7 +992,7 @@ describe('Generate frequency based schedules for line', () => {
             inbound_path_id: undefined
         }));
         expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[1].startAtHour,
             end_at_hour: importData.periodsGroup.periods[1].endAtHour,
             period_shortname: importData.periodsGroup.periods[1].shortname,
@@ -1054,7 +1034,7 @@ describe('Generate frequency based schedules for line', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledTimes(2);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[1].shortname);
@@ -1071,7 +1051,7 @@ describe('Generate frequency based schedules for line', () => {
         }));
         expect(scheduleAttributes.periods.length).toEqual(2);
         expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[0].startAtHour,
             end_at_hour: importData.periodsGroup.periods[0].endAtHour,
             period_shortname: importData.periodsGroup.periods[0].shortname,
@@ -1083,7 +1063,7 @@ describe('Generate frequency based schedules for line', () => {
             inbound_path_id: undefined
         }));
         expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[1].startAtHour,
             end_at_hour: importData.periodsGroup.periods[1].endAtHour,
             period_shortname: importData.periodsGroup.periods[1].shortname,
@@ -1141,7 +1121,7 @@ describe('Generate frequency based schedules for line', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledTimes(2);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[1].shortname);
@@ -1158,7 +1138,7 @@ describe('Generate frequency based schedules for line', () => {
         }));
         expect(scheduleAttributes.periods.length).toEqual(2);
         expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[0].startAtHour,
             end_at_hour: importData.periodsGroup.periods[0].endAtHour,
             period_shortname: importData.periodsGroup.periods[0].shortname,
@@ -1170,7 +1150,7 @@ describe('Generate frequency based schedules for line', () => {
             inbound_path_id: undefined
         }));
         expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[1].startAtHour,
             end_at_hour: importData.periodsGroup.periods[1].endAtHour,
             period_shortname: importData.periodsGroup.periods[1].shortname,
@@ -1224,7 +1204,7 @@ describe('Generate frequency based schedules for line', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
 
@@ -1240,7 +1220,7 @@ describe('Generate frequency based schedules for line', () => {
         }));
         expect(scheduleAttributes.periods.length).toEqual(2);
         expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[0].startAtHour,
             end_at_hour: importData.periodsGroup.periods[0].endAtHour,
             period_shortname: importData.periodsGroup.periods[0].shortname,
@@ -1249,7 +1229,7 @@ describe('Generate frequency based schedules for line', () => {
             inbound_path_id: inboundPathId
         }));
         expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[1].startAtHour,
             end_at_hour: importData.periodsGroup.periods[1].endAtHour,
             period_shortname: importData.periodsGroup.periods[1].shortname,
@@ -1315,7 +1295,7 @@ describe('Generate frequency based schedules for line', () => {
         expect(modifiedLine).toBeDefined();
         expect(linesDbQueries.update).toHaveBeenCalledTimes(1);
         expect(linesDbQueries.update).toHaveBeenCalledWith(importData.lineIdsByRouteGtfsId[routeId], modifiedLine.getAttributes(), expect.anything());
-        expect(schedulesDbQueries.create).toHaveBeenCalledTimes(1);
+        expect(schedulesDbQueries.save).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledTimes(1);
         expect(generateForPeriodMock).toHaveBeenCalledWith(testPeriod.periods[0].shortname);
 
@@ -1331,7 +1311,7 @@ describe('Generate frequency based schedules for line', () => {
         }));
         expect(scheduleAttributes.periods.length).toEqual(2);
         expect(scheduleAttributes.periods[0]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[0].startAtHour,
             end_at_hour: importData.periodsGroup.periods[0].endAtHour,
             period_shortname: importData.periodsGroup.periods[0].shortname,
@@ -1340,7 +1320,7 @@ describe('Generate frequency based schedules for line', () => {
             inbound_path_id: inboundPathId
         }));
         expect(scheduleAttributes.periods[1]).toEqual(expect.objectContaining({
-            schedule_id: scheduleAttributes.id,
+            schedule_id: scheduleAttributes.integer_id,
             start_at_hour: importData.periodsGroup.periods[1].startAtHour,
             end_at_hour: importData.periodsGroup.periods[1].endAtHour,
             period_shortname: importData.periodsGroup.periods[1].shortname,
