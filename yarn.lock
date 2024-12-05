@@ -11301,10 +11301,10 @@ react-select@*, react-select@^5.8.3:
     react-transition-group "^4.3.0"
     use-isomorphic-layout-effect "^1.1.2"
 
-react-simple-captcha@^6.1.6:
-  version "6.1.6"
-  resolved "https://registry.yarnpkg.com/react-simple-captcha/-/react-simple-captcha-6.1.6.tgz#31a989284a274063b4538aa9c21825b3eb820b54"
-  integrity sha512-d1XSVBAtWmtq6V972LWTqLrqE0BIlo2IsFh6kvwdxlKI7iFaoFVGXi8bvBBWP31hNWC1lwTs6qxqSfEHF1xQGQ==
+react-simple-captcha@^6.1.7:
+  version "6.1.7"
+  resolved "https://registry.yarnpkg.com/react-simple-captcha/-/react-simple-captcha-6.1.7.tgz#b097e8eaba56b1ef25a8607e790bddf642d3939c"
+  integrity sha512-SgpxqRyd+llggPcrE+AhHeJu4ivW/Fdi+NA4La9c6qQxblbJDhbkS2o83povGrayWHYNfQ8VOGJeBihP+j7kaw==
   dependencies:
     react "^17.0.1"
     react-dom "^17.0.1"
