@@ -11,7 +11,6 @@ module.exports = {
     ...baseConfig,
     setupFilesAfterEnv: [
         ...baseConfig.setupFilesAfterEnv,
-        '@testing-library/jest-dom/extend-expect',
         './jestSetup.ts'
     ],
     testEnvironment: 'jsdom',
