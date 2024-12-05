@@ -57,7 +57,7 @@
     "react-simple-captcha": "^6.1.7",
     "react-spinners": "^0.14.1",
     "react-table": "^7.8.0",
-    "redux": "^4.0.5",
+    "redux": "^4.2.1",
     "redux-thunk": "^2.3.0",
     "remark-gfm": "^3.0.1",
     "socket.io-file-client": "^2.0.2",
