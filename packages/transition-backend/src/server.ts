@@ -16,7 +16,7 @@ import express from 'express';
 import { registerTranslationDir, addTranslationNamespace } from 'chaire-lib-backend/lib/config/i18next';
 import config from 'chaire-lib-backend/lib/config/server.config';
 
-const argv = yargs(hideBin(process.argv)).argv;
+const argv = yargs(hideBin(process.argv)).argv as { [key: string]: unknown; ssl?: boolean; port?: string };
 
 const useSSL = argv.ssl;
 const port = argv.port ? parseInt(argv.port as string) : useSSL ? 8443 : 8080;

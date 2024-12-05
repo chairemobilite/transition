@@ -56,7 +56,7 @@ async function profilingWrapper(
 
 async function taskWrapper(task: GenericTask) {
     // TODO Add a way for tasks to advertise their required arguments and automatically warn the user if arguments are missing (or mispelled?)
-    const argv = yargs(hideBin(process.argv)).argv;
+    const argv = yargs(hideBin(process.argv)).argv as { [key: string]: unknown; profile?: boolean; to?: string };
 
     const doProfile = argv.profile;
     const profileFile = doProfile
