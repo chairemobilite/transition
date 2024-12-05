@@ -64,7 +64,7 @@
     "typescript": "^5.7.2"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^10.4.7",
     "@types/enzyme": "^3.10.8",
     "@types/enzyme-adapter-react-16": "^1.0.9",
