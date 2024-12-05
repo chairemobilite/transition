@@ -81,7 +81,7 @@
     "@types/react-router-dom": "^5.3.3",
     "@types/react-select": "^5.0.1",
     "@types/react-table": "^7.7.3",
-    "@types/react-test-renderer": "^16.9.2",
+    "@types/react-test-renderer": "^16.9.12",
     "@typescript-eslint/eslint-plugin": "^8.17.0",
     "@typescript-eslint/parser": "^8.17.0",
     "copyfiles": "^2.4.1",
@@ -99,7 +99,7 @@
     "mockdate": "^3.0.2",
     "prettier-eslint-cli": "^8.0.1",
     "react-select-event": "^5.0.0",
-    "react-test-renderer": "^16.13.1",
+    "react-test-renderer": "^16.14.0",
     "redux-mock-store": "^1.5.4",
     "rimraf": "^3.0.2",
     "ts-jest": "^29.2.5"
