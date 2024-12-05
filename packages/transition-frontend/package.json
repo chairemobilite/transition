@@ -74,7 +74,6 @@
     "@types/mapbox-gl": "^2.3.1",
     "@types/osrm": "^5.25.5",
     "@types/node": "^22.10.1",
-    "@types/react-datepicker": "^4.1.6",
     "@types/react-dom": "^16.9.0",
     "@types/react-mathjax": "^1.0.1",
     "@types/react-redux": "^7.1.9",
