@@ -56,7 +56,7 @@
     "react-tabs": "^3.2.2",
     "react-tooltip": "^5.28.0",
     "redux": "^4.2.1",
-    "redux-thunk": "^2.3.0",
+    "redux-thunk": "^2.4.2",
     "slugify": "^1.4.7",
     "socket.io-client": "^2.5.0",
     "socket.io-file-client": "^2.0.2",
