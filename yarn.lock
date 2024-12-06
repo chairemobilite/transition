@@ -3506,10 +3506,10 @@
     "@types/node" "*"
     "@types/socket.io-parser" "*"
 
-"@types/socketio-wildcard@^2.0.4":
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/@types/socketio-wildcard/-/socketio-wildcard-2.0.4.tgz#248c93faf0e51efbeeda65551fe3d92ceae663ab"
-  integrity sha512-02BK7Bf3stIcvKXWjRFtPgCOMYi4KWhASPhVzkYpZOR9qQbtj7xBJEPi0fkksDJeqeRXCF23azFEOaRBXuUCNA==
+"@types/socketio-wildcard@^2.0.7":
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/@types/socketio-wildcard/-/socketio-wildcard-2.0.7.tgz#b9819bc178a78db7d997c0d7e407099f346b2454"
+  integrity sha512-9r+2jVaZ5Wq1iZbgfIjSQM75IAVy6vlunKCPw2sZEp7vR2DRMbnjREP6ENkBXx4mAgRD6mhORGtBTU8HddpoRg==
   dependencies:
     "@types/socket.io" "2.1.13"
     "@types/socket.io-client" "1.4.36"
