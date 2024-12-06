@@ -68,7 +68,7 @@
   "devDependencies": {
     "@alienfast/i18next-loader": "^2.0.2",
     "@testing-library/react": "^10.4.9",
-    "@types/geojson": "^7946.0.14",
+    "@types/geojson": "^7946.0.15",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.13",
     "@types/mapbox-gl": "^2.3.1",
