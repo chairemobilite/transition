@@ -98,7 +98,7 @@
     "jest-fetch-mock": "^3.0.3",
     "json-loader": "^0.5.7",
     "mini-css-extract-plugin": "^2.9.0",
-    "mockdate": "^3.0.2",
+    "mockdate": "^3.0.5",
     "prettier-eslint-cli": "^8.0.1",
     "react-test-renderer": "^16.14.0",
     "redux-mock-store": "^1.5.4",
