@@ -67,7 +67,7 @@
         "transition-common": "^0.2.0-2",
         "typescript": "^5.7.2",
         "uuid": "^11.0.3",
-        "workerpool": "^6.2.1",
+        "workerpool": "^6.5.1",
         "yargs": "^17.7.2",
         "zod": "^3.23.8"
     },
@@ -82,7 +82,7 @@
         "@types/proj4": "^2.5.5",
         "@types/socket.io-client": "^1.4.36",
         "@types/socketio-wildcard": "^2.0.4",
-        "@types/workerpool": "^6.1.0",
+        "@types/workerpool": "^6.4.7",
         "@typescript-eslint/eslint-plugin": "^8.17.0",
         "@typescript-eslint/parser": "^8.16.0",
         "cross-env": "^7.0.3",
