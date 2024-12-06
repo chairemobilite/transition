@@ -22,19 +22,23 @@ interface DocumentationTooltipProps extends WithTranslation {
 // Then, place the DocumentationTooltip component close to it in the html, giving the same value to the 'dataTooltipId' prop,
 // and setting the 'documentationLabel' prop to the label of the definition we want to fetch in the Latex files.
 const DocumentationTooltip: React.FunctionComponent<DocumentationTooltipProps> = (props: DocumentationTooltipProps) => {
-    const [definition, setDefinition] = React.useState({ fr: '', en: '' } as Dictionary<any>);
+    const [definition, setDefinition] = React.useState<Dictionary<any> | undefined>(undefined);
 
     const [gotError, setGotError] = React.useState(false);
 
-    React.useEffect(() => {
-        getDefinitionFromServer(props.documentationLabel, setDefinition, setGotError);
-    }, []);
+    const setIsOpen = (value: boolean) => {
+        // If the tooltip is opened, fetch the definition from the server if it hasn't been fetched yet.
+        if (value === true && definition === undefined) {
+            getDefinitionFromServer(props.documentationLabel, setDefinition, setGotError);
+        }
+    };
 
     if (gotError) {
         return (
             <Tooltip
                 id={props.dataTooltipId}
                 openOnClick={true}
+                setIsOpen={setIsOpen}
                 closeEvents={{ mouseleave: true }}
                 style={{ maxWidth: '90%', zIndex: 100, color: 'rgb(255, 50, 50)' }}
                 opacity={1}
@@ -47,11 +51,12 @@ const DocumentationTooltip: React.FunctionComponent<DocumentationTooltipProps> =
             <Tooltip
                 id={props.dataTooltipId}
                 openOnClick={true}
+                setIsOpen={setIsOpen}
                 closeEvents={{ mouseleave: true }}
                 style={{ maxWidth: '90%', zIndex: 100 }}
                 opacity={1}
             >
-                {definition.fr === '' ? (
+                {definition === undefined ? (
                     <LoadingPage />
                 ) : (
                     <MathJax.Provider>
