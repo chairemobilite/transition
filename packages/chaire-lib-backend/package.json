@@ -43,7 +43,7 @@
         "capnp-ts": "^0.4.0",
         "chaire-lib-common": "^0.2.2",
         "dotenv": "^16.4.7",
-        "express": "^4.21.1",
+        "express": "^4.21.2",
         "express-session": "^1.18.1",
         "fs-extra": "^11.2.0",
         "geojson": "^0.5.0",
