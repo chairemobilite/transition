@@ -134,23 +134,17 @@ const geojsonCollectionFromQuery = async (query: Knex.QueryBuilder) => {
         `)
             )
             .as('features');
-        const response = await knex.from(featureQuery).select(
-            knex.raw(`
-        jsonb_build_object(
-            'type',     'FeatureCollection',
-            'features', COALESCE(jsonb_agg(features.feature), '[]'::jsonb)
-        ) as geojson
-        `)
-        );
-        const geojson = response.length === 1 ? response[0]['geojson'] : undefined;
-        if (geojson) {
-            return geojson;
-        }
-        throw new TrError(
-            'cannot fetch transit paths geojson collection because database did not return a valid geojson',
-            'TPQPGC0001',
-            'TransitPathsGeojsonCollectionCouldNotBeFetchedBecauseDatabaseError'
-        );
+        // FIXME: Previously, the feature collection was coalesced by the
+        // database with `COALESCE(jsonb_agg(features.feature), '[]'::jsonb)`,
+        // but it was not performant. Having typescript handle the coalescing
+        // divides by 3 the time to fetch the data for large networks. See if we
+        // can improve the query to have the DB do the coalescing
+        const features = await featureQuery;
+        const geojson = {
+            type: 'FeatureCollection' as const,
+            features: features.map((f: any) => f.feature)
+        };
+        return geojson;
     } catch (error) {
         throw new TrError(
             `cannot fetch transit paths geojson collection because of a database error (knex error: ${error})`,
