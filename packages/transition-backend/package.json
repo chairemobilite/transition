@@ -69,7 +69,7 @@
         "uuid": "^11.0.3",
         "workerpool": "^6.2.1",
         "yargs": "^17.7.2",
-        "zod": "^3.22.3"
+        "zod": "^3.23.8"
     },
     "devDependencies": {
         "@types/express-socket.io-session": "^1.3.9",
