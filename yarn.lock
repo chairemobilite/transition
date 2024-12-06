@@ -3405,10 +3405,10 @@
     "@types/react" "*"
     "@types/webpack" "^4"
 
-"@types/react-mathjax@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@types/react-mathjax/-/react-mathjax-1.0.1.tgz#aa942bb5e0be09a39b2f5d629afc275aa090ce0d"
-  integrity sha512-XhOdKuHti4yLTAd+/UBXvzvAisgHU6J9CV3isLks2HDbmZCXw9CEJFHCOW19EwqaZe+oVOgOSg5IPzUd4mQGCA==
+"@types/react-mathjax@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@types/react-mathjax/-/react-mathjax-1.0.4.tgz#b6c75bdf700704c511f3bf21727e5db73799271c"
+  integrity sha512-gxtONNuQUZhNOKeQGxLGxeeqvPc2gBGMFB8t+7WnXQBHQdp+MEhd1Ycnvxjycnxsko87k/0sYooVgLBsIWU6VQ==
   dependencies:
     "@types/react" "*"
 
