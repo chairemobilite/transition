@@ -5261,10 +5261,10 @@ concaveman@^1.2.1:
     robust-predicates "^2.0.4"
     tinyqueue "^2.0.3"
 
-connect-session-knex@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/connect-session-knex/-/connect-session-knex-4.0.0.tgz#87df15d723a544afa765455dcefd7e92666aa8a8"
-  integrity sha512-syZf6ao03b+x42k5iwr76IBnHC6l+0Kr9d88lCTmGWimbW45ns6UYGEKv/ug60DkMrh3Wt8mO3hjhdaZLH1Rbg==
+connect-session-knex@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/connect-session-knex/-/connect-session-knex-4.0.2.tgz#666df9b3d84c32cce503c57e6ca530f5ea270f68"
+  integrity sha512-VgrHKBUOhqqorNRLCSZcwmuzTzRdrYK2qkeYd0JMRor29G1SBWJKjVF/Fq5QB7hgGIN3oR2ee7F1LmLsjhO+aA==
   dependencies:
     bluebird "^3.7.2"
     knex "3"
