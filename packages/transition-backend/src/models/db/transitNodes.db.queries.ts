@@ -94,7 +94,6 @@ const geojsonCollection = async (
             'name', name,
             'description', description,
             'geography', ST_AsGeoJSON(geography)::jsonb, 
-            'data', data,
             'is_enabled', is_enabled,
             'integer_id', integer_id,
             'routing_radius_meters', routing_radius_meters,
