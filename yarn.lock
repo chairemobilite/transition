@@ -7178,10 +7178,10 @@ grid-index@^1.1.0:
   resolved "https://registry.yarnpkg.com/grid-index/-/grid-index-1.1.0.tgz#97f8221edec1026c8377b86446a7c71e79522ea7"
   integrity sha512-HZRwumpOGUrHyxO5bqKZL0B0GlUpwtCAzZ42sgxUPniu33R1LSFH5yrIcBCHjkctCAh3mtWKcKd9J4vDDdeVHA==
 
-gtfs-types@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/gtfs-types/-/gtfs-types-2.1.0.tgz#49df17f3b80911bfc0b50a4113ca0e3d0ea04592"
-  integrity sha512-Jx3eaJHKF6zp7HB9jAFpJ+Zw41ae59MlwUmsCXGNYt/Ytl/V8E/wf3o5BO6a3E6I0gO4bR9egYypGoKeOHcvEQ==
+gtfs-types@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/gtfs-types/-/gtfs-types-4.0.0.tgz#f1397108932fe29159039b957b8b565f358d8542"
+  integrity sha512-O4HEEDUIOTg4U8Kk36iJ56tfW3s16l0cv9OBXX54OI2kGQJc+NTwE1/adPTGQXNw+IWyNNEPyzsEneu5JlYIHw==
 
 gud@^1.0.0:
   version "1.0.0"
