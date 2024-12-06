@@ -196,21 +196,20 @@ describe(`${objectName}`, () => {
 
         const _collection = await dbQueries.geojsonCollection();
         const geojsonCollection = new GeojsonCollection(_collection.features, {}, undefined);
-        const _newObjectAttributes = Object.assign({}, newObjectAttributes) as any;
-        const _newObjectAttributes2 = Object.assign({}, newObjectAttributes2) as any;
+        const _newObjectAttributes = _cloneDeep(newObjectAttributes) as any;
+        const _newObjectAttributes2 = _cloneDeep(newObjectAttributes2) as any;
+        const _updatedAttributes = _cloneDeep(updatedAttributes);
         const collection = geojsonCollection.features;
         expect(collection.length).toBe(2);
-        for (const attribute in updatedAttributes) {
-            _newObjectAttributes[attribute] = updatedAttributes[attribute];
+        for (const attribute in _updatedAttributes) {
+            _newObjectAttributes[attribute] = _updatedAttributes[attribute];
         }
-        delete _newObjectAttributes.data.transferableNodes;
-        delete _newObjectAttributes2.data.transferableNodes;
+        delete _newObjectAttributes.data;
+        delete _newObjectAttributes2.data;
         delete collection[0].properties.created_at;
         delete collection[0].properties.updated_at;
-        delete collection[0].properties.data.routingRadiusPixelsAtMaxZoom;
         delete collection[1].properties.created_at;
         delete collection[1].properties.updated_at;
-        delete collection[1].properties.data.routingRadiusPixelsAtMaxZoom;
 
         expect(collection[0].properties.id).toBe(_newObjectAttributes.id);
         expect(collection[0].properties).toMatchObject(_newObjectAttributes);
@@ -223,16 +222,16 @@ describe(`${objectName}`, () => {
 
         const _collection = await dbQueries.geojsonCollection({ nodeIds: [newObjectAttributes.id] });
         const geojsonCollection = new GeojsonCollection(_collection.features, {}, undefined);
-        const _newObjectAttributes = Object.assign({}, newObjectAttributes) as any;
+        const _newObjectAttributes = _cloneDeep(newObjectAttributes) as any;
+        const _updatedAttributes = _cloneDeep(updatedAttributes);
         const collection = geojsonCollection.features;
         expect(collection.length).toBe(1);
-        for (const attribute in updatedAttributes) {
-            _newObjectAttributes[attribute] = updatedAttributes[attribute];
+        for (const attribute in _updatedAttributes) {
+            _newObjectAttributes[attribute] = _updatedAttributes[attribute];
         }
-        delete _newObjectAttributes.data.transferableNodes;
+        delete _newObjectAttributes.data;
         delete collection[0].properties.created_at;
         delete collection[0].properties.updated_at;
-        delete collection[0].properties.data.routingRadiusPixelsAtMaxZoom;
 
         expect(collection[0].properties.id).toBe(_newObjectAttributes.id);
         expect(collection[0].properties).toMatchObject(_newObjectAttributes);
@@ -387,45 +386,51 @@ describe(`${objectName}`, () => {
 
 describe('Nodes, with transactions', () => {
 
+    // Copy the attributes to delete the transferableNodes for these test cases
+    const testObjectAttributes = _cloneDeep(newObjectAttributes);
+    delete (testObjectAttributes.data as any).transferableNodes;
+    const testObjectAttributes2 = _cloneDeep(newObjectAttributes2);
+    delete (testObjectAttributes2.data as any).transferableNodes;
+
     beforeEach(async () => {
         // Empty the table and add 1 object
         await dbQueries.truncate();
-        const newObject = new ObjectClass(newObjectAttributes, true);
+        const newObject = new ObjectClass(testObjectAttributes, true);
         await dbQueries.create(newObject.getAttributes());
     });
 
     test('Create, update with success', async() => {
         const newName = 'new name';
         await knex.transaction(async (trx) => {
-            const newObject = new ObjectClass(newObjectAttributes2, true);
+            const newObject = new ObjectClass(testObjectAttributes2, true);
             await dbQueries.create(newObject.getAttributes(), { transaction: trx });
-            await dbQueries.update(newObjectAttributes.id, { name: newName }, { transaction: trx });
+            await dbQueries.update(testObjectAttributes.id, { name: newName }, { transaction: trx });
         });
 
         // Make sure the new object is there and the old has been updated
         const collection = await dbQueries.collection();
         expect(collection.length).toEqual(2);
-        const { name, ...currentObject } = new ObjectClass(newObjectAttributes, true).attributes;
-        const object1 = collection.find((obj) => obj.id === newObjectAttributes.id);
+        const { name, ...currentObject } = new ObjectClass(testObjectAttributes, true).attributes;
+        const object1 = collection.find((obj) => obj.id === testObjectAttributes.id);
         expect(object1).toBeDefined();
         expect(object1).toEqual(expect.objectContaining({
             name: newName,
             ...currentObject
         }));
 
-        const object2 = collection.find((obj) => obj.id === newObjectAttributes2.id);
+        const object2 = collection.find((obj) => obj.id === testObjectAttributes2.id);
         expect(object2).toBeDefined();
-        expect(object2).toEqual(expect.objectContaining(new ObjectClass(newObjectAttributes2, true).attributes));
+        expect(object2).toEqual(expect.objectContaining(new ObjectClass(testObjectAttributes2, true).attributes));
     });
 
     test('Create, update with error', async() => {
         let error: any = undefined;
         try {
             await knex.transaction(async (trx) => {
-                const newObject = new ObjectClass(newObjectAttributes2, true);
+                const newObject = new ObjectClass(testObjectAttributes2, true);
                 await dbQueries.create(newObject.getAttributes(), { transaction: trx });
                 // Update with a bad field
-                await dbQueries.update(newObjectAttributes.id, { simulation_id: uuidV4() } as any, { transaction: trx });
+                await dbQueries.update(testObjectAttributes.id, { simulation_id: uuidV4() } as any, { transaction: trx });
             });
         } catch(err) {
             error = err;
@@ -435,9 +440,9 @@ describe('Nodes, with transactions', () => {
         // The new object should not have been added and the one in DB should not have been updated
         const collection = await dbQueries.collection();
         expect(collection.length).toEqual(1);
-        const object1 = collection.find((obj) => obj.id === newObjectAttributes.id);
+        const object1 = collection.find((obj) => obj.id === testObjectAttributes.id);
         expect(object1).toBeDefined();
-        expect(object1).toEqual(expect.objectContaining(new ObjectClass(newObjectAttributes, true).attributes));
+        expect(object1).toEqual(expect.objectContaining(new ObjectClass(testObjectAttributes, true).attributes));
     });
 
     test('Create, update, delete with error', async() => {
@@ -445,10 +450,10 @@ describe('Nodes, with transactions', () => {
         let error: any = undefined;
         try {
             await knex.transaction(async (trx) => {
-                const newObject = new ObjectClass(newObjectAttributes2, true);
+                const newObject = new ObjectClass(testObjectAttributes2, true);
                 await dbQueries.create(newObject.getAttributes(), { transaction: trx });
-                await dbQueries.update(newObjectAttributes.id, { name: currentNodeNewName }, { transaction: trx });
-                await dbQueries.delete(newObjectAttributes.id, { transaction: trx });
+                await dbQueries.update(testObjectAttributes.id, { name: currentNodeNewName }, { transaction: trx });
+                await dbQueries.delete(testObjectAttributes.id, { transaction: trx });
                 throw 'error';
             });
         } catch(err) {
@@ -459,9 +464,10 @@ describe('Nodes, with transactions', () => {
         // Make sure the existing object is still there and no new one has been added
         const collection = await dbQueries.collection();
         expect(collection.length).toEqual(1);
-        const object1 = collection.find((obj) => obj.id === newObjectAttributes.id);
+        const object1 = collection.find((obj) => obj.id === testObjectAttributes.id);
         expect(object1).toBeDefined();
-        expect(object1).toEqual(expect.objectContaining(new ObjectClass(newObjectAttributes, true).attributes));
+        expect(object1).toEqual(expect.objectContaining(new ObjectClass(testObjectAttributes, true).attributes));
     });
 
 });
+newObjectAttributes
