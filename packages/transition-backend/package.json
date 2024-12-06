@@ -57,7 +57,7 @@
         "papaparse": "^5.4.1",
         "passport": "^0.7.0",
         "pbf": "^3.3.0",
-        "polygon-clipping": "^0.15.3",
+        "polygon-clipping": "^0.15.7",
         "proj4": "^2.7.5",
         "random": "^5.1.1",
         "serve-favicon": "^2.5.0",
