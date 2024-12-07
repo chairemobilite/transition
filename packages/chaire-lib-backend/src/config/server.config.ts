@@ -50,6 +50,26 @@ export type TrRoutingConfig = {
     // support it in both batch and single calculation
 };
 
+export type OsrmRoutingConfig = {
+    /**
+     * Port used to access OSRM, either locally or remotely.
+     */
+    port: number | null;
+    /**
+     * If set to null, localhost will be used. Ignored if autoStart set to true.
+     * Do not prefix with the protocol (ex: 'some.osrm.site.com')
+     */
+    host: string | null;
+    /**
+     * If true, a local instance of OSRM will be started when launching transition (client).
+     */
+    autoStart: boolean;
+    /**
+     * If true, this mode will be configured, otherwise it will be left out. Usable when routing paths.
+     */
+    enabled: boolean;
+};
+
 // TODO Some project config option depend on the application, so should not be
 // typed in chaire-lib. Each app (transition , evolution, etc) should add types
 // to the config and should have a project.config file which imports this one
@@ -87,8 +107,7 @@ export type ServerSideProjectConfiguration = {
         [key in RoutingMode]?: {
             defaultEngine: string;
             engines: {
-                // TODO Type and intialize these configuration for routing modes
-                [key: string]: any;
+                osrmRouting?: OsrmRoutingConfig;
             };
         };
     };
@@ -165,6 +184,149 @@ setProjectConfigurationCommon<ServerSideProjectConfiguration>({
                     }
                 }
             }
+        },
+        driving: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 7000,
+                    host: null,
+                    autoStart: true,
+                    enabled: true
+                }
+            }
+        },
+        driving_congestion: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 7500,
+                    host: null,
+                    autoStart: false,
+                    enabled: false
+                }
+            }
+        },
+        cycling: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 8000,
+                    host: null,
+                    autoStart: true,
+                    enabled: true
+                }
+            }
+        },
+        walking: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 5000,
+                    host: null,
+                    autoStart: true,
+                    enabled: true
+                }
+            }
+        },
+        bus_suburb: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 7200,
+                    host: null,
+                    autoStart: true,
+                    enabled: true
+                }
+            }
+        },
+        bus_urban: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 7300,
+                    host: null,
+                    autoStart: true,
+                    enabled: true
+                }
+            }
+        },
+        bus_congestion: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 7400,
+                    host: null,
+                    autoStart: false,
+                    enabled: false
+                }
+            }
+        },
+        rail: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 9000,
+                    host: null,
+                    autoStart: false,
+                    enabled: false
+                }
+            }
+        },
+        tram: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 9100,
+                    host: null,
+                    autoStart: false,
+                    enabled: false
+                }
+            }
+        },
+        tram_train: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 9200,
+                    host: null,
+                    autoStart: false,
+                    enabled: false
+                }
+            }
+        },
+        metro: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 9300,
+                    host: null,
+                    autoStart: false,
+                    enabled: false
+                }
+            }
+        },
+        monorail: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 9400,
+                    host: null,
+                    autoStart: false,
+                    enabled: false
+                }
+            }
+        },
+        cable_car: {
+            defaultEngine: 'osrmRouting',
+            engines: {
+                osrmRouting: {
+                    port: 9500,
+                    host: null,
+                    autoStart: false,
+                    enabled: false
+                }
+            }
         }
     }
 });
@@ -191,6 +353,35 @@ export const setProjectConfiguration = (newConfig: Partial<ProjectConfiguration<
             }
         });
     }
+
+    // If osrmRouting is configured using the old defaultPreferences format and not the new one in server.config, set it to the new format
+    // FIXME Remove once the old osrmRouting format is fully deprecated. See issue #1137
+    const osrmModesInDeprecatedFormat = (newConfig as any)?.defaultPreferences?.osrmRouting?.modes;
+    if (osrmModesInDeprecatedFormat !== undefined) {
+        console.warn(
+            'The `osrmRouting` configuration in defaultPreferences is deprecated and will be removed in the future. Please insert the orsm configs in `routing.*.engines.osrmRouting` in server.config.ts, using a similar format as `routing.transit` instead.'
+        );
+        for (const osrmMode in osrmModesInDeprecatedFormat) {
+            if (newConfig.routing?.[osrmMode] === undefined) {
+                _merge(newConfig, {
+                    routing: {
+                        [osrmMode]: {
+                            defaultEngine: 'osrmRouting',
+                            engines: {
+                                osrmRouting: {
+                                    port: osrmModesInDeprecatedFormat[osrmMode].port,
+                                    host: osrmModesInDeprecatedFormat[osrmMode].host || osrmModesInDeprecatedFormat[osrmMode].osrmPath,
+                                    autoStart: osrmModesInDeprecatedFormat[osrmMode].autoStart,
+                                    enabled: osrmModesInDeprecatedFormat[osrmMode].enabled
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+
     setProjectConfigurationCommon(newConfig);
 };
 

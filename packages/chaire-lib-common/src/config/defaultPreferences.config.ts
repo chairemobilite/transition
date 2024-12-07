@@ -200,93 +200,10 @@ const defaultPreferences: PreferencesModel = {
         // Keep empty for none (will only use the mode name):
         // If empty, directories will be projects/{PROJECT_SHORTNAME}/osrm/{MODE}
         // If not empty, directories will be projects/{PROJECT_SHORTNAME}/osrm/directoryPrefix_{MODE}
+        // TODO: Move these params to chaire-lib-backend with server.config. See issue #1140
         directoryPrefix: '',
         maxDistanceFromNearestNetworkNodeMeters: 300,
-        useContinueStraightForMapMatching: false, // use only if using the forked version of osrm-backend with support for continue-straight in match query
-        modes: {
-            driving: {
-                // set host to null when you want node to start osrm locally with the provided osrmPath and port
-                // !!! Be careful: use your own server, since you may be blocked on the osrm demo server after too many queries
-                port: 7000, // set to null when using remote osrm server
-                osrmPath: null, // set to null when using a remote osrm server
-                autoStart: true, // autostart osrm server for this mode when lauching transition (client)
-                enabled: true // usable when routing paths
-            },
-            driving_congestion: {
-                // set host to null when you want node to start osrm locally with the provided osrmPath and port
-                // !!! Be careful: use your own server, since you may be blocked on the osrm demo server after too many queries
-                port: 7500, // set to null when using remote osrm server
-                osrmPath: null, // set to null when using a remote osrm server
-                autoStart: false, // autostart osrm server for this mode when lauching transition (client)
-                enabled: false // usable when routing paths
-            },
-            cycling: {
-                port: 8000,
-                osrmPath: null,
-                autoStart: true,
-                enabled: true
-            },
-            walking: {
-                port: 5000,
-                osrmPath: null,
-                autoStart: true,
-                enabled: true
-            },
-            bus_suburb: {
-                port: 7200,
-                osrmPath: null,
-                autoStart: true,
-                enabled: true
-            },
-            bus_urban: {
-                port: 7300,
-                osrmPath: null,
-                autoStart: true,
-                enabled: true
-            },
-            bus_congestion: {
-                port: 7400,
-                osrmPath: null,
-                autoStart: false,
-                enabled: false
-            },
-            rail: {
-                port: 9000,
-                osrmPath: null,
-                autoStart: false,
-                enabled: false
-            },
-            tram: {
-                port: 9100,
-                osrmPath: null,
-                autoStart: false,
-                enabled: false
-            },
-            tram_train: {
-                port: 9200,
-                osrmPath: null,
-                autoStart: false,
-                enabled: false
-            },
-            metro: {
-                port: 9300,
-                osrmPath: null,
-                autoStart: false,
-                enabled: false
-            },
-            monorail: {
-                port: 9400,
-                osrmPath: null,
-                autoStart: false,
-                enabled: false
-            },
-            cable_car: {
-                port: 9500,
-                osrmPath: null,
-                autoStart: false,
-                enabled: false
-            }
-        }
+        useContinueStraightForMapMatching: false // use only if using the forked version of osrm-backend with support for continue-straight in match query
     },
     colorPicker: {
         colors: [

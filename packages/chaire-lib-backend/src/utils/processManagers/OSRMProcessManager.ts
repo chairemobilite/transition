@@ -4,29 +4,27 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { getOsrmDirectoryPathForMode } from './OSRMServicePath';
 import ProcessManager from './ProcessManager';
 import { RoutingMode, routingModes } from 'chaire-lib-common/lib/config/routingModes';
 import osrmService from '../osrm/OSRMService';
 import OSRMMode from '../osrm/OSRMMode';
+import ServerConfig from '../../config/ServerConfig';
+import { setProjectConfiguration } from '../../config/server.config';
+import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 const getServiceName = function (mode: RoutingMode = 'walking', port: number | null = 5000) {
     return `osrmMode__${mode}__port${port}`;
 };
 
 const routingModeIsAvailable = async function (routingMode: RoutingMode): Promise<boolean> {
-    const osrmServerPrefs = Preferences.get('osrmRouting', {});
-    if (
-        osrmServerPrefs.modes[routingMode] &&
-        osrmServerPrefs.modes[routingMode].enabled === true &&
-        osrmServerPrefs.modes[routingMode].autoStart !== true
-    ) {
+    const osrmModeConfig = ServerConfig.getRoutingEngineConfigForMode(routingMode, 'osrmRouting');
+    if (osrmModeConfig && osrmModeConfig.enabled === true && osrmModeConfig.autoStart !== true) {
         // Assume that an external OSRM is always available
         // TODO Do a "ping" check  on the service to be sure
         return true;
     }
-    const port = osrmServerPrefs.modes[routingMode].port;
+    const port = osrmModeConfig.port;
 
     const serviceName = getServiceName(routingMode, port);
 
@@ -43,8 +41,8 @@ const routingModeIsAvailable = async function (routingMode: RoutingMode): Promis
 
 const availableRoutingModes = async function (): Promise<RoutingMode[]> {
     const availableRoutingModes: RoutingMode[] = [];
-    const osrmServerPrefs = Preferences.get('osrmRouting', {});
-    for (const routingMode in osrmServerPrefs.modes) {
+    const osrmServerModes = ServerConfig.getAllModesForEngine('osrmRouting');
+    for (const routingMode of osrmServerModes) {
         if (!routingModes.includes(routingMode as RoutingMode)) {
             console.log(`Mode ${routingMode} in osrmRouting preferences is not a routing mode, ignoring`);
             continue;
@@ -61,10 +59,16 @@ const availableRoutingModes = async function (): Promise<RoutingMode[]> {
 
 function errorConfiguringMode(mode: RoutingMode, message: string) {
     console.log('Error configuring OSRM mode ' + mode + ' ' + message);
-    const updatedProperties = {};
-    updatedProperties['modes'] = {};
-    updatedProperties['modes'][mode] = { enabled: false };
-    Preferences.updateServerPrefs({ osrmRouting: updatedProperties });
+    setProjectConfiguration({
+        routing: {
+            [mode]: {
+                defaultEngine: 'osrmRouting',
+                engines: {
+                    osrmRouting: { enabled: false }
+                }
+            }
+        } as any
+    });
 }
 
 // FIXME This function should only have to be called by the main server thread, but it is also used by threads, without starting the servers
@@ -72,17 +76,17 @@ function errorConfiguringMode(mode: RoutingMode, message: string) {
  all the OSRM mode described. Will either start the necessary process
  or attempt to connect to external ones */
 const configureAllOsrmServers = async function (startServers = true): Promise<void> {
-    const osrmServerPrefs = Preferences.get('osrmRouting', {});
-    for (const routingModeStr in osrmServerPrefs.modes) {
+    const osrmModes = ServerConfig.getAllModesForEngine('osrmRouting');
+    for (const routingModeStr of osrmModes) {
         const routingMode = routingModeStr as RoutingMode;
-        const modeConfig = osrmServerPrefs.modes[routingMode];
+        const modeConfig = ServerConfig.getRoutingEngineConfigForMode(routingMode, 'osrmRouting');
         // TODO Do we want to accept camelCase equivalent of each routing modes?
         if (routingModes.includes(routingMode)) {
             // Only configure mode that are enabled
             if (modeConfig.enabled === true) {
                 const port = modeConfig.port;
                 // Use the host in the config even for local server starts as it allows to fine-tune the url to contact (for example ipv4 vs ipv6 names)
-                const host = modeConfig.host !== null ? modeConfig.host : '';
+                const host = !_isBlank(modeConfig.host) ? modeConfig.host : '';
 
                 if (port === null || port === undefined || port <= 0) {
                     errorConfiguringMode(routingMode, 'Invalid port number');
@@ -128,8 +132,9 @@ function getOsrmRoutedStartArgs(osrmDirectory: string, mode: string, port: strin
 //TODO set type for parameters instead of any
 //TODO set type for Promise return (in all the file)
 const start = function (parameters = {} as any): Promise<any> {
+    // TODO: Make the mode and port params mandatory
     const mode = parameters.mode || 'walking';
-    const port = parameters.port || Preferences.get(`osrmRouting.${mode}.port`);
+    const port = parameters.port || ServerConfig.getRoutingEngineConfigForMode(mode, 'osrmRouting').port;
     const serviceName = getServiceName(mode, port);
     const tagName = 'osrm';
     const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, parameters.directoryPrefix);
@@ -146,8 +151,9 @@ const start = function (parameters = {} as any): Promise<any> {
 };
 
 const stop = function (parameters): Promise<any> {
+    // TODO: Make the mode and port params mandatory
     const mode = parameters.mode || 'walking';
-    const port = parameters.port || Preferences.get(`osrmRouting.${mode}.port`);
+    const port = parameters.port || ServerConfig.getRoutingEngineConfigForMode(mode, 'osrmRouting').port;
     const serviceName = getServiceName(mode, port);
     const tagName = 'osrm';
 
@@ -157,8 +163,9 @@ const stop = function (parameters): Promise<any> {
 };
 
 const restart = function (parameters): Promise<any> {
+    // TODO: Make the mode and port params mandatory
     const mode = parameters.mode || 'walking';
-    const port = parameters.port || Preferences.get(`osrmRouting.${mode}.port`);
+    const port = parameters.port || ServerConfig.getRoutingEngineConfigForMode(mode, 'osrmRouting').port;
     const serviceName = getServiceName(mode, port);
     const tagName = 'osrm';
     const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, parameters.directoryPrefix);
