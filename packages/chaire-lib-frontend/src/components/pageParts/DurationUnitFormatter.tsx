@@ -12,11 +12,11 @@ import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 const destinationUnitOptions = ['hrMinSec', 's', 'm', 'h'] as const;
 type destinationUnitOptionsType = (typeof destinationUnitOptions)[number];
 
-export interface DurationUnitFormatterProps extends WithTranslation {
+export type DurationUnitFormatterProps = WithTranslation & {
     value: number;
     sourceUnit: 's' | 'm' | 'h';
     destinationUnit?: destinationUnitOptionsType;
-}
+};
 
 const DurationUnitFormatter: React.FunctionComponent<DurationUnitFormatterProps> = (
     props: DurationUnitFormatterProps

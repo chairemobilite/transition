@@ -6,7 +6,7 @@
  */
 // Initialize test wide variables
 
-import Enzyme from 'enzyme';
-import Adapter from 'enzyme-adapter-react-16';
+// hack to make react-router work with jest
+import { TextEncoder } from 'node:util';
+global.TextEncoder = TextEncoder;
 
-Enzyme.configure({ adapter: new Adapter() });

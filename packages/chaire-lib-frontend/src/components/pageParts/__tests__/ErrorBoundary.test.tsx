@@ -5,19 +5,19 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import * as React from 'react';
-import { create } from 'react-test-renderer';
-import { mount } from 'enzyme';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+
 import ErrorBoundary from '../ErrorBoundary';
 
-const testLabel = "Test";
+const testLabel = 'Test';
 
 test('Normal boundary', () => {
-    const errorBoundary = create(<ErrorBoundary
+    const { container } = render(<ErrorBoundary
         key={testLabel}>
-            <input id="test"/>
-        </ErrorBoundary>)
-        .toJSON();
-    expect(errorBoundary).toMatchSnapshot();
+        <input id="test"/>
+    </ErrorBoundary>);
+    expect(container).toMatchSnapshot();
 });
 
 test('Boundary with error', () => {
@@ -27,20 +27,20 @@ test('Boundary with error', () => {
         throw new Error(errorMessage);
     };
 
-    const errorBoundary = mount(<ErrorBoundary
+    const { container } = render(<ErrorBoundary
         key={testLabel}>
-            <TestComponent/>
-        </ErrorBoundary>);
+        <TestComponent/>
+    </ErrorBoundary>);
     // Make sure expected components are there
-    const collapsible = errorBoundary.find('.Collapsible');
-    expect(collapsible).toHaveLength(1);
+    const collapsible = container.querySelector('.Collapsible');
+    expect(collapsible).toBeTruthy();
 
-    const trException = errorBoundary.find('.tr__exception');
-    expect(trException).toHaveLength(1);
+    const trException = container.querySelector('.tr__exception');
+    expect(trException).toBeTruthy();
 
     // The trException's content should be the exception thrown
-    const children = trException.children();
-    expect(children.length).toEqual(2);
-    expect(trException.childAt(0).text()).toEqual(errorMessage);
-    expect(trException.childAt(1).text()).toContain("TestComponent");
+    const children = trException?.children;
+    expect(children?.length).toEqual(2);
+    expect(children?.[0].textContent).toEqual(errorMessage);
+    expect(children?.[1].textContent).toContain('TestComponent');
 });

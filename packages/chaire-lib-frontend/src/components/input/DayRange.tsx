@@ -4,20 +4,20 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import React, { JSX } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import _isEqual from 'lodash/isEqual';
 
 import InputSelect from './InputSelect';
 
-export interface DayRangeProps extends WithTranslation {
+export type DayRangeProps = WithTranslation & {
     id: string;
     /** selection contains the number of the day, where 0 is monday */
     onChange: (selection: number[]) => void;
     days: number[];
     disabled?: boolean;
     showPeriodDropdown?: boolean;
-}
+};
 
 type dayRangeType = 'custom' | 'week' | 'week-end' | 'all';
 
@@ -70,6 +70,8 @@ export class DayRange extends React.Component<DayRangeProps> {
                     type="checkbox"
                     id={`${this.props.id}_${day}`}
                     value={day}
+                    title={day}
+                    name={day}
                     checked={isChecked}
                     onChange={(e) => this.handleDayChange(e, day)}
                     disabled={this.props.disabled}

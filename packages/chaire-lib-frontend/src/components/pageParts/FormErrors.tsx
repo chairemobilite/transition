@@ -12,10 +12,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 
-export interface FormErrorsProps extends WithTranslation {
+export type FormErrorsProps = WithTranslation & {
     errors: ErrorMessage[];
     errorType?: 'Warning' | 'Error';
-}
+};
 
 const FormErrors: React.FunctionComponent<FormErrorsProps> = (props: FormErrorsProps) => {
     if (props.errors && props.errors.length > 0) {

@@ -5,9 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import * as React from 'react';
-import { create } from 'react-test-renderer';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+
 import Button from '../Button';
-import { render, fireEvent } from "@testing-library/react";
+import { create } from 'node:domain';
 
 // Mock react-markdown and remark-gfm as they use syntax not supported by jest
 jest.mock('react-markdown', () => 'Markdown');
@@ -24,64 +26,59 @@ beforeEach(() => {
     mockSelect.mockClear();
     mockDuplicate.mockClear();
     mockDelete.mockClear();
-})
+});
 
 test('Minimal props', () => {
-    const input = create(<Button
+    const { container } = render(<Button
         key='key'
         isSelected={true}
-    >test</Button>)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+    >test</Button>);
+    expect(container).toMatchSnapshot();
 });
 
 test('All props', () => {
-    const input = create(<Button
+    const { container } = render(<Button
         key='key'
         isSelected={true}
         flushActionButtons={false}
-        onSelect={{handler: mockSelect}}
-        onDuplicate={{handler: mockDuplicate, altText: duplicateString}}
-        onDelete={{handler: mockDelete, message: 'deleting'}}
-    >test</Button>)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+        onSelect={{ handler: mockSelect }}
+        onDuplicate={{ handler: mockDuplicate, altText: duplicateString }}
+        onDelete={{ handler: mockDelete, message: 'deleting' }}
+    >test</Button>);
+    expect(container).toMatchSnapshot();
 });
 
 test('Flush action buttons', () => {
-    const input = create(<Button
+    const { container } = render(<Button
         key='key'
         isSelected={true}
         flushActionButtons={true}
-        onSelect={{handler: mockSelect}}
-        onDuplicate={{handler: mockDuplicate, altText: duplicateString}}
-        onDelete={{handler: mockDelete, message: 'deleting'}}
-    >test</Button>)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+        onSelect={{ handler: mockSelect }}
+        onDuplicate={{ handler: mockDuplicate, altText: duplicateString }}
+        onDelete={{ handler: mockDelete, message: 'deleting' }}
+    >test</Button>);
+    expect(container).toMatchSnapshot();
 });
 
 test('Flush action buttons, just delete', () => {
-    const input = create(<Button
+    const { container } = render(<Button
         key='key'
         isSelected={true}
         flushActionButtons={true}
-        onDelete={{handler: mockDelete, message: 'deleting'}}
-    >test</Button>)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+        onDelete={{ handler: mockDelete, message: 'deleting' }}
+    >test</Button>);
+    expect(container).toMatchSnapshot();
 });
 
 test('Not selected, with altText', () => {
-    const input = create(<Button
+    const { container } = render(<Button
         key='key'
         isSelected={false}
-        onSelect={{handler: mockSelect, altText: selectString}}
-        onDuplicate={{handler: mockDuplicate, altText: duplicateString}}
-        onDelete={{handler: mockDelete, altText: deleteString, message: 'deleting'}}
-    >test</Button>)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+        onSelect={{ handler: mockSelect, altText: selectString }}
+        onDuplicate={{ handler: mockDuplicate, altText: duplicateString }}
+        onDelete={{ handler: mockDelete, altText: deleteString, message: 'deleting' }}
+    >test</Button>);
+    expect(container).toMatchSnapshot();
 });
 
 test('Test select call', () => {
@@ -89,7 +86,7 @@ test('Test select call', () => {
         <Button
             key='key'
             isSelected={true}
-            onSelect={{handler: mockSelect}}
+            onSelect={{ handler: mockSelect }}
         >test</Button>);
     const input = getByText('test') as HTMLInputElement;
     fireEvent.click(input);
@@ -99,13 +96,13 @@ test('Test select call', () => {
 test('Test duplicate call', () => {
     mockDuplicate.mockImplementationOnce((e) => {
         e.stopPropagation();
-    })
+    });
     const { getByAltText } = render(
         <Button
             key='key'
             isSelected={true}
-            onSelect={{handler: mockSelect}}
-            onDuplicate={{handler: mockDuplicate, altText: duplicateString}}
+            onSelect={{ handler: mockSelect }}
+            onDuplicate={{ handler: mockDuplicate, altText: duplicateString }}
         >test</Button>);
     const input = getByAltText(duplicateString) as HTMLInputElement;
     fireEvent.click(input);
@@ -116,16 +113,16 @@ test('Test duplicate call', () => {
 test('Test delete click, cancel', () => {
     mockDuplicate.mockImplementationOnce((e) => {
         e.stopPropagation();
-    })
+    });
     const { getByAltText, getByText, queryByText } = render(
         <Button
             key='key'
             isSelected={true}
-            onDelete={{handler: mockDelete, altText: deleteString, message: 'deleting'}}
+            onDelete={{ handler: mockDelete, altText: deleteString, message: 'deleting' }}
         >test</Button>);
     const input = getByAltText(deleteString) as HTMLInputElement;
     const cancelButton = queryByText('main:Cancel');
-    expect(cancelButton).toBeFalsy()
+    expect(cancelButton).toBeFalsy();
     fireEvent.click(input);
 
     const cancelButtonAfterClick = getByText('main:Cancel') as HTMLInputElement;
@@ -140,16 +137,16 @@ test('Test delete click, cancel', () => {
 test('Test delete click, confirm', () => {
     mockDuplicate.mockImplementationOnce((e) => {
         e.stopPropagation();
-    })
+    });
     const { getByAltText, getByText, queryByText } = render(
         <Button
             key='key'
             isSelected={true}
-            onDelete={{handler: mockDelete, altText: deleteString, message: 'deleting'}}
+            onDelete={{ handler: mockDelete, altText: deleteString, message: 'deleting' }}
         >test</Button>);
     const input = getByAltText(deleteString) as HTMLInputElement;
     const confirmButton = queryByText(deleteString);
-    expect(confirmButton).toBeFalsy()
+    expect(confirmButton).toBeFalsy();
     fireEvent.click(input);
 
     const confirmButtonAfterClick = getByText(deleteString) as HTMLInputElement;

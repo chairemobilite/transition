@@ -1,56 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Should correctly render Unauthorized page 1`] = `
-<BrowserRouter>
-  <Router
-    history={
-      {
-        "action": "POP",
-        "block": [Function],
-        "createHref": [Function],
-        "go": [Function],
-        "goBack": [Function],
-        "goForward": [Function],
-        "length": 1,
-        "listen": [Function],
-        "location": {
-          "hash": "",
-          "pathname": "/",
-          "search": "",
-          "state": undefined,
-        },
-        "push": [Function],
-        "replace": [Function],
-      }
-    }
-  >
-    <withI18nextTranslation(UnauthorizedPage)>
-      <UnauthorizedPage
-        i18n={{}}
-        t={[Function]}
-        tReady={false}
-      >
-        <div>
-          auth:Unauthorized
-           - 
-          <Link
-            to="/login"
-          >
-            <LinkAnchor
-              href="/login"
-              navigate={[Function]}
-            >
-              <a
-                href="/login"
-                onClick={[Function]}
-              >
-                auth:BackToLoginPage
-              </a>
-            </LinkAnchor>
-          </Link>
-        </div>
-      </UnauthorizedPage>
-    </withI18nextTranslation(UnauthorizedPage)>
-  </Router>
-</BrowserRouter>
+<div>
+  <div>
+    auth:Unauthorized
+     - 
+    <a
+      data-discover="true"
+      href="/login"
+    >
+      auth:BackToLoginPage
+    </a>
+  </div>
+</div>
 `;

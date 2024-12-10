@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { ReactComponentElement } from 'react';
+import React, { JSX } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';

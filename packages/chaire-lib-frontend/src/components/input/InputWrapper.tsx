@@ -6,16 +6,16 @@
  */
 import React from 'react';
 
-interface InputProps {
+export type InputProps = {
     label: string;
     help?: string;
     smallInput?: boolean;
     twoColumns?: boolean;
-}
+};
 
-interface HelpProps {
+export type HelpProps = {
     help: string;
-}
+};
 
 const InputHelp: React.FunctionComponent<HelpProps> = (props: HelpProps) => {
     return <p className="_em _pale _small _help">{props.help}</p>;

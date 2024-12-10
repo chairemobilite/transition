@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import Loader from 'react-spinners/ClockLoader';
 
 import { Notification } from 'chaire-lib-common/lib/services/events/Notifications';
@@ -17,7 +17,8 @@ type UiNotification = {
     message: string;
 };
 
-const NotificationArea: React.FunctionComponent<WithTranslation> = (props: WithTranslation) => {
+const NotificationArea: React.FC = () => {
+    const { t } = useTranslation();
     // Keep the notifications received. If it is a progress and it is done, the notification will clear after a timeout
     const [notifications, setNotifications] = React.useState<{ [key: string]: UiNotification }>({});
 
@@ -38,7 +39,7 @@ const NotificationArea: React.FunctionComponent<WithTranslation> = (props: WithT
             return setTimeout(hideNotification, 1000, notificationName);
         };
 
-        const message = notification.message.map((text) => props.t(text)).join(': ');
+        const message = notification.message.map((text) => t(text)).join(': ');
         const uiNotification =
             notification.type === 'error'
                 ? {
@@ -77,4 +78,4 @@ const NotificationArea: React.FunctionComponent<WithTranslation> = (props: WithT
     );
 };
 
-export default withTranslation()(NotificationArea);
+export default NotificationArea;

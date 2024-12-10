@@ -5,18 +5,19 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import * as React from 'react';
-import { create } from 'react-test-renderer';
+import { render, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+
 import { InputCheckbox, InputCheckboxBoolean } from '../InputCheckbox';
-import { mount } from 'enzyme';
 import { TestUtils } from 'chaire-lib-common/lib/test';
 
 const mockOnChange = jest.fn();
-const testId = "SelectWidgetId";
-const testLabel = "Select label";
+const testId = 'SelectWidgetId';
+const testLabel = 'Select label';
 
 jest.mock('react-i18next', () => ({
     // this mock makes sure any components using the translate HoC receive the t function as a prop
-    withTranslation: () => Component => {
+    withTranslation: () => (Component) => {
         Component.defaultProps = { ...Component.defaultProps, t: (key) => key };
         return Component;
     },
@@ -24,11 +25,11 @@ jest.mock('react-i18next', () => ({
 
 describe('Checkboxes', () => {
 
-    const defaultChoiceValue = "test1";
-    const anotherChoiceValue = "test2";
-    const choiceValue3 = "test3";
-    const labelForChoice2 = "label for test2";
-    const labelForChoice3 = "label for test3";
+    const defaultChoiceValue = 'test1';
+    const anotherChoiceValue = 'test2';
+    const choiceValue3 = 'test3';
+    const labelForChoice2 = 'label for test2';
+    const labelForChoice3 = 'label for test3';
     const testChoices = [
         { value: defaultChoiceValue },
         { value: anotherChoiceValue, label: labelForChoice2 },
@@ -41,17 +42,16 @@ describe('Checkboxes', () => {
     });
 
     test('Default props', () => {
-        const input = create(<InputCheckbox
+        const { container } = render(<InputCheckbox
             id = {testId}
             onValueChange = {mockOnChange}
             choices = {[]}
-        />)
-            .toJSON();
-        expect(input).toMatchSnapshot();
+        /> as any);
+        expect(container.firstChild).toMatchSnapshot();
     });
 
     test('All props', () => {
-        const input = create(<InputCheckbox
+        const { container } = render(<InputCheckbox
             id = {testId}
             onValueChange = {mockOnChange}
             value = {[anotherChoiceValue]}
@@ -61,49 +61,45 @@ describe('Checkboxes', () => {
             disabled = {false}
             localePrefix = "something"
             allowSelectAll = {false}
-        />)
-            .toJSON();
-        expect(input).toMatchSnapshot();
+        />);
+        expect(container.firstChild).toMatchSnapshot();
     });
 
     test('Disabled', () => {
-        const input = create(<InputCheckbox
+        const { container } = render(<InputCheckbox
             id = {testId}
             onValueChange = {mockOnChange}
             value = {[anotherChoiceValue]}
             disabled = {true}
             choices = {testChoices}
-        />)
-            .toJSON();
-        expect(input).toMatchSnapshot();
+        />);
+        expect(container.firstChild).toMatchSnapshot();
     });
 
     test('With columns', () => {
-        const input = create(<InputCheckbox
+        const { container } = render(<InputCheckbox
             id = {testId}
             onValueChange = {mockOnChange}
             choices = {testChoices}
             columns = {2}
-        />)
-            .toJSON();
-        expect(input).toMatchSnapshot();
+        />);
+        expect(container.firstChild).toMatchSnapshot();
     });
 
     test('allow select all', () => {
-        const input = create(<InputCheckbox
+        const { container } = render(<InputCheckbox
             id = {testId}
             onValueChange = {mockOnChange}
             choices = {testChoices}
             columns = {2}
             allowSelectAll = {true}
-        />)
-            .toJSON();
-        expect(input).toMatchSnapshot();
+        />);
+        expect(container.firstChild).toMatchSnapshot();
     });
 
     test('Default value', () => {
         mockOnChange.mockClear();
-        const checkboxInput = mount(
+        const { container } = render(
             <InputCheckbox
                 id = {testId}
                 onValueChange = {mockOnChange}
@@ -111,19 +107,19 @@ describe('Checkboxes', () => {
                 choices = {testChoices}
             />
         );
-        const input = checkboxInput.find({id: `${testId}_${defaultChoiceValue}`, type: 'checkbox'});
-        expect(input.getDOMNode<HTMLInputElement>().checked).toBeTruthy();
+        const input = container.querySelector(`input#${testId}_${defaultChoiceValue}`) as HTMLInputElement;
+        expect(input.checked).toBeTruthy();
 
-        const input2 = checkboxInput.find({id: `${testId}_${anotherChoiceValue}`, type: 'checkbox'});
-        expect(input2.getDOMNode<HTMLInputElement>().checked).toBeFalsy();
+        const input2 = container.querySelector(`input#${testId}_${anotherChoiceValue}`) as HTMLInputElement;
+        expect(input2.checked).toBeFalsy();
 
-        const input3 = checkboxInput.find({id: `${testId}_${choiceValue3}`, type: 'checkbox'});
-        expect(input3.getDOMNode<HTMLInputElement>().checked).toBeFalsy();
+        const input3 = container.querySelector(`input#${testId}_${choiceValue3}`) as HTMLInputElement;
+        expect(input3.checked).toBeFalsy();
     });
 
     test('Default and initial value', () => {
         mockOnChange.mockClear();
-        const checkboxInput = mount(
+        const { container } = render(
             <InputCheckbox
                 id = {testId}
                 onValueChange = {mockOnChange}
@@ -132,19 +128,19 @@ describe('Checkboxes', () => {
                 choices = {testChoices}
             />
         );
-        const input = checkboxInput.find({id: `${testId}_${defaultChoiceValue}`, type: 'checkbox'});
-        expect(input.getDOMNode<HTMLInputElement>().checked).toBeFalsy();
+        const input = container.querySelector(`input#${testId}_${defaultChoiceValue}`) as HTMLInputElement;
+        expect(input.checked).toBeFalsy();
 
-        const input2 = checkboxInput.find({id: `${testId}_${anotherChoiceValue}`, type: 'checkbox'});
-        expect(input2.getDOMNode<HTMLInputElement>().checked).toBeTruthy();
+        const input2 = container.querySelector(`input#${testId}_${anotherChoiceValue}`) as HTMLInputElement;
+        expect(input2.checked).toBeTruthy();
 
-        const input3 = checkboxInput.find({id: `${testId}_${choiceValue3}`, type: 'checkbox'});
-        expect(input3.getDOMNode<HTMLInputElement>().checked).toBeFalsy();
+        const input3 = container.querySelector(`input#${testId}_${choiceValue3}`) as HTMLInputElement;
+        expect(input3.checked).toBeFalsy();
     });
 
     test('Default and initial empty value', () => {
         mockOnChange.mockClear();
-        const checkboxInput = mount(
+        const { container } = render(
             <InputCheckbox
                 id = {testId}
                 onValueChange = {mockOnChange}
@@ -153,40 +149,40 @@ describe('Checkboxes', () => {
                 choices = {testChoices}
             />
         );
-        const input = checkboxInput.find({id: `${testId}_${defaultChoiceValue}`, type: 'checkbox'});
-        expect(input.getDOMNode<HTMLInputElement>().checked).toBeFalsy();
+        const input = container.querySelector(`input#${testId}_${defaultChoiceValue}`) as HTMLInputElement;
+        expect(input.checked).toBeFalsy();
 
-        const input2 = checkboxInput.find({id: `${testId}_${anotherChoiceValue}`, type: 'checkbox'});
-        expect(input2.getDOMNode<HTMLInputElement>().checked).toBeFalsy();
+        const input2 = container.querySelector(`input#${testId}_${anotherChoiceValue}`) as HTMLInputElement;
+        expect(input2.checked).toBeFalsy();
 
-        const input3 = checkboxInput.find({id: `${testId}_${choiceValue3}`, type: 'checkbox'});
-        expect(input3.getDOMNode<HTMLInputElement>().checked).toBeFalsy();
+        const input3 = container.querySelector(`input#${testId}_${choiceValue3}`) as HTMLInputElement;
+        expect(input3.checked).toBeFalsy();
     });
 
     test('Invalid default and value', () => {
         mockOnChange.mockClear();
-        const checkboxInput = mount(
+        const { container } = render(
             <InputCheckbox
                 id = {testId}
                 onValueChange = {mockOnChange}
-                defaultValue = {["not a value"]}
-                value = {["still not a choice"]}
+                defaultValue = {['not a value']}
+                value = {['still not a choice']}
                 choices = {testChoices}
             />
         );
-        const input1 = checkboxInput.find({id: `${testId}_${defaultChoiceValue}`, type: 'checkbox'});
-        expect(input1.getDOMNode<HTMLInputElement>().checked).toBeFalsy();
+        const input1 = container.querySelector(`input#${testId}_${defaultChoiceValue}`) as HTMLInputElement;
+        expect(input1.checked).toBeFalsy();
 
-        const input2 = checkboxInput.find({id: `${testId}_${anotherChoiceValue}`, type: 'checkbox'});
-        expect(input2.getDOMNode<HTMLInputElement>().checked).toBeFalsy();
+        const input2 = container.querySelector(`input#${testId}_${anotherChoiceValue}`) as HTMLInputElement;
+        expect(input2.checked).toBeFalsy();
 
-        const input3 = checkboxInput.find({id: `${testId}_${choiceValue3}`, type: 'checkbox'});
-        expect(input3.getDOMNode<HTMLInputElement>().checked).toBeFalsy();
+        const input3 = container.querySelector(`input#${testId}_${choiceValue3}`) as HTMLInputElement;
+        expect(input3.checked).toBeFalsy();
     });
 
     test('Call onChange', async () => {
         mockOnChange.mockClear();
-        const checkboxInput = mount(
+        const { container } = render(
             <InputCheckbox
                 id = {testId}
                 onValueChange = {mockOnChange}
@@ -194,21 +190,20 @@ describe('Checkboxes', () => {
             />
         );
         // Make sure the select all button is not there
-        expect(checkboxInput.find({id: `${testId}_selectAll`, type: 'button'})).toHaveLength(0);
+        expect(container.querySelector(`input#${testId}_selectAll`)).toBeNull();
 
-        const defaultValueInput = checkboxInput.find({id: `${testId}_${defaultChoiceValue}`, type: 'checkbox'});
-        expect(defaultValueInput.getDOMNode<HTMLInputElement>().checked).toBeFalsy();
+        const defaultValueInput = container.querySelector(`input#${testId}_${defaultChoiceValue}`) as HTMLInputElement;
+        expect(defaultValueInput.checked).toBeFalsy();
         // Manually set the DOM state to checked because the change simulation does not do it
-        defaultValueInput.getDOMNode<HTMLInputElement>().checked = true;
-        defaultValueInput.simulate('change');
+        fireEvent.click(defaultValueInput);
         await TestUtils.flushPromises();
         expect(mockOnChange).toHaveBeenCalledTimes(1);
-        expect(mockOnChange).toHaveBeenCalledWith({target: {value: [defaultChoiceValue]}});
+        expect(mockOnChange).toHaveBeenCalledWith({ target: { value: [defaultChoiceValue] } });
     });
 
     test('Select/Unselect all', async () => {
         mockOnChange.mockClear();
-        const checkboxInput = mount(
+        const { container, rerender } = render(
             <InputCheckbox
                 id = {testId}
                 onValueChange = {mockOnChange}
@@ -216,28 +211,28 @@ describe('Checkboxes', () => {
                 allowSelectAll = {true}
             />
         );
-        const selectAllButton = checkboxInput.find({id: `${testId}_selectAll`, type: 'button'});
-        selectAllButton.simulate('click');
+        const selectAllButton = container.querySelector(`input#${testId}_selectAll`) as HTMLInputElement;
+        fireEvent.click(selectAllButton);
         await TestUtils.flushPromises();
         expect(mockOnChange).toHaveBeenCalledTimes(1);
-        expect(mockOnChange).toHaveBeenCalledWith({target: {value: [defaultChoiceValue, anotherChoiceValue, choiceValue3]}});
+        expect(mockOnChange).toHaveBeenCalledWith({ target: { value: [defaultChoiceValue, anotherChoiceValue, choiceValue3] } });
 
         // Simulate parent changing the props to all selected, should unselect
         const newProps = {
             id: testId,
-            onChange: mockOnChange,
+            onValueChange: mockOnChange,
             choices: testChoices,
             value: [defaultChoiceValue, anotherChoiceValue, choiceValue3],
             allowSelectAll: true
         };
-        checkboxInput.setProps(newProps);
-        selectAllButton.simulate('click');
+        rerender(<InputCheckbox {...newProps} />);
+        fireEvent.click(selectAllButton);
         await TestUtils.flushPromises();
         expect(mockOnChange).toHaveBeenCalledTimes(2);
-        expect(mockOnChange).toHaveBeenCalledWith({target: {value: []}});
+        expect(mockOnChange).toHaveBeenCalledWith({ target: { value: [] } });
     });
 
-})
+});
 
 describe('Boolean Checkboxes', () => {
     beforeEach(() => {
@@ -245,16 +240,15 @@ describe('Boolean Checkboxes', () => {
     });
 
     test('Default props', () => {
-        const input = create(<InputCheckboxBoolean
+        const { container } = render(<InputCheckboxBoolean
             id = {testId}
             onValueChange = {mockOnChange}
-        />)
-            .toJSON();
-        expect(input).toMatchSnapshot();
+        />);
+        expect(container.firstChild).toMatchSnapshot();
     });
 
     test('All props', () => {
-        const input = create(<InputCheckboxBoolean
+        const { container } = render(<InputCheckboxBoolean
             id = {testId}
             onValueChange = {mockOnChange}
             isChecked = {true}
@@ -262,24 +256,22 @@ describe('Boolean Checkboxes', () => {
             label = "testLabel"
             disabled = {false}
             localePrefix = "something"
-        />)
-            .toJSON();
-        expect(input).toMatchSnapshot();
+        />);
+        expect(container.firstChild).toMatchSnapshot();
     });
 
     test('Disabled', () => {
-        const input = create(<InputCheckboxBoolean
+        const { container } = render(<InputCheckboxBoolean
             id = {testId}
             onValueChange = {mockOnChange}
             disabled = {true}
-        />)
-            .toJSON();
-        expect(input).toMatchSnapshot();
+        />);
+        expect(container.firstChild).toMatchSnapshot();
     });
 
     test('Default checked value', () => {
         mockOnChange.mockClear();
-        const checkboxInput = mount(
+        const { container } = render(
             <InputCheckboxBoolean
                 id = {testId}
                 onValueChange = {mockOnChange}
@@ -287,13 +279,13 @@ describe('Boolean Checkboxes', () => {
                 label = {testLabel}
             />
         );
-        const input = checkboxInput.find({id: `${testId}_true`, type: 'checkbox'});
-        expect(input.getDOMNode<HTMLInputElement>().checked).toBeTruthy();
+        const input = container.querySelector(`input#${testId}_true`) as HTMLInputElement;
+        expect(input.checked).toBeTruthy();
     });
 
     test('Default and initial checked values', () => {
         mockOnChange.mockClear();
-        const checkboxInput = mount(
+        const { container } = render(
             <InputCheckboxBoolean
                 id = {testId}
                 onValueChange = {mockOnChange}
@@ -302,13 +294,13 @@ describe('Boolean Checkboxes', () => {
                 label = {testLabel}
             />
         );
-        const input = checkboxInput.find({id: `${testId}_true`, type: 'checkbox'});
-        expect(input.getDOMNode<HTMLInputElement>().checked).toBeFalsy();
+        const input = container.querySelector(`input#${testId}_true`) as HTMLInputElement;
+        expect(input.checked).toBeFalsy();
     });
 
     test('Is checked value', () => {
         mockOnChange.mockClear();
-        const checkboxInput = mount(
+        const { container } = render(
             <InputCheckboxBoolean
                 id = {testId}
                 onValueChange = {mockOnChange}
@@ -316,23 +308,23 @@ describe('Boolean Checkboxes', () => {
                 label = {testLabel}
             />
         );
-        const input = checkboxInput.find({id: `${testId}_true`, type: 'checkbox'});
-        expect(input.getDOMNode<HTMLInputElement>().checked).toBeTruthy();
+        const input = container.querySelector(`input#${testId}_true`) as HTMLInputElement;
+        expect(input.checked).toBeTruthy();
     });
 
     test('Call onChange', async () => {
         mockOnChange.mockClear();
-        const checkboxInput = mount(
+        const { container } = render(
             <InputCheckboxBoolean
                 id = {testId}
                 onValueChange = {mockOnChange}
                 label = {testLabel}
             />
         );
-        const input = checkboxInput.find({id: `${testId}_true`, type: 'checkbox'});
-        input.simulate('change');
+        const input = container.querySelector(`input#${testId}_true`) as HTMLInputElement;
+        fireEvent.click(input);
         await TestUtils.flushPromises();
         expect(mockOnChange).toHaveBeenCalledTimes(1);
     });
-})
+});
 

@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import React, { JSX } from 'react';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons/faFileDownload';
 import { faTasks } from '@fortawesome/free-solid-svg-icons/faTasks';
 import _get from 'lodash/get';
@@ -137,7 +137,7 @@ class GtfsExportForm extends ChangeEventsForm<WithTranslation, ChangeEventsState
                             label={this.props.t('transit:gtfs:PrepareGtfsFeed')}
                             onClick={this.onPrepare}
                         />
-                        {gtfsExporter.isPrepared() && gtfsExporter.getData('zipFilePath') && (
+                        {(gtfsExporter.isPrepared() as boolean) && (gtfsExporter.getData('zipFilePath') as string) && (
                             <Button
                                 type="href"
                                 icon={faFileDownload}

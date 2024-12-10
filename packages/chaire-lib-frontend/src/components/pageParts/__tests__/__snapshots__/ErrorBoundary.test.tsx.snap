@@ -1,7 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Normal boundary 1`] = `
-<input
-  id="test"
-/>
+<div>
+  <input
+    id="test"
+  />
+</div>
 `;

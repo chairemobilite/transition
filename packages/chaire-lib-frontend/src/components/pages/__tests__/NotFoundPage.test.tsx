@@ -5,11 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import { mount } from 'enzyme';
+import { BrowserRouter } from 'react-router';
+import { render } from '@testing-library/react';
 import NotFoundPage from '../NotFoundPage';
 
 test('Should correctly render NotFound page', () =>{
-    const wrapper = mount(<BrowserRouter><NotFoundPage /></BrowserRouter>);
-    expect(wrapper).toMatchSnapshot();
+    const { container } = render(<BrowserRouter><NotFoundPage /></BrowserRouter>);
+    expect(container).toMatchSnapshot();
 });

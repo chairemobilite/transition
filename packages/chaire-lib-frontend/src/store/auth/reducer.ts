@@ -6,15 +6,28 @@
  */
 import { Reducer } from 'redux';
 import { AuthState, AuthActionTypes } from './types';
+import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
 
 // Type-safe initialState!
 export const initialState: AuthState = {
     isAuthenticated: false
 };
 
+type AuthAction =
+    | {
+          type: AuthActionTypes.LOGIN;
+          user: CliUser | null;
+          isAuthenticated: boolean;
+          register?: boolean;
+          login?: boolean;
+      }
+    | { type: AuthActionTypes.LOGOUT; user: null; isAuthenticated: false; register?: boolean }
+    | { type: AuthActionTypes.FORGOT; forgot: boolean; emailExists: boolean; message: string }
+    | { type: AuthActionTypes.RESET; status: string };
+
 // Thanks to Redux 4's much simpler typings, we can take away a lot of typings on the reducer side,
 // everything will remain type-safe.
-const reducer: Reducer<AuthState> = (state = initialState, action) => {
+const reducer: Reducer<AuthState, AuthAction> = (state = initialState, action) => {
     switch (action.type) {
     case AuthActionTypes.LOGIN:
         return {

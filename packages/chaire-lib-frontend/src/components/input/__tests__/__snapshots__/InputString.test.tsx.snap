@@ -1,29 +1,29 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`All props 1`] = `
-<input
-  autoComplete="none"
-  className="apptr__form-input-string apptr__input apptr__input-string"
-  id="StringWidgetId"
-  maxLength={100}
-  name="StringWidgetId"
-  onChange={[Function]}
-  pattern="[0-9]{1,2}"
-  type="number"
-  value="test"
-/>
+<div>
+  <input
+    autocomplete="none"
+    class="apptr__form-input-string apptr__input apptr__input-string"
+    id="StringWidgetId"
+    maxlength="100"
+    name="StringWidgetId"
+    pattern="[0-9]{1,2}"
+    type="number"
+    value="test"
+  />
+</div>
 `;
 
 exports[`Autocomplete choices 1`] = `
-[
+<div>
   <input
     id="StringWidgetId"
     list="datalist_for_StringWidgetId"
-    maxLength={255}
+    maxlength="255"
     name="StringWidgetId"
-    onChange={[Function]}
     value=""
-  />,
+  />
   <datalist
     id="datalist_for_StringWidgetId"
   >
@@ -33,33 +33,35 @@ exports[`Autocomplete choices 1`] = `
     <option>
       test1
     </option>
-  </datalist>,
-]
+  </datalist>
+</div>
 `;
 
 exports[`Default props 1`] = `
-<input
-  autoComplete="none"
-  className="apptr__form-input-string apptr__input apptr__input-string"
-  id="StringWidgetId"
-  maxLength={255}
-  name="StringWidgetId"
-  onChange={[Function]}
-  type="text"
-  value=""
-/>
+<div>
+  <input
+    autocomplete="none"
+    class="apptr__form-input-string apptr__input apptr__input-string"
+    id="StringWidgetId"
+    maxlength="255"
+    name="StringWidgetId"
+    type="text"
+    value=""
+  />
+</div>
 `;
 
 exports[`Disabled 1`] = `
-<input
-  autoComplete="none"
-  className="apptr__form-input-string apptr__input apptr__input-string"
-  disabled={true}
-  id="StringWidgetId"
-  maxLength={255}
-  name="StringWidgetId"
-  onChange={[Function]}
-  type="text"
-  value=""
-/>
+<div>
+  <input
+    autocomplete="none"
+    class="apptr__form-input-string apptr__input apptr__input-string"
+    disabled=""
+    id="StringWidgetId"
+    maxlength="255"
+    name="StringWidgetId"
+    type="text"
+    value=""
+  />
+</div>
 `;

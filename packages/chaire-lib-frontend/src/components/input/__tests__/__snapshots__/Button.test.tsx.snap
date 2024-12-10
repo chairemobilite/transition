@@ -1,104 +1,102 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Default props 1`] = `
-<div
-  className="center"
-  style={{}}
->
-  <button
-    className="button green large"
-    onClick={[Function]}
-    type="button"
+<div>
+  <div
+    class="center"
   >
-     
-    Test
-  </button>
+    <button
+      class="button green large"
+      type="button"
+    >
+       
+      Test
+    </button>
+  </div>
 </div>
 `;
 
 exports[`Test disabled 1`] = `
-<div
-  className="left"
-  style={{}}
->
-  <button
-    className="button red small disabled"
-    disabled={true}
-    onClick={[Function]}
-    type="submit"
+<div>
+  <div
+    class="left"
   >
-     
-    Test
-  </button>
+    <button
+      class="button red small disabled"
+      disabled=""
+      type="submit"
+    >
+       
+      Test
+    </button>
+  </div>
 </div>
 `;
 
 exports[`Test icon 1`] = `
-<div
-  className="center"
-  style={{}}
->
-  <button
-    className="button green large"
-    onClick={[Function]}
-    type="button"
+<div>
+  <div
+    class="center"
   >
-    <svg
-      aria-hidden="true"
-      className="svg-inline--fa fa-mug-saucer myIconClass"
-      data-icon="mug-saucer"
-      data-prefix="fas"
-      focusable="false"
-      role="img"
-      style={{}}
-      viewBox="0 0 640 512"
-      xmlns="http://www.w3.org/2000/svg"
+    <button
+      class="button green large"
+      type="button"
     >
-      <path
-        d="M96 64c0-17.7 14.3-32 32-32l320 0 64 0c70.7 0 128 57.3 128 128s-57.3 128-128 128l-32 0c0 53-43 96-96 96l-192 0c-53 0-96-43-96-96L96 64zM480 224l32 0c35.3 0 64-28.7 64-64s-28.7-64-64-64l-32 0 0 128zM32 416l512 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 480c-17.7 0-32-14.3-32-32s14.3-32 32-32z"
-        fill="currentColor"
-        style={{}}
-      />
-    </svg>
-     
-    Test
-  </button>
+      <svg
+        aria-hidden="true"
+        class="svg-inline--fa fa-mug-saucer myIconClass"
+        data-icon="mug-saucer"
+        data-prefix="fas"
+        focusable="false"
+        role="img"
+        viewBox="0 0 640 512"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M96 64c0-17.7 14.3-32 32-32l320 0 64 0c70.7 0 128 57.3 128 128s-57.3 128-128 128l-32 0c0 53-43 96-96 96l-192 0c-53 0-96-43-96-96L96 64zM480 224l32 0c35.3 0 64-28.7 64-64s-28.7-64-64-64l-32 0 0 128zM32 416l512 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 480c-17.7 0-32-14.3-32-32s14.3-32 32-32z"
+          fill="currentColor"
+        />
+      </svg>
+       
+      Test
+    </button>
+  </div>
 </div>
 `;
 
 exports[`Test icon path 1`] = `
-<div
-  className="center"
-  style={{}}
->
-  <button
-    className="button green large"
-    onClick={[Function]}
-    type="button"
+<div>
+  <div
+    class="center"
   >
-    <img
-      alt="Test"
-      className="_icon myIconClass"
-      src="path/to/my/icon.png"
-    />
-     
-    Test
-  </button>
+    <button
+      class="button green large"
+      type="button"
+    >
+      <img
+        alt="Test"
+        class="_icon myIconClass"
+        src="path/to/my/icon.png"
+      />
+       
+      Test
+    </button>
+  </div>
 </div>
 `;
 
 exports[`Test overriding props with defaults 1`] = `
-<div
-  className="left"
-  style={{}}
->
-  <button
-    className="button red small"
-    onClick={[Function]}
-    type="submit"
+<div>
+  <div
+    class="left"
   >
-     
-    Test
-  </button>
+    <button
+      class="button red small"
+      type="submit"
+    >
+       
+      Test
+    </button>
+  </div>
 </div>
 `;

@@ -1,41 +1,44 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`All props 1`] = `
-<input
-  autoComplete="none"
-  className="apptr__form-input-string apptr__input apptr__input-string"
-  id="StringFormattedWidgetId"
-  maxLength={100}
-  name="StringFormattedWidgetId"
-  onChange={[Function]}
-  type="text"
-  value="test"
-/>
+<div>
+  <input
+    autocomplete="none"
+    class="apptr__form-input-string apptr__input apptr__input-string"
+    id="StringFormattedWidgetId"
+    maxlength="100"
+    name="StringFormattedWidgetId"
+    type="text"
+    value="test"
+  />
+</div>
 `;
 
 exports[`Default props 1`] = `
-<input
-  autoComplete="none"
-  className="apptr__form-input-string apptr__input apptr__input-string"
-  id="StringFormattedWidgetId"
-  maxLength={255}
-  name="StringFormattedWidgetId"
-  onChange={[Function]}
-  type="text"
-  value=""
-/>
+<div>
+  <input
+    autocomplete="none"
+    class="apptr__form-input-string apptr__input apptr__input-string"
+    id="StringFormattedWidgetId"
+    maxlength="255"
+    name="StringFormattedWidgetId"
+    type="text"
+    value=""
+  />
+</div>
 `;
 
 exports[`Disabled 1`] = `
-<input
-  autoComplete="none"
-  className="apptr__form-input-string apptr__input apptr__input-string"
-  disabled={true}
-  id="StringFormattedWidgetId"
-  maxLength={255}
-  name="StringFormattedWidgetId"
-  onChange={[Function]}
-  type="text"
-  value=""
-/>
+<div>
+  <input
+    autocomplete="none"
+    class="apptr__form-input-string apptr__input apptr__input-string"
+    disabled=""
+    id="StringFormattedWidgetId"
+    maxlength="255"
+    name="StringFormattedWidgetId"
+    type="text"
+    value=""
+  />
+</div>
 `;

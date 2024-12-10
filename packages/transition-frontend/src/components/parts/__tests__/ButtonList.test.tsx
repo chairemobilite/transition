@@ -5,22 +5,22 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import * as React from 'react';
-import { create } from 'react-test-renderer';
+import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+
 import ButtonList from '../ButtonList';
 
 test('Default props', () => {
-    const input = create(<ButtonList
+    const { container } = render(<ButtonList
         key = 'key'
-    >test</ButtonList>)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+    >test</ButtonList>);
+    expect(container).toMatchSnapshot();
 });
 
 test('With classname', () => {
-    const input = create(<ButtonList
+    const { container } = render(<ButtonList
         key = 'key'
         className = 'myClass'
-    >test</ButtonList>)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+    >test</ButtonList>);
+    expect(container).toMatchSnapshot();
 });

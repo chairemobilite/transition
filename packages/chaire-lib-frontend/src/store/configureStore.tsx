@@ -5,9 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { createStore, combineReducers, applyMiddleware, compose, Store } from 'redux';
-import thunk from 'redux-thunk';
+import { thunk, ThunkMiddleware } from 'redux-thunk';
 
 import { authReducer } from './auth';
+import { AuthState } from './auth/types';
+
 declare global {
     interface Window {
         __REDUX_DEVTOOLS_EXTENSION_COMPOSE__?: typeof compose;
@@ -18,13 +20,17 @@ const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 const initialState = {};
 
-export default (): Store => {
+export type RootState = {
+    auth: AuthState;
+};
+
+export default (preloadedState = initialState): Store => {
     const store = createStore(
         combineReducers({
             auth: authReducer
         }),
-        initialState,
-        composeEnhancers(applyMiddleware(thunk))
+        preloadedState,
+        composeEnhancers(applyMiddleware(thunk as ThunkMiddleware<RootState>))
     );
     return store;
 };

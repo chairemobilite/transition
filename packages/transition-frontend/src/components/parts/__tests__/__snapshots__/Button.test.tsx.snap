@@ -1,216 +1,206 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`All props 1`] = `
-[
+<div>
   <li
-    className="_list _active"
-    onClick={[MockFunction]}
+    class="_list _active"
   >
     test
     <span
-      className="_list-group _right"
+      class="_list-group _right"
       title="main:Edit"
     >
       <span
-        className="_list-element"
+        class="_list-element"
       >
         <img
           alt="main:Edit"
-          className="_icon-alone"
+          class="_icon-alone"
           src="/dist/images/icons/interface/edit_white.svg"
         />
       </span>
     </span>
     <span
-      className="_list-group _right"
-      onClick={[MockFunction]}
+      class="_list-group _right"
       title="duplicate"
     >
       <span
-        className="_list-element"
+        class="_list-element"
       >
         <img
           alt="duplicate"
-          className="_icon"
+          class="_icon"
           src="/dist/images/icons/interface/copy_white.svg"
         />
       </span>
     </span>
     <span
-      className="_list-group _right"
-      onClick={[Function]}
+      class="_list-group _right"
       title="main:Delete"
     >
       <span
-        className="_list-element"
+        class="_list-element"
       >
         <img
           alt="main:Delete"
-          className="_icon-alone"
+          class="_icon-alone"
           src="/dist/images/icons/interface/delete_white.svg"
         />
       </span>
     </span>
-  </li>,
+  </li>
   <li
-    className="_clear"
-  />,
-]
+    class="_clear"
+  />
+</div>
 `;
 
 exports[`Flush action buttons 1`] = `
-[
+<div>
   <li
-    className="_list _active"
-    onClick={[MockFunction]}
+    class="_list _active"
   >
     test
     <span
-      className="_list-group _flush-right _right"
+      class="_list-group _flush-right _right"
       title="main:Edit"
     >
       <span
-        className="_list-element"
+        class="_list-element"
       >
         <img
           alt="main:Edit"
-          className="_icon-alone"
+          class="_icon-alone"
           src="/dist/images/icons/interface/edit_white.svg"
         />
       </span>
     </span>
     <span
-      className="_list-group _right"
-      onClick={[MockFunction]}
+      class="_list-group _right"
       title="duplicate"
     >
       <span
-        className="_list-element"
+        class="_list-element"
       >
         <img
           alt="duplicate"
-          className="_icon"
+          class="_icon"
           src="/dist/images/icons/interface/copy_white.svg"
         />
       </span>
     </span>
     <span
-      className="_list-group _right"
-      onClick={[Function]}
+      class="_list-group _right"
       title="main:Delete"
     >
       <span
-        className="_list-element"
+        class="_list-element"
       >
         <img
           alt="main:Delete"
-          className="_icon-alone"
+          class="_icon-alone"
           src="/dist/images/icons/interface/delete_white.svg"
         />
       </span>
     </span>
-  </li>,
+  </li>
   <li
-    className="_clear"
-  />,
-]
+    class="_clear"
+  />
+</div>
 `;
 
 exports[`Flush action buttons, just delete 1`] = `
-[
+<div>
   <li
-    className="_list _active"
+    class="_list _active"
   >
     test
     <span
-      className="_list-group _flush-right _right"
-      onClick={[Function]}
+      class="_list-group _flush-right _right"
       title="main:Delete"
     >
       <span
-        className="_list-element"
+        class="_list-element"
       >
         <img
           alt="main:Delete"
-          className="_icon-alone"
+          class="_icon-alone"
           src="/dist/images/icons/interface/delete_white.svg"
         />
       </span>
     </span>
-  </li>,
+  </li>
   <li
-    className="_clear"
-  />,
-]
+    class="_clear"
+  />
+</div>
 `;
 
 exports[`Minimal props 1`] = `
-[
+<div>
   <li
-    className="_list _active"
+    class="_list _active"
   >
     test
-  </li>,
+  </li>
   <li
-    className="_clear"
-  />,
-]
+    class="_clear"
+  />
+</div>
 `;
 
 exports[`Not selected, with altText 1`] = `
-[
+<div>
   <li
-    className="_list"
-    onClick={[MockFunction]}
+    class="_list"
   >
     test
     <span
-      className="_list-group _right"
+      class="_list-group _right"
       title="select"
     >
       <span
-        className="_list-element"
+        class="_list-element"
       >
         <img
           alt="select"
-          className="_icon-alone"
+          class="_icon-alone"
           src="/dist/images/icons/interface/edit_white.svg"
         />
       </span>
     </span>
     <span
-      className="_list-group _right"
-      onClick={[MockFunction]}
+      class="_list-group _right"
       title="duplicate"
     >
       <span
-        className="_list-element"
+        class="_list-element"
       >
         <img
           alt="duplicate"
-          className="_icon"
+          class="_icon"
           src="/dist/images/icons/interface/copy_white.svg"
         />
       </span>
     </span>
     <span
-      className="_list-group _right"
-      onClick={[Function]}
+      class="_list-group _right"
       title="delete"
     >
       <span
-        className="_list-element"
+        class="_list-element"
       >
         <img
           alt="delete"
-          className="_icon-alone"
+          class="_icon-alone"
           src="/dist/images/icons/interface/delete_white.svg"
         />
       </span>
     </span>
-  </li>,
+  </li>
   <li
-    className="_clear"
-  />,
-]
+    class="_clear"
+  />
+</div>
 `;

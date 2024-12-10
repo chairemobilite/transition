@@ -2,52 +2,606 @@
 
 exports[`All props 1`] = `
 <div
-  className="_input _blank"
+  class="_input _blank"
 >
   <div
-    className="_circle-button"
-    onClick={[Function]}
-    style={
-      {
-        "backgroundColor": "#123456",
-      }
-    }
+    class="_circle-button _open-color-picker"
+    style="background-color: rgb(18, 52, 86);"
   />
 </div>
 `;
 
 exports[`Blank value 1`] = `
 <div
-  className="_input _blank"
+  class="_input _blank"
 >
   <div
-    className="_circle-button"
-    onClick={[Function]}
-    style={
-      {
-        "backgroundColor": "#223344",
-      }
-    }
+    class="_circle-button _open-color-picker"
+    style="background-color: rgb(34, 51, 68);"
   />
 </div>
 `;
 
 exports[`Default props 1`] = `
 <div
-  className="_input _blank"
+  class="_input _blank"
 >
   <div
-    className="_circle-button"
-    onClick={[Function]}
-    style={
-      {
-        "backgroundColor": "#554433",
-      }
-    }
+    class="_circle-button _open-color-picker"
+    style="background-color: rgb(85, 68, 51);"
   />
 </div>
 `;
 
-exports[`With colorpicker 1`] = `"<div class="_input _blank"><div class="_circle-button" style="background-color:#123456"></div><div style="position:absolute;z-index:2"><div style="position:fixed;top:0px;right:0px;bottom:0px;left:0px"></div><div class="_input-color" style="background-color:#000000;border:none;padding:0.5rem"><div style="width:252px;display:flex;flex-wrap:wrap;margin-right:-8px;margin-bottom:-8px" class="circle-picker "><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #0086FF;-moz-box-shadow:inset 0 0 0 10px #0086FF;-o-box-shadow:inset 0 0 0 10px #0086FF;-webkit-box-shadow:inset 0 0 0 10px #0086FF;box-shadow:inset 0 0 0 10px #0086FF;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#0086FF" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #00ffdd;-moz-box-shadow:inset 0 0 0 10px #00ffdd;-o-box-shadow:inset 0 0 0 10px #00ffdd;-webkit-box-shadow:inset 0 0 0 10px #00ffdd;box-shadow:inset 0 0 0 10px #00ffdd;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#00ffdd" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #00ff55;-moz-box-shadow:inset 0 0 0 10px #00ff55;-o-box-shadow:inset 0 0 0 10px #00ff55;-webkit-box-shadow:inset 0 0 0 10px #00ff55;box-shadow:inset 0 0 0 10px #00ff55;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#00ff55" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #aaff00;-moz-box-shadow:inset 0 0 0 10px #aaff00;-o-box-shadow:inset 0 0 0 10px #aaff00;-webkit-box-shadow:inset 0 0 0 10px #aaff00;box-shadow:inset 0 0 0 10px #aaff00;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#aaff00" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #fff600;-moz-box-shadow:inset 0 0 0 10px #fff600;-o-box-shadow:inset 0 0 0 10px #fff600;-webkit-box-shadow:inset 0 0 0 10px #fff600;box-shadow:inset 0 0 0 10px #fff600;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#fff600" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #ff9400;-moz-box-shadow:inset 0 0 0 10px #ff9400;-o-box-shadow:inset 0 0 0 10px #ff9400;-webkit-box-shadow:inset 0 0 0 10px #ff9400;box-shadow:inset 0 0 0 10px #ff9400;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#ff9400" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #ff3f00;-moz-box-shadow:inset 0 0 0 10px #ff3f00;-o-box-shadow:inset 0 0 0 10px #ff3f00;-webkit-box-shadow:inset 0 0 0 10px #ff3f00;box-shadow:inset 0 0 0 10px #ff3f00;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#ff3f00" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #ff0000;-moz-box-shadow:inset 0 0 0 10px #ff0000;-o-box-shadow:inset 0 0 0 10px #ff0000;-webkit-box-shadow:inset 0 0 0 10px #ff0000;box-shadow:inset 0 0 0 10px #ff0000;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#ff0000" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #ff0061;-moz-box-shadow:inset 0 0 0 10px #ff0061;-o-box-shadow:inset 0 0 0 10px #ff0061;-webkit-box-shadow:inset 0 0 0 10px #ff0061;box-shadow:inset 0 0 0 10px #ff0061;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#ff0061" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #ff00c3;-moz-box-shadow:inset 0 0 0 10px #ff00c3;-o-box-shadow:inset 0 0 0 10px #ff00c3;-webkit-box-shadow:inset 0 0 0 10px #ff00c3;box-shadow:inset 0 0 0 10px #ff00c3;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#ff00c3" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #d000ff;-moz-box-shadow:inset 0 0 0 10px #d000ff;-o-box-shadow:inset 0 0 0 10px #d000ff;-webkit-box-shadow:inset 0 0 0 10px #d000ff;box-shadow:inset 0 0 0 10px #d000ff;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#d000ff" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #7b00ff;-moz-box-shadow:inset 0 0 0 10px #7b00ff;-o-box-shadow:inset 0 0 0 10px #7b00ff;-webkit-box-shadow:inset 0 0 0 10px #7b00ff;box-shadow:inset 0 0 0 10px #7b00ff;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#7b00ff" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #4800ff;-moz-box-shadow:inset 0 0 0 10px #4800ff;-o-box-shadow:inset 0 0 0 10px #4800ff;-webkit-box-shadow:inset 0 0 0 10px #4800ff;box-shadow:inset 0 0 0 10px #4800ff;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#4800ff" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #1d00ff;-moz-box-shadow:inset 0 0 0 10px #1d00ff;-o-box-shadow:inset 0 0 0 10px #1d00ff;-webkit-box-shadow:inset 0 0 0 10px #1d00ff;box-shadow:inset 0 0 0 10px #1d00ff;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#1d00ff" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #004787;-moz-box-shadow:inset 0 0 0 10px #004787;-o-box-shadow:inset 0 0 0 10px #004787;-webkit-box-shadow:inset 0 0 0 10px #004787;box-shadow:inset 0 0 0 10px #004787;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#004787" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #008270;-moz-box-shadow:inset 0 0 0 10px #008270;-o-box-shadow:inset 0 0 0 10px #008270;-webkit-box-shadow:inset 0 0 0 10px #008270;box-shadow:inset 0 0 0 10px #008270;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#008270" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #00842c;-moz-box-shadow:inset 0 0 0 10px #00842c;-o-box-shadow:inset 0 0 0 10px #00842c;-webkit-box-shadow:inset 0 0 0 10px #00842c;box-shadow:inset 0 0 0 10px #00842c;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#00842c" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #5a8700;-moz-box-shadow:inset 0 0 0 10px #5a8700;-o-box-shadow:inset 0 0 0 10px #5a8700;-webkit-box-shadow:inset 0 0 0 10px #5a8700;box-shadow:inset 0 0 0 10px #5a8700;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#5a8700" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #878200;-moz-box-shadow:inset 0 0 0 10px #878200;-o-box-shadow:inset 0 0 0 10px #878200;-webkit-box-shadow:inset 0 0 0 10px #878200;box-shadow:inset 0 0 0 10px #878200;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#878200" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #824b00;-moz-box-shadow:inset 0 0 0 10px #824b00;-o-box-shadow:inset 0 0 0 10px #824b00;-webkit-box-shadow:inset 0 0 0 10px #824b00;box-shadow:inset 0 0 0 10px #824b00;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#824b00" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #872100;-moz-box-shadow:inset 0 0 0 10px #872100;-o-box-shadow:inset 0 0 0 10px #872100;-webkit-box-shadow:inset 0 0 0 10px #872100;box-shadow:inset 0 0 0 10px #872100;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#872100" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #840000;-moz-box-shadow:inset 0 0 0 10px #840000;-o-box-shadow:inset 0 0 0 10px #840000;-webkit-box-shadow:inset 0 0 0 10px #840000;box-shadow:inset 0 0 0 10px #840000;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#840000" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #910037;-moz-box-shadow:inset 0 0 0 10px #910037;-o-box-shadow:inset 0 0 0 10px #910037;-webkit-box-shadow:inset 0 0 0 10px #910037;box-shadow:inset 0 0 0 10px #910037;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#910037" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #870067;-moz-box-shadow:inset 0 0 0 10px #870067;-o-box-shadow:inset 0 0 0 10px #870067;-webkit-box-shadow:inset 0 0 0 10px #870067;box-shadow:inset 0 0 0 10px #870067;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#870067" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #6e0087;-moz-box-shadow:inset 0 0 0 10px #6e0087;-o-box-shadow:inset 0 0 0 10px #6e0087;-webkit-box-shadow:inset 0 0 0 10px #6e0087;box-shadow:inset 0 0 0 10px #6e0087;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#6e0087" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #410087;-moz-box-shadow:inset 0 0 0 10px #410087;-o-box-shadow:inset 0 0 0 10px #410087;-webkit-box-shadow:inset 0 0 0 10px #410087;box-shadow:inset 0 0 0 10px #410087;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#410087" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #250084;-moz-box-shadow:inset 0 0 0 10px #250084;-o-box-shadow:inset 0 0 0 10px #250084;-webkit-box-shadow:inset 0 0 0 10px #250084;box-shadow:inset 0 0 0 10px #250084;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#250084" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #0f0087;-moz-box-shadow:inset 0 0 0 10px #0f0087;-o-box-shadow:inset 0 0 0 10px #0f0087;-webkit-box-shadow:inset 0 0 0 10px #0f0087;box-shadow:inset 0 0 0 10px #0f0087;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#0f0087" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #7cc2ff;-moz-box-shadow:inset 0 0 0 10px #7cc2ff;-o-box-shadow:inset 0 0 0 10px #7cc2ff;-webkit-box-shadow:inset 0 0 0 10px #7cc2ff;box-shadow:inset 0 0 0 10px #7cc2ff;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#7cc2ff" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #99fff1;-moz-box-shadow:inset 0 0 0 10px #99fff1;-o-box-shadow:inset 0 0 0 10px #99fff1;-webkit-box-shadow:inset 0 0 0 10px #99fff1;box-shadow:inset 0 0 0 10px #99fff1;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#99fff1" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #8effb4;-moz-box-shadow:inset 0 0 0 10px #8effb4;-o-box-shadow:inset 0 0 0 10px #8effb4;-webkit-box-shadow:inset 0 0 0 10px #8effb4;box-shadow:inset 0 0 0 10px #8effb4;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#8effb4" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #d3ff7c;-moz-box-shadow:inset 0 0 0 10px #d3ff7c;-o-box-shadow:inset 0 0 0 10px #d3ff7c;-webkit-box-shadow:inset 0 0 0 10px #d3ff7c;box-shadow:inset 0 0 0 10px #d3ff7c;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#d3ff7c" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #fffa7f;-moz-box-shadow:inset 0 0 0 10px #fffa7f;-o-box-shadow:inset 0 0 0 10px #fffa7f;-webkit-box-shadow:inset 0 0 0 10px #fffa7f;box-shadow:inset 0 0 0 10px #fffa7f;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#fffa7f" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #ffc677;-moz-box-shadow:inset 0 0 0 10px #ffc677;-o-box-shadow:inset 0 0 0 10px #ffc677;-webkit-box-shadow:inset 0 0 0 10px #ffc677;box-shadow:inset 0 0 0 10px #ffc677;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#ffc677" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #ff9977;-moz-box-shadow:inset 0 0 0 10px #ff9977;-o-box-shadow:inset 0 0 0 10px #ff9977;-webkit-box-shadow:inset 0 0 0 10px #ff9977;box-shadow:inset 0 0 0 10px #ff9977;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#ff9977" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #ff89b6;-moz-box-shadow:inset 0 0 0 10px #ff89b6;-o-box-shadow:inset 0 0 0 10px #ff89b6;-webkit-box-shadow:inset 0 0 0 10px #ff89b6;box-shadow:inset 0 0 0 10px #ff89b6;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#ff89b6" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #e98cff;-moz-box-shadow:inset 0 0 0 10px #e98cff;-o-box-shadow:inset 0 0 0 10px #e98cff;-webkit-box-shadow:inset 0 0 0 10px #e98cff;box-shadow:inset 0 0 0 10px #e98cff;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#e98cff" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #aa89ff;-moz-box-shadow:inset 0 0 0 10px #aa89ff;-o-box-shadow:inset 0 0 0 10px #aa89ff;-webkit-box-shadow:inset 0 0 0 10px #aa89ff;box-shadow:inset 0 0 0 10px #aa89ff;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#aa89ff" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #ffffff;-moz-box-shadow:inset 0 0 0 10px #ffffff;-o-box-shadow:inset 0 0 0 10px #ffffff;-webkit-box-shadow:inset 0 0 0 10px #ffffff;box-shadow:inset 0 0 0 10px #ffffff;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#ffffff" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #c9c9c9;-moz-box-shadow:inset 0 0 0 10px #c9c9c9;-o-box-shadow:inset 0 0 0 10px #c9c9c9;-webkit-box-shadow:inset 0 0 0 10px #c9c9c9;box-shadow:inset 0 0 0 10px #c9c9c9;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#c9c9c9" tabindex="0"></div></span></div></span><span><div style="width:18px;height:18px;margin-right:8px;margin-bottom:8px;-ms-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);-webkit-transform:scale(1);transform:scale(1);-ms-transition:100ms transform ease;-moz-transition:100ms transform ease;-o-transition:100ms transform ease;-webkit-transition:100ms transform ease;transition:100ms transform ease"><span><div style="background:transparent;height:100%;width:100%;cursor:pointer;position:relative;outline:none;-ms-border-radius:50%;-moz-border-radius:50%;-o-border-radius:50%;-webkit-border-radius:50%;border-radius:50%;-ms-box-shadow:inset 0 0 0 10px #878787;-moz-box-shadow:inset 0 0 0 10px #878787;-o-box-shadow:inset 0 0 0 10px #878787;-webkit-box-shadow:inset 0 0 0 10px #878787;box-shadow:inset 0 0 0 10px #878787;-ms-transition:100ms box-shadow ease;-moz-transition:100ms box-shadow ease;-o-transition:100ms box-shadow ease;-webkit-transition:100ms box-shadow ease;transition:100ms box-shadow ease" title="#878787" tabindex="0"></div></span></div></span></div></div></div></div>"`;
+exports[`With colorpicker 1`] = `
+<div
+  class="_input _blank"
+>
+  <div
+    class="_circle-button _open-color-picker"
+    style="background-color: rgb(18, 52, 86);"
+  />
+  <div
+    style="position: absolute; z-index: 2;"
+  >
+    <div
+      class="_close-color-picker"
+      style="position: fixed; top: 0px; right: 0px; bottom: 0px; left: 0px;"
+    />
+    <div
+      class="_input-color"
+      style="background-color: rgb(0, 0, 0); padding: 0.5rem;"
+    >
+      <div
+        class="circle-picker "
+        style="width: 252px; display: flex; flex-wrap: wrap; margin-right: -8px; margin-bottom: -8px;"
+      >
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #0086FF; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#0086FF"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #00ffdd; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#00ffdd"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #00ff55; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#00ff55"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #aaff00; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#aaff00"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #fff600; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#fff600"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #ff9400; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#ff9400"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #ff3f00; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#ff3f00"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #ff0000; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#ff0000"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #ff0061; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#ff0061"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #ff00c3; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#ff00c3"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #d000ff; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#d000ff"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #7b00ff; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#7b00ff"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #4800ff; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#4800ff"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #1d00ff; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#1d00ff"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #004787; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#004787"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #008270; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#008270"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #00842c; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#00842c"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #5a8700; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#5a8700"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #878200; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#878200"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #824b00; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#824b00"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #872100; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#872100"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #840000; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#840000"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #910037; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#910037"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #870067; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#870067"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #6e0087; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#6e0087"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #410087; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#410087"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #250084; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#250084"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #0f0087; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#0f0087"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #7cc2ff; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#7cc2ff"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #99fff1; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#99fff1"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #8effb4; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#8effb4"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #d3ff7c; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#d3ff7c"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #fffa7f; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#fffa7f"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #ffc677; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#ffc677"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #ff9977; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#ff9977"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #ff89b6; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#ff89b6"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #e98cff; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#e98cff"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #aa89ff; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#aa89ff"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #ffffff; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#ffffff"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #c9c9c9; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#c9c9c9"
+              />
+            </span>
+          </div>
+        </span>
+        <span>
+          <div
+            style="width: 18px; height: 18px; margin-right: 8px; margin-bottom: 8px; transform: scale(1); transition: 100ms transform ease;"
+          >
+            <span>
+              <div
+                style="background: transparent; height: 100%; width: 100%; cursor: pointer; position: relative; outline: none; border-radius: 50%; box-shadow: inset 0 0 0 10px #878787; transition: 100ms box-shadow ease;"
+                tabindex="0"
+                title="#878787"
+              />
+            </span>
+          </div>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
 
-exports[`With colorpicker 2`] = `"<div class="_input _blank"><div class="_circle-button" style="background-color:#123456"></div></div>"`;
+exports[`With colorpicker 2`] = `
+<div
+  class="_input _blank"
+>
+  <div
+    class="_circle-button _open-color-picker"
+    style="background-color: rgb(18, 52, 86);"
+  />
+</div>
+`;

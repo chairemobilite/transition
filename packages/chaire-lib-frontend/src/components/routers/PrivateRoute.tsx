@@ -4,56 +4,41 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
-import { connect } from 'react-redux';
-import { Route, Redirect, RouteProps } from 'react-router-dom';
+import React, { PropsWithChildren } from 'react';
+import { Navigate, RouteProps } from 'react-router';
 
 import { Header } from '../pageParts';
 import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
 
-interface PrivateRouteProps extends RouteProps {
+export type PrivateRouteProps = RouteProps & {
     isAuthenticated: boolean;
     component: any;
     componentProps: { [prop: string]: unknown };
     user: CliUser;
     permissions?: { [subject: string]: string | string[] };
     config?: { [key: string]: unknown };
-}
+} & PropsWithChildren;
 
-export const PrivateRoute = ({ isAuthenticated, permissions, component: Component, ...rest }: PrivateRouteProps) => (
-    <Route
-        {...rest}
-        component={(props) => {
-            const isAuthorized = isAuthenticated && (permissions ? rest.user.isAuthorized(permissions) : true);
-            return isAuthenticated ? (
-                isAuthorized ? (
-                    <React.Fragment>
-                        <Header {...props} path={rest.path} />
-                        <Component {...props} location={rest.location} {...rest.componentProps} />
-                    </React.Fragment>
-                ) : (
-                    <Redirect
-                        to={{
-                            pathname: '/unauthorized',
-                            state: { referrer: props.location }
-                        }}
-                    />
-                )
+const PrivateRoute = ({ permissions, component: Component, children, ...rest }: PrivateRouteProps) => {
+    return rest.isAuthenticated ? (
+        permissions ? (
+            rest.user.isAuthorized(permissions) ? (
+                <React.Fragment>
+                    <Header path={rest.path as string} appName={rest.config?.appName as string} />
+                    <Component {...rest.componentProps} />
+                </React.Fragment>
             ) : (
-                <Redirect
-                    to={{
-                        pathname: '/login',
-                        state: { referrer: props.location }
-                    }}
-                />
-            );
-        }}
-    />
-);
+                <Navigate to="/unauthorized" />
+            )
+        ) : (
+            <React.Fragment>
+                <Header path={rest.path as string} appName={rest.config?.appName as string} />
+                <Component {...rest.componentProps} />
+            </React.Fragment>
+        )
+    ) : (
+        <Navigate to="/login" />
+    );
+};
 
-const mapStateToProps = (state) => ({
-    user: state.auth.user,
-    isAuthenticated: !!state.auth.isAuthenticated
-});
-
-export default connect(mapStateToProps)(PrivateRoute);
+export default PrivateRoute;

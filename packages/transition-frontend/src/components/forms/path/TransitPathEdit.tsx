@@ -607,7 +607,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     </InputWrapper>
                                 </div>
                             )}
-                            {pathData.from_gtfs && (
+                            {(pathData.from_gtfs as boolean) && (
                                 <FormErrors errors={['transit:transitPath:warningFromGtfs']} errorType="Warning" />
                             )}
                         </div>

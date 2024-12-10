@@ -1,42 +1,23 @@
-/*
- * Copyright 2022, Polytechnique Montreal and contributors
- *
- * This file is licensed under the MIT License.
- * License text available at https://opensource.org/licenses/MIT
- */
 import React from 'react';
-import { connect } from 'react-redux';
-import { withTranslation, WithTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { History } from 'history';
+import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
+import { Link, useParams } from 'react-router';
+import { ThunkDispatch } from 'redux-thunk';
+import { Action } from 'redux';
 
-import { startConfirmUser, ConfirmData, ConfirmCallbackType } from '../../actions/Auth';
+import { startConfirmUser, ConfirmCallbackType } from '../../actions/Auth';
+import { RootState } from '../../store/configureStore';
 
-export interface VerifyPageProps extends WithTranslation {
-    isAuthenticated: boolean;
-    history: History;
-    startConfirmUser: (data: ConfirmData, callback?: ConfirmCallbackType) => void;
-    token: string;
-}
+type Status = 'Confirmed' | 'In Progress' | 'NotFound' | 'Error';
 
-type VerifyState = {
-    status: 'Confirmed' | 'In Progress' | 'NotFound' | 'Error';
-};
+const VerifyPage: React.FC = () => {
+    const { t } = useTranslation('auth');
+    const dispatch = useDispatch<ThunkDispatch<RootState, unknown, Action>>();
+    const { token } = useParams<{ token: string }>();
 
-export class VerifyPage extends React.Component<VerifyPageProps, VerifyState> {
-    constructor(props: VerifyPageProps) {
-        super(props);
+    const [status, setStatus] = React.useState<Status>('In Progress');
 
-        this.state = {
-            status: 'In Progress'
-        };
-    }
-
-    componentDidMount = () => {
-        this.props.startConfirmUser({ token: this.props.token }, this.tokenVerified);
-    };
-
-    tokenVerified: ConfirmCallbackType = (response) => {
+    const tokenVerified: ConfirmCallbackType = React.useCallback((response) => {
         if (
             response &&
             (response.status === 'Confirmed' ||
@@ -44,48 +25,41 @@ export class VerifyPage extends React.Component<VerifyPageProps, VerifyState> {
                 response.status === 'NotFound' ||
                 response.status === 'Error')
         ) {
-            this.setState({ status: response.status });
+            setStatus(response.status);
         } else {
-            this.setState({ status: 'Error' });
+            setStatus('Error');
         }
-    };
+    }, []);
 
-    getStatusMessage = () => {
-        const status = this.state.status;
-        return status === 'In Progress'
-            ? 'auth:ConfirmationTokenConfirming'
-            : status === 'Confirmed'
-                ? 'auth:ConfirmationTokenConfirmed'
-                : status === 'NotFound'
-                    ? 'auth:ConfirmationTokenNotFound'
-                    : 'auth:ConfirmationTokenError';
-    };
-
-    render() {
-        return (
-            <div className="apptr__form apptr__form-auth apptr__form__label-standalone">
-                <p className="apptr__form__label-standalone">{this.props.t(this.getStatusMessage())}</p>
-                {this.state.status !== 'In Progress' && (
-                    <p className="apptr__form__label-standalone">
-                        <Link to="/">{this.props.t('auth:BackToHomePage')}</Link>
-                    </p>
-                )}
-            </div>
-        );
-    }
-}
-
-const mapStateToProps = (state, ownProps) => {
-    const {
-        match: {
-            params: { token }
+    React.useEffect(() => {
+        if (token) {
+            dispatch(startConfirmUser({ token }, tokenVerified));
         }
-    } = ownProps;
-    return { token };
+    }, [dispatch, token, tokenVerified]);
+
+    const getStatusMessage = React.useCallback((): string => {
+        switch (status) {
+        case 'In Progress':
+            return 'auth:ConfirmationTokenConfirming';
+        case 'Confirmed':
+            return 'auth:ConfirmationTokenConfirmed';
+        case 'NotFound':
+            return 'auth:ConfirmationTokenNotFound';
+        default:
+            return 'auth:ConfirmationTokenError';
+        }
+    }, [status]);
+
+    return (
+        <div className="apptr__form apptr__form-auth apptr__form__label-standalone">
+            <p className="apptr__form__label-standalone">{t(getStatusMessage())}</p>
+            {status !== 'In Progress' && (
+                <p className="apptr__form__label-standalone">
+                    <Link to="/">{t('auth:BackToHomePage')}</Link>
+                </p>
+            )}
+        </div>
+    );
 };
 
-const mapDispatchToProps = (dispatch) => ({
-    startConfirmUser: (data: ConfirmData, callback?: ConfirmCallbackType) => dispatch(startConfirmUser(data, callback))
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(withTranslation('auth')(VerifyPage));
+export default VerifyPage;

@@ -5,13 +5,17 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 
-export const NotFoundPage: React.FunctionComponent<WithTranslation> = (props: WithTranslation) => (
-    <div>
-        404 - <Link to="/">{props.t('auth:BackToHomePage')}</Link>
-    </div>
-);
+export const NotFoundPage: React.FC = () => {
+    const { t } = useTranslation('auth');
 
-export default withTranslation('auth')(NotFoundPage);
+    return (
+        <div>
+            404 - <Link to="/">{t('auth:BackToHomePage')}</Link>
+        </div>
+    );
+};
+
+export default NotFoundPage;

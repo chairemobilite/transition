@@ -7,7 +7,7 @@
 import React from 'react';
 import { default as InputString, InputStringProps } from './InputString';
 
-export interface InputStringFormattedProps extends InputStringProps {
+export type InputStringFormattedProps = InputStringProps & {
     /**
      * Converts the string input to the proper value type. If the input is not
      * valid, it should return null
@@ -30,12 +30,12 @@ export interface InputStringFormattedProps extends InputStringProps {
      * uncontrolled but whose value can also be updated by parent.
      */
     key?: string;
-}
+};
 
-interface InputStringFormattedState {
+type InputStringFormattedState = {
     value: any;
     strValue: string;
-}
+};
 
 /**
  * This is a wrapper to the input string widget, handling value conversion

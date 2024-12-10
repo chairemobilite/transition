@@ -12,11 +12,11 @@ import { mpsToKph, mpsToMph, mpsToFtps } from 'chaire-lib-common/lib/utils/Physi
 const destinationUnitOptions = ['km/h', 'm/s', 'mph', 'ft/s'] as const;
 type destinationUnitOptionsType = (typeof destinationUnitOptions)[number];
 
-export interface SpeedUnitFormatterProps extends WithTranslation {
+export type SpeedUnitFormatterProps = WithTranslation & {
     value: number;
     sourceUnit: 'm/s' | 'km/h';
     destinationUnit?: destinationUnitOptionsType;
-}
+};
 
 const SpeedUnitFormatter: React.FunctionComponent<SpeedUnitFormatterProps> = (props: SpeedUnitFormatterProps) => {
     const [destinationUnit, setDestinationUnit] = useState<destinationUnitOptionsType | undefined>(

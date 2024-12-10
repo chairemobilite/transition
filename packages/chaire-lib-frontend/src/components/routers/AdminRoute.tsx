@@ -5,23 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { connect } from 'react-redux';
-import { RouteProps } from 'react-router-dom';
-import PrivateRoute from './PrivateRoute';
-import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
+import PrivateRoute, { PrivateRouteProps } from './PrivateRoute';
 
-interface AdminRouteProps extends RouteProps {
-    isAuthenticated: boolean;
-    component: any;
-    componentProps: { [prop: string]: unknown };
-    user: CliUser;
-}
+// FIXME Admin route and permissions are not really used in transition.
+// chaire-lib cannot really test it. Since it is there for evolution, evolution
+// should implement it.
+const AdminRoute = (props: PrivateRouteProps) => <PrivateRoute {...props} permissions={{ all: 'manage' }} />;
 
-const AdminRoute = (props: AdminRouteProps) => <PrivateRoute {...props} permissions={{ all: 'manage' }} />;
-
-const mapStateToProps = (state) => ({
-    user: state.auth.user,
-    isAuthenticated: !!state.auth.isAuthenticated
-});
-
-export default connect(mapStateToProps)(AdminRoute);
+export default AdminRoute;

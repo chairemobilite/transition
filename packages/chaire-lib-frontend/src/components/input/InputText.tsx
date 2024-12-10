@@ -6,7 +6,7 @@
  */
 import React from 'react';
 
-export interface InputTextProps {
+export type InputTextProps = {
     id: string;
     onValueChange?: React.ChangeEventHandler<HTMLTextAreaElement>;
     rows?: number;
@@ -14,9 +14,9 @@ export interface InputTextProps {
     placeholder?: string;
     maxLength?: number;
     disabled?: boolean;
-}
+};
 
-interface defaultInputType {
+type defaultInputType = {
     name: string;
     id: string;
     maxLength: number;
@@ -25,7 +25,7 @@ interface defaultInputType {
     onChange?: React.ChangeEventHandler;
     disabled?: boolean;
     placeholder?: string;
-}
+};
 
 const InputText: React.FunctionComponent<InputTextProps> = ({
     id,

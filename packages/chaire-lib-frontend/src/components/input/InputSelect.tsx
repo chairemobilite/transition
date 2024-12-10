@@ -4,17 +4,17 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import React, { JSX } from 'react';
 
-export interface choiceType {
+export type choiceType = {
     value: string;
     disabled?: boolean;
     label?: string;
     choices?: choiceType[];
     [key: string]: unknown;
-}
+};
 
-export interface InputSelectProps {
+export type InputSelectProps = {
     id: string;
     onValueChange?: (e: any) => void;
     value?: string;
@@ -24,16 +24,16 @@ export interface InputSelectProps {
     localePrefix?: string;
     t?: (string) => string;
     disabled?: boolean;
-}
+};
 
-interface defaultInputType {
+type defaultInputType = {
     name: string;
     id: string;
     value?: string;
     defaultValue?: string;
     onChange?: (e: any) => void;
     disabled?: boolean;
-}
+};
 
 const InputSelect: React.FunctionComponent<InputSelectProps> = ({
     id,

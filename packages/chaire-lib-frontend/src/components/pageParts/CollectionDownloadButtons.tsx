@@ -13,9 +13,9 @@ import Button from '../input/Button';
 import DownloadsUtils from '../../services/DownloadsService';
 import GenericCollection from 'chaire-lib-common/lib/utils/objects/GenericCollection';
 
-export interface CollectionDownloadButtonsProps {
+export type CollectionDownloadButtonsProps = {
     collection: GenericCollection<any>;
-}
+};
 
 const CollectionDownloadButtons = function (props: CollectionDownloadButtonsProps) {
     const collection = props.collection;

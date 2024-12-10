@@ -5,11 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import { mount } from 'enzyme';
+import { BrowserRouter } from 'react-router';
+import { render } from '@testing-library/react';
 import UnauthorizedPage from '../UnauthorizedPage';
 
 test('Should correctly render Unauthorized page', () =>{
-    const wrapper = mount(<BrowserRouter><UnauthorizedPage /></BrowserRouter>);
-    expect(wrapper).toMatchSnapshot();
+    const { container } = render(<BrowserRouter><UnauthorizedPage /></BrowserRouter>);
+    expect(container).toMatchSnapshot();
 });
