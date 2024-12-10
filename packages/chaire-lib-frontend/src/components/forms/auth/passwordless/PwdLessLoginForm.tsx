@@ -1,91 +1,97 @@
-/*
- * Copyright 2022, Polytechnique Montreal and contributors
- *
- * This file is licensed under the MIT License.
- * License text available at https://opensource.org/licenses/MIT
- */
 import React from 'react';
-import { connect } from 'react-redux';
-import { withTranslation, WithTranslation } from 'react-i18next';
-import { History, Location } from 'history';
+import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 import FormErrors from '../../../pageParts/FormErrors';
-import { startPwdLessLogin, LoginPwdlessData } from '../../../../actions/Auth';
+import { startPwdLessLogin } from '../../../../actions/Auth';
 import Button from '../../../input/Button';
 import { _isBlank, _isEmail } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { RootState } from '../../../../store/configureStore';
+import { ThunkDispatch } from 'redux-thunk';
+import { Action } from 'redux';
+import { useNavigate, useLocation } from 'react-router';
 
-export interface LoginPageProps {
-    isAuthenticated?: boolean;
-    history: History;
-    location: Location;
-    startPwdLessLogin: (data: LoginPwdlessData, callback?: () => void) => void;
-    login?: boolean;
+type LoginPageProps = {
     headerText?: string;
     buttonText?: string;
-}
-
-type LoginState = {
-    email?: string;
-    error?: string;
 };
 
-export class LoginPage extends React.Component<LoginPageProps & WithTranslation, LoginState> {
-    private submitButtonRef;
-    private buttonProps;
+const LoginPage: React.FC<LoginPageProps> = ({ headerText, buttonText }) => {
+    const { t } = useTranslation(['auth', 'survey']);
+    const dispatch = useDispatch<ThunkDispatch<RootState, unknown, Action>>();
+    const submitButtonRef = React.useRef<HTMLButtonElement>(null);
+    const location = useLocation();
+    const navigate = useNavigate();
 
-    constructor(props: LoginPageProps & WithTranslation) {
-        super(props);
+    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+    const login = useSelector((state: RootState) => state.auth.login);
 
-        this.state = {
-            email: ''
-        };
+    // email is the email entered by the user. error is the error localizable string to be displayed
+    const [formState, setFormState] = React.useState({
+        email: '',
+        error: undefined as string | undefined
+    });
 
-        this.submitButtonRef = React.createRef();
+    // Return the localizable error message if the email is invalid, otherwise return undefined if valid
+    const validateEmail = (email: string): string | undefined => {
+        if (!email) {
+            return 'auth:missingUsernameOrEmail';
+        }
+        if (!_isEmail(email)) {
+            return 'auth:invalidEmail';
+        }
+        return undefined;
+    };
 
-        this.buttonProps = {
-            isVisible: true,
-            onClick: this.onButtonClick
-        };
-    }
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const email = e.target.value.replaceAll(' ', ''); // Email addresses cannot have spaces
+        setFormState((prev) => ({ ...prev, email }));
+    };
 
-    onButtonClick = () => {
-        if (!this.state.email) {
-            this.setState(() => ({ error: this.props.t('auth:missingUsernameOrEmail') }));
-        } else if (this.state.email && !_isEmail(this.state.email)) {
-            this.setState(() => ({
-                error: 'auth:invalidEmail'
-            }));
-        } else {
-            this.setState(() => ({ error: undefined }));
-            this.props.startPwdLessLogin({
-                destination: this.state.email
-            });
+    const handleSubmit = () => {
+        const error = validateEmail(formState.email);
+        if (error) {
+            setFormState((prev) => ({ ...prev, error }));
+            return;
+        }
+
+        setFormState((prev) => ({ ...prev, error: undefined }));
+        dispatch(
+            startPwdLessLogin(
+                {
+                    destination: formState.email
+                },
+                location,
+                navigate
+            )
+        );
+    };
+
+    const handleKeyUp = (e: React.KeyboardEvent) => {
+        // Submit form on enter or space keys
+        // FIXME Remove deprecated `which` property
+        if (e.key === 'Enter' || e.key === ' ' || e.which === 13 || e.which === 32) {
+            handleSubmit();
         }
     };
 
-    onEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const email = e.target.value.replaceAll(' ', ''); // E-mail adresses cannot have spaces
-        this.setState(() => ({ email }));
-    };
-
-    render = () => (
-        <form className="apptr__form apptr__form-auth">
-            <div className={'apptr__form-label-container'}>
+    return (
+        <form className="apptr__form apptr__form-auth" onSubmit={(e) => e.preventDefault()}>
+            <div className="apptr__form-label-container">
                 <div className="apptr__form__label-standalone no-question">
-                    <p>{this.props.headerText}</p>
+                    <p>{headerText}</p>
                 </div>
-                {this.state.error && <FormErrors errors={[this.state.error]} />}
-                {this.props.login && !this.props.isAuthenticated && (
-                    <FormErrors errors={['auth:MagicLinkUseAnotherMethod']} />
-                )}
+                {formState.error && <FormErrors errors={[formState.error]} />}
+                {login && !isAuthenticated && <FormErrors errors={['auth:MagicLinkUseAnotherMethod']} />}
             </div>
-            <div className={'apptr__form-container question-empty'}>
+
+            <div className="apptr__form-container question-empty">
                 <div className="apptr__form-input-container">
                     <label
                         htmlFor="email"
                         className="_flex"
                         dangerouslySetInnerHTML={{
-                            __html: `${this.props.t(['survey:auth:Email', 'auth:Email'])} ${this.props.t([
+                            __html: `${t(['survey:auth:Email', 'auth:Email'])} ${t([
                                 'survey:auth:EmailSubLabel',
                                 'auth:EmailSubLabel'
                             ])}`
@@ -96,36 +102,23 @@ export class LoginPage extends React.Component<LoginPageProps & WithTranslation,
                         id="email"
                         inputMode="email"
                         type="text"
-                        placeholder={this.props.t(['survey:auth:EmailPlaceholder', 'auth:EmailPlaceholder'])}
+                        placeholder={t(['survey:auth:EmailPlaceholder', 'auth:EmailPlaceholder'])}
                         className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
-                        value={this.state.email}
-                        onChange={this.onEmailChange}
+                        value={formState.email}
+                        onChange={handleEmailChange}
                     />
                 </div>
             </div>
+
             <Button
-                {...this.buttonProps}
-                inputRef={this.submitButtonRef}
-                label={!_isBlank(this.props.buttonText) ? this.props.buttonText : this.props.t(['auth:Login'])}
-                onKeyUp={(e) => {
-                    if (e.key === 'enter' || e.key === 'space' || e.which === 13 || e.which === 32) {
-                        this.onButtonClick();
-                    } else {
-                        return;
-                    }
-                }}
+                isVisible={true}
+                onClick={handleSubmit}
+                inputRef={submitButtonRef as React.RefObject<HTMLButtonElement>}
+                label={!_isBlank(buttonText) ? buttonText : t('auth:Login')}
+                onKeyUp={handleKeyUp}
             />
         </form>
     );
-}
-
-const mapStateToProps = (state) => {
-    return { isAuthenticated: state.auth.isAuthenticated, login: state.auth.login };
 };
 
-const mapDispatchToProps = (dispatch, props: Omit<LoginPageProps, 'startPwdLessLogin'>) => ({
-    startPwdLessLogin: (data: LoginPwdlessData, callback?: () => void) =>
-        dispatch(startPwdLessLogin(data, props.history, props.location, callback))
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(withTranslation('auth')(LoginPage));
+export default LoginPage;

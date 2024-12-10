@@ -10,7 +10,7 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-export interface ConfirmModalProps extends WithTranslation {
+export type ConfirmModalProps = WithTranslation & {
     isOpen: boolean;
     closeModal: React.MouseEventHandler;
     text?: string;
@@ -25,7 +25,7 @@ export interface ConfirmModalProps extends WithTranslation {
     buttons?: { [key: string]: { label: string; color: string; action: React.MouseEventHandler } };
     containsHtml?: boolean;
     confirmAction?: React.MouseEventHandler;
-}
+};
 
 export class ConfirmModal extends React.Component<ConfirmModalProps> {
     constructor(props) {

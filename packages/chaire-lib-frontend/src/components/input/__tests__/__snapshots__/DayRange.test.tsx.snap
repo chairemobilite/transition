@@ -3,26 +3,18 @@
 exports[`All props 1`] = `
 <div>
   <div
-    className="apptr__form-input-container _two-columns"
+    class="apptr__form-input-container _two-columns"
   >
     <label>
        
       main:dateTime:Day
     </label>
     <select
-      autoComplete="none"
-      className="tr__form-input-select apptr__input _input-select"
+      autocomplete="none"
+      class="tr__form-input-select apptr__input _input-select"
       id="DayRangeWidgetId_periodGroup"
       name="DayRangeWidgetId_periodGroup"
-      onChange={[Function]}
-      style={
-        {
-          "overflow": "hidden",
-          "textOverflow": "ellipsis",
-          "whiteSpace": "nowrap",
-        }
-      }
-      value="custom"
+      style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
     >
       <option
         value="custom"
@@ -47,123 +39,119 @@ exports[`All props 1`] = `
     </select>
   </div>
   <div
-    className="tr__form-dayPicker"
+    class="tr__form-dayPicker"
   >
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={true}
-        disabled={false}
+        checked=""
         id="DayRangeWidgetId_Monday"
-        onChange={[Function]}
+        name="Monday"
+        title="Monday"
         type="checkbox"
         value="Monday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Monday"
+        for="DayRangeWidgetId_Monday"
       >
         main:dateTime:weekdaysAbbr:monday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={true}
-        disabled={false}
+        checked=""
         id="DayRangeWidgetId_Tuesday"
-        onChange={[Function]}
+        name="Tuesday"
+        title="Tuesday"
         type="checkbox"
         value="Tuesday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Tuesday"
+        for="DayRangeWidgetId_Tuesday"
       >
         main:dateTime:weekdaysAbbr:tuesday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={true}
-        disabled={false}
+        checked=""
         id="DayRangeWidgetId_Wednesday"
-        onChange={[Function]}
+        name="Wednesday"
+        title="Wednesday"
         type="checkbox"
         value="Wednesday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Wednesday"
+        for="DayRangeWidgetId_Wednesday"
       >
         main:dateTime:weekdaysAbbr:wednesday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={false}
-        disabled={false}
         id="DayRangeWidgetId_Thursday"
-        onChange={[Function]}
+        name="Thursday"
+        title="Thursday"
         type="checkbox"
         value="Thursday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Thursday"
+        for="DayRangeWidgetId_Thursday"
       >
         main:dateTime:weekdaysAbbr:thursday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={false}
-        disabled={false}
         id="DayRangeWidgetId_Friday"
-        onChange={[Function]}
+        name="Friday"
+        title="Friday"
         type="checkbox"
         value="Friday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Friday"
+        for="DayRangeWidgetId_Friday"
       >
         main:dateTime:weekdaysAbbr:friday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={false}
-        disabled={false}
         id="DayRangeWidgetId_Saturday"
-        onChange={[Function]}
+        name="Saturday"
+        title="Saturday"
         type="checkbox"
         value="Saturday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Saturday"
+        for="DayRangeWidgetId_Saturday"
       >
         main:dateTime:weekdaysAbbr:saturday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={false}
-        disabled={false}
         id="DayRangeWidgetId_Sunday"
-        onChange={[Function]}
+        name="Sunday"
+        title="Sunday"
         type="checkbox"
         value="Sunday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Sunday"
+        for="DayRangeWidgetId_Sunday"
       >
         main:dateTime:weekdaysAbbr:sunday
       </label>
@@ -175,27 +163,19 @@ exports[`All props 1`] = `
 exports[`Disabled 1`] = `
 <div>
   <div
-    className="apptr__form-input-container _two-columns"
+    class="apptr__form-input-container _two-columns"
   >
     <label>
        
       main:dateTime:Day
     </label>
     <select
-      autoComplete="none"
-      className="tr__form-input-select apptr__input _input-select"
-      disabled={true}
+      autocomplete="none"
+      class="tr__form-input-select apptr__input _input-select"
+      disabled=""
       id="DayRangeWidgetId_periodGroup"
       name="DayRangeWidgetId_periodGroup"
-      onChange={[Function]}
-      style={
-        {
-          "overflow": "hidden",
-          "textOverflow": "ellipsis",
-          "whiteSpace": "nowrap",
-        }
-      }
-      value="custom"
+      style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
     >
       <option
         value="custom"
@@ -220,123 +200,126 @@ exports[`Disabled 1`] = `
     </select>
   </div>
   <div
-    className="tr__form-dayPicker"
+    class="tr__form-dayPicker"
   >
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={true}
-        disabled={true}
+        checked=""
+        disabled=""
         id="DayRangeWidgetId_Monday"
-        onChange={[Function]}
+        name="Monday"
+        title="Monday"
         type="checkbox"
         value="Monday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Monday"
+        for="DayRangeWidgetId_Monday"
       >
         main:dateTime:weekdaysAbbr:monday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={true}
-        disabled={true}
+        checked=""
+        disabled=""
         id="DayRangeWidgetId_Tuesday"
-        onChange={[Function]}
+        name="Tuesday"
+        title="Tuesday"
         type="checkbox"
         value="Tuesday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Tuesday"
+        for="DayRangeWidgetId_Tuesday"
       >
         main:dateTime:weekdaysAbbr:tuesday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={true}
-        disabled={true}
+        checked=""
+        disabled=""
         id="DayRangeWidgetId_Wednesday"
-        onChange={[Function]}
+        name="Wednesday"
+        title="Wednesday"
         type="checkbox"
         value="Wednesday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Wednesday"
+        for="DayRangeWidgetId_Wednesday"
       >
         main:dateTime:weekdaysAbbr:wednesday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={false}
-        disabled={true}
+        disabled=""
         id="DayRangeWidgetId_Thursday"
-        onChange={[Function]}
+        name="Thursday"
+        title="Thursday"
         type="checkbox"
         value="Thursday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Thursday"
+        for="DayRangeWidgetId_Thursday"
       >
         main:dateTime:weekdaysAbbr:thursday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={false}
-        disabled={true}
+        disabled=""
         id="DayRangeWidgetId_Friday"
-        onChange={[Function]}
+        name="Friday"
+        title="Friday"
         type="checkbox"
         value="Friday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Friday"
+        for="DayRangeWidgetId_Friday"
       >
         main:dateTime:weekdaysAbbr:friday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={false}
-        disabled={true}
+        disabled=""
         id="DayRangeWidgetId_Saturday"
-        onChange={[Function]}
+        name="Saturday"
+        title="Saturday"
         type="checkbox"
         value="Saturday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Saturday"
+        for="DayRangeWidgetId_Saturday"
       >
         main:dateTime:weekdaysAbbr:saturday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={false}
-        disabled={true}
+        disabled=""
         id="DayRangeWidgetId_Sunday"
-        onChange={[Function]}
+        name="Sunday"
+        title="Sunday"
         type="checkbox"
         value="Sunday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Sunday"
+        for="DayRangeWidgetId_Sunday"
       >
         main:dateTime:weekdaysAbbr:sunday
       </label>
@@ -348,123 +331,119 @@ exports[`Disabled 1`] = `
 exports[`Do not show dropdown 1`] = `
 <div>
   <div
-    className="tr__form-dayPicker"
+    class="tr__form-dayPicker"
   >
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={true}
-        disabled={false}
+        checked=""
         id="DayRangeWidgetId_Monday"
-        onChange={[Function]}
+        name="Monday"
+        title="Monday"
         type="checkbox"
         value="Monday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Monday"
+        for="DayRangeWidgetId_Monday"
       >
         main:dateTime:weekdaysAbbr:monday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={true}
-        disabled={false}
+        checked=""
         id="DayRangeWidgetId_Tuesday"
-        onChange={[Function]}
+        name="Tuesday"
+        title="Tuesday"
         type="checkbox"
         value="Tuesday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Tuesday"
+        for="DayRangeWidgetId_Tuesday"
       >
         main:dateTime:weekdaysAbbr:tuesday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={true}
-        disabled={false}
+        checked=""
         id="DayRangeWidgetId_Wednesday"
-        onChange={[Function]}
+        name="Wednesday"
+        title="Wednesday"
         type="checkbox"
         value="Wednesday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Wednesday"
+        for="DayRangeWidgetId_Wednesday"
       >
         main:dateTime:weekdaysAbbr:wednesday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={false}
-        disabled={false}
         id="DayRangeWidgetId_Thursday"
-        onChange={[Function]}
+        name="Thursday"
+        title="Thursday"
         type="checkbox"
         value="Thursday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Thursday"
+        for="DayRangeWidgetId_Thursday"
       >
         main:dateTime:weekdaysAbbr:thursday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={false}
-        disabled={false}
         id="DayRangeWidgetId_Friday"
-        onChange={[Function]}
+        name="Friday"
+        title="Friday"
         type="checkbox"
         value="Friday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Friday"
+        for="DayRangeWidgetId_Friday"
       >
         main:dateTime:weekdaysAbbr:friday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={false}
-        disabled={false}
         id="DayRangeWidgetId_Saturday"
-        onChange={[Function]}
+        name="Saturday"
+        title="Saturday"
         type="checkbox"
         value="Saturday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Saturday"
+        for="DayRangeWidgetId_Saturday"
       >
         main:dateTime:weekdaysAbbr:saturday
       </label>
     </div>
     <div
-      className="dayPickerOption"
+      class="dayPickerOption"
     >
       <input
-        checked={false}
-        disabled={false}
         id="DayRangeWidgetId_Sunday"
-        onChange={[Function]}
+        name="Sunday"
+        title="Sunday"
         type="checkbox"
         value="Sunday"
       />
       <label
-        htmlFor="DayRangeWidgetId_Sunday"
+        for="DayRangeWidgetId_Sunday"
       >
         main:dateTime:weekdaysAbbr:sunday
       </label>

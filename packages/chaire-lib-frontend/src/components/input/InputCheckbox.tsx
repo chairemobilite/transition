@@ -4,38 +4,38 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import React, { JSX } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _chunkify } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
-interface choiceType {
+type choiceType = {
     value: string;
     iconPath?: string;
     label?: string;
     [key: string]: unknown;
-}
+};
 
-interface InputCheckboxCommonProps extends WithTranslation {
+type InputCheckboxCommonProps = WithTranslation & {
     id: string;
     localePrefix?: string;
     disabled?: boolean;
-}
+};
 
-export interface InputCheckboxProps extends InputCheckboxCommonProps {
+export type InputCheckboxProps = InputCheckboxCommonProps & {
     value?: string[];
     defaultValue?: string[];
     choices: choiceType[];
     columns?: number;
     onValueChange: (e: any) => void;
     allowSelectAll?: boolean;
-}
+};
 
-interface defaultInputType {
+type defaultInputType = {
     name: string;
     disabled?: boolean;
-}
+};
 
 class InputCheckboxInner extends React.Component<InputCheckboxProps> {
     static defaultProps: Partial<InputCheckboxProps> = {
@@ -166,7 +166,7 @@ class InputCheckboxInner extends React.Component<InputCheckboxProps> {
                         className={`tr__form-input-checkbox-group-column${this.props.columns === 1 ? ' no-wrap' : ''}`}
                         key={i}
                     >
-                        {columnWidgets}
+                        {columnWidgets as JSX.Element[]}
                     </div>
                 );
             }

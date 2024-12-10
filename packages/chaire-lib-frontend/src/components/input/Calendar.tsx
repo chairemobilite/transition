@@ -16,7 +16,7 @@ import en from 'date-fns/locale/en-CA';
  * there should be a dateFormat props if string and the onChange should
  * have as parameters the same type/format as the input. There could
  * also be a wrapper component for string dates */
-export interface InputCalendarProps {
+export type InputCalendarProps = {
     id: string;
     /** start and end are in ms since epoch */
     onChange: (start: number, end: number) => void;
@@ -25,7 +25,7 @@ export interface InputCalendarProps {
     dateFormat?: string;
     disabled?: boolean;
     language?: string;
-}
+};
 
 enum DateState {
     START,
@@ -65,7 +65,7 @@ export default class Calendar extends React.Component<InputCalendarProps, InputC
     }
 
     componentDidUpdate(prevProps: InputCalendarProps, _prevState: InputCalendarState): void {
-        if (prevProps !== this.props) {
+        if (prevProps.startDate !== this.props.startDate || prevProps.endDate !== this.props.endDate) {
             this.setState({
                 startDate: this.props.startDate
                     ? moment(this.props.startDate, this.props.dateFormat).valueOf()
@@ -82,20 +82,24 @@ export default class Calendar extends React.Component<InputCalendarProps, InputC
                 !this.state.endDate || this.state.endDate < startDate
                     ? new Date(date).setHours(23, 59, 0, 0)
                     : this.state.endDate;
-            this.setState({
-                startDate,
-                endDate,
-                dateState: DateState.END
-            });
-            this.props.onChange(startDate, endDate);
+            this.setState(
+                {
+                    startDate,
+                    endDate,
+                    dateState: DateState.END
+                },
+                () => this.props.onChange(startDate, endDate)
+            );
         } else {
             const endDate = new Date(date).setHours(23, 59, 0, 0);
 
-            this.setState({
-                endDate,
-                dateState: DateState.START
-            });
-            this.props.onChange(this.state.startDate, endDate);
+            this.setState(
+                {
+                    endDate,
+                    dateState: DateState.START
+                },
+                () => this.props.onChange(this.state.startDate, endDate)
+            );
         }
     }
 

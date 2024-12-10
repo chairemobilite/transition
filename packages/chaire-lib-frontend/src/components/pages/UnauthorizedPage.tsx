@@ -5,13 +5,17 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 
-export const UnauthorizedPage: React.FunctionComponent<WithTranslation> = (props: WithTranslation) => (
-    <div>
-        {props.t('auth:Unauthorized')} - <Link to="/login">{props.t('auth:BackToLoginPage')}</Link>
-    </div>
-);
+export const UnauthorizedPage: React.FC = () => {
+    const { t } = useTranslation('auth');
 
-export default withTranslation('auth')(UnauthorizedPage);
+    return (
+        <div>
+            {t('auth:Unauthorized')} - <Link to="/login">{t('auth:BackToLoginPage')}</Link>
+        </div>
+    );
+};
+
+export default UnauthorizedPage;

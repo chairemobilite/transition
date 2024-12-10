@@ -5,18 +5,18 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import * as React from 'react';
-import { create } from 'react-test-renderer';
 import Calendar from '../Calendar';
-import { mount } from 'enzyme';
 import moment from 'moment';
 import MockDate from 'mockdate';
+import { render, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
 MockDate.set(new Date(1600833600000));
 const mockOnChange = jest.fn();
-const testId = "CalendarWidgetId";
+const testId = 'CalendarWidgetId';
 
 test('All props', () => {
-    const input = create(<Calendar
+    const { container } = render(<Calendar
         id = {testId}
         onChange = {mockOnChange}
         startDate = "2020-09-23"
@@ -24,13 +24,12 @@ test('All props', () => {
         dateFormat = "YYYY-MM-DD"
         language = "en"
         disabled = {false}
-    />)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+    />);
+    expect(container).toMatchSnapshot();
 });
 
 test('Disabled', () => {
-    const input = create(<Calendar
+    const { container } = render(<Calendar
         id = {testId}
         onChange = {mockOnChange}
         startDate = "2020-09-23"
@@ -38,30 +37,28 @@ test('Disabled', () => {
         dateFormat = "YYYY-MM-DD"
         language = "en"
         disabled = {true}
-    />)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+    />);
+    expect(container).toMatchSnapshot();
 });
 
 test('Localization', () => {
-    const input = create(<Calendar
+    const { container } = render(<Calendar
         id = {testId}
         onChange = {mockOnChange}
         startDate = "2020-09-23"
         endDate = "2020-11-30"
         dateFormat = "YYYY-MM-DD"
         language = "en"
-    />)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+    />);
+    expect(container).toMatchSnapshot();
 });
 
 const getEndDate = (dateStr: string) => {
-    return moment(dateStr).hours(23).minutes(59).valueOf()
-}
+    return moment(dateStr).hours(23).minutes(59).valueOf();
+};
 
 test('Date format', () => {
-    const calendarInput = mount(<Calendar
+    const { container } = render(<Calendar
         id = {testId}
         onChange = {mockOnChange}
         startDate = "23-09-2020"
@@ -70,31 +67,31 @@ test('Date format', () => {
         language = "en"
     />);
     // Validate initial values
-    const startDateElement = calendarInput.find({id: `${testId}_startDate`, type: 'button'});
-    expect(startDateElement.getDOMNode<HTMLInputElement>().value).toBe("23-09-2020");
-    const endDateElement = calendarInput.find({id: `${testId}_endDate`, type: 'button'});
-    expect(endDateElement.getDOMNode<HTMLInputElement>().value).toBe("30-11-2020");
+    const startDateElement = container.querySelector(`input#${testId}_startDate`) as HTMLInputElement;
+    expect(startDateElement.value).toBe('23-09-2020');
+    const endDateElement = container.querySelector(`input#${testId}_endDate`) as HTMLInputElement;
+    expect(endDateElement.value).toBe('30-11-2020');
 
     // Change start date
-    const startDay = calendarInput.find({className: 'react-datepicker__day react-datepicker__day--008', role: 'button'});
-    startDay.simulate('click');
+    const startDay = container.querySelector('.react-datepicker__day--008') as Element;
+    fireEvent.click(startDay);
     expect(mockOnChange).toHaveBeenCalledTimes(1);
-    expect(mockOnChange).toHaveBeenCalledWith(moment("2020-09-08").valueOf(), getEndDate("2020-11-30"));
-    expect(startDateElement.getDOMNode<HTMLInputElement>().value).toBe("08-09-2020");
-    expect(endDateElement.getDOMNode<HTMLInputElement>().value).toBe("30-11-2020");
+    expect(mockOnChange).toHaveBeenCalledWith(moment('2020-09-08').valueOf(), getEndDate('2020-11-30'));
+    expect(startDateElement.value).toBe('08-09-2020');
+    expect(endDateElement.value).toBe('30-11-2020');
 
     // Change end date
-    const endDay = calendarInput.find({className: 'react-datepicker__day react-datepicker__day--029 react-datepicker__day--in-range', role: 'button'});
-    endDay.simulate('click');
+    const endDay = container.querySelector('.react-datepicker__day--029') as Element;
+    fireEvent.click(endDay);
     expect(mockOnChange).toHaveBeenCalledTimes(2);
-    expect(mockOnChange).toHaveBeenLastCalledWith(moment("2020-09-08").valueOf(), getEndDate("2020-09-29"));
-    expect(startDateElement.getDOMNode<HTMLInputElement>().value).toBe("08-09-2020");
-    expect(endDateElement.getDOMNode<HTMLInputElement>().value).toBe("29-09-2020");
+    expect(mockOnChange).toHaveBeenLastCalledWith(moment('2020-09-08').valueOf(), getEndDate('2020-09-29'));
+    expect(startDateElement.value).toBe('08-09-2020');
+    expect(endDateElement.value).toBe('29-09-2020');
 });
 
 test('Undefined values, componentDidUpdate', () => {
-    const dateFormat = "YYYY-MM-DD";
-    const calendarInput = mount(<Calendar
+    const dateFormat = 'YYYY-MM-DD';
+    const { container, rerender } = render(<Calendar
         id = {testId}
         onChange = {mockOnChange}
         startDate = {undefined}
@@ -102,10 +99,10 @@ test('Undefined values, componentDidUpdate', () => {
         dateFormat = {dateFormat}
     />);
     // Validate initial values
-    const startDateElement = calendarInput.find({id: `${testId}_startDate`, type: 'button'});
-    expect(startDateElement.getDOMNode<HTMLInputElement>().value).toBe(moment().format(dateFormat));
-    const endDateElement = calendarInput.find({id: `${testId}_endDate`, type: 'button'});
-    expect(endDateElement.getDOMNode<HTMLInputElement>().value).toBe(moment().format(dateFormat));
+    const startDateElement = container.querySelector(`#${testId}_startDate`) as HTMLInputElement;
+    expect(startDateElement.value).toBe(moment().format(dateFormat));
+    const endDateElement = container.querySelector(`#${testId}_endDate`) as HTMLInputElement;
+    expect(endDateElement.value).toBe(moment().format(dateFormat));
 
     // Props have not changed, but they are set again by parent
     const newProps = {
@@ -115,7 +112,10 @@ test('Undefined values, componentDidUpdate', () => {
         endDate: undefined,
         dateFormat: dateFormat
     };
-    calendarInput.setProps(newProps);
-    expect(startDateElement.getDOMNode<HTMLInputElement>().value).toBe(moment().format(dateFormat));
-    expect(endDateElement.getDOMNode<HTMLInputElement>().value).toBe(moment().format(dateFormat));
+    rerender(<Calendar
+        {...newProps}
+    />);
+    expect(startDateElement.value).toBe(moment().format(dateFormat));
+    expect(endDateElement.value).toBe(moment().format(dateFormat));
 });
+

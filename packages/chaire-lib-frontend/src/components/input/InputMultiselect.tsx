@@ -7,14 +7,14 @@
 import React from 'react';
 import Select from 'react-select';
 
-interface choiceType {
+type ChoiceType = {
     value: string;
     disabled?: boolean;
     label?: string;
-    choices?: choiceType[];
-}
+    choices?: ChoiceType[];
+};
 
-type innerChoiceType = choiceType & {
+type InnerChoiceType = ChoiceType & {
     index: number;
 };
 
@@ -24,7 +24,7 @@ export interface InputMultiSelectProps {
     onValueChange: (e: any) => void;
     value: string[];
     defaultValue: string[];
-    choices: choiceType[];
+    choices: ChoiceType[];
     multiple?: boolean;
     closeMenuOnSelect: boolean; // wether to close the menu open after selecting a choice or not
     isClearable: boolean; // wether to show the "x" button to clear all selected choices
@@ -33,7 +33,7 @@ export interface InputMultiSelectProps {
     disabled?: boolean;
 }
 
-interface defaultInputType {
+interface DefaultInputType {
     name: string;
     id: string;
     [key: string]: any;
@@ -73,7 +73,7 @@ export class InputMultiselect extends React.Component<InputMultiSelectProps> {
 
     render(): React.ReactNode {
         const actualValue = this.props.value.length === 0 ? this.props.defaultValue : this.props.value || [];
-        const defaultAttributes: defaultInputType = {
+        const defaultAttributes: DefaultInputType = {
             autoComplete: 'none',
             className: 'tr__form-input-multiselect apptr__input _input-multiselect',
             name: this.props.id,
@@ -88,7 +88,7 @@ export class InputMultiselect extends React.Component<InputMultiSelectProps> {
             defaultAttributes.isDisabled = true;
         }
 
-        const actualValueWithLabel: innerChoiceType[] = [];
+        const actualValueWithLabel: InnerChoiceType[] = [];
         const choices = this.props.choices;
         const t = this.props.t;
         const localePrefix = this.props.localePrefix || 'main';
@@ -109,7 +109,7 @@ export class InputMultiselect extends React.Component<InputMultiSelectProps> {
             };
         });
 
-        actualValueWithLabel.sort((valueObjectA: innerChoiceType, valueObjectB: innerChoiceType) => {
+        actualValueWithLabel.sort((valueObjectA: InnerChoiceType, valueObjectB: InnerChoiceType) => {
             return valueObjectA.index - valueObjectB.index;
         });
 
@@ -165,7 +165,7 @@ export class InputMultiselect extends React.Component<InputMultiSelectProps> {
                     closeMenuOnSelect={this.props.closeMenuOnSelect || (this.props.multiple ? false : true)}
                     placeholder=""
                     value={
-                        (this.props.multiple !== false ? actualValueWithLabel : actualValueWithLabel[0]) as choiceType
+                        (this.props.multiple !== false ? actualValueWithLabel : actualValueWithLabel[0]) as ChoiceType
                     }
                     className="react-select-container apptr__input _input-multiselect"
                     classNamePrefix="react-select"

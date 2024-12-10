@@ -8,15 +8,15 @@ import React from 'react';
 import Collapsible from 'react-collapsible';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-interface ErrorProps extends WithTranslation {
+export type ErrorProps = WithTranslation & {
     key: string;
-}
+};
 
-interface ErrorState {
+type ErrorState = {
     hasError: boolean;
     error?: Error;
     info?: React.ErrorInfo;
-}
+};
 
 export class ErrorBoundary extends React.Component<React.PropsWithChildren<ErrorProps>, ErrorState> {
     constructor(props: React.PropsWithChildren<ErrorProps>) {

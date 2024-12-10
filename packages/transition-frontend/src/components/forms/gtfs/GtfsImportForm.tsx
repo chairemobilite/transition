@@ -58,7 +58,7 @@ class GtfsImportForm extends React.Component<GtfsImportProps, GtfsImportState> {
             }
         };
 
-        this._fileImportRef = React.createRef();
+        this._fileImportRef = React.createRef() as React.RefObject<HTMLInputElement>;
         this._zipFileUploader = new SocketIOFileClient(serviceLocator.socketEventManager._eventManager, {
             chunkSize: Preferences.current.socketUploadChunkSize
         });
@@ -366,7 +366,7 @@ class GtfsImportForm extends React.Component<GtfsImportProps, GtfsImportState> {
                     )}
                 </div>
                 <div className="tr__form-section">
-                    {this.state.validator.get('isPrepared') && (
+                    {(this.state.validator.get('isPrepared') as boolean) && (
                         <div className="apptr__form-input-container">{this.props.t('transit:gtfs:NewOrUpdate')}</div>
                     )}
                     {availableImportData?.agencies.length > 0 && (

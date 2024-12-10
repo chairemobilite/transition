@@ -6,13 +6,13 @@
  */
 import React from 'react';
 
-export interface InputFileProps {
+export type InputFileProps = {
     id: string;
     onChange?: React.ChangeEventHandler<HTMLInputElement>;
     accept?: string;
     inputRef?: React.RefObject<HTMLInputElement>;
     disabled?: boolean;
-}
+};
 
 const InputFile: React.FunctionComponent<InputFileProps> = ({
     id,

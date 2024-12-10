@@ -1,16 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Login page rendering Allow forget password 1`] = `
-[
+exports[`Login page rendering Allow registration, no forgot password page 1`] = `
+<div>
   <form
-    className="apptr__form apptr__form-auth"
-    onKeyPress={[Function]}
+    class="apptr__form apptr__form-auth"
   >
     <div
-      className="apptr__form-label-container center"
+      class="apptr__form-label-container center"
     >
       <div
-        className="apptr__form__label-standalone no-question"
+        class="apptr__form__label-standalone no-question"
       >
         <p>
           auth:pleaseEnterLoginCredentials
@@ -18,52 +17,137 @@ exports[`Login page rendering Allow forget password 1`] = `
       </div>
     </div>
     <div
-      className="apptr__form-container question-empty"
+      class="apptr__form-container question-empty"
     >
       <div
-        className="apptr__form-input-container"
+        class="apptr__form-input-container"
       >
         <label
-          className="_flex"
-          htmlFor="usernameOrEmail"
+          class="_flex"
+          for="usernameOrEmail"
         >
           auth:UsernameOrEmail
         </label>
         <input
-          autoFocus={true}
-          className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
+          class="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
           id="usernameOrEmail"
           name="usernameOrEmail"
-          onChange={[Function]}
           type="text"
           value=""
         />
       </div>
     </div>
     <div
-      className="apptr__form-container question-empty"
+      class="apptr__form-container question-empty"
     >
       <div
-        className="apptr__form-input-container"
+        class="apptr__form-input-container"
       >
         <label
-          className="_flex"
-          htmlFor="password"
+          class="_flex"
+          for="password"
         >
           auth:Password
         </label>
         <input
-          className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
+          class="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
           id="password"
           name="password"
-          onChange={[Function]}
           type="password"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      class="center"
+    >
+      <button
+        class="button green large"
+        type="button"
+      >
+         
+        auth:Login
+      </button>
+    </div>
+  </form>
+  <div
+    class="apptr__separator-medium"
+  />
+  <div
+    class="apptr__footer-link-container"
+  >
+    <a
+      class="register-link _oblique"
+      href="/register"
+    >
+      auth:registerIfYouHaveNoAccount
+    </a>
+  </div>
+</div>
+`;
+
+exports[`Login page rendering Registration allowed, allow forget password 1`] = `
+<div>
+  <form
+    class="apptr__form apptr__form-auth"
+  >
+    <div
+      class="apptr__form-label-container center"
+    >
+      <div
+        class="apptr__form__label-standalone no-question"
+      >
+        <p>
+          auth:pleaseEnterLoginCredentials
+        </p>
+      </div>
+    </div>
+    <div
+      class="apptr__form-container question-empty"
+    >
+      <div
+        class="apptr__form-input-container"
+      >
+        <label
+          class="_flex"
+          for="usernameOrEmail"
+        >
+          auth:UsernameOrEmail
+        </label>
+        <input
+          class="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
+          id="usernameOrEmail"
+          name="usernameOrEmail"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      class="apptr__form-container question-empty"
+    >
+      <div
+        class="apptr__form-input-container"
+      >
+        <label
+          class="_flex"
+          for="password"
+        >
+          auth:Password
+        </label>
+        <input
+          class="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
+          id="password"
+          name="password"
+          type="password"
+          value=""
         />
         <div
-          className="right _small"
+          class="right _small"
         >
           <a
-            className="_oblique"
+            class="_oblique"
+            data-discover="true"
             href="/forgot"
           >
             auth:forgotPassword
@@ -72,46 +156,43 @@ exports[`Login page rendering Allow forget password 1`] = `
       </div>
     </div>
     <div
-      className="center"
-      style={{}}
+      class="center"
     >
       <button
-        className="button green large"
-        onClick={[Function]}
+        class="button green large"
         type="button"
       >
          
         auth:Login
       </button>
     </div>
-  </form>,
+  </form>
   <div
-    className="apptr__separator-medium"
-  />,
+    class="apptr__separator-medium"
+  />
   <div
-    className="apptr__footer-link-container"
+    class="apptr__footer-link-container"
   >
     <a
-      className="register-link _oblique"
+      class="register-link _oblique"
       href="/register"
     >
       auth:registerIfYouHaveNoAccount
     </a>
-  </div>,
-]
+  </div>
+</div>
 `;
 
-exports[`Login page rendering Allow registration 1`] = `
-[
+exports[`Login page rendering Registration not allowed, no forgot password page 1`] = `
+<div>
   <form
-    className="apptr__form apptr__form-auth"
-    onKeyPress={[Function]}
+    class="apptr__form apptr__form-auth"
   >
     <div
-      className="apptr__form-label-container center"
+      class="apptr__form-label-container center"
     >
       <div
-        className="apptr__form__label-standalone no-question"
+        class="apptr__form__label-standalone no-question"
       >
         <p>
           auth:pleaseEnterLoginCredentials
@@ -119,159 +200,64 @@ exports[`Login page rendering Allow registration 1`] = `
       </div>
     </div>
     <div
-      className="apptr__form-container question-empty"
+      class="apptr__form-container question-empty"
     >
       <div
-        className="apptr__form-input-container"
+        class="apptr__form-input-container"
       >
         <label
-          className="_flex"
-          htmlFor="usernameOrEmail"
+          class="_flex"
+          for="usernameOrEmail"
         >
           auth:UsernameOrEmail
         </label>
         <input
-          autoFocus={true}
-          className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
+          class="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
           id="usernameOrEmail"
           name="usernameOrEmail"
-          onChange={[Function]}
           type="text"
           value=""
         />
       </div>
     </div>
     <div
-      className="apptr__form-container question-empty"
+      class="apptr__form-container question-empty"
     >
       <div
-        className="apptr__form-input-container"
+        class="apptr__form-input-container"
       >
         <label
-          className="_flex"
-          htmlFor="password"
+          class="_flex"
+          for="password"
         >
           auth:Password
         </label>
         <input
-          className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
+          class="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
           id="password"
           name="password"
-          onChange={[Function]}
           type="password"
-        />
-      </div>
-    </div>
-    <div
-      className="center"
-      style={{}}
-    >
-      <button
-        className="button green large"
-        onClick={[Function]}
-        type="button"
-      >
-         
-        auth:Login
-      </button>
-    </div>
-  </form>,
-  <div
-    className="apptr__separator-medium"
-  />,
-  <div
-    className="apptr__footer-link-container"
-  >
-    <a
-      className="register-link _oblique"
-      href="/register"
-    >
-      auth:registerIfYouHaveNoAccount
-    </a>
-  </div>,
-]
-`;
-
-exports[`Login page rendering Registration not allowed 1`] = `
-[
-  <form
-    className="apptr__form apptr__form-auth"
-    onKeyPress={[Function]}
-  >
-    <div
-      className="apptr__form-label-container center"
-    >
-      <div
-        className="apptr__form__label-standalone no-question"
-      >
-        <p>
-          auth:pleaseEnterLoginCredentials
-        </p>
-      </div>
-    </div>
-    <div
-      className="apptr__form-container question-empty"
-    >
-      <div
-        className="apptr__form-input-container"
-      >
-        <label
-          className="_flex"
-          htmlFor="usernameOrEmail"
-        >
-          auth:UsernameOrEmail
-        </label>
-        <input
-          autoFocus={true}
-          className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
-          id="usernameOrEmail"
-          name="usernameOrEmail"
-          onChange={[Function]}
-          type="text"
           value=""
         />
       </div>
     </div>
     <div
-      className="apptr__form-container question-empty"
-    >
-      <div
-        className="apptr__form-input-container"
-      >
-        <label
-          className="_flex"
-          htmlFor="password"
-        >
-          auth:Password
-        </label>
-        <input
-          className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
-          id="password"
-          name="password"
-          onChange={[Function]}
-          type="password"
-        />
-      </div>
-    </div>
-    <div
-      className="center"
-      style={{}}
+      class="center"
     >
       <button
-        className="button green large"
-        onClick={[Function]}
+        class="button green large"
         type="button"
       >
          
         auth:Login
       </button>
     </div>
-  </form>,
+  </form>
   <div
-    className="apptr__separator-medium"
-  />,
+    class="apptr__separator-medium"
+  />
   <div
-    className="apptr__footer-link-container"
-  />,
-]
+    class="apptr__footer-link-container"
+  />
+</div>
 `;

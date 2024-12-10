@@ -93,7 +93,7 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                 </span>
                 <span className="_path-node-label-container _small" title={nodeTitle}>
                     <span className="_path-node-label">
-                        {node.toString(false)}{' '}
+                        {node.toString(false) as string}{' '}
                         <span style={{ whiteSpace: 'nowrap' }}>
                             <img
                                 className="_icon _o100"

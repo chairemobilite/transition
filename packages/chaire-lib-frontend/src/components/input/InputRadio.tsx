@@ -4,30 +4,30 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import React, { JSX } from 'react';
 
-interface choiceType {
+type ChoiceType = {
     value: string | boolean;
     [key: string]: unknown;
-}
+};
 
-export interface InputRadioProps {
+export type InputRadioProps = {
     id: string;
     onValueChange?: (e: any) => void;
     value?: string | boolean;
     defaultValue?: string;
-    choices: choiceType[];
+    choices: ChoiceType[];
     sameLine?: boolean;
     isBoolean?: boolean;
     localePrefix?: string;
     t?: (string) => string;
     disabled?: boolean;
-}
+};
 
-interface defaultInputType {
+type DefaultInputType = {
     name: string;
     disabled?: boolean;
-}
+};
 
 // TODO: Make a real boolean component
 
@@ -86,7 +86,7 @@ class InputRadio extends React.Component<InputRadioProps> {
     }
 
     render(): React.ReactNode {
-        const defaultAttributes: defaultInputType = {
+        const defaultAttributes: DefaultInputType = {
             name: this.props.id
         };
         if (this.props.disabled === true) {
@@ -102,7 +102,8 @@ class InputRadio extends React.Component<InputRadioProps> {
         }
 
         const radioChoices: JSX.Element[] = this.props.choices.map((choice) => {
-            const inputRadioRef: React.RefObject<HTMLInputElement> = React.createRef();
+            const inputRadioRef: React.RefObject<HTMLInputElement> =
+                React.createRef() as React.RefObject<HTMLInputElement>;
             const valueStr = choice.value.toString();
             const id = `${this.props.id}_${valueStr}`;
             return (

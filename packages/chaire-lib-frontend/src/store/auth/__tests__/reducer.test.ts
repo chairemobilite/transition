@@ -4,9 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
 import { authReducer } from '../reducer';
+import { AuthActionTypes } from '../types';
 
-const testUser = {
+const testUser: CliUser = {
     id: 1,
     username: 'test',
     preferences: { },
@@ -19,7 +21,7 @@ const testUser = {
 
 test('Test a login status', () => {
     const action = {
-        type: 'LOGIN',
+        type: 'LOGIN' as any,
         user: testUser,
         isAuthenticated: true,
         login: true,
@@ -38,7 +40,7 @@ test('Test a login status', () => {
 
 test('Test a logout status', () => {
     const action = {
-        type: 'LOGOUT',
+        type: 'LOGOUT' as any,
         user: null,
         isAuthenticated: false
     };
@@ -62,7 +64,7 @@ test('Test a forgot password status', () => {
     };
 
     const action = {
-        type: 'FORGOT',
+        type: 'FORGOT' as any,
         forgot: true,
         emailExists: true,
         message: 'this is a message'
@@ -84,7 +86,7 @@ test('Test a reset password status', () => {
     };
 
     const action = {
-        type: 'RESET',
+        type: 'RESET' as any,
         status: 'this is a message'
     };
 

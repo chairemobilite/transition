@@ -5,20 +5,20 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router';
 
-export class UnconfirmedPage extends React.Component<WithTranslation> {
-    render() {
-        return (
-            <div className="apptr__form apptr__form-auth apptr__form__label-standalone">
-                <p className="apptr__form__label-standalone">{this.props.t('auth:UnconfirmedUser')}</p>
-                <p className="apptr__form__label-standalone">
-                    <Link to="/login">{this.props.t('auth:BackToLoginPage')}</Link>
-                </p>
-            </div>
-        );
-    }
-}
+export const UnconfirmedPage: React.FC = () => {
+    const { t } = useTranslation('auth');
 
-export default withTranslation('auth')(UnconfirmedPage);
+    return (
+        <div className="apptr__form apptr__form-auth apptr__form__label-standalone">
+            <p className="apptr__form__label-standalone">{t('auth:UnconfirmedUser')}</p>
+            <p className="apptr__form__label-standalone">
+                <Link to="/login">{t('auth:BackToLoginPage')}</Link>
+            </p>
+        </div>
+    );
+};
+
+export default UnconfirmedPage;

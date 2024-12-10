@@ -1,63 +1,54 @@
-/*
- * Copyright 2022, Polytechnique Montreal and contributors
- *
- * This file is licensed under the MIT License.
- * License text available at https://opensource.org/licenses/MIT
- */
 import React from 'react';
-import { connect } from 'react-redux';
-import { withTranslation, WithTranslation } from 'react-i18next';
-import { History, Location } from 'history';
-import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
+import { Link, useLocation, useNavigate } from 'react-router';
+import { ThunkDispatch } from 'redux-thunk';
+import { Action } from 'redux';
 
 import FormErrors from '../../../pageParts/FormErrors';
 import { startPwdLessVerify } from '../../../../actions/Auth';
+import { RootState } from '../../../../store/configureStore';
 
-export interface MagicLinkVerifyProps {
-    isAuthenticated?: boolean;
-    history: History;
-    location: Location;
-    startPwdLessVerify: (token: string, callback?: () => void) => void;
-    login?: boolean;
+type MagicLinkVerifyProps = {
     headerText?: string;
-}
+};
 
-export const MagicLinkVerify: React.FunctionComponent<MagicLinkVerifyProps & WithTranslation> = (
-    props: MagicLinkVerifyProps & WithTranslation
-) => {
-    const params = new URLSearchParams(props.location.search);
-    const token = params.get('token');
-    if (!token) {
-        console.log('No token specified');
-        props.history.push('/login');
-    }
+const MagicLinkVerify: React.FC<MagicLinkVerifyProps> = ({ headerText }) => {
+    const { t } = useTranslation('auth');
+    const dispatch = useDispatch<ThunkDispatch<RootState, unknown, Action>>();
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+    const login = useSelector((state: RootState) => state.auth.login);
+
+    // Extract token from URL params
+    const token = React.useMemo(() => {
+        const params = new URLSearchParams(location.search);
+        return params.get('token');
+    }, [location.search]);
 
     React.useEffect(() => {
         if (token) {
-            props.startPwdLessVerify(token);
+            dispatch(startPwdLessVerify(token, location, navigate));
+        } else {
+            navigate('/login');
         }
     }, [token]);
 
     return (
         <div className="apptr__form apptr__form-auth apptr__form__label-standalone">
-            <p className="apptr__form__label-standalone">{props.t('auth:VerifyingEmailToken')}</p>
-            {props.login && !props.isAuthenticated && <FormErrors errors={['auth:MagicLinkVerificationFailed']} />}
+            <p className="apptr__form__label-standalone">{headerText || t('auth:VerifyingEmailToken')}</p>
+
+            {login && !isAuthenticated && <FormErrors errors={['auth:MagicLinkVerificationFailed']} />}
+
             <div className="apptr__footer-link-container">
-                <Link className={'apptr__footer-link _oblique'} to="/login">
-                    {props.t('auth:BackToLoginPage')}
+                <Link className="apptr__footer-link _oblique" to="/login">
+                    {t('auth:BackToLoginPage')}
                 </Link>
             </div>
         </div>
     );
 };
 
-const mapStateToProps = (state) => {
-    return { isAuthenticated: state.auth.isAuthenticated, login: state.auth.login };
-};
-
-const mapDispatchToProps = (dispatch, props: Omit<MagicLinkVerifyProps, 'startPwdLessVerify'>) => ({
-    startPwdLessVerify: (token: string, callback?: () => void) =>
-        dispatch(startPwdLessVerify(token, props.history, callback))
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(withTranslation('auth')(MagicLinkVerify));
+export default MagicLinkVerify;

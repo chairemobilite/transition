@@ -1,208 +1,199 @@
-/*
- * Copyright 2022, Polytechnique Montreal and contributors
- *
- * This file is licensed under the MIT License.
- * License text available at https://opensource.org/licenses/MIT
- */
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { connect } from 'react-redux';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { NavLink, useNavigate, NavigateFunction } from 'react-router';
+import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import moment from 'moment-business-days';
+import { ThunkDispatch } from 'redux-thunk';
+import { Action } from 'redux';
 
 import ConfirmModal from '../modal/ConfirmModal';
 import { startLogout } from '../../actions/Auth';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
 import appConfiguration, { UserMenuItem } from '../../config/application.config';
-import { History } from 'history';
 import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
+import { RootState } from '../../store/configureStore';
 
-interface HeaderProps {
-    user: CliUser;
-    path: any;
-    startLogout: () => void;
+export type HeaderProps = {
+    path: string;
     appName: string;
-    history: History;
-}
+};
 
-interface UserProps extends WithTranslation {
+type UserProps = {
     user: CliUser;
-}
+};
 
-interface UserMenuButtonProps extends WithTranslation {
+type UserMenuButtonProps = {
     menuItem: UserMenuItem;
     modalOpenedCallback: (isOpened: boolean) => void;
     closeMenu: () => void;
-}
+};
 
-const UserMenuButton: React.FunctionComponent<UserMenuButtonProps> = (props: UserMenuButtonProps) => {
+const UserMenuButton: React.FC<UserMenuButtonProps> = ({ menuItem, modalOpenedCallback, closeMenu }) => {
     const [modalIsOpened, setModalIsOpened] = React.useState(false);
+    const { t, i18n } = useTranslation();
+
     const toggleModal = (opened: boolean) => {
         setModalIsOpened(opened);
-        props.modalOpenedCallback(opened);
+        modalOpenedCallback(opened);
     };
+
     const executeAction: React.MouseEventHandler = (e) => {
-        props.menuItem.action(e);
-        if (props.menuItem.postExec === 'refreshLang') {
-            // This will trigger a refresh of all i18n strings on the page
-            props.i18n.changeLanguage(props.i18n.language);
+        menuItem.action(e);
+        if (menuItem.postExec === 'refreshLang') {
+            i18n.changeLanguage(i18n.language);
         }
-        props.closeMenu();
+        closeMenu();
     };
+
     return (
-        <React.Fragment>
+        <>
             <button
                 type="button"
                 className="menu-button"
-                key={'header__nav-reset'}
-                onClick={props.menuItem.confirmModal === undefined ? executeAction : () => toggleModal(true)}
+                onClick={menuItem.confirmModal === undefined ? executeAction : () => toggleModal(true)}
             >
-                {props.menuItem.getText(props.t)}
+                {menuItem.getText(t)}
             </button>
-            {modalIsOpened && props.menuItem.confirmModal !== undefined && (
+            {modalIsOpened && menuItem.confirmModal && (
                 <ConfirmModal
                     isOpen={true}
-                    title={props.menuItem.confirmModal.title(props.t)}
+                    title={menuItem.confirmModal.title(t)}
                     confirmAction={executeAction}
                     confirmButtonColor="red"
-                    confirmButtonLabel={props.menuItem.confirmModal.label(props.t)}
+                    confirmButtonLabel={menuItem.confirmModal.label(t)}
                     closeModal={() => toggleModal(false)}
                 />
             )}
-        </React.Fragment>
+        </>
     );
 };
-const TranslatableUserMenuButton = withTranslation()(UserMenuButton);
 
-interface UserMenuProps {
+type UserMenuProps = {
     user: CliUser;
-    wrapperRef: React.MutableRefObject<null>;
+    wrapperRef: React.RefObject<HTMLDivElement>;
     closeMenu: () => void;
-}
+};
 
-const UserMenu: React.FunctionComponent<UserMenuProps> = (props: UserMenuProps) => {
+const UserMenu: React.FC<UserMenuProps> = ({ wrapperRef, closeMenu }) => {
     const [hasModalOpened, setHasModalOpened] = React.useState(false);
-    React.useLayoutEffect(() => {
-        function handleClickOutside(event) {
-            if (
-                null !== props.wrapperRef &&
-                props.wrapperRef.current &&
-                !(props.wrapperRef.current as any).contains(event.target) &&
-                !hasModalOpened
-            ) {
-                props.closeMenu();
+
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node) && !hasModalOpened) {
+                closeMenu();
             }
-        }
-        // Bind the event listener
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            // Unbind the event listener on clean up
-            document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [props.wrapperRef, hasModalOpened]);
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [wrapperRef, hasModalOpened, closeMenu]);
+
     return (
-        <div className="menu userMenu" ref={props.wrapperRef}>
-            {appConfiguration.userMenuItems.map((menuItem, index: number) => (
-                <TranslatableUserMenuButton
+        <div className="menu userMenu" ref={wrapperRef}>
+            {appConfiguration.userMenuItems.map((menuItem, index) => (
+                <UserMenuButton
                     key={`header__nav-user${index}`}
                     menuItem={menuItem}
                     modalOpenedCallback={setHasModalOpened}
-                    closeMenu={props.closeMenu}
+                    closeMenu={closeMenu}
                 />
             ))}
         </div>
     );
 };
 
-const User: React.FunctionComponent<UserProps> = (props: UserProps) => {
-    const [display, setDisplay] = React.useState('none');
-    const wrapperRef = React.useRef(null);
+const User: React.FC<UserProps> = ({ user }) => {
+    const [display, setDisplay] = React.useState(false);
+    const wrapperRef = React.useRef<HTMLDivElement>(null);
+    const { t } = useTranslation('menu');
+
     return (
-        <li className="tr__top-menu-element" key={'item-nav-user'} id="item-nav-user">
+        <li className="tr__top-menu-element" id="item-nav-user">
             <button
                 className="menu-button"
                 type="button"
-                onClick={
-                    appConfiguration.userMenuItems.length > 0
-                        ? () => setDisplay(display === 'none' ? 'block' : 'none')
-                        : undefined
-                }
+                onClick={appConfiguration.userMenuItems.length > 0 ? () => setDisplay(!display) : undefined}
             >
-                {props.user.username || props.user.email || props.t('menu:User')}
+                {user.username || user.email || t('menu:User')}
             </button>
-            {display !== 'none' && (
-                <UserMenu wrapperRef={wrapperRef} user={props.user} closeMenu={() => setDisplay('none')} />
+            {display && (
+                <UserMenu
+                    wrapperRef={wrapperRef as React.RefObject<HTMLDivElement>}
+                    user={user}
+                    closeMenu={() => setDisplay(false)}
+                />
             )}
         </li>
     );
 };
 
-const TranslatableUser = withTranslation('menu')(User);
+const Header: React.FC<HeaderProps> = ({ path }) => {
+    const navigate = useNavigate();
+    const dispatch = useDispatch<ThunkDispatch<RootState, unknown, Action>>();
+    const { t, i18n } = useTranslation('menu');
+    const user = useSelector((state: RootState) => state.auth.user);
 
-const Header: React.FunctionComponent<HeaderProps & WithTranslation> = (props: HeaderProps & WithTranslation) => {
+    const handleLogout = () => {
+        dispatch(startLogout(navigate as NavigateFunction));
+    };
+
     const appTitle = config.appTitle;
-    const title = config.title[props.i18n.language];
+    const title = config.title[i18n.language];
+
     return (
         <header className="header">
             <div className="header__content">
                 <nav className="header__nav-left" id="item-nav-title">
-                    {appTitle !== undefined && (
+                    {appTitle !== undefined ? (
                         <h1>
                             {appTitle} • <strong>{title}</strong>
                         </h1>
+                    ) : (
+                        <h1>{title}</h1>
                     )}
-                    {appTitle === undefined && <h1>{title}</h1>}
                 </nav>
                 <nav className="header__nav-right">
                     <ul>
-                        {props.user &&
-                            props.user.pages.map((page) => (
+                        {user &&
+                            user.pages.map((page) => (
                                 <li className="tr__top-menu-element" key={`item-${page.title}`}>
-                                    <NavLink className="menu-button" key={page.title} to={page.path}>
-                                        {props.t(page.title)}
+                                    <NavLink className="menu-button" to={page.path}>
+                                        {t(page.title)}
                                     </NavLink>
                                 </li>
                             ))}
-                        {!props.user && props.path !== '/login' && config.showLogin !== false && (
-                            <li className="tr__top-menu-element" key={'item-nav-login'}>
-                                <NavLink className="menu-button" key={'header__nav-login'} to="/login">
-                                    {props.t('menu:login')}
+                        {!user && path !== '/login' && config.showLogin !== false && (
+                            <li className="tr__top-menu-element">
+                                <NavLink className="menu-button" to="/login">
+                                    {t('menu:login')}
                                 </NavLink>
                             </li>
                         )}
-                        {props.user && config.showLogout !== false && (
-                            <li className="tr__top-menu-element" key={'item-nav-logout'}>
-                                <button
-                                    type="button"
-                                    className="menu-button"
-                                    key={'header__nav-logout'}
-                                    onClick={props.startLogout}
-                                >
-                                    {props.t('menu:logout')}
+                        {user && config.showLogout !== false && (
+                            <li className="tr__top-menu-element">
+                                <button type="button" className="menu-button" onClick={handleLogout}>
+                                    {t('menu:logout')}
                                 </button>
                             </li>
                         )}
-                        {config.languages.map((language) => {
-                            return props.i18n.language !== language ? (
-                                <li className="tr__top-menu-element" key={'item-nav-lang'}>
+                        {config.languages.map((language) =>
+                            i18n.language !== language ? (
+                                <li className="tr__top-menu-element" key={`lang-${language}`}>
                                     <button
                                         type="button"
                                         className="menu-button em"
-                                        key={`header__nav-language-${language}`}
                                         lang={language}
                                         onClick={() => {
-                                            props.i18n.changeLanguage(language);
-                                            moment.locale(props.i18n.language);
+                                            i18n.changeLanguage(language);
+                                            moment.locale(i18n.language);
                                         }}
                                     >
                                         {config.languageNames[language]}
                                     </button>
                                 </li>
-                            ) : (
-                                ''
-                            );
-                        })}
-                        {props.user && <TranslatableUser user={props.user} />}
+                            ) : null
+                        )}
+                        {user && <User user={user} />}
                     </ul>
                 </nav>
             </div>
@@ -210,12 +201,4 @@ const Header: React.FunctionComponent<HeaderProps & WithTranslation> = (props: H
     );
 };
 
-const mapStateToProps = (state) => {
-    return { user: state.auth.user };
-};
-
-const mapDispatchToProps = (dispatch, props: Omit<HeaderProps, 'startLogout'>) => ({
-    startLogout: () => dispatch(startLogout(props.history))
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(withTranslation('menu')(Header));
+export default Header;

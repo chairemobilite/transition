@@ -4,17 +4,17 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
 import React from 'react';
-import { History } from 'history';
 import Loadable from 'react-loadable';
+import { useNavigate } from 'react-router';
 import Loader from 'react-spinners/HashLoader';
 
-export interface UsersPageProps {
+export type UsersPageProps = {
     isAuthenticated: boolean;
-    history: History;
     // TODO Type the user
-    user: { [key: string]: any };
-}
+    user: CliUser;
+};
 
 const loader = function Loading() {
     return <Loader size={30} color={'#aaaaaa'} loading={true} />;
@@ -26,11 +26,12 @@ const UsersComponent = Loadable({
 });
 
 class UsersPage extends React.Component<UsersPageProps> {
-    constructor(props) {
+    constructor(props: UsersPageProps) {
+        const navigate = useNavigate();
         super(props);
 
         if (this.props.isAuthenticated && this.props.user.is_admin) {
-            this.props.history.push('/admin/users');
+            navigate('/admin/users');
         }
     }
 

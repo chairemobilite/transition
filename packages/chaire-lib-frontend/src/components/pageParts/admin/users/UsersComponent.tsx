@@ -5,12 +5,14 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { WithTranslation, withTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import UsersTable, { UserDisplay } from './UsersTable';
 import { DefaultColumnFilter } from './TableFilters';
 import WidgetChangePermission from './WidgetChangePermission';
 
-const UsersComponent: React.FunctionComponent<WithTranslation> = (props: WithTranslation) => {
+const UsersComponent: React.FC = () => {
+    const { t } = useTranslation('admin');
+
     // We'll start our table without any data
     const [data, setData] = React.useState<UserDisplay[]>([]);
     const [roles, setRoles] = React.useState<string[]>([]);
@@ -73,17 +75,17 @@ const UsersComponent: React.FunctionComponent<WithTranslation> = (props: WithTra
     const columns = React.useMemo(() => {
         const columns = [
             {
-                Header: props.t('admin:user:Username'),
+                Header: t('admin:user:Username'),
                 accessor: 'username',
                 Filter: DefaultColumnFilter
             },
             {
-                Header: props.t('admin:user:Email'),
+                Header: t('admin:user:Email'),
                 accessor: 'email',
                 Filter: DefaultColumnFilter
             },
             {
-                Header: props.t('admin:user:isAdmin'),
+                Header: t('admin:user:isAdmin'),
                 accessor: 'is_admin',
                 Cell: (props) => (
                     <input type="checkbox" className={'_input-checkbox'} disabled={true} checked={props.value} />
@@ -92,7 +94,7 @@ const UsersComponent: React.FunctionComponent<WithTranslation> = (props: WithTra
         ];
         if (roles.length > 0) {
             columns.push({
-                Header: props.t('admin:user:roles'),
+                Header: t('admin:user:roles'),
                 accessor: 'permissions',
                 Cell: (props) => (
                     <WidgetChangePermission
@@ -104,7 +106,7 @@ const UsersComponent: React.FunctionComponent<WithTranslation> = (props: WithTra
             });
         }
         return columns;
-    }, [props.t, roles]);
+    }, [t, roles]);
 
     return (
         <div className="admin">
@@ -120,4 +122,4 @@ const UsersComponent: React.FunctionComponent<WithTranslation> = (props: WithTra
     );
 };
 
-export default withTranslation('admin')(UsersComponent);
+export default UsersComponent;

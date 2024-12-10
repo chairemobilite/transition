@@ -5,58 +5,55 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import * as React from 'react';
-import { create } from 'react-test-renderer';
+import { render } from '@testing-library/react';
+import '@testing-library/jest-dom';
+
 import InputWrapper from '../InputWrapper';
 
-const testLabel = "Test";
+const testLabel = 'Test';
 
 test('Basic wrapper', () => {
-    const inputWrapper = create(<InputWrapper
+    const { container } = render(<InputWrapper
         label = {testLabel}>
-            <input id="test"/>
-        </InputWrapper>)
-        .toJSON();
-    expect(inputWrapper).toMatchSnapshot();
+        <input id="test"/>
+    </InputWrapper>);
+    expect(container).toMatchSnapshot();
 });
 
 test('Wrapper with help', () => {
-    const inputWrapper = create(<InputWrapper
+    const { container } = render(<InputWrapper
         label = {testLabel}
         help = "My help text">
-           <input id="test"/>
-        </InputWrapper>)
-        .toJSON();
-    expect(inputWrapper).toMatchSnapshot();
+        <input id="test"/>
+    </InputWrapper>);
+    expect(container).toMatchSnapshot();
 });
 
 test('Wrapper with small box and multiple children', () => {
-    const inputWrapper = create(<InputWrapper
+    const { container } = render(<InputWrapper
         label = {testLabel}
         smallInput = {true}>
-           <input id="test"/>
-           <input id="test2"/>
-        </InputWrapper>)
-        .toJSON();
-    expect(inputWrapper).toMatchSnapshot();
+        <input id="test"/>
+        <input id="test2"/>
+    </InputWrapper>);
+    expect(container).toMatchSnapshot();
 });
 
 test('Wrapper in one column', () => {
-    const inputWrapper = create(<InputWrapper
+    const { container } = render(<InputWrapper
         label = {testLabel}
         twoColumns = {false}>
-            <input id="test"/>
-        </InputWrapper>)
-        .toJSON();
-    expect(inputWrapper).toMatchSnapshot();
+        <input id="test"/>
+    </InputWrapper>);
+    expect(container).toMatchSnapshot();
 });
 
 test('Wrapper in one column and small', () => {
-    const inputWrapper = create(<InputWrapper
+    const { container } = render(<InputWrapper
         label = {testLabel}
         twoColumns = {false}
         smallInput = {true}>
-            <input id="test"/>
-        </InputWrapper>)
-        .toJSON();
-    expect(inputWrapper).toMatchSnapshot();
+        <input id="test"/>
+    </InputWrapper>);
+    expect(container).toMatchSnapshot();
 });

@@ -5,103 +5,97 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import * as React from 'react';
-import { create } from 'react-test-renderer';
+import { render, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
+
 import InputRadio from '../InputRadio';
-import { render, fireEvent } from "@testing-library/react";
 
 const mockOnChange = jest.fn();
-const testId = "RadioWidgetId";
-const testLabel = "Radio label";
-const defaultChoiceValue = "test1";
-const anotherChoiceValue = "test2";
+const testId = 'RadioWidgetId';
+const defaultChoiceValue = 'test1';
+const anotherChoiceValue = 'test2';
 const testChoices = [
     { value: defaultChoiceValue },
     { value: anotherChoiceValue },
-    { value: "test3", unused: "unused" },
+    { value: 'test3', unused: 'unused' },
 ];
 const booleanChoices = [
-    { value: "true" },
-    { value: "false" }
+    { value: 'true' },
+    { value: 'false' }
 ];
 
 test('Default props', () => {
-    const input = create(<InputRadio
+    const { container } = render(<InputRadio
         id = {testId}
-    />)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+    />);
+    expect(container).toMatchSnapshot();
 });
 
 test('All props', () => {
-    const input = create(<InputRadio
+    const { container } = render(<InputRadio
         id = {testId}
         onValueChange = {mockOnChange}
         value = {anotherChoiceValue}
         defaultValue = {defaultChoiceValue}
         choices = {testChoices}
         localePrefix = "something"
-        t = {str => str}
+        t = {(str) => str}
         sameLine = {true}
         isBoolean = {false}
         disabled = {false}
-    />)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+    />);
+    expect(container).toMatchSnapshot();
 });
 
 test('Disabled', () => {
-    const input = create(<InputRadio
+    const { container } = render(<InputRadio
         id = {testId}
         onValueChange = {mockOnChange}
         choices = {testChoices}
         value = {anotherChoiceValue}
         disabled = {true}
-    />)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+    />);
+    expect(container).toMatchSnapshot();
 });
 
 test('On same line', () => {
-    const input = create(<InputRadio
+    const { container } = render(<InputRadio
         id = {testId}
         onValueChange = {mockOnChange}
         choices = {testChoices}
         sameLine = {true}
-    />)
-        .toJSON();
-    expect(input).toMatchSnapshot();
-    const inputMultipleLine = create(<InputRadio
+    />);
+    expect(container).toMatchSnapshot();
+    const inputMultipleLine = render(<InputRadio
         id = {testId}
         onValueChange = {mockOnChange}
         choices = {testChoices}
         sameLine = {false}
-    />)
-        .toJSON();
+    />);
     expect(inputMultipleLine).toMatchSnapshot();
 });
 
 test('Boolean choices', () => {
-    const input = create(<InputRadio
+    const { container } = render(<InputRadio
         id = {testId}
         onValueChange = {mockOnChange}
         choices = {booleanChoices}
         isBoolean = {true}
-    />)
-        .toJSON();
-    expect(input).toMatchSnapshot();
+    />);
+    expect(container).toMatchSnapshot();
 });
 
 test('Default value', () => {
     mockOnChange.mockClear();
     const { getByLabelText } = render(
-    <div>
-        <InputRadio
-            id = {testId}
-            onValueChange = {mockOnChange}
-            defaultValue = {defaultChoiceValue}
-            choices = {testChoices}
-        />
-    </div>);
+        <div>
+            <InputRadio
+                id = {testId}
+                onValueChange = {mockOnChange}
+                defaultValue = {defaultChoiceValue}
+                choices = {testChoices}
+            />
+        </div>);
     const input = getByLabelText(defaultChoiceValue) as HTMLInputElement;
     expect(input.checked).toBe(true);
     const unselected = getByLabelText(anotherChoiceValue) as HTMLInputElement;
@@ -111,15 +105,15 @@ test('Default value', () => {
 test('Default and initial value', () => {
     mockOnChange.mockClear();
     const { getByLabelText } = render(
-    <div>
-        <InputRadio
-            id = {testId}
-            onValueChange = {mockOnChange}
-            defaultValue = {defaultChoiceValue}
-            value = {anotherChoiceValue}
-            choices = {testChoices}
-        />
-    </div>);
+        <div>
+            <InputRadio
+                id = {testId}
+                onValueChange = {mockOnChange}
+                defaultValue = {defaultChoiceValue}
+                value = {anotherChoiceValue}
+                choices = {testChoices}
+            />
+        </div>);
     const input = getByLabelText(anotherChoiceValue) as HTMLInputElement;
     expect(input.checked).toBe(true);
     const unselected = getByLabelText(defaultChoiceValue) as HTMLInputElement;
@@ -128,15 +122,15 @@ test('Default and initial value', () => {
 test('Invalid default and value', () => {
     mockOnChange.mockClear();
     const { getByLabelText } = render(
-    <div>
-        <InputRadio
-            id = {testId}
-            onValueChange = {mockOnChange}
-            defaultValue = "not a value"
-            value = "still not a choice"
-            choices = {testChoices}
-        />
-    </div>);
+        <div>
+            <InputRadio
+                id = {testId}
+                onValueChange = {mockOnChange}
+                defaultValue = "not a value"
+                value = "still not a choice"
+                choices = {testChoices}
+            />
+        </div>);
     let input = getByLabelText(defaultChoiceValue) as HTMLInputElement;
     expect(input.checked).toBe(false);
     input = getByLabelText(anotherChoiceValue) as HTMLInputElement;
@@ -147,15 +141,15 @@ test('Invalid default and value', () => {
 test.skip('Call onChange', () => {
     mockOnChange.mockClear();
     const { getByLabelText } = render(
-    <div>
-        <InputRadio
-            id = {testId}
-            onValueChange = {mockOnChange}
-            choices = {testChoices}
-        />
-    </div>);
+        <div>
+            <InputRadio
+                id = {testId}
+                onValueChange = {mockOnChange}
+                choices = {testChoices}
+            />
+        </div>);
     const input = getByLabelText(anotherChoiceValue) as HTMLInputElement;
     expect(input.checked).toBe(false);
-    fireEvent.change(input, {target: { value: anotherChoiceValue}});
+    fireEvent.change(input, { target: { value: anotherChoiceValue } });
     expect(mockOnChange).toHaveBeenCalledTimes(1);
 });

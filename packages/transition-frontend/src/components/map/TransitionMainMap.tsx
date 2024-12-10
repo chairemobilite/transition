@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
-import ReactDom from 'react-dom';
+import React, { PropsWithChildren } from 'react';
+import { createRoot } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import MapboxGL from 'mapbox-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
@@ -54,7 +54,7 @@ interface MainMapState {
  * chaire-lib and offer the possibility to pass the application modules when the
  * API for it has stabilised.
  */
-class MainMap extends React.Component<MainMapProps & WithTranslation, MainMapState> {
+class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWithChildren, MainMapState> {
     private layerManager: MapLayerManager;
     private pathLayerManager: PathMapLayerManager;
     private defaultZoomArray: [number];
@@ -511,7 +511,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation, MainMapSta
         contextMenu.style.top = e.point.y + 'px';
         contextMenu.style.display = 'block';
 
-        ReactDom.render(
+        createRoot(contextMenu).render(
             <ul>
                 {elements.map((element) => (
                     <li
@@ -526,8 +526,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation, MainMapSta
                         {this.props.t(element.title)}
                     </li>
                 ))}
-            </ul>,
-            contextMenu
+            </ul>
         );
     };
 
@@ -537,7 +536,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation, MainMapSta
             return;
         }
         contextMenu.style.display = 'none';
-        ReactDom.render(<React.Fragment></React.Fragment>, contextMenu);
+        createRoot(contextMenu).render(<React.Fragment></React.Fragment>);
     };
 
     render() {

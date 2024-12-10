@@ -30,7 +30,11 @@ const RightPanel: React.FunctionComponent<RightPanelProps> = ({ contributions, .
             contributions
                 .filter((contrib) => contrib.section === undefined || contrib.section === props.activeSection)
                 .map((contrib) =>
-                    contrib.create({ ...props, key: `rightPanelEl${contrib.id}`, parentRef: rightPanelRef })
+                    contrib.create({
+                        ...props,
+                        key: `rightPanelEl${contrib.id}`,
+                        parentRef: rightPanelRef as React.RefObject<HTMLDivElement>
+                    })
                 ),
         [props.activeSection, props.availableRoutingModes]
     );

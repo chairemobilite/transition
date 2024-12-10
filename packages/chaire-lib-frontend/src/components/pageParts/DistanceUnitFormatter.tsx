@@ -12,11 +12,11 @@ import { metersToMiles, metersToFeet } from 'chaire-lib-common/lib/utils/Physics
 const destinationUnitOptions = ['km', 'm', 'mi', 'ft'] as const;
 type destinationUnitOptionsType = (typeof destinationUnitOptions)[number];
 
-export interface DistanceUnitFormatterProps extends WithTranslation {
+export type DistanceUnitFormatterProps = WithTranslation & {
     value: number;
     sourceUnit: 'km' | 'm';
     destinationUnit?: destinationUnitOptionsType;
-}
+};
 
 const DistanceUnitFormatter: React.FunctionComponent<DistanceUnitFormatterProps> = (
     props: DistanceUnitFormatterProps

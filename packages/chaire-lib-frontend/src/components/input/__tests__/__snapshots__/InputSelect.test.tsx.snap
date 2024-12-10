@@ -1,146 +1,117 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`All props 1`] = `
-<select
-  autoComplete="none"
-  className="tr__form-input-select apptr__input _input-select"
-  id="SelectWidgetId"
-  name="SelectWidgetId"
-  onChange={[MockFunction]}
-  style={
-    {
-      "overflow": "hidden",
-      "textOverflow": "ellipsis",
-      "whiteSpace": "nowrap",
-    }
-  }
-  value="test2"
->
-  <option
-    value="test1"
-  >
-    something:test1
-  </option>
-  <option
-    value="test2"
-  >
-    label for test2
-  </option>
-  <option
-    disabled={true}
-    value="disabled"
-  >
-    something:disabled
-  </option>
-  <optgroup
-    label="something:has sub-choices"
+<div>
+  <select
+    autocomplete="none"
+    class="tr__form-input-select apptr__input _input-select"
+    id="SelectWidgetId"
+    name="SelectWidgetId"
+    style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
   >
     <option
-      value="subChoice1"
+      value="test1"
     >
-      something:subChoice1
+      something:test1
     </option>
     <option
-      value="subChoice2"
+      value="test2"
     >
-      label for subchoice2
+      label for test2
     </option>
-  </optgroup>
-</select>
+    <option
+      disabled=""
+      value="disabled"
+    >
+      something:disabled
+    </option>
+    <optgroup
+      label="something:has sub-choices"
+    >
+      <option
+        value="subChoice1"
+      >
+        something:subChoice1
+      </option>
+      <option
+        value="subChoice2"
+      >
+        label for subchoice2
+      </option>
+    </optgroup>
+  </select>
+</div>
 `;
 
 exports[`Default props 1`] = `
-<select
-  autoComplete="none"
-  className="tr__form-input-select apptr__input _input-select"
-  id="SelectWidgetId"
-  name="SelectWidgetId"
-  style={
-    {
-      "overflow": "hidden",
-      "textOverflow": "ellipsis",
-      "whiteSpace": "nowrap",
-    }
-  }
-  value=""
->
-  <option
-    value=""
-  />
-</select>
+<div>
+  <select
+    autocomplete="none"
+    class="tr__form-input-select apptr__input _input-select"
+    id="SelectWidgetId"
+    name="SelectWidgetId"
+    style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+  >
+    <option
+      value=""
+    />
+  </select>
+</div>
 `;
 
 exports[`Disabled 1`] = `
-<select
-  autoComplete="none"
-  className="tr__form-input-select apptr__input _input-select"
-  disabled={true}
-  id="SelectWidgetId"
-  name="SelectWidgetId"
-  onChange={[MockFunction]}
-  style={
-    {
-      "overflow": "hidden",
-      "textOverflow": "ellipsis",
-      "whiteSpace": "nowrap",
-    }
-  }
-  value=""
->
-  <option
-    value=""
-  />
-</select>
+<div>
+  <select
+    autocomplete="none"
+    class="tr__form-input-select apptr__input _input-select"
+    disabled=""
+    id="SelectWidgetId"
+    name="SelectWidgetId"
+    style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+  >
+    <option
+      value=""
+    />
+  </select>
+</div>
 `;
 
 exports[`With blank choice 1`] = `
-<select
-  autoComplete="none"
-  className="tr__form-input-select apptr__input _input-select"
-  id="SelectWidgetId"
-  name="SelectWidgetId"
-  onChange={[MockFunction]}
-  style={
-    {
-      "overflow": "hidden",
-      "textOverflow": "ellipsis",
-      "whiteSpace": "nowrap",
-    }
-  }
-  value=""
->
-  <option
-    value=""
-  />
-  <option
-    value="test1"
-  >
-    
-  </option>
-  <option
-    value="test2"
-  >
-    label for test2
-  </option>
-  <option
-    disabled={true}
-    value="disabled"
-  >
-    
-  </option>
-  <optgroup
-    label=""
+<div>
+  <select
+    autocomplete="none"
+    class="tr__form-input-select apptr__input _input-select"
+    id="SelectWidgetId"
+    name="SelectWidgetId"
+    style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
   >
     <option
-      value="subChoice1"
+      value=""
+    />
+    <option
+      value="test1"
+    />
+    <option
+      value="test2"
     >
-      
+      label for test2
     </option>
     <option
-      value="subChoice2"
+      disabled=""
+      value="disabled"
+    />
+    <optgroup
+      label=""
     >
-      label for subchoice2
-    </option>
-  </optgroup>
-</select>
+      <option
+        value="subChoice1"
+      />
+      <option
+        value="subChoice2"
+      >
+        label for subchoice2
+      </option>
+    </optgroup>
+  </select>
+</div>
 `;

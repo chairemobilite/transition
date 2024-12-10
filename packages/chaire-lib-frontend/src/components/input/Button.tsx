@@ -8,8 +8,9 @@ import React, { MouseEvent } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 
-export interface ButtonProps {
+export type ButtonProps = {
     onClick?: React.MouseEventHandler;
+    onKeyUp?: React.KeyboardEventHandler;
     href?: string;
     download?: string; // see: https://stackoverflow.com/questions/10049259/change-name-of-download-in-javascript
     label: string;
@@ -24,14 +25,15 @@ export interface ButtonProps {
     iconPath?: string;
     disabled?: boolean;
     title?: string;
+    name?: string;
     style?: { [key: string]: string };
-}
+};
 
-interface anchorAttributesProps {
+type AnchorAttributesProps = {
     href: string;
     download?: string; // see: https://stackoverflow.com/questions/10049259/change-name-of-download-in-javascript
     className: string;
-}
+};
 
 export class Button extends React.Component<ButtonProps> {
     static defaultProps: Partial<ButtonProps> = {
@@ -42,6 +44,8 @@ export class Button extends React.Component<ButtonProps> {
         size: 'large',
         iconClass: '_icon',
         style: {},
+        title: undefined,
+        name: undefined,
         disabled: false
     };
 
@@ -64,7 +68,7 @@ export class Button extends React.Component<ButtonProps> {
         }
 
         if (this.props.type === 'href' && this.props.href) {
-            const attributes: anchorAttributesProps = {
+            const attributes: AnchorAttributesProps = {
                 href: this.props.href,
                 className: `button ${this.props.color} ${this.props.size}`
             };
@@ -97,6 +101,12 @@ export class Button extends React.Component<ButtonProps> {
             }
             if (this.props.title) {
                 attributes.title = this.props.title;
+            }
+            if (this.props.name) {
+                attributes.name = this.props.name;
+            }
+            if (this.props.onKeyUp) {
+                attributes.onKeyUp = this.props.onKeyUp;
             }
             return (
                 <div className={this.props.align} style={this.props.style || {}}>

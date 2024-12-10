@@ -4,19 +4,20 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 // FIXME Using the NoReload captcha (which can pose problems to users) because the "Reload Captcha" text is hardcoded in english. Switch when https://github.com/masroorejaz/react-simple-captcha/pull/2 is accepted
 import {
     loadCaptchaEnginge,
+    LoadCanvasTemplate,
     LoadCanvasTemplateNoReload,
     validateCaptcha as validateCaptchaMain
 } from 'react-simple-captcha';
 
-export interface CaptchaComponentProps {
+export type CaptchaComponentProps = {
     value?: string;
     onChange: React.ChangeEventHandler;
-}
+};
 
 export const validateCaptcha = (value?: string): boolean => {
     return validateCaptchaMain(value, true);
@@ -25,7 +26,7 @@ export const validateCaptcha = (value?: string): boolean => {
 export const CaptchaComponent: React.FunctionComponent<CaptchaComponentProps & WithTranslation> = (
     props: CaptchaComponentProps & WithTranslation
 ) => {
-    React.useEffect(() => {
+    useEffect(() => {
         loadCaptchaEnginge(6);
     }, []);
 
@@ -37,7 +38,7 @@ export const CaptchaComponent: React.FunctionComponent<CaptchaComponentProps & W
             <div className="apptr__form-input-container">
                 <label className="_flex">{props.t('auth:EnterCaptchaText')}</label>
                 <input
-                    name="user_captcha"
+                    name="userCaptcha"
                     type="text"
                     className={'apptr__form-input apptr__form-input-string apptr__input apptr__input-string'}
                     value={props.value}

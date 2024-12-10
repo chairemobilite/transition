@@ -121,7 +121,7 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
                 </ButtonCell>
             )}
             <ButtonCell alignment="left">
-                {service.get('name')}
+                {service.get('name') as string}
                 {serviceWeekdaysStr}
             </ButtonCell>
             {scheduledLineCount > 0 && (

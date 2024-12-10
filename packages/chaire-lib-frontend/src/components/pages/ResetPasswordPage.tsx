@@ -1,210 +1,181 @@
-/*
- * Copyright 2022, Polytechnique Montreal and contributors
- *
- * This file is licensed under the MIT License.
- * License text available at https://opensource.org/licenses/MIT
- */
 import React from 'react';
-import { connect } from 'react-redux';
-import { withTranslation, WithTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
+import { Link, useParams } from 'react-router';
 
 import Button, { ButtonProps } from '../input/Button';
 import FormErrors from '../pageParts/FormErrors';
 import { startResetPassword } from '../../actions/Auth';
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { RootState } from '../../store/configureStore';
+import { ThunkDispatch } from 'redux-thunk';
+import { Action } from 'redux';
 
-export interface ResetPasswordPageProps extends WithTranslation {
-    isAuthenticated: boolean;
-    history: History;
-    startResetPassword: any;
-    token: string;
-    status?: 'Confirmed' | 'NotFound' | 'Expired' | 'PasswordChanged' | 'Error';
-}
+type Status = 'Confirmed' | 'NotFound' | 'Expired' | 'PasswordChanged' | 'Error';
 
-type ResetPasswordState = {
-    password: string;
-    passwordConfirmation: string;
-    error?: ErrorMessage;
+type SimpleMessageProps = {
+    message: string;
 };
 
-interface SimpleMessageProps extends WithTranslation {
-    message: string;
-}
+const SimpleMessage: React.FC<SimpleMessageProps> = ({ message }) => {
+    const { t } = useTranslation('auth');
 
-const SimpleMessage: React.FunctionComponent<SimpleMessageProps> = (props: SimpleMessageProps) => {
     return (
         <div className="apptr__form apptr__form-auth apptr__form__label-standalone">
-            <p className="apptr__form__label-standalone">{props.t(props.message)}</p>
+            <p className="apptr__form__label-standalone">{t(message)}</p>
             <div className="apptr__footer-link-container">
-                <Link className={'apptr__footer-link _oblique'} to="/login">
-                    {props.t('auth:BackToLoginPage')}
+                <Link className="apptr__footer-link _oblique" to="/login">
+                    {t('auth:BackToLoginPage')}
                 </Link>
             </div>
         </div>
     );
 };
 
-const SimpleMessageWidget = withTranslation('auth')(SimpleMessage);
+const ResetPasswordPage: React.FC = () => {
+    const { t } = useTranslation('auth');
+    const dispatch = useDispatch<ThunkDispatch<RootState, unknown, Action>>();
+    const { token } = useParams<{ token: string }>();
+    const submitButtonRef = React.useRef<HTMLButtonElement>(null);
 
-export class ResetPasswordPage extends React.Component<ResetPasswordPageProps, ResetPasswordState> {
-    private submitButtonRef;
-    private buttonProps: Partial<ButtonProps>;
+    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+    const status = useSelector((state: RootState) => state.auth.status as Status);
 
-    constructor(props) {
-        super(props);
+    const [formState, setFormState] = React.useState({
+        password: '',
+        passwordConfirmation: '',
+        error: undefined as ErrorMessage | undefined
+    });
 
-        this.state = {
-            password: '',
-            passwordConfirmation: ''
+    React.useEffect(() => {
+        if (token) {
+            dispatch(startResetPassword({ token }));
+        }
+    }, [token, dispatch]);
+
+    React.useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (e.which === 13 && e.target instanceof HTMLElement && e.target.tagName.toLowerCase() !== 'textarea') {
+                e.preventDefault();
+            }
         };
 
-        this.submitButtonRef = React.createRef();
+        document.addEventListener('keydown', handleKeyPress);
+        return () => document.removeEventListener('keydown', handleKeyPress);
+    }, []);
 
-        this.buttonProps = {
-            isVisible: true,
-            align: 'center',
-            onClick: this.onButtonClick
-        };
-    }
-
-    onButtonClick = () => {
-        if (!this.state.password) {
-            this.setState(() => ({
-                error: this.props.t('auth:missingPassword')
-            }));
-        } else if (this.state.password !== this.state.passwordConfirmation) {
-            this.setState(() => ({
-                error: this.props.t('auth:passwordsDoNotMatch')
-            }));
-        } else if (this.state.password && this.state.password.length < 8) {
-            this.setState(() => ({
-                error: this.props.t('auth:passwordMustHaveAtLeastNCharacters', { n: 8 })
-            }));
-        } else {
-            this.setState({ error: undefined });
-            this.props.startResetPassword(
-                {
-                    token: this.props.token,
-                    password: this.state.password
-                },
-                this.props.history
-            );
+    const validateForm = (): ErrorMessage | undefined => {
+        if (!formState.password) {
+            return t('auth:missingPassword');
         }
+        if (formState.password !== formState.passwordConfirmation) {
+            return t('auth:passwordsDoNotMatch');
+        }
+        if (formState.password.length < 8) {
+            return t('auth:passwordMustHaveAtLeastNCharacters', { n: 8 });
+        }
+        return undefined;
     };
 
-    onKeyPress(e) {
-        if (e.which === 13 && e.target.tagName.toLowerCase() !== 'textarea' /* Enter */) {
-            e.preventDefault();
+    const handleSubmit = () => {
+        const error = validateForm();
+        if (error) {
+            setFormState((prev) => ({ ...prev, error }));
+            return;
         }
-    }
 
-    componentDidMount() {
-        document.addEventListener('keydown', this.onKeyPress.bind(this));
-        this.props.startResetPassword({ token: this.props.token });
-    }
-
-    componentWillUnmount() {
-        document.removeEventListener('keydown', this.onKeyPress.bind(this));
-    }
-
-    onPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const password = e.target.value;
-        if (password) {
-            this.setState(() => ({ password: password }));
-        } // allow empty string
-        else {
-            this.setState(() => ({ password: '' }));
-        }
-    };
-
-    onPasswordConfirmationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const passwordConfirmation = e.target.value;
-        if (passwordConfirmation) {
-            this.setState(() => ({ passwordConfirmation: passwordConfirmation }));
-        } // allow empty string
-        else {
-            this.setState(() => ({ passwordConfirmation: '' }));
-        }
-    };
-
-    getStatusMessage = () => {
-        const status = this.props.status;
-        return status === 'Expired'
-            ? 'auth:ResetTokenExpired'
-            : status === 'NotFound'
-                ? 'auth:ResetTokenNotFound'
-                : status === 'PasswordChanged'
-                    ? 'auth:PasswordChangedSuccessfully'
-                    : status === 'Error'
-                        ? 'auth:ResetTokenError'
-                        : undefined;
-    };
-
-    render() {
-        const statusMessage = this.getStatusMessage();
-        if (statusMessage) {
-            return <SimpleMessageWidget message={statusMessage} />;
-        }
-        return (
-            <form className="apptr__form apptr__form-auth" onKeyPress={this.onKeyPress}>
-                <div className={'apptr__form-label-container center'}>
-                    <div className="apptr__form__label-standalone">
-                        <p>{this.props.t('auth:pleaseChooseANewPassword')}</p>
-                    </div>
-                    {this.state.error && <FormErrors errors={[this.state.error]} />}
-                </div>
-                <div className={'apptr__form-container question-empty'}>
-                    <div className="apptr__form-input-container">
-                        <div className={'apptr__form-label-container'}>
-                            <label htmlFor="password" className="_flex">
-                                {this.props.t('auth:Password')}
-                            </label>
-                        </div>
-                        <input
-                            name="password"
-                            type="password"
-                            id="password"
-                            className={'apptr__form-input apptr__form-input-string apptr__input apptr__input-string'}
-                            value={this.state.password}
-                            onChange={this.onPasswordChange}
-                        />
-                    </div>
-                </div>
-                <div className={'apptr__form-container question-empty'}>
-                    <div className="apptr__form-input-container">
-                        <div className={'apptr__form-label-container'}>
-                            <label htmlFor="passwordConfirmation" className="_flex">
-                                {this.props.t('auth:PasswordConfirmation')}
-                            </label>
-                        </div>
-                        <input
-                            name="passwordConfirmation"
-                            type="password"
-                            id="passwordConfirmation"
-                            className={'apptr__form-input apptr__form-input-string apptr__input apptr__input-string'}
-                            value={this.state.passwordConfirmation}
-                            onChange={this.onPasswordConfirmationChange}
-                        />
-                    </div>
-                </div>
-                <Button {...this.buttonProps} inputRef={this.submitButtonRef} label={this.props.t('auth:Confirm')} />
-            </form>
+        setFormState((prev) => ({ ...prev, error: undefined }));
+        dispatch(
+            startResetPassword({
+                token,
+                password: formState.password
+            })
         );
-    }
-}
+    };
 
-const mapStateToProps = (state, ownProps) => {
-    const {
-        match: {
-            params: { token }
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormState((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const getStatusMessage = (): string | undefined => {
+        switch (status) {
+        case 'Expired':
+            return 'auth:ResetTokenExpired';
+        case 'NotFound':
+            return 'auth:ResetTokenNotFound';
+        case 'PasswordChanged':
+            return 'auth:PasswordChangedSuccessfully';
+        case 'Error':
+            return 'auth:ResetTokenError';
+        default:
+            return undefined;
         }
-    } = ownProps;
-    return { token, isAuthenticated: state.auth.isAuthenticated, status: state.auth.status };
+    };
+
+    const buttonProps: Partial<ButtonProps> = {
+        isVisible: true,
+        align: 'center',
+        onClick: handleSubmit
+    };
+
+    const statusMessage = getStatusMessage();
+    if (statusMessage) {
+        return <SimpleMessage message={statusMessage} />;
+    }
+
+    return (
+        <form className="apptr__form apptr__form-auth" onSubmit={(e) => e.preventDefault()}>
+            <div className="apptr__form-label-container center">
+                <div className="apptr__form__label-standalone">
+                    <p>{t('auth:pleaseChooseANewPassword')}</p>
+                </div>
+                {formState.error && <FormErrors errors={[formState.error]} />}
+            </div>
+
+            <div className="apptr__form-container question-empty">
+                <div className="apptr__form-input-container">
+                    <div className="apptr__form-label-container">
+                        <label htmlFor="password" className="_flex">
+                            {t('auth:Password')}
+                        </label>
+                    </div>
+                    <input
+                        name="password"
+                        type="password"
+                        id="password"
+                        className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
+                        value={formState.password}
+                        onChange={handleInputChange}
+                    />
+                </div>
+            </div>
+
+            <div className="apptr__form-container question-empty">
+                <div className="apptr__form-input-container">
+                    <div className="apptr__form-label-container">
+                        <label htmlFor="passwordConfirmation" className="_flex">
+                            {t('auth:PasswordConfirmation')}
+                        </label>
+                    </div>
+                    <input
+                        name="passwordConfirmation"
+                        type="password"
+                        id="passwordConfirmation"
+                        className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
+                        value={formState.passwordConfirmation}
+                        onChange={handleInputChange}
+                    />
+                </div>
+            </div>
+
+            <Button
+                {...buttonProps}
+                inputRef={submitButtonRef as React.RefObject<HTMLButtonElement>}
+                label={t('auth:Confirm')}
+            />
+        </form>
+    );
 };
 
-const mapDispatchToProps = (dispatch, props) => ({
-    startResetPassword: (data, history) => dispatch(startResetPassword(data))
-});
-
-export default connect(mapStateToProps, mapDispatchToProps)(withTranslation('auth')(ResetPasswordPage));
+export default ResetPasswordPage;

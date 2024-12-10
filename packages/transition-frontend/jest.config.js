@@ -10,9 +10,7 @@ const baseConfig = require('../../tests/jest.config.base');
 module.exports = {
     ...baseConfig,
     setupFilesAfterEnv: [
-        ...baseConfig.setupFilesAfterEnv,
-        './jestSetup.ts'
+        ...baseConfig.setupFilesAfterEnv
     ],
-    testEnvironment: 'jsdom',
-    snapshotSerializers: ['enzyme-to-json/serializer']
+    testEnvironment: 'jsdom'
 };
