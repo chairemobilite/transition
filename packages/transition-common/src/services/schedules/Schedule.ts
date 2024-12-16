@@ -138,7 +138,6 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         // todo
         const period = this.getPeriod(periodShortname);
         if (period) {
-            const minInterval = Infinity;
             const trips = period.trips;
             if (trips && trips.length > 0) {
                 for (let i = 0, count = trips.length; i < count - 1; i++) {
@@ -366,7 +365,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
                 unitReadyAt: unit.isReadyAtTimeSeconds
             };
             return trip;
-        } catch (error) {
+        } catch {
             throw `The path ${path.getId()} for line ${path.getLine()?.getAttributes().shortname} (${
                 path.attributes.line_id
             }) is not valid. Please recalculate routing for this path`;

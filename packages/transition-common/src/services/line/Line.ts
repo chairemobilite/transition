@@ -166,7 +166,8 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
         */
     }
 
-    async calculateDeadHeadTravelTimesBetweenPaths(socket) {
+    //TODO: Add functionality to the _socket argument, or remove it.
+    async calculateDeadHeadTravelTimesBetweenPaths(_socket) {
         this.refreshPaths();
         const completePaths = this.getCompletePaths();
         const deadHeadTravelTimesBetweenPathsByPathId = {};

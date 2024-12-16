@@ -15,7 +15,6 @@ import {
     PlaceDetailedCategory
 } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
 import NodeCollection from '../nodes/NodeCollection';
-import { placesInWalkingTravelTimeRadiusSeconds } from '../nodes/NodeGeographyUtils';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 export interface TransitAccessibilityMapResult {

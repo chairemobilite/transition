@@ -329,7 +329,7 @@ export class ResidentialDataImporter {
             residentialBuildingsGeojson = overlappingBuildings.notOverlapping;
 
             // First create homes from the OSM residential buildings, removing their corresponding entry in the land role
-            const { residences, remainingLandRole, mismatchCount } = await this.createHomesFromOsmBuildings(
+            const { residences, remainingLandRole } = await this.createHomesFromOsmBuildings(
                 dataSourceName,
                 overlappingBuildings.overlapping,
                 landRoleSplit.overlapping

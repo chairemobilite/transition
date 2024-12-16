@@ -23,9 +23,8 @@ import config from 'chaire-lib-backend/lib/config/server.config';
  *
  * @export
  * @interface SimulationAlgorithm
- * @template T The type of options
  */
-export type SimulationAlgorithmFactory<T> = (options: T, simulationRun: SimulationRun) => SimulationAlgorithm<T>;
+export type SimulationAlgorithmFactory<T> = (options: T, simulationRun: SimulationRun) => SimulationAlgorithm;
 
 const ALGORITHMS_FACTORY: { [key: string]: SimulationAlgorithmFactory<any> } = {};
 export const registerAlgorithmFactory = (name: string, algorithmFactory: SimulationAlgorithmFactory<any>): void => {

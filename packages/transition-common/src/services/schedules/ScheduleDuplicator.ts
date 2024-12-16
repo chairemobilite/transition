@@ -4,9 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash/cloneDeep';
 import { v4 as uuidV4 } from 'uuid';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 import Schedule from './Schedule';
 

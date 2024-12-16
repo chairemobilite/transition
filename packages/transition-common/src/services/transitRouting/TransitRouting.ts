@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _get from 'lodash/get';
 import _cloneDeep from 'lodash/cloneDeep';
 import GeoJSON from 'geojson';
 

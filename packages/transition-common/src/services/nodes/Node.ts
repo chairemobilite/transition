@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash/cloneDeep';
 import _get from 'lodash/get';
 import _isEqual from 'lodash/isEqual';
 import * as turf from '@turf/turf';
@@ -13,7 +12,6 @@ import * as GtfsTypes from 'gtfs-types';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { GenericPlace, GenericPlaceAttributes } from 'chaire-lib-common/lib/utils/objects/GenericPlace';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import TrError from 'chaire-lib-common/lib/utils/TrError';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -219,7 +217,8 @@ export class Node extends GenericPlace<NodeAttributes> implements Saveable {
         return routingRadiusInPixels;
     }
 
-    calculateOdTripsWeight(dataSourceId) {
+    //TODO: Implement this function, or remove it.
+    calculateOdTripsWeight(_dataSourceId) {
         // Nothing to do. Why?
     }
 
@@ -275,9 +274,9 @@ export class Node extends GenericPlace<NodeAttributes> implements Saveable {
     }
 
     async getIsochroneGeojson(
-        socket,
-        mode = 'walking',
-        durationsMinutes = [5, 10, 15, 20]
+        _socket,
+        _mode = 'walking',
+        _durationsMinutes = [5, 10, 15, 20]
     ): Promise<{ [key: string]: any }> {
         return {};
         /* TODO Disabled since valhalla is broken
@@ -463,7 +462,7 @@ export class Node extends GenericPlace<NodeAttributes> implements Saveable {
     }
 
     async delete(socket: EventEmitter): Promise<Status.Status<{ id: string | undefined }>> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             SaveUtils.delete(this, socket, 'transitNode', this._collectionManager?.get('nodes')).then(
                 (response: Status.Status<{ id: string | undefined }>) => {
                     if (

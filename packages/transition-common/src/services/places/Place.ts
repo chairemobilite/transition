@@ -56,7 +56,7 @@ export class Place extends GenericPlace<PlaceAttributes> implements Saveable {
     }
 
     async delete(socket: EventEmitter): Promise<Status.Status<{ id: string | undefined }>> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             SaveUtils.delete(this, socket, 'Place', this._collectionManager?.get('places')).then(
                 (response: Status.Status<{ id: string | undefined }>) => {
                     if (

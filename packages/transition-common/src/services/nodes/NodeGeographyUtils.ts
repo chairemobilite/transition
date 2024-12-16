@@ -187,7 +187,7 @@ export const proposeNames = async (
     let radiusAroundMeters = 100;
     const nodeGeojson = node.toGeojson();
     while (intersectionNames !== undefined && intersectionNames.length < 2 && radiusAroundMeters <= maxRadiusMeters) {
-        intersectionNames = await new Promise((resolve, reject) => {
+        intersectionNames = await new Promise((resolve, _reject) => {
             socket.emit(
                 'osm.streetsAroundPoint',
                 nodeGeojson,

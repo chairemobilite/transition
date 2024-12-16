@@ -161,7 +161,7 @@ class PathGeographyUtils {
         let routingSegmentGeojson: FeatureCollection<Point> = this.initializePointGeojsonCollection();
         let lastRoutingType = routingEngine;
 
-        nodesAndWaypointsGeojsons.features.forEach((geojson, geojsonIndex) => {
+        nodesAndWaypointsGeojsons.features.forEach((geojson, _geojsonIndex) => {
             const nodeRoutingType = routingEngine === 'manual' ? 'manual' : geojson.properties?.type || lastRoutingType;
 
             if (nodeRoutingType !== lastRoutingType && routingSegmentGeojson.features.length > 0) {

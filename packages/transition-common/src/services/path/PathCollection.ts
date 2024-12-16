@@ -4,18 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _get from 'lodash/get';
-import geobuf from 'geobuf';
-import Pbf from 'pbf';
-
 import { Path, PathAttributes } from './Path';
 import CollectionCacheable from 'chaire-lib-common/lib/services/objects/CollectionCacheable';
 import CollectionLoadable from 'chaire-lib-common/lib/services/objects/CollectionLoadable';
 import GenericMapObjectCollection from 'chaire-lib-common/lib/utils/objects/GenericMapObjectCollection';
 import Progressable from 'chaire-lib-common/lib/utils/objects/Progressable';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 /**
  * A collection of transit paths

@@ -57,7 +57,8 @@ class BaseOdTripCollection extends GenericObjectCollection<BaseOdTrip> implement
         });
     }
 
-    newObject(attribs: Partial<GenericAttributes>, isNew = false, collectionManager?: CollectionManager): BaseOdTrip {
+    //TODO: Add functionality to the _collectionManager argument, or remove it.
+    newObject(attribs: Partial<GenericAttributes>, isNew = false, _collectionManager?: CollectionManager): BaseOdTrip {
         return new BaseOdTrip(attribs, isNew);
     }
 

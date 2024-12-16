@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _get from 'lodash/get';
 import snakeCase from 'lodash/snakeCase';
 import camelCase from 'lodash/camelCase';
 
@@ -67,7 +66,7 @@ export class NodeCollection extends GenericPlaceCollection<NodeAttributes, Node>
     }
 
     updateOdTripsWeights(socket, dataSourceId): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             socket.emit('nodes.calculateOdTripsWeights', dataSourceId, () => {
                 resolve();
             });
@@ -75,7 +74,7 @@ export class NodeCollection extends GenericPlaceCollection<NodeAttributes, Node>
     }
 
     updateOdTripsAccessibleNodes(socket, dataSourceId): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             socket.emit('odTrips.updateAccessibleNodes', dataSourceId, () => {
                 resolve();
             });
@@ -88,7 +87,7 @@ export class NodeCollection extends GenericPlaceCollection<NodeAttributes, Node>
 
     setNetworkTravelTimesForBirdDistanceAccessibleNodes(object, geojson, prefix, mode: RoutingMode = 'walking') {
         // geojson: origin or destination geojson
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             if (_isBlank(geojson) && typeof object.toGeojson === 'function') {
                 geojson = object.toGeojson();
             }

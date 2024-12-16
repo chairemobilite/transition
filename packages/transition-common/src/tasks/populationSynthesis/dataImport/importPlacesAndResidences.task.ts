@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 /** This file is probably deprecated. It was written initially, but was later replaced by the files in chaire-lib-common/lib/tasks/dataImport */
-import { validate as uuidValidate, v4 as uuidV4 } from 'uuid';
 import inquirer from 'inquirer';
 import inquirerFileTreeSelection from 'inquirer-file-tree-selection-prompt';
 
@@ -31,7 +30,7 @@ async function getOsmData(preAnswers, fileManager) {
                 console.error('Invalid geojson polygon to fetch osm data in file', preAnswers.polygonGeojson);
                 return { osmRawData, osmGeojsonData };
             }
-        } catch (error) {
+        } catch {
             console.error(
                 'Error reading geojson polygon file. Verify that the file contains a geojson Polygon or a feature collection with the first feature as a polygon',
                 preAnswers.polygonGeojson
@@ -53,7 +52,6 @@ async function getOsmData(preAnswers, fileManager) {
 }
 
 async function run(fileManager: any) {
-    const dataSources = []; //serviceLocator.collectionManager.get('dataSources').getFeatures();
     console.log('running');
 
     //choose data source shortname and name:

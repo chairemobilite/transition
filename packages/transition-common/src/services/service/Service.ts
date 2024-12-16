@@ -15,7 +15,6 @@ import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import Line from '../line/Line';
 
 export const serviceDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
