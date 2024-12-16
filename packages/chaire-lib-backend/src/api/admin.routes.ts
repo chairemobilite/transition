@@ -47,7 +47,7 @@ router.get('/usersList', async (req, res) => {
                 permissions
             }))
         });
-    } catch (error) {
+    } catch {
         return res.status(500).json({ status: 'Error' });
     }
 });
@@ -73,7 +73,7 @@ router.post('/updateUser', async (req, res) => {
             status: 'success',
             uuid
         });
-    } catch (error) {
+    } catch {
         return res.status(500).json({ status: 'Error' });
     }
 });

@@ -131,7 +131,7 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
             return res.status(200).json({
                 status: response
             });
-        } catch (error) {
+        } catch {
             return res.status(200).json({
                 status: 'Error'
             });

@@ -15,7 +15,8 @@ class AnonymousLoginStrategy<A> {
         // Nothing to do
     }
 
-    async authenticate(this: StrategyCreatedStatic & AnonymousLoginStrategy<A>, req: Request): Promise<void> {
+    //TODO: The req parameter is unused. Either remove it or implement a use for it.
+    async authenticate(this: StrategyCreatedStatic & AnonymousLoginStrategy<A>, _req: Request): Promise<void> {
         console.log('anonymous login');
         try {
             let randomId: string | undefined = undefined;

@@ -5,8 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 // This file contains socket routes to access the routing services
-import _cloneDeep from 'lodash/cloneDeep';
-import _merge from 'lodash/merge';
 import { EventEmitter } from 'events';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
@@ -14,7 +12,8 @@ import { validateAndCreateTripRoutingAttributes } from 'chaire-lib-common/lib/se
 import { TripRoutingQueryAttributes, RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 import { Routing } from '../services/routing/Routing';
 
-export default function (socket: EventEmitter, userId: number) {
+//TODO: The userId parameter is unused. Either remove it or implement a use for it.
+export default function (socket: EventEmitter, _userId: number) {
     socket.on(
         'routing.calculate',
         async (

@@ -139,7 +139,7 @@ const start = function (parameters = {} as any): Promise<any> {
     const tagName = 'osrm';
     const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, parameters.directoryPrefix);
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
         const command = 'osrm-routed';
         const commandArgs = getOsrmRoutedStartArgs(osrmDirectoryPath, mode, port);
         const waitString = 'running and waiting for requests';
@@ -157,7 +157,7 @@ const stop = function (parameters): Promise<any> {
     const serviceName = getServiceName(mode, port);
     const tagName = 'osrm';
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
         resolve(ProcessManager.stopProcess(tagName, serviceName));
     });
 };
@@ -170,7 +170,7 @@ const restart = function (parameters): Promise<any> {
     const tagName = 'osrm';
     const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, parameters.directoryPrefix);
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
         const command = 'osrm-routed';
         const commandArgs = getOsrmRoutedStartArgs(osrmDirectoryPath, mode, port);
         const waitString = 'running and waiting for requests';

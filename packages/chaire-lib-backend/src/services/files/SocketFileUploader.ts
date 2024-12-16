@@ -6,7 +6,6 @@
  */
 import SocketIO from 'socket.io';
 import SocketIOFile from 'socket.io-file';
-import { directoryManager } from '../../utils/filesystem/directoryManager';
 
 const BYTES_IN_MB = Math.pow(1024, 2);
 

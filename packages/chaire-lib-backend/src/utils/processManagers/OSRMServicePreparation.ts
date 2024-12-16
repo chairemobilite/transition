@@ -30,7 +30,7 @@ const extract = function (parameters: {
 
     fileManager.directoryManager.createDirectoryIfNotExistsAbsolute(osrmDirectoryPath);
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
         console.log(`osrm: extracting osm data for mode ${mode} from file ${osmFilePath}`);
 
         try {
@@ -116,7 +116,7 @@ const contract = function (parameters = {} as any): Promise<any> {
     const mode = parameters.mode || 'walking';
     const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, parameters.directoryPrefix);
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
         console.log(`osrm: contracting osrm data for mode ${mode} from directory ${osrmDirectoryPath}`);
 
         // contract parameter need to match the prefix of the osm file passed to extract

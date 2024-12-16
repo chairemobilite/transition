@@ -395,7 +395,7 @@ try {
         );
     }
     setProjectConfiguration(configFromFile);
-} catch (error) {
+} catch {
     console.error(`Error loading server configuration in file ${configFileNormalized}`);
 }
 

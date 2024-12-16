@@ -115,7 +115,7 @@ export abstract class AuthModelBase<U extends UserModelBase> implements IAuthMod
                 actionCallback(user);
             }
             return 'Confirmed';
-        } catch (error) {
+        } catch {
             return 'NotFound';
         }
     };

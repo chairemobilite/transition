@@ -41,7 +41,7 @@ export class CreateUser implements GenericTask {
     private existingUsernames: string[] = [];
 
     private validateUsername = (username: string): boolean | string =>
-        validator.matches(username, /^[a-zA-Z0-9_\-]+$/) && this.existingUsernames.indexOf(username) <= -1
+        validator.matches(username, /^[a-zA-Z0-9_-]+$/) && this.existingUsernames.indexOf(username) <= -1
             ? true
             : 'Username must be composed of digits, letters, underscores or dashes and must be unique.';
 
