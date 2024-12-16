@@ -18,8 +18,9 @@ function setup()
     properties = {
       u_turn_penalty                = 20,
       traffic_light_penalty         = 15,
-      --weight_name                   = 'cyclability',
-      weight_name                   = 'routability',
+      -- Transition: we prefer cyclability as a baseline
+      weight_name                   = 'cyclability',
+      --weight_name                   = 'routability',
       process_call_tagless_node     = false,
       max_speed_for_map_matching    = 110/3.6, -- kmph -> m/s
       use_turn_restrictions         = false,
@@ -598,6 +599,14 @@ function safety_handler(profile,way,result,data)
     if is_undesireable then
        forward_penalty = math.min(forward_penalty, profile.service_penalties[data.service])
        backward_penalty = math.min(backward_penalty, profile.service_penalties[data.service])
+    end
+
+    -- Transition: Add penalty for bicycle=discouraged tag
+    -- See the link above about the discouraged tag
+    local bicycle_tag = way:get_value_by_key("bicycle")
+    if bicycle_tag == "discouraged" then
+       forward_penalty = forward_penalty * 0.5
+       backward_penalty = backward_penalty * 0.5
     end
 
     if result.forward_speed > 0 then
