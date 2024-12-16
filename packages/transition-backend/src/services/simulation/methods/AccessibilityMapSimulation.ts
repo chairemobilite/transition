@@ -64,7 +64,7 @@ export class AccessMapSimulationDescriptor implements SimulationAlgorithmDescrip
         }
     });
 
-    validateOptions = (options: AccessMapSimulationOptions): { valid: boolean; errors: string[] } => {
+    validateOptions = (_options: AccessMapSimulationOptions): { valid: boolean; errors: string[] } => {
         const valid = true;
         const errors: string[] = [];
 
@@ -231,7 +231,7 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
                             0
                         ) / totalPlaces
                     );
-                } catch (error) {
+                } catch {
                     // No routing or other error, cost is 0
                     costs.push(0);
                 }

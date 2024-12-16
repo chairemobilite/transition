@@ -112,7 +112,8 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         throw 'Not implemented yet, should assign random level of services';
     }
 
-    async prepareScenario(socket: EventEmitter): Promise<Scenario> {
+    //TODO: Add functionality to the _socket argument, or remove it.
+    async prepareScenario(_socket: EventEmitter): Promise<Scenario> {
         const lines = this.prepareNetwork();
         const services = this.assignServices(lines);
         services.push(...this.options.nonSimulatedServices);

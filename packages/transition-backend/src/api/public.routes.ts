@@ -40,7 +40,7 @@ import { SummaryResponse } from 'chaire-lib-common/lib/api/TrRouting/trRoutingAp
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
-        passport.authenticate('local-login', { failWithError: true, failureMessage: true }, (err, user, info) => {
+        passport.authenticate('local-login', { failWithError: true, failureMessage: true }, (err, _user, _info) => {
             const credentials = req.body;
             if (!credentials.usernameOrEmail) {
                 const message = 'MissingUsernameOrEmail';
@@ -68,7 +68,7 @@ export default function (app: express.Express, passport: PassportStatic) {
         })(req, res, next);
     });
 
-    app.post('/token', async (req, res, next) => {
+    app.post('/token', async (req, res, _next) => {
         try {
             const token = await tokensDbQueries.getOrCreate(req.body.usernameOrEmail);
             res.status(200).send(token);
@@ -82,7 +82,7 @@ export default function (app: express.Express, passport: PassportStatic) {
     const router = express.Router();
 
     router.use('/', (req, res, next) => {
-        passport.authenticate('bearer-strategy', { session: false }, (err, user, info) => {
+        passport.authenticate('bearer-strategy', { session: false }, (err, _user, _info) => {
             if (err) {
                 console.error(err);
                 if (err === 'DatabaseTokenExpired') {
@@ -242,7 +242,7 @@ export default function (app: express.Express, passport: PassportStatic) {
 
     // This is the default error handler used for the API, but all errors here are returned with the HTTP status code 500.
     // When relevant, more specific checks should be done within individual endpoints to return a more appropriate status code.
-    router.use((err, req, res, next) => {
+    router.use((err, _req, res, _next) => {
         console.error(err);
 
         const message = 'Internal Server Error';

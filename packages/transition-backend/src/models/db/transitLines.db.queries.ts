@@ -24,7 +24,6 @@ import Line, { LineAttributes } from 'transition-common/lib/services/line/Line';
 import { ScheduleAttributes } from 'transition-common/lib/services/schedules/Schedule';
 
 import scheduleQueries from './transitSchedules.db.queries';
-import { Knex } from 'knex';
 
 const tableName = 'tr_transit_lines';
 const joinedTable = 'tr_transit_paths';

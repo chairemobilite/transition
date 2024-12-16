@@ -105,7 +105,7 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
         }
     });
 
-    validateOptions = (options: OdTripSimulationOptions): { valid: boolean; errors: string[] } => {
+    validateOptions = (_options: OdTripSimulationOptions): { valid: boolean; errors: string[] } => {
         const valid = true;
         const errors: string[] = [];
 

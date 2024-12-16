@@ -1,5 +1,4 @@
 import { Knex } from 'knex';
-import { onUpdateTrigger } from '../../../config/knexfile';
 
 const tableName = 'tr_simulation_run_scenario';
 

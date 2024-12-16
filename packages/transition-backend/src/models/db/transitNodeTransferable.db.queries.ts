@@ -6,14 +6,12 @@
  */
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import { validate as uuidValidate } from 'uuid';
-import knexPostgis from 'knex-postgis';
 
 import { truncate, destroy } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { TransferableNodes } from 'transition-common/lib/services/nodes/Node';
 
 const tableName = 'tr_transit_node_transferable';
-const st = knexPostgis(knex);
 
 /**
  * Save the transferables nodes for a given node. The `transferableNodesFrom`

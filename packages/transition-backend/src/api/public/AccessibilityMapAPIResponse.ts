@@ -7,7 +7,7 @@
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import APIResponseBase from './APIResponseBase';
 import { AccessibilityMapCalculationResult } from '../../services/routingCalculation/RoutingCalculator';
-import { Feature, MultiLineString, MultiPolygon, Point } from 'geojson';
+import { Feature, MultiPolygon, Point } from 'geojson';
 import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
 
 type AccessibilityMapAPIQueryResponse = {

@@ -7,7 +7,6 @@
 import sharedSession from 'express-socket.io-session';
 import socketMiddleWare from 'socketio-wildcard';
 import socketIO from 'socket.io';
-import { spawn } from 'child_process';
 import events from 'events';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';

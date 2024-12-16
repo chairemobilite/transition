@@ -21,7 +21,6 @@ import {
     truncate,
     destroy
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { PathAttributes } from 'transition-common/lib/services/path/Path';

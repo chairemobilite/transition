@@ -23,7 +23,7 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/transitRouting/types';
 import { AccessibilityMapQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
-import { _toInteger, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import transitRoutingService from 'chaire-lib-backend/lib/services/transitRouting/TransitRoutingService';
 import {
@@ -175,7 +175,7 @@ export class TransitAccessibilityMapCalculator {
         const specifiedTime = !_isBlank(departureTime) ? (departureTime as number) : (arrivalTime as number);
         const times = getTimes(specifiedTime, attributes.deltaSeconds, attributes.deltaIntervalSeconds);
 
-        const { isCancelled, additionalProperties, accessibleNodes, ...queryOptions } = options;
+        const { isCancelled, accessibleNodes, ...queryOptions } = options;
         const promises: Promise<TrRoutingResultAccessibilityMap>[] = [];
         let specifiedTimeIndex = 0;
 

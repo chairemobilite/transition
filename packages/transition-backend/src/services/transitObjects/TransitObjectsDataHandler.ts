@@ -166,7 +166,8 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
             },
 
             // Read the object from the database
-            read: async (id: string, customCachePath: string | undefined) => {
+            //TODO: Add functionality to the _customCachePath argument, or remove it.
+            read: async (id: string, _customCachePath: string | undefined) => {
                 try {
                     const object = await transitClassConfig.dbQueries.read(id);
                     return {
@@ -266,7 +267,7 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
 
         // Get the collection from DB if there is a collection function
         if (transitClassConfig.dbQueries.collection) {
-            dataHandler.collection = async (dataSourceId) => {
+            dataHandler.collection = async (_dataSourceId) => {
                 try {
                     const collection = await transitClassConfig.dbQueries.collection();
                     return { collection };

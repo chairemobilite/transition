@@ -204,7 +204,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             this.status = attributes.status;
             this.attributes.data = attributes.data;
             this.attributes.resources = attributes.resources;
-        } catch (error) {
+        } catch {
             // The job doesn't exist in the database, it probably has been deleted
             throw 'Job deleted';
         }

@@ -6,7 +6,7 @@
  */
 import PQueue from 'p-queue';
 
-import Node, { TransferableNodes } from 'transition-common/lib/services/nodes/Node';
+import Node from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
 import { updateAccessiblePlaces } from 'transition-common/lib/services/nodes/NodeGeographyUtils';
@@ -99,7 +99,7 @@ export const saveAllNodesToCache = async (
     // and presentation of resources
     const promiseQueue = new PQueue({ concurrency: 250 });
 
-    const promiseProducer = async (nodeGeojson, index) => {
+    const promiseProducer = async (nodeGeojson) => {
         const node = new Node(nodeGeojson.properties, false, collectionManager);
         // TODO This is ugly, we should not have to manually fetch the transferable nodes
         // This need to be refactored, part of a Node refactor
@@ -109,9 +109,7 @@ export const saveAllNodesToCache = async (
         await objectToCache(node, cachePathDirectory);
     };
 
-    const addPromises = features.map(async (feature, index) =>
-        promiseQueue.add(async () => promiseProducer(feature, index))
-    );
+    const addPromises = features.map(async (feature, _index) => promiseQueue.add(async () => promiseProducer(feature)));
 
     // Run all the promises, no matter their result.
     // TODO: What about failures? Should we track them, reject upon first failure (using Promise.all), just console.error them?
