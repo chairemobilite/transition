@@ -4,10 +4,18 @@ module.exports = {
     projectDirectory: `${__dirname}/runtime/`,
     auth: {
       localLogin: {
+        // Whether users can create an account. If false, the register page will not be available. Defaults to true
         allowRegistration: true,
         // This will send an email to confirm the user's email address. Email send needs to be configured. By default, users can register and directly login.
-        // confirmEmail: true
+        // confirmEmail: true,
+        // Whether to allow users to reset their password. If false, the forgot password page will not be available. By default the page is not present
+        // forgotPasswordPage: false,
+        // Whether to allow users to login with a username. If false, the username field will not be displayed on the login page. Defaults to true
+        // registerWithEmailOnly?: boolean;
+        // What type of confirmation is required for the email. Can be 'confirmByAdmin' | 'confirmByUser'. Defaults to 'confirmByUser'
+        // confirmEmailStrategy: 'confirmByUser';
       }
+      // Transition does not support any other login method than localLogin
     },
     maxParallelCalculators: 2,
     
