@@ -19,8 +19,33 @@ export type ProjectConfiguration<AdditionalConfig> = {
         };
         anonymous?: boolean;
         localLogin?: {
+            /** This will send an email to confirm the user's email address.
+             * Email send needs to be configured. By default, users can register
+             * and directly login. */
             confirmEmail?: boolean;
+            /**
+             * If `confirmEmail` is true, this will determine who needs to
+             * confirm the account, the user himself, to validate his email
+             * address, or an admin, to validate the person's identity. Defaults
+             * to `confirmByUser`
+             */
             confirmEmailStrategy?: 'confirmByAdmin' | 'confirmByUser';
+            /**
+             * Whether to allow users to reset their password. If false, the
+             * forgot password page will not be available. By default the page
+             * is not present
+             */
+            forgotPasswordPage?: boolean;
+            /**
+             * Whether to require only an email to login, no username. Defaults
+             * to false
+             */
+            registerWithEmailOnly?: boolean;
+            /**
+             * Whether users can create an account. If false, the register page
+             * will not be available. Defaults to true
+             */
+            allowRegistration?: boolean;
         };
         /**
          * Configures authentication by direct token access. The user is
