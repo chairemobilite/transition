@@ -71,6 +71,12 @@ export class DownloadOsmNetworkData implements GenericTask {
         const polygonFile = filePath ? (filePath as string) : importDir + 'polygon.geojson';
         const osmRawDataFile = osmRawFile ? (osmRawFile as string) : importDir + 'osm_network_data.osm';
 
+        // Check that the import directory is present. It's automatically created by the main transition app normally
+        if (!this._fileManager.fileExistsAbsolute(importDir)) {
+            console.log('Import directory does not exist, please create ', importDir);
+            return;
+        }
+
         // Run the task
         const polygonGeojson = await this._promptPolygon.getPolygon(polygonFile, {
             interactive: filePath !== undefined ? false : defaultInteractive
