@@ -10,7 +10,7 @@ import tokensDbQueries from '../../models/db/tokens.db.queries';
 import { GenericTask } from 'chaire-lib-common/lib/tasks/genericTask';
 
 class CleanupApiTokenRun implements GenericTask {
-    async run(argv: { [key: string]: unknown }): Promise<void> {
+    async run(_argv: { [key: string]: unknown }): Promise<void> {
         console.log('CleanupApiToken..');
         await tokensDbQueries.cleanExpiredApiTokens();
     }

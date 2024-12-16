@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import _cloneDeep from 'lodash/cloneDeep';
 import GeoJSON from 'geojson';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 

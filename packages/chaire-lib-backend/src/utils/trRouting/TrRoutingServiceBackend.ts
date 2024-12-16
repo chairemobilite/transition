@@ -4,13 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _get from 'lodash/get';
+
 //TODO replace this fetch-retry library with one compatible with TS
 const fetch = require('@zeit/fetch-retry')(require('node-fetch'));
 
 import ServerConfig from '../../config/ServerConfig';
 import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 /**
  * A class that wraps the calls to the trRouting service API

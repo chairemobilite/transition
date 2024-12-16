@@ -68,7 +68,7 @@ export class CliPromptGeojsonPolygonService implements PromptGeojsonPolygonServi
                 throw new TypeError('Invalid geojson polygon to fetch osm data in file' + fileName);
             }
             return geojsonPolygon;
-        } catch (error) {
+        } catch {
             throw new Error(
                 'Error reading geojson polygon file. Verify that the file contains a geojson Polygon or a feature collection with the first feature as a polygon: ' +
                     fileName
@@ -99,7 +99,7 @@ export class CliPromptGeojsonPolygonService implements PromptGeojsonPolygonServi
                 throw new TypeError('Invalid geojson feature collection to fetch osm data in file' + fileName);
             }
             return geojsonPolygon;
-        } catch (error) {
+        } catch {
             throw new Error(
                 'Error reading geojson feature collection file. Verify that the file contains a geojson feature collection: ' +
                     fileName

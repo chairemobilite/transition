@@ -42,7 +42,8 @@ export default class Users {
      * @returns The maximum size, in bytes, allowed in the user's data
      * directory.
      */
-    static getUserQuota = (userId: number): number => {
+    // TODO: The userId argument is unused. Either remove it or implement a use for it.
+    static getUserQuota = (_userId: number): number => {
         const quota = bytes.parse(config.userDiskQuota);
         return quota === null ? 0 : quota;
     };

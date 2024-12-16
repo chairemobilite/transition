@@ -5,6 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 /* eslint-disable n/no-unpublished-require */
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const baseConfig = require('../../tests/jest.config.base');
 
 // Ignore db.queries.test files

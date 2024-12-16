@@ -4,7 +4,6 @@ import { isLoggedIn } from '../services/auth/authorization';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import trRoutingService from '../utils/trRouting/TrRoutingServiceBackend';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
 const router = express.Router();
 
