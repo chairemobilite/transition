@@ -1364,7 +1364,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     }
 
     delete(socket): Promise<Status.Status<{ id: string | undefined }>> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve, _reject) => {
             const line: any = this.getLine();
             SaveUtils.delete(this, socket, 'transitPath', this._collectionManager?.get('paths')).then(
                 (response: Status.Status<{ id: string | undefined }>) => {
@@ -1375,7 +1375,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
                             });
                             line.refreshPaths();
                             line.refreshStats();
-                            line.save(socket).then((lineSaveResponse) => {
+                            line.save(socket).then((_lineSaveResponse) => {
                                 resolve(response);
                             });
                         } else {
@@ -1392,7 +1392,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     public async save(socket: EventEmitter) {
         if (this.hasChanged() || this.isNew()) {
             this.refreshStats();
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve, _reject) => {
                 const line: any = this.getLine();
                 this.attributes.mode = this.getMode(); // force add mode since it could have been removed when updating
                 SaveUtils.save(this, socket, 'transitPath', this._collectionManager?.get('paths')).then(
@@ -1409,7 +1409,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
                                 // TODO Use an update callback
                                 line.refreshPaths();
                                 line.refreshStats();
-                                line.save(socket).then((lineSaveResponse) => {
+                                line.save(socket).then((_lineSaveResponse) => {
                                     resolve(response);
                                 });
                             } else {

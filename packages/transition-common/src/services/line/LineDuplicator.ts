@@ -4,8 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-
 import { Line } from './Line';
 import { Path as TransitPath } from '../path/Path';
 import { duplicateService } from '../service/ServiceDuplicator';

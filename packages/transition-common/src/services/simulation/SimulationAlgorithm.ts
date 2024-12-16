@@ -14,9 +14,10 @@ import ServiceCollection from '../service/ServiceCollection';
  *
  * @export
  * @interface SimulationAlgorithm
- * @template T The type of options
  */
-export interface SimulationAlgorithm<T> {
+// This interface used to have a type variable <T> that was documented as "The type of options".
+// This was completely unused so it was removed, but a comment is left here in case we ever want to implement it again.
+export interface SimulationAlgorithm {
     run: (
         socket: EventEmitter,
         collections: { lines: LineCollection; agencies: AgencyCollection; services: ServiceCollection }

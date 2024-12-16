@@ -12,7 +12,6 @@ import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionMan
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { validateTrBaseAttributes } from '../transitRouting/TransitRoutingQueryAttributes';
@@ -172,12 +171,10 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
         if (shortname) {
             return slugify(`${shortname}${showId ? '_' + this.id : ''}`, {
                 replacement: '_',
-                remove: /[/^*=;:#$%?&\|\[\]{}\+~.\(\)'"!\\@]/g
+                remove: /[/^*=;:#$%?&|[\]{}+~.()'"!\\@]/g
             }); // regex for valid filenames
         }
-        return showId
-            ? slugify(this.id, { replacement: '_', remove: /[/^*=;:#$%?&\|\[\]{}\+~.\(\)'"!\\@]/g })
-            : undefined; // regex for valid filenames
+        return showId ? slugify(this.id, { replacement: '_', remove: /[/^*=;:#$%?&|[\]{}+~.()'"!\\@]/g }) : undefined; // regex for valid filenames
     }
 
     getAlgorithmDescriptor(): SimulationAlgorithmDescriptor<any> | undefined {

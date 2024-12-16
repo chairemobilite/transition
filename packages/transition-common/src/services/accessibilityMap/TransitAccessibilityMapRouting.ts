@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _get from 'lodash/get';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import { featureCollection as turfFeatureCollection, point as turfPoint } from '@turf/turf';
@@ -13,7 +12,7 @@ import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericOb
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { _toInteger, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { validateTrQueryAttributes } from '../transitRouting/TransitRoutingQueryAttributes';
 import { TransitQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
 

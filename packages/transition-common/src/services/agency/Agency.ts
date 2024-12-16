@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash/cloneDeep';
 import { Agency as GtfsAgency } from 'gtfs-types';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
@@ -303,7 +302,7 @@ export class Agency extends ObjectWithHistory<AgencyAttributes> implements Savea
             const firstLine = this.getLines()[0];
             const customCachePath = firstLine ? firstLine.getData('customCachePath', null) : undefined;
 
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve, _reject) => {
                 socket.emit('transitLine.deleteMultipleCache', lineIds, customCachePath, (linesCacheDeleteResponse) => {
                     if (!linesCacheDeleteResponse.error) {
                         SaveUtils.delete(this, socket, 'transitAgency', this._collectionManager?.get('agencies')).then(

@@ -33,7 +33,7 @@ export const evolutionaryAlgorithmFactory: SimulationAlgorithmFactory<EvolutionA
     simulationRun: SimulationRun
 ): EvolutionaryAlgorithm => new EvolutionaryAlgorithm(options, simulationRun);
 
-export class EvolutionaryAlgorithm implements SimulationAlgorithm<EvolutionAlgorithmOptions> {
+export class EvolutionaryAlgorithm implements SimulationAlgorithm {
     private currentIteration = 1;
 
     constructor(

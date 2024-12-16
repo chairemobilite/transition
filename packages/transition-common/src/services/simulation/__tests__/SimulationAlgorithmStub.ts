@@ -12,7 +12,7 @@ interface AlgorithmStubOptions {
     booleanOption?: boolean;
 }
 
-export class SimulationAlgorithmStub implements SimulationAlgorithm<AlgorithmStubOptions> {
+export class SimulationAlgorithmStub implements SimulationAlgorithm {
 
     constructor(private options: AlgorithmStubOptions) {
 

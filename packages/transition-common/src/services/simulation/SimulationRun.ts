@@ -10,7 +10,6 @@ import { EventEmitter } from 'events';
 
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GenericAttributes, GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import { AlgorithmConfiguration } from './Simulation';
 import { SimulationParameters } from './SimulationParameters';

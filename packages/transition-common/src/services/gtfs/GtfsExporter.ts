@@ -4,9 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _get from 'lodash/get';
-import _cloneDeep from 'lodash/cloneDeep';
-
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
