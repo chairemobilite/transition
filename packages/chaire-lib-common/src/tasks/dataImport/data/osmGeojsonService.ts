@@ -251,7 +251,8 @@ const isIndustrialArea = function (properties: { [name: string]: any }): boolean
  * Get the building or POI (node) category
  * @param properties The properties of the feature for which to check for the category
  */
-const getCategory = function (properties: { [name: string]: any }): string | null {
+const getCategory = function (_properties: { [name: string]: any }): string | null {
+    // TODO: Make this function do something, or delete it.
     return null;
 };
 
@@ -259,7 +260,8 @@ const getCategory = function (properties: { [name: string]: any }): string | nul
  * Get the building or POI (node) detailed category
  * @param properties The properties of the feature for which to check for the category
  */
-const getCategoryDetailed = function (properties: { [name: string]: any }): string | null {
+const getCategoryDetailed = function (_properties: { [name: string]: any }): string | null {
+    // TODO: Make this function do something, or delete it.
     return null;
 };
 
@@ -310,6 +312,14 @@ const getGeojsonsFromRawData = (
 export default {
     isRetirementHome,
     isPark,
+    isPlayground,
+    isSportPitch,
+    isSchool,
+    isCollege,
+    isUniversity,
+    isCommercialBuilding,
+    isIndustrialBuilding,
+    isReligiousArea,
     isResidentialArea,
     isCommercialArea,
     isIndustrialArea,

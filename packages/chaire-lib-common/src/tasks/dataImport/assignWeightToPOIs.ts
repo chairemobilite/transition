@@ -4,19 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _uniq from 'lodash/uniq';
 import _uniqBy from 'lodash/uniqBy';
-import _flatten from 'lodash/flatten';
 import GenericDataImportTask from './genericDataImportTask';
 import GeoJSON from 'geojson';
-import { DataGeojson, DataFileGeojson } from './data/dataGeojson';
+import { DataFileGeojson } from './data/dataGeojson';
 import { SingleGeoFeature } from '../../services/geodata/GeoJSONUtils';
-import { PromptGeojsonPolygonService } from '../../services/prompt/promptGeojsonService';
 import { PointOfInterest } from './data/osmGeojsonService';
-import {
-    landUseCodesByOsmTag,
-    tripGenerationFunctionsByLandUseCode
-} from '../../config/osm/osmMappingTagsToTripGenerationHandbookLandUse';
 import { poiWeightCategories, poiIgnoredQueries } from '../../config/osm/osmPoiCategories';
 import { _isBlank } from '../../utils/LodashExtensions';
 
@@ -27,28 +20,29 @@ const poiIgnoredTags = poiIgnoredQueries.map((query) => {
 // TODO: make sure we do not have duplicate (like sport center as a node and as a building, wighted twice)
 // TODO: deal with access=private on buildings and/or POIs (should we include them or not, and if so, which?)
 
-const getLanduseCodesFromProperty = (properties: { [key: string]: any }): number[] => {
-    const propertiesToMatch = Object.keys(properties).filter((prop) => landUseCodesByOsmTag[prop] !== undefined);
-    const possibleLandUseCodes = _uniq(
-        _flatten(
-            propertiesToMatch.map((prop) => {
-                const propValue = properties[prop];
-                const matchProp = landUseCodesByOsmTag[prop];
-                const matchValue = matchProp[propValue];
-                if (matchValue !== undefined) {
-                    return matchValue;
-                }
-                return matchProp['_default'];
-            })
-        )
-    );
-    const landUseCodes = possibleLandUseCodes.filter((val) => val !== undefined && val !== null);
-    // TODO Validate if there are many possible categories?
-    // TODO: deal with Walmart, Costco, Canadian Tire + others with separate POIs inside the main building:
-    //       garden center, supermarket, department store, pharmacy, tire store, car repair, fast food, etc.
-    // TODO: deal with building:part to separate floor area of large buildings when available
-    return landUseCodes as number[];
-};
+// TODO: This function is only used in code that was commented in this file. If this code is eventually uncommented, re-enable, otherwise delete it.
+// const getLanduseCodesFromProperty = (properties: { [key: string]: any }): number[] => {
+//     const propertiesToMatch = Object.keys(properties).filter((prop) => landUseCodesByOsmTag[prop] !== undefined);
+//     const possibleLandUseCodes = _uniq(
+//         _flatten(
+//             propertiesToMatch.map((prop) => {
+//                 const propValue = properties[prop];
+//                 const matchProp = landUseCodesByOsmTag[prop];
+//                 const matchValue = matchProp[propValue];
+//                 if (matchValue !== undefined) {
+//                     return matchValue;
+//                 }
+//                 return matchProp['_default'];
+//             })
+//         )
+//     );
+//     const landUseCodes = possibleLandUseCodes.filter((val) => val !== undefined && val !== null);
+//     // TODO Validate if there are many possible categories?
+//     // TODO: deal with Walmart, Costco, Canadian Tire + others with separate POIs inside the main building:
+//     //       garden center, supermarket, department store, pharmacy, tire store, car repair, fast food, etc.
+//     // TODO: deal with building:part to separate floor area of large buildings when available
+//     return landUseCodes as number[];
+// };
 
 export default class assignWeightToPOIs extends GenericDataImportTask {
     private _warnings: string[] = [];
@@ -315,7 +309,6 @@ export default class assignWeightToPOIs extends GenericDataImportTask {
 
     private async categorizePOIs(poiDataSource: DataFileGeojson): Promise<PointOfInterest[]> {
         const allPois = (poiDataSource.queryOr([{}]) || []).filter((poi) => {
-            let ignoredMatched = false;
             for (let i = 0, count = poiIgnoredTags.length; i < count; i++) {
                 const tags = poiIgnoredTags[i] || {};
                 let allTagsMatch = true;
@@ -325,7 +318,6 @@ export default class assignWeightToPOIs extends GenericDataImportTask {
                     }
                 }
                 if (allTagsMatch) {
-                    ignoredMatched = true;
                     return false;
                 }
             }

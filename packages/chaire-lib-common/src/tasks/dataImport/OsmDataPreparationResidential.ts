@@ -13,7 +13,7 @@ import {
     ZoneGeojsonProperties,
     default as osmGeojsonService
 } from './data/osmGeojsonService';
-import { getOsmNodesFor, getEntrancesForBuilding } from './data/osmRawDataService';
+import { getEntrancesForBuilding } from './data/osmRawDataService';
 import { _toInteger } from '../../utils/LodashExtensions';
 import { queryResidentialZones, queryZonesWithResidences } from '../../config/osm/osmFlatsLanduseTags';
 import { findOverlappingFeatures } from '../../services/geodata/FindOverlappingFeatures';

@@ -7,7 +7,6 @@
 import GenericDataImportTask from './genericDataImportTask';
 import { DataFileOsmRaw } from './data/dataOsmRaw';
 import { DataFileGeojson } from './data/dataGeojson';
-import { _toInteger } from '../../utils/LodashExtensions';
 import OsmDataPreparationResidential from './OsmDataPreparationResidential';
 import OsmDataPreparationNonResidential from './OsmDataPreparationNonResidential';
 

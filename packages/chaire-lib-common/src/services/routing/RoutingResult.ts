@@ -4,8 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _get from 'lodash/get';
-
 import Preferences from '../../config/Preferences';
 import { Route } from './RoutingService';
 import { RoutingOrTransitMode, RoutingMode } from '../../config/routingModes';

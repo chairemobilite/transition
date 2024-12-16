@@ -7,7 +7,6 @@
 import { ObjectWithHistory } from '../../utils/objects/ObjectWithHistory';
 import { GenericAttributes } from '../../utils/objects/GenericObject';
 import serviceLocator from '../../utils/ServiceLocator';
-import { _isBlank } from '../../utils/LodashExtensions';
 
 export const dataSourceTypesArray = [
     'none',
