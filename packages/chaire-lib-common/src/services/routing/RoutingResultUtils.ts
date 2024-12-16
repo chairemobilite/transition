@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { _isBlank } from '../../utils/LodashExtensions';
 import { RoutingMode } from '../../config/routingModes';
 import { TransitRoutingResult, TransitRoutingResultData } from './TransitRoutingResult';
 import { RoutingResult, UnimodalRoutingResult, UnimodalRoutingResultData } from './RoutingResult';

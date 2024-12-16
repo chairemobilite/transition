@@ -15,7 +15,6 @@ import {
     default as osmGeojsonService
 } from './data/osmGeojsonService';
 import { getEntrancesForBuilding, findOsmData, FeatureEntrancesOptions } from './data/osmRawDataService';
-import { _toInteger } from '../../utils/LodashExtensions';
 import {
     splitOverlappingFeatures,
     getOverlappingIndices,

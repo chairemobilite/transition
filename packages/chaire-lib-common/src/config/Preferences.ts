@@ -218,7 +218,7 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
                 }
             }
             this._eventEmitter.emit(prefChangeEvent, _valuesByPath);
-        } catch (error) {
+        } catch {
             console.error('Error loading preferences from server');
         }
         return this._attributes;
@@ -237,14 +237,14 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
             }
             eventManager?.emit('preferences.updated');
             this._eventEmitter.emit(prefChangeEvent, this._attributes);
-        } catch (error) {
+        } catch {
             console.error('Error loading preferences from server');
         }
         return this._attributes;
     }
 
     // Not implemented for Preferences, we should never delete the preferences object.
-    public delete(socket: any): Promise<any> {
+    public delete(_socket: any): Promise<any> {
         return new Promise((resolve) => {
             resolve(null);
         });
@@ -314,7 +314,7 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
                 _merge({}, this._default, this._projectDefault, preferencesFromServer)
             ) as PreferencesModelWithIdAndData;
             this._eventEmitter.emit(prefChangeEvent, this._attributes);
-        } catch (error) {
+        } catch {
             console.error('Error loading preferences from server');
         }
         return this._attributes;

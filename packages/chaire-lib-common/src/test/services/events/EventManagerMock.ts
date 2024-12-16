@@ -7,6 +7,7 @@
 import EventManagerImpl, { EventManager } from '../../../services/events/EventManager';
 import serviceLocator from '../../../utils/ServiceLocator';
 
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const eventMngr = new EventManagerImpl();
 
 const mockEmit: jest.MockedFunction<(event: string | Event, ...args: any[]) => void> = jest.fn();

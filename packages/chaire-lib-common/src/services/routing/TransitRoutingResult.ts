@@ -260,7 +260,7 @@ export class TransitRoutingResult implements RoutingResult {
 
         const walkingSegmentsGeojson: GeoJSON.Feature<GeoJSON.Geometry, StepGeojsonProperties>[] = [];
         const routingResults = await Promise.allSettled(walkingSegmentsRoutingPromises);
-        routingResults.forEach((walkingRoutingResult, routingIndex) => {
+        routingResults.forEach((walkingRoutingResult, _routingIndex) => {
             if (walkingRoutingResult.status === 'rejected') {
                 return;
             }

@@ -36,7 +36,8 @@ class ZoneCollection extends GenericObjectCollection<Zone> implements Progressab
             this._eventManager.emitProgress(`${ZoneCollection.displayName}${progressEventName}`, completeRatio);
     }
 
-    newObject(attribs: Partial<GenericAttributes>, isNew = false, collectionManager?: CollectionManager): Zone {
+    //TODO: Add functionality to the _collectionManager argument, or remove it.
+    newObject(attribs: Partial<GenericAttributes>, isNew = false, _collectionManager?: CollectionManager): Zone {
         return new Zone(attribs, isNew);
     }
 

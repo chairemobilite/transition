@@ -256,326 +256,327 @@ type TripGenerationFunction = (
 ) => number | undefined; // returns the number of trips generated per day, taking only half, because the trip generation manual gives in and out trips.
 
 const tripGenerationFunctionsByLandUseCode: { [key: string]: TripGenerationFunction } = {
-    '21': function (floorAreaSqMeters, employeesCount, capacity) {
+    //TODO: Many functions here are unimplemented or have unused arguments.
+    '21': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size: 1, not suitable, sample too low, 10.28/2 trips / employee
-    '22': function (floorAreaSqMeters, employeesCount, capacity) {
+    '22': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size: 1, not suitable, sample too low, 14.94/2 trips / employee
-    '30': function (floorAreaSqMeters, employeesCount, capacity) {
+    '30': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountPersonFunction(0.91 * 10, employeesCount)
             : floorAreaSqMeters
                 ? weightCountPersonFunction(2.14 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 2, persons, peak hour (*10)
-    '90': function (floorAreaSqMeters, employeesCount, capacity) {
+    '90': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // in parking spaces, not suitable
 
-    '110': function (floorAreaSqMeters, employeesCount, capacity) {
+    '110': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleLogarithmicFunction(0.77, employeesCount, 2.15)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(4.87, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 37
-    '130': function (floorAreaSqMeters, employeesCount, capacity) {
+    '130': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleLogarithmicFunction(0.68, employeesCount, 3.34)
             : floorAreaSqMeters
                 ? weightCountVehicleLogarithmicFunction(0.52, floorAreaSqMeters * sqMetersToThousandSqFeet, 4.45)
                 : undefined;
     }, // sample size: 27
-    '140': function (floorAreaSqMeters, employeesCount, capacity) {
+    '140': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleLogarithmicFunction(0.89, employeesCount, 1.68)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(4.75, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 53
-    '150': function (floorAreaSqMeters, employeesCount, capacity) {
+    '150': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleLogarithmicFunction(0.82, employeesCount, 2.33)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(1.71, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 31
-    '151': function (floorAreaSqMeters, employeesCount, capacity) {
+    '151': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(1.45, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 16
-    '154': function (floorAreaSqMeters, employeesCount, capacity) {
+    '154': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(1.4, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 91
-    '155': function (floorAreaSqMeters, employeesCount, capacity) {
+    '155': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleLogarithmicFunction(0.77, employeesCount, 2.52)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(1.81, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 10
-    '156': function (floorAreaSqMeters, employeesCount, capacity) {
+    '156': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(4.6, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 8
-    '157': function (floorAreaSqMeters, employeesCount, capacity) {
+    '157': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(2.12, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 5
-    '160': function (floorAreaSqMeters, employeesCount, capacity) {
+    '160': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(0.99, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 2
-    '170': function (floorAreaSqMeters, employeesCount, capacity) {
+    '170': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(3.85, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleLogarithmicFunction(0.74, floorAreaSqMeters * sqMetersToThousandSqFeet, 2.73)
                 : undefined;
     }, // sample size: 13
-    '180': function (floorAreaSqMeters, employeesCount, capacity) {
+    '180': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(3.63, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(9.82, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 20
-    '190': function (floorAreaSqMeters, employeesCount, capacity) {
+    '190': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size: 1, not suitable, sample too low, 0.69/2 trips / thousand sq feet
 
-    '310': function (floorAreaSqMeters, employeesCount, capacity) {
+    '310': function (_floorAreaSqMeters, employeesCount, capacity) {
         return capacity
             ? weightCountVehicleFunction(7.99, capacity)
             : employeesCount
                 ? weightCountVehicleFunction(14.34, employeesCount)
                 : undefined;
     }, // sample size: 5, capacity = number of rooms
-    '311': function (floorAreaSqMeters, employeesCount, capacity) {
+    '311': function (_floorAreaSqMeters, _employeesCount, capacity) {
         return capacity ? weightCountVehicleFunction(4.4, capacity) : undefined;
     }, // sample size: 7, capacity = number of rooms
-    '312': function (floorAreaSqMeters, employeesCount, capacity) {
+    '312': function (_floorAreaSqMeters, _employeesCount, capacity) {
         return capacity ? weightCountVehicleFunction(4.02, capacity) : undefined;
     }, // sample size: 10, capacity = number of rooms
-    '320': function (floorAreaSqMeters, employeesCount, capacity) {
+    '320': function (_floorAreaSqMeters, _employeesCount, capacity) {
         return capacity ? weightCountVehicleFunction(3.35, capacity) : undefined;
     }, // sample size: 6, capacity = number of rooms
-    '330': function (floorAreaSqMeters, employeesCount, capacity) {
+    '330': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // no data for whole day
 
-    '411': function (floorAreaSqMeters, employeesCount, capacity) {
+    '411': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // inconsistent data and sample size too low
-    '416': function (floorAreaSqMeters, employeesCount, capacity) {
+    '416': function (_floorAreaSqMeters, _employeesCount, capacity) {
         return capacity ? weightCountVehicleFunction(0.21, capacity) : undefined;
     }, // sample size: 4, capacity = number of campsites, no winter trips
-    '420': function (floorAreaSqMeters, employeesCount, capacity) {
+    '420': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // inconsistent data and sample size too low, no winter trips
-    '430': function (floorAreaSqMeters, employeesCount, capacity) {
+    '430': function (floorAreaSqMeters, _employeesCount, capacity) {
         return capacity
             ? weightCountVehicleFunction(30.38, capacity)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(3.74, (floorAreaSqMeters * acresToThousandSqFeet) / sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 4, capacity = number of holes, no winter trips, original area in acres, seems a bit high, but plausible
-    '431': function (floorAreaSqMeters, employeesCount, capacity) {
+    '431': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low, no winter trips
-    '432': function (floorAreaSqMeters, employeesCount, capacity) {
+    '432': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low, no winter trips
-    '433': function (floorAreaSqMeters, employeesCount, capacity) {
+    '433': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low, no winter trips
-    '434': function (floorAreaSqMeters, employeesCount, capacity) {
+    '434': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low, no winter trips
-    '435': function (floorAreaSqMeters, employeesCount, capacity) {
+    '435': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(3.58 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 3, data for one peak hour multiplied by 10
-    '436': function (floorAreaSqMeters, employeesCount, capacity) {
+    '436': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(1.5 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 3, data for one peak hour multiplied by 10
-    '437': function (floorAreaSqMeters, employeesCount, capacity) {
+    '437': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '440': function (floorAreaSqMeters, employeesCount, capacity) {
+    '440': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '445': function (floorAreaSqMeters, employeesCount, capacity) {
+    '445': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '452': function (floorAreaSqMeters, employeesCount, capacity) {
+    '452': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '453': function (floorAreaSqMeters, employeesCount, capacity) {
+    '453': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '454': function (floorAreaSqMeters, employeesCount, capacity) {
+    '454': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '462': function (floorAreaSqMeters, employeesCount, capacity) {
+    '462': function (_floorAreaSqMeters, _employeesCount, capacity) {
         return capacity ? capacity : undefined;
     }, // sample size: 2, capacity = number of attendees
-    '465': function (floorAreaSqMeters, employeesCount, capacity) {
+    '465': function (_floorAreaSqMeters, _employeesCount, capacity) {
         return capacity ? weightCountVehicleFunction(45.17, capacity) : undefined;
     }, // sample size: 3, capacity = number of rinks
-    '466': function (floorAreaSqMeters, employeesCount, capacity) {
+    '466': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '470': function (floorAreaSqMeters, employeesCount, capacity) {
+    '470': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '473': function (floorAreaSqMeters, employeesCount, capacity) {
+    '473': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(388.18, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 4
-    '480': function (floorAreaSqMeters, employeesCount, capacity) {
+    '480': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '482': function (floorAreaSqMeters, employeesCount, capacity) {
+    '482': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '488': function (floorAreaSqMeters, employeesCount, capacity) {
+    '488': function (_floorAreaSqMeters, _employeesCount, capacity) {
         return capacity ? weightCountVehicleFunction(71.33, capacity) : undefined;
     }, // sample size: 3, capacity = number of fields/pitches
-    '490': function (floorAreaSqMeters, employeesCount, capacity) {
+    '490': function (_floorAreaSqMeters, _employeesCount, capacity) {
         return capacity ? weightCountVehicleFunction(30.32, capacity) : undefined;
     }, // sample size: 2, capacity = number of courts
-    '491': function (floorAreaSqMeters, employeesCount, capacity) {
+    '491': function (_floorAreaSqMeters, _employeesCount, capacity) {
         return capacity ? weightCountVehicleFunction(27.71, capacity) : undefined;
     }, // sample size: 2, capacity = number of courts
-    '492': function (floorAreaSqMeters, employeesCount, capacity) {
+    '492': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(1.31 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 6
-    '493': function (floorAreaSqMeters, employeesCount, capacity) {
+    '493': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(3.16 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 2
-    '495': function (floorAreaSqMeters, employeesCount, capacity) {
+    '495': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(28.82, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 4
 
-    '501': function (floorAreaSqMeters, employeesCount, capacity) {
+    '501': function (_floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount ? weightCountVehicleFunction(0.39, employeesCount) : undefined;
     }, // sample size: 6
-    '520': function (floorAreaSqMeters, employeesCount, capacity) {
+    '520': function (_floorAreaSqMeters, employeesCount, capacity) {
         return capacity
             ? weightCountVehicleFunction(2.27, capacity)
             : employeesCount
                 ? weightCountVehicleFunction(22.5, employeesCount)
                 : undefined;
     }, // sample size: 12-16, capacity = number of students
-    '522': function (floorAreaSqMeters, employeesCount, capacity) {
+    '522': function (_floorAreaSqMeters, employeesCount, capacity) {
         return capacity
             ? weightCountVehicleFunction(2.1, capacity)
             : employeesCount
                 ? weightCountVehicleFunction(23.41, employeesCount)
                 : undefined;
     }, // sample size: 6-14, capacity = number of students
-    '525': function (floorAreaSqMeters, employeesCount, capacity) {
+    '525': function (_floorAreaSqMeters, employeesCount, capacity) {
         return capacity
             ? weightCountVehicleFunction(1.94, capacity)
             : employeesCount
                 ? weightCountVehicleFunction(21.95, employeesCount)
                 : undefined;
     }, // sample size: 30-31, capacity = number of students
-    '528': function (floorAreaSqMeters, employeesCount, capacity) {
+    '528': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(5.08, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(14.37, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 11
-    '530': function (floorAreaSqMeters, employeesCount, capacity) {
+    '530': function (_floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount ? 0.5 * avgVehicleOccupancy * employeesCount * 8.86 : undefined;
     }, // sample size: 7
-    '532': function (floorAreaSqMeters, employeesCount, capacity) {
+    '532': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '534': function (floorAreaSqMeters, employeesCount, capacity) {
+    '534': function (_floorAreaSqMeters, employeesCount, capacity) {
         return capacity
             ? weightCountVehicleFunction(2.17, capacity)
             : employeesCount
                 ? weightCountVehicleFunction(15.12, employeesCount)
                 : undefined;
     }, // sample size: 2-3, capacity = number of students
-    '536': function (floorAreaSqMeters, employeesCount, capacity) {
+    '536': function (_floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount ? weightCountVehicleFunction(13.93, employeesCount) : undefined;
     }, // sample size: 5
-    '538': function (floorAreaSqMeters, employeesCount, capacity) {
+    '538': function (_floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount ? weightCountVehicleFunction(13.75, employeesCount) : undefined;
     }, // sample size: 3
-    '540': function (floorAreaSqMeters, employeesCount, capacity) {
+    '540': function (_floorAreaSqMeters, employeesCount, capacity) {
         return capacity
             ? weightCountVehicleFunction(1.15, capacity)
             : employeesCount
                 ? weightCountVehicleFunction(14.61, employeesCount)
                 : undefined;
     }, // sample size: 10-12, capacity = number of students
-    '550': function (floorAreaSqMeters, employeesCount, capacity) {
+    '550': function (_floorAreaSqMeters, employeesCount, capacity) {
         return capacity
             ? weightCountVehicleFunction(1.56, capacity)
             : employeesCount
                 ? weightCountVehicleFunction(8.89, employeesCount)
                 : undefined;
     }, // sample size: 2-5, capacity = number of students
-    '560': function (floorAreaSqMeters, employeesCount, capacity) {
+    '560': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(7.6, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 5
-    '561': function (floorAreaSqMeters, employeesCount, capacity) {
+    '561': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '562': function (floorAreaSqMeters, employeesCount, capacity) {
+    '562': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '565': function (floorAreaSqMeters, employeesCount, capacity) {
+    '565': function (_floorAreaSqMeters, employeesCount, capacity) {
         return capacity
             ? weightCountVehicleFunction(4.09, capacity)
             : employeesCount
                 ? weightCountVehicleFunction(21.38, employeesCount)
                 : undefined;
     }, // sample size: 14-28, capacity = number of children
-    '566': function (floorAreaSqMeters, employeesCount, capacity) {
+    '566': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(51.75, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(6.02, (floorAreaSqMeters * acresToThousandSqFeet) / sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 5, original area in acres
-    '571': function (floorAreaSqMeters, employeesCount, capacity) {
+    '571': function (_floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount ? weightCountVehicleFunction(3.04, employeesCount) : undefined;
     }, // sample size: 9
-    '575': function (floorAreaSqMeters, employeesCount, capacity) {
+    '575': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(4.8, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 3
-    '580': function (floorAreaSqMeters, employeesCount, capacity) {
+    '580': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '590': function (floorAreaSqMeters, employeesCount, capacity) {
+    '590': function (floorAreaSqMeters, employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(72.05, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : employeesCount
@@ -601,93 +602,93 @@ const tripGenerationFunctionsByLandUseCode: { [key: string]: TripGenerationFunct
                     ? weightCountVehicleFunction(6.75, floorAreaSqMeters * sqMetersToThousandSqFeet)
                     : undefined;
     }, // sample size: 3-9, capacity = beds
-    '630': function (floorAreaSqMeters, employeesCount, capacity) {
+    '630': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(13.9, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(37.6, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 8-9
-    '640': function (floorAreaSqMeters, employeesCount, capacity) {
+    '640': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(12.69, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(21.5, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 6
-    '650': function (floorAreaSqMeters, employeesCount, capacity) {
+    '650': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(24.94, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 4
 
-    '710': function (floorAreaSqMeters, employeesCount, capacity) {
+    '710': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleLogarithmicFunction(0.76, employeesCount, 2.74)
             : floorAreaSqMeters
                 ? weightCountVehicleLogarithmicFunction(0.87, floorAreaSqMeters * sqMetersToThousandSqFeet, 3.05)
                 : undefined;
     }, // sample size: 52-59
-    '712': function (floorAreaSqMeters, employeesCount, capacity) {
+    '712': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(7.86, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(14.39, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 17-21
-    '714': function (floorAreaSqMeters, employeesCount, capacity) {
+    '714': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(2.31, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(7.95, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 6-7
-    '715': function (floorAreaSqMeters, employeesCount, capacity) {
+    '715': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(3.85, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(13.07, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 12
-    '720': function (floorAreaSqMeters, employeesCount, capacity) {
+    '720': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(8.71, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(36.0, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 14-18
-    '730': function (floorAreaSqMeters, employeesCount, capacity) {
+    '730': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(7.45, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(22.59, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 7
-    '731': function (floorAreaSqMeters, employeesCount, capacity) {
+    '731': function (_floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount ? weightCountVehicleFunction(2.94 * 10, employeesCount) : undefined;
     }, // sample size: 2
-    '732': function (floorAreaSqMeters, employeesCount, capacity) {
+    '732': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(25.4, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(103.94, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 7-8
-    '750': function (floorAreaSqMeters, employeesCount, capacity) {
+    '750': function (floorAreaSqMeters, employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(11.07, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : employeesCount
                 ? weightCountVehicleFunction(3.54, employeesCount)
                 : undefined;
     }, // sample size: 2-10
-    '760': function (floorAreaSqMeters, employeesCount, capacity) {
+    '760': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(3.37, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(11.08, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 20-22
-    '770': function (floorAreaSqMeters, employeesCount, capacity) {
+    '770': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(4.04, employeesCount)
             : floorAreaSqMeters
@@ -695,129 +696,129 @@ const tripGenerationFunctionsByLandUseCode: { [key: string]: TripGenerationFunct
                 : undefined;
     }, // sample size: 12-16
 
-    '810': function (floorAreaSqMeters, employeesCount, capacity) {
+    '810': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(1.4 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 7
-    '811': function (floorAreaSqMeters, employeesCount, capacity) {
+    '811': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(0.99 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 3
-    '812': function (floorAreaSqMeters, employeesCount, capacity) {
+    '812': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(25.77, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(17.05, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 13
-    '813': function (floorAreaSqMeters, employeesCount, capacity) {
+    '813': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(50.52, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 72
-    '814': function (floorAreaSqMeters, employeesCount, capacity) {
+    '814': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(63.66, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(95.59, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 29
-    '815': function (floorAreaSqMeters, employeesCount, capacity) {
+    '815': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(53.87, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 21
-    '816': function (floorAreaSqMeters, employeesCount, capacity) {
+    '816': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(27.69, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(8.07, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 4
-    '817': function (floorAreaSqMeters, employeesCount, capacity) {
+    '817': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(21.83, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(68.1, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 10
-    '818': function (floorAreaSqMeters, employeesCount, capacity) {
+    '818': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(0.3 * 10, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(2.41 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 6
-    '820': function (floorAreaSqMeters, employeesCount, capacity) {
+    '820': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(37.01, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 108
-    '821': function (floorAreaSqMeters, employeesCount, capacity) {
+    '821': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(67.52, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 7 (Without supermarket, with supermarket: weight = 94.49)
-    '822': function (floorAreaSqMeters, employeesCount, capacity) {
+    '822': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(54.45, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 4
-    '823': function (floorAreaSqMeters, employeesCount, capacity) {
+    '823': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(26.59, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 11
-    '840': function (floorAreaSqMeters, employeesCount, capacity) {
+    '840': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(27.84, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 18
-    '841': function (floorAreaSqMeters, employeesCount, capacity) {
+    '841': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(27.06, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 14
-    '842': function (floorAreaSqMeters, employeesCount, capacity) {
+    '842': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(5.0, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 5
-    '843': function (floorAreaSqMeters, employeesCount, capacity) {
+    '843': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(54.57, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 14
-    '848': function (floorAreaSqMeters, employeesCount, capacity) {
+    '848': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(27.69, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 13
-    '849': function (floorAreaSqMeters, employeesCount, capacity) {
+    '849': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(20.37, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 12
-    '850': function (floorAreaSqMeters, employeesCount, capacity) {
+    '850': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(93.84, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 22
-    '851': function (floorAreaSqMeters, employeesCount, capacity) {
+    '851': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(762.28, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 8
-    '857': function (floorAreaSqMeters, employeesCount, capacity) {
+    '857': function (floorAreaSqMeters, employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(42.46, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : employeesCount
                 ? weightCountVehicleFunction(32.21, employeesCount)
                 : undefined;
     }, // sample size: 10-20
-    '858': function (floorAreaSqMeters, employeesCount, capacity) {
+    '858': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(
                 174.9 * 10,
@@ -825,212 +826,212 @@ const tripGenerationFunctionsByLandUseCode: { [key: string]: TripGenerationFunct
             )
             : undefined;
     }, // sample size: 2, peak hour
-    '860': function (floorAreaSqMeters, employeesCount, capacity) {
+    '860': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '861': function (floorAreaSqMeters, employeesCount, capacity) {
+    '861': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(23.78, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 8
-    '862': function (floorAreaSqMeters, employeesCount, capacity) {
+    '862': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(30.74, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 19
-    '863': function (floorAreaSqMeters, employeesCount, capacity) {
+    '863': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(41.05, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 5
-    '864': function (floorAreaSqMeters, employeesCount, capacity) {
+    '864': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(5.0 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 2, peak hour
-    '865': function (floorAreaSqMeters, employeesCount, capacity) {
+    '865': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '866': function (floorAreaSqMeters, employeesCount, capacity) {
+    '866': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(3.55 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 5, peak hour
-    '867': function (floorAreaSqMeters, employeesCount, capacity) {
+    '867': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(2.77 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 5, peak hour
-    '868': function (floorAreaSqMeters, employeesCount, capacity) {
+    '868': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '869': function (floorAreaSqMeters, employeesCount, capacity) {
+    '869': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(20.0, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 8
-    '872': function (floorAreaSqMeters, employeesCount, capacity) {
+    '872': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '875': function (floorAreaSqMeters, employeesCount, capacity) {
+    '875': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(22.88, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 5
-    '876': function (floorAreaSqMeters, employeesCount, capacity) {
+    '876': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '879': function (floorAreaSqMeters, employeesCount, capacity) {
+    '879': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '880': function (floorAreaSqMeters, employeesCount, capacity) {
+    '880': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(90.08, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 6
-    '881': function (floorAreaSqMeters, employeesCount, capacity) {
+    '881': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(108.4, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 16
-    '882': function (floorAreaSqMeters, employeesCount, capacity) {
+    '882': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(211.12, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 7
-    '890': function (floorAreaSqMeters, employeesCount, capacity) {
+    '890': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(6.3, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 19
-    '895': function (floorAreaSqMeters, employeesCount, capacity) {
+    '895': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(9.78, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 2
-    '897': function (floorAreaSqMeters, employeesCount, capacity) {
+    '897': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '899': function (floorAreaSqMeters, employeesCount, capacity) {
+    '899': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(107.21, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 5
 
-    '911': function (floorAreaSqMeters, employeesCount, capacity) {
+    '911': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(5.27 * 10, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(12.13 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 3-8, peak hour
-    '912': function (floorAreaSqMeters, employeesCount, capacity) {
+    '912': function (floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount
             ? weightCountVehicleFunction(32.73, employeesCount)
             : floorAreaSqMeters
                 ? weightCountVehicleFunction(100.35, floorAreaSqMeters * sqMetersToThousandSqFeet)
                 : undefined;
     }, // sample size: 19
-    '918': function (floorAreaSqMeters, employeesCount, capacity) {
+    '918': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '920': function (floorAreaSqMeters, employeesCount, capacity) {
+    '920': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '926': function (floorAreaSqMeters, employeesCount, capacity) {
+    '926': function (_floorAreaSqMeters, _employeesCount, capacity) {
         return capacity ? weightCountVehicleFunction(6.16 * 10, capacity) : undefined;
     }, // sample size: 4, capacity: food carts, peak hour
-    '930': function (floorAreaSqMeters, employeesCount, capacity) {
+    '930': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '931': function (floorAreaSqMeters, employeesCount, capacity) {
+    '931': function (floorAreaSqMeters, employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(83.84, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : employeesCount
                 ? weightCountVehicleFunction(0.69 * 10, employeesCount)
                 : undefined;
     }, // sample size: 3-10, peak hour for employee count
-    '932': function (floorAreaSqMeters, employeesCount, capacity) {
+    '932': function (floorAreaSqMeters, employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(107.2, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : employeesCount
                 ? weightCountVehicleFunction(21.26, employeesCount)
                 : undefined;
     }, // sample size: 31-50
-    '933': function (floorAreaSqMeters, employeesCount, capacity) {
+    '933': function (floorAreaSqMeters, employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(450.49, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : employeesCount
                 ? weightCountVehicleFunction(54.81, employeesCount)
                 : undefined;
     }, // sample size: 5-6
-    '934': function (floorAreaSqMeters, employeesCount, capacity) {
+    '934': function (floorAreaSqMeters, employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(467.48, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : employeesCount
                 ? weightCountVehicleFunction(44.52, employeesCount)
                 : undefined;
     }, // sample size: 28-71
-    '935': function (floorAreaSqMeters, employeesCount, capacity) {
+    '935': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '936': function (floorAreaSqMeters, employeesCount, capacity) {
+    '936': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(93.08 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 25
-    '937': function (floorAreaSqMeters, employeesCount, capacity) {
+    '937': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(533.57, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 6
-    '938': function (floorAreaSqMeters, employeesCount, capacity) {
+    '938': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '941': function (floorAreaSqMeters, employeesCount, capacity) {
+    '941': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '942': function (floorAreaSqMeters, employeesCount, capacity) {
+    '942': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(2.25 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 6, peak hour
-    '943': function (floorAreaSqMeters, employeesCount, capacity) {
+    '943': function (floorAreaSqMeters, employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(16.6, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : employeesCount
                 ? weightCountVehicleFunction(11.44, employeesCount)
                 : undefined;
     }, // sample size: 27
-    '944': function (floorAreaSqMeters, employeesCount, capacity) {
+    '944': function (_floorAreaSqMeters, employeesCount, _capacity) {
         return employeesCount ? weightCountVehicleFunction(275.78, employeesCount) : undefined;
     }, // sample size: 12
-    '945': function (floorAreaSqMeters, employeesCount, capacity) {
+    '945': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // n/a, needs number of fueling positions
-    '947': function (floorAreaSqMeters, employeesCount, capacity) {
+    '947': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '948': function (floorAreaSqMeters, employeesCount, capacity) {
+    '948': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '949': function (floorAreaSqMeters, employeesCount, capacity) {
+    '949': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // sample size too low
-    '950': function (floorAreaSqMeters, employeesCount, capacity) {
+    '950': function (_floorAreaSqMeters, _employeesCount, _capacity) {
         return undefined;
     }, // n/a, needs number of fueling positions
-    '970': function (floorAreaSqMeters, employeesCount, capacity) {
+    '970': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(45.96, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 5
-    '971': function (floorAreaSqMeters, employeesCount, capacity) {
+    '971': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(61.69, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;
     }, // sample size: 2
-    '975': function (floorAreaSqMeters, employeesCount, capacity) {
+    '975': function (floorAreaSqMeters, _employeesCount, _capacity) {
         return floorAreaSqMeters
             ? weightCountVehicleFunction(11.36 * 10, floorAreaSqMeters * sqMetersToThousandSqFeet)
             : undefined;

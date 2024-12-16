@@ -114,7 +114,7 @@ export const getOverlappingIndices = (
                 ) {
                     overlappingIndices.push(index);
                 }
-            } catch (e) {
+            } catch {
                 // Unsupported geometry in overlap or within, just ignore instead of checking all types
             }
         } else if (comparisonMethod(toCompare.geometry, feature.geometry)) {
