@@ -365,7 +365,8 @@ const getMostFrequentPath = (trips: TripAndStopTimes[], importData: GtfsInternal
     return mostFrequent;
 };
 
-const getPeriodDataForDirection = (trips: TripAndStopTimes[], period: SchedulePeriod) => {
+//TODO: Add functionality to the _period argument, or remove it.
+const getPeriodDataForDirection = (trips: TripAndStopTimes[], _period: SchedulePeriod) => {
     const customPeriodStartSeconds = trips[0].stopTimes[0].departureTimeSeconds;
     const customPeriodEndSeconds = trips[trips.length - 1].stopTimes[0].departureTimeSeconds;
     const frequencySeconds =

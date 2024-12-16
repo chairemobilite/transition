@@ -6,8 +6,8 @@
  */
 import fs from 'fs';
 import { join } from 'path';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import _dotenv from 'chaire-lib-backend/lib/config/dotenv.config';
+import { createServer as httpCreateServer } from 'http';
+import { createServer as httpsCreateServer } from 'https';
 import { setupServer } from './serverApp';
 import setupSocketServerApp from './socketServerApp';
 import yargs from 'yargs/yargs';
@@ -35,8 +35,7 @@ const { session } = setupServer(app);
 if (!useSSL) {
     // Create http server
     try {
-        const http = require('http');
-        const server = http.createServer(app);
+        const server = httpCreateServer(app);
         server.listen(port);
         setupSocketServerApp(server, session);
     } catch (err) {
@@ -56,9 +55,8 @@ if (!useSSL) {
     try {
         const privateKey = fs.readFileSync(pk, 'utf8');
         const certificate = fs.readFileSync(crt, 'utf8');
-        const https = require('https');
         const credentials = { key: privateKey, cert: certificate };
-        const httpsServer = https.createServer(credentials, app);
+        const httpsServer = httpsCreateServer(credentials, app);
         httpsServer.listen(port);
         setupSocketServerApp(httpsServer, session);
     } catch (err) {

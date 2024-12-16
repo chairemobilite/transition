@@ -83,7 +83,7 @@ abstract class Generation {
                     (Date.now() - time) / 1000
                 } sec. and saved in ${this.options.simulationRun.getProjectRelativeCacheDirectoryPath()}`
             );
-        } catch (error) {
+        } catch {
             console.log('Some candidates could not be prepared');
         }
     }

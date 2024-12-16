@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash/cloneDeep';
 import { performance } from 'perf_hooks';
 import pQueue from 'p-queue';
 import { EventEmitter } from 'events';

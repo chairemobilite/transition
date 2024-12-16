@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _isEmpty from 'lodash/isEmpty';
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import { UnimodalRoutingResultData } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import { Routing } from 'chaire-lib-backend/lib/services/routing/Routing';

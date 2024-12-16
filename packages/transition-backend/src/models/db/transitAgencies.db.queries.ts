@@ -23,7 +23,6 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
 import { AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
-import { Knex } from 'knex';
 
 const tableName = 'tr_transit_agencies';
 

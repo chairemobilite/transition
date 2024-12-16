@@ -21,7 +21,6 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { ServiceAttributes } from 'transition-common/lib/services/service/Service';
 import { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
-import { Knex } from 'knex';
 
 const tableName = 'tr_transit_services';
 

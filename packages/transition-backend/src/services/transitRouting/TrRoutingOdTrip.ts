@@ -6,7 +6,6 @@
  */
 import { feature as turfFeature } from '@turf/turf';
 
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { OdTripRouteResult } from './types';

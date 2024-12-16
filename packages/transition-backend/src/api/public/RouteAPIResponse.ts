@@ -171,6 +171,7 @@ export default class RouteAPIResponse extends APIResponseBase<
     ): RouteAPITransitResultResponse {
         return {
             paths: transitResultParams.paths.map((path: TrRoutingRoute) => {
+                /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
                 const { originDestination, timeOfTrip, timeOfTripType, ...rest } = path;
                 return rest;
             }),
