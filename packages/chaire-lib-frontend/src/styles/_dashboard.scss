@@ -11,6 +11,7 @@
   flex: 0 4rem;
   min-width: 4rem;
   overflow-y: auto;
+  position: absolute;
 }
 
 #tr__dashboard {
@@ -199,6 +200,7 @@
 }
 
 .tr__resizable-split-view {
+  margin-left: 4rem;
   height: 100%;
   width: 100%;
   display: flex;
