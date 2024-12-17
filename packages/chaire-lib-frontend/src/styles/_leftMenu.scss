@@ -1,17 +1,13 @@
 .tr__left-menu-container {
   width: 100%;
-  //border: 1px solid red;
   margin: 0;
   padding: 0;
   list-style: none;
-  //display: relative;
   .tr__left-menu-element {
     width: 100%;
-    //border: 1px solid blue;
     margin: 0;
     padding: 0;
     list-style: none;
-    //display: absolute;
     z-index: 20;
     button {
       color: $text-active-color;
@@ -27,10 +23,7 @@
       overflow: hidden;
       max-width: 4rem;
       width: 4rem;
-      //min-width: 4rem;
-      //top: 0;
       height: 4rem;
-      //left: 0;
       padding: 0;
       margin: 0;
       text-align: left;
@@ -52,8 +45,6 @@
 
       ._icon {
         height: 100%;
-        //width: 100%;
-        //border: 1px solid red;
       }
 
       &:hover {
