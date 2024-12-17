@@ -9,4 +9,6 @@ When adding or modifying information on these files, they must follow the alread
 \makecell[r]{Title} & \[Symbol\] & \[Unit\] & \[Expression\] & Description \\
 \hline
 ```
+After any edit, make sure labels are consistent in both files. For this, run `yarn workspace transition-backend test definitions`.
+
 Each row is starts with a label that allows for it to be located by the tooltip component and ends with `\hline`. Each cell is separated with `&`, and starts and ends with a space. The unit and expression can be empty, in which case they must be represented by a single hyphen (`-`). The symbol, unit, and expression are mathematical expressions, and must be start `\[` and end with `\]`, unless they are empty. Finally, any change must be translated and added to both the French and English file.
