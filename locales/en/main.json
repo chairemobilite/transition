@@ -133,7 +133,8 @@
         "ShowExceptionForCopy": "If you want to report an issue, you may copy-paste the exception below",
         "Exception": "Exception",
         "RoutingModeNotEnabled": "Routing mode '{{mode}}' is not enabled",
-        "InvalidFormFields": "Some fields are invalid"
+        "InvalidFormFields": "Some fields are invalid",
+        "ErrorCalculatingAccessibilityMap": "Error calculating accessibility map. Try to reduce the maximum total travel time."
     },
     "places": {
         "categories": {

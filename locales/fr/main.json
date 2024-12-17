@@ -133,7 +133,8 @@
         "ShowExceptionForCopy": "Si vous voulez rapporter un problème, vous pouvez copier/coller l'exception ci-dessous",
         "Exception": "Exception",
         "RoutingModeNotEnabled": "Mode de calcul '{{mode}}' n'est pas activé",
-        "InvalidFormFields": "Certains champs sont invalides"
+        "InvalidFormFields": "Certains champs sont invalides",
+        "ErrorCalculatingAccessibilityMap": "Erreur lors du calcul de la carte d'accessibilité. Essayez de réduire le temps de parcours maximal."
     },
     "places": {
         "categories": {
