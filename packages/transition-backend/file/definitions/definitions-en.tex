@@ -35,7 +35,7 @@
 
 \author{Pierre-Léo Bourbonnais and students of the course CIV6708}
 
-\section*{Public transit: Definitions and symbols (still being translated from french to english)}
+\section*{Public transit: Definitions and symbols}
 
 \subsection*{Stops, stop nodes, stations and segments}
 
@@ -54,7 +54,7 @@
     L{.65\NetTableWidth}%
 }
 \hline
-\makecell[r]{Object} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Definition} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
@@ -67,18 +67,25 @@
 \label{station}
 \makecell[r]{Station} & \[S\] & - & - & Building making it easy to transfer between multiple stops. When more than one transit modes are served at a station, we call it an intermodal station. \\
 \hline
+\label{segment}
 \makecell[r]{Segment} & \[l\] & - & - & Line path segment between two consecutive stops/stop nodes, represented by a specific route on the road or rail network. \\
 \hline
+\label{unique_stop_node}
 \makecell[r]{Unique stop node} & \[q_u\] & - & - & Stop node served by a single line (one-way or bi-directional). \\
 \hline
+\label{multiple_stop_node}
 \makecell[r]{Multiple stop node} & \[q_m\] & - & - & Stop node served by more than one line. \\
 \hline
+\label{unique_stop}
 \makecell[r]{Unique stop} & \[s_u\] & - & - & Stop sign or platform served by a single line (one-way or bi-directional). \\
 \hline
+\label{multiple_stop}
 \makecell[r]{Multiple stop} & \[s_m\] & - & - & Stop sign or platform served by more than one line. \\
 \hline
+\label{unique_segment}
 \makecell[r]{Unique segment} & \[l_u\] & - & - & Segment served by a single line (one-way or bi-directional). \\
 \hline
+\label{multiple_segment}
 \makecell[r]{Multiple segment} & \[l_m\] & - & - & Segment served by multiple lines. \\
 \hline
 \label{terminal}
@@ -102,7 +109,7 @@
 \end{longtable} 
 
 \pagebreak
-\subsection*{Véhicules, unités et garages • \textit{Vehicles, units and depots}}
+\subsection*{Vehicles, units and depots}
 
 \begin{longtable}{%
     R{.25\NetTableWidth}%
@@ -110,65 +117,65 @@
     C{.04\NetTableWidth}%
     C{.1\NetTableWidth}%
     L{.5\NetTableWidth}%
-  }
+}
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{transit_unit}
-\makecell[r]{Unité de transport collectif \\ \textit{Transit unit (Unit)}} & \[u\] & - & - & Ensemble de voitures, de wagons ou de remorques couplés constituant un train. Un bus régulier ou articulé représente une seule unité. \\
+\makecell[r]{Transit unit} & \[u\] & - & - & Set of cars, wagons, or trailers coupled together forming a train. A regular or articulated bus represents a single unit. \\
 \hline
 \label{vehicle}
-\makecell[r]{Véhicule (wagon/voiture) \\ \textit{Vehicle (trailer/car)}} & \[y\] & - & - & Voiture, wagon ou remorque faisant partie d'une unité. \\
+\makecell[r]{Vehicle (trailer/car)} & \[y\] & - & - & Train car or trailer that is part of a unit. \\
 \hline
 \label{depot}
-\makecell[r]{Garage/dépôt \\ \textit{Depot}} & \[G\] & - & - & Garage pour bus ou dépôt ferroviaire où sont entreposés les unités et véhicules et où on effectue leur maintenance. Habituellement, le garage constitue également le lieu de départ et d'arrivée des véhicules et chauffeurs assignés aux services en début et en fin de tournée. \\
+\makecell[r]{Depot} & \[G\] & - & - & Bus garage or rail depot where units and vehicles are stored and where maintenance is performed. Usually, the depot is also the departure and arrival point for vehicles and drivers assigned to service at the beginning and end of their runs. \\
 \hline
 \label{depot_unit_capacity}
-\makecell[r]{Capacité d'unités du garage \\ \textit{Depot units capacity}} & \[{N_u}_G\] & unités & - & Nombre d'unités pouvant être stationnées simultanément dans le garage ou le dépôt. Attention de bien spécifier si cette capacité comprend les emplacements réservés aux véhicules en maintenance. \\
+\makecell[r]{Depot units capacity} & \[{N_u}_G\] & units & - & Number of units that can be simultaneously parked in the garage or depot. Care should be taken to specify whether this capacity includes spaces reserved for vehicles under maintenance and/or being charged. \\
 \hline
 \label{fleet_size}
-\makecell[r]{Taille de la flotte \\ \textit{Fleet size} } & \[F\] & unités & - & Flotte totale (nombre d'unités) incluant les unités en service, en réserve et en maintenance. \\
+\makecell[r]{Fleet size} & \[F\] & units & - & Total fleet (number of units) including units in service, reserve, and maintenance. \\
 \hline
 \label{reserve_fleet_size}
-\makecell[r]{Taille de la flotte en réserve \\ \textit{Reserve fleet size}} & \[F_r\] & unités & - & Nombre d'unités réservées pour remplacer les unités devant être retirées de la circulation (incidents) et ajouter du service lors d'événements spéciaux ou de congestion sévère ralentissant le service planifié. \\
+\makecell[r]{Reserve fleet size} & \[F_r\] & units & - & Number of units reserved to replace units that must be removed from circulation (incidents) and to add service during special events or severe congestion slowing planned service. \\
 \hline
 \label{maintenance_fleet_size}
-\makecell[r]{Taille de la flotte en maintenance \\ \textit{Maintenance fleet size}} & \[F_m\] & unités & - & Nombre d'unités en réparation ou en maintenance préventive. Ces unités ne peuvent être utilisées pour effectuer du service. \\
+\makecell[r]{Maintenance fleet size} & \[F_m\] & units & - & Number of units under repair or preventive maintenance. These units cannot be used for service. \\
 \hline
 \label{service_fleet_size}
-\makecell[r]{Taille de la flotte en service \\ \textit{Service fleet size}} & \[F_s\] & unités & \[F - F_m - F_r\] & Nombre d'unités pouvant être utilisées pour effectuer le service planifié pendant la période de pointe maximale. \\
+\makecell[r]{Service fleet size} & \[F_s\] & units & \[F - F_m - F_r\] & Number of units that can be used to perform planned service during maximum peak period. \\
 \hline
 \label{fleet_use_ratio}
-\makecell[r]{Ratio d'utilisation de la flotte \\ \textit{Fleet use ratio}} & \[\mu_{F_u}\] & - & \[\frac{F_s + F_r}{F}\] & - \\
+\makecell[r]{Fleet use ratio} & \[\mu_{F_u}\] & - & \[\frac{F_s + F_r}{F}\] & - \\
 \hline
 \label{reserve_fleet_ratio}
-\makecell[r]{Ratio de la flotte en réserve \\ \textit{Reserve fleet ratio}} & \[\mu_{F_r}\] & - & \[\frac{F_r}{F}\] & - \\
+\makecell[r]{Reserve fleet ratio} & \[\mu_{F_r}\] & - & \[\frac{F_r}{F}\] & - \\
 \hline
 \label{maintenance_fleet_ratio}
-\makecell[r]{Ratio de la flotte en maintenance \\ \textit{Maintenance fleet ratio}} & \[\mu_{F_m}\] & - & \[\frac{F_m}{F}\] & - \\
+\makecell[r]{Maintenance fleet ratio} & \[\mu_{F_m}\] & - & \[\frac{F_m}{F}\] & - \\
 \hline
 \label{service_fleet_ratio}
-\makecell[r]{Ratio de la flotte en service \\ \textit{Service fleet ratio}} & \[\mu_{F_s}\] & - & \[\frac{F_s}{F}\] & - \\
+\makecell[r]{Service fleet ratio} & \[\mu_{F_s}\] & - & \[\frac{F_s}{F}\] & - \\
 \hline
 \label{vehicles_per_unit}
-\makecell[r]{Nombre de véhicules par unité \\ \textit{Number of vehicles per unit}} & \[n_y\] & véhicules & - & Nombre de voitures, de wagons ou de remorques couplés constituant l'unité. \\
+\makecell[r]{Number of vehicles per unit} & \[n_y\] & vehicles & - & Number of train cars or trailers coupled together forming the unit. \\
 \hline
 \label{required_units}
-\makecell[r]{Nombre d'unités requises \\ \textit{Required number of units}} & \[n_u\] & unités & - & Nombre d'unités requises pour effectuer un service pour une période données (habituellement sur une ligne en particulier). \\
+\makecell[r]{Required number of units} & \[n_u\] & units & - & Number of units required to perform service for a given period (usually on a particular line). \\
 \hline
 \label{maximum_acceleration}
-\makecell[r]{Accélération maximale \\ \textit{Maximum acceleration}} & \[a_{max}\] & \[m/s^2\] & - & Accélération maximale d'une unité. \\
+\makecell[r]{Maximum acceleration} & \[a_{max}\] & \[m/s^2\] & - & Maximum acceleration of a unit. \\
 \hline
 \label{programmed_acceleration}
-\makecell[r]{Accélération programmée \\ \textit{Programmed acceleration}} & \[a\] & \[m/s^2\] & - & Accélération utilisée en service. Cette accélération doit être le meilleur équilibre entre le confort des passagers, l'efficacité énergétique et l'optimisation du service. \\
+\makecell[r]{Programmed acceleration} & \[a\] & \[m/s^2\] & - & Acceleration used in service. This acceleration must be the best balance between passenger comfort, energy efficiency, and service optimization. \\
 \hline
 \label{maximum_deceleration}
-\makecell[r]{Décélération maximale \\ \textit{Maximum deceleration}} & \[b_{max}\] & \[m/s^2\] & - & Décélération maximale d'une unité lors d'un freinage d'urgence. Utiliser en valeur absolue (positive). \\
+\makecell[r]{Maximum deceleration} & \[b_{max}\] & \[m/s^2\] & - & Maximum deceleration of a unit during emergency braking. Use absolute value (positive). \\
 \hline
 \label{programmed_deceleration}
-\makecell[r]{Décélération programmée \\ \textit{Programmed deceleration}} & \[b\] & \[m/s^2\] & - & Décélération utilisée en service. Cette décélération/freinage doit être le meilleur équilibre entre le confort des passagers et l'optimisation du service. Utiliser en valeur absolue (positive). \\
+\makecell[r]{Programmed deceleration} & \[b\] & \[m/s^2\] & - & Deceleration used in service. This deceleration/braking must be the best balance between passenger comfort and service optimization. Use absolute value (positive). \\
 \hline
 \end{longtable}
 
@@ -178,62 +185,44 @@
     C{.11\NetTableWidth}%
     C{.2\NetTableWidth}%
     L{.3\NetTableWidth}%
-  }
+}
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{floor_area_per_standee}
-\makecell[r]{Superficie au sol par place debout \\ \textit{Floor area per standee}} & \[e\] & \[m^2\] & - & Superficie prévue pour chaque place debout (empreinte au sol). Confortable, circulation convenable: \(0.25 m^2\); Inconfortable, circulation difficile: \(0.15 m^2\) \\
-\hline
-\label{vehicle_capacity}
-\makecell[r]{Capacité de véhicule \\ \textit{Vehicle capacity}} & \[C_y\] & places & \[C_{y_{se}} + C_{y_{st}}\] & Nombre de places assises et debout dans le véhicule. \\
-\hline
-\label{unit_capacity}
-\makecell[r]{Capacité d'unité \\ \textit{Unit capacity}} & \[C_{u}\] & places & \[C_{{u}_{se}} + C_{{u}_{st}}\] & Nombre de places assises et debout dans l'unité. \\
-\hline
-\label{vehicle_seated_capacity}
-\makecell[r]{Capacité de sièges par véhicule \\ \textit{Vehicle seated capacity}} & \[C_{y_{se}}\] & places & - & - \\
-\hline
-\label{vehicle_standees_capacity}
-\makecell[r]{Capacité de passagers debout par véhicule \\ \textit{Vehicle standees capacity}} & \[C_{y_{st}}\] & places & - & Attention de bien préciser l'espace disponible par place debout \(e\) entre \(0.15m^2\) (inconfortable) et \(0.25m^2\) (confortable). \\
-\hline
-\label{unit_seated_capacity}
-\makecell[r]{Capacité de sièges par unité \\ \textit{Unit seated capacity}} & \[C_{u_{se}}\] & places & \[n_y C_{{y}_{se}}\] si toutes les voitures de l'unité ont la même capacité de sièges. & - \\
-\hline
-\label{unit_standees_capacity}
-\makecell[r]{Capacité de passagers debout par unité \\ \textit{Unit standees capacity}} & \[C_{u_{st}}\] & places & \[n_y C_{{y}_{st}}\] si toutes les voitures de l'unité ont la même capacité de places debout. & - \\
+\makecell[r]{Floor area per standee} & \[e\] & \[m^2\] & - & Floor area allocated for each standing place (footprint). Comfortable, adequate circulation: \(0.25 m^2\); Uncomfortable, difficult circulation: \(0.15 m^2\) \\
 \hline
 \label{vehicle_boarding_door_channels}
-\makecell[r]{Nombre de voies d'embarquement par véhicule \\ \textit{Number of boarding door channels per vehicle}} & \[{n_{Bch}}_y\] & voies d'embarquement & - & Nombre de voies permettant l'embarquement d'une personne à la fois dans le véhicule. \\
+\makecell[r]{Number of boarding door channels per vehicle} & \[{n_{Bch}}_y\] & boarding channels & - & Number of channels allowing one person at a time to board the vehicle. \\
 \hline
 \label{vehicle_alighting_door_channels}
-\makecell[r]{Nombre de voies de débarquement par véhicule \\ \textit{Number of alighting door channels per vehicle}} & \[{n_{Ach}}_y\] & voies de débarquement & - & Nombre de voies permettant le débarquement d'une personne à la fois dans le véhicule. \\
+\makecell[r]{Number of alighting door channels per vehicle} & \[{n_{Ach}}_y\] & alighting channels & - & Number of channels allowing one person at a time toalight from the vehicle. \\
 \hline
 \label{vehicle_mixed_door_channels}
-\makecell[r]{Nombre de voies d'accès mixtes par véhicule \\ \textit{Number of mixed door channels per vehicle}} & \[{n_{ABch}}_{y}\] & voies mixtes & - & Nombre de voies permettant l'embarquement ou le débarquement d'une personne à la fois dans le véhicule. \\
+\makecell[r]{Number of mixed door channels per vehicle} & \[{n_{ABch}}_y\] & mixed channels & - & Number of channels allowing one person at a time to either board or alight from the vehicle. \\
 \hline
 \label{vehicle_door_channels}
-\makecell[r]{Nombre total de voies d'accès par véhicule \\ \textit{Number of door channels per vehicle}} & \[{n_{ch}}_y\] & voies d'accès & \[{n_{Ach}}_{y} + {n_{Bch}}_{y} + {n_{ABch}}_{y}\] & Nombre de voies d'accès permettant l'embarquement, le débarquement ou les deux dans le véhicule. \\
+\makecell[r]{Number of door channels per vehicle} & \[{n_{ch}}_y\] & access channels & \[{n_{Ach}}_y + {n_{Bch}}_y + {n_{ABch}}_y\] & Number of access channels allowing boarding, alighting, or both in the vehicle. \\
 \hline
 \label{unit_boarding_door_channels}
-\makecell[r]{Nombre de voies d'embarquement par unité \\ \textit{Number of boarding door channels per unit}} & \[{n_{Bch}}_{u}\] & voies d'embarquement & - & Nombre de voies permettant l'embarquement d'une personne à la fois dans l'ensemble des véhicules de l'unité. \\
+\makecell[r]{Number of boarding door channels per unit} & \[{n_{Bch}}_u\] & boarding channels & - & Number of channels allowing one person at a time to board across all vehicles in the unit. \\
 \hline
 \label{unit_alighting_door_channels}
-\makecell[r]{Nombre de voies de débarquement par unité \\ \textit{Number of alighting door channels per unit}} & \[{n_{Ach}}_{u}\] & voies de débarquement & - & Nombre de voies permettant le débarquement d'une personne à la fois dans l'ensemble des véhicules de l'unité. \\
+\makecell[r]{Number of alighting door channels per unit} & \[{n_{Ach}}_u\] & alighting channels & - & Number of channels allowing one person at a time to alight across all vehicles in the unit. \\
 \hline
 \label{unit_mixed_door_channels}
-\makecell[r]{Nombre de voies d'accès mixtes par unité \\ \textit{Number of mixed door channels per unit}} & \[{n_{ABch}}_{u}\] & voies mixtes & - & Nombre de voies permettant l'embarquement ou le débarquement d'une personne à la fois dans l'ensemble des véhicules de l'unité. \\
+\makecell[r]{Number of mixed door channels per unit} & \[{n_{ABch}}_u\] & mixed channels & - & Number of channels allowing one person at a time to either board or alight across all vehicles in the unit. \\
 \hline
 \label{unit_door_channels}
-\makecell[r]{Nombre total de voies d'accès par unité \\ \textit{Number of door channels per unit}} & \[{n_{ch}}_{u}\] & voies d'accès & \[{n_{Ach}}_{u} + {n_{Bch}}_{u} + {n_{ABch}}_{u}\] & Nombre de voies d'accès permettant l'embarquement, le débarquement ou les deux dans l'ensemble des véhicules de l'unité. \\
+\makecell[r]{Number of door channels per unit} & \[{n_{ch}}_u\] & access channels & \[{n_{Ach}}_u + {n_{Bch}}_u + {n_{ABch}}_u\] & Number of access channels allowing boarding, alighting, or both across all vehicles in theunit. \\
 \hline
 \end{longtable}
 
 
 \pagebreak
-\subsection*{Lignes et parcours • \textit{Lines and paths}}
+\subsection*{Lines and paths}
 
 \begin{longtable}{%
     R{.18\NetTableWidth}%
@@ -241,55 +230,55 @@
     C{.04\NetTableWidth}%
     C{.08\NetTableWidth}%
     L{.56\NetTableWidth}%
-  }
+}
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{line}
-\makecell[r]{Ligne \\ \textit{Line}} & \[L\] & - & - & Ligne de transport collectif comprenant un ou plusieurs parcours distincts mais désignée de manière unique et possédant un identifiant (numéro ou lettre) et un nom (le nom peut changer en fonction de la direction desservie). Une ligne peut être bidirectionnelle, en boucle bidirectionnelle ou en boucle à sens unique, avec possiblement des parcours réduits (ligne courte) ou allongés pour certaines périodes de la journée ou pour desservir des clientèles particulières. \\
+\makecell[r]{Line} & \[L\] & - & - & Transit line comprising one or more distinct paths but uniquely designated with an identifier (number or letter) and a name (the name may change depending on the direction served). A line can be bidirectional, bidirectional loop, or one-way loop, possibly with shortened paths (short line) or extended paths for certain periods of the day or to serve specific clientele. \\
 \hline
 \label{path}
-\makecell[r]{Parcours \\ \textit{Path}} & \[p\] & - & - & Parcours unique dans une direction déterminée sur une ligne. Un parcours est défini pour chaque séquence d'arrêts distincte desservie par la ligne. Un parcours comprend un ensemble d'arrêts-séquences et un parcours géographique sur le réseau (routier, ferroviaire ou autre). \\
+\makecell[r]{Path} & \[p\] & - & - & Unique path in a determined direction on a line. A path is defined for each distinct stop/node sequence served by the line. A path includes a set of stop-sequences/node-sequences and a geographical route on the network (road, rail, or other network). \\
 \hline
 \label{path_outbound}
-\makecell[r]{Parcours aller \\ \textit{Outbound path}} & \[p_{out}\] ou \[{p^{\prime}}\] & - & - & Parcours effectué dans la première direction (aller) pour une ligne bidirectionnelle ou la seule direction pour une ligne en boucle à sens unique. Le choix de la direction aller est arbitraire. Habituellement, le parcours aller est la direction empruntée lors du premier départ de la première tournée de la journeé sur la ligne. \\
+\makecell[r]{Outbound path} & \[p_{out}\] or \[{p^{\prime}}\] & - & - & Path operated in the first direction (outbound) for a bidirectional line or the only direction for a one-way loop line. The choice of outbound direction is arbitrary. Usually, the outbound path is the direction taken during the first departure of the first run of the day on the line. \\
 \hline
 \label{path_inbound}
-\makecell[r]{Parcours retour \\ \textit{Inbound path}} & \[p_{in}\] ou \[{p^{\prime\prime}}\] & - & - & Parcours effectué en sens contraire (retour) pour une ligne bidirectionnelle ou la deuxième direction spécifiée sur la ligne lorsque le parcours de retour n'est pas l'inverse exact du parcours aller. \\
+\makecell[r]{Inbound path} & \[p_{in}\] or \[{p^{\prime\prime}}\] & - & - & Path operated in the opposite direction (inbound) for a bidirectional line or the second specified direction on the line when the return path is not the exact reverse of the outbound path. \\
 \hline
 \label{trip}
-\makecell[r]{Voyage \\ \textit{Trip}} & \[o\] & - & - & Un voyage est le déplacement en service d'une unité sur un parcours d'une ligne selon un horaire. \\
+\makecell[r]{Trip} & \[o\] & - & - & Movement of a service unit on a line path according to a schedule. \\
 \hline
 \label{schedule}
-\makecell[r]{Horaire \\ \textit{Schedule}} & \[O\] & - & - & Un horaire est un ensemble de voyages effectués pour un même service (calendrier) pour une ligne donnée. \\
+\makecell[r]{Schedule} & \[O\] & - & - & A set of trips operated for the same service (calendar) for a given line. \\
 \hline
 \label{run}
-\makecell[r]{Tournée \\ \textit{Run}} & \[r\] & - & - & Une tournée est un ensemble de voyages desservis par une même unité ou un même chauffeur. Une tournée peut desservir plusieurs parcours et plusieurs lignes (interlignage). Habituellement, une tournée débute et se termine à un garage. \\
+\makecell[r]{Run} & \[r\] & - & - & A set of trips served by the same unit or driver. A run can serve multiple paths and multiple lines (interlining). Usually, a run begins and ends at a garage/depot. \\
 \hline
 \label{block}
-\makecell[r]{Bloc \\ \textit{Block}} & \[r_b\] & - & - & Un bloc est un ensemble de voyages consécutifs desservis par une même unité et à l'intérieur duquel les passagers peuvent demeurer dans le véhicule pour un transfert instantané et/ou garanti. \\
+\makecell[r]{Block} & \[r_b\] & - & - & A set of consecutive trips served by the same unit within which passengers can remain in the unit for an instant and/or guaranteed transfer. \\
 \hline
-\label{spatial_directivity}
-\makecell[r]{Directivité spatiale \\ \textit{Spatial directivity}} & \[\delta\] & - & \[\frac{d_e}{d_o}\] & Ratio représentant le caractère direct d'un parcours par rapport au parcours direct à vol d'oiseau (distance euclidienne). Inverse de la tortuosité (aussi appelée directitude). \\
+\label{spatial_directness}
+\makecell[r]{Spatial directness} & \[\delta\] & - & \[\frac{d_e}{d_o}\] & Ratio representing the directness of a path compared to the direct as-the-crow-flies path (Euclidean distance). Inverse of tortuosity. \\
 \hline
 \label{spatial_tortuosity}
-\makecell[r]{Tortuosité spatiale \\ \textit{Tortuosity}} & \[\tau\] & - & \[\frac{d_o}{d_e}\] & Ratio représentant le caractère tortueux du parcours par rapport au parcours direct à vol d'oiseau (distance euclidienne). Inverse de la directivité. \\
+\makecell[r]{Spatial tortuosity} & \[\tau\] & - & \[\frac{d_o}{d_e}\] & Ratio representing the tortuosity of a path compared to the direct as-the-crow-flies path (Euclidean distance). Inverse of directness. \\
 \hline
-\label{spatial_network_directivity}
-\makecell[r]{Directivité spatiale réseau \\ \textit{Spatial network directivity}} & \[\delta_n\] & - & \[\frac{d_n}{d_o}\] & Ratio représentant le caractère direct d'un parcours par rapport au parcours le plus court en distance sur le réseau entre les deux terminus (habituellement le parcours le plus court en voiture). Inverse de la tortuosité réseau. \\
+\label{spatial_network_directness}
+\makecell[r]{Spatial network directness} & \[\delta_n\] & - & \[\frac{d_n}{d_o}\] & Ratio representing the directness of a path compared to the shortest distance path on the network between the two terminals (usually the shortest path by car). Inverse of network tortuosity. \\
 \hline
 \label{spatial_network_tortuosity}
-\makecell[r]{Tortuosité spatiale réseau \\ \textit{Spatial network tortuosity}} & \[\tau_n\] & - & \[\frac{d_o}{d_n}\] & Ratio représentant le caractère tortueux du parcours par rapport au parcours le plus court en distance sur le réseau entre les deux terminus (habituellement le parcours le plus court en voiture). Inverse de la directivité réseau. \\
+\makecell[r]{Spatial network tortuosity} & \[\tau_n\] & - & \[\frac{d_o}{d_n}\] & Ratio representing the tortuosity of a path compared to the shortest distance path on the network between the two terminals (usually the shortest path by car). Inverse of network directness. \\
 \hline
-\label{temporal_directivity}
-\makecell[r]{Directivité temporelle \\ \textit{Temporal Directivity}} & \[\delta_t\] & - & \[\frac{t_n}{t_o}\] & Ratio représentant le caractère direct d'un parcours par rapport au parcours le plus rapide en temps sur le réseau entre les deux terminus (habituellement le parcours le plus rapide en voiture). Inverse de la tortuosité temporelle. \\
+\label{temporal_directness}
+\makecell[r]{Temporal directness} & \[\delta_t\] & - & \[\frac{t_n}{t_o}\] & Ratio representing the directness of a path compared to the fastest travel time of the path on the network between the two terminals (usually the fastest path by car). Inverse of temporal tortuosity. \\
 \hline
 \label{temporal_tortuosity}
-\makecell[r]{Tortuosité temporelle \\ \textit{Temporal tortuosity}} & \[\tau_t\] & - & \[\frac{t_o}{t_n}\] & Ratio représentant le caractère tortueux du parcours par rapport au parcours le plus rapide en temps sur le réseau entre les deux terminus (habituellement le parcours le plus direct en voiture). Inverse de la directivité temporelle. \\
+\makecell[r]{Temporal tortuosity} & \[\tau_t\] & - & \[\frac{t_o}{t_n}\] & Ratio representing the tortuosity of a path compared to the fastest travel time of the path on the network between the two terminals (usually the fastest path by car). Inverse of temporal directness. \\
 \hline
-\end{longtable} 
+\end{longtable}
 
 \begin{longtable}{%
     R{.29\NetTableWidth}%
@@ -297,47 +286,47 @@
     C{.12\NetTableWidth}%
     C{.08\NetTableWidth}%
     L{.43\NetTableWidth}%
-  }
+}
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{number_of_paths_on_line}
-\makecell[r]{Nombre de parcours sur la ligne \\ \textit{Number of path on line}} & \[n_p\] & parcours & - & Nombre de parcours desservis sur une ligne. \\
+\makecell[r]{Number of paths on line} & \[n_p\] & paths & - & Total number of paths served on a line. \\
 \hline
 \label{number_of_segments_on_path}
-\makecell[r]{Nombre de segments sur le parcours \\ \textit{Number of segments on path}} & \[n_l\] & segments & - & Nombre total de segments desservis par le parcours. \\
+\makecell[r]{Number of segments on path} & \[n_l\] & segments & - & Total number of segments served by the path. \\
 \hline
 \label{number_of_segments_on_path_outbound}
-\makecell[r]{Nombre de segments aller \\ \textit{Number of outbound segments}} & \[{n_l}^{\prime}\] & segments & - & Nombre total de segments desservis par le parcours. \\
+\makecell[r]{Number of outbound segments} & \[{n_l}^{\prime}\] & segments & - & Total number of segments served by the path in the outbound direction. \\
 \hline
 \label{number_of_segments_on_path_inbound}
-\makecell[r]{Nombre de segments retour \\ \textit{Number of inbound segments}} & \[{n_l}^{\prime\prime}\] & segments & - & Nombre total de segments desservis par le parcours. \\
+\makecell[r]{Number of inbound segments} & \[{n_l}^{\prime\prime}\] & segments & - & Total number of segments served by the path in the inbound direction. \\
 \hline
-\label{number_of_stops_on_path}
-\makecell[r]{Nombre d'arrêts sur le parcours \\ \textit{Number of stops on path}} & \[n_q\] ou \[n_s\] & noeuds d'arrêts ou arrêts & - & Nombre total de noeuds d'arrêts desservis par le parcours. \\
+\label{number_of_nodes_on_path}
+\makecell[r]{Number of stops on path} & \[n_q\] or \[n_s\] & stop nodes or stops & - & Total number of stop nodes served by the path. \\
 \hline
-\label{number_of_stops_on_path_outbound}
-\makecell[r]{Nombre d'arrêts aller \\ \textit{Number of outbound stops}} & \[{n_q}^{\prime}\] ou \[{n_s}^{\prime}\] & noeuds d'arrêts ou arrêts & - & Nombre total de noeuds d'arrêts desservis par le parcours aller. \\
+\label{number_of_nodes_on_path_outbound}
+\makecell[r]{Number of outbound stops} & \[{n_q}^{\prime}\] or \[{n_s}^{\prime}\] & stop nodes or stops & - & Total number of stop nodes served by the outbound path. \\
 \hline
-\label{number_of_stops_on_path_inbound}
-\makecell[r]{Nombre d'arrêts retour \\ \textit{Number of inbound stops}} & \[{n_q}^{\prime\prime}\] ou \[{n_s}^{\prime\prime}\] & noeuds d'arrêts ou arrêts & - & Nombre total de noeuds d'arrêts desservis par le parcours retour. \\
+\label{number_of_nodes_on_path_inbound}
+\makecell[r]{Number of inbound stops} & \[{n_q}^{\prime\prime}\] or \[{n_s}^{\prime\prime}\] & stop nodes or stops & - & Total number of stop nodes served by the inbound path. \\
 \hline
 \label{stop_nodes_linear_density}
-\makecell[r]{Densité linéaire de noeuds d'arrêts \\ \textit{Stop nodes linear density}} & \[{\rho}_{q_L}\] & \[\frac{\textnormal{noeuds d'arrêts}}{km}\] & \[\frac{n_q}{d}\] & Densité linéaire de noeuds d'arrêts sur une ligne ou un tronc de lignes. \\
+\makecell[r]{Stop nodes linear density} & \[{\rho}_{q_L}\] & \[\frac{\textnormal{stop nodes}}{km}\] & \[\frac{n_q}{d}\] & Linear density of stop nodes on a line or line trunk. \\
 \hline
 \label{stop_nodes_area_density}
-\makecell[r]{Densité surfacique de noeuds d'arrêts \\ \textit{Stop nodes area density}} & \[{\rho}_{q_A}\] & \[\frac{\textnormal{noeuds d'arrêts}}{{km}^2}\] & \[\frac{N_q}{\textnormal{A}}\] & Densité surfacique de noeuds d'arrêts dans une région, un territoire donné. \\
+\makecell[r]{Stop nodes area density} & \[{\rho}_{q_A}\] & \[\frac{\textnormal{stop nodes}}{{km}^2}\] & \[\frac{N_q}{\textnormal{A}}\] & Area density of stop nodes in a region or given territory. \\
 \hline
 \label{number_of_outbound_inbound_trips}
-\makecell[r]{Nombre de voyages aller-retour \\ \textit{Number of outbound-inbound trips}} & \[N_o\] ou \[k\] & voyages & - & Nombre total de voyages effectués dans les deux directions pour une période donnée pour une ligne bidirectionnelle ou dans la seule direction pour une ligne en boucle à sens unique. Attention aux ambiguïtés lorsque plusieurs parcours distincts sont utilisés pendant une période sur la ligne. \\
+\makecell[r]{Number of outbound-inbound trips} & \[N_o\] or \[k\] & trips & - & Total number of trips operated in both directions for a given period on a bidirectional line or in the single direction for a one-way loop line. Care must be taken with ambiguities when multiple distinct paths are used during a period on the line. \\
 \hline
 \end{longtable}
 
 
 \pagebreak
-\subsection*{Distances et longueurs • \textit{Distances and lengths}}
+\subsection*{Distances and lengths}
 
 \begin{longtable}{%
     R{.3\NetTableWidth}%
@@ -345,71 +334,71 @@
     C{.04\NetTableWidth}%
     C{.14\NetTableWidth}%
     L{.4\NetTableWidth}%
-  }
+}
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{acceleration_distance}
-\makecell[r]{Distance d'accélération \\ \textit{Acceleration distance}} & \[d_a\] & \[m\] & \[\frac{{v_p}^2}{2 a}\] & Distance parcourue lors de la phase d'accélération après avoir quitté l'arrêt précédent. \\
+\makecell[r]{Acceleration distance} & \[d_a\] & \[m\] & \[\frac{{v_p}^2}{2 a}\] & Distance traveled during the acceleration phase after leaving the previous stop node. \\
 \hline
 \label{deceleration_distance}
-\makecell[r]{Distance de décélération \\ \textit{Deceleration distance}} & \[d_b\] & \[m\] & \[\frac{{v_p}^2}{2 b}\] & Distance parcourue lors de la phase de décélération/freinage avant d'atteindre le prochain arrêt. \\
+\makecell[r]{Deceleration distance} & \[d_b\] & \[m\] & \[\frac{{v_p}^2}{2 b}\] & Distance traveled during the deceleration/braking phase before reaching the next stop node. \\
 \hline
 \label{distance_at_programmed_speed}
-\makecell[r]{Distance à vitesse programmée \\ \textit{Distance at programmed speed}} & \[d_{v_p}\] & \[m\] & \[d_l - d_a - d_b\] (catégorie A ou B seulement) & Distance entre la fin de l'accélération et le début de la décélération entre arrêts. \\
+\makecell[r]{Distance at programmed speed} & \[d_{v_p}\] & \[m\] & \[d_l - d_a - d_b\] (category A or B only) & Distance between the end of acceleration and the beginning of deceleration between stop nodes. \\
 \hline
 \label{interstop_distance}
-\makecell[r]{Distance inter-arrêt (longueur de segment) \\ \textit{Interstop distance (segment length)}} & \[d_l\] & \[m\] & - & Distance totale parcourue entre deux arrêts consécutifs sur le parcours. \\
+\makecell[r]{Interstop distance (segment length)} & \[d_l\] & \[m\] & - & Total distance traveled between two consecutive stop nodes on the path. \\
 \hline
 \label{average_interstop_distance}
-\makecell[r]{Distance inter-arrêt moyenne de parcours \\ \textit{Average path interstop distance}} & \[\overline{d_l}\] & \[m\] & \[\frac{\sum_{i=1}^{n_l} {d_l}_i} {n_l}\] & Moyenne des distances inter-arrêts du parcours. \\
+\makecell[r]{Average path interstop distance} & \[\overline{d_l}\] & \[m\] & \[\frac{\sum_{i=1}^{n_l} {d_l}_i} {n_l}\] & Average of interstop distances on the path. \\
 \hline
 \label{median_interstop_distance}
-\makecell[r]{Distance inter-arrêt médiane de parcours \\ \textit{Median path interstop distance}} & \[\widetilde{d_l}\] & \[m\] & - & Médiane des distances inter-arrêts du parcours. \\
+\makecell[r]{Median path interstop distance} & \[\widetilde{d_l}\] & \[m\] & - & Median of interstop distances on the path. \\
 \hline
 \label{minimum_interstop_distance}
-\makecell[r]{Distance inter-arrêt minimale de parcours \\ \textit{Minimum path interstop distance}} & \[{d_l}_{min}\] & \[m\] & - & Longueur du segment inter-arrêts le plus court du parcours. \\
+\makecell[r]{Minimum path interstop distance} & \[{d_l}_{min}\] & \[m\] & - & Length of the shortest interstop segment on the path. \\
 \hline
 \label{maximum_interstop_distance}
-\makecell[r]{Distance inter-arrêt maximale de parcours \\ \textit{Maximum path interstop distance}} & \[{d_l}_{max}\] & \[m\] & - & Longueur du segment inter-arrêts le plus long du parcours. \\
+\makecell[r]{Maximum path interstop distance} & \[{d_l}_{max}\] & \[m\] & - & Length of the longest interstop segment on the path. \\
 \hline
 \label{average_line_interstop_distance}
-\makecell[r]{Distance inter-arrêt moyenne de ligne \\ \textit{Average line interstop distance}} & \[\overline{{d_l}_L}\] & \[m\] & \[\frac{\sum_{j=1}^{n_p} {(\sum_{i=1}^{{n_l}_j} {d_l}_i})} {\sum_{j=1}^{n_p} {{n_l}_j}}\] & Distance moyenne des segments inter-arrêts d'une ligne dans les deux directions. \\
+\makecell[r]{Average line interstop distance} & \[\overline{{d_l}_L}\] & \[m\] & \[\frac{\sum_{j=1}^{n_p} {(\sum_{i=1}^{{n_l}_j} {d_l}_i})} {\sum_{j=1}^{n_p} {{n_l}_j}}\] & Average distance of interstop segments of a line in both directions. \\
 \hline
 \label{median_line_interstop_distance}
-\makecell[r]{Distance inter-arrêt médiane de ligne \\ \textit{Median path interstop distance}} & \[\widetilde{{d_l}_L}\] & \[m\] & - & Médiane des distances inter-arrêts de la ligne. \\
+\makecell[r]{Median line interstop distance} & \[\widetilde{{d_l}_L}\] & \[m\] & - & Median of interstop distances on the line. \\
 \hline
 \label{minimum_line_interstop_distance}
-\makecell[r]{Distance inter-arrêt minimale de ligne \\ \textit{Minimum path interstop distance}} & \[{{d_l}_L}_{min}\] & \[m\] & - & Longueur du segment inter-arrêts le plus court de la ligne. \\
+\makecell[r]{Minimum line interstop distance} & \[{{d_l}_L}_{min}\] & \[m\] & - & Length of the shortest interstop segment on the line. \\
 \hline
 \label{maximum_line_interstop_distance}
-\makecell[r]{Distance inter-arrêt maximale de ligne \\ \textit{Maximum path interstop distance}} & \[{{d_l}_L}_{max}\] & \[m\] & - & Longueur du segment inter-arrêts le plus long de la ligne. \\
+\makecell[r]{Maximum line interstop distance} & \[{{d_l}_L}_{max}\] & \[m\] & - & Length of the longest interstop segment on the line. \\
 \hline
 \label{path_length}
-\makecell[r]{Longueur de parcours \\ \textit{Path length}} & \[d_p\] & \[m\] & \[\sum_{i=1}^{n_l} {d_l}_i\] & Longueur totale du parcours. \\
+\makecell[r]{Path length} & \[d_p\] & \[m\] & \[\sum_{i=1}^{n_l} {d_l}_i\] & Total length of the path. \\
 \hline
 \label{path_outbound_length}
-\makecell[r]{Longueur de parcours aller \\ \textit{Outbound path length}} & \[d^{\prime}\] & \[m\] & \[\sum_{i=1}^{{n_l}_{p^{\prime}}} {d_l}_i\] & Longueur totale du parcours en direction aller. \\
+\makecell[r]{Outbound path length} & \[d^{\prime}\] & \[m\] & \[\sum_{i=1}^{{n_l}_{p^{\prime}}} {d_l}_i\] & Total length of the path in the outbound direction. \\
 \hline
 \label{path_inbound_length}
-\makecell[r]{Longueur de parcours retour \\ \textit{Inbound path length}} & \[d^{\prime\prime}\] & \[m\] & \[\sum_{i=1}^{{n_l}_{p^{\prime\prime}}} {d_l}_i\] & Longueur totale du parcours en direction retour. \\
+\makecell[r]{Inbound path length} & \[d^{\prime\prime}\] & \[m\] & \[\sum_{i=1}^{{n_l}_{p^{\prime\prime}}} {d_l}_i\] & Total length of the path in the inbound direction. \\
 \hline
 \label{line_length}
-\makecell[r]{Longueur de ligne \\ \textit{Line length}} & \[d_L\] & \[m\] & \[\sum_{i=1}^{{N_l}_L} {d_l}_i\] & Longueur totale du parcours dans une seule direction. Valable seulement pour les lignes unidirectionnelles, en boucle ou bidirectionnelles symétriques. \\
+\makecell[r]{Line length} & \[d_L\] & \[m\] & \[\sum_{i=1}^{{N_l}_L} {d_l}_i\] & Total length of the path in one direction. Valid only for unidirectional, loop, or symmetric bidirectional lines. \\
 \hline
 \label{network_length}
-\makecell[r]{Longueur de réseau \\ \textit{Network length}} & \[D_{net}\] & \[km\] & \[\sum_{i=1}^{N_{l_u}} {{d_l}_i} + \sum_{i=1}^{N_{l_{m}}} {{d_l}_i}\] & Longueur totale de tous les segments uniques de lignes (dans une direction). Ne compter qu'une seule fois les segments superposés (sur lesquels passent plusieurs parcours). \\
+\makecell[r]{Network length} & \[D_{net}\] & \[km\] & \[\sum_{i=1}^{N_{l_u}} {{d_l}_i} + \sum_{i=1}^{N_{l_{m}}} {{d_l}_i}\] & Total length of all unique line segments (in one direction). Count overlapping segments (on which multiple paths run) only once. \\
 \hline
 \label{lines_length}
-\makecell[r]{Longueur de lignes \\ \textit{Lines lengths}} & \[D_{L_{tot}}\] & \[km\] & \[\sum_{i=1}^{N_L} {{d_L}_i}\] & Longueur totale de l'ensemble des lignes (dans une direction). Additionner les segments superposés. \\
+\makecell[r]{Lines lengths} & \[D_{L_{tot}}\] & \[km\] & \[\sum_{i=1}^{N_L} {{d_L}_i}\] & Total length of all lines (in one direction). Add overlapping segments. \\
 \hline
 \label{vehicle_length}
-\makecell[r]{Longueur de véhicule \\ \textit{Vehicle length}} & \[l_y\] & \[m\] & - & Longueur d'un véhicule. \\
+\makecell[r]{Vehicle length} & \[l_y\] & \[m\] & - & Length of a vehicle. \\
 \hline
 \label{unit_length}
-\makecell[r]{Longueur d'unité \\ \textit{Unit length}} & \[l_u\] & \[m\] & \[\sum_{i=1}^{n_y} {l_y}_i\] & Longueur d'une unité. \\
+\makecell[r]{Unit length} & \[l_u\] & \[m\] & \[\sum_{i=1}^{n_y} {l_y}_i\] & Length of a unit. \\
 \hline
 \end{longtable}
 
@@ -419,180 +408,179 @@
     C{.04\NetTableWidth}%
     C{.14\NetTableWidth}%
     L{.46\NetTableWidth}%
-  }
+}
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{network_direct_distance}
-\makecell[r]{Distance réseau directe \\ \textit{Direct network distance}} & \[d_n\] & \[m\] & - & Distance sur le réseau routier, ferroviaire ou autre qui minimise la distance totale entre les deux terminus, sans avoir à s'arrêter en chemnin (ne tient pas compte des arrêts en route). \\
+\makecell[r]{Direct network distance} & \[d_n\] & \[m\] & - & Distance on the road, rail, or other network that minimizes the total distance between the two terminals, without having to stop en route (does not account for detours made to reach stops). \\
 \hline
 \label{euclidean_distance}
-\makecell[r]{Distance euclidienne \\ \textit{Euclidian distance}} & \[d_e\] & \[m\] & - & Distance à vol d'oiseau entre les deux terminus. \\
+\makecell[r]{Euclidean distance} & \[d_e\] & \[m\] & - & As-the-crow-flies distance between the two terminals. \\
 \hline
 \label{access_distance}
-\makecell[r]{Distance d'accès à l'origine \\ \textit{Access distance}} & \[{d_e}_O\] & \[m\] & - & Distance parcourue par l'usager de l'origine du déplacement au premier arrêt de son parcours de transport collectif. \\
+\makecell[r]{Access distance} & \[{d_e}_O\] & \[m\] & - & Distance traveled by the user from the origin to the first boarding stop of their transit trip. \\
 \hline
 \label{egress_distance}
-\makecell[r]{Distance d'accès à destination \\ \textit{Egress distance}} & \[{d_e}_D\] & \[m\] & - & Distance parcourue par l'usager du dernier arrêt de son parcours de transport collectif à la destination du déplacement. \\
+\makecell[r]{Egress distance} & \[{d_e}_D\] & \[m\] & - & Distance traveled by the user from the last stop of their transit trip to the destination. \\
 \hline
 \label{access_egress_distance}
-\makecell[r]{Distance d'accès à l'origine et à destination \\ \textit{Access/egress distance}} & \[{d_e}_{OD}\] & \[m\] & \[{d_e}_O + {d_e}_D\] & Distance parcourue par l'usager de l'origine au premier arrêt et du dernier arrêt à la destination de son parcours de transport collectif. \\
+\makecell[r]{Access/egress distance} & \[{d_e}_{OD}\] & \[m\] & \[{d_e}_O + {d_e}_D\] & Distance traveled by the user from origin to first stop and from last stop to destination of their transit trip. \\
 \hline
 \label{transfer_distance}
-\makecell[r]{Distance de transfert \\ \textit{Transfer distance}} & \[d_{tr}\] & \[m\] & - & Distance parcourue pour se déplacer d'un arrêt à l'autre lors d'un transfert particulier. \\
+\makecell[r]{Transfer distance} & \[d_{tr}\] & \[m\] & - & Distance traveled to travel from the alighting stop to the boarding stop during a specific transfer. \\
 \hline
 \label{total_transfer_distance}
-\makecell[r]{Distance totale de transfert \\ \textit{Total transfer distance}} & \[{d_{tr}}_{tot}\] & \[m\] & \[\sum_{i=1}^{n_{tr}} {d_{tr}}_i\] & Distance totale parcourue pour se déplacer d'un arrêt à l'autre lors de tous les transferts effectués pendant le parcours. N'inclut pas les distances d'accès à l'origine et à destination. \\
+\makecell[r]{Total transfer distance} & \[{d_{tr}}_{tot}\] & \[m\] & \[\sum_{i=1}^{n_{tr}} {d_{tr}}_i\] & Total distance traveled between stops during all transfers made during the trip. Does not include access and egress distances. \\
 \hline
 \label{total_access_egress_transfer_distance}
-\makecell[r]{Distance totale d'accès et de transfert \\ \textit{Total access/sgress and transfer distance}} & \[d_{e_{tot}}\] & \[m\] & \[{d_e}_{OD} + {d_{tr}}_{tot}\]& Somme des distances d'accès de l'origine du déplacement au premier arrêt et du dernier arrêt de son parcours de transport collectif à la destination du déplacement, et de la distance totale de transfert. Cette distance représente la distance totale parcourue à pied, à vélo ou en voiture pour accéder au service de transport collectif à l'origine et à destination et pour se déplacer entre les arrêts de transfert. \\
+\makecell[r]{Total access/egress and transfer distance} & \[d_{e_{tot}}\] & \[m\] & \[{d_e}_{OD} + {d_{tr}}_{tot}\]& Sum of access distances from trip origin to first stop and from last stop to trip destination, plus total transfer distances. This distance represents the total distance traveled by walking, cycling, or driving to access transit service at origin and destination and to transfer between lines. \\
 \hline
 \label{in_vehicle_distance}
-\makecell[r]{Distance en véhicule \\ \textit{In-vehicle distance}} & \[d_{veh}\] & \[m\] & - & Distance parcourue en véhicule sur une ligne entre l'embarquement à un arrêt et le débarquement à un arrêt subséquent sur la ligne. \\
+\makecell[r]{In-vehicle distance} & \[d_{veh}\] & \[m\] & - & Distance traveled in vehicle on a line between boarding and alighting on the line. \\
 \hline
 \label{total_in_vehicle_distance}
-\makecell[r]{Distance totale en véhicule \\ \textit{Total in-vehicle distance}} & \[d_{{veh}_{tot}}\] & \[m\] & \[\sum_{i=1}^{n_{tr}+1} d_{{veh}_i}\] & Distance totale parcourue en véhicule lors du parcours de transport collectif complet, incluant les distances de tous les segments de ligne empruntés. \\
+\makecell[r]{Total in-vehicle distance} & \[d_{{veh}_{tot}}\] & \[m\] & \[\sum_{i=1}^{n_{tr}+1} d_{{veh}_i}\] & Total distance traveled in vehicle during the complete transit trip, including distances of all line segments used. \\
 \hline
 \label{total_od_distance}
-\makecell[r]{Distance totale OD \\ \textit{Total OD distance}} & \[d_{OD}\] & \[m\] & \[d_{e_{tot}} + d_{{veh}_{tot}}\] & Distance totale parcourue lors d'un déplacement de transport collectif, incluant l'accès et les transferts. \\
+\makecell[r]{Total OD distance} & \[d_{OD}\] & \[m\] & \[d_{e_{tot}} + d_{{veh}_{tot}}\] & Total distance traveled by a userduring a transit trip, including access and transfers. \\
 \hline
 \label{total_od_transit_distance}
-\makecell[r]{Distance totale OD transport collectif \\ \textit{Total OD transit distance}} & \[d_{transit}\] ou \[d_{TC}\] & \[m\] & \[d_{OD}\] & Distance totale calculée en transport collectif. Permet de comparer la compétitivité des modes entre eux. \\
+\makecell[r]{Total OD transit distance} & \[d_{transit}\] or \[d_{TC}\] & \[m\] & \[d_{OD}\] & Total distance calculated for the trip using transit. Allows comparison of competitiveness between modes. \\
 \hline
 \label{total_od_driving_distance}
-\makecell[r]{Distance totale OD voiture \\ \textit{Total OD driving distance}} & \[d_{car}\] ou \[d_{driving}\]  & \[m\] & - & Distance totale du chemin le plus rapide calculé en voiture. Attention de bien spécifier si le parcours optimal a été calculé en tenant compte de la congestion. \\
+\makecell[r]{Total OD driving distance} & \[d_{car}\] or \[d_{driving}\]  & \[m\] & - & Total distance of the fastest path calculated by car. Care must be taken to specify if the optimal path was calculated taking congestion into account. \\
 \hline
 \label{total_od_cycling_distance}
-\makecell[r]{Distance totale OD vélo \\ \textit{Total OD cycling distance}} & \[d_{bicycle}\] ou \[d_{cycling}\] & \[m\] & - & Distance totale du chemin le plus rapide calculé à vélo. \\
+\makecell[r]{Total OD cycling distance} & \[d_{bicycle}\] or \[d_{cycling}\] & \[m\] & - & Total distance of the fastest path calculated by bicycle. \\
 \hline
 \label{total_od_walking_distance}
-\makecell[r]{Distance totale OD marche \\ \textit{Total OD walking distance}} & \[d_{foot}\] ou \[d_{walking}\] & \[m\] & - & Distance totale du chemin le plus rapide calculé à pied. \\
+\makecell[r]{Total OD walking distance} & \[d_{foot}\] or \[d_{walking}\] & \[m\] & - & Total distance of the fastest path calculated on foot. \\
 \hline
 \end{longtable}
 
 
 
 \pagebreak
-\subsection*{Temps et durées • \textit{Time and durations}}
-
+\subsection*{Time and durations}
 \begin{longtable}{%
     R{.28\NetTableWidth}%
     C{.07\NetTableWidth}%
     C{.03\NetTableWidth}%
     C{.22\NetTableWidth}%
     L{.40\NetTableWidth}%
-  }
+}
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{acceleration_time}
-\makecell[r]{Temps d'accélération \\ \textit{Acceleration time}} & \[t_a\] & \[s\] & \[\frac{v_p}{a}\] & Temps requis pour accélérer de l'arrêt complet à la vitesse programmée. \\
+\makecell[r]{Acceleration time} & \[t_a\] & \[s\] & \[\frac{v_p}{a}\] & Time required to accelerate from a complete stop to programmed speed. \\
 \hline
 \label{deceleration_time}
-\makecell[r]{Temps de décélération \\ \textit{Deceleration time}} & \[t_b\] & \[s\] & \[\frac{v_p}{b}\] & Temps requis pour ralentir et freiner de la vitesse programmée à l'arrêt complet. \\
+\makecell[r]{Deceleration time} & \[t_b\] & \[s\] & \[\frac{v_p}{b}\] & Time required to slow down and brake from programmed speed to a complete stop. \\
 \hline
 \label{travel_time_at_programmed_speed}
-\makecell[r]{Temps à vitesse programmée \\ \textit{Travel time at programmed speed}} & \[t_{v_p}\] & \[s\] & \[\frac{d_{v_p}}{v_p}\] (catégorie A ou B seulement) & Temps entre la fin de l'accélération et le début de la décélération d'un segment entre arrêts. \\
+\makecell[r]{Travel time at programmed speed} & \[t_{v_p}\] & \[s\] & \[\frac{d_{v_p}}{v_p}\] (category A or B only) & Time between the end of acceleration and the beginning of deceleration of a segment between stops. \\
 \hline
 \label{segment_interstop_travel_time}
-\makecell[r]{Temps de parcours de segment/inter-arrêts \\ \textit{Segment/Interstop travel time}} & \[t_l\] & \[s\] & \[t_a + t_{v_p} + t_b\] ou \[\sqrt[]{\frac{2(a + b){d}_l}{a b}}\] si la distance inter-arrêt ne permet pas d'atteindre la vitesse programmée & Temps de parcours entre deux arrêts consécutifs qui n'inclut pas les temps d'arrêt, mais qui inclut les temps d'accélération et de décélération, ainsi que les temps d'arrêt aux feux de circulation ou en congestion. Les expressions ne sont valables que pour les catégories A ou B (aucune congestion ou feux de circulation). \\
+\makecell[r]{Segment/Interstop travel time} & \[t_l\] & \[s\] & \[t_a + t_{v_p} + t_b\] or \[\sqrt[]{\frac{2(a + b){d}l}{a b}}\] if the interstop distance doesn't allow reaching programmed speed & Travel time between two consecutive stops that doesn't include dwell times, but includes acceleration and deceleration times, as well as traffic light or congestion stop and go times. The expressions are only valid for categories A or B (no congestion or traffic lights). \\
 \hline
 \label{average_interstop_travel_time}
-\makecell[r]{Temps de parcours de segment moyen \\ \textit{Average interstop travel time}} & \[\overline{t_l}\] & \[s\] & \[\frac{\sum_{i=1}^{n_l} {t_l}_i}{n_l}\] & Moyenne des temps de parcours inter-arrêt d'un parcours ou des parcours aller et retour d'une ligne bidirectionnelle. \\
+\makecell[r]{Average interstop travel time} & \[\overline{t_l}\] & \[s\] & \[\frac{\sum{i=1}^{n_l} {t_l}i}{n_l}\] & Average of interstop travel times of a path or outbound and inbound paths of a bidirectional line. \\
 \hline
 \label{median_interstop_travel_time}
-\makecell[r]{Temps de parcours de segment médian \\ \textit{Median interstop travel time}} & \[\widetilde{t_l}\] & \[s\] & & Médiane des temps de parcours inter-arrêt d'un parcours ou des parcours aller et retour d'une ligne bidirectionnelle. \\
+\makecell[r]{Median interstop travel time} & \[{\widetilde{t_l}}\] & \[s\] & & Median of interstop travel times of a path or outbound and inbound paths of a bidirectional line. \\
 \hline
 \label{door_opening_time}
-\makecell[r]{Temps d'ouverture des portes \\ \textit{Door opening time}} & \[t_{do}\] & \[s\] & - & Temps requis pour l'ouverture de toutes les portes d'une unité pour le débarquement et/ou l'embarquement des passagers. \\
+\makecell[r]{Door opening time} & \[t_{do}\] & \[s\] & - & Time required for opening all doors of a unit for passenger boarding and/or alighting. \\
 \hline
 \label{door_closing_time}
-\makecell[r]{Temps de fermeture des portes \\ \textit{Door closing time}} & \[t_{dc}\] & \[s\] & - & Temps requis pour la fermeture de toutes les portes d'une unité pour le débarquement et/ou l'embarquement des passagers. \\
+\makecell[r]{Door closing time} & \[t_{dc}\] & \[s\] & - & Time required for closing all doors of a unit after passenger boarding and/or alighting. \\
 \hline
 \label{dwell_time}
-\makecell[r]{Temps d'arrêt \\ \textit{Dwell time}} & \[t_q\] ou \[t_s\] & \[s\] & $\begin{gathered}[t] \max{\Big(\frac{n_B}{n_{{Bch}_{u}}} \overline{t_B}\ ,\ \frac{n_A}{n_{{Ach}_{u}}} \overline{t_A}\Big)} \\ + t_{do} + t_{dc} \end{gathered}$ & Temps pendant lequel l'unité en service sur un parcours est à l'arrêt complet, permettant l'embarquement et le débarquement des passagers au quai ou vis-à-vis le panneau d'arrêt. \\
+\makecell[r]{Dwell time} & \[t_q\] or \[t_s\] & \[s\] & $\begin{gathered}[t] \max{\Big(\frac{n_B}{n_{{Bch}_u}} \overline{t_B}\ ,\ \frac{n_A}{n{{Ach}_u}} \overline{t_A}\Big)} \ + t_{do} + t_{dc} \end{gathered}$ & Time during which the unit in service on a path is at a complete stop, allowing passenger boarding and alighting at the platform or at the stop sign. \\
 \hline
 \label{average_dwell_time}
-\makecell[r]{Temps d'arrêt moyen \\ \textit{Average dwell time}} & \[\overline{t_q}\] & \[s\] & \[\frac{\sum_{i=1}^{n_q} {t_q}_i}{n_q}\] & Moyenne des temps d'arrêt d'un parcours. \\
+\makecell[r]{Average dwell time} & \[\overline{t_q}\] & \[s\] & \[\frac{\sum_{i=1}^{n_q} {t_q}i}{n_q}\] & Average of dwell times on a path. \\
 \hline
 \label{median_dwell_time}
-\makecell[r]{Temps d'arrêt median \\ \textit{Median dwell time}} & \[\widetilde{t_q}\] & \[s\] & & Médiane des temps d'arrêt d'un parcours. \\
+\makecell[r]{Median dwell time} & \[\widetilde{t_q}\] & \[s\] & & Median of dwell times on a path. \\
 \hline
 \label{stop_to_stop_time}
-\makecell[r]{Temps arrêt à arrêt \\ \textit{Stop to stop time}} & \[t_{\Delta s}\] & \[s\] & \[t_q + t_l\] & Temps total entre le départ de l'arrêt précédent et le départ de l'arrêt suivant. Comprend le temps de parcours inter-arrêts et le temps d'arrêt. \\
+\makecell[r]{Stop-to-stop time} & \[t_{\Delta s}\] & \[s\] & \[t_q + t_l\] & Total time between departure from the previous stop and departure from the next stop. Includes interstop travel time and dwell time. \\
 \hline
 \label{line_average_dwell_time}
-\makecell[r]{Temps d'arrêt moyen de ligne \\ \textit{Line average dwell time }} & \[\overline{t_q}_L\] & \[s\] & \[\frac{\sum_{j=1}^{n_p} {(\sum_{i=1}^{{n_q}_j} {{t_q}_j}_i})} {\sum_{j=1}^{n_p} {n_q}_j}\] & Moyenne des temps d'arrêt d'une ligne. Attention aux ambiguïtés lorsque la ligne possède plusieurs parcours, notamment des parcours bidirectionnels non symétriques avec des temps d'arrêt non semblables. \\
+\makecell[r]{Line average dwell time} & \[\overline{t_q}_L\] & \[s\] & \[\frac{\sum_{j=1}^{n_p} {(\sum_{i=1}^{{n_q}_j} {{t_q}_j}_i})} {\sum_{j=1}^{n_p} {n_q}_j}\] & Average of dwell times on a line. Care must be taken with ambiguities when the line has multiple paths, particularly bidirectional asymmetric paths with dissimilar dwell times. \\
 \hline
 \label{maximum_dwell_time}
-\makecell[r]{Temps d'arrêt maximal \\ \textit{Maximum dwell time}} & \[{t_q}_{max}\] & \[s\] & \[\max_{i=1}^{n_q} {{t_q}_i}\] & Temps d'arrêt à l'arrêt le plus achalandé et/ou demandant le plus de temps d'embarquement et de débarquement sur l'ensemble du parcours. \\
+\makecell[r]{Maximum dwell time} & \[{t_q}_{max}\] & \[s\] & \[\max_{i=1}^{n_q} {{t_q}_i}\] & Dwell time at the busiest node stop and/or requiring the most boarding and alighting time over the entire path. \\
 \hline
 \label{line_maximum_dwell_time}
-\makecell[r]{Temps d'arrêt maximal de ligne \\ \textit{Line maximum dwell time}} & \[{{t_q}_L}_{max}\] & \[s\] & \[\max_{i=1}^{{n_q}_L} {{t_q}_i}\] & Temps d'arrêt à l'arrêt le plus achalandé et/ou demandant le plus de temps d'embarquement et de débarquement sur la ligne. Attention aux ambiguïtés lorsque la ligne possède plusieurs parcours, notamment des parcours bidirectionnels non symétriques avec des temps d'arrêt non semblables. \\
+\makecell[r]{Line maximum dwell time} & \[{{t_q}_L}_{max}\] & \[s\] & \[\max_{i=1}^{{n_q}_L} {{t_q}_i}\] & Dwell time at the busiest nodestop and/or requiring the most boarding and alighting time on the line. Care must be taken with ambiguities when the line has multiple paths, particularly bidirectional asymmetric paths with dissimilar dwell times. \\
 \hline
 \label{reaction_time}
-\makecell[r]{Temps de réaction \\ \textit{Reaction time}} & \[t_r\] & \[s\] & - & Temps de réaction du conducteur ou du système autonome entre le début de la consigne ou de la demande de freinage ou d'accélération et le début du freinage ou de l'accélération. \\
+\makecell[r]{Reaction time} & \[t_r\] & \[s\] & - & Reaction time of the driver or autonomous system between the start of the braking/deceleration or acceleration command or request and the beginning of braking/deceleration or acceleration. \\
 \hline
 \label{operating_time}
-\makecell[r]{Temps d'opération \\ \textit{Operating time}} & \[T_o\] & \[s\] & \[\sum_{i=1}^{n_l} {t_l}_i + \sum_{i=1}^{n_q - 1} {t_q}_i = \frac{d_L}{V_o}\]& Temps total entre le départ du terminus de départ et l'arrivée au terminus d'arrivée. Habituellement, on compte un temps d'arrêt de moins que le nombre d'arrêts sur le parcours (le temps au premier arrêt est inclus dans le battement). \\
+\makecell[r]{Operating time} & \[T_o\] & \[s\] & \[\sum_{i=1}^{n_l} {t_l}_i + \sum_{i=1}^{n_q - 1} {t_q}_i = \frac{d_L}{V_o}\]& Total time between departure from the origin terminal and arrival at the destination terminal. Usually, one less dwell time than the number of stops on the path is counted (the time at the first stop is included in the layover). \\
 \hline
 \label{operating_time_outbound}
-\makecell[r]{Temps d'opération aller \\ \textit{Outbound operating time}} & \[{T_o}^\prime\] & \[s\] & \[\sum_{i=1}^{{n_l}_p} {t_l}_i + \sum_{i=1}^{n_q - 1} {t_q}_i \] où p est le parcours aller & Temps total entre le départ du terminus de départ et l'arrivée au terminus d'arrivée du parcours aller. Habituellement, on compte un temps d'arrêt de moins que le nombre d'arrêts sur le parcours (le temps au premier arrêt est inclus dans le battement). \\
+\makecell[r]{Outbound operating time} & \[{T_o}^\prime\] & \[s\] & \[\sum_{i=1}^{{n_l}_p} {t_l}_i + \sum_{i=1}^{n_q - 1} {t_q}_i \] where p is the outbound path & Total time between departure from the origin terminal and arrival at the destination terminal of the outbound path. Usually, one less dwell time than the number of stops on the path is counted (the time at the first stop is included in the layover). \\
 \hline
 \label{operating_time_return}
-\makecell[r]{Temps d'opération retour \\ \textit{Inbound operating time}} & \[{T_o}^{\prime\prime}\] & \[s\] & \[\sum_{i=1}^{{n_l}_p} {t_l}_i + \sum_{i=1}^{n_q - 1} {t_q}_i \] où p est le parcours retour & Temps total entre le départ du terminus de départ et l'arrivée au terminus d'arrivée du parcours retour. Habituellement, on compte un temps d'arrêt de moins que le nombre d'arrêts sur le parcours (le temps au premier arrêt est inclus dans le battement). \\
+\makecell[r]{Inbound operating time} & \[{T_o}^{\prime\prime}\] & \[s\] & \[\sum_{i=1}^{{n_l}_p} {t_l}_i + \sum_{i=1}^{n_q - 1} {t_q}_i \] where p is the inbound path & Total time between departure from the origin terminal and arrival at the destination terminal of the inbound path. Usually, one less dwell time than the number of stops on the path is counted (the time at the first stop is included in the layover). \\
 \hline
 \label{layover_time}
-\makecell[r]{Temps de battement \\ \textit{Layover time}} & \[{t_t}\] & \[s\] & - & Temps requis pour débarquer les passagers au dernier arrêt, pour permettre à l'unité de se remettre en disponibilité pour le parcours suivant, pour rattraper les retards accumulés et pour embarquer les passagers pour le prochain départ en direction inverse. Habituellement, le battement n'inclut que le temps d'arrêt au départ du terminus, mais pas à l'arrivée (inclus dans le temps d'opération). \\
+\makecell[r]{Layover time} & \[{t_t}\] & \[s\] & - & Time required to alight passengers at the last stop, to allow the unit to become available for the next path, to make up for accumulated delays, and to board passengers for the next departure in the opposite direction. Usually, layover only includes dwell time at terminal departure, but not at arrival (included in operating time). \\
 \hline
 \label{minimum_layover_time}
-\makecell[r]{Temps de battement minimum \\ \textit{Minimum layover time}} & \[{t_t}_{min}\] & \[s\] & - & Temps de  battement minimum requis, peu importe le temps d'opération prévu. \\
+\makecell[r]{Minimum layover time} & \[{t_t}_{min}\] & \[s\] & - & Minimum required layover time, regardless of planned operating time. \\
 \hline
 \label{path_layover_time}
-\makecell[r]{Temps de battement de parcours \\ \textit{Path layover time}} & \[{t_t}_p\] & \[s\] & \[\max \Big( {t_t}_{min}\ ,\  {\gamma_t} {T_o} \Big)\] & Temps de battement au terminus d'arrivée du parcours. \\
+\makecell[r]{Path layover time} & \[{t_t}_p\] & \[s\] & \[\max \Big( {t_t}_{min}\ ,\  {\gamma_t} {T_o} \Big)\] & Layover time at the specific path's arrival terminal. \\
 \hline
 \label{outbound_layover_time}
-\makecell[r]{Temps de battement aller \\ \textit{Outbound layover time}} & \[{t_t}^\prime\] & \[s\] & \[\max \Big( {t_t}_{min}\ ,\  {\gamma_t}^\prime {T_o}^{\prime} \Big)\] & Temps de battement au terminus 1 (à la fin du parcours aller). \\
+\makecell[r]{Outbound layover time} & \[{t_t}^\prime\] & \[s\] & \[\max \Big( {t_t}_{min}\ ,\  {\gamma_t}^\prime {T_o}^{\prime} \Big)\] & Layover time at the departure terminal (at the end of the outbound path). \\
 \hline
 \label{inbound_layover_time}
-\makecell[r]{Temps de battement retour \\ \textit{Inbound layover time}} & \[{t_t}^{\prime\prime}\] & \[s\] & \[\max \Big( {t_t}_{min}\ ,\  {\gamma_t}^{\prime\prime} {T_o}^{\prime\prime} \Big)\] & Temps de battement au terminus 2 (à la fin du parcours retour) \\
+\makecell[r]{Inbound layover time} & \[{t_t}^{\prime\prime}\] & \[s\] & \[\max \Big( {t_t}_{min}\ ,\  {\gamma_t}^{\prime\prime} {T_o}^{\prime\prime} \Big)\] & Layover time at the departure terminal (at the end of the inbound path). \\
 \hline
 \label{total_layover_time}
-\makecell[r]{Temps de battement total \\ \textit{Total layover time}} & \[t_t\] & \[s\] & \[\max \Big( 2{t_t}_{min}\ ,\  {\gamma_t}^\prime {T_o}^\prime + {\gamma_t}^{\prime\prime} {T_o}^{\prime\prime} \Big)\] ou \[ \max \Big( 2{t_t}_{min}\ ,\  2 \gamma_t T_o \Big)\] pour une ligne symétrique & Temps de battement total à l'ensemble des terminus d'une ligne bidirectionnelle ou d'une ligne en boucle. Attention aux ambiguïtés si la ligne possède plusieurs parcours distincts. Le temps de battement inclut les temps d'embarquement et de débarquement des passagers aux terminus. \\
+\makecell[r]{Total layover time} & \[t_t\] & \[s\] & \[\max \Big( 2{t_t}_{min}\ ,\  {\gamma_t}^\prime {T_o}^\prime + {\gamma_t}^{\prime\prime} {T_o}^{\prime\prime} \Big)\] or \[ \max \Big( 2{t_t}_{min}\ ,\  2 \gamma_t T_o \Big)\] for a symmetric line & Total layover time at all terminals of a bidirectional line or loop line. Care must be taken with ambiguities if the line has multiple distinct paths. Layover time includes passenger boarding and alighting times at terminals. \\
 \hline
 \label{layover_coefficient}
-\makecell[r]{Coefficient de battement \\ \textit{Layover coefficient}} & \[\gamma_t\] & - & \[\frac{t_t} {T_o}\] & Pourcentage du temps d'opération utilisé pour les battements. Le temps de battement est ajouté au temps d'opération pour obtenir le temps de cycle. Utilisé pour les lignes symétriques. \\
+\makecell[r]{Layover coefficient} & \[\gamma_t\] & - & \[\frac{t_t} {T_o}\] & Percentage of operating time used for layovers. Layover time is added to operating time to obtain cycle time. Used for symmetric lines. \\
 \hline
 \label{outbound_layover_coefficient}
-\makecell[r]{Coefficient de battement aller \\ \textit{Outbound layover coefficient}} & \[{\gamma_t}^\prime\] & - & \[\frac{{t_t}^\prime}{{T_o}^\prime}\] & Pourcentage du temps d'opération du parcours aller utilisé pour le battement aller. \\
+\makecell[r]{Outbound layover coefficient} & \[{\gamma_t}^\prime\] & - & \[\frac{{t_t}^\prime}{{T_o}^\prime}\] & Percentage of outbound path operating time used for outbound layover. \\
 \hline
 \label{inbound_layover_coefficient}
-\makecell[r]{Coefficient de battement retour \\ \textit{Inbound layover coefficient}} & \[{\gamma_t}^{\prime\prime}\] & - & \[\frac{{t_t}^{\prime\prime}}{{T_o}^{\prime\prime}}\] & Pourcentage du temps d'opération du parcours retour utilisé pour le battement retour. \\
+\makecell[r]{Inbound layover coefficient} & \[{\gamma_t}^{\prime\prime}\] & - & \[\frac{{t_t}^{\prime\prime}}{{T_o}^{\prime\prime}}\] & Percentage of inbound path operating time used for inbound layover. \\
 \hline
 \label{total_layover_coefficient}
-\makecell[r]{Coefficient de battement total \\ \textit{Total layover coefficient}} & \[\gamma_t\] & - & \[\frac{{t_t}^{\prime} + {t_t}^{\prime\prime}} {{T_o}^{\prime} + {T_o}^{\prime\prime}}\] & Pourcentage du temps d'opération total utilisé pour les battements. \\
+\makecell[r]{Total layover coefficient} & \[\gamma_t\] & - & \[\frac{{t_t}^{\prime} + {t_t}^{\prime\prime}} {{T_o}^{\prime} + {T_o}^{\prime\prime}}\] & Percentage of total operating time used for layovers. \\
 \hline
 \label{non_productive_tts_layover_time}
-\makecell[r]{Temps improductif de battement cadencé \\ \textit{Non-productive TTS layover time}} & \[{t_t}_{h_p}\] & \[s\] & \[T_c - {T_c}_{min}\] & Temps devant être ajouté au temps de cycle minimum d'une ligne pour pouvoir obtenir un horaire cadencé.\\
+\makecell[r]{Non-productive TTS layover time} & \[{t_t}_{h_p}\] & \[s\] & \[T_c - {T_c}_{min}\] & Time that must be added to the minimum cycle time of a line to achieve a clock-face schedule.\\
 \hline
 \label{total_non_productive_ttslayover_time}
-\makecell[r]{Temps improductif total de battement cadencé \\ \textit{Total non-productive TTS layover time}} & \[{t_t}_{{h_p}_{total}}\] & \[s\] & \[\sum_{i=1}^{n_L} {t_t}_{{h_p}_i} {{n_u}_i}\] où \(n_L\) est le nombre de lignes affectées par le cadencement & Temps total devant être ajouté aux temps de cycle minimum des lignes pour pouvoir obtenir un horaire cadencé.\\
+\makecell[r]{Total non-productive TTS layover time} & \[{t_t}_{{h_p}_{total}}\] & \[s\] & \[\sum_{i=1}^{n_L} {t_t}_{{h_p}_i} {{n_u}_i}\] where \(n_L\) is the number of lines affected by the clock-face scheduling & Total time that must be added to the minimum cycle times of the lines to achieve a clock-face schedule.\\
 \hline
 \label{half_cycle_time}
-\makecell[r]{Temps de demi-cycle \\ \textit{Half-cycle time}} & \[{T_c}_p\] & \[s\] & \[{T_o} + {t_t} \] & Temps total entre le départ du terminus de départ et la fin du battement au terminus d'arrivée. \\
+\makecell[r]{Half-cycle time} & \[{T_c}_p\] & \[s\] & \[{T_o} + {t_t} \] & Total time between departure from the departure terminal and the end of layover at the arrival terminal. \\
 \hline
 \label{outbound_half_cycle_time}
-\makecell[r]{Temps de demi-cycle aller \\ \textit{Outbound half-cycle time}} & \[{{T_c}_p}^{\prime}\] & \[s\] & \[{T_o}^{\prime} + {t_t}^{\prime} \] & Temps total entre le départ du terminus de départ et la fin du battement au terminus d'arrivée du parcours aller. \\
+\makecell[r]{Outbound half-cycle time} & \[{{T_c}_p}^{\prime}\] & \[s\] & \[{T_o}^{\prime} + {t_t}^{\prime} \] & Total time between departure from the departure terminal and the end of layover at the arrival terminal of the outbound path. \\
 \hline
 \label{inbound_half_cycle_time}
-\makecell[r]{Temps de demi-cycle retour \\ \textit{Inbound half-cycle time}} & \[{{T_c}_p}^{\prime\prime}\] & \[s\] & \[{T_o}^{\prime\prime} + {t_t}^{\prime\prime} \] & Temps total entre le départ du terminus de départ et la fin du battement au terminus d'arrivée du parcours retour. \\
+\makecell[r]{Inbound half-cycle time} & \[{{T_c}_p}^{\prime\prime}\] & \[s\] & \[{T_o}^{\prime\prime} + {t_t}^{\prime\prime} \] & Total time between departure from the departure terminal and the end of layover at the arrival terminal of the inbound path. \\
 \hline
 \label{cycle_time}
-\makecell[r]{Temps de cycle \\ \textit{Cycle time}} & \[T_c\] & \[s\] & \[{T_o}^\prime + {t_t}^{\prime} +  {T_o}^{\prime\prime} + {t_t}^{\prime\prime}\] & Le temps de cycle (ou temps de remise en disponibilité) inclut le temps d'opération dans les deux directions et le temps de battement à tous les terminus des parcours aller et retour ou du terminus dans le cas d'une ligne en boucle. Ce temps représente le temps de remise en disponibilité de l'unité pour un prochain voyage. \\
+\makecell[r]{Cycle time} & \[T_c\] & \[s\] & \[{T_o}^\prime + {t_t}^{\prime} +  {T_o}^{\prime\prime} + {t_t}^{\prime\prime}\] & The cycle time (or unit availability time) includes operating time in both directions and layover time at all terminals of outbound and inbound paths or at the unique terminal in the case of a loop line. This time represents the total time the unit needs to be ready for the next trip. \\
 \hline
 \end{longtable}
 
@@ -603,413 +591,412 @@
     C{.04\NetTableWidth}%
     C{.14\NetTableWidth}%
     L{.44\NetTableWidth}%
-  }
+}
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{direct_network_travel_time}
-\makecell[r]{Temps de parcours réseau direct \\ \textit{Direct network travel time}} & \[t_n\] & \[s\] & - & Temps de parcours calculé sur le réseau routier, ferroviaire ou autre le plus rapide entre les deux terminus, sans passer nécessairement par les arrêts du parcours. \\
+\makecell[r]{Direct network travel time} & \[t_n\] & \[s\] & - & Travel time calculated on the fastest road, rail, or other network between the two terminals, without necessarily passing through path stops. \\
 \hline
 \label{deadhead_time}
-\makecell[r]{Temps haut-le-pied \\ \textit{Deadhead time}} & \[t_d\] & \[s\] & - & Somme des temps de parcours entre le garage et le premier terminus en début de tournée, entre le dernier terminus et le garage en fin de tournée, des temps de parcours requis lors des parcours de repositionnement au départ des terminus et les temps de parcours d'interlignage si la tournée effectue du service sur plusieurs lignes. \\
+\makecell[r]{Deadhead time} & \[t_d\] & \[s\] & - & Sum of travel times between depot and first terminal at start of run, between last terminal and depot at end of run, travel times required for repositioning from terminals, and interlining travel times if the run serves multiple lines. \\
 \hline
 \label{platform_time}
-\makecell[r]{Temps plateforme \\ \textit{Platform time}} & \[T_p\] & \[s\] & \[k T_c + t_d\] où \[k\] est le nombre de voyages aller-retour effectués pendant la tournée & Temps total pendant lequel une unité est en opération sur une tournée complète, en service productif et en haut-le-pied. Attention aux ambiguïtés lorsque les tournées comprennent des parcours d'interlignage. \\
+\makecell[r]{Platform time} & \[T_p\] & \[s\] & \[k T_c + t_d\] where \[k\] is the number of round trips during the run & Total time during which a unit is in operation on a complete run, in productive service and deadheading. Care must be taken with ambiguities when runs include interlining paths. \\
 \hline
 \label{access_egress_time}
-\makecell[r]{Temps d'accès \\ \textit{Access/egress time}} & \[t_{e}\] & \[s\] & - & Temps de parcours à pied, à vélo ou en voiture permettant d'atteindre un arrêt. \\
+\makecell[r]{Access/egress time} & \[t_{e}\] & \[s\] & - & Travel time by walking, cycling, or driving to reach a stop. \\
 \hline
 \label{access_time}
-\makecell[r]{Temps d'accès à l'origine \\ \textit{Access time}} & \[{t_e}_O\] & \[s\] & \[v_e {d_e}_O\] & Temps d'accès de l'usager entre l'origine du déplacement et le premier arrêt de son parcours de transport collectif. Un calculateur de chemin réseau pour le mode d'accès (marche, vélo, voiture ou autre) peut permettre d'obtenir un temps d'accès calibré et tenant compte des obstacles et des feux de circulation. \\
+\makecell[r]{Access time} & \[{t_e}_O\] & \[s\] & \[v_e {d_e}_O\] & User access time between trip origin and the first stop of their transit trip. A routing engine for the access mode (walking, cycling, driving, or other) can provide a calibrated access time accounting for road, pedestrian or cycling networks and traffic signals. \\
 \hline
 \label{egress_time}
-\makecell[r]{Temps d'accès à destination \\ \textit{Egress time}} & \[{t_e}_D\] & \[s\] & \[v_e {d_e}_D\] & Temps d'accès de l'usager entre le dernier arrêt de son parcours de transport collectif et la destination du déplacement. \\
+\makecell[r]{Egress time} & \[{t_e}_D\] & \[s\] & \[v_e {d_e}_D\] & User access time between the last stop of their transit trip and the trip destination. \\
 \hline
 \label{access_egress_time_od}
-\makecell[r]{Temps total d'accès à l'origine et à destination \\ \textit{Access/egress time}} & \[{t_e}_{OD}\] & \[s\] & \[{t_e}_O + {t_e}_D\]& Temps total d'accès de l'usager de l'origine du déplacement au premier arrêt et du dernier arrêt de son parcours de transport collectif à la destination du déplacement. N'inclut pas le temps total d'accès de transfert. \\
+\makecell[r]{Access/egress time} & \[{t_e}_{OD}\] & \[s\] & \[{t_e}_O + {t_e}_D\]& Total user access time from trip origin to first stop and from last stop to destination of their transit trip. Does not include total transfer access time. \\
 \hline
 \label{transfer_time}
-\makecell[r]{Temps de transfert \\ \textit{Transfer time}} & \[t_{tr}\] & \[s\] & - & Temps de parcours permettant de passer d'un arrêt à l'autre lors d'un transfer. N'inclut pas le temps d'attente lors du transfert. \\
+\makecell[r]{Transfer time} & \[t_{tr}\] & \[s\] & - & Travel time to move from one stop to another during a transfer. Does not include waiting time during transfer. \\
 \hline
 \label{total_transfer_time}
-\makecell[r]{Temps total de transfert \\ \textit{Total transfer time}} & \[{t_{tr}}_{tot}\] & \[s\] & \[\sum_{i=1}^{n_{tr}} d_{tr}\] & Temps total de parcours permettant de passer d'un arrêt à l'autre lors de tous les transferts effectués pendant le parcours. N'inclut pas les temps d'accès à l'origine et à destination ni le temps d'attente lors du transfert. \\
+\makecell[r]{Total transfer time} & \[{t_{tr}}_{tot}\] & \[s\] & \[\sum_{i=1}^{n_{tr}} d_{tr}\] & Total travel time to move between stops during all transfers made during the transit trip. Does not include access times at origin and destination or waiting time during transfer. \\
 \hline
 \label{total_access_egress_transfer_time}
-\makecell[r]{Temps total d'accès et de transfert \\ \textit{Total access/egress and transfer time}} & \[{t_e}_{tot}\] & \[s\] & \[{t_e}_{OD} + {t_{tr}}_{tot}\] & Somme des temps d'accès de l'usager de l'origine du déplacement au premier arrêt et du dernier arrêt de son parcours de transport collectif à la destination du déplacement, et du temps total d'accès de transfert. Ce temps représente le total du temps de parcours effectué à pied, à vélo ou en voiture pour accéder au service de transport collectif à l'origine et à destination et pour se déplacer entre les arrêts de transfert. \\
+\makecell[r]{Total access/egress and transfer time} & \[{t_e}_{tot}\] & \[s\] & \[{t_e}_{OD} + {t_{tr}}_{tot}\] & Sum of user access times from trip origin to first stop and from last stop to trip destination, plus total transfer access time. This time represents the total travel time spent walking, cycling, or driving to access transit service at origin and destination and to travel between transfer stops. \\
 \hline
 \label{waiting_time}
-\makecell[r]{Temps d'attente \\ \textit{Waiting time}} & \[t_w\] & \[s\] & - & Temps d'attente avant l'embarquement à un arrêt. \\
+\makecell[r]{Waiting time} & \[t_w\] & \[s\] & - & Waiting time before boarding at a stop. \\
 \hline
 \label{origin_waiting_time}
-\makecell[r]{Temps d'attente à l'origine \\ \textit{Origin waiting time}} & \[{t_w}_O\] & \[s\] & - & Temps d'attente au premier arrêt d'embarquement du parcours. \\
+\makecell[r]{Origin waiting time} & \[{t_w}_O\] & \[s\] & - & Waiting time at the first boarding stop of the transit trip. \\
 \hline
 \label{transfer_waiting_time}
-\makecell[r]{Temps d'attente de transfert \\ \textit{Transfer waiting time}} & \[{t_w}_{tr}\] & \[s\] & - & Temps d'attente avant l'embarquement à un arrêt lors d'un transfert. \\
+\makecell[r]{Transfer waiting time} & \[{t_w}_{tr}\] & \[s\] & - & Waiting time before boarding at a stop during a transfer. \\
 \hline
 \label{minimum_waiting_time}
-\makecell[r]{Temps minimum d'attente \\ \textit{Minimum waiting time}} & \[{t_w}_{min}\] & \[s\] & - & Temps minimum de sécurité (d'arrivée à l'avance) avant l'embarquement à un arrêt pour tenir compte des retards possibles de la ligne précédente lors d'un transfert, des incertitudes sur les temps d'accès et de la possibilité que l'unité parte en avance sur l'horaire planifié à l'arrêt d'embarquement. Utilisé pour les calculs de chemin transport collectif. \\
+\makecell[r]{Minimum waiting time} & \[{t_w}_{min}\] & \[s\] & - & Minimum safety time (early arrival) before boarding at a stop to account for possible delays of the previous line during a transfer, uncertainties in access times, and the possibility that the unit departs ahead of the scheduled time at the boarding stop. Used for transit path calculations. \\
 \hline
 \label{total_transfer_waiting_time}
-\makecell[r]{Temps total d'attente de transfert \\ \textit{Total transfer waiting time}} & \[{{t_w}_{tr}}_{tot}\] & \[s\] & \[\sum_{i=1}^{n_{tr}} {{t_w}_i}\] & Temps total d'attente lors des transferts. N'inclut ni le temps d'attente à l'origine, ni les temps d'accès aux transferts. \\
+\makecell[r]{Total transfer waiting time} & \[{{t_w}_{tr}}_{tot}\] & \[s\] & \[\sum_{i=1}^{n_{tr}} {{t_w}_i}\] & Total waiting time during transfers. Does not include origin waiting time or transfer access times. \\
 \hline
 \label{total_waiting_time}
-\makecell[r]{Temps total d'attente \\ \textit{Total waiting time}} & \[{t_w}_{tot}\] & \[s\] & \[{t_w}_O + {{t_w}_{tr}}_{tot}\] & Temps total d'attente, incluant le temps d'attente à l'origine et les temps d'attente de transfert. \\
+\makecell[r]{Total waiting time} & \[{t_w}_{tot}\] & \[s\] & \[{t_w}_O + {{t_w}_{tr}}_{tot}\] & Total waiting time, including origin waiting time and transfer waiting times. \\
 \hline
 \label{in_vehicle_time}
-\makecell[r]{Temps en véhicule \\ \textit{In-vehicle time}} & \[t_{veh}\] & \[s\] & - & Temps passé en véhicule sur une ligne entre l'embarquement à un arrêt et le débarquement à un arrêt subséquent sur la ligne. \\
+\makecell[r]{In-vehicle time} & \[t_{veh}\] & \[s\] & - & Time spent in vehicle on a line between boarding at a stop and alighting at a subsequent stop on the line. \\
 \hline
 \label{total_in_vehicle_time}
-\makecell[r]{Temps total en véhicule \\ \textit{Total in-vehicle time}} & \[{t_{veh}}_{tot}\] & \[s\] & \[\sum_{i=1}^{n_{tr}+1} t_{{veh}_i}\] & Temps total passé en véhicule lors du parcours de transport collectif complet, incluant les temps de parcours de tous les segments de ligne empruntés et les temps d'arrêt en route. \\
+\makecell[r]{Total in-vehicle time} & \[{t_{veh}}_{tot}\] & \[s\] & \[\sum_{i=1}^{n_{tr}+1} t_{{veh}_i}\] & Total time spent in vehicle during the complete transit trip, including travel times of all line segments used and en-route stop times. \\
 \hline
 \label{total_od_time}
-\makecell[r]{Temps total OD \\ \textit{Total OD time}} & \[T_{OD}\] & \[s\] & \[ {t_e}_{tot} + {t_w}_{tot} + {t_{veh}}_{tot}\] & Temps total entre l'origine et la destination. \\
+\makecell[r]{Total OD time} & \[T_{OD}\] & \[s\] & \[ {t_e}_{tot} + {t_w}_{tot} + {t_{veh}}_{tot}\] & Total time between origin and destination. \\
 \hline
 \label{average_single_boarding_time}
-\makecell[r]{Temps moyen d'embarquement par passager \\ \textit{Average single boarding time}} & \[\overline{t_B}\] & \[s\] & - & \\
+\makecell[r]{Average single boarding time} & \[\overline{t_B}\] & \[s\] & - & - \\
 \hline
 \label{average_single_alighting_time}
-\makecell[r]{Temps moyen de débarquement par passager \\ \textit{Average single alighting time}} & \[\overline{t_A}\] & \[s\] & - & \\
+\makecell[r]{Average single alighting time} & \[\overline{t_A}\] & \[s\] & - & - \\
 \hline
 \label{reported_total_time}
-\makecell[r]{Temps total rapporté \\ \textit{Reported total time}} & \[T_{rep}\] \[{T_{rep}}_L\] & \[s\] & - & Temps total déclaré comme ayant été travaillé par les employés. Utiliser l'indice L lorsque le coefficient représente l'efficiacité d'une ligne en particulier (la ligne ne doit pas partager d'unités ou de main d'oeuvre avec une autre). \\
+\makecell[r]{Reported total time} & \[T_{rep}\] \[{T_{rep}}_L\] & \[s\] & - & Total time reported as worked by employees. Use index L when the coefficient represents the efficiency of a particular line (the line must not share units or workforce with another). \\
 \hline
 \label{total_paid_time}
-\makecell[r]{Temps total payé \\ \textit{Total paid time}} & \[T_{paid}\] \[{T_{paid}}_L\] & \[s\] & - & Temps total payé aux employés. Inclut les temps déclarés travaillés et les absences, retards, congés, etc. Utiliser l'indice L lorsque le coefficient représente l'efficiacité d'une ligne en particulier (la ligne ne doit pas partager d'unités ou de main d'oeuvre avec une autre). \\
+\makecell[r]{Total paid time} & \[T_{paid}\] \[{T_{paid}}_L\] & \[s\] & - & Total time paid to employees. Includes reported worked time and absences, delays, leave, etc. Use index L when the coefficient represents the efficiency of a particular line (the line must not share units or workforce with another). \\
 \hline
 \label{total_service_time}
-\makecell[r]{Temps total travaillé en service \\ \textit{Total service time}} & \[T_{serv}\] \[{T_{serv}}_L\] & \[s\] & - & Temps total pour lequel du travail en service a été effectué par les employés. Ce temps n'inclut pas les temps haut-le-pied et les temps de battement. Utiliser l'indice L lorsque le coefficient représente l'efficiacité d'une ligne en particulier (la ligne ne doit pas partager d'unités ou de main d'oeuvre avec une autre). \\
+\makecell[r]{Total service time} & \[T_{serv}\] \[{T_{serv}}_L\] & \[s\] & - & Total time for which service work was performed by employees. This time does not include deadhead times and layover times. Use index L when the coefficient represents the efficiency of a particular line (the line must not share units or workforce with another). \\
 \hline
 \label{personnel_attendence_coefficient}
-\makecell[r]{Coefficient d'efficacité de présence \\ \textit{Personnel attendence coefficient}} & \[\eta_a\] \[{\eta_a}_L\] & - & \[\frac{T_{rep}}{T_{paid}}\] \[\frac{{T_{rep}}_L}{{T_{paid}}_L}\] & Permet d'évaluer le ratio entre les heures rapportées travaillées et les heures payées qui comprennent les absences, retards, congés, etc. Utiliser l'indice L lorsque le coefficient représente l'efficiacité d'une ligne en particulier (la ligne ne doit pas partager d'unités ou de main d'oeuvre avec une autre). \\
+\makecell[r]{Personnel attendance coefficient} & \[\eta_a\] \[{\eta_a}_L\] & - & \[\frac{T_{rep}}{T_{paid}}\] \[\frac{{T_{rep}}_L}{{T_{paid}}_L}\] & Used to evaluate the ratio between reported worked hours and paid hours which include absences, delays, leave, etc. Use index L when the coefficient represents the efficiency of a particular line (the line must not share units or workforce with another). \\
 \hline
 \label{run_cutting_and_schedule_efficiency_coefficient}
-\makecell[r]{Coefficient d'efficacité d'habillage \\ \textit{Run-cutting and schedule efficiency coefficient}} & \[\eta_s\] \[{\eta_s}_L\] & - & \[\frac{T_{serv}}{T_{rep}}\] \[\frac{{T_{serv}}_L}{{T_{rep}}_L}\] & Permet d'évaluer le ratio entre les heures travaillées pour offrir un service aux usagers et les heures rapportées travaillées, qui incluent les réunions, les pauses, les vérifications avant départ, les temps haut-le-pied, les temps en terminus, etc. Utiliser l'indice L lorsque le coefficient représente l'efficiacité d'une ligne en particulier (la ligne ne doit pas partager d'unités ou de main d'oeuvre avec une autre). \\
+\makecell[r]{Run-cutting and schedule efficiency coefficient} & \[\eta_s\] \[{\eta_s}_L\] & - & \[\frac{T_{serv}}{T_{rep}}\] \[\frac{{T_{serv}}_L}{{T_{rep}}_L}\] & Used to evaluate the ratio between hours worked to provide service to users and reported worked hours, which include meetings, breaks, pre-departure checks, deadhead times, terminal times, etc. Use index L when the coefficient represents the efficiency of a particular line (the line must not share units or workforce with another). \\
 \hline
 \label{terminal_efficiency_coefficient}
-\makecell[r]{Coefficient d'efficacité en terminus \\ \textit{Terminal efficiency coefficient}} & \[\eta_t\] \[{\eta_t}_L\] & - & \[\frac{{T_o}^\prime + {T_o}^{\prime\prime}}{T_c}\] lorsque les lignes sont bidirectionnelles et symétriques & Représente le ratio entre le temps total d'opération aller-retour et le temps de cycle qui inclut les battements en terminus. Utiliser l'indice L lorsque le coefficient représente l'efficiacité d'une ligne en particulier (la ligne ne doit pas partager d'unités ou de main d'oeuvre avec une autre). \\
+\makecell[r]{Terminal efficiency coefficient} & \[\eta_t\] \[{\eta_t}_L\] & - & \[\frac{{T_o}^\prime + {T_o}^{\prime\prime}}{T_c}\] when lines are bidirectional and symmetric & Represents the ratio between total round-trip operating time and cycle time which includes terminal layovers. Use index L when the coefficient represents the efficiency of a particular line (the line must not share units or workforce with another). \\
 \hline
 \label{global_efficiency_coefficient}
-\makecell[r]{Coefficient d'efficacité globale \\ \textit{Global operating efficiency coefficient}} & \[\eta\] \[{\eta}_L\] & - & \[\eta_a \eta_s \eta_t\] \[{\eta_a}_L {\eta_s}_L {\eta_t}_L\] & Représente l'efficacité globale d'une ligne ou d'un réseau. Utiliser l'indice L lorsque le coefficient représente l'efficiacité d'une ligne en particulier (la ligne ne doit pas partager d'unités ou de main d'oeuvre avec une autre). \\
+\makecell[r]{Global operating efficiency coefficient} & \[\eta\] \[{\eta}_L\] & - & \[\eta_a \eta_s \eta_t\] \[{\eta_a}_L {\eta_s}_L {\eta_t}_L\] & Represents the global efficiency of a line or network. Use index L when the coefficient represents the efficiency of a particular line (the line must not share units or workforce with another). \\
 \hline
 \label{total_transit_od_time}
-\makecell[r]{Temps total OD en transport collectif \\ \textit{Total transit OD travel time}} & \[T_{transit}\] ou \[T_{TC}\] & \[s\] & \[T_{OD}\] & Temps calculé en transport collectif. Permet de comparer la compétitivité des modes entre eux. \\
+\makecell[r]{Total transit OD travel time} & \[T_{transit}\] or \[T_{TC}\] & \[s\] & \[T_{OD}\] & Time calculated in transit. Allows comparison of competitiveness between modes. \\
 \hline
 \label{total_driving_od_time}
-\makecell[r]{Temps total OD en voiture \\ \textit{Total driving OD travel time}} & \[T_{car}\] ou \[T_{driving}\] & \[s\] & - & Temps de parcours du chemin le plus rapide calculé en voiture. Attention de bien spécifier si ce temps et le parcours emprunté tient compte de la congestion. \\
+\makecell[r]{Total driving OD travel time} & \[T_{car}\] or \[T_{driving}\] & \[s\] & - & Travel time of the fastest path calculated by car. Care must be taken to specify if this time and the path used accounts for congestion. \\
 \hline
 \label{total_bicycle_od_time}
-\makecell[r]{Temps total OD à vélo \\ \textit{Total cycling OD travel time}} & \[T_{bicycle}\] ou \[T_{cycling}\] & \[s\] & - & Temps de parcours du chemin le plus rapide calculé à vélo. \\
+\makecell[r]{Total cycling OD travel time} & \[T_{bicycle}\] or \[T_{cycling}\] & \[s\] & - & Travel time of the fastest path calculated by bicycle. \\
 \hline
 \label{total_walking_od_time}
-\makecell[r]{Temps total OD à pied \\ \textit{Total walking OD travel time}} & \[T_{foot}\] ou \[T_{walking}\] & \[s\] & - & Temps de parcours du chemin le plus rapide calculé à pied. \\
+\makecell[r]{Total walking OD travel time} & \[T_{foot}\] or \[T_{walking}\] & \[s\] & - & Travel time of the fastest path calculated on foot. \\
 \hline
 \label{transit_driving_competitivity_coefficient}
-\makecell[r]{Coefficient de compétitivité TC/voiture \\ \textit{Transit/driving competitivity coefficient}} & \[\mu_{car}\] ou \[\mu_{driving}\] & - & \[\frac{T_{transit}}{T_{car}}\] & Une valeur \(> 1\) indique que le transport collectif est plus lent. \\
+\makecell[r]{Transit/driving competitivity coefficient} & \[\mu_{car}\] or \[\mu_{driving}\] & - & \[\frac{T_{transit}}{T_{car}}\] & A value \(> 1\) indicates that transit is slower. \\
 \hline
 \label{transit_cycling_competitivity_coefficient}
-\makecell[r]{Coefficient de compétitivité du TC/vélo \\ \textit{Transit/cycling competitivity coefficient}} & \[\mu_{bicycle}\] ou \[\mu_{cycling}\] & - & \[\frac{T_{transit}}{T_{bicycle}}\] & Une valeur \(> 1\) indique que le transport collectif est plus lent. \\
+\makecell[r]{Transit/cycling competitivity coefficient} & \[\mu_{bicycle}\] or \[\mu_{cycling}\] & - & \[\frac{T_{transit}}{T_{bicycle}}\] & A value \(> 1\) indicates that transit is slower. \\
 \hline
 \label{transit_walking_competitivity_coefficient}
-\makecell[r]{Coefficient de compétitivité TC/marche \\ \textit{Transit/walking competitivity coefficient}} & \[\mu_{foot}\] ou \[\mu_{walking}\] & - & \[\frac{T_{transit}}{T_{foot}}\] & Une valeur \(> 1\) indique que le transport collectif est plus lent. \\
+\makecell[r]{Transit/walking competitivity coefficient} & \[\mu_{foot}\] or \[\mu_{walking}\] & - & \[\frac{T_{transit}}{T_{foot}}\] & A value \(> 1\) indicates that transit is slower. \\
 \hline
-\end{longtable} 
-
+\end{longtable}
 
 
 
 \pagebreak
-\subsection*{Vitesses • \textit{Speeds and velocities}}
+\subsection*{Speeds and velocities}
 
 \begin{longtable}{%
-  R{.26\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.04\NetTableWidth}%
-  C{.18\NetTableWidth}%
-  L{.44\NetTableWidth}%
+    R{.26\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.04\NetTableWidth}%
+    C{.18\NetTableWidth}%
+    L{.44\NetTableWidth}%
 }
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{unit_maximum_speed}
-\makecell[r]{Vitesse maximale de l'unité \\ \textit{Unit maximum speed}} & \[v_{max}\] & \[{km}/h\] & - & Vitesse que l'unité peut atteindre à puissance maximale. \\
+\makecell[r]{Unit maximum speed} & \[v_{max}\] & \[{km}/h\] & - & Speed that the unit can reach at maximum power. \\
 \hline
 \label{design_speed}
-\makecell[r]{Vitesse de conception \\ \textit{Design speed}} & \[v_d\] & \[{km}/h\] & - & Vitesse maximale possible sur un tronçon. Tient compte des contraintes de confort et de sécurité. \\
+\makecell[r]{Design speed} & \[v_d\] & \[{km}/h\] & - & Maximum possible speed on a network section. Takes into account comfort and safety constraints. \\
 \hline
 \label{legal_speed}
-\makecell[r]{Vitesse légale \\ \textit{Legal speed}} & \[v_{reg}\] & \[{km}/h\] & - & Vitesse légale permise sur le tronçon. \\
+\makecell[r]{Legal speed} & \[v_{reg}\] & \[{km}/h\] & - & Legal speed allowed on the network section. \\
 \hline
 \label{programmed_speed}
-\makecell[r]{Vitesse programmée \\ \textit{Programmed speed}} & \[v_p\] & \[{km}/h\] & - & Vitesse programmée en service sur un tronçon ou un segment. Habituellement, cette vitesse est déterminée de manière à optimiser, dans le meilleur équilibre, l'efficacité énergétique et la minimisation des temps de parcours inter-arrêts. \(v_p \leq v_{reg} \leq v_d\) \\
+\makecell[r]{Programmed speed} & \[v_p\] & \[{km}/h\] & - & Programmed service speed on a network section. Usually, this speed is determined to optimize, in the best balance, energy efficiency and minimization of interstop travel times. \(v_p \leq v_{reg} \leq v_d\) \\
 \hline
 \label{operating_speed}
-\makecell[r]{Vitesse d'opération \\ \textit{Operating speed}} & \[V_o\] & \[{km}/h\] & \[\frac{d_p}{T_o}\] & Vitesse commerciale perçue par l'usager sur un parcours, qui inclut les temps d'arrêt. \\
+\makecell[r]{Operating speed} & \[V_o\] & \[{km}/h\] & \[\frac{d_p}{T_o}\] & Commercial speed perceived by the user on a path, which includes stop dwell times. \\
 \hline
 \label{outbound_operating_speed}
-\makecell[r]{Vitesse d'opération aller \\ \textit{Outbound operating speed}} & \[{V_o}^\prime\] & \[{km}/h\] & \[\frac{d^{\prime}}{{T_o}^{\prime}}\] & Vitesse commerciale pour le parcours aller. \\
+\makecell[r]{Outbound operating speed} & \[{V_o}^\prime\] & \[{km}/h\] & \[\frac{d^{\prime}}{{T_o}^{\prime}}\] & Operating speed for the outbound path. \\
 \hline
 \label{inbound_operating_speed}
-\makecell[r]{Vitesse d'opération retour \\ \textit{Inbound operating speed}} & \[{V_o}^{\prime\prime}\] & \[{km}/h\] & \[\frac{d^{\prime\prime}}{{T_o}^{\prime\prime}}\] & Vitesse commerciale pour le parcours retour. \\
+\makecell[r]{Inbound operating speed} & \[{V_o}^{\prime\prime}\] & \[{km}/h\] & \[\frac{d^{\prime\prime}}{{T_o}^{\prime\prime}}\] & Operating speed for the inbound path. \\
 \hline
 \label{line_operating_speed}
-\makecell[r]{Vitesse d'opération de ligne \\ \textit{Line operating speed}} & \[{V_o}_L\] & \[{km}/h\] & \[\frac{d^{\prime} + d^{\prime\prime}}{{T_o}^{\prime} + {T_o}^{\prime\prime}}\] & Vitesse commerciale sur la ligne. Attention aux ambiguïtés lorsque la ligne n'est pas bidirectionnelle symétrique ou en boucle. \\
+\makecell[r]{Line operating speed} & \[{V_o}_L\] & \[{km}/h\] & \[\frac{d^{\prime} + d^{\prime\prime}}{{T_o}^{\prime} + {T_o}^{\prime\prime}}\] & Commercial speed on the line. Care must be taken with ambiguities when the line is not symmetrically bidirectional or loop. \\
 \hline
 \label{half_cycle_speed}
-\makecell[r]{Vitesse de demi-cycle \\ \textit{Half-cycle speed}} & \[V_{1/2c}\] & \[{km}/h\] & \[\frac{d_p}{T_{1/2c}}\] & Vitesse moyenne pendant un demi-cycle (parcours) \\
+\makecell[r]{Half-cycle speed} & \[V_{1/2c}\] & \[{km}/h\] & \[\frac{d_p}{T_{1/2c}}\] & Average speed during a half-cycle (path) \\
 \hline
 \label{outbound_half_cycle_speed}
-\makecell[r]{Vitesse de demi-cycle aller \\ \textit{Outbound half-cycle speed}} & \[{V_{1/2c}}^{\prime}\] & \[{km}/h\] & \[\frac{d^{\prime}}{{T_{1/2c}}^{\prime}}\] & Vitesse moyenne pendant le demi-temps de cycle aller. \\
+\makecell[r]{Outbound half-cycle speed} & \[{V_{1/2c}}^{\prime}\] & \[{km}/h\] & \[\frac{d^{\prime}}{{T_{1/2c}}^{\prime}}\] & Average speed during outbound half-cycle time. \\
 \hline
 \label{inbound_half_cycle_speed}
-\makecell[r]{Vitesse de demi-cycle retour \\ \textit{Inbound half-cycle speed}} & \[{V_{1/2c}}^{\prime\prime}\] & \[{km}/h\] & \[\frac{d^{\prime\prime}}{{T_{1/2c}}^{\prime\prime}}\] & Vitesse moyenne pendant le demi-temps de cycle retour. \\
+\makecell[r]{Inbound half-cycle speed} & \[{V_{1/2c}}^{\prime\prime}\] & \[{km}/h\] & \[\frac{d^{\prime\prime}}{{T_{1/2c}}^{\prime\prime}}\] & Average speed during inbound half-cycle time. \\
 \hline
 \label{cycle_speed}
-\makecell[r]{Vitesse de cycle \\ \textit{Cycle speed}} & \[V_c\] & \[{km}/h\] & \[\frac{d^{\prime} + d^{\prime\prime}}{T_c}\] & Vitesse moyenne aller-retour pendant le temps de cycle. \\
+\makecell[r]{Cycle speed} & \[V_c\] & \[{km}/h\] & \[\frac{d^{\prime} + d^{\prime\prime}}{T_c}\] & Average round-trip speed during cycle time. \\
 \hline
 \label{platform_speed}
-\makecell[r]{Vitesse plateforme \\ \textit{Platform speed}} & \[V_p\] & \[{km}/h\] & \[\frac{k(d^{\prime} + d^{\prime\prime})}{T_p}\] où \[k\] est le nombre de voyages aller-retour effectués pendant la tournée & Vitesse moyenne pendant le temps pour lequel une unité est en opération sur une tournée complète, en service productif et en haut-le-pied. Attention aux ambiguïtés lorsque les tournées comprennent des parcours d'interlignage. \\
+\makecell[r]{Platform speed} & \[V_p\] & \[{km}/h\] & \[\frac{k(d^{\prime} + d^{\prime\prime})}{T_p}\] where \[k\] is the number of round trips during the run & Average speed during the time for which a unit is in operation on a complete run, in productive service and deadheading. Care must be taken with ambiguities when runs include interlining paths. \\
 \hline
 \label{segment_speed}
-\makecell[r]{Vitesse de segment/inter-arrêt \\ \textit{Segment/interstop speed}} & \[v_l\] & \[{km}/h\] & \[\frac{d_l}{t_l}\] & Vitesse moyenne entre le départ de l'arrêt précédent et l'arrivée à l'arrêt suivant (segment). N'inclut pas le temps d'arrêt. \\
+\makecell[r]{Segment/interstop speed} & \[v_l\] & \[{km}/h\] & \[\frac{d_l}{t_l}\] & Average speed between departure from the previous stop and arrival at the next stop (segment). Does not include dwell time. \\
 \hline
 \label{stop_to_stop_speed}
-\makecell[r]{Vitesse arrêt à arrêt \\ \textit{Stop to stop speed}} & \[v_{\Delta s}\] ou \[v_{\Delta q}\] & \[{km}/h\] & \[\frac{d_l}{t_l + t_q}\] & Vitesse moyenne entre le départ de l'arrêt précédent et le départ de l'arrêt suivant. Inclut le temps d'arrêt. \\
+\makecell[r]{Stop-to-stop speed} & \[v_{\Delta s}\] or \[v_{\Delta q}\] & \[{km}/h\] & \[\frac{d_l}{t_l + t_q}\] & Average speed between departure from the previous stop and departure from the next stop. Includes dwell time. \\
 \hline
 \label{average_segment_speed}
-\makecell[r]{Vitesse moyenne de segment/inter-arrêt \\ \textit{Average segment/interstop speed}} & \[\overline{v_l}\] & \[{km}/h\] & \[\frac{ \sum_{i=1}^{n_l} {\frac{{d_l}_i}{{t_l}_i}}} {n_l} \] & Moyenne des vitesses inter-arrêt des segments d'un parcours ou d'une ligne. \\
+\makecell[r]{Average segment/interstop speed} & \[\overline{v_l}\] & \[{km}/h\] & \[\frac{ \sum_{i=1}^{n_l} {\frac{{d_l}_i}{{t_l}_i}}} {n_l} \] & Average of interstop speeds of segments on a path or line. \\
 \hline
 \label{average_in_vehicle_speed}
-\makecell[r]{Vitesse moyenne en véhicule \\ \textit{Average in-vehicle speed}} & \[v_{veh}\] & \[{km}/h\] & - & Vitesse moyenne d'opération des segments de la ligne ou des lignes utilisées lors du déplacement. \\
+\makecell[r]{Average in-vehicle speed} & \[v_{veh}\] & \[{km}/h\] & - & Average operating speed of line segments or lines used during the trip. \\
 \hline
 \label{access_egress_speed}
-\makecell[r]{Vitesse d'accès \\ \textit{Access/egress speed}} & \[v_e\] & \[{km}/h\] & - & Vitesse de marche, à vélo ou en voiture pour accéder aux arrêts à l'origine et à destination et lors des transferts. Un calcul de chemin bien calibré permet d'obtenir des vitesses plus réalistes, en tenant compte notamment des feux de circulation, de la congestion et des obstacles. \\
+\makecell[r]{Access/egress speed} & \[v_e\] & \[{km}/h\] & - & Walking, cycling, or driving speed to access stops at origin and destination and during transfers. A well-calibrated path calculation provides more realistic speeds, taking into account traffic signals, congestion, and obstacles. \\
 \hline
 \label{od_speed}
-\makecell[r]{Vitesse OD \\ \textit{OD speed}} & \[V_{OD}\] & \[{km}/h\] & \[\frac{d_{OD}}{T_{OD}}\] & Vitesse moyenne globale d'un parcours de l'origine à la destination, en tenant compte des accès, des transferts, de tous les segments en véhicule, ainsi que de tous les temps d'arrêt et d'attente. \\
+\makecell[r]{OD speed} & \[V_{OD}\] & \[{km}/h\] & \[\frac{d_{OD}}{T_{OD}}\] & Global average speed of a path from origin to destination, taking into account access, transfers, all in-vehicle segments, as well as all stop and waiting times. \\
 \hline
 \end{longtable}
 
 
 
 \pagebreak
-\subsection*{Fréquences et intervalles • \textit{Frequencies and periods}}
+\subsection*{Frequencies and periods}
 
 \begin{longtable}{%
-  R{.29\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.05\NetTableWidth}%
-  C{.15\NetTableWidth}%
-  L{.43\NetTableWidth}%
+    R{.29\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.05\NetTableWidth}%
+    C{.15\NetTableWidth}%
+    L{.43\NetTableWidth}%
 }
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{frequency}
-\makecell[r]{Fréquence \\ \textit{Frequency}} & \[f\] & \[\text{unités}/h\] & \[\frac{60}{h}=\frac{n_u}{T_c}\] & Nombre de passages d'une unité par heure sur un parcours ou une ligne (\(T_c\) est en heures). \\
+\makecell[r]{Frequency} & \[f\] & \[\text{units}/h\] & \[\frac{60}{h}=\frac{n_u}{T_c}\] & Number of passages of units per hour on a route or line (\(T_c\) is in hours). \\
 \hline
 \label{minimum_frequency}
-\makecell[r]{Fréquence minimale \\ \textit{Minimum frequency}} & \[f_{min}\] & \[\text{unités}/h\] & \[\frac{60}{h_{max}}\] & Fréquence de service minimale selon contraintes et réglementations nationales, régionales ou locales. Cette fréquence peut être différente selon la période de service (matin, pointe du matin, journée, pointe du soir, soir, nuit, fin de semaine, etc.) \\
+\makecell[r]{Minimum frequency} & \[f_{min}\] & \[\text{units}/h\] & \[\frac{60}{h_{max}}\] & Minimum service frequency according to national, regional, or local constraints and regulations. This frequency can differ depending on the service period (morning, morning peak, daytime, evening peak, evening, night, weekend, etc.) \\
 \hline
 \label{minimum_peak_frequency}
-\makecell[r]{Fréquence minimale de pointe \\ \textit{Minimum peak frequency}} & \[{f_{peak}}_{min}\] & \[\text{unités}/h\] & \[\frac{60}{{h_{peak}}_{max}}\] & Fréquence de service minimale de pointe selon contraintes et réglementations nationales, régionales ou locales. \\
+\makecell[r]{Minimum peak frequency} & \[{f_{peak}}_{min}\] & \[\text{units}/h\] & \[\frac{60}{{h_{peak}}_{max}}\] & Minimum peak service frequency according to national, regional, or local constraints and regulations. \\
 \hline
 \label{minimum_off_peak_frequency}
-\makecell[r]{Fréquence minimale hors-pointe \\ \textit{Minimum off-peak frequency}} & \[{f_{off}}_{min}\] & \[\text{unités}/h\] & \[\frac{60}{{h_{off}}_{max}}\] & Fréquence de service minimale hors-pointe selon contraintes et réglementations nationales, régionales ou locales. Habituellement valable entre les pointes du matin et de l'après-midi et en soirée. \\
+\makecell[r]{Minimum off-peak frequency} & \[{f_{off}}_{min}\] & \[\text{units}/h\] & \[\frac{60}{{h_{off}}_{max}}\] & Minimum off-peak service frequency according to national, regional, or local constraints and regulations. Usually applicable between morning and afternoon peaks and in the evening. \\
 \hline
 \label{way_constrained_maximum_frequency}
-\makecell[r]{Fréquence maximale contrainte de voie \\ \textit{Way constrained maximum frequency}} & \[{f_l}_{max}\] & \[\text{unités}/h\] & \[\frac{60}{{h_l}_{min}}\] & Fréquence maximale de service possible en tenant compte de la voie dans laquelle se déplace les unités affectées au parcours ou à la ligne. Cette fréquence tient compte des vitesses maximales permises, des critères de sécurité et des obstacles sur la voie (aiguillages, congestion, virages, etc.) \\
+\makecell[r]{Way constrained maximum frequency} & \[{f_l}_{max}\] & \[\text{units}/h\] & \[\frac{60}{{h_l}_{min}}\] & Maximum possible service frequency taking into account the way in which units assigned to the line are travelling. This frequency accounts for maximum permitted speeds, safety criteria, and obstacles on the way (switches, congestion, curve radii, etc.) \\
 \hline
 \label{dwell_constrained_maximum_frequency}
-\makecell[r]{Fréquence maximale contrainte d'arrêt \\ \textit{Dwell constrained maximum frequency}} & \[{f_s}_{max}\] & \[\text{unités}/h\] & \[\frac{60}{{h_s}_{min}}\] & Fréquence maximale de service possible en tenant compte de l'arrêt limitant sur le parcours ou la ligne. Tient compte de l'espace disponible aux arrêts, du nombre d'unités pouvant s'y arrêter, des temps d'arrêts prévus et des critères de sécurité. La plupart du temps, \({f_s}_{max} \ll {{f_l}_{max}}\) \\
+\makecell[r]{Dwell constrained maximum frequency} & \[{f_s}_{max}\] & \[\text{units}/h\] & \[\frac{60}{{h_s}_{min}}\] & Maximum possible service frequency taking into account the limiting stop node/station on the line. Takes into account available space at stops, number of units that can stop there, planned stop times, and safety criteria. Most often, \({f_s}_{max} \ll {{f_l}_{max}}\) \\
 \hline
 \label{maximum_frequency}
-\makecell[r]{Fréquence maximale \\ \textit{Maximum frequency}} & \[f_{max}\] & \[\text{unités}/h\] & \[\min \Big({{f_s}_{max}}\ ,\ {{f_l}_{max}}\Big)\] & Fréquence maximale de service possible en tenant compte des contraintes de voie et d'arrêt. \\
+\makecell[r]{Maximum frequency} & \[f_{max}\] & \[\text{units}/h\] & \[\min \Big({{f_s}_{max}}\ ,\ {{f_l}_{max}}\Big)\] & Maximum possible service frequency taking into account way and stop constraints. \\
 \hline
 \label{peak_frequency}
-\makecell[r]{Fréquence de pointe \\ \textit{Peak frequency}} & \[f_{peak}\] & \[\text{unités}/h\] & \[\frac{60}{h_{peak}}\] & Fréquence pendant la période de pointe maximale (fréquence maximale offerte) sur un parcours ou une ligne. \\
+\makecell[r]{Peak frequency} & \[f_{peak}\] & \[\text{units}/h\] & \[\frac{60}{h_{peak}}\] & Frequency during the maximum peak period (maximum offered frequency) on a line. \\
 \hline
 \label{ultra_peak_frequency}
-\makecell[r]{Fréquence d'ultra-pointe \\ \textit{Ultra-peak frequency}} & \[f_{up}\] & \[\text{unités}/h\] & \[\frac{60}{h_{up}}\] & Fréquence requise pendant le 15 minutes le plus achalandé de la période de pointe maximale (fréquence maximale requise) sur un parcours ou une ligne. \\
+\makecell[r]{Ultra-peak frequency} & \[f_{up}\] & \[\text{units}/h\] & \[\frac{60}{h_{up}}\] & Required frequency during the busiest 15 minutes of the maximum peak period (maximum required frequency) on a line. \\
 \hline
 \label{off_peak_frequency}
-\makecell[r]{Fréquence hors-pointe \\ \textit{Off-peak frequency}} & \[f_{off}\] & \[\text{unités}/h\] & \[\frac{60}{h_{off}}\] & Fréquence pendant la période hors-pointe (fréquence offerte) sur un parcours ou une ligne. \\
+\makecell[r]{Off-peak frequency} & \[f_{off}\] & \[\text{units}/h\] & \[\frac{60}{h_{off}}\] & Frequency during the off-peak period (offered frequency) on a line. \\
 \hline
 \label{average_frequency}
-\makecell[r]{Fréquence moyenne \\ \textit{Average frequency}} & \[\overline{f}\] & \[\text{unités}/h\] & \[\frac{\sum_{i=1}^{n_\text{périodes}} {f_i}}{n_\text{périodes}}\] & Fréquence moyenne d'un ensemble de périodes de service sur un parcours ou une ligne. \\
+\makecell[r]{Average frequency} & \[\overline{f}\] & \[\text{units}/h\] & \[\frac{\sum_{i=1}^{n_\text{periods}} {f_i}}{n_\text{periods}}\] & Average frequency of a set of service periods on a line. \\
 \hline
 \label{stop_weighted_peak_frequency}
-\makecell[r]{Fréquence de pointe pondérée par arrêt \\ \textit{Stop weighted peak frequency}} & \[{f_{peak}}_s\] ou \[{f_{peak}}_q\] & \[\text{unités}/h\] & \[\frac{\sum_{i=1}^{n_q} {f_i}}{n_q}\] & Attention de spécifier si la fréquence à chaque arrêt est la fréquence de la ligne avec la meilleure fréquence qui dessert l'arrêt ou la fréquence moyenne de toutes les lignes qui desservent l'arrêt. \\
+\makecell[r]{Stop weighted peak frequency} & \[{f_{peak}}_s\] or \[{f_{peak}}_q\] & \[\text{units}/h\] & \[\frac{\sum_{i=1}^{n_q} {f_i}}{n_q}\] & Specify if the frequency at each stop is the frequency of the line with the best frequency serving the stop or the average frequency of all lines serving the stop. \\
 \hline
 \label{headway_or_period}
-\makecell[r]{Intervalle ou période \\ \textit{Headway or period}} & \[h\] & \[min\] & \[\frac{60}{f}=\frac{T_c}{n_u}\] & Intervalle de temps entre le passage consécutif de deux unités sur un parcours ou une ligne (\(T_c\) est en minutes). \\
+\makecell[r]{Headway or period} & \[h\] & \[min\] & \[\frac{60}{f}=\frac{T_c}{n_u}\] & Time headway between consecutive passages of two units on a line (\(T_c\) is in minutes). \\
 \hline
 \label{maximum_headway}
-\makecell[r]{Intervalle maximum \\ \textit{Maximum headway}} & \[h_{max}\] & \[min\] & \[\frac{60}{f_{min}}\] & Intervalle de service maximum selon contraintes et réglementations nationales, régionales ou locales. Cet intervalle peut être différente selon la période de service (matin, pointe du matin, journée, pointe du soir, soir, nuit, fin de semaine, etc.) \\
+\makecell[r]{Maximum headway} & \[h_{max}\] & \[min\] & \[\frac{60}{f_{min}}\] & Maximum service headway according to national, regional, or local constraints and regulations. This headway can differ depending on the service period (morning, morning peak, daytime, evening peak, evening, night, weekend, etc.) \\
 \hline
 \label{maximum_peak_headway}
-\makecell[r]{Intervalle maximum de pointe \\ \textit{Maximum peak headway}} & \[{f_{peak}}_{max}\] & \[\text{unités}/h\] & \[\frac{60}{{h_{peak}}_{min}}\] & Intervalle maximum de pointe selon contraintes et réglementations nationales, régionales ou locales. \\
+\makecell[r]{Maximum peak headway} & \[{h_{peak}}_{max}\] & \[min\] & \[\frac{60}{{f_{peak}}_{min}}\] & Maximum peak headway according to national, regional, or local constraints and regulations. \\
 \hline
 \label{maximum_off_peak_headway}
-\makecell[r]{Intervalle maximum hors-pointe \\ \textit{Maximum off-peak headway}} & \[{h_{off}}_{max}\] & \[\text{min}\] & \[\frac{60}{{f_{off}}_{min}}\] & Intervalle maximum hors-pointe selon contraintes et réglementations nationales, régionales ou locales. Habituellement valable entre les pointes du matin et de l'après-midi et en soirée. \\
+\makecell[r]{Maximum off-peak headway} & \[{h_{off}}_{max}\] & \[min\] & \[\frac{60}{{f_{off}}_{min}}\] & Maximum off-peak headway according to national, regional, or local constraints and regulations. Usually applicable between morning and afternoon peaks and in the evening. \\
 \hline
 \label{way_constrained_minimum_headway}
-\makecell[r]{Intervalle minimum selon contrainte de voie \\ \textit{Way constrained minimum headway}} & \[{h_l}_{min}\] & \[min\] & \[\frac{60}{{f_l}_{max}}\] & Intervalle minimum de service possible en tenant compte de la voie dans laquelle se déplace les unités affectées au parcours ou à la ligne. Cet intervalle tient compte des vitesses maximales permises, des critères de sécurité et des obstacles sur la voie (aiguillages, congestion, virages, etc.) \\
+\makecell[r]{Way constrained minimum headway} & \[{h_l}_{min}\] & \[min\] & \[\frac{60}{{f_l}_{max}}\] & Minimum possible service headway taking into account the way in which units assigned to the line move. This headway accounts for maximum permitted speeds, safety criteria, and obstacles on the way (switches, congestion, curves, etc.) \\
 \hline
 \label{dwell_constrained_minimum_headway}
-\makecell[r]{Intervalle minimum selon contrainte d'arrêt \\ \textit{Dwell constrained minimum headway}} & \[{h_s}_{min}\] & \[min\] & \[\frac{60}{{f_s}_{max}}\] & Intervalle minimum de service possible en tenant compte de l'arrêt limitant sur le parcours ou la ligne. Tient compte de l'espace disponible aux arrêts, du nombre d'unités pouvant s'y arrêter, des temps d'arrêts prévus et des critères de sécurité. La plupart du temps, \({h_s}_{min} \gg {{h_l}_{min}}\) \\
+\makecell[r]{Dwell constrained minimum headway} & \[{h_s}_{min}\] & \[min\] & \[\frac{60}{{f_s}_{max}}\] & Minimum possible service headway taking into account the limiting stop on the line. Takes into account available space at stops, number of units that can stop there, planned stop times, and safety criteria. Most often, \({h_s}_{min} \gg {{h_l}_{min}}\) \\
 \hline
 \label{minimum_headway}
-\makecell[r]{Intervalle minimum \\ \textit{Minimum headway}} & \[h_{min}\] & \[min\] & \[\max \Big({{h_s}_{min}}\ ,\ {{h_l}_{min}}\Big)\] & Fréquence maximale de service possible en tenant compte des contraintes de voie et d'arrêt. \\
+\makecell[r]{Minimum headway} & \[h_{min}\] & \[min\] & \[\max \Big({{h_s}_{min}}\ ,\ {{h_l}_{min}}\Big)\] & Maximum possible service frequency taking into account way and stop constraints. \\
 \hline
 \label{peak_headway}
-\makecell[r]{Intervalle de pointe \\ \textit{Peak headway}} & \[h_{peak}\] & \[min\] & \[\frac{60}{f_{peak}}\] & Intervalle pendant la période de pointe maximale (intervalle minimum offert) sur un parcours ou une ligne. \\
+\makecell[r]{Peak headway} & \[h_{peak}\] & \[min\] & \[\frac{60}{f_{peak}}\] & Interval during the maximum peak period (minimum offered headway) on a line. \\
 \hline
 \label{ultra_peak_headway}
-\makecell[r]{Intervalle d'ultra-pointe \\ \textit{Ultra-peak headway}} & \[h_{up}\] & \[min\] & \[\frac{60}{f_{up}}\] & Intervalle requis pendant le 15 minutes le plus achalandé de la période de pointe maximale (intervalle minimum requis) sur un parcours ou une ligne. \\
+\makecell[r]{Ultra-peak headway} & \[h_{up}\] & \[min\] & \[\frac{60}{f_{up}}\] & Required headway during the busiest 15 minutes of the maximum peak period (minimum required headway) on a line. \\
 \hline
 \label{off_peak_headway}
-\makecell[r]{Intervalle hors-pointe \\ \textit{Off-peak headway}} & \[h_{off}\] & \[min\] & \[\frac{60}{f_{off}}\] & Intervalle pendant la période hors-pointe (fréquence offerte) sur un parcours ou une ligne. \\
+\makecell[r]{Off-peak headway} & \[h_{off}\] & \[min\] & \[\frac{60}{f_{off}}\] & Interval during the off-peak period (offered frequency) on a line. \\
 \hline
 \label{average_headway}
-\makecell[r]{Intervalle moyen \\ \textit{Average headway}} & \[\overline{h}\] & \[min\] & \[\frac{\sum_{i=1}^{n_\text{périodes}} {h_i}}{n_\text{périodes}}\] & Intervalle moyen d'un ensemble de périodes de service sur un parcours ou une ligne. \\
+\makecell[r]{Average headway} & \[\overline{h}\] & \[min\] & \[\frac{\sum_{i=1}^{n_\text{periods}} {h_i}}{n_\text{periods}}\] & Average headway of a set of service periods on a line. \\
 \hline
 \label{stop_weighted_peak_headway}
-\makecell[r]{Intervalle de pointe pondéré par arrêt \\ \textit{Stop weighted peak headway}} & \[{h_{peak}}_s\] ou \[{h_{peak}}_q\] & \[min\] & \[\frac{\sum_{i=1}^{n_q} {h_i}}{n_q}\] & Attention de spécifier si l'intervalle à chaque arrêt est l'intervalle de la ligne avec le plus petit intervalle qui dessert l'arrêt ou l'intervalle moyen de toutes les lignes qui desservent l'arrêt. \\
+\makecell[r]{Stop weighted peak headway} & \[{h_{peak}}_s\] or \[{h_{peak}}_q\] & \[min\] & \[\frac{\sum_{i=1}^{n_q} {h_i}}{n_q}\] & Specify if the headway at each stop is the headway of the line with the smallest headway serving the stop or the average headway of all lines serving the stop. \\
 \hline
 \label{pulsation_headway_or_tts_headway}
-\makecell[r]{Intervalle de pulsation ou intervalle cadencé \\ \textit{Pulsation headway or TTS headway}} & \[h_p\] & \[min\] & - & Intervalle permettant de synchroniser plusieurs lignes entre elles aux points focaux (horaires cadencés ou \textit{Timed-Transfer-System - TTS}). Habituellement: 10, 15 ou 20 minutes en réseaux urbains et 30 ou 60 minutes en réseaux interurbains/régionaux. \\
+\makecell[r]{Pulsation headway or TTS headway} & \[h_p\] & \[min\] & - & Interval allowing synchronization of multiple lines at focal points (synchronized schedules or Timed-Transfer-System - TTS). Usually: 10, 15, or 20 minutes in urban networks and 30 or 60 minutes in interurban/regional networks. \\
 \hline
 \end{longtable}
 
 
 
 \pagebreak
-\subsection*{Volumes et demande • \textit{Volumes and demand}}
+\subsection*{Volumes and demand}
 
 \begin{longtable}{%
-  R{.35\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.06\NetTableWidth}%
-  C{.1\NetTableWidth}%
-  L{.41\NetTableWidth}%
+    R{.35\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.06\NetTableWidth}%
+    C{.1\NetTableWidth}%
+    L{.41\NetTableWidth}%
 }
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{volume}
-\makecell[r]{Volume/Demande \\ \textit{Volume/Demand}} & \[P\] & \[pass/h\] & - & Nombre de passagers par heure sur un parcours, une ligne, à un arrêt, un noeud d'arrêt ou une station. \\
+\makecell[r]{Volume/Demand} & \[P\] & \[pass/h\] & - & Number of passengers per hour on a path, line, at a stop, stop node, or station. \\
 \hline
 \label{number_of_boardings_at_stop}
-\makecell[r]{Nombre d'embarquements à un arrêt \\ \textit{Number of boardings at stop}} & \[n_B\] & \[pass\] & - & - \\
+\makecell[r]{Number of boardings at stop/node} & \[n_B\] & \[pass\] & - & - \\
 \hline
 \label{number_of_alightings_at_stop}
-\makecell[r]{Nombre de débarquements à un arrêt \\ \textit{Number of alightings at stop}} & \[n_A\] & \[pass\] & - & - \\
+\makecell[r]{Number of alightings at stop/node} & \[n_A\] & \[pass\] & - & - \\
 \hline
 \label{total_number_of_boardings}
-\makecell[r]{Nombre total d'embarquements \\ \textit{Total number of boardings}} & \[N_B\] & \[pass\] & \[\sum_{i=1}^{n_q} {{n_B}_i}\] & Nombre total d'embarquements sur un voyage d'une ligne, dans une direction. \\
+\makecell[r]{Total number of boardings} & \[N_B\] & \[pass\] & \[\sum_{i=1}^{n_q} {{n_B}_i}\] & Total number of boardings on a line trip, in one direction. \\
 \hline
 \label{total_number_of_alightings}
-\makecell[r]{Nombre total de débarquements \\ \textit{Total number of alightings}} & \[N_A\] & \[pass\] & \[\sum_{i=1}^{n_q} {{n_A}_i}\] & Nombre total de débarquements sur un voyage d'une ligne, dans une direction. \\
+\makecell[r]{Total number of alightings} & \[N_A\] & \[pass\] & \[\sum_{i=1}^{n_q} {{n_A}_i}\] & Total number of alightings on a line trip, in one direction. \\
 \hline
 \label{maximum_number_of_boardings_in_channel}
-\makecell[r]{Nombre d'embarquements maximum en voie d'accès \\ \textit{Maximum number of boardings in channel}} & \[{n_B}_{max}\] & \[pass\] & \[\overline{n_B} \xi_B\] & Nombre total d'embarquements à la voie d'embarquement la plus achalandée. \\
+\makecell[r]{Maximum number of boardings in channel} & \[{n_B}_{max}\] & \[pass\] & \[\overline{n_B} \xi_B\] & Total number of boardings at the busiest boarding channel. \\
 \hline
 \label{maximum_number_of_alightings_in_channel}
-\makecell[r]{Nombre de débarquements maximum en voie d'accès \\ \textit{Maximum number of alightings in channel}} & \[{n_A}_{max}\] & \[pass\] & \[\overline{n_A} \xi_A\] & Nombre total de débarquements à la voie de débarquement la plus achalandée. \\
+\makecell[r]{Maximum number of alightings in channel} & \[{n_A}_{max}\] & \[pass\] & \[\overline{n_A} \xi_A\] & Total number of alightings at the busiest alighting channel. \\
 \hline
 \label{average_number_of_boardings_per_channel}
-\makecell[r]{Nombre moyen d'embarquements par voie d'accès \\ \textit{Average number of boardings per channel}} & \[\overline{n_B}\] & \[pass\] & \[\frac{n_B} {{n_{Bch}}_u}\] & Nombre moyen d'embarquements par voie d'embarquement. \\
+\makecell[r]{Average number of boardings per channel} & \[\overline{n_B}\] & \[pass\] & \[\frac{n_B} {{n_{Bch}}_u}\] & Average number of boardings per boarding channel. \\
 \hline
 \label{average_number_of_alightings_per_channel}
-\makecell[r]{Nombre moyen de débarquements par voie d'accès \\ \textit{Average number of alightings per channel}} & \[\overline{n_A}\] & \[pass\] & \[\frac{n_A} {{n_{Ach}}_u}\] & Nombre moyen de débarquements par voie de débarquement. \\
+\makecell[r]{Average number of alightings per channel} & \[\overline{n_A}\] & \[pass\] & \[\frac{n_A} {{n_{Ach}}_u}\] & Average number of alightings per alighting channel. \\
 \hline
 \label{boarding_distribution_coefficient}
-\makecell[r]{Coefficient de distribution des embarquements \\ \textit{Boarding distribution coefficient}} & \[\xi_B\] & - & \[\frac{{n_B}_{max}} {\overline{n_B}}\] & Facteur permettant de déterminer la distribution des embarquements sur l'ensemble des voies d'embarquement. \\
+\makecell[r]{Boarding distribution coefficient} & \[\xi_B\] & - & \[\frac{{n_B}_{max}} {\overline{n_B}}\] & Factor used to determine the distribution of boardings across all boarding channels. \\
 \hline
 \label{alighting_distribution_coefficient}
-\makecell[r]{Coefficient de distribution des débarquements \\ \textit{Alighting distribution coefficient}} & \[\xi_A\] & - & \[\frac{{n_A}_{max}} {\overline{n_A}}\] & Facteur permettant de déterminer la distribution des débarquements sur l'ensemble des voies de débarquement. \\
+\makecell[r]{Alighting distribution coefficient} & \[\xi_A\] & - & \[\frac{{n_A}_{max}} {\overline{n_A}}\] & Factor used to determine the distribution of alightings across all alighting channels. \\
 \hline
 \label{maximum_volume}
-\makecell[r]{Volume maximum (horaire) \\ \textit{Maximum volume (hourly)}} & \[P_{max}\] & \[pass/h\] & - & Nombre total de passagers ayant voyagé sur le segment le plus achalandé d'une ligne, dans la direction la plus achalandée, pendant l'heure de pointe maximale. \\
+\makecell[r]{Maximum volume (hourly)} & \[P_{max}\] & \[pass/h\] & - & Total number of passengers who traveled on the busiest segment of a line, in the busiest direction, during the maximum peak hour. \\
 \hline
 \label{segment_volume}
-\makecell[r]{Volume de segment \\ \textit{Segment volume}} & \[P_l\] & \[pass/h\] & - & Nombre total de passagers ayant voyagé sur le segment, par heure. \\
+\makecell[r]{Segment volume} & \[P_l\] & \[pass/h\] & - & Total number of passengers who traveled on the segment, per hour. \\
 \hline
 \label{average_path_volume}
-\makecell[r]{Volume moyen de parcours \\ \textit{Average path volume}} & \[\overline{P_p}\] & \[pass/h\] & \[\frac{\sum_{i=1}^{{n_l}} {P_l}_i}{{n_l}}\] & Nombre moyen de passagers par segment du parcours par heure. Attention de mentionner la période (pointe, hors pointe, journée, etc.) \\
+\makecell[r]{Average path volume} & \[\overline{P_p}\] & \[pass/h\] & \[\frac{\sum_{i=1}^{{n_l}} {P_l}_i}{{n_l}}\] & Average number of passengers per path segment per hour. Specify the period (peak, off-peak, day, etc.) \\
 \hline
 \label{average_outbound_volume}
-\makecell[r]{Volume moyen aller \\ \textit{Average outbound volume}} & \[\overline{{P_p}^{\prime}}\] & \[pass/h\] & \[\frac{\sum_{i=1}^{{n_l}^{\prime}} {P_l}_i}{{n_l}^{\prime}}\] & Nombre moyen de passagers par segment du parcours aller par heure. Attention de mentionner la période (pointe, hors pointe, journée, etc.) \\
+\makecell[r]{Average outbound volume} & \[\overline{{P_p}^{\prime}}\] & \[pass/h\] & \[\frac{\sum_{i=1}^{{n_l}^{\prime}} {P_l}_i}{{n_l}^{\prime}}\] & Average number of passengers per outbound path segment per hour. Specify the period (peak, off-peak, day, etc.) \\
 \hline
 \label{average_inbound_volume}
-\makecell[r]{Volume moyen retour \\ \textit{Average inbound volume}} & \[\overline{{P_p}^{\prime\prime}}\] & \[pass/h\] & \[\frac{\sum_{i=1}^{{n_l}^{\prime\prime}} {P_l}_i}{{n_l}^{\prime\prime}}\] & Nombre moyen de passagers par segment du parcours retour par heure. Attention de mentionner la période (pointe, hors pointe, journée, etc.) \\
+\makecell[r]{Average inbound volume} & \[\overline{{P_p}^{\prime\prime}}\] & \[pass/h\] & \[\frac{\sum_{i=1}^{{n_l}^{\prime\prime}} {P_l}_i}{{n_l}^{\prime\prime}}\] & Average number of passengers per inbound path segment per hour. Specify the period (peak, off-peak, day, etc.) \\
 \hline
 \label{average_line_volume}
-\makecell[r]{Volume moyen de ligne \\ \textit{Average line volume}} & \[\overline{P_L}\] & \[pass/h\] & \[\frac{\overline{{P_p}^{\prime}} + \overline{{P_p}^{\prime\prime}}}{2}\] & Nombre moyen de passagers par segment de la ligne par heure. Attention de mentionner la période (pointe, hors pointe, journée, etc.) \\
+\makecell[r]{Average line volume} & \[\overline{P_L}\] & \[pass/h\] & \[\frac{\overline{{P_p}^{\prime}} + \overline{{P_p}^{\prime\prime}}}{2}\] & Average number of passengers per line segment per hour. Specify the period (peak, off-peak, day, etc.) \\
 \hline
 \label{maximum_load_segment}
-\makecell[r]{Segment à volume maximal \\ \textit{Maximum load segment (MLS)}} & \[l_{P_{max}}\] & - & - & Segment le plus achalandé d'une ligne, dans la direction la plus achalandée, pendant l'heure de pointe maximale. \\
+\makecell[r]{Maximum load segment (MLS)} & \[l_{P_{max}}\] & - & - & Busiest segment of a line, in the busiest direction, during the maximum peak hour. \\
 \hline
 \label{maximum_volume_stop}
-\makecell[r]{Arrêt à volume maximal \\ \textit{Maximum volume stop}} & \[s_{P_{max}}\] & - & - & Arrêt comportant le plus grand nombre d'embarquements et de débarquements pendant l'heure de pointe maximale (panneau ou plateforme unique). \\
+\makecell[r]{Maximum volume stop} & \[s_{P_{max}}\] & - & - & Stop with the highest number of boardings and alightings during the maximum peak hour (single sign or platform). \\
 \hline
 \label{maximum_volume_stop_node}
-\makecell[r]{Noeud d'arrêt à volume maximal \\ \textit{Maximum volume stop node}} & \[q_{P_{max}}\] & - & - & Noeud d'arrêt comportant le plus grand nombre d'embarquements et de débarquements pendant l'heure de pointe maximale. \\
+\makecell[r]{Maximum volume stop node} & \[q_{P_{max}}\] & - & - & Stop node with the highest number of boardings and alightings during the maximum peak hour. \\
 \hline
 \label{maximum_volume_station}
-\makecell[r]{Station à volume maximal \\ \textit{Maximum volume station}} & \[S_{P_{max}}\] & - & - & Station comportant le plus grand nombre d'embarquements et de débarquements sur tous ses arrêts desservis pendant l'heure de pointe maximale. \\
+\makecell[r]{Maximum volume station} & \[S_{P_{max}}\] & - & - & Station with the highest number of boardings and alightings across all its served stops during the maximum peak hour. \\
 \hline
 \end{longtable}
 
 \begin{longtable}{%
-  R{.25\NetTableWidth}%
-  C{.06\NetTableWidth}%
-  C{.07\NetTableWidth}%
-  C{.21\NetTableWidth}%
-  L{.41\NetTableWidth}%
+    R{.25\NetTableWidth}%
+    C{.06\NetTableWidth}%
+    C{.07\NetTableWidth}%
+    C{.21\NetTableWidth}%
+    L{.41\NetTableWidth}%
 }
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{ultra_peak_15_minutes_volume}
-\makecell[r]{Volume d'ultra-pointe sur 15 minutes \\ \textit{Ultra-peak 15 minutes volume}} & \[P_{up15}\] & \[pass/{{15}\ min}\] & - & Nombre total de passagers ayant voyagé sur le segment le plus achalandé d'une ligne, dans la direction la plus achalandée, pendant le 15 minute de pointe maximale. Permet d'obtenir la pointe de volume la plus précise possible. \\
+\makecell[r]{Ultra-peak 15 minutes volume} & \[P_{up15}\] & \[pass/{{15}\ min}\] & - & Total number of passengers who traveled on the busiest segment of a line, in the busiest direction, during the maximum 15-minute peak period. Allows obtaining the most precise peak volume. \\
 \hline
 \label{ultra_peak_volume}
-\makecell[r]{Volume d'ultra-pointe (horaire) \\ \textit{Ultra-peak volume (hourly)}} & \[P_{up}\] & \[pass/h\] & \[4 P_{up15}\] & Volume maximum sur 15 minutes extrapolé sur une heure. \\
+\makecell[r]{Ultra-peak volume (hourly)} & \[P_{up}\] & \[pass/h\] & \[4 P_{up15}\] & Maximum 15-minute volume extrapolated to an hour. \\
 \hline
 \label{peak_hour_factor}
-\makecell[r]{Facteur d'heure de pointe \\ \textit{Peak-hour factor (PHF)}} & \[\gamma_{PHF}\] & - & \[\frac{P_{max}}{P_{up}} = \frac{1}{\gamma_{PHC}}\] & Facteur permettant de tenir compte du volume maximum sur 15 minutes. \(0.25 \leq \gamma_{PHF} \leq 1\). \\
+\makecell[r]{Peak-hour factor (PHF)} & \[\gamma_{PHF}\] & - & \[\frac{P_{max}}{P_{up}} = \frac{1}{\gamma_{PHC}}\] & Factor used to account for the maximum 15-minute volume. \(0.25 \leq \gamma_{PHF} \leq 1\). \\
 \hline
 \label{peak_hour_coefficient}
-\makecell[r]{Coefficient d'heure de pointe \\ \textit{Peak-hour coefficient (PHC)}} & \[\gamma_{PHC}\] & - & \[\frac{P_{up}}{P_{max}} = \frac{1}{\gamma_{PHF}}\] & Coefficient permettant de tenir compte du volume maximum sur 15 minutes. \(1 \leq \gamma_{PHC} \leq 4\). \\
+\makecell[r]{Peak-hour coefficient (PHC)} & \[\gamma_{PHC}\] & - & \[\frac{P_{up}}{P_{max}} = \frac{1}{\gamma_{PHF}}\] & Coefficient used to account for the maximum 15-minute volume. \(1 \leq \gamma_{PHC} \leq 4\). \\
 \hline
 \label{design_volume}
-\makecell[r]{Volume de conception \\ \textit{Design volume}} & \[P_d\] & \[pass/h\] & \[\gamma_{PHC} P_{max} = P_{up}\] & Volume utilisé pour déterminer les capacités requises sur la ligne ou le coefficient d'utilisation de la capacité offerte. \\
+\makecell[r]{Design volume} & \[P_d\] & \[pass/h\] & \[\gamma_{PHC} P_{max} = P_{up}\] & Volume used to determine required line capacities or the capacity utilization coefficient. \\
 \hline
 \label{daily_path_volume}
-\makecell[r]{Volume quotidien de parcours \\ \textit{Daily path volume}} & \[{{P_p}_{day}}\] & \[pass/jour\] & \[\sum_{i=0}^{23} {P_i}\] où \(P_i\) représente le volume de passagers entre l'heure \(i\) et l'heure \(i+1\) sur le parcours & Nombre de passagers par jour transportés sur le parcours, dans une direction. \\
+\makecell[r]{Daily path volume} & \[{{P_p}_{day}}\] & \[pass/day\] & \[\sum_{i=0}^{23} {P_i}\] where \(P_i\) represents passenger volume between hour \(i\) and hour \(i+1\) on the path & Number of passengers per day transported on the path, in one direction. \\
 \hline
 \label{daily_line_volume}
-\makecell[r]{Volume quotidien de ligne \\ \textit{Daily line volume}} & \[{{P_L}_{day}}\] & \[pass/jour\] & \[\sum_{i=0}^{23} {P_i}\] où \(P_i\) représente le volume de passagers entre l'heure \(i\) et l'heure \(i+1\) & Nombre de passagers par jour transportés sur tous les voyages de la ligne. \\
+\makecell[r]{Daily line volume} & \[{{P_L}_{day}}\] & \[pass/day\] & \[\sum_{i=0}^{23} {P_i}\] where \(P_i\) represents passenger volume between hour \(i\) and hour \(i+1\) & Number of passengers per day transported on all trips of the line. \\
 \hline
 \label{potential_demand}
-\makecell[r]{Demande potentielle \\ \textit{Potential demand}} & \[P_{pot}\] & \[pass/h\] & \[P_{lat} + P_{obs}\] & Volume de passagers qui existerait si le service et la tarification étaient optimaux. \\
+\makecell[r]{Potential demand} & \[P_{pot}\] & \[pass/h\] & \[P_{lat} + P_{obs}\] & Passenger volume that would exist if service and pricing were optimal. \\
 \hline
 \label{latent_demand}
-\makecell[r]{Demande latente \\ \textit{Latent demand}} & \[P_{lat}\] & \[pass/h\] & \[P_{pot} - P_{obs}\] & Demande non desservie ou non satisfaite. \\
+\makecell[r]{Latent demand} & \[P_{lat}\] & \[pass/h\] & \[P_{pot} - P_{obs}\] & Unserved or unsatisfied demand. \\
 \hline
 \label{observed_volume}
-\makecell[r]{Volume observé \\ \textit{Observed volume}} & \[P_{obs}\] & \[pass/h\] & \[P_{pot} - P_{lat}\] & Volume de passagers observé dans le réseau ou la ligne. \\
+\makecell[r]{Observed volume} & \[P_{obs}\] & \[pass/h\] & \[P_{pot} - P_{lat}\] & Passenger volume observed in the network or line. \\
 \hline
 \end{longtable}
 
@@ -1017,370 +1004,370 @@
 
 
 \pagebreak
-\subsection*{Capacités, travail et productivité • \textit{Capacities, work and productivity}}
+\subsection*{Capacities, work and productivity}
 
 \begin{longtable}{%
-  R{.25\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.12\NetTableWidth}%
-  C{.15\NetTableWidth}%
-  L{.40\NetTableWidth}%
+    R{.25\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.12\NetTableWidth}%
+    C{.15\NetTableWidth}%
+    L{.40\NetTableWidth}%
 }
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{capacity}
-\makecell[r]{Capacité \\ \textit{Capacity}} & \[C\] & \[places/h\] & - & Capacité d'une ligne, dans une direction, par heure. \\
+\makecell[r]{Capacity} & \[C\] & \[places/h\] & - & Line capacity, in one direction, per hour. \\
 \hline
 \label{unit_capacity}
-\makecell[r]{Capacité de l'unité \\ \textit{Unit capacity}} & \[c_u\] & \[places\] & - & Capacité d'une unité. \\
+\makecell[r]{Unit capacity} & \[c_u\] & \[places\] & \[C_{{u}_{se}} + C_{{u}_{st}}\] & Total number of seated and standing places in the unit. \\
 \hline
-\label{seated_unit_capacity}
-\makecell[r]{Capacité de sièges de l'unité \\ \textit{Seated unit capacity}} & \[c_{u_{seat}}\] & \[places\] & - & Capacité de sièges d'une unité. \\
+\label{unit_seated_capacity}
+\makecell[r]{Unit seated capacity} & \[c_{u_{se}}\] & \[places\] & - & Number of seats in a unit. \\
 \hline
-\label{standee_unit_capacity}
-\makecell[r]{Capacité debout de l'unité \\ \textit{Standee unit capacity}} & \[c_{u_{stand}}\] & \[places\] & - & Capacité de passagers debouts d'une unité. \\
+\label{unit_standees_capacity}
+\makecell[r]{Unit standees capacity} & \[c_{u_{st}}\] & \[places\] & - & Standing capacity of a unit. \\
 \hline
 \label{vehicle_capacity}
-\makecell[r]{Capacité du véhicule \\ \textit{Vehicle capacity}} & \[c_y\] & \[places\] & - & Capacité d'un véhicule. \\
+\makecell[r]{Vehicle capacity} & \[c_y\] & \[places\] & \[c_{y_{se}} + c_{y_{st}}\] & Number of seated and standing places in the vehicle. \\
 \hline
-\label{seated_vehicle_capacity}
-\makecell[r]{Capacité de sièges du véhicule \\ \textit{Seated vehicle capacity}} & \[c_{y_{seat}}\] & \[places\] & - & Capacité de sièges d'un véhicule. \\
+\label{vehicle_seated_capacity}
+\makecell[r]{Vehicle seated capacity} & \[c_{y_{seat}}\] & \[places\] & - & Number of seats in a vehicle. \\
 \hline
-\label{standee_vehicle_capacity}
-\makecell[r]{Capacité debout du véhicule \\ \textit{Standee vehcile capacity}} & \[c_{y_{stand}}\] & \[places\] & - & Capacité de passagers debouts d'un véhicule. \\
+\label{vehicle_standees_capacity}
+\makecell[r]{Vehicle standees capacity} & \[c_{y_{st}}\] & \[places\] & - & Be sure to specify the available space per standing place \(e\) between \(0.15m^2\) (uncomfortable) and \(0.25m^2\) (comfortable, enough space for strollers and some sport equipment). \\
 \hline
 \label{line_capacity}
-\makecell[r]{Capacité de ligne \\ \textit{Line capacity}} & \[C_L\] & \[places/h\] & \[c_u f_{up} = \frac{60 c_u}{h_{up}} = \frac{P_d}{\alpha_c}\] & Capacité maximale offerte sur une ligne en pointe, dans une direction, en tenant compte du coefficient de confort. Cette capacité est \(\leq\) à la capacité théorique maximale qui ne tient pas compte du niveau de confort souhaité. \\
+\makecell[r]{Line capacity} & \[C_L\] & \[places/h\] & \[c_u f_{up} = \frac{60 c_u}{h_{up}} = \frac{P_d}{\alpha_c}\] & Maximum capacity offered on a line during peak hours, in one direction, taking into account the comfort coefficient. This capacity is \(\leq\) to the maximum theoretical capacity which does not account for desired comfort level. \\
 \hline
 \label{comfort_coefficient}
-\makecell[r]{Coefficient de confort \\ \textit{Comfort coefficient/Load factor}} & \[\alpha_c\] & - & - & Coefficient permettant de déterminer le niveau de confort requis lors de la conception et du choix de la capacité offerte. Si on veut éviter les passagers debout: \(\alpha_c = c_{{u}_{seat}} / c_{u}\). Relativement confortable: \(\alpha_c = 0.7\) \\
+\makecell[r]{Comfort coefficient/Load factor} & \[\alpha_c\] & - & - & Coefficient used to determine the required comfort level during design and capacity selection. If standing passengers are to be avoided: \(\alpha_c = c_{{u}_{seat}} / c_u\). Relatively comfortable: \(\alpha_c = 0.7\) \\
 \hline
 \label{network_maximum_line_capacity}
-\makecell[r]{Capacité de ligne maximale de réseau \\ \textit{Network maximum line capacity}} & \[{C_L}_{max}\] & \[places/h\] & - & Capacité de la ligne qui offre la plus grande capacité dans le réseau, en pointe, dans une direction. \\
+\makecell[r]{Network maximum line capacity} & \[{C_L}_{max}\] & \[places/h\] & - & Capacity of the line offering the highest capacity in the network, during peak hours, in one direction. \\
 \hline
 \label{programmed_capacity}
-\makecell[r]{Capacité programmée \\ \textit{Programmed capacity}} & \[C_p\] & \[places/h\] & - & Capacité de ligne pour une période donnée (pas nécessairement la pointe), dans une direction. \\
+\makecell[r]{Programmed capacity} & \[C_p\] & \[places/h\] & - & Line capacity for a given period (not necessarily peak), in one direction. \\
 \hline
 \label{line_capacity_coefficient}
-\makecell[r]{Coefficient de capacité de ligne \\ \textit{Line capacity coefficient}} & \[\delta_p\] & - & \[\frac{C_p}{C_L}\] & Ratio entre la capacité programmée pour la période donnée et la capacité de ligne en pointe. \\
+\makecell[r]{Line capacity coefficient} & \[\delta_p\] & - & \[\frac{C_p}{C_L}\] & Ratio between programmed capacity for the given period and peak line capacity. \\
 \hline
 \label{used_capacity_coefficient}
-\makecell[r]{Coefficient d'utilisation de la capacité \\ \textit{Used capacity coefficient}} & \[\alpha_u\] & - & \[\frac{\sum_{i=1}^{n_l} {P_{l_i}}}{{C_L}{n_l}}\] & Coefficient permettant d'évaluer le pourcentage d'utilisation de la capacité offerte sur une ligne, par heure. \\
+\makecell[r]{Used capacity coefficient} & \[\alpha_u\] & - & \[\frac{\sum_{i=1}^{n_l} {P_{l_i}}}{{C_L}{n_l}}\] & Coefficient used to evaluate the percentage of capacity utilization offered on a line, per hour. \\
 \hline
 \label{station_capacity}
-\makecell[r]{Capacité de station \\ \textit{Station capacity}} & \[C_S\] & \[places/h\] & - & Nombre de places pouvant s'arrêter à une station, par heure (toutes lignes et directions passant par la station). \\
+\makecell[r]{Station capacity} & \[C_S\] & \[places/h\] & - & Number of places that can stop at a station per hour (all lines and directions passing through the station). \\
 \hline
 \label{node_capacity}
-\makecell[r]{Capacité de noeud d'arrêt \\ \textit{Stop node capacity}} & \[C_q\] & \[places/h\] & - & Nombre de places pouvant s'arrêter à un noeud d'arrêt, par heure (toutes lignes et directions passant par le noeud). \\
+\makecell[r]{Stop node capacity} & \[C_q\] & \[places/h\] & - & Number of places that can stop at a stop node per hour (all lines and directions passing through the node). \\
 \hline
 \label{stop_capacity}
-\makecell[r]{Capacité d'arrêt \\ \textit{Stop capacity}} & \[C_s\] & \[places/h\] & - & Nombre de places pouvant s'arrêter à un arrêt (panneau ou un quai/plateforme), par heure (toutes lignes et directions passant par l'arrêt). \\
+\makecell[r]{Stop capacity} & \[C_s\] & \[places/h\] & - & Number of places that can stop at a stop (sign or platform) per hour (all lines and directions passing through the stop). \\
 \hline
 \label{offered_work}
-\makecell[r]{Travail offert \\ \textit{Offered work}} & \[w_o\] & \[places-km/h\] & \[C_L d_L\] & Travail offert sur la ligne dans une direction, pendant une heure. Attention aux ambiguïtés si la ligne n'est pas bidirectionnelle symétrique. \\
+\makecell[r]{Offered work} & \[w_o\] & \[places-km/h\] & \[C_L d_L\] & Work offered on the line in one direction, per hour. Be careful with ambiguities if the line is not symmetrically bidirectional. \\
 \hline
 \label{outbound_offered_work}
-\makecell[r]{Travail offert aller \\ \textit{Outbound offered work}} & \[{w_o}^{\prime}\] & \[places-km/h\] & \[C_L d^{\prime}\] & Attention aux ambiguïtés si la ligne n'est pas bidirectionnelle symétrique. \\
+\makecell[r]{Outbound offered work} & \[{w_o}^{\prime}\] & \[places-km/h\] & \[C_L d^{\prime}\] & Be careful with ambiguities if the line is not symmetrically bidirectional. \\
 \hline
 \label{inbound_offered_work}
-\makecell[r]{Travail offert retour \\ \textit{Inbound offered work}} & \[{w_o}^{\prime\prime}\] & \[places-km/h\] & \[C_L d^{\prime\prime}\] & Attention aux ambiguïtés si la ligne n'est pas bidirectionnelle symétrique. \\
+\makecell[r]{Inbound offered work} & \[{w_o}^{\prime\prime}\] & \[places-km/h\] & \[C_L d^{\prime\prime}\] & Be careful with ambiguities if the line is not symmetrically bidirectional. \\
 \hline
 \label{cycle_offered_work}
-\makecell[r]{Travail offert de cycle \\ \textit{Cycle offered work}} & \[{w_{o_c}}\] & \[places-km/h\] & \[{w_o}^{\prime} + {w_o}^{\prime\prime}\] & Travail total offert aller-retour (cycle complet), pendant une heure. Attention aux ambiguïtés si la ligne n'est pas bidirectionnelle symétrique. \\
+\makecell[r]{Cycle offered work} & \[{w_{o_c}}\] & \[places-km/h\] & \[{w_o}^{\prime} + {w_o}^{\prime\prime}\] & Total work offered round-trip (complete cycle), per hour. Be careful with ambiguities if the line is not symmetrically bidirectional. \\
 \hline
 \label{used_work}
-\makecell[r]{Travail utilisé \\ \textit{Used work}} & \[w_u\] & \[pass-km/h\] & \[\sum_{i=1}^{n_l} {{P_l}_i {d_l}_i}\] & Travail comprenant le volume de passagers qui a utilisé les différents segments de la ligne, dans une direction. Attention aux ambiguïtés si la ligne n'est pas bidirectionnelle symétrique. \\
+\makecell[r]{Used work} & \[w_u\] & \[pass-km/h\] & \[\sum_{i=1}^{n_l} {{P_l}_i {d_l}_i}\] & Work including the volume of passengers who used different segments of the line, in one direction. Be careful with ambiguities if the line is not symmetrically bidirectional. \\
 \hline
 \label{outbound_used_work}
-\makecell[r]{Travail utilisé aller \\ \textit{Outbound used work}} & \[{w_u}^{\prime}\] & \[pass-km/h\] & \[\sum_{i=1}^{n_l} {{P_l}_i {d_l}_i}\] où \(l_i\) sont les segments du parcours aller & Travail comprenant le volume de passagers qui a utilisé les différents segments de la ligne, en direction aller, pendant une heure. Attention aux ambiguïtés si la ligne n'est pas bidirectionnelle symétrique. \\
+\makecell[r]{Outbound used work} & \[{w_u}^{\prime}\] & \[pass-km/h\] & \[\sum_{i=1}^{n_l} {{P_l}_i {d_l}_i}\] where \(l_i\) are outbound path segments & Work including the volume of passengers who used different segments of the line, in outbound direction, per hour. Be careful with ambiguities if the line is not symmetrically bidirectional. \\
 \hline
 \label{inbound_used_work}
-\makecell[r]{Travail utilisé retour \\ \textit{Inbound used work}} & \[{w_u}^{\prime\prime}\] & \[pass-km/h\] & \[\sum_{i=1}^{n_l} {{P_l}_i {d_l}_i}\] où \(l_i\) sont les segments du parcours retour & Travail comprenant le volume de passagers qui a utilisé les différents segments de la ligne, en direction retour, pendant une heure. Attention aux ambiguïtés si la ligne n'est pas bidirectionnelle symétrique. \\
+\makecell[r]{Inbound used work} & \[{w_u}^{\prime\prime}\] & \[pass-km/h\] & \[\sum_{i=1}^{n_l} {{P_l}_i {d_l}_i}\] where \(l_i\) are inbound path segments & Work including the volume of passengers who used different segments of the line, in inbound direction, per hour. Be careful with ambiguities if the line is not symmetrically bidirectional. \\
 \hline
 \label{cycle_used_work}
-\makecell[r]{Travail utilisé de cycle \\ \textit{Cycle used work}} & \[{w_{u_c}}\] & \[pass-km/h\] & \[{w_o}^{\prime} + {w_o}^{\prime\prime}\] & Travail total utilisé aller-retour (cycle complet), pendant une heure. Attention aux ambiguïtés si la ligne n'est pas bidirectionnelle symétrique. \\
+\makecell[r]{Cycle used work} & \[{w_{u_c}}\] & \[pass-km/h\] & \[{w_o}^{\prime} + {w_o}^{\prime\prime}\] & Total work used round-trip (complete cycle), per hour. Be careful with ambiguities if the line is not symmetrically bidirectional. \\
 \hline
 \label{line_daily_offered_work}
-\makecell[r]{Travail offert quotidien de ligne \\ \textit{Line daily offered work}} & \[W_o\] & \[places-km/jour\] & \[\sum_{i=1}^{N_o} {w_{o_i}}\] où \(w_{o_i}\) est le travail offert par un voyage aller-retour & Travail total offert sur une ligne pendant une journée complète de service. Attention de spécifier de quel service il s'agit (semaine, fin de semaine, etc.). \\
+\makecell[r]{Line daily offered work} & \[W_o\] & \[places-km/day\] & \[\sum_{i=1}^{N_o} {w_{o_i}}\] where \(w_{o_i}\) is the work offered per round trip & Total work offered on a line during a complete day of service. Be sure to specify which service type (weekday, weekend, etc.). \\
 \hline
 \label{line_daily_used_work}
-\makecell[r]{Travail utilisé quotidien de ligne \\ \textit{Line daily used work}} & \[W_u\] & \[pass-km/jour\] & \[\sum_{i=0}^{23} {w_{u_i}}\] où \(w_{u_i}\) est le travail utilisé sur un voyage aller-retour & Travail total utilisé par des passagers sur une ligne pendant une journée complète de service. Attention de spécifier de quel service il s'agit (semaine, fin de semaine, etc.). \\
+\makecell[r]{Line daily used work} & \[W_u\] & \[pass-km/day\] & \[\sum_{i=0}^{23} {w_{u_i}}\] where \(w_{u_i}\) is the work used per round trip & Total work used by passengers on a line during a complete day of service. Be sure to specify which service type (weekday, weekend, etc.). \\
 \hline
 \label{network_daily_offered_work}
-\makecell[r]{Travail offert quotidien de réseau \\ \textit{Daily network offered work}} & \[W_{o_{net}}\] & \[places-km/jour\] & \[\sum_{i=1}^{N_L} {W_{o_i}}\] & Travail offert par jour sur l'ensemble des lignes du réseau. \\
+\makecell[r]{Daily network offered work} & \[W_{o_{net}}\] & \[places-km/day\] & \[\sum_{i=1}^{N_L} {W_{o_i}}\] & Work offered per day across all network lines. \\
 \hline
 \label{network_daily_used_work}
-\makecell[r]{Travail utilisé quotidien dans le réseau \\ \textit{Daily network used work}} & \[W_{u_{net}}\] &\[pass-km/jour\] & \[\sum_{i=1}^{N_L} {W_{u_i}}\] & Travail utilisé par jour sur l'ensemble des lignes du réseau. \\
+\makecell[r]{Daily network used work} & \[W_{u_{net}}\] & \[pass-km/day\] & \[\sum_{i=1}^{N_L} {W_{u_i}}\] & Work used per day across all network lines. \\
 \hline
 \label{productive_capacity}
-\makecell[r]{Capacité productive \\ \textit{Productive capacity}} & \[Q\] & \[places-km/h^2\] & \[C_L {V_o}_L\] & Mesure de performance la plus utile, puisqu'elle tient compte autant de la capacité d'une ligne que de la vitesse d'opération offerte. La capacité productive est par heure, par direction. Attention de mentionner la période (pointe, hors pointe, journée, etc.) \\
+\makecell[r]{Productive capacity} & \[Q\] & \[places-km/h^2\] & \[C_L {V_o}_L\] & Most useful performance measure, as it accounts for both line capacity and operating speed offered. Productive capacity is per hour, per direction. Be sure to mention the period (peak, off-peak, day, etc.) \\
 \hline
 \label{unit_daily_productivity}
-\makecell[r]{Productivité d'unité quotidienne \\ \textit{Unit daily productivity}} & \[w_{u}\] & \[\textit{unité}-{km}\] & \[N_o (d^{\prime} + d^{\prime\prime})\] où \(N_o\) est le nombre de voyages aller-retour par jour & Nombre de km offerts par une unité par jour. Attention de spécifier de quel service il s'agit (semaine, fin de semaine, etc.). \\
+\makecell[r]{Unit daily productivity} & \[w_u\] & \[unit-km\] & \[N_o (d^{\prime} + d^{\prime\prime})\] where \(N_o\) is the number of round trips per day & Number of km offered by a unit per day. Be sure to specify which service type (weekday, weekend, etc.). \\
 \hline
 \label{total_unit_daily_productivity}
-\makecell[r]{Productivité d'unités quotidienne totale \\ \textit{Total unit daily productivity}} & \[W_{u}\] & \[\textit{unités}-{km}\] & \[\sum_{i=1}^{N_{u}} {w_{{u}_i}}\] & Nombre total d'unités-km offerts par jour. Attention de spécifier de quel service il s'agit (semaine, fin de semaine, etc.). \\
+\makecell[r]{Total unit daily productivity} & \[W_u\] & \[units-km\] & \[\sum_{i=1}^{N_u} {w_{{u}_i}}\] & Total number of unit-km offered per day. Be sure to specify which service type (weekday, weekend, etc.). \\
 \hline
 \label{productive_volume}
-\makecell[r]{Volume productif \\ \textit{Productive volume}} & \[Q_u\] & \[pass-km/h^2\] & \[\overline{P_L} {V_o}_L\] & Tient compte du volume de passagers moyen sur la ligne. La capacité productive utilisée est par heure, par direction. Attention de mentionner la période (pointe, hors pointe, journée, etc.) \\
+\makecell[r]{Productive volume} & \[Q_u\] & \[pass-km/h^2\] & \[\overline{P_L} {V_o}_L\] & Takes into account average passenger volume on the line. Used productive capacity is per hour, per direction. Be sure to mention the period (peak, off-peak, day, etc.) \\
 \hline
 \end{longtable}
 
 \begin{longtable}{%
-  R{.35\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.05\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  L{.44\NetTableWidth}%
+    R{.35\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.05\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    L{.44\NetTableWidth}%
 }
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{used_work_coefficient}
-\makecell[r]{Coefficient d'utilisation du travail \\ \textit{Used work coefficient}} & \[\alpha_w\] & - & \[\frac{w_{u_c}}{w_{o_c}}\] & Permet d'évaluer le pourcentage du travail offert, par heure, qui a été utilisé par des passagers. \\
+\makecell[r]{Used work coefficient} & \[\alpha_w\] & - & \[\frac{w_{u_c}}{w_{o_c}}\] & Used to evaluate the percentage of offered work per hour that was used by passengers. \\
 \hline
 \label{daily_line_used_work_coefficient}
-\makecell[r]{Coefficient d'utilisation du travail quotidien de ligne \\ \textit{Daily line used work coefficient}} & \[\alpha_W\] & - & \[\frac{W_u}{W_o}\] & Permet d'évaluer le pourcentage du travail offert quotidien qui a été utilisé par des passagers. \\
+\makecell[r]{Daily line used work coefficient} & \[\alpha_W\] & - & \[\frac{W_u}{W_o}\] & Used to evaluate the percentage of daily offered work that was used by passengers. \\
 \hline
 \label{daily_network_used_work_coefficient}
-\makecell[r]{Coefficient d'utilisation du travail quotidien de réseau \\ \textit{Daily network used work coefficient}} & \[\alpha_{W_{net}}\] & - & \[\frac{W_{u_{net}}}{W_{o_{net}}}\] & Permet d'évaluer le pourcentage du travail offert quotidien qui a été utilisé par des passagers sur l'ensemble du réseau. \\
+\makecell[r]{Daily network used work coefficient} & \[\alpha_{W_{net}}\] & - & \[\frac{W_{u_{net}}}{W_{o_{net}}}\] & Used to evaluate the percentage of daily offered work that was used by passengers across the entire network. \\
 \hline
 \end{longtable}
 
 
 
 \pagebreak
-\subsection*{Coûts • \textit{Costs}}
+\subsection*{Costs}
 
 \begin{longtable}{%
-  R{.23\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.04\NetTableWidth}%
-  C{.2\NetTableWidth}%
-  L{.45\NetTableWidth}%
+    R{.23\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.04\NetTableWidth}%
+    C{.2\NetTableWidth}%
+    L{.45\NetTableWidth}%
 }
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{operating_cost_per_unit_hour}
-\makecell[r]{Coût d'opération par unité-heure \\ \textit{Operating cost per unit-hour}} & \[c_{t_o}\] & \[\$/h\] & - & Coût d'opération d'une unité par heure de fonctionnement. Attention d'inclure les temps haut-le-pied et les battements. \\
+\makecell[r]{Operating cost per unit-hour} & \[c_{t_o}\] & \[\$/h\] & - & Operating cost of a unit per hour of operation. Be sure to include deadhead times and layover times. \\
 \hline
 \label{operating_cost_per_unit_km}
-\makecell[r]{Coût d'opération par unité-km \\ \textit{Operating cost per unit-km}} & \[c_{d_o}\] & \[\$/km\] & & Coût d'opération d'une unité par km. Attention d'inclure les distances des parcours haut-le-pied. \\
+\makecell[r]{Operating cost per unit-km} & \[c_{d_o}\] & \[\$/km\] & & Operating cost of a unit per km. Be sure to include deadhead distances. \\
 \hline
 \label{total_operating_cost}
-\makecell[r]{Coût total d'opération \\ \textit{Total operating cost}} & \[C_o\] & \[\$\] & \[\sum_{i=1}^{N_{u}} {c_{t_o} t_i}\] ou \[\sum_{i=1}^{N_{u}} {c_{d_o} d_i}\] où \(N_u\) est le nombre d'unités en service pendant la période visée. & Coût d'opération total. Attention de bien indiquer la période de service pour le calcul de \(t\) et \(d\) (heure, jour, semaine, année, etc.). \\
+\makecell[r]{Total operating cost} & \[C_o\] & \[\$\] & \[\sum_{i=1}^{N_u} {c_{t_o} t_i}\] or \[\sum_{i=1}^{N_u} {c_{d_o} d_i}\] where \(N_u\) is the number of units in service during the period. & Total operating cost. Be sure to specify the service period for calculating \(t\) and \(d\) (hour, day, week, year, etc.). \\
 \hline
 \label{total_hourly_operating_cost}
-\makecell[r]{Coût d'opération horaire total \\ \textit{Total hourly operating cost}} & \[C_{t_o}\] & \[\$\] & \[\sum_{i=1}^{N_{u}} {c_{t_o}}\] où \(N_u\) est le nombre d'unités en service pendant la période visée. & Coût d'opération moyen par heure. Habituellement calculé en pointe, hors-pointe ou sur 24h. \\
+\makecell[r]{Total hourly operating cost} & \[C_{t_o}\] & \[\$\] & \[\sum_{i=1}^{N_u} {c_{t_o}}\] where \(N_u\) is the number of units in service during the period. & Average operating cost per hour. Usually calculated for peak, off-peak or 24h periods. \\
 \hline
 \label{user_hourly_cost}
-\makecell[r]{Coût usager horaire \\ \textit{User hourly cost}} & \[c_{t_u}\] & \[\$/h\] & - & Coût horaire associé aux déplacements des usagers (valeur du temps). Peut varier selon la socio-démographie et les caractéristiques de l'usager. \\
+\makecell[r]{User hourly cost} & \[c_{t_u}\] & \[\$/h\] & - & Hourly cost associated with user trips (value of time). Can vary based on socio-demographics and user characteristics. \\
 \hline
 \label{total_user_cost}
-\makecell[r]{Coût usager total \\ \textit{Total user cost}} & \[C_u\] & \[\$\] & \[\sum_{i=1}^{N_{OD}} {c_{t_u} T_{OD}}\] & Coût usager total représentant la somme des coûts de chaque déplacement complété. Attention de bien indiquer la période de service pour le calcul de \(t\) et \({\Delta s}\) (heure, jour, semaine, année, etc.). \\
+\makecell[r]{Total user cost} & \[C_u\] & \[\$\] & \[\sum_{i=1}^{N_{OD}} {c_{t_u} T_{OD}}\] & Total user cost representing the sum of costs for each completed trip. Be sure to specify the service period for calculating \(t\) and \({\Delta s}\) (hour, day, week, year, etc.). \\
 \hline
 \label{total_hourly_user_cost}
-\makecell[r]{Coût usager horaire total \\ \textit{Total hourly user cost}} & \[C_{t_u}\] & \[\$/h\] & \[\frac{\sum_{i=1}^{N_{OD}} {c_{t_u} T_{OD}}}{\Delta t}\] où \(\Delta t\) est la durée en heures de la période visée. & Coût usager horaire total représentant la somme des coûts de chaque déplacement complété, ramenée sur une heure. Habituellement calculé en pointe, hors-pointe ou sur 24h. \\
+\makecell[r]{Total hourly user cost} & \[C_{t_u}\] & \[\$/h\] & \[\frac{\sum_{i=1}^{N_{OD}} {c_{t_u} T_{OD}}}{\Delta t}\] where \(\Delta t\) is the duration in hours of the period. & Total hourly user cost representing the sum of costs for each completed trip, averaged per hour. Usually calculated for peak, off-peak or 24h periods. \\
 \hline
 \label{total_cost}
-\makecell[r]{Coût total \\ \textit{Total cost}} & \[C\] & \[\$\] & \[C_o + C_u\] & Coût total incluant les coûts d'opération et la valeur du temps pour les usagers. \\
+\makecell[r]{Total cost} & \[C\] & \[\$\] & \[C_o + C_u\] & Total cost including operating costs and user time value. \\
 \hline
 \label{total_hourly_cost}
-\makecell[r]{Coût horaire total \\ \textit{Total hourly cost}} & \[C_h\] & \[\$/h\] & \[C_{t_o} + C_{t_u}\] & Coût total horaire incluant les coûts d'opération et les coûts usager. \\
+\makecell[r]{Total hourly cost} & \[C_h\] & \[\$/h\] & \[C_{t_o} + C_{t_u}\] & Total hourly cost including operating costs and user costs. \\
 \hline
 \end{longtable}
-
+  
 \begin{longtable}{%
-  R{.3\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.04\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  L{.5\NetTableWidth}%
+    R{.3\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.04\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    L{.5\NetTableWidth}%
 }
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{minimum_transfer_penalty}
-\makecell[r]{Pénalité de transfert minimum \\ \textit{Minimum transfer penalty}} & \[c_t\] & \[\$\] & - & Pénalité (valeur du temps augmentée) pour chaque transfert effectué. Représente la pénibilité de transfert. \\
+\makecell[r]{Minimum transfer penalty} & \[c_t\] & \[\$\] & - & Penalty (increased time value) for each transfer made. Represents the transfer disutility. \\
 \hline
 \label{transfer_access_time_penalty_factor}
-\makecell[r]{Facteur de pénalité du temps d'accès de transfert \\ \textit{Transfer access time penalty factor}} & \[\mu_{tr}\] & - & - & Facteur par lequel on multiplie le temps d'accès de transfert. Varie en fonction de la perception de pénibilité associée aux temps d'accès entre arrêts de transfert. \\
+\makecell[r]{Transfer access time penalty factor} & \[\mu_{tr}\] & - & - & Factor by which transfer access time is multiplied. Varies based on the perceived disutility associated with access times between transfer stops. \\
 \hline
 \label{waiting_time_penalty_factor}
-\makecell[r]{Facteur de pénalité du temps d'attente \\ \textit{Waiting time penalty factor}} & \[\mu_w\] & - & - & Facteur par lequel on multiplie le temps d'attente. Varie en fonction de la perception de pénibilité associée aux temps d'attente. \\
+\makecell[r]{Waiting time penalty factor} & \[\mu_w\] & - & - & Factor by which waiting time is multiplied. Varies based on the perceived disutility associated with waiting times. \\
 \hline
 \label{access_egress_time_penalty_factor}
-\makecell[r]{Facteur de pénalité du temps d'accès OD \\ \textit{Access/egress time penalty factor}} & \[\mu_{e_{OD}}\] & - & - & Facteur par lequel on multiplie le temps d'accès à l'origine et à destination. Varie en fonction de la perception de pénibilité associée aux temps d'accès à l'origine et à destination. \\
+\makecell[r]{Access/egress time penalty factor} & \[\mu_{e_{OD}}\] & - & - & Factor by which origin and destination access time is multiplied. Varies based on the perceived disutility associated with origin and destination access times. \\
 \hline
 \label{total_access_time_penalty_factor}
-\makecell[r]{Facteur de pénalité du temps d'accès total \\ \textit{Total access time penalty factor}} & \[\mu_e\] & - & - & Facteur par lequel on multiplie le temps d'accès total. Varie en fonction de la perception de pénibilité associée aux temps d'accès total (à l'origine, à destination et lors des transferts). \\
+\makecell[r]{Total access time penalty factor} & \[\mu_e\] & - & - & Factor by which total access time is multiplied. Varies based on the perceived disutility associated with total access time (at origin, destination and during transfers). \\
 \hline
 \label{in_vehicle_time_penalty_factor}
-\makecell[r]{Facteur de pénalité du temps en véhicule \\ \textit{In-vehicle time penalty factor}} & \[\mu_{veh}\] & - & - & Facteur par lequel on multiplie le temps en véhicule. Varie en fonction de la perception de pénibilité associée aux temps en véhicule. \\
+\makecell[r]{In-vehicle time penalty factor} & \[\mu_{veh}\] & - & - & Factor by which in-vehicle time is multiplied. Varies based on the perceived disutility associated with in-vehicle times. \\
 \hline
 \end{longtable}
 
 
 
 \pagebreak
-\subsection*{Agences, réseaux, services, horaires, déplacements et indicateurs globaux • \textit{Agencies, networks, services, schedules, user trips and global indicators}}
+\subsection*{Agencies, networks, services, schedules, user trips and global indicators}
 
 \begin{longtable}{%
-  R{.28\NetTableWidth}%
-  C{.05\NetTableWidth}%
-  C{.15\NetTableWidth}%
-  C{.16\NetTableWidth}%
-  L{.37\NetTableWidth}%
+    R{.28\NetTableWidth}%
+    C{.05\NetTableWidth}%
+    C{.15\NetTableWidth}%
+    C{.16\NetTableWidth}%
+    L{.37\NetTableWidth}%
 }
 \hline
-\makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
+\makecell[r]{Definition} & \makecell[c]{Symbol} & \makecell[c]{Unit} & \makecell[c]{Expression} & \makecell[l]{Description} \\
 \hline
 \hline
 \endhead
 \label{agency}
-\makecell[r]{Agence \\ \textit{Agency}} & \[A^G\] & - & - & Agence possédant un réseau de transport collectif \\
+\makecell[r]{Agency} & \[A^G\] & - & - & Agency owning a public transit network \\
 \hline
 \label{network}
-\makecell[r]{Réseau \\ \textit{Network}} & \[N^T\] & - & - & Réseau de transport collectif comprenant des lignes et des services/horaires pour une ou plusieurs agences \\
+\makecell[r]{Network} & \[N^T\] & - & - & Public transit network including lines and services/schedules for one or more agencies \\
 \hline
 \label{service}
-\makecell[r]{Service \\ \textit{Service}} & \[H\] &  &  & Ensemble d'horaires associés pour une période ou un type de service donné (service de semaine, de fin de semaine, de nuit, service spécial, etc.). \\
+\makecell[r]{Service} & \[H\] &  &  & Set of associated schedules for a given period or service type (weekday service, weekend service, night service, special service, etc.) \\
 \hline
 \label{scenario}
-\makecell[r]{Scénario \\ \textit{Scenario}} & \[H_S\] &  &  & Ensemble de services utilisé pour des fins de design, de comparaison et de simulation. \\
+\makecell[r]{Scenario} & \[H_S\] &  &  & Set of services used for design, comparison and simulation purposes \\
 \hline
 \label{user_trip}
-\makecell[r]{Déplacement \\ \textit{User trip}} & \[OD\] & - & - & Déplacement de transport collectif effectué par un usager \\
+\makecell[r]{User trip} & \[OD\] & - & - & Transit trip made by a user \\
 \hline
 \label{total_number_of_user_trips}
-\makecell[r]{Nombre total de déplacements \\ \textit{Total number of user trips}} & \[N_{OD}\] & dépl. & - & Nombre total de déplacements de transport collectif effectués par l'ensemble des usagers. Préciser s'il s'agit de l'ensemble du réseau, d'une ligne ou d'un parcours, et si la période est une heure, une journée, une semaine, un an, etc. \\
+\makecell[r]{Total number of user trips} & \[N_{OD}\] & trips & - & Total number of transit trips made by all users. Specify if it's for the entire network, a line, or a route, and if the period is per hour, day, week, year, etc. \\
 \hline
 \label{direct_user_trips}
-\makecell[r]{Nombre total de déplacements directs \\ \textit{Total number of direct user trips}} & \[N_{{OD}_d}\] & dépl. & - & Nombre total de déplacements de transport collectif effectués par l'ensemble des usagers sans transfert. Préciser s'il s'agit de l'ensemble du réseau, d'une ligne ou d'un parcours, et si la période est une heure, une journée, une semaine, un an, etc. \\
+\makecell[r]{Total number of direct user trips} & \[N_{{OD}_d}\] & trips & - & Total number of transit trips made by all users without transfers. Specify if it's for the entire network, a line, or a route, and if the period is per hour, day, week, year, etc. \\
 \hline
 \label{direct_user_trips_coefficient}
-\makecell[r]{Coefficient de directivité des déplacements \\ \textit{Direct user trips coefficient}} & \[\delta_{{OD}_d}\] & - & \[\frac{N_{{OD}_d}}{N_{OD}}\] & Pourcentage des déplacements qui sont faits directement, sans transfert. \\
+\makecell[r]{Direct user trips coefficient} & \[\delta_{{OD}_d}\] & - & \[\frac{N_{{OD}_d}}{N_{OD}}\] & Percentage of trips made directly, without transfers. \\
 \hline
 \label{urban_population}
-\makecell[r]{Population urbaine \\ \textit{Urban population}} & \[P_{urb}\] & pers. & - & Population de la région urbaine dans laquelle le réseau offre son service. \\
+\makecell[r]{Urban population} & \[P_{urb}\] & pers. & - & Population of the urban region where the network provides service. \\
 \hline
 \label{number_of_transfers}
-\makecell[r]{Nombre de transferts \\ \textit{Number of transfers}} & \[n_{tr}\] & transferts & - & Nombre de transferts effectués par l'usager lors d'un parcours de transport collectif. \\
+\makecell[r]{Number of transfers} & \[n_{tr}\] & transfers & - & Number of transfers made by the user during a transit trip. \\
 \hline
 \label{total_number_of_transfers}
-\makecell[r]{Nombre total de transferts \\ \textit{Total number of transfers}} & \[N_{tr}\] & transferts & \[\sum_{i=1}^{} {n_{tr}}_i\] & Nombre total de transferts effectués par l'ensemble des usagers. Préciser s'il s'agit de l'ensemble du réseau, d'une ligne ou d'un parcours, et si la période est une heure, une journée, une semaine, un an, etc. \\
+\makecell[r]{Total number of transfers} & \[N_{tr}\] & transfers & \[\sum_{i=1}^{} {n_{tr}}_i\] & Total number of transfers made by all users. Specify if it's for the entire network, a line, or a route, and if the period is per hour, day, week, year, etc. \\
 \hline
 \label{urban_area}
-\makecell[r]{Superficie urbaine \\ \textit{Urban area}} & \[A_{urb}\] & \[km^2\] & - & Superficie de la région urbaine dans laquelle le réseau offre son service. \\
+\makecell[r]{Urban area} & \[A_{urb}\] & \[km^2\] & - & Area of the urban region where the network provides service. \\
 \hline
 \label{transit_usage_habit}
-\makecell[r]{Habitude d'utilisation du transport collectif \\ \textit{Transit usage habit}} & \[\overline{n_{OD}}\] & \[dep\] & - & Nombre moyen de déplacements transport collectif par personne par année, incluant les non-utilisateurs du transport collectif. Cet indicateur est très souvent utillisé dans les comparaisons entre villes, mais ne tient pas compte des particularités locales, du nombre de déplacements moyen total par personne (tous modes) et des chaînes de déplacement. \\
+\makecell[r]{Transit usage habit} & \[\overline{n_{OD}}\] & trips & - & Average number of transit trips per person per year, including non-transit users. This indicator is very often used in comparisons between cities but doesn't account for local characteristics, average total trips per person (all modes), and trip chains. \\
 \hline
 \label{transit_modal_share}
-\makecell[r]{Part modale du transport collectif \\ \textit{Transit modal share}} & \[m_{transit}\] & - &- & Pourcentage des déplacements de la région urbaine effectués en transport collectif (habituellement pour la période de pointe maximale ou une journée moyenne de semaine). \\
+\makecell[r]{Transit modal share} & \[m_{transit}\] & - & - & Percentage of trips in the urban region made by transit (usually for the maximum peak period or an average weekday). \\
 \hline
 \label{number_of_unique_stop_nodes}
-\makecell[r]{Nombre de noeuds d'arrêts uniques \\ \textit{Number of unique stop nodes}} & \[N_{qu}\] & noeuds & - & Nombre total de noeuds d'arrêts desservis par une seule ligne. \\
+\makecell[r]{Number of unique stop nodes} & \[N_{qu}\] & nodes & - & Total number of stop nodes served by a single line. \\
 \hline
 \label{number_of_multiple_stop_nodes}
-\makecell[r]{Nombre de noeuds d'arrêts multiples \\ \textit{Number of multiple stop nodes}} & \[N_{qm}\] & noeuds & - & Nombre total de noeuds d'arrêts desservis par plus d'une ligne. \\
+\makecell[r]{Number of multiple stop nodes} & \[N_{qm}\] & nodes & - & Total number of stop nodes served by more than one line. \\
 \hline
 \label{total_number_of_nodes}
-\makecell[r]{Nombre total de noeuds d'arrêts \\ \textit{Total number of nodes}} & \[N_q\] & noeuds & \[N_{qu} + N_{qm}\] & Nombre total de noeuds d'arrêts dans le réseau. Ne compter qu'une seule fois les noeuds d'arrêts desservis par plusieurs lignes (noeuds d'arrêts multiples). \\
+\makecell[r]{Total number of nodes} & \[N_q\] & nodes & \[N_{qu} + N_{qm}\] & Total number of stop nodes in the network. Count stop nodes served by multiple lines (multiple stop nodes) only once. \\
 \hline
 \label{number_of_lines}
-\makecell[r]{Nombre de lignes \\ \textit{Number of lines}} & \[N_L\] & lignes & - & - \\
+\makecell[r]{Number of lines} & \[N_L\] & lines & - & - \\
 \hline
 \label{number_of_paths}
-\makecell[r]{Nombre de parcours \\ \textit{Number of paths}} & \[N_p\] & parcours & \[\sum_{i=1}^{N_L} {n_{p_i}}\] & Nombre total de parcours sur l'ensemble des lignes du réseau. \\
+\makecell[r]{Number of paths} & \[N_p\] & paths & \[\sum_{i=1}^{N_L} {n_{p_i}}\] & Total number of paths across all network lines. \\
 \hline
 \label{number_of_unique_segments}
-\makecell[r]{Nombre de segments uniques \\ \textit{Number of unique segments}} & \[N_{lu}\] & segments & - & Nombre total de segments desservis par une seule ligne. \\
+\makecell[r]{Number of unique segments} & \[N_{lu}\] & segments & - & Total number of segments served by a single line. \\
 \hline
 \label{number_of_multiple_segments}
-\makecell[r]{Nombre de segments multiples \\ \textit{Number of multiple segments}} & \[N_{lm}\] & segments & & Nombre total de segments desservis par plus d'une ligne. \\
+\makecell[r]{Number of multiple segments} & \[N_{lm}\] & segments & - & Total number of segments served by more than one line. \\
 \hline
 \label{total_number_of_segments}
-\makecell[r]{Nombre total de segments \\ \textit{Total number of segments}} & \[N_l\] & segments & \[N_{lu} + N_{lm}\] & - \\
+\makecell[r]{Total number of segments} & \[N_l\] & segments & \[N_{lu} + N_{lm}\] & - \\
 \hline
 \label{network_linear_density}
-\makecell[r]{Densité linéaire de réseau \\ \textit{Network linear density}} & \[\rho_L\] & \[{km}\ \text{de ligne}/{km}^2\] & \[\frac{d_{net}}{A_{urb}}\] & Longueur de réseau par rapport à la superficie urbaine. \\
+\makecell[r]{Network linear density} & \[\rho_L\] & \[{km}\ \text{of line}/{km}^2\] & \[\frac{d_{net}}{A_{urb}}\] & Network length relative to urban area. \\
 \hline
-\label{network_coverage_coefficient}
-\makecell[r]{Coefficient de couverture du réseau \\ \textit{Network coverage coefficient}} & \[\mu_L\] & \[km/\text{pers.}\] & \[\frac{{\Delta s}_{net}}{P_u}\] & Nombre de kilomètres de réseau par personne dans la région urbaine. \\
+\label{network_linear_coverage}
+\makecell[r]{Network linear coverage} & \[\mu_L\] & \[km/\text{pers.}\] & \[\frac{{\Delta s}_{net}}{P_u}\] & Number of kilometers of network per person in the urban area. \\
 \hline
 \label{line_overlap_coefficient}
-\makecell[r]{Coefficient de superposition de ligne \\ \textit{Line overlap coefficient}} & \[\lambda\] & - & \[\frac{N_{lm}}{N_l}\] & Pourcentage des segments de lignes qui desservent plus d'une ligne. \\
+\makecell[r]{Line overlap coefficient} & \[\lambda\] & - & \[\frac{N_{lm}}{N_l}\] & Percentage of line segments that serve more than one line. \\
 \hline
 \label{number_of_depots}
-\makecell[r]{Nombre de garages \\ \textit{Number of depots}} & \[N_G\] & garages & - & Nombre de garages et dépôts dans le réseau. Attention de bien spécifier le type de garage et les types d'unités (modes) qui y sont entreposés. \\
+\makecell[r]{Number of depots} & \[N_G\] & depots & - & Number of garages and depots in the network. Be sure to specify the type of depot and the types of units (modes) stored there. \\
 \hline
 \label{network_average_inter_stop_distance}
-\makecell[r]{Distance inter-arrêt moyenne de réseau \\ \textit{Network average inter-stop distance}} & \[\overline{d_{l_{net}}}\] & \[m\] & \[\frac{d_{net}}{N_l}\] & - \\
+\makecell[r]{Network average inter-stop distance} & \[\overline{d_{l_{net}}}\] & \[m\] & \[\frac{d_{net}}{N_l}\] & - \\
 \hline
 \label{number_of_possible_user_paths}
-\makecell[r]{Nombre de parcours possibles \\ \textit{Number of possible user paths}} & \[N_{\Delta q}\] & parcours & \[\frac{1}{2} N_q (N_q-1)\] & Nombre total de paires de noeuds d'arrêts uniques dans le réseau. \\
+\makecell[r]{Number of possible user paths} & \[N_{\Delta q}\] & paths & \[\frac{1}{2} N_q (N_q-1)\] & Total number of unique stop node pairs in the network. \\
 \hline
 \label{number_of_possible_direct_user_paths}
-\makecell[r]{Nombre de parcours directs possibles \\ \textit{Number of possible direct user paths}} & \[N_{{\Delta q}_d}\] & parcours & \[\frac{1}{2} \Bigg( \sum_{i=1}^{N_L} {n_{q_i}(n_{q_i} - 1)}\] \[-\sum_{j=1}^{N_{Lm}-1} {n_{q_{m_j}}(n_{q_{m_j}} - 1)} \Bigg)\] & Nombre total de paires de noeuds d'arrêts uniques dans le réseau pouvant être desservies sans transfert (directs). \(N_{L_{m}}\) est le nombre de lignes qui possèdent au moins un segment commun avec une autre ligne et \(n_{q_{m_j}}\) est le nombre de stations sur chaque segment que chaque ligne \(j\) partage avec une ligne déjà comptée. \\
+\makecell[r]{Number of possible direct user paths} & \[N_{{\Delta q}_d}\] & paths & \[\frac{1}{2} \Bigg( \sum_{i=1}^{N_L} {n_{q_i}(n_{q_i} - 1)}\] \[-\sum_{j=1}^{N_{Lm}-1} {n_{q_{m_j}}(n_{q_{m_j}} - 1)} \Bigg)\] & Total number of unique stop node pairs in the network that can be served without transfers (direct). \(N_{L_{m}}\) is the number of lines that have at least one common segment with another line and \(n_{q_{m_j}}\) is the number of stations on each segment that each line \(j\) shares with an already counted line. \\
 \hline
 \label{number_of_possible_user_paths_with_transfers}
-\makecell[r]{Nombre de parcours avec transferts possibles \\ \textit{Number of possible user paths with transfers}} & \[N_{{\Delta q}_{tr}}\] & parcours & \[N_{\Delta q} - N_{{\Delta q}_d}\] & Nombre total de paires de noeuds d'arrêts uniques dans le réseau ne pouvant être desservies qu'avec au moins un transfert. \\
+\makecell[r]{Number of possible user paths with transfers} & \[N_{{\Delta q}_{tr}}\] & paths & \[N_{\Delta q} - N_{{\Delta q}_d}\] & Total number of unique stop node pairs in the network that can only be served with at least one transfer. \\
 \hline
 \label{direct_user_paths_coefficient}
-\makecell[r]{Coefficient de directivité des parcours \\ \textit{Direct user paths coefficient}} & \[\delta_{{\Delta q}_d}\] & - & \[\frac{N_{{\Delta q}_d}}{N_{\Delta q}}\] & Pourcentage des parcours possibles qui peuvent se faire directement, sans transfert. \\
+\makecell[r]{Direct user paths coefficient} & \[\delta_{{\Delta q}_d}\] & - & \[\frac{N_{{\Delta q}_d}}{N_{\Delta q}}\] & Percentage of possible paths that can be made directly, without transfers. \\
 \hline
 \label{network_complexity_coefficient}
-\makecell[r]{Coefficient de complexité de réseau \\ \textit{Network complexity coefficient}} & \[\beta\] & segments/arrêt & \[\frac{N_l}{N_q}\] & Ratio du nombre de segments sur le nombre de noeuds d'arrêt. Ne pas compter deux fois les segments bidirectionnels. Prend en compte autant le nombre d'arrêts par ligne que le nombre de segments multiples. \\
+\makecell[r]{Network complexity coefficient} & \[\beta\] & segments/stop & \[\frac{N_l}{N_q}\] & Ratio of number of segments to number of stop nodes. Don't count bidirectional segments twice. Takes into account both the number of stops per line and the number of multiple segments. \\
 \hline
 \label{accessible_area}
-\makecell[r]{Superficie accessible \\ \textit{Accessible area}} & \[A_a\] & \[km^2\] & - & Superficie desservie par le réseau de transport collectif. Obtenu au moyen de cartes d'accessibilité qui utilisent un calculateur de transport collectif. Attention de préciser les distances ou temps d'accès maximum, les temps d'attente minimum avant l'embarquement, ainsi que la période étudiée (heure de départ ou d'arrivée). Peut se calculer autour d'un point de départ ou d'arrivée avec une heure de départ ou d'arrivée ou de manière globale si aucune limite de temps n'est fournie. \\
+\makecell[r]{Accessible area} & \[A_a\] & \[km^2\] & - & Area served by the transit network. Obtained using accessibility maps that use a transit calculator. Be sure to specify maximum access distances or times, minimum waiting times before boarding, and the studied period (departure or arrival time). Can be calculated around a departure or arrival point with a departure or arrival time, or globally if no time limit is provided. \\
 \hline
 \label{network_accessibility_coefficient}
-\makecell[r]{Coefficient d'accessibilité du réseau \\ \textit{Network accessibility coefficient}} & \[\mu_a\] & - & \[\frac{A_a}{A_{urb}}\] & Pourcentage de la superficie urbaine accessible en transport collectif. \\
+\makecell[r]{Network accessibility coefficient} & \[\mu_a\] & - & \[\frac{A_a}{A_{urb}}\] & Percentage of urban area accessible by transit. \\
 \hline
 \label{stop_nodes_accessibility_radius}
-\makecell[r]{Rayon d'accès aux noeuds d'arrêts \\ \textit{Stop nodes accessibility radius}} & \[r_q\] & \[m\] & - & Cette valeur est un paramètre d'analyse des réseaux. \(r_x\) se situe habituellement entre 300 et 500m pour un arrêt de bus et entre 500 et 1000m pour une station de métro, SLR, SRB, train régional ou autre mode à grande fiabilité et à haute fréquence de service. Pour davantage de précision, un intervalle de temps d'accès en minutes est privilégiée, mais nécessite un calculeur de chemin pour obtenir les temps d'accès vers l'arrêt. \\
+\makecell[r]{Stop nodes accessibility radius} & \[r_q\] & \[m\] & - & This value is a network analysis parameter. \(r_x\) is usually between 300 and 500m for a bus stop and between 500 and 1000m for a metro station, LRT, BRT, regional train, or other high-reliability and high-frequency mode. For more precision, an access time interval in minutes is preferred but requires a path calculator to obtain access times to the stop. \\
 \hline
 \label{stop_nodes_accessible_area}
-\makecell[r]{Superficie accessible aux noeuds d'arrêts \\ \textit{Stop nodes accessible area}} & \[A_q\] & \[m^2/station\] & \[\pi r_q^2\] & Superficie desservie par le réseau de transport collectif. Obtenu au moyen de cartes d'accessibilité qui utilisent un calculateur de chemin transport collectif. Attention de préciser les distances ou temps d'accès maximum, les temps d'attente minimum avant l'embarquement, ainsi que la période étudiée (heure de départ ou d'arrivée). Peut se calculer autour d'un point de départ ou d'arrivée avec une heure de départ ou d'arrivée ou de manière globale si aucune limite de temps n'est fournie. \\
+\makecell[r]{Stop nodes accessible area} & \[A_q\] & \[m^2/station\] & \[\pi r_q^2\] & Area served by the transit network. Obtained using accessibility maps that use a transit path calculator. Be sure to specify maximum access distances or times, minimum waiting times before boarding, and the studied period (departure or arrival time). Can be calculated around a departure or arrival point with a departure or arrival time, or globally if no time limit is provided. \\
 \hline
 \label{network_coverage_coefficient}
-\makecell[r]{Coefficient de couverture du réseau \\ \textit{Network coverage coefficient}} & \[\mu_c\] & - & \[\frac{N_q A_q}{A_u}\] si rayon d'accès unique & Pourcentage de la superficie urbaine qui comprend un noeud d'arrêt de transport collectif à l'intérieur du rayon d'accès choisi. Bien indiquer le rayon choisi, qui peut varier en fonction du type d'arrêt et du niveau de service offert à chaque arrêt. Attention aux conversions d'unités (\(km^2 \leftrightarrow m^2\)). \\
+\makecell[r]{Network coverage coefficient} & \[\mu_c\] & - & \[\frac{N_q A_q}{A_u}\] if single access radius & Percentage of urban area that includes a transit stop node within the chosen access radius. Clearly indicate the chosen radius, which can vary depending on the type of stop and the level of service offered at each stop. Pay attention to unit conversions (\(km^2 \leftrightarrow m^2\)). \\
 \hline
 \label{number_of_employees}
-\makecell[r]{Nombre d'employés \\ \textit{Number of employees}} & \[N_e\] & employés & - & Nombre total d'employés dans le réseau. \\
+\makecell[r]{Number of employees} & \[N_e\] & employees & - & Total number of employees in the network. \\
 \hline
 \label{labor_productivity}
-\makecell[r]{Productivité de main d'oeuvre \\ \textit{Labor productivity}} & \[\eta_{We}\] & \[\text{unités}-km/\text{employé}\] & \[\frac{W_{u}}{N_e}\] & Nombre d'unités-km de service offerts par employé par jour. \\
+\makecell[r]{Labor productivity} & \[\eta_{We}\] & \[\text{units}-km/\text{employee}\] & \[\frac{W_u}{N_e}\] & Number of service unit-km offered per employee per day. \\
 \hline
 \label{labor_efficiency}
-\makecell[r]{Efficacité de main d'oeuvre \\ \textit{Labor efficiency}} & \[\eta_{Ce}\] & \[\text{places}-km/\text{employé}\] & \[\frac{W_{o_{net}}} {N_e}\] & Travail offert par employé par jour. \\
+\makecell[r]{Labor efficiency} & \[\eta_{Ce}\] & \[\text{places}-km/\text{employee}\] & \[\frac{W_{o_{net}}} {N_e}\] & Work offered per employee per day. \\
 \hline
 \label{passenger_volume_efficiency}
-\makecell[r]{Efficacité de volume de passagers \\ \textit{Passenger volume efficiency}} & \[\eta_P\] & \[pass/\text{unités}-km\] & \[\frac{\sum_{i=1}^{N_L} { \overline{P_{L_{{tot}_i}}}}} {W_{u}}\] & Volume de passagers transportés sur l'ensemble des lignes par jour par unités-km. \\
+\makecell[r]{Passenger volume efficiency} & \[\eta_P\] & \[pass/\text{units}-km\] & \[\frac{\sum_{i=1}^{N_L} { \overline{P_{L_{{tot}_i}}}}} {W_u}\] & Volume of passengers transported across all lines per day per unit-km. \\
 \hline
 \label{energy_consumption}
-\makecell[r]{Consommation énergétique \\ \textit{Energy consumption}} & \[E\] & \[kWh\] & - & Consommation énergétique totale. Spécifier la période (par jour, par semaine, par année, etc.) \\
+\makecell[r]{Energy consumption} & \[E\] & \[kWh\] & - & Total energy consumption. Specify the period (per day, per week, per year, etc.) \\
 \hline
 \label{energy_efficiency}
-\makecell[r]{Efficacité énergétique \\ \textit{Energy efficency}} & \[\eta_E\] & \[kWh/\text{unités}-km\] & \[\frac{E}{W_{u}}\] & Consommation énergétique par unités-km. Spécifier la période (par jour, par semaine, par année). \\
+\makecell[r]{Energy efficiency} & \[\eta_E\] & \[kWh/\text{units}-km\] & \[\frac{E}{W_u}\] & Energy consumption per unit-km. Specify the period (per day, per week, per year). \\
 \hline
 \label{reliability}
-\makecell[r]{Fiabilité \\ \textit{Reliability}} & \[R\] & \[\%\] & - & Pourcentage des passages à l'heure aux arrêts par rapport aux horaires planifiés. Idéalement: entre 0 et 3 minutes de retard. En pratique habituellement: entre 1 minutes d'avance et 5 minutes de retard. \\
+\makecell[r]{Reliability} & \[R\] & \[\%\] & - & Percentage of on-time stop arrivals compared to planned schedules. Ideally: between 0 and 3 minutes late. In practice usually: between 1 minute early and 5 minutes late. \\
 \hline
 \label{trips_completion_rate}
-\makecell[r]{Taux de voyages complétés \\ \textit{Trips completion rate}} & \[R_o\] & \[\%\] & - & Pourcentage des voyages effectués par rapport aux voyages planifiés. \\
+\makecell[r]{Trips completion rate} & \[R_o\] & \[\%\] & - & Percentage of completed trips compared to planned trips. \\
 \hline
 \end{longtable}
 

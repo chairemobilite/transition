@@ -46,13 +46,13 @@
     - 5\arrayrulewidth % if package array is loaded
   \relax
 
-  \begin{longtable}{%
+\begin{longtable}{%
     R{.15\NetTableWidth}%
     C{.08\NetTableWidth}%
     C{.04\NetTableWidth}%
     C{.08\NetTableWidth}%
     L{.65\NetTableWidth}%
-  }
+}
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
 \hline
@@ -120,7 +120,7 @@
     C{.04\NetTableWidth}%
     C{.1\NetTableWidth}%
     L{.5\NetTableWidth}%
-  }
+}
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
 \hline
@@ -136,7 +136,7 @@
 \makecell[r]{Garage/dépôt \\ \textit{Depot}} & \[G\] & - & - & Garage pour bus ou dépôt ferroviaire où sont entreposés les unités et véhicules et où on effectue leur maintenance. Habituellement, le garage constitue également le lieu de départ et d'arrivée des véhicules et chauffeurs assignés aux services en début et en fin de tournée. \\
 \hline
 \label{depot_unit_capacity}
-\makecell[r]{Capacité d'unités du garage \\ \textit{Depot units capacity}} & \[{N_u}_G\] & unités & - & Nombre d'unités pouvant être stationnées simultanément dans le garage ou le dépôt. Attention de bien spécifier si cette capacité comprend les emplacements réservés aux véhicules en maintenance. \\
+\makecell[r]{Capacité d'unités du garage \\ \textit{Depot units capacity}} & \[{N_u}_G\] & unités & - & Nombre d'unités pouvant être stationnées simultanément dans le garage ou le dépôt. Attention de bien spécifier si cette capacité comprend les emplacements réservés aux véhicules en maintenance ou en recharge. \\
 \hline
 \label{fleet_size}
 \makecell[r]{Taille de la flotte \\ \textit{Fleet size} } & \[F\] & unités & - & Flotte totale (nombre d'unités) incluant les unités en service, en réserve et en maintenance. \\
@@ -188,7 +188,7 @@
     C{.11\NetTableWidth}%
     C{.2\NetTableWidth}%
     L{.3\NetTableWidth}%
-  }
+}
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
 \hline
@@ -197,24 +197,6 @@
 \label{floor_area_per_standee}
 \makecell[r]{Superficie au sol par place debout \\ \textit{Floor area per standee}} & \[e\] & \[m^2\] & - & Superficie prévue pour chaque place debout (empreinte au sol). Confortable, circulation convenable: \(0.25 m^2\); Inconfortable, circulation difficile: \(0.15 m^2\) \\
 \hline
-\label{vehicle_capacity}
-\makecell[r]{Capacité de véhicule \\ \textit{Vehicle capacity}} & \[C_y\] & places & \[C_{y_{se}} + C_{y_{st}}\] & Nombre de places assises et debout dans le véhicule. \\
-\hline
-\label{unit_capacity}
-\makecell[r]{Capacité d'unité \\ \textit{Unit capacity}} & \[C_{u}\] & places & \[C_{{u}_{se}} + C_{{u}_{st}}\] & Nombre de places assises et debout dans l'unité. \\
-\hline
-\label{vehicle_seated_capacity}
-\makecell[r]{Capacité de sièges par véhicule \\ \textit{Vehicle seated capacity}} & \[C_{y_{se}}\] & places & - & - \\
-\hline
-\label{vehicle_standees_capacity}
-\makecell[r]{Capacité de passagers debout par véhicule \\ \textit{Vehicle standees capacity}} & \[C_{y_{st}}\] & places & - & Attention de bien préciser l'espace disponible par place debout \(e\) entre \(0.15m^2\) (inconfortable) et \(0.25m^2\) (confortable). \\
-\hline
-\label{unit_seated_capacity}
-\makecell[r]{Capacité de sièges par unité \\ \textit{Unit seated capacity}} & \[C_{u_{se}}\] & places & \[n_y C_{{y}_{se}}\] si toutes les voitures de l'unité ont la même capacité de sièges. & - \\
-\hline
-\label{unit_standees_capacity}
-\makecell[r]{Capacité de passagers debout par unité \\ \textit{Unit standees capacity}} & \[C_{u_{st}}\] & places & \[n_y C_{{y}_{st}}\] si toutes les voitures de l'unité ont la même capacité de places debout. & - \\
-\hline
 \label{vehicle_boarding_door_channels}
 \makecell[r]{Nombre de voies d'embarquement par véhicule \\ \textit{Number of boarding door channels per vehicle}} & \[{n_{Bch}}_y\] & voies d'embarquement & - & Nombre de voies permettant l'embarquement d'une personne à la fois dans le véhicule. \\
 \hline
@@ -222,22 +204,22 @@
 \makecell[r]{Nombre de voies de débarquement par véhicule \\ \textit{Number of alighting door channels per vehicle}} & \[{n_{Ach}}_y\] & voies de débarquement & - & Nombre de voies permettant le débarquement d'une personne à la fois dans le véhicule. \\
 \hline
 \label{vehicle_mixed_door_channels}
-\makecell[r]{Nombre de voies d'accès mixtes par véhicule \\ \textit{Number of mixed door channels per vehicle}} & \[{n_{ABch}}_{y}\] & voies mixtes & - & Nombre de voies permettant l'embarquement ou le débarquement d'une personne à la fois dans le véhicule. \\
+\makecell[r]{Nombre de voies d'accès mixtes par véhicule \\ \textit{Number of mixed door channels per vehicle}} & \[{n_{ABch}}_y\] & voies mixtes & - & Nombre de voies permettant l'embarquement ou le débarquement d'une personne à la fois dans le véhicule. \\
 \hline
 \label{vehicle_door_channels}
-\makecell[r]{Nombre total de voies d'accès par véhicule \\ \textit{Number of door channels per vehicle}} & \[{n_{ch}}_y\] & voies d'accès & \[{n_{Ach}}_{y} + {n_{Bch}}_{y} + {n_{ABch}}_{y}\] & Nombre de voies d'accès permettant l'embarquement, le débarquement ou les deux dans le véhicule. \\
+\makecell[r]{Nombre total de voies d'accès par véhicule \\ \textit{Number of door channels per vehicle}} & \[{n_{ch}}_y\] & voies d'accès & \[{n_{Ach}}_y + {n_{Bch}}_y + {n_{ABch}}_y\] & Nombre de voies d'accès permettant l'embarquement, le débarquement ou les deux dans le véhicule. \\
 \hline
 \label{unit_boarding_door_channels}
-\makecell[r]{Nombre de voies d'embarquement par unité \\ \textit{Number of boarding door channels per unit}} & \[{n_{Bch}}_{u}\] & voies d'embarquement & - & Nombre de voies permettant l'embarquement d'une personne à la fois dans l'ensemble des véhicules de l'unité. \\
+\makecell[r]{Nombre de voies d'embarquement par unité \\ \textit{Number of boarding door channels per unit}} & \[{n_{Bch}}_u\] & voies d'embarquement & - & Nombre de voies permettant l'embarquement d'une personne à la fois dans l'ensemble des véhicules de l'unité. \\
 \hline
 \label{unit_alighting_door_channels}
-\makecell[r]{Nombre de voies de débarquement par unité \\ \textit{Number of alighting door channels per unit}} & \[{n_{Ach}}_{u}\] & voies de débarquement & - & Nombre de voies permettant le débarquement d'une personne à la fois dans l'ensemble des véhicules de l'unité. \\
+\makecell[r]{Nombre de voies de débarquement par unité \\ \textit{Number of alighting door channels per unit}} & \[{n_{Ach}}_u\] & voies de débarquement & - & Nombre de voies permettant le débarquement d'une personne à la fois dans l'ensemble des véhicules de l'unité. \\
 \hline
 \label{unit_mixed_door_channels}
-\makecell[r]{Nombre de voies d'accès mixtes par unité \\ \textit{Number of mixed door channels per unit}} & \[{n_{ABch}}_{u}\] & voies mixtes & - & Nombre de voies permettant l'embarquement ou le débarquement d'une personne à la fois dans l'ensemble des véhicules de l'unité. \\
+\makecell[r]{Nombre de voies d'accès mixtes par unité \\ \textit{Number of mixed door channels per unit}} & \[{n_{ABch}}_u\] & voies mixtes & - & Nombre de voies permettant l'embarquement ou le débarquement d'une personne à la fois dans l'ensemble des véhicules de l'unité. \\
 \hline
 \label{unit_door_channels}
-\makecell[r]{Nombre total de voies d'accès par unité \\ \textit{Number of door channels per unit}} & \[{n_{ch}}_{u}\] & voies d'accès & \[{n_{Ach}}_{u} + {n_{Bch}}_{u} + {n_{ABch}}_{u}\] & Nombre de voies d'accès permettant l'embarquement, le débarquement ou les deux dans l'ensemble des véhicules de l'unité. \\
+\makecell[r]{Nombre total de voies d'accès par unité \\ \textit{Number of door channels per unit}} & \[{n_{ch}}_u\] & voies d'accès & \[{n_{Ach}}_u + {n_{Bch}}_u + {n_{ABch}}_u\] & Nombre de voies d'accès permettant l'embarquement, le débarquement ou les deux dans l'ensemble des véhicules de l'unité. \\
 \hline
 \end{longtable}
 
@@ -251,7 +233,7 @@
     C{.04\NetTableWidth}%
     C{.08\NetTableWidth}%
     L{.56\NetTableWidth}%
-  }
+}
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
 \hline
@@ -281,19 +263,19 @@
 \label{block}
 \makecell[r]{Bloc \\ \textit{Block}} & \[r_b\] & - & - & Un bloc est un ensemble de voyages consécutifs desservis par une même unité et à l'intérieur duquel les passagers peuvent demeurer dans le véhicule pour un transfert instantané et/ou garanti. \\
 \hline
-\label{spatial_directivity}
-\makecell[r]{Directivité spatiale \\ \textit{Spatial directivity}} & \[\delta\] & - & \[\frac{d_e}{d_o}\] & Ratio représentant le caractère direct d'un parcours par rapport au parcours direct à vol d'oiseau (distance euclidienne). Inverse de la tortuosité (aussi appelée directitude). \\
+\label{spatial_directness}
+\makecell[r]{Directivité spatiale \\ \textit{Spatial directness}} & \[\delta\] & - & \[\frac{d_e}{d_o}\] & Ratio représentant le caractère direct d'un parcours par rapport au parcours direct à vol d'oiseau (distance euclidienne). Inverse de la tortuosité (aussi appelée directitude). \\
 \hline
 \label{spatial_tortuosity}
 \makecell[r]{Tortuosité spatiale \\ \textit{Tortuosity}} & \[\tau\] & - & \[\frac{d_o}{d_e}\] & Ratio représentant le caractère tortueux du parcours par rapport au parcours direct à vol d'oiseau (distance euclidienne). Inverse de la directivité. \\
 \hline
-\label{spatial_network_directivity}
-\makecell[r]{Directivité spatiale réseau \\ \textit{Spatial network directivity}} & \[\delta_n\] & - & \[\frac{d_n}{d_o}\] & Ratio représentant le caractère direct d'un parcours par rapport au parcours le plus court en distance sur le réseau entre les deux terminus (habituellement le parcours le plus court en voiture). Inverse de la tortuosité réseau. \\
+\label{spatial_network_directness}
+\makecell[r]{Directivité spatiale réseau \\ \textit{Spatial network directness}} & \[\delta_n\] & - & \[\frac{d_n}{d_o}\] & Ratio représentant le caractère direct d'un parcours par rapport au parcours le plus court en distance sur le réseau entre les deux terminus (habituellement le parcours le plus court en voiture). Inverse de la tortuosité réseau. \\
 \hline
 \label{spatial_network_tortuosity}
 \makecell[r]{Tortuosité spatiale réseau \\ \textit{Spatial network tortuosity}} & \[\tau_n\] & - & \[\frac{d_o}{d_n}\] & Ratio représentant le caractère tortueux du parcours par rapport au parcours le plus court en distance sur le réseau entre les deux terminus (habituellement le parcours le plus court en voiture). Inverse de la directivité réseau. \\
 \hline
-\label{temporal_directivity}
+\label{temporal_directness}
 \makecell[r]{Directivité temporelle \\ \textit{Temporal Directivity}} & \[\delta_t\] & - & \[\frac{t_n}{t_o}\] & Ratio représentant le caractère direct d'un parcours par rapport au parcours le plus rapide en temps sur le réseau entre les deux terminus (habituellement le parcours le plus rapide en voiture). Inverse de la tortuosité temporelle. \\
 \hline
 \label{temporal_tortuosity}
@@ -307,7 +289,7 @@
     C{.12\NetTableWidth}%
     C{.08\NetTableWidth}%
     L{.43\NetTableWidth}%
-  }
+}
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
 \hline
@@ -320,18 +302,18 @@
 \makecell[r]{Nombre de segments sur le parcours \\ \textit{Number of segments on path}} & \[n_l\] & segments & - & Nombre total de segments desservis par le parcours. \\
 \hline
 \label{number_of_segments_on_path_outbound}
-\makecell[r]{Nombre de segments aller \\ \textit{Number of outbound segments}} & \[{n_l}^{\prime}\] & segments & - & Nombre total de segments desservis par le parcours. \\
+\makecell[r]{Nombre de segments aller \\ \textit{Number of outbound segments}} & \[{n_l}^{\prime}\] & segments & - & Nombre total de segments desservis par le parcours aller. \\
 \hline
 \label{number_of_segments_on_path_inbound}
-\makecell[r]{Nombre de segments retour \\ \textit{Number of inbound segments}} & \[{n_l}^{\prime\prime}\] & segments & - & Nombre total de segments desservis par le parcours. \\
+\makecell[r]{Nombre de segments retour \\ \textit{Number of inbound segments}} & \[{n_l}^{\prime\prime}\] & segments & - & Nombre total de segments desservis par le parcours retour. \\
 \hline
-\label{number_of_stops_on_path}
+\label{number_of_nodes_on_path}
 \makecell[r]{Nombre d'arrêts sur le parcours \\ \textit{Number of stops on path}} & \[n_q\] ou \[n_s\] & noeuds d'arrêts ou arrêts & - & Nombre total de noeuds d'arrêts desservis par le parcours. \\
 \hline
-\label{number_of_stops_on_path_outbound}
+\label{number_of_nodes_on_path_outbound}
 \makecell[r]{Nombre d'arrêts aller \\ \textit{Number of outbound stops}} & \[{n_q}^{\prime}\] ou \[{n_s}^{\prime}\] & noeuds d'arrêts ou arrêts & - & Nombre total de noeuds d'arrêts desservis par le parcours aller. \\
 \hline
-\label{number_of_stops_on_path_inbound}
+\label{number_of_nodes_on_path_inbound}
 \makecell[r]{Nombre d'arrêts retour \\ \textit{Number of inbound stops}} & \[{n_q}^{\prime\prime}\] ou \[{n_s}^{\prime\prime}\] & noeuds d'arrêts ou arrêts & - & Nombre total de noeuds d'arrêts desservis par le parcours retour. \\
 \hline
 \label{stop_nodes_linear_density}
@@ -355,7 +337,7 @@
     C{.04\NetTableWidth}%
     C{.14\NetTableWidth}%
     L{.4\NetTableWidth}%
-  }
+}
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
 \hline
@@ -429,7 +411,7 @@
     C{.04\NetTableWidth}%
     C{.14\NetTableWidth}%
     L{.46\NetTableWidth}%
-  }
+}
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
 \hline
@@ -493,7 +475,7 @@
     C{.03\NetTableWidth}%
     C{.22\NetTableWidth}%
     L{.40\NetTableWidth}%
-  }
+}
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
 \hline
@@ -524,7 +506,7 @@
 \makecell[r]{Temps de fermeture des portes \\ \textit{Door closing time}} & \[t_{dc}\] & \[s\] & - & Temps requis pour la fermeture de toutes les portes d'une unité pour le débarquement et/ou l'embarquement des passagers. \\
 \hline
 \label{dwell_time}
-\makecell[r]{Temps d'arrêt \\ \textit{Dwell time}} & \[t_q\] ou \[t_s\] & \[s\] & $\begin{gathered}[t] \max{\Big(\frac{n_B}{n_{{Bch}_{u}}} \overline{t_B}\ ,\ \frac{n_A}{n_{{Ach}_{u}}} \overline{t_A}\Big)} \\ + t_{do} + t_{dc} \end{gathered}$ & Temps pendant lequel l'unité en service sur un parcours est à l'arrêt complet, permettant l'embarquement et le débarquement des passagers au quai ou vis-à-vis le panneau d'arrêt. \\
+\makecell[r]{Temps d'arrêt \\ \textit{Dwell time}} & \[t_q\] ou \[t_s\] & \[s\] & $\begin{gathered}[t] \max{\Big(\frac{n_B}{n_{{Bch}_u}} \overline{t_B}\ ,\ \frac{n_A}{n_{{Ach}_u}} \overline{t_A}\Big)} \\ + t_{do} + t_{dc} \end{gathered}$ & Temps pendant lequel l'unité en service sur un parcours est à l'arrêt complet, permettant l'embarquement et le débarquement des passagers au quai ou vis-à-vis le panneau d'arrêt. \\
 \hline
 \label{average_dwell_time}
 \makecell[r]{Temps d'arrêt moyen \\ \textit{Average dwell time}} & \[\overline{t_q}\] & \[s\] & \[\frac{\sum_{i=1}^{n_q} {t_q}_i}{n_q}\] & Moyenne des temps d'arrêt d'un parcours. \\
@@ -566,10 +548,10 @@
 \makecell[r]{Temps de battement de parcours \\ \textit{Path layover time}} & \[{t_t}_p\] & \[s\] & \[\max \Big( {t_t}_{min}\ ,\  {\gamma_t} {T_o} \Big)\] & Temps de battement au terminus d'arrivée du parcours. \\
 \hline
 \label{outbound_layover_time}
-\makecell[r]{Temps de battement aller \\ \textit{Outbound layover time}} & \[{t_t}^\prime\] & \[s\] & \[\max \Big( {t_t}_{min}\ ,\  {\gamma_t}^\prime {T_o}^{\prime} \Big)\] & Temps de battement au terminus 1 (à la fin du parcours aller). \\
+\makecell[r]{Temps de battement aller \\ \textit{Outbound layover time}} & \[{t_t}^\prime\] & \[s\] & \[\max \Big( {t_t}_{min}\ ,\  {\gamma_t}^\prime {T_o}^{\prime} \Big)\] & Temps de battement au terminus de départ (à la fin du parcours aller). \\
 \hline
 \label{inbound_layover_time}
-\makecell[r]{Temps de battement retour \\ \textit{Inbound layover time}} & \[{t_t}^{\prime\prime}\] & \[s\] & \[\max \Big( {t_t}_{min}\ ,\  {\gamma_t}^{\prime\prime} {T_o}^{\prime\prime} \Big)\] & Temps de battement au terminus 2 (à la fin du parcours retour) \\
+\makecell[r]{Temps de battement retour \\ \textit{Inbound layover time}} & \[{t_t}^{\prime\prime}\] & \[s\] & \[\max \Big( {t_t}_{min}\ ,\  {\gamma_t}^{\prime\prime} {T_o}^{\prime\prime} \Big)\] & Temps de battement au terminus d'arrivée (à la fin du parcours retour) \\
 \hline
 \label{total_layover_time}
 \makecell[r]{Temps de battement total \\ \textit{Total layover time}} & \[t_t\] & \[s\] & \[\max \Big( 2{t_t}_{min}\ ,\  {\gamma_t}^\prime {T_o}^\prime + {\gamma_t}^{\prime\prime} {T_o}^{\prime\prime} \Big)\] ou \[ \max \Big( 2{t_t}_{min}\ ,\  2 \gamma_t T_o \Big)\] pour une ligne symétrique & Temps de battement total à l'ensemble des terminus d'une ligne bidirectionnelle ou d'une ligne en boucle. Attention aux ambiguïtés si la ligne possède plusieurs parcours distincts. Le temps de battement inclut les temps d'embarquement et de débarquement des passagers aux terminus. \\
@@ -613,7 +595,7 @@
     C{.04\NetTableWidth}%
     C{.14\NetTableWidth}%
     L{.44\NetTableWidth}%
-  }
+}
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
 \hline
@@ -733,11 +715,11 @@
 \subsection*{Vitesses • \textit{Speeds and velocities}}
 
 \begin{longtable}{%
-  R{.26\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.04\NetTableWidth}%
-  C{.18\NetTableWidth}%
-  L{.44\NetTableWidth}%
+    R{.26\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.04\NetTableWidth}%
+    C{.18\NetTableWidth}%
+    L{.44\NetTableWidth}%
 }
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
@@ -809,11 +791,11 @@
 \subsection*{Fréquences et intervalles • \textit{Frequencies and periods}}
 
 \begin{longtable}{%
-  R{.29\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.05\NetTableWidth}%
-  C{.15\NetTableWidth}%
-  L{.43\NetTableWidth}%
+    R{.29\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.05\NetTableWidth}%
+    C{.15\NetTableWidth}%
+    L{.43\NetTableWidth}%
 }
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
@@ -863,10 +845,10 @@
 \makecell[r]{Intervalle maximum \\ \textit{Maximum headway}} & \[h_{max}\] & \[min\] & \[\frac{60}{f_{min}}\] & Intervalle de service maximum selon contraintes et réglementations nationales, régionales ou locales. Cet intervalle peut être différente selon la période de service (matin, pointe du matin, journée, pointe du soir, soir, nuit, fin de semaine, etc.) \\
 \hline
 \label{maximum_peak_headway}
-\makecell[r]{Intervalle maximum de pointe \\ \textit{Maximum peak headway}} & \[{f_{peak}}_{max}\] & \[\text{unités}/h\] & \[\frac{60}{{h_{peak}}_{min}}\] & Intervalle maximum de pointe selon contraintes et réglementations nationales, régionales ou locales. \\
+\makecell[r]{Intervalle maximum de pointe \\ \textit{Maximum peak headway}} & \[{h_{peak}}_{max}\] & \[\text{unités}/h\] & \[\frac{60}{{f_{peak}}_{min}}\] & Intervalle maximum de pointe selon contraintes et réglementations nationales, régionales ou locales. \\
 \hline
 \label{maximum_off_peak_headway}
-\makecell[r]{Intervalle maximum hors-pointe \\ \textit{Maximum off-peak headway}} & \[{h_{off}}_{max}\] & \[\text{min}\] & \[\frac{60}{{f_{off}}_{min}}\] & Intervalle maximum hors-pointe selon contraintes et réglementations nationales, régionales ou locales. Habituellement valable entre les pointes du matin et de l'après-midi et en soirée. \\
+\makecell[r]{Intervalle maximum hors-pointe \\ \textit{Maximum off-peak headway}} & \[{h_{off}}_{max}\] & \[min\] & \[\frac{60}{{f_{off}}_{min}}\] & Intervalle maximum hors-pointe selon contraintes et réglementations nationales, régionales ou locales. Habituellement valable entre les pointes du matin et de l'après-midi et en soirée. \\
 \hline
 \label{way_constrained_minimum_headway}
 \makecell[r]{Intervalle minimum selon contrainte de voie \\ \textit{Way constrained minimum headway}} & \[{h_l}_{min}\] & \[min\] & \[\frac{60}{{f_l}_{max}}\] & Intervalle minimum de service possible en tenant compte de la voie dans laquelle se déplace les unités affectées au parcours ou à la ligne. Cet intervalle tient compte des vitesses maximales permises, des critères de sécurité et des obstacles sur la voie (aiguillages, congestion, virages, etc.) \\
@@ -903,11 +885,11 @@
 \subsection*{Volumes et demande • \textit{Volumes and demand}}
 
 \begin{longtable}{%
-  R{.35\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.06\NetTableWidth}%
-  C{.1\NetTableWidth}%
-  L{.41\NetTableWidth}%
+    R{.35\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.06\NetTableWidth}%
+    C{.1\NetTableWidth}%
+    L{.41\NetTableWidth}%
 }
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
@@ -980,11 +962,11 @@
 \end{longtable}
 
 \begin{longtable}{%
-  R{.25\NetTableWidth}%
-  C{.06\NetTableWidth}%
-  C{.07\NetTableWidth}%
-  C{.21\NetTableWidth}%
-  L{.41\NetTableWidth}%
+    R{.25\NetTableWidth}%
+    C{.06\NetTableWidth}%
+    C{.07\NetTableWidth}%
+    C{.21\NetTableWidth}%
+    L{.41\NetTableWidth}%
 }
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
@@ -1030,11 +1012,11 @@
 \subsection*{Capacités, travail et productivité • \textit{Capacities, work and productivity}}
 
 \begin{longtable}{%
-  R{.25\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.12\NetTableWidth}%
-  C{.15\NetTableWidth}%
-  L{.40\NetTableWidth}%
+    R{.25\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.12\NetTableWidth}%
+    C{.15\NetTableWidth}%
+    L{.40\NetTableWidth}%
 }
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
@@ -1045,28 +1027,28 @@
 \makecell[r]{Capacité \\ \textit{Capacity}} & \[C\] & \[places/h\] & - & Capacité d'une ligne, dans une direction, par heure. \\
 \hline
 \label{unit_capacity}
-\makecell[r]{Capacité de l'unité \\ \textit{Unit capacity}} & \[c_u\] & \[places\] & - & Capacité d'une unité. \\
+\makecell[r]{Capacité d'unité \\ \textit{Unit capacity}} & \[c_u\] & \[places\] & \[c_{{u}_{se}} + c_{{u}_{st}}\] & Nombre de places assises et debout dans l'unité. \\
 \hline
-\label{seated_unit_capacity}
-\makecell[r]{Capacité de sièges de l'unité \\ \textit{Seated unit capacity}} & \[c_{u_{seat}}\] & \[places\] & - & Capacité de sièges d'une unité. \\
+\label{unit_seated_capacity}
+\makecell[r]{Capacité de sièges de l'unité \\ \textit{Unit seated capacity}} & \[c_{u_{se}}\] & \[places\] & - & Capacité de sièges d'une unité. \\
 \hline
-\label{standee_unit_capacity}
-\makecell[r]{Capacité debout de l'unité \\ \textit{Standee unit capacity}} & \[c_{u_{stand}}\] & \[places\] & - & Capacité de passagers debouts d'une unité. \\
+\label{unit_standees_capacity}
+\makecell[r]{Capacité debout de l'unité \\ \textit{Unit standees capacity}} & \[c_{u_{st}}\] & \[places\] & - & Capacité de passagers debouts d'une unité. \\
 \hline
 \label{vehicle_capacity}
-\makecell[r]{Capacité du véhicule \\ \textit{Vehicle capacity}} & \[c_y\] & \[places\] & - & Capacité d'un véhicule. \\
+\makecell[r]{Capacité de véhicule \\ \textit{Vehicle capacity}} & \[c_y\] & \[places\] & \[c_{y_{se}} + c_{y_{st}}\] & Nombre de places assises et debout dans le véhicule. \\
 \hline
-\label{seated_vehicle_capacity}
-\makecell[r]{Capacité de sièges du véhicule \\ \textit{Seated vehicle capacity}} & \[c_{y_{seat}}\] & \[places\] & - & Capacité de sièges d'un véhicule. \\
+\label{vehicle_seated_capacity}
+\makecell[r]{Capacité de sièges par véhicule \\ \textit{Vehicle seated capacity}} & \[c_{y_{se}}\] & \[places\] & - & - \\
 \hline
-\label{standee_vehicle_capacity}
-\makecell[r]{Capacité debout du véhicule \\ \textit{Standee vehcile capacity}} & \[c_{y_{stand}}\] & \[places\] & - & Capacité de passagers debouts d'un véhicule. \\
+\label{vehicle_standees_capacity}
+\makecell[r]{Capacité de passagers debout par véhicule \\ \textit{Vehicle standees capacity}} & \[c_{y_{st}}\] & \[places\] & - & Attention de bien préciser l'espace disponible par place debout \(e\) entre \(0.15m^2\) (inconfortable) et \(0.25m^2\) (confortable). \\
 \hline
 \label{line_capacity}
 \makecell[r]{Capacité de ligne \\ \textit{Line capacity}} & \[C_L\] & \[places/h\] & \[c_u f_{up} = \frac{60 c_u}{h_{up}} = \frac{P_d}{\alpha_c}\] & Capacité maximale offerte sur une ligne en pointe, dans une direction, en tenant compte du coefficient de confort. Cette capacité est \(\leq\) à la capacité théorique maximale qui ne tient pas compte du niveau de confort souhaité. \\
 \hline
 \label{comfort_coefficient}
-\makecell[r]{Coefficient de confort \\ \textit{Comfort coefficient/Load factor}} & \[\alpha_c\] & - & - & Coefficient permettant de déterminer le niveau de confort requis lors de la conception et du choix de la capacité offerte. Si on veut éviter les passagers debout: \(\alpha_c = c_{{u}_{seat}} / c_{u}\). Relativement confortable: \(\alpha_c = 0.7\) \\
+\makecell[r]{Coefficient de confort \\ \textit{Comfort coefficient/Load factor}} & \[\alpha_c\] & - & - & Coefficient permettant de déterminer le niveau de confort requis lors de la conception et du choix de la capacité offerte. Si on veut éviter les passagers debout: \(\alpha_c = c_{{u}_{seat}} / c_u\). Relativement confortable: \(\alpha_c = 0.7\) \\
 \hline
 \label{network_maximum_line_capacity}
 \makecell[r]{Capacité de ligne maximale de réseau \\ \textit{Network maximum line capacity}} & \[{C_L}_{max}\] & \[places/h\] & - & Capacité de la ligne qui offre la plus grande capacité dans le réseau, en pointe, dans une direction. \\
@@ -1123,16 +1105,16 @@
 \makecell[r]{Travail offert quotidien de réseau \\ \textit{Daily network offered work}} & \[W_{o_{net}}\] & \[places-km/jour\] & \[\sum_{i=1}^{N_L} {W_{o_i}}\] & Travail offert par jour sur l'ensemble des lignes du réseau. \\
 \hline
 \label{network_daily_used_work}
-\makecell[r]{Travail utilisé quotidien dans le réseau \\ \textit{Daily network used work}} & \[W_{u_{net}}\] &\[pass-km/jour\] & \[\sum_{i=1}^{N_L} {W_{u_i}}\] & Travail utilisé par jour sur l'ensemble des lignes du réseau. \\
+\makecell[r]{Travail utilisé quotidien dans le réseau \\ \textit{Daily network used work}} & \[W_{u_{net}}\] & \[pass-km/jour\] & \[\sum_{i=1}^{N_L} {W_{u_i}}\] & Travail utilisé par jour sur l'ensemble des lignes du réseau. \\
 \hline
 \label{productive_capacity}
 \makecell[r]{Capacité productive \\ \textit{Productive capacity}} & \[Q\] & \[places-km/h^2\] & \[C_L {V_o}_L\] & Mesure de performance la plus utile, puisqu'elle tient compte autant de la capacité d'une ligne que de la vitesse d'opération offerte. La capacité productive est par heure, par direction. Attention de mentionner la période (pointe, hors pointe, journée, etc.) \\
 \hline
 \label{unit_daily_productivity}
-\makecell[r]{Productivité d'unité quotidienne \\ \textit{Unit daily productivity}} & \[w_{u}\] & \[\textit{unité}-{km}\] & \[N_o (d^{\prime} + d^{\prime\prime})\] où \(N_o\) est le nombre de voyages aller-retour par jour & Nombre de km offerts par une unité par jour. Attention de spécifier de quel service il s'agit (semaine, fin de semaine, etc.). \\
+\makecell[r]{Productivité d'unité quotidienne \\ \textit{Unit daily productivity}} & \[w_u\] & \[\textit{unité}-{km}\] & \[N_o (d^{\prime} + d^{\prime\prime})\] où \(N_o\) est le nombre de voyages aller-retour par jour & Nombre de km offerts par une unité par jour. Attention de spécifier de quel service il s'agit (semaine, fin de semaine, etc.). \\
 \hline
 \label{total_unit_daily_productivity}
-\makecell[r]{Productivité d'unités quotidienne totale \\ \textit{Total unit daily productivity}} & \[W_{u}\] & \[\textit{unités}-{km}\] & \[\sum_{i=1}^{N_{u}} {w_{{u}_i}}\] & Nombre total d'unités-km offerts par jour. Attention de spécifier de quel service il s'agit (semaine, fin de semaine, etc.). \\
+\makecell[r]{Productivité d'unités quotidienne totale \\ \textit{Total unit daily productivity}} & \[W_u\] & \[\textit{unités}-{km}\] & \[\sum_{i=1}^{N_u} {w_{{u}_i}}\] & Nombre total d'unités-km offerts par jour. Attention de spécifier de quel service il s'agit (semaine, fin de semaine, etc.). \\
 \hline
 \label{productive_volume}
 \makecell[r]{Volume productif \\ \textit{Productive volume}} & \[Q_u\] & \[pass-km/h^2\] & \[\overline{P_L} {V_o}_L\] & Tient compte du volume de passagers moyen sur la ligne. La capacité productive utilisée est par heure, par direction. Attention de mentionner la période (pointe, hors pointe, journée, etc.) \\
@@ -1140,11 +1122,11 @@
 \end{longtable}
 
 \begin{longtable}{%
-  R{.35\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.05\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  L{.44\NetTableWidth}%
+    R{.35\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.05\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    L{.44\NetTableWidth}%
 }
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
@@ -1168,11 +1150,11 @@
 \subsection*{Coûts • \textit{Costs}}
 
 \begin{longtable}{%
-  R{.23\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.04\NetTableWidth}%
-  C{.2\NetTableWidth}%
-  L{.45\NetTableWidth}%
+    R{.23\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.04\NetTableWidth}%
+    C{.2\NetTableWidth}%
+    L{.45\NetTableWidth}%
 }
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
@@ -1186,10 +1168,10 @@
 \makecell[r]{Coût d'opération par unité-km \\ \textit{Operating cost per unit-km}} & \[c_{d_o}\] & \[\$/km\] & & Coût d'opération d'une unité par km. Attention d'inclure les distances des parcours haut-le-pied. \\
 \hline
 \label{total_operating_cost}
-\makecell[r]{Coût total d'opération \\ \textit{Total operating cost}} & \[C_o\] & \[\$\] & \[\sum_{i=1}^{N_{u}} {c_{t_o} t_i}\] ou \[\sum_{i=1}^{N_{u}} {c_{d_o} d_i}\] où \(N_u\) est le nombre d'unités en service pendant la période visée. & Coût d'opération total. Attention de bien indiquer la période de service pour le calcul de \(t\) et \(d\) (heure, jour, semaine, année, etc.). \\
+\makecell[r]{Coût total d'opération \\ \textit{Total operating cost}} & \[C_o\] & \[\$\] & \[\sum_{i=1}^{N_u} {c_{t_o} t_i}\] ou \[\sum_{i=1}^{N_u} {c_{d_o} d_i}\] où \(N_u\) est le nombre d'unités en service pendant la période visée. & Coût d'opération total. Attention de bien indiquer la période de service pour le calcul de \(t\) et \(d\) (heure, jour, semaine, année, etc.). \\
 \hline
 \label{total_hourly_operating_cost}
-\makecell[r]{Coût d'opération horaire total \\ \textit{Total hourly operating cost}} & \[C_{t_o}\] & \[\$\] & \[\sum_{i=1}^{N_{u}} {c_{t_o}}\] où \(N_u\) est le nombre d'unités en service pendant la période visée. & Coût d'opération moyen par heure. Habituellement calculé en pointe, hors-pointe ou sur 24h. \\
+\makecell[r]{Coût d'opération horaire total \\ \textit{Total hourly operating cost}} & \[C_{t_o}\] & \[\$\] & \[\sum_{i=1}^{N_u} {c_{t_o}}\] où \(N_u\) est le nombre d'unités en service pendant la période visée. & Coût d'opération moyen par heure. Habituellement calculé en pointe, hors-pointe ou sur 24h. \\
 \hline
 \label{user_hourly_cost}
 \makecell[r]{Coût usager horaire \\ \textit{User hourly cost}} & \[c_{t_u}\] & \[\$/h\] & - & Coût horaire associé aux déplacements des usagers (valeur du temps). Peut varier selon la socio-démographie et les caractéristiques de l'usager. \\
@@ -1209,11 +1191,11 @@
 \end{longtable}
 
 \begin{longtable}{%
-  R{.3\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  C{.04\NetTableWidth}%
-  C{.08\NetTableWidth}%
-  L{.5\NetTableWidth}%
+    R{.3\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    C{.04\NetTableWidth}%
+    C{.08\NetTableWidth}%
+    L{.5\NetTableWidth}%
 }
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
@@ -1246,11 +1228,11 @@
 \subsection*{Agences, réseaux, services, horaires, déplacements et indicateurs globaux • \textit{Agencies, networks, services, schedules, user trips and global indicators}}
 
 \begin{longtable}{%
-  R{.28\NetTableWidth}%
-  C{.05\NetTableWidth}%
-  C{.15\NetTableWidth}%
-  C{.16\NetTableWidth}%
-  L{.37\NetTableWidth}%
+    R{.28\NetTableWidth}%
+    C{.05\NetTableWidth}%
+    C{.15\NetTableWidth}%
+    C{.16\NetTableWidth}%
+    L{.37\NetTableWidth}%
 }
 \hline
 \makecell[r]{Définition \\ \textit{Definition}} & \makecell[c]{Symbole \\ \textit{Symbol}} & \makecell[c]{Unité \\ \textit{Unit}} & \makecell[c]{Expression \\ \textit{Expression}} & \makecell[l]{Description \\ \textit{Description}} \\ 
@@ -1297,7 +1279,7 @@
 \makecell[r]{Habitude d'utilisation du transport collectif \\ \textit{Transit usage habit}} & \[\overline{n_{OD}}\] & \[dep\] & - & Nombre moyen de déplacements transport collectif par personne par année, incluant les non-utilisateurs du transport collectif. Cet indicateur est très souvent utillisé dans les comparaisons entre villes, mais ne tient pas compte des particularités locales, du nombre de déplacements moyen total par personne (tous modes) et des chaînes de déplacement. \\
 \hline
 \label{transit_modal_share}
-\makecell[r]{Part modale du transport collectif \\ \textit{Transit modal share}} & \[m_{transit}\] & - &- & Pourcentage des déplacements de la région urbaine effectués en transport collectif (habituellement pour la période de pointe maximale ou une journée moyenne de semaine). \\
+\makecell[r]{Part modale du transport collectif \\ \textit{Transit modal share}} & \[m_{transit}\] & - & - & Pourcentage des déplacements de la région urbaine effectués en transport collectif (habituellement pour la période de pointe maximale ou une journée moyenne de semaine). \\
 \hline
 \label{number_of_unique_stop_nodes}
 \makecell[r]{Nombre de noeuds d'arrêts uniques \\ \textit{Number of unique stop nodes}} & \[N_{qu}\] & noeuds & - & Nombre total de noeuds d'arrêts desservis par une seule ligne. \\
@@ -1326,8 +1308,8 @@
 \label{network_linear_density}
 \makecell[r]{Densité linéaire de réseau \\ \textit{Network linear density}} & \[\rho_L\] & \[{km}\ \text{de ligne}/{km}^2\] & \[\frac{d_{net}}{A_{urb}}\] & Longueur de réseau par rapport à la superficie urbaine. \\
 \hline
-\label{network_coverage_coefficient}
-\makecell[r]{Coefficient de couverture du réseau \\ \textit{Network coverage coefficient}} & \[\mu_L\] & \[km/\text{pers.}\] & \[\frac{{\Delta s}_{net}}{P_u}\] & Nombre de kilomètres de réseau par personne dans la région urbaine. \\
+\label{network_linear_coverage}
+\makecell[r]{Coefficient de couverture linéaire du réseau \\ \textit{Network linear coverage coefficient}} & \[\mu_L\] & \[km/\text{pers.}\] & \[\frac{{\Delta s}_{net}}{P_u}\] & Nombre de kilomètres de réseau par personne dans la région urbaine. \\
 \hline
 \label{line_overlap_coefficient}
 \makecell[r]{Coefficient de superposition de ligne \\ \textit{Line overlap coefficient}} & \[\lambda\] & - & \[\frac{N_{lm}}{N_l}\] & Pourcentage des segments de lignes qui desservent plus d'une ligne. \\
@@ -1372,19 +1354,19 @@
 \makecell[r]{Nombre d'employés \\ \textit{Number of employees}} & \[N_e\] & employés & - & Nombre total d'employés dans le réseau. \\
 \hline
 \label{labor_productivity}
-\makecell[r]{Productivité de main d'oeuvre \\ \textit{Labor productivity}} & \[\eta_{We}\] & \[\text{unités}-km/\text{employé}\] & \[\frac{W_{u}}{N_e}\] & Nombre d'unités-km de service offerts par employé par jour. \\
+\makecell[r]{Productivité de main d'oeuvre \\ \textit{Labor productivity}} & \[\eta_{We}\] & \[\text{unités}-km/\text{employé}\] & \[\frac{W_u}{N_e}\] & Nombre d'unités-km de service offerts par employé par jour. \\
 \hline
 \label{labor_efficiency}
 \makecell[r]{Efficacité de main d'oeuvre \\ \textit{Labor efficiency}} & \[\eta_{Ce}\] & \[\text{places}-km/\text{employé}\] & \[\frac{W_{o_{net}}} {N_e}\] & Travail offert par employé par jour. \\
 \hline
 \label{passenger_volume_efficiency}
-\makecell[r]{Efficacité de volume de passagers \\ \textit{Passenger volume efficiency}} & \[\eta_P\] & \[pass/\text{unités}-km\] & \[\frac{\sum_{i=1}^{N_L} { \overline{P_{L_{{tot}_i}}}}} {W_{u}}\] & Volume de passagers transportés sur l'ensemble des lignes par jour par unités-km. \\
+\makecell[r]{Efficacité de volume de passagers \\ \textit{Passenger volume efficiency}} & \[\eta_P\] & \[pass/\text{unités}-km\] & \[\frac{\sum_{i=1}^{N_L} { \overline{P_{L_{{tot}_i}}}}} {W_u}\] & Volume de passagers transportés sur l'ensemble des lignes par jour par unités-km. \\
 \hline
 \label{energy_consumption}
 \makecell[r]{Consommation énergétique \\ \textit{Energy consumption}} & \[E\] & \[kWh\] & - & Consommation énergétique totale. Spécifier la période (par jour, par semaine, par année, etc.) \\
 \hline
 \label{energy_efficiency}
-\makecell[r]{Efficacité énergétique \\ \textit{Energy efficency}} & \[\eta_E\] & \[kWh/\text{unités}-km\] & \[\frac{E}{W_{u}}\] & Consommation énergétique par unités-km. Spécifier la période (par jour, par semaine, par année). \\
+\makecell[r]{Efficacité énergétique \\ \textit{Energy efficency}} & \[\eta_E\] & \[kWh/\text{unités}-km\] & \[\frac{E}{W_u}\] & Consommation énergétique par unités-km. Spécifier la période (par jour, par semaine, par année). \\
 \hline
 \label{reliability}
 \makecell[r]{Fiabilité \\ \textit{Reliability}} & \[R\] & \[\%\] & - & Pourcentage des passages à l'heure aux arrêts par rapport aux horaires planifiés. Idéalement: entre 0 et 3 minutes de retard. En pratique habituellement: entre 1 minutes d'avance et 5 minutes de retard. \\
