@@ -370,7 +370,9 @@ export const setProjectConfiguration = (newConfig: Partial<ProjectConfiguration<
                             engines: {
                                 osrmRouting: {
                                     port: osrmModesInDeprecatedFormat[osrmMode].port,
-                                    host: osrmModesInDeprecatedFormat[osrmMode].host || osrmModesInDeprecatedFormat[osrmMode].osrmPath,
+                                    host:
+                                        osrmModesInDeprecatedFormat[osrmMode].host ||
+                                        osrmModesInDeprecatedFormat[osrmMode].osrmPath,
                                     autoStart: osrmModesInDeprecatedFormat[osrmMode].autoStart,
                                     enabled: osrmModesInDeprecatedFormat[osrmMode].enabled
                                 }
