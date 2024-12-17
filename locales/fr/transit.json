@@ -608,7 +608,6 @@
             "DeltaIntervalMustBeAMultipleOfDelta": "L'intervalle du delta doit être un multiple du delta.",
             "MaxTotalTravelTimeSecondsIsMissing": "La durée totale de parcours est requise.",
             "MaxTotalTravelTimeSecondsIsInvalid": "La durée totale de parcours est invalide.",
-            "MaxTotalTravelTimeSecondsIsTooLarge": "La durée totale de parcours est trop élevé (maximum 60 minutes).",
             "NumberOfPolygonsIsMissing": "Le nombre de polygones est requis.",
             "NumberOfPolygonsIsInvalid": "Le nombre de polygones est invalide.",
             "NumberOfPolygonsIsTooLarge": "Le nombre de polygones est trop élevée (doit être plus petit ou égal à la durée totale de parcours).",

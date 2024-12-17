@@ -68,9 +68,6 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
             if (isNaN(maxTravelTime)) {
                 this._isValid = false;
                 this.errors.push('transit:transitRouting:errors:MaxTotalTravelTimeSecondsIsInvalid');
-            } else if (maxTravelTime > 3600) {
-                this._isValid = false;
-                this.errors.push('transit:transitRouting:errors:MaxTotalTravelTimeSecondsIsTooLarge');
             }
         }
 
