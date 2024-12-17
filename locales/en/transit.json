@@ -608,7 +608,6 @@
             "DeltaIntervalMustBeAMultipleOfDelta": "The delta interval must be a multiple of the delta.",
             "MaxTotalTravelTimeSecondsIsMissing": "Total duration is missing.",
             "MaxTotalTravelTimeSecondsIsInvalid": "Total duration is invalid.",
-            "MaxTotalTravelTimeSecondsIsTooLarge": "Total duration is too high (maximum 60 minutes).",
             "NumberOfPolygonsIsMissing": "The number of polygons is missing.",
             "NumberOfPolygonsIsInvalid": "The number of polygons is invalid.",
             "NumberOfPolygonsIsTooLarge": "The number of polygons is too high (must be lower or equal to the total duration).",
