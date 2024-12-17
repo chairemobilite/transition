@@ -51,6 +51,27 @@ jobs:
     - name: Lint
       run: yarn lint
 
+  check-format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use latest Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+    - name: Install
+      run: yarn install --frozen-lockfile
+    - name: Yarn format
+      run: yarn format
+    - name: Check git status
+      run: |
+        if [[ -n "$(git status --porcelain)" ]]; then
+          echo "Code formatting issues found. Please run 'yarn format' locally and commit changes."
+          git status
+          git diff
+          exit 1
+        fi
+
   cargo-test:
     name: Json2capnp
     runs-on: ubuntu-latest
