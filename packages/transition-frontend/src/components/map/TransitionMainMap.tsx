@@ -53,7 +53,6 @@ import { MeasureTool } from 'transition-common/lib/services/measureTool/MeasureT
 
 // transition-frontend:
 import transitionMapEvents from '../../services/map/events';
-import mapCustomEvents from '../../services/map/events/MapRelatedCustomEvents';
 import TransitPathFilterManager from '../../services/map/TransitPathFilterManager';
 import MapButton from '../parts/MapButton';
 import layersConfig from '../../config/layers.config';
@@ -261,7 +260,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.addService('layerManager', this.layerManager);
         serviceLocator.addService('pathLayerManager', this.pathFilterManager);
         this.layerManager.updateEnabledLayers(Preferences.current.map.layers[this.props.activeSection]);
-        mapCustomEvents.addEvents(serviceLocator.eventManager);
         //elementResizedEvent(this.mapContainer, this.onResizeContainer);
         // TODO Are those events all ours? Or are some mapbox's? In any case, they should all be documented in a map API file: who should use when, and which parameters are expected
         serviceLocator.eventManager.on('map.updateEnabledLayers', this.updateEnabledLayers);
@@ -301,7 +299,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     componentWillUnmount = () => {
         serviceLocator.removeService('layerManager');
         serviceLocator.removeService('pathLayerManager');
-        mapCustomEvents.removeEvents(serviceLocator.eventManager);
         // removeResizeListener(this.mapContainer, this.onResizeContainer);
         serviceLocator.eventManager.off('selected.update.measureTool', this.updateMeasureToolDistance);
         serviceLocator.eventManager.off('selected.deselect.measureTool', this.disableMeasureTool);
@@ -583,7 +580,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     onTooltip = (pickInfo: PickingInfo) => {
         if (pickInfo.picked === true && pickInfo.layer) {
             if (pickInfo.layer && !pickInfo.object) {
-                console.log('it is indeed possible to have a layer and no object', pickInfo.layer.id);
+                // it is indeed possible to have a layer and no object:
                 return null;
             }
             const tooltipEvents = (this.mapEvents.tooltips[pickInfo.layer.id] || {}).onTooltip;

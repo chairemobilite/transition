@@ -215,6 +215,18 @@ const addNode = (path: TransitPath, nodeId: string, atEnd = true) => {
     return path.insertNodeId(nodeId, atEnd ? null : 0, waypointType);
 };
 
+const onWaypointClicked = (info: PickingInfo, _e: MjolnirEvent) => {
+    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const path = selectedPath ? (selectedPath as TransitPath) : undefined;
+    if (!path) {
+        return;
+    }
+    path.removeWaypoint(info.object.properties.afterNodeIndex, info.object.properties.waypointIndex).then(() => {
+        serviceLocator.selectedObjectsManager.update('path', path);
+        serviceLocator.eventManager.emit('selected.updateLayers.path');
+    });
+};
+
 const onNodeClickedForPath = (info: PickingInfo, e: MjolnirEvent) => {
     // disable map click if measure tool is selected:
     if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
@@ -290,6 +302,13 @@ const pathSectionEventDescriptors: MapEventHandlerDescription[] = [
         eventName: 'onDragEnd',
         condition: isEditingPath,
         handler: onSelectedWaypointDragEnd
+    },
+    {
+        type: 'layer',
+        layerName: 'transitPathWaypoints',
+        eventName: 'onLeftClick',
+        condition: isEditingPath,
+        handler: onWaypointClicked
     },
     { type: 'map', eventName: 'onLeftClick', condition: isEditingPath, handler: onSelectedPathMapClicked }
 ];
