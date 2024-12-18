@@ -8,7 +8,6 @@ import React from 'react';
 import SocketIOFileClient from 'socket.io-file-client';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import ImportValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 
 export type FileUploadStatus =
     | {
@@ -32,21 +31,14 @@ export type FileUploadStatus =
 export type FileUploaderHOCProps = {
     fileImportRef: React.RefObject<HTMLInputElement>;
     fileUploader: SocketIOFileClient;
-    onChange: React.ChangeEventHandler;
-    validator?: ImportValidator;
     uploadStatus: FileUploadStatus;
 };
 
-type FileUploaderHOCState = {
-    validator?: ImportValidator;
+interface FileUploaderHOCState {
     uploadStatus: FileUploadStatus;
-};
+}
 
-const fileUploaderHOC = <P,>(
-    WrappedComponent: React.ComponentType<P>,
-    importerValidator?: typeof ImportValidator,
-    autoImport = true
-) => {
+const fileUploaderHOC = <P,>(WrappedComponent: React.ComponentType<P>, autoImport = true) => {
     class FileUploaderHOC extends React.Component<P & FileUploaderHOCProps, FileUploaderHOCState> {
         private fileImportRef: React.RefObject<HTMLElement>;
         private fileUploader: SocketIOFileClient;
@@ -55,7 +47,6 @@ const fileUploaderHOC = <P,>(
             super(props);
 
             this.state = {
-                validator: importerValidator ? new importerValidator({}) : undefined,
                 uploadStatus: { status: 'notUploaded' }
             };
 
@@ -67,7 +58,6 @@ const fileUploaderHOC = <P,>(
             this.onFileUploadComplete = this.onFileUploadComplete.bind(this);
             this.onFileUploadError = this.onFileUploadError.bind(this);
             this.onFileUploadAbort = this.onFileUploadAbort.bind(this);
-            this.onChange = this.onChange.bind(this);
         }
 
         componentDidMount() {
@@ -84,14 +74,6 @@ const fileUploaderHOC = <P,>(
             this.fileUploader.off('complete', this.onFileUploadComplete);
             this.fileUploader.off('error', this.onFileUploadError);
             this.fileUploader.off('abort', this.onFileUploadAbort);
-        }
-
-        onChange() {
-            this.setState((state) => {
-                return {
-                    validator: state.validator
-                };
-            });
         }
 
         onFileUploadStart(_fileInfo) {
@@ -129,8 +111,6 @@ const fileUploaderHOC = <P,>(
                     {...this.props}
                     fileImportRef={this.fileImportRef}
                     fileUploader={this.fileUploader}
-                    onChange={this.onChange}
-                    validator={this.state.validator}
                     uploadStatus={this.state.uploadStatus}
                 />
             );

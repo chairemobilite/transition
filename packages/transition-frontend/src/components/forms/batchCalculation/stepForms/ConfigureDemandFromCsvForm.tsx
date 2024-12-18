@@ -142,4 +142,4 @@ const ConfigureDemandFromCsvForm: React.FunctionComponent<
     );
 };
 
-export default FileUploaderHOC(withTranslation(['transit', 'main'])(ConfigureDemandFromCsvForm), undefined, false);
+export default FileUploaderHOC(withTranslation(['transit', 'main'])(ConfigureDemandFromCsvForm), false);
