@@ -13,7 +13,6 @@ import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
 import InputFile from 'chaire-lib-frontend/lib/components/input/InputFile';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import ImporterValidator from 'chaire-lib-common/lib/services/importers/ImporterValidator';
 import FileUploaderHOC, { FileUploaderHOCProps } from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 
 interface FileImportFormProps extends FileUploaderHOCProps {
@@ -27,26 +26,25 @@ interface FileImportFormProps extends FileUploaderHOCProps {
 const FileImportForm: React.FunctionComponent<FileImportFormProps & WithTranslation> = (
     props: FileImportFormProps & WithTranslation
 ) => {
-    const validator = props.validator as ImporterValidator;
+    const [fileSelected, setFileSelected] = React.useState(false);
+
     return (
         <form
             id={`tr__form-transit-${props.pluralizedObjectsName}-import`}
             className={`tr__form-transit-${props.pluralizedObjectsName}-import apptr__form`}
         >
             <h3>{props.t('main:Import')}</h3>
-
             <div className="tr__form-section">
                 <div className="apptr__form-input-container _two-columns">
                     <label>{props.label}</label>
                     <InputFile
-                        id={`formField${_upperFirst(props.pluralizedObjectsName)}ImporterFile${validator.get('id')}`}
+                        id={`formField${_upperFirst(props.pluralizedObjectsName)}ImporterFile`}
                         accept={props.acceptsExtension}
                         inputRef={props.fileImportRef}
-                        onChange={props.onChange}
+                        onChange={() => setFileSelected(true)}
                     />
                 </div>
             </div>
-
             <div className="tr__form-buttons-container">
                 <Button
                     icon={faUndoAlt}
@@ -74,10 +72,10 @@ const FileImportForm: React.FunctionComponent<FileImportFormProps & WithTranslat
                     />
                 )}
             </div>
-
-            <FormErrors errors={validator.getErrors()} />
+            {/* TODO Add actual upload error information when we have it
+              <FormErrors errors={validator.getErrors()} /> */}
         </form>
     );
 };
 
-export default FileUploaderHOC(withTranslation('main')(FileImportForm), ImporterValidator);
+export default FileUploaderHOC(withTranslation('main')(FileImportForm));

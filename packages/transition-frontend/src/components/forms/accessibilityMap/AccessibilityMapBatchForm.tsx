@@ -331,4 +331,4 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
 
 // ** File upload
 //export default FileUploaderHOC(TransitRoutingForm, null, false);
-export default FileUploaderHOC(withTranslation(['transit', 'main'])(AccessibilityMapBatchForm), undefined, false);
+export default FileUploaderHOC(withTranslation(['transit', 'main'])(AccessibilityMapBatchForm), false);
