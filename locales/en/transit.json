@@ -466,6 +466,8 @@
         "UpdateSchedules": "Automatically update timetables",
         "ClickOnTransitNodeToStart": "Select a transit node to start the path",
         "PathEditMapDoc": "Click on node: Add the node at the end of the path<br/>Click on the map: Add a waypoint at the end<br/>Shift-click on node: Add a node at the beginning of the path<br/>Alt-click on node: Remove the node<br />m: Toggle manual mode for path calculation<br />Clic on the line + drag waypoint & drop on node: Add node in the middle of a path",
+        "ClickToRemoveWaypoint": "Click to remove waypoint",
+        "ClickAndDragToAddWaypoint": "Click and drag to force the path to pass through a waypoint",
         "ShowPathEditHelp": "Show path edit help",
         "HidePathEditHelp": "Hide path edit help",
         "warningFromGtfs": "Warning! This transit path was imported from a GTFS. Recomputing its path could change the geography and timings.",
