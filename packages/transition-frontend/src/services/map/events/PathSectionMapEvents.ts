@@ -15,7 +15,7 @@ import {
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitPath from 'transition-common/lib/services/path/Path';
 import TransitLine from 'transition-common/lib/services/line/Line';
-
+import { featureCollection as turfFeatureCollection } from '@turf/turf';
 /* This file encapsulates map events specific for the 'agencies' section */
 
 const isAgenciesActiveSection = (activeSection: string) => activeSection === 'agencies';
@@ -59,6 +59,24 @@ const selectPath = (pathGeojson) => {
             serviceLocator.selectedObjectsManager.select('path', transitPathEdit);
             serviceLocator.selectedObjectsManager.select('line', line);
             serviceLocator.eventManager.emit('selected.updateLayers.path');
+
+            const nodesGeojsons = transitPathEdit.nodesGeojsons();
+            serviceLocator.eventManager.emit('map.updateLayers', {
+                transitPathsSelected: turfFeatureCollection(pathGeojson.geometry ? [pathGeojson] : []),
+                transitNodesSelected: turfFeatureCollection(nodesGeojsons),
+                transitNodesRoutingRadius: turfFeatureCollection(nodesGeojsons),
+                transitPathWaypoints: turfFeatureCollection(transitPathEdit.waypointsGeojsons()),
+                transitNodesSelectedErrors: turfFeatureCollection(
+                    transitPathEdit.attributes.data.geographyErrors?.nodes
+                        ? transitPathEdit.attributes.data.geographyErrors.nodes
+                        : []
+                ),
+                transitPathWaypointsErrors: turfFeatureCollection(
+                    transitPathEdit.attributes.data.geographyErrors?.waypoints
+                        ? transitPathEdit.attributes.data.geographyErrors.waypoints
+                        : []
+                )
+            });
         });
     });
 };
