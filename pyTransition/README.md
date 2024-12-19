@@ -179,6 +179,7 @@ This method allows users to send accessibility map parameters to the Transition 
 
 ## Example
 Users can fetch the nodes which are currently loaded in the Transition application using pyTransition as follows :
+<!-- BEGIN basic_usage -->
 ```python
 from pyTransition.transition import Transition
 
@@ -193,30 +194,36 @@ def get_transition_nodes():
     # Process nodes however you want. Here, we are just printing the result
     print(nodes)
 ```
+<!-- END basic_usage -->
+
 Fetching the paths can be done in the same way, by replacing *get_nodes()* with *get_paths()*.
 
 Alternatively, if the user already knows their Transition API authentication token, they can create the instance with it directly, as follows :
+<!-- BEGIN basic_usage_token -->
 ```python
 from pyTransition.transition import Transition
 
-def get_transition_nodes():
+# Get a token for later testing
+transition_instance_token = Transition("http://localhost:8080", username, password)
+token = transition_instance_token.token
+
+# Alternative version with token
+def get_transition_nodes_with_token():
     # Create Transition instance from authentication token
     # The login information can be saved in a file to not have them displayed in the code
     transition_instance = Transition("http://localhost:8080", None, None, token)
 
     # Call the API
-    nodes = Transition.get_nodes()
+    nodes = transition_instance.get_nodes()
 
     # Process nodes however you want. Here, we are just printing the result
     print(nodes)
 ```
+<!-- END basic_usage_token -->
 
 Another example using pyTransition to get a new accessibility map :
+<!-- BEGIN accessibility_map -->
 ```python
-from pyTransition.transition import Transition
-from datetime import time
-import json
-
 def get_transition_acessibility_map():
     # Create Transition instance from connection credentials
     transition_instance = Transition("http://localhost:8080", username, password)
@@ -225,11 +232,11 @@ def get_transition_acessibility_map():
     scenarios = transition_instance.get_scenarios()
 
     # Get the ID of the scenario we want to use. Here, we use the first one 
-    scenario_id = scenarios['collection'][0]['id']
+    scenario_id = scenarios[0]['id']
 
     # Call the API
     accessibility_map_data = transition_instance.request_accessibility_map(
-                coordinates=[45.5383, -73.4727],
+                coordinates=[-73.4727, 45.5383],
                 departure_or_arrival_choice="Departure",
                 departure_or_arrival_time=time(8,0), # Create a new time object representing 8:00
                 n_polygons=3,
@@ -248,15 +255,12 @@ def get_transition_acessibility_map():
     # Process the map however you want. Here, we are saving it to a json file
     with open("accessibility.json", 'w') as f:
         f.write(json.dumps(accessibility_map_data))
-
 ```
+<!-- END accessibility_map -->
 
 Another example using pyTransition to get a new routes :
+<!-- BEGIN routing -->
 ```python
-from pyTransition.transition import Transition
-from datetime import time
-import json
-
 def get_transition_routes():
     # Create Transition instance from connection credentials
     # The login information can be saved in a file to not have them displayed in the code
@@ -268,44 +272,42 @@ def get_transition_routes():
     routing_modes = transition_instance.get_routing_modes()
 
     # Get the ID of the scenario we want to use. Here, we use the first one 
-    scenario_id = scenarios['collection'][0]['id']
-    # Get the modes you want to use. Here, we are usisng the first two ones
+    scenario_id = scenarios[0]['id']
+    # Get the modes you want to use. Here, we are using the first two ones
     # You can print the modes to see which are available
     modes = routing_modes[:2]
-    
 
     # Call the API
     routing_data = transition_instance.request_routing_result(
                 modes=modes, 
                 origin=[-73.4727, 45.5383], 
                 destination=[-73.4499, 45.5176], 
-                scenario_id=scenarioId, 
+                scenario_id=scenario_id, 
                 departure_or_arrival_choice=departureOrArrivalChoice, 
                 departure_or_arrival_time=departureOrArrivalTime, 
                 max_travel_time_minutes=maxParcoursTime, 
                 min_waiting_time_minutes=minWaitTime,
                 max_transfer_time_minutes=maxTransferWaitTime, 
                 max_access_time_minutes=maxAccessTimeOrigDest, 
-                max_first_waiting_time_minutes=maxWaitTimeFisrstStopChoice,
+                max_first_waiting_time_minutes=maxWaitTimeFirstStopChoice,
                 with_geojson=True,
                 with_alternatives=True
             )
 
     # Process the data however you want.
-    # For example, we can get the geojson paths of each transit mode in a loop
-    for key, value in routing_data.items():  
+    # For each alternative, get the geojson associated
+    for key, value in routing_data['result'].items():  
         # Get the number of alternative paths for the current mode
         geojsonPaths = value["pathsGeojson"]
         mode = key
         # For each alternative, get the geojson associated
-        for i in range(len(geojsonPath)):
-            geojson_data = geojsonPath[i]
+        for geojson_data in geojsonPaths:
+
             # Process however you want. Here we are just printing it.
             print(geojson_data)
 
     # We can also save it to a json file
     with open("routing.json", 'w') as f:
         f.write(json.dumps(routing_data))
-
-
 ```
+<!-- END routing -->

@@ -1,0 +1,28 @@
+examples:
+  - block_id: basic_usage
+    path: examples/basic_usage.py
+    markers:
+      - start: "from pyTransition.transition import Transition"
+        end: "    print(nodes)"
+        include_markers: true
+        
+  - block_id: basic_usage_token
+    path: examples/basic_usage_token.py
+    markers:
+        - start: "from pyTransition.transition import Transition"
+          end: "    print(nodes)"
+          include_markers: true
+          
+  - block_id: accessibility_map
+    path: examples/accessibility_map.py
+    markers:
+      - start: "def get_transition_acessibility_map():"
+        end: "        f.write(json.dumps(accessibility_map_data))"
+        include_markers: true
+        
+  - block_id: routing
+    path: examples/routing.py
+    markers:
+      - start: "def get_transition_routes():"
+        end: "        f.write(json.dumps(routing_data))"
+        include_markers: true
