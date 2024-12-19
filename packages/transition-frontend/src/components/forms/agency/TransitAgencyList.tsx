@@ -7,7 +7,6 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import MathJax from 'react-mathjax';
-import _get from 'lodash/get';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';

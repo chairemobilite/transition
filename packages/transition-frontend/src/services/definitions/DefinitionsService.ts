@@ -7,7 +7,6 @@
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { de } from 'date-fns/locale';
 import { Dictionary } from 'lodash';
 
 // Cache the definitions once they are fetched. This is to avoid fetching the

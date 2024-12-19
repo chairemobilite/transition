@@ -8,7 +8,6 @@ import React from 'react';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import BatchCalculationList from './BatchCalculationList';
-import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import BatchCalculationForm from './BatchCalculationForm';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
@@ -18,9 +17,11 @@ export interface CalculationPanelPanelProps {
 }
 
 const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps> = (props: CalculationPanelPanelProps) => {
-    const [scenarioCollection, setScenarioCollection] = React.useState<ScenarioCollection | undefined>(
-        serviceLocator.collectionManager.get('scenarios')
-    );
+    // TODO: scenarioCollection is never read. Implement a use for it, or remove the hook and onScenarioCollectionUpdate() entirely.
+    // const [scenarioCollection, setScenarioCollection] = React.useState<ScenarioCollection | undefined>(
+    //     serviceLocator.collectionManager.get('scenarios')
+    // );
+
     const [isNewAnalysis, setIsNewAnalysis] = React.useState(false);
     const [initialValues, setInitialValues] = React.useState<
         | {
@@ -32,7 +33,7 @@ const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps> = (p
     >(undefined);
 
     const onScenarioCollectionUpdate = () => {
-        setScenarioCollection(serviceLocator.collectionManager.get('scenarios'));
+        //setScenarioCollection(serviceLocator.collectionManager.get('scenarios'));
     };
 
     const onNewAnalysis = (parameters?: {

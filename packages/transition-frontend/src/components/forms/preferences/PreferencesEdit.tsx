@@ -6,13 +6,11 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _cloneDeep from 'lodash/cloneDeep';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { PreferencesClass, default as preferences } from 'chaire-lib-common/lib/config/Preferences';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
-import { _toInteger, _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import PreferencesSectionGeneral from './sections/PreferencesSectionGeneral';
@@ -84,7 +82,6 @@ class PreferencesPanel extends SaveableObjectForm<PreferencesClass, PreferencesP
     }
 
     render() {
-        const prefs = this.state.object.getAttributes();
         const errors = this.state.object.getErrors() || [];
 
         return (

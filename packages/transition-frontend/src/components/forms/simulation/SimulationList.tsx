@@ -4,9 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { useState } from 'react';
+import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _get from 'lodash/get';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 
 import Simulation from 'transition-common/lib/services/simulation/Simulation';
@@ -23,8 +22,6 @@ interface SimulationListProps extends WithTranslation {
 }
 
 const SimulationList: React.FunctionComponent<SimulationListProps> = (props: SimulationListProps) => {
-    const [showModal, setShowModal] = useState(false);
-
     const newSimulation = function () {
         const defaultColor = Preferences.get('transit.simulations.defaultColor', '#0086FF');
         const newSimulation = new Simulation({ color: defaultColor }, true, serviceLocator.collectionManager);

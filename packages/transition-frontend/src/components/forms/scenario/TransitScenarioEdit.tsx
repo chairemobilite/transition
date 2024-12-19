@@ -73,7 +73,7 @@ class TransitScenarioEdit extends SaveableObjectForm<Scenario, ScenarioFormProps
                         }
                     );
                     this.setState({ paths });
-                } catch (_error) {
+                } catch {
                     (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
                         'map.updateLayer',
                         {

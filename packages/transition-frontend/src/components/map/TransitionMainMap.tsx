@@ -347,7 +347,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             (polygon) => {
                 this.handleDrawPolygonService(polygon);
             },
-            (polygon) => {
+            (_polygon) => {
                 /* Nothing to do */
             }
         );
@@ -428,7 +428,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
 
         deleteUnusedNodes(selectedNodes.map((n) => n.getId()))
-            .then((response) => {
+            .then((_response) => {
                 serviceLocator.selectedObjectsManager.deselect('node');
                 serviceLocator.collectionManager.refresh('nodes');
                 serviceLocator.eventManager.emit('map.updateLayers', {

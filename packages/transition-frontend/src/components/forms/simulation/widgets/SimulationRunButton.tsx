@@ -108,7 +108,7 @@ const SimulationRunButton: React.FunctionComponent<SimulationRunButtonProps> = (
                         cancel: {
                             label: props.t('transit:simulation:SimulationRunDeleteCancel'),
                             color: 'grey',
-                            action: (e) => setDeleteCascadeModalIsOpen(false)
+                            action: (_e) => setDeleteCascadeModalIsOpen(false)
                         },
                         ignore: {
                             label: props.t('transit:simulation:SimulationRunDeleteNoCascade'),

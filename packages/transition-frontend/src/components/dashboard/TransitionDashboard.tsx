@@ -218,7 +218,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         }
     };
 
-    onPreferencesChange = (updates: any) => {
+    onPreferencesChange = (_updates: any) => {
         const infoPanelPosition = Preferences.get('infoPanelPosition');
         this.setState({ infoPanelPosition });
     };

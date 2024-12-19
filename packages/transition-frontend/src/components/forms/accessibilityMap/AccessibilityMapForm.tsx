@@ -34,7 +34,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import DownloadsUtils from 'chaire-lib-frontend/lib/services/DownloadsService';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
-import { _toInteger, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import {
     secondsSinceMidnightToTimeStr,
     secondsToMinutes,
@@ -135,7 +135,7 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                 return;
             }
             this.polygonCalculated(currentResult);
-        } catch (error) {
+        } catch {
             this.setState({
                 routingErrors: ['main:errors:ErrorCalculatingAccessibilityMap']
             });

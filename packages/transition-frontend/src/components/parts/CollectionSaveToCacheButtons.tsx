@@ -10,7 +10,6 @@ import { faArchive } from '@fortawesome/free-solid-svg-icons/faArchive';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import GenericCollection from 'chaire-lib-common/lib/utils/objects/GenericCollection';
 
 interface CollectionSaveToCacheProps extends WithTranslation {

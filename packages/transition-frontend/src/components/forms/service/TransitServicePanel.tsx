@@ -9,7 +9,6 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { faFileUpload } from '@fortawesome/free-solid-svg-icons/faFileUpload';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionDownloadButtons from 'chaire-lib-frontend/lib/components/pageParts/CollectionDownloadButtons';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
@@ -33,7 +32,6 @@ const ServicesPanel: React.FunctionComponent<WithTranslation> = (props: WithTran
         serviceCollection: serviceLocator.collectionManager.get('services'),
         selectedService: serviceLocator.selectedObjectsManager.get('service')
     });
-    const [_servicesReloaded, setServiceReloaded] = React.useState(false);
 
     const onServiceCollectionUpdate = () =>
         setState(({ selectedService }) => ({
@@ -52,11 +50,7 @@ const ServicesPanel: React.FunctionComponent<WithTranslation> = (props: WithTran
         serviceLocator.eventManager.on('selected.deselect.service', onSelectedServiceUpdate);
         // Reload the service collections at mount time, to make sure it is up to date
         if (state.serviceCollection) {
-            state.serviceCollection
-                .loadFromServer(serviceLocator.socketEventManager, serviceLocator.collectionManager)
-                .then(() => {
-                    setServiceReloaded(true);
-                });
+            state.serviceCollection.loadFromServer(serviceLocator.socketEventManager, serviceLocator.collectionManager);
         }
         return () => {
             serviceLocator.eventManager.off('collection.update.services', onServiceCollectionUpdate);

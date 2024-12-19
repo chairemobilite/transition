@@ -8,26 +8,11 @@ import React from 'react';
 import _uniq from 'lodash/uniq';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import Node from 'transition-common/lib/services/nodes/Node';
 import Line from 'transition-common/lib/services/line/Line';
 import Path from 'transition-common/lib/services/path/Path';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-
-const SimpleRow: React.FunctionComponent<{ header: string; value?: string | number; isHeader?: boolean }> = ({
-    header,
-    value = '',
-    isHeader = false
-}) => {
-    return (
-        <tr>
-            <th className={isHeader ? '_header' : ''}>{header}</th>
-            <td>{value}</td>
-        </tr>
-    );
-};
 
 const SingleColumn: React.FunctionComponent<{ header: string; values?: string[] | number[]; isHeader?: boolean }> = ({
     header,

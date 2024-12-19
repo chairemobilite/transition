@@ -10,11 +10,8 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import Loader from 'react-spinners/BeatLoader';
 
 import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
-import _get from 'lodash/get';
 import _cloneDeep from 'lodash/cloneDeep';
 import _toString from 'lodash/toString';
-import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
-import slugify from 'slugify';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
@@ -132,7 +129,7 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
         // ** File upload
 
         // upload csv file to server:
-        const uploadIds = this.props.fileUploader.upload(this.props.fileImportRef.current, {
+        this.props.fileUploader.upload(this.props.fileImportRef.current, {
             uploadTo: 'imports',
             data: {
                 objects: 'csv',
@@ -142,7 +139,7 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
 
         this.state.object.updateRoutingPrefs();
 
-        this.setState((oldState) => {
+        this.setState((_oldState) => {
             return {
                 csvUploadedToServer: true
             };
@@ -202,8 +199,6 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
             !_isBlank(accessMapRouting.attributes.timeAttribute) &&
             !_isBlank(accessMapRouting.attributes.timeFormat) &&
             !_isBlank(accessMapRouting.attributes.timeAttributeDepartureOrArrival);
-
-        const slugifiedCalculationName = slugify(accessMapRouting.attributes.calculationName || '');
 
         const errors = this.state.errors;
         const warnings = this.state.warnings;

@@ -31,7 +31,6 @@ const SimulationsPanel: React.FunctionComponent = () => {
     const [dataLoaded, setDataLoaded] = React.useState(
         serviceCollection !== undefined && agencyCollection !== undefined && lineCollection !== undefined
     );
-    const [_simulationReloaded, setSimulationReloaded] = React.useState(false);
 
     const onSimulationCollectionUpdate = () =>
         setState(({ selectedSimulation }) => ({
@@ -63,11 +62,10 @@ const SimulationsPanel: React.FunctionComponent = () => {
         serviceLocator.eventManager.on('selected.deselect.simulation', onSelectedSimulationUpdate);
         // Reload the service collections at mount time, to make sure it is up to date
         if (state.simulationCollection) {
-            state.simulationCollection
-                .loadFromServer(serviceLocator.socketEventManager, serviceLocator.collectionManager)
-                .then(() => {
-                    setSimulationReloaded(true);
-                });
+            state.simulationCollection.loadFromServer(
+                serviceLocator.socketEventManager,
+                serviceLocator.collectionManager
+            );
         }
         if (!dataLoaded) {
             serviceLocator.eventManager.on('collection.update.agencies', onOtherCollectionUpdate);

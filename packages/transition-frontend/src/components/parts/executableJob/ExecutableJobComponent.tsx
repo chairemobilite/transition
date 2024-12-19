@@ -66,7 +66,7 @@ const cancelJobFromServer = (id: number): Promise<Status.Status<boolean>> => {
 };
 
 const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProps & WithTranslation> = (
-    props: ExecutableJobComponentProps & WithTranslation
+    componentProps: ExecutableJobComponentProps & WithTranslation
 ) => {
     // We'll start our table without any data
     const [data, setData] = React.useState<ReturnedJobAttributes[]>([]);
@@ -86,7 +86,7 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
         setLoading(true);
 
         try {
-            const status = await fetchFromSocket({ jobType: props.jobType, pageSize, pageIndex });
+            const status = await fetchFromSocket({ jobType: componentProps.jobType, pageSize, pageIndex });
 
             if (fetchId !== fetchIdRef.current) {
                 // There was another query since, ignore
@@ -131,13 +131,13 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
     const columns = React.useMemo(() => {
         const columns = [
             {
-                Header: props.t('transit:jobs:Date'),
+                Header: componentProps.t('transit:jobs:Date'),
                 accessor: 'created_at',
                 width: 100,
                 Cell: (props) => moment(props.value).format(Preferences.get('dateTimeFormat'))
             },
             {
-                Header: props.t('transit:jobs:EndTime'),
+                Header: componentProps.t('transit:jobs:EndTime'),
                 accessor: 'updated_at',
                 width: 100,
                 Cell: (cellProps) =>
@@ -146,17 +146,17 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
                         : null
             },
             {
-                Header: props.t('transit:jobs:Status'),
+                Header: componentProps.t('transit:jobs:Status'),
                 accessor: 'status',
                 width: 70,
                 Cell: (cellProps) => (
                     <div className={`status_${cellProps.value}`}>
-                        {props.t(`transit:jobs:Status_${cellProps.value}`)}
+                        {componentProps.t(`transit:jobs:Status_${cellProps.value}`)}
                     </div>
                 )
             },
             {
-                Header: props.t('transit:jobs:Data'),
+                Header: componentProps.t('transit:jobs:Data'),
                 accessor: 'data',
                 Cell: (cellProps) => (
                     <ExpandableText textToShorten={JSON.stringify(cellProps.value)}>
@@ -171,14 +171,14 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
                 )
             },
             {
-                Header: props.t('transit:jobs:Resources'),
+                Header: componentProps.t('transit:jobs:Resources'),
                 accessor: 'hasFiles',
                 Cell: (cellProps) =>
                     cellProps.value !== true ? (
                         '--'
                     ) : (
                         <ExpandableFiles
-                            showFileText={props.t('transit:jobs:ShowFiles')}
+                            showFileText={componentProps.t('transit:jobs:ShowFiles')}
                             jobId={cellProps.row.original.id}
                         />
                     )
@@ -195,8 +195,8 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
                             flushActionButtons={true}
                             onDelete={{
                                 handler: () => deleteJob(cellProps.value),
-                                message: props.t('transit:jobs:ConfirmDelete'),
-                                altText: props.t('transit:jobs:Delete')
+                                message: componentProps.t('transit:jobs:ConfirmDelete'),
+                                altText: componentProps.t('transit:jobs:Delete')
                             }}
                         >
                             {(cellProps.row.original.status === 'pending' ||
@@ -204,21 +204,21 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
                                 <ButtonCellWithConfirm
                                     alignment="flush"
                                     onClick={() => cancelJob(cellProps.value)}
-                                    title={props.t('transit:jobs:Cancel')}
-                                    message={props.t('transit:jobs:ConfirmCancel')}
-                                    confirmButtonText={props.t('transit:jobs:Cancel')}
+                                    title={componentProps.t('transit:jobs:Cancel')}
+                                    message={componentProps.t('transit:jobs:ConfirmCancel')}
+                                    confirmButtonText={componentProps.t('transit:jobs:Cancel')}
                                 >
                                     <FontAwesomeIcon icon={faStopCircle} />
                                 </ButtonCellWithConfirm>
                             )}
-                            {props.customActions !== undefined &&
-                                props.customActions.length > 0 &&
-                                props.customActions.map((action, index) => (
+                            {componentProps.customActions !== undefined &&
+                                componentProps.customActions.length > 0 &&
+                                componentProps.customActions.map((action, index) => (
                                     <ButtonCell
                                         key={`execJob_customAction${index}`}
                                         alignment="flush"
                                         onClick={() => action.callback(cellProps.value)}
-                                        title={props.t(action.title)}
+                                        title={componentProps.t(action.title)}
                                     >
                                         <FontAwesomeIcon icon={action.icon} />
                                     </ButtonCell>
@@ -228,14 +228,14 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
                 )
             }
         ] as Column<ReturnedJobAttributes>[];
-        if (props.jobType === undefined) {
+        if (componentProps.jobType === undefined) {
             columns.push({
-                Header: props.t('transit:jobs:JobType') as string,
+                Header: componentProps.t('transit:jobs:JobType') as string,
                 accessor: 'name'
             });
         }
         return columns;
-    }, [props.t, props.jobType]);
+    }, [componentProps.t, componentProps.jobType]);
 
     return (
         <div className="admin">
@@ -246,8 +246,8 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
                 loading={loading}
                 pageCount={pageCount}
                 itemCount={totalCount}
-                defaultPageSize={props.defaultPageSize}
-                jobType={props.jobType}
+                defaultPageSize={componentProps.defaultPageSize}
+                jobType={componentProps.jobType}
             />
         </div>
     );

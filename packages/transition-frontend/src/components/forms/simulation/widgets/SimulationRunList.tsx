@@ -6,7 +6,6 @@
  */
 import React, { useState } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _get from 'lodash/get';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Simulation from 'transition-common/lib/services/simulation/Simulation';

@@ -58,8 +58,7 @@ export class BatchAccessibilityMapCalculator {
 
     static async calculate(
         accessMap: TransitBatchAccessibilityMap,
-        updatePreferences = false,
-        options = {}
+        updatePreferences = false
     ): Promise<TransitBatchCalculationResult> {
         if (!accessMap.validate()) {
             const trError = new TrError(

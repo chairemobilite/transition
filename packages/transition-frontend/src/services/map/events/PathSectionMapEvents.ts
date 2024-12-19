@@ -139,7 +139,7 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
         ) {
             const attributes = features[clickedWaypointIndex].properties || {};
             const path = selectedPath as TransitPath;
-            path.removeWaypoint(attributes.afterNodeIndex, attributes.waypointIndex).then((response) => {
+            path.removeWaypoint(attributes.afterNodeIndex, attributes.waypointIndex).then((_response) => {
                 serviceLocator.selectedObjectsManager.update('path', path);
                 serviceLocator.eventManager.emit('selected.updateLayers.path');
             });
@@ -153,7 +153,7 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
             const waypointType = path.getAttributes().data.temporaryManualRouting
                 ? 'manual'
                 : path.getData('routingEngine', 'engine');
-            path.insertWaypoint(e.lngLat.toArray(), waypointType, null, null).then((response) => {
+            path.insertWaypoint(e.lngLat.toArray(), waypointType, null, null).then((_response) => {
                 path.validate();
                 serviceLocator.selectedObjectsManager.update('path', path);
                 serviceLocator.eventManager.emit('selected.updateLayers.path');

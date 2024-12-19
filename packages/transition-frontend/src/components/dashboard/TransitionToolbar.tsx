@@ -78,7 +78,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
         serviceLocator.layerManager._enabledLayers.forEach((layerName) => {
             layersVisibility[layerName] = serviceLocator.layerManager.layerIsVisible(layerName);
         });
-        this.setState((oldState) => {
+        this.setState((_oldState) => {
             return {
                 layersVisibility
             };

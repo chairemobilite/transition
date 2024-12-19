@@ -4,10 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { JSX } from 'react';
+import React from 'react';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons/faFileDownload';
 import { faTasks } from '@fortawesome/free-solid-svg-icons/faTasks';
-import _get from 'lodash/get';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import slugify from 'slugify';
 import { v4 as uuidV4 } from 'uuid';
@@ -19,7 +18,6 @@ import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors'
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import GtfsExporter from 'transition-common/lib/services/gtfs/GtfsExporter';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GtfsConstants, GtfsExportStatus } from 'transition-common/lib/api/gtfs';
 
 class GtfsExportForm extends ChangeEventsForm<WithTranslation, ChangeEventsState<GtfsExporter>> {

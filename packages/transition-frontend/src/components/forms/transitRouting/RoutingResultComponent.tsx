@@ -10,7 +10,6 @@ import { faAngleLeft } from '@fortawesome/free-solid-svg-icons/faAngleLeft';
 
 import TransitRoutingResults from './TransitRoutingResultComponent';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { RoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';

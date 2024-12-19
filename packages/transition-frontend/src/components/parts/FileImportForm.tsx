@@ -12,7 +12,6 @@ import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
 
 import InputFile from 'chaire-lib-frontend/lib/components/input/InputFile';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import FileUploaderHOC, { FileUploaderHOCProps } from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 
 interface FileImportFormProps extends FileUploaderHOCProps {
@@ -26,8 +25,6 @@ interface FileImportFormProps extends FileUploaderHOCProps {
 const FileImportForm: React.FunctionComponent<FileImportFormProps & WithTranslation> = (
     props: FileImportFormProps & WithTranslation
 ) => {
-    const [fileSelected, setFileSelected] = React.useState(false);
-
     return (
         <form
             id={`tr__form-transit-${props.pluralizedObjectsName}-import`}
@@ -41,7 +38,6 @@ const FileImportForm: React.FunctionComponent<FileImportFormProps & WithTranslat
                         id={`formField${_upperFirst(props.pluralizedObjectsName)}ImporterFile`}
                         accept={props.acceptsExtension}
                         inputRef={props.fileImportRef}
-                        onChange={() => setFileSelected(true)}
                     />
                 </div>
             </div>
@@ -61,7 +57,7 @@ const FileImportForm: React.FunctionComponent<FileImportFormProps & WithTranslat
                         color="blue"
                         onClick={() => {
                             // upload
-                            const uploadIds = props.fileUploader.upload(props.fileImportRef.current, {
+                            props.fileUploader.upload(props.fileImportRef.current, {
                                 uploadTo: 'imports',
                                 data: {
                                     objects: props.pluralizedObjectsName,

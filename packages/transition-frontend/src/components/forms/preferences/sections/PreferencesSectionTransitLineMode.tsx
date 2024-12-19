@@ -13,7 +13,7 @@ import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper'
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import PreferencesSectionLineModeProps from '../PreferencesSectionLineModeProps';
-import { parseIntOrNull, parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
+import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 
 const PreferencesSectionTransitLineMode: React.FunctionComponent<PreferencesSectionLineModeProps & WithTranslation> = (
     props: PreferencesSectionLineModeProps & WithTranslation

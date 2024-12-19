@@ -32,7 +32,6 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import PathStatistics from './TransitPathStatistics';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import lineModesConfig from 'transition-common/lib/config/lineModes';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
 import { parseIntOrNull, parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 import Path, { pathDirectionArray } from 'transition-common/lib/services/path/Path';
@@ -235,7 +234,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             layerName: 'transitPathWaypointsSelected',
             data: turfFeatureCollection([waypointGeojson])
         });
-        this.setState((oldState) => {
+        this.setState((_oldState) => {
             return {
                 waypointDraggingAfterNodeIndex: waypointGeojson.properties.afterNodeIndex,
                 waypointDraggingIndex: waypointGeojson.properties.waypointIndex
@@ -294,7 +293,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                     this.state.waypointDraggingAfterNodeIndex || 0,
                     this.state.waypointDraggingIndex || 0
                 )
-                .then((response) => {
+                .then((_response) => {
                     this.props.path.validate();
                     serviceLocator.selectedObjectsManager.update('path', this.props.path);
                     serviceLocator.eventManager.emit('selected.updateLayers.path');
@@ -737,7 +736,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                         progress: 0.0
                                     });
                                     path.updateGeography()
-                                        .then((response) => {
+                                        .then((_response) => {
                                             serviceLocator.selectedObjectsManager.update('path', path);
                                             this.updateLayers();
                                             serviceLocator.eventManager.emit('progress', {
@@ -774,7 +773,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                                     name: 'SavingPath',
                                                     progress: 0.0
                                                 });
-                                                path.save(serviceLocator.socketEventManager).then((response) => {
+                                                path.save(serviceLocator.socketEventManager).then((_response) => {
                                                     serviceLocator.selectedObjectsManager.deselect('path');
                                                     line.refreshPaths();
                                                     serviceLocator.eventManager.emit('progress', {

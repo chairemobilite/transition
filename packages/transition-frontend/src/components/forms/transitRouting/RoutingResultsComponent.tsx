@@ -4,11 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { useState } from 'react';
+import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import RoutingResultComponent from './RoutingResultComponent';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
@@ -50,7 +49,7 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
         <React.Fragment>
             <Tabs
                 selectedIndex={props.selectedMode !== undefined ? selectedRoutingModes.indexOf(props.selectedMode) : 0}
-                onSelect={function (index, lastIndex, e) {
+                onSelect={function (index, lastIndex, _e) {
                     if (index !== lastIndex) {
                         // check if selection changed
                         props.setSelectedMode(selectedRoutingModes[index]);
