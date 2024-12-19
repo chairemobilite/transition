@@ -21,7 +21,7 @@ type PublicRouteProps = RouteProps & {
     config?: { [key: string]: unknown };
 } & PropsWithChildren;
 
-const PublicRoute = ({ component: Component, children, ...rest }: PublicRouteProps) => {
+const PublicRoute = ({ component: Component, children: _children, ...rest }: PublicRouteProps) => {
     return (
         <React.Fragment>
             <Header path={rest.path as string} appName={rest.config?.appName as string} />

@@ -6,13 +6,23 @@
  */
 import React from 'react';
 
+type DefaultColumnFilterProps = {
+    column: {
+        filterValue: any;
+        _preFilteredRows: any;
+        setFilter: any;
+    };
+};
+
 /**
  * Textbox input for column filter
  *
  * @param param0 description of the filtered column
  * @returns
  */
-export const DefaultColumnFilter = ({ column: { filterValue, _preFilteredRows, setFilter } }) => {
+export const DefaultColumnFilter = ({
+    column: { filterValue, _preFilteredRows, setFilter }
+}: DefaultColumnFilterProps) => {
     return (
         <input
             value={filterValue || ''}
