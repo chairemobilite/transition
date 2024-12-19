@@ -1,0 +1,26 @@
+agencies:
+  type: array
+  items: 
+    type: object
+    required:
+      - id
+      - name
+      - acronym
+      - description
+    properties: 
+      id: 
+        type: string
+        description: Identifier of this agency, used sometimes in other objects to identify this agency, for example in the scenarios' `only_agencies` and `except_agencies` fields.
+        example: 29829bef-39fd-481b-86ee-9d781146352d
+      name: 
+        type: string
+        description: Name of this agency
+        example: Test Transport Society
+      acronym: 
+        type: string
+        description: An acronym to identify this agency
+        example: TTS
+      description: 
+        type: string
+        description: A description for this agency
+        example: This is a test agency description

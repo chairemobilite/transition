@@ -37,6 +37,11 @@ import {
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
 import { SummaryResponse } from 'chaire-lib-common/lib/api/TrRouting/trRoutingApiV2';
+import AgenciesAPIResponse from './public/AgenciesAPIResponse';
+import ServicesAPIResponse from './public/ServicesAPIResponse';
+import LinesAPIResponse from './public/LinesAPIResponse';
+
+const CURRENT_API_VERSION = 1.1;
 
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
@@ -77,6 +82,10 @@ export default function (app: express.Express, passport: PassportStatic) {
             const message = 'Internal Server Error';
             res.status(500).send(message);
         }
+    });
+
+    app.get('/api/versions', async (_req, res, _next) => {
+        res.status(200).json([String(CURRENT_API_VERSION)]);
     });
 
     const router = express.Router();
@@ -130,6 +139,37 @@ export default function (app: express.Express, passport: PassportStatic) {
         try {
             const scenarios = await transitObjectDataHandlers.scenarios.collection!(null);
             const response: ScenariosAPIResponse = new ScenariosAPIResponse(scenarios.collection);
+            res.status(200).json(response.getResponse());
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    router.get('/agencies', async (req, res, next) => {
+        try {
+            const agencies = await transitObjectDataHandlers.agencies.collection!(null);
+            const response: AgenciesAPIResponse = new AgenciesAPIResponse(agencies.collection);
+            res.status(200).json(response.getResponse());
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    router.get('/services', async (req, res, next) => {
+        try {
+            const services = await transitObjectDataHandlers.services.collection!(null);
+            const response: ServicesAPIResponse = new ServicesAPIResponse(services.collection);
+            res.status(200).json(response.getResponse());
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    router.get('/lines', async (req, res, next) => {
+        try {
+            // TODO Add an agency parameter to filter the lines for a specific agency
+            const lines = await transitObjectDataHandlers.lines.collection!(null);
+            const response: LinesAPIResponse = new LinesAPIResponse(lines.collection);
             res.status(200).json(response.getResponse());
         } catch (error) {
             next(error);

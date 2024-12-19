@@ -1,0 +1,35 @@
+lines:
+  type: array
+  items: 
+    type: object
+    required:
+      - id
+      - name
+      - longname
+      - agency_id
+      - mode
+    properties: 
+      id: 
+        type: string
+        description: Identifier of this line, used sometimes in other objects to identify this line, for example in the scenarios' `only_lines` and `except_lines` fields.
+        example: 29829bef-39fd-481b-86ee-9d781146352d
+      name: 
+        type: string
+        description: Name of this line
+        example: L1
+      longname: 
+        type: string
+        description: Longname of this line
+        example: Street This and That
+      agency_id: 
+        type: string
+        description: Identifier of the agency that operates this line
+        example: 29829bef-39fd-481b-86ee-9d781146352d
+      mode: 
+        type: string
+        description: The transport mode of this line
+        example: bus
+      category: 
+        type: string
+        description: The category of this line, ie A, B, C, etc.
+        example: C

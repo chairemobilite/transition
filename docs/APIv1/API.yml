@@ -1,7 +1,7 @@
 openapi: '3.0.2'
 info:
   title: Transition-API
-  version: '1.0'
+  version: '1.1'
 servers:
   - url: http://localhost:8080/
 
@@ -34,7 +34,24 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: 'token.yml#/tokenResponseUnauthorized'       
+                $ref: 'token.yml#/tokenResponseUnauthorized'
+
+  /api/versions:
+    get:
+      summary: Get the versions supported by this API
+      description: Get the latest version of the API supported by this version of Transition
+      x-added-in-version: 1.1
+      responses:
+        '200':
+          description: Returns a list of the latest version for each supported major version of the API
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  description: Version number
+                example: ["1.1"]
 
   /api/v1/paths:
     get:
@@ -72,6 +89,45 @@ paths:
               schema:
                 $ref: 'scenarios.yml#/scenarios'
 
+  /api/v1/agencies:
+    get:
+      summary: Get all agencies
+      description: Get all agencies which are currently available in Transition
+      x-added-in-version: 1.1
+      responses:
+        '200':
+          description: Returns a list of all agencies currently available in Transition
+          content:
+            application/json:
+              schema:
+                $ref: 'agencies.yml#/agencies'
+
+  /api/v1/services:
+    get:
+      summary: Get all services
+      description: Get all services which are currently available in Transition
+      x-added-in-version: 1.1
+      responses:
+        '200':
+          description: Returns a list of all services currently available in Transition
+          content:
+            application/json:
+              schema:
+                $ref: 'services.yml#/services'
+
+  /api/v1/lines:
+    get:
+      summary: Get all lines
+      description: Get all lines which are currently available in Transition
+      x-added-in-version: 1.1
+      responses:
+        '200':
+          description: Returns a list of all lines currently available in Transition
+          content:
+            application/json:
+              schema:
+                $ref: 'lines.yml#/lines'
+
   /api/v1/routing-modes:
     get: 
       summary: Get all routing modes
@@ -87,7 +143,8 @@ paths:
   /api/v1/summary:
     post:
       summary: Get summary of route calculation result
-      description: Return a summary of each transit object of a certain type used by the route calculation result 
+      description: Return a summary of each transit object of a certain type used by the route calculation result
+      x-added-in-version: 1.1
       parameters:
       - $ref: "summary.yml#/originParam"
       - $ref: "summary.yml#/destinationParam"
