@@ -1,0 +1,56 @@
+name: Validate README Code Examples
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'pyTransition/examples/**'
+      - 'pyTransition/README.md'
+      - '.github/workflows/readme.yml'
+      - 'pyTransition/readme-examples-config.yaml'
+      - 'pyTransition/code-to-readme.py'
+  push:
+    branches: [ main ]
+    paths:
+      - 'pyTransition/examples/**'
+      - 'pyTransition/README.md'
+      - '.github/workflows/readme.yml'
+      - 'pyTransition/readme-examples-config.yaml'
+      - 'pyTransition/code-to-readme.py'
+
+jobs:
+  check-readme:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyyaml
+        
+    - name: Create temporary README copy
+      run: cp README.md README.md.orig
+      working-directory: ./pyTransition
+        
+    - name: Update README
+      run: python code-to-readme.py --readme README.md --config readme-examples-config.yaml
+      working-directory: ./pyTransition
+      
+    - name: Check if README was modified
+      working-directory: ./pyTransition
+      run: |
+        if ! diff -q README.md README.md.orig >/dev/null 2>&1; then
+          echo "README.md is out of sync with source code"
+          echo "diff:"
+          diff README.md README.md.orig || true
+          exit 1
+        else
+          echo "README.md is up to date"
+        fi
