@@ -1,7 +1,7 @@
 openapi: '3.0.2'
 info:
   title: Transition-API
-  version: '1.0'
+  version: '1.1'
 servers:
   - url: http://localhost:8080/
 
@@ -76,6 +76,7 @@ paths:
     get:
       summary: Get all agencies
       description: Get all agencies which are currently available in Transition
+      x-added-in-version: 1.1
       responses:
         '200':
           description: Returns a list of all agencies currently available in Transition
@@ -99,7 +100,8 @@ paths:
   /api/v1/summary:
     post:
       summary: Get summary of route calculation result
-      description: Return a summary of each transit object of a certain type used by the route calculation result 
+      description: Return a summary of each transit object of a certain type used by the route calculation result
+      x-added-in-version: 1.1
       parameters:
       - $ref: "summary.yml#/originParam"
       - $ref: "summary.yml#/destinationParam"
