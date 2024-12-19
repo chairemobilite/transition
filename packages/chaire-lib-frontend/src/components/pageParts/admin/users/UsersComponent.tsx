@@ -87,8 +87,8 @@ const UsersComponent: React.FC = () => {
             {
                 Header: t('admin:user:isAdmin'),
                 accessor: 'is_admin',
-                Cell: (props) => (
-                    <input type="checkbox" className={'_input-checkbox'} disabled={true} checked={props.value} />
+                Cell: (cellProps) => (
+                    <input type="checkbox" className={'_input-checkbox'} disabled={true} checked={cellProps.value} />
                 )
             }
         ];
@@ -96,11 +96,11 @@ const UsersComponent: React.FC = () => {
             columns.push({
                 Header: t('admin:user:roles'),
                 accessor: 'permissions',
-                Cell: (props) => (
+                Cell: (cellProps) => (
                     <WidgetChangePermission
                         roles={roles}
-                        currentValues={props.value}
-                        userUuid={props.row.original.uuid}
+                        currentValues={cellProps.value}
+                        userUuid={cellProps.row.original.uuid}
                     />
                 )
             });

@@ -19,8 +19,6 @@ export type DayRangeProps = WithTranslation & {
     showPeriodDropdown?: boolean;
 };
 
-type dayRangeType = 'custom' | 'week' | 'week-end' | 'all';
-
 const periodsGroupValues = {
     week: [0, 1, 2, 3, 4],
     'week-end': [5, 6],

@@ -19,7 +19,7 @@ export type PrivateRouteProps = RouteProps & {
     config?: { [key: string]: unknown };
 } & PropsWithChildren;
 
-const PrivateRoute = ({ permissions, component: Component, children, ...rest }: PrivateRouteProps) => {
+const PrivateRoute = ({ permissions, component: Component, children: _children, ...rest }: PrivateRouteProps) => {
     return rest.isAuthenticated ? (
         permissions ? (
             rest.user.isAuthorized(permissions) ? (

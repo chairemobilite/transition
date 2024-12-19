@@ -38,7 +38,6 @@ const ResetPasswordPage: React.FC = () => {
     const { token } = useParams<{ token: string }>();
     const submitButtonRef = React.useRef<HTMLButtonElement>(null);
 
-    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
     const status = useSelector((state: RootState) => state.auth.status as Status);
 
     const [formState, setFormState] = React.useState({

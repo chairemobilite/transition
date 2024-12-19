@@ -6,7 +6,7 @@
  */
 import MapboxGL from 'mapbox-gl';
 import _debounce from 'lodash/debounce';
-import { lineString, bboxPolygon, bbox, feature } from '@turf/turf';
+import { lineString, bboxPolygon, bbox } from '@turf/turf';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
