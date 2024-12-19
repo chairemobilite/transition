@@ -9,10 +9,7 @@ import { MjolnirEvent } from 'mjolnir.js';
 import { MeasureTool } from 'transition-common/lib/services/measureTool/MeasureTool';
 import { point as turfPoint, featureCollection as turfFeatureCollection } from '@turf/turf';
 
-import {
-    MapEventHandlerDescription,
-    PointInfo
-} from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import { MapEventHandlerDescription, PointInfo } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 /* This file encapsulates map events specific for the 'measureToolDistance' toolbox */

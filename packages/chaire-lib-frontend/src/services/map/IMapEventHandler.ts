@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { MjolnirEvent } from 'mjolnir.js';
-import { PickingInfo, Deck } from 'deck.gl/typed';
+import { PickingInfo, Deck } from 'deck.gl';
 
 export type MapCallbacks = { pickMultipleObjects: typeof Deck.prototype.pickMultipleObjects };
 export type PointInfo = { coordinates: number[]; pixel: [number, number] };

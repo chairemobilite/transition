@@ -59,7 +59,6 @@ import layersConfig from '../../config/layers.config';
 import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
 import getLayer from './layers/TransitionMapLayer';
 import MeasureDistanceDisplay from '../parts/MeasureDistanceDisplay';
-
 export interface MainMapProps extends LayoutSectionProps {
     zoom: number;
     center: [number, number];
@@ -78,6 +77,7 @@ interface MainMapState {
         pitch: number;
         bearing: number;
     };
+    time: number;
     enabledLayers: string[];
     mapStyleURL: string;
     xyzTileLayer?: Layer; // Temporary! Move this somewhere else
@@ -152,6 +152,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         const xyzTileLayer = getTileLayer();
 
         this.state = {
+            time: 0,
             viewState: {
                 longitude: props.center[0],
                 latitude: props.center[1],
@@ -633,6 +634,9 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 })
             )
             .filter((layer) => layer !== undefined) as Layer[];
+        const needAnimation =
+            Preferences.get('map.enableMapAnimations', true) &&
+            enabledLayers.find((layer) => layer.configuration.type === 'animatedArrowPath') !== undefined;
 
         if (this.state.xyzTileLayer) {
             layers.unshift(this.state.xyzTileLayer);
@@ -651,6 +655,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                             doubleClickZoom: false,
                             dragPan: !this.state.isDragging
                         }}
+                        _animate={needAnimation}
                         layers={layers}
                         onViewStateChange={this.onViewStateChange}
                         onClick={this.onClick}

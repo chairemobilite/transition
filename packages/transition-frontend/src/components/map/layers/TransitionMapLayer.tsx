@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Layer, LayerProps } from '@deck.gl/core/typed';
+import { Layer, LayerProps } from '@deck.gl/core';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import {
     layerEventNames,
@@ -12,7 +12,7 @@ import {
     MapLayerEventHandlerDescriptor
 } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import * as LayerDescription from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
-import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo, TextLayer } from 'deck.gl/typed';
+import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo, TextLayer } from 'deck.gl';
 import { MjolnirGestureEvent } from 'mjolnir.js';
 import { DataFilterExtension } from '@deck.gl/extensions';
 import AnimatedArrowPathLayer from './AnimatedArrowPathLayer';
@@ -49,6 +49,8 @@ type TransitionMapLayerProps = {
     mapCallbacks: MapCallbacks;
     updateCount: number;
     filter?: (feature: GeoJSON.Feature) => 0 | 1;
+    time?: number;
+    //animationID?: number;
 };
 
 const stringToColor = (hexStringColor: string): [number, number, number] | [number, number, number, number] => [
@@ -300,17 +302,25 @@ const getAnimatedArrowPathLayer = (
     if (layerProperties === undefined) {
         return undefined;
     }
+    const id = props.layerDescription.id;
+    const features = props.layerDescription.layerData.features;
     return new AnimatedArrowPathLayer({
-        id: props.layerDescription.id,
-        data: props.layerDescription.layerData.features,
+        id,
+        data: features,
         getPath: (d) => d.geometry.coordinates,
-        updateTriggers: {
+        //animationID: props.animationID,
+        time: props.time,
+        /*updateTriggers: {
             getPath: props.updateCount,
             getColor: props.updateCount
-        },
-        getDistanceBetweenArrows: 15,
-        widthMaxPixels: 50,
-        speedDivider: 10,
+        },*/
+        //updateTriggers: {
+        //    getPath: props.updateCount,
+        //    getColor: props.updateCount
+        //},
+        //getDistanceBetweenArrows: 15,
+        //widthMaxPixels: 50,
+        //speedDivider: 10,
         disableAnimation: Preferences.get('map.enableMapAnimations', true) ? false : true,
         ...eventsToAdd,
         ...layerProperties
