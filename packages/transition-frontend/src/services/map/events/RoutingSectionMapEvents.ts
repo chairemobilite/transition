@@ -8,7 +8,7 @@ import { MjolnirEvent } from 'mjolnir.js';
 
 import { MapEventHandlerDescription, PointInfo } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { PickingInfo } from 'deck.gl/typed';
+import { PickingInfo } from 'deck.gl';
 
 /* This file encapsulates map events specific for the 'routing' section */
 
