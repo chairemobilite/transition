@@ -401,6 +401,43 @@ describe('Testing API endpoints', () => {
         expect(transitObjectDataHandlers.scenarios.collection!).toHaveBeenCalledWith(null);
     });
 
+    test('GET /api/v1/agencies', async () => {
+        const collection = [{
+            id: 'ag1',
+            name: 'agency1',
+            acronym: 'AG1',
+            line_ids: ['lineId1', 'lineId2'],
+            data: { data: 'foo'}
+        }, {
+            id: 'ag2',
+            name: 'agency2',
+            acronym: 'AG2',
+            line_ids: ['lineId3', 'lineId4'],
+            data: { },
+            description: 'A description'
+        }]
+        const result = [{
+            id: collection[0].id,
+            name: collection[0].name,
+            acronym: collection[0].acronym
+        }, {
+            id: collection[1].id,
+            name: collection[1].name,
+            acronym: collection[1].acronym,
+            description: collection[1].description
+        }];
+
+        transitObjectDataHandlers.agencies.collection! = jest.fn().mockResolvedValue({
+            collection
+        });
+
+        const response = await request(app).get('/api/v1/agencies');
+
+        expect(response.status).toStrictEqual(200);
+        expect(response.body).toStrictEqual(result);
+        expect(transitObjectDataHandlers.agencies.collection!).toHaveBeenCalledWith(null);
+    });
+
     test('POST /api/v1/summary', async () => {
         const attributes = { 
             originGeojson: TestUtils.makePoint([1, 2]),

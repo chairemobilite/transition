@@ -72,6 +72,18 @@ paths:
               schema:
                 $ref: 'scenarios.yml#/scenarios'
 
+  /api/v1/agencies:
+    get:
+      summary: Get all agencies
+      description: Get all agencies which are currently available in Transition
+      responses:
+        '200':
+          description: Returns a list of all agencies currently available in Transition
+          content:
+            application/json:
+              schema:
+                $ref: 'agencies.yml#/agencies'
+
   /api/v1/routing-modes:
     get: 
       summary: Get all routing modes
