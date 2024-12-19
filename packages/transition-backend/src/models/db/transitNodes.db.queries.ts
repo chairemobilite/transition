@@ -80,6 +80,7 @@ const geojsonCollection = async (
     // TODO: we should not fetch the whole data content, we should read node when modifying one instead of creating a Node from the geojson
     try {
         const { nodeIds } = params;
+        // FIXME: The data field is mandatory, so we initialize it with an empty object. It should not be mandatory in the first place.
         const innerQuery = knex(tableName)
             .select(
                 'id',
@@ -92,6 +93,7 @@ const geojsonCollection = async (
             'is_frozen', is_frozen,
             'code', code,
             'name', name,
+            'data', '{}'::jsonb,
             'description', description,
             'geography', ST_AsGeoJSON(geography)::jsonb, 
             'is_enabled', is_enabled,

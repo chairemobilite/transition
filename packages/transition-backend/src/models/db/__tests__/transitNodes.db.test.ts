@@ -216,6 +216,10 @@ describe(`${objectName}`, () => {
         expect(collection[1].properties.id).toBe(_newObjectAttributes2.id);
         expect(collection[1].properties).toMatchObject(_newObjectAttributes2);
 
+        // data fields should be empty, but present
+        expect(collection[0].properties.data).toEqual({});
+        expect(collection[1].properties.data).toEqual({});
+
     });
 
     test('should read a subset geojson collection from database', async () => {
