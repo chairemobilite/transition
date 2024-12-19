@@ -15,7 +15,7 @@ import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import Button from '../input/Button';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
-import { Saveable, isSaveable } from 'chaire-lib-common/lib/utils/objects/Saveable';
+import { isSaveable } from 'chaire-lib-common/lib/utils/objects/Saveable';
 
 export type SelectedObjectButtonsProps<T extends ObjectWithHistory<any>> = WithTranslation & {
     object: T;

@@ -7,7 +7,7 @@
 import React from 'react';
 import Loader from 'react-spinners/HashLoader';
 
-const LoadingPage = function (props) {
+const LoadingPage = function (props: { message?: string }) {
     return (
         <div className="_fill" style={{ flexDirection: 'column' }}>
             {typeof props.message !== 'undefined' && <h1>{props.message}</h1>}

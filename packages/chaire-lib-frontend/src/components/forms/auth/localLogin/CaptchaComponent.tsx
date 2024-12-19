@@ -9,7 +9,6 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 // FIXME Using the NoReload captcha (which can pose problems to users) because the "Reload Captcha" text is hardcoded in english. Switch when https://github.com/masroorejaz/react-simple-captcha/pull/2 is accepted
 import {
     loadCaptchaEnginge,
-    LoadCanvasTemplate,
     LoadCanvasTemplateNoReload,
     validateCaptcha as validateCaptchaMain
 } from 'react-simple-captcha';
