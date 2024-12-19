@@ -15,8 +15,6 @@ import PreferencesSectionProps from '../PreferencesSectionProps';
 const PreferencesSectionFeatures: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
     props: PreferencesSectionProps & WithTranslation
 ) => {
-    const prefs = props.preferences.getAttributes();
-
     return (
         <Collapsible trigger={props.t('main:preferences:ExperimentalFeatures')} open={true} transitionTime={100}>
             <div className="tr__form-section">

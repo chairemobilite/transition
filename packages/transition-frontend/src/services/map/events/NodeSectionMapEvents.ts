@@ -5,12 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import MapboxGL from 'mapbox-gl';
-import _uniq from 'lodash/uniq';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { metersToPixels } from 'chaire-lib-common/lib/utils/geometry/ConversionUtils';
-import { permutationsWithRepetition } from 'chaire-lib-common/lib/utils/MathUtils';
 import TransitNode from 'transition-common/lib/services/nodes/Node';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
@@ -37,7 +34,6 @@ const onNodeSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
         { layers: ['transitNodes'] }
     );
 
-    const map = e.target;
     // TODO: If there are multiple selected features, offer the choice instead of editing the first one
     const selectedFeature = features.length > 0 ? features[0] : undefined;
 
@@ -54,7 +50,7 @@ const onNodeSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
         const attributes = selectedFeature.properties || {};
         serviceLocator.socketEventManager.emit('transitNode.read', attributes.id, null, (response) => {
             const transitNodeEdit = new TransitNode({ ...response.node }, false, serviceLocator.collectionManager);
-            transitNodeEdit.loadFromCache(serviceLocator.socketEventManager).then((response) => {
+            transitNodeEdit.loadFromCache(serviceLocator.socketEventManager).then((_response) => {
                 transitNodeEdit.startEditing();
                 serviceLocator.selectedObjectsManager.select('node', transitNodeEdit);
             });

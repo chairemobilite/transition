@@ -8,11 +8,10 @@ import React from 'react';
 
 import PreferencesSectionProps from '../PreferencesSectionProps';
 
+// TODO: Implement this component or delete it.
 const PreferencesSectionTransitPaths: React.FunctionComponent<PreferencesSectionProps> = (
-    props: PreferencesSectionProps
+    _props: PreferencesSectionProps
 ) => {
-    const prefs = props.preferences.getAttributes();
-
     return null;
 };
 

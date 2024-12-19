@@ -11,7 +11,6 @@ import { faFileUpload } from '@fortawesome/free-solid-svg-icons/faFileUpload';
 import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionDownloadButtons from 'chaire-lib-frontend/lib/components/pageParts/CollectionDownloadButtons';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';

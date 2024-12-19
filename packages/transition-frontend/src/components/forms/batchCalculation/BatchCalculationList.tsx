@@ -6,7 +6,6 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import _get from 'lodash/get';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { faRedoAlt } from '@fortawesome/free-solid-svg-icons/faRedoAlt';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
@@ -56,7 +55,7 @@ const BatchCalculationList: React.FunctionComponent<BatchCalculationListProps> =
                     icon={faPlus}
                     iconClass="_icon"
                     label={props.t('transit:batchCalculation:New')}
-                    onClick={(e) => props.onNewAnalysis()}
+                    onClick={() => props.onNewAnalysis()}
                 />
             </div>
             {errors.length > 0 && <FormErrors errors={errors} />}

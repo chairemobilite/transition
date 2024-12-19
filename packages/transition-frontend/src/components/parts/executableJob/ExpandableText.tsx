@@ -19,14 +19,14 @@ const ExpandableText: React.FunctionComponent<React.PropsWithChildren<Expandable
     if (expanded) {
         return (
             <div>
-                <FontAwesomeIcon onClick={(e) => setExpanded(false)} icon={faChevronUp} />
+                <FontAwesomeIcon onClick={() => setExpanded(false)} icon={faChevronUp} />
                 {props.children}
             </div>
         );
     }
     const stringToShorten = props.textToShorten || '';
     const shortenedText = stringToShorten.length <= 20 ? stringToShorten : `${stringToShorten.substring(0, 20)}...`;
-    return <div onClick={(e) => setExpanded(true)}>{shortenedText}</div>;
+    return <div onClick={() => setExpanded(true)}>{shortenedText}</div>;
 };
 
 export default ExpandableText;

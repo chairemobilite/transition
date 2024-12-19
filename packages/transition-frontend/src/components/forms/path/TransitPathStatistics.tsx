@@ -9,7 +9,6 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import MathJax from 'react-mathjax';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import SpeedUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/SpeedUnitFormatter';
 import DistanceUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DistanceUnitFormatter';
 import DurationUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DurationUnitFormatter';

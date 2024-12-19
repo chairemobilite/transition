@@ -10,7 +10,6 @@ import Collapsible from 'react-collapsible';
 import { faFileUpload } from '@fortawesome/free-solid-svg-icons/faFileUpload';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionDownloadButtons from 'chaire-lib-frontend/lib/components/pageParts/CollectionDownloadButtons';
 import CollectionSaveToCacheButtons from '../../parts/CollectionSaveToCacheButtons';
@@ -64,36 +63,43 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
 
     React.useEffect(() => {
         const onAgencyCollectionUpdate = () =>
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ agencyCollection, ...rest }) => ({
                 ...rest,
                 agencyCollection: serviceLocator.collectionManager.get('agencies')
             }));
         const onSelectedAgencyUpdate = () =>
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ selectedAgency, ...rest }) => ({
                 ...rest,
                 selectedAgency: serviceLocator.selectedObjectsManager.get('agency')
             }));
         const onLineCollectionUpdate = () =>
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ lineCollection, ...rest }) => ({
                 ...rest,
                 lineCollection: serviceLocator.collectionManager.get('lines')
             }));
         const onSelectedLineUpdate = () =>
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ selectedLine, ...rest }) => ({
                 ...rest,
                 selectedLine: serviceLocator.selectedObjectsManager.get('line')
             }));
         const onPathCollectionUpdate = () =>
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ pathCollection, ...rest }) => ({
                 ...rest,
                 pathCollection: serviceLocator.collectionManager.get('paths')
             }));
         const onSelectedPathUpdate = () =>
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ selectedPath, ...rest }) => ({
                 ...rest,
                 selectedPath: serviceLocator.selectedObjectsManager.get('path')
             }));
         const onSelectedScheduleUpdate = () =>
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ selectedSchedule, ...rest }) => ({
                 ...rest,
                 selectedSchedule: serviceLocator.selectedObjectsManager.get('schedule')

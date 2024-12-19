@@ -17,7 +17,7 @@ interface TransitionFSPanelState {
     selectedSchedule?: Schedule;
 }
 
-const FullSizePanel: React.FunctionComponent<LayoutSectionProps> = (props: LayoutSectionProps) => {
+const FullSizePanel: React.FunctionComponent<LayoutSectionProps> = (_props: LayoutSectionProps) => {
     const [state, setState] = React.useState<TransitionFSPanelState>({
         selectedLine: serviceLocator.selectedObjectsManager.get('line'),
         selectedSchedule: serviceLocator.selectedObjectsManager.get('schedule')
@@ -25,11 +25,13 @@ const FullSizePanel: React.FunctionComponent<LayoutSectionProps> = (props: Layou
 
     React.useEffect(() => {
         const onSelectedLineUpdate = () =>
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ selectedLine, ...rest }) => ({
                 ...rest,
                 selectedLine: serviceLocator.selectedObjectsManager.get('line')
             }));
         const onSelectedScheduleUpdate = () =>
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ selectedSchedule, ...rest }) => ({
                 ...rest,
                 selectedSchedule: serviceLocator.selectedObjectsManager.get('schedule')

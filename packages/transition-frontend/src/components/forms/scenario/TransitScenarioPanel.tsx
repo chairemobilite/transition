@@ -9,7 +9,6 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { faFileUpload } from '@fortawesome/free-solid-svg-icons/faFileUpload';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionDownloadButtons from 'chaire-lib-frontend/lib/components/pageParts/CollectionDownloadButtons';
 import CollectionSaveToCacheButtons from '../../parts/CollectionSaveToCacheButtons';

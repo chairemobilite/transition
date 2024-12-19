@@ -47,7 +47,7 @@ const ExpandableFileWidget: React.FunctionComponent<ExpandableFileProps & WithTr
     if (!expanded) {
         return (
             <div
-                onClick={(e) => {
+                onClick={() => {
                     setExpanded(true);
                     setLoadRequested(true);
                 }}
@@ -59,7 +59,7 @@ const ExpandableFileWidget: React.FunctionComponent<ExpandableFileProps & WithTr
     }
     return (
         <div>
-            <FontAwesomeIcon onClick={(e) => setExpanded(false)} icon={faChevronUp} />
+            <FontAwesomeIcon onClick={() => setExpanded(false)} icon={faChevronUp} />
             {files &&
                 Object.keys(files).map((fileName, fileIdx) => (
                     <p key={`jobFile${props.jobId}_${fileIdx}`}>

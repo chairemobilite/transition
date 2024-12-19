@@ -27,7 +27,7 @@ const PreferencesResetToDefaultButton: React.FunctionComponent<PreferencesResetT
             }
             iconPath={'/dist/images/icons/interface/gear_reset_white.svg'}
             iconClass="_icon-alone"
-            onClick={(e) => props.resetPrefToDefault(props.path)}
+            onClick={() => props.resetPrefToDefault(props.path)}
             title={props.t('main:preferences:ResetToDefault')}
         />
     );

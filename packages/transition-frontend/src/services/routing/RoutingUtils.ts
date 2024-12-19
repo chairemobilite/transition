@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _cloneDeep from 'lodash/cloneDeep';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';

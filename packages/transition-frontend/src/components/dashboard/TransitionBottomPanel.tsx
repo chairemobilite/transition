@@ -11,7 +11,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Path from 'transition-common/lib/services/path/Path';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 
-const BottomPanel: React.FunctionComponent<LayoutSectionProps> = (props: LayoutSectionProps) => {
+const BottomPanel: React.FunctionComponent<LayoutSectionProps> = (_props: LayoutSectionProps) => {
     const [path, setPath] = React.useState<{ path: Path | undefined }>({
         path: serviceLocator.selectedObjectsManager.get('path')
     });

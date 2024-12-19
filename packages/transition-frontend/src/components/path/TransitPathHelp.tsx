@@ -6,7 +6,6 @@
  */
 import React, { useState } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons/faInfoCircle';
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';

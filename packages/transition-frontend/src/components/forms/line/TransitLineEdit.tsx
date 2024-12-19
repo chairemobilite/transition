@@ -8,7 +8,6 @@ import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import Collapsible from 'react-collapsible';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
-import _get from 'lodash/get';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputText from 'chaire-lib-frontend/lib/components/input/InputText';

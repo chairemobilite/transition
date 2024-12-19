@@ -7,7 +7,6 @@
 import React from 'react';
 import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
 import { faFileImport } from '@fortawesome/free-solid-svg-icons/faFileImport';
-import _get from 'lodash/get';
 import Loader from 'react-spinners/BeatLoader';
 import SocketIOFileClient from 'socket.io-file-client';
 import { withTranslation, WithTranslation } from 'react-i18next';
@@ -248,8 +247,9 @@ class GtfsImportForm extends React.Component<GtfsImportProps, GtfsImportState> {
         }
     };
 
-    importGtfsData = (e) => {
+    importGtfsData = (_e) => {
         const validator = this.state.validator;
+        /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
         const { periodsGroupShortname, ...rest } = this.state.availableImportData;
         // import
         if (this.state.operationInProgress) {
@@ -336,7 +336,7 @@ class GtfsImportForm extends React.Component<GtfsImportProps, GtfsImportState> {
                             id={`formFieldTransitGtfsImporterFile${validatorId}`}
                             accept=".zip"
                             inputRef={this._fileImportRef}
-                            onChange={(e) => {
+                            onChange={() => {
                                 this.setState({
                                     validator: new GtfsValidator({}),
                                     uploadError: false

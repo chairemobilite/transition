@@ -407,7 +407,7 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
                                         size="small"
                                         label={this.props.t('transit:transitRouting:SaveTrip')}
                                         color="blue"
-                                        onClick={(e) => this.saveRoutingForBatch(routing)}
+                                        onClick={() => this.saveRoutingForBatch(routing)}
                                     />
                                 </div>
                                 {this.state.object.getAttributes().savedForBatch.length > 0 && (

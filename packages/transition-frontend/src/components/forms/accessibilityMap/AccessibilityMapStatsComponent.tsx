@@ -7,7 +7,6 @@
 import React, { JSX } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 export interface AccessibilityMapStatsComponentProps extends WithTranslation {
     accessibilityPolygons: GeoJSON.FeatureCollection;
 }

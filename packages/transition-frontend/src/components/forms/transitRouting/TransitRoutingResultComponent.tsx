@@ -13,7 +13,6 @@ import RouteButton from './RouteButton';
 import DistanceUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DistanceUnitFormatter';
 import DurationUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DurationUnitFormatter';
 import { secondsToMinutes, secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';

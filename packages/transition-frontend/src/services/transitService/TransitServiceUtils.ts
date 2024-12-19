@@ -79,7 +79,7 @@ export const serviceMatches = (
             if (serviceName && !(serviceName.includes(filter.name) || serviceName.match(filter.name))) {
                 return false;
             }
-        } catch (error) {
+        } catch {
             console.error(`Error interpreting regular expression ${filter.name}. Returning false`);
             return false;
         }

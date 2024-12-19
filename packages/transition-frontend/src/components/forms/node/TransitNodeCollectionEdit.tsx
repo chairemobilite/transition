@@ -20,7 +20,7 @@ import InputColor from 'chaire-lib-frontend/lib/components/input/InputColor';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { _isBlank, _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';

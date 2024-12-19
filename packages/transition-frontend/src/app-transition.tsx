@@ -8,13 +8,12 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
-import { BrowserRouter, Router } from 'react-router';
+import { BrowserRouter } from 'react-router';
 
 import i18n from 'chaire-lib-frontend/lib/config/i18n.config';
 import TransitionRouter from './components/routers/TransitionRouter';
 import MainMap from './components/map/TransitionMainMap';
 import configureStore from 'chaire-lib-frontend/lib/store/configureStore';
-import { login, logout } from 'chaire-lib-frontend/lib/actions/Auth';
 import { LoadingPage } from 'chaire-lib-frontend/lib/components/pages';
 import config from 'chaire-lib-frontend/lib/config/project.config';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
