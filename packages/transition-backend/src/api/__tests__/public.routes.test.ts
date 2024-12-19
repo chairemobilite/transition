@@ -438,6 +438,50 @@ describe('Testing API endpoints', () => {
         expect(transitObjectDataHandlers.agencies.collection!).toHaveBeenCalledWith(null);
     });
 
+    test('GET /api/v1/services', async () => {
+        const collection = [{
+            id: 'serv1',
+            name: 'Service 1',
+            monday: true,
+            tuesday: true,
+            wednesday: true,
+            thursday: true,
+            friday: true,
+            saturday: false,
+            sunday: false
+        }, {
+            id: 'serv1',
+            name: 'Service 1',
+            monday: true,
+            tuesday: true,
+            wednesday: true,
+            thursday: true,
+            friday: true,
+            saturday: false,
+            sunday: false,
+            start_date: '2024-02-01',
+            end_date: '2024-12-19'
+        }]
+
+        const result = [{
+            id: collection[0].id,
+            name: collection[0].name
+        }, {
+            id: collection[1].id,
+            name: collection[1].name
+        }];
+
+        transitObjectDataHandlers.services.collection! = jest.fn().mockResolvedValue({
+            collection
+        });
+
+        const response = await request(app).get('/api/v1/services');
+
+        expect(response.status).toStrictEqual(200);
+        expect(response.body).toStrictEqual(result);
+        expect(transitObjectDataHandlers.services.collection!).toHaveBeenCalledWith(null);
+    });
+
     test('POST /api/v1/summary', async () => {
         const attributes = { 
             originGeojson: TestUtils.makePoint([1, 2]),
