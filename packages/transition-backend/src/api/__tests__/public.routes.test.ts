@@ -788,4 +788,11 @@ describe('Testing API endpoints', () => {
             expect(mockedCalculateRoute).toHaveBeenCalled();
         });
     });
+
+    test('404 for unexisting endpoints', async () => {
+
+        const response = await request(app).get('/api/v1/doesNotExist');
+
+        expect(response.status).toStrictEqual(404);
+    });
 });
