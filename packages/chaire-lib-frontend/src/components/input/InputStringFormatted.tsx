@@ -94,6 +94,7 @@ export class InputStringFormatted extends React.Component<InputStringFormattedPr
     }
 
     render(): React.ReactNode {
+        /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
         const { onValueUpdated, onValueChange, stringToValue, valueToString, value, ...inputProps } = this.props;
         return <InputString onValueUpdated={this.handleChange} value={this.state.strValue} {...inputProps} />;
     }

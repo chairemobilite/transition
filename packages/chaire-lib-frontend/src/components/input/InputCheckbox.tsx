@@ -32,11 +32,6 @@ export type InputCheckboxProps = InputCheckboxCommonProps & {
     allowSelectAll?: boolean;
 };
 
-type defaultInputType = {
-    name: string;
-    disabled?: boolean;
-};
-
 class InputCheckboxInner extends React.Component<InputCheckboxProps> {
     static defaultProps: Partial<InputCheckboxProps> = {
         defaultValue: [],
@@ -54,13 +49,8 @@ class InputCheckboxInner extends React.Component<InputCheckboxProps> {
         this.selectAll = this.selectAll.bind(this);
     }
 
-    onContainerClick(value, e) {
+    onContainerClick(_value, e) {
         e.stopPropagation();
-        const clickEvent = new MouseEvent('click', {
-            view: window,
-            bubbles: true,
-            cancelable: false
-        });
         // this.onCheckboxInputChange({target: {value: value}})
     }
 
