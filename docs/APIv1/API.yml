@@ -102,6 +102,19 @@ paths:
               schema:
                 $ref: 'agencies.yml#/agencies'
 
+  /api/v1/services:
+    get:
+      summary: Get all services
+      description: Get all services which are currently available in Transition
+      x-added-in-version: 1.1
+      responses:
+        '200':
+          description: Returns a list of all services currently available in Transition
+          content:
+            application/json:
+              schema:
+                $ref: 'services.yml#/services'
+
   /api/v1/routing-modes:
     get: 
       summary: Get all routing modes

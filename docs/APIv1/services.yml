@@ -1,0 +1,16 @@
+services:
+  type: array
+  items: 
+    type: object
+    required:
+      - id
+      - name
+    properties: 
+      id: 
+        type: string
+        description: Identifier of this service, used sometimes in other objects to identify this service, for example in the scenarios' `services` field.
+        example: 29829bef-39fd-481b-86ee-9d781146352d
+      name: 
+        type: string
+        description: Name of this service
+        example: Weekday service

@@ -38,6 +38,7 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
 import { SummaryResponse } from 'chaire-lib-common/lib/api/TrRouting/trRoutingApiV2';
 import AgenciesAPIResponse from './public/AgenciesAPIResponse';
+import ServicesAPIResponse from './public/ServicesAPIResponse';
 
 const CURRENT_API_VERSION = 1.1;
 
@@ -147,6 +148,16 @@ export default function (app: express.Express, passport: PassportStatic) {
         try {
             const agencies = await transitObjectDataHandlers.agencies.collection!(null);
             const response: AgenciesAPIResponse = new AgenciesAPIResponse(agencies.collection);
+            res.status(200).json(response.getResponse());
+        } catch (error) {
+            next(error);
+        }
+    });
+
+    router.get('/services', async (req, res, next) => {
+        try {
+            const services = await transitObjectDataHandlers.services.collection!(null);
+            const response: ServicesAPIResponse = new ServicesAPIResponse(services.collection);
             res.status(200).json(response.getResponse());
         } catch (error) {
             next(error);
