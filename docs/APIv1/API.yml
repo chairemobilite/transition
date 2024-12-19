@@ -115,6 +115,19 @@ paths:
               schema:
                 $ref: 'services.yml#/services'
 
+  /api/v1/lines:
+    get:
+      summary: Get all lines
+      description: Get all lines which are currently available in Transition
+      x-added-in-version: 1.1
+      responses:
+        '200':
+          description: Returns a list of all lines currently available in Transition
+          content:
+            application/json:
+              schema:
+                $ref: 'lines.yml#/lines'
+
   /api/v1/routing-modes:
     get: 
       summary: Get all routing modes

@@ -482,6 +482,57 @@ describe('Testing API endpoints', () => {
         expect(transitObjectDataHandlers.services.collection!).toHaveBeenCalledWith(null);
     });
 
+    test('GET /api/v1/lines', async () => {
+     
+        const collection = [{
+            id: 'lineId1',
+            shortname: 'Line 1',
+            longname: 'Line 1 Long Name',
+            agency_id: 'ag1',
+            mode: 'bus',
+            path_ids: ['path1'],
+            category: 'C',
+            allow_same_line_transfers: true,
+            is_autonomous: false
+        }, {
+            id: 'lineId2',
+            shortname: 'Line 2',
+            longname: 'Line 2 Long Name',
+            agency_id: 'ag2',
+            mode: 'bus',
+            path_ids: ['path2', 'path3'],
+            category: 'B',
+            allow_same_line_transfers: false,
+            is_autonomous: false
+        }]
+
+        const result = [{
+            id: collection[0].id,
+            name: collection[0].shortname,
+            longname: collection[0].longname,
+            agency_id: collection[0].agency_id,
+            mode: collection[0].mode,
+            category: collection[0].category
+        }, {
+            id: collection[1].id,
+            name: collection[1].shortname,
+            longname: collection[1].longname,
+            agency_id: collection[1].agency_id,
+            mode: collection[1].mode,
+            category: collection[1].category
+        }];
+
+        transitObjectDataHandlers.lines.collection! = jest.fn().mockResolvedValue({
+            collection
+        });
+
+        const response = await request(app).get('/api/v1/lines');
+
+        expect(response.status).toStrictEqual(200);
+        expect(response.body).toStrictEqual(result);
+        expect(transitObjectDataHandlers.lines.collection!).toHaveBeenCalledWith(null);
+    });
+
     test('POST /api/v1/summary', async () => {
         const attributes = { 
             originGeojson: TestUtils.makePoint([1, 2]),
