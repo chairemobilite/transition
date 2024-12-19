@@ -134,14 +134,10 @@ export class TransitAccessibilityMapResultByNode {
                 continue;
             }
 
-            // FIXME node's 'data' field is not accessible in the frontend
-            // anymore, at least when retrieved from the node collection, so
-            // this feature will not work anymore as long as it is calculated in
-            // the frontend
             const nodeAccessiblePlacesByCategory =
-                nodeAttributes.data?.accessiblePlaces?.walking?.placesByTravelTimeByCategory; // TODO: allow stats for other modes
+                nodeAttributes.data.accessiblePlaces?.walking?.placesByTravelTimeByCategory; // TODO: allow stats for other modes
             const nodeAccessiblePlacesByDetailedCategory =
-                nodeAttributes.data?.accessiblePlaces?.walking?.placesByTravelTimeByDetailedCategory;
+                nodeAttributes.data.accessiblePlaces?.walking?.placesByTravelTimeByDetailedCategory;
             for (let timeMinutes = avgRemainingTimeMinutes; timeMinutes >= 0; timeMinutes--) {
                 if (nodeAccessiblePlacesByCategory) {
                     const accessiblePlacesForTravelTimeByCategory = nodeAccessiblePlacesByCategory[timeMinutes];
