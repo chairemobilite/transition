@@ -826,6 +826,16 @@ describe('Testing API endpoints', () => {
         });
     });
 
+    test('/api/v1/version endpoint', async () => {
+
+        const response = await request(app).get('/api/versions');
+
+        expect(response.status).toStrictEqual(200);
+        // Hard-code the return value to make sure we update this test when we update the version and don't simply mock something
+        // It's also a reminder to update the version in the API.yml file and make sure it matches ;-)
+        expect(response.body).toStrictEqual(['1.1']);
+    });
+
     test('404 for unexisting endpoints', async () => {
 
         const response = await request(app).get('/api/v1/doesNotExist');

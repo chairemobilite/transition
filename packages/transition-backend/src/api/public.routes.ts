@@ -39,6 +39,8 @@ import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingSe
 import { SummaryResponse } from 'chaire-lib-common/lib/api/TrRouting/trRoutingApiV2';
 import AgenciesAPIResponse from './public/AgenciesAPIResponse';
 
+const CURRENT_API_VERSION = 1.1;
+
 export default function (app: express.Express, passport: PassportStatic) {
     app.use('/token', (req, res, next) => {
         passport.authenticate('local-login', { failWithError: true, failureMessage: true }, (err, _user, _info) => {
@@ -78,6 +80,10 @@ export default function (app: express.Express, passport: PassportStatic) {
             const message = 'Internal Server Error';
             res.status(500).send(message);
         }
+    });
+
+    app.get('/api/versions', async (_req, res, _next) => {
+        res.status(200).json([String(CURRENT_API_VERSION)]);
     });
 
     const router = express.Router();

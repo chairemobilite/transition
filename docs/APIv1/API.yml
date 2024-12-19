@@ -34,7 +34,24 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: 'token.yml#/tokenResponseUnauthorized'       
+                $ref: 'token.yml#/tokenResponseUnauthorized'
+
+  /api/versions:
+    get:
+      summary: Get the versions supported by this API
+      description: Get the latest version of the API supported by this version of Transition
+      x-added-in-version: 1.1
+      responses:
+        '200':
+          description: Returns a list of the latest version for each supported major version of the API
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  description: Version number
+                example: ["1.1"]
 
   /api/v1/paths:
     get:
