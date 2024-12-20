@@ -16,6 +16,7 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
 
 //TODO replace this fetch-retry library with one compatible with TS
+/* eslint-disable-next-line */
 const fetch = require('@zeit/fetch-retry')(require('node-fetch'));
 
 type OSRMServiceTypes = 'route' | 'nearest' | 'table' | 'match' | 'trip' | 'tile';

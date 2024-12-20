@@ -6,6 +6,7 @@
  */
 
 //TODO replace this fetch-retry library with one compatible with TS
+/* eslint-disable-next-line */
 const fetch = require('@zeit/fetch-retry')(require('node-fetch'));
 
 import ServerConfig from '../../config/ServerConfig';

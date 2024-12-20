@@ -6,6 +6,7 @@
  */
 import url from 'url';
 // TODO replace this fetch-retry library with one compatible with TS
+/* eslint-disable-next-line */
 const fetchRetry = require('@zeit/fetch-retry')(require('node-fetch'));
 
 // Only do 4 retries instead of the default 5, as the retry period increases at
