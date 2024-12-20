@@ -9,10 +9,10 @@
         "node": true
     },
     "rules": {
-        "react/prop-types": "warn",
-        "react/no-string-refs": "warn",
-        "react/no-unescaped-entities": "warn",
-        "react/display-name": "warn"
+        "react/prop-types": "error",
+        "react/no-string-refs": "error",
+        "react/no-unescaped-entities": "error",
+        "react/display-name": "error"
     },
     "parserOptions": {
         "ecmaFeatures": {
