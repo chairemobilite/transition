@@ -7,7 +7,6 @@
 import * as RoutingService from './RoutingService';
 import * as turf from '@turf/turf';
 import _cloneDeep from 'lodash/cloneDeep';
-import { TripRoutingQueryAttributes } from './types';
 
 /**
  * This class provides routing services using manual routing. This mode will always return return results
