@@ -44,4 +44,6 @@ const dotEnvPath = getDotEnvFile();
 if (dotEnvPath !== null) {
     console.log(`Using .env file from ${dotEnvPath}`);
 }
+
+/* eslint-disable-next-line */
 export default require('dotenv').config({ path: dotEnvPath });

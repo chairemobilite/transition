@@ -84,12 +84,14 @@ export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic 
         localLogin(passport, authModel);
     }
     if (config.auth && config.auth.passwordless !== undefined) {
+        /* eslint-disable-next-line */
         const passwordlessConfig = require('./passwordless.config');
         // FIXME It used to work without the next line, not anymore... probably some compilation issue
         const pwdlessConfig = passwordlessConfig.default ? passwordlessConfig.default : passwordlessConfig;
         pwdlessConfig(passport, authModel);
     }
     if (config.auth && config.auth.anonymous === true) {
+        /* eslint-disable-next-line */
         const anonymousLoginStrategy = require('../../services/auth/anonymousLoginStrategy');
         // FIXME It used to work without the next line, not anymore... probably some compilation issue
         const AnonymousLoginStrategy = anonymousLoginStrategy.default
@@ -98,6 +100,7 @@ export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic 
         passport.use('anonymous-login', new AnonymousLoginStrategy(authModel));
     }
     if (config.auth && config.auth.directToken !== undefined && config.auth.directToken !== false) {
+        /* eslint-disable-next-line */
         const directTokenConfig = require('./directToken.config');
         // FIXME It used to work without the next line, not anymore... probably some compilation issue
         const directToken = directTokenConfig.default ? directTokenConfig.default : directTokenConfig;

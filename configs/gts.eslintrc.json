@@ -14,7 +14,7 @@
       "eol-last": "error",
       "prefer-arrow-callback": "error",
       "no-trailing-spaces": "error",
-      "quotes": ["warn", "single", { "avoidEscape": true }],
+      "quotes": ["error", "single", { "avoidEscape": true }],
       "no-restricted-properties": [
         "error",
         {
@@ -35,7 +35,7 @@
           "plugin:@typescript-eslint/recommended"
         ],
         "rules": {
-          "@typescript-eslint/ban-ts-comment": "warn",
+          "@typescript-eslint/ban-ts-comment": "error",
           "@typescript-eslint/no-non-null-assertion": "off",
           "@typescript-eslint/no-use-before-define": "off",
           "@typescript-eslint/no-warning-comments": "off",

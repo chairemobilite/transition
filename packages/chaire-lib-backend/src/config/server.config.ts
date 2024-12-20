@@ -388,6 +388,7 @@ export const setProjectConfiguration = (newConfig: Partial<ProjectConfiguration<
 };
 
 try {
+    /* eslint-disable-next-line */
     const configFromFile = require(configFileNormalized);
     console.log(`Read server configuration from ${configFileNormalized}`);
     // Default project directory is `runtime` at the root of the repo

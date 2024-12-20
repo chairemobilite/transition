@@ -6,7 +6,6 @@
  */
 import GeoJSON from 'geojson';
 import { RoutingMode } from '../../config/routingModes';
-import { TripRoutingQueryAttributes } from './types';
 
 // FIXME Make sure these parameters are those that apply to map matching as the name implies
 export interface MapMatchParameters {
