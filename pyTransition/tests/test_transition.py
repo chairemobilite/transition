@@ -3,7 +3,7 @@ import requests
 import requests_mock
 from datetime import time
 
-from pyTransition import Transition
+from pyTransition import Transition, TripTimeChoice
 
 
 class TestTransition(unittest.TestCase):
@@ -236,7 +236,7 @@ class TestTransition(unittest.TestCase):
                 self.test_transition_instance.request_accessibility_map,
                 coordinates=[0, 0],
                 scenario_id="scenario-id",
-                departure_or_arrival_choice="Departure",
+                departure_or_arrival_choice=TripTimeChoice.DEPARTURE,
                 departure_or_arrival_time=time(0, 0, 0),
                 n_polygons=1,
                 delta_minutes=1,
@@ -260,6 +260,28 @@ class TestTransition(unittest.TestCase):
                 origin=[0, 0],
                 destination=[0, 0],
                 scenario_id="scenario-id",
+                departure_or_arrival_choice=TripTimeChoice.DEPARTURE,
+                departure_or_arrival_time=time(0, 0, 0),
+                max_travel_time_minutes=1,
+                min_waiting_time_minutes=1,
+                max_transfer_time_minutes=1,
+                max_access_time_minutes=1,
+                max_first_waiting_time_minutes=1,
+                with_geojson=True,
+                with_alternatives=False,
+            )
+            self.assertTrue(m.called_once)
+            self.assertEqual(res, {"key": "value"})
+            self.assertEqual(m.last_request.json(), self.test_route_params)
+
+    def test_request_routing_result_with_old_style_time_choice(self):
+        with requests_mock.Mocker() as m:
+            m.post(f"{self.test_url}/api/v1/route", json={"key": "value"}, status_code=200)
+            res = self.test_transition_instance.request_routing_result(
+                modes=["mode1", "mode2"],
+                origin=[0, 0],
+                destination=[0, 0],
+                scenario_id="scenario-id",
                 departure_or_arrival_choice="Departure",
                 departure_or_arrival_time=time(0, 0, 0),
                 max_travel_time_minutes=1,
@@ -274,6 +296,29 @@ class TestTransition(unittest.TestCase):
             self.assertEqual(res, {"key": "value"})
             self.assertEqual(m.last_request.json(), self.test_route_params)
 
+    def test_request_routing_result_with_invalid_time_choice(self):
+        with requests_mock.Mocker() as m:
+            m.post(f"{self.test_url}/api/v1/route", json={"key": "value"}, status_code=200)
+            self.assertRaises(
+                ValueError,
+                self.test_transition_instance.request_routing_result,
+                modes=["mode1", "mode2"],
+                origin=[0, 0],
+                destination=[0, 0],
+                scenario_id="scenario-id",
+                departure_or_arrival_choice="invalidtimechoice",
+                departure_or_arrival_time=time(0, 0, 0),
+                max_travel_time_minutes=1,
+                min_waiting_time_minutes=1,
+                max_transfer_time_minutes=1,
+                max_access_time_minutes=1,
+                max_first_waiting_time_minutes=1,
+                with_geojson=True,
+                with_alternatives=False,
+            )
+            # Assertion get raised before we do the request
+            self.assertFalse(m.called)
+
     def test_request_routing_result_error(self):
         with requests_mock.Mocker() as m:
             m.post(f"{self.test_url}/api/v1/route", json={"key": "value"}, status_code=400)
@@ -284,7 +329,7 @@ class TestTransition(unittest.TestCase):
                 origin=[0, 0],
                 destination=[0, 0],
                 scenario_id="scenario-id",
-                departure_or_arrival_choice="Departure",
+                departure_or_arrival_choice=TripTimeChoice.DEPARTURE,
                 departure_or_arrival_time=time(0, 0, 0),
                 max_travel_time_minutes=1,
                 min_waiting_time_minutes=1,

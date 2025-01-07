@@ -237,7 +237,7 @@ def get_transition_acessibility_map():
     # Call the API
     accessibility_map_data = transition_instance.request_accessibility_map(
                 coordinates=[-73.4727, 45.5383],
-                departure_or_arrival_choice="Departure",
+                departure_or_arrival_choice=TripTimeChoice.DEPARTURE,
                 departure_or_arrival_time=time(8,0), # Create a new time object representing 8:00
                 n_polygons=3,
                 delta_minutes=15,
