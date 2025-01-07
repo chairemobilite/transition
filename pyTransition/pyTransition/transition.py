@@ -24,7 +24,13 @@ import requests
 from datetime import time
 import json
 from urllib.parse import urlparse, urlunparse, urlencode, parse_qs
+from enum import Enum
 
+class TripTimeChoice(Enum):
+    """Type for trip time
+    """
+    DEPARTURE = "Departure"
+    ARRIVAL = "Arrival"
 
 class Transition:
     def __init__(self, url, username, password, token=None):
@@ -201,7 +207,7 @@ class Transition:
         origin,
         destination,
         scenario_id,
-        departure_or_arrival_choice,
+        departure_or_arrival_choice: TripTimeChoice,
         departure_or_arrival_time,
         max_travel_time_minutes,
         min_waiting_time_minutes,
@@ -218,7 +224,7 @@ class Transition:
             origin (List[float]): Coordinates of the route origin as [longitude, latitude]
             destination (List[float]): Coordinates of the route destination as [longitude, latitude]
             scenario_id (string): ID of the used scenario as loaded in Transition application.
-            departure_or_arrival_choice (string): Specifies whether the used time is "Departure" or "Arrival". Possible values are "Departure" or "Arrival".
+            departure_or_arrival_choice (TripTimeChoice): Specifies whether the used time is "Departure" or "Arrival". Possible values are DEPARTURE or ARRIVAL.
             departure_or_arrival_time (time): Departure or arrival time of the trip
             max_travel_time_minutes (int): Maximum travel time including access, in minutes
             min_waiting_time_minutes (int): Minimum waiting time, in minutes
@@ -236,11 +242,14 @@ class Transition:
             + departure_or_arrival_time.minute * 60
             + departure_or_arrival_time.second
         )
+        # Insure we have the right type for departure_or_arrival_choice
+        departure_or_arrival_choice = TripTimeChoice(departure_or_arrival_choice)
+
         departure_time = (
-            departure_or_arrival_time if departure_or_arrival_choice == "Departure" else None
+            departure_or_arrival_time if departure_or_arrival_choice == TripTimeChoice.DEPARTURE else None
         )
         arrival_time = (
-            departure_or_arrival_time if departure_or_arrival_choice == "Arrival" else None
+            departure_or_arrival_time if departure_or_arrival_choice == TripTimeChoice.ARRIVAL else None
         )
 
         body = {
@@ -278,7 +287,7 @@ class Transition:
         self,
         coordinates,
         scenario_id,
-        departure_or_arrival_choice,
+        departure_or_arrival_choice: TripTimeChoice,
         departure_or_arrival_time,
         n_polygons,
         delta_minutes,
@@ -296,7 +305,7 @@ class Transition:
         Args:
             coordinates (List[float]): Coordinates of the map origin as [longitude, latitude]
             scenario_id (string): ID of the used scenario as loaded in Transition application.
-            departure_or_arrival_choice (string): Specifies whether the used time is "Departure" or "Arrival". Possible values are "Departure" or "Arrival".
+            departure_or_arrival_choice (TripTimeChoice): Specifies whether the used time is "Departure" or "Arrival". Possible values are DEPARTURE or ARRIVAL.
             departure_or_arrival_time (time): Departure or arrival time of the trip
             n_polygons (int): Number of polygons to be calculated
             delta_minutes (int): Baseline delta used for average accessibility map calculations
@@ -317,14 +326,18 @@ class Transition:
             + departure_or_arrival_time.minute * 60
             + departure_or_arrival_time.second
         )
+
+        # Insure we have the right type for departure_or_arrival_choice
+        departure_or_arrival_choice = TripTimeChoice(departure_or_arrival_choice)
+
         departure_time_seconds = (
             departure_or_arrival_time_seconds_from_midnight
-            if departure_or_arrival_choice == "Departure"
+            if departure_or_arrival_choice == TripTimeChoice.DEPARTURE
             else None
         )
         arrival_time_seconds = (
             departure_or_arrival_time_seconds_from_midnight
-            if departure_or_arrival_choice == "Arrival"
+            if departure_or_arrival_choice == TripTimeChoice.ARRIVAL
             else None
         )
 
