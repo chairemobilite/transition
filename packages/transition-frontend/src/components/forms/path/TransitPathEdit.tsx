@@ -101,6 +101,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.on('waypoint.update', this.onUpdateWaypoint);
         serviceLocator.eventManager.on('waypoint.replaceByNodeId', this.onReplaceWaypointByNodeId);
         serviceLocator.eventManager.on('selected.updateLayers.path', this.updateLayers);
+        // Call the updateLayers method to display the path on the map, as the event may have been emitted before the listener was added
+        this.updateLayers();
         serviceLocator.keyboardManager.on('m', this.toggleTemporaryManualRouting);
     }
 
