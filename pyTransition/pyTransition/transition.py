@@ -126,6 +126,21 @@ class Transition:
 
         return headers
 
+    def __check_response_status(response, is_error_json = False):
+        """ Wrapper around Response.raise_for_status to add the return content to the
+        exception error message
+        """
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            details = ""
+            if is_error_json:
+                details = str(e.response.json())
+            else:
+                details = e.response.text
+            e.response.reason = f"{e.response.reason}: {details}"
+            raise
+
     def __request_token(self, username, password):
         """Authenticates the user with the Transition api to obtain an API authentication token.
 
@@ -138,7 +153,7 @@ class Transition:
         """
         body = self.__build_authentication_body(username, password)
         response = requests.post(self.build_url('/token'), json=body)
-        response.raise_for_status()
+        Transition.__check_response_status(response)
         return response.text
 
     def is_token_valid(self):
@@ -165,7 +180,7 @@ class Transition:
         """
         headers = self.__build_headers()
         response = requests.get(self.build_url('/api/v1/paths'), headers=headers)
-        response.raise_for_status()
+        Transition.__check_response_status(response)
         return response.json()
 
     def get_nodes(self):
@@ -176,7 +191,7 @@ class Transition:
         """
         headers = self.__build_headers()
         response = requests.get(self.build_url('/api/v1/nodes'), headers=headers)
-        response.raise_for_status()
+        Transition.__check_response_status(response)
         return response.json()
 
     def get_scenarios(self):
@@ -187,7 +202,7 @@ class Transition:
         """
         headers = self.__build_headers()
         response = requests.get(self.build_url('/api/v1/scenarios'), headers=headers)
-        response.raise_for_status()
+        Transition.__check_response_status(response)
         return response.json()
 
     def get_routing_modes(self):
@@ -198,7 +213,7 @@ class Transition:
         """
         headers = self.__build_headers()
         response = requests.get(self.build_url('/api/v1/routing-modes'), headers=headers)
-        response.raise_for_status()
+        Transition.__check_response_status(response)
         return json.loads(response.text)
 
     def request_routing_result(
@@ -280,7 +295,8 @@ class Transition:
         response = requests.post(
             self.build_url('/api/v1/route', params=params), headers=headers, json=body
         )
-        response.raise_for_status()
+
+        Transition.__check_response_status(response)
         return response.json()
 
     def request_accessibility_map(
@@ -367,5 +383,5 @@ class Transition:
         response = requests.post(
             self.build_url('/api/v1/accessibility', params=params), headers=headers, json=body
         )
-        response.raise_for_status()
+        Transition.__check_response_status(response)
         return response.json()
