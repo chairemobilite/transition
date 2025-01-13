@@ -8,6 +8,8 @@
 import OsmOverpassDownloader from '../OsmOverpassDownloader';
 import GeoJSON from 'geojson';
 import fetch from 'node-fetch';
+import { Readable, Writable } from 'node:stream';
+import fs from 'fs';
 
 jest.mock('node-fetch', () => jest.fn());
 const mockedFetch = fetch as jest.MockedFunction<typeof fetch>;
@@ -99,6 +101,29 @@ const jsonData = {
         },
     ]
 };
+
+const geojsonWritten = {
+    "type":"FeatureCollection",
+    "features":[
+        {
+            "type":"Feature",
+            "id":"node/123",
+            "properties":{"timestamp":"2020-02-08T17:16:30Z","version":1,"changeset":1,"user":"osmUser","uid":1,"id":"node/123"},
+            "geometry":{"type":"Point","coordinates":[-73.9678132,45.3941161]}
+        },
+        {
+            "type":"Feature",
+            "id":"node/234",
+            "properties":{"timestamp":"2020-02-08T17:16:30Z","version":1,"changeset":1,"user":"osmUser","uid":1,"id":"node/234"},
+            "geometry":{"type":"Point","coordinates":[-73.9544677,45.3752717]}
+        },
+        {
+            "type":"Feature",
+            "id":"node/345",
+            "properties":{"timestamp":"2020-02-08T17:16:30Z","version":1,"changeset":1,"user":"osmUser","uid":1,"id":"node/345"},
+            "geometry":{"type":"Point","coordinates":[-73.9545144,45.3751139]}
+        }
+]};
 
 const xmlData = `<?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6" generator="Overpass API 0.7.56.8 7d656e78">
@@ -204,4 +229,37 @@ test('download xml data from overpass', async () => {
     });
     expect(xmlContent).toEqual(xmlData);
 
+});
+
+test('fetch and write geojson', async () => {
+    let mockWriteStream;
+    let writtenData = '';
+    let streamFilename;
+    mockWriteStream = new Writable({
+        write(chunk, _encoding, callback) {
+          writtenData += chunk.toString();
+          callback();
+        }
+    });
+
+    jest.spyOn(fs, 'createWriteStream').mockImplementation((path) => {
+        streamFilename = path;
+        return mockWriteStream;
+    });
+
+    const streamBody = new Readable();
+    streamBody.push(JSON.stringify(jsonData));
+    streamBody.push(null);
+    const response = Promise.resolve({
+        ok: true,
+        status: 200,
+        body: streamBody
+    });
+    mockedFetch.mockResolvedValue(response);
+
+    const writeIsSuccessful = await OsmOverpassDownloader.fetchAndWriteGeojson('./test.json', geojsonBoundaryPolygon);
+    expect(writeIsSuccessful).toBeTruthy();
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
+    expect(writtenData).toBe(JSON.stringify(geojsonWritten));
+    expect(streamFilename).toBe('./test.json');
 });
