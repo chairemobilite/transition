@@ -4,18 +4,17 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import GenericDataImportTask from './genericDataImportTask';
 import GeoJSON from 'geojson';
-import { DataFileGeojson } from './data/dataGeojson';
-import { SingleGeoFeature } from '../../services/geodata/GeoJSONUtils';
 import { area as turfArea } from '@turf/turf';
+import { pipeline } from 'node:stream/promises';
+import JSONStream from 'JSONStream';
+import fs from 'fs';
+
+import GenericDataImportTask from './genericDataImportTask';
+import { SingleGeoFeature } from '../../services/geodata/GeoJSONUtils';
 import { ignoreBuildings } from '../../config/osm/osmBuildingQuerySetup';
 import { queryResidentialBuildings } from '../../config/osm/osmResidentialBuildingTags';
 import { findOverlappingFeatures } from '../../services/geodata/FindOverlappingFeatures';
-
-type PolygonGeojson =
-    | GeoJSON.Feature<GeoJSON.Polygon, GeoJSON.GeoJsonProperties>
-    | GeoJSON.Feature<GeoJSON.MultiPolygon, GeoJSON.GeoJsonProperties>;
 
 export default class enhanceAndSaveOsmPolygonData extends GenericDataImportTask {
     private _warnings: string[] = [];
@@ -55,153 +54,195 @@ export default class enhanceAndSaveOsmPolygonData extends GenericDataImportTask 
         console.error('ERROR: %s, %s', error, this._geojsonOutputter.toString(geojson));
     }
 
-    private readAndEnhancePolygons(
-        osmGeojsonFeatures: GeoJSON.Feature<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>[]
-    ): PolygonGeojson[] {
-        const polygons: PolygonGeojson[] = [];
+    private async findBuildingFeatures(
+        sourceFile: string
+    ): Promise<GeoJSON.Feature<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>[]> {
+        console.log('Fetch buildings from osm geojson data...');
+        const buildings: GeoJSON.Feature<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>[] = [];
+        const readStream = fs.createReadStream(sourceFile);
+        const jsonParser = JSONStream.parse('features.*');
+
+        return new Promise((resolve) => {
+            jsonParser.on('data', (feature) => {
+                if (feature.properties?.building !== undefined) {
+                    buildings.push(feature);
+                }
+            });
+
+            jsonParser.on('end', () => {
+                console.log(`There are ${buildings.length} buildings in the osm geojson data.`);
+                resolve(buildings);
+            });
+
+            pipeline(readStream, jsonParser);
+        });
+    }
+
+    private async enhanceAndWritePolygons(destinationFile: string, sourceFile: string): Promise<boolean> {
+        const buildingFeatures = await this.findBuildingFeatures(sourceFile);
+
+        const writeStream = fs.createWriteStream(destinationFile);
+        writeStream.write('{"type":"FeatureCollection","features":[');
+        const readStream = fs.createReadStream(sourceFile);
+        const jsonParser = JSONStream.parse('features.*');
+        let i = 0;
 
         console.log('Fetch polygons and multipolygons from osm geojson data...');
 
-        // Enhance and validate each polygon
-        const size = osmGeojsonFeatures.length;
-        console.log(`Validate and enhance each polygon (total: ${size})...`);
+        return new Promise((resolve) => {
+            jsonParser.on('data', (feature) => {
+                if (feature.geometry?.type !== 'Polygon' && feature.geometry?.type !== 'MultiPolygon') {
+                    return;
+                }
 
-        const buildingFeatures = osmGeojsonFeatures.filter((feature) => {
-            return feature.properties?.building !== undefined;
-        });
+                if (!feature.properties) {
+                    feature.properties = {};
+                }
 
-        for (let i = 0; i < size; i++) {
-            const feature = osmGeojsonFeatures[i];
-            if (feature.geometry?.type !== 'Polygon' && feature.geometry?.type !== 'MultiPolygon') {
-                continue;
-            }
-
-            if (!feature.properties) {
-                feature.properties = {};
-            }
-
-            let outerBuilding: GeoJSON.Feature<GeoJSON.Geometry, GeoJSON.GeoJsonProperties> | undefined = undefined;
-            if (feature.properties['building:part']) {
-                outerBuilding = findOverlappingFeatures(feature, buildingFeatures).find(
-                    (overlapping) => overlapping.properties?.building !== undefined
-                );
-                if (outerBuilding) {
-                    feature.properties['building:id'] = outerBuilding.id;
-                    if (!outerBuilding.properties) {
-                        outerBuilding.properties = {};
+                let outerBuilding: GeoJSON.Feature<GeoJSON.Geometry, GeoJSON.GeoJsonProperties> | undefined = undefined;
+                if (feature.properties['building:part']) {
+                    // TODO: This call causes the enhanceAndWritePolygons() to run in O(N^2). In the future, it should be replaced with an O(1) database call.
+                    outerBuilding = findOverlappingFeatures(feature, buildingFeatures).find(
+                        (overlapping) => overlapping.properties?.building !== undefined
+                    );
+                    if (outerBuilding) {
+                        feature.properties['building:id'] = outerBuilding.id;
+                        if (!outerBuilding.properties) {
+                            outerBuilding.properties = {};
+                        }
                     }
                 }
-            }
 
-            const areaSqMeters: number = Math.round(turfArea(feature.geometry));
-            let floorArea: number | undefined = undefined;
-            if (
-                feature.properties['building:floor_area'] &&
-                !isNaN(Number(feature.properties['building:floor_area'])) &&
-                feature.properties['building:floor_area'] > 0
-            ) {
-                // Floor area defined by the OSM feature
-                floorArea = Math.round(feature.properties['building:floor_area']);
-                feature.properties['building:floor_area:calculated'] = false;
-            } else if (
-                feature.properties['building:levels'] &&
-                !isNaN(Number(feature.properties['building:levels'])) &&
-                !feature.properties['building:floor_area']
-            ) {
-                // No area in the OSM feature, but a number of levels. Calculated by polygon * levels
-                floorArea = Math.round(areaSqMeters * feature.properties['building:levels']);
-                feature.properties['building:floor_area:calculated'] = true;
-            } else if (feature.properties['building:part'] && outerBuilding) {
-                // Building part, inherit levels and floor area from parent
-                const outerBuildingProperties = outerBuilding.properties || {};
+                const areaSqMeters: number = Math.round(turfArea(feature.geometry));
+                let floorArea: number | undefined = undefined;
                 if (
-                    outerBuildingProperties['building:levels'] &&
-                    !isNaN(Number(outerBuildingProperties['building:levels']))
+                    feature.properties['building:floor_area'] &&
+                    !isNaN(Number(feature.properties['building:floor_area'])) &&
+                    feature.properties['building:floor_area'] > 0
                 ) {
-                    feature.properties['building:levels'] = Number(outerBuildingProperties['building:levels']);
-                }
-                if (
-                    outerBuildingProperties['building:floor_area'] &&
-                    !isNaN(Number(outerBuildingProperties['building:floor_area'])) &&
-                    outerBuildingProperties['building:floor_area'] > 0
+                    // Floor area defined by the OSM feature
+                    floorArea = Math.round(feature.properties['building:floor_area']);
+                    feature.properties['building:floor_area:calculated'] = false;
+                } else if (
+                    feature.properties['building:levels'] &&
+                    !isNaN(Number(feature.properties['building:levels'])) &&
+                    !feature.properties['building:floor_area']
                 ) {
-                    // Take a floor area proportional to the area of the building
-                    // TODO do not cast as any here
-                    const outerAreaSqMeters: number = Math.round(turfArea(outerBuilding.geometry as any));
+                    // No area in the OSM feature, but a number of levels. Calculated by polygon * levels
+                    floorArea = Math.round(areaSqMeters * feature.properties['building:levels']);
+                    feature.properties['building:floor_area:calculated'] = true;
+                } else if (feature.properties['building:part'] && outerBuilding) {
+                    // Building part, inherit levels and floor area from parent
+                    const outerBuildingProperties = outerBuilding.properties || {};
+                    if (
+                        outerBuildingProperties['building:levels'] &&
+                        !isNaN(Number(outerBuildingProperties['building:levels']))
+                    ) {
+                        feature.properties['building:levels'] = Number(outerBuildingProperties['building:levels']);
+                    }
                     if (
                         outerBuildingProperties['building:floor_area'] &&
-                        outerBuildingProperties['building:floor_area'] < outerAreaSqMeters
+                        !isNaN(Number(outerBuildingProperties['building:floor_area'])) &&
+                        outerBuildingProperties['building:floor_area'] > 0
                     ) {
-                        outerBuildingProperties['building:floor_area'] = outerAreaSqMeters;
+                        // Take a floor area proportional to the area of the building
+                        // TODO do not cast as any here
+                        const outerAreaSqMeters: number = Math.round(turfArea(outerBuilding.geometry as any));
+                        if (
+                            outerBuildingProperties['building:floor_area'] &&
+                            outerBuildingProperties['building:floor_area'] < outerAreaSqMeters
+                        ) {
+                            outerBuildingProperties['building:floor_area'] = outerAreaSqMeters;
+                        }
+
+                        feature.properties['building:floor_area'] =
+                            (areaSqMeters / outerAreaSqMeters) * outerBuildingProperties['building:floor_area'];
                     }
-
-                    feature.properties['building:floor_area'] =
-                        (areaSqMeters / outerAreaSqMeters) * outerBuildingProperties['building:floor_area'];
                 }
-            }
-            if (floorArea && floorArea < areaSqMeters) {
-                if (floorArea < 0.8 * areaSqMeters) {
-                    /*this.addWarning(
-                        feature as SingleGeoFeature,
-                        `floor area is less than 80% of total area, something is wrong, please validate: floor area: ${floorArea} m2, area: ${areaSqMeters} m2 (${Math.round(
-                            (100 * floorArea) / areaSqMeters
-                        ) / 100}, will use building area instead)`
-                    );*/
+                if (floorArea && floorArea < areaSqMeters) {
+                    if (floorArea < 0.8 * areaSqMeters) {
+                        /*this.addWarning(
+                            feature as SingleGeoFeature,
+                            `floor area is less than 80% of total area, something is wrong, please validate: floor area: ${floorArea} m2, area: ${areaSqMeters} m2 (${Math.round(
+                                (100 * floorArea) / areaSqMeters
+                            ) / 100}, will use building area instead)`
+                        );*/
+                    }
+                    floorArea = areaSqMeters; // forcing building:area if floor area is too low
                 }
-                floorArea = areaSqMeters; // forcing building:area if floor area is too low
-            }
-            if (feature.properties.building || feature.properties['building:part']) {
-                feature.properties['building:area'] = areaSqMeters;
-                // set building:levels to 1 if they do not already have one
-                // TODO, check if there could be building:levels = 0 for small buildings and deal with it if so
-                if (feature.properties['building:levels']) {
-                    feature.properties['building:levels:imputed'] = false;
+                if (feature.properties.building || feature.properties['building:part']) {
+                    feature.properties['building:area'] = areaSqMeters;
+                    // set building:levels to 1 if they do not already have one
+                    // TODO, check if there could be building:levels = 0 for small buildings and deal with it if so
+                    if (feature.properties['building:levels']) {
+                        feature.properties['building:levels:imputed'] = false;
+                    } else {
+                        // TODO: If levels are imputed, use the height of the building to estimate the levels (if available).
+                        feature.properties['building:levels:imputed'] = true;
+                        feature.properties['building:levels'] = 1;
+                    }
                 } else {
-                    // TODO: If levels are imputed, use the height of the building to estimate the levels (if available).
-                    feature.properties['building:levels:imputed'] = true;
-                    feature.properties['building:levels'] = 1;
+                    feature.properties['polygon:area'] = areaSqMeters;
                 }
-            } else {
-                feature.properties['polygon:area'] = areaSqMeters;
-            }
-            // if no floor area available or calculated and the polygon is a building and non residential and non ignored, trigger warning:
-            // TODO: put queries for ignore in a config file:
-            if (!floorArea && (feature.properties.building || feature.properties['building:part'])) {
-                if (
-                    ((feature.properties.building &&
-                        !ignoreBuildings.tags.building.includes(feature.properties.building)) ||
-                        (feature.properties['building:part'] &&
-                            !ignoreBuildings.tags.building.includes(feature.properties['building:part']))) &&
-                    !queryResidentialBuildings.tags.building.includes(feature.properties.building) && // TODO: deal with residential buildings
-                    feature.properties.amenity !== 'shelter' &&
-                    feature.properties.building !== 'barn' &&
-                    feature.properties.building !== 'farm_auxiliary' &&
-                    feature.properties.man_made !== 'storage_tank' &&
-                    feature.properties['building:part'] !== 'barn' &&
-                    feature.properties['building:part'] !== 'farm_auxiliary'
-                ) {
-                    /*this.addWarning(
-                        feature as SingleGeoFeature,
-                        `floor area could not be found for building (building=${feature.properties.building ||
-                            feature.properties[
-                                'building:part'
-                            ]}), using a default number of levels = 1 and using the building area`
-                    );*/
+                // if no floor area available or calculated and the polygon is a building and non residential and non ignored, trigger warning:
+                // TODO: put queries for ignore in a config file:
+                if (!floorArea && (feature.properties.building || feature.properties['building:part'])) {
+                    if (
+                        ((feature.properties.building &&
+                            !ignoreBuildings.tags.building.includes(feature.properties.building)) ||
+                            (feature.properties['building:part'] &&
+                                !ignoreBuildings.tags.building.includes(feature.properties['building:part']))) &&
+                        !queryResidentialBuildings.tags.building.includes(feature.properties.building) && // TODO: deal with residential buildings
+                        feature.properties.amenity !== 'shelter' &&
+                        feature.properties.building !== 'barn' &&
+                        feature.properties.building !== 'farm_auxiliary' &&
+                        feature.properties.man_made !== 'storage_tank' &&
+                        feature.properties['building:part'] !== 'barn' &&
+                        feature.properties['building:part'] !== 'farm_auxiliary'
+                    ) {
+                        /*this.addWarning(
+                            feature as SingleGeoFeature,
+                            `floor area could not be found for building (building=${feature.properties.building ||
+                                feature.properties[
+                                    'building:part'
+                                ]}), using a default number of levels = 1 and using the building area`
+                        );*/
+                    }
+                    feature.properties['building:levels'] = feature.properties['building:levels'] || 1;
+                    feature.properties['building:floor_area:calculated'] = true;
+                    floorArea = areaSqMeters; // use building area like there is only one floor as default floor area value
                 }
-                feature.properties['building:levels'] = feature.properties['building:levels'] || 1;
-                feature.properties['building:floor_area:calculated'] = true;
-                floorArea = areaSqMeters; // use building area like there is only one floor as default floor area value
-            }
-            feature.properties['building:floor_area'] = floorArea ? floorArea : undefined;
+                feature.properties['building:floor_area'] = floorArea ? floorArea : undefined;
 
-            polygons.push(feature as PolygonGeojson);
+                const featureString = JSON.stringify(feature);
+                const dataOk = writeStream.write((i === 0 ? '' : ',') + featureString);
 
-            if (i === 0 || (i + 1) % 5 === 0 || i + 1 === size) {
-                process.stdout.write(`=== validated and enhanced polygon ${i + 1}/${size} ===                   \r`);
-            }
-        }
+                if (!dataOk) {
+                    // If writeStream hasn't finished writing, pause the jsonStream to let it catch up
+                    jsonParser.pause();
+                    writeStream.once('drain', () => {
+                        jsonParser.resume();
+                    });
+                }
 
-        return polygons;
+                if (i === 0 || (i + 1) % 5 === 0) {
+                    process.stdout.write(`=== validated and enhanced polygon ${i + 1} ===\r`);
+                }
+
+                i++;
+            });
+
+            jsonParser.on('end', () => {
+                // Write the closing brackets
+                writeStream.end(']}', () => {
+                    console.log('\r');
+                    console.log(`Finished with ${i} polygons.`);
+                    resolve(true);
+                });
+            });
+
+            pipeline(readStream, jsonParser);
+        });
     }
 
     /**
@@ -232,22 +273,13 @@ export default class enhanceAndSaveOsmPolygonData extends GenericDataImportTask 
 
         console.log('Running import in dir ' + absoluteDsDir);
 
-        console.log('Reading geojson data...');
-        const osmGeojsonData = new DataFileGeojson(
-            absoluteDsDir + GenericDataImportTask.OSM_GEOJSON_FILE,
-            this.fileManager
-        );
-
-        console.log('Enhancing polygon data...');
-        const polygons: PolygonGeojson[] = this.readAndEnhancePolygons(osmGeojsonData.query({}));
-
         // Save data to file:
         const enhancedPolygonGeojsonFile = absoluteDsDir + GenericDataImportTask.POLYGON_ENHANCED_GEOJSON_FILE;
-        console.log('Saving enhanced polygon geojson data to file: ', enhancedPolygonGeojsonFile);
+        console.log('Enhancing and saving polygon geojson data to file: ', enhancedPolygonGeojsonFile);
         if (await this.promptOverwriteIfExists(enhancedPolygonGeojsonFile, 'Enhanced OSM polygons geojson file')) {
-            this.fileManager.writeFileAbsolute(
+            await this.enhanceAndWritePolygons(
                 enhancedPolygonGeojsonFile,
-                JSON.stringify({ type: 'FeatureCollection', features: polygons })
+                absoluteDsDir + GenericDataImportTask.OSM_GEOJSON_FILE
             );
         }
     }
