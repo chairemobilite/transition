@@ -152,11 +152,15 @@ export default class enhanceAndSaveOsmPolygonData extends GenericDataImportTask 
             }
             if (feature.properties.building || feature.properties['building:part']) {
                 feature.properties['building:area'] = areaSqMeters;
-                // set default building:levels to 1:
-                feature.properties['building:levels:imputed'] = !!feature.properties['building:levels']; // TODO, check if there could be building:levels = 0 for small buildings and deal with it if so
-                feature.properties['building:levels'] = feature.properties['building:levels:imputed']
-                    ? 1
-                    : feature.properties['building:levels'];
+                // set building:levels to 1 if they do not already have one
+                // TODO, check if there could be building:levels = 0 for small buildings and deal with it if so
+                if (feature.properties['building:levels']) {
+                    feature.properties['building:levels:imputed'] = false;
+                } else {
+                    // TODO: If levels are imputed, use the height of the building to estimate the levels (if available).
+                    feature.properties['building:levels:imputed'] = true;
+                    feature.properties['building:levels'] = 1;
+                }
             } else {
                 feature.properties['polygon:area'] = areaSqMeters;
             }
