@@ -7,8 +7,7 @@
 import fetch from 'node-fetch';
 import osmToGeojson from 'osmtogeojson';
 import fs from 'fs';
-import { pipeline } from 'node:stream';
-import { promisify } from 'node:util';
+import { pipeline } from 'node:stream/promises';
 import JSONStream from 'JSONStream';
 
 import { geojsonToPolyBoundary } from '../geometry/ConversionUtils';
@@ -155,24 +154,50 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
         overpassXmlQueryString: string = allWaysAndRelationsXmlQuery
     ): Promise<boolean> {
         const response = await this.downloadData(boundPoly, overpassXmlQueryString, 'json');
-        const streamPipeline = promisify(pipeline);
 
         console.log('Writing osm geojson data to ' + filename);
 
-        // Inspired by a conversation with ChatGPT :)
         const writeStream = fs.createWriteStream(filename);
+        writeStream.write('{"type":"FeatureCollection","features":['); // Put all the data in one big feature collection
         const jsonStream = JSONStream.parse('elements.*');
-        jsonStream.on('data', (element) => {
-            const geojsonData = osmToGeojson({ elements: [element] });
-            writeStream.write(JSON.stringify(geojsonData));
-        });
-        jsonStream.on('end', () => {
-            writeStream.end();
-        });
-        await streamPipeline(response.body, jsonStream);
-        console.log('Done writing osm geojson data');
+        let firstIteration = true;
 
-        return true;
+        //Encapsulating the logic of the streams in a promise allows for each event to happen when expected, particularly when writing a large file.
+        return new Promise((resolve, reject) => {
+            //If there is an error when reading the json object, reject the promise.
+            jsonStream.on('error', (e) => {
+                console.error(e);
+                reject(e);
+            });
+
+            jsonStream.on('data', (element) => {
+                const geojsonData = osmToGeojson({ elements: [element] });
+                if (geojsonData.features.length > 0) {
+                    const featuresString = JSON.stringify(geojsonData.features).slice(1, -1); // Remove the opening and closing brackets
+                    const dataOk = writeStream.write((firstIteration ? '' : ',') + featuresString); //Write the comma first (except on the first iteration) so that there will be no trailing comma.
+
+                    if (!dataOk) {
+                        // If writeStream hasn't finished writing, pause the jsonStream to let it catch up
+                        jsonStream.pause();
+                        writeStream.once('drain', () => {
+                            jsonStream.resume();
+                        });
+                    }
+
+                    firstIteration = false;
+                }
+            });
+
+            jsonStream.on('end', () => {
+                // Write the closing brackets
+                writeStream.end(']}', () => {
+                    console.log('Done writing osm geojson data');
+                    resolve(true);
+                });
+            });
+
+            pipeline(response.body, jsonStream); //Pipes the response's body to the jsonStream, and executes the streams' logic.
+        });
     }
     /**
      * Download data from openstreetmap API, and return an xml string of the result
@@ -227,9 +252,8 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
     ): Promise<boolean> {
         const response = await this.downloadData(boundPoly, overpassXmlQueryString, fileType);
         // Taken from fetch-node documentation
-        const streamPipeline = promisify(pipeline);
         console.log('Writing osm data to ' + filename);
-        await streamPipeline(response.body, fs.createWriteStream(filename));
+        await pipeline(response.body, fs.createWriteStream(filename));
         console.log('Done writing osm data');
         return true;
     }
