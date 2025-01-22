@@ -75,8 +75,11 @@ export default class Calendar extends React.Component<InputCalendarProps, InputC
         }
     }
 
-    handleDateChange(date: Date): void {
-        if (this.state.dateState === DateState.START) {
+    handleDateChange(date: Date | null): void {
+        if (date === null) {
+            // FIXME Should we reinitialize the date to null? In theory, this widget does not support this.
+            console.log('InputCalendar: a null date was set, but we assumed this would be impossible');
+        } else if (this.state.dateState === DateState.START) {
             const startDate = date.getTime();
             const endDate =
                 !this.state.endDate || this.state.endDate < startDate
@@ -148,7 +151,7 @@ export default class Calendar extends React.Component<InputCalendarProps, InputC
                             onChange={this.handleDateChange}
                             startDate={new Date(startDate)}
                             endDate={endDate ? new Date(endDate) : null}
-                            minDate={dateState === DateState.END ? new Date(startDate) : null}
+                            minDate={dateState === DateState.END ? new Date(startDate) : undefined}
                             selectsEnd={dateState === DateState.END ? true : false}
                             openToDate={new Date(startDate)}
                             showMonthDropdown

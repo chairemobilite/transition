@@ -25,26 +25,41 @@ exports[`All props 1`] = `
       />
     </div>
     <div>
-      <div>
+      <div
+        style="display: contents;"
+      >
         <div
+          aria-label="Choose Date"
+          aria-modal="true"
           class="react-datepicker"
+          role="dialog"
         >
-          <div
-            class="react-datepicker__triangle"
+          <span
+            aria-live="polite"
+            class="react-datepicker__aria-live"
+            role="alert"
           />
           <button
             aria-label="Previous Month"
             class="react-datepicker__navigation react-datepicker__navigation--previous"
             type="button"
           >
-            Previous Month
+            <span
+              class="react-datepicker__navigation-icon react-datepicker__navigation-icon--previous"
+            >
+              Previous Month
+            </span>
           </button>
           <button
             aria-label="Next Month"
             class="react-datepicker__navigation react-datepicker__navigation--next"
             type="button"
           >
-            Next Month
+            <span
+              class="react-datepicker__navigation-icon react-datepicker__navigation-icon--next"
+            >
+              Next Month
+            </span>
           </button>
           <div
             class="react-datepicker__month-container"
@@ -52,11 +67,11 @@ exports[`All props 1`] = `
             <div
               class="react-datepicker__header "
             >
-              <div
+              <h2
                 class="react-datepicker__current-month react-datepicker__current-month--hasYearDropdown react-datepicker__current-month--hasMonthDropdown"
               >
                 September 2020
-              </div>
+              </h2>
               <div
                 class="react-datepicker__header__dropdown react-datepicker__header__dropdown--select"
               >
@@ -1146,36 +1161,43 @@ exports[`All props 1`] = `
                 class="react-datepicker__day-names"
               >
                 <div
+                  aria-label="Sunday"
                   class="react-datepicker__day-name"
                 >
                   Su
                 </div>
                 <div
+                  aria-label="Monday"
                   class="react-datepicker__day-name"
                 >
                   Mo
                 </div>
                 <div
+                  aria-label="Tuesday"
                   class="react-datepicker__day-name"
                 >
                   Tu
                 </div>
                 <div
+                  aria-label="Wednesday"
                   class="react-datepicker__day-name"
                 >
                   We
                 </div>
                 <div
+                  aria-label="Thursday"
                   class="react-datepicker__day-name"
                 >
                   Th
                 </div>
                 <div
+                  aria-label="Friday"
                   class="react-datepicker__day-name"
                 >
                   Fr
                 </div>
                 <div
+                  aria-label="Saturday"
                   class="react-datepicker__day-name"
                 >
                   Sa
@@ -1183,8 +1205,9 @@ exports[`All props 1`] = `
               </div>
             </div>
             <div
-              aria-label="month  2020-09"
+              aria-label="Month September, 2020"
               class="react-datepicker__month"
+              role="listbox"
             >
               <div
                 class="react-datepicker__week"
@@ -1192,63 +1215,77 @@ exports[`All props 1`] = `
                 <div
                   aria-disabled="false"
                   aria-label="Choose Sunday, August 30th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--030 react-datepicker__day--weekend react-datepicker__day--outside-month"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   30
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Monday, August 31st, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--031 react-datepicker__day--outside-month"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   31
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Tuesday, September 1st, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--001"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   1
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Wednesday, September 2nd, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--002"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   2
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Thursday, September 3rd, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--003"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   3
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Friday, September 4th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--004"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   4
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Saturday, September 5th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--005 react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   5
                 </div>
@@ -1259,63 +1296,77 @@ exports[`All props 1`] = `
                 <div
                   aria-disabled="false"
                   aria-label="Choose Sunday, September 6th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--006 react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   6
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Monday, September 7th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--007"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   7
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Tuesday, September 8th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--008"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   8
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Wednesday, September 9th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--009"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   9
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Thursday, September 10th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--010"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   10
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Friday, September 11th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--011"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   11
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Saturday, September 12th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--012 react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   12
                 </div>
@@ -1326,63 +1377,77 @@ exports[`All props 1`] = `
                 <div
                   aria-disabled="false"
                   aria-label="Choose Sunday, September 13th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--013 react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   13
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Monday, September 14th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--014"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   14
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Tuesday, September 15th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--015"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   15
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Wednesday, September 16th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--016"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   16
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Thursday, September 17th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--017"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   17
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Friday, September 18th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--018"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   18
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Saturday, September 19th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--019 react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   19
                 </div>
@@ -1393,63 +1458,78 @@ exports[`All props 1`] = `
                 <div
                   aria-disabled="false"
                   aria-label="Choose Sunday, September 20th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--020 react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   20
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Monday, September 21st, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--021"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   21
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Tuesday, September 22nd, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--022"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   22
                 </div>
                 <div
+                  aria-current="date"
                   aria-disabled="false"
                   aria-label="Choose Wednesday, September 23rd, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--023 react-datepicker__day--range-start react-datepicker__day--in-range react-datepicker__day--today"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   23
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Thursday, September 24th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--024 react-datepicker__day--in-range"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   24
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Friday, September 25th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--025 react-datepicker__day--in-range"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   25
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Saturday, September 26th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--026 react-datepicker__day--in-range react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   26
                 </div>
@@ -1460,63 +1540,77 @@ exports[`All props 1`] = `
                 <div
                   aria-disabled="false"
                   aria-label="Choose Sunday, September 27th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--027 react-datepicker__day--in-range react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   27
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Monday, September 28th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--028 react-datepicker__day--in-range"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   28
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Tuesday, September 29th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--029 react-datepicker__day--in-range"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   29
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Wednesday, September 30th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--030 react-datepicker__day--in-range"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   30
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Thursday, October 1st, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--001 react-datepicker__day--in-range react-datepicker__day--outside-month"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   1
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Friday, October 2nd, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--002 react-datepicker__day--in-range react-datepicker__day--outside-month"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   2
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Saturday, October 3rd, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--003 react-datepicker__day--in-range react-datepicker__day--weekend react-datepicker__day--outside-month"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   3
                 </div>
@@ -1583,26 +1677,41 @@ exports[`Localization 1`] = `
       />
     </div>
     <div>
-      <div>
+      <div
+        style="display: contents;"
+      >
         <div
+          aria-label="Choose Date"
+          aria-modal="true"
           class="react-datepicker"
+          role="dialog"
         >
-          <div
-            class="react-datepicker__triangle"
+          <span
+            aria-live="polite"
+            class="react-datepicker__aria-live"
+            role="alert"
           />
           <button
             aria-label="Previous Month"
             class="react-datepicker__navigation react-datepicker__navigation--previous"
             type="button"
           >
-            Previous Month
+            <span
+              class="react-datepicker__navigation-icon react-datepicker__navigation-icon--previous"
+            >
+              Previous Month
+            </span>
           </button>
           <button
             aria-label="Next Month"
             class="react-datepicker__navigation react-datepicker__navigation--next"
             type="button"
           >
-            Next Month
+            <span
+              class="react-datepicker__navigation-icon react-datepicker__navigation-icon--next"
+            >
+              Next Month
+            </span>
           </button>
           <div
             class="react-datepicker__month-container"
@@ -1610,11 +1719,11 @@ exports[`Localization 1`] = `
             <div
               class="react-datepicker__header "
             >
-              <div
+              <h2
                 class="react-datepicker__current-month react-datepicker__current-month--hasYearDropdown react-datepicker__current-month--hasMonthDropdown"
               >
                 September 2020
-              </div>
+              </h2>
               <div
                 class="react-datepicker__header__dropdown react-datepicker__header__dropdown--select"
               >
@@ -2704,36 +2813,43 @@ exports[`Localization 1`] = `
                 class="react-datepicker__day-names"
               >
                 <div
+                  aria-label="Sunday"
                   class="react-datepicker__day-name"
                 >
                   Su
                 </div>
                 <div
+                  aria-label="Monday"
                   class="react-datepicker__day-name"
                 >
                   Mo
                 </div>
                 <div
+                  aria-label="Tuesday"
                   class="react-datepicker__day-name"
                 >
                   Tu
                 </div>
                 <div
+                  aria-label="Wednesday"
                   class="react-datepicker__day-name"
                 >
                   We
                 </div>
                 <div
+                  aria-label="Thursday"
                   class="react-datepicker__day-name"
                 >
                   Th
                 </div>
                 <div
+                  aria-label="Friday"
                   class="react-datepicker__day-name"
                 >
                   Fr
                 </div>
                 <div
+                  aria-label="Saturday"
                   class="react-datepicker__day-name"
                 >
                   Sa
@@ -2741,8 +2857,9 @@ exports[`Localization 1`] = `
               </div>
             </div>
             <div
-              aria-label="month  2020-09"
+              aria-label="Month September, 2020"
               class="react-datepicker__month"
+              role="listbox"
             >
               <div
                 class="react-datepicker__week"
@@ -2750,63 +2867,77 @@ exports[`Localization 1`] = `
                 <div
                   aria-disabled="false"
                   aria-label="Choose Sunday, August 30th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--030 react-datepicker__day--weekend react-datepicker__day--outside-month"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   30
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Monday, August 31st, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--031 react-datepicker__day--outside-month"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   31
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Tuesday, September 1st, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--001"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   1
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Wednesday, September 2nd, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--002"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   2
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Thursday, September 3rd, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--003"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   3
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Friday, September 4th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--004"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   4
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Saturday, September 5th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--005 react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   5
                 </div>
@@ -2817,63 +2948,77 @@ exports[`Localization 1`] = `
                 <div
                   aria-disabled="false"
                   aria-label="Choose Sunday, September 6th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--006 react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   6
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Monday, September 7th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--007"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   7
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Tuesday, September 8th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--008"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   8
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Wednesday, September 9th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--009"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   9
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Thursday, September 10th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--010"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   10
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Friday, September 11th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--011"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   11
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Saturday, September 12th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--012 react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   12
                 </div>
@@ -2884,63 +3029,77 @@ exports[`Localization 1`] = `
                 <div
                   aria-disabled="false"
                   aria-label="Choose Sunday, September 13th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--013 react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   13
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Monday, September 14th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--014"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   14
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Tuesday, September 15th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--015"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   15
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Wednesday, September 16th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--016"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   16
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Thursday, September 17th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--017"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   17
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Friday, September 18th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--018"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   18
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Saturday, September 19th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--019 react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   19
                 </div>
@@ -2951,63 +3110,78 @@ exports[`Localization 1`] = `
                 <div
                   aria-disabled="false"
                   aria-label="Choose Sunday, September 20th, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--020 react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   20
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Monday, September 21st, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--021"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   21
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Tuesday, September 22nd, 2020"
+                  aria-selected="false"
                   class="react-datepicker__day react-datepicker__day--022"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   22
                 </div>
                 <div
+                  aria-current="date"
                   aria-disabled="false"
                   aria-label="Choose Wednesday, September 23rd, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--023 react-datepicker__day--range-start react-datepicker__day--in-range react-datepicker__day--today"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   23
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Thursday, September 24th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--024 react-datepicker__day--in-range"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   24
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Friday, September 25th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--025 react-datepicker__day--in-range"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   25
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Saturday, September 26th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--026 react-datepicker__day--in-range react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   26
                 </div>
@@ -3018,63 +3192,77 @@ exports[`Localization 1`] = `
                 <div
                   aria-disabled="false"
                   aria-label="Choose Sunday, September 27th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--027 react-datepicker__day--in-range react-datepicker__day--weekend"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   27
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Monday, September 28th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--028 react-datepicker__day--in-range"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   28
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Tuesday, September 29th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--029 react-datepicker__day--in-range"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   29
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Wednesday, September 30th, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--030 react-datepicker__day--in-range"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   30
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Thursday, October 1st, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--001 react-datepicker__day--in-range react-datepicker__day--outside-month"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   1
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Friday, October 2nd, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--002 react-datepicker__day--in-range react-datepicker__day--outside-month"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   2
                 </div>
                 <div
                   aria-disabled="false"
                   aria-label="Choose Saturday, October 3rd, 2020"
+                  aria-selected="true"
                   class="react-datepicker__day react-datepicker__day--003 react-datepicker__day--in-range react-datepicker__day--weekend react-datepicker__day--outside-month"
-                  role="button"
+                  role="option"
                   tabindex="-1"
+                  title=""
                 >
                   3
                 </div>
