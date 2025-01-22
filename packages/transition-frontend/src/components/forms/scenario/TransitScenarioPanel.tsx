@@ -17,6 +17,7 @@ import ScenariosList from './TransitScenarioList';
 import ScenariosImportForm from './TransitScenarioImportForm';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
+import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 
 // Using a state object instead of 2 useState hooks because we want this object
 // to be modified and cause a re-render if the selection or collection was
@@ -33,28 +34,47 @@ const ScenarioPanel: React.FunctionComponent<WithTranslation> = (props: WithTran
         selectedScenario: serviceLocator.selectedObjectsManager.get('scenario')
     });
 
+    const [agenciesLoaded, setAgenciesLoaded] = React.useState(
+        serviceLocator.collectionManager.get('agencies') !== undefined
+    );
+    const [linesLoaded, setLinesLoaded] = React.useState(serviceLocator.collectionManager.get('lines') !== undefined);
+    const [servicesLoaded, setServicesLoaded] = React.useState(
+        serviceLocator.collectionManager.get('services') !== undefined
+    );
+
     React.useEffect(() => {
         const onScenarioCollectionUpdate = () =>
             setState(({ selectedScenario }) => ({
                 selectedScenario,
                 scenarioCollection: serviceLocator.collectionManager.get('scenarios')
             }));
+        const onAgencyCollectionUpdate = () => setAgenciesLoaded(true);
+        const onLineCollectionUpdate = () => setLinesLoaded(true);
+        const onServiceCollectionUpdate = () => setServicesLoaded(true);
         const onSelectedScenarioUpdate = () =>
             setState(({ scenarioCollection }) => ({
                 scenarioCollection,
                 selectedScenario: serviceLocator.selectedObjectsManager.get('scenario')
             }));
         serviceLocator.eventManager.on('collection.update.scenarios', onScenarioCollectionUpdate);
+        serviceLocator.eventManager.on('collection.update.agencies', onAgencyCollectionUpdate);
+        serviceLocator.eventManager.on('collection.update.lines', onLineCollectionUpdate);
+        serviceLocator.eventManager.on('collection.update.services', onServiceCollectionUpdate);
         serviceLocator.eventManager.on('selected.update.scenario', onSelectedScenarioUpdate);
         serviceLocator.eventManager.on('selected.deselect.scenario', onSelectedScenarioUpdate);
         return () => {
             serviceLocator.eventManager.off('collection.update.scenarios', onScenarioCollectionUpdate);
+            serviceLocator.eventManager.off('collection.update.agencies', onAgencyCollectionUpdate);
+            serviceLocator.eventManager.off('collection.update.lines', onLineCollectionUpdate);
+            serviceLocator.eventManager.off('collection.update.services', onServiceCollectionUpdate);
             serviceLocator.eventManager.off('selected.update.scenario', onSelectedScenarioUpdate);
             serviceLocator.eventManager.off('selected.deselect.scenario', onSelectedScenarioUpdate);
         };
     }, []);
 
-    return (
+    return state.scenarioCollection === undefined || !agenciesLoaded || !linesLoaded || !servicesLoaded ? (
+        <LoadingPage />
+    ) : (
         <div id="tr__form-transit-scenarios-panel" className="tr__form-transit-scenarios-panel tr__panel">
             {!state.selectedScenario && !importerSelected && (
                 <ScenariosList
