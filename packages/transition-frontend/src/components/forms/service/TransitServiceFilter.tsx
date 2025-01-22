@@ -88,8 +88,8 @@ const TransitServiceFilter: React.FunctionComponent<TransitServiceFilterProps> =
                             isClearable={true}
                             selectsRange
                             inline
-                            showMonthDropdown
-                            showYearDropdown
+                            showMonthDropdown={true}
+                            showYearDropdown={true}
                             onChange={(dates) => {
                                 if (Array.isArray(dates)) {
                                     const [startDate, endDate] = dates;
@@ -108,8 +108,8 @@ const TransitServiceFilter: React.FunctionComponent<TransitServiceFilterProps> =
                             locale={props.i18n.language}
                             selected={props.currentFilter.startDate || null}
                             isClearable={true}
-                            showMonthDropdown
-                            showYearDropdown
+                            showMonthDropdown={true}
+                            showYearDropdown={true}
                             onChange={(startDate) => {
                                 props.onFilterUpdate(
                                     Object.assign({}, props.currentFilter, {
