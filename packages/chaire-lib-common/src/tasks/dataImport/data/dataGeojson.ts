@@ -6,6 +6,9 @@
  */
 import { DataBase } from './dataBase';
 import GeoJSON from 'geojson';
+import fs from 'fs';
+import { pipeline } from 'node:stream/promises';
+import JSONStream from 'JSONStream';
 
 export class DataGeojson extends DataBase<GeoJSON.Feature> {
     private _data: GeoJSON.Feature[];
@@ -65,5 +68,66 @@ export class DataFileGeojson extends DataGeojson {
             }
         }
         return this._fileData || [];
+    }
+}
+
+// Instead of reading the entire file at once, this class streams it asynchronously. This allows for large files to be read without crashing the application.
+export class DataStreamGeojson extends DataGeojson {
+    private _fileData: GeoJSON.Feature[] | undefined = undefined;
+    private _filename: string;
+    private _dataInitialized: boolean;
+
+    constructor(filename: string) {
+        super({ type: 'FeatureCollection', features: [] });
+        this._filename = filename;
+        this._dataInitialized = false;
+    }
+
+    // Factory method so that we can create the class while calling an async function.
+    static async Create(filename: string): Promise<DataStreamGeojson> {
+        const instance = new DataStreamGeojson(filename);
+        await instance.streamDataFromFile();
+        return instance;
+    }
+
+    protected getData(): GeoJSON.Feature[] {
+        if (!this._dataInitialized) {
+            console.error('The GeoJSON data has not been properly initialized.');
+        }
+        return this._fileData || [];
+    }
+
+    private async streamDataFromFile(): Promise<void> {
+        try {
+            this._fileData = await this.readGeojsonData();
+            this._dataInitialized = true;
+        } catch (error) {
+            console.error('Error reading GeoJSON data file ' + this._filename, error);
+        }
+    }
+
+    private async readGeojsonData(): Promise<GeoJSON.Feature[]> {
+        console.log('Start streaming GeoJSON data.');
+        const readStream = fs.createReadStream(this._filename);
+        const jsonParser = JSONStream.parse('features.*');
+        const features: GeoJSON.Feature[] = [];
+
+        return new Promise((resolve, reject) => {
+            jsonParser.on('error', (error) => {
+                console.error(error);
+                reject(error);
+            });
+
+            jsonParser.on('data', (feature) => {
+                features.push(feature);
+            });
+
+            jsonParser.on('end', () => {
+                console.log('End of reading GeoJSON data.');
+                resolve(features);
+            });
+
+            pipeline(readStream, jsonParser);
+        });
     }
 }
