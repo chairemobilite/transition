@@ -249,7 +249,7 @@ export class DataFileOsmRaw extends DataOsmRaw {
 
 // Instead of reading the entire file at once, this class streams it asynchronously. This allows for large files to be read without crashing the application.
 export class DataStreamOsmRaw extends DataOsmRaw {
-    private _fileData: OsmRawDataType[] | undefined = undefined;
+    private _fileData: OsmRawDataType[] = [];
     private _filename: string;
     private _dataInitialized: boolean;
 
@@ -260,7 +260,9 @@ export class DataStreamOsmRaw extends DataOsmRaw {
     }
 
     // Factory method so that we can create the class while calling an async function.
-    static async Create(filename: string): Promise<DataStreamOsmRaw> {
+    // The proper way to do this would be to do it in getData(), but making that method async would force us to modify every class this inherits from, so we use this factory workaround.
+    // TODO: Rewrite the class from scratch so that it accepts an async getData().
+    static async create(filename: string): Promise<DataStreamOsmRaw> {
         const instance = new DataStreamOsmRaw(filename);
         await instance.streamDataFromFile();
         return instance;
@@ -268,9 +270,12 @@ export class DataStreamOsmRaw extends DataOsmRaw {
 
     protected getData(): OsmRawDataType[] {
         if (!this._dataInitialized) {
-            console.error('The raw OSM data has not been properly initialized.');
+            console.error(
+                'The raw OSM data has not been properly initialized. The create() method must be called before anything else in the DataStreamOsmRaw class.'
+            );
+            throw 'OSM data not initialized.';
         }
-        return this._fileData || [];
+        return this._fileData;
     }
 
     private async streamDataFromFile(): Promise<void> {

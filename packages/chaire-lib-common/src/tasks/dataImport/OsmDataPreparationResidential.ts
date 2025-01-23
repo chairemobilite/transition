@@ -73,7 +73,8 @@ export default class OsmDataPreparationResidential {
         const allOsmResidentialBuildings = osmRawData.queryOr(queryResidentialBuildingsFromOsm);
         const residentialBuildings = osmGeojsonService.getGeojsonsFromRawData(
             osmGeojsonData,
-            allOsmResidentialBuildings
+            allOsmResidentialBuildings,
+            { generateNodesIfNotFound: false, continueOnMissingGeojson: true }
         );
 
         // For each building, get its entrances

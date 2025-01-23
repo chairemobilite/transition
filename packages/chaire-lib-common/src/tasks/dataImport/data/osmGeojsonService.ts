@@ -278,7 +278,10 @@ const unsplitTags = (tags: { [key: string]: string[] | undefined }): { [key: str
 const getGeojsonsFromRawData = (
     geojsonData: DataGeojson,
     features: OsmRawDataType[],
-    options: { generateNodesIfNotFound: boolean } = { generateNodesIfNotFound: false }
+    options: { generateNodesIfNotFound: boolean; continueOnMissingGeojson: boolean } = {
+        generateNodesIfNotFound: false,
+        continueOnMissingGeojson: false
+    }
 ): { geojson: SingleGeoFeature; raw: OsmRawDataType }[] => {
     const geojsonFeatures: { geojson: SingleGeoFeature; raw: OsmRawDataType }[] = [];
     for (let i = 0; i < features.length; i++) {
@@ -293,18 +296,22 @@ const getGeojsonsFromRawData = (
                     properties: unsplitTags(osmNode.tags || {})
                 };
             } else {
-                console.error(
-                    'A geojson has not been found for the OSM feature %s/%s. Maybe you have the wrong files?',
+                console.warn(
+                    'A geojson has not been found for the OSM feature %s/%s. Check if you have the right files or verify the OSM data.',
                     features[i].type,
                     features[i].id
                 );
-                throw 'Missing OSM geojson';
+                if (options.continueOnMissingGeojson) {
+                    continue;
+                } else {
+                    throw 'Missing OSM geojson';
+                }
             }
         } else if (geojson.geometry.type === 'GeometryCollection') {
             console.log('Building ' + geojson.id + ' is of unsupported type GeometryCollection');
             throw 'Unsupported geometry type for building';
         }
-        geojsonFeatures[i] = { geojson: geojson as SingleGeoFeature, raw: features[i] };
+        geojsonFeatures.push({ geojson: geojson as SingleGeoFeature, raw: features[i] });
     }
     return geojsonFeatures;
 };
