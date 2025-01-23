@@ -156,12 +156,15 @@ export default class OsmDataPreparationNonResidential {
         const allPoIBuildings: PoiBuilding[] = osmGeojsonService.getGeojsonsFromRawData(
             this._osmGeojsonData,
             allOsmBuildings,
-            { generateNodesIfNotFound: true }
+            { generateNodesIfNotFound: true, continueOnMissingGeojson: false }
         );
 
         const allBuildingPartsRaw = this._osmRawData.queryOr(queryBuildingPartsFromOsm);
         const allBuildingParts: SingleGeoFeature[] = osmGeojsonService
-            .getGeojsonsFromRawData(this._osmGeojsonData, allBuildingPartsRaw, { generateNodesIfNotFound: true })
+            .getGeojsonsFromRawData(this._osmGeojsonData, allBuildingPartsRaw, {
+                generateNodesIfNotFound: true,
+                continueOnMissingGeojson: false
+            })
             .map((part) => part.geojson);
 
         console.log('=== Map shop and main entrances to each building... ===');
@@ -176,7 +179,10 @@ export default class OsmDataPreparationNonResidential {
                 entrances.length === 0
                     ? undefined
                     : osmGeojsonService
-                        .getGeojsonsFromRawData(this._osmGeojsonData, entrances, { generateNodesIfNotFound: true })
+                        .getGeojsonsFromRawData(this._osmGeojsonData, entrances, {
+                            generateNodesIfNotFound: true,
+                            continueOnMissingGeojson: true
+                        })
                         .map((entrance) => entrance.geojson as GeoJSON.Feature<GeoJSON.Point>);
             // Get building parts
             building.parts = findOverlappingFeatures(building.geojson, allBuildingParts);
@@ -197,7 +203,8 @@ export default class OsmDataPreparationNonResidential {
             .filter((poi) => getCategoryFromProperty(poi.tags || {}).length !== 0);
         const allOsmPoisGeojson = osmGeojsonService
             .getGeojsonsFromRawData(this._osmGeojsonData, allOsmPoisFeatures, {
-                generateNodesIfNotFound: true
+                generateNodesIfNotFound: true,
+                continueOnMissingGeojson: true
             })
             .map((poi) => poi.geojson);
 
@@ -279,7 +286,8 @@ export default class OsmDataPreparationNonResidential {
             }
             return toPoi(
                 osmGeojsonService.getGeojsonsFromRawData(this._osmGeojsonData, [entrances[0]], {
-                    generateNodesIfNotFound: true
+                    generateNodesIfNotFound: true,
+                    continueOnMissingGeojson: false
                 })[0].geojson.geometry as GeoJSON.Point,
                 poi,
                 {
@@ -365,7 +373,8 @@ export default class OsmDataPreparationNonResidential {
             }
             return toPoi(
                 osmGeojsonService.getGeojsonsFromRawData(this._osmGeojsonData, [entrances[0]], {
-                    generateNodesIfNotFound: true
+                    generateNodesIfNotFound: true,
+                    continueOnMissingGeojson: false
                 })[0].geojson.geometry as GeoJSON.Point,
                 poi,
                 {

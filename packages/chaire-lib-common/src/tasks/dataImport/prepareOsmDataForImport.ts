@@ -46,8 +46,8 @@ export default class PrepareOsmDataForImport extends GenericDataImportTask {
         const absoluteDsDir = this._importDir + dataSourceDirectory + '/';
         this.assertDataDownloaded(absoluteDsDir);
 
-        const osmRawData = await DataStreamOsmRaw.Create(absoluteDsDir + GenericDataImportTask.OSM_RAW_DATA_FILE);
-        const osmGeojsonData = await DataStreamGeojson.Create(absoluteDsDir + GenericDataImportTask.OSM_GEOJSON_FILE);
+        const osmRawData = await DataStreamOsmRaw.create(absoluteDsDir + GenericDataImportTask.OSM_RAW_DATA_FILE);
+        const osmGeojsonData = await DataStreamGeojson.create(absoluteDsDir + GenericDataImportTask.OSM_GEOJSON_FILE);
 
         // Calculate residential data if required
         const entrancesDataFile = absoluteDsDir + GenericDataImportTask.RESIDENTIAL_ENTRANCES_FILE;

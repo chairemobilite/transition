@@ -73,18 +73,20 @@ export class DataFileGeojson extends DataGeojson {
 
 // Instead of reading the entire file at once, this class streams it asynchronously. This allows for large files to be read without crashing the application.
 export class DataStreamGeojson extends DataGeojson {
-    private _fileData: GeoJSON.Feature[] | undefined = undefined;
+    private _fileData: GeoJSON.Feature[] = [];
     private _filename: string;
     private _dataInitialized: boolean;
 
-    constructor(filename: string) {
+    private constructor(filename: string) {
         super({ type: 'FeatureCollection', features: [] });
         this._filename = filename;
         this._dataInitialized = false;
     }
 
     // Factory method so that we can create the class while calling an async function.
-    static async Create(filename: string): Promise<DataStreamGeojson> {
+    // The proper way to do this would be to do it in getData(), but making that method async would force us to modify every class this inherits from, so we use this factory workaround.
+    // TODO: Rewrite the class from scratch so that it accepts an async getData().
+    static async create(filename: string): Promise<DataStreamGeojson> {
         const instance = new DataStreamGeojson(filename);
         await instance.streamDataFromFile();
         return instance;
@@ -92,9 +94,12 @@ export class DataStreamGeojson extends DataGeojson {
 
     protected getData(): GeoJSON.Feature[] {
         if (!this._dataInitialized) {
-            console.error('The GeoJSON data has not been properly initialized.');
+            console.error(
+                'The GeoJSON data has not been properly initialized. The create() method must be called before anything else in the DataStreamGeojson class.'
+            );
+            throw 'GeoJSON data not initialized.';
         }
-        return this._fileData || [];
+        return this._fileData;
     }
 
     private async streamDataFromFile(): Promise<void> {
