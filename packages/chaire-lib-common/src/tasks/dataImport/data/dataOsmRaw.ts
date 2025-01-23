@@ -5,6 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { DataBase } from './dataBase';
+import fs from 'fs';
+import { pipeline } from 'node:stream/promises';
+import JSONStream from 'JSONStream';
 
 export interface OsmRawDataTypeIncoming {
     type: 'way' | 'relation' | 'node';
@@ -241,5 +244,67 @@ export class DataFileOsmRaw extends DataOsmRaw {
             }
         }
         return this._fileData || [];
+    }
+}
+
+// Instead of reading the entire file at once, this class streams it asynchronously. This allows for large files to be read without crashing the application.
+export class DataStreamOsmRaw extends DataOsmRaw {
+    private _fileData: OsmRawDataType[] | undefined = undefined;
+    private _filename: string;
+    private _dataInitialized: boolean;
+
+    private constructor(filename: string) {
+        super([]);
+        this._filename = filename;
+        this._dataInitialized = false;
+    }
+
+    // Factory method so that we can create the class while calling an async function.
+    static async Create(filename: string): Promise<DataStreamOsmRaw> {
+        const instance = new DataStreamOsmRaw(filename);
+        await instance.streamDataFromFile();
+        return instance;
+    }
+
+    protected getData(): OsmRawDataType[] {
+        if (!this._dataInitialized) {
+            console.error('The raw OSM data has not been properly initialized.');
+        }
+        return this._fileData || [];
+    }
+
+    private async streamDataFromFile(): Promise<void> {
+        try {
+            const elements = await this.readRawJsonData();
+            this._fileData = elements ? this.splitTags(elements) : [];
+            this._dataInitialized = true;
+        } catch (error) {
+            console.error('Error reading osm raw data file ' + this._filename, error);
+        }
+    }
+
+    private async readRawJsonData(): Promise<OsmRawDataTypeIncoming[]> {
+        console.log('Start streaming raw OSM data.');
+        const readStream = fs.createReadStream(this._filename);
+        const jsonParser = JSONStream.parse('elements.*');
+        const elements: OsmRawDataTypeIncoming[] = [];
+
+        return new Promise((resolve, reject) => {
+            jsonParser.on('error', (error) => {
+                console.error(error);
+                reject(error);
+            });
+
+            jsonParser.on('data', (element) => {
+                elements.push(element);
+            });
+
+            jsonParser.on('end', () => {
+                console.log('End of reading raw OSM data.');
+                resolve(elements);
+            });
+
+            pipeline(readStream, jsonParser);
+        });
     }
 }

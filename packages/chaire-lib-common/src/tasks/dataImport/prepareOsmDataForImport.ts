@@ -5,8 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import GenericDataImportTask from './genericDataImportTask';
-import { DataFileOsmRaw } from './data/dataOsmRaw';
-import { DataFileGeojson } from './data/dataGeojson';
+import { DataStreamOsmRaw } from './data/dataOsmRaw';
+import { DataStreamGeojson } from './data/dataGeojson';
 import OsmDataPreparationResidential from './OsmDataPreparationResidential';
 import OsmDataPreparationNonResidential from './OsmDataPreparationNonResidential';
 
@@ -46,14 +46,8 @@ export default class PrepareOsmDataForImport extends GenericDataImportTask {
         const absoluteDsDir = this._importDir + dataSourceDirectory + '/';
         this.assertDataDownloaded(absoluteDsDir);
 
-        const osmRawData = new DataFileOsmRaw(
-            absoluteDsDir + GenericDataImportTask.OSM_RAW_DATA_FILE,
-            this.fileManager
-        );
-        const osmGeojsonData = new DataFileGeojson(
-            absoluteDsDir + GenericDataImportTask.OSM_GEOJSON_FILE,
-            this.fileManager
-        );
+        const osmRawData = await DataStreamOsmRaw.Create(absoluteDsDir + GenericDataImportTask.OSM_RAW_DATA_FILE);
+        const osmGeojsonData = await DataStreamGeojson.Create(absoluteDsDir + GenericDataImportTask.OSM_GEOJSON_FILE);
 
         // Calculate residential data if required
         const entrancesDataFile = absoluteDsDir + GenericDataImportTask.RESIDENTIAL_ENTRANCES_FILE;
