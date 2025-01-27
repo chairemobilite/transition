@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import os from 'os';
 import fs from 'fs';
 import { EventEmitter } from 'events';
 import osrm from 'osrm';
@@ -302,7 +301,7 @@ export default function (socket: EventEmitter, userId?: number) {
 
     socket.on('service.parallelThreadCount', (callback: (response: { count: number }) => void) => {
         callback({
-            count: serverConfig.maxParallelCalculators || os.cpus().length
+            count: serverConfig.maxParallelCalculators
         });
     });
 }

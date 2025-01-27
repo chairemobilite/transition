@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import os from 'os';
 import { directoryManager } from '../filesystem/directoryManager';
 import ProcessManager from './ProcessManager';
 import osrmService from '../osrm/OSRMService';
@@ -187,8 +186,7 @@ const startBatch = async function (
     }: TrRoutingStartParameters = {}
 ) {
     // Ensure we don't use more CPU than configured
-    // TODO The os.cpus().length should move to a "default config management class"
-    const maxThreadCount = config.maxParallelCalculators || os.cpus().length;
+    const maxThreadCount = config.maxParallelCalculators;
     if (numberOfCpus === undefined) {
         numberOfCpus = maxThreadCount;
     } else if (numberOfCpus > maxThreadCount) {

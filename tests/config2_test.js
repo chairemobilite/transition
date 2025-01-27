@@ -1,6 +1,5 @@
 module.exports = {
 
-    maxParallelCalculators: 1,
     projectDirectory: `${__dirname}/dir`,
     projectShortname: 'unitTest',
   

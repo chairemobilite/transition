@@ -17,9 +17,7 @@ module.exports = {
       }
       // Transition does not support any other login method than localLogin
     },
-    maxParallelCalculators: 2,
-    
-    // Maximum number of parallel calculation. Used in tasks to start the calculator with this number of threads.
+    // Maximum number of parallel calculation. Used in tasks to start the calculator with this number of threads. By default, the number of calculators is set to the number of CPUs on the server
     // maxParallelCalculators: 2,
 
     // @deprecated: Use the cacheAllScenarios in the 'routing.transit.engines.trRouting' configuration instead

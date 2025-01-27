@@ -117,6 +117,11 @@ export type ServerSideProjectConfiguration = {
      * will expire
      */
     tokenLifespanDays: number;
+    /**
+     * Maximum number of parallel calculations that can be run at the same time.
+     * It will default to the OS's number of available CPUs
+     */
+    maxParallelCalculators: number;
 };
 
 const etcConfigFile = '/etc/transition/config.js';
@@ -328,7 +333,8 @@ setProjectConfigurationCommon<ServerSideProjectConfiguration>({
                 }
             }
         }
-    }
+    },
+    maxParallelCalculators: os.cpus().length
 });
 
 /**
@@ -352,6 +358,21 @@ export const setProjectConfiguration = (newConfig: Partial<ProjectConfiguration<
                 }
             }
         });
+    }
+
+    // Make sure the maximum number of parallel calculators is a positive value, but does not exceed the CPU count
+    if (newConfig.maxParallelCalculators !== undefined) {
+        const availableCPUs = os.cpus().length;
+        if (newConfig.maxParallelCalculators <= 0) {
+            console.warn(
+                `maxParallelCalculators (${newConfig.maxParallelCalculators}) must be a positive number. Using the number of CPUs instead: ${availableCPUs}`
+            );
+            newConfig.maxParallelCalculators = availableCPUs;
+        } else if (newConfig.maxParallelCalculators > availableCPUs) {
+            console.warn(
+                `maxParallelCalculators (${newConfig.maxParallelCalculators}) should not exceed the number of CPUs: ${availableCPUs}. This may cause performance issues.`
+            );
+        }
     }
 
     // If osrmRouting is configured using the old defaultPreferences format and not the new one in server.config, set it to the new format

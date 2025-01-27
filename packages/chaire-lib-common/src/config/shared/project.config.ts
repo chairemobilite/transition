@@ -96,7 +96,6 @@ export type ProjectConfiguration<AdditionalConfig> = {
      * Absolute directory where project data will be stored (import files, osrm data, user data, caches, etc)
      */
     projectDirectory: string;
-    maxParallelCalculators: number;
 } & AdditionalConfig;
 
 // Initialize default configuration
@@ -105,8 +104,7 @@ const projectConfig: ProjectConfiguration<any> = {
     separateAdminLoginPage: false,
     projectShortname: 'default',
     userDiskQuota: '1gb',
-    maxFileUploadMB: 256,
-    maxParallelCalculators: 1
+    maxFileUploadMB: 256
 };
 
 /**
