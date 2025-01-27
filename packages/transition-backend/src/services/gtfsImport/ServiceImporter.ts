@@ -334,11 +334,11 @@ export class ServiceImporter implements GtfsObjectImporter<ServiceImportData, Se
                     this.areServicesCompatible(service.attributes, serviceAttributes)
             )
             .find((service) => {
-                const serviceAgencies = this.getServiceAgencies(service.attributes.scheduled_lines);
+                const serviceAgencies = this.getServiceAgencies(service.attributes.scheduled_line_ids);
                 // Either there is no agency in the service (it can be re-used), or one of the imported agency is already included
                 return (
                     serviceAgencies.length === 0 ||
-                    this.getServiceAgencies(service.attributes.scheduled_lines).filter((serviceAgency) =>
+                    this.getServiceAgencies(service.attributes.scheduled_line_ids).filter((serviceAgency) =>
                         importedAgencies.includes(serviceAgency)
                     ).length !== 0
                 );

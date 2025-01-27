@@ -39,22 +39,31 @@ export interface ServiceAttributes extends GenericAttributes {
         };
         [key: string]: any;
     };
-    scheduled_lines: string[];
+    scheduled_line_ids: string[];
 }
 
 class Service extends ObjectWithHistory<ServiceAttributes> implements Saveable {
     protected static displayName = 'Service';
+    private scheduled_lines : Line[] = [];
     private _collectionManager: any;
+    
 
     constructor(attributes = {}, isNew, collectionManager?) {
         super(attributes, isNew);
+
+        if (this._attributes.scheduled_line_ids && this._attributes.scheduled_line_ids.length > 0) {
+            this.refreshLines();
+        } else {
+            this._attributes.scheduled_line_ids = [];
+            this.scheduled_lines = [];
+        }
 
         this._collectionManager = collectionManager ? collectionManager : serviceLocator.collectionManager;
     }
 
     _prepareAttributes(attributes: Partial<ServiceAttributes>) {
-        if (attributes.scheduled_lines === undefined) {
-            attributes.scheduled_lines = [];
+        if (attributes.scheduled_line_ids === undefined) {
+            attributes.scheduled_line_ids = [];
         }
 
         return super._prepareAttributes(attributes);
@@ -121,23 +130,45 @@ class Service extends ObjectWithHistory<ServiceAttributes> implements Saveable {
     }
 
     scheduledLineIds(): string[] {
-        return this.attributes.scheduled_lines;
+        return this.attributes.scheduled_line_ids;
     }
 
     hasScheduledLines() {
-        return this.attributes.scheduled_lines.length > 0;
+        return this.attributes.scheduled_line_ids.length > 0;
+    }
+
+    scheduledLines(refresh = false): Line[] {
+        // TODO: test with collection manager
+        if (refresh) {
+            this.refreshLines();
+        }
+        return this.scheduled_lines;
     }
 
     addScheduledLine(lineId: string) {
-        if (!this.attributes.scheduled_lines.includes(lineId)) {
-            this.attributes.scheduled_lines.push(lineId);
+        if (!this.attributes.scheduled_line_ids.includes(lineId)) {
+            this.attributes.scheduled_line_ids.push(lineId);
         }
     }
 
     removeScheduledLine(lineId: string) {
-        const index = this.attributes.scheduled_lines.indexOf(lineId);
+        const index = this.attributes.scheduled_line_ids.indexOf(lineId);
         if (index >= 0) {
-            this.attributes.scheduled_lines.splice(index, 1);
+            this.attributes.scheduled_line_ids.splice(index, 1);
+        }
+    }
+
+    refreshLines() {
+        // TODO: test with collection manager
+        this.scheduled_lines = [];
+        if (this._collectionManager && this._collectionManager.get('lines') && this._attributes.scheduled_line_ids) {
+            for (let i = 0, count = this._attributes.scheduled_line_ids.length; i < count; i++) {
+                const line = this._collectionManager.get('lines').getById(this._attributes.scheduled_line_ids[i]);
+                if (line) {
+                    // when saving cache on backend, the agency collection will be empty
+                    this.scheduled_lines.push(line);
+                }
+            }
         }
     }
 
@@ -251,8 +282,8 @@ class Service extends ObjectWithHistory<ServiceAttributes> implements Saveable {
         return new Promise((resolve) => {
             SaveUtils.delete(this, socket, 'transitService', this._collectionManager?.get('services')).then(
                 (ret: Status.Status<{ id: string | undefined }>) => {
-                    if (this.attributes.scheduled_lines.length > 0) {
-                        socket.emit('cache.saveLines', this.attributes.scheduled_lines, () => {
+                    if (this.attributes.scheduled_line_ids.length > 0) {
+                        socket.emit('cache.saveLines', this.attributes.scheduled_line_ids, () => {
                             if (this._collectionManager) {
                                 this._collectionManager
                                     .get('lines')

@@ -6,16 +6,28 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-
+import Collapsible from 'react-collapsible';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Service from 'transition-common/lib/services/service/Service';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
+import Line from 'transition-common/lib/services/line/Line';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import TransitLineButton from '../line/TransitLineButton';
+import DocumentationTooltip from '../../parts/DocumentationTooltip';
+import MathJax from 'react-mathjax';
+import ButtonList from '../../parts/ButtonList';
 
 interface ScheduleButtonProps extends WithTranslation {
     service: Service;
     selectedService?: Service;
+    selectedLine?: Line;
+    onObjectSelected?: (objectId: string) => void;
+    isExpanded: boolean;
+    onServiceExpanded: (serviceId: string) => void;
+    onServiceCollapsed: (serviceId: string) => void;
 }
 
 const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (props: ScheduleButtonProps) => {
@@ -31,6 +43,7 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
     };
 
     const onDelete: React.MouseEventHandler = async (e: React.MouseEvent) => {
+        const serviceHasLines = service.hasScheduledLines();
         if (e) {
             e.stopPropagation();
         }
@@ -40,6 +53,17 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
         if (serviceIsSelected) {
             serviceLocator.selectedObjectsManager.deselect('service');
         }
+        if (serviceHasLines) {
+            // reload paths
+            await serviceLocator.collectionManager.get('paths').loadFromServer(serviceLocator.socketEventManager);
+            serviceLocator.collectionManager.refresh('paths');
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'transitPaths',
+                data: serviceLocator.collectionManager.get('paths').toGeojson()
+            });
+            await serviceLocator.collectionManager.get('lines').loadFromServer(serviceLocator.socketEventManager);
+            serviceLocator.collectionManager.refresh('lines');
+        }
         serviceLocator.collectionManager.refresh('services');
     };
 
@@ -47,7 +71,7 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
         if (e) {
             e.stopPropagation();
         }
-
+        serviceLocator.collectionManager.refresh('lines');
         serviceLocator.socketEventManager.emit(
             'transitServices.duplicate',
             [props.service.getId()],
@@ -64,6 +88,11 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
             }
         );
     };
+    const stopClick: React.MouseEventHandler = React.useCallback((e: React.MouseEvent) => {
+        if (e && typeof e.stopPropagation === 'function') {
+            e.stopPropagation();
+        }
+    }, []);
 
     const service = props.service;
     const isFrozen = service.isFrozen();
@@ -88,50 +117,100 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
     } else if (service.get('start_date')) {
         serviceWeekdaysStr += ` [${service.get('start_date')} -> ...]`;
     }
+    const lines = props.service.scheduledLines();
+    const linesButtons = lines.map((line) => (
+        <TransitLineButton
+            key={line.id}
+            line={line}
+            selectedLine={props.selectedLine}
+            lineIsHidden={
+                serviceLocator.pathLayerManager ? serviceLocator.pathLayerManager.lineIsHidden(line.id) : false
+            }
+            onObjectSelected={props.onObjectSelected}
+        />
+    ));
+    console.log("props.service.scheduled_lines");
+    console.log(props.service.scheduledLines());
+    console.log(props.service.scheduledLineIds());
+
 
     return (
-        <Button
-            key={serviceId}
-            isSelected={serviceIsSelected}
-            onSelect={{ handler: onSelect }}
-            onDuplicate={{ handler: onDuplicate, altText: props.t('transit:transitService:DuplicateService') }}
-            onDelete={
-                !isFrozen && !serviceIsSelected
-                    ? {
-                        handler: onDelete,
-                        message: hasScheduledLines
-                            ? props.t('transit:transitService:ConfirmDeleteWithSchedule')
-                            : props.t('transit:transitService:ConfirmDelete'),
-                        altText: props.t('transit:transitService:Delete')
-                    }
-                    : undefined
-            }
-            flushActionButtons={scheduledLineCount === 0}
-        >
-            <ButtonCell alignment="left">
-                <span className="_circle-button" style={{ backgroundColor: service.getAttributes().color }}></span>
-            </ButtonCell>
-            {isFrozen && (
+        <React.Fragment>
+            <Button
+                key={serviceId}
+                isSelected={serviceIsSelected}
+                onSelect={{ handler: onSelect }}
+                onDuplicate={{ handler: onDuplicate, altText: props.t('transit:transitService:DuplicateService') }}
+                onDelete={
+                    !isFrozen && !serviceIsSelected
+                        ? {
+                            handler: onDelete,
+                            message: hasScheduledLines
+                                ? props.t('transit:transitService:ConfirmDeleteWithSchedule')
+                                : props.t('transit:transitService:ConfirmDelete'),
+                            altText: props.t('transit:transitService:Delete')
+                        }
+                        : undefined
+                }
+                flushActionButtons={scheduledLineCount === 0}
+            >
                 <ButtonCell alignment="left">
-                    <img
-                        className="_icon-alone"
-                        src={'/dist/images/icons/interface/lock_white.svg'}
-                        alt={props.t('main:Locked')}
-                    />
+                    <span className="_circle-button" style={{ backgroundColor: service.getAttributes().color }}></span>
                 </ButtonCell>
-            )}
-            <ButtonCell alignment="left">
-                {service.get('name') as string}
-                {serviceWeekdaysStr}
-            </ButtonCell>
-            {scheduledLineCount > 0 && (
-                <ButtonCell alignment="flush">
-                    {scheduledLineCount > 1
-                        ? props.t('transit:transitService:nLines', { n: scheduledLineCount })
-                        : props.t('transit:transitService:oneLine')}
+                {isFrozen && (
+                    <ButtonCell alignment="left">
+                        <img
+                            className="_icon-alone"
+                            src={'/dist/images/icons/interface/lock_white.svg'}
+                            alt={props.t('main:Locked')}
+                        />
+                    </ButtonCell>
+                )}
+                <ButtonCell alignment="left">
+                    {service.get('name') as string}
+                    {serviceWeekdaysStr}
                 </ButtonCell>
-            )}
-        </Button>
+                
+                {scheduledLineCount > 0 && (
+                    <ButtonCell alignment="flush">
+                        {scheduledLineCount > 1
+                            ? props.t('transit:transitService:nLines', { n: scheduledLineCount })
+                            : props.t('transit:transitService:oneLine')}
+                    </ButtonCell>
+                )}
+            </Button>
+            <div className="tr__form-agencies-panel-lines-list">
+                <Button key={`lines${props.service.getId()}`} isSelected={serviceIsSelected} flushActionButtons={false}>
+                    <DocumentationTooltip dataTooltipId="line-tooltip" documentationLabel="line" />
+                    <Collapsible
+                        lazyRender={true}
+                        trigger={
+                            <MathJax.Provider>
+                                {props.t('transit:transitLine:List')}&nbsp;
+                                <span onClick={stopClick}>
+                                    <MathJax.Node inline formula={'L'} data-tooltip-id="line-tooltip" />
+                                </span>
+                            </MathJax.Provider>
+                        }
+                        open={props.isExpanded}
+                        transitionTime={100}
+                        onOpen={() => props.onServiceExpanded(props.service.getId())}
+                        onClose={() => props.onServiceCollapsed(props.service.getId())}
+                    >
+                    <ButtonList key={`lines${props.service.getId()}`}>
+                        {linesButtons}
+                        {!isFrozen && (
+                            <Button isSelected={false} key="containerLink">
+                                
+                            </Button>
+                        )}
+                    </ButtonList>
+                    </Collapsible>
+                </Button>
+            </div>
+        </React.Fragment>
+        
+        
     );
 };
 
