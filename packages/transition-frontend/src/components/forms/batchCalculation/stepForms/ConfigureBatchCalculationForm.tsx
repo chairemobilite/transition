@@ -44,6 +44,7 @@ const ConfigureCalculationParametersForm: React.FunctionComponent<
 > = (props: ConfigureCalculationParametersFormProps & WithTranslation) => {
     const [updateCnt, setUpdateCnt] = React.useState(0);
     const [errors, setErrors] = React.useState<string[]>([]);
+    const [maxParallelCalculations, setMaxParallelCalculations] = React.useState<number | undefined>(undefined);
 
     React.useEffect(() => {
         // validate the data on first load
@@ -51,13 +52,13 @@ const ConfigureCalculationParametersForm: React.FunctionComponent<
         props.onUpdate(props.routingParameters, valid);
         // Get the max cpu count
         serviceLocator.socketEventManager.emit('service.parallelThreadCount', (response) => {
-            onValueChange('maxCpuCount', { value: response.count });
+            setMaxParallelCalculations(response.count);
         });
     }, []);
 
     const onValueChange = (path: keyof BatchCalculationParameters, newValue: { value: any; valid?: boolean }): void => {
         props.routingParameters[path] = newValue.value as never;
-        const { valid, errors } = isBatchParametersValid(props.routingParameters);
+        const { valid, errors } = isBatchParametersValid(props.routingParameters, maxParallelCalculations);
         props.onUpdate(props.routingParameters, valid);
         setErrors(errors);
         setUpdateCnt(updateCnt + 1);
@@ -142,8 +143,8 @@ const ConfigureCalculationParametersForm: React.FunctionComponent<
                     <InputWrapper smallInput={true} label={props.t('transit:transitRouting:CpuCount')}>
                         <InputStringFormatted
                             id={'formFieldTransitBatchRoutingCpuCount'}
-                            value={props.routingParameters.cpuCount}
-                            onValueUpdated={(value) => onValueChange('cpuCount', value)}
+                            value={props.routingParameters.parallelCalculations}
+                            onValueUpdated={(value) => onValueChange('parallelCalculations', value)}
                             stringToValue={_toInteger}
                             valueToString={_toString}
                             type={'number'}
