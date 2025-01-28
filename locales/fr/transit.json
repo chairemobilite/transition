@@ -946,7 +946,8 @@
         "FromPreviousJob": "Données d'un calcul précédent",
         "errors": {
             "InputFileUnavailable": "Le fichier d'entrée n'existe pas pour cette tâche",
-            "ErrorGettingReplayParameters": "Un problème est survenu lors de l'obtention de la configuration pour ré-exécuter un calcul"
+            "ErrorGettingReplayParameters": "Un problème est survenu lors de l'obtention de la configuration pour ré-exécuter un calcul",
+            "ParallelCalculationsIsTooLow": "Le nombre de calculs parallèles doit être positif ou non défini pour utiliser le maximum disponible"
         }
     },
     "preferences": {

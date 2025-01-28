@@ -946,7 +946,8 @@
         "FromPreviousJob": "Data from previous calculation",
         "errors": {
             "InputFileUnavailable": "Input file does not exist for this job",
-            "ErrorGettingReplayParameters": "Error getting execution data to replay calculation"
+            "ErrorGettingReplayParameters": "Error getting execution data to replay calculation",
+            "ParallelCalculationsIsTooLow": "Number of parallel calculations should be positive or left undefined to use the maximum available"
         }
     },
     "preferences": {

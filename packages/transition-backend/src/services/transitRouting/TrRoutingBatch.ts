@@ -9,6 +9,7 @@ import pQueue from 'p-queue';
 import { EventEmitter } from 'events';
 
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
+import serverConfig from 'chaire-lib-backend/lib/config/server.config';
 import routeOdTrip from './TrRoutingOdTrip';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
@@ -351,11 +352,20 @@ class TrRoutingBatch {
         return { odTrips, errors };
     };
 
+    // Get the number of parallel calculations to run, it makes sure to not exceed the server's maximum value
+    private getParallelCalculationCount = (): number => {
+        if (typeof this.batchRoutingQueryAttributes.parallelCalculations === 'number') {
+            return Math.min(serverConfig.maxParallelCalculators, this.batchRoutingQueryAttributes.parallelCalculations);
+        } else {
+            return serverConfig.maxParallelCalculators;
+        }
+    };
+
     private startTrRoutingInstances = async (odTripsCount: number): Promise<[number, number]> => {
         // Divide odTripCount by 3 for the minimum number of calculation, to avoid creating too many processes if trip count is small
         const trRoutingInstancesCount = Math.max(
             1,
-            Math.min(Math.ceil(odTripsCount / 3), this.batchRoutingQueryAttributes.cpuCount || 1)
+            Math.min(Math.ceil(odTripsCount / 3), this.getParallelCalculationCount())
         );
         try {
             this.options.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 0.0 });

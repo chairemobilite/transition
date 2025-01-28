@@ -101,7 +101,7 @@ const ConfirmCalculationForm: React.FunctionComponent<ConfirmCalculationFormProp
                     </tr>
                     <tr>
                         <th>{props.t('transit:transitRouting:CpuCount')}</th>
-                        <td>{`${props.routingParameters.cpuCount || 1}`}</td>
+                        <td>{`${typeof props.routingParameters.parallelCalculations === 'number' ? props.routingParameters.parallelCalculations : '-'}`}</td>
                     </tr>
                 </tbody>
             </table>

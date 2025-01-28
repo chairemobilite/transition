@@ -54,7 +54,7 @@ describe('Test isBatchParametersValid', () => {
         expect(isBatchParametersValid(parameters)).toEqual({ valid: false, errors: ['transit:transitRouting:errors:ScenarioIsMissing']});
     });
 
-    test('Validate number of CPUs', () => {
+    test('Validate parallel calculations', () => {
         const parameters: BatchCalculationParameters = { 
             routingModes: ['walking' as const, 'transit' as const],
             scenarioId: 'arbitrary',
@@ -63,55 +63,39 @@ describe('Test isBatchParametersValid', () => {
             withAlternatives: false
         };
         
-        // all cpu count has not been set, they should remain unset
+        // parallel calculation is not set, no max set, should remain unset
+        parameters.parallelCalculations = undefined;
         expect(isBatchParametersValid(parameters)).toEqual({ valid: true, errors: []});
-        expect(parameters.cpuCount).toBeUndefined();
-        expect(parameters.maxCpuCount).toBeUndefined();
-    
-        // Set a max count, the count should be the max count
-        const maxCpu = 4;
-        parameters.maxCpuCount = maxCpu;
+        expect(parameters.parallelCalculations).toBeUndefined();
+
+        // parallel calculation is not set, with a max, should remain unset
+        expect(isBatchParametersValid(parameters, 4)).toEqual({ valid: true, errors: []});
+        expect(parameters.parallelCalculations).toBeUndefined();
+
+        // parallel calculation set to 3, no max set, should remain 3
+        const parallelCalculations = 3;
+        parameters.parallelCalculations = parallelCalculations;
         expect(isBatchParametersValid(parameters)).toEqual({ valid: true, errors: []});
-        expect(parameters.cpuCount).toEqual(maxCpu);
-        expect(parameters.maxCpuCount).toEqual(maxCpu);
-    
-        // Set a valid count, should be unchanged
-        let cpuCount = 2;
-        parameters.cpuCount = cpuCount;
-        expect(isBatchParametersValid(parameters)).toEqual({ valid: true, errors: []});
-        expect(parameters.cpuCount).toEqual(cpuCount);
-        expect(parameters.maxCpuCount).toEqual(maxCpu);
-    
-        // Set a CPU count too high, should be back to max count
-        cpuCount = maxCpu + 2;
-        parameters.cpuCount = cpuCount;
-        expect(isBatchParametersValid(parameters)).toEqual({ valid: true, errors: []});
-        expect(parameters.cpuCount).toEqual(maxCpu);
-        expect(parameters.maxCpuCount).toEqual(maxCpu);
-    
-        // Set a CPU count below 0, should be set to 1
-        cpuCount = -1;
-        parameters.cpuCount = cpuCount;
-        expect(isBatchParametersValid(parameters)).toEqual({ valid: true, errors: []});
-        expect(parameters.cpuCount).toEqual(1);
-        expect(parameters.maxCpuCount).toEqual(maxCpu);
-    
-        // Set max to undefined, then set cpu count below to 0 or negative, should be 1
-        parameters.maxCpuCount = undefined;
-        parameters.cpuCount = 0;
-        expect(isBatchParametersValid(parameters)).toEqual({ valid: true, errors: []});
-        expect(parameters.cpuCount).toEqual(1);
-        expect(parameters.maxCpuCount).toBeUndefined();
-        parameters.cpuCount = -1;
-        expect(isBatchParametersValid(parameters)).toEqual({ valid: true, errors: []});
-        expect(parameters.cpuCount).toEqual(1);
-        expect(parameters.maxCpuCount).toBeUndefined();
-    
-        cpuCount = 10;
-        parameters.cpuCount = cpuCount;
-        expect(isBatchParametersValid(parameters)).toEqual({ valid: true, errors: []});
-        expect(parameters.cpuCount).toEqual(cpuCount);
-        expect(parameters.maxCpuCount).toBeUndefined();
+        expect(parameters.parallelCalculations).toEqual(parallelCalculations);
+
+        // parallel calculation set to lower than max, should remain as set
+        expect(isBatchParametersValid(parameters, parallelCalculations + 1)).toEqual({ valid: true, errors: []});
+        expect(parameters.parallelCalculations).toEqual(parallelCalculations);
+
+        // parallel calculation set to higher than max, should fallback to max
+        expect(isBatchParametersValid(parameters, parallelCalculations - 1)).toEqual({ valid: true, errors: []});
+        expect(parameters.parallelCalculations).toEqual(parallelCalculations - 1);
+
+        // parallel calculation negative, should be invalid
+        parameters.parallelCalculations = -1;
+        expect(isBatchParametersValid(parameters)).toEqual({ valid: false, errors: ['transit:batchCalculation:errors:ParallelCalculationsIsTooLow']});
+        expect(parameters.parallelCalculations).toEqual(-1);
+
+        // parallel calculation 0, should be invalid
+        parameters.parallelCalculations = -1;
+        expect(isBatchParametersValid(parameters)).toEqual({ valid: false, errors: ['transit:batchCalculation:errors:ParallelCalculationsIsTooLow']});
+        expect(parameters.parallelCalculations).toEqual(-1);
+
     });
 });
 
