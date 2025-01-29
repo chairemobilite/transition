@@ -21,6 +21,7 @@ import MathJax from 'react-mathjax';
 import ButtonList from '../../parts/ButtonList';
 
 interface ScheduleButtonProps extends WithTranslation {
+    lines: Line[];
     service: Service;
     selectedService?: Service;
     selectedLine?: Line;
@@ -117,22 +118,17 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
     } else if (service.get('start_date')) {
         serviceWeekdaysStr += ` [${service.get('start_date')} -> ...]`;
     }
-    const lines = props.service.scheduledLines();
-    const linesButtons = lines.map((line) => (
+    
+    const linesButtons = props.lines.map((line) => (
         <TransitLineButton
             key={line.id}
             line={line}
             selectedLine={props.selectedLine}
-            lineIsHidden={
-                serviceLocator.pathLayerManager ? serviceLocator.pathLayerManager.lineIsHidden(line.id) : false
-            }
             onObjectSelected={props.onObjectSelected}
+            hideActions={true}
+            hideDetails={true}
         />
     ));
-    console.log("props.service.scheduled_lines");
-    console.log(props.service.scheduledLines());
-    console.log(props.service.scheduledLineIds());
-
 
     return (
         <React.Fragment>
@@ -170,47 +166,32 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
                     {service.get('name') as string}
                     {serviceWeekdaysStr}
                 </ButtonCell>
-                
-                {scheduledLineCount > 0 && (
-                    <ButtonCell alignment="flush">
-                        {scheduledLineCount > 1
-                            ? props.t('transit:transitService:nLines', { n: scheduledLineCount })
-                            : props.t('transit:transitService:oneLine')}
-                    </ButtonCell>
-                )}
             </Button>
             <div className="tr__form-agencies-panel-lines-list">
                 <Button key={`lines${props.service.getId()}`} isSelected={serviceIsSelected} flushActionButtons={false}>
                     <DocumentationTooltip dataTooltipId="line-tooltip" documentationLabel="line" />
                     <Collapsible
                         lazyRender={true}
-                        trigger={
-                            <MathJax.Provider>
-                                {props.t('transit:transitLine:List')}&nbsp;
-                                <span onClick={stopClick}>
-                                    <MathJax.Node inline formula={'L'} data-tooltip-id="line-tooltip" />
-                                </span>
-                            </MathJax.Provider>
-                        }
-                        open={props.isExpanded}
-                        transitionTime={100}
-                        onOpen={() => props.onServiceExpanded(props.service.getId())}
-                        onClose={() => props.onServiceCollapsed(props.service.getId())}
-                    >
-                    <ButtonList key={`lines${props.service.getId()}`}>
-                        {linesButtons}
-                        {!isFrozen && (
-                            <Button isSelected={false} key="containerLink">
-                                
-                            </Button>
-                        )}
-                    </ButtonList>
+                            trigger={
+                                <MathJax.Provider>
+                                    {props.t('transit:transitLine:List')}&nbsp;
+                                        <span onClick={stopClick}>
+                                            <MathJax.Node inline formula={'L'} data-tooltip-id="line-tooltip" />
+                                        </span>
+                                </MathJax.Provider>
+                            }
+                            open={props.isExpanded}
+                            transitionTime={100}
+                            onOpen={() => props.onServiceExpanded(props.service.getId())}
+                            onClose={() => props.onServiceCollapsed(props.service.getId())}
+                        >
+                        <ButtonList key={`lines${props.service.getId()}`}>
+                            {linesButtons}
+                        </ButtonList>
                     </Collapsible>
                 </Button>
             </div>
         </React.Fragment>
-        
-        
     );
 };
 
