@@ -381,7 +381,7 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
                         />
                     )}
                 </div>
-                <Collapsible trigger={this.props.t('transit:Lines')} open={true} transitionTime={100}>
+                <Collapsible trigger={this.props.t('transit:Lignes')} open={true} transitionTime={100}>
                     <div className="tr__form-section">
                         <div className="tr__list">
                             {this.getLinesForService().map((line) => (
