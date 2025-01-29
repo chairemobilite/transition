@@ -17,14 +17,22 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import TransitServiceButton from './TransitServiceButton';
 import ButtonList from '../../parts/ButtonList';
+import LineCollection from 'transition-common/lib/services/line/LineCollection';
 
 interface ServiceListProps extends WithTranslation {
+    lineCollection: LineCollection;
     serviceCollection: ServiceCollection;
     selectedService?: TransitService;
 }
 
 const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: ServiceListProps) => {
     const [showModal, setShowModal] = useState(false);
+    
+    const getLinesForService = (serviceId: string) => {
+        return props.lineCollection
+            .getFeatures()
+            .filter((line) => line.attributes.service_ids?.includes(serviceId));
+    };
 
     const newService = function () {
         const defaultColor = Preferences.get('transit.services.defaultColor', '#0086FF');
@@ -78,6 +86,7 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
                                 key={service.id}
                                 service={service}
                                 selectedService={props.selectedService}
+                                lines={getLinesForService(service.id)}
                             />
                         ))}
             </ButtonList>
