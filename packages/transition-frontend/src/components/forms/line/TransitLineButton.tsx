@@ -20,6 +20,8 @@ interface LineButtonProps extends WithTranslation {
     selectedLine?: Line;
     lineIsHidden: boolean;
     onObjectSelected?: (objectId: string) => void;
+    hideActions?: boolean;
+    hideDetails?: boolean;
 }
 
 const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: LineButtonProps) => {
@@ -119,17 +121,17 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
             key={props.line.getId()}
             isSelected={lineIsSelected}
             flushActionButtons={false}
-            onSelect={{ handler: onSelect }}
-            onDuplicate={{ handler: onDuplicate, altText: props.t('transit:transitLine:DuplicateLine') }}
-            onDelete={
-                !isFrozen && !lineIsSelected
+            {...(!props.hideActions && {
+                onSelect: { handler: onSelect },
+                onDuplicate: { handler: onDuplicate, altText: props.t('transit:transitLine:DuplicateLine') },
+                onDelete: !isFrozen && !lineIsSelected
                     ? {
                         handler: onDelete,
                         message: props.t('transit:transitLine:ConfirmDelete'),
                         altText: props.t('transit:transitLine:Delete')
                     }
                     : undefined
-            }
+            })} 
         >
             <ButtonCell alignment="left">
                 <span className="_circle-button" style={{ backgroundColor: props.line.attributes.color }}></span>
@@ -171,6 +173,7 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
             )}
             <ButtonCell alignment="left">{props.line.attributes.shortname}</ButtonCell>
             <ButtonCell alignment="left">{props.line.attributes.longname}</ButtonCell>
+            {!props.hideDetails && (
             <ButtonCell alignment="flush">
                 {pathsCount > 1
                     ? props.t('transit:transitLine:nPaths', { n: pathsCount })
@@ -183,6 +186,7 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
                     </span>
                 )}
             </ButtonCell>
+        )}
         </Button>
     );
 };
