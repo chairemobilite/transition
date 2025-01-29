@@ -25,6 +25,7 @@ import * as ServiceUtils from '../../../services/transitService/TransitServiceUt
 import Service, { serviceDays } from 'transition-common/lib/services/service/Service';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import TransitServiceFilterableList from './TransitServiceFilterableList';
+import TransitLineButton from '../line/TransitLineButton';
 
 interface ServiceFormProps extends WithTranslation {
     service: Service;
@@ -193,6 +194,13 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
         });
     };
 
+    getLinesForService = () => {
+        return serviceLocator.collectionManager
+            .get('lines')
+            .getFeatures()
+            .filter((line) => line.attributes.service_ids?.includes(this.props.service.getId()));
+    };
+    
     render() {
         const service = this.props.service;
         const isFrozen = service.isFrozen();
@@ -211,6 +219,7 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
                 }
             }
         }
+        
 
         return (
             <form
@@ -372,7 +381,22 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
                         />
                     )}
                 </div>
-            </form>
+                <Collapsible trigger={this.props.t('transit:Lines')} open={true} transitionTime={100}>
+                    <div className="tr__form-section">
+                        <div className="tr__list">
+                            {this.getLinesForService().map((line) => (
+                                <TransitLineButton
+                                    key={line.id}
+                                    line={line}
+                                    selectedLine={undefined} 
+                                    hideActions={true} 
+                                    hideDetails={true} 
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </Collapsible>
+            </form> 
         );
     }
 }
