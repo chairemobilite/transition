@@ -7,7 +7,6 @@
 import React, { createRef, PropsWithChildren } from 'react';
 import { createRoot } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import ReactDom from 'react-dom';
 import DeckGL from '@deck.gl/react/typed';
 import { Layer, Deck } from '@deck.gl/core/typed';
 

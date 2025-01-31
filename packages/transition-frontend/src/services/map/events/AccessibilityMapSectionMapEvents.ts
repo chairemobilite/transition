@@ -14,11 +14,11 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 const isAccessMapActiveSection = (activeSection: string) => activeSection === 'accessibilityMap';
 
-const onAccessMapSectionMapClick = (pointInfo: PointInfo, event: MjolnirEvent) => {
+const onAccessMapSectionMapClick = (pointInfo: PointInfo, _event: MjolnirEvent) => {
     serviceLocator.eventManager.emit('routing.transitAccessibilityMap.clickedOnMap', pointInfo.coordinates);
 };
 
-const onLocationDrag = (info: PickingInfo, e: MjolnirEvent) => {
+const onLocationDrag = (info: PickingInfo, _event: MjolnirEvent) => {
     const location = info.object?.properties?.location;
     if (!location) {
         return;
@@ -26,7 +26,7 @@ const onLocationDrag = (info: PickingInfo, e: MjolnirEvent) => {
     serviceLocator.eventManager.emit('routing.transitAccessibilityMap.dragLocation', info.coordinate);
 };
 
-const onLocationDragEnd = (info: PickingInfo, e: MjolnirEvent) => {
+const onLocationDragEnd = (info: PickingInfo, _event: MjolnirEvent) => {
     const location = info.object?.properties?.location;
     if (!location) {
         return;

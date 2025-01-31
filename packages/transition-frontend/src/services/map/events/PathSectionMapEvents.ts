@@ -63,7 +63,7 @@ const selectPath = (pathGeojson) => {
     });
 };
 
-const onSelectedPathMapClicked = (pointInfo: PointInfo, e: MjolnirEvent) => {
+const onSelectedPathMapClicked = (pointInfo: PointInfo, _event: MjolnirEvent) => {
     // Add a waypoint at the location of the click
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
@@ -76,16 +76,14 @@ const onSelectedPathMapClicked = (pointInfo: PointInfo, e: MjolnirEvent) => {
 
     // Add the waypoint at the end of the path. TODO: This should be automatic once finding the insert location is not done by the path anymore
     const insertIndex = path.attributes.nodes.length === 0 ? undefined : path.attributes.nodes.length - 1;
-    path.insertWaypoint(pointInfo.coordinates as [number, number], waypointType, insertIndex, undefined).then(
-        (response) => {
-            path.validate();
-            serviceLocator.selectedObjectsManager.update('path', path);
-            serviceLocator.eventManager.emit('selected.updateLayers.path');
-        }
-    );
+    path.insertWaypoint(pointInfo.coordinates as [number, number], waypointType, insertIndex, undefined).then(() => {
+        path.validate();
+        serviceLocator.selectedObjectsManager.update('path', path);
+        serviceLocator.eventManager.emit('selected.updateLayers.path');
+    });
 };
 
-const onPathsClicked = (pickInfo: PickingInfo[], e: MjolnirEvent) => {
+const onPathsClicked = (pickInfo: PickingInfo[], event: MjolnirEvent) => {
     if (pickInfo.length === 1) {
         selectPath(pickInfo[0].object);
     } else {
@@ -106,10 +104,10 @@ const onPathsClicked = (pickInfo: PickingInfo[], e: MjolnirEvent) => {
         });
         serviceLocator.eventManager.emit('map.showContextMenu', pickInfo[0].pixel, menu);
     }
-    e.handled = true;
+    event.handled = true;
 };
 
-const onSelectedWaypointDrag = (info: PickingInfo, e: MjolnirEvent) => {
+const onSelectedWaypointDrag = (info: PickingInfo, _event: MjolnirEvent) => {
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
@@ -126,7 +124,7 @@ const onSelectedWaypointDrag = (info: PickingInfo, e: MjolnirEvent) => {
     serviceLocator.eventManager.emit('waypoint.drag', info.coordinate, waypointIndex, afterNodeIndex);
 };
 
-const onSelectedWaypointDragEnd = (info: PickingInfo, e: MjolnirEvent, mapCallbacks: MapCallbacks) => {
+const onSelectedWaypointDragEnd = (info: PickingInfo, _event: MjolnirEvent, mapCallbacks: MapCallbacks) => {
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
@@ -157,7 +155,7 @@ const onSelectedWaypointDragEnd = (info: PickingInfo, e: MjolnirEvent, mapCallba
     }
 };
 
-const onSelectedPathClicked = (info: PickingInfo, e: MjolnirEvent) => {
+const onSelectedPathClicked = (info: PickingInfo, _event: MjolnirEvent) => {
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
@@ -168,13 +166,11 @@ const onSelectedPathClicked = (info: PickingInfo, e: MjolnirEvent) => {
         ? 'manual'
         : path.getData('routingEngine', 'engine');
     // TODO Here is where we should determine where to insert the point. Call a method which validates if the point is at distance x of path.
-    path.insertWaypoint(info.coordinate as [number, number], waypointType as string, undefined, undefined).then(
-        (response) => {
-            path.validate();
-            serviceLocator.selectedObjectsManager.update('path', path);
-            serviceLocator.eventManager.emit('selected.updateLayers.path');
-        }
-    );
+    path.insertWaypoint(info.coordinate as [number, number], waypointType as string, undefined, undefined).then(() => {
+        path.validate();
+        serviceLocator.selectedObjectsManager.update('path', path);
+        serviceLocator.eventManager.emit('selected.updateLayers.path');
+    });
 };
 
 const removeNode = async (path: TransitPath, nodeId: string) => path.removeNodeId(nodeId);

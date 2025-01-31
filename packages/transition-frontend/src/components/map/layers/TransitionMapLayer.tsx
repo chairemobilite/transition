@@ -12,7 +12,7 @@ import {
     MapLayerEventHandlerDescriptor
 } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import * as LayerDescription from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
-import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo, Deck } from 'deck.gl/typed';
+import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo } from 'deck.gl/typed';
 import { MjolnirGestureEvent } from 'mjolnir.js';
 import { DataFilterExtension } from '@deck.gl/extensions';
 import AnimatedArrowPathLayer from './AnimatedArrowPathLayer';
@@ -152,7 +152,7 @@ const getLayerFeatureFilter = (props: TransitionMapLayerProps, config: LayerDesc
         filterRanges.push([0, Math.floor(props.viewState.zoom)]);
     }
     if (config.canFilter === true) {
-        getFilterFcts.push(props.filter !== undefined ? props.filter : (feature) => 1);
+        getFilterFcts.push(props.filter !== undefined ? props.filter : (_feature) => 1);
         // Display the feature if the function's return value is above 1
         filterRanges.push([1, 10]);
     }

@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import _uniq from 'lodash/uniq';
 import { PickingInfo } from 'deck.gl/typed';
 import { MjolnirEvent } from 'mjolnir.js';
 
@@ -17,7 +16,7 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
 const isNodeActiveSection = (activeSection: string) => activeSection === 'nodes';
 
-const onSelectedNodeDrag = (info: PickingInfo, e: MjolnirEvent) => {
+const onSelectedNodeDrag = (info: PickingInfo, _event: MjolnirEvent) => {
     const selectedNode = serviceLocator.selectedObjectsManager.get('node');
     const selectedFeature = info.object;
     if (
@@ -29,7 +28,7 @@ const onSelectedNodeDrag = (info: PickingInfo, e: MjolnirEvent) => {
     }
 };
 
-const onSelectedNodeDragEnd = (info: PickingInfo, e: MjolnirEvent) => {
+const onSelectedNodeDragEnd = (info: PickingInfo, _event: MjolnirEvent) => {
     const selectedNode = serviceLocator.selectedObjectsManager.get('node');
     const selectedFeature = info.object;
     if (
@@ -43,7 +42,7 @@ const onSelectedNodeDragEnd = (info: PickingInfo, e: MjolnirEvent) => {
     }
 };
 
-const onNodeSectionContextMenu = (pointInfo: PointInfo, event: MjolnirEvent) => {
+const onNodeSectionContextMenu = (pointInfo: PointInfo, _event: MjolnirEvent) => {
     const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
     const menu: { title: string; onClick: () => void }[] = [];
 
@@ -112,7 +111,7 @@ const onNodeSelected = (info: PickingInfo, e: MjolnirEvent) => {
         const attributes = selectedFeature.properties || {};
         serviceLocator.socketEventManager.emit('transitNode.read', attributes.id, null, (response) => {
             const transitNodeEdit = new TransitNode({ ...response.node }, false, serviceLocator.collectionManager);
-            transitNodeEdit.loadFromCache(serviceLocator.socketEventManager).then((response) => {
+            transitNodeEdit.loadFromCache(serviceLocator.socketEventManager).then(() => {
                 transitNodeEdit.startEditing();
                 serviceLocator.selectedObjectsManager.select('node', transitNodeEdit);
             });
