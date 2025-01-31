@@ -16,7 +16,7 @@ import Node from 'transition-common/lib/services/nodes/Node';
 
 const events = function (eventManager: EventEmitter) {
     return {
-        'path.hoverNode': function (node: Node, nodeTitle = node.toString(false)) {
+        'path.hoverNode': function (node: Node, _nodeTitle = node.toString(false)) {
             // TODO Re-implement
             /*const popup = new Popup({
                 offset: 10,

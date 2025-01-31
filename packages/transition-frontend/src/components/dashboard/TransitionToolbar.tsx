@@ -74,6 +74,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
     }
 
     onUpdateLayers = () => {
+        // FIXME Re-enable layer filter after migration to deck.gl
         /*   const layersVisibility = {};
         serviceLocator.layerManager._enabledLayers.forEach((layerName) => {
             layersVisibility[layerName] = serviceLocator.layerManager.layerIsVisible(layerName);
@@ -85,7 +86,8 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
         }); */
     };
 
-    onShowLayer = (layerName: string) => {
+    onShowLayer = (_layerName: string) => {
+        // FIXME Re-enable layer filter after migration to deck.gl
         /*    if (this.state.layersVisibility[layerName] === false) {
             this.setState((oldState) => {
                 oldState.layersVisibility[layerName] = true;
@@ -96,7 +98,8 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
         } */
     };
 
-    onHideLayer = (layerName: string) => {
+    onHideLayer = (_layerName: string) => {
+        // FIXME Re-enable layer filter after migration to deck.gl
         /*    if (this.state.layersVisibility[layerName] === true) {
             this.setState((oldState) => {
                 oldState.layersVisibility[layerName] = false;

@@ -14,11 +14,11 @@ import { PickingInfo } from 'deck.gl/typed';
 
 const isRoutingActiveSection = (activeSection: string) => activeSection === 'routing';
 
-const onRoutingSectionMapClick = (pointInfo: PointInfo, event: MjolnirEvent) => {
+const onRoutingSectionMapClick = (pointInfo: PointInfo, _event: MjolnirEvent) => {
     serviceLocator.eventManager.emit('routing.transit.clickedOnMap', pointInfo.coordinates);
 };
 
-const onRoutingPointDrag = (info: PickingInfo, e: MjolnirEvent) => {
+const onRoutingPointDrag = (info: PickingInfo, _event: MjolnirEvent) => {
     const location = info.object?.properties?.location;
     if (!location) {
         return;
@@ -29,7 +29,7 @@ const onRoutingPointDrag = (info: PickingInfo, e: MjolnirEvent) => {
     );
 };
 
-const onRoutingPointDragEnd = (info: PickingInfo, e: MjolnirEvent) => {
+const onRoutingPointDragEnd = (info: PickingInfo, _event: MjolnirEvent) => {
     const location = info.object?.properties?.location;
     if (!location) {
         return;
@@ -40,7 +40,7 @@ const onRoutingPointDragEnd = (info: PickingInfo, e: MjolnirEvent) => {
     );
 };
 
-const onRoutingSectionContextMenu = (pointInfo: PointInfo, event: MjolnirEvent) => {
+const onRoutingSectionContextMenu = (pointInfo: PointInfo, _event: MjolnirEvent) => {
     serviceLocator.eventManager.emit('map.showContextMenu', pointInfo.pixel, [
         {
             title: 'transit:transitRouting:contextMenu:SetAsOrigin',
