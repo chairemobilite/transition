@@ -769,13 +769,16 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     nodesGeojsons() {
         const nodeIds = this.attributes.nodes;
         const nodeTypes = this.attributes.data.nodeTypes;
+        const nodesInError = this.attributes.data.geographyErrors?.nodes || [];
         const nodesGeojsons: GeoJSON.Feature<GeoJSON.Point>[] = [];
         if (this._collectionManager.get('nodes')) {
             for (let i = 0, count = nodeIds.length; i < count; i++) {
                 const nodeId = nodeIds[i];
                 const nodeType = nodeTypes[i];
                 const nodeGeojson = _cloneDeep(this._collectionManager.get('nodes').getById(nodeId));
+                const nodeInError = nodesInError.find((errNode) => errNode.properties?.id === nodeId) !== undefined;
                 nodeGeojson.properties.type = nodeType;
+                nodeGeojson.properties.isNodeIsError = nodeInError;
                 nodesGeojsons.push(nodeGeojson);
             }
         }
@@ -785,6 +788,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     waypointsGeojsons() {
         const waypointsByNodeIndex = this.attributes.data.waypoints || [];
         const waypointTypesByNodeIndex = this.attributes.data.waypointTypes || [];
+        const waypointsInError = this.attributes.data.geographyErrors?.waypoints || [];
         const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
         let featureId = 1;
         const defaultRoutingType = this.attributes.data.routingEngine || 'engine';
@@ -798,10 +802,14 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
                     `[${afterNodeIndex}][${waypointIndex}]`,
                     defaultRoutingType
                 );
+                // Change color of waypoint if it has error
+                // FIXME: this is not the best way to do it, we should have a better way to handle errors when we refactor the path generations
+                const isWaypointInError =
+                    waypointsInError.find((errWaypoint) => errWaypoint.geometry.coordinates === waypoint) !== undefined;
                 features.push(
                     turfHelpers.point(
                         waypoint,
-                        { afterNodeIndex, waypointIndex, type: waypointType },
+                        { afterNodeIndex, waypointIndex, type: waypointType, isWaypointInError },
                         { id: featureId }
                     )
                 );

@@ -120,21 +120,12 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         // find a way to fix this using another method.
         const pathGeojson = selectedPath ? selectedPath.toGeojson() : undefined;
         const nodesGeojsons = selectedPath ? selectedPath.nodesGeojsons() : [];
+        // FIXME This code is also in the PathSectionMapEvents file, refactor to avoid duplication
         serviceLocator.eventManager.emit('map.updateLayers', {
             transitPathsSelected: turfFeatureCollection(pathGeojson && pathGeojson.geometry ? [pathGeojson] : []),
             transitNodesSelected: turfFeatureCollection(nodesGeojsons),
             transitNodesRoutingRadius: turfFeatureCollection(nodesGeojsons),
-            transitPathWaypoints: turfFeatureCollection(selectedPath ? selectedPath.waypointsGeojsons() : []),
-            transitNodesSelectedErrors: turfFeatureCollection(
-                selectedPath && selectedPath.attributes.data.geographyErrors?.nodes
-                    ? selectedPath.attributes.data.geographyErrors.nodes
-                    : []
-            ),
-            transitPathWaypointsErrors: turfFeatureCollection(
-                selectedPath && selectedPath.attributes.data.geographyErrors?.waypoints
-                    ? selectedPath.attributes.data.geographyErrors.waypoints
-                    : []
-            )
+            transitPathWaypoints: turfFeatureCollection(this.props.path.waypointsGeojsons())
         });
     };
 
