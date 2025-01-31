@@ -126,8 +126,6 @@ const defaultPreferences: PreferencesModel = {
                 'transitPathWaypointsSelected',
                 'transitNodes',
                 'transitNodesSelected',
-                'transitNodesSelectedErrors',
-                'transitPathWaypointsErrors',
                 'measureToolText',
                 'measureToolLine',
                 'measureToolPoint'

@@ -61,21 +61,12 @@ const selectPath = (pathGeojson) => {
             serviceLocator.eventManager.emit('selected.updateLayers.path');
 
             const nodesGeojsons = transitPathEdit.nodesGeojsons();
+            // FIXME This code is also in the TransitPathEdit file, refactor to avoid duplication
             serviceLocator.eventManager.emit('map.updateLayers', {
                 transitPathsSelected: turfFeatureCollection(pathGeojson.geometry ? [pathGeojson] : []),
                 transitNodesSelected: turfFeatureCollection(nodesGeojsons),
                 transitNodesRoutingRadius: turfFeatureCollection(nodesGeojsons),
-                transitPathWaypoints: turfFeatureCollection(transitPathEdit.waypointsGeojsons()),
-                transitNodesSelectedErrors: turfFeatureCollection(
-                    transitPathEdit.attributes.data.geographyErrors?.nodes
-                        ? transitPathEdit.attributes.data.geographyErrors.nodes
-                        : []
-                ),
-                transitPathWaypointsErrors: turfFeatureCollection(
-                    transitPathEdit.attributes.data.geographyErrors?.waypoints
-                        ? transitPathEdit.attributes.data.geographyErrors.waypoints
-                        : []
-                )
+                transitPathWaypoints: turfFeatureCollection(transitPathEdit.waypointsGeojsons())
             });
         });
     });

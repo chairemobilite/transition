@@ -277,8 +277,11 @@ const layersConfig = {
     transitPathWaypoints: {
         type: 'circle',
         fillColor: [0, 0, 0, 128],
-        strokeColor: [255, 255, 255, 180],
+        strokeColor: (waypoint: GeoJSON.Feature) =>
+            waypoint.properties?.isWaypointInError === true ? [255, 0, 0, 180] : [255, 255, 255, 180],
         strokeWidth: 1,
+        maxRadiusPixels: 13,
+        minRadiusPixels: 3,
         radius: 4,
         radiusScale: 3,
         strokeWidthScale: 3
@@ -288,16 +291,6 @@ const layersConfig = {
         type: 'circle',
         fillColor: [0, 0, 0, 128],
         strokeColor: [255, 255, 255, 220],
-        strokeWidth: 1,
-        radius: 4,
-        radiusScale: 3,
-        strokeWidthScale: 3
-    },
-
-    transitPathWaypointsErrors: {
-        type: 'circle',
-        fillColor: [0, 0, 0, 128],
-        strokeColor: [255, 0, 0, 180],
         strokeWidth: 1,
         radius: 4,
         radiusScale: 3,
@@ -497,41 +490,15 @@ const layersConfig = {
         type: 'circle',
         minZoom: 11,
         fillColor: { type: 'property', property: 'color' },
-        strokeColor: [255, 255, 255],
+        // FIXME: This layer is used for all selected nodes, see if this function causes performance problems and set stroke color directly instead of through an error property
+        strokeColor: (node: GeoJSON.Feature) =>
+            node.properties?.isNodeIsError === true ? [255, 0, 0] : [255, 255, 255],
         strokeWidth: 2,
         radius: 7,
         maxRadiusPixels: 15,
         minRadiusPixels: 5,
         radiusScale: 3,
-        strokeWidthScale: 3,
-        'custom-shader': 'circleSpinner',
-        repaint: true,
-        paint: {
-            'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 0, 0, 10, 2, 15, 12, 20, 23],
-            'circle-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'circle-opacity': 1.0,
-            'circle-stroke-width': ['interpolate', ['exponential', 2], ['zoom'], 0, 0, 10, 0.5, 15, 5, 20, 8],
-            'circle-stroke-opacity': 1.0,
-            'circle-stroke-color': 'rgba(255,255,255,1.0)'
-        }
-    },
-
-    transitNodesSelectedErrors: {
-        type: 'circle',
-        paint: {
-            'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 0, 0, 10, 4, 15, 15, 20, 30],
-            'circle-color': {
-                property: 'color',
-                type: 'identity'
-            },
-            'circle-opacity': 0,
-            'circle-stroke-width': ['interpolate', ['exponential', 2], ['zoom'], 0, 0, 10, 1, 15, 8, 20, 12],
-            'circle-stroke-opacity': 1.0,
-            'circle-stroke-color': 'rgba(255,0,0,1.0)'
-        }
+        strokeWidthScale: 3
     },
 
     transitNodesRoutingRadius: {
