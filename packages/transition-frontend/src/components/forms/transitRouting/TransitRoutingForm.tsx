@@ -122,8 +122,7 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
     resetResults() {
         this.setState({ currentResult: undefined });
         serviceLocator.eventManager.emit('map.updateLayers', {
-            routingPaths: emptyFeatureCollection,
-            routingPathsStrokes: emptyFeatureCollection
+            routingPaths: emptyFeatureCollection
         });
     }
 
