@@ -109,7 +109,6 @@ const defaultPreferences: PreferencesModel = {
             simulations: [
                 'aggregatedOD',
                 'odTripsProfile',
-                'transitStations',
                 'transitNodes',
                 'measureToolText',
                 'measureToolLine',
@@ -118,8 +117,6 @@ const defaultPreferences: PreferencesModel = {
             agencies: [
                 'aggregatedOD',
                 'transitNodesRoutingRadius',
-                'transitStations',
-                'transitStationsSelected',
                 'transitPaths',
                 'transitPathsSelected',
                 'transitPathWaypoints',
@@ -136,11 +133,8 @@ const defaultPreferences: PreferencesModel = {
                 'transitNodes500mRadius',
                 'transitNodes750mRadius',
                 'transitNodes1000mRadius',
-                'isochronePolygons',
                 'transitNodesRoutingRadius',
                 'transitPaths',
-                'transitStations',
-                'transitStationsSelected',
                 'transitNodes',
                 'transitNodesSelected',
                 'measureToolText',
@@ -149,8 +143,7 @@ const defaultPreferences: PreferencesModel = {
             ],
             scenarios: ['transitPathsForServices', 'measureToolText', 'measureToolLine', 'measureToolPoint'],
             routing: [
-                'aggregatedOD' /*'transitPaths', 'transitNodes', 'transitStations', */,
-                'routingPathsStrokes',
+                'aggregatedOD' /*'transitPaths', 'transitNodes' */,
                 'routingPaths',
                 'routingPoints',
                 'measureToolText',
@@ -170,8 +163,6 @@ const defaultPreferences: PreferencesModel = {
             gtfsImport: [
                 'aggregatedOD',
                 'transitNodesRoutingRadius',
-                'transitStations',
-                'transitStationsSelected',
                 'transitPaths',
                 'transitPathsSelected',
                 'transitPathWaypoints',
@@ -182,8 +173,6 @@ const defaultPreferences: PreferencesModel = {
             gtfsExport: [
                 'aggregatedOD',
                 'transitNodesRoutingRadius',
-                'transitStations',
-                'transitStationsSelected',
                 'transitPaths',
                 'transitPathsSelected',
                 'transitPathWaypoints',
