@@ -123,7 +123,10 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
 
     draw(params) {
         // TODO: investigate if using a global timer updated in the MainMap state and sent as prop would be better? I guess not, but we should benchmark at least.
-        params.uniforms.time = this.props.disableAnimation ? 1 : (performance.now() % 10000) /*00*/ / 10000 /*00*/;
+        const animatedArrowProps: AnimatedArrowPathProps = {
+            time: this.props.disableAnimation ? 1 : (performance.now() % 10000) /*00*/ / 10000 /*00*/
+        };
+        this.state.model?.shaderInputs.setProps({ animatedArrowPath: animatedArrowProps });
         super.draw(params);
     }
 
@@ -136,13 +139,12 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
                 out float vLengthRatio;
                 out float vStartOffsetRatio;
                 out float vArrowPathOffset;
-                uniform float time;
             `,
 
             'vs:#main-end': `
                 vLengthRatio = instanceLengthRatios;
                 vStartOffsetRatio = instanceStartOffsetRatios;
-                vArrowPathOffset += ((time) / 30.0) / width.x;
+                vArrowPathOffset += ((animatedArrowPath.time) / 30.0) / width.x;
             `,
 
             'fs:#decl': `
