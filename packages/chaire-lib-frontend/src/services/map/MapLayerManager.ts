@@ -28,7 +28,7 @@ class MapLayerManager {
         for (const layerName in layersConfig) {
             this._layersByName[layerName] = {
                 id: layerName,
-                visible: false,
+                visible: true,
                 configuration: layersConfig[layerName],
                 layerData: defaultGeojson
             };

@@ -78,7 +78,7 @@ interface MainMapState {
         bearing: number;
     };
     time: number;
-    enabledLayers: string[];
+    visibleLayers: string[];
     mapStyleURL: string;
     xyzTileLayer?: Layer; // Temporary! Move this somewhere else
     isDragging: boolean;
@@ -160,7 +160,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 pitch: 0,
                 bearing: 0
             },
-            enabledLayers: [],
+            visibleLayers: [],
             mapStyleURL: Preferences.get('mapStyleURL'),
             xyzTileLayer: xyzTileLayer,
             isDragging: false,
@@ -362,26 +362,37 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         return undefined;
     };
 
+    private updateVisibleLayers = () =>
+        this.setState({
+            visibleLayers: this.layerManager
+                .getEnabledLayers()
+                .filter((layer) => layer.visible)
+                .map((layer) => layer.id)
+        });
+
     /* getEventHandler = (events: MapEventHandlerDescription[]) => {
         return (e) => this.executeEvents(e, events);
     }; */
 
     showLayer = (layerName: string) => {
         this.layerManager.showLayer(layerName);
+        this.updateVisibleLayers();
     };
 
     hideLayer = (layerName: string) => {
         this.layerManager.hideLayer(layerName);
+        this.updateVisibleLayers();
     };
 
     clearFilter = (layerName: string) => {
         this.layerManager.clearFilter(layerName);
+        this.updateVisibleLayers();
     };
 
     updateFilter = (args: { layerName: string; filter: ((feature: GeoJSON.Feature) => 0 | 1) | undefined }) => {
         this.layerManager.updateFilter(args.layerName, args.filter);
         this.updateCounts[args.layerName] = (this.updateCounts[args.layerName] || 0) + 1;
-        this.setState({ enabledLayers: this.layerManager.getEnabledLayers().map((layer) => layer.id) });
+        this.updateVisibleLayers();
     };
 
     setRef = (ref) => {
@@ -466,7 +477,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     }) => {
         this.layerManager.updateLayer(args.layerName, args.data);
         this.updateCounts[args.layerName] = (this.updateCounts[args.layerName] || 0) + 1;
-        this.setState({ enabledLayers: this.layerManager.getEnabledLayers().map((layer) => layer.id) });
+        this.updateVisibleLayers();
     };
 
     updateLayers = (geojsonByLayerName) => {
@@ -474,12 +485,12 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         Object.keys(geojsonByLayerName).forEach(
             (layerName) => (this.updateCounts[layerName] = (this.updateCounts[layerName] || 0) + 1)
         );
-        this.setState({ enabledLayers: this.layerManager.getEnabledLayers().map((layer) => layer.id) });
+        this.updateVisibleLayers();
     };
 
     updateEnabledLayers = (enabledLayers: string[]) => {
         this.layerManager.updateEnabledLayers(enabledLayers);
-        this.setState({ enabledLayers });
+        this.updateVisibleLayers();
     };
 
     showContextMenu = (
@@ -573,7 +584,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 x: pickInfo.x,
                 y: pickInfo.y,
                 radius: 4,
-                layerIds: this.state.enabledLayers
+                layerIds: this.state.visibleLayers
             });
             const objectsByLayer: { [layerName: string]: PickingInfo[] } = {};
             objects.forEach((picked) => {
@@ -636,7 +647,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
 
     render() {
         // TODO: Deck.gl Migration: Should this be a state or a local field (equivalent of useMemo)? To avoid recalculating for every render? See how often we render when the migration is complete
-        const enabledLayers = this.layerManager.getEnabledLayers();
+        const enabledLayers = this.layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
         const layers: Layer[] = enabledLayers
             .map((layer) =>
                 getLayer({
