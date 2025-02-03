@@ -24,7 +24,6 @@
     "@fortawesome/fontawesome-svg-core": "^6.7.1",
     "@fortawesome/free-solid-svg-icons": "^6.7.1",
     "@fortawesome/react-fontawesome": "^0.2.2",
-    "@mapbox/mapbox-gl-draw": "^1.4.3",
     "@turf/turf": "^7.1.0",
     "bcryptjs": "^2.4.3",
     "chaire-lib-common": "^0.2.2",
