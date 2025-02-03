@@ -13,7 +13,7 @@ import { MjolnirGestureEvent } from 'mjolnir.js';
 
 // deck.gl and maps
 import DeckGL from '@deck.gl/react';
-import { Layer, Deck, PickingInfo } from '@deck.gl/core';
+import { Layer, Deck, PickingInfo, WebMercatorViewport } from '@deck.gl/core';
 import { BitmapLayer } from '@deck.gl/layers';
 import { TileLayer } from '@deck.gl/geo-layers';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
@@ -278,6 +278,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.on('map.clearFilter', this.clearFilter);
         serviceLocator.eventManager.on('map.showLayer', this.showLayer);
         serviceLocator.eventManager.on('map.hideLayer', this.hideLayer);
+        serviceLocator.eventManager.on('map.fitBounds', this.fitBounds);
         serviceLocator.eventManager.on('map.paths.byAttribute.show', this.showPathsByAttribute);
         serviceLocator.eventManager.on('map.paths.byAttribute.hide', this.hidePathsByAttribute);
         serviceLocator.eventManager.on('map.paths.clearFilter', this.clearPathsFilter);
@@ -310,12 +311,28 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.off('map.clearFilter', this.clearFilter);
         serviceLocator.eventManager.off('map.showLayer', this.showLayer);
         serviceLocator.eventManager.off('map.hideLayer', this.hideLayer);
+        serviceLocator.eventManager.off('map.fitBounds', this.fitBounds);
         serviceLocator.eventManager.off('map.paths.byAttribute.show', this.showPathsByAttribute);
         serviceLocator.eventManager.off('map.paths.byAttribute.hide', this.hidePathsByAttribute);
         serviceLocator.eventManager.off('map.paths.clearFilter', this.clearPathsFilter);
         serviceLocator.eventManager.off('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.off('map.hideContextMenu', this.hideContextMenu);
         //serviceLocator.eventManager.off('map.deleteSelectedNodes', this.deleteSelectedNodes);
+    };
+
+    fitBounds = (bounds: [[number, number], [number, number]]) => {
+        // Use a mercator viewport to fit the bounds, as suggested by https://stackoverflow.com/questions/69744838/how-to-use-fitbounds-in-deckgl-on-timer-without-npm-and-es6
+        const { latitude, longitude, zoom } = new WebMercatorViewport(this.state.viewState).fitBounds(bounds, {
+            padding: 20
+        });
+        this.setState({
+            viewState: {
+                ...this.state.viewState,
+                latitude,
+                longitude,
+                zoom
+            }
+        });
     };
 
     private executeEvent = (event: MapEventHandlerDescriptor, pointInfo: PointInfo, e: MjolnirGestureEvent) => {
