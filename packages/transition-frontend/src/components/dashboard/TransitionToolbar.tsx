@@ -74,8 +74,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
     }
 
     onUpdateLayers = () => {
-        // FIXME Re-enable layer filter after migration to deck.gl
-        /*   const layersVisibility = {};
+        const layersVisibility = {};
         serviceLocator.layerManager._enabledLayers.forEach((layerName) => {
             layersVisibility[layerName] = serviceLocator.layerManager.layerIsVisible(layerName);
         });
@@ -83,31 +82,29 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
             return {
                 layersVisibility
             };
-        }); */
+        });
     };
 
-    onShowLayer = (_layerName: string) => {
-        // FIXME Re-enable layer filter after migration to deck.gl
-        /*    if (this.state.layersVisibility[layerName] === false) {
+    onShowLayer = (layerName: string) => {
+        if (this.state.layersVisibility[layerName] === false) {
             this.setState((oldState) => {
                 oldState.layersVisibility[layerName] = true;
                 return {
                     layersVisibility: oldState.layersVisibility
                 };
             });
-        } */
+        }
     };
 
-    onHideLayer = (_layerName: string) => {
-        // FIXME Re-enable layer filter after migration to deck.gl
-        /*    if (this.state.layersVisibility[layerName] === true) {
+    onHideLayer = (layerName: string) => {
+        if (this.state.layersVisibility[layerName] === true) {
             this.setState((oldState) => {
                 oldState.layersVisibility[layerName] = false;
                 return {
                     layersVisibility: oldState.layersVisibility
                 };
             });
-        } */
+        }
     };
 
     onUpdateCoordinates = (coordinates: [number, number]) => {
