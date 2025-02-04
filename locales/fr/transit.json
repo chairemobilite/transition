@@ -116,7 +116,10 @@
             "NameIsRequired": "Le nom est requis",
             "ServicesAreRequired": "Au moins un service doit être sélectionné"
         },
-        "SaveToCache": "Archiver les scénarios"
+        "SaveToCache": "Archiver les scénarios",
+        "CloseHelpText": "Fermer",
+        "ShowHelpText": "Qu'est-ce qu'un scénario?",
+        "HelpText": "Un Scénario est une configuration de réseau qui vous permet de modéliser différentes possibilités de transport. Il permet de : <br/> - Inclure ou exclure des lignes, des agences ou des modes de transport spécifiques <br/>- Créer des plans de réseau alternatifs pour comparaison <br/>- Tester des changements potentiels du réseau de transport<br/><br/>Exemple : « Service réduit d'été » ou « Réseau de nouvelles lignes proposé »"
     },
     "transitService": {
         "List": "Services",
@@ -154,7 +157,10 @@
             "StartDateIsRequired": "La date de début de validité est requise.",
             "EndDateIsRequired": "La date de fin de validité est requise."
         },
-        "SaveToCache": "Archiver les services"
+        "SaveToCache": "Archiver les services",
+        "CloseHelpText": "Fermer",
+        "ShowHelpText": "Qu'est-ce qu'un service?",
+        "HelpText": "Un Service définit quand et comment les lignes de transport fonctionnent. Il précise : <br/>- Jours d'exploitation (jours de semaine, week-end) <br/>- Période active <br/>- Horaires spécifiques <br/><br/>Exemple : « Horaire du métro en semaine - Passage toutes les 10 minutes de 6h à 22h »"
     },
     "transitSchedule": {
         "Schedules": "Horaires",
@@ -465,9 +471,9 @@
         "MinDwellTimeSecondsHelp": "À chacun des noeuds associés à ce parcours, le temps d'arrêt utilisé est la plus grande valeur entre le temps d'arrêt par défaut à ce noeud (vous pouvez modifier cette valeur en sélectionnant le noeud dans la section Noeuds d'arrêt) et la valeur inscrite ici pour le parcours. Si la case ci-dessous est également cochée, les temps d'arrêts spécifiés dans les noeuds associés à ce parcours seront ignorés et remplacés par le temps d'arrêt par défaut de ce parcours.",
         "UpdateSchedules": "Mettre à jour les horaires automatiquement",
         "ClickOnTransitNodeToStart": "Sélectionner un noeud d'arrêt pour débuter le parcours",
-        "PathEditMapDoc": "Clic sur un noeud: Ajouter le noeud à la fin du parcours<br />Clic sur la carte: Ajout d'un point de repère<br />Shift-clic sur noeud: Ajout du noeud au début du parcours<br />Alt-clic sur noeud: Enlever le noeud<br />m: Activer le mode manuel de calcul de parcours<br />Clic sur la ligne + glisser le point de repère et déposer sur un noeud: Ajout d'un noeud en milieu de parcours",
-        "ShowPathEditHelp": "Montrer l'aide pour l'édition de parcours",
-        "HidePathEditHelp": "Cacher l'aide pour l'édition de parcours",
+        "HelpText": "Clic sur un noeud: Ajouter le noeud à la fin du parcours<br />Clic sur la carte: Ajout d'un point de repère<br />Shift-clic sur noeud: Ajout du noeud au début du parcours<br />Alt-clic sur noeud: Enlever le noeud<br />m: Activer le mode manuel de calcul de parcours<br />Clic sur la ligne + glisser le point de repère et déposer sur un noeud: Ajout d'un noeud en milieu de parcours",
+        "ShowHelpText": "Montrer l'aide pour l'édition de parcours",
+        "CloseHelpText": "Fermer l'aide pour l'édition de parcours",
         "warningFromGtfs": "Attention! Ce parcours a été importé d'un GTFS. Le recalculer pourrait changer le tracé ou les temps de parcours.",
         "directions": {
             "loop": "Boucle",
