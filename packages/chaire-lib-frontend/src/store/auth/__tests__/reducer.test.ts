@@ -40,14 +40,16 @@ test('Test a login status', () => {
 
 test('Test a logout status', () => {
     const action = {
-        type: 'LOGOUT' as any,
+        type: AuthActionTypes.LOGOUT as const,
         user: null,
-        isAuthenticated: false
+        isAuthenticated: false,
+        register: false
     };
 
     const result =  {
         user: null,
-        isAuthenticated: false
+        isAuthenticated: false,
+        register: false
     };
 
     expect(authReducer({
