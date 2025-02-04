@@ -17,6 +17,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import TransitServiceButton from './TransitServiceButton';
 import ButtonList from '../../parts/ButtonList';
+import ToggleableHelp from 'chaire-lib-frontend/lib/components/pageParts/ToggleableHelp';
 
 interface ServiceListProps extends WithTranslation {
     serviceCollection: ServiceCollection;
@@ -61,14 +62,17 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
 
     return (
         <div className="tr__list-transit-services-container">
-            <h3>
-                <img
-                    src={'/dist/images/icons/transit/service_white.svg'}
-                    className="_icon"
-                    alt={props.t('transit:transitService:Service')}
-                />{' '}
-                {props.t('transit:transitService:List')}
-            </h3>
+            <div className="tr__section-header-container">
+                <h3 className="tr__section-header-container__title">
+                    <img
+                        src={'/dist/images/icons/transit/service_white.svg'}
+                        className="_icon"
+                        alt={props.t('transit:transitService:Service')}
+                    />{' '}
+                    {props.t('transit:transitService:List')}
+                </h3>
+                <ToggleableHelp namespace="transit" section="transitService" />
+            </div>
             <ButtonList key="services">
                 {props.serviceCollection &&
                     props.serviceCollection

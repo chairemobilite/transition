@@ -11,9 +11,9 @@ import { bbox as turfBbox } from '@turf/turf';
 import Path from 'transition-common/lib/services/path/Path';
 import TransitPathNodeButton from './TransitPathNodeButton';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import TransitPathHelp from '../../path/TransitPathHelp';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import ToggleableHelp from 'chaire-lib-frontend/lib/components/pageParts/ToggleableHelp';
 
 interface PathListProps extends WithTranslation {
     selectedPath: Path;
@@ -43,7 +43,7 @@ const TransitPathNodeList: React.FunctionComponent<PathListProps> = (props: Path
                 className="tr__list-transit-paths-nodes-list-container"
                 style={{ display: 'flex', justifyContent: 'left' }}
             >
-                <TransitPathHelp />
+                <ToggleableHelp namespace="transit" section="transitPath" />
                 <p className="_orange">{props.t('transit:transitPath:ClickOnTransitNodeToStart')}</p>
             </div>
         );
@@ -77,7 +77,7 @@ const TransitPathNodeList: React.FunctionComponent<PathListProps> = (props: Path
             className="tr__list-transit-paths-nodes-list-container"
             style={{ display: 'flex', justifyContent: 'left' }}
         >
-            <TransitPathHelp />
+            <ToggleableHelp namespace="transit" section="transitPath" />
             <ul className="tr__list-transit-paths-nodes _path-node-list-container">
                 {nodesButtons}
                 {/* Add layover at the end: */}

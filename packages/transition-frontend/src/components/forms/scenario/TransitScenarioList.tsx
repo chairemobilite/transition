@@ -16,6 +16,7 @@ import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import TransitScenarioButton from './TransitScenarioButton';
 import ButtonList from '../../parts/ButtonList';
+import ToggleableHelp from 'chaire-lib-frontend/lib/components/pageParts/ToggleableHelp';
 
 interface ScenarioListProps extends WithTranslation {
     scenarioCollection: ScenarioCollection;
@@ -32,14 +33,17 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
 
     return (
         <div className="tr__list-transit-scenarios-container">
-            <h3>
-                <img
-                    src={'/dist/images/icons/transit/scenario_white.svg'}
-                    className="_icon"
-                    alt={props.t('transit:transitScenario:Scenario')}
-                />{' '}
-                {props.t('transit:transitScenario:List')}
-            </h3>
+            <div className="tr__section-header-container">
+                <h3 className="tr__section-header-container__title">
+                    <img
+                        src={'/dist/images/icons/transit/scenario_white.svg'}
+                        className="_icon"
+                        alt={props.t('transit:transitScenario:Scenario')}
+                    />{' '}
+                    {props.t('transit:transitScenario:List')}
+                </h3>
+                <ToggleableHelp namespace="transit" section="transitScenario" />
+            </div>
             <ButtonList key="scenarios">
                 {props.scenarioCollection &&
                     props.scenarioCollection
