@@ -116,7 +116,10 @@
             "NameIsRequired": "Name is required",
             "ServicesAreRequired": "At least one service must be selected"
         },
-        "SaveToCache": "Archive scenarios"
+        "SaveToCache": "Archive scenarios",
+        "HideHelpText": "Hide",
+        "ShowHelpText": "What is a scenario?",
+        "HelpText": "A Scenario is a network configuration that allows you to model different transit possibilities. It lets you:<br/>- Include or exclude specific lines, agencies, or transit modes <br/>- Create alternative network plans for comparison <br/>- Test potential transit network changes <br/><br/>Example: \"Summer Reduced Service\" or \"Proposed New Line Network\""
     },
     "transitService": {
         "List": "Services",

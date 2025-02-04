@@ -116,7 +116,10 @@
             "NameIsRequired": "Le nom est requis",
             "ServicesAreRequired": "Au moins un service doit être sélectionné"
         },
-        "SaveToCache": "Archiver les scénarios"
+        "SaveToCache": "Archiver les scénarios",
+        "HideHelpText": "Cacher",
+        "ShowHelpText": "Qu'est-ce qu'un scénario?",
+        "HelpText": "Un Scénario est une configuration de réseau qui vous permet de modéliser différentes possibilités de transport. Il permet de : <br/> - Inclure ou exclure des lignes, des agences ou des modes de transport spécifiques <br/>- Créer des plans de réseau alternatifs pour comparaison <br/>- Tester des changements potentiels du réseau de transport <br/>Exemple : « Service réduit d'été » ou « Réseau de nouvelles lignes proposé »"
     },
     "transitService": {
         "List": "Services",
