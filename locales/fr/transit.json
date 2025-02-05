@@ -119,7 +119,7 @@
         "SaveToCache": "Archiver les scénarios",
         "HideHelpText": "Cacher",
         "ShowHelpText": "Qu'est-ce qu'un scénario?",
-        "HelpText": "Un Scénario est une configuration de réseau qui vous permet de modéliser différentes possibilités de transport. Il permet de : <br/> - Inclure ou exclure des lignes, des agences ou des modes de transport spécifiques <br/>- Créer des plans de réseau alternatifs pour comparaison <br/>- Tester des changements potentiels du réseau de transport <br/>Exemple : « Service réduit d'été » ou « Réseau de nouvelles lignes proposé »"
+        "HelpText": "Un Scénario est une configuration de réseau qui vous permet de modéliser différentes possibilités de transport. Il permet de : <br/> - Inclure ou exclure des lignes, des agences ou des modes de transport spécifiques <br/>- Créer des plans de réseau alternatifs pour comparaison <br/>- Tester des changements potentiels du réseau de transport<br/><br/>Exemple : « Service réduit d'été » ou « Réseau de nouvelles lignes proposé »"
     },
     "transitService": {
         "List": "Services",
@@ -157,7 +157,10 @@
             "StartDateIsRequired": "La date de début de validité est requise.",
             "EndDateIsRequired": "La date de fin de validité est requise."
         },
-        "SaveToCache": "Archiver les services"
+        "SaveToCache": "Archiver les services",
+        "HideHelpText": "Cacher",
+        "ShowHelpText": "Qu'est-ce qu'un service?",
+        "HelpText": "Un Service définit quand et comment les lignes de transport fonctionnent. Il précise : <br/>- Jours d'exploitation (jours de semaine, week-end) <br/>- Période active <br/>- Horaires spécifiques <br/><br/>Exemple : « Horaire du métro en semaine - Passage toutes les 10 minutes de 6h à 22h »"
     },
     "transitSchedule": {
         "Schedules": "Horaires",

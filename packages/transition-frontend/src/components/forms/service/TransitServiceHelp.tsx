@@ -10,14 +10,14 @@ import { faInfoCircle } from '@fortawesome/free-solid-svg-icons/faInfoCircle';
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 
-const TransitScenarioHelp: React.FunctionComponent<WithTranslation> = function (props: WithTranslation) {
+const TransitServiceHelp: React.FunctionComponent<WithTranslation> = function (props: WithTranslation) {
     const [showHelp, setShowHelp] = useState(false);
     return (
         <div
             title={
                 showHelp
-                    ? props.t('transit:transitScenario:HideHelpText')
-                    : props.t('transit:transitScenario:ShowHelpText')
+                    ? props.t('transit:transitService:HideHelpText')
+                    : props.t('transit:transitService:ShowHelpText')
             }
             style={{ padding: 10, flexShrink: 1, maxWidth: '100%', overflow: 'auto' }}
         >
@@ -38,12 +38,12 @@ const TransitScenarioHelp: React.FunctionComponent<WithTranslation> = function (
                         overflow: 'hidden',
                         textOverflow: 'ellipsis'
                     }}
-                    dangerouslySetInnerHTML={{ __html: props.t('transit:transitScenario:HelpText') }}
+                    dangerouslySetInnerHTML={{ __html: props.t('transit:transitService:HelpText') }}
                 ></p>
             )}
         </div>
     );
 };
 
-export default withTranslation('transit')(TransitScenarioHelp);
+export default withTranslation('transit')(TransitServiceHelp);
 
