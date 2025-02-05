@@ -157,7 +157,10 @@
             "StartDateIsRequired": "Validity period start date is required.",
             "EndDateIsRequired": "Validity period end date is required."
         },
-        "SaveToCache": "Archive services"
+        "SaveToCache": "Archive services",
+        "HideHelpText": "Hide",
+        "ShowHelpText": "What is a service?",
+        "HelpText": "A Service defines when and how transit lines operate. It specifies: <br/>- Operating days (weekdays, weekends) <br/>- Active date range <br/>- Specific schedule times<br/><br/>Example: \"Weekday Metro Schedule - Running every 10 minutes from 6 AM to 10 PM\""
     },
     "transitSchedule": {
         "Schedules": "Timetables",

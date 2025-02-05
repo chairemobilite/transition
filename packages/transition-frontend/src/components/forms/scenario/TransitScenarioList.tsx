@@ -33,8 +33,16 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
 
     return (
         <div className="tr__list-transit-scenarios-container">
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start' }}>
-                <h3 style={{ padding: '15px 0 0 10px' }}>
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    maxWidth: '100%',
+                    overflow: 'hidden'
+                }}
+            >
+                <h3 style={{ padding: '15px 0 0 10px', flexShrink: 0 }}>
                     <img
                         src={'/dist/images/icons/transit/scenario_white.svg'}
                         className="_icon"
@@ -57,20 +65,18 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
                         ))}
             </ButtonList>
 
-            {
-                !props.selectedScenario && (
-                    <div className="tr__form-buttons-container">
-                        <Button
-                            color="blue"
-                            icon={faPlus}
-                            iconClass="_icon"
-                            label={props.t('transit:transitScenario:New')}
-                            onClick={newScenario}
-                        />
-                    </div>
-                )
-            }
-        </div >
+            {!props.selectedScenario && (
+                <div className="tr__form-buttons-container">
+                    <Button
+                        color="blue"
+                        icon={faPlus}
+                        iconClass="_icon"
+                        label={props.t('transit:transitScenario:New')}
+                        onClick={newScenario}
+                    />
+                </div>
+            )}
+        </div>
     );
 };
 
