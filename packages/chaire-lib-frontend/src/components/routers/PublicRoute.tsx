@@ -4,30 +4,22 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { PropsWithChildren } from 'react';
+import React from 'react';
 import { RouteProps } from 'react-router';
-import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
 
+import config from 'chaire-lib-common/lib/config/shared/project.config';
 import { Header } from '../pageParts';
 
-/*const mapStateToProps = (state) => ({
-    isAuthenticated: !!state.auth.uuid
-});*/
 type PublicRouteProps = RouteProps & {
-    isAuthenticated: boolean;
     component: any;
     componentProps?: { [prop: string]: unknown };
-    user?: CliUser;
-    config?: { [key: string]: unknown };
-} & PropsWithChildren;
-
-const PublicRoute = ({ component: Component, children: _children, ...rest }: PublicRouteProps) => {
-    return (
-        <React.Fragment>
-            <Header path={rest.path as string} appName={rest.config?.appName as string} />
-            <Component {...rest.componentProps} config={rest.config} />
-        </React.Fragment>
-    );
 };
+
+const PublicRoute = ({ component: Component, children: _children, ...rest }: PublicRouteProps) => (
+    <React.Fragment>
+        <Header path={rest.path as string} appName={config?.appName as string} />
+        <Component {...rest.componentProps} config={config} />
+    </React.Fragment>
+);
 
 export default PublicRoute;
