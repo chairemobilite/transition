@@ -6,7 +6,6 @@
  */
 import React from 'react';
 import { Route, Routes } from 'react-router';
-import { useSelector } from 'react-redux';
 
 import DashboardTransition from '../dashboard/TransitionDashboard';
 import { MainMapProps } from '../map/TransitionMainMap';
@@ -25,94 +24,24 @@ import { DashboardContribution } from 'chaire-lib-frontend/lib/services/dashboar
 type TransitionRouterProps = {
     contributions: DashboardContribution[];
     mainMap: React.ComponentType<MainMapProps>;
-    config: any;
 };
 
 const TransitionRouter: React.FunctionComponent<TransitionRouterProps> = (props: TransitionRouterProps) => {
-    //const navigate = useNavigate();
-    //const location = useLocation();
-    const auth = useSelector((state: any) => ({
-        isAuthenticated: state.auth.isAuthenticated,
-        user: state.auth.user
-    }));
-
     return (
         <Routes>
-            <Route
-                path="/register"
-                element={
-                    <PublicRoute
-                        isAuthenticated={auth.isAuthenticated}
-                        component={RegisterPage}
-                        config={{ ...props.config, queryString: location.search }}
-                    />
-                }
-            />
-            <Route
-                path="/forgot"
-                element={
-                    <PublicRoute
-                        isAuthenticated={auth.isAuthenticated}
-                        component={ForgotPage}
-                        config={{ ...props.config, queryString: location.search }}
-                    />
-                }
-            />
-            <Route
-                path="/unconfirmed"
-                element={
-                    <PublicRoute
-                        isAuthenticated={auth.isAuthenticated}
-                        component={UnconfirmedPage}
-                        config={{ ...props.config, queryString: location.search }}
-                    />
-                }
-            />
-            <Route
-                path="/verify/:token"
-                element={
-                    <PublicRoute
-                        isAuthenticated={auth.isAuthenticated}
-                        component={VerifyPage}
-                        config={{ ...props.config, queryString: location.search }}
-                    />
-                }
-            />
-            <Route
-                path="/reset/:token"
-                element={
-                    <PublicRoute
-                        isAuthenticated={auth.isAuthenticated}
-                        component={ResetPasswordPage}
-                        config={{ ...props.config, queryString: location.search }}
-                    />
-                }
-            />
-            <Route
-                path="/unauthorized"
-                element={
-                    <PublicRoute
-                        isAuthenticated={auth.isAuthenticated}
-                        component={UnauthorizedPage}
-                        config={{ ...props.config, queryString: location.search }}
-                    />
-                }
-            />
-            <Route
-                path="/login"
-                element={
-                    <PublicRoute isAuthenticated={auth.isAuthenticated} component={LoginPage} config={props.config} />
-                }
-            />
+            <Route path="/register" element={<PublicRoute component={RegisterPage} />} />
+            <Route path="/forgot" element={<PublicRoute component={ForgotPage} />} />
+            <Route path="/unconfirmed" element={<PublicRoute component={UnconfirmedPage} />} />
+            <Route path="/verify/:token" element={<PublicRoute component={VerifyPage} />} />
+            <Route path="/reset/:token" element={<PublicRoute component={ResetPasswordPage} />} />
+            <Route path="/unauthorized" element={<PublicRoute component={UnauthorizedPage} />} />
+            <Route path="/login" element={<PublicRoute component={LoginPage} />} />
             <Route
                 path="/"
                 element={
                     <PrivateRoute
-                        isAuthenticated={auth.isAuthenticated}
-                        user={auth.user}
                         component={DashboardTransition}
                         componentProps={{ contributions: props.contributions, mainMap: props.mainMap }}
-                        config={props.config}
                     />
                 }
             />
@@ -120,11 +49,8 @@ const TransitionRouter: React.FunctionComponent<TransitionRouterProps> = (props:
                 path="/"
                 element={
                     <PrivateRoute
-                        isAuthenticated={auth.isAuthenticated}
-                        user={auth.user}
                         component={DashboardTransition}
                         componentProps={{ contributions: props.contributions, mainMap: props.mainMap }}
-                        config={props.config}
                     />
                 }
             />
@@ -132,11 +58,8 @@ const TransitionRouter: React.FunctionComponent<TransitionRouterProps> = (props:
                 path="/dashboard"
                 element={
                     <PrivateRoute
-                        isAuthenticated={auth.isAuthenticated}
-                        user={auth.user}
                         component={DashboardTransition}
                         componentProps={{ contributions: props.contributions, mainMap: props.mainMap }}
-                        config={props.config}
                     />
                 }
             />
@@ -144,11 +67,8 @@ const TransitionRouter: React.FunctionComponent<TransitionRouterProps> = (props:
                 path="/home"
                 element={
                     <PrivateRoute
-                        isAuthenticated={auth.isAuthenticated}
-                        user={auth.user}
                         component={DashboardTransition}
                         componentProps={{ contributions: props.contributions, mainMap: props.mainMap }}
-                        config={props.config}
                     />
                 }
             />

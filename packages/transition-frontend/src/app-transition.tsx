@@ -52,7 +52,7 @@ const jsx = (
     <Provider store={store}>
         <I18nextProvider i18n={i18n}>
             <BrowserRouter>
-                <TransitionRouter contributions={contributions} config={config} mainMap={MainMap as any} />
+                <TransitionRouter contributions={contributions} mainMap={MainMap as any} />
             </BrowserRouter>
         </I18nextProvider>
     </Provider>
