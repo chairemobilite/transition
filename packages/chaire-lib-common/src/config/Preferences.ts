@@ -322,7 +322,26 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
 
     // TODO: type this:
     public get(path: string, defaultValue: unknown = undefined): any {
-        return super.get(path, defaultValue);
+        // FIXME This is for the deck.gl migration, the colors now have a new
+        // format (hexadecimal instead of rgba). Remove this `if` block after a
+        // while
+        const value = super.get(path, defaultValue);
+        if (path.toLocaleLowerCase().includes('color')) {
+            if (typeof value === 'string' && value.startsWith('rgba')) {
+                // Convert rgba to hex
+                const rgba = value.split(',');
+                const r = parseInt(rgba[0].split('(')[1], 10);
+                const g = parseInt(rgba[1], 10);
+                const b = parseInt(rgba[2], 10);
+                const a = parseFloat(rgba[3].split(')')[0]);
+                const hex = `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+                const alphaHex = Math.round(a * 255)
+                    .toString(16)
+                    .padStart(2, '0');
+                return `${hex}${alphaHex}`;
+            }
+        }
+        return value;
     }
 
     /**
