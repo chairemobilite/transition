@@ -688,6 +688,13 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                         onViewStateChange={this.onViewStateChange}
                         onClick={this.onClick}
                         getTooltip={this.onTooltip}
+                        getCursor={({ isHovering, isDragging }) => {
+                            // Show a crosshair cursor when the measure tool is enabled
+                            if (this.state.measureToolEnabled) {
+                                return 'crosshair';
+                            }
+                            return isDragging ? 'grabbing' : isHovering ? 'pointer' : 'grab';
+                        }}
                     >
                         <MapLibreMap mapStyle={this.state.mapStyleURL} />
                     </DeckGL>

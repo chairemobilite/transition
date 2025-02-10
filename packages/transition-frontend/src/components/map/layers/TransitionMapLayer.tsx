@@ -214,6 +214,13 @@ const getCommonProperties = (
     }
     const filterProperties = getLayerFeatureFilter(props, config);
     Object.assign(layerProperties, filterProperties);
+    const pickable =
+        config.pickable === undefined
+            ? true
+            : typeof config.pickable === 'function'
+                ? config.pickable()
+                : config.pickable;
+    layerProperties.pickable = pickable;
     return layerProperties;
 };
 
@@ -258,13 +265,6 @@ const getCommonLineProperties = (
         layerProperties.jointRounded = jointRounded;
     }
 
-    const pickable =
-        config.pickable === undefined
-            ? true
-            : typeof config.pickable === 'function'
-                ? config.pickable()
-                : config.pickable;
-    layerProperties.pickable = pickable;
     return layerProperties;
 };
 
@@ -507,12 +507,7 @@ const getScatterLayer = (
         // Keep the contour width at 1/3 of the circle radius if the radius is a number
         layerProperties.lineWidthMaxPixels = typeof maxRadiusPixels === 'number' ? maxRadiusPixels / 3 : undefined;
     }
-    const pickable =
-        config.pickable === undefined
-            ? true
-            : typeof config.pickable === 'function'
-                ? config.pickable()
-                : config.pickable;
+
     return [
         new ScatterplotLayer({
             id: props.layerDescription.id,
@@ -524,7 +519,6 @@ const getScatterLayer = (
                 getPosition: props.updateCount,
                 getFillColor: props.updateCount
             },
-            pickable,
             ...eventsToAdd,
             ...layerProperties
         })
