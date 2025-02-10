@@ -179,8 +179,10 @@
         },
         "OutboundPath": "Parcours aller",
         "InboundPath": "Parcours retour",
-        "IntervalMinutes": "Intervalle (min.)",
-        "IntervalSeconds": "Intervalle (sec.)",
+        "outboundIntervalMinutes": "Intervalle aller (min.)",
+        "inboundIntervalMinutes": "Intervalle retour (min.)",
+        "outboundIntervalSeconds": "Intervalle aller (sec.)",
+        "inboundIntervalSeconds": "Intervalle retour (sec.)",
         "NumberOfUnits": "Nombre d'unités (véhicles)",
         "requiredUnits": "unités requises",
         "CalculatedInterval": "Intervalle calculée",
@@ -196,8 +198,11 @@
         "Periods": "Périodes",
         "PeriodsGroup": "Groupe de périodes",
         "PeriodsGroups": "Groupes de périodes",
+        "ScheduleGeneratingMode": "Mode de génération de l'horaire",
         "nTrip": "{{n}} voyage",
-        "nTrips": "{{n}} voyages"
+        "nTrips": "{{n}} voyages",
+        "SymmetricSchedule": "Horaires symétriques",
+        "AsymmetricSchedule": "Horaires asymétriques"
     },
     "transitUnit": {
         "List": "Unités",
