@@ -15,7 +15,7 @@ import * as LayerDescription from 'chaire-lib-frontend/lib/services/map/layers/L
 import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo, TextLayer } from 'deck.gl';
 import { MjolnirGestureEvent } from 'mjolnir.js';
 import { DataFilterExtension } from '@deck.gl/extensions';
-import AnimatedArrowPathLayer from './AnimatedArrowPathLayer';
+import AnimatedArrowPathExtension from './AnimatedArrowPathLayerExtension';
 
 /*const layer = new ScatterplotLayer({
     lineWidthUnits
@@ -296,7 +296,7 @@ const getAnimatedArrowPathLayer = (
     props: TransitionMapLayerProps,
     config: LayerDescription.AnimatedPathLayerConfiguration,
     eventsToAdd
-): AnimatedArrowPathLayer | undefined => {
+): PathLayer | undefined => {
     const layerProperties: any = getCommonLineProperties(props, config);
     // The layer is not to be displayed, don't add it
     if (layerProperties === undefined) {
@@ -304,16 +304,12 @@ const getAnimatedArrowPathLayer = (
     }
     const id = props.layerDescription.id;
     const features = props.layerDescription.layerData.features;
-    return new AnimatedArrowPathLayer({
+    return new PathLayer({
         id,
         data: features,
         getPath: (d) => d.geometry.coordinates,
         //animationID: props.animationID,
         time: props.time,
-        /*updateTriggers: {
-            getPath: props.updateCount,
-            getColor: props.updateCount
-        },*/
         //updateTriggers: {
         //    getPath: props.updateCount,
         //    getColor: props.updateCount
@@ -322,6 +318,7 @@ const getAnimatedArrowPathLayer = (
         //widthMaxPixels: 50,
         //speedDivider: 10,
         disableAnimation: Preferences.get('map.enableMapAnimations', true) ? false : true,
+        extensions: [new AnimatedArrowPathExtension()],
         ...eventsToAdd,
         ...layerProperties
     });
