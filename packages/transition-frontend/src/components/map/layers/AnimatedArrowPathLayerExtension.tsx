@@ -4,8 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { DefaultProps } from '@deck.gl/core';
-import { PathLayer, PathLayerProps } from '@deck.gl/layers';
+import { DefaultProps, Layer, LayerContext, LayerExtension } from '@deck.gl/core';
 
 import type { ShaderModule } from '@luma.gl/shadertools';
 import { vec3 } from 'gl-matrix';
@@ -20,18 +19,7 @@ type AnimatedArrowPathProps = {
     time: number;
 };
 
-export const animatedArrowPathUniforms = {
-    name: 'animatedArrowPath',
-    vs: uniformBlock,
-    fs: uniformBlock,
-    uniformTypes: {
-        time: 'f32'
-    }
-} as const satisfies ShaderModule<AnimatedArrowPathProps>;
-
-export type AnimatedArrowPathLayerProps<DataT = unknown> = _AnimatedArrowPathLayerProps & PathLayerProps<DataT>;
-
-const defaultProps: DefaultProps<AnimatedArrowPathLayerProps> = {
+const defaultProps: DefaultProps<_AnimatedArrowPathLayerProps> = {
     time: { type: 'number', value: 0, min: 0, max: 1 },
     disableAnimation: { type: 'boolean', value: false }
 };
@@ -44,30 +32,26 @@ type _AnimatedArrowPathLayerProps = {
     disableAnimation: boolean;
 };
 
-export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends object = object> extends PathLayer<
-    DataT,
-    Required<_AnimatedArrowPathLayerProps> & ExtraProps
-> {
+export default class AnimatedArrowPathExtension extends LayerExtension {
     static layerName = 'AnimatedArrowPathLayer';
     static defaultProps = defaultProps;
 
-    initializeState() {
-        super.initializeState();
+    initializeState(this: Layer<_AnimatedArrowPathLayerProps>, context: LayerContext, extension: this) {
         this.getAttributeManager()?.addInstanced({
             instanceStartOffsetRatios: {
                 size: 1,
                 accessor: 'getPath',
-                transform: this.getStartOffsetRatios
+                transform: extension.getStartOffsetRatios.bind(this)
             },
             instanceLengthRatios: {
                 size: 1,
                 accessor: 'getPath',
-                transform: this.getLengthRatios
+                transform: extension.getLengthRatios.bind(this)
             }
         });
     }
 
-    getStartOffsetRatios = (path): number[] => {
+    getStartOffsetRatios(this: Layer<_AnimatedArrowPathLayerProps>, path): number[] {
         const result = [0] as number[];
         if (path === undefined || path.length < 2) {
             return result;
@@ -94,9 +78,9 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
             result[i] = result[i] / sumLength;
         }
         return result;
-    };
+    }
 
-    getLengthRatios = (path): number[] => {
+    getLengthRatios(this: Layer<AnimatedArrowPathProps>, path): number[] {
         const result = [] as number[];
         if (path === undefined || path.length < 2) {
             return result;
@@ -119,20 +103,18 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
             result[i] = result[i] / sumLength;
         }
         return result;
-    };
+    }
 
-    draw(params) {
+    draw(this: Layer<_AnimatedArrowPathLayerProps>, _params: any, _extension: this) {
         // TODO: investigate if using a global timer updated in the MainMap state and sent as prop would be better? I guess not, but we should benchmark at least.
         const animatedArrowProps: AnimatedArrowPathProps = {
             time: this.props.disableAnimation ? 1 : (performance.now() % 10000) /*00*/ / 10000 /*00*/
         };
-        this.state.model?.shaderInputs.setProps({ animatedArrowPath: animatedArrowProps });
-        super.draw(params);
+        (this.state.model as any)?.shaderInputs.setProps({ animatedArrowPath: animatedArrowProps });
     }
 
-    getShaders() {
-        const shaders = super.getShaders();
-        shaders.inject = {
+    getShaders(this: Layer<_AnimatedArrowPathLayerProps>) {
+        const inject = {
             'vs:#decl': `
                 in float instanceLengthRatios;
                 in float instanceStartOffsetRatios;
@@ -180,7 +162,18 @@ export default class AnimatedArrowPathLayer<DataT = any, ExtraProps extends obje
                 }
             `
         };
-        shaders.modules = [...shaders.modules, animatedArrowPathUniforms];
-        return shaders;
+        return {
+            modules: [
+                {
+                    name: 'animatedArrowPath',
+                    vs: uniformBlock,
+                    fs: uniformBlock,
+                    uniformTypes: {
+                        time: 'f32'
+                    },
+                    inject
+                } as ShaderModule<any>
+            ]
+        };
     }
 }
