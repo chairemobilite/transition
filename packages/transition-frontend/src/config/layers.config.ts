@@ -162,7 +162,8 @@ const layersConfig = {
         widthMinPixels: 5,
         widthMaxPixels: 13,
         capRounded: true,
-        jointRounded: true
+        jointRounded: true,
+        pickable: false
     },
 
     transitPaths: {
