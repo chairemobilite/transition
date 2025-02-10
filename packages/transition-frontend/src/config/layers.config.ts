@@ -153,22 +153,14 @@ const layersConfig = {
         pickable: false
     },
 
-    routingPathsStrokes: {
-        type: 'line',
-        color: { type: 'property', property: 'color' }, //'#ffffffff',
-        opacity: 0.7,
-        width: 6,
-        widthScale: 1.5,
-        capRounded: true,
-        jointRounded: true
-    },
-
     routingPaths: {
         type: 'animatedArrowPath',
+        stroked: true,
         color: { type: 'property', property: 'color' },
         width: 10,
         widthScale: 1,
         widthMinPixels: 5,
+        widthMaxPixels: 13,
         capRounded: true,
         jointRounded: true
     },
@@ -193,6 +185,7 @@ const layersConfig = {
         opacity: 0.8,
         widthScale: 4,
         widthMinPixels: 2,
+        widthMaxPixels: 6,
         capRounded: true,
         jointRounded: true,
         autoHighlight: true
@@ -200,10 +193,12 @@ const layersConfig = {
 
     transitPathsSelected: {
         type: 'animatedArrowPath',
+        stroked: true,
         color: { type: 'property', property: 'color' },
         width: 10,
         widthScale: 1,
         widthMinPixels: 5,
+        widthMaxPixels: 13,
         capRounded: true,
         jointRounded: true
     },
