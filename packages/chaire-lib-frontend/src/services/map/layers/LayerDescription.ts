@@ -115,6 +115,10 @@ export type BaseLineLayerConfiguration = CommonLayerConfiguration & {
      * Whether the line joints should be rounded
      */
     jointRounded?: boolean;
+    /**
+     * Whether to add a contour to the line. Defaults to `false`
+     */
+    stroked?: boolean;
 };
 
 export type LineLayerConfiguration = BaseLineLayerConfiguration & {

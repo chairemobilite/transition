@@ -12,7 +12,7 @@ import {
     MapLayerEventHandlerDescriptor
 } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import * as LayerDescription from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
-import { ScatterplotLayer, PathLayer, GeoJsonLayer, PickingInfo, TextLayer } from 'deck.gl';
+import { ScatterplotLayer, GeoJsonLayer, PickingInfo, TextLayer, PathLayer } from 'deck.gl';
 import { MjolnirGestureEvent } from 'mjolnir.js';
 import { DataFilterExtension } from '@deck.gl/extensions';
 import AnimatedArrowPathExtension from './AnimatedArrowPathLayerExtension';
@@ -268,35 +268,63 @@ const getCommonLineProperties = (
     return layerProperties;
 };
 
+const getStrokedLayer = (props: TransitionMapLayerProps, layerProperties: any): PathLayer => {
+    const id = props.layerDescription.id;
+    const features = props.layerDescription.layerData.features;
+    return new PathLayer({
+        id: `${id}-contour`,
+        data: features,
+        getPath: (d) => d.geometry.coordinates,
+        updateTriggers: {
+            getPath: props.updateCount,
+            getColor: props.updateCount
+        },
+        ...layerProperties,
+        getColor: [255, 255, 255],
+        stroked: true,
+        pickable: false,
+        widthMinPixels: layerProperties.widthMinPixels !== undefined ? layerProperties.widthMinPixels + 2 : undefined,
+        widthMaxPixels: layerProperties.widthMaxPixels !== undefined ? layerProperties.widthMaxPixels + 2 : undefined,
+        getLineWidth:
+            typeof layerProperties.getLineWidth === 'function'
+                ? (feature) => layerProperties.getLineWidth(feature) + 2
+                : layerProperties.getLineWidth !== undefined
+                    ? layerProperties.getLineWidth + 10
+                    : undefined
+    });
+};
+
 const getLineLayer = (
     props: TransitionMapLayerProps,
     config: LayerDescription.LineLayerConfiguration,
     eventsToAdd
-): PathLayer | undefined => {
+): PathLayer[] | undefined => {
     const layerProperties: any = getCommonLineProperties(props, config);
     // The layer is not to be displayed, don't add it
     if (layerProperties === undefined) {
         return undefined;
     }
 
-    return new PathLayer({
-        id: props.layerDescription.id,
-        data: props.layerDescription.layerData.features,
-        getPath: (d) => d.geometry.coordinates,
-        updateTriggers: {
-            getPath: props.updateCount,
-            getColor: props.updateCount
-        },
-        ...eventsToAdd,
-        ...layerProperties
-    });
+    return [
+        new PathLayer({
+            id: props.layerDescription.id,
+            data: props.layerDescription.layerData.features,
+            getPath: (d) => d.geometry.coordinates,
+            updateTriggers: {
+                getPath: props.updateCount,
+                getColor: props.updateCount
+            },
+            ...eventsToAdd,
+            ...layerProperties
+        })
+    ];
 };
 
 const getAnimatedArrowPathLayer = (
     props: TransitionMapLayerProps,
     config: LayerDescription.AnimatedPathLayerConfiguration,
     eventsToAdd
-): PathLayer | undefined => {
+): PathLayer[] | undefined => {
     const layerProperties: any = getCommonLineProperties(props, config);
     // The layer is not to be displayed, don't add it
     if (layerProperties === undefined) {
@@ -304,31 +332,39 @@ const getAnimatedArrowPathLayer = (
     }
     const id = props.layerDescription.id;
     const features = props.layerDescription.layerData.features;
-    return new PathLayer({
-        id,
-        data: features,
-        getPath: (d) => d.geometry.coordinates,
-        //animationID: props.animationID,
-        time: props.time,
-        //updateTriggers: {
-        //    getPath: props.updateCount,
-        //    getColor: props.updateCount
-        //},
-        //getDistanceBetweenArrows: 15,
-        //widthMaxPixels: 50,
-        //speedDivider: 10,
-        disableAnimation: Preferences.get('map.enableMapAnimations', true) ? false : true,
-        extensions: [new AnimatedArrowPathExtension()],
-        ...eventsToAdd,
-        ...layerProperties
-    });
+
+    const layers: PathLayer[] = [];
+    if (config.stroked === true) {
+        layers.push(getStrokedLayer(props, layerProperties));
+    }
+    layers.push(
+        new PathLayer({
+            id: `${id}-animated`,
+            data: features,
+            getPath: (d) => d.geometry.coordinates,
+            //animationID: props.animationID,
+            time: props.time,
+            //updateTriggers: {
+            //    getPath: props.updateCount,
+            //    getColor: props.updateCount
+            //},
+            //getDistanceBetweenArrows: 15,
+            //widthMaxPixels: 50,
+            //speedDivider: 10,
+            disableAnimation: Preferences.get('map.enableMapAnimations', true) ? false : true,
+            extensions: [new AnimatedArrowPathExtension()],
+            ...eventsToAdd,
+            ...layerProperties
+        })
+    );
+    return layers;
 };
 
 const getPolygonLayer = (
     props: TransitionMapLayerProps,
     config: LayerDescription.PolygonLayerConfiguration,
     eventsToAdd
-): GeoJsonLayer | undefined => {
+): GeoJsonLayer[] | undefined => {
     const layerProperties: any = getCommonProperties(props, config);
     // The layer is not to be displayed, don't add it
     if (layerProperties === undefined) {
@@ -359,55 +395,59 @@ const getPolygonLayer = (
                 : config.pickable;
     layerProperties.pickable = pickable;
 
-    return new GeoJsonLayer({
-        id: props.layerDescription.id,
-        data: props.layerDescription.layerData.features,
-        updateTriggers: {
-            getFillColor: props.updateCount
-        },
-        stroked: true,
-        filled: layerProperties.getFillColor !== undefined,
-        wireframe: true,
-        lineWidthMinPixels: 1,
-        ...eventsToAdd,
-        ...layerProperties
-    });
+    return [
+        new GeoJsonLayer({
+            id: props.layerDescription.id,
+            data: props.layerDescription.layerData.features,
+            updateTriggers: {
+                getFillColor: props.updateCount
+            },
+            stroked: true,
+            filled: layerProperties.getFillColor !== undefined,
+            wireframe: true,
+            lineWidthMinPixels: 1,
+            ...eventsToAdd,
+            ...layerProperties
+        })
+    ];
 };
 
 const getTextLayer = (
     props: TransitionMapLayerProps,
     config: LayerDescription.TextLayerConfiguration,
     eventsToAdd
-): TextLayer | undefined => {
+): TextLayer[] | undefined => {
     const layerProperties: any = getCommonProperties(props, config);
     // The layer is not to be displayed, don't add it
     if (layerProperties === undefined) {
         return undefined;
     }
-    return new TextLayer({
-        id: props.layerDescription.id,
-        data: props.layerDescription.layerData.features,
-        getText: (d) => d.properties.name.toString(),
-        getPosition: (d) => d.geometry.coordinates,
-        getAlignmentBaseline: 'bottom',
-        getSize: 12,
-        getBackgroundColor: [0, 0, 0, 100],
-        background: true,
-        fontFamily: 'Lato, sans-serif',
-        getColor: [255, 255, 255, 150],
-        getAngle: (d) => d.properties.angle,
-        getTextAnchor: 'middle',
-        // TODO: add other attributes
-        ...eventsToAdd,
-        ...layerProperties
-    });
+    return [
+        new TextLayer({
+            id: props.layerDescription.id,
+            data: props.layerDescription.layerData.features,
+            getText: (d) => d.properties.name.toString(),
+            getPosition: (d) => d.geometry.coordinates,
+            getAlignmentBaseline: 'bottom',
+            getSize: 12,
+            getBackgroundColor: [0, 0, 0, 100],
+            background: true,
+            fontFamily: 'Lato, sans-serif',
+            getColor: [255, 255, 255, 150],
+            getAngle: (d) => d.properties.angle,
+            getTextAnchor: 'middle',
+            // TODO: add other attributes
+            ...eventsToAdd,
+            ...layerProperties
+        })
+    ];
 };
 
 const getScatterLayer = (
     props: TransitionMapLayerProps,
     config: LayerDescription.PointLayerConfiguration,
     eventsToAdd
-): ScatterplotLayer<any> | undefined => {
+): ScatterplotLayer<any>[] | undefined => {
     const layerProperties: any = getCommonProperties(props, config);
     // The layer is not to be displayed, don't add it
     if (layerProperties === undefined) {
@@ -473,20 +513,22 @@ const getScatterLayer = (
             : typeof config.pickable === 'function'
                 ? config.pickable()
                 : config.pickable;
-    return new ScatterplotLayer({
-        id: props.layerDescription.id,
-        data: props.layerDescription.layerData.features,
-        filled: layerProperties.getColor !== undefined || layerProperties.getFillColor !== undefined,
-        stroked: contourColor !== undefined || contourWidth !== undefined,
-        getPosition: (d) => d.geometry.coordinates,
-        updateTriggers: {
-            getPosition: props.updateCount,
-            getFillColor: props.updateCount
-        },
-        pickable,
-        ...eventsToAdd,
-        ...layerProperties
-    });
+    return [
+        new ScatterplotLayer({
+            id: props.layerDescription.id,
+            data: props.layerDescription.layerData.features,
+            filled: layerProperties.getColor !== undefined || layerProperties.getFillColor !== undefined,
+            stroked: contourColor !== undefined || contourWidth !== undefined,
+            getPosition: (d) => d.geometry.coordinates,
+            updateTriggers: {
+                getPosition: props.updateCount,
+                getFillColor: props.updateCount
+            },
+            pickable,
+            ...eventsToAdd,
+            ...layerProperties
+        })
+    ];
 };
 
 const addEvents = (
@@ -535,7 +577,7 @@ const addEvents = (
     return layerEvents;
 };
 
-const getLayer = (props: TransitionMapLayerProps): Layer<LayerProps> | undefined => {
+const getLayer = (props: TransitionMapLayerProps): Layer<LayerProps>[] | undefined => {
     if (props.layerDescription.layerData === undefined) {
         return undefined;
     }

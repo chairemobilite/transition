@@ -649,7 +649,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         // TODO: Deck.gl Migration: Should this be a state or a local field (equivalent of useMemo)? To avoid recalculating for every render? See how often we render when the migration is complete
         const enabledLayers = this.layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
         const layers: Layer[] = enabledLayers
-            .map((layer) =>
+            .flatMap((layer) =>
                 getLayer({
                     layerDescription: layer,
                     viewState: this.state.viewState,
