@@ -188,8 +188,16 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                     }
                     if (transitClassConfig.cacheQueries.objectToCache) {
                         try {
+                            // Re-read the object from the database to update the cache
+                            // FIXME: Make sure that all read objects contain
+                            // all necessary to send to cache. Currently, only
+                            // the lines use this code path, nodes use the
+                            // `transitNode.save` socket route instead. And
+                            // lines read the schedule so it's ok. But should anything
+                            // else implement this, it should be checked.
+                            const updatedObject = await transitClassConfig.dbQueries.read(updatedId);
                             await transitClassConfig.cacheQueries.objectToCache(
-                                attributes,
+                                updatedObject.attributes ? updatedObject.attributes : updatedObject,
                                 attributes.data.customCachePath
                             );
                             return {
