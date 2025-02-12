@@ -1373,10 +1373,13 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
                             line.attributes.path_ids = line.attributes.path_ids.filter((pathId) => {
                                 return pathId !== this.id;
                             });
+                            // FIXME This should be one method only, to refresh the line from server
                             line.refreshPaths();
                             line.refreshStats();
-                            line.save(socket).then((_lineSaveResponse) => {
-                                resolve(response);
+                            line.refreshSchedules(socket).then(() => {
+                                line.save(socket).then((_lineSaveResponse) => {
+                                    resolve(response);
+                                });
                             });
                         } else {
                             resolve(response);
