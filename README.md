@@ -8,7 +8,7 @@ See http://transition.city/
 
 [Definitions and symbols used in the code and in the interface](https://www.overleaf.com/read/dtxfhttxgjrx)
 
-For Ubuntu users: [complete step-by-step development environment setup procedure](docs/setupDevEnvironmentUbuntu20.04.md)
+For Ubuntu users: [complete step-by-step development environment setup procedure](docs/setupDevEnvironmentUbuntu.md)
 
 ## Stand alone Desktop installation
 
