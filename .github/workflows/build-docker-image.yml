@@ -4,6 +4,7 @@ on:
   push:
     branches: 
       - "main"
+      - "deck-gl-poc"
   workflow_dispatch:
 
 env:
