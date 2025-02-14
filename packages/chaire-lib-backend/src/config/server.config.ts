@@ -418,8 +418,39 @@ try {
         );
     }
     setProjectConfiguration(configFromFile);
-} catch {
-    console.error(`Error loading server configuration in file ${configFileNormalized}`);
+} catch (error: unknown) {
+    console.error(`Failed to load server configuration from ${configFileNormalized}:`);
+
+    // Type guard for Error objects
+    if (error instanceof Error) {
+        console.error(`Error: ${error.message}`);
+
+        if (error.stack) {
+            console.error('Stack trace:');
+            console.error(error.stack);
+        }
+
+        // Check for specific error types
+        if ('code' in error && error.code === 'MODULE_NOT_FOUND') {
+            console.error('The configuration file does not exist or cannot be accessed');
+        } else if (error instanceof SyntaxError) {
+            console.error('The configuration file contains invalid JSON or JavaScript syntax');
+        }
+
+        // Application-specific error handling
+        if (process.env.NODE_ENV === 'production') {
+            // In production, you might want to use a default configuration
+            // or terminate the process
+            process.exit(1);
+        } else {
+            // In development, rethrow for better debugging
+            throw error;
+        }
+    } else {
+        // Handle cases where the caught value isn't an Error object
+        console.error('An unknown error occurred:', error);
+        throw new Error('Configuration loading failed: Unknown error');
+    }
 }
 
 /** Application configuration, does not include the server configuration */
