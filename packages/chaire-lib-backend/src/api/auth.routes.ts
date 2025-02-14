@@ -40,32 +40,34 @@ const defaultFailureCallback = (err, _req: Request, res: Response, _next) => {
 };
 
 export default <U extends IUserModel>(app: express.Express, authModel: IAuthModel<U>, passport: PassportStatic) => {
-    app.get(
-        '/googlelogin',
-        passport.authenticate('google', { scope: 'https://www.googleapis.com/auth/userinfo.email' })
-    );
-    app.get('/googleoauth', passport.authenticate('google', { failureRedirect: '/login' }), (req, res) => {
-        //console.log('GOOGLE LOGIN');
-        if (req.user) {
-            res.redirect('/survey');
-        } else {
-            return res.status(200).json({
-                error: 'User not authenticated'
-            });
-        }
-    });
+    if (config.auth && config.auth.google === true) {
+        app.get(
+            '/googlelogin',
+            passport.authenticate('google', { scope: 'https://www.googleapis.com/auth/userinfo.email' })
+        );
+        app.get('/googleoauth', passport.authenticate('google', { failureRedirect: '/login' }), (req, res) => {
+            if (req.user) {
+                res.redirect('/survey');
+            } else {
+                return res.status(200).json({
+                    error: 'User not authenticated'
+                });
+            }
+        });
+    }
 
-    app.get('/facebooklogin', passport.authenticate('facebook'));
-    app.get('/facebookoauth', passport.authenticate('facebook', { failureRedirect: '/login' }), (req, res) => {
-        //console.log('FACEBOOK LOGIN');
-        if (req.user) {
-            res.redirect('/survey');
-        } else {
-            return res.status(200).json({
-                error: 'User not authenticated'
-            });
-        }
-    });
+    if (config.auth && config.auth.facebook === true) {
+        app.get('/facebooklogin', passport.authenticate('facebook'));
+        app.get('/facebookoauth', passport.authenticate('facebook', { failureRedirect: '/login' }), (req, res) => {
+            if (req.user) {
+                res.redirect('/survey');
+            } else {
+                return res.status(200).json({
+                    error: 'User not authenticated'
+                });
+            }
+        });
+    }
 
     app.get('/verifyAuthentication', (req, res) => {
         if (req.isAuthenticated() && req.user) {
