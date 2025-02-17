@@ -66,13 +66,36 @@ interface BusUnit {
     id: number;
     totalCapacity: number;
     seatedCapacity: number;
-    currentLocation: 'origin' | 'destination' | 'in_transit';
-    expectedArrivalTime: number; 
-    expectedReturnTime: number | null; 
-    direction: 'outbound' | 'inbound' | null;
+    currentLocation: BusLocation;
+    expectedArrivalTime: number;
+    expectedReturnTime: number | null;
+    direction: BusDirection | null;
     lastTripEndTime: number | null;
     timeInCycle: number;
 }
+
+interface ScheduleDefaults {
+    RETURN_INTERVAL_SECONDS: number;
+    DEFAULT_TOTAL_CAPACITY: number;
+    DEFAULT_SEATED_CAPACITY: number;
+}
+
+enum BusLocation {
+    ORIGIN = 'origin',
+    DESTINATION = 'destination',
+    IN_TRANSIT = 'in_transit'
+}
+
+enum BusDirection {
+    OUTBOUND = 'outbound',
+    INBOUND = 'inbound'
+}
+
+const SCHEDULE_DEFAULTS: ScheduleDefaults = {
+    RETURN_INTERVAL_SECONDS: 720,
+    DEFAULT_TOTAL_CAPACITY: 50,
+    DEFAULT_SEATED_CAPACITY: 20
+};
 
 class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable {
     protected static displayName = 'Schedule';
@@ -200,12 +223,12 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
 
     private updateBusAvailability(unit: BusUnit, currentTimeSeconds: number): void {
         if (unit.expectedArrivalTime <= currentTimeSeconds) {
-            if (unit.direction === 'outbound') {
-                unit.currentLocation = 'destination';
+            if (unit.direction === BusDirection.OUTBOUND) {
+                unit.currentLocation = BusLocation.DESTINATION;
                 unit.direction = null;
                 unit.lastTripEndTime = currentTimeSeconds;
-            } else if (unit.direction === 'inbound') {
-                unit.currentLocation = 'origin';
+            } else if (unit.direction === BusDirection.INBOUND) {
+                unit.currentLocation = BusLocation.ORIGIN;
                 unit.direction = null;
                 unit.lastTripEndTime = currentTimeSeconds;
             }
@@ -256,10 +279,17 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         }
         return periodsChoices;
     }
-    private findBestBus(currentTime: number, direction: 'outbound' | 'inbound', units: BusUnit[]): BusUnit | null {
+
+    private findBestBus(
+        currentTime: number,
+        direction: BusDirection.OUTBOUND | BusDirection.INBOUND,
+        units: BusUnit[]
+    ): BusUnit | null {
         const availableBuses = units.filter((unit) => {
             const correctLocation =
-                direction === 'outbound' ? unit.currentLocation === 'origin' : unit.currentLocation === 'destination';
+                direction === BusDirection.OUTBOUND
+                    ? unit.currentLocation === BusLocation.ORIGIN
+                    : unit.currentLocation === BusLocation.DESTINATION;
             const isAvailable = unit.direction === null;
             const isReady = unit.lastTripEndTime === null || currentTime >= unit.lastTripEndTime;
             return correctLocation && isAvailable && isReady;
@@ -275,53 +305,28 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         return unusedBuses[0] || null;
     }
 
-    private processOutboundDeparture(
+    private processDeparture(
         currentTime: number,
-        outboundTotalTimeSeconds: number,
+        totalTimeSeconds: number,
         units: BusUnit[],
-        outboundPath: TransitPath,
-        trips: any[]
+        path: TransitPath,
+        trips: any[],
+        direction: BusDirection
     ) {
-        const bus = this.findBestBus(currentTime, 'outbound', units);
+        const bus = this.findBestBus(currentTime, direction, units);
         if (bus) {
             const trip = this.generateTrip(
                 currentTime,
                 bus,
-                outboundPath,
-                outboundPath.getAttributes().data.segments,
-                outboundPath.getAttributes().nodes,
-                outboundPath.getData('dwellTimeSeconds')
+                path,
+                path.getAttributes().data.segments,
+                path.getAttributes().nodes,
+                path.getData('dwellTimeSeconds')
             );
             trips.push(trip);
-            bus.direction = 'outbound';
-            bus.currentLocation = 'in_transit';
-            bus.expectedArrivalTime = currentTime + outboundTotalTimeSeconds;
-            return { busId: bus.id };
-        }
-        return { busId: null };
-    }
-
-    private processInboundDeparture(
-        currentTime: number,
-        inboundTotalTimeSeconds: number,
-        units: BusUnit[],
-        inboundPath: TransitPath,
-        trips: any[]
-    ) {
-        const bus = this.findBestBus(currentTime, 'inbound', units);
-        if (bus) {
-            const trip = this.generateTrip(
-                currentTime,
-                bus,
-                inboundPath,
-                inboundPath.getAttributes().data.segments,
-                inboundPath.getAttributes().nodes,
-                inboundPath.getData('dwellTimeSeconds')
-            );
-            trips.push(trip);
-            bus.direction = 'inbound';
-            bus.currentLocation = 'in_transit';
-            bus.expectedArrivalTime = currentTime + inboundTotalTimeSeconds;
+            bus.direction = direction;
+            bus.currentLocation = BusLocation.IN_TRANSIT;
+            bus.expectedArrivalTime = currentTime + totalTimeSeconds;
             return { busId: bus.id };
         }
         return { busId: null };
@@ -330,7 +335,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
     private generateTrips(
         startAtSecondsSinceMidnight: number,
         endAtSecondsSinceMidnight: number,
-        outboundIntervalSeconds: number ,
+        outboundIntervalSeconds: number,
         inboundIntervalSeconds: number,
         outboundTotalTimeSeconds: number,
         inboundTotalTimeSeconds: number,
@@ -344,12 +349,12 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         const inboundDepartures: number[] = [];
         const usedBusIds = new Set<number>();
 
-
         if (outboundIntervalSeconds !== null && inboundIntervalSeconds !== null && inboundIntervalSeconds !== 0) {
             const startFromDestination = inboundIntervalSeconds < outboundIntervalSeconds;
 
+            // Initialise tous les bus avec leurs positions de départ et réinitialise leurs états
             units.forEach((unit) => {
-                unit.currentLocation = startFromDestination ? 'destination' : 'origin';
+                unit.currentLocation = startFromDestination ? BusLocation.DESTINATION : BusLocation.ORIGIN;
                 unit.direction = null;
                 unit.expectedArrivalTime = startAtSecondsSinceMidnight;
                 unit.expectedReturnTime = null;
@@ -358,23 +363,26 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
 
             let time = startAtSecondsSinceMidnight;
 
+            // Génère les horaires de départ en fonction de la direction choisie
             if (startFromDestination) {
+                // Commence par les trajets retour si on commence de la destination
                 inboundDepartures.push(time);
                 while ((time += inboundIntervalSeconds) < endAtSecondsSinceMidnight) {
                     inboundDepartures.push(time);
                 }
-
+                // Calcule les départs aller, décalés du temps de trajet retour
                 time = startAtSecondsSinceMidnight + inboundTotalTimeSeconds;
                 outboundDepartures.push(time);
                 while ((time += outboundIntervalSeconds) < endAtSecondsSinceMidnight) {
                     outboundDepartures.push(time);
                 }
             } else {
+                // Commence par les trajets aller si on part de l'origine
                 outboundDepartures.push(time);
                 while ((time += outboundIntervalSeconds) < endAtSecondsSinceMidnight) {
                     outboundDepartures.push(time);
                 }
-
+                // Calcule les départs retour, décalés du temps de trajet aller
                 time = startAtSecondsSinceMidnight + outboundTotalTimeSeconds;
                 inboundDepartures.push(time);
                 while ((time += inboundIntervalSeconds) < endAtSecondsSinceMidnight) {
@@ -382,26 +390,51 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
                 }
             }
 
+            // Traite tous les départs chronologiquement jusqu'à ce que les deux directions soient complètes
             while (outboundDepartures.length > 0 || inboundDepartures.length > 0) {
+                // Trouve le prochain horaire de départ (aller ou retour)
                 const nextOutbound = outboundDepartures[0] || Infinity;
                 const nextInbound = inboundDepartures[0] || Infinity;
                 const currentTime = Math.min(nextOutbound, nextInbound);
-    
-                units.forEach(unit => this.updateBusAvailability(unit, currentTime));
-    
+
+                units.forEach((unit) => this.updateBusAvailability(unit, currentTime));
+
+                // Gère les départs simultanés dans les deux directions
                 if (nextOutbound === currentTime && nextInbound === currentTime) {
                     outboundDepartures.shift();
-                    const result = this.processOutboundDeparture(currentTime, outboundTotalTimeSeconds, units, outboundPath, trips);
+                    const result = this.processDeparture(
+                        currentTime,
+                        outboundTotalTimeSeconds,
+                        units,
+                        outboundPath,
+                        trips,
+                        BusDirection.OUTBOUND
+                    );
                     if (result.busId) usedBusIds.add(result.busId);
                 } else {
+                    // Gère les départs individuels dans chaque direction
                     if (currentTime === nextOutbound) {
                         outboundDepartures.shift();
-                        const result = this.processOutboundDeparture(currentTime, outboundTotalTimeSeconds, units, outboundPath, trips);
+                        const result = this.processDeparture(
+                            currentTime,
+                            outboundTotalTimeSeconds,
+                            units,
+                            outboundPath,
+                            trips,
+                            BusDirection.OUTBOUND
+                        );
                         if (result.busId) usedBusIds.add(result.busId);
                     }
                     if (currentTime === nextInbound && inboundPath) {
                         inboundDepartures.shift();
-                        const result = this.processInboundDeparture(currentTime, inboundTotalTimeSeconds, units, inboundPath, trips);
+                        const result = this.processDeparture(
+                            currentTime,
+                            inboundTotalTimeSeconds,
+                            units,
+                            inboundPath,
+                            trips,
+                            BusDirection.INBOUND
+                        );
                         if (result.busId) usedBusIds.add(result.busId);
                     }
                 }
@@ -409,10 +442,10 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             const realBusCount = usedBusIds.size;
             return {
                 trips,
-                realBusCount  
+                realBusCount
             };
-
         } else {
+            //Ancienne logique si on precise le nombre de bus
             const outboundSegments = outboundPath.getAttributes().data.segments;
             const outboundNodes = outboundPath.getAttributes().nodes;
             const outboundDwellTimes = outboundPath.getData('dwellTimeSeconds');
@@ -421,7 +454,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             const inboundNodes = inboundPath ? inboundPath.getAttributes().nodes : undefined;
             const inboundDwellTimes = inboundPath ? inboundPath.getAttributes().data.dwellTimeSeconds : undefined;
             const cycleTimeSeconds = outboundTotalTimeSeconds + inboundTotalTimeSeconds;
-            
+
             // Pour chaque bus, initialiser le temps dans le cycle
             for (let i = 0; i < unitsCount; i++) {
                 const unit = units[i];
@@ -437,7 +470,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
                             unit.timeInCycle = 0;
                         }
                     }
-    
+
                     // Handle current unit
                     if (unit.timeInCycle === 0) {
                         trips.push(
@@ -465,13 +498,12 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
                     }
                     unit.timeInCycle++;
                 }
-                }
+            }
             return {
                 trips,
                 realBusCount: units.length
             };
         }
-
     }
 
     tripsCount() {
@@ -622,7 +654,6 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
 
             period.calculated_interval_seconds = tripsIntervalSeconds;
             period.calculated_number_of_units = numberOfUnits;
-
         } else if (_isNumber(outboundIntervalSeconds) && _isNumber(inboundIntervalSeconds)) {
             totalPeriod = endAtSecondsSinceMidnight - startAtSecondsSinceMidnight;
 
@@ -632,7 +663,6 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             const outboundUnits = Math.ceil(outboundUnitsFloat);
             const inboundUnits = Math.ceil(inboundUnitsFloat);
             tripsNumberOfUnits = Math.max(outboundUnits, inboundUnits);
-
         }
 
         if (tripsNumberOfUnits === null) {
@@ -642,7 +672,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             id: i + 1,
             totalCapacity: 50,
             seatedCapacity: 20,
-            currentLocation: 'origin',
+            currentLocation: BusLocation.ORIGIN,
             expectedArrivalTime: startAtSecondsSinceMidnight,
             expectedReturnTime: null,
             direction: null,
@@ -662,11 +692,9 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             inboundPath
         );
 
-    
         period.trips = result.trips;
         period.calculated_number_of_units = result.realBusCount;
 
-  
         return Status.createOk(result.trips);
     }
 
