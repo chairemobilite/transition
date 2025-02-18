@@ -151,10 +151,14 @@ export const sendConfirmationEmail = async (
 ): Promise<void> => {
     try {
         const emails = await getConfirmEmailsToSend(user, options.strategy);
-        //TODO Claude says: forEach with async operations doesn't wait for all promises to complete. We should use Promise.all with map instead.
-        emails.forEach(async (email) => {
-            await sendEmail(email, { userConfirmationUrl: { url: options.confirmUrl }, usermail: user.email });
-        });
+        await Promise.all(
+            emails.map((email) =>
+                sendEmail(email, {
+                    userConfirmationUrl: { url: options.confirmUrl },
+                    usermail: user.email
+                })
+            )
+        );
         console.log(`${emails.length} email(s) (admin and/or user) sent for account confirmation`);
     } catch (error) {
         console.log('Error sending confirmation email: ', error);
