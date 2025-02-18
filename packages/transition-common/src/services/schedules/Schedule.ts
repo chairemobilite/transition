@@ -670,8 +670,8 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         }
         const units: BusUnit[] = Array.from({ length: tripsNumberOfUnits }, (_, i) => ({
             id: i + 1,
-            totalCapacity: 50,
-            seatedCapacity: 20,
+            totalCapacity: SCHEDULE_DEFAULTS.DEFAULT_TOTAL_CAPACITY,
+            seatedCapacity: SCHEDULE_DEFAULTS.DEFAULT_SEATED_CAPACITY,
             currentLocation: BusLocation.ORIGIN,
             expectedArrivalTime: startAtSecondsSinceMidnight,
             expectedReturnTime: null,
