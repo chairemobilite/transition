@@ -41,6 +41,7 @@ export interface TransitRoutingResultData {
     destination: GeoJSON.Feature<GeoJSON.Point>;
     paths: TrRoutingRoute[];
     walkOnlyPath?: Route;
+    hasAlternativeWalkPath?: boolean;
     error?: { localizedMessage: ErrorMessage; error: string; errorCode: string };
 }
 

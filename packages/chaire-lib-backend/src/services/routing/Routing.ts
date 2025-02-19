@@ -69,11 +69,15 @@ const prepareResults = (
                     ? (walkingRouteResult.result as RouteResults).routes[0]
                     : undefined;
 
+            // If there is a walk-only path, we set this parameter to true.
+            // We use this so that we can know if there was such a path in the comparison tab, even after it gets deleted.
+            const hasAlternativeWalkPath = walkOnlyPath ? true : false;
             results[routingResult.routingMode] = {
                 origin: originDestination[0],
                 destination: originDestination[1],
                 paths: TrError.isTrError(routingResult.result) ? [] : routingResult.result.routes,
                 walkOnlyPath,
+                hasAlternativeWalkPath,
                 error: TrError.isTrError(routingResult.result) ? routingResult.result.export() : undefined
             };
         } else if (routingMode !== 'transit') {

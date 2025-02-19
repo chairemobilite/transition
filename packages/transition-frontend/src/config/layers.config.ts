@@ -43,6 +43,14 @@ export const sectionLayers = {
         'routingPaths',
         'routingPoints'
     ],
+    comparison: [
+        'aggregatedOD' /*'transitPaths', 'transitNodes', 'transitStations', */,
+        'routingPathsStrokes',
+        'routingPaths',
+        'routingPathsStrokesAlternate',
+        'routingPathsAlternate',
+        'routingPoints'
+    ],
     accessibilityMap: [
         'aggregatedOD',
         'accessibilityMapPolygons',
@@ -182,6 +190,55 @@ const layersConfig = {
     },
 
     routingPaths: {
+        repaint: true,
+        type: 'line',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        'custom-shader': 'lineArrow',
+        paint: {
+            'line-color': {
+                property: 'color',
+                type: 'identity'
+            },
+            'line-opacity': 1.0,
+            'line-width': {
+                base: 3,
+                stops: [
+                    [6, 3],
+                    [12, 5],
+                    [13, 7]
+                ]
+            }
+        }
+    },
+
+    // Identical to the routingPathsStrokes layers, but with purple instead of white path outlines
+    // Used to display 2 paths at once on the map
+    routingPathsStrokesAlternate: {
+        type: 'line',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': 'rgba(255,0,255,1.0)',
+            'line-opacity': 0.7,
+            'line-width': {
+                base: 6,
+                stops: [
+                    [6, 6],
+                    [12, 10],
+                    [13, 12]
+                ]
+            }
+        }
+    },
+
+    // Identical to the routingPaths layers
+    // Used to display 2 paths at once on the map
+    routingPathsAlternate: {
         repaint: true,
         type: 'line',
         layout: {
