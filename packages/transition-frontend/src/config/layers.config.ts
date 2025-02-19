@@ -7,38 +7,6 @@
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 const layersConfig = {
-    measureToolLine: {
-        type: 'line',
-        color: [255, 255, 255, 150],
-        strokeWidth: 1,
-        widthUnits: 'pixels',
-        widthScale: 1,
-        widthMinPixels: 3,
-        capRounded: true,
-        jointRounded: true
-    },
-
-    measureToolText: {
-        type: 'text',
-        //fontFamily: 'Arial',
-        //fontWeight: 'bold',
-        fontSize: '1.5rem',
-        background: true,
-        backgroundPadding: 2
-    },
-
-    measureToolPoint: {
-        type: 'circle',
-        radiusUnits: 'pixels',
-        strokeColor: [255, 255, 255, 150],
-        strokeWidth: 2,
-        fillColor: [0, 0, 0, 255],
-        radius: 4,
-        radiusScale: 1,
-        lineWidthScale: 1,
-        lineWidthUnits: 'pixels'
-    },
-
     routingPoints: {
         // for routing origin, destination and waypoints
         type: 'circle',

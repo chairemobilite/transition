@@ -73,10 +73,6 @@ const selectPath = (pathGeojson) => {
 };
 
 const onSelectedPathMapClicked = (pointInfo: PointInfo, _event: MjolnirEvent) => {
-    // disable map click if measure tool is selected:
-    if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
-        return;
-    }
     // Add a waypoint at the location of the click
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
@@ -97,11 +93,6 @@ const onSelectedPathMapClicked = (pointInfo: PointInfo, _event: MjolnirEvent) =>
 };
 
 const onPathsClicked = (pickInfo: PickingInfo[], event: MjolnirEvent) => {
-    // disable map click if measure tool is selected:
-    if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
-        return;
-    }
-
     if (pickInfo.length === 1) {
         selectPath(pickInfo[0].object);
     } else {
@@ -174,11 +165,6 @@ const onSelectedWaypointDragEnd = (info: PickingInfo, _event: MjolnirEvent, mapC
 };
 
 const onSelectedPathClicked = (info: PickingInfo, _event: MjolnirEvent) => {
-    // disable map click if measure tool is selected:
-    if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
-        return;
-    }
-
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
@@ -219,11 +205,6 @@ const onWaypointClicked = (info: PickingInfo, _e: MjolnirEvent) => {
 };
 
 const onNodeClickedForPath = (info: PickingInfo, e: MjolnirEvent) => {
-    // disable map click if measure tool is selected:
-    if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
-        return;
-    }
-
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
 

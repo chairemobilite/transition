@@ -39,7 +39,6 @@ import { MapCallbacks } from 'chaire-lib-frontend/lib/services/map/IMapEventHand
 
 // transition-common:
 import Node from 'transition-common/lib/services/nodes/Node';
-import { MeasureTool } from 'transition-common/lib/services/measureTool/MeasureTool';
 
 // transition-frontend:
 import transitionMapEvents from '../../services/map/events';
@@ -48,8 +47,9 @@ import MapButton from '../parts/MapButton';
 import layersConfig from '../../config/layers.config';
 import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
 import getLayer from './layers/TransitionMapLayer';
-import MeasureDistanceDisplay from '../parts/MeasureDistanceDisplay';
 import { MapEventsManager } from '../../services/map/MapEventsManager';
+import { MapEditFeature } from './MapEditFeature';
+import { MeasureToolMapFeature } from './tools/MapMeasureTool';
 
 export interface MainMapProps extends LayoutSectionProps {
     zoom: number;
@@ -74,8 +74,9 @@ interface MainMapState {
     mapStyleURL: string;
     xyzTileLayer?: Layer; // Temporary! Move this somewhere else
     isDragging: boolean;
-    measureToolEnabled: boolean;
-    measureDistance: number | undefined;
+    mapEditTool?: MapEditFeature;
+    editUpdateCount: number;
+    activeMapEventManager: MapEventsManager;
 }
 
 const getTileLayer = () => {
@@ -147,8 +148,9 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             mapStyleURL: Preferences.get('mapStyleURL'),
             xyzTileLayer: xyzTileLayer,
             isDragging: false,
-            measureToolEnabled: false,
-            measureDistance: undefined
+            mapEditTool: undefined,
+            editUpdateCount: 0,
+            activeMapEventManager: this.mapEventsManager
         };
 
         this.layerManager = new MapLayerManager(layersConfig);
@@ -157,34 +159,34 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
 
         this.popupManager = new MapPopupManager();
         this.mapContainer = createRef<HTMLDivElement>();
-
-        serviceLocator.eventManager.on('selected.deselect.measureTool', this.disableMeasureTool);
     }
 
-    enableMeasureTool = () => {
-        //this.setDrawMode(DrawLineStringMode);
-        const measureTool = new MeasureTool(undefined, undefined, undefined);
-        serviceLocator.selectedObjectsManager.select('measureTool', measureTool);
+    onEditLayerUpdate = () => {
         this.setState({
-            measureToolEnabled: true,
-            measureDistance: undefined
+            editUpdateCount: this.state.editUpdateCount + 1
         });
     };
 
-    disableMeasureTool = () => {
-        //this.setDrawMode(null);
+    enableMeasureTool = () => {
+        const mapEditTool = new MeasureToolMapFeature({
+            onUpdate: this.onEditLayerUpdate,
+            onDisable: this.disableEditTool
+        });
         this.setState({
-            measureToolEnabled: false,
-            measureDistance: undefined
+            mapEditTool: mapEditTool,
+            activeMapEventManager: new MapEventsManager(mapEditTool.getMapEvents(), this.mapCallbacks)
+        });
+    };
+
+    disableEditTool = () => {
+        this.setState({
+            mapEditTool: undefined,
+            activeMapEventManager: this.mapEventsManager
         });
     };
 
     updateMeasureToolDistance = () => {
-        const measureTool = serviceLocator.selectedObjectsManager.get('measureTool') as MeasureTool;
-        const distances = measureTool.getDistances();
-        this.setState({
-            measureDistance: distances.totalDistanceM
-        });
+        console.log('distance was updated, do something');
     };
     showPathsByAttribute = (attribute: string, value: any) => {
         // attribute must be agency_id or line_id
@@ -223,8 +225,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             'map.layers.updateFilter',
             this.updateFilter
         );
-        serviceLocator.eventManager.on('selected.update.measureTool', this.updateMeasureToolDistance);
-        serviceLocator.eventManager.on('selected.deselect.measureTool', this.disableMeasureTool);
         serviceLocator.eventManager.on('map.updateLayers', this.updateLayers);
         serviceLocator.eventManager.on('map.clearFilter', this.clearFilter);
         serviceLocator.eventManager.on('map.showLayer', this.showLayer);
@@ -253,8 +253,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.removeService('layerManager');
         serviceLocator.removeService('pathLayerManager');
         // removeResizeListener(this.mapContainer, this.onResizeContainer);
-        serviceLocator.eventManager.off('selected.update.measureTool', this.updateMeasureToolDistance);
-        serviceLocator.eventManager.off('selected.deselect.measureTool', this.disableMeasureTool);
         serviceLocator.eventManager.off('map.updateEnabledLayers', this.updateEnabledLayers);
         serviceLocator.eventManager.off('map.updateLayer', this.updateLayer);
         serviceLocator.eventManager.off('map.updateLayers', this.updateLayers);
@@ -482,7 +480,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 coordinates: pickInfo.coordinate as number[],
                 pixel: [event.offsetCenter.x, event.offsetCenter.y] as [number, number]
             };
-            this.mapEventsManager.executeMapEvents(event, pointInfo, this.props.activeSection);
+            this.state.activeMapEventManager.executeMapEvents(event, pointInfo, this.props.activeSection);
         } else {
             const eventName = event.leftButton ? 'onLeftClick' : event.rightButton ? 'onRightClick' : undefined;
             if (!eventName) return;
@@ -504,7 +502,11 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 }
             });
             // Execute the map selection events on picked objects
-            this.mapEventsManager.executeMapSelectEventsForObjects(event, objectsByLayer, this.props.activeSection);
+            this.state.activeMapEventManager.executeMapSelectEventsForObjects(
+                event,
+                objectsByLayer,
+                this.props.activeSection
+            );
         }
     };
 
@@ -536,7 +538,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     };
 
     setDragging = (dragging: boolean) => {
-        if (this.state.measureToolEnabled) {
+        // FIXME Do not drag if in editing mode?
+        if (this.state.mapEditTool !== undefined) {
             return;
         }
         this.setState({ isDragging: dragging });
@@ -552,6 +555,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     }): PickingInfo[] => (this.mapContainer.current as Deck).pickMultipleObjects(opts);
 
     render() {
+        // Disable events on layers if the map is in editing mode
+        const mapEditTool = this.state.mapEditTool;
         // TODO: Deck.gl Migration: Should this be a state or a local field (equivalent of useMemo)? To avoid recalculating for every render? See how often we render when the migration is complete
         const enabledLayers = this.layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
         const layers: Layer[] = enabledLayers
@@ -559,7 +564,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 getLayer({
                     layerDescription: layer,
                     viewState: this.state.viewState,
-                    events: this.mapEventsManager.getLayerEvents(layer.id),
+                    events: mapEditTool === undefined ? this.mapEventsManager.getLayerEvents(layer.id) : undefined,
                     activeSection: this.props.activeSection,
                     setDragging: this.setDragging,
                     mapCallbacks: this.mapCallbacks,
@@ -568,6 +573,17 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 })
             )
             .filter((layer) => layer !== undefined) as Layer[];
+        if (mapEditTool !== undefined) {
+            layers.push(
+                ...mapEditTool.getLayers({
+                    viewState: this.state.viewState,
+                    activeSection: this.props.activeSection,
+                    setDragging: this.setDragging,
+                    mapCallbacks: this.mapCallbacks,
+                    updateCount: this.state.editUpdateCount
+                })
+            );
+        }
         const needAnimation =
             Preferences.get('map.enableMapAnimations', true) &&
             enabledLayers.find((layer) => layer.configuration.type === 'animatedArrowPath') !== undefined;
@@ -596,7 +612,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                         getTooltip={this.onTooltip}
                         getCursor={({ isHovering, isDragging }) => {
                             // Show a crosshair cursor when the measure tool is enabled
-                            if (this.state.measureToolEnabled) {
+                            // TODO Different edit tools may have different cursors, maybe add a function to the edit tool?
+                            if (this.state.mapEditTool !== undefined) {
                                 return 'crosshair';
                             }
                             return isDragging ? 'grabbing' : isHovering ? 'pointer' : 'grab';
@@ -605,27 +622,23 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                         <MapLibreMap mapStyle={this.state.mapStyleURL} />
                     </DeckGL>
                     <div className="tr__map-button-container">
-                        {this.layerManager.layerIsEnabled('measureToolPoint') && (
+                        {
+                            // FIXME Add a condition to enable this tool depending on the active section
                             <MapButton
                                 title="main:MeasureTool"
-                                className={`${this.state.measureToolEnabled ? 'active' : ''}`}
+                                className={`${this.state.mapEditTool?.getEditMode() === MeasureToolMapFeature.editMode ? 'active' : ''}`}
                                 onClick={() => {
-                                    if (serviceLocator.selectedObjectsManager.isSelected('measureTool')) {
-                                        serviceLocator.selectedObjectsManager.deselect('measureTool');
-                                        serviceLocator.eventManager.emit('map.updateLayers', {
-                                            measureToolPoint: turfFeatureCollection([]),
-                                            measureToolLine: turfFeatureCollection([]),
-                                            measureToolText: turfFeatureCollection([])
-                                        });
+                                    if (this.state.mapEditTool?.getEditMode() === MeasureToolMapFeature.editMode) {
+                                        this.disableEditTool();
                                     } else {
                                         this.enableMeasureTool();
                                     }
                                 }}
                                 iconPath={'/dist/images/icons/interface/ruler_white.svg'}
                             />
-                        )}
+                        }
                     </div>
-                    {this.state.measureToolEnabled && <MeasureDistanceDisplay distance={this.state.measureDistance} />}
+                    {this.state.mapEditTool && this.state.mapEditTool.getMapComponent()}
                 </div>
             </section>
         );
