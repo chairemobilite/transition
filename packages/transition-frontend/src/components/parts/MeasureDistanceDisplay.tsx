@@ -6,17 +6,20 @@
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatDistance } from 'transition-common/lib/services/measureTool/MeasureTool';
+import { formatDistance, MeasureTool } from 'transition-common/lib/services/measureTool/MeasureTool';
 
 type MeasureDistanceDisplayProps = {
-    distance: number | undefined;
+    measureTool: MeasureTool;
 };
 
-const MeasureDistanceDisplay: React.FC<MeasureDistanceDisplayProps> = ({ distance }) => {
+const MeasureDistanceDisplay: React.FC<MeasureDistanceDisplayProps> = ({ measureTool }) => {
     const { t } = useTranslation('main');
-    if (distance === undefined) return null;
+    const distances = measureTool.getDistances();
+    if (distances.totalDistanceM === undefined) return null;
 
-    return <div className="tr__measure-distance-display">{`${t('main:Total')} ${formatDistance(distance)}`}</div>;
+    return (
+        <div className="tr__measure-distance-display">{`${t('main:Total')} ${formatDistance(distances.totalDistanceM)}`}</div>
+    );
 };
 
 export default MeasureDistanceDisplay;

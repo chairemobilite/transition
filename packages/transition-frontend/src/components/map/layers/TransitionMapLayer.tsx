@@ -40,7 +40,7 @@ export type ViewState = {
     [key: string]: any;
 };
 
-type TransitionMapLayerProps = {
+export type TransitionMapLayerProps = {
     layerDescription: LayerDescription.MapLayer;
     viewState: ViewState;
     events?: { [evtName in layerEventNames]?: MapLayerEventHandlerDescriptor[] };
@@ -436,6 +436,9 @@ const getTextLayer = (
             getColor: [255, 255, 255, 150],
             getAngle: (d) => d.properties.angle,
             getTextAnchor: 'middle',
+            updateTriggers: {
+                getText: props.updateCount
+            },
             // TODO: add other attributes
             ...eventsToAdd,
             ...layerProperties
