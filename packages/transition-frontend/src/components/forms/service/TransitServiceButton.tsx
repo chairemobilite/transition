@@ -7,11 +7,15 @@
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
+import Collapsible from 'react-collapsible';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Service from 'transition-common/lib/services/service/Service';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
+import DocumentationTooltip from '../../parts/DocumentationTooltip';
+import MathJax from 'react-mathjax';
+import TransitServiceLinesDetail from '../service/TransitServiceLinesDetail';
 
 interface ScheduleButtonProps extends WithTranslation {
     service: Service;
@@ -90,48 +94,62 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
     }
 
     return (
-        <Button
-            key={serviceId}
-            isSelected={serviceIsSelected}
-            onSelect={{ handler: onSelect }}
-            onDuplicate={{ handler: onDuplicate, altText: props.t('transit:transitService:DuplicateService') }}
-            onDelete={
-                !isFrozen && !serviceIsSelected
-                    ? {
-                        handler: onDelete,
-                        message: hasScheduledLines
-                            ? props.t('transit:transitService:ConfirmDeleteWithSchedule')
-                            : props.t('transit:transitService:ConfirmDelete'),
-                        altText: props.t('transit:transitService:Delete')
-                    }
-                    : undefined
-            }
-            flushActionButtons={scheduledLineCount === 0}
-        >
-            <ButtonCell alignment="left">
-                <span className="_circle-button" style={{ backgroundColor: service.getAttributes().color }}></span>
-            </ButtonCell>
-            {isFrozen && (
+        <React.Fragment>
+            <Button
+                key={serviceId}
+                isSelected={serviceIsSelected}
+                onSelect={{ handler: onSelect }}
+                onDuplicate={{ handler: onDuplicate, altText: props.t('transit:transitService:DuplicateService') }}
+                onDelete={
+                    !isFrozen && !serviceIsSelected
+                        ? {
+                            handler: onDelete,
+                            message: hasScheduledLines
+                                ? props.t('transit:transitService:ConfirmDeleteWithSchedule')
+                                : props.t('transit:transitService:ConfirmDelete'),
+                            altText: props.t('transit:transitService:Delete')
+                        }
+                        : undefined
+                }
+                flushActionButtons={scheduledLineCount === 0}
+            >
                 <ButtonCell alignment="left">
-                    <img
-                        className="_icon-alone"
-                        src={'/dist/images/icons/interface/lock_white.svg'}
-                        alt={props.t('main:Locked')}
-                    />
+                    <span className="_circle-button" style={{ backgroundColor: service.getAttributes().color }}></span>
                 </ButtonCell>
-            )}
-            <ButtonCell alignment="left">
-                {service.get('name') as string}
-                {serviceWeekdaysStr}
-            </ButtonCell>
-            {scheduledLineCount > 0 && (
-                <ButtonCell alignment="flush">
-                    {scheduledLineCount > 1
-                        ? props.t('transit:transitService:nLines', { n: scheduledLineCount })
-                        : props.t('transit:transitService:oneLine')}
+                {isFrozen && (
+                    <ButtonCell alignment="left">
+                        <img
+                            className="_icon-alone"
+                            src={'/dist/images/icons/interface/lock_white.svg'}
+                            alt={props.t('main:Locked')}
+                        />
+                    </ButtonCell>
+                )}
+                <ButtonCell alignment="left">
+                    {service.get('name') as string}
+                    {serviceWeekdaysStr}
                 </ButtonCell>
-            )}
-        </Button>
+            </Button>
+            <div className="tr__form-services-panel-lines-list">
+                <Button key={`lines${props.service.getId()}`} isSelected={serviceIsSelected} flushActionButtons={false}>
+                    <DocumentationTooltip dataTooltipId="line-tooltip" documentationLabel="line" />
+                    <Collapsible
+                        lazyRender={true}
+                        trigger={
+                            <MathJax.Provider>
+                                {props.t('transit:transitLine:List')}&nbsp;
+                                <span>
+                                    <MathJax.Node inline formula={'L'} data-tooltip-id="line-tooltip" />
+                                </span>
+                            </MathJax.Provider>
+                        }
+                        transitionTime={200}
+                    >
+                        <TransitServiceLinesDetail service={props.service} />
+                    </Collapsible>
+                </Button>
+            </div>
+        </React.Fragment>
     );
 };
 
