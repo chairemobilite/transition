@@ -11,6 +11,7 @@ export type InputProps = {
     help?: string;
     smallInput?: boolean;
     twoColumns?: boolean;
+    textColor?: string; //Can be any valid CSS color format: https://www.w3schools.com/css/css_colors.asp
 };
 
 export type HelpProps = {
@@ -26,15 +27,19 @@ export const InputWrapper: React.FunctionComponent<React.PropsWithChildren<Input
     help,
     smallInput = false,
     children,
-    twoColumns = true
+    twoColumns = true,
+    textColor = undefined
 }: React.PropsWithChildren<InputProps>) => {
     const classes = `apptr__form-input-container${twoColumns ? ' _two-columns' : ''}${
         smallInput ? ' _small-inputs' : ''
     }`;
+
+    const textColorStyle = textColor === undefined ? {} : { color: textColor };
+
     return (
         <React.Fragment>
             <div className={classes}>
-                <label>{label}</label>
+                <label style={textColorStyle}>{label}</label>
                 {children}
                 {help && (
                     <React.Fragment>
