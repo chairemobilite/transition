@@ -50,10 +50,20 @@ export type TransitQueryAttributes = TransitRoutingBaseAttributes & {
 };
 
 /**
+ * Attributes used in the comparison tab, to compare two different scenarios.
+ */
+export type TranstiQueryAttributesComparison = {
+    alternateScenario1Id?: string;
+    alternateScenario2Id?: string;
+};
+
+/**
  * Attributes to parameterize a transit routing calculation, that are not
  * specific to a trip, but specific to a calculation query
  */
-export type TransitRoutingQueryAttributes = RoutingQueryAttributes & TransitQueryAttributes;
+export type TransitRoutingQueryAttributes = RoutingQueryAttributes &
+    TransitQueryAttributes &
+    TranstiQueryAttributesComparison;
 
 /**
  * Attributes to parameterize a single routing calculation, ie for a single trip

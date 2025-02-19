@@ -16,7 +16,7 @@ import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/
 export const calculateRouting = async (
     routing: TransitRouting,
     updatePreferences = false,
-    options: { isCancelled?: () => boolean; [key: string]: any } = {}
+    options: { isCancelled?: () => boolean; removeWalkOnlyPath?: boolean; [key: string]: any } = {}
 ): Promise<RoutingResultsByMode> => {
     return new Promise((resolve, reject) => {
         // Update preferences if needed
@@ -47,6 +47,10 @@ export const calculateRouting = async (
                     Object.keys(results)
                         .filter((mode) => routing.attributes.routingModes?.includes(mode as RoutingOrTransitMode))
                         .forEach((mode) => {
+                            // TODO: Reverse the logic of removeWalkOnlyPath so that the path is removed by default and has to be included
+                            if (options.removeWalkOnlyPath && results[mode].walkOnlyPath) {
+                                results[mode].walkOnlyPath = undefined;
+                            }
                             requestedResults[mode] = results[mode];
                         });
                     resolve(requestedResults);

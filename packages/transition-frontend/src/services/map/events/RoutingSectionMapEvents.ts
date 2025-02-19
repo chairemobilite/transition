@@ -11,7 +11,9 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 /* This file encapsulates map events specific for the 'routing' section */
 
-const isRoutingActiveSection = (activeSection: string) => activeSection === 'routing';
+const isRoutingActiveSection = (activeSection: string) => {
+    return activeSection === 'routing' || activeSection === 'comparison';
+};
 
 const onRoutingSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
     serviceLocator.eventManager.emit('routing.transit.clickedOnMap', e.lngLat.toArray());

@@ -11,7 +11,7 @@ export type InputProps = {
     help?: string;
     smallInput?: boolean;
     twoColumns?: boolean;
-    textColor?: string;
+    textColor?: string; //Can be any valid CSS color format: https://www.w3schools.com/css/css_colors.asp
 };
 
 export type HelpProps = {

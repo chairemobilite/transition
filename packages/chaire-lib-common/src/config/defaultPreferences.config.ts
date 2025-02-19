@@ -64,6 +64,11 @@ const defaultPreferences: PreferencesModel = {
                 icon: '/dist/images/icons/interface/routing_white.svg',
                 hasMapLayers: true
             },
+            comparison: {
+                localizedTitle: 'transit:transitComparison:ScenarioComparison',
+                icon: '/dist/images/icons/transit/comparison_white.svg',
+                hasMapLayers: true
+            },
             accessibilityMap: {
                 localizedTitle: 'main:AccessibilityMap',
                 icon: '/dist/images/icons/interface/accessibility_map_white.svg',
@@ -135,6 +140,14 @@ const defaultPreferences: PreferencesModel = {
                 'aggregatedOD' /*'transitPaths', 'transitNodes', 'transitStations', */,
                 'routingPathsStrokes',
                 'routingPaths',
+                'routingPoints'
+            ],
+            comparison: [
+                'aggregatedOD' /*'transitPaths', 'transitNodes', 'transitStations', */,
+                'routingPathsStrokes',
+                'routingPaths',
+                'routingPathsStrokesAlternate',
+                'routingPathsAlternate',
                 'routingPoints'
             ],
             accessibilityMap: [
