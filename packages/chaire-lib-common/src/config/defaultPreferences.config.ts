@@ -58,6 +58,10 @@ const defaultPreferences: PreferencesModel = {
                 localizedTitle: 'main:Routing',
                 icon: '/dist/images/icons/interface/routing_white.svg'
             },
+            comparison: {
+                localizedTitle: 'transit:transitComparison:ScenarioComparison',
+                icon: '/dist/images/icons/transit/comparison_white.svg'
+            },
             accessibilityMap: {
                 localizedTitle: 'main:AccessibilityMap',
                 icon: '/dist/images/icons/interface/accessibility_map_white.svg'

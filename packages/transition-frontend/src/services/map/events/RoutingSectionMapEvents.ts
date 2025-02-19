@@ -11,7 +11,10 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 /* This file encapsulates map events specific for the 'routing' section */
 
-const isRoutingActiveSection = (activeSection: string) => activeSection === 'routing';
+// TODO: Set a flag instead of checking if the section is part of a list, especially if we add a third routing section.
+const isRoutingActiveSection = (activeSection: string) => {
+    return activeSection === 'routing' || activeSection === 'comparison';
+};
 
 const onRoutingSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
     serviceLocator.eventManager.emit('routing.transit.clickedOnMap', e.lngLat.toArray());
