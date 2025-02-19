@@ -23,8 +23,10 @@ import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import * as ServiceUtils from '../../../services/transitService/TransitServiceUtils';
 import Service, { serviceDays } from 'transition-common/lib/services/service/Service';
+import MathJax from 'react-mathjax';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import TransitServiceFilterableList from './TransitServiceFilterableList';
+import TransitServiceLinesDetail from '../service/TransitServiceLinesDetail';
 
 interface ServiceFormProps extends WithTranslation {
     service: Service;
@@ -371,6 +373,22 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
                             closeModal={this.closeBackConfirmModal}
                         />
                     )}
+
+                    <Collapsible
+                        lazyRender={true}
+                        trigger={
+                            <MathJax.Provider>
+                                {this.props.t('transit:transitLine:List')}&nbsp;
+                                <span>
+                                    <MathJax.Node inline formula={'L'} data-tooltip-id="line-tooltip" />
+                                </span>
+                            </MathJax.Provider>
+                        }
+                        open={true}
+                        transitionTime={200}
+                    >
+                        <TransitServiceLinesDetail service={this.props.service} />
+                    </Collapsible>
                 </div>
             </form>
         );
