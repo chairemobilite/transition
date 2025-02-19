@@ -675,10 +675,12 @@
             "NonOptimisedDepartureTime": "Heure de départ non optimisée",
             "DepartureTime": "Heure de départ",
             "OptimisedDepartureTime": "Heure de départ optimisée",
+            "EnteredDepartureTime": "Heure de départ saisie",
             "LostTimeAtDepartureIfNonOptimised": "Temps perdu si heure de départ non optimisée",
             "LostTimeAtArrivalIfNonOptimised": "Temps perdu si heure d'arrivée non optimisée",
             "ArrivalTime": "Heure d'arrivée",
             "NonOptimisedArrivalTime": "Heure d'arrivée non optimisée",
+            "EnteredArrivalTime": "Heure d'arrivée saisie",
             "TotalDistance": "Distance totale",
             "AccessTravelTime": "Temps d'accès à l'origine",
             "EgressTravelTime": "Temps d'accès à destination",
@@ -686,7 +688,10 @@
             "TotalTransferTravelTime": "Temps total d'accès lors des transferts",
             "TotalInVehicleTime": "Temps total en véhicule",
             "TotalAccessTravelTime": "Temps total d'accès (accès à l'origine, à destination et lors des transferts)",
-            "TotalTransferWaitingTime": "Temps total d'attente lors des transferts"
+            "TotalTransferWaitingTime": "Temps total d'attente lors des transferts",
+            "AlternativeWalkPath": "Il y a un parcours alternatif avec marche seulement",
+            "true": "Oui",
+            "false": "Non"
         },
         "TotalTravelTime": "Temps de parcours total",
         "AverageTravelTime": "Temps de parcours moyen par déplacement",
@@ -723,6 +728,14 @@
         "HH_MM__HH_MM_SS": "HH:MM ou HH:MM:SS",
         "HMM": "HMM",
         "SecondsSinceMidnight": "Secondes après minuit"
+    },
+    "transitComparison": {
+        "Comparison": "Comparaison",
+        "Comparisons": "Comparaisons",
+        "ScenarioN": "Scénario {{scenarioNumber}}",
+        "ScenarioComparison": "Comparaison de scénarios",
+        "ScenarioAlternatives": "Parcours alternatifs pour le scénario {{scenarioNumber}}, {{scenarioName}}",
+        "ScenarioError": "Erreur pour le scénario {{scenarioNumber}}:"
     },
     "gtfs": {
         "ButtonImport": "Importer",

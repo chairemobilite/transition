@@ -675,10 +675,12 @@
             "NonOptimisedDepartureTime": "Non optimized departure time",
             "DepartureTime": "Departure time",
             "OptimisedDepartureTime": "Optimized departure time",
+            "EnteredDepartureTime": "Entered departure time",
             "LostTimeAtDepartureIfNonOptimised": "Time lost if departure time not optimized",
             "LostTimeAtArrivalIfNonOptimised": "Time lost if arrival time not optimized",
             "ArrivalTime": "Arrival time",
             "NonOptimisedArrivalTime": "Non optimized arrival time",
+            "EnteredArrivalTime": "Entered arrival time",
             "TotalDistance": "Total distance",
             "AccessTravelTime": "Access travel time",
             "EgressTravelTime": "Egress travel time",
@@ -686,7 +688,10 @@
             "TotalTransferTravelTime": "Total access travel time when transferring",
             "TotalInVehicleTime": "Total in-vehicle time",
             "TotalAccessTravelTime": "Total access time (access, egress and access when transferring)",
-            "TotalTransferWaitingTime": "Total waiting time when transferring"
+            "TotalTransferWaitingTime": "Total waiting time when transferring",
+            "AlternativeWalkPath": "There is an alternative walking only path",
+            "true": "Yes",
+            "false": "No"
         },
         "TotalTravelTime": "Total travel time",
         "AverageTravelTime": "Average travel time per trip",
@@ -723,6 +728,14 @@
         "HH_MM__HH_MM_SS": "HH:MM or HH:MM:SS",
         "HMM": "HMM",
         "SecondsSinceMidnight": "Seconds after midnight"
+    },
+    "transitComparison": {
+        "Comparison": "Comparison",
+        "Comparisons": "Comparisons",
+        "ScenarioN": "Scenario {{scenarioNumber}}",
+        "ScenarioComparison": "Scenario comparison",
+        "ScenarioAlternatives": "Alternative paths for scenario {{scenarioNumber}}, {{scenarioName}}",
+        "ScenarioError": "Error for scenario {{scenarioNumber}}:"
     },
     "gtfs": {
         "ButtonImport": "Import",

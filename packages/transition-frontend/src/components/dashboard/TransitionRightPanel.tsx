@@ -12,6 +12,7 @@ import TransitScenariosPanel from '../forms/scenario/TransitScenarioPanel';
 import TransitServicesPanel from '../forms/service/TransitServicePanel';
 import TransitRoutingForm from '../forms/transitRouting/TransitRoutingForm';
 import TransitAccessibilityMapForm from '../forms/accessibilityMap/AccessibilityMapForm';
+import ScenarioComparisonPanel from '../forms/comparison/ScenarioComparisonPanel';
 import GtfsImportForm from '../forms/gtfs/GtfsImportForm';
 import GtfsExportForm from '../forms/gtfs/GtfsExportForm';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -40,6 +41,10 @@ const RightPanel: React.FunctionComponent<RightPanelProps> = (props: RightPanelP
 
             {props.activeSection === 'routing' && (
                 <TransitRoutingForm availableRoutingModes={props.availableRoutingModes} />
+            )}
+
+            {props.activeSection === 'comparison' && (
+                <ScenarioComparisonPanel availableRoutingModes={props.availableRoutingModes} />
             )}
 
             {props.activeSection === 'gtfsImport' && serviceLocator.socketEventManager && <GtfsImportForm />}
