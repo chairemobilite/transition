@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2025, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
@@ -18,7 +18,6 @@ import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/Input
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
-import InputMultiselect from 'chaire-lib-frontend/lib/components/input/InputMultiselect';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
@@ -28,58 +27,63 @@ import TransitRouting from 'transition-common/lib/services/transitRouting/Transi
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
-import RoutingResultsComponent from './RoutingResultsComponent';
+import ScenarioComparisonTab from './ScenarioComparisonTab';
 import { _toInteger, _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
-import TransitRoutingBatchForm from './TransitRoutingBatchForm';
-import TransitRoutingBaseComponent from './widgets/TransitRoutingBaseComponent';
-import ODCoordinatesComponent from './widgets/ODCoordinatesComponent';
-import TimeOfTripComponent from './widgets/TimeOfTripComponent';
+import TransitRoutingBatchForm from '../transitRouting/TransitRoutingBatchForm';
+import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
+import ODCoordinatesComponent from '../transitRouting/widgets/ODCoordinatesComponent';
+import TimeOfTripComponent from '../transitRouting/widgets/TimeOfTripComponent';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { calculateRouting } from '../../../services/routing/RoutingUtils';
 import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 
-export interface TransitRoutingFormProps extends WithTranslation {
-    // TODO tahini batch routing
+export interface ComparisonPanelProps extends WithTranslation {
     addEventListeners?: () => void;
     removeEventListeners?: () => void;
-    fileUploader?: any;
-    fileImportRef?: any;
     availableRoutingModes?: string[];
 }
 
-interface TransitRoutingFormState extends ChangeEventsState<TransitRouting> {
-    currentResult?: RoutingResultsByMode;
+interface ComparisonFormState extends ChangeEventsState<TransitRouting> {
+    currentResult?: RoutingResultsByMode[];
+    alternateScenarioRouting: TransitRouting;
     scenarioCollection: any;
     loading: boolean;
     routingErrors?: ErrorMessage[];
     selectedMode?: RoutingOrTransitMode;
+    alternateScenario1Id?: string;
+    alternateScenario2Id?: string;
 }
 
-class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, TransitRoutingFormState> {
+// This component (as well as the other components in the comparison directory), are mostly copied from the components of the Routing tab in ../transitRouting and share many of the same dependencies.
+// Compared to the originals, these files are modified to allow the selection of 2 different scenarios, which will then calculate and compare 2 different paths for the same OD pair.
+// TODO: Remove/rename any remaining functionality that is unneeded for this tab, and/or refactor the two tabs to avoid code duplication.
+class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, ComparisonFormState> {
     // eslint-disable-next-line
     private calculateRoutingNonce: Object = new Object();
 
-    constructor(props: TransitRoutingFormProps) {
+    constructor(props: ComparisonPanelProps) {
         super(props);
 
         const routingEngine = new TransitRouting(_cloneDeep(Preferences.get('transit.routing.transit')), false);
+        const routingEngine2 = new TransitRouting(_cloneDeep(Preferences.get('transit.routing.transit')), false);
         this.state = {
             object: routingEngine,
+            alternateScenarioRouting: routingEngine2,
             scenarioCollection: serviceLocator.collectionManager.get('scenarios'),
             loading: false,
-            // FIXME tahini: There's probably a better way for this, like with useState
             formValues: {
                 routingName: routingEngine.getAttributes().routingName || '',
-                routingModes: routingEngine.getAttributes().routingModes || ['transit'],
+                routingModes: ['transit'],
                 minWaitingTimeSeconds: routingEngine.getAttributes().minWaitingTimeSeconds,
                 maxAccessEgressTravelTimeSeconds: routingEngine.getAttributes().maxAccessEgressTravelTimeSeconds,
                 maxTransferTravelTimeSeconds: routingEngine.getAttributes().maxTransferTravelTimeSeconds,
                 maxFirstWaitingTimeSeconds: routingEngine.getAttributes().maxFirstWaitingTimeSeconds,
                 maxTotalTravelTimeSeconds: routingEngine.getAttributes().maxTotalTravelTimeSeconds,
-                scenarioId: routingEngine.getAttributes().scenarioId,
+                alternateScenario1Id: routingEngine.getAttributes().scenarioId,
+                alternateScenario2Id: routingEngine.getAttributes().scenarioId,
                 withAlternatives: routingEngine.getAttributes().withAlternatives,
                 routingPort: routingEngine.getAttributes().routingPort,
                 odTripUuid: routingEngine.getAttributes().odTripUuid
@@ -119,10 +123,12 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
     }
 
     resetResults() {
-        this.setState({ currentResult: undefined });
+        this.setState({ currentResult: [] });
         serviceLocator.eventManager.emit('map.updateLayers', {
             routingPaths: undefined,
-            routingPathsStrokes: undefined
+            routingPathsStrokes: undefined,
+            routingPathsAlternate: undefined,
+            routingPathsStrokesAlternate: undefined
         });
     }
 
@@ -138,7 +144,6 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
             return;
         }
         // Save the origin et destinations lat/lon, and time, along with whether it is arrival or departure
-        // TODO Support specifying departure/arrival as variable in batch routing
         routing.addElementForBatch({
             routingName,
             departureTimeSecondsSinceMidnight,
@@ -157,46 +162,45 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
         });
     }
 
-    // FIXME Refactor transit routing to define each component's responsibility, ie who assignes what? when? Also, specify a result and error API for each method used in TransitRouting and TransitRoutingForm
     calculateRouting = async (refresh = false) => {
         if (!this.isValid()) {
             return;
         }
         const localNonce = (this.calculateRoutingNonce = new Object());
         const routing = this.state.object;
+        const alternateRouting = this.state.alternateScenarioRouting;
         const routingErrors: ErrorMessage[] = [];
         const isCancelled = () => localNonce !== this.calculateRoutingNonce;
         this.resetResults();
         this.setState({ loading: true });
 
         try {
-            // TODO tahini: Do something about the walk only route
-            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-                layerName: 'routingPoints',
-                data: routing.originDestinationToGeojson()
-            });
-            const results = await calculateRouting(routing, refresh, { isCancelled });
+            routing.attributes.routingModes = ['transit'];
+            // Calculate the route for the two scenarios one after the other
+            routing.attributes.scenarioId = this.state.formValues.alternateScenario1Id;
+            const results1 = await calculateRouting(routing, refresh, { isCancelled });
             if (isCancelled()) {
                 return;
             }
-            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-                layerName: 'routingPoints',
-                data: routing.originDestinationToGeojson()
-            });
+            alternateRouting.attributes.routingModes = ['transit'];
+            alternateRouting.attributes.scenarioId = this.state.formValues.alternateScenario2Id;
+            const results2 = await calculateRouting(alternateRouting, refresh, { isCancelled });
+            if (isCancelled()) {
+                return;
+            }
 
             this.setState({
-                currentResult: results,
+                currentResult: [results1, results2],
                 loading: false,
                 routingErrors: []
             });
         } catch (err) {
-            // FIXME Refactor error API to make this less custom
             const error = err as any;
             if (error !== 'Cancelled') {
                 routingErrors.push(
                     error.localizedMessage ? error.localizedMessage : error.message ? error.message : error.toString()
                 );
-                this.setState({ currentResult: undefined, loading: false, routingErrors });
+                this.setState({ currentResult: [], loading: false, routingErrors });
             }
         }
     };
@@ -206,10 +210,13 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
         destinationCoordinates?: GeoJSON.Position,
         shouldCalculate = true
     ) {
-        // update both layer and routing engine object:
+        // only both layer and routing engine object:
         const routing = this.state.object;
+        const alternateRouting = this.state.alternateScenarioRouting;
         routing.setOrigin(originCoordinates, true);
         routing.setDestination(destinationCoordinates, true);
+        alternateRouting.setOrigin(originCoordinates, true);
+        alternateRouting.setDestination(destinationCoordinates, true);
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'routingPoints',
             data: routing.originDestinationToGeojson()
@@ -217,7 +224,7 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
         if (routing.hasOrigin() && routing.hasDestination() && shouldCalculate) {
             this.calculateRouting(true);
         }
-        this.setState({ object: routing, currentResult: undefined });
+        this.setState({ object: routing, alternateScenarioRouting: alternateRouting, currentResult: [] });
     }
 
     componentDidMount() {
@@ -230,7 +237,13 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
 
     private isValid = (): boolean => {
         // Are all form fields valid and the routing object too
-        return !this.hasInvalidFields() && this.state.object.validate();
+        const valid =
+            !this.hasInvalidFields() &&
+            this.state.object.validate() &&
+            this.state.alternateScenarioRouting.validate() &&
+            this.state.formValues.alternateScenario1Id &&
+            this.state.formValues.alternateScenario2Id;
+        return valid;
     };
 
     private downloadCsv() {
@@ -279,24 +292,23 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
         );
     };
 
+    private getScenarioNameById(id: string): string {
+        for (const scenario of this.state.scenarioCollection.features) {
+            if (scenario.id === id) {
+                return scenario.toString(false);
+            }
+        }
+        return '';
+    }
+
     render() {
         if (!this.state.scenarioCollection) {
             return <LoadingPage />;
         }
 
         const routing = this.state.object;
+        const alternateRouting = this.state.alternateScenarioRouting;
         const routingId = routing.get('id');
-
-        const routingModes = _cloneDeep(this.props.availableRoutingModes || []);
-        routingModes.push('transit');
-        const routingModesChoices = routingModes.map((routingMode) => {
-            return {
-                value: routingMode
-            };
-        });
-
-        const selectedRoutingModes = this.state.formValues.routingModes || [];
-        const hasTransitModeSelected = selectedRoutingModes.includes('transit');
 
         if (_isBlank(routing.get('withAlternatives'))) {
             routing.getAttributes().withAlternatives = false;
@@ -312,81 +324,76 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
         return (
             <React.Fragment>
                 <form id="tr__form-transit-routing" className="tr__form-transit-routing apptr__form">
-                    <h3>{this.props.t('transit:transitRouting:Routing')}</h3>
+                    <h3>{this.props.t('transit:transitComparison:ScenarioComparison')}</h3>
 
                     <Collapsible trigger={this.props.t('form:basicFields')} open={true} transitionTime={100}>
                         <div className="tr__form-section">
-                            {routingModesChoices.length > 0 && (
+                            <TimeOfTripComponent
+                                departureTimeSecondsSinceMidnight={
+                                    this.state.object.getAttributes().departureTimeSecondsSinceMidnight
+                                }
+                                arrivalTimeSecondsSinceMidnight={
+                                    this.state.object.getAttributes().arrivalTimeSecondsSinceMidnight
+                                }
+                                onValueChange={this.onTripTimeChange}
+                            />
+                            <TransitRoutingBaseComponent
+                                onValueChange={this.onValueChange}
+                                attributes={this.state.object.getAttributes()}
+                            />
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
                                 <InputWrapper
-                                    twoColumns={false}
-                                    label={this.props.t('transit:transitRouting:RoutingModes')}
+                                    label={this.props.t('transit:transitComparison:ScenarioN', { scenarioNumber: '1' })}
                                 >
-                                    <InputMultiselect
-                                        choices={routingModesChoices}
-                                        t={this.props.t}
-                                        id={`formFieldTransitRoutingRoutingModes${routingId}`}
-                                        value={selectedRoutingModes}
-                                        localePrefix="transit:transitPath:routingModes"
-                                        onValueChange={(e) =>
-                                            this.onValueChange('routingModes', { value: e.target.value })
-                                        }
-                                    />
-                                </InputWrapper>
-                            )}
-                            {hasTransitModeSelected && (
-                                <TimeOfTripComponent
-                                    departureTimeSecondsSinceMidnight={
-                                        this.state.object.getAttributes().departureTimeSecondsSinceMidnight
-                                    }
-                                    arrivalTimeSecondsSinceMidnight={
-                                        this.state.object.getAttributes().arrivalTimeSecondsSinceMidnight
-                                    }
-                                    onValueChange={this.onTripTimeChange}
-                                />
-                            )}
-                            {hasTransitModeSelected && (
-                                <TransitRoutingBaseComponent
-                                    onValueChange={this.onValueChange}
-                                    attributes={this.state.object.getAttributes()}
-                                />
-                            )}
-                            {hasTransitModeSelected && (
-                                <InputWrapper label={this.props.t('transit:transitRouting:Scenario')}>
                                     <InputSelect
-                                        id={`formFieldTransitRoutingScenario${routingId}`}
-                                        value={this.state.formValues.scenarioId}
+                                        id={`formFieldTransitRoutingScenario1${routingId}`}
+                                        value={this.state.formValues.alternateScenario1Id}
                                         choices={scenarios}
                                         t={this.props.t}
-                                        onValueChange={(e) =>
-                                            this.onValueChange('scenarioId', { value: e.target.value })
-                                        }
+                                        onValueChange={(e) => {
+                                            this.onValueChange('alternateScenario1Id', { value: e.target.value }, true);
+                                            routing.attributes.scenarioId = e.target.value;
+                                        }}
                                     />
                                 </InputWrapper>
-                            )}
-                            {hasTransitModeSelected && (
-                                <InputWrapper label={this.props.t('transit:transitRouting:WithAlternatives')}>
-                                    <InputRadio
-                                        id={`formFieldTransitRoutingWithAlternatives${routingId}`}
-                                        value={this.state.formValues.withAlternatives}
-                                        sameLine={true}
-                                        disabled={false}
-                                        choices={[
-                                            {
-                                                value: true
-                                            },
-                                            {
-                                                value: false
-                                            }
-                                        ]}
-                                        localePrefix="transit:transitRouting"
+                                <InputWrapper
+                                    label={this.props.t('transit:transitComparison:ScenarioN', { scenarioNumber: '2' })}
+                                    textColor="#ff00ff"
+                                >
+                                    <InputSelect
+                                        id={`formFieldTransitRoutingScenario2${routingId}`}
+                                        value={this.state.formValues.alternateScenario2Id}
+                                        choices={scenarios}
                                         t={this.props.t}
-                                        isBoolean={true}
-                                        onValueChange={(e) =>
-                                            this.onValueChange('withAlternatives', { value: _toBool(e.target.value) })
-                                        }
+                                        onValueChange={(e) => {
+                                            this.onValueChange('alternateScenario2Id', { value: e.target.value }, true);
+                                            alternateRouting.attributes.scenarioId = e.target.value;
+                                        }}
                                     />
                                 </InputWrapper>
-                            )}
+                            </div>
+                            <InputWrapper label={this.props.t('transit:transitRouting:WithAlternatives')}>
+                                <InputRadio
+                                    id={`formFieldTransitRoutingWithAlternatives${routingId}`}
+                                    value={this.state.formValues.withAlternatives}
+                                    sameLine={true}
+                                    disabled={false}
+                                    choices={[
+                                        {
+                                            value: true
+                                        },
+                                        {
+                                            value: false
+                                        }
+                                    ]}
+                                    localePrefix="transit:transitRouting"
+                                    t={this.props.t}
+                                    isBoolean={true}
+                                    onValueChange={(e) =>
+                                        this.onValueChange('withAlternatives', { value: _toBool(e.target.value) })
+                                    }
+                                />
+                            </InputWrapper>
 
                             <div>
                                 <ODCoordinatesComponent
@@ -452,7 +459,14 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
                         </div>
                     </Collapsible>
 
-                    {this.state.object.getErrors() && <FormErrors errors={this.state.object.getErrors()} />}
+                    {this.state.object.getErrors() && this.state.alternateScenarioRouting.getErrors() && (
+                        <FormErrors
+                            errors={[
+                                ...this.state.object.getErrors(),
+                                ...this.state.alternateScenarioRouting.getErrors()
+                            ]}
+                        />
+                    )}
                     {this.state.routingErrors && <FormErrors errors={this.state.routingErrors} />}
                     {this.hasInvalidFields() && <FormErrors errors={['main:errors:InvalidFormFields']} />}
 
@@ -469,7 +483,8 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
                                             this.calculateRouting(true);
                                         } else {
                                             this.setState({
-                                                object: routing
+                                                object: routing,
+                                                alternateScenarioRouting: alternateRouting
                                             });
                                         }
                                     }}
@@ -478,12 +493,15 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
                         </div>
                     </div>
 
-                    {this.state.currentResult && (
-                        <RoutingResultsComponent
-                            results={this.state.currentResult}
+                    {this.state.currentResult?.length === 2 && (
+                        <ScenarioComparisonTab
+                            result1={this.state.currentResult[0]}
+                            result2={this.state.currentResult[1]}
                             request={this.state.object.attributes}
-                            selectedMode={this.state.selectedMode}
-                            setSelectedMode={this.setSelectedMode}
+                            scenarioNames={{
+                                name1: this.getScenarioNameById(this.state.formValues.alternateScenario1Id),
+                                name2: this.getScenarioNameById(this.state.formValues.alternateScenario2Id)
+                            }}
                         />
                     )}
                 </form>
@@ -493,4 +511,4 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
     }
 }
 
-export default withTranslation(['transit', 'main', 'form'])(TransitRoutingForm);
+export default withTranslation(['transit', 'main', 'form'])(ScenarioComparisonPanel);
