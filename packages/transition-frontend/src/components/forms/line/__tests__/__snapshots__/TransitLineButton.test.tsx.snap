@@ -1,0 +1,199 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransitLineButton All props 1`] = `
+<div>
+  <li
+    class="_list _active"
+  >
+    <span
+      class="_list-group _left"
+    >
+      <span
+        class="_list-element"
+      >
+        <span
+          class="_circle-button"
+        />
+        <span
+          class="_list-element"
+          title="main:Hide"
+        >
+          <img
+            alt="main:Hide"
+            class="_list-element _icon-alone"
+            src="/dist/images/icons/interface/visible_white.svg"
+            title="main:Hide"
+          />
+        </span>
+        <img
+          alt="transit:transitLine:modes:null"
+          class="_list-element _icon-alone"
+          src="/dist/images/icons/transit/modes/null_white.svg"
+          title="transit:transitLine:modes:null"
+        />
+      </span>
+    </span>
+    <span
+      class="_list-group _left"
+    >
+      <span
+        class="_list-element"
+      />
+    </span>
+    <span
+      class="_list-group _left"
+    >
+      <span
+        class="_list-element"
+      />
+    </span>
+    <span
+      class="_list-group _flush-right _right"
+    >
+      <span
+        class="_list-element"
+      >
+        transit:transitLine:nPath
+         
+      </span>
+    </span>
+    <span
+      class="_list-group _right"
+      title="main:Edit"
+    >
+      <span
+        class="_list-element"
+      >
+        <img
+          alt="main:Edit"
+          class="_icon-alone"
+          src="/dist/images/icons/interface/edit_white.svg"
+        />
+      </span>
+    </span>
+    <span
+      class="_list-group _right"
+      title="transit:transitLine:DuplicateLine"
+    >
+      <span
+        class="_list-element"
+      >
+        <img
+          alt="transit:transitLine:DuplicateLine"
+          class="_icon"
+          src="/dist/images/icons/interface/copy_white.svg"
+        />
+      </span>
+    </span>
+  </li>
+  <li
+    class="_clear"
+  />
+</div>
+`;
+
+exports[`TransitLineButton Minimal props 1`] = `
+<div>
+  <li
+    class="_list"
+  >
+    <span
+      class="_list-group _left"
+    >
+      <span
+        class="_list-element"
+      >
+        <span
+          class="_circle-button"
+        />
+        <span
+          class="_list-element"
+          title="main:Hide"
+        >
+          <img
+            alt="main:Hide"
+            class="_list-element _icon-alone"
+            src="/dist/images/icons/interface/visible_white.svg"
+            title="main:Hide"
+          />
+        </span>
+        <img
+          alt="transit:transitLine:modes:null"
+          class="_list-element _icon-alone"
+          src="/dist/images/icons/transit/modes/null_white.svg"
+          title="transit:transitLine:modes:null"
+        />
+      </span>
+    </span>
+    <span
+      class="_list-group _left"
+    >
+      <span
+        class="_list-element"
+      />
+    </span>
+    <span
+      class="_list-group _left"
+    >
+      <span
+        class="_list-element"
+      />
+    </span>
+    <span
+      class="_list-group _flush-right _right"
+    >
+      <span
+        class="_list-element"
+      >
+        transit:transitLine:nPath
+         
+      </span>
+    </span>
+    <span
+      class="_list-group _right"
+      title="main:Edit"
+    >
+      <span
+        class="_list-element"
+      >
+        <img
+          alt="main:Edit"
+          class="_icon-alone"
+          src="/dist/images/icons/interface/edit_white.svg"
+        />
+      </span>
+    </span>
+    <span
+      class="_list-group _right"
+      title="transit:transitLine:DuplicateLine"
+    >
+      <span
+        class="_list-element"
+      >
+        <img
+          alt="transit:transitLine:DuplicateLine"
+          class="_icon"
+          src="/dist/images/icons/interface/copy_white.svg"
+        />
+      </span>
+    </span>
+    <span
+      class="_list-group _right"
+      title="transit:transitLine:Delete"
+    >
+      <span
+        class="_list-element"
+      >
+        <img
+          alt="transit:transitLine:Delete"
+          class="_icon-alone"
+          src="/dist/images/icons/interface/delete_white.svg"
+        />
+      </span>
+    </span>
+  </li>
+  <li
+    class="_clear"
+  />
+</div>
+`;
