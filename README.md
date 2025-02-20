@@ -123,6 +123,8 @@ Open your browser and navigate to `http://localhost:8080` to access the Transiti
 ## Using Docker
 You can easily launch the whole transition system using Docker and thus not having to install all the dependencies directly.
 
+For developing using Docker, a separate tutorial is available [here (devWithDocker.md)](./docs/devWithDocker.md).
+
 ### Building the image
 `docker build -t testtransition .`
 (You can replace testtransition with your prefered image name. Don't forget to update any other command and compose file if you do so)
