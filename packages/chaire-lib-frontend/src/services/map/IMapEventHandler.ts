@@ -7,7 +7,11 @@
 import { MjolnirEvent } from 'mjolnir.js';
 import { PickingInfo, Deck } from 'deck.gl';
 
-export type MapCallbacks = { pickMultipleObjects: typeof Deck.prototype.pickMultipleObjects };
+export type MapCallbacks = {
+    pickMultipleObjects: typeof Deck.prototype.pickMultipleObjects;
+    pickObject: typeof Deck.prototype.pickObject;
+    pixelsToCoordinates: (pixels: [number, number]) => number[];
+};
 export type PointInfo = { coordinates: number[]; pixel: [number, number] };
 export type MapEventHandler = (pointInfo: PointInfo, e: MjolnirEvent, mapCallbacks: MapCallbacks) => void;
 export type MapSelectEventHandler = (pickInfo: PickingInfo[], e: MjolnirEvent, mapCallbacks: MapCallbacks) => void;
