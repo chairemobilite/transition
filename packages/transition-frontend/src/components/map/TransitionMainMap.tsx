@@ -9,7 +9,6 @@ import { createRoot, Root } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import _cloneDeep from 'lodash/cloneDeep';
 import _debounce from 'lodash/debounce';
-import { MjolnirGestureEvent } from 'mjolnir.js';
 
 // deck.gl and maps
 import DeckGL from '@deck.gl/react';
@@ -50,6 +49,7 @@ import getLayer from './layers/TransitionMapLayer';
 import { MapEventsManager } from '../../services/map/MapEventsManager';
 import { MapEditFeature } from './MapEditFeature';
 import { MeasureToolMapFeature } from './tools/MapMeasureTool';
+import { TransitionMapController } from '../../services/map/TransitionMapController';
 
 export interface MainMapProps extends LayoutSectionProps {
     zoom: number;
@@ -122,6 +122,10 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     private mapContainer;
     private mapCallbacks: MapCallbacks;
     private updateCounts: { [layerName: string]: number } = {};
+    // Viewport to convert pixels to coordinates. In a private field instead of
+    // state as it is a side effect of state updates and we don't want to
+    // re-render when it's updated
+    private viewport: WebMercatorViewport;
 
     constructor(props: MainMapProps & WithTranslation) {
         super(props);
@@ -130,7 +134,9 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         const xyzTileLayer = getTileLayer();
 
         this.mapCallbacks = {
-            pickMultipleObjects: this.pickMultipleObjects
+            pickMultipleObjects: this.pickMultipleObjects,
+            pickObject: this.pickObject,
+            pixelsToCoordinates: this.pixelsToCoordinates
         };
 
         const mapEvents = [globalMapEvents, transitionMapEvents];
@@ -156,6 +162,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             editUpdateCount: 0,
             activeMapEventManager: this.mapEventsManager
         };
+        this.viewport = new WebMercatorViewport(this.state.viewState);
 
         this.layerManager = new MapLayerManager(layersConfig);
 
@@ -281,9 +288,10 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
 
     fitBounds = (bounds: [[number, number], [number, number]]) => {
         // Use a mercator viewport to fit the bounds, as suggested by https://stackoverflow.com/questions/69744838/how-to-use-fitbounds-in-deckgl-on-timer-without-npm-and-es6
-        const { latitude, longitude, zoom } = new WebMercatorViewport(this.state.viewState).fitBounds(bounds, {
+        this.viewport = new WebMercatorViewport(this.state.viewState).fitBounds(bounds, {
             padding: 20
         });
+        const { latitude, longitude, zoom } = this.viewport;
         this.setState({
             viewState: {
                 ...this.state.viewState,
@@ -478,45 +486,16 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     // FIXME: Find the type for this
     onViewStateChange = (viewStateChange) => {
         this.setState({ viewState: viewStateChange.viewState });
+        this.viewport = new WebMercatorViewport(viewStateChange.viewState);
         this.updateUserPrefs(viewStateChange);
     };
 
-    onClick = (pickInfo: PickingInfo, event: MjolnirGestureEvent) => {
-        if (event.handled) return;
-        if (pickInfo.picked === false) {
-            // Execute map events
-            const pointInfo = {
-                coordinates: pickInfo.coordinate as number[],
-                pixel: [event.offsetCenter.x, event.offsetCenter.y] as [number, number]
-            };
-            this.state.activeMapEventManager.executeMapEvents(event, pointInfo, this.props.activeSection);
-        } else {
-            const eventName = event.leftButton ? 'onLeftClick' : event.rightButton ? 'onRightClick' : undefined;
-            if (!eventName) return;
-
-            // See if there are multiple picks to call proper mapSelect events
-            // TODO Update the radius to not have an hard-coded value, fine-tune as necessary
-            const objects: PickingInfo[] = (this.mapContainer.current as Deck).pickMultipleObjects({
-                x: pickInfo.x,
-                y: pickInfo.y,
-                radius: 4,
-                layerIds: this.state.visibleLayers
-            });
-            const objectsByLayer: { [layerName: string]: PickingInfo[] } = {};
-            objects.forEach((picked) => {
-                if (picked.layer && picked.object) {
-                    const allPicked = objectsByLayer[picked.layer.id] || [];
-                    allPicked.push(picked);
-                    objectsByLayer[picked.layer.id] = allPicked;
-                }
-            });
-            // Execute the map selection events on picked objects
-            this.state.activeMapEventManager.executeMapSelectEventsForObjects(
-                event,
-                objectsByLayer,
-                this.props.activeSection
-            );
-        }
+    // Recreate the viewport with the correct width and height to convert
+    // pixels to coordinates. It is not necessary to update the state here as
+    // width and height are not property that we need to track in our state.
+    // FIXME But should we update the state? it works fine without...
+    onResize = ({ width, height }: { width: number; height: number }) => {
+        this.viewport = new WebMercatorViewport({ ...this.state.viewState, width, height });
     };
 
     onTooltip = (pickInfo: PickingInfo) => {
@@ -562,6 +541,19 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         layerIds?: string[] | undefined;
         unproject3D?: boolean | undefined;
     }): PickingInfo[] => (this.mapContainer.current as Deck).pickMultipleObjects(opts);
+
+    pickObject: typeof Deck.prototype.pickObject = (opts: {
+        x: number;
+        y: number;
+        radius?: number | undefined;
+        depth?: number | undefined;
+        layerIds?: string[] | undefined;
+        unproject3D?: boolean | undefined;
+    }): PickingInfo | null => (this.mapContainer.current as Deck).pickObject(opts);
+
+    pixelsToCoordinates = (pixels: [number, number]): number[] => {
+        return this.viewport.unproject(pixels);
+    };
 
     render() {
         // Disable events on layers if the map is in editing mode
@@ -609,16 +601,22 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                     <DeckGL
                         ref={this.mapContainer}
                         viewState={this.state.viewState}
-                        controller={{
-                            scrollZoom: true,
-                            doubleClickZoom: false,
-                            dragPan: !this.state.isDragging
-                        }}
+                        controller={
+                            {
+                                scrollZoom: true,
+                                doubleClickZoom: false,
+                                dragPan: !this.state.isDragging,
+                                type: TransitionMapController,
+                                mapEventsManager: this.state.activeMapEventManager,
+                                mapCallbacks: this.mapCallbacks,
+                                activeSection: this.props.activeSection
+                            } as any
+                        }
                         _animate={needAnimation}
                         layers={layers}
                         onViewStateChange={this.onViewStateChange}
-                        onClick={this.onClick}
                         getTooltip={this.onTooltip}
+                        onResize={this.onResize}
                         getCursor={({ isHovering, isDragging }) => {
                             // Show a crosshair cursor when the measure tool is enabled
                             // TODO Different edit tools may have different cursors, maybe add a function to the edit tool?
