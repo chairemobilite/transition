@@ -21,10 +21,7 @@ export type layerEventNames = 'onLeftClick' | 'onRightClick' | 'onDragStart' | '
 export type tooltipEventNames = 'onTooltip';
 export type mapEventNames = 'onLeftClick' | 'onRightClick';
 
-export type MapEventHandlerDescriptor = {
-    /** Type for handlers that only require the layer to be active */
-    type: 'map';
-    eventName: mapEventNames;
+export type BaseMapEventHandlerDescriptor = {
     /**
      * Condition function for which this handler applies. It will be checked
      * before actually calling the handler, so the handler can assume this is
@@ -35,6 +32,12 @@ export type MapEventHandlerDescriptor = {
      * can be accessed through the serviceLocator
      * */
     condition?: (activeSection: string) => boolean;
+};
+
+export type MapEventHandlerDescriptor = BaseMapEventHandlerDescriptor & {
+    /** Type for handlers that only require the layer to be active */
+    type: 'map';
+    eventName: mapEventNames;
     /**
      * The event handler
      */
@@ -47,63 +50,33 @@ export type MapEventHandlerDescriptor = {
  * multiple features, as `MapLayerEventHandlerDescriptor` will only handle the
  * top-most selected element
  */
-export type MapSelectEventHandlerDescriptor = {
+export type MapSelectEventHandlerDescriptor = BaseMapEventHandlerDescriptor & {
     /** Type for handlers that only require the layer to be active */
     type: 'mapSelect';
     layerName: string;
     eventName: mapEventNames;
-    /**
-     * Condition function for which this handler applies. It will be checked
-     * before actually calling the handler, so the handler can assume this is
-     * true.
-     *
-     * TODO: This should depend on some application's state or context, that
-     * should be passed here. For now, we pass the active section and the rest
-     * can be accessed through the serviceLocator
-     * */
-    condition?: (activeSection: string) => boolean;
     /**
      * The event handler
      */
     handler: MapSelectEventHandler;
 };
 
-export type MapLayerEventHandlerDescriptor = {
+export type MapLayerEventHandlerDescriptor = BaseMapEventHandlerDescriptor & {
     /** Type for handler that require selected features */
     type: 'layer';
     layerName: string;
     eventName: layerEventNames;
-    /**
-     * Condition function for which this handler applies. It will be checked
-     * before actually calling the handler, so the handler can assume this is
-     * true.
-     *
-     * TODO: This should depend on some application's state or context, that
-     * should be passed here. For now, we pass the active section and the rest
-     * can be accessed through the serviceLocator
-     * */
-    condition?: (activeSection: string) => boolean;
     /**
      * The event handler
      */
     handler: MapLayerEventHandler;
 };
 
-export type TooltipEventHandlerDescriptor = {
+export type TooltipEventHandlerDescriptor = BaseMapEventHandlerDescriptor & {
     /** Type for handler that require selected features */
     type: 'tooltip';
     layerName: string;
     eventName: tooltipEventNames;
-    /**
-     * Condition function for which this handler applies. It will be checked
-     * before actually calling the handler, so the handler can assume this is
-     * true.
-     *
-     * TODO: This should depend on some application's state or context, that
-     * should be passed here. For now, we pass the active section and the rest
-     * can be accessed through the serviceLocator
-     * */
-    condition?: (activeSection: string) => boolean;
     /**
      * The event handler
      */

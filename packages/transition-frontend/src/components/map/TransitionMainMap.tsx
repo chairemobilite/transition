@@ -35,17 +35,7 @@ import {
     MapUpdateLayerEventType,
     MapFilterLayerEventType
 } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
-import {
-    layerEventNames,
-    tooltipEventNames,
-    MapEventHandlerDescriptor,
-    MapLayerEventHandlerDescriptor,
-    mapEventNames,
-    PointInfo,
-    TooltipEventHandlerDescriptor,
-    MapSelectEventHandlerDescriptor,
-    MapCallbacks
-} from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import { MapCallbacks } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 
 // transition-common:
 import Node from 'transition-common/lib/services/nodes/Node';
@@ -59,6 +49,8 @@ import layersConfig from '../../config/layers.config';
 import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
 import getLayer from './layers/TransitionMapLayer';
 import MeasureDistanceDisplay from '../parts/MeasureDistanceDisplay';
+import { MapEventsManager } from '../../services/map/MapEventsManager';
+
 export interface MainMapProps extends LayoutSectionProps {
     zoom: number;
     center: [number, number];
@@ -122,24 +114,7 @@ const getTileLayer = () => {
 class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWithChildren, MainMapState> {
     private layerManager: MapLayerManager;
     private pathFilterManager: TransitPathFilterManager;
-    private mapEvents: {
-        map: { [evtName in mapEventNames]?: MapEventHandlerDescriptor[] };
-        layers: {
-            [layerName: string]: {
-                [evtName in layerEventNames]?: MapLayerEventHandlerDescriptor[];
-            };
-        };
-        tooltips: {
-            [layerName: string]: {
-                [evtName in tooltipEventNames]?: TooltipEventHandlerDescriptor[];
-            };
-        };
-        mapSelect: {
-            [layerName: string]: {
-                [evtName in mapEventNames]?: MapSelectEventHandlerDescriptor[];
-            };
-        };
-    };
+    private mapEventsManager: MapEventsManager;
     private popupManager: MapPopupManager;
     private mapContainer;
     private mapCallbacks: MapCallbacks;
@@ -150,6 +125,14 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
 
         // TODO: This should not be here
         const xyzTileLayer = getTileLayer();
+
+        this.mapCallbacks = {
+            pickMultipleObjects: this.pickMultipleObjects
+        };
+
+        const mapEvents = [globalMapEvents, transitionMapEvents];
+        const mapEventsArr = mapEvents.flatMap((ev) => ev);
+        this.mapEventsManager = new MapEventsManager(mapEventsArr, this.mapCallbacks);
 
         this.state = {
             time: 0,
@@ -174,38 +157,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
 
         this.popupManager = new MapPopupManager();
         this.mapContainer = createRef<HTMLDivElement>();
-
-        this.mapEvents = { map: {}, layers: {}, tooltips: {}, mapSelect: {} };
-        const newEvents = [globalMapEvents, transitionMapEvents];
-        const newEventsArr = newEvents.flatMap((ev) => ev);
-        newEventsArr.forEach((eventDescriptor) => {
-            if (eventDescriptor.type === 'layer') {
-                this.mapEvents.layers[eventDescriptor.layerName] =
-                    this.mapEvents.layers[eventDescriptor.layerName] || {};
-                const events = this.mapEvents.layers[eventDescriptor.layerName][eventDescriptor.eventName] || [];
-                events.push(eventDescriptor);
-                this.mapEvents.layers[eventDescriptor.layerName][eventDescriptor.eventName] = events;
-            } else if (eventDescriptor.type === 'tooltip') {
-                this.mapEvents.tooltips[eventDescriptor.layerName] =
-                    this.mapEvents.tooltips[eventDescriptor.layerName] || {};
-                const events = this.mapEvents.tooltips[eventDescriptor.layerName][eventDescriptor.eventName] || [];
-                events.push(eventDescriptor);
-                this.mapEvents.tooltips[eventDescriptor.layerName][eventDescriptor.eventName] = events;
-            } else if (eventDescriptor.type === 'mapSelect') {
-                this.mapEvents.mapSelect[eventDescriptor.layerName] =
-                    this.mapEvents.mapSelect[eventDescriptor.layerName] || {};
-                const events = this.mapEvents.mapSelect[eventDescriptor.layerName][eventDescriptor.eventName] || [];
-                events.push(eventDescriptor);
-                this.mapEvents.mapSelect[eventDescriptor.layerName][eventDescriptor.eventName] = events;
-            } else {
-                const events = this.mapEvents.map[eventDescriptor.eventName] || [];
-                events.push(eventDescriptor);
-                this.mapEvents.map[eventDescriptor.eventName] = events;
-            }
-        });
-        this.mapCallbacks = {
-            pickMultipleObjects: this.pickMultipleObjects
-        };
 
         serviceLocator.eventManager.on('selected.deselect.measureTool', this.disableMeasureTool);
     }
@@ -333,33 +284,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 zoom
             }
         });
-    };
-
-    private executeEvent = (event: MapEventHandlerDescriptor, pointInfo: PointInfo, e: MjolnirGestureEvent) => {
-        if (event.condition === undefined || event.condition(this.props.activeSection)) {
-            event.handler(pointInfo, e, this.mapCallbacks);
-        }
-    };
-
-    private executeTooltipEvent = (
-        event: TooltipEventHandlerDescriptor,
-        pickInfo: PickingInfo
-    ): string | undefined | { text: string; containsHtml: boolean } => {
-        if (event.condition === undefined || event.condition(this.props.activeSection)) {
-            return event.handler(pickInfo, this.mapCallbacks);
-        }
-        return undefined;
-    };
-
-    private executeMapSelectEvent = (
-        event: MapSelectEventHandlerDescriptor,
-        pickInfo: PickingInfo[],
-        e: MjolnirGestureEvent
-    ) => {
-        if (event.condition === undefined || event.condition(this.props.activeSection)) {
-            return event.handler(pickInfo, e, this.mapCallbacks);
-        }
-        return undefined;
     };
 
     private updateVisibleLayers = () =>
@@ -553,27 +477,12 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     onClick = (pickInfo: PickingInfo, event: MjolnirGestureEvent) => {
         if (event.handled) return;
         if (pickInfo.picked === false) {
-            if (event.leftButton) {
-                // Do the map's click events
-                const events = this.mapEvents.map.onLeftClick || [];
-                events.forEach((ev) =>
-                    this.executeEvent(
-                        ev,
-                        { coordinates: pickInfo.coordinate as number[], pixel: pickInfo.pixel as [number, number] },
-                        event
-                    )
-                );
-            } else if (event.rightButton) {
-                // Do the map's right click events
-                const events = this.mapEvents.map.onRightClick || [];
-                events.forEach((ev) =>
-                    this.executeEvent(
-                        ev,
-                        { coordinates: pickInfo.coordinate as number[], pixel: pickInfo.pixel as [number, number] },
-                        event
-                    )
-                );
-            }
+            // Execute map events
+            const pointInfo = {
+                coordinates: pickInfo.coordinate as number[],
+                pixel: [event.offsetCenter.x, event.offsetCenter.y] as [number, number]
+            };
+            this.mapEventsManager.executeMapEvents(event, pointInfo, this.props.activeSection);
         } else {
             const eventName = event.leftButton ? 'onLeftClick' : event.rightButton ? 'onRightClick' : undefined;
             if (!eventName) return;
@@ -594,15 +503,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                     objectsByLayer[picked.layer.id] = allPicked;
                 }
             });
-            Object.keys(objectsByLayer).forEach((layerName) => {
-                if (this.mapEvents.mapSelect[layerName] && this.mapEvents.mapSelect[layerName][eventName]) {
-                    (this.mapEvents.mapSelect[layerName][eventName] as MapSelectEventHandlerDescriptor[]).forEach(
-                        (ev) => {
-                            this.executeMapSelectEvent(ev, objectsByLayer[layerName], event);
-                        }
-                    );
-                }
-            });
+            // Execute the map selection events on picked objects
+            this.mapEventsManager.executeMapSelectEventsForObjects(event, objectsByLayer, this.props.activeSection);
         }
     };
 
@@ -612,10 +514,14 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 // it is indeed possible to have a layer and no object:
                 return null;
             }
-            const tooltipEvents = (this.mapEvents.tooltips[pickInfo.layer.id] || {}).onTooltip;
+            const tooltipEvents = this.mapEventsManager.getTooltipEvents(pickInfo.layer.id).onTooltip;
             if (tooltipEvents) {
                 for (let i = 0; i < tooltipEvents.length; i++) {
-                    const tooltip = this.executeTooltipEvent(tooltipEvents[i], pickInfo);
+                    const tooltip = this.mapEventsManager.executeTooltipEvent(
+                        tooltipEvents[i],
+                        pickInfo,
+                        this.props.activeSection
+                    );
                     if (tooltip !== undefined) {
                         return typeof tooltip === 'string'
                             ? tooltip
@@ -653,7 +559,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 getLayer({
                     layerDescription: layer,
                     viewState: this.state.viewState,
-                    events: this.mapEvents.layers[layer.id],
+                    events: this.mapEventsManager.getLayerEvents(layer.id),
                     activeSection: this.props.activeSection,
                     setDragging: this.setDragging,
                     mapCallbacks: this.mapCallbacks,
