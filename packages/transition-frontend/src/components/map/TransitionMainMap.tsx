@@ -13,9 +13,7 @@ import { faDrawPolygon } from '@fortawesome/free-solid-svg-icons/faDrawPolygon';
 // deck.gl and maps
 import DeckGL from '@deck.gl/react';
 import { Layer, Deck, PickingInfo, WebMercatorViewport } from '@deck.gl/core';
-import { BitmapLayer } from '@deck.gl/layers';
-import { TileLayer } from '@deck.gl/geo-layers';
-import { Map as MapLibreMap } from 'react-map-gl/maplibre';
+import { Map as MapLibreMap, Source as MapLibreSource, Layer as MapLibreLayer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 // chaire-lib-common:
@@ -38,7 +36,13 @@ import { MapCallbacks } from 'chaire-lib-frontend/lib/services/map/IMapEventHand
 import transitionMapEvents from '../../services/map/events';
 import TransitPathFilterManager from '../../services/map/TransitPathFilterManager';
 import { MapButton, MapButtonWithIcon } from '../parts/MapButton';
-import layersConfig from '../../config/layers.config';
+import {
+    mapTileRasterXYZLayerConfig,
+    layersConfig,
+    MapTileRasterXYZLayerConfig,
+    MapTileVectorLayerConfig,
+    mapTileVectorLayerConfig
+} from '../../config/layers.config';
 import getLayer from './layers/TransitionMapLayer';
 import { MapEventsManager } from '../../services/map/MapEventsManager';
 import { MapEditFeature, ToolConstructorOf } from './MapEditFeature';
@@ -66,41 +70,13 @@ interface MainMapState {
     };
     time: number;
     visibleLayers: string[];
-    mapStyleURL: string;
-    xyzTileLayer?: Layer; // Temporary! Move this somewhere else
+    vectorTilesLayerConfig: MapTileVectorLayerConfig;
+    rasterXYZLayerConfig: MapTileRasterXYZLayerConfig;
     isDragging: boolean;
     mapEditTool?: MapEditFeature;
     editUpdateCount: number;
     activeMapEventManager: MapEventsManager;
 }
-
-const getTileLayer = () => {
-    const opacity = Math.max(0, Math.min(Preferences.get('mapTileLayerOpacity'), 1));
-    return process.env.CUSTOM_RASTER_TILES_XYZ_URL && opacity > 0
-        ? new TileLayer({
-            data: process.env.CUSTOM_RASTER_TILES_XYZ_URL,
-            minZoom: process.env.CUSTOM_RASTER_TILES_MIN_ZOOM
-                ? parseFloat(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM)
-                : 0,
-            maxZoom: process.env.CUSTOM_RASTER_TILES_MAX_ZOOM
-                ? parseFloat(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM)
-                : 22,
-            opacity,
-            tileSize: 256,
-            renderSubLayers: (props) => {
-                const {
-                    boundingBox: [[west, south], [east, north]]
-                } = props.tile;
-
-                return new BitmapLayer(props, {
-                    data: undefined,
-                    image: props.data,
-                    bounds: [west, south, east, north]
-                });
-            }
-        })
-        : undefined;
-};
 
 /**
  * TODO: For now, hard code the map for Transition here. But it should be in
@@ -123,9 +99,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     constructor(props: MainMapProps & WithTranslation) {
         super(props);
 
-        // TODO: This should not be here
-        const xyzTileLayer = getTileLayer();
-
         this.mapCallbacks = {
             pickMultipleObjects: this.pickMultipleObjects,
             pickObject: this.pickObject,
@@ -146,8 +119,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 bearing: 0
             },
             visibleLayers: [],
-            mapStyleURL: Preferences.get('mapStyleURL'),
-            xyzTileLayer: xyzTileLayer,
+            vectorTilesLayerConfig: mapTileVectorLayerConfig(Preferences.current),
+            rasterXYZLayerConfig: mapTileRasterXYZLayerConfig(Preferences.current),
             isDragging: false,
             mapEditTool: undefined,
             editUpdateCount: 0,
@@ -242,10 +215,10 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     };
 
     onPreferencesChange = (updates: any) => {
-        if (Object.keys(updates).some((key) => ['mapStyleURL', 'mapTileLayerOpacity'].includes(key))) {
+        if (Object.keys(updates).some((key) => ['mapTileVectorOpacity', 'mapTileRasterXYZOpacity'].includes(key))) {
             this.setState({
-                mapStyleURL: Preferences.get('mapStyleURL'),
-                xyzTileLayer: getTileLayer()
+                vectorTilesLayerConfig: mapTileVectorLayerConfig(Preferences.current),
+                rasterXYZLayerConfig: mapTileRasterXYZLayerConfig(Preferences.current)
             });
         }
     };
@@ -501,10 +474,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             Preferences.get('map.enableMapAnimations', true) &&
             enabledLayers.find((layer) => layer.configuration.type === 'animatedArrowPath') !== undefined;
 
-        if (this.state.xyzTileLayer) {
-            layers.unshift(this.state.xyzTileLayer);
-        }
-
         return (
             <section id="tr__main-map">
                 <div id="tr__main-map-context-menu" className="tr__main-map-context-menu"></div>
@@ -538,7 +507,26 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                             return isDragging ? 'grabbing' : isHovering ? 'pointer' : 'grab';
                         }}
                     >
-                        <MapLibreMap mapStyle={this.state.mapStyleURL} />
+                        <MapLibreMap mapStyle={this.state.vectorTilesLayerConfig.styleUrl}>
+                            {this.state.rasterXYZLayerConfig.url && this.state.rasterXYZLayerConfig.opacity > 0 && (
+                                <MapLibreSource
+                                    id="raster-tiles"
+                                    type="raster"
+                                    tiles={[this.state.rasterXYZLayerConfig.url]}
+                                    tileSize={this.state.rasterXYZLayerConfig.tileSize}
+                                    minzoom={this.state.rasterXYZLayerConfig.minzoom}
+                                    maxzoom={this.state.rasterXYZLayerConfig.maxzoom}
+                                >
+                                    <MapLibreLayer
+                                        id="raster-layer"
+                                        type="raster"
+                                        paint={{
+                                            'raster-opacity': this.state.rasterXYZLayerConfig.opacity
+                                        }}
+                                    />
+                                </MapLibreSource>
+                            )}
+                        </MapLibreMap>
                     </DeckGL>
                     <div className="tr__map-button-container">
                         {/* FIXME Add a condition to enable this tool depending on the active section */}
