@@ -19,8 +19,13 @@ export interface PreferencesModel {
     defaultSection: string;
     infoPanelPosition: string;
     dateTimeFormat: string;
-    mapStyleURL: string;
-    mapTileLayerOpacity: number;
+    mapTileVectorStyleUrl: string;
+    mapTileVectorOpacity: number;
+    mapTileRasterXYZUrl: string | undefined; // if undefined: do not show XYZ tiles
+    mapTileRasterXYZMinZoom: number;
+    mapTileRasterXYZMaxZoom: number;
+    mapTileRasterXYZTileSize: number;
+    mapTileRasterXYZOpacity: number;
     sections: {
         [key: string]: {
             [key: string]: SectionDescription;
@@ -38,8 +43,14 @@ const defaultPreferences: PreferencesModel = {
     defaultSection: 'agencies',
     infoPanelPosition: 'right',
     dateTimeFormat: 'YYYY-MM-DD HH:mm',
-    mapStyleURL: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-    mapTileLayerOpacity: 0.3,
+    mapTileVectorStyleUrl:
+        process.env.CUSTOM_VECTOR_TILES_STYLE_URL || 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    mapTileVectorOpacity: 0.7,
+    mapTileRasterXYZUrl: process.env.CUSTOM_RASTER_TILES_XYZ_URL || undefined,
+    mapTileRasterXYZMinZoom: Number(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM) || 0,
+    mapTileRasterXYZMaxZoom: Number(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM) || 22,
+    mapTileRasterXYZTileSize: Number(process.env.CUSTOM_RASTER_TILES_TILE_SIZE) || 256,
+    mapTileRasterXYZOpacity: Number(process.env.CUSTOM_RASTER_TILES_TILE_OPACITY) || 0.5,
     sections: {
         transition: {
             agencies: {
