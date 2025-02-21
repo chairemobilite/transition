@@ -49,7 +49,7 @@ export type TooltipEventHandler = (
 
 export type layerEventNames = 'onLeftClick' | 'onRightClick' | 'onDragStart' | 'onDrag' | 'onDragEnd' | 'onHover';
 export type tooltipEventNames = 'onTooltip';
-export type mapEventNames = 'onLeftClick' | 'onRightClick';
+export type mapEventNames = 'onLeftClick' | 'onRightClick' | 'onLeftDblClick' | 'onRightDblClick' | 'onPointerMove';
 
 export type BaseMapEventHandlerDescriptor = {
     /**
