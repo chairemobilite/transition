@@ -9,6 +9,8 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import MathJax from 'react-mathjax';
 import { faFileUpload } from '@fortawesome/free-solid-svg-icons/faFileUpload';
 import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
+import _cloneDeep from 'lodash/cloneDeep';
+import { featureCollection as turfFeatureCollection } from '@turf/turf';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -22,6 +24,7 @@ import NodesImportForm from './TransitNodeImportForm';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import Node from 'transition-common/lib/services/nodes/Node';
 import { deleteUnusedNodes } from '../../../services/transitNodes/transitNodesUtils';
+import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
 
 // Using a state object instead of 2 useState hooks because we want this object
 // to be modified and cause a re-render if the selection or collection was
@@ -90,6 +93,66 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
             );
             setLastOptionIsSelectedNodes(true);
         };
+
+        const onDeselectNodes = () => {
+            setState((state) =>
+                Object.assign({}, state, {
+                    selectedNodes: undefined
+                })
+            );
+            serviceLocator.eventManager.emit('map.updateLayers', {
+                transitNodesSelected: turfFeatureCollection([]),
+                transitNodesSelectedPolygon: turfFeatureCollection([])
+            });
+            setLastOptionIsSelectedNodes(false);
+        };
+
+        const onPolygonSelected = ({ polygons }: { polygons: GeoJSON.FeatureCollection<GeoJSON.Polygon> }) => {
+            // FIXME Copied from the TransitionMainMap before Deck.GL migration. This can be done server-side
+            const allNodes = serviceLocator.collectionManager.get('nodes').getFeatures();
+            const nodesInPolygon = polygons.features.flatMap((polygon) => findOverlappingFeatures(polygon, allNodes));
+            const selectedNodes = nodesInPolygon
+                .map((node) => {
+                    return new Node(node.properties || {}, false, serviceLocator.collectionManager);
+                })
+                .filter((node) => {
+                    return node.get('is_frozen', false) === false && !node.wasFrozen();
+                });
+            const geojson = selectedNodes.map((node) => {
+                return _cloneDeep(node.toGeojson());
+            });
+
+            serviceLocator.eventManager.emit('map.updateLayers', {
+                transitNodesSelected: turfFeatureCollection(geojson),
+                transitNodesSelectedPolygon: polygons
+            });
+            serviceLocator.selectedObjectsManager.select('nodes', selectedNodes);
+            serviceLocator.selectedObjectsManager.select(
+                'isContainSelectedFrozenNodes',
+                selectedNodes.length !== nodesInPolygon.length
+            );
+        };
+
+        const onDeleteSelectedNodes = () => {
+            serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 0.0 });
+            const selectedNodes = serviceLocator.selectedObjectsManager.get('nodes');
+
+            deleteUnusedNodes(selectedNodes.map((n) => n.getId()))
+                .then((_response) => {
+                    serviceLocator.selectedObjectsManager.deselect('nodes');
+                    serviceLocator.collectionManager.refresh('nodes');
+                    serviceLocator.eventManager.emit('map.updateLayers', {
+                        transitNodes: serviceLocator.collectionManager.get('nodes').toGeojson()
+                    });
+                })
+                .catch((error) => {
+                    // TODO Log errors
+                    console.log('Error deleting unused nodes', error);
+                })
+                .finally(() => {
+                    serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 1.0 });
+                });
+        };
         serviceLocator.eventManager.on('collection.update.stations', onStationCollectionUpdate);
         serviceLocator.eventManager.on('collection.update.nodes', onNodeCollectionUpdate);
         serviceLocator.eventManager.on('collection.update.dataSources', onNodeCollectionUpdate);
@@ -98,7 +161,9 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
         serviceLocator.eventManager.on('map.editUpdateMultipleNodes', onSelectedNodesUpdate);
         serviceLocator.eventManager.on('selected.deselect.station', onSelectedStationUpdate);
         serviceLocator.eventManager.on('selected.deselect.node', onSelectedNodeUpdate);
-        serviceLocator.eventManager.on('selected.update.nodes', onSelectedNodesUpdate);
+        serviceLocator.eventManager.on('selected.deselect.nodes', onDeselectNodes);
+        serviceLocator.eventManager.on('map.draw.polygon', onPolygonSelected);
+        serviceLocator.eventManager.on('map.deleteSelectedNodes', onDeleteSelectedNodes);
         return () => {
             serviceLocator.eventManager.off('collection.update.stations', onStationCollectionUpdate);
             serviceLocator.eventManager.off('collection.update.nodes', onNodeCollectionUpdate);
@@ -108,7 +173,9 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
             serviceLocator.eventManager.off('map.editUpdateMultipleNodes', onSelectedNodesUpdate);
             serviceLocator.eventManager.off('selected.deselect.station', onSelectedStationUpdate);
             serviceLocator.eventManager.off('selected.deselect.node', onSelectedNodeUpdate);
-            serviceLocator.eventManager.off('selected.update.nodes', onSelectedNodesUpdate);
+            serviceLocator.eventManager.off('selected.deselect.nodes', onDeselectNodes);
+            serviceLocator.eventManager.off('map.draw.polygon', onPolygonSelected);
+            serviceLocator.eventManager.off('map.deleteSelectedNodes', onDeleteSelectedNodes);
         };
     }, []);
 

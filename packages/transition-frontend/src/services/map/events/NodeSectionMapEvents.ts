@@ -11,6 +11,7 @@ import { MapEventHandlerDescription, PointInfo } from 'chaire-lib-frontend/lib/s
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitNode from 'transition-common/lib/services/nodes/Node';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import { featureCollection as turfFeatureCollection } from '@turf/turf';
 
 /* This file encapsulates map events specific for the 'nodes' section */
 
@@ -70,7 +71,11 @@ const onNodeSectionContextMenu = (pointInfo: PointInfo, _event: MjolnirEvent) =>
     menu.push({
         title: 'transit:transitNode:deleteSelectedPolygon',
         onClick: () => {
-            serviceLocator.eventManager.emit('map.deleteSelectedPolygon');
+            serviceLocator.selectedObjectsManager.deselect('nodes');
+            serviceLocator.eventManager.emit('map.updateLayers', {
+                transitNodesSelected: turfFeatureCollection([]),
+                transitNodesSelectedPolygon: turfFeatureCollection([])
+            });
         }
     });
 
