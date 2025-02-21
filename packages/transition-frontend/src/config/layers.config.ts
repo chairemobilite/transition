@@ -29,6 +29,7 @@ export const sectionLayers = {
         'transitNodesRoutingRadius',
         'transitPaths',
         'transitNodes',
+        'transitNodesSelectedPolygon',
         'transitNodesSelected'
     ],
     scenarios: ['transitPathsForServices'],
@@ -248,6 +249,14 @@ const layersConfig = {
         minRadiusPixels: 5,
         radiusScale: 3,
         strokeWidthScale: 3
+    },
+
+    transitNodesSelectedPolygon: {
+        type: 'fill',
+        color: '#03cffc30',
+        lineColor: '#03cffc63',
+        lineWidth: 4,
+        pickable: false
     },
 
     transitNodesRoutingRadius: {
