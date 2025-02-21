@@ -355,6 +355,116 @@ describe('findBestBus', () => {
     });
 });
 
+describe('processDeparture', () => {
+    let units: BusUnit[];
+    let path: any;
+    let trips: any[];
+    let schedule: Schedule;
+    const currentTime = 100;
+    const totalTimeSeconds = 200;
+    const direction = BusDirection.OUTBOUND;
+
+    beforeEach(() => {
+        units = [
+            {
+                id: 1,
+                totalCapacity: 50,
+                seatedCapacity: 40,
+                currentLocation: BusLocation.ORIGIN,
+                expectedArrivalTime: 0,
+                expectedReturnTime: null,
+                direction: null,
+                lastTripEndTime: null,
+                timeInCycle: 0
+            },
+            {
+                id: 2,
+                totalCapacity: 50,
+                seatedCapacity: 40,
+                currentLocation: BusLocation.DESTINATION,
+                expectedArrivalTime: 0,
+                expectedReturnTime: null,
+                direction: null,
+                lastTripEndTime: 100,
+                timeInCycle: 0
+            }
+        ];
+    
+        path = {
+            getAttributes: jest.fn().mockReturnValue({
+                data: {
+                    segments: [
+                        { travelTimeSeconds: 50 },
+                        { travelTimeSeconds: 60 } 
+                    ]
+                },
+                nodes: ['node1', 'node2', 'node3']
+            }),
+            getData: jest.fn().mockReturnValue([10, 15]),
+            get: jest.fn().mockReturnValue('path-id-123'),
+            getId: jest.fn().mockReturnValue('path-id-123'),
+            getLine: jest.fn().mockReturnValue({
+                getAttributes: jest.fn().mockReturnValue({ shortname: 'Line 1', line_id: 'line-123' })
+            })
+        };
+    
+        trips = [];
+    
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        schedule = new Schedule(testAttributes, true);
+    });
+
+    test('should return { busId: null } if no bus is found', () => {
+        const emptyUnits: BusUnit[] = [];
+        const result = schedule["processDeparture"](currentTime, totalTimeSeconds, emptyUnits, path, trips, direction);
+
+        expect(result).toEqual({ busId: null });
+        expect(trips.length).toBe(0);
+    });
+
+    test('should generate a trip and update bus when a bus is found', () => {
+        const bus = units[0];
+    
+        const result = schedule["processDeparture"](currentTime, totalTimeSeconds, units, path, trips, direction);
+    
+        expect(trips.length).toBe(1);
+        const generatedTrip = trips[0];
+    
+        expect(generatedTrip.path_id).toBe('path-id-123');
+        expect(generatedTrip.departure_time_seconds).toBe(currentTime); 
+        expect(generatedTrip.arrival_time_seconds).toBe(235); 
+        expect(generatedTrip.unit_id).toBe(bus.id);
+        expect(generatedTrip.total_capacity).toBe(bus.totalCapacity);
+        expect(generatedTrip.seated_capacity).toBe(bus.seatedCapacity);
+    
+        expect(bus.direction).toBe(direction);
+        expect(bus.currentLocation).toBe(BusLocation.IN_TRANSIT);
+        expect(bus.expectedArrivalTime).toBe(300); 
+    
+        expect(result).toEqual({ busId: bus.id });
+    });
+
+    test('should prioritize used buses over unused buses', () => {
+
+        const usedBus = units[1];
+        usedBus.lastTripEndTime = 50;
+
+        const result = schedule["processDeparture"](currentTime, totalTimeSeconds, units, path, trips, BusDirection.INBOUND);
+
+        expect(trips.length).toBe(1);
+        const generatedTrip = trips[0];
+
+        expect(generatedTrip.unit_id).toBe(usedBus.id);
+
+        expect(usedBus.direction).toBe(BusDirection.INBOUND);
+        expect(usedBus.currentLocation).toBe(BusLocation.IN_TRANSIT);
+        expect(usedBus.expectedArrivalTime).toBe(currentTime + totalTimeSeconds);
+
+        expect(result).toEqual({ busId: usedBus.id });
+    });
+});
+
 describe('updateForAllPeriods', () => {
     // Prepare collection manager and path objects
     const collectionManager = new CollectionManager(null);
