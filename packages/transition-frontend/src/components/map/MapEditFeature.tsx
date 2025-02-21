@@ -11,6 +11,10 @@ import { Layer, LayerProps } from '@deck.gl/core';
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import { TransitionMapLayerProps } from './layers/TransitionMapLayer';
 
+export interface ToolConstructorOf {
+    new (args: { onUpdate: () => void; onDisable: () => void }): MapEditFeature;
+}
+
 export interface MapEditFeature {
     getEditMode: () => string;
     getMapEvents: () => MapEventHandlerDescription[];

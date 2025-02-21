@@ -7,7 +7,6 @@
 import React, { createRef, PropsWithChildren } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import _cloneDeep from 'lodash/cloneDeep';
 import _debounce from 'lodash/debounce';
 
 // deck.gl and maps
@@ -15,13 +14,11 @@ import DeckGL from '@deck.gl/react';
 import { Layer, Deck, PickingInfo, WebMercatorViewport } from '@deck.gl/core';
 import { BitmapLayer } from '@deck.gl/layers';
 import { TileLayer } from '@deck.gl/geo-layers';
-import { featureCollection as turfFeatureCollection } from '@turf/turf';
 import { Map as MapLibreMap } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 // chaire-lib-common:
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 
@@ -36,20 +33,17 @@ import {
 } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { MapCallbacks } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 
-// transition-common:
-import Node from 'transition-common/lib/services/nodes/Node';
-
 // transition-frontend:
 import transitionMapEvents from '../../services/map/events';
 import TransitPathFilterManager from '../../services/map/TransitPathFilterManager';
-import MapButton from '../parts/MapButton';
+import { MapButton } from '../parts/MapButton';
 import layersConfig, { sectionLayers } from '../../config/layers.config';
-import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
 import getLayer from './layers/TransitionMapLayer';
 import { MapEventsManager } from '../../services/map/MapEventsManager';
-import { MapEditFeature } from './MapEditFeature';
+import { MapEditFeature, ToolConstructorOf } from './MapEditFeature';
 import { MeasureToolMapFeature } from './tools/MapMeasureTool';
 import { TransitionMapController } from '../../services/map/TransitionMapController';
+import { PolygonDrawMapFeature } from './tools/MapPolygonDrawTool';
 
 export interface MainMapProps extends LayoutSectionProps {
     zoom: number;
@@ -178,8 +172,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         });
     };
 
-    enableMeasureTool = () => {
-        const mapEditTool = new MeasureToolMapFeature({
+    enableEditTool = (ToolConstructor: ToolConstructorOf) => {
+        const mapEditTool = new ToolConstructor({
             onUpdate: this.onEditLayerUpdate,
             onDisable: this.disableEditTool
         });
@@ -252,7 +246,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.on('map.paths.clearFilter', this.clearPathsFilter);
         serviceLocator.eventManager.on('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.on('map.hideContextMenu', this.hideContextMenu);
-        //serviceLocator.eventManager.on('map.deleteSelectedNodes', this.deleteSelectedNodes);
         serviceLocator.eventManager.emit('map.loaded');
         Preferences.addChangeListener(this.onPreferencesChange);
     };
@@ -283,7 +276,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.off('map.paths.clearFilter', this.clearPathsFilter);
         serviceLocator.eventManager.off('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.off('map.hideContextMenu', this.hideContextMenu);
-        //serviceLocator.eventManager.off('map.deleteSelectedNodes', this.deleteSelectedNodes);
     };
 
     fitBounds = (bounds: [[number, number], [number, number]]) => {
@@ -337,77 +329,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
 
     setRef = (ref) => {
         this.mapContainer = ref;
-    };
-
-    setDrawPolygonService = () => {
-        // TODO Re-implement
-    };
-
-    /**
-     * In the nodes active section, if you click on the map a new node will be create
-     * If the user click on the tool for draw a polygon,
-     * selectedNodes will put a value that will prevent a new node to be create
-     * If the user click again on the tool for draw a polygon and selectedNodes doesn't contain nodes (type object)
-     * selectedNodes will be clear so a new node can be create
-     * @param {object} data The next mode, i.e. the mode that Draw is changing to (from mapbox-gl-draw API.md)
-     */
-    modeChangePolygonService = (data) => {
-        if (data.mode && data.mode === 'draw_polygon') {
-            serviceLocator.selectedObjectsManager.setSelection('nodes', ['draw_polygon']); // this is a hack to put a virtual selected node
-        } else {
-            const selectedNodes = serviceLocator.selectedObjectsManager.getSingleSelection('nodes');
-            if (selectedNodes && typeof selectedNodes !== 'object' && data.mode && data.mode === 'simple_select') {
-                serviceLocator.selectedObjectsManager.deselect('nodes');
-            }
-        }
-    };
-
-    handleDrawPolygonService = (polygon) => {
-        if (this.props.activeSection === 'nodes') {
-            const allNodes = serviceLocator.collectionManager.get('nodes').getFeatures();
-            const nodesInPolygon = findOverlappingFeatures(polygon, allNodes);
-            const selectedNodes = nodesInPolygon
-                .map((node) => {
-                    return new Node(node.properties || {}, false, serviceLocator.collectionManager);
-                })
-                .filter((node) => {
-                    return node.get('is_frozen', false) === false && !node.wasFrozen();
-                });
-            const geojson = selectedNodes.map((node) => {
-                return _cloneDeep(node.toGeojson());
-            });
-
-            serviceLocator.eventManager.emit('map.updateLayers', {
-                transitNodesSelected: turfFeatureCollection(geojson)
-            });
-            serviceLocator.selectedObjectsManager.setSelection('nodes', selectedNodes);
-            serviceLocator.selectedObjectsManager.setSelection('isContainSelectedFrozenNodes', [
-                selectedNodes.length !== nodesInPolygon.length
-            ]);
-            serviceLocator.selectedObjectsManager.setSelection('isDrawPolygon', [true]);
-        }
-    };
-
-    onDeleteSelectedNodes = () => {
-        serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 0.0 });
-        const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
-
-        deleteUnusedNodes(selectedNodes.map((n) => n.getId()))
-            .then((_response) => {
-                serviceLocator.selectedObjectsManager.deselect('nodes');
-                serviceLocator.collectionManager.refresh('nodes');
-                serviceLocator.eventManager.emit('map.updateLayers', {
-                    transitNodes: serviceLocator.collectionManager.get('nodes').toGeojson(),
-                    transitNodesSelected: turfFeatureCollection([])
-                });
-            })
-            .catch((error) => {
-                // TODO Log errors
-                console.log('Error deleting unused nodes', error);
-            })
-            .finally(() => {
-                serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 1.0 });
-            });
     };
 
     updateLayer = (args: {
@@ -629,21 +550,35 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                         <MapLibreMap mapStyle={this.state.mapStyleURL} />
                     </DeckGL>
                     <div className="tr__map-button-container">
-                        {
-                            // FIXME Add a condition to enable this tool depending on the active section
+                        {/* FIXME Add a condition to enable this tool depending on the active section */}
+                        <MapButton
+                            title="main:MeasureTool"
+                            key="mapbtn_measuretool"
+                            className={`${this.state.mapEditTool?.getEditMode() === MeasureToolMapFeature.editMode ? 'active' : ''}`}
+                            onClick={() => {
+                                if (this.state.mapEditTool?.getEditMode() === MeasureToolMapFeature.editMode) {
+                                    this.disableEditTool();
+                                } else {
+                                    this.enableEditTool(MeasureToolMapFeature);
+                                }
+                            }}
+                            iconPath={'/dist/images/icons/interface/ruler_white.svg'}
+                        />
+                        {this.props.activeSection === 'nodes' && (
                             <MapButton
-                                title="main:MeasureTool"
-                                className={`${this.state.mapEditTool?.getEditMode() === MeasureToolMapFeature.editMode ? 'active' : ''}`}
+                                title="main:PolygonDrawTool"
+                                key="mapbtn_polygontool"
+                                className={`${this.state.mapEditTool?.getEditMode() === PolygonDrawMapFeature.editMode ? 'active' : ''}`}
                                 onClick={() => {
-                                    if (this.state.mapEditTool?.getEditMode() === MeasureToolMapFeature.editMode) {
+                                    if (this.state.mapEditTool?.getEditMode() === PolygonDrawMapFeature.editMode) {
                                         this.disableEditTool();
                                     } else {
-                                        this.enableMeasureTool();
+                                        this.enableEditTool(PolygonDrawMapFeature);
                                     }
                                 }}
-                                iconPath={'/dist/images/icons/interface/ruler_white.svg'}
+                                iconPath={'/dist/images/icons/interface/select_white.svg'}
                             />
-                        }
+                        )}
                     </div>
                     {this.state.mapEditTool && this.state.mapEditTool.getMapComponent()}
                 </div>
