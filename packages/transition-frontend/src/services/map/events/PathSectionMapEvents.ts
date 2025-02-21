@@ -77,7 +77,7 @@ const onSelectedPathMapClicked = (pointInfo: PointInfo, _event: MjolnirEvent) =>
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
-        return;
+        return false;
     }
     const waypointType = path.getAttributes().data.temporaryManualRouting
         ? 'manual'
@@ -90,9 +90,10 @@ const onSelectedPathMapClicked = (pointInfo: PointInfo, _event: MjolnirEvent) =>
         serviceLocator.selectedObjectsManager.update('path', path);
         serviceLocator.eventManager.emit('selected.updateLayers.path');
     });
+    return true;
 };
 
-const onPathsClicked = (pickInfo: PickingInfo[], event: MjolnirEvent) => {
+const onPathsClicked = (pickInfo: PickingInfo[], _event: MjolnirEvent) => {
     if (pickInfo.length === 1) {
         selectPath(pickInfo[0].object);
     } else {
@@ -113,38 +114,39 @@ const onPathsClicked = (pickInfo: PickingInfo[], event: MjolnirEvent) => {
         });
         serviceLocator.eventManager.emit('map.showContextMenu', pickInfo[0].pixel, menu);
     }
-    event.handled = true;
+    return true;
 };
 
 const onSelectedWaypointDrag = (info: PickingInfo, _event: MjolnirEvent) => {
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
-        return;
+        return false;
     }
     const selectedFeature = info.object;
     const waypointIndex = selectedFeature.properties?.waypointIndex;
     const afterNodeIndex = selectedFeature.properties?.afterNodeIndex;
     if (waypointIndex === undefined || afterNodeIndex === undefined) {
         // Not a proper waypoint, ignore
-        return;
+        return false;
     }
     // Drag the waypoint
     serviceLocator.eventManager.emit('waypoint.drag', info.coordinate, waypointIndex, afterNodeIndex);
+    return true;
 };
 
 const onSelectedWaypointDragEnd = (info: PickingInfo, _event: MjolnirEvent, mapCallbacks: MapCallbacks) => {
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
-        return;
+        return false;
     }
     const selectedFeature = info.object;
     const waypointIndex = selectedFeature.properties?.waypointIndex;
     const afterNodeIndex = selectedFeature.properties?.afterNodeIndex;
     if (waypointIndex === undefined || afterNodeIndex === undefined) {
         // Not a proper waypoint, ignore
-        return;
+        return false;
     }
     // Update the waypoint convert to node
     const nodes = mapCallbacks.pickMultipleObjects({ x: info.x, y: info.y, layerIds: ['transitNodes'] });
@@ -162,13 +164,14 @@ const onSelectedWaypointDragEnd = (info: PickingInfo, _event: MjolnirEvent, mapC
     } else {
         serviceLocator.eventManager.emit('waypoint.update', info.coordinate, waypointIndex, afterNodeIndex);
     }
+    return true;
 };
 
 const onSelectedPathClicked = (info: PickingInfo, _event: MjolnirEvent) => {
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
-        return;
+        return false;
     }
 
     const waypointType = path.getAttributes().data.temporaryManualRouting
@@ -180,6 +183,7 @@ const onSelectedPathClicked = (info: PickingInfo, _event: MjolnirEvent) => {
         serviceLocator.selectedObjectsManager.update('path', path);
         serviceLocator.eventManager.emit('selected.updateLayers.path');
     });
+    return true;
 };
 
 const removeNode = async (path: TransitPath, nodeId: string) => path.removeNodeId(nodeId);
@@ -196,12 +200,13 @@ const onWaypointClicked = (info: PickingInfo, _e: MjolnirEvent) => {
     const selectedPath = serviceLocator.selectedObjectsManager.get('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
-        return;
+        return false;
     }
     path.removeWaypoint(info.object.properties.afterNodeIndex, info.object.properties.waypointIndex).then(() => {
         serviceLocator.selectedObjectsManager.update('path', path);
         serviceLocator.eventManager.emit('selected.updateLayers.path');
     });
+    return true;
 };
 
 const onNodeClickedForPath = (info: PickingInfo, e: MjolnirEvent) => {
@@ -209,11 +214,11 @@ const onNodeClickedForPath = (info: PickingInfo, e: MjolnirEvent) => {
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
 
     if (e.srcEvent.ctrlKey === true) {
-        return;
+        return false;
     }
     const nodeId = (info.object.properties || {}).id;
     if (!nodeId || !path) {
-        return;
+        return false;
     }
 
     const nodeAddOrRemovePromise =
@@ -228,6 +233,7 @@ const onNodeClickedForPath = (info: PickingInfo, e: MjolnirEvent) => {
             }
         })
         .catch((error) => console.error('error adding node to path:', error));
+    return true;
 };
 
 const pathSectionEventDescriptors: MapEventHandlerDescription[] = [

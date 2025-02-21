@@ -25,7 +25,9 @@ const onSelectedNodeDrag = (info: PickingInfo, _event: MjolnirEvent) => {
         selectedNode.get('is_frozen') !== true
     ) {
         serviceLocator.eventManager.emit('selected.drag.node', info.coordinate);
+        return true;
     }
+    return false;
 };
 
 const onSelectedNodeDragEnd = (info: PickingInfo, _event: MjolnirEvent) => {
@@ -39,7 +41,9 @@ const onSelectedNodeDragEnd = (info: PickingInfo, _event: MjolnirEvent) => {
         // TODO Re-implement this with deck gl/openstreetmap
         // serviceLocator.eventManager.emit('selected.updateAutocompleteNameChoices.node', getRoadLabelAround(map, e));
         serviceLocator.eventManager.emit('selected.dragEnd.node', info.coordinate);
+        return true;
     }
+    return false;
 };
 
 const onNodeSectionContextMenu = (pointInfo: PointInfo, _event: MjolnirEvent) => {
@@ -76,6 +80,7 @@ const onNodeSectionContextMenu = (pointInfo: PointInfo, _event: MjolnirEvent) =>
     });
 
     serviceLocator.eventManager.emit('map.showContextMenu', pointInfo.pixel, menu);
+    return true;
 };
 
 // TODO Should we split this in individual functions with conditions instead?
@@ -91,18 +96,18 @@ const onNodeSectionContextMenu = (pointInfo: PointInfo, _event: MjolnirEvent) =>
  * @param e
  * @returns
  */
-const onNodeSelected = (info: PickingInfo, e: MjolnirEvent) => {
+const onNodeSelected = (info: PickingInfo, _e: MjolnirEvent) => {
     const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
     const selectedNode = serviceLocator.selectedObjectsManager.get('node');
 
     // Ignore the event if there is a multiple selection
-    if (selectedNodes) return;
+    if (selectedNodes) return false;
 
     const selectedFeature = info.object;
 
     if (selectedFeature) {
         // Clicked on a feature, edit it if possible, ignore if a node is selected and has changed
-        if (selectedNode && selectedNode.hasChanged()) return;
+        if (selectedNode && selectedNode.hasChanged()) return false;
 
         // Deselect previous node and select current one
         if (selectedNode) {
@@ -116,8 +121,9 @@ const onNodeSelected = (info: PickingInfo, e: MjolnirEvent) => {
                 serviceLocator.selectedObjectsManager.select('node', transitNodeEdit);
             });
         });
-        e.handled = true;
+        return true;
     }
+    return false;
 };
 
 // TODO Should we split this in individual functions with conditions instead?
@@ -128,7 +134,7 @@ const onNodeSelected = (info: PickingInfo, e: MjolnirEvent) => {
 const onMapClicked = (pointInfo: PointInfo, e: MjolnirEvent) => {
     const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
     // Ignore the event if there is a multiple selection
-    if (selectedNodes) return;
+    if (selectedNodes) return false;
 
     const selectedNode = serviceLocator.selectedObjectsManager.get('node');
 
@@ -150,6 +156,7 @@ const onMapClicked = (pointInfo: PointInfo, e: MjolnirEvent) => {
         serviceLocator.selectedObjectsManager.select('node', newTransitNode);
         // FIXME Migration to DeckGL: reimplement this
         // serviceLocator.eventManager.emit('selected.updateAutocompleteNameChoices.node', getRoadLabelAround(map, e));
+        return true;
     } else if (selectedNode) {
         const selectedTransitNode = selectedNode as TransitNode;
         if (!selectedTransitNode.isFrozen()) {
@@ -161,9 +168,9 @@ const onMapClicked = (pointInfo: PointInfo, e: MjolnirEvent) => {
             serviceLocator.eventManager.emit('selected.drag.node', pointInfo.coordinates);
             serviceLocator.selectedObjectsManager.update('node', selectedNode);
         }
+        return true;
     }
-    // TODO Migration to DeckGL: Do we need to stop propagation?
-    e.handled = true;
+    return false;
 };
 
 const nodeSectionEventDescriptors: MapEventHandlerDescription[] = [
