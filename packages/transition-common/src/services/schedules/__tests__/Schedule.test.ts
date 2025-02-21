@@ -10,7 +10,7 @@ import _omit from 'lodash/omit';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import EventManagerMock from 'chaire-lib-common/lib/test/services/events/EventManagerMock';
-import Schedule, { SchedulePeriod } from '../Schedule';
+import Schedule, { SchedulePeriod, BusUnit, BusLocation, BusDirection} from '../Schedule';
 import { getScheduleAttributes } from './ScheduleData.test';
 import { getPathObject } from '../../path/__tests__/PathData.test';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
@@ -136,6 +136,100 @@ describe('getAssociatedPathIds', () => {
         expect(pathIds).toContain(pathId);
     });
 
+});
+
+describe('updateBusAvailability', () => {
+    let unit: BusUnit;
+
+    beforeEach(() => {
+        
+        unit = {
+            id: 1,
+            totalCapacity: 50,
+            seatedCapacity: 40,
+            currentLocation: BusLocation.ORIGIN,
+            expectedArrivalTime: 0,
+            expectedReturnTime: null,
+            direction: null,
+            lastTripEndTime: null,
+            timeInCycle: 0
+        };
+    });
+
+    test('should update outbound bus to destination when arrived', () => {
+        unit.direction = BusDirection.OUTBOUND;
+        unit.expectedArrivalTime = 100;
+        const currentTimeSeconds = 100;
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+
+        schedule["updateBusAvailability"](unit, currentTimeSeconds);
+
+        expect(unit.currentLocation).toBe(BusLocation.DESTINATION);
+        expect(unit.direction).toBeNull();
+        expect(unit.lastTripEndTime).toBe(currentTimeSeconds);
+    });
+
+    test('should update inbound bus to origin when arrived', () => {
+        unit.direction = BusDirection.INBOUND;
+        unit.expectedArrivalTime = 100;
+        const currentTimeSeconds = 100;
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+
+        schedule["updateBusAvailability"](unit, currentTimeSeconds);
+
+        expect(unit.currentLocation).toBe(BusLocation.ORIGIN);
+        expect(unit.direction).toBeNull();
+        expect(unit.lastTripEndTime).toBe(currentTimeSeconds);
+    });
+
+    test('should not update outbound bus if not arrived', () => {
+        unit.direction = BusDirection.OUTBOUND;
+        unit.expectedArrivalTime = 200;
+        const currentTimeSeconds = 100;
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+
+        schedule["updateBusAvailability"](unit, currentTimeSeconds);
+
+        expect(unit.currentLocation).toBe(BusLocation.ORIGIN);
+        expect(unit.direction).toBe(BusDirection.OUTBOUND);
+        expect(unit.lastTripEndTime).toBeNull();
+    });
+
+    test('should not update inbound bus if not arrived', () => {
+        unit.direction = BusDirection.INBOUND;
+        unit.expectedArrivalTime = 200;
+        const currentTimeSeconds = 100;
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+
+        schedule["updateBusAvailability"](unit, currentTimeSeconds);
+
+        expect(unit.currentLocation).toBe(BusLocation.ORIGIN);
+        expect(unit.direction).toBe(BusDirection.INBOUND);
+        expect(unit.lastTripEndTime).toBeNull();
+    });
+
+    test('should not update bus if direction is null', () => {
+        unit.direction = null;
+        unit.expectedArrivalTime = 100;
+        const currentTimeSeconds = 100;
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+
+        schedule["updateBusAvailability"](unit, currentTimeSeconds);
+
+        expect(unit.currentLocation).toBe(BusLocation.ORIGIN);
+        expect(unit.direction).toBeNull();
+        expect(unit.lastTripEndTime).toBeNull();
+    });
 });
 
 describe('updateForAllPeriods', () => {
