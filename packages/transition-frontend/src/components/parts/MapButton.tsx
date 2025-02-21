@@ -5,22 +5,42 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
+import { IconProp } from '@fortawesome/fontawesome-svg-core';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
-interface MapButtonProps extends WithTranslation {
+interface MapButtonBaseProps {
     title: string;
     onClick: () => void;
-    iconPath: string;
     className?: string;
 }
 
-const MapButton: React.FC<MapButtonProps> = ({ t, title, onClick, iconPath, className = '' }) => {
+interface MapButtonProps extends MapButtonBaseProps {
+    iconPath: string;
+}
+
+interface MapButtonWithIconProps extends MapButtonBaseProps {
+    icon: IconProp;
+}
+
+const MapButtonBase = ({ title, onClick, children, className = '' }: React.PropsWithChildren<MapButtonBaseProps>) => {
+    const { t } = useTranslation();
     return (
         <button className={`tr__map-button ${className}`} onClick={onClick} title={t(title)}>
-            <img src={iconPath} alt={title} className="tr__map-button-icon" />
+            {children}
         </button>
     );
 };
 
-export default withTranslation()(MapButton);
+export const MapButton: React.FC<MapButtonProps> = ({ title, onClick, iconPath, className = '' }) => (
+    <MapButtonBase title={title} onClick={onClick} className={className}>
+        <img src={iconPath} alt={title} className="tr__map-button-icon" />
+    </MapButtonBase>
+);
+
+export const MapButtonWithIcon: React.FC<MapButtonWithIconProps> = ({ title, onClick, icon, className = '' }) => (
+    <MapButtonBase title={title} onClick={onClick} className={`center ${className}`}>
+        <FontAwesomeIcon icon={icon} color="white" />
+    </MapButtonBase>
+);

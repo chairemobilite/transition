@@ -297,5 +297,6 @@
     "PageNofX": "Page {{n}} of {{x}}",
     "GoToPage": "Go to page",
     "ShowN": "Show {{n}}",
-    "MeasureTool": "Measure tool"
+    "MeasureTool": "Measure tool",
+    "PolygonDrawTool": "Polygon draw tool"
 }

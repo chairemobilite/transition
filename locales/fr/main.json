@@ -297,5 +297,6 @@
     "PageNofX": "Page {{n}} de {{x}}",
     "GoToPage": "Aller à la page",
     "ShowN": "{{n}} par page",
-    "MeasureTool": "Outil de mesure"
+    "MeasureTool": "Outil de mesure",
+    "PolygonDrawTool": "Outil de dessin de polygone"
 }
