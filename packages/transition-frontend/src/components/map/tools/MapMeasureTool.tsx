@@ -82,11 +82,13 @@ export class MeasureToolMapFeature implements MapEditFeature {
         const measureTool = this._measureTool;
         measureTool.addVertex(turfPoint(pointInfo.coordinates as [number, number]));
         this._callbacks.onUpdate();
+        return true;
     };
 
     private onMapRightClicked = (_pointInfo: PointInfo, _event: MjolnirEvent) => {
         // Disable the tool
         this._callbacks.onDisable();
+        return true;
     };
 
     getEditMode = () => MeasureToolMapFeature.editMode;

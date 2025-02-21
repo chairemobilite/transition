@@ -12,10 +12,36 @@ export type MapCallbacks = {
     pickObject: typeof Deck.prototype.pickObject;
     pixelsToCoordinates: (pixels: [number, number]) => number[];
 };
+/**
+ * Information about a point on the map. Coordinates are in the map's coordinate
+ * system (WSG84). Order is [longitude, latitude] (x, y). Pixel is the pixel
+ * location on the screen (x, y)
+ */
 export type PointInfo = { coordinates: number[]; pixel: [number, number] };
-export type MapEventHandler = (pointInfo: PointInfo, e: MjolnirEvent, mapCallbacks: MapCallbacks) => void;
-export type MapSelectEventHandler = (pickInfo: PickingInfo[], e: MjolnirEvent, mapCallbacks: MapCallbacks) => void;
-export type MapLayerEventHandler = (pickInfo: PickingInfo, e: MjolnirEvent, mapCallbacks: MapCallbacks) => void;
+/**
+ * Map event handler function type. Called for interactions with the map,
+ * without features underneath or when no other handler was executed.
+ * @returns `true` if the event was handled, this will stop propagation of the
+ * event, false otherwise
+ */
+export type MapEventHandler = (pointInfo: PointInfo, e: MjolnirEvent, mapCallbacks: MapCallbacks) => boolean;
+/**
+ * Map select event handler function type. Called when no layer event was
+ * executed on a specific element but there are one or more features under the
+ * event location.
+ * @returns `true` if the event was handled, this will stop propagation of the
+ * event, false otherwise
+ */
+export type MapSelectEventHandler = (pickInfo: PickingInfo[], e: MjolnirEvent, mapCallbacks: MapCallbacks) => boolean;
+/**
+ * Map layer event handler function type. These events are called for specific features of a specific layer.
+ * @returns `true` if the event was handled, this will stop propagation of the event, false otherwise
+ */
+export type MapLayerEventHandler = (pickInfo: PickingInfo, e: MjolnirEvent, mapCallbacks: MapCallbacks) => boolean;
+/**
+ * Tolltip event handler function type. Called when the mouse hovers over a feature.
+ * @returns The tooltip to display, or `undefined` if no tooltip should be displayed
+ */
 export type TooltipEventHandler = (
     pickInfo: PickingInfo,
     mapCallbacks: MapCallbacks

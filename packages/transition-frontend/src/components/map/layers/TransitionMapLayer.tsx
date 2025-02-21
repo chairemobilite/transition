@@ -537,13 +537,29 @@ const addEvents = (
     const rightClickEvents = events.onRightClick;
     const checkHandler = (handlerDes: MapLayerEventHandlerDescriptor) =>
         handlerDes.condition === undefined || handlerDes.condition(props.activeSection);
+    // Event handler that automatically stops the handler chain if the event was handled
+    const handleEvents = (
+        eventDescriptors: MapLayerEventHandlerDescriptor[],
+        info: PickingInfo,
+        e: MjolnirGestureEvent
+    ) => {
+        const handled = eventDescriptors
+            .filter(checkHandler)
+            .map((ev) => ev.handler(info, e, props.mapCallbacks))
+            .some((r) => r);
+        if (handled) {
+            e.handled = true;
+            e.stopPropagation();
+        }
+        return handled;
+    };
     const onLeftClickEvt = leftClickEvents === undefined ? [] : leftClickEvents;
     const onRightClickEvt = rightClickEvents === undefined ? [] : rightClickEvents;
     layerEvents.onClick = (info: PickingInfo, e: MjolnirGestureEvent) => {
         if (e.leftButton) {
-            onLeftClickEvt.filter(checkHandler).forEach((ev) => ev.handler(info, e, props.mapCallbacks));
+            return handleEvents(onLeftClickEvt, info, e);
         } else if (e.rightButton) {
-            onRightClickEvt.filter(checkHandler).forEach((ev) => ev.handler(info, e, props.mapCallbacks));
+            return handleEvents(onRightClickEvt, info, e);
         }
     };
     const onDragEvt = events.onDrag;
@@ -553,13 +569,17 @@ const addEvents = (
         const onDragStartArr = onDragStartEvt === undefined ? [] : onDragStartEvt;
         layerEvents.onDragStart = (info: PickingInfo, e: MjolnirGestureEvent) => {
             props.setDragging(true);
-            onDragStartArr.filter(checkHandler).forEach((ev) => ev.handler(info, e, props.mapCallbacks));
+            // Do not use handleEvents for drag start/end, otherwise, the stopPropagation will not properly change the dragging state of the map. Those events are not supported on the map anyway.
+            return onDragStartArr
+                .filter(checkHandler)
+                .map((ev) => ev.handler(info, e, props.mapCallbacks))
+                .some((r) => r);
         };
     }
 
     if (onDragEvt) {
         layerEvents.onDrag = (info: PickingInfo, e: MjolnirGestureEvent) => {
-            onDragEvt.filter(checkHandler).forEach((ev) => ev.handler(info, e, props.mapCallbacks));
+            return handleEvents(onDragEvt, info, e);
         };
     }
 
@@ -567,7 +587,11 @@ const addEvents = (
         const onDragEndArr = onDragEndEvt === undefined ? [] : onDragEndEvt;
         layerEvents.onDragEnd = (info: PickingInfo, e: MjolnirGestureEvent) => {
             props.setDragging(false);
-            onDragEndArr.filter(checkHandler).forEach((ev) => ev.handler(info, e, props.mapCallbacks));
+            // Do not use handleEvents for drag start/end, otherwise, the stopPropagation will not properly change the dragging state of the map. Those events are not supported on the map anyway.
+            return onDragEndArr
+                .filter(checkHandler)
+                .map((ev) => ev.handler(info, e, props.mapCallbacks))
+                .some((r) => r);
         };
     }
 

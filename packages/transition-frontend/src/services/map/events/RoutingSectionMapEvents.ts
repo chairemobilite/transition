@@ -16,28 +16,31 @@ const isRoutingActiveSection = (activeSection: string) => activeSection === 'rou
 
 const onRoutingSectionMapClick = (pointInfo: PointInfo, _event: MjolnirEvent) => {
     serviceLocator.eventManager.emit('routing.transit.clickedOnMap', pointInfo.coordinates);
+    return true;
 };
 
 const onRoutingPointDrag = (info: PickingInfo, _event: MjolnirEvent) => {
     const location = info.object?.properties?.location;
     if (!location) {
-        return;
+        return false;
     }
     serviceLocator.eventManager.emit(
         `routing.transit.drag${location === 'origin' ? 'Origin' : 'Destination'}`,
         info.coordinate
     );
+    return true;
 };
 
 const onRoutingPointDragEnd = (info: PickingInfo, _event: MjolnirEvent) => {
     const location = info.object?.properties?.location;
     if (!location) {
-        return;
+        return false;
     }
     serviceLocator.eventManager.emit(
         `routing.transit.update${location === 'origin' ? 'Origin' : 'Destination'}`,
         info.coordinate
     );
+    return true;
 };
 
 const onRoutingSectionContextMenu = (pointInfo: PointInfo, _event: MjolnirEvent) => {
@@ -52,6 +55,7 @@ const onRoutingSectionContextMenu = (pointInfo: PointInfo, _event: MjolnirEvent)
                 serviceLocator.eventManager.emit('routing.transit.clickedOnMap', pointInfo.coordinates, false)
         }
     ]);
+    return true;
 };
 
 const routingSectionEventDescriptors: MapEventHandlerDescription[] = [

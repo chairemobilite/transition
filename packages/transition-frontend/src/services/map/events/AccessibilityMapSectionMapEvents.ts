@@ -16,22 +16,25 @@ const isAccessMapActiveSection = (activeSection: string) => activeSection === 'a
 
 const onAccessMapSectionMapClick = (pointInfo: PointInfo, _event: MjolnirEvent) => {
     serviceLocator.eventManager.emit('routing.transitAccessibilityMap.clickedOnMap', pointInfo.coordinates);
+    return true;
 };
 
 const onLocationDrag = (info: PickingInfo, _event: MjolnirEvent) => {
     const location = info.object?.properties?.location;
     if (!location) {
-        return;
+        return false;
     }
     serviceLocator.eventManager.emit('routing.transitAccessibilityMap.dragLocation', info.coordinate);
+    return true;
 };
 
 const onLocationDragEnd = (info: PickingInfo, _event: MjolnirEvent) => {
     const location = info.object?.properties?.location;
     if (!location) {
-        return;
+        return false;
     }
     serviceLocator.eventManager.emit('routing.transitAccessibilityMap.dragLocation', info.coordinate);
+    return true;
 };
 
 const accessMapSectionEventDescriptors: MapEventHandlerDescription[] = [
