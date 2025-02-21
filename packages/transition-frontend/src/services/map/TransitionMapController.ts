@@ -8,7 +8,7 @@
 import { MapController, PickingInfo } from '@deck.gl/core';
 import { MjolnirEvent, MjolnirGestureEvent, MjolnirPointerEvent } from 'mjolnir.js';
 import { MapEventsManager } from './MapEventsManager';
-import { MapCallbacks } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import { MapCallbacks, mapEventNames } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 
 type TransitionMapControllerProps = {
     mapEventsManager?: MapEventsManager;
@@ -32,7 +32,7 @@ export class TransitionMapController extends MapController {
     constructor(props: Parameters<MapController['setProps']>[0] & TransitionMapControllerProps) {
         super(props as any);
 
-        this.events = ['click'];
+        this.events = ['click', 'pointermove', 'dblclick'];
     }
 
     setProps(props: Parameters<MapController['setProps']>[0] & TransitionMapControllerProps) {
@@ -63,18 +63,33 @@ export class TransitionMapController extends MapController {
             return super.handleEvent(event);
         }
     }
-    private _onPointerMove(_event: MjolnirGestureEvent | MjolnirPointerEvent) {
-        // TODO Implement the pointermove event in our API
-        return false;
+
+    private _onPointerMove(event: MjolnirGestureEvent | MjolnirPointerEvent) {
+        return this._executeMapOrSelectEvents('onPointerMove', undefined, event);
     }
-    private _onDblClick(_pickInfo: PickingInfo | null | undefined, _event: MjolnirGestureEvent) {
-        // TODO Implement the double click event in our API
-        return false;
+
+    private _onDblClick(pickInfo: PickingInfo | null | undefined, event: MjolnirGestureEvent) {
+        const eventName = event.leftButton ? 'onLeftDblClick' : event.rightButton ? 'onRightDblClick' : undefined;
+        if (eventName === undefined) {
+            return false;
+        }
+        return this._executeMapOrSelectEvents(eventName, pickInfo, event);
     }
 
     private _onClick(pickInfo: PickingInfo | null | undefined, event: MjolnirGestureEvent): boolean {
-        let handled = false;
+        const eventName = event.leftButton ? 'onLeftClick' : event.rightButton ? 'onRightClick' : undefined;
+        if (eventName === undefined) {
+            return false;
+        }
+        return this._executeMapOrSelectEvents(eventName, pickInfo, event);
+    }
 
+    private _executeMapOrSelectEvents(
+        eventName: mapEventNames,
+        pickInfo: PickingInfo | null | undefined,
+        event: MjolnirGestureEvent | MjolnirPointerEvent
+    ) {
+        let handled = false;
         if (pickInfo) {
             // See if there are multiple picks to call proper mapSelect events
             // TODO Update the radius to not have an hard-coded value, fine-tune as necessary
@@ -94,6 +109,7 @@ export class TransitionMapController extends MapController {
             });
             // Execute the map selection events on picked objects
             handled = this.mapEventsManager!.executeMapSelectEventsForObjects(
+                eventName,
                 event,
                 objectsByLayer,
                 this.activeSection!
@@ -109,8 +125,9 @@ export class TransitionMapController extends MapController {
                 coordinates: coordinates,
                 pixel: [event.offsetCenter.x, event.offsetCenter.y] as [number, number]
             };
-            handled = this.mapEventsManager!.executeMapEvents(event, pointInfo, this.activeSection!);
+            handled = this.mapEventsManager!.executeMapEvents(eventName, event, pointInfo, this.activeSection!);
         }
+        event.handled = handled;
         return handled;
     }
 }

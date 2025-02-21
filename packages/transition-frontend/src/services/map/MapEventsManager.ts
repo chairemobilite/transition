@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { MjolnirGestureEvent } from 'mjolnir.js';
+import { MjolnirGestureEvent, MjolnirPointerEvent } from 'mjolnir.js';
 import { PickingInfo } from '@deck.gl/core';
 import {
     MapEventHandlerDescriptor,
@@ -96,14 +96,11 @@ export class MapEventsManager {
     }
 
     executeMapSelectEventsForObjects(
-        ev: MjolnirGestureEvent,
+        eventName: mapEventNames,
+        ev: MjolnirGestureEvent | MjolnirPointerEvent,
         objectsByLayer: { [layerName: string]: PickingInfo[] },
         activeSection: string
     ) {
-        const eventName = ev.leftButton ? 'onLeftClick' : ev.rightButton ? 'onRightClick' : undefined;
-        if (eventName === undefined) {
-            return false;
-        }
         const handledEvents = Object.keys(objectsByLayer).map((layerName) => {
             const mapSelectEvents = this.getMapSelectEvents(layerName);
             if (mapSelectEvents && mapSelectEvents[eventName]) {
@@ -120,9 +117,13 @@ export class MapEventsManager {
         return handledEvents.some((handled) => handled);
     }
 
-    executeMapEvents(ev: MjolnirGestureEvent, pointInfo: PointInfo, activeSection: string): boolean {
-        const events =
-            this.mapEventDescriptors.map[ev.leftButton ? 'onLeftClick' : ev.rightButton ? 'onRightClick' : ''];
+    executeMapEvents(
+        eventName: mapEventNames,
+        ev: MjolnirGestureEvent | MjolnirPointerEvent,
+        pointInfo: PointInfo,
+        activeSection: string
+    ): boolean {
+        const events = this.mapEventDescriptors.map[eventName];
         if (!events) {
             return false;
         }
