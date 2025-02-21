@@ -232,6 +232,129 @@ describe('updateBusAvailability', () => {
     });
 });
 
+describe('findBestBus', () => {
+    let units: BusUnit[];
+
+    beforeEach(() => {
+        units = [
+            {
+                id: 1,
+                totalCapacity: 50,
+                seatedCapacity: 40,
+                currentLocation: BusLocation.ORIGIN,
+                expectedArrivalTime: 0,
+                expectedReturnTime: null,
+                direction: null,
+                lastTripEndTime: null,
+                timeInCycle: 0
+            },
+            {
+                id: 2,
+                totalCapacity: 50,
+                seatedCapacity: 40,
+                currentLocation: BusLocation.DESTINATION,
+                expectedArrivalTime: 0,
+                expectedReturnTime: null,
+                direction: null,
+                lastTripEndTime: 100,
+                timeInCycle: 0
+            },
+            {
+                id: 3,
+                totalCapacity: 50,
+                seatedCapacity: 40,
+                currentLocation: BusLocation.ORIGIN,
+                expectedArrivalTime: 0,
+                expectedReturnTime: null,
+                direction: BusDirection.OUTBOUND,
+                lastTripEndTime: null,
+                timeInCycle: 0
+            },
+            {
+                id: 4,
+                totalCapacity: 50,
+                seatedCapacity: 40,
+                currentLocation: BusLocation.DESTINATION,
+                expectedArrivalTime: 0,
+                expectedReturnTime: null,
+                direction: null,
+                lastTripEndTime: 200,
+                timeInCycle: 0
+            }
+        ];
+    });
+
+    test('should return null if no buses are available', () => {
+        const currentTime = 300;
+        const direction = BusDirection.OUTBOUND;
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+        const result = schedule["findBestBus"](currentTime, direction, []);
+        expect(result).toBeNull();
+    });
+
+    test('should return an unused bus if available', () => {
+        const currentTime = 300;
+        const direction = BusDirection.OUTBOUND;
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+        const result = schedule["findBestBus"](currentTime, direction, units);
+        expect(result?.id).toBe(1); // Unused bus at ORIGIN
+    });
+
+    test('should return a used bus with the earliest lastTripEndTime', () => {
+        const currentTime = 300;
+        const direction = BusDirection.INBOUND;
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+        const result = schedule["findBestBus"](currentTime, direction, units);
+        expect(result?.id).toBe(2); // Used bus at DESTINATION with earliest lastTripEndTime
+    });
+
+    test('should prioritize used buses over unused buses', () => {
+        const currentTime = 300;
+        const direction = BusDirection.INBOUND;
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+        const result = schedule["findBestBus"](currentTime, direction, units);
+        expect(result?.id).toBe(2); // Used bus at DESTINATION
+    });
+
+    test('should not select buses at the wrong location', () => {
+        const currentTime = 300;
+        const direction = BusDirection.OUTBOUND;
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+        const result = schedule["findBestBus"](currentTime, direction, units);
+        expect(result?.id).not.toBe(2); // Bus at DESTINATION should not be selected for OUTBOUND
+    });
+
+    test('should not select buses with a direction', () => {
+        const currentTime = 300;
+        const direction = BusDirection.OUTBOUND;
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+        const result = schedule["findBestBus"](currentTime, direction, units);
+        expect(result?.id).not.toBe(3); // Bus with direction OUTBOUND should not be selected
+    });
+
+    test('should not select buses that are not ready (currentTime < lastTripEndTime)', () => {
+        const currentTime = 50;
+        const direction = BusDirection.INBOUND;
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods = [];
+        const schedule = new Schedule(testAttributes, true);
+        const result = schedule["findBestBus"](currentTime, direction, units);
+        expect(result?.id).not.toBe(2); // Bus with lastTripEndTime = 100 is not ready
+    });
+});
+
 describe('updateForAllPeriods', () => {
     // Prepare collection manager and path objects
     const collectionManager = new CollectionManager(null);
