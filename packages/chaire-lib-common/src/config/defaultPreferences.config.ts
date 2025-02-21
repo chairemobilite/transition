@@ -126,6 +126,7 @@ const defaultPreferences: PreferencesModel = {
                 'transitNodesRoutingRadius',
                 'transitPaths',
                 'transitNodes',
+                'transitNodesSelectedPolygon',
                 'transitNodesSelected'
             ],
             scenarios: ['transitPathsForServices'],

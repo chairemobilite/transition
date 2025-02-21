@@ -190,8 +190,7 @@ class TransitNodeCollectionEdit extends React.Component<
         }
 
         if (this.state.nodeErrors && this.state.nodeErrors.length === 0) {
-            serviceLocator.eventManager.emit('map.deleteSelectedPolygon');
-            serviceLocator.selectedObjectsManager.select('node', null);
+            serviceLocator.selectedObjectsManager.deselect('nodes');
         }
     };
 
