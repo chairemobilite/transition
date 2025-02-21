@@ -149,7 +149,11 @@ module.exports = (env) => {
                     'GOOGLE_API_KEY': JSON.stringify(process.env.GOOGLE_API_KEY),
                     'CUSTOM_RASTER_TILES_XYZ_URL': JSON.stringify(process.env.CUSTOM_RASTER_TILES_XYZ_URL || config.customRasterTilesXyzUrl),
                     'CUSTOM_RASTER_TILES_MIN_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM || config.customRasterTilesMinZoom),
-                    'CUSTOM_RASTER_TILES_MAX_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM || config.customRasterTilesMaxZoom)
+                    'CUSTOM_RASTER_TILES_MAX_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM || config.customRasterTilesMaxZoom),
+                    'CUSTOM_RASTER_TILES_TILE_SIZE': JSON.stringify(process.env.CUSTOM_RASTER_TILES_TILE_SIZE || config.customRasterTilesTileSize),
+                    'CUSTOM_RASTER_TILES_TILE_OPACITY': JSON.stringify(process.env.CUSTOM_RASTER_TILES_TILE_OPACITY || config.customRasterTilesTileOpacity),
+                    'CUSTOM_VECTOR_TILES_STYLE_URL': JSON.stringify(process.env.CUSTOM_VECTOR_TILES_STYLE_URL || config.customVectorTilesStyleUrl),
+                    'CUSTOM_VECTOR_TILES_OPACITY': JSON.stringify(process.env.CUSTOM_VECTOR_TILES_OPACITY || config.customVectorTilesOpacity)
                 },
                 '__CONFIG__': JSON.stringify({
                     ...config

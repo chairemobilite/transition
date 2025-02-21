@@ -52,14 +52,14 @@ const PreferencesSectionMap: React.FunctionComponent<PreferencesSectionProps> = 
                 <InputWrapper label={t('main:preferences:MapStyle')} help={t('main:preferences:MapStyleHelp')}>
                     <InputSelect
                         id={'formFieldPreferencesMapStyleURL'}
-                        value={prefs.mapStyleURL}
+                        value={prefs.mapTileVectorStyleUrl}
                         choices={mapStyleChoices}
                         t={t}
-                        onValueChange={(e) => props.onValueChange('mapStyleURL', { value: e.target.value })}
+                        onValueChange={(e) => props.onValueChange('mapTileVectorStyleUrl', { value: e.target.value })}
                     />
                     <PreferencesResetToDefaultButton
                         resetPrefToDefault={props.resetPrefToDefault}
-                        path="mapStyleURL"
+                        path="mapTileVectorStyleUrl"
                         preferences={props.preferences}
                     />
                 </InputWrapper>
@@ -68,10 +68,10 @@ const PreferencesSectionMap: React.FunctionComponent<PreferencesSectionProps> = 
                     help={t('main:preferences:RasterTileLayerOpacityHelp')}
                 >
                     <InputStringFormatted
-                        key={`formFieldPreferencesMapTileLayerOpacity${props.resetChangesCount}`}
-                        id={'formFieldPreferencesMapTileLayerOpacity'}
-                        value={prefs.mapTileLayerOpacity}
-                        onValueUpdated={(value) => props.onValueChange('mapTileLayerOpacity', value)}
+                        key={`formFieldPreferencesMapTileRasterXYZOpacity${props.resetChangesCount}`}
+                        id={'formFieldPreferencesMapTileRasterXYZOpacity'}
+                        value={prefs.mapTileRasterXYZOpacity}
+                        onValueUpdated={(value) => props.onValueChange('mapTileRasterXYZOpacity', value)}
                         stringToValue={(value) =>
                             !isNaN(parseFloat(value)) ? roundToDecimals(parseFloat(value) / 100, 2) : null
                         }
@@ -80,7 +80,7 @@ const PreferencesSectionMap: React.FunctionComponent<PreferencesSectionProps> = 
                     />
                     <PreferencesResetToDefaultButton
                         resetPrefToDefault={props.resetPrefToDefault}
-                        path="mapTileLayerOpacity"
+                        path="mapTileRasterXYZOpacity"
                         preferences={props.preferences}
                     />
                 </InputWrapper>

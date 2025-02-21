@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
+import { PreferencesModel } from 'chaire-lib-common/lib/config/defaultPreferences.config';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 // Define which layers should be visible for each section
@@ -64,7 +65,7 @@ export const sectionLayers = {
 };
 
 // Layer style configuration
-const layersConfig = {
+export const layersConfig = {
     routingPoints: {
         // for routing origin, destination and waypoints
         type: 'circle',
@@ -300,6 +301,38 @@ const layersConfig = {
         },
         pickable: false
     }
+};
+
+export type MapTileVectorLayerConfig = {
+    opacity: number;
+    styleUrl: string | undefined;
+};
+
+export type MapTileRasterXYZLayerConfig = {
+    opacity: number;
+    url: string | undefined;
+    minzoom: number;
+    maxzoom: number;
+    tileSize: number;
+};
+
+export const mapTileVectorLayerConfig = (prefs: PreferencesModel): MapTileVectorLayerConfig => {
+    const opacity = Math.max(0, Math.min(prefs.mapTileVectorOpacity || 0, 1));
+    return {
+        opacity,
+        styleUrl: prefs.mapTileVectorStyleUrl || undefined
+    };
+};
+
+export const mapTileRasterXYZLayerConfig = (prefs: PreferencesModel): MapTileRasterXYZLayerConfig => {
+    const opacity = Math.max(0, Math.min(prefs.mapTileRasterXYZOpacity || 0, 1));
+    return {
+        opacity,
+        url: prefs.mapTileRasterXYZUrl || undefined,
+        minzoom: prefs.mapTileRasterXYZMinZoom || 0,
+        maxzoom: prefs.mapTileRasterXYZMaxZoom || 22,
+        tileSize: prefs.mapTileRasterXYZTileSize || 256
+    };
 };
 
 export default layersConfig;
