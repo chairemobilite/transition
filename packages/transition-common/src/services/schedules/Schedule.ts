@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2025, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
@@ -18,29 +18,26 @@ import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 
-const DEFAULT_RETURN_INTERVAL_SECONDS = 720; //temporaire
-
-enum BusLocation {
+enum UnitLocation {
     ORIGIN = 'origin',
     DESTINATION = 'destination',
     IN_TRANSIT = 'in_transit'
 }
 
-enum BusDirection {
+enum UnitDirection {
     OUTBOUND = 'outbound',
     INBOUND = 'inbound'
 }
 
 const SCHEDULE_DEFAULTS: ScheduleDefaults = {
-    RETURN_INTERVAL_SECONDS: 720,
     DEFAULT_TOTAL_CAPACITY: 50,
     DEFAULT_SEATED_CAPACITY: 20
 };
 
-enum ScheduleCalculationMode {
-    ASYMMETRIC = 'asymmetric',
-    BASIC = 'basic'
-    // ajouter d'autres modes :)
+// When adding new modes, the string value has to be the same as the key in the translation files
+export enum ScheduleCalculationMode {
+    ASYMMETRIC = 'Asymmetric',
+    BASIC = 'Symmetric'
 }
 
 export interface SchedulePeriodTrip extends GenericAttributes {
@@ -59,7 +56,6 @@ export interface SchedulePeriodTrip extends GenericAttributes {
 }
 
 export interface SchedulePeriod extends GenericAttributes {
-    calculation_mode?: ScheduleCalculationMode;
     schedule_id?: number;
     outbound_path_id?: string;
     inbound_path_id?: string;
@@ -81,25 +77,25 @@ export interface ScheduleAttributes extends GenericAttributes {
     line_id: string;
     service_id: string;
     periods_group_shortname?: string;
+    calculation_mode?: ScheduleCalculationMode;
     allow_seconds_based_schedules?: boolean;
     // TODO Create classes for periods and trips
     periods: SchedulePeriod[];
 }
 
-interface BusUnit {
+interface TransitUnit {
     id: number;
     totalCapacity: number;
     seatedCapacity: number;
-    currentLocation: BusLocation;
+    currentLocation: UnitLocation;
     expectedArrivalTime: number;
     expectedReturnTime: number | null;
-    direction: BusDirection | null;
+    direction: UnitDirection | null;
     lastTripEndTime: number | null;
     timeInCycle: number;
 }
 
 interface ScheduleDefaults {
-    RETURN_INTERVAL_SECONDS: number;
     DEFAULT_TOTAL_CAPACITY: number;
     DEFAULT_SEATED_CAPACITY: number;
 }
@@ -114,7 +110,7 @@ interface ScheduleGenerationStrategy {
         inboundTotalTimeSeconds: number,
         secondAllowed?: boolean
     ): {
-        units: BusUnit[];
+        units: TransitUnit[];
         outboundIntervalSeconds: number;
         inboundIntervalSeconds: number;
     };
@@ -126,18 +122,18 @@ interface ScheduleGenerationStrategy {
         inboundIntervalSeconds: number,
         outboundTotalTimeSeconds: number,
         inboundTotalTimeSeconds: number,
-        units: BusUnit[],
+        units: TransitUnit[],
         outboundPath: TransitPath,
         inboundPath?: TransitPath,
         period?: any
-    ): { trips: SchedulePeriodTrip[]; realBusCount: number };
+    ): { trips: SchedulePeriodTrip[]; realUnitCount: number };
 }
 
 abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy {
-    // Méthode partagée par toutes les stratégies
+    // Shared methods for all strategies
     protected generateTrip(
         tripStartAtSeconds: number,
-        unit: BusUnit,
+        unit: TransitUnit,
         path: TransitPath,
         segments,
         nodes: string[],
@@ -200,7 +196,7 @@ abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy {
         }
     }
 
-    // Méthodes abstraites à implémenter par les sous-classes
+    // Abstract methods that sub classes need to implement
     abstract calculateResourceRequirements(
         period: any,
         startAtSecondsSinceMidnight: number,
@@ -208,7 +204,7 @@ abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy {
         outboundTotalTimeSeconds: number,
         inboundTotalTimeSeconds: number
     ): {
-        units: BusUnit[];
+        units: TransitUnit[];
         outboundIntervalSeconds: number;
         inboundIntervalSeconds: number;
     };
@@ -220,10 +216,10 @@ abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy {
         inboundIntervalSeconds: number,
         outboundTotalTimeSeconds: number,
         inboundTotalTimeSeconds: number,
-        units: BusUnit[],
+        units: TransitUnit[],
         outboundPath: TransitPath,
         inboundPath?: TransitPath
-    ): { trips: SchedulePeriodTrip[]; realBusCount: number };
+    ): { trips: SchedulePeriodTrip[]; realUnitCount: number };
 }
 
 class ScheduleStrategyFactory {
@@ -248,7 +244,7 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         inboundTotalTimeSeconds: number,
         secondAllowed?: boolean
     ): {
-        units: BusUnit[];
+        units: TransitUnit[];
         outboundIntervalSeconds: number;
         inboundIntervalSeconds: number;
     } {
@@ -278,11 +274,11 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             tripsNumberOfUnits = Math.max(outboundUnits, inboundUnits);
         }
 
-        const units: BusUnit[] = Array.from({ length: tripsNumberOfUnits }, (_, i) => ({
+        const units: TransitUnit[] = Array.from({ length: tripsNumberOfUnits }, (_, i) => ({
             id: i + 1,
             totalCapacity: SCHEDULE_DEFAULTS.DEFAULT_TOTAL_CAPACITY,
             seatedCapacity: SCHEDULE_DEFAULTS.DEFAULT_SEATED_CAPACITY,
-            currentLocation: BusLocation.ORIGIN,
+            currentLocation: UnitLocation.ORIGIN,
             expectedArrivalTime: startAtSecondsSinceMidnight,
             expectedReturnTime: null,
             direction: null,
@@ -293,73 +289,73 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         return {
             units,
             outboundIntervalSeconds: tripsIntervalSeconds !== 0 ? tripsIntervalSeconds : period.interval_seconds,
-            inboundIntervalSeconds: period.inbound_interval_seconds ?? DEFAULT_RETURN_INTERVAL_SECONDS // temps
+            inboundIntervalSeconds: period.inbound_interval_seconds
         };
     }
 
-    private updateBusAvailability(unit: BusUnit, currentTimeSeconds: number): void {
+    private updateUnitAvailability(unit: TransitUnit, currentTimeSeconds: number): void {
         if (unit.expectedArrivalTime <= currentTimeSeconds) {
-            if (unit.direction === BusDirection.OUTBOUND) {
-                unit.currentLocation = BusLocation.DESTINATION;
+            if (unit.direction === UnitDirection.OUTBOUND) {
+                unit.currentLocation = UnitLocation.DESTINATION;
                 unit.direction = null;
                 unit.lastTripEndTime = currentTimeSeconds;
-            } else if (unit.direction === BusDirection.INBOUND) {
-                unit.currentLocation = BusLocation.ORIGIN;
+            } else if (unit.direction === UnitDirection.INBOUND) {
+                unit.currentLocation = UnitLocation.ORIGIN;
                 unit.direction = null;
                 unit.lastTripEndTime = currentTimeSeconds;
             }
         }
     }
 
-    private findBestBus(
+    private findBestUnit(
         currentTime: number,
-        direction: BusDirection.OUTBOUND | BusDirection.INBOUND,
-        units: BusUnit[]
-    ): BusUnit | null {
-        const availableBuses = units.filter((unit) => {
+        direction: UnitDirection.OUTBOUND | UnitDirection.INBOUND,
+        units: TransitUnit[]
+    ): TransitUnit | null {
+        const availableUnits = units.filter((unit) => {
             const correctLocation =
-                direction === BusDirection.OUTBOUND
-                    ? unit.currentLocation === BusLocation.ORIGIN
-                    : unit.currentLocation === BusLocation.DESTINATION;
+                direction === UnitDirection.OUTBOUND
+                    ? unit.currentLocation === UnitLocation.ORIGIN
+                    : unit.currentLocation === UnitLocation.DESTINATION;
             const isAvailable = unit.direction === null;
             const isReady = unit.lastTripEndTime === null || currentTime >= unit.lastTripEndTime;
             return correctLocation && isAvailable && isReady;
         });
-        const usedBuses = availableBuses.filter((bus) => bus.lastTripEndTime !== null);
-        const unusedBuses = availableBuses.filter((bus) => bus.lastTripEndTime === null);
+        const usedUnits = availableUnits.filter((unit) => unit.lastTripEndTime !== null);
+        const unusedUnits = availableUnits.filter((unit) => unit.lastTripEndTime === null);
 
-        if (usedBuses.length > 0) {
-            return usedBuses.sort((a, b) => (a.lastTripEndTime || 0) - (b.lastTripEndTime || 0))[0];
+        if (usedUnits.length > 0) {
+            return usedUnits.sort((a, b) => (a.lastTripEndTime || 0) - (b.lastTripEndTime || 0))[0];
         }
 
-        return unusedBuses[0] || null;
+        return unusedUnits[0] || null;
     }
 
     private processDeparture(
         currentTime: number,
         totalTimeSeconds: number,
-        units: BusUnit[],
+        units: TransitUnit[],
         path: TransitPath,
         trips: any[],
-        direction: BusDirection
+        direction: UnitDirection
     ) {
-        const bus = this.findBestBus(currentTime, direction, units);
-        if (bus) {
+        const unitTransit = this.findBestUnit(currentTime, direction, units);
+        if (unitTransit) {
             const trip = this.generateTrip(
                 currentTime,
-                bus,
+                unitTransit,
                 path,
                 path.getAttributes().data.segments,
                 path.getAttributes().nodes,
                 path.getData('dwellTimeSeconds')
             );
             trips.push(trip);
-            bus.direction = direction;
-            bus.currentLocation = BusLocation.IN_TRANSIT;
-            bus.expectedArrivalTime = currentTime + totalTimeSeconds;
-            return { busId: bus.id };
+            unitTransit.direction = direction;
+            unitTransit.currentLocation = UnitLocation.IN_TRANSIT;
+            unitTransit.expectedArrivalTime = currentTime + totalTimeSeconds;
+            return { unitId: unitTransit.id };
         }
-        return { busId: null };
+        return { unitId: null };
     }
 
     generateTrips(
@@ -369,20 +365,20 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         inboundIntervalSeconds: number,
         outboundTotalTimeSeconds: number,
         inboundTotalTimeSeconds: number,
-        units: BusUnit[],
+        units: TransitUnit[],
         outboundPath: TransitPath,
         inboundPath?: TransitPath
     ) {
         const trips: any[] = [];
         const unitsCount = units.length;
-        const usedBusIds = new Set<number>();
+        const usedUnitsIds = new Set<number>();
 
         if (outboundIntervalSeconds !== null && inboundIntervalSeconds !== null && inboundIntervalSeconds !== 0) {
             const startFromDestination = inboundPath ? inboundIntervalSeconds < outboundIntervalSeconds : false;
 
-            // Initialise tous les bus avec leurs positions de départ et réinitialise leurs états
+            // Initializes all transit units with their starting point and reinitializes their states
             units.forEach((unit) => {
-                unit.currentLocation = startFromDestination ? BusLocation.DESTINATION : BusLocation.ORIGIN;
+                unit.currentLocation = startFromDestination ? UnitLocation.DESTINATION : UnitLocation.ORIGIN;
                 unit.direction = null;
                 unit.expectedArrivalTime = startAtSecondsSinceMidnight;
                 unit.expectedReturnTime = null;
@@ -393,9 +389,9 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             const outboundDepartures: number[] = [];
             const inboundDepartures: number[] = [];
 
-            // Génération des horaires
+            // Generating schdules
             if (startFromDestination && inboundPath) {
-                // Logique existante pour départs depuis destination
+                //Logic for trips from the destination
                 inboundDepartures.push(time);
                 while ((time += inboundIntervalSeconds) < endAtSecondsSinceMidnight) {
                     inboundDepartures.push(time);
@@ -406,13 +402,12 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
                     outboundDepartures.push(time);
                 }
             } else {
-                // Logique pour départs depuis origine
+                // Logic for trips from the origin
                 outboundDepartures.push(time);
                 while ((time += outboundIntervalSeconds) < endAtSecondsSinceMidnight) {
                     outboundDepartures.push(time);
                 }
 
-                // Seulement si inboundPath existe
                 if (inboundPath) {
                     time = startAtSecondsSinceMidnight + outboundTotalTimeSeconds;
                     inboundDepartures.push(time);
@@ -422,28 +417,28 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
                 }
             }
 
-            // Dans la boucle de traitement, ajoutons une vérification pour le "retour virtuel"
+            // Verification for the "ghost trip"
             while (outboundDepartures.length > 0 || inboundDepartures.length > 0) {
                 const nextOutbound = outboundDepartures[0] || Infinity;
                 const nextInbound = inboundDepartures[0] || Infinity;
                 const currentTime = Math.min(nextOutbound, nextInbound);
 
                 units.forEach((unit) => {
-                    // Si pas de chemin retour, on simule juste le retour du bus à l'origine
+                    // if there are no inboundPaths, simulating the inbound trip to origine
                     if (
                         !inboundPath &&
-                        unit.currentLocation === BusLocation.DESTINATION &&
+                        unit.currentLocation === UnitLocation.DESTINATION &&
                         currentTime >= unit.expectedArrivalTime
                     ) {
-                        unit.currentLocation = BusLocation.ORIGIN;
+                        unit.currentLocation = UnitLocation.ORIGIN;
                         unit.direction = null;
                         unit.lastTripEndTime = currentTime;
                     } else {
-                        this.updateBusAvailability(unit, currentTime);
+                        this.updateUnitAvailability(unit, currentTime);
                     }
                 });
 
-                // Gère les départs simultanés dans les deux directions
+                // Handles simultaneous departures in both directions
                 if (nextOutbound === currentTime && nextInbound === currentTime) {
                     outboundDepartures.shift();
                     const result = this.processDeparture(
@@ -452,11 +447,11 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
                         units,
                         outboundPath,
                         trips,
-                        BusDirection.OUTBOUND
+                        UnitDirection.OUTBOUND
                     );
-                    if (result.busId) usedBusIds.add(result.busId);
+                    if (result.unitId) usedUnitsIds.add(result.unitId);
                 } else {
-                    // Gère les départs individuels dans chaque direction
+                    // Handles solo departures in each directions
                     if (currentTime === nextOutbound) {
                         outboundDepartures.shift();
                         const result = this.processDeparture(
@@ -465,9 +460,9 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
                             units,
                             outboundPath,
                             trips,
-                            BusDirection.OUTBOUND
+                            UnitDirection.OUTBOUND
                         );
-                        if (result.busId) usedBusIds.add(result.busId);
+                        if (result.unitId) usedUnitsIds.add(result.unitId);
                     }
                     if (currentTime === nextInbound) {
                         inboundDepartures.shift();
@@ -478,21 +473,21 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
                                 units,
                                 inboundPath,
                                 trips,
-                                BusDirection.INBOUND
+                                UnitDirection.INBOUND
                             );
-                            if (result.busId) usedBusIds.add(result.busId);
+                            if (result.unitId) usedUnitsIds.add(result.unitId);
                         }
                     }
                 }
             }
-            const realBusCount = usedBusIds.size;
+            const realUnitCount = usedUnitsIds.size;
 
             return {
                 trips,
-                realBusCount
+                realUnitCount
             };
         } else {
-            //Ancienne logique si on precise le nombre de bus
+            //if there is a number of units specified
             const outboundSegments = outboundPath.getAttributes().data.segments;
             const outboundNodes = outboundPath.getAttributes().nodes;
             const outboundDwellTimes = outboundPath.getData('dwellTimeSeconds');
@@ -502,7 +497,7 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             const inboundDwellTimes = inboundPath ? inboundPath.getAttributes().data.dwellTimeSeconds : undefined;
             const cycleTimeSeconds = outboundTotalTimeSeconds + inboundTotalTimeSeconds;
 
-            // Pour chaque bus, initialiser le temps dans le cycle
+            // For each unit, initializes the time in cycle
             for (let i = 0; i < unitsCount; i++) {
                 const unit = units[i];
                 unit.timeInCycle = Math.ceil((i * cycleTimeSeconds) / unitsCount);
@@ -548,7 +543,7 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             }
             return {
                 trips,
-                realBusCount: units.length
+                realUnitCount: units.length
             };
         }
     }
@@ -563,7 +558,7 @@ class BasicScheduleStrategy extends BaseScheduleStrategy {
         inboundTotalTimeSeconds: number,
         secondAllowed?: boolean
     ): {
-        units: BusUnit[];
+        units: TransitUnit[];
         outboundIntervalSeconds: number;
         inboundIntervalSeconds: number;
     } {
@@ -594,11 +589,11 @@ class BasicScheduleStrategy extends BaseScheduleStrategy {
             period.calculated_number_of_units = period.number_of_units;
         }
 
-        const units: BusUnit[] = Array.from({ length: tripsNumberOfUnits }, (_, i) => ({
+        const units: TransitUnit[] = Array.from({ length: tripsNumberOfUnits }, (_, i) => ({
             id: i + 1,
             totalCapacity: SCHEDULE_DEFAULTS.DEFAULT_TOTAL_CAPACITY,
             seatedCapacity: SCHEDULE_DEFAULTS.DEFAULT_SEATED_CAPACITY,
-            currentLocation: BusLocation.ORIGIN,
+            currentLocation: UnitLocation.ORIGIN,
             expectedArrivalTime: startAtSecondsSinceMidnight,
             expectedReturnTime: null,
             direction: null,
@@ -609,7 +604,7 @@ class BasicScheduleStrategy extends BaseScheduleStrategy {
         return {
             units,
             outboundIntervalSeconds: tripsIntervalSeconds,
-            inboundIntervalSeconds: 0 // Mode Basic n'utilise pas d'intervalle retour séparé
+            inboundIntervalSeconds: 0 // symetric mode doesnt use a inbound interval
         };
     }
 
@@ -620,7 +615,7 @@ class BasicScheduleStrategy extends BaseScheduleStrategy {
         inboundIntervalSeconds: number,
         outboundTotalTimeSeconds: number,
         inboundTotalTimeSeconds: number,
-        units: BusUnit[],
+        units: TransitUnit[],
         outboundPath: TransitPath,
         inboundPath?: TransitPath,
         period?: any
@@ -642,12 +637,6 @@ class BasicScheduleStrategy extends BaseScheduleStrategy {
             unit.timeInCycle = Math.ceil((i * cycleTimeSeconds) / unitsCount);
         }
 
-        // console.log("cycleTimeSeconds", cycleTimeSeconds);
-        // console.log("startAtSecondsSinceMidnight", startAtSecondsSinceMidnight);
-        // console.log("endAtSecondsSinceMidnight", endAtSecondsSinceMidnight);
-        // console.log("outboundIntervalSeconds", outboundIntervalSeconds);
-        // console.log("outboundTotalTimeSeconds", outboundTotalTimeSeconds);
-        // console.log("inboundPath", inboundPath);
         for (let timeSoFar = startAtSecondsSinceMidnight; timeSoFar < endAtSecondsSinceMidnight; timeSoFar++) {
             // Handle the current time
             for (let i = 0; i < unitsCount; i++) {
@@ -663,7 +652,6 @@ class BasicScheduleStrategy extends BaseScheduleStrategy {
 
                 // Handle current unit
                 if (unit.timeInCycle === 0) {
-                    // console.log("TIME so far", i,timeSoFar);
                     trips.push(
                         this.generateTrip(
                             timeSoFar,
@@ -674,8 +662,6 @@ class BasicScheduleStrategy extends BaseScheduleStrategy {
                             outboundDwellTimes
                         )
                     );
-                    // console.log("generateTrip----------- unit.timeInCycle === 0)");
-                    // console.log("trips", trips.length);
                 } else if (inboundPath && unit.timeInCycle === outboundTotalTimeSeconds) {
                     // FIXME The number of units is not necessarily a rounded number, so there may be more frequent return trips at the beginning of the period until it stabilizes
                     trips.push(
@@ -688,8 +674,6 @@ class BasicScheduleStrategy extends BaseScheduleStrategy {
                             inboundDwellTimes
                         )
                     );
-                    // console.log("generateTrip----------- inboundPath && unit.timeInCycle === outboundTotalTimeSeconds");
-                    // console.log("trips", trips.length);
                 }
                 unit.timeInCycle++;
             }
@@ -697,7 +681,7 @@ class BasicScheduleStrategy extends BaseScheduleStrategy {
 
         return {
             trips,
-            realBusCount: period.calculated_number_of_units
+            realUnitCount: period.calculated_number_of_units
         };
     }
 }
@@ -825,6 +809,20 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         return null;
     }
 
+    private updateUnitAvailability(unit: TransitUnit, currentTimeSeconds: number): void {
+        if (unit.expectedArrivalTime <= currentTimeSeconds) {
+            if (unit.direction === UnitDirection.OUTBOUND) {
+                unit.currentLocation = UnitLocation.DESTINATION;
+                unit.direction = null;
+                unit.lastTripEndTime = currentTimeSeconds;
+            } else if (unit.direction === UnitDirection.INBOUND) {
+                unit.currentLocation = UnitLocation.ORIGIN;
+                unit.direction = null;
+                unit.lastTripEndTime = currentTimeSeconds;
+            }
+        }
+    }
+
     // TODO Type the directions somewhere
     private getNextAvailableUnit(units: any[], direction: any, timeSeconds: number, numberOfUnits?: number) {
         if (numberOfUnits === undefined) {
@@ -887,11 +885,9 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             return Status.createError(`Period ${periodShortname} does not exist`);
         }
 
-        period.inbound_interval_seconds = DEFAULT_RETURN_INTERVAL_SECONDS;
-        // Récupérer le mode de calcul
-        const calculationMode = period.calculation_mode || ScheduleCalculationMode.BASIC;
+        // Get schedule generating mode
+        const calculationMode = this.getAttributes().calculation_mode || ScheduleCalculationMode.BASIC;
 
-        // Validations communes
         if (!this._collectionManager.get('lines') || !this._collectionManager.get('paths')) {
             return Status.createError('missing lines and/or paths collections');
         }
@@ -905,7 +901,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         }
         //const line                              = this._collectionManager.get('lines').getById(this.get('line_id'));
 
-        // Récupération des chemins
+        // get the paths
         const outboundPathId = period.outbound_path_id;
         if (_isBlank(outboundPathId)) {
             return Status.createError('missing outbound path id');
@@ -926,7 +922,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             )
             : undefined;
 
-        // Détermination des heures de début et fin
+        // Calculating start and end hours
         const customStartAtStr = period.custom_start_at_str;
         const startAtSecondsSinceMidnight = customStartAtStr
             ? (timeStrToSecondsSinceMidnight(customStartAtStr) as number)
@@ -939,17 +935,16 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
 
         // get outbound/inbound paths info to calculate number of units required or minimum interval and travel times:
 
-        // Calcul des durées
+        // calculate durations
         const outboundTotalTimeSeconds = outboundPath.getAttributes().data.operatingTimeWithLayoverTimeSeconds || 0;
         const inboundTotalTimeSeconds = inboundPath
             ? inboundPath.getAttributes().data.operatingTimeWithLayoverTimeSeconds || 0
             : 0;
 
-        // Créer la stratégie
+        // Create the generation strategy
         const strategy = ScheduleStrategyFactory.createStrategy(calculationMode);
 
         const secondAllowed = this.get('allow_seconds_based_schedules') === true;
-        // Déléguer le calcul des ressources à la stratégie
         const { units, outboundIntervalSeconds, inboundIntervalSeconds } = strategy.calculateResourceRequirements(
             period,
             startAtSecondsSinceMidnight,
@@ -959,7 +954,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             secondAllowed
         );
 
-        // Générer les trajets avec la stratégie
+        // Generate trips according to the strategy
         const result = strategy.generateTrips(
             startAtSecondsSinceMidnight,
             endAtSecondsSinceMidnight,
@@ -973,9 +968,9 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             period
         );
 
-        // Mettre à jour les attributs de la période
+        // Update period attributes
         period.trips = result.trips;
-        period.calculated_number_of_units = result.realBusCount;
+        period.calculated_number_of_units = result.realUnitCount;
 
         return Status.createOk(result.trips);
     }
@@ -988,6 +983,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         }
     }
 
+    //TODO update test . (probably it's better to test generateForPeriodfunction instead. if the other test works, this one probably works too)
     generateForPeriod(periodShortname: string): { trips: SchedulePeriodTrip[] } {
         const resultStatus = this.generateForPeriodFunction(periodShortname);
         return { trips: Status.isStatusOk(resultStatus) ? Status.unwrap(resultStatus) : [] };
