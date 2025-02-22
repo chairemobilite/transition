@@ -274,7 +274,8 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                     );
                 }
 
-                const intervalSeconds = schedulePeriod.interval_seconds;
+                const outboundIntervalSeconds = schedulePeriod.interval_seconds;
+                const inboundIntervalSeconds = schedulePeriod.inbound_interval_seconds;
                 const calculatedIntervalSeconds = schedulePeriod.calculated_interval_seconds;
                 const numberOfUnits = schedulePeriod.number_of_units;
                 const calculatedNumberOfUnits = schedulePeriod.calculated_number_of_units;
@@ -283,7 +284,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                 const customEndAtStr = schedulePeriod.custom_end_at_str || undefined;
 
                 /* temporary for calculations: TODO Do we really need this? */
-                line.attributes.data.tmpIntervalSeconds = intervalSeconds || calculatedIntervalSeconds;
+                line.attributes.data.tmpIntervalSeconds = outboundIntervalSeconds || calculatedIntervalSeconds;
                 line.attributes.data.tmpNumberOfUnits = numberOfUnits || calculatedNumberOfUnits;
                 /* */
 
@@ -322,6 +323,48 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                         }
                                     />
                                 </div>
+
+                                {/* added */}
+                                
+                                {allowSecondsBasedSchedules !== true && (
+                                    <div className="apptr__form-input-container">
+                                        <label>{this.props.t('transit:transitSchedule:outboundIntervalMinutes')}</label>
+                                        <InputStringFormatted
+                                            id={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}`}
+                                            disabled={isFrozen}
+                                            value={outboundIntervalSeconds}
+                                            onValueUpdated={ (value) => {
+                                                if (_isBlank(inboundIntervalSeconds)){
+                                                    this.onValueChange(`periods[${i}].inbound_interval_seconds`, value)
+                                                }
+                                                this.onValueChange(`periods[${i}].interval_seconds`, value)
+                                            }}
+                                            key={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}${this.resetChangesCount}`}
+                                            stringToValue={minutesToSeconds}
+                                            valueToString={(val) => _toString(secondsToMinutes(val))}
+                                        />
+                                    </div>
+                                )}
+                                {allowSecondsBasedSchedules === true && (
+                                    <div className="apptr__form-input-container">
+                                        <label>{this.props.t('transit:transitSchedule:outboundIntervalSeconds')}</label>
+                                        <InputStringFormatted
+                                            id={`formFieldTransitScheduleIntervalSecondsPeriod${periodShortname}${scheduleId}`}
+                                            disabled={isFrozen}
+                                            value={outboundIntervalSeconds}
+                                            stringToValue={_toInteger}
+                                            valueToString={_toString}
+                                            key={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}${this.resetChangesCount}`}
+                                            onValueUpdated={ (value) => {
+                                                if (_isBlank(inboundIntervalSeconds)){
+                                                    this.onValueChange(`periods[${i}].inbound_interval_seconds`, value)
+                                                }
+                                                this.onValueChange(`periods[${i}].interval_seconds`, value)
+                                            }}
+                                        />
+                                    </div>
+                                )}
+
                                 <div className="apptr__form-input-container">
                                     <label>{this.props.t('transit:transitSchedule:InboundPath')}</label>
                                     <InputSelect
@@ -339,13 +382,13 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                 </div>
                                 {allowSecondsBasedSchedules !== true && (
                                     <div className="apptr__form-input-container">
-                                        <label>{this.props.t('transit:transitSchedule:IntervalMinutes')}</label>
+                                        <label>{this.props.t('transit:transitSchedule:inboundIntervalMinutes')}</label>
                                         <InputStringFormatted
                                             id={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}`}
                                             disabled={isFrozen}
-                                            value={intervalSeconds}
+                                            value={inboundIntervalSeconds}
                                             onValueUpdated={(value) =>
-                                                this.onValueChange(`periods[${i}].interval_seconds`, value)
+                                                this.onValueChange(`periods[${i}].inbound_interval_seconds`, value)
                                             }
                                             key={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}${this.resetChangesCount}`}
                                             stringToValue={minutesToSeconds}
@@ -355,22 +398,22 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                 )}
                                 {allowSecondsBasedSchedules === true && (
                                     <div className="apptr__form-input-container">
-                                        <label>{this.props.t('transit:transitSchedule:IntervalSeconds')}</label>
+                                        <label>{this.props.t('transit:transitSchedule:inboundIntervalSeconds')}</label>
                                         <InputStringFormatted
                                             id={`formFieldTransitScheduleIntervalSecondsPeriod${periodShortname}${scheduleId}`}
                                             disabled={isFrozen}
-                                            value={intervalSeconds}
+                                            value={inboundIntervalSeconds}
                                             stringToValue={_toInteger}
                                             valueToString={_toString}
                                             key={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}${this.resetChangesCount}`}
                                             onValueUpdated={(value) =>
-                                                this.onValueChange(`periods[${i}].interval_seconds`, value)
+                                                this.onValueChange(`periods[${i}].inbound_interval_seconds`, value)
                                             }
                                         />
                                     </div>
                                 )}
                                 <p className="_small _oblique">
-                                    {!intervalSeconds && calculatedIntervalSeconds && numberOfUnits
+                                    {!outboundIntervalSeconds && !inboundIntervalSeconds && calculatedIntervalSeconds && numberOfUnits
                                         ? `${this.props.t('transit:transitSchedule:CalculatedInterval')}: ${Math.ceil(
                                             calculatedIntervalSeconds / 60
                                         )} ${this.props.t('main:minuteAbbr')}`
@@ -391,7 +434,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                     />
                                 </div>
                                 <p className="_small _oblique">
-                                    {!numberOfUnits && calculatedNumberOfUnits && intervalSeconds
+                                    {!numberOfUnits && calculatedNumberOfUnits && outboundIntervalSeconds
                                         ? `${roundToDecimals(calculatedNumberOfUnits, 1)} ${this.props.t(
                                             'transit:transitSchedule:requiredUnits'
                                         )}`
@@ -424,8 +467,8 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                 {isFrozen !== true && (
                                     <div className="tr__form-buttons-container _left">
                                         {!_isBlank(outboundPathId) &&
-                                            ((!_isBlank(intervalSeconds) && _isBlank(numberOfUnits)) ||
-                                                (!_isBlank(numberOfUnits) && _isBlank(intervalSeconds))) && (
+                                            ((!_isBlank(outboundIntervalSeconds) && !_isBlank(inboundIntervalSeconds) && _isBlank(numberOfUnits)) ||
+                                                (!_isBlank(numberOfUnits) && _isBlank(outboundIntervalSeconds) && _isBlank(inboundIntervalSeconds))) && (
                                             <Button
                                                 color="blue"
                                                 icon={faSyncAlt}
