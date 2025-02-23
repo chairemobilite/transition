@@ -274,7 +274,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                     );
                 }
 
-                const outboundIntervalSeconds = schedulePeriod.interval_seconds;
+                const outboundIntervalSeconds = schedulePeriod.outbound_interval_seconds;
                 const inboundIntervalSeconds = schedulePeriod.inbound_interval_seconds;
                 const calculatedIntervalSeconds = schedulePeriod.calculated_interval_seconds;
                 const numberOfUnits = schedulePeriod.number_of_units;
@@ -324,8 +324,6 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                     />
                                 </div>
 
-                                {/* added */}
-                                
                                 {allowSecondsBasedSchedules !== true && (
                                     <div className="apptr__form-input-container">
                                         <label>{this.props.t('transit:transitSchedule:outboundIntervalMinutes')}</label>
@@ -334,10 +332,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                             disabled={isFrozen}
                                             value={outboundIntervalSeconds}
                                             onValueUpdated={ (value) => {
-                                                if (_isBlank(inboundIntervalSeconds)){
-                                                    this.onValueChange(`periods[${i}].inbound_interval_seconds`, value)
-                                                }
-                                                this.onValueChange(`periods[${i}].interval_seconds`, value)
+                                                this.onValueChange(`periods[${i}].outbound_interval_seconds`, value)
                                             }}
                                             key={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}${this.resetChangesCount}`}
                                             stringToValue={minutesToSeconds}
@@ -356,10 +351,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                             valueToString={_toString}
                                             key={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}${this.resetChangesCount}`}
                                             onValueUpdated={ (value) => {
-                                                if (_isBlank(inboundIntervalSeconds)){
-                                                    this.onValueChange(`periods[${i}].inbound_interval_seconds`, value)
-                                                }
-                                                this.onValueChange(`periods[${i}].interval_seconds`, value)
+                                                this.onValueChange(`periods[${i}].outbound_interval_seconds`, value)
                                             }}
                                         />
                                     </div>
@@ -393,6 +385,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                             key={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}${this.resetChangesCount}`}
                                             stringToValue={minutesToSeconds}
                                             valueToString={(val) => _toString(secondsToMinutes(val))}
+                                            
                                         />
                                     </div>
                                 )}
@@ -467,7 +460,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                 {isFrozen !== true && (
                                     <div className="tr__form-buttons-container _left">
                                         {!_isBlank(outboundPathId) &&
-                                            ((!_isBlank(outboundIntervalSeconds) && !_isBlank(inboundIntervalSeconds) && _isBlank(numberOfUnits)) ||
+                                            (((!_isBlank(outboundIntervalSeconds) || !_isBlank(inboundIntervalSeconds)) && _isBlank(numberOfUnits)) ||
                                                 (!_isBlank(numberOfUnits) && _isBlank(outboundIntervalSeconds) && _isBlank(inboundIntervalSeconds))) && (
                                             <Button
                                                 color="blue"
@@ -475,6 +468,12 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                                 iconClass="_icon"
                                                 label={this.props.t('transit:transitSchedule:GenerateSchedule')}
                                                 onClick={function () {
+                                                    if (_isBlank(inboundIntervalSeconds)){
+                                                        schedule.set(`periods[${i}].inbound_interval_seconds`, outboundIntervalSeconds)
+                                                    }
+                                                    else if (_isBlank(outboundIntervalSeconds)){
+                                                        schedule.set(`periods[${i}].outbound_interval_seconds`, inboundIntervalSeconds)
+                                                    }
                                                     const response = schedule.generateForPeriod(periodShortname);
                                                     if (response.trips) {
                                                         schedule.set(`periods[${i}].trips`, response.trips);

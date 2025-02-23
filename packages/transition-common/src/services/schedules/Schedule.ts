@@ -40,7 +40,7 @@ export interface SchedulePeriod extends GenericAttributes {
     outbound_path_id?: string;
     inbound_path_id?: string;
     period_shortname?: string;
-    interval_seconds?: number;
+    outbound_interval_seconds?: number;
     inbound_interval_seconds?: number;
     number_of_units?: number;
     calculated_interval_seconds?: number;
@@ -134,7 +134,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         const periods = this.getAttributes().periods;
         for (let i = 0, count = periods.length; i < count; i++) {
             const period = periods[i];
-            if (period.interval_seconds && period.number_of_units) {
+            if (period.outbound_interval_seconds && period.number_of_units) {
                 this._isValid = false;
                 this.errors.push('transit:transitSchedule:errors:ChooseIntervalOrNumberOfUnits');
                 break;
@@ -589,7 +589,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             return Status.createError(`Period ${periodShortname} does not exist`);
         }
 
-        const outboundIntervalSeconds = period.interval_seconds;
+        const outboundIntervalSeconds = period.outbound_interval_seconds;
         let inboundIntervalSeconds = period.inbound_interval_seconds ?? DEFAULT_RETURN_INTERVAL_SECONDS;
         const numberOfUnits = period.number_of_units;
 
