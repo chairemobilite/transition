@@ -62,7 +62,7 @@ export interface ScheduleAttributes extends GenericAttributes {
     periods: SchedulePeriod[];
 }
 
-interface BusUnit {
+export interface BusUnit {
     id: number;
     totalCapacity: number;
     seatedCapacity: number;
@@ -80,13 +80,13 @@ interface ScheduleDefaults {
     DEFAULT_SEATED_CAPACITY: number;
 }
 
-enum BusLocation {
+export enum BusLocation {
     ORIGIN = 'origin',
     DESTINATION = 'destination',
     IN_TRANSIT = 'in_transit'
 }
 
-enum BusDirection {
+export enum BusDirection {
     OUTBOUND = 'outbound',
     INBOUND = 'inbound'
 }
@@ -332,6 +332,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         return { busId: null };
     }
 
+    //TODO create test
     private generateTrips(
         startAtSecondsSinceMidnight: number,
         endAtSecondsSinceMidnight: number,
@@ -581,6 +582,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         }
     }
 
+    // TODO update test
     private generateForPeriodFunction(periodShortname: string): Status.Status<SchedulePeriodTrip[]> {
         const period = this.getPeriod(periodShortname);
         if (!period) {
@@ -707,6 +709,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         }
     }
 
+    //TODO update test . (probably it's better to test generateForPeriodfunction instead. if the other test works, this one probably works too)
     generateForPeriod(periodShortname: string): { trips: SchedulePeriodTrip[] } {
         const resultStatus = this.generateForPeriodFunction(periodShortname);
         return { trips: Status.isStatusOk(resultStatus) ? Status.unwrap(resultStatus) : [] };
