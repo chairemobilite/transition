@@ -16,6 +16,7 @@ export interface TransitRoutingStepRideButtonProps extends WithTranslation {
     boardingStep: TrRoutingV2.TripStepBoarding;
     alightingStep: TrRoutingV2.TripStepUnboarding;
     stepIndex: number;
+    textColor?: string; //Can be any valid CSS color format: https://www.w3schools.com/css/css_colors.asp
 }
 
 const TransitRoutingStepRideButton: React.FunctionComponent<TransitRoutingStepRideButtonProps> = (
@@ -52,11 +53,15 @@ const TransitRoutingStepRideButton: React.FunctionComponent<TransitRoutingStepRi
     const travelTimeSeconds = props.alightingStep.arrivalTime - props.boardingStep.departureTime;
     const travelTimeMinutes = secondsToMinutes(travelTimeSeconds, Math.round);
 
+    const textColorStyle = props.textColor === undefined ? {} : { color: props.textColor };
+
     return (
         <React.Fragment key={`ride${props.stepIndex}`}>
             <li className={'_list _o50 _indent'} onClick={undefined} key="boardingNode">
                 <span className="_list-group">
-                    <span className="_list-element _strong">{boardingNodeAttribs.name}</span>
+                    <span className="_list-element _strong" style={textColorStyle}>
+                        {boardingNodeAttribs.name}
+                    </span>
                 </span>
                 <span className="_list-group _flush-right _right">
                     <span
@@ -82,10 +87,14 @@ const TransitRoutingStepRideButton: React.FunctionComponent<TransitRoutingStepRi
                     />
                 </span>
                 <span className="_list-group _left">
-                    <span className="_list-element _strong">{lineAttribs?.shortname}</span>
+                    <span className="_list-element _strong" style={textColorStyle}>
+                        {lineAttribs?.shortname}
+                    </span>
                 </span>
                 <span className="_list-group _left">
-                    <span className="_list-element">{lineAttribs?.longname}</span>
+                    <span className="_list-element" style={textColorStyle}>
+                        {lineAttribs?.longname}
+                    </span>
                 </span>
                 <span className="_list-group">
                     <span className="_list-element _em">
@@ -109,7 +118,9 @@ const TransitRoutingStepRideButton: React.FunctionComponent<TransitRoutingStepRi
             <li className="_clear" key="clearer2"></li>
             <li className={'_list _o50 _indent'} onClick={undefined} key="aligthingNode">
                 <span className="_list-group">
-                    <span className="_list-element _strong">{alightingNodeAttribs.name}</span>
+                    <span className="_list-element _strong" style={textColorStyle}>
+                        {alightingNodeAttribs.name}
+                    </span>
                 </span>
             </li>
             <li className="_clear" key="clearer3"></li>
