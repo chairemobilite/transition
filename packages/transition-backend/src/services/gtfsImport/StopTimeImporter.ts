@@ -75,7 +75,8 @@ implements GtfsObjectPreparator<StopTime | Omit<StopTime, 'arrivalTimeSeconds' |
                     timepoint: timepointNum >= 0 && timepointNum <= 1 ? (timepointNum as 0 | 1) : 1,
                     arrival_time: data.arrival_time || '',
                     departure_time: data.departure_time || '',
-                    stop_id: data.stop_id,
+                    // Trim the stop_id as some gtfs tested (STM 2013) have trailing spaces. Maybe we should trim everything?
+                    stop_id: typeof data.stop_id === 'string' ? data.stop_id.trim() : data.stop_id,
                     stop_headsign: data.stop_headsign || '',
                     // If time is null for one, but not the other, fallback to that other
                     arrivalTimeSeconds:
