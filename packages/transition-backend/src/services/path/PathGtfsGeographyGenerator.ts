@@ -491,3 +491,121 @@ export const generateGeographyAndSegmentsFromGtfs = (
 
     return errors;
 };
+
+// TODO Add unit tests
+export const generateGeographyAndSegmentsFromStopTimes = (
+    path: Path,
+    nodeIds: string[],
+    stopTimes: StopTime[],
+    stopCoordinatesByStopId: { [key: string]: [number, number] },
+    defaultLayoverRatioOverTotalTravelTime = 0.1,
+    defaultMinLayoverTimeSeconds = 180
+): ErrorMessage[] => {
+    path.getAttributes().nodes = nodeIds; // reset nodes, they will be regenerated from stop times
+
+    // Return errors when generating the path
+    const errors: ErrorMessage[] = [];
+
+    const coordinates = stopTimes
+        .map((stopTime) => {
+            if (stopCoordinatesByStopId[stopTime.stop_id] === undefined) {
+                console.log('undefined stop coordinates for stop id ', stopTime.stop_id);
+            }
+            return stopCoordinatesByStopId[stopTime.stop_id];
+        })
+        .filter((coordinate) => coordinate !== undefined);
+
+    if (coordinates.length !== stopTimes.length) {
+        console.log('Path generation from stop times: some stop times do not have coordinates. Cannot generate path');
+        const line: any = path.getLine();
+        errors.push({
+            text: GtfsMessages.CannotGenerateFromStopTimes,
+            params: {
+                lineShortName: line.get('shortname'),
+                lineName: line.get('longname')
+            }
+        });
+        path.setData('gtfs', { shape_id: undefined });
+        path.set('geography', null);
+        return errors;
+    }
+
+    const uncleanedCompleteShape = {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+            type: 'LineString',
+            coordinates
+        }
+    };
+    const completeShape = turfCleanCoords(uncleanedCompleteShape);
+    const totalDistanceInMeters = turfLength(completeShape, { units: 'kilometers' }) * 1000;
+
+    // we create simple path segments between stops and get distances with turf
+    const segments: number[] = [];
+    const segmentsData: TimeAndDistance[] = [];
+    const dwellTimeSecondsData: number[] = [];
+    let totalDwellTimeSeconds = 0;
+    let totalTravelTimeWithoutDwellTimesSeconds = 0;
+    let totalTravelTimeWithDwellTimesSeconds = 0;
+
+    // TODO Calculate the distances between stops, even if it is approximate. But some stop times may have a shape_dist_traveled field
+    for (let i = 0, countI = stopTimes.length; i < countI - 1; i++) {
+        const stopTime = stopTimes[i];
+        const nextStopTime = stopTimes[i + 1];
+        const dwellTimeSeconds = stopTime.departureTimeSeconds - stopTime.arrivalTimeSeconds;
+        const travelTimeSeconds = Math.ceil(nextStopTime.arrivalTimeSeconds - stopTime.departureTimeSeconds);
+        segmentsData.push({
+            travelTimeSeconds: travelTimeSeconds, // we should make an average over each period here instead of using the first trip travel times
+            distanceMeters: null
+        });
+        dwellTimeSecondsData.push(dwellTimeSeconds);
+        totalDwellTimeSeconds += dwellTimeSeconds;
+        totalTravelTimeWithoutDwellTimesSeconds += travelTimeSeconds;
+        totalTravelTimeWithDwellTimesSeconds += dwellTimeSeconds + travelTimeSeconds;
+        // Since we simply have coordinates, the index of the coordinates is the stop index
+        segments.push(i);
+    }
+    const customLayoverMinutes = path.getAttributes().data.customLayoverMinutes;
+    const layoverTimeSeconds =
+        customLayoverMinutes !== undefined
+            ? customLayoverMinutes * 60
+            : Math.ceil(
+                Math.max(
+                    defaultLayoverRatioOverTotalTravelTime * totalTravelTimeWithDwellTimesSeconds,
+                    defaultMinLayoverTimeSeconds
+                )
+            );
+
+    const pathData = {
+        segments: segmentsData,
+        dwellTimeSeconds: dwellTimeSecondsData,
+        layoverTimeSeconds: layoverTimeSeconds,
+        travelTimeWithoutDwellTimesSeconds: totalTravelTimeWithoutDwellTimesSeconds,
+        totalDistanceMeters: Math.ceil(totalDistanceInMeters),
+        totalDwellTimeSeconds: totalDwellTimeSeconds,
+        operatingTimeWithoutLayoverTimeSeconds: totalTravelTimeWithDwellTimesSeconds,
+        operatingTimeWithLayoverTimeSeconds: totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds,
+        totalTravelTimeWithReturnBackSeconds: null,
+        averageSpeedWithoutDwellTimesMetersPerSecond:
+            Math.round((totalDistanceInMeters / totalTravelTimeWithoutDwellTimesSeconds) * 100) / 100,
+        operatingSpeedMetersPerSecond:
+            Math.round((totalDistanceInMeters / totalTravelTimeWithDwellTimesSeconds) * 100) / 100,
+        operatingSpeedWithLayoverMetersPerSecond:
+            Math.round((totalDistanceInMeters / (totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds)) * 100) /
+            100,
+        returnBackGeography: null,
+        nodeTypes: [],
+        waypoints: [],
+        waypointTypes: []
+    };
+
+    path.getAttributes().segments = segments;
+    path.getAttributes().data = Object.assign(path.getAttributes().data, pathData);
+
+    path.setData('gtfs', { shape_id: undefined });
+    path.setData('from_gtfs', true);
+    path.set('geography', completeShape.geometry);
+
+    return errors;
+};

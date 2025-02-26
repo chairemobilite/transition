@@ -123,7 +123,6 @@ describe('Test trip preparation', () => {
         expect(Object.keys(preparedTrips).length).toEqual(1);
         const tripsForLine = preparedTrips[route_id];
         expect(tripsForLine).toBeDefined();
-        console.log('trips for line', tripsForLine);
         expect(tripsForLine.length).toEqual(5);
 
         // All trips should be the same

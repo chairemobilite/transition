@@ -13,14 +13,18 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import PathImporter from '../PathImporter';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
-import { generateGeographyAndSegmentsFromGtfs } from '../../path/PathGtfsGeographyGenerator';
+import { generateGeographyAndSegmentsFromGtfs, generateGeographyAndSegmentsFromStopTimes } from '../../path/PathGtfsGeographyGenerator';
 import pathsDbQueries from '../../../models/db/transitPaths.db.queries';
 
 jest.mock('../../../models/db/transitPaths.db.queries');
 
-jest.mock('../../path/PathGtfsGeographyGenerator');
-const mockedPathGeneration = jest.mocked(generateGeographyAndSegmentsFromGtfs, { shallow: true });
-const setPathGeography = (path: Path, nodeIds: string[], gtfsShapeId: string) => {
+jest.mock('../../path/PathGtfsGeographyGenerator', () => ({
+    generateGeographyAndSegmentsFromStopTimes: jest.fn(),
+    generateGeographyAndSegmentsFromGtfs: jest.fn()
+}));
+const mockedPathGenerationFromGTFS = generateGeographyAndSegmentsFromGtfs as jest.MockedFunction<typeof generateGeographyAndSegmentsFromGtfs>;
+const mockedPathGenerationFromStopTimes = generateGeographyAndSegmentsFromStopTimes as jest.MockedFunction<typeof generateGeographyAndSegmentsFromStopTimes>;
+const setPathGeography = (path: Path, nodeIds: string[], gtfsShapeId: string | undefined) => {
     path.getAttributes().nodes = nodeIds;
     path.getAttributes().geography = {
         type: 'LineString' as const,
@@ -28,8 +32,12 @@ const setPathGeography = (path: Path, nodeIds: string[], gtfsShapeId: string) =>
     };
     path.setData('gtfs', { shape_id: gtfsShapeId })
 }
-mockedPathGeneration.mockImplementation((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
+mockedPathGenerationFromGTFS.mockImplementation((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
     setPathGeography(path, nodeIds, gtfsShapeId);
+    return [];
+});
+mockedPathGenerationFromStopTimes.mockImplementation((path, nodeIds, _stopTimes, _stopCoords) => {
+    setPathGeography(path, nodeIds, undefined);
     return [];
 });
 
@@ -94,7 +102,7 @@ describe('One line, 2 identical simple trips', () => {
 
     test('Generate path with warnings', async () => {
         const warnings = ['warning1', 'warning2'];
-        mockedPathGeneration.mockImplementationOnce((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
+        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
             setPathGeography(path, nodeIds, gtfsShapeId);
             return warnings;
         });
@@ -266,7 +274,7 @@ describe('One line, multiple trips resulting in 2 paths', () => {
 
     test('Generate path with warnings', async () => {
         const warnings = ['warning1', 'warning2'];
-        mockedPathGeneration.mockImplementationOnce((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
+        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
             setPathGeography(path, nodeIds, gtfsShapeId);
             return warnings;
         });
@@ -281,7 +289,7 @@ describe('One line, multiple trips resulting in 2 paths', () => {
         // expect(pathsDbQueries.createMultiple).toHaveBeenCalledWith([importData.lineIdsByRouteGtfsId[routeId]]);
     });
 
-    test('Add a trip with no shape', async () => {
+    test('Add a trip with no shape, should generate a trip', async () => {
         const tripWithNoShape = 'noshape';
         tripsByRouteId[routeId].push({
             trip: { route_id: routeId, service_id: uuidV4(), trip_id: tripWithNoShape, trip_headsign: 'Test East', direction_id: 0 },
@@ -290,8 +298,8 @@ describe('One line, multiple trips resulting in 2 paths', () => {
         const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
         expect(result.status).toEqual('success');
         expect(result.pathIdsByTripId).toBeDefined();
-        expect(Object.keys(result.pathIdsByTripId).length).toEqual(2);
-        expect(result.pathIdsByTripId[tripWithNoShape]).not.toBeDefined();
+        expect(Object.keys(result.pathIdsByTripId).length).toEqual(3);
+        expect(result.pathIdsByTripId[tripWithNoShape]).toBeDefined();
         expect(result.warnings.length).toEqual(1);
         expect(pathsDbQueries.createMultiple).toHaveBeenCalledTimes(1);
         // expect(pathsDbQueries.createMultiple).toHaveBeenCalledWith([importData.lineIdsByRouteGtfsId[routeId]]);
@@ -300,7 +308,7 @@ describe('One line, multiple trips resulting in 2 paths', () => {
 
     test('Throw an error during generation', async () => {
         const error = 'error';
-        mockedPathGeneration.mockImplementationOnce((path) => {
+        mockedPathGenerationFromGTFS.mockImplementationOnce((path) => {
             throw error;
         });
         const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
@@ -417,11 +425,11 @@ describe('Multiple lines, with 2 paths each', () => {
     test('Generate path with warnings', async () => {
         const warningsLine1 = ['warning1', 'warning2'];
         const warningsLine2 = ['warning3'];
-        mockedPathGeneration.mockImplementationOnce((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
+        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
             setPathGeography(path, nodeIds, gtfsShapeId);
             return warningsLine1;
         });
-        mockedPathGeneration.mockImplementationOnce((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
+        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
             setPathGeography(path, nodeIds, gtfsShapeId);
             return warningsLine2;
         });
@@ -436,7 +444,7 @@ describe('Multiple lines, with 2 paths each', () => {
 
     test('Throw an error during generation', async () => {
         const error = 'error';
-        mockedPathGeneration.mockImplementationOnce((path) => {
+        mockedPathGenerationFromGTFS.mockImplementationOnce((path) => {
             throw error;
         });
         const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
@@ -444,6 +452,57 @@ describe('Multiple lines, with 2 paths each', () => {
         expect(result.pathIdsByTripId).toBeDefined();
         expect(Object.keys(result.pathIdsByTripId).length).toEqual(2);
         expect(result.warnings.length).toEqual(1);
+    });
+
+});
+
+describe('One line, 3 trips with no shape', () => {
+    // Prepare test data, without a shape
+    // 2 trips have same nodes, another one is for other direction
+    importData.shapeById = {};
+    importData.stopCoordinatesByStopId = {
+        stop1: [ -73.61436367, 45.53814367 ] as [number, number],
+        stop2: [ -73.61350536, 45.53933101 ] as [number, number],
+        stop3: [ -73.61326933, 45.54062352 ] as [number, number],
+        stop4: [ -73.61247539, 45.54152525 ] as [number, number]
+    };
+    const tripId = 'simpleTrip';
+    const tripsByRouteId = {};
+    const baseTripAndStopTimes = {
+        trip: { route_id: routeId, service_id: uuidV4(), trip_id: tripId, trip_headsign: 'Test West', direction_id: 0 },
+        stopTimes: [
+            { trip_id: tripId, stop_id: 'stop1', stop_sequence: 2, arrivalTimeSeconds: 36000, departureTimeSeconds: 36000 },
+            { trip_id: tripId, stop_id: 'stop2', stop_sequence: 3, arrivalTimeSeconds: 36090, departureTimeSeconds: 36100 },
+            { trip_id: tripId, stop_id: 'stop3', stop_sequence: 4, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200 },
+            { trip_id: tripId, stop_id: 'stop4', stop_sequence: 5, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300 }
+        ]
+    }
+    tripsByRouteId[routeId] = [
+        baseTripAndStopTimes,
+        {
+            trip: { ...baseTripAndStopTimes.trip, trip_id: 'simpleTrip2' },
+            stopTimes: baseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, 600)),
+        }, {
+            trip: { ...baseTripAndStopTimes.trip, trip_id: 'returnTrip', trip_headsign: 'Test east', direction_id: 1 },
+            stopTimes: [
+                { trip_id: tripId, stop_id: 'stop4', stop_sequence: 2, arrivalTimeSeconds: 36000, departureTimeSeconds: 36000 },
+                { trip_id: tripId, stop_id: 'stop3', stop_sequence: 3, arrivalTimeSeconds: 36090, departureTimeSeconds: 36100 },
+                { trip_id: tripId, stop_id: 'stop2', stop_sequence: 4, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200 },
+                { trip_id: tripId, stop_id: 'stop1', stop_sequence: 5, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300 }
+            ]
+        }
+    ];
+
+    test('Generate path', async () => {
+        const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
+        expect(result.status).toEqual('success');
+        expect(result.pathIdsByTripId).toBeDefined();
+        expect(Object.keys(result.pathIdsByTripId).length).toEqual(3);
+        expect(result.pathIdsByTripId[tripId]).toBeDefined();
+        expect(result.warnings.length).toEqual(1);
+        expect(result.warnings[0].text).toEqual('transit:gtfs:errors:TripHasNoShape');
+        expect(pathsDbQueries.createMultiple).toHaveBeenCalledTimes(1);
+        expect(mockedPathGenerationFromStopTimes).toHaveBeenCalledTimes(2);
     });
 
 });

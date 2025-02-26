@@ -9,6 +9,7 @@
 export const GtfsMessages = {
     TripWithNoShape: 'transit:gtfs:errors:TripHasNoShape',
     CannotGenerateFromGtfsShape: 'transit:gtfs:errors:CannotGenerateShapeFromGtfs',
+    CannotGenerateFromStopTimes: 'transit:gtfs:errors:CannotGenerateShapeFromStopTimes',
     PathGenerationErrorForLine: 'transit:gtfs:errors:PathGenerationErrorForLine',
     PathGenerationError: 'transit:gtfs:errors:PathGenerationError',
     TooManyErrorsImportingSchedules: 'transit:gtfs:errors:TooManyErrorsImportingSchedules',

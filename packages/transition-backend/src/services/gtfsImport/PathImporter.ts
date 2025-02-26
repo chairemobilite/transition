@@ -13,7 +13,10 @@ import Line from 'transition-common/lib/services/line/Line';
 import Path from 'transition-common/lib/services/path/Path';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
 import { GtfsInternalData, StopTime } from './GtfsImportTypes';
-import { generateGeographyAndSegmentsFromGtfs } from '../path/PathGtfsGeographyGenerator';
+import {
+    generateGeographyAndSegmentsFromGtfs,
+    generateGeographyAndSegmentsFromStopTimes
+} from '../path/PathGtfsGeographyGenerator';
 import pathsDbQueries from '../../models/db/transitPaths.db.queries';
 
 /**
@@ -106,6 +109,7 @@ const generatePathsForLine = (
     let allWarnings: ErrorMessage[] = [];
     const newPaths: Path[] = [];
     const pathByShapeId: { [key: string]: Path[] } = {};
+    const pathsWithoutShape: Path[] = [];
     // Pre-fill paths by shape ID with the existing paths
     line.getPaths().forEach((path) => {
         const gtfsData = path.getAttributes().data.gtfs;
@@ -134,30 +138,37 @@ const generatePathsForLine = (
                 pathIdByTripId[trip.trip_id] = samePath.getId();
                 continue;
             }
+            // Need to generate a new path
+            const { newPath, warnings } = generatePathFromShape(line, trip, stopTimes, shapeId, nodeIds, importData);
+            newPaths.push(newPath);
+            pathsForShape.push(newPath);
+            pathByShapeId[shapeId] = pathsForShape;
+            pathIdByTripId[trip.trip_id] = newPath.getId();
+            allWarnings = allWarnings.concat(warnings);
         } else {
-            // TODO Can we build paths with no shapes?
+            // Path has no shape, try to find one with the exact same stops
+            const samePath = pathsWithoutShape.find((path) => _isEqual(path.getAttributes().nodes, nodeIds));
+            if (samePath) {
+                pathIdByTripId[trip.trip_id] = samePath.getId();
+                continue;
+            }
             allWarnings.push({
                 text: GtfsMessages.TripWithNoShape,
                 params: { tripId: trip.trip_id, lineShortName: line.getAttributes().shortname || trip.route_id }
             });
-            console.log(`GTFS Path import: Not creating a path for trip ${trip.trip_id} because there is no shape`);
-            continue;
+            // Need to generate a new path without a shape
+            const { newPath, warnings } = generatePathWithoutShape(line, trip, stopTimes, nodeIds, importData);
+            newPaths.push(newPath);
+            pathsWithoutShape.push(newPath);
+            pathIdByTripId[trip.trip_id] = newPath.getId();
+            allWarnings = allWarnings.concat(warnings);
         }
-
-        // Need to generate a new path
-        const { newPath, warnings } = generatePath(line, trip, stopTimes, shapeId, nodeIds, importData);
-        newPaths.push(newPath);
-        const pathsForShape = pathByShapeId[shapeId] || [];
-        pathsForShape.push(newPath);
-        pathByShapeId[shapeId] = pathsForShape;
-        pathIdByTripId[trip.trip_id] = newPath.getId();
-        allWarnings = allWarnings.concat(warnings);
     }
 
     return { paths: newPaths, pathByTripId: pathIdByTripId, warnings: allWarnings };
 };
 
-const generatePath = (
+const generatePathFromShape = (
     line: Line,
     trip: GtfsTypes.Trip,
     stopTimes: StopTime[],
@@ -182,6 +193,30 @@ const generatePath = (
         importData.stopCoordinatesByStopId
     );
     newPath.convertAllCoordinatesToWaypoints(newPath.attributes.data.routingEngine !== 'engine'); // set all coordinates to waypoints if routingEngine is not engine
+
+    return { newPath, warnings };
+};
+
+const generatePathWithoutShape = (
+    line: Line,
+    trip: GtfsTypes.Trip,
+    stopTimes: StopTime[],
+    nodeIds: string[],
+    importData: GtfsInternalData
+): { newPath: Path; warnings: ErrorMessage[] } => {
+    const gtfsDirectionId = trip.direction_id || 0;
+    const pathName = trip.trip_headsign;
+    const direction = gtfsDirectionId === 0 ? 'outbound' : 'inbound';
+
+    const newPath = line.newPath({ direction, name: pathName });
+
+    // TODO Those 2 parameters were added to the call: this.get('defaultLayoverRatioOverTotalTravelTime', null), this.get('defaultMinLayoverTimeSeconds', null)). See if we can/need to configure them
+    const warnings = generateGeographyAndSegmentsFromStopTimes(
+        newPath,
+        nodeIds,
+        stopTimes,
+        importData.stopCoordinatesByStopId
+    );
 
     return { newPath, warnings };
 };
