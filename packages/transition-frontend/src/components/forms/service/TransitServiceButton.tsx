@@ -23,6 +23,7 @@ interface ScheduleButtonProps extends WithTranslation {
 }
 
 const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (props: ScheduleButtonProps) => {
+    const [detailsOpened, setDetailsOpened] = React.useState(false);
     const serviceIsSelected =
         (props.selectedService && props.selectedService.getId() === props.service.getId()) || false;
 
@@ -130,25 +131,36 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
                     {serviceWeekdaysStr}
                 </ButtonCell>
             </Button>
-            <div className="tr__form-services-panel-lines-list">
-                <Button key={`lines${props.service.getId()}`} isSelected={serviceIsSelected} flushActionButtons={false}>
-                    <DocumentationTooltip dataTooltipId="line-tooltip" documentationLabel="line" />
-                    <Collapsible
-                        lazyRender={true}
-                        trigger={
-                            <MathJax.Provider>
-                                {props.t('transit:transitLine:List')}&nbsp;
-                                <span>
-                                    <MathJax.Node inline formula={'L'} data-tooltip-id="line-tooltip" />
-                                </span>
-                            </MathJax.Provider>
-                        }
-                        transitionTime={200}
+            {scheduledLineCount > 0 && (
+                <div className="tr__form-services-panel-lines-list">
+                    <Button
+                        key={`lines${props.service.getId()}`}
+                        isSelected={serviceIsSelected}
+                        flushActionButtons={false}
                     >
-                        <TransitServiceLinesDetail service={props.service} />
-                    </Collapsible>
-                </Button>
-            </div>
+                        <DocumentationTooltip dataTooltipId="line-tooltip" documentationLabel="line" />
+                        <Collapsible
+                            lazyRender={true}
+                            trigger={
+                                <MathJax.Provider>
+                                    {scheduledLineCount > 1
+                                        ? props.t('transit:transitService:nLines', { n: scheduledLineCount })
+                                        : props.t('transit:transitService:oneLine')}
+                                    &nbsp;
+                                    <span>
+                                        <MathJax.Node inline formula={'L'} data-tooltip-id="line-tooltip" />
+                                    </span>
+                                </MathJax.Provider>
+                            }
+                            transitionTime={200}
+                            onOpen={() => setDetailsOpened(true)}
+                            onClose={() => setDetailsOpened(false)}
+                        >
+                            {detailsOpened && <TransitServiceLinesDetail service={props.service} />}
+                        </Collapsible>
+                    </Button>
+                </div>
+            )}
         </React.Fragment>
     );
 };
