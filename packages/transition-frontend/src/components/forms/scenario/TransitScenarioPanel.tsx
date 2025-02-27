@@ -31,7 +31,7 @@ const ScenarioPanel: React.FunctionComponent<WithTranslation> = (props: WithTran
     const [importerSelected, setImporterSelected] = React.useState(false);
     const [state, setState] = React.useState<ScenarioPanelState>({
         scenarioCollection: serviceLocator.collectionManager.get('scenarios'),
-        selectedScenario: serviceLocator.selectedObjectsManager.get('scenario')
+        selectedScenario: serviceLocator.selectedObjectsManager.getSingleSelection('scenario')
     });
 
     const [agenciesLoaded, setAgenciesLoaded] = React.useState(
@@ -54,7 +54,7 @@ const ScenarioPanel: React.FunctionComponent<WithTranslation> = (props: WithTran
         const onSelectedScenarioUpdate = () =>
             setState(({ scenarioCollection }) => ({
                 scenarioCollection,
-                selectedScenario: serviceLocator.selectedObjectsManager.get('scenario')
+                selectedScenario: serviceLocator.selectedObjectsManager.getSingleSelection('scenario')
             }));
         serviceLocator.eventManager.on('collection.update.scenarios', onScenarioCollectionUpdate);
         serviceLocator.eventManager.on('collection.update.agencies', onAgencyCollectionUpdate);

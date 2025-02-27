@@ -90,14 +90,13 @@ const TransitScheduleList: React.FunctionComponent<ScheduleListProps> = (props: 
                         label={props.t('transit:transitSchedule:NewSchedule')}
                         onClick={function () {
                             // new
-                            serviceLocator.selectedObjectsManager.select(
-                                'schedule',
+                            serviceLocator.selectedObjectsManager.setSelection('schedule', [
                                 new Schedule(
                                     { line_id: props.selectedLine.getId() },
                                     true,
                                     serviceLocator.collectionManager
                                 )
-                            );
+                            ]);
                         }}
                     />
                 )}

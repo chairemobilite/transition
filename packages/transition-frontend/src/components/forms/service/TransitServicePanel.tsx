@@ -30,7 +30,7 @@ const ServicesPanel: React.FunctionComponent<WithTranslation> = (props: WithTran
     const [importerSelected, setImporterSelected] = React.useState(false);
     const [state, setState] = React.useState<ServicePanelState>({
         serviceCollection: serviceLocator.collectionManager.get('services'),
-        selectedService: serviceLocator.selectedObjectsManager.get('service')
+        selectedService: serviceLocator.selectedObjectsManager.getSingleSelection('service')
     });
 
     const onServiceCollectionUpdate = () =>
@@ -41,7 +41,7 @@ const ServicesPanel: React.FunctionComponent<WithTranslation> = (props: WithTran
     const onSelectedServiceUpdate = () =>
         setState(({ serviceCollection }) => ({
             serviceCollection,
-            selectedService: serviceLocator.selectedObjectsManager.get('service')
+            selectedService: serviceLocator.selectedObjectsManager.getSingleSelection('service')
         }));
 
     React.useEffect(() => {

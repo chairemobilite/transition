@@ -52,6 +52,7 @@ export class GenericObject<T extends GenericAttributes> {
     }
 
     get id(): string {
+        // TODO: we should allow integer id, since some objects will not have a uuid, or at least will have a valid integer id for better performance
         return this._attributes.id;
     }
 

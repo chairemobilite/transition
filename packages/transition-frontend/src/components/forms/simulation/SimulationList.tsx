@@ -26,7 +26,7 @@ const SimulationList: React.FunctionComponent<SimulationListProps> = (props: Sim
         const defaultColor = Preferences.get('transit.simulations.defaultColor', '#0086FF');
         const newSimulation = new Simulation({ color: defaultColor }, true, serviceLocator.collectionManager);
         newSimulation.startEditing();
-        serviceLocator.selectedObjectsManager.select('simulation', newSimulation);
+        serviceLocator.selectedObjectsManager.setSelection('simulation', [newSimulation]);
     };
 
     return (

@@ -35,7 +35,8 @@ class PreferencesPanel extends SaveableObjectForm<PreferencesClass, PreferencesP
         super(props);
 
         preferences.startEditing();
-        serviceLocator.selectedObjectsManager.select('preferences', preferences);
+        // FIXME: this is a hack to use selected objects manager to open the prefs form, but this should be changed, because preferences is not selectable
+        serviceLocator.selectedObjectsManager.setSelection('preferences', [preferences]);
 
         this.state = {
             object: preferences,
@@ -63,22 +64,31 @@ class PreferencesPanel extends SaveableObjectForm<PreferencesClass, PreferencesP
         serviceLocator.eventManager.on('selected.deselect.preferences', this.onDeselect);
     }
 
-    componentWillUnmount() {
-        serviceLocator.eventManager.off('selected.deselect.preferences', this.onDeselect);
-    }
-
     onDeselect() {
+        serviceLocator.eventManager.off('selected.deselect.preferences', this.onDeselect); // adding this to componentWillUnmount triggers an infinite deselect loop
         serviceLocator.eventManager.emit('section.change', preferences.getAttributes().defaultSection);
     }
 
     resetPrefToDefault(path) {
+        // Update the object directly
         this.state.object.resetPathToDefault(path);
+
+        // Update internal counter
         this.resetChangesCount++;
-        serviceLocator.selectedObjectsManager.update(this.state.selectedObjectName, this.state.object);
+
+        // Update component state without triggering selection events
         const stateObject = this.state.object;
-        this.setState({
-            object: stateObject
-        });
+
+        // Use the callback pattern to ensure state is updated before updating selection
+        this.setState(
+            {
+                object: stateObject
+            },
+            () => {
+                // After state is updated, update the selection
+                serviceLocator.selectedObjectsManager.setSelection(this.state.selectedObjectName, [this.state.object]);
+            }
+        );
     }
 
     render() {

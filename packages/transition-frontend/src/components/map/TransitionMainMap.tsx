@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { PropsWithChildren } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, Root } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import MapboxGL from 'mapbox-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
@@ -47,6 +47,8 @@ interface MainMapState {
     layers: string[];
     confirmModalDeleteIsOpen: boolean;
     mapLoaded: boolean;
+    contextMenu: HTMLElement | null;
+    contextMenuRoot: Root | undefined;
 }
 
 /**
@@ -71,7 +73,9 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.state = {
             layers: Preferences.current.map.layers[this.props.activeSection],
             confirmModalDeleteIsOpen: false,
-            mapLoaded: false
+            mapLoaded: false,
+            contextMenu: null,
+            contextMenuRoot: undefined
         };
 
         this.defaultZoomArray = [props.zoom];
@@ -81,8 +85,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
 
         this.popupManager = new MapPopupManager();
         this.mapContainer = HTMLElement;
-
         this.mapEvents = {};
+
         const newEvents = [globalMapEvents, transitionMapEvents];
         const newEventsArr = newEvents.flatMap((ev) => ev);
         newEventsArr.forEach((eventDescriptor) => {
@@ -237,6 +241,12 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             'map.updateLayer',
             this.updateLayer
         );
+
+        const contextMenu = document.getElementById('tr__main-map-context-menu');
+        this.setState({
+            contextMenu,
+            contextMenuRoot: contextMenu ? createRoot(contextMenu) : undefined
+        });
         serviceLocator.eventManager.on('map.updateLayers', this.updateLayers);
         serviceLocator.eventManager.on('map.addPopup', this.addPopup);
         serviceLocator.eventManager.on('map.removePopup', this.removePopup);
@@ -357,17 +367,17 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
      * In the nodes active section, if you click on the map a new node will be create
      * If the user click on the tool for draw a polygon,
      * selectedNodes will put a value that will prevent a new node to be create
-     * If the user click again on the tool for draw a polygon and selectedNodes does'nt contain nodes (type object)
+     * If the user click again on the tool for draw a polygon and selectedNodes doesn't contain nodes (type object)
      * selectedNodes will be clear so a new node can be create
      * @param {object} data The next mode, i.e. the mode that Draw is changing to (from mapbox-gl-draw API.md)
      */
     modeChangePolygonService = (data) => {
         if (data.mode && data.mode === 'draw_polygon') {
-            serviceLocator.selectedObjectsManager.select('selectedNodes', 'draw_polygon');
+            serviceLocator.selectedObjectsManager.setSelection('nodes', ['draw_polygon']); // this is a hack to put a virtual selected node
         } else {
-            const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
+            const selectedNodes = serviceLocator.selectedObjectsManager.getSingleSelection('nodes');
             if (selectedNodes && typeof selectedNodes !== 'object' && data.mode && data.mode === 'simple_select') {
-                serviceLocator.selectedObjectsManager.select('selectedNodes', null);
+                serviceLocator.selectedObjectsManager.deselect('nodes');
             }
         }
     };
@@ -390,12 +400,11 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             serviceLocator.eventManager.emit('map.updateLayers', {
                 transitNodesSelected: turfFeatureCollection(geojson)
             });
-            serviceLocator.selectedObjectsManager.select('selectedNodes', selectedNodes);
-            serviceLocator.selectedObjectsManager.select(
-                'isContainSelectedFrozenNodes',
+            serviceLocator.selectedObjectsManager.setSelection('nodes', selectedNodes);
+            serviceLocator.selectedObjectsManager.setSelection('isContainSelectedFrozenNodes', [
                 selectedNodes.length !== nodesInPolygon.length
-            );
-            serviceLocator.selectedObjectsManager.select('isDrawPolygon', true);
+            ]);
+            serviceLocator.selectedObjectsManager.setSelection('isDrawPolygon', [true]);
         }
     };
 
@@ -403,10 +412,9 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         if (this.draw) {
             this.draw.deleteAll().getAll();
         }
-        serviceLocator.selectedObjectsManager.select('selectedNodes', null);
-        serviceLocator.selectedObjectsManager.select('isContainSelectedFrozenNodes', null);
-        serviceLocator.selectedObjectsManager.select('isDrawPolygon', null);
-        serviceLocator.eventManager.emit('selected.update.nodes');
+        serviceLocator.selectedObjectsManager.deselect('nodes');
+        serviceLocator.selectedObjectsManager.deselect('isContainSelectedFrozenNodes');
+        serviceLocator.selectedObjectsManager.deselect('isDrawPolygon');
         serviceLocator.eventManager.emit('map.updateLayers', {
             transitNodesSelected: turfFeatureCollection([]),
             transitNodes250mRadius: turfFeatureCollection([]),
@@ -425,11 +433,11 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
 
     onDeleteSelectedNodes = () => {
         serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 0.0 });
-        const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
+        const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
 
         deleteUnusedNodes(selectedNodes.map((n) => n.getId()))
             .then((_response) => {
-                serviceLocator.selectedObjectsManager.deselect('node');
+                serviceLocator.selectedObjectsManager.deselect('nodes');
                 serviceLocator.collectionManager.refresh('nodes');
                 serviceLocator.eventManager.emit('map.updateLayers', {
                     transitNodes: serviceLocator.collectionManager.get('nodes').toGeojson(),
@@ -503,15 +511,15 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     };
 
     showContextMenu = (e, elements) => {
-        const contextMenu = document.getElementById('tr__main-map-context-menu');
-        if (!contextMenu) {
+        const contextMenu = this.state.contextMenu;
+        if (!contextMenu || !this.state.contextMenuRoot) {
             return;
         }
         contextMenu.style.left = e.point.x + 'px';
         contextMenu.style.top = e.point.y + 'px';
         contextMenu.style.display = 'block';
 
-        createRoot(contextMenu).render(
+        this.state.contextMenuRoot.render(
             <ul>
                 {elements.map((element) => (
                     <li
@@ -531,12 +539,12 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     };
 
     hideContextMenu = () => {
-        const contextMenu = document.getElementById('tr__main-map-context-menu');
-        if (!contextMenu) {
+        if (!this.state.contextMenu || !this.state.contextMenuRoot) {
             return;
         }
+        const contextMenu = this.state.contextMenu;
         contextMenu.style.display = 'none';
-        createRoot(contextMenu).render(<React.Fragment></React.Fragment>);
+        this.state.contextMenuRoot.render(<React.Fragment></React.Fragment>);
     };
 
     render() {

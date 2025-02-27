@@ -21,10 +21,10 @@ const isNodeActiveSection = (activeSection: string) => activeSection === 'nodes'
 // it still needed? If we have problems, there should be an event handler of
 // higher priority to check it before running any other
 const onNodeSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
-    const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
-    const selectedNode = serviceLocator.selectedObjectsManager.get('node');
+    const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
+    const selectedNode = serviceLocator.selectedObjectsManager.getSingleSelection('node');
     // Ignore the event if there is a multiple selection
-    if (selectedNodes) return;
+    if (selectedNodes && selectedNodes.length > 0) return;
 
     const features = e.target.queryRenderedFeatures(
         [
@@ -52,7 +52,7 @@ const onNodeSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
             const transitNodeEdit = new TransitNode({ ...response.node }, false, serviceLocator.collectionManager);
             transitNodeEdit.loadFromCache(serviceLocator.socketEventManager).then((_response) => {
                 transitNodeEdit.startEditing();
-                serviceLocator.selectedObjectsManager.select('node', transitNodeEdit);
+                serviceLocator.selectedObjectsManager.setSelection('node', [transitNodeEdit]);
             });
         });
     } else if (!selectedNode && (!needsShiftKeyToCreateNode || e.originalEvent.shiftKey)) {
@@ -68,14 +68,14 @@ const onNodeSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
             serviceLocator.collectionManager
         );
         newTransitNode.startEditing();
-        serviceLocator.selectedObjectsManager.select('node', newTransitNode);
+        serviceLocator.selectedObjectsManager.setSelection('node', [newTransitNode]);
     } else if (selectedNode) {
         const selectedTransitNode = selectedNode as TransitNode;
         if (!selectedTransitNode.isFrozen()) {
             // Otherwise, update the position of the current node
             selectedTransitNode.set('geography.coordinates', e.lngLat.toArray());
             serviceLocator.eventManager.emit('selected.dragEnd.node', e.lngLat.toArray());
-            serviceLocator.selectedObjectsManager.update('node', selectedNode);
+            serviceLocator.selectedObjectsManager.setSelection('node', [selectedNode]);
         }
     }
     e.originalEvent.stopPropagation();
@@ -86,7 +86,7 @@ const onSelectedNodeMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
     if (!features || features.length === 0) {
         return;
     }
-    const selectedNode = serviceLocator.selectedObjectsManager.get('node');
+    const selectedNode = serviceLocator.selectedObjectsManager.getSingleSelection('node');
     if (
         selectedNode &&
         e.features &&
@@ -119,15 +119,10 @@ const onSelectedNodeMouseMove = (e: MapboxGL.MapMouseEvent) => {
 };
 
 const onNodeSectionContextMenu = (e: MapboxGL.MapMouseEvent) => {
-    const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
+    const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
     const menu: { title: string; onClick: () => void }[] = [];
 
-    if (
-        selectedNodes !== undefined &&
-        typeof selectedNodes === 'object' &&
-        Array.isArray(selectedNodes) &&
-        selectedNodes.length > 0
-    ) {
+    if (selectedNodes.length > 0) {
         menu.push(
             {
                 title: 'transit:transitNode:editSelectedNodes',

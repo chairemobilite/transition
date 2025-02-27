@@ -39,7 +39,7 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                 const path = new Path({ ...response.path }, false, serviceLocator.collectionManager);
                 path.startEditing();
                 serviceLocator.eventManager.emit('map.disableBoxZoom');
-                serviceLocator.selectedObjectsManager.select('path', path, !!props.selectedPath); // auto deselect
+                serviceLocator.selectedObjectsManager.setSelection('path', [path]); // auto deselect
                 serviceLocator.eventManager.emit('selected.updateLayers.path');
             });
         }
@@ -141,7 +141,7 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                             data: serviceLocator.collectionManager.get('paths').toGeojson()
                         }
                     );
-                    serviceLocator.selectedObjectsManager.update('line', props.line);
+                    serviceLocator.selectedObjectsManager.setSelection('line', [props.line]);
                     serviceLocator.collectionManager.refresh('lines');
                 }
             } catch (error) {
@@ -168,7 +168,7 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                     layerName: 'transitPaths',
                     data: serviceLocator.collectionManager.get('paths').toGeojson()
                 });
-                serviceLocator.selectedObjectsManager.update('line', props.line);
+                serviceLocator.selectedObjectsManager.setSelection('line', [props.line]);
                 serviceLocator.collectionManager.refresh('lines');
             } catch (error) {
                 console.error(error); // todo: better error handling

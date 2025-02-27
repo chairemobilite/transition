@@ -15,7 +15,7 @@ export interface SaveableObjectState<T extends GenericObject<any> & Saveable> ex
     confirmModalDeleteIsOpen: boolean;
     confirmModalBackIsOpen: boolean;
     /**
-     * Name of the object in the applicaiton wide selection
+     * Name of the object in the application wide selection
      *
      * TODO Should some other class deal with selection and this one just use callbacks?
      */
@@ -41,12 +41,14 @@ export abstract class SaveableObjectForm<
         super.onValueChange(path, newValue);
         if (newValue.valid || newValue.valid === undefined) {
             if (this.state.object.isNew()) {
-                serviceLocator.selectedObjectsManager.update(this.state.selectedObjectName, this.state.object);
-            } else {
-                serviceLocator.selectedObjectsManager.updateAndValidate(
-                    this.state.selectedObjectName,
+                serviceLocator.selectedObjectsManager.replaceSelection(this.state.selectedObjectName, [
                     this.state.object
-                );
+                ]);
+            } else {
+                this.state.object.validate();
+                serviceLocator.selectedObjectsManager.replaceSelection(this.state.selectedObjectName, [
+                    this.state.object
+                ]);
             }
         }
     }
@@ -65,12 +67,12 @@ export abstract class SaveableObjectForm<
         if (object.isNew()) {
             serviceLocator.selectedObjectsManager.deselect(singularName);
         } else {
-            const selectedObject = serviceLocator.selectedObjectsManager.get(singularName);
+            const selectedObject = serviceLocator.selectedObjectsManager.getSingleSelection(singularName);
             serviceLocator.eventManager.emit('progress', { name: progressName, progress: 0.0 });
 
             await object.delete(serviceLocator.socketEventManager);
 
-            if (selectedObject && selectedObject.get('id') === object.get('id')) {
+            if (selectedObject && selectedObject.id === object.get('id')) {
                 serviceLocator.selectedObjectsManager.deselect(singularName);
             }
             if (this.state.collectionName && serviceLocator.collectionManager.has(this.state.collectionName)) {

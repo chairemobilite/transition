@@ -60,7 +60,7 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
             if (!response.path) {
                 console.error('error removing node promise'); // todo: better error handling
             } else {
-                serviceLocator.selectedObjectsManager.update('path', response.path);
+                serviceLocator.selectedObjectsManager.setSelection('path', [response.path]);
                 serviceLocator.eventManager.emit('selected.updateLayers.path');
             }
         } catch (error) {

@@ -86,14 +86,14 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         const serviceId = schedule.attributes.service_id;
 
         if (schedule.isNew()) {
-            serviceLocator.selectedObjectsManager.update('line', line);
+            serviceLocator.selectedObjectsManager.setSelection('line', [line]);
             serviceLocator.selectedObjectsManager.deselect('schedule');
         } else {
             serviceLocator.eventManager.emit('progress', { name: 'DeletingSchedule', progress: 0.0 });
             try {
                 await schedule.delete(serviceLocator.socketEventManager);
                 line.removeSchedule(serviceId);
-                serviceLocator.selectedObjectsManager.update('line', line);
+                serviceLocator.selectedObjectsManager.setSelection('line', [line]);
                 serviceLocator.selectedObjectsManager.deselect('schedule');
             } finally {
                 serviceLocator.eventManager.emit('progress', { name: 'DeletingSchedule', progress: 1.0 });
@@ -106,10 +106,11 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         const schedule = this.props.schedule;
         schedule.set('service_id', toServiceId);
         if (schedule.isNew()) {
-            serviceLocator.selectedObjectsManager.update('schedule', schedule);
+            serviceLocator.selectedObjectsManager.setSelection('schedule', [schedule]);
         } else {
             line.updateSchedule(schedule);
-            serviceLocator.selectedObjectsManager.updateAndValidate('schedule', schedule);
+            schedule.validate();
+            serviceLocator.selectedObjectsManager.setSelection('schedule', [schedule]);
         }
     }
 
@@ -118,10 +119,11 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         const schedule = this.props.schedule;
         schedule.set('periods_group_shortname', periodsGroupShortname);
         if (schedule.isNew()) {
-            serviceLocator.selectedObjectsManager.update('schedule', schedule);
+            serviceLocator.selectedObjectsManager.setSelection('schedule', [schedule]);
         } else {
             line.updateSchedule(schedule);
-            serviceLocator.selectedObjectsManager.updateAndValidate('schedule', schedule);
+            schedule.validate();
+            serviceLocator.selectedObjectsManager.setSelection('schedule', [schedule]);
         }
     }
 
@@ -140,13 +142,13 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
             try {
                 await schedule.save(serviceLocator.socketEventManager);
                 line.updateSchedule(schedule);
-                serviceLocator.selectedObjectsManager.update('line', line);
+                serviceLocator.selectedObjectsManager.setSelection('line', [line]);
                 serviceLocator.selectedObjectsManager.deselect('schedule');
             } finally {
                 serviceLocator.eventManager.emit('progress', { name: 'SavingSchedule', progress: 1.0 });
             }
         } else {
-            serviceLocator.selectedObjectsManager.update('schedule', schedule);
+            serviceLocator.selectedObjectsManager.setSelection('schedule', [schedule]);
         }
     };
 
@@ -434,10 +436,9 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                                     if (response.trips) {
                                                         schedule.set(`periods[${i}].trips`, response.trips);
                                                     }
-                                                    serviceLocator.selectedObjectsManager.update(
-                                                        'schedule',
+                                                    serviceLocator.selectedObjectsManager.setSelection('schedule', [
                                                         schedule
-                                                    );
+                                                    ]);
                                                 }}
                                             />
                                         )}
@@ -452,7 +453,9 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                             label={this.props.t('transit:transitSchedule:RemoveSchedule')}
                                             onClick={function () {
                                                 schedule.set(`periods[${i}].trips`, []);
-                                                serviceLocator.selectedObjectsManager.update('schedule', schedule);
+                                                serviceLocator.selectedObjectsManager.setSelection('schedule', [
+                                                    schedule
+                                                ]);
                                             }}
                                         />
                                     </div>
@@ -582,8 +585,8 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                 onClick={() => {
                                     schedule.undo();
                                     this.resetChangesCount++;
-                                    serviceLocator.selectedObjectsManager.update('line', line);
-                                    serviceLocator.selectedObjectsManager.update('schedule', schedule);
+                                    serviceLocator.selectedObjectsManager.setSelection('line', [line]);
+                                    serviceLocator.selectedObjectsManager.setSelection('schedule', [schedule]);
                                 }}
                             />
                         </span>
@@ -599,8 +602,8 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                 onClick={() => {
                                     schedule.redo();
                                     this.resetChangesCount++;
-                                    serviceLocator.selectedObjectsManager.update('line', line);
-                                    serviceLocator.selectedObjectsManager.update('schedule', schedule);
+                                    serviceLocator.selectedObjectsManager.setSelection('line', [line]);
+                                    serviceLocator.selectedObjectsManager.setSelection('schedule', [schedule]);
                                 }}
                             />
                         </span>

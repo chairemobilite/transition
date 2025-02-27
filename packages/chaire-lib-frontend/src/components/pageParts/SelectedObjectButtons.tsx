@@ -116,7 +116,8 @@ const SelectedObjectButtons: React.FunctionComponent<SelectedObjectButtonsProps<
                     if (selectObjectManager) serviceLocator.selectedObjectsManager.deselect(objectSingularName);
                 }
             } else {
-                if (selectObjectManager) serviceLocator.selectedObjectsManager.update(objectSingularName, object);
+                if (selectObjectManager)
+                    serviceLocator.selectedObjectsManager.setSelection(objectSingularName, [object]);
             }
         };
 
@@ -125,7 +126,7 @@ const SelectedObjectButtons: React.FunctionComponent<SelectedObjectButtonsProps<
         if (props.onUndo) {
             props.onUndo(object);
         }
-        if (selectObjectManager) serviceLocator.selectedObjectsManager.update(objectSingularName, object);
+        if (selectObjectManager) serviceLocator.selectedObjectsManager.setSelection(objectSingularName, [object]);
     };
 
     const redoClick = () => {
@@ -133,7 +134,7 @@ const SelectedObjectButtons: React.FunctionComponent<SelectedObjectButtonsProps<
         if (props.onRedo) {
             props.onRedo(object);
         }
-        if (selectObjectManager) serviceLocator.selectedObjectsManager.update(objectSingularName, object);
+        if (selectObjectManager) serviceLocator.selectedObjectsManager.setSelection(objectSingularName, [object]);
     };
 
     return (

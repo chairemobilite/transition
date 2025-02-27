@@ -32,7 +32,7 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
             e.stopPropagation();
         }
         props.service.startEditing();
-        serviceLocator.selectedObjectsManager.select('service', props.service);
+        serviceLocator.selectedObjectsManager.setSelection('service', [props.service]);
     };
 
     const onDelete: React.MouseEventHandler = async (e: React.MouseEvent) => {

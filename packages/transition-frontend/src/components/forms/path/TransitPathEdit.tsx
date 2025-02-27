@@ -17,7 +17,7 @@ import _toString from 'lodash/toString';
 import MathJax from 'react-mathjax';
 import { point as turfPoint, featureCollection as turfFeatureCollection } from '@turf/turf';
 
-//import lineRoutingEngines                                  from '../../../../config/transition/pathRoutingEngines';
+//import lineRoutingEngines from '../../../../config/transition/pathRoutingEngines';
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputText from 'chaire-lib-frontend/lib/components/input/InputText';
@@ -117,21 +117,26 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
     }
 
     updateLayers = () => {
-        const geojson = this.props.path.toGeojson();
-        const nodesGeojsons = this.props.path.nodesGeojsons();
+        const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
+        // FIXME: here we should use props.path instead of etching the selected path,
+        // but it creates an incorrect order in the layer update and the selected
+        // path on map would be the previous one instead of the actual one. We should
+        // find a way to fix this using another method.
+        const pathGeojson = selectedPath ? selectedPath.toGeojson() : undefined;
+        const nodesGeojsons = selectedPath ? selectedPath.nodesGeojsons() : [];
         serviceLocator.eventManager.emit('map.updateLayers', {
-            transitPathsSelected: turfFeatureCollection(geojson.geometry ? [geojson] : []),
+            transitPathsSelected: turfFeatureCollection(pathGeojson && pathGeojson.geometry ? [pathGeojson] : []),
             transitNodesSelected: turfFeatureCollection(nodesGeojsons),
             transitNodesRoutingRadius: turfFeatureCollection(nodesGeojsons),
-            transitPathWaypoints: turfFeatureCollection(this.props.path.waypointsGeojsons()),
+            transitPathWaypoints: turfFeatureCollection(selectedPath ? selectedPath.waypointsGeojsons() : []),
             transitNodesSelectedErrors: turfFeatureCollection(
-                this.props.path.attributes.data.geographyErrors?.nodes
-                    ? this.props.path.attributes.data.geographyErrors.nodes
+                selectedPath && selectedPath.attributes.data.geographyErrors?.nodes
+                    ? selectedPath.attributes.data.geographyErrors.nodes
                     : []
             ),
             transitPathWaypointsErrors: turfFeatureCollection(
-                this.props.path.attributes.data.geographyErrors?.waypoints
-                    ? this.props.path.attributes.data.geographyErrors.waypoints
+                selectedPath && selectedPath.attributes.data.geographyErrors?.waypoints
+                    ? selectedPath.attributes.data.geographyErrors.waypoints
                     : []
             )
         });
@@ -274,7 +279,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             waypointType
         );
         this.props.path.validate();
-        serviceLocator.selectedObjectsManager.update('path', this.props.path);
+        serviceLocator.selectedObjectsManager.setSelection('path', [this.props.path]);
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'transitPathWaypointsSelected',
             data: turfFeatureCollection([])
@@ -297,7 +302,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                 )
                 .then((_response) => {
                     this.props.path.validate();
-                    serviceLocator.selectedObjectsManager.update('path', this.props.path);
+                    serviceLocator.selectedObjectsManager.setSelection('path', [this.props.path]);
                     serviceLocator.eventManager.emit('selected.updateLayers.path');
                 })
                 .catch((error) => {
@@ -703,7 +708,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                         path.undo();
                                         path.validate();
                                     }
-                                    serviceLocator.selectedObjectsManager.update('path', path);
+                                    serviceLocator.selectedObjectsManager.setSelection('path', [path]);
                                     serviceLocator.eventManager.emit('selected.updateLayers.path');
                                 }}
                             />
@@ -719,7 +724,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     this.onHistoryChange();
                                     path.redo();
                                     path.validate();
-                                    serviceLocator.selectedObjectsManager.update('path', path);
+                                    serviceLocator.selectedObjectsManager.setSelection('path', [path]);
                                     serviceLocator.eventManager.emit('selected.updateLayers.path');
                                 }}
                             />
@@ -739,7 +744,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     });
                                     path.updateGeography()
                                         .then((_response) => {
-                                            serviceLocator.selectedObjectsManager.update('path', path);
+                                            serviceLocator.selectedObjectsManager.setSelection('path', [path]);
                                             this.updateLayers();
                                             serviceLocator.eventManager.emit('progress', {
                                                 name: 'UpdatingPathRoute',
@@ -788,7 +793,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                             serviceLocator.selectedObjectsManager.deselect('path');
                                         }
                                     } else {
-                                        serviceLocator.selectedObjectsManager.update('path', path);
+                                        serviceLocator.selectedObjectsManager.setSelection('path', [path]);
                                     }
                                 }}
                             />

@@ -74,7 +74,7 @@ class TransitNodeCollectionEdit extends React.Component<
 
     componentDidMount() {
         serviceLocator.eventManager.emit('map.updateLayers', {
-            transitNodes250mRadius: turfFeatureCollection([]),
+            transitNodes250mRadius: turfFeatureCollection([]), // TODO: merge radius nodes to a single collection/layer
             transitNodes500mRadius: turfFeatureCollection([]),
             transitNodes750mRadius: turfFeatureCollection([]),
             transitNodes1000mRadius: turfFeatureCollection([]),
@@ -83,7 +83,7 @@ class TransitNodeCollectionEdit extends React.Component<
     }
 
     componentWillUnmount() {
-        serviceLocator.selectedObjectsManager.select('nodeCollectionEdit', null);
+        serviceLocator.selectedObjectsManager.deselect('nodes');
     }
 
     private openDeleteConfirmModal = (e: React.MouseEvent) => {
@@ -189,9 +189,9 @@ class TransitNodeCollectionEdit extends React.Component<
             serviceLocator.eventManager.emit('progress', { name: 'SavingNode', progress: 1.0 });
         }
 
-        if (this.state.nodeErrors && this.state.nodeErrors.length === 0) {
+        if (!this.state.nodeErrors || (this.state.nodeErrors && this.state.nodeErrors.length === 0)) {
             serviceLocator.eventManager.emit('map.deleteSelectedPolygon');
-            serviceLocator.selectedObjectsManager.select('node', null);
+            serviceLocator.selectedObjectsManager.deselect('nodes');
         }
     };
 
@@ -204,7 +204,8 @@ class TransitNodeCollectionEdit extends React.Component<
         const isFrozen = node.getAttributes().is_frozen || false;
         const nodeId = node.getId();
         const hasPaths = node.hasPaths();
-        const isContainSelectedFrozenNodes = serviceLocator.selectedObjectsManager.get('isContainSelectedFrozenNodes');
+        const isContainSelectedFrozenNodes =
+            serviceLocator.selectedObjectsManager.getSingleSelection('isContainSelectedFrozenNodes');
         const changed = this.props.nodes.findIndex((node) => node.hasChanged()) !== -1;
 
         return (

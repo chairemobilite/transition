@@ -29,7 +29,7 @@ import { deleteUnusedNodes } from '../../../services/transitNodes/transitNodesUt
 interface NodePanelState {
     nodeCollection: NodeCollection;
     selectedNode?: Node;
-    selectedNodes?: Node[];
+    selectedNodes: Node[] | string[]; // string[] is used to handle the draw_polygon mode
     stationCollection: any;
     selectedStation?: any;
     dataSourceCollection: any;
@@ -43,9 +43,9 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
         stationCollection: serviceLocator.collectionManager.get('stations'),
         nodeCollection: serviceLocator.collectionManager.get('nodes'),
         dataSourceCollection: serviceLocator.collectionManager.get('dataSources'),
-        selectedStation: serviceLocator.selectedObjectsManager.get('station'),
-        selectedNode: serviceLocator.selectedObjectsManager.get('node'),
-        selectedNodes: serviceLocator.selectedObjectsManager.get('selectedNodes')
+        selectedStation: serviceLocator.selectedObjectsManager.getSingleSelection('station'),
+        selectedNode: serviceLocator.selectedObjectsManager.getSingleSelection('node'),
+        selectedNodes: serviceLocator.selectedObjectsManager.getSelection('nodes') || []
     });
 
     React.useEffect(() => {
@@ -68,7 +68,7 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
         const onSelectedStationUpdate = () => {
             setState((state) =>
                 Object.assign({}, state, {
-                    selectedStation: serviceLocator.selectedObjectsManager.get('station')
+                    selectedStation: serviceLocator.selectedObjectsManager.getSingleSelection('station')
                 })
             );
         };
@@ -76,7 +76,7 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
         const onSelectedNodeUpdate = () => {
             setState((state) =>
                 Object.assign({}, state, {
-                    selectedNode: serviceLocator.selectedObjectsManager.get('node')
+                    selectedNode: serviceLocator.selectedObjectsManager.getSingleSelection('node')
                 })
             );
             setLastOptionIsSelectedNodes(false);
@@ -85,7 +85,7 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
         const onSelectedNodesUpdate = () => {
             setState((state) =>
                 Object.assign({}, state, {
-                    selectedNodes: serviceLocator.selectedObjectsManager.get('selectedNodes')
+                    selectedNodes: serviceLocator.selectedObjectsManager.getSelection('nodes') || []
                 })
             );
             setLastOptionIsSelectedNodes(true);
@@ -145,7 +145,7 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
     // TODO Review the conditions to define which part is opened. This is a bit complicated wrt the state. Can there really be both selectedNode and selectedNodes?
     return (
         <div id="tr__form-transit-nodes-panel" className="tr__form-transit-nodes-panel tr__panel">
-            {!state.selectedNode && !state.selectedNodes && !state.selectedStation && !importerSelected && (
+            {!state.selectedNode && state.selectedNodes.length === 0 && !state.selectedStation && !importerSelected && (
                 <>
                     <h3>
                         <img
@@ -161,7 +161,10 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
                     <DocumentationTooltip dataTooltipId="node-tooltip" documentationLabel="node" />
                 </>
             )}
-            {state.selectedNodes && state.selectedNode && state.selectedNode.hasChanged() && (
+            {state.selectedNodes.length > 0 &&
+                state.selectedNodes[0] !== 'draw_polygon' &&
+                state.selectedNode &&
+                state.selectedNode.hasChanged() && (
                 <ConfirmModal
                     isOpen={true}
                     title={props.t('main:UnsavedChanges')}
@@ -172,17 +175,19 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
                     showCancelButton={false}
                 />
             )}
-            {((state.selectedNodes && state.selectedNode && lastOptionIsSelectedNodes) ||
-                (state.selectedNodes && !importerSelected)) && (
+            {((state.selectedNodes.length > 0 && lastOptionIsSelectedNodes) ||
+                (state.selectedNodes.length > 0 && !importerSelected)) &&
+                state.selectedNodes[0] !== 'draw_polygon' && (
                 <TransitNodeCollectionEdit
                     nodes={state.selectedNodes}
                     onBack={() => {
                         setLastOptionIsSelectedNodes(false);
                         setState((state) =>
                             Object.assign({}, state, {
-                                selectedNodes: undefined
+                                selectedNodes: []
                             })
                         );
+                        serviceLocator.eventManager.emit('map.deleteSelectedPolygon');
                     }}
                 />
             )}
@@ -192,14 +197,14 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
                 <TransitStationEdit station={this.state.selectedStation} />
             )*/
             }
-            {state.selectedNode && !state.selectedNodes && !importerSelected && (
+            {state.selectedNode && state.selectedNodes.length === 0 && !importerSelected && (
                 <TransitNodeEdit node={state.selectedNode} />
             )}
-            {!state.selectedNode && !state.selectedNodes && !state.selectedStation && importerSelected && (
+            {!state.selectedNode && state.selectedNodes.length === 0 && !state.selectedStation && importerSelected && (
                 <NodesImportForm setImporterSelected={setImporterSelected} />
             )}
 
-            {!state.selectedNode && !state.selectedNodes && !state.selectedStation && !importerSelected && (
+            {!state.selectedNode && state.selectedNodes.length === 0 && !state.selectedStation && !importerSelected && (
                 <div className="tr__form-buttons-container">
                     <Button
                         color="blue"
@@ -212,7 +217,7 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
             )}
 
             {!state.selectedNode &&
-                !state.selectedNodes &&
+                state.selectedNodes.length === 0 &&
                 !state.selectedStation &&
                 !importerSelected &&
                 state.nodeCollection &&
@@ -237,7 +242,7 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
             )}
 
             {!state.selectedNode &&
-                !state.selectedNodes &&
+                state.selectedNodes.length === 0 &&
                 !state.selectedStation &&
                 !importerSelected &&
                 state.nodeCollection &&
@@ -253,11 +258,11 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
                 </div>
             )}
 
-            {!state.selectedNode && !state.selectedNodes && !state.selectedStation && !importerSelected && (
+            {!state.selectedNode && state.selectedNodes.length === 0 && !state.selectedStation && !importerSelected && (
                 <CollectionSaveToCacheButtons collection={state.nodeCollection} labelPrefix={'transit:transitNode'} />
             )}
 
-            {!state.selectedNodes && !state.selectedNode && !importerSelected && (
+            {state.selectedNodes.length === 0 && !state.selectedNode && !importerSelected && (
                 <CollectionDownloadButtons collection={state.nodeCollection} />
             )}
 
