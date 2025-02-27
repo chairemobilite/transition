@@ -61,11 +61,12 @@ export interface MapLeg {
         distance: number;
         duration?: number;
         geometry: GeoJSON.Geometry;
-        [key: string]: any;
+        // FIXME Type additional properties as requried
     }[];
-    [key: string]: any;
+    // FIXME Type additional properties as requried
 }
 
+// TODO Some routing engine have plenty of additional data for their routes, we should consider optionally adding them, like annotations, OpenStreetMap node ids, speeds and weights per segment, etc.
 export interface Route {
     /**
      * The distance traveled by the route, in float meters

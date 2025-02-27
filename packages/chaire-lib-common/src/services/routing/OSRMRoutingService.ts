@@ -20,7 +20,8 @@ const defaultRoutingRadiusMeters = 20;
 
 const osrmStepToResult = (step: osrm.RouteStep) => {
     return {
-        ...step,
+        distance: step.distance,
+        duration: step.duration,
         geometry: (step.geometry as osrm.LineString).type
             ? (step.geometry as GeoJSON.LineString)
             : polyline.decode(step.geometry as string)
@@ -29,7 +30,8 @@ const osrmStepToResult = (step: osrm.RouteStep) => {
 
 const osrmLegToResult = (leg: osrm.RouteLeg) => {
     return {
-        ...leg,
+        distance: leg.distance,
+        duration: leg.duration,
         steps: leg.steps.map(osrmStepToResult)
     };
 };
@@ -43,7 +45,9 @@ const osrmMatchingToResult = (matching: osrm.MatchRoute) => {
 
 const osrmRouteToResult = (matching: osrm.Route) => {
     return {
-        ...matching,
+        distance: matching.distance,
+        duration: matching.duration,
+        geometry: matching.geometry,
         legs: matching.legs.map(osrmLegToResult)
     };
 };
