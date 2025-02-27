@@ -112,7 +112,7 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
         }
         line.validate();
         if (!line.isValid) {
-            serviceLocator.selectedObjectsManager.update('line', line);
+            serviceLocator.selectedObjectsManager.setSelection('line', [line]);
             return false;
         }
 
@@ -135,7 +135,7 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
             if (!wasNew) {
                 serviceLocator.selectedObjectsManager.deselect('line');
             } else {
-                serviceLocator.selectedObjectsManager.update('line', line);
+                serviceLocator.selectedObjectsManager.setSelection('line', [line]);
             }
             serviceLocator.collectionManager.refresh('lines');
             serviceLocator.collectionManager.refresh('agencies');
@@ -447,7 +447,7 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
                                 const newTransitPath = line.newPath();
                                 newTransitPath.startEditing();
                                 serviceLocator.eventManager.emit('map.disableBoxZoom');
-                                serviceLocator.selectedObjectsManager.select('path', newTransitPath);
+                                serviceLocator.selectedObjectsManager.setSelection('path', [newTransitPath]);
                                 serviceLocator.eventManager.emit('selected.updateLayers.path');
                             }}
                         />

@@ -42,27 +42,6 @@ import {
 } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
 
-const selectedObjectsNames = [
-    'node',
-    'station',
-    'network',
-    'agency',
-    'line',
-    'path',
-    'garage',
-    'unit',
-    'schedule',
-    'service',
-    'scenario',
-    'simulation',
-    'dataSource',
-    'person',
-    'household',
-    'odTrip',
-    'place',
-    'hoverFeature'
-];
-
 interface DashboardProps extends WithTranslation {
     contributions: DashboardContribution[];
     mainMap: React.ComponentType<MainMapProps & PropsWithChildren>;
@@ -117,10 +96,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
 
         serviceLocator.addService('eventManager', new EventManager(new EventEmitter()));
         serviceLocator.addService('collectionManager', new CollectionManager(serviceLocator.eventManager));
-        serviceLocator.addService(
-            'selectedObjectsManager',
-            new SelectedObjectsManager(serviceLocator.eventManager, selectedObjectsNames)
-        );
+        serviceLocator.addService('selectedObjectsManager', new SelectedObjectsManager(serviceLocator.eventManager));
         serviceLocator.addService('keyboardManager', KeyboardManager);
         serviceLocator.addService('notificationService', new NotificationService());
 
@@ -190,22 +166,19 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
 
     onChangeSection = (section: string, fullSizePanel: boolean) => {
         // Verify if there are unsaved changes
-        const selectedObjects = serviceLocator.selectedObjectsManager.getSelectedObjects();
-        if (
-            selectedObjects.some((object) => {
-                const selected = serviceLocator.selectedObjectsManager.get(object);
-                if (selected && typeof selected.hasChanged === 'function' && selected.hasChanged()) {
-                    return true;
-                }
-                return false;
-            })
-        ) {
+        const selectedObjectsByType = serviceLocator.selectedObjectsManager.getSelections();
+        const selectedObjects = Object.values(selectedObjectsByType).flatMap((objects) => objects);
+        const selectedObjectsWithChanges = selectedObjects.some((object: any) => {
+            // TODO: update the any type with typeguard
+            if (object && object.hasChanged && typeof object.hasChanged === 'function' && object.hasChanged()) {
+                return true;
+            }
+            return false;
+        });
+        if (selectedObjectsWithChanges) {
             this.setState({ unsavedChangesModalIsOpen: true });
         } else {
-            // Deselect all objects
-            for (const selectedName of selectedObjects) {
-                serviceLocator.selectedObjectsManager.deselect(selectedName);
-            }
+            serviceLocator.selectedObjectsManager.deselectAll();
 
             serviceLocator.eventManager.emit('map.handleDrawControl', section);
             serviceLocator.eventManager.emit(

@@ -27,7 +27,7 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
         const defaultColor = Preferences.get('transit.scenarios.defaultColor', '#0086FF');
         const newScenario = new TransitScenario({ color: defaultColor }, true, serviceLocator.collectionManager);
         newScenario.startEditing();
-        serviceLocator.selectedObjectsManager.select('scenario', newScenario);
+        serviceLocator.selectedObjectsManager.setSelection('scenario', [newScenario]);
     };
 
     return (

@@ -13,12 +13,12 @@ import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/D
 
 const BottomPanel: React.FunctionComponent<LayoutSectionProps> = (_props: LayoutSectionProps) => {
     const [path, setPath] = React.useState<{ path: Path | undefined }>({
-        path: serviceLocator.selectedObjectsManager.get('path')
+        path: serviceLocator.selectedObjectsManager.getSingleSelection('path')
     });
 
     React.useEffect(() => {
         const onSelectedPathUpdate = () => {
-            setPath({ path: serviceLocator.selectedObjectsManager.get('path') });
+            setPath({ path: serviceLocator.selectedObjectsManager.getSingleSelection('path') });
         };
         serviceLocator.eventManager.on('selected.update.path', onSelectedPathUpdate);
         serviceLocator.eventManager.on('selected.deselect.path', onSelectedPathUpdate);

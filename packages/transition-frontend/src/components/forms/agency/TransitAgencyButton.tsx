@@ -47,7 +47,7 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
         if (props.onObjectSelected) {
             props.onObjectSelected(props.agency.getId());
         }
-        serviceLocator.selectedObjectsManager.select('agency', props.agency);
+        serviceLocator.selectedObjectsManager.setSelection('agency', [props.agency]);
     };
 
     const onDelete: React.MouseEventHandler = async (e: React.MouseEvent) => {
@@ -117,7 +117,7 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
             serviceLocator.collectionManager
         );
         newTransitLine.startEditing();
-        serviceLocator.selectedObjectsManager.select('line', newTransitLine);
+        serviceLocator.selectedObjectsManager.setSelection('line', [newTransitLine]);
     };
 
     const showOnMap = (e: React.MouseEvent) => {

@@ -30,17 +30,17 @@ jest.mock('chaire-lib-common/lib/utils/ServiceLocator', () => ({
         off: jest.fn(),
     },
     selectedObjectsManager: {
-        select: jest.fn(),
-        unselect: jest.fn(),
+        setSelection: jest.fn(),
+        deselect: jest.fn(),
     },
 }));
 
 beforeEach(() => {
     jest.clearAllMocks();
-    
+
     serviceLocator.selectedObjectsManager = {
-        select: jest.fn(),
-        unselect: jest.fn(),
+        setSelection: jest.fn(),
+        deselect: jest.fn(),
     };
 
     serviceLocator.socketEventManager = {
@@ -55,7 +55,7 @@ beforeEach(() => {
 describe('TransitLineButton', () => {
 
     test('Minimal props', () => {
-        const mockLine = new Line({ some: "attributes" }, true);
+        const mockLine = new Line({ some: 'attributes' }, true);
         const { container } = render(
             <TransitLineButton
                 line={mockLine}
@@ -69,13 +69,13 @@ describe('TransitLineButton', () => {
     });
 
     test('All props', () => {
-        const mockLine = new Line({ some: "attributes" }, true);
+        const mockLine = new Line({ some: 'attributes' }, true);
         const mockOnObjectSelected = (objectId: string) => {};
         const { container } = render(
             <TransitLineButton
-                line={mockLine} 
-                selectedLine={mockLine} 
-                lineIsHidden={false} 
+                line={mockLine}
+                selectedLine={mockLine}
+                lineIsHidden={false}
                 onObjectSelected={mockOnObjectSelected}
             >
                 test
@@ -87,15 +87,15 @@ describe('TransitLineButton', () => {
 
     test('onSelect should call refreshSchedules, startEditing, and onObjectSelected', async () => {
 
-        const mockLine = new Line({ some: "attributes" }, true);
+        const mockLine = new Line({ some: 'attributes' }, true);
         // const mockOnObjectSelected = (objectId: string) => {};
         const mockOnObjectSelected = jest.fn();
 
         const { getByText } = render(
             <TransitLineButton
-                line={mockLine} 
-                selectedLine={mockLine} 
-                lineIsHidden={false} 
+                line={mockLine}
+                selectedLine={mockLine}
+                lineIsHidden={false}
                 onObjectSelected={mockOnObjectSelected}
             >
                 test
@@ -103,10 +103,10 @@ describe('TransitLineButton', () => {
         );
 
         jest.spyOn(mockLine, 'refreshSchedules').mockResolvedValue(undefined);
-        jest.spyOn(mockLine, 'getId').mockReturnValue("fake_line_id_1");
+        jest.spyOn(mockLine, 'getId').mockReturnValue('fake_line_id_1');
         jest.spyOn(mockLine, 'startEditing').mockImplementation(() => {});
         jest.spyOn(mockLine, 'refreshPaths').mockImplementation(() => {});
-        
+
         const button = document.querySelector('._list-element');
         if (button) fireEvent.click(button);
 
@@ -114,27 +114,28 @@ describe('TransitLineButton', () => {
             expect(mockLine.refreshSchedules).toHaveBeenCalledWith(serviceLocator.socketEventManager);
             expect(mockLine.startEditing).toHaveBeenCalled();
             expect(mockOnObjectSelected).toHaveBeenCalledWith('fake_line_id_1');
-            expect(serviceLocator.selectedObjectsManager.select).toHaveBeenCalledWith('line', mockLine);
+            expect(serviceLocator.selectedObjectsManager.setSelection).toHaveBeenCalledWith('line', [mockLine]);
         });
     });
 
     test('onDelete should trigger delete when the line is NOT selected', async () => {
-        
+
         // First mocked line (the one being tested for deletion)
-        const mockLine = new Line({ some: "attributes" }, true);
+        const mockLine = new Line({ some: 'attributes' }, true);
         jest.spyOn(mockLine, 'hasPaths').mockReturnValue(true);
         jest.spyOn(mockLine, 'isFrozen').mockReturnValue(false);
         jest.spyOn(mockLine, 'delete').mockResolvedValue(
             Status.createOk({ id: 'fake_line_id_1' })
         );
-        jest.spyOn(mockLine, 'getId').mockReturnValue("fake_line_id_1");
-    
+        jest.spyOn(mockLine, 'getId').mockReturnValue('fake_line_id_1');
+
         // Second mocked line (the currently selected line)
-        const mockLine2 = new Line({ some: "other_attributes" }, true);
-        jest.spyOn(mockLine2, 'getId').mockReturnValue("fake_line_id_2");
-    
+        const mockLine2 = new Line({ some: 'other_attributes' }, true);
+        jest.spyOn(mockLine2, 'getId').mockReturnValue('fake_line_id_2');
+
         // Mock serviceLocator
         serviceLocator.selectedObjectsManager = {
+            setSelection: jest.fn(),
             deselect: jest.fn(),
         };
         serviceLocator.collectionManager = {
@@ -158,28 +159,28 @@ describe('TransitLineButton', () => {
             off: jest.fn(),
             on: jest.fn(),
         };
-    
-    
+
+
         const { container, getByText } = render(
             <TransitLineButton
-                line={mockLine} 
-                selectedLine={mockLine2} 
+                line={mockLine}
+                selectedLine={mockLine2}
                 lineIsHidden={false}
                 onObjectSelected={jest.fn()}
             />
         );
-    
+
         // Verify that the delete button exists
         const deleteButton = container.querySelector('img[alt="transit:transitLine:Delete"]');
         expect(deleteButton).not.toBeNull();
         fireEvent.click(deleteButton as Element);
-    
+
         // Confirm delete in the modal
         const confirmDeleteButton = await waitFor(() =>
             getByText('transit:transitLine:Delete')
         );
         fireEvent.click(confirmDeleteButton);
-    
+
         // Ensure delete process executes correctly
         await waitFor(() => {
             expect(mockLine.delete).toHaveBeenCalledWith(serviceLocator.socketEventManager);
@@ -189,16 +190,16 @@ describe('TransitLineButton', () => {
 
     test('onDuplicate should call duplicateLine and refresh collections', async () => {
         // Mocking a line
-        const mockLine = new Line({ some: "attributes", longname: "Test Line" }, true);
+        const mockLine = new Line({ some: 'attributes', longname: 'Test Line' }, true);
         jest.spyOn(mockLine, 'get').mockImplementation((key) => {
             if (key === 'longname') return 'Test Line';
             if (key === 'is_frozen') return false; // Mock is_frozen attribute
             return undefined;
         });
-    
+
         // Mock isFrozen method
         mockLine.isFrozen = jest.fn().mockReturnValue(false); // Default to not frozen
-    
+
         // Mock getAgency method if it exists
         mockLine.getAgency = jest.fn().mockReturnValue({
             get: jest.fn().mockImplementation((key) => {
@@ -206,11 +207,11 @@ describe('TransitLineButton', () => {
                 return undefined;
             }),
         });
-    
+
         // Mocking duplicateLine to return a new line instance
-        const duplicatedLine = new Line({ some: "newAttributes", longname: "Test Line (Copy)" }, true);
+        const duplicatedLine = new Line({ some: 'newAttributes', longname: 'Test Line (Copy)' }, true);
         (duplicateLine as jest.Mock).mockResolvedValue(duplicatedLine);
-    
+
         // Mock ServiceLocator functions
         serviceLocator.collectionManager = {
             get: jest.fn((collectionName) => {
@@ -228,29 +229,29 @@ describe('TransitLineButton', () => {
             }),
             refresh: jest.fn(),
         };
-    
+
         serviceLocator.eventManager = {
             emit: jest.fn(),
             emitEvent: jest.fn(),
         };
         serviceLocator.socketEventManager = {};
-    
+
         // Render the component with hideActions set to false so the duplicate button is visible
         const { container } = render(
             <TransitLineButton
                 line={mockLine}
-                selectedLine={mockLine} 
+                selectedLine={mockLine}
                 lineIsHidden={false}
-                onObjectSelected={jest.fn()} 
+                onObjectSelected={jest.fn()}
             />
         );
-    
+
         // Find the duplicate button using querySelector (Adjust selector as needed)
         const duplicateButton = container.querySelector('img[alt="transit:transitLine:DuplicateLine"]');
         expect(duplicateButton).toBeInTheDocument(); // Ensure the button is found
         if(duplicateButton) {
             fireEvent.click(duplicateButton); // Click the button
         }
-        
+
     });
 });

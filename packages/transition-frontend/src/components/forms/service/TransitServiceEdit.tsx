@@ -173,7 +173,7 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
                 serviceLocator.selectedObjectsManager.deselect('service');
             }
         } else {
-            serviceLocator.selectedObjectsManager.update('service', service);
+            serviceLocator.selectedObjectsManager.setSelection('service', [service]);
         }
     };
 

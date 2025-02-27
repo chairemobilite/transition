@@ -38,7 +38,7 @@ const onPathWaypointMouseUp = (e: MapboxGL.MapMouseEvent) => {
         if (hoverNodeIndex >= 0) {
             // replace waypoint by node
             const nodeGeojson = features[hoverNodeIndex];
-            const path = serviceLocator.selectedObjectsManager.get('path');
+            const path = serviceLocator.selectedObjectsManager.getSingleSelection('path');
             const nodeIds = path.get('nodes');
             const hoveredNodeId = nodeGeojson.properties?.id;
             if (!nodeIds.includes(hoveredNodeId)) {
@@ -80,8 +80,8 @@ const selectPath = (pathGeojson) => {
             transitLine.startEditing();
             transitPathEdit.startEditing();
             serviceLocator.eventManager.emit('map.disableBoxZoom');
-            serviceLocator.selectedObjectsManager.select('path', transitPathEdit);
-            serviceLocator.selectedObjectsManager.select('line', line);
+            serviceLocator.selectedObjectsManager.setSelection('path', [transitPathEdit]);
+            serviceLocator.selectedObjectsManager.setSelection('line', [line]);
             serviceLocator.eventManager.emit('selected.updateLayers.path');
         });
     });
@@ -122,8 +122,8 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
     const clickedPathIndex = featureSources.indexOf('transitPaths');
     const clickedSelectedPathIndex = featureSources.indexOf('transitPathsSelected');
 
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
-    const selectedLine = serviceLocator.selectedObjectsManager.get('line');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
+    const selectedLine = serviceLocator.selectedObjectsManager.getSingleSelection('line');
 
     serviceLocator.eventManager.emit('map.hideContextMenu');
 
@@ -140,7 +140,7 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
             const attributes = features[clickedWaypointIndex].properties || {};
             const path = selectedPath as TransitPath;
             path.removeWaypoint(attributes.afterNodeIndex, attributes.waypointIndex).then((_response) => {
-                serviceLocator.selectedObjectsManager.update('path', path);
+                serviceLocator.selectedObjectsManager.setSelection('path', [path]);
                 serviceLocator.eventManager.emit('selected.updateLayers.path');
             });
         } else if (
@@ -155,7 +155,7 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
                 : path.getData('routingEngine', 'engine');
             path.insertWaypoint(e.lngLat.toArray(), waypointType, null, null).then((_response) => {
                 path.validate();
-                serviceLocator.selectedObjectsManager.update('path', path);
+                serviceLocator.selectedObjectsManager.setSelection('path', [path]);
                 serviceLocator.eventManager.emit('selected.updateLayers.path');
             });
         } else if (
@@ -197,7 +197,7 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
                 try {
                     const response = await insertOrRemoveNodePromise;
                     if (response.path) {
-                        serviceLocator.selectedObjectsManager.update('path', response.path);
+                        serviceLocator.selectedObjectsManager.setSelection('path', [response.path]);
                         serviceLocator.eventManager.emit('selected.updateLayers.path');
                     } else {
                         console.error('error', (response as any).error); // todo: better error handling

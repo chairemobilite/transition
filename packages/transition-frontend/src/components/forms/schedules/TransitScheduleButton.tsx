@@ -26,8 +26,8 @@ const TransitScheduleButton: React.FunctionComponent<ScheduleButtonProps> = (pro
             e.stopPropagation();
         }
         props.schedule.startEditing();
-        serviceLocator.selectedObjectsManager.update('line', props.line);
-        serviceLocator.selectedObjectsManager.update('schedule', props.schedule);
+        serviceLocator.selectedObjectsManager.setSelection('line', [props.line]);
+        serviceLocator.selectedObjectsManager.setSelection('schedule', [props.schedule]);
     };
 
     const onDelete: React.MouseEventHandler = async (e: React.MouseEvent) => {
@@ -46,7 +46,7 @@ const TransitScheduleButton: React.FunctionComponent<ScheduleButtonProps> = (pro
             if (scheduleIsSelected) {
                 serviceLocator.selectedObjectsManager.deselect('schedule');
             }
-            serviceLocator.selectedObjectsManager.update('line', line);
+            serviceLocator.selectedObjectsManager.setSelection('line', [line]);
         } finally {
             serviceLocator.eventManager.emit('progress', { name: 'DeletingSchedule', progress: 1.0 });
         }

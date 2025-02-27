@@ -126,7 +126,7 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
 
     protected onHistoryChange = () => {
         this.resetChangesCount++;
-        serviceLocator.selectedObjectsManager.update('node', this.state.object);
+        serviceLocator.selectedObjectsManager.setSelection('node', [this.state.object]);
         this.updateLayers();
     };
 
@@ -296,7 +296,7 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
                                     serviceLocator.selectedObjectsManager.deselect('node');
                                 }
                             } else {
-                                serviceLocator.selectedObjectsManager.update('node', node);
+                                serviceLocator.selectedObjectsManager.setSelection('node', [node]);
                                 this.updateLayers();
                             }
                         }}

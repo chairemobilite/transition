@@ -26,7 +26,7 @@ const SimulationsPanel: React.FunctionComponent = () => {
     const lineCollection = serviceLocator.collectionManager.get('lines');
     const [state, setState] = React.useState<SimulationPanelState>({
         simulationCollection: serviceLocator.collectionManager.get('simulations'),
-        selectedSimulation: serviceLocator.selectedObjectsManager.get('simulation')
+        selectedSimulation: serviceLocator.selectedObjectsManager.getSingleSelection('simulation')
     });
     const [dataLoaded, setDataLoaded] = React.useState(
         serviceCollection !== undefined && agencyCollection !== undefined && lineCollection !== undefined
@@ -40,7 +40,7 @@ const SimulationsPanel: React.FunctionComponent = () => {
     const onSelectedSimulationUpdate = () =>
         setState(({ simulationCollection }) => ({
             simulationCollection,
-            selectedSimulation: serviceLocator.selectedObjectsManager.get('simulation')
+            selectedSimulation: serviceLocator.selectedObjectsManager.getSingleSelection('simulation')
         }));
     const onOtherCollectionUpdate = () => {
         const serviceCollection = serviceLocator.collectionManager.get('services');

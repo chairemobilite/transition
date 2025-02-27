@@ -55,10 +55,10 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
         agencyCollection: serviceLocator.collectionManager.get('agencies'),
         lineCollection: serviceLocator.collectionManager.get('lines'),
         pathCollection: serviceLocator.collectionManager.get('paths'),
-        selectedAgency: serviceLocator.selectedObjectsManager.get('agency'),
-        selectedLine: serviceLocator.selectedObjectsManager.get('line'),
-        selectedPath: serviceLocator.selectedObjectsManager.get('path'),
-        selectedSchedule: serviceLocator.selectedObjectsManager.get('schedule')
+        selectedAgency: serviceLocator.selectedObjectsManager.getSingleSelection('agency'),
+        selectedLine: serviceLocator.selectedObjectsManager.getSingleSelection('line'),
+        selectedPath: serviceLocator.selectedObjectsManager.getSingleSelection('path'),
+        selectedSchedule: serviceLocator.selectedObjectsManager.getSingleSelection('schedule')
     });
 
     React.useEffect(() => {
@@ -68,12 +68,13 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
                 ...rest,
                 agencyCollection: serviceLocator.collectionManager.get('agencies')
             }));
-        const onSelectedAgencyUpdate = () =>
+        const onSelectedAgencyUpdate = () => {
             /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ selectedAgency, ...rest }) => ({
                 ...rest,
-                selectedAgency: serviceLocator.selectedObjectsManager.get('agency')
+                selectedAgency: serviceLocator.selectedObjectsManager.getSingleSelection('agency')
             }));
+        };
         const onLineCollectionUpdate = () =>
             /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ lineCollection, ...rest }) => ({
@@ -84,7 +85,7 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
             /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ selectedLine, ...rest }) => ({
                 ...rest,
-                selectedLine: serviceLocator.selectedObjectsManager.get('line')
+                selectedLine: serviceLocator.selectedObjectsManager.getSingleSelection('line')
             }));
         const onPathCollectionUpdate = () =>
             /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -96,13 +97,13 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
             /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ selectedPath, ...rest }) => ({
                 ...rest,
-                selectedPath: serviceLocator.selectedObjectsManager.get('path')
+                selectedPath: serviceLocator.selectedObjectsManager.getSingleSelection('path')
             }));
         const onSelectedScheduleUpdate = () =>
             /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
             setState(({ selectedSchedule, ...rest }) => ({
                 ...rest,
-                selectedSchedule: serviceLocator.selectedObjectsManager.get('schedule')
+                selectedSchedule: serviceLocator.selectedObjectsManager.getSingleSelection('schedule')
             }));
         const onUpdateLayersFilter = () => {
             setRerender(rerender + 1);

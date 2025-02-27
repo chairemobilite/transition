@@ -30,7 +30,7 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
         const defaultColor = Preferences.get('transit.services.defaultColor', '#0086FF');
         const newService = new TransitService({ color: defaultColor }, true, serviceLocator.collectionManager);
         newService.startEditing();
-        serviceLocator.selectedObjectsManager.select('service', newService);
+        serviceLocator.selectedObjectsManager.setSelection('service', [newService]);
     };
 
     const deleteUnused = async () => {

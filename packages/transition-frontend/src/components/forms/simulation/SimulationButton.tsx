@@ -26,7 +26,7 @@ const SimulationButton: React.FunctionComponent<SimulationButtonProps> = (props:
             e.stopPropagation();
         }
         props.simulation.startEditing();
-        serviceLocator.selectedObjectsManager.select('simulation', props.simulation);
+        serviceLocator.selectedObjectsManager.setSelection('simulation', [props.simulation]);
     };
 
     const onDelete: React.MouseEventHandler = async (e: React.MouseEvent) => {

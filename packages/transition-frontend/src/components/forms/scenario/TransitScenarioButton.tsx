@@ -26,7 +26,7 @@ const TransitScenarioButton: React.FunctionComponent<ScenarioButtonProps> = (pro
             e.stopPropagation();
         }
         props.scenario.startEditing();
-        serviceLocator.selectedObjectsManager.select('scenario', props.scenario);
+        serviceLocator.selectedObjectsManager.setSelection('scenario', [props.scenario]);
     };
 
     const onDelete: React.MouseEventHandler = async (e: React.MouseEvent) => {

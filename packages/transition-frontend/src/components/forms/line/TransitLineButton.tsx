@@ -35,7 +35,7 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
         if (props.onObjectSelected) {
             props.onObjectSelected(props.line.getId());
         }
-        serviceLocator.selectedObjectsManager.select('line', props.line);
+        serviceLocator.selectedObjectsManager.setSelection('line', [props.line]);
     };
 
     const onDelete: React.MouseEventHandler = async (e: React.MouseEvent) => {
