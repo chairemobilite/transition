@@ -14,7 +14,7 @@ export type ResultsByMode = {
     transit?: TransitRoutingResult;
 };
 
-const resultIsUnimodal = (
+export const resultIsUnimodal = (
     result: UnimodalRoutingResultData | TransitRoutingResultData
 ): result is UnimodalRoutingResultData => {
     return (result as any).routingMode !== undefined && (result as any).routingMode !== 'transit';

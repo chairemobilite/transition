@@ -31,6 +31,7 @@ import {
 } from './TrRoutingBatchResult';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import { CheckpointTracker } from '../executableJob/JobCheckpointTracker';
+import { resultIsUnimodal } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
 
 const CHECKPOINT_INTERVAL = 250;
 
@@ -409,6 +410,17 @@ class TrRoutingBatch {
                 reverseOD: false,
                 pathCollection: this.pathCollection
             });
+            // Delete geometries from unimodal results if they are not requested
+            if (!this.batchRoutingQueryAttributes.withGeometries && routingResult.results) {
+                const resultsByMode = routingResult.results;
+                Object.keys(resultsByMode).forEach((mode) => {
+                    if (resultIsUnimodal(resultsByMode[mode]) && resultsByMode[mode].paths) {
+                        resultsByMode[mode].paths!.forEach((path) => {
+                            delete path.geometry;
+                        });
+                    }
+                });
+            }
             // FIXME Do not synchronously wait for the save (~10% time overhead). When we have checkpoint support, we can do .then/catch to handle completion instead
             await resultsDbQueries.create({
                 jobId: this.options.jobId,
