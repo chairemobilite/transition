@@ -28,18 +28,8 @@ COPY packages/transition-frontend packages/transition-frontend
 RUN yarn config set network-timeout 300000
 RUN yarn install
 
-# Copy the rest. (node_modules are excluded in .dockerignore)
-COPY . /app
-
 # Setup the example as a default configuration for the image
 COPY .env.docker /app/.env
-
-#TODO evaluate if any of those commands are necessary
-#RUN yarn setup
-#RUN yarn setup && yarn migrate && yarn create-user
-#RUN yarn compile && yarn build:dev
-RUN yarn compile
-#RUN yarn compile && yarn build:prod
 
 #TODO We probably need to do something different for the projects configuration directories
 # the docker-compose file have an example of using volume for part of a project
@@ -64,6 +54,14 @@ RUN /usr/local/bin/osrm-extract --help && \
     /usr/local/bin/osrm-contract --help && \
     /usr/local/bin/osrm-partition --help && \
     /usr/local/bin/osrm-customize --help
+
+# Copy the necessary files for compilation   
+COPY ./configs /app/configs
+COPY ./packages /app/packages
+RUN yarn compile
+
+# Copy the rest. (node_modules are excluded in .dockerignore)
+COPY . /app
 
 # Start json2capnp -> Relies on manually creating cache directory before
 # Start Node app

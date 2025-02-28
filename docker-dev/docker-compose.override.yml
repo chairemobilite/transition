@@ -1,0 +1,78 @@
+# Docker compose override file to map the code directories inside the 
+# container, allowing the app to rebuild dynamically
+
+# To start the docker dev environment, run this command from the root folder : 
+# docker compose -f docker-compose.yml -f docker-dev/docker-compose.override.yml up
+
+services:
+  transition-www:
+    command:
+      - /bin/sh 
+      - /app/docker-dev/entrypoint-dev.sh
+    volumes:
+      # Bind mounts on the package directories. These enable instant code changes on the container without entirely rebuilding the image   
+      # It is necessary to bind individually every file in every package, and not just the package. This is because during compilation,
+      # when each package is compiled, the container creates a lib/ folder that's needed to build and run the app. 
+      # Binding the whole package would overwrite this lib/ folder.
+      - ${PWD}/packages/chaire-lib-backend/src:/app/packages/chaire-lib-backend/src
+      - ${PWD}/packages/chaire-lib-backend/.eslintignore:/app/packages/chaire-lib-backend/.eslintignore
+      - ${PWD}/packages/chaire-lib-backend/.eslintrc.json:/app/packages/chaire-lib-backend/.eslintrc.json
+      - ${PWD}/packages/chaire-lib-backend/.prettierignore:/app/packages/chaire-lib-backend/.prettierignore
+      - ${PWD}/packages/chaire-lib-backend/.prettierrc.js:/app/packages/chaire-lib-backend/.prettierrc.js
+      - ${PWD}/packages/chaire-lib-backend/jest.config.js:/app/packages/chaire-lib-backend/jest.config.js
+      - ${PWD}/packages/chaire-lib-backend/jest.sequential.config.js:/app/packages/chaire-lib-backend/jest.sequential.config.js
+      - ${PWD}/packages/chaire-lib-backend/jestSetup.ts:/app/packages/chaire-lib-backend/jestSetup.ts
+      - ${PWD}/packages/chaire-lib-backend/package.json:/app/packages/chaire-lib-backend/package.json
+      - ${PWD}/packages/chaire-lib-backend/tsconfig.json:/app/packages/chaire-lib-backend/tsconfig.json
+
+      - ${PWD}/packages/chaire-lib-common/src:/app/packages/chaire-lib-common/src
+      - ${PWD}/packages/chaire-lib-common/.eslintignore:/app/packages/chaire-lib-common/.eslintignore
+      - ${PWD}/packages/chaire-lib-common/.eslintrc.json:/app/packages/chaire-lib-common/.eslintrc.json
+      - ${PWD}/packages/chaire-lib-common/.prettierignore:/app/packages/chaire-lib-common/.prettierignore
+      - ${PWD}/packages/chaire-lib-common/.prettierrc.js:/app/packages/chaire-lib-common/.prettierrc.js
+      - ${PWD}/packages/chaire-lib-common/jest.config.js:/app/packages/chaire-lib-common/jest.config.js
+      - ${PWD}/packages/chaire-lib-common/package.json:/app/packages/chaire-lib-common/package.json
+      - ${PWD}/packages/chaire-lib-common/tsconfig.json:/app/packages/chaire-lib-common/tsconfig.json
+            
+      - ${PWD}/packages/chaire-lib-frontend/src:/app/packages/chaire-lib-frontend/src
+      - ${PWD}/packages/chaire-lib-frontend/assets:/app/packages/chaire-lib-frontend/assets
+      - ${PWD}/packages/chaire-lib-frontend/.eslintignore:/app/packages/chaire-lib-frontend/.eslintignore
+      - ${PWD}/packages/chaire-lib-frontend/.eslintrc.json:/app/packages/chaire-lib-frontend/.eslintrc.json
+      - ${PWD}/packages/chaire-lib-frontend/.prettierignore:/app/packages/chaire-lib-frontend/.prettierignore
+      - ${PWD}/packages/chaire-lib-frontend/.prettierrc.js:/app/packages/chaire-lib-frontend/.prettierrc.js
+      - ${PWD}/packages/chaire-lib-frontend/jest.config.js:/app/packages/chaire-lib-frontend/jest.config.js
+      - ${PWD}/packages/chaire-lib-frontend/jestSetup.ts:/app/packages/chaire-lib-frontend/jestSetup.ts
+      - ${PWD}/packages/chaire-lib-frontend/package.json:/app/packages/chaire-lib-frontend/package.json
+      - ${PWD}/packages/chaire-lib-frontend/tsconfig.json:/app/packages/chaire-lib-frontend/tsconfig.json
+
+      - ${PWD}/packages/transition-backend/src:/app/packages/transition-backend/src
+      - ${PWD}/packages/transition-backend/file:/app/packages/transition-backend/file
+      - ${PWD}/packages/transition-backend/.eslintignore:/app/packages/transition-backend/.eslintignore
+      - ${PWD}/packages/transition-backend/.eslintrc.json:/app/packages/transition-backend/.eslintrc.json
+      - ${PWD}/packages/transition-backend/.prettierignore:/app/packages/transition-backend/.prettierignore
+      - ${PWD}/packages/transition-backend/.prettierrc.js:/app/packages/transition-backend/.prettierrc.js
+      - ${PWD}/packages/transition-backend/jest.config.js:/app/packages/transition-backend/jest.config.js
+      - ${PWD}/packages/transition-backend/jest.sequential.config.js:/app/packages/transition-backend/jest.sequential.config.js
+      - ${PWD}/packages/transition-backend/jestSetup.ts:/app/packages/transition-backend/jestSetup.ts
+      - ${PWD}/packages/transition-backend/package.json:/app/packages/transition-backend/package.json
+      - ${PWD}/packages/transition-backend/tsconfig.json:/app/packages/transition-backend/tsconfig.json
+
+      - ${PWD}/packages/transition-common/src:/app/packages/transition-common/src
+      - ${PWD}/packages/transition-common/.eslintignore:/app/packages/transition-common/.eslintignore
+      - ${PWD}/packages/transition-common/.eslintrc.json:/app/packages/transition-common/.eslintrc.json
+      - ${PWD}/packages/transition-common/.prettierignore:/app/packages/transition-common/.prettierignore
+      - ${PWD}/packages/transition-common/.prettierrc.js:/app/packages/transition-common/.prettierrc.js
+      - ${PWD}/packages/transition-common/jest.config.js:/app/packages/transition-common/jest.config.js
+      - ${PWD}/packages/transition-common/jestSetup.ts:/app/packages/transition-common/jestSetup.ts
+      - ${PWD}/packages/transition-common/package.json:/app/packages/transition-common/package.json
+      - ${PWD}/packages/transition-common/tsconfig.json:/app/packages/transition-common/tsconfig.json
+            
+      - ${PWD}/packages/transition-frontend/src:/app/packages/transition-frontend/src
+      - ${PWD}/packages/transition-frontend/.eslintignore:/app/packages/transition-frontend/.eslintignore
+      - ${PWD}/packages/transition-frontend/.eslintrc.json:/app/packages/transition-frontend/.eslintrc.json
+      - ${PWD}/packages/transition-frontend/.prettierignore:/app/packages/transition-frontend/.prettierignore
+      - ${PWD}/packages/transition-frontend/.prettierrc.js:/app/packages/transition-frontend/.prettierrc.js
+      - ${PWD}/packages/transition-frontend/jest.config.js:/app/packages/transition-frontend/jest.config.js
+      - ${PWD}/packages/transition-frontend/package.json:/app/packages/transition-frontend/package.json
+      - ${PWD}/packages/transition-frontend/tsconfig.json:/app/packages/transition-frontend/tsconfig.json
+      - ${PWD}/packages/transition-frontend/webpack.config.js:/app/packages/transition-frontend/webpack.config.js
