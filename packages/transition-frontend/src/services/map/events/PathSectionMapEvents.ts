@@ -25,8 +25,8 @@ const isNotEditingPathOrLine = (activeSection: string): boolean => {
         return false;
     }
 
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
-    const selectedLine = serviceLocator.selectedObjectsManager.get('line');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
+    const selectedLine = serviceLocator.selectedObjectsManager.getSingleSelection('line');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
 
     return !selectedLine || (!selectedLine.hasChanged() && (!path || !path.hasChanged()));
@@ -37,7 +37,7 @@ const isEditingPath = (activeSection: string): boolean => {
         return false;
     }
 
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
 
     return path !== undefined && !path.isFrozen();
@@ -74,7 +74,7 @@ const selectPath = (pathGeojson) => {
 
 const onSelectedPathMapClicked = (pointInfo: PointInfo, _event: MjolnirEvent) => {
     // Add a waypoint at the location of the click
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
         return false;
@@ -87,7 +87,7 @@ const onSelectedPathMapClicked = (pointInfo: PointInfo, _event: MjolnirEvent) =>
     const insertIndex = path.attributes.nodes.length === 0 ? undefined : path.attributes.nodes.length - 1;
     path.insertWaypoint(pointInfo.coordinates as [number, number], waypointType, insertIndex, undefined).then(() => {
         path.validate();
-        serviceLocator.selectedObjectsManager.update('path', path);
+        serviceLocator.selectedObjectsManager.setSelection('path', [path]);
         serviceLocator.eventManager.emit('selected.updateLayers.path');
     });
     return true;
@@ -136,7 +136,7 @@ const onSelectedWaypointDrag = (info: PickingInfo, _event: MjolnirEvent) => {
 };
 
 const onSelectedWaypointDragEnd = (info: PickingInfo, _event: MjolnirEvent, mapCallbacks: MapCallbacks) => {
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
         return false;
@@ -168,7 +168,7 @@ const onSelectedWaypointDragEnd = (info: PickingInfo, _event: MjolnirEvent, mapC
 };
 
 const onSelectedPathClicked = (info: PickingInfo, _event: MjolnirEvent) => {
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
         return false;
@@ -180,7 +180,7 @@ const onSelectedPathClicked = (info: PickingInfo, _event: MjolnirEvent) => {
     // TODO Here is where we should determine where to insert the point. Call a method which validates if the point is at distance x of path.
     path.insertWaypoint(info.coordinate as [number, number], waypointType as string, undefined, undefined).then(() => {
         path.validate();
-        serviceLocator.selectedObjectsManager.update('path', path);
+        serviceLocator.selectedObjectsManager.setSelection('path', [path]);
         serviceLocator.eventManager.emit('selected.updateLayers.path');
     });
     return true;
@@ -197,20 +197,20 @@ const addNode = (path: TransitPath, nodeId: string, atEnd = true) => {
 };
 
 const onWaypointClicked = (info: PickingInfo, _e: MjolnirEvent) => {
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
         return false;
     }
     path.removeWaypoint(info.object.properties.afterNodeIndex, info.object.properties.waypointIndex).then(() => {
-        serviceLocator.selectedObjectsManager.update('path', path);
+        serviceLocator.selectedObjectsManager.setSelection('path', [path]);
         serviceLocator.eventManager.emit('selected.updateLayers.path');
     });
     return true;
 };
 
 const onNodeClickedForPath = (info: PickingInfo, e: MjolnirEvent) => {
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
 
     if (e.srcEvent.ctrlKey === true) {
@@ -226,7 +226,7 @@ const onNodeClickedForPath = (info: PickingInfo, e: MjolnirEvent) => {
     nodeAddOrRemovePromise
         .then((response) => {
             if (response.path) {
-                serviceLocator.selectedObjectsManager.update('path', response.path);
+                serviceLocator.selectedObjectsManager.setSelection('path', [response.path]);
                 serviceLocator.eventManager.emit('selected.updateLayers.path');
             } else {
                 console.error('error', (response as any).error); // todo: better error handling

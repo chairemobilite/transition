@@ -32,7 +32,7 @@ const onSelectedNodeDrag = (info: PickingInfo, _event: MjolnirEvent) => {
 };
 
 const onSelectedNodeDragEnd = (info: PickingInfo, _event: MjolnirEvent) => {
-    const selectedNode = serviceLocator.selectedObjectsManager.get('node');
+    const selectedNode = serviceLocator.selectedObjectsManager.getSingleSelection('node');
     const selectedFeature = info.object;
     if (
         selectedNode &&
@@ -96,12 +96,12 @@ const onNodeSectionContextMenu = (pointInfo: PointInfo, _event: MjolnirEvent) =>
  * @param e
  * @returns
  */
-const onNodeSelected = (info: PickingInfo, _e: MjolnirEvent) => {
-    const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
-    const selectedNode = serviceLocator.selectedObjectsManager.get('node');
+const onNodeClick = (info: PickingInfo, _e: MjolnirEvent) => {
+    const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
+    const selectedNode = serviceLocator.selectedObjectsManager.getSingleSelection('node');
 
     // Ignore the event if there is a multiple selection
-    if (selectedNodes) return false;
+    if (selectedNodes && selectedNodes.length > 0) return false;
 
     const selectedFeature = info.object;
 
@@ -118,7 +118,7 @@ const onNodeSelected = (info: PickingInfo, _e: MjolnirEvent) => {
             const transitNodeEdit = new TransitNode({ ...response.node }, false, serviceLocator.collectionManager);
             transitNodeEdit.loadFromCache(serviceLocator.socketEventManager).then(() => {
                 transitNodeEdit.startEditing();
-                serviceLocator.selectedObjectsManager.select('node', transitNodeEdit);
+                serviceLocator.selectedObjectsManager.setSelection('node', [transitNodeEdit]);
             });
         });
         return true;
@@ -132,11 +132,11 @@ const onNodeSelected = (info: PickingInfo, _e: MjolnirEvent) => {
 // it still needed? If we have problems, there should be an event handler of
 // higher priority to check it before running any other
 const onMapClicked = (pointInfo: PointInfo, e: MjolnirEvent) => {
-    const selectedNodes = serviceLocator.selectedObjectsManager.get('selectedNodes');
+    const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
     // Ignore the event if there is a multiple selection
     if (selectedNodes) return false;
 
-    const selectedNode = serviceLocator.selectedObjectsManager.get('node');
+    const selectedNode = serviceLocator.selectedObjectsManager.getSingleSelection('node');
 
     const needsShiftKeyToCreateNode = Preferences.current?.transit?.nodes?.shiftClickToCreateNodes === true;
 
@@ -153,7 +153,7 @@ const onMapClicked = (pointInfo: PointInfo, e: MjolnirEvent) => {
             serviceLocator.collectionManager
         );
         newTransitNode.startEditing();
-        serviceLocator.selectedObjectsManager.select('node', newTransitNode);
+        serviceLocator.selectedObjectsManager.setSelection('node', [newTransitNode]);
         // FIXME Migration to DeckGL: reimplement this
         // serviceLocator.eventManager.emit('selected.updateAutocompleteNameChoices.node', getRoadLabelAround(map, e));
         return true;
@@ -166,7 +166,7 @@ const onMapClicked = (pointInfo: PointInfo, e: MjolnirEvent) => {
             selectedTransitNode.set('geography.coordinates', pointInfo.coordinates);
             // This updates the position on the map.
             serviceLocator.eventManager.emit('selected.drag.node', pointInfo.coordinates);
-            serviceLocator.selectedObjectsManager.update('node', selectedNode);
+            serviceLocator.selectedObjectsManager.setSelection('node', [selectedNode]);
         }
         return true;
     }
@@ -179,9 +179,14 @@ const nodeSectionEventDescriptors: MapEventHandlerDescription[] = [
         layerName: 'transitNodes',
         eventName: 'onLeftClick',
         condition: isNodeActiveSection,
-        handler: onNodeSelected
+        handler: onNodeClick
     },
-    { type: 'map', eventName: 'onLeftClick', condition: isNodeActiveSection, handler: onMapClicked },
+    {
+        type: 'map',
+        eventName: 'onLeftClick',
+        condition: isNodeActiveSection,
+        handler: onMapClicked
+    },
     {
         type: 'layer',
         layerName: 'transitNodesSelected',
@@ -196,7 +201,12 @@ const nodeSectionEventDescriptors: MapEventHandlerDescription[] = [
         condition: isNodeActiveSection,
         handler: onSelectedNodeDragEnd
     },
-    { type: 'map', eventName: 'onRightClick', condition: isNodeActiveSection, handler: onNodeSectionContextMenu }
+    {
+        type: 'map',
+        eventName: 'onRightClick',
+        condition: isNodeActiveSection,
+        handler: onNodeSectionContextMenu
+    }
 ];
 
 export default nodeSectionEventDescriptors;
