@@ -4,6 +4,79 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+
+// Define which layers should be visible for each section
+export const sectionLayers = {
+    simulations: ['aggregatedOD', 'odTripsProfile', 'transitStations', 'transitNodes'],
+    agencies: [
+        'aggregatedOD',
+        'transitNodesRoutingRadius',
+        'transitStations',
+        'transitStationsSelected',
+        'transitPaths',
+        'transitPathsSelected',
+        'transitPathWaypoints',
+        'transitPathWaypointsSelected',
+        'transitNodes',
+        'transitNodesSelected',
+        'transitNodesSelectedErrors',
+        'transitPathWaypointsErrors'
+    ],
+    nodes: [
+        'aggregatedOD',
+        'transitNodes250mRadius',
+        'transitNodes500mRadius',
+        'transitNodes750mRadius',
+        'transitNodes1000mRadius',
+        'isochronePolygons',
+        'transitNodesRoutingRadius',
+        'transitPaths',
+        'transitStations',
+        'transitStationsSelected',
+        'transitNodes',
+        'transitNodesSelected'
+    ],
+    scenarios: ['transitPathsForServices'],
+    routing: [
+        'aggregatedOD' /*'transitPaths', 'transitNodes', 'transitStations', */,
+        'routingPathsStrokes',
+        'routingPaths',
+        'routingPoints'
+    ],
+    accessibilityMap: [
+        'aggregatedOD',
+        'accessibilityMapPolygons',
+        'accessibilityMapPolygonStrokes',
+        'accessibilityMapPoints'
+    ],
+    odRouting: ['aggregatedOD', 'odTripsProfile'],
+    gtfsImport: [
+        'aggregatedOD',
+        'transitNodesRoutingRadius',
+        'transitStations',
+        'transitStationsSelected',
+        'transitPaths',
+        'transitPathsSelected',
+        'transitPathWaypoints',
+        'transitPathWaypointsSelected',
+        'transitNodes',
+        'transitNodesSelected'
+    ],
+    gtfsExport: [
+        'aggregatedOD',
+        'transitNodesRoutingRadius',
+        'transitStations',
+        'transitStationsSelected',
+        'transitPaths',
+        'transitPathsSelected',
+        'transitPathWaypoints',
+        'transitPathWaypointsSelected',
+        'transitNodes',
+        'transitNodesSelected'
+    ]
+};
+
+// Layer style configuration
 const layersConfig = {
     routingPoints: {
         // for routing origin, destination and waypoints

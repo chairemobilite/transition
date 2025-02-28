@@ -11,7 +11,6 @@ import constants from './constants';
 interface SectionDescription {
     localizedTitle: string;
     icon: string;
-    hasMapLayers: boolean;
     showMap?: boolean;
     showFullSizePanel?: boolean;
     enabled?: boolean;
@@ -41,134 +40,54 @@ const defaultPreferences: PreferencesModel = {
         transition: {
             agencies: {
                 localizedTitle: 'transit:transitAgency:AgenciesAndLines',
-                icon: '/dist/images/icons/transit/lines_white.svg',
-                hasMapLayers: true
+                icon: '/dist/images/icons/transit/lines_white.svg'
             },
             nodes: {
                 localizedTitle: 'transit:transitNode:Nodes',
-                icon: '/dist/images/icons/transit/node_white.svg',
-                hasMapLayers: true
+                icon: '/dist/images/icons/transit/node_white.svg'
             },
             services: {
                 localizedTitle: 'transit:transitService:Services',
-                icon: '/dist/images/icons/transit/service_white.svg',
-                hasMapLayers: false
+                icon: '/dist/images/icons/transit/service_white.svg'
             },
             scenarios: {
                 localizedTitle: 'transit:transitScenario:Scenarios',
-                icon: '/dist/images/icons/transit/scenario_white.svg',
-                hasMapLayers: true
+                icon: '/dist/images/icons/transit/scenario_white.svg'
             },
             routing: {
                 localizedTitle: 'main:Routing',
-                icon: '/dist/images/icons/interface/routing_white.svg',
-                hasMapLayers: true
+                icon: '/dist/images/icons/interface/routing_white.svg'
             },
             accessibilityMap: {
                 localizedTitle: 'main:AccessibilityMap',
-                icon: '/dist/images/icons/interface/accessibility_map_white.svg',
-                hasMapLayers: true
+                icon: '/dist/images/icons/interface/accessibility_map_white.svg'
             },
             batchCalculation: {
                 localizedTitle: 'main:BatchCalculation',
-                icon: '/dist/images/icons/interface/od_routing_white.svg',
-                hasMapLayers: true
+                icon: '/dist/images/icons/interface/od_routing_white.svg'
             },
             simulations: {
                 localizedTitle: 'transit:simulation:Simulations',
                 icon: '/dist/images/icons/interface/simulation_white.svg',
-                hasMapLayers: true,
                 enabled: false
             },
             gtfsImport: {
                 localizedTitle: 'transit:gtfs:Import',
-                icon: '/dist/images/icons/interface/import_white.svg',
-                hasMapLayers: false
+                icon: '/dist/images/icons/interface/import_white.svg'
             },
             gtfsExport: {
                 localizedTitle: 'transit:gtfs:Export',
-                icon: '/dist/images/icons/interface/export_white.svg',
-                hasMapLayers: false
+                icon: '/dist/images/icons/interface/export_white.svg'
             },
             preferences: {
                 localizedTitle: 'main:Preferences',
-                icon: '/dist/images/icons/interface/preferences_white.svg',
-                hasMapLayers: false
+                icon: '/dist/images/icons/interface/preferences_white.svg'
             }
         }
     },
     map: {
         center: [config.mapDefaultCenter.lon, config.mapDefaultCenter.lat],
-        zoom: 10,
-        layers: {
-            simulations: ['aggregatedOD', 'odTripsProfile', 'transitStations', 'transitNodes'],
-            agencies: [
-                'aggregatedOD',
-                'transitNodesRoutingRadius',
-                'transitStations',
-                'transitStationsSelected',
-                'transitPaths',
-                'transitPathsSelected',
-                'transitPathWaypoints',
-                'transitPathWaypointsSelected',
-                'transitNodes',
-                'transitNodesSelected',
-                'transitNodesSelectedErrors',
-                'transitPathWaypointsErrors'
-            ],
-            nodes: [
-                'aggregatedOD',
-                'transitNodes250mRadius',
-                'transitNodes500mRadius',
-                'transitNodes750mRadius',
-                'transitNodes1000mRadius',
-                'isochronePolygons',
-                'transitNodesRoutingRadius',
-                'transitPaths',
-                'transitStations',
-                'transitStationsSelected',
-                'transitNodes',
-                'transitNodesSelected'
-            ],
-            scenarios: ['transitPathsForServices'],
-            routing: [
-                'aggregatedOD' /*'transitPaths', 'transitNodes', 'transitStations', */,
-                'routingPathsStrokes',
-                'routingPaths',
-                'routingPoints'
-            ],
-            accessibilityMap: [
-                'aggregatedOD',
-                'accessibilityMapPolygons',
-                'accessibilityMapPolygonStrokes',
-                'accessibilityMapPoints'
-            ],
-            odRouting: ['aggregatedOD', 'odTripsProfile'],
-            gtfsImport: [
-                'aggregatedOD',
-                'transitNodesRoutingRadius',
-                'transitStations',
-                'transitStationsSelected',
-                'transitPaths',
-                'transitPathsSelected',
-                'transitPathWaypoints',
-                'transitPathWaypointsSelected',
-                'transitNodes',
-                'transitNodesSelected'
-            ],
-            gtfsExport: [
-                'aggregatedOD',
-                'transitNodesRoutingRadius',
-                'transitStations',
-                'transitStationsSelected',
-                'transitPaths',
-                'transitPathsSelected',
-                'transitPathWaypoints',
-                'transitPathWaypointsSelected',
-                'transitNodes',
-                'transitNodesSelected'
-            ]
-        }
+        zoom: 10
     },
     showAggregatedOdTripsLayer: true,
     socketUploadChunkSize: 10240000,
