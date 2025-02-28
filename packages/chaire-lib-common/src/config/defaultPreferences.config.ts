@@ -54,7 +54,6 @@ const defaultPreferences: PreferencesModel = {
         zoom: 10,
         baseLayer: 'osm'
     },
-    showAggregatedOdTripsLayer: true,
     socketUploadChunkSize: 10240000,
     defaultWalkingSpeedMetersPerSeconds: 5 / 3.6,
     geoNames: {

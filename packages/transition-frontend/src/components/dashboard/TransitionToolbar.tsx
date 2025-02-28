@@ -13,7 +13,6 @@ import 'rc-menu/assets/index.css';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { loadLayersAndCollections } from '../../services/dashboard/LayersAndCollectionsService';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 
@@ -134,7 +133,6 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
     fetchData = () => {
         loadLayersAndCollections({
             serviceLocator,
-            //aggregatedODGeojsonCollection: serviceLocator.collectionManager.get('aggregatedOD'),
             agencyCollection: serviceLocator.collectionManager.get('agencies'),
             scenarioCollection: serviceLocator.collectionManager.get('scenarios'),
             serviceCollection: serviceLocator.collectionManager.get('services'),
@@ -314,43 +312,6 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                                 src={'/dist/images/icons/transit/nodes_hidden_white.svg'}
                                 alt={this.props.t('transit:transitNode:ShowNodes')}
                                 title={this.props.t('transit:transitNode:ShowNodes')}
-                            />
-                        </MenuItem>
-                    )}
-
-                    {Preferences.get('showAggregatedOdTripsLayer') &&
-                        this.state.layersVisibility.aggregatedOD === true && (
-                        <MenuItem
-                            key="tr__top-menu-button-hide-aggregated-od"
-                            title={this.props.t('od:HideAggregatedOD')}
-                            className="tr__top-menu-button"
-                            onClick={function () {
-                                serviceLocator.eventManager.emit('map.hideLayer', 'aggregatedOD');
-                            }}
-                        >
-                            <img
-                                className="_icon"
-                                src={'/dist/images/icons/od/aggregated_od_visible_white.svg'}
-                                alt={this.props.t('od:HideAggregatedOD')}
-                                title={this.props.t('od:HideAggregatedOD')}
-                            />
-                        </MenuItem>
-                    )}
-                    {Preferences.get('showAggregatedOdTripsLayer') &&
-                        this.state.layersVisibility.aggregatedOD === false && (
-                        <MenuItem
-                            key="tr__top-menu-button-show-aggregated-od"
-                            title={this.props.t('od:ShowAggregatedOD')}
-                            className="tr__top-menu-button"
-                            onClick={function () {
-                                serviceLocator.eventManager.emit('map.showLayer', 'aggregatedOD');
-                            }}
-                        >
-                            <img
-                                className="_icon"
-                                src={'/dist/images/icons/od/aggregated_od_hidden_white.svg'}
-                                alt={this.props.t('od:ShowAggregatedOD')}
-                                title={this.props.t('od:ShowAggregatedOD')}
                             />
                         </MenuItem>
                     )}
