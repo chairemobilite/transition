@@ -16,6 +16,7 @@ import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import TransitScenarioButton from './TransitScenarioButton';
 import ButtonList from '../../parts/ButtonList';
+import TransitScenarioHelp from './TransitScenarioHelp';
 
 interface ScenarioListProps extends WithTranslation {
     scenarioCollection: ScenarioCollection;
@@ -32,14 +33,25 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
 
     return (
         <div className="tr__list-transit-scenarios-container">
-            <h3>
-                <img
-                    src={'/dist/images/icons/transit/scenario_white.svg'}
-                    className="_icon"
-                    alt={props.t('transit:transitScenario:Scenario')}
-                />{' '}
-                {props.t('transit:transitScenario:List')}
-            </h3>
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    maxWidth: '100%',
+                    overflow: 'hidden'
+                }}
+            >
+                <h3 style={{ padding: '15px 0 0 10px', flexShrink: 0 }}>
+                    <img
+                        src={'/dist/images/icons/transit/scenario_white.svg'}
+                        className="_icon"
+                        alt={props.t('transit:transitScenario:Scenario')}
+                    />{' '}
+                    {props.t('transit:transitScenario:List')}
+                </h3>
+                <TransitScenarioHelp />
+            </div>
             <ButtonList key="scenarios">
                 {props.scenarioCollection &&
                     props.scenarioCollection
