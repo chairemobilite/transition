@@ -7,9 +7,8 @@
 
 // Define which layers should be visible for each section
 export const sectionLayers = {
-    simulations: ['aggregatedOD', 'odTripsProfile', 'transitStations', 'transitNodes'],
+    simulations: ['odTripsProfile', 'transitStations', 'transitNodes'],
     agencies: [
-        'aggregatedOD',
         'transitNodesRoutingRadius',
         'transitStations',
         'transitStationsSelected',
@@ -23,7 +22,6 @@ export const sectionLayers = {
         'transitPathWaypointsErrors'
     ],
     nodes: [
-        'aggregatedOD',
         'transitNodes250mRadius',
         'transitNodes500mRadius',
         'transitNodes750mRadius',
@@ -37,21 +35,9 @@ export const sectionLayers = {
         'transitNodesSelected'
     ],
     scenarios: ['transitPathsForServices'],
-    routing: [
-        'aggregatedOD' /*'transitPaths', 'transitNodes', 'transitStations', */,
-        'routingPathsStrokes',
-        'routingPaths',
-        'routingPoints'
-    ],
-    accessibilityMap: [
-        'aggregatedOD',
-        'accessibilityMapPolygons',
-        'accessibilityMapPolygonStrokes',
-        'accessibilityMapPoints'
-    ],
-    odRouting: ['aggregatedOD', 'odTripsProfile'],
+    routing: ['routingPathsStrokes', 'routingPaths', 'routingPoints'],
+    accessibilityMap: ['accessibilityMapPolygons', 'accessibilityMapPolygonStrokes', 'accessibilityMapPoints'],
     gtfsImport: [
-        'aggregatedOD',
         'transitNodesRoutingRadius',
         'transitStations',
         'transitStationsSelected',
@@ -63,7 +49,6 @@ export const sectionLayers = {
         'transitNodesSelected'
     ],
     gtfsExport: [
-        'aggregatedOD',
         'transitNodesRoutingRadius',
         'transitStations',
         'transitStationsSelected',
