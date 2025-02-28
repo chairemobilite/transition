@@ -29,7 +29,6 @@ type LoadLayersOptions = {
     serviceCollection: ServiceCollection;
     scenarioCollection: ScenarioCollection;
     placeCollection: PlaceCollection;
-    // aggregatedODGeojsonCollection: any;
     serviceLocator: any;
 };
 
@@ -46,7 +45,6 @@ export const loadLayersAndCollections = async ({
     serviceCollection,
     scenarioCollection,
     placeCollection,
-    // aggregatedODGeojsonCollection,
     serviceLocator
 }: LoadLayersOptions) => {
     try {
@@ -94,15 +92,6 @@ export const loadLayersAndCollections = async ({
         serviceLocator.collectionManager.add('places', placeCollection);
 
         serviceLocator.pathLayerManager.updateFilter();
-        /* if (Preferences.get('showAggregatedOdTripsLayer')) {
-            await aggregatedODGeojsonCollection.loadFromServer(
-                serviceLocator.socketEventManager,
-                dataSourceCollection.size() > 0 ? dataSourceCollection.getFeatures()[0].get('id') : null
-            );
-        }
-
-        serviceLocator.collectionManager.add('aggregatedOD', aggregatedODGeojsonCollection);
-        serviceLocator.eventManager.emit('map.updateLayer', 'aggregatedOD', aggregatedODGeojsonCollection.toGeojson()); */
     } catch (error) {
         console.error(error); // todo: better error handling
     }

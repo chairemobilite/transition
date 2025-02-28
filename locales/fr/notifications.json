@@ -26,7 +26,6 @@
   "ScenarioCollectionLoadingFromServer": "Chargement des scénarios (serveur)",
   "GarageCollectionLoadingFromServer": "Chargement des garages (serveur)",
   "UnitCollectionLoadingFromServer": "Chargement des unités (serveur)",
-  "AggregatedODGeojsonCollectionLoadingFromServer": "Chargement des lieux OD (serveur)",
 
   "SimulationCollectionLoadingFromCollection": "Chargement des simulations",
   "NetworkCollectionLoadingFromCollection": "Chargement des réseaux",
@@ -44,7 +43,6 @@
   "ScenarioCollectionLoadingFromCollection": "Chargement des scénarios",
   "GarageCollectionLoadingFromCollection": "Chargement des garages",
   "UnitCollectionLoadingFromCollection": "Chargement des unités",
-  "AggregatedODGeojsonCollectionLoadingFromCollection": "Chargement des lieux OD",
 
   "SavingAllCache": "Sauvegarde des fichiers de cache",
   "RestartTrRouting": "Redémarrage du calculateur",
