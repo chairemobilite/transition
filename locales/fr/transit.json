@@ -466,6 +466,8 @@
         "UpdateSchedules": "Mettre à jour les horaires automatiquement",
         "ClickOnTransitNodeToStart": "Sélectionner un noeud d'arrêt pour débuter le parcours",
         "PathEditMapDoc": "Clic sur un noeud: Ajouter le noeud à la fin du parcours<br />Clic sur la carte: Ajout d'un point de repère<br />Shift-clic sur noeud: Ajout du noeud au début du parcours<br />Alt-clic sur noeud: Enlever le noeud<br />m: Activer le mode manuel de calcul de parcours<br />Clic sur la ligne + glisser le point de repère et déposer sur un noeud: Ajout d'un noeud en milieu de parcours",
+        "ClickToRemoveWaypoint": "Cliquez pour supprimer le point de repère",
+        "ClickAndDragToAddWaypoint": "Cliquez et glissez-déposez pour forcer le trajet à passer par un point de repère",
         "ShowPathEditHelp": "Montrer l'aide pour l'édition de parcours",
         "HidePathEditHelp": "Cacher l'aide pour l'édition de parcours",
         "warningFromGtfs": "Attention! Ce parcours a été importé d'un GTFS. Le recalculer pourrait changer le tracé ou les temps de parcours.",
