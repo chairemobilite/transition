@@ -97,7 +97,7 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
         const onDeselectNodes = () => {
             setState((state) =>
                 Object.assign({}, state, {
-                    selectedNodes: undefined
+                    selectedNodes: []
                 })
             );
             serviceLocator.eventManager.emit('map.updateLayers', {
@@ -126,16 +126,15 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
                 transitNodesSelected: turfFeatureCollection(geojson),
                 transitNodesSelectedPolygon: polygons
             });
-            serviceLocator.selectedObjectsManager.select('nodes', selectedNodes);
-            serviceLocator.selectedObjectsManager.select(
-                'isContainSelectedFrozenNodes',
+            serviceLocator.selectedObjectsManager.setSelection('nodes', selectedNodes);
+            serviceLocator.selectedObjectsManager.setSelection('isContainSelectedFrozenNodes', [
                 selectedNodes.length !== nodesInPolygon.length
-            );
+            ]);
         };
 
         const onDeleteSelectedNodes = () => {
             serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 0.0 });
-            const selectedNodes = serviceLocator.selectedObjectsManager.get('nodes');
+            const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
 
             deleteUnusedNodes(selectedNodes.map((n) => n.getId()))
                 .then((_response) => {

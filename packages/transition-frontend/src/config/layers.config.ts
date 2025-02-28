@@ -198,7 +198,7 @@ export const layersConfig = {
         maxRadiusPixels: 10,
         minRadiusPixels: 1,
         autoHighlight: true,
-        pickable: () => serviceLocator.selectedObjectsManager.get('node') === undefined
+        pickable: () => serviceLocator.selectedObjectsManager.getSingleSelection('node') === undefined
     },
 
     transitNodes250mRadius: {

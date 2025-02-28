@@ -25,8 +25,8 @@ const isNotEditingPathOrLine = (activeSection: string): boolean => {
         return false;
     }
 
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
-    const selectedLine = serviceLocator.selectedObjectsManager.get('line');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
+    const selectedLine = serviceLocator.selectedObjectsManager.getSingleSelection('line');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
 
     return !selectedLine || (!selectedLine.hasChanged() && (!path || !path.hasChanged()));
@@ -37,7 +37,7 @@ const isEditingPath = (activeSection: string): boolean => {
         return false;
     }
 
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
 
     return path !== undefined && !path.isFrozen();
@@ -74,7 +74,7 @@ const selectPath = (pathGeojson) => {
 
 const onSelectedPathMapClicked = (pointInfo: PointInfo, _event: MjolnirEvent) => {
     // Add a waypoint at the location of the click
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
         return false;
@@ -136,7 +136,7 @@ const onSelectedWaypointDrag = (info: PickingInfo, _event: MjolnirEvent) => {
 };
 
 const onSelectedWaypointDragEnd = (info: PickingInfo, _event: MjolnirEvent, mapCallbacks: MapCallbacks) => {
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
         return false;
@@ -168,7 +168,7 @@ const onSelectedWaypointDragEnd = (info: PickingInfo, _event: MjolnirEvent, mapC
 };
 
 const onSelectedPathClicked = (info: PickingInfo, _event: MjolnirEvent) => {
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
         return false;
@@ -197,7 +197,7 @@ const addNode = (path: TransitPath, nodeId: string, atEnd = true) => {
 };
 
 const onWaypointClicked = (info: PickingInfo, _e: MjolnirEvent) => {
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
     if (!path) {
         return false;
@@ -210,7 +210,7 @@ const onWaypointClicked = (info: PickingInfo, _e: MjolnirEvent) => {
 };
 
 const onNodeClickedForPath = (info: PickingInfo, e: MjolnirEvent) => {
-    const selectedPath = serviceLocator.selectedObjectsManager.get('path');
+    const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
     const path = selectedPath ? (selectedPath as TransitPath) : undefined;
 
     if (e.srcEvent.ctrlKey === true) {
