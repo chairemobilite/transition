@@ -10,9 +10,8 @@ export const WAYPOINT_MIN_ZOOM = 14;
 
 // Define which layers should be visible for each section
 export const sectionLayers = {
-    simulations: ['aggregatedOD', 'odTripsProfile', 'transitStations', 'transitNodes'],
+    simulations: ['transitStations', 'transitNodes'],
     agencies: [
-        'aggregatedOD',
         'transitNodesRoutingRadius',
         'transitStations',
         'transitStationsSelected',
@@ -26,7 +25,6 @@ export const sectionLayers = {
         'transitPathWaypointsErrors'
     ],
     nodes: [
-        'aggregatedOD',
         'transitNodes250mRadius',
         'transitNodes500mRadius',
         'transitNodes750mRadius',
@@ -41,30 +39,17 @@ export const sectionLayers = {
     ],
     scenarios: ['transitPathsForServices'],
     services: ['transitPathsForServices'],
-    routing: [
-        'aggregatedOD' /*'transitPaths', 'transitNodes', 'transitStations', */,
-        'routingPathsStrokes',
-        'routingPaths',
-        'routingPoints'
-    ],
+    routing: ['routingPathsStrokes', 'routingPaths', 'routingPoints'],
     comparison: [
-        'aggregatedOD' /*'transitPaths', 'transitNodes', 'transitStations', */,
         'routingPathsStrokes',
         'routingPaths',
         'routingPathsStrokesAlternate',
         'routingPathsAlternate',
         'routingPoints'
     ],
-    accessibilityMap: [
-        'aggregatedOD',
-        'accessibilityMapPolygons',
-        'accessibilityMapPolygonStrokes',
-        'accessibilityMapPoints'
-    ],
+    accessibilityMap: ['accessibilityMapPolygons', 'accessibilityMapPolygonStrokes', 'accessibilityMapPoints'],
     accessibilityComparison: ['accessibilityMapPolygons', 'accessibilityMapPolygonStrokes', 'accessibilityMapPoints'],
-    odRouting: ['aggregatedOD', 'odTripsProfile'],
     gtfsImport: [
-        'aggregatedOD',
         'transitNodesRoutingRadius',
         'transitStations',
         'transitStationsSelected',
@@ -76,7 +61,6 @@ export const sectionLayers = {
         'transitPathWaypointsSelected'
     ],
     gtfsExport: [
-        'aggregatedOD',
         'transitNodesRoutingRadius',
         'transitStations',
         'transitStationsSelected',

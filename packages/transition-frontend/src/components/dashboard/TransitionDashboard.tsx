@@ -222,8 +222,6 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         const scenarioCollection = new ScenarioCollection([], {}, serviceLocator.eventManager);
         const placeCollection = new PlaceCollection([], {}, serviceLocator.eventManager);
 
-        // const aggregatedODGeojsonCollection = new AggregatedODGeojsonCollection([], {}, serviceLocator.eventManager);
-
         loadLayersAndCollections({
             dataSourceCollection,
             simulationCollection,

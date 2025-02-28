@@ -26,7 +26,6 @@
   "ScenarioCollectionLoadingFromServer": "Loading scenarios from server",
   "GarageCollectionLoadingFromServer": "Loading garages from server",
   "UnitCollectionLoadingFromServer": "Loading units from server",
-  "AggregatedODGeojsonCollectionLoadingFromServer": "Loading OD places from server",
 
   "SimulationCollectionLoadingFromCollection": "Loading simulations",
   "NetworkCollectionLoadingFromCollection": "Loading networks",
@@ -44,7 +43,6 @@
   "ScenarioCollectionLoadingFromCollection": "Loading scenarios",
   "GarageCollectionLoadingFromCollection": "Loading garages",
   "UnitCollectionLoadingFromCollection": "Loading units",
-  "AggregatedODGeojsonCollectionLoadingFromCollection": "Loading OD places",
 
   "SavingAllCache": "Saving cache files",
   "RestartTrRouting": "Restart routing engine",
