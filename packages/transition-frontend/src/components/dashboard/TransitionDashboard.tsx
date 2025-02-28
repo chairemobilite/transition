@@ -9,6 +9,7 @@ import _get from 'lodash/get';
 import io from 'socket.io-client';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import EventEmitter from 'events';
+import { sectionLayers } from '../../config/layers.config';
 
 import { MainMapProps } from '../map/TransitionMainMap';
 import FullSizePanel from 'chaire-lib-frontend/lib/components/dashboard/FullSizePanel';
@@ -183,9 +184,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
             serviceLocator.eventManager.emit('map.handleDrawControl', section);
             serviceLocator.eventManager.emit(
                 'map.updateEnabledLayers',
-                Preferences.get('sections.transition')[section]?.hasMapLayers
-                    ? Preferences.get('map.layers')[section]
-                    : undefined
+                sectionLayers[section] // will be undefined if section has no layers
             );
             this.setState({ activeSection: section, showFullSizePanel: fullSizePanel });
         }

@@ -11,8 +11,7 @@ import MapboxGL from 'mapbox-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { default as elementResizedEvent, unbind as removeResizeListener } from 'element-resize-event';
 
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import layersConfig from '../../config/layers.config';
+import layersConfig, { sectionLayers } from '../../config/layers.config';
 import globalMapEvents from 'chaire-lib-frontend/lib/services/map/events/GlobalMapEvents';
 import transitionMapEvents from '../../services/map/events';
 import mapCustomEvents from '../../services/map/events/MapRelatedCustomEvents';
@@ -71,7 +70,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         super(props);
 
         this.state = {
-            layers: Preferences.current.map.layers[this.props.activeSection],
+            layers: sectionLayers[this.props.activeSection] || [], // Get layers for section from config
             confirmModalDeleteIsOpen: false,
             mapLoaded: false,
             contextMenu: null,

@@ -63,8 +63,7 @@ describe('Updating preferences', () => {
     // Test adding a section to transition
     const sectionData = {
         localizedTitle: 'myTitle',
-        icon: '/path/to/my/icon',
-        hasMapLayers: true
+        icon: '/path/to/my/icon'
     };
     const myNewPrefs: Partial<PreferencesModel> = {
         sections: {
@@ -225,8 +224,7 @@ describe('Preferences listener', () => {
                 test: {
                     mySection: {
                         localizedTitle: 'prefTitle',
-                        icon: '/path/to/my/icon',
-                        hasMapLayers: true
+                        icon: '/path/to/my/icon'
                     }
                 }
             }
@@ -258,8 +256,7 @@ describe('Preferences listener', () => {
                 test: {
                     mySection: {
                         localizedTitle: 'prefTitle',
-                        icon: '/path/to/my/icon',
-                        hasMapLayers: true
+                        icon: '/path/to/my/icon'
                     }
                 }
             }
