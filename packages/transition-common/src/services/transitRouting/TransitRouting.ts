@@ -44,7 +44,6 @@ const MAX_BATCH_ELEMENTS = 100;
 
 const prepareTransitAttributes = (attributes: Partial<TransitRoutingAttributes>): Partial<TransitRoutingAttributes> => {
     // Initialize the colors to the preference.
-    // FIXME Allow to set the color from the UI as well
     attributes.originLocationColor = Preferences.get('transit.routing.transit.originLocationColor');
     attributes.destinationLocationColor = Preferences.get('transit.routing.transit.destinationLocationColor');
 

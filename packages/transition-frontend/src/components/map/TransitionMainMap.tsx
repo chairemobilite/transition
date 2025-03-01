@@ -4,38 +4,56 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { PropsWithChildren } from 'react';
+import React, { createRef, PropsWithChildren } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import MapboxGL from 'mapbox-gl';
-import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import { default as elementResizedEvent, unbind as removeResizeListener } from 'element-resize-event';
+import _debounce from 'lodash/debounce';
 
-import layersConfig, { sectionLayers } from '../../config/layers.config';
-import globalMapEvents from 'chaire-lib-frontend/lib/services/map/events/GlobalMapEvents';
-import transitionMapEvents from '../../services/map/events';
-import mapCustomEvents from '../../services/map/events/MapRelatedCustomEvents';
-import MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManager';
-import PathMapLayerManager from '../../services/map/PathMapLayerManager';
-import MapPopupManager from 'chaire-lib-frontend/lib/services/map/MapPopupManager';
+// deck.gl and maps
+import DeckGL from '@deck.gl/react';
+import { Layer, Deck, PickingInfo, WebMercatorViewport } from '@deck.gl/core';
+import { Map as MapLibreMap, Source as MapLibreSource, Layer as MapLibreLayer } from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
+
+// chaire-lib-common:
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { getMapBoxDraw, removeMapBoxDraw } from 'chaire-lib-frontend/lib/services/map/MapPolygonService';
-import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
-import Node from 'transition-common/lib/services/nodes/Node';
-import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
-import _cloneDeep from 'lodash/cloneDeep';
-import { featureCollection as turfFeatureCollection } from '@turf/turf';
-import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
-import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
-import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 
-MapboxGL.accessToken = process.env.MAPBOX_ACCESS_TOKEN || '';
+// chaire-lib-frontend:
+import globalMapEvents from 'chaire-lib-frontend/lib/services/map/events/GlobalMapEvents';
+import MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManager';
+import MapPopupManager from 'chaire-lib-frontend/lib/services/map/MapPopupManager';
+import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
+import {
+    MapUpdateLayerEventType,
+    MapFilterLayerEventType
+} from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import { MapCallbacks } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+
+// transition-frontend:
+import transitionMapEvents from '../../services/map/events';
+import TransitPathFilterManager from '../../services/map/TransitPathFilterManager';
+import { MapButton } from '../parts/MapButton';
+import {
+    layersConfig,
+    mapTileRasterXYZLayerConfig,
+    MapTileRasterXYZLayerConfig,
+    MapTileVectorLayerConfig,
+    mapTileVectorLayerConfig,
+    sectionLayers
+} from '../../config/layers.config';
+import getLayer from './layers/TransitionMapLayer';
+import { MapEventsManager } from '../../services/map/MapEventsManager';
+import { MapEditFeature, ToolConstructorOf } from './MapEditFeature';
+import { MeasureToolMapFeature } from './tools/MapMeasureTool';
+import { TransitionMapController } from '../../services/map/TransitionMapController';
+import { PolygonDrawMapFeature } from './tools/MapPolygonDrawTool';
 
 export interface MainMapProps extends LayoutSectionProps {
     zoom: number;
     center: [number, number];
+    //onMapDataChange: () => void;
     // TODO : put layers and events together in an application configuration received as props here
     // layersConfig: { [key: string]: any };
     // mapEvents: MapEventHandlerDescription[];
@@ -43,198 +61,146 @@ export interface MainMapProps extends LayoutSectionProps {
 }
 
 interface MainMapState {
-    layers: string[];
-    confirmModalDeleteIsOpen: boolean;
-    mapLoaded: boolean;
+    viewState: {
+        longitude: number;
+        latitude: number;
+        zoom: number;
+        pitch: number;
+        bearing: number;
+    };
+    time: number;
     contextMenu: HTMLElement | null;
     contextMenuRoot: Root | undefined;
+    visibleLayers: string[];
+    vectorTilesLayerConfig: MapTileVectorLayerConfig;
+    rasterXYZLayerConfig: MapTileRasterXYZLayerConfig;
+    isDragging: boolean;
+    mapEditTool?: MapEditFeature;
+    editUpdateCount: number;
+    activeMapEventManager: MapEventsManager;
 }
 
 /**
  * TODO: For now, hard code the map for Transition here. But it should be in
  * chaire-lib and offer the possibility to pass the application modules when the
  * API for it has stabilised.
+ *
+ * TODO: This class is too big and should be refactored into smaller components.
  */
 class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWithChildren, MainMapState> {
     private layerManager: MapLayerManager;
-    private pathLayerManager: PathMapLayerManager;
-    private defaultZoomArray: [number];
-    private defaultCenter: [number, number];
-    private mapEvents: { [key: string]: { [key: string]: MapEventHandlerDescription[] } };
-    private map: MapboxGL.Map | undefined;
+    private pathFilterManager: TransitPathFilterManager;
+    private mapEventsManager: MapEventsManager;
     private popupManager: MapPopupManager;
     private mapContainer;
-    private draw: MapboxDraw | undefined;
+    private mapCallbacks: MapCallbacks;
+    private updateCounts: { [layerName: string]: number } = {};
+    // Viewport to convert pixels to coordinates. In a private field instead of
+    // state as it is a side effect of state updates and we don't want to
+    // re-render when it's updated
+    private viewport: WebMercatorViewport;
+    private layers: Layer[] = [];
 
     constructor(props: MainMapProps & WithTranslation) {
         super(props);
 
-        this.state = {
-            layers: sectionLayers[this.props.activeSection] || [], // Get layers for section from config
-            confirmModalDeleteIsOpen: false,
-            mapLoaded: false,
-            contextMenu: null,
-            contextMenuRoot: undefined
+        this.mapCallbacks = {
+            pickMultipleObjects: this.pickMultipleObjects,
+            pickObject: this.pickObject,
+            pixelsToCoordinates: this.pixelsToCoordinates
         };
 
-        this.defaultZoomArray = [props.zoom];
-        this.defaultCenter = props.center;
+        const mapEvents = [globalMapEvents, transitionMapEvents];
+        const mapEventsArr = mapEvents.flatMap((ev) => ev);
+        this.mapEventsManager = new MapEventsManager(mapEventsArr, this.mapCallbacks);
+
+        this.state = {
+            time: 0,
+            viewState: {
+                longitude: props.center[0],
+                latitude: props.center[1],
+                zoom: props.zoom,
+                pitch: 0,
+                bearing: 0
+            },
+            contextMenu: null,
+            contextMenuRoot: undefined,
+            visibleLayers: [],
+            vectorTilesLayerConfig: mapTileVectorLayerConfig(Preferences.current),
+            rasterXYZLayerConfig: mapTileRasterXYZLayerConfig(Preferences.current),
+            isDragging: false,
+            mapEditTool: undefined,
+            editUpdateCount: 0,
+            activeMapEventManager: this.mapEventsManager
+        };
+        this.viewport = new WebMercatorViewport(this.state.viewState);
+
         this.layerManager = new MapLayerManager(layersConfig);
-        this.pathLayerManager = new PathMapLayerManager(this.layerManager);
+
+        this.pathFilterManager = new TransitPathFilterManager();
 
         this.popupManager = new MapPopupManager();
-        this.mapContainer = HTMLElement;
-        this.mapEvents = {};
-
-        const newEvents = [globalMapEvents, transitionMapEvents];
-        const newEventsArr = newEvents.flatMap((ev) => ev);
-        newEventsArr.forEach((eventDescriptor) => {
-            this.mapEvents[eventDescriptor.eventName] = this.mapEvents[eventDescriptor.eventName] || {};
-            if (eventDescriptor.type === 'layer') {
-                const events = this.mapEvents[eventDescriptor.eventName][eventDescriptor.layerName] || [];
-                events.push(eventDescriptor);
-                this.mapEvents[eventDescriptor.eventName][eventDescriptor.layerName] = events;
-            } else {
-                const events = this.mapEvents[eventDescriptor.eventName]['map'] || [];
-                events.push(eventDescriptor);
-                this.mapEvents[eventDescriptor.eventName]['map'] = events;
-            }
-        });
+        this.mapContainer = createRef<HTMLDivElement>();
     }
 
-    fitBounds = (coordinates: [number, number]) => {
-        this.map?.fitBounds(coordinates, {
-            padding: 20,
-            bearing: this.map.getBearing()
+    onEditLayerUpdate = () => {
+        this.setState({
+            editUpdateCount: this.state.editUpdateCount + 1
         });
+        this.updateMapLayers();
     };
 
-    setCenter = (coordinates: [number, number]) => {
-        this.map?.setCenter(coordinates);
+    enableEditTool = (ToolConstructor: ToolConstructorOf) => {
+        const mapEditTool = new ToolConstructor({
+            onUpdate: this.onEditLayerUpdate,
+            onDisable: this.disableEditTool
+        });
+        this.setState({
+            mapEditTool: mapEditTool,
+            activeMapEventManager: new MapEventsManager(mapEditTool.getMapEvents(), this.mapCallbacks)
+        });
+        this.updateMapLayers();
     };
 
-    onEnableBoxZoom = () => {
-        this.map?.boxZoom.enable();
+    disableEditTool = () => {
+        this.setState({
+            mapEditTool: undefined,
+            activeMapEventManager: this.mapEventsManager
+        });
+        this.updateMapLayers();
     };
 
-    onDisableBoxZoom = () => {
-        this.map?.boxZoom.disable();
+    updateMeasureToolDistance = () => {
+        console.log('distance was updated, do something');
     };
-
-    onEnableDragPan = () => {
-        this.map?.dragPan.enable();
-    };
-
-    onDisableDragPan = () => {
-        this.map?.dragPan.disable();
-    };
-
-    onMapError = (e: any) => {
-        console.log('Map error:', e);
-        if (!this.state.mapLoaded) {
-            // Even if there was a map error, call the map.loaded event so the
-            // application can continue loading
-            this.setState({ mapLoaded: true });
-            serviceLocator.eventManager.emit('map.loaded');
-        }
-    };
-
-    setMap = (e: MapboxGL.MapboxEvent) => {
-        this.layerManager.setMap(e.target);
-        this.popupManager.setMap(e.target);
-        this.layerManager.updateEnabledLayers(this.state.layers);
-        if (process.env.CUSTOM_RASTER_TILES_XYZ_URL && this.map) {
-            const mapLayers = this.map.getStyle().layers || [];
-            let beforeLayerId = mapLayers.length > 0 ? mapLayers[0].id : undefined;
-
-            for (let i = 0, count = mapLayers.length; i < count; i++) {
-                const layer = mapLayers[i];
-                if (layer.type === 'background') {
-                    beforeLayerId = layer.id;
-                    break;
-                }
-            }
-
-            if (beforeLayerId) {
-                this.map.addSource('custom_tiles', {
-                    type: 'raster',
-                    tiles: [process.env.CUSTOM_RASTER_TILES_XYZ_URL],
-                    tileSize: 256
-                });
-                this.map?.addLayer(
-                    {
-                        id: 'custom_tiles',
-                        type: 'raster',
-                        source: 'custom_tiles',
-                        minzoom: process.env.CUSTOM_RASTER_TILES_MIN_ZOOM
-                            ? parseFloat(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM)
-                            : 0,
-                        maxzoom: process.env.CUSTOM_RASTER_TILES_MAX_ZOOM
-                            ? parseFloat(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM)
-                            : 22
-                    },
-                    beforeLayerId
-                );
-            }
-        }
-
-        this.setState({ mapLoaded: true });
-        serviceLocator.eventManager.emit('map.loaded');
-    };
-
     showPathsByAttribute = (attribute: string, value: any) => {
         // attribute must be agency_id or line_id
         if (attribute === 'agency_id') {
-            this.pathLayerManager.showAgencyId(value);
+            this.pathFilterManager.showAgencyId(value);
         } else if (attribute === 'line_id') {
-            this.pathLayerManager.showLineId(value);
+            this.pathFilterManager.showLineId(value);
         }
     };
 
     hidePathsByAttribute = (attribute: string, value: any) => {
         // attribute must be agency_id or line_id
         if (attribute === 'agency_id') {
-            this.pathLayerManager.hideAgencyId(value);
+            this.pathFilterManager.hideAgencyId(value);
         } else if (attribute === 'line_id') {
-            this.pathLayerManager.hideLineId(value);
+            this.pathFilterManager.hideLineId(value);
         }
     };
 
     clearPathsFilter = () => {
-        this.pathLayerManager.clearFilter();
+        this.pathFilterManager.clearFilter();
     };
 
     componentDidMount = () => {
-        this.map = new MapboxGL.Map({
-            container: this.mapContainer,
-            style: `mapbox://styles/${process.env.MAPBOX_USER_ID}/${process.env.MAPBOX_STYLE_ID}?fresh=true`,
-            center: this.defaultCenter,
-            zoom: this.defaultZoomArray[0],
-            maxZoom: 20,
-            hash: true
-        });
-
-        this.map.addControl(new MapboxGL.ScaleControl(), 'bottom-right');
-
-        for (const eventName in this.mapEvents) {
-            for (const layerName in this.mapEvents[eventName]) {
-                if (layerName === 'map') {
-                    this.map.on(eventName, this.getEventHandler(this.mapEvents[eventName][layerName]));
-                } else {
-                    this.map.on(
-                        eventName as any,
-                        layerName,
-                        this.getEventHandler(this.mapEvents[eventName][layerName])
-                    );
-                }
-            }
-        }
-        this.map.on('load', this.setMap);
-        this.map.on('error', this.onMapError);
         serviceLocator.addService('layerManager', this.layerManager);
-        serviceLocator.addService('pathLayerManager', this.pathLayerManager);
-        mapCustomEvents.addEvents(serviceLocator.eventManager);
-        elementResizedEvent(this.mapContainer, this.onResizeContainer);
+        serviceLocator.addService('pathLayerManager', this.pathFilterManager);
+        this.layerManager.updateEnabledLayers(sectionLayers[this.props.activeSection]);
+        //elementResizedEvent(this.mapContainer, this.onResizeContainer);
+        // TODO Are those events all ours? Or are some mapbox's? In any case, they should all be documented in a map API file: who should use when, and which parameters are expected
         serviceLocator.eventManager.on('map.updateEnabledLayers', this.updateEnabledLayers);
         (serviceLocator.eventManager as EventManager).onEvent<MapUpdateLayerEventType>(
             'map.updateLayer',
@@ -246,251 +212,107 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             contextMenu,
             contextMenuRoot: contextMenu ? createRoot(contextMenu) : undefined
         });
+        (serviceLocator.eventManager as EventManager).onEvent<MapFilterLayerEventType>(
+            'map.layers.updateFilter',
+            this.updateFilter
+        );
         serviceLocator.eventManager.on('map.updateLayers', this.updateLayers);
-        serviceLocator.eventManager.on('map.addPopup', this.addPopup);
-        serviceLocator.eventManager.on('map.removePopup', this.removePopup);
-        serviceLocator.eventManager.on('map.updateFilter', this.updateFilter);
         serviceLocator.eventManager.on('map.clearFilter', this.clearFilter);
         serviceLocator.eventManager.on('map.showLayer', this.showLayer);
         serviceLocator.eventManager.on('map.hideLayer', this.hideLayer);
+        serviceLocator.eventManager.on('map.fitBounds', this.fitBounds);
         serviceLocator.eventManager.on('map.paths.byAttribute.show', this.showPathsByAttribute);
         serviceLocator.eventManager.on('map.paths.byAttribute.hide', this.hidePathsByAttribute);
         serviceLocator.eventManager.on('map.paths.clearFilter', this.clearPathsFilter);
-        serviceLocator.eventManager.on('map.fitBounds', this.fitBounds);
-        serviceLocator.eventManager.on('map.setCenter', this.setCenter);
-        serviceLocator.eventManager.on('map.enableBoxZoom', this.onEnableBoxZoom);
-        serviceLocator.eventManager.on('map.disableBoxZoom', this.onDisableBoxZoom);
-        serviceLocator.eventManager.on('map.enableDragPan', this.onEnableDragPan);
-        serviceLocator.eventManager.on('map.disableDragPan', this.onDisableDragPan);
         serviceLocator.eventManager.on('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.on('map.hideContextMenu', this.hideContextMenu);
-        serviceLocator.eventManager.on('map.handleDrawControl', this.handleDrawControl);
-        serviceLocator.eventManager.on('map.deleteSelectedNodes', this.deleteSelectedNodes);
-        serviceLocator.eventManager.on('map.deleteSelectedPolygon', this.deleteSelectedPolygon);
+        serviceLocator.eventManager.emit('map.loaded');
+        Preferences.addChangeListener(this.onPreferencesChange);
+        this.updateMapLayers();
+    };
+
+    onPreferencesChange = (updates: any) => {
+        if (Object.keys(updates).some((key) => ['mapTileVectorOpacity', 'mapTileRasterXYZOpacity'].includes(key))) {
+            this.setState({
+                vectorTilesLayerConfig: mapTileVectorLayerConfig(Preferences.current),
+                rasterXYZLayerConfig: mapTileRasterXYZLayerConfig(Preferences.current)
+            });
+        }
     };
 
     componentWillUnmount = () => {
         serviceLocator.removeService('layerManager');
         serviceLocator.removeService('pathLayerManager');
-        mapCustomEvents.removeEvents(serviceLocator.eventManager);
-        removeResizeListener(this.mapContainer, this.onResizeContainer);
+        // removeResizeListener(this.mapContainer, this.onResizeContainer);
         serviceLocator.eventManager.off('map.updateEnabledLayers', this.updateEnabledLayers);
         serviceLocator.eventManager.off('map.updateLayer', this.updateLayer);
         serviceLocator.eventManager.off('map.updateLayers', this.updateLayers);
-        serviceLocator.eventManager.off('map.addPopup', this.addPopup);
-        serviceLocator.eventManager.off('map.removePopup', this.removePopup);
-        serviceLocator.eventManager.off('map.updateFilter', this.updateFilter);
+        serviceLocator.eventManager.off('map.layers.updateFilter', this.updateFilter);
         serviceLocator.eventManager.off('map.clearFilter', this.clearFilter);
         serviceLocator.eventManager.off('map.showLayer', this.showLayer);
         serviceLocator.eventManager.off('map.hideLayer', this.hideLayer);
+        serviceLocator.eventManager.off('map.fitBounds', this.fitBounds);
         serviceLocator.eventManager.off('map.paths.byAttribute.show', this.showPathsByAttribute);
         serviceLocator.eventManager.off('map.paths.byAttribute.hide', this.hidePathsByAttribute);
         serviceLocator.eventManager.off('map.paths.clearFilter', this.clearPathsFilter);
-        serviceLocator.eventManager.off('map.fitBounds', this.fitBounds);
-        serviceLocator.eventManager.off('map.setCenter', this.setCenter);
-        serviceLocator.eventManager.off('map.enableBoxZoom', this.onEnableBoxZoom);
-        serviceLocator.eventManager.off('map.disableBoxZoom', this.onDisableBoxZoom);
-        serviceLocator.eventManager.off('map.enableDragPan', this.onEnableDragPan);
-        serviceLocator.eventManager.off('map.disableDragPan', this.onDisableDragPan);
         serviceLocator.eventManager.off('map.showContextMenu', this.showContextMenu);
         serviceLocator.eventManager.off('map.hideContextMenu', this.hideContextMenu);
-        serviceLocator.eventManager.off('map.handleDrawControl', this.handleDrawControl);
-        serviceLocator.eventManager.off('map.deleteSelectedNodes', this.deleteSelectedNodes);
-        serviceLocator.eventManager.off('map.deleteSelectedPolygon', this.deleteSelectedPolygon);
-        this.map?.remove(); // this will clean up everything including events
     };
 
-    onResizeContainer = () => {
-        if (this.map) {
-            this.map.resize();
-        }
-    };
-
-    private executeEvents = (e, events: MapEventHandlerDescription[]) => {
-        if (e.originalEvent && e.originalEvent.cancelBubble === true) {
-            return;
-        }
-        for (let eventIndex = 0; eventIndex < events.length; eventIndex++) {
-            const event = events[eventIndex];
-            if (event.condition === undefined || event.condition(this.props.activeSection)) {
-                event.handler(e);
+    fitBounds = (bounds: [[number, number], [number, number]]) => {
+        // Use a mercator viewport to fit the bounds, as suggested by https://stackoverflow.com/questions/69744838/how-to-use-fitbounds-in-deckgl-on-timer-without-npm-and-es6
+        this.viewport = new WebMercatorViewport(this.state.viewState).fitBounds(bounds, {
+            padding: 20
+        });
+        const { latitude, longitude, zoom } = this.viewport;
+        this.setState({
+            viewState: {
+                ...this.state.viewState,
+                latitude,
+                longitude,
+                zoom
             }
-            if (e.originalEvent && e.originalEvent.cancelBubble === true) {
-                break;
-            }
-        }
+        });
+        this.updateMapLayers();
     };
 
-    getEventHandler = (events: MapEventHandlerDescription[]) => {
+    private updateVisibleLayers = () => {
+        this.setState({
+            visibleLayers: this.layerManager
+                .getEnabledLayers()
+                .filter((layer) => layer.visible)
+                .map((layer) => layer.id)
+        });
+        this.updateMapLayers();
+    };
+
+    /* getEventHandler = (events: MapEventHandlerDescription[]) => {
         return (e) => this.executeEvents(e, events);
-    };
+    }; */
 
     showLayer = (layerName: string) => {
         this.layerManager.showLayer(layerName);
+        this.updateVisibleLayers();
     };
 
     hideLayer = (layerName: string) => {
         this.layerManager.hideLayer(layerName);
+        this.updateVisibleLayers();
     };
 
     clearFilter = (layerName: string) => {
         this.layerManager.clearFilter(layerName);
+        this.updateVisibleLayers();
     };
 
-    updateFilter = (layerName: string, filter) => {
-        this.layerManager.updateFilter(layerName, filter);
+    updateFilter = (args: { layerName: string; filter: ((feature: GeoJSON.Feature) => 0 | 1) | undefined }) => {
+        this.layerManager.updateFilter(args.layerName, args.filter);
+        this.updateCounts[args.layerName] = (this.updateCounts[args.layerName] || 0) + 1;
+        this.updateVisibleLayers();
     };
 
     setRef = (ref) => {
         this.mapContainer = ref;
-    };
-
-    setDrawPolygonService = () => {
-        const map = this.map;
-        if (!map) return;
-        this.draw = getMapBoxDraw(
-            map,
-            (data) => {
-                this.modeChangePolygonService(data);
-            },
-            (polygon) => {
-                this.handleDrawPolygonService(polygon);
-            },
-            (_polygon) => {
-                /* Nothing to do */
-            }
-        );
-    };
-
-    /**
-     * In the nodes active section, if you click on the map a new node will be create
-     * If the user click on the tool for draw a polygon,
-     * selectedNodes will put a value that will prevent a new node to be create
-     * If the user click again on the tool for draw a polygon and selectedNodes doesn't contain nodes (type object)
-     * selectedNodes will be clear so a new node can be create
-     * @param {object} data The next mode, i.e. the mode that Draw is changing to (from mapbox-gl-draw API.md)
-     */
-    modeChangePolygonService = (data) => {
-        if (data.mode && data.mode === 'draw_polygon') {
-            serviceLocator.selectedObjectsManager.setSelection('nodes', ['draw_polygon']); // this is a hack to put a virtual selected node
-        } else {
-            const selectedNodes = serviceLocator.selectedObjectsManager.getSingleSelection('nodes');
-            if (selectedNodes && typeof selectedNodes !== 'object' && data.mode && data.mode === 'simple_select') {
-                serviceLocator.selectedObjectsManager.deselect('nodes');
-            }
-        }
-    };
-
-    handleDrawPolygonService = (polygon) => {
-        if (this.props.activeSection === 'nodes') {
-            const allNodes = serviceLocator.collectionManager.get('nodes').getFeatures();
-            const nodesInPolygon = findOverlappingFeatures(polygon, allNodes);
-            const selectedNodes = nodesInPolygon
-                .map((node) => {
-                    return new Node(node.properties || {}, false, serviceLocator.collectionManager);
-                })
-                .filter((node) => {
-                    return node.get('is_frozen', false) === false && !node.wasFrozen();
-                });
-            const geojson = selectedNodes.map((node) => {
-                return _cloneDeep(node.toGeojson());
-            });
-
-            serviceLocator.eventManager.emit('map.updateLayers', {
-                transitNodesSelected: turfFeatureCollection(geojson)
-            });
-            serviceLocator.selectedObjectsManager.setSelection('nodes', selectedNodes);
-            serviceLocator.selectedObjectsManager.setSelection('isContainSelectedFrozenNodes', [
-                selectedNodes.length !== nodesInPolygon.length
-            ]);
-            serviceLocator.selectedObjectsManager.setSelection('isDrawPolygon', [true]);
-        }
-    };
-
-    deleteSelectedPolygon = () => {
-        if (this.draw) {
-            this.draw.deleteAll().getAll();
-        }
-        serviceLocator.selectedObjectsManager.deselect('nodes');
-        serviceLocator.selectedObjectsManager.deselect('isContainSelectedFrozenNodes');
-        serviceLocator.selectedObjectsManager.deselect('isDrawPolygon');
-        serviceLocator.eventManager.emit('map.updateLayers', {
-            transitNodesSelected: turfFeatureCollection([]),
-            transitNodes250mRadius: turfFeatureCollection([]),
-            transitNodes500mRadius: turfFeatureCollection([]),
-            transitNodes750mRadius: turfFeatureCollection([]),
-            transitNodes1000mRadius: turfFeatureCollection([]),
-            transitNodesRoutingRadius: turfFeatureCollection([])
-        });
-    };
-
-    deleteSelectedNodes = () => {
-        this.setState({
-            confirmModalDeleteIsOpen: true
-        });
-    };
-
-    onDeleteSelectedNodes = () => {
-        serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 0.0 });
-        const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
-
-        deleteUnusedNodes(selectedNodes.map((n) => n.getId()))
-            .then((_response) => {
-                serviceLocator.selectedObjectsManager.deselect('nodes');
-                serviceLocator.collectionManager.refresh('nodes');
-                serviceLocator.eventManager.emit('map.updateLayers', {
-                    transitNodes: serviceLocator.collectionManager.get('nodes').toGeojson(),
-                    transitNodesSelected: turfFeatureCollection([])
-                });
-            })
-            .catch((error) => {
-                // TODO Log errors
-                console.log('Error deleting unused nodes', error);
-            })
-            .finally(() => {
-                this.deleteSelectedPolygon();
-                serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 1.0 });
-            });
-    };
-
-    handleDrawControl = (section: string) => {
-        const map = this.map;
-        if (!map) return;
-        if (section === 'nodes' && !this.draw) {
-            this.setDrawPolygonService();
-        } else if (section !== 'nodes' && this.draw) {
-            this.deleteSelectedPolygon();
-            removeMapBoxDraw(
-                map,
-                this.draw,
-                () => {
-                    /* Nothing to do */
-                },
-                () => {
-                    /* Nothing to do */
-                },
-                () => {
-                    /* Nothing to do */
-                }
-            );
-            this.draw = null;
-        }
-    };
-
-    addPopup = (popupId: string, popup: MapboxGL.Popup, removeAll = true) => {
-        this.hideContextMenu();
-        if (removeAll) {
-            this.removeAllPopups();
-        }
-        this.popupManager.addPopup(popupId, popup);
-    };
-
-    removePopup = (popupId: string) => {
-        this.popupManager.removePopup(popupId);
-    };
-
-    removeAllPopups = () => {
-        this.popupManager.removeAllPopups();
     };
 
     updateLayer = (args: {
@@ -498,24 +320,33 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         data: GeoJSON.FeatureCollection | ((original: GeoJSON.FeatureCollection) => GeoJSON.FeatureCollection);
     }) => {
         this.layerManager.updateLayer(args.layerName, args.data);
+        this.updateCounts[args.layerName] = (this.updateCounts[args.layerName] || 0) + 1;
+        this.updateVisibleLayers();
     };
 
     updateLayers = (geojsonByLayerName) => {
-        //console.log('updating map layers', Object.keys(geojsonByLayerName));
         this.layerManager.updateLayers(geojsonByLayerName);
+        Object.keys(geojsonByLayerName).forEach(
+            (layerName) => (this.updateCounts[layerName] = (this.updateCounts[layerName] || 0) + 1)
+        );
+        this.updateVisibleLayers();
     };
 
     updateEnabledLayers = (enabledLayers: string[]) => {
         this.layerManager.updateEnabledLayers(enabledLayers);
+        this.updateVisibleLayers();
     };
 
-    showContextMenu = (e, elements) => {
-        const contextMenu = this.state.contextMenu;
+    showContextMenu = (
+        position: [number, number],
+        elements: { key?: string; title: string; onClick: () => void; onHover?: () => void }[]
+    ) => {
+        const contextMenu = document.getElementById('tr__main-map-context-menu');
         if (!contextMenu || !this.state.contextMenuRoot) {
             return;
         }
-        contextMenu.style.left = e.point.x + 'px';
-        contextMenu.style.top = e.point.y + 'px';
+        contextMenu.style.left = position[0] + 'px';
+        contextMenu.style.top = position[1] + 'px';
         contextMenu.style.display = 'block';
 
         this.state.contextMenuRoot.render(
@@ -546,22 +377,231 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.state.contextMenuRoot.render(<React.Fragment></React.Fragment>);
     };
 
+    private updateUserPrefs = _debounce((viewStateChange) => {
+        // Save map zoom and center to user preferences
+        Preferences.update(
+            {
+                'map.zoom': viewStateChange.viewState.zoom,
+                'map.center': [viewStateChange.viewState.longitude, viewStateChange.viewState.latitude]
+            },
+            serviceLocator.socketEventManager
+        );
+    }, 500);
+
+    // FIXME: Find the type for this
+    onViewStateChange = (viewStateChange) => {
+        this.setState({ viewState: viewStateChange.viewState });
+        if (this.state.viewState.zoom !== viewStateChange.viewState.zoom) {
+            this.updateMapLayers();
+        }
+        this.viewport = new WebMercatorViewport(viewStateChange.viewState);
+        this.updateUserPrefs(viewStateChange);
+    };
+
+    // Recreate the viewport with the correct width and height to convert
+    // pixels to coordinates. It is not necessary to update the state here as
+    // width and height are not property that we need to track in our state.
+    // FIXME But should we update the state? it works fine without...
+    onResize = ({ width, height }: { width: number; height: number }) => {
+        this.viewport = new WebMercatorViewport({ ...this.state.viewState, width, height });
+    };
+
+    onTooltip = (pickInfo: PickingInfo) => {
+        if (pickInfo.picked === true && pickInfo.layer) {
+            if (pickInfo.layer && !pickInfo.object) {
+                // it is indeed possible to have a layer and no object:
+                return null;
+            }
+            const tooltipEvents = this.mapEventsManager.getTooltipEvents(pickInfo.layer.id).onTooltip;
+            if (tooltipEvents) {
+                for (let i = 0; i < tooltipEvents.length; i++) {
+                    const tooltip = this.mapEventsManager.executeTooltipEvent(
+                        tooltipEvents[i],
+                        pickInfo,
+                        this.props.activeSection
+                    );
+                    if (tooltip !== undefined) {
+                        return typeof tooltip === 'string'
+                            ? tooltip
+                            : tooltip.containsHtml === true
+                                ? { html: tooltip.text }
+                                : tooltip.text;
+                    }
+                }
+            }
+        }
+        return null;
+    };
+
+    setDragging = (dragging: boolean) => {
+        // FIXME Do not drag if in editing mode?
+        if (this.state.mapEditTool !== undefined) {
+            return;
+        }
+        this.setState({ isDragging: dragging });
+    };
+
+    pickMultipleObjects: typeof Deck.prototype.pickMultipleObjects = (opts: {
+        x: number;
+        y: number;
+        radius?: number | undefined;
+        depth?: number | undefined;
+        layerIds?: string[] | undefined;
+        unproject3D?: boolean | undefined;
+    }): PickingInfo[] => (this.mapContainer.current as Deck).pickMultipleObjects(opts);
+
+    pickObject: typeof Deck.prototype.pickObject = (opts: {
+        x: number;
+        y: number;
+        radius?: number | undefined;
+        depth?: number | undefined;
+        layerIds?: string[] | undefined;
+        unproject3D?: boolean | undefined;
+    }): PickingInfo | null => (this.mapContainer.current as Deck).pickObject(opts);
+
+    pixelsToCoordinates = (pixels: [number, number]): number[] => {
+        return this.viewport.unproject(pixels);
+    };
+
+    // This function is called whenever there is a state change, except when it
+    // is only panning. See if we can fine-tune or debounce it to avoid too many
+    // layer calculations as this may be costly
+    private updateMapLayers = () => {
+        // FIXME This was in the render function previously, but some users
+        // faced very slow panning times. We hypothesize that layer calculation
+        // may be a cause, so it is moved to a function that calculates a local
+        // field on every state change, except panning. See if this solves the
+        // slowness issues and remove this fixme if it does.
+
+        // FIXME2 Refactor the layer to make it independent from the map state.
+        // Currently, only the zoom level is used, but see if we can avoid this
+        // somehow.
+
+        // Disable events on layers if the map is in editing mode
+        const mapEditTool = this.state.mapEditTool;
+        const enabledLayers = this.layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
+        const layers: Layer[] = enabledLayers
+            .flatMap((layer) =>
+                getLayer({
+                    layerDescription: layer,
+                    viewState: this.state.viewState,
+                    events: mapEditTool === undefined ? this.mapEventsManager.getLayerEvents(layer.id) : undefined,
+                    activeSection: this.props.activeSection,
+                    setDragging: this.setDragging,
+                    mapCallbacks: this.mapCallbacks,
+                    updateCount: this.updateCounts[layer.id] || 0,
+                    filter: this.layerManager.getFilter(layer.id)
+                })
+            )
+            .filter((layer) => layer !== undefined) as Layer[];
+        if (mapEditTool !== undefined) {
+            layers.push(
+                ...mapEditTool.getLayers({
+                    viewState: this.state.viewState,
+                    activeSection: this.props.activeSection,
+                    setDragging: this.setDragging,
+                    mapCallbacks: this.mapCallbacks,
+                    updateCount: this.state.editUpdateCount
+                })
+            );
+        }
+        this.layers = layers;
+    };
+
     render() {
+        const layers = this.layers;
+        const enabledLayers = this.layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
+        const needAnimation =
+            Preferences.get('map.enableMapAnimations', true) &&
+            enabledLayers.find((layer) => layer.configuration.type === 'animatedArrowPath') !== undefined;
+
         return (
             <section id="tr__main-map">
                 <div id="tr__main-map-context-menu" className="tr__main-map-context-menu"></div>
                 {this.props.children}
-                <div id="mapboxgl-map" ref={this.setRef} style={{ height: '100%', width: '100%' }}></div>
-                {this.state.confirmModalDeleteIsOpen && (
-                    <ConfirmModal
-                        title={this.props.t('transit:transitNode:ConfirmMultipleDelete')}
-                        confirmAction={this.onDeleteSelectedNodes}
-                        isOpen={true}
-                        confirmButtonColor="red"
-                        confirmButtonLabel={this.props.t('transit:transitNode:MultipleDelete')}
-                        closeModal={() => this.setState({ confirmModalDeleteIsOpen: false })}
-                    />
-                )}
+                <div onContextMenu={(evt) => evt.preventDefault()}>
+                    <DeckGL
+                        ref={this.mapContainer}
+                        viewState={this.state.viewState}
+                        controller={
+                            {
+                                scrollZoom: true,
+                                doubleClickZoom: false,
+                                dragPan: !this.state.isDragging,
+                                type: TransitionMapController,
+                                mapEventsManager: this.state.activeMapEventManager,
+                                mapCallbacks: this.mapCallbacks,
+                                activeSection: this.props.activeSection
+                            } as any
+                        }
+                        _animate={needAnimation}
+                        layers={layers}
+                        onViewStateChange={this.onViewStateChange}
+                        getTooltip={this.onTooltip}
+                        onResize={this.onResize}
+                        getCursor={({ isHovering, isDragging }) => {
+                            // Show a crosshair cursor when the measure tool is enabled
+                            // TODO Different edit tools may have different cursors, maybe add a function to the edit tool?
+                            if (this.state.mapEditTool !== undefined) {
+                                return 'crosshair';
+                            }
+                            return isDragging ? 'grabbing' : isHovering ? 'pointer' : 'grab';
+                        }}
+                    >
+                        <MapLibreMap mapStyle={this.state.vectorTilesLayerConfig.styleUrl}>
+                            {this.state.rasterXYZLayerConfig.url && this.state.rasterXYZLayerConfig.opacity > 0 && (
+                                <MapLibreSource
+                                    id="raster-tiles"
+                                    type="raster"
+                                    tiles={[this.state.rasterXYZLayerConfig.url]}
+                                    tileSize={this.state.rasterXYZLayerConfig.tileSize}
+                                    minzoom={this.state.rasterXYZLayerConfig.minzoom}
+                                    maxzoom={this.state.rasterXYZLayerConfig.maxzoom}
+                                >
+                                    <MapLibreLayer
+                                        id="raster-layer"
+                                        type="raster"
+                                        paint={{
+                                            'raster-opacity': this.state.rasterXYZLayerConfig.opacity
+                                        }}
+                                    />
+                                </MapLibreSource>
+                            )}
+                        </MapLibreMap>
+                    </DeckGL>
+                    <div className="tr__map-button-container">
+                        {/* FIXME Add a condition to enable this tool depending on the active section */}
+                        <MapButton
+                            title="main:MeasureTool"
+                            key="mapbtn_measuretool"
+                            className={`${this.state.mapEditTool?.getEditMode() === MeasureToolMapFeature.editMode ? 'active' : ''}`}
+                            onClick={() => {
+                                if (this.state.mapEditTool?.getEditMode() === MeasureToolMapFeature.editMode) {
+                                    this.disableEditTool();
+                                } else {
+                                    this.enableEditTool(MeasureToolMapFeature);
+                                }
+                            }}
+                            iconPath={'/dist/images/icons/interface/ruler_white.svg'}
+                        />
+                        {this.props.activeSection === 'nodes' && (
+                            <MapButton
+                                title="main:PolygonDrawTool"
+                                key="mapbtn_polygontool"
+                                className={`${this.state.mapEditTool?.getEditMode() === PolygonDrawMapFeature.editMode ? 'active' : ''}`}
+                                onClick={() => {
+                                    if (this.state.mapEditTool?.getEditMode() === PolygonDrawMapFeature.editMode) {
+                                        this.disableEditTool();
+                                    } else {
+                                        this.enableEditTool(PolygonDrawMapFeature);
+                                    }
+                                }}
+                                iconPath={'/dist/images/icons/interface/select_white.svg'}
+                            />
+                        )}
+                    </div>
+                    {this.state.mapEditTool && this.state.mapEditTool.getMapComponent()}
+                </div>
             </section>
         );
     }

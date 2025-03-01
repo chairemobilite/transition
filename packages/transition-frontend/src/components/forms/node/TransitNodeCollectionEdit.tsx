@@ -176,10 +176,11 @@ class TransitNodeCollectionEdit extends React.Component<
             serviceLocator.eventManager.emit('progress', { name: 'SavingNode', progress: 0.0 });
             // TODO here to handle rejected promises properly
             await Promise.allSettled(nodePromises);
-            serviceLocator.collectionManager.refresh('nodes');
+            await serviceLocator.collectionManager.get('nodes').loadFromServer(serviceLocator.socketEventManager);
             serviceLocator.eventManager.emit('map.updateLayers', {
                 transitNodes: serviceLocator.collectionManager.get('nodes').toGeojson(),
                 transitNodesSelected: turfFeatureCollection([]),
+                transitNodesSelectedPolygon: turfFeatureCollection([]),
                 transitNodes250mRadius: turfFeatureCollection([]),
                 transitNodes500mRadius: turfFeatureCollection([]),
                 transitNodes750mRadius: turfFeatureCollection([]),
@@ -190,7 +191,6 @@ class TransitNodeCollectionEdit extends React.Component<
         }
 
         if (!this.state.nodeErrors || (this.state.nodeErrors && this.state.nodeErrors.length === 0)) {
-            serviceLocator.eventManager.emit('map.deleteSelectedPolygon');
             serviceLocator.selectedObjectsManager.deselect('nodes');
         }
     };
