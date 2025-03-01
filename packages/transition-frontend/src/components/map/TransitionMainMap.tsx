@@ -84,6 +84,8 @@ interface MainMapState {
  * TODO: For now, hard code the map for Transition here. But it should be in
  * chaire-lib and offer the possibility to pass the application modules when the
  * API for it has stabilised.
+ *
+ * TODO: This class is too big and should be refactored into smaller components.
  */
 class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWithChildren, MainMapState> {
     private layerManager: MapLayerManager;
@@ -97,6 +99,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     // state as it is a side effect of state updates and we don't want to
     // re-render when it's updated
     private viewport: WebMercatorViewport;
+    private layers: Layer[] = [];
 
     constructor(props: MainMapProps & WithTranslation) {
         super(props);
@@ -144,6 +147,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.setState({
             editUpdateCount: this.state.editUpdateCount + 1
         });
+        this.updateMapLayers();
     };
 
     enableEditTool = (ToolConstructor: ToolConstructorOf) => {
@@ -155,6 +159,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             mapEditTool: mapEditTool,
             activeMapEventManager: new MapEventsManager(mapEditTool.getMapEvents(), this.mapCallbacks)
         });
+        this.updateMapLayers();
     };
 
     disableEditTool = () => {
@@ -162,6 +167,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             mapEditTool: undefined,
             activeMapEventManager: this.mapEventsManager
         });
+        this.updateMapLayers();
     };
 
     updateMeasureToolDistance = () => {
@@ -222,6 +228,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.on('map.hideContextMenu', this.hideContextMenu);
         serviceLocator.eventManager.emit('map.loaded');
         Preferences.addChangeListener(this.onPreferencesChange);
+        this.updateMapLayers();
     };
 
     onPreferencesChange = (updates: any) => {
@@ -266,15 +273,18 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 zoom
             }
         });
+        this.updateMapLayers();
     };
 
-    private updateVisibleLayers = () =>
+    private updateVisibleLayers = () => {
         this.setState({
             visibleLayers: this.layerManager
                 .getEnabledLayers()
                 .filter((layer) => layer.visible)
                 .map((layer) => layer.id)
         });
+        this.updateMapLayers();
+    };
 
     /* getEventHandler = (events: MapEventHandlerDescription[]) => {
         return (e) => this.executeEvents(e, events);
@@ -381,6 +391,9 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     // FIXME: Find the type for this
     onViewStateChange = (viewStateChange) => {
         this.setState({ viewState: viewStateChange.viewState });
+        if (this.state.viewState.zoom !== viewStateChange.viewState.zoom) {
+            this.updateMapLayers();
+        }
         this.viewport = new WebMercatorViewport(viewStateChange.viewState);
         this.updateUserPrefs(viewStateChange);
     };
@@ -450,10 +463,22 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         return this.viewport.unproject(pixels);
     };
 
-    render() {
+    // This function is called whenever there is a state change, except when it
+    // is only panning. See if we can fine-tune or debounce it to avoid too many
+    // layer calculations as this may be costly
+    private updateMapLayers = () => {
+        // FIXME This was in the render function previously, but some users
+        // faced very slow panning times. We hypothesize that layer calculation
+        // may be a cause, so it is moved to a function that calculates a local
+        // field on every state change, except panning. See if this solves the
+        // slowness issues and remove this fixme if it does.
+
+        // FIXME2 Refactor the layer to make it independent from the map state.
+        // Currently, only the zoom level is used, but see if we can avoid this
+        // somehow.
+
         // Disable events on layers if the map is in editing mode
         const mapEditTool = this.state.mapEditTool;
-        // TODO: Deck.gl Migration: Should this be a state or a local field (equivalent of useMemo)? To avoid recalculating for every render? See how often we render when the migration is complete
         const enabledLayers = this.layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
         const layers: Layer[] = enabledLayers
             .flatMap((layer) =>
@@ -480,6 +505,12 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 })
             );
         }
+        this.layers = layers;
+    };
+
+    render() {
+        const layers = this.layers;
+        const enabledLayers = this.layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
         const needAnimation =
             Preferences.get('map.enableMapAnimations', true) &&
             enabledLayers.find((layer) => layer.configuration.type === 'animatedArrowPath') !== undefined;
