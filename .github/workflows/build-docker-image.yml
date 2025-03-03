@@ -16,6 +16,8 @@ env:
 jobs:
   # Branch push job - builds and pushes to both registries
   branch-push:
+    # This workflow is only for pushing builds from the official repo
+    if: github.repository_owner == 'chairemobilite'
     runs-on: ubuntu-latest
     permissions:
       contents: read
