@@ -298,21 +298,43 @@ const getLineLayer = (
     props: TransitionMapLayerProps,
     config: LayerDescription.LineLayerConfiguration,
     eventsToAdd
-): PathLayer[] | undefined => {
+): GeoJsonLayer[] | undefined => {
     const layerProperties: any = getCommonLineProperties(props, config);
     // The layer is not to be displayed, don't add it
     if (layerProperties === undefined) {
         return undefined;
     }
+    if (layerProperties.getColor) {
+        layerProperties.getLineColor = layerProperties.getColor;
+        delete layerProperties.getColor;
+    }
+    if (layerProperties.widthUnits) {
+        layerProperties.lineWidthUnits = layerProperties.widthUnits;
+        delete layerProperties.widthUnits;
+    }
+    if (layerProperties.getWidth) {
+        layerProperties.getLineWidth = layerProperties.getWidth;
+        delete layerProperties.getWidth;
+    }
+    if (layerProperties.widthMaxPixels) {
+        layerProperties.lineWidthMaxPixels = layerProperties.widthMaxPixels;
+        delete layerProperties.widthMaxPixels;
+    }
+    if (layerProperties.widthMinPixels) {
+        layerProperties.lineWidthMinPixels = layerProperties.widthMinPixels;
+        delete layerProperties.widthMinPixels;
+    }
 
     return [
-        new PathLayer({
+        new GeoJsonLayer({
             id: props.layerDescription.id,
             data: props.layerDescription.layerData.features,
             getPath: (d) => d.geometry.coordinates,
             updateTriggers: {
                 getPath: props.updateCount,
-                getColor: props.updateCount
+                getColor: props.updateCount,
+                getLineColor: props.updateCount,
+                getLineWidth: props.updateCount
             },
             ...eventsToAdd,
             ...layerProperties
