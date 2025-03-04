@@ -60,6 +60,24 @@ export class PathCollection
     loadFromCollection(collection) {
         return CollectionLoadable.loadGeojsonFromCollection(this, collection);
     }
+
+    toGeojsonSimplified(): GeoJSON.FeatureCollection<GeoJSON.LineString> {
+        const features = this.features.map(({ id, geometry, properties, type }) => ({
+            type,
+            id,
+            geometry,
+            properties: {
+                mode: properties.mode,
+                color: properties.color,
+                line_id: properties.line_id,
+                id: properties.id
+            }
+        }));
+        return {
+            type: 'FeatureCollection',
+            features
+        };
+    }
 }
 
 export default PathCollection;

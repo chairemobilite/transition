@@ -53,7 +53,7 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
             await props.path.delete(serviceLocator.socketEventManager);
             (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
                 layerName: 'transitPaths',
-                data: serviceLocator.collectionManager.get('paths').toGeojson()
+                data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
             });
             serviceLocator.eventManager.emit('progress', { name: 'DeletingPath', progress: 1.0 });
         }
@@ -138,7 +138,7 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                         'map.updateLayer',
                         {
                             layerName: 'transitPaths',
-                            data: serviceLocator.collectionManager.get('paths').toGeojson()
+                            data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
                         }
                     );
                     serviceLocator.selectedObjectsManager.setSelection('line', [props.line]);
@@ -166,7 +166,7 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                 props.line.refreshPaths();
                 (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
                     layerName: 'transitPaths',
-                    data: serviceLocator.collectionManager.get('paths').toGeojson()
+                    data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
                 });
                 serviceLocator.selectedObjectsManager.setSelection('line', [props.line]);
                 serviceLocator.collectionManager.refresh('lines');
