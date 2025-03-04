@@ -377,25 +377,53 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.state.contextMenuRoot.render(<React.Fragment></React.Fragment>);
     };
 
-    private updateUserPrefs = _debounce((viewStateChange) => {
+    private updateUserPrefs = _debounce((viewState) => {
         // Save map zoom and center to user preferences
         Preferences.update(
             {
-                'map.zoom': viewStateChange.viewState.zoom,
-                'map.center': [viewStateChange.viewState.longitude, viewStateChange.viewState.latitude]
+                'map.zoom': viewState.zoom,
+                'map.center': [viewState.longitude, viewState.latitude]
             },
             serviceLocator.socketEventManager
         );
     }, 500);
 
-    // FIXME: Find the type for this
-    onViewStateChange = (viewStateChange) => {
-        this.setState({ viewState: viewStateChange.viewState });
-        if (this.state.viewState.zoom !== viewStateChange.viewState.zoom) {
+    // Debounce the state update function to control the frame ratection
+    private debouncedSetState = _debounce((newViewState) => {
+        this.setState({ viewState: newViewState });
+        // Only update layers if zoom changed significantly
+        if (Math.abs(this.state.viewState.zoom - newViewState.zoom) > 0.1) {
             this.updateMapLayers();
         }
-        this.viewport = new WebMercatorViewport(viewStateChange.viewState);
-        this.updateUserPrefs(viewStateChange);
+        // Always update viewport for coordinate calculations
+        this.viewport = new WebMercatorViewport(newViewState);
+        // Still debounce preference updates
+        this.updateUserPrefs(newViewState);
+        this.updateMapLayers();
+    }, 16); // 16ms delay for approximately 60 FPS // Adjust the debounce delay as needed
+
+    // FIXME: Find the type for this
+    onViewStateChange = (viewStateChange) => {
+        //this.debouncedSetState(viewStateChange.viewState);
+        const newViewState = viewStateChange.viewState;
+        // Only update state if there's a meaningful change
+        if (
+            Math.abs(this.state.viewState.zoom - newViewState.zoom) > 0.001 ||
+            Math.abs(this.state.viewState.longitude - newViewState.longitude) > 0.0001 ||
+            Math.abs(this.state.viewState.latitude - newViewState.latitude) > 0.0001 ||
+            this.state.viewState.pitch !== newViewState.pitch ||
+            this.state.viewState.bearing !== newViewState.bearing
+        ) {
+            this.setState({ viewState: newViewState });
+            // Only update layers if zoom changed significantly
+            if (Math.abs(this.state.viewState.zoom - newViewState.zoom) > 0.1) {
+                this.updateMapLayers();
+            }
+            // Always update viewport for coordinate calculations
+            this.viewport = new WebMercatorViewport(newViewState);
+            // Still debounce preference updates
+            this.updateUserPrefs(newViewState);
+        }
     };
 
     // Recreate the viewport with the correct width and height to convert
