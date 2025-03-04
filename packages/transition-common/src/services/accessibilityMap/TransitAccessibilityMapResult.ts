@@ -27,7 +27,7 @@ export interface TransitAccessibilityMapResult {
 export interface TransitAccessibilityMapWithPolygonResult {
     polygons: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>;
     strokes: GeoJSON.FeatureCollection<GeoJSON.MultiLineString>;
-    resultByNode: TrRoutingResultAccessibilityMap | undefined;
+    resultByNode?: TrRoutingResultAccessibilityMap | undefined;
 }
 
 /**
