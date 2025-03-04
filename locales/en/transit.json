@@ -748,6 +748,13 @@
         "ScenarioAlternatives": "Alternative paths for scenario {{scenarioNumber}}",
         "ScenarioError": "Error for scenario {{scenarioNumber}}:"
     },
+    "accessibilityComparison": {
+        "Title": "Accessibility map comparison",
+        "Legend": "Legend",
+        "ScenarioIntersection": "Intersection of the scenarios",
+        "Difference": "Difference",
+        "SelectMaxTime": "Select max time to display (minutes)"
+    },
     "gtfs": {
         "ButtonImport": "Import",
         "Import": "Import from a GTFS feed",

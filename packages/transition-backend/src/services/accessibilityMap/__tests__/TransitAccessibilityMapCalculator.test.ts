@@ -567,4 +567,67 @@ describe('Test accessibility map with results', () => {
         expect(error).toBeDefined();
         expect(mockedNodesDbCollection).toHaveBeenCalledWith({ nodeIds: testNodes.map(node => node.properties.id) });
     });
+
+    test('Test get map comparison with simple polygons', async () => {
+        // Test that the map comparison function works correctly using two simple square geoJSONs that intersect halfway through each other.
+        const polygon1: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon> = {
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "coordinates": [
+                        [
+                            [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
+                        ]
+                    ],
+                    "type": "MultiPolygon"
+                }
+            }]
+        };
+
+        const polygon2: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon> = {
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "coordinates": [
+                        [
+                            [[0, 0.5], [1, 0.5], [1, 1.5], [0, 1.5], [0, 0.5]]
+                        ]
+                    ],
+                    "type": "MultiPolygon"
+                }
+            }]
+        };
+
+        const colors = {
+            intersectionColor: 'intersectionColor',
+            scenario1Minus2Color: 'scenario1Minus2Color',
+            scenario2Minus1Color: 'scenario2Minus1Color'
+        }
+
+        const comparison = await TransitAccessibilityMapCalculator.getMapComparison(polygon1, polygon2, 1, colors);
+
+        const expectedIntersection = [[0, 0.5], [1, 0.5], [1, 1], [0, 1], [0, 0.5]];
+
+        const expectedScenario1Minus2 = [[0, 0], [1, 0], [1, 0.5], [0, 0.5], [0, 0]];
+
+        const expectedScenario2Minus1 = [[0, 1], [1, 1], [1, 1.5], [0, 1.5], [0, 1]];
+
+        expect(comparison).toHaveLength(1);
+
+        expect(comparison[0].polygons.intersection[0].geometry.coordinates[0]).toEqual(expectedIntersection);
+        expect(comparison[0].strokes.intersection[0].geometry.coordinates[0]).toEqual(expectedIntersection);
+        expect(comparison[0].polygons.intersection[0].properties!.color).toEqual(colors.intersectionColor);
+
+        expect(comparison[0].polygons.scenario1Minus2[0].geometry.coordinates[0]).toEqual(expectedScenario1Minus2);
+        expect(comparison[0].strokes.scenario1Minus2[0].geometry.coordinates[0]).toEqual(expectedScenario1Minus2);
+        expect(comparison[0].polygons.scenario1Minus2[0].properties!.color).toEqual(colors.scenario1Minus2Color);
+
+        expect(comparison[0].polygons.scenario2Minus1[0].geometry.coordinates[0]).toEqual(expectedScenario2Minus1);
+        expect(comparison[0].strokes.scenario2Minus1[0].geometry.coordinates[0]).toEqual(expectedScenario2Minus1);
+        expect(comparison[0].polygons.scenario2Minus1[0].properties!.color).toEqual(colors.scenario2Minus1Color);
+    });
 });

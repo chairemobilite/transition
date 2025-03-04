@@ -29,9 +29,15 @@ import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 import { fileKey } from 'transition-common/lib/services/jobs/Job';
-import { TransitMapCalculationOptions } from 'transition-common/lib/services/accessibilityMap/types';
+import {
+    TransitMapCalculationOptions,
+    TransitMapColorOptions
+} from 'transition-common/lib/services/accessibilityMap/types';
 import { TransitAccessibilityMapCalculator } from '../services/accessibilityMap/TransitAccessibilityMapCalculator';
-import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
+import {
+    TransitAccessibilityMapWithPolygonResult,
+    TransitAccessibilityMapComparisonResult
+} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 
 // TODO The socket routes should validate parameters as even typescript cannot guarantee the types over the network
 // TODO Add more unit tests as the called methods are cleaned up
@@ -145,6 +151,37 @@ export default function (socket: EventEmitter, userId?: number) {
                 callback(
                     Status.createError(
                         error instanceof Error ? error.message : 'Error occurred while calculating route'
+                    )
+                );
+            }
+        }
+    );
+
+    // With two received accessibilty maps, calculate their intersections and differences, and send the result back to the frontend.
+    socket.on(
+        'accessibiliyMap.calculateComparison',
+        async (
+            result1: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>,
+            result2: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>,
+            numberOfPolygons: number,
+            colors: TransitMapColorOptions,
+            callback: (status: Status.Status<TransitAccessibilityMapComparisonResult[]>) => void
+        ) => {
+            try {
+                const finalMap = await TransitAccessibilityMapCalculator.getMapComparison(
+                    result1,
+                    result2,
+                    numberOfPolygons,
+                    colors
+                );
+                callback(Status.createOk(finalMap));
+            } catch (error) {
+                console.error(error);
+                callback(
+                    Status.createError(
+                        error instanceof Error
+                            ? error.message
+                            : 'Error occurred while calculating the comparison of accessibility maps.'
                     )
                 );
             }
