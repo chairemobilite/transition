@@ -277,7 +277,8 @@ const getStrokedLayer = (props: TransitionMapLayerProps, layerProperties: any): 
         getPath: (d) => d.geometry.coordinates,
         updateTriggers: {
             getPath: props.updateCount,
-            getColor: props.updateCount
+            getColor: props.updateCount,
+            getFilterValue: layerProperties.getFilterValue !== undefined ? props.updateCount : undefined
         },
         ...layerProperties,
         getColor: [255, 255, 255],
@@ -334,7 +335,8 @@ const getLineLayer = (
                 getPath: props.updateCount,
                 getColor: props.updateCount,
                 getLineColor: props.updateCount,
-                getLineWidth: props.updateCount
+                getLineWidth: props.updateCount,
+                getFilterValue: layerProperties.getFilterValue !== undefined ? props.updateCount : undefined
             },
             ...eventsToAdd,
             ...layerProperties
@@ -422,7 +424,8 @@ const getPolygonLayer = (
             id: props.layerDescription.id,
             data: props.layerDescription.layerData.features,
             updateTriggers: {
-                getFillColor: props.updateCount
+                getFillColor: props.updateCount,
+                getFilterValue: layerProperties.getFilterValue !== undefined ? props.updateCount : undefined
             },
             stroked: true,
             filled: layerProperties.getFillColor !== undefined,
@@ -459,7 +462,8 @@ const getTextLayer = (
             getAngle: (d) => d.properties.angle,
             getTextAnchor: 'middle',
             updateTriggers: {
-                getText: props.updateCount
+                getText: props.updateCount,
+                getFilterValue: layerProperties.getFilterValue !== undefined ? props.updateCount : undefined
             },
             // TODO: add other attributes
             ...eventsToAdd,
@@ -542,7 +546,8 @@ const getScatterLayer = (
             getPosition: (d) => d.geometry.coordinates,
             updateTriggers: {
                 getPosition: props.updateCount,
-                getFillColor: props.updateCount
+                getFillColor: props.updateCount,
+                getFilterValue: layerProperties.getFilterValue !== undefined ? props.updateCount : undefined
             },
             ...eventsToAdd,
             ...layerProperties
