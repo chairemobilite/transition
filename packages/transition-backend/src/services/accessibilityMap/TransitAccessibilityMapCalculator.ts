@@ -10,10 +10,19 @@ import {
     multiLineString as turfMultiLineString,
     circle as turfCircle,
     area as turfArea,
-    polygonToLine as turfPolygonToLine
-    //multiPolygon as turfMultiPolygon
+    polygonToLine as turfPolygonToLine,
+    intersect as turfIntersect,
+    difference as turfDifference
 } from '@turf/turf';
-import { Feature, FeatureCollection, Point, MultiPolygon, MultiLineString } from 'geojson';
+import {
+    Feature,
+    FeatureCollection,
+    Point,
+    MultiPolygon,
+    MultiLineString,
+    LineString,
+    GeoJsonProperties
+} from 'geojson';
 import polygonClipping from 'polygon-clipping';
 import _cloneDeep from 'lodash/cloneDeep';
 import _sum from 'lodash/sum';
@@ -29,9 +38,13 @@ import transitRoutingService from 'chaire-lib-backend/lib/services/transitRoutin
 import {
     TransitAccessibilityMapResultByNode,
     TransitAccessibilityMapWithPolygonResult,
-    TransitAccessibilityMapResult
+    TransitAccessibilityMapResult,
+    TransitAccessibilityMapComparisonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
-import { TransitMapCalculationOptions } from 'transition-common/lib/services/accessibilityMap/types';
+import {
+    TransitMapCalculationOptions,
+    TransitMapColorOptions
+} from 'transition-common/lib/services/accessibilityMap/types';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import nodeDbQueries from '../../models/db/transitNodes.db.queries';
 
@@ -251,6 +264,70 @@ export class TransitAccessibilityMapCalculator {
         }
     }
 
+    private static async getPolygonsDifference(
+        polygons: FeatureCollection<MultiPolygon>,
+        color: string
+    ): Promise<TransitAccessibilityMapWithPolygonResult> {
+        const featuresNumber = polygons.features.length;
+        if (featuresNumber !== 2) {
+            throw `The getPolygonsDifference() function must receive 2 features. Received ${featuresNumber}.`;
+        }
+
+        const difference = turfDifference(polygons) as Feature<MultiPolygon> | null;
+        if (difference === null) {
+            return {
+                polygons: turfFeatureCollection([]),
+                strokes: turfFeatureCollection([])
+            };
+        }
+
+        if (difference.properties === null) {
+            difference.properties = {};
+        }
+
+        difference.properties.color = color;
+
+        const multiLineStroke = this.getPolygonStrokes(difference);
+
+        return {
+            polygons: turfFeatureCollection([difference]),
+            strokes: turfFeatureCollection([multiLineStroke])
+        };
+    }
+
+    private static async getPolygonsIntersection(
+        polygons: FeatureCollection<MultiPolygon>,
+        color: string
+    ): Promise<TransitAccessibilityMapWithPolygonResult> {
+        const durationMinutes = polygons.features[0].properties!.durationMinutes;
+        const intersection = turfIntersect(polygons, {
+            properties: { color, durationMinutes }
+        }) as Feature<MultiPolygon> | null;
+
+        if (intersection === null) {
+            return {
+                polygons: turfFeatureCollection([]),
+                strokes: turfFeatureCollection([])
+            };
+        }
+
+        if (intersection.properties === null) {
+            intersection.properties = {};
+        }
+
+        const area = turfArea(intersection);
+        intersection.properties.areaSqM = area;
+        intersection.properties.areaSqKm = area / 1000000;
+        intersection.properties.areaSqMiles = area / 1000000 / 2.58999;
+
+        const multiLineStroke = this.getPolygonStrokes(intersection);
+
+        return {
+            polygons: turfFeatureCollection([intersection]),
+            strokes: turfFeatureCollection([multiLineStroke])
+        };
+    }
+
     // FIXME: Type the options
     static async calculateWithPolygons(
         routingAttributes: AccessibilityMapAttributes,
@@ -292,6 +369,48 @@ export class TransitAccessibilityMapCalculator {
             }
             throw trError;
         }
+    }
+
+    //TODO: Remove numberOfPolygons and colors
+    static async getMapComparison(
+        result1: FeatureCollection<MultiPolygon>,
+        result2: FeatureCollection<MultiPolygon>,
+        numberOfPolygons: number,
+        colors: TransitMapColorOptions
+    ): Promise<TransitAccessibilityMapComparisonResult[]> {
+        const finalMap: TransitAccessibilityMapComparisonResult[] = [];
+
+        for (let i = 0; i < numberOfPolygons; i++) {
+            const polygons1 = result1.features[i];
+            const polygons2 = result2.features[i];
+
+            const combinedPolygons = turfFeatureCollection([polygons1, polygons2]);
+            const combinedPolygonsReverseOrder = turfFeatureCollection([polygons2, polygons1]);
+
+            const intersection = await this.getPolygonsIntersection(combinedPolygons, colors.intersectionColor);
+
+            const scenario1Minus2 = await this.getPolygonsDifference(combinedPolygons, colors.scenario1Minus2Color);
+
+            const scenario2Minus1 = await this.getPolygonsDifference(
+                combinedPolygonsReverseOrder,
+                colors.scenario2Minus1Color
+            );
+
+            finalMap.push({
+                polygons: {
+                    intersection: intersection.polygons.features,
+                    scenario1Minus2: scenario1Minus2.polygons.features,
+                    scenario2Minus1: scenario2Minus1.polygons.features
+                },
+                strokes: {
+                    intersection: intersection.strokes.features,
+                    scenario1Minus2: scenario1Minus2.strokes.features,
+                    scenario2Minus1: scenario2Minus1.strokes.features
+                }
+            });
+        }
+
+        return finalMap;
     }
 
     // TODO: Move to result class?
@@ -421,30 +540,8 @@ export class TransitAccessibilityMapCalculator {
             }
 
             polygons.push(polygon);
-            // TODO Can this be other than a feature collection? If so, we need to handle the various cases
-            const polygonStroke = turfPolygonToLine(polygon) as FeatureCollection<GeoJSON.LineString | MultiLineString>;
-            const polygonStroke2 = turfFeatureCollection([]) as FeatureCollection<GeoJSON.LineString>;
-            for (let i = 0, countI = polygonStroke.features.length; i < countI; i++) {
-                const feature = polygonStroke.features[i];
-                if (feature.geometry.type === 'MultiLineString') {
-                    // this is a polygon with hole, we need to separate into two LineStrings.
-                    for (let j = 1, countJ = feature.geometry.coordinates.length; j < countJ; j++) {
-                        polygonStroke2.features.push(turfLineString(feature.geometry.coordinates[j]));
-                    }
-                    // TODO Copied from original code, but should it be .push instead of features[i] ?
-                    polygonStroke2.features[i] = turfLineString(feature.geometry.coordinates[0]); // keep the first one as is, but convert to LineString
-                } else {
-                    polygonStroke2.features.push(feature as Feature<GeoJSON.LineString>);
-                }
-            }
 
-            polygonStrokes.push(
-                turfMultiLineString(
-                    polygonStroke2.features.map((lineString) => {
-                        return lineString.geometry.coordinates;
-                    })
-                )
-            );
+            polygonStrokes.push(this.getPolygonStrokes(polygon));
 
             // The backend does not have this event manager, so we only want to use it when it exists
             if (serviceLocator.eventManager) {
@@ -457,5 +554,37 @@ export class TransitAccessibilityMapCalculator {
         }
 
         return { polygons: polygons, strokes: polygonStrokes };
+    }
+
+    // From a polygon, generate the strokes that surround it.
+    private static getPolygonStrokes(
+        polygon: Feature<MultiPolygon, GeoJsonProperties>
+    ): Feature<MultiLineString, GeoJsonProperties> {
+        // TODO Can this be other than a feature collection? If so, we need to handle the various cases
+        let polygonStroke = turfPolygonToLine(polygon);
+        if (polygonStroke.type === 'Feature') {
+            polygonStroke = turfFeatureCollection([polygonStroke]);
+        }
+        const polygonStroke2: FeatureCollection<LineString> = turfFeatureCollection([]);
+
+        for (let i = 0, countI = polygonStroke.features.length; i < countI; i++) {
+            const feature = polygonStroke.features[i];
+            if (feature.geometry.type === 'MultiLineString') {
+                // this is a polygon with hole, we need to separate into two LineStrings.
+                for (let j = 1, countJ = feature.geometry.coordinates.length; j < countJ; j++) {
+                    polygonStroke2.features.push(turfLineString(feature.geometry.coordinates[j]));
+                }
+                // TODO Copied from original code, but should it be .push instead of features[i] ?
+                polygonStroke2.features[i] = turfLineString(feature.geometry.coordinates[0]); // keep the first one as is, but convert to LineString
+            } else {
+                polygonStroke2.features.push(feature as Feature<LineString>);
+            }
+        }
+
+        return turfMultiLineString(
+            polygonStroke2.features.map((lineString) => {
+                return lineString.geometry.coordinates;
+            })
+        );
     }
 }

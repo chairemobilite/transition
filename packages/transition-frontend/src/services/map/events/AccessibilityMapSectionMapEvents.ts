@@ -11,7 +11,8 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 /* This file encapsulates map events specific for the 'accessibilityMap' section */
 
-const isAccessMapActiveSection = (activeSection: string) => activeSection === 'accessibilityMap';
+const isAccessMapActiveSection = (activeSection: string) =>
+    activeSection === 'accessibilityMap' || activeSection === 'accessibilityComparison';
 
 const onAccessMapSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
     serviceLocator.eventManager.emit('routing.transitAccessibilityMap.clickedOnMap', e.lngLat.toArray());

@@ -10,8 +10,14 @@ import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/typ
 import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import { TransitMapCalculationOptions } from 'transition-common/lib/services/accessibilityMap/types';
-import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
+import {
+    TransitMapCalculationOptions,
+    TransitMapColorOptions
+} from 'transition-common/lib/services/accessibilityMap/types';
+import {
+    TransitAccessibilityMapWithPolygonResult,
+    TransitAccessibilityMapComparisonResult
+} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 
 export const calculateRouting = async (
     routing: TransitRouting,
@@ -81,6 +87,30 @@ export const calculateAccessibilityMap = async (
                     resolve(Status.unwrap(mapResult));
                 } else {
                     reject(mapResult.error);
+                }
+            }
+        );
+    });
+};
+
+export const calculateAccessibilityMapComparison = async (
+    result1: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>,
+    result2: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>,
+    numberOfPolygons: number,
+    colors: TransitMapColorOptions
+): Promise<TransitAccessibilityMapComparisonResult[]> => {
+    return new Promise((resolve, reject) => {
+        serviceLocator.socketEventManager.emit(
+            'accessibiliyMap.calculateComparison',
+            result1,
+            result2,
+            numberOfPolygons,
+            colors,
+            (finalMap: Status.Status<TransitAccessibilityMapComparisonResult[]>) => {
+                if (Status.isStatusOk(finalMap)) {
+                    resolve(Status.unwrap(finalMap));
+                } else {
+                    reject(finalMap.error);
                 }
             }
         );

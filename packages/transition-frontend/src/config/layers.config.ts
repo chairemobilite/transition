@@ -57,6 +57,7 @@ export const sectionLayers = {
         'accessibilityMapPolygonStrokes',
         'accessibilityMapPoints'
     ],
+    accessibilityComparison: ['accessibilityMapPolygons', 'accessibilityMapPolygonStrokes', 'accessibilityMapPoints'],
     odRouting: ['aggregatedOD', 'odTripsProfile'],
     gtfsImport: [
         'aggregatedOD',
