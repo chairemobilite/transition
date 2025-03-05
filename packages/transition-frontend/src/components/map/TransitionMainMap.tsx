@@ -8,6 +8,7 @@ import React, { createRef, PropsWithChildren } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import _debounce from 'lodash/debounce';
+import _throttle from 'lodash/throttle';
 
 // deck.gl and maps
 import DeckGL from '@deck.gl/react';
@@ -388,8 +389,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         );
     }, 500);
 
-    // Debounce the state update function to control the frame ratection
-    private debouncedSetState = _debounce((newViewState) => {
+    // Throttle the state update function to control the frame ratection
+    private throttledSetState = _throttle((newViewState) => {
         this.setState({ viewState: newViewState });
         // Only update layers if zoom changed significantly
         if (Math.abs(this.state.viewState.zoom - newViewState.zoom) > 0.1) {
@@ -400,12 +401,12 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         // Still debounce preference updates
         this.updateUserPrefs(newViewState);
         this.updateMapLayers();
-    }, 16); // 16ms delay for approximately 60 FPS // Adjust the debounce delay as needed
+    }, 100); // 100ms period is good enough // Adjust the debounce delay as needed
 
     // FIXME: Find the type for this
     onViewStateChange = (viewStateChange) => {
-        //this.debouncedSetState(viewStateChange.viewState);
-        const newViewState = viewStateChange.viewState;
+        this.throttledSetState(viewStateChange.viewState);
+        /*const newViewState = viewStateChange.viewState;
         // Only update state if there's a meaningful change
         if (
             Math.abs(this.state.viewState.zoom - newViewState.zoom) > 0.001 ||
@@ -423,7 +424,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             this.viewport = new WebMercatorViewport(newViewState);
             // Still debounce preference updates
             this.updateUserPrefs(newViewState);
-        }
+        }*/
     };
 
     // Recreate the viewport with the correct width and height to convert
