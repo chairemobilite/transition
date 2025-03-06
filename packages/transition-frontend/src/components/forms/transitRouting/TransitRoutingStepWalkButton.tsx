@@ -14,6 +14,7 @@ export interface TransitRoutingStepWalkButtonProps extends WithTranslation {
     step: TrRoutingV2.TripStepWalking;
     stepIndex: number;
     waitingTimeSeconds?: number;
+    textColor?: string; //Can be any valid CSS color format: https://www.w3schools.com/css/css_colors.asp
 }
 
 const TransitRoutingStepWalkButton: React.FunctionComponent<TransitRoutingStepWalkButtonProps> = (
@@ -23,7 +24,12 @@ const TransitRoutingStepWalkButton: React.FunctionComponent<TransitRoutingStepWa
         <React.Fragment key={`walk${props.stepIndex}`}>
             <li className={'_list'} onClick={undefined} key="walk">
                 <span className="_list-group _left">
-                    <span className="_list-element _strong">{props.t('transit:transitRouting:actions:walking')}</span>
+                    <span
+                        className="_list-element _strong"
+                        style={props.textColor === undefined ? {} : { color: props.textColor }}
+                    >
+                        {props.t('transit:transitRouting:actions:walking')}
+                    </span>
                 </span>
                 <span className="_list-group _flush-right _right">
                     <span className="_list-element" title={`${props.step.travelTime} ${props.t('main:secondAbbr')}.`}>
@@ -40,5 +46,3 @@ const TransitRoutingStepWalkButton: React.FunctionComponent<TransitRoutingStepWa
 };
 
 export default withTranslation(['transit', 'main'])(TransitRoutingStepWalkButton);
-
-// export default TransitRoutingStepWalkButton;
