@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+import { createRoot, Root } from 'react-dom/client';
 import { useTranslation } from 'react-i18next';
 import _throttle from 'lodash/throttle';
 import { Layer, LayerProps } from '@deck.gl/core';
@@ -33,9 +34,37 @@ import { MeasureToolMapFeature } from './tools/MapMeasureTool';
 import { TransitionMapController } from '../../services/map/TransitionMapController';
 import { MapCallbacks } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import { PolygonDrawMapFeature } from './tools/MapPolygonDrawTool';
-import { MapEditTool, TransitionMapControllerProps, MainMapProps } from './types/TransitionMainMapTypes';
-import { getDefaultViewState } from './defaults/TransitionMainMapDefaults';
-import { ContextMenuManager } from '../../services/map/ContextMenuManager';
+import { ControllerOptions } from '@deck.gl/core/dist/controllers/controller';
+
+// Define better types
+type MapEditTool = {
+    getLayers: (args: {
+        viewState: { longitude: number; latitude: number; zoom: number; pitch: number; bearing: number };
+        activeSection: string;
+        setIsDragging: (isDragging: boolean) => void;
+        mapCallbacks: MapCallbacks;
+        updateCount: number;
+    }) => Layer<LayerProps>[];
+    getEditMode: () => string;
+    getMapComponent: () => React.ReactNode;
+    getMapEvents: () => any[];
+}
+
+type TransitionMapControllerProps = ControllerOptions & {
+    type: typeof TransitionMapController;
+    mapEventsManager: MapEventsManager;
+    mapCallbacks: MapCallbacks;
+    activeSection: string;
+}
+
+export type MainMapProps = {
+    zoom: number;
+    center: [number, number];
+    activeSection: string;
+    children: React.ReactNode;
+}
+
+
 
 const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     const { t } = useTranslation(['transit', 'main']);
@@ -43,30 +72,28 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     // Refs
     const mapContainer = useRef<DeckGLRef>(null);
     const viewportRef = useRef<WebMercatorViewport | null>(null);
-    const deckGlLayersRef = useRef<Layer<LayerProps>[]>([]);
+    const layersRef = useRef<Layer<LayerProps>[]>([]);
     const updateCountsRef = useRef<{ [layerName: string]: number }>({});
-    const contextMenuManagerRef = useRef<ContextMenuManager | undefined>(undefined);
+
     // Internal ViewState ref for smooth rendering
-    const internalViewStateRef = useRef(getDefaultViewState(center, zoom));
-
-    // Services - create these once and maintain stable references
-    const layerManager = useMemo(() => new MapLayerManager(layersConfig), []);
-    const pathFilterManager = useMemo(() => new TransitPathFilterManager(), []);
-    const mapCallbacks = useMemo<MapCallbacks>(() => ({
-        pickMultipleObjects: (opts) => mapContainer.current?.pickMultipleObjects(opts) || [],
-        pickObject: (opts) => mapContainer.current?.pickObject(opts) || null,
-        pixelsToCoordinates: (pixels) => viewportRef.current?.unproject(pixels) || [0, 0]
-    }), []);
-    const mapEventsManager = useMemo(() => {
-        const mapEvents = [globalMapEvents, transitionMapEvents];
-        const mapEventsArr = mapEvents.flatMap((ev) => ev);
-        return new MapEventsManager(mapEventsArr, mapCallbacks);
-    }, [mapCallbacks]); // Only depend on mapCallbacks which is stable
-
+    const internalViewStateRef = useRef({
+        longitude: center[0],
+        latitude: center[1],
+        zoom,
+        pitch: 0,
+        bearing: 0
+    });
 
     // State
-    const [viewState, setViewState] = useState(getDefaultViewState(center, zoom)); // FIXME: removing the viewState makes the interface not able to pan/zoom or other updates/update layers. However, the state is not read anywhere. Weird...
-    const [visibleLayers, setVisibleLayers] = useState<string[]>([]); // FIXME: removing the visibleLayers makes the interface not able to update layers. However, the state is not read anywhere. Weird...
+    const [viewState, setViewState] = useState({
+        longitude: center[0],
+        latitude: center[1],
+        zoom,
+        pitch: 0,
+        bearing: 0
+    });
+    const contextMenuRootRef = useRef<Root | undefined>(undefined);
+    const [visibleLayers, setVisibleLayers] = useState<string[]>([]);
     const [selectedObjectsCount, setSelectedObjectsCount] = useState<number>(0);
     const [vectorTilesLayerConfig, setVectorTilesLayerConfig] = useState(mapTileVectorLayerConfig(Preferences.current));
     const [rasterXYZLayerConfig, setRasterXYZLayerConfig] = useState(mapTileRasterXYZLayerConfig(Preferences.current));
@@ -74,29 +101,39 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     const [mapEditTool, setMapEditTool] = useState<MapEditTool | undefined>(undefined);
     const [editUpdateCount, setEditUpdateCount] = useState(0);
     const [selectedObjectDraggingCount, setSelectedObjectDraggingCount] = useState(0);
-    const [activeMapEventManager, setActiveMapEventManager] = useState<MapEventsManager>(mapEventsManager);
 
-    const updateUserPrefs = useCallback((updatedViewState) => {
-        // Save map zoom and center to user preferences
-        Preferences.update(
-            {
-                'map.zoom': updatedViewState.zoom,
-                'map.center': [updatedViewState.longitude, updatedViewState.latitude]
-            },
-            serviceLocator.socketEventManager
-        );
-        serviceLocator.eventManager.emit('map.updateMouseCoordinates', [updatedViewState.longitude, updatedViewState.latitude]);
-    }, []);
+    // Services - create these once and maintain stable references
+    const layerManager = useMemo(() => new MapLayerManager(layersConfig), []);
+    const pathFilterManager = useMemo(() => new TransitPathFilterManager(), []);
+
+    // Map callbacks - create once, with stable references
+    const mapCallbacks = useMemo<MapCallbacks>(() => ({
+        pickMultipleObjects: (opts) => mapContainer.current?.pickMultipleObjects(opts) || [],
+        pickObject: (opts) => mapContainer.current?.pickObject(opts) || null,
+        pixelsToCoordinates: (pixels) => viewportRef.current?.unproject(pixels) || [0, 0]
+    }), []);
+
+    // Map events manager - IMPORTANT: create once, with minimal dependencies
+    const mapEventsManager = useMemo(() => {
+        const mapEvents = [globalMapEvents, transitionMapEvents];
+        const mapEventsArr = mapEvents.flatMap((ev) => ev);
+        return new MapEventsManager(mapEventsArr, mapCallbacks);
+    }, [mapCallbacks]); // Only depend on mapCallbacks which is stable
+
+    // Active map event manager - create a stable reference
+    const [activeMapEventManager, setActiveMapEventManager] = useState<MapEventsManager>(mapEventsManager);
 
     // Update map layers - core function to rebuild layers
     const updateMapLayers = useCallback(() => {
         console.log('updateMapLayers');
-        const deckGlLayers: Layer<LayerProps>[] = [];
 
         const enabledLayers = layerManager
             .getEnabledLayers()
             .filter((layer) => layer.visible === true);
 
+        const layers: Layer<LayerProps>[] = [];
+
+        // Add enabled layers
         enabledLayers.forEach((layer) => {
             const layerResult = getLayer({
                 layerDescription: layer,
@@ -112,18 +149,16 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             if (layerResult) {
                 // Add all layers from the result (could be array)
                 if (Array.isArray(layerResult)) {
-                    deckGlLayers.push(...layerResult.filter(Boolean));
+                    layers.push(...layerResult.filter(Boolean));
                 } else {
-                    deckGlLayers.push(layerResult);
+                    layers.push(layerResult);
                 }
             }
         });
 
         // Add edit layers
-        // TODO: move node multi-select tool to a separate mapedit tool, like the measure tool.
-        // Right now, the multi-select tool flickers when creating the polygon, but it does not flicker with the measure tool.
         if (mapEditTool !== undefined) {
-            const deckGlEditLayers = mapEditTool.getLayers({
+            const editLayers = mapEditTool.getLayers({
                 viewState: internalViewStateRef.current,
                 activeSection,
                 setIsDragging,
@@ -131,14 +166,14 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                 updateCount: editUpdateCount
             });
 
-            if (deckGlEditLayers && deckGlEditLayers.length > 0) {
-                deckGlLayers.push(...deckGlEditLayers as Layer<LayerProps>[]);
+            if (editLayers && editLayers.length > 0) {
+                layers.push(...editLayers);
             }
         }
 
         // Store the layers in the ref for rendering
-        deckGlLayersRef.current = deckGlLayers;
-    }, [activeSection, editUpdateCount, layerManager, mapCallbacks, mapEditTool, mapEventsManager, selectedObjectsCount, selectedObjectDraggingCount]);
+        layersRef.current = layers;
+    }, [activeSection, visibleLayers, editUpdateCount, layerManager, mapCallbacks, mapEditTool, mapEventsManager, selectedObjectsCount, selectedObjectDraggingCount]);
 
     // Update visible layers
     const updateVisibleLayers = useCallback(() => {
@@ -153,34 +188,44 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
 
     // Throttled view state update
     const throttledSetViewState = useCallback(_throttle((newViewState) => {
+        // Update internal ref for smooth rendering
+        internalViewStateRef.current = newViewState;
+
+        // Update state for components that depend on it
+        setViewState(newViewState);
 
         // Update viewport for coordinate calculations
         viewportRef.current = new WebMercatorViewport(newViewState);
 
         // Only update layers if zoom changed significantly
-        /*if (Math.abs(viewState.zoom - newViewState.zoom) > 0.1) {
+        if (Math.abs(viewState.zoom - newViewState.zoom) > 0.1) {
             updateMapLayers();
-        }*/
+        }
 
-        // Update user preferences (throttled)
+        // Update user preferences (debounced)
         updateUserPrefs(newViewState);
-    }, 500), []);
+    }, 100), [updateMapLayers, viewState.zoom]);
 
     // View state change handler
     const onViewStateChange = useCallback(({ viewState: newViewState }) => {
         // Update internal ref immediately for smooth rendering
         internalViewStateRef.current = newViewState;
 
-        // If dragging, update layers immediately to show real-time updates
-        /*if (isDragging) {
-            updateMapLayers();
-        }*/
-
-        setViewState(newViewState);
-
-        // Continue with throttled updates:
+        // Continue with throttled updates for non-dragging cases
         throttledSetViewState(newViewState);
-    }, []);
+    }, [throttledSetViewState, updateMapLayers]);
+
+    // Throttle user preferences update
+    const updateUserPrefs = useCallback(_throttle((updatedViewState) => {
+        // Save map zoom and center to user preferences
+        Preferences.update(
+            {
+                'map.zoom': updatedViewState.zoom,
+                'map.center': [updatedViewState.longitude, updatedViewState.latitude]
+            },
+            serviceLocator.socketEventManager
+        );
+    }, 500), [onViewStateChange]);
 
     // Window resize handler
     const onResize = useCallback(({ width, height }) => {
@@ -341,12 +386,43 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         position: [number, number],
         elements: { key?: string; title: string; onClick: () => void; onHover?: () => void }[]
     ) => {
-        contextMenuManagerRef.current?.show(position, elements);
-    }, []);
+        const contextMenuElement = document.getElementById('tr__main-map-context-menu');
+        if (!contextMenuElement || !contextMenuRootRef.current) {
+            return;
+        }
+
+        contextMenuElement.style.left = position[0] + 'px';
+        contextMenuElement.style.top = position[1] + 'px';
+        contextMenuElement.style.display = 'block';
+
+        contextMenuRootRef.current.render(
+            <ul>
+                {elements.map((element) => (
+                    <li
+                        key={element.key ? element.key : element.title}
+                        style={{ display: 'block', padding: '5px' }}
+                        onClick={() => {
+                            element.onClick();
+                            contextMenuElement.style.display = 'none';
+                        }}
+                        onMouseOver={() => element.onHover && element.onHover()}
+                    >
+                        {t(element.title)}
+                    </li>
+                ))}
+            </ul>
+        );
+    }, [t]);
 
     // Hide context menu - also made into a callback with proper dependencies
     const hideContextMenu = useCallback(() => {
-        contextMenuManagerRef.current?.hide();
+        const contextMenuElement = document.getElementById('tr__main-map-context-menu');
+        if (!contextMenuElement || !contextMenuRootRef.current) {
+            return;
+        }
+
+        contextMenuElement.style.display = 'none';
+        contextMenuRootRef.current.render(<React.Fragment></React.Fragment>);
     }, []);
 
     // Fit bounds
@@ -375,14 +451,21 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         updateMapLayers();
     }, [updateMapLayers]);
 
-    // Initialize context menu manager
+    // Initialize context menu
     useEffect(() => {
-        contextMenuManagerRef.current = new ContextMenuManager('tr__main-map-context-menu', t);
+        const contextMenuElement = document.getElementById('tr__main-map-context-menu');
+        if (contextMenuElement) {
+            const root = createRoot(contextMenuElement);
+            contextMenuRootRef.current = root;
+            root.render(<React.Fragment></React.Fragment>);
+        }
 
         return () => {
-            contextMenuManagerRef.current?.destroy();
+            if (contextMenuRootRef.current) {
+                contextMenuRootRef.current.unmount();
+            }
         };
-    }, [t]);
+    }, []);
 
     // Initialize services and set up event listeners - empty dependency array to run only once
     useEffect(() => {
@@ -472,10 +555,10 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     // Handle section changes - KEY FIX: Respond properly to activeSection changes
     useEffect(() => {
         // Update enabled layers when section changes
+        console.log(`Section changed to ${activeSection}, updating layers`);
         layerManager.updateEnabledLayers(sectionLayers[activeSection] || []);
         updateVisibleLayers();
-        updateMapLayers();
-    }, [activeSection, layerManager, updateMapLayers, updateVisibleLayers]);
+    }, [activeSection]);
 
     // Determine if animation is needed
     const enabledLayers = layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
@@ -502,7 +585,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                         activeSection
                     } as TransitionMapControllerProps}
                     _animate={needAnimation}
-                    layers={deckGlLayersRef.current}
+                    layers={layersRef.current}
                     onViewStateChange={onViewStateChange}
                     getTooltip={onTooltip}
                     onResize={onResize}

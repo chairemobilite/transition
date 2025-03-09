@@ -48,6 +48,7 @@ const onSelectedNodeDragEnd = (info: PickingInfo, _event: MjolnirEvent) => {
 };
 
 const onNodeSectionContextMenu = (pointInfo: PointInfo, _event: MjolnirEvent) => {
+
     const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
     const menu: { title: string; onClick: () => void }[] = [];
 

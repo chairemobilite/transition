@@ -38,7 +38,7 @@ export const SplitView: React.FunctionComponent<SplitViewProps> = ({
     const [leftWidth, setLeftWidth] = useState<number | undefined>();
     const [_leftViewID, _setLeftViewID] = useState<string | undefined>(leftViewID);
     const [separatorXPosition, setSeparatorXPosition] = useState<number | undefined>();
-    const [dragging, setDragging] = useState(false);
+    const [dragging, setIsDragging] = useState(false);
 
     const splitPaneRef = createRef<HTMLDivElement>();
     const leftRef = createRef<HTMLDivElement>();
@@ -46,12 +46,12 @@ export const SplitView: React.FunctionComponent<SplitViewProps> = ({
 
     const onMouseDown = (e: React.MouseEvent) => {
         setSeparatorXPosition(e.clientX);
-        setDragging(true);
+        setIsDragging(true);
     };
 
     const onTouchStart = (e: React.TouchEvent) => {
         setSeparatorXPosition(e.touches[0].clientX);
-        setDragging(true);
+        setIsDragging(true);
     };
 
     const onMove = (clientX: number) => {
@@ -85,7 +85,7 @@ export const SplitView: React.FunctionComponent<SplitViewProps> = ({
     };
 
     const onMouseUp = () => {
-        setDragging(false);
+        setIsDragging(false);
     };
 
     React.useEffect(() => {
