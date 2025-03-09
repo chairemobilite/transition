@@ -1,0 +1,640 @@
+/*
+ * Copyright 2022, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
+import React, { createRef, PropsWithChildren, useMemo } from 'react';
+import { createRoot, Root } from 'react-dom/client';
+import { WithTranslation, withTranslation } from 'react-i18next';
+import _debounce from 'lodash/debounce';
+import _throttle from 'lodash/throttle';
+
+// deck.gl and maps
+import DeckGL from '@deck.gl/react';
+import { Layer, Deck, PickingInfo, WebMercatorViewport } from '@deck.gl/core';
+import { Map as MapLibreMap, Source as MapLibreSource, Layer as MapLibreLayer } from 'react-map-gl/maplibre';
+import 'maplibre-gl/dist/maplibre-gl.css';
+
+// chaire-lib-common:
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+
+// chaire-lib-frontend:
+import globalMapEvents from 'chaire-lib-frontend/lib/services/map/events/GlobalMapEvents';
+import MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManager';
+import MapPopupManager from 'chaire-lib-frontend/lib/services/map/MapPopupManager';
+import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
+import {
+    MapUpdateLayerEventType,
+    MapFilterLayerEventType
+} from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import { MapCallbacks } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+
+// transition-frontend:
+import transitionMapEvents from '../../services/map/events';
+import TransitPathFilterManager from '../../services/map/TransitPathFilterManager';
+import { MapButton } from '../parts/MapButton';
+import {
+    layersConfig,
+    mapTileRasterXYZLayerConfig,
+    MapTileRasterXYZLayerConfig,
+    MapTileVectorLayerConfig,
+    mapTileVectorLayerConfig,
+    sectionLayers
+} from '../../config/layers.config';
+import getLayer from './layers/TransitionMapLayer';
+import { MapEventsManager } from '../../services/map/MapEventsManager';
+import { MapEditFeature, ToolConstructorOf } from './MapEditFeature';
+import { MeasureToolMapFeature } from './tools/MapMeasureTool';
+import { TransitionMapController } from '../../services/map/TransitionMapController';
+import { PolygonDrawMapFeature } from './tools/MapPolygonDrawTool';
+
+export interface MainMapProps extends LayoutSectionProps {
+    zoom: number;
+    center: [number, number];
+    //onMapDataChange: () => void;
+    // TODO : put layers and events together in an application configuration received as props here
+    // layersConfig: { [key: string]: any };
+    // mapEvents: MapEventHandlerDescription[];
+    // customEvents: any;
+}
+
+interface MainMapState {
+    viewState: {
+        longitude: number;
+        latitude: number;
+        zoom: number;
+        pitch: number;
+        bearing: number;
+    };
+    time: number;
+    contextMenu: HTMLElement | null;
+    contextMenuRoot: Root | undefined;
+    visibleLayers: string[];
+    vectorTilesLayerConfig: MapTileVectorLayerConfig;
+    rasterXYZLayerConfig: MapTileRasterXYZLayerConfig;
+    isDragging: boolean;
+    mapEditTool?: MapEditFeature;
+    editUpdateCount: number;
+    activeMapEventManager: MapEventsManager;
+}
+
+/**
+ * TODO: For now, hard code the map for Transition here. But it should be in
+ * chaire-lib and offer the possibility to pass the application modules when the
+ * API for it has stabilised.
+ *
+ * TODO: This class is too big and should be refactored into smaller components.
+ */
+class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWithChildren, MainMapState> {
+    private layerManager: MapLayerManager;
+    private pathFilterManager: TransitPathFilterManager;
+    private mapEventsManager: MapEventsManager;
+    private popupManager: MapPopupManager;
+    private mapContainer;
+    private mapCallbacks: MapCallbacks;
+    private updateCounts: { [layerName: string]: number } = {};
+    // Viewport to convert pixels to coordinates. In a private field instead of
+    // state as it is a side effect of state updates and we don't want to
+    // re-render when it's updated
+    private viewport: WebMercatorViewport;
+    private layers: Layer[] = [];
+
+    constructor(props: MainMapProps & WithTranslation) {
+        super(props);
+
+        this.mapCallbacks = {
+            pickMultipleObjects: this.pickMultipleObjects,
+            pickObject: this.pickObject,
+            pixelsToCoordinates: this.pixelsToCoordinates
+        };
+
+        const mapEvents = [globalMapEvents, transitionMapEvents];
+        const mapEventsArr = mapEvents.flatMap((ev) => ev);
+        this.mapEventsManager = new MapEventsManager(mapEventsArr, this.mapCallbacks);
+
+        this.state = {
+            time: 0,
+            viewState: {
+                longitude: props.center[0],
+                latitude: props.center[1],
+                zoom: props.zoom,
+                pitch: 0,
+                bearing: 0
+            },
+            contextMenu: null,
+            contextMenuRoot: undefined,
+            visibleLayers: [],
+            vectorTilesLayerConfig: mapTileVectorLayerConfig(Preferences.current),
+            rasterXYZLayerConfig: mapTileRasterXYZLayerConfig(Preferences.current),
+            isDragging: false,
+            mapEditTool: undefined,
+            editUpdateCount: 0,
+            activeMapEventManager: this.mapEventsManager
+        };
+        this.viewport = new WebMercatorViewport(this.state.viewState);
+
+        this.layerManager = new MapLayerManager(layersConfig);
+
+        this.pathFilterManager = new TransitPathFilterManager();
+
+        this.popupManager = new MapPopupManager();
+        this.mapContainer = createRef<HTMLDivElement>();
+    }
+
+    onEditLayerUpdate = () => {
+        this.setState({
+            editUpdateCount: this.state.editUpdateCount + 1
+        });
+        this.updateMapLayers();
+    };
+
+    enableEditTool = (ToolConstructor: ToolConstructorOf) => {
+        const mapEditTool = new ToolConstructor({
+            onUpdate: this.onEditLayerUpdate,
+            onDisable: this.disableEditTool
+        });
+        this.setState({
+            mapEditTool: mapEditTool,
+            activeMapEventManager: new MapEventsManager(mapEditTool.getMapEvents(), this.mapCallbacks)
+        });
+        this.updateMapLayers();
+    };
+
+    disableEditTool = () => {
+        this.setState({
+            mapEditTool: undefined,
+            activeMapEventManager: this.mapEventsManager
+        });
+        this.updateMapLayers();
+    };
+
+    updateMeasureToolDistance = () => {
+        console.log('distance was updated, do something');
+    };
+    showPathsByAttribute = (attribute: string, value: any) => {
+        // attribute must be agency_id or line_id
+        if (attribute === 'agency_id') {
+            this.pathFilterManager.showAgencyId(value);
+        } else if (attribute === 'line_id') {
+            this.pathFilterManager.showLineId(value);
+        }
+    };
+
+    hidePathsByAttribute = (attribute: string, value: any) => {
+        // attribute must be agency_id or line_id
+        if (attribute === 'agency_id') {
+            this.pathFilterManager.hideAgencyId(value);
+        } else if (attribute === 'line_id') {
+            this.pathFilterManager.hideLineId(value);
+        }
+    };
+
+    clearPathsFilter = () => {
+        this.pathFilterManager.clearFilter();
+    };
+
+    componentDidMount = () => {
+        serviceLocator.addService('layerManager', this.layerManager);
+        serviceLocator.addService('pathLayerManager', this.pathFilterManager);
+        this.layerManager.updateEnabledLayers(sectionLayers[this.props.activeSection]);
+        //elementResizedEvent(this.mapContainer, this.onResizeContainer);
+        // TODO Are those events all ours? Or are some mapbox's? In any case, they should all be documented in a map API file: who should use when, and which parameters are expected
+        serviceLocator.eventManager.on('map.updateEnabledLayers', this.updateEnabledLayers);
+        (serviceLocator.eventManager as EventManager).onEvent<MapUpdateLayerEventType>(
+            'map.updateLayer',
+            this.updateLayer
+        );
+
+        const contextMenu = document.getElementById('tr__main-map-context-menu');
+        this.setState({
+            contextMenu,
+            contextMenuRoot: contextMenu ? createRoot(contextMenu) : undefined
+        });
+        (serviceLocator.eventManager as EventManager).onEvent<MapFilterLayerEventType>(
+            'map.layers.updateFilter',
+            this.updateFilter
+        );
+        serviceLocator.eventManager.on('map.updateLayers', this.updateLayers);
+        serviceLocator.eventManager.on('map.clearFilter', this.clearFilter);
+        serviceLocator.eventManager.on('map.showLayer', this.showLayer);
+        serviceLocator.eventManager.on('map.hideLayer', this.hideLayer);
+        serviceLocator.eventManager.on('map.fitBounds', this.fitBounds);
+        serviceLocator.eventManager.on('map.paths.byAttribute.show', this.showPathsByAttribute);
+        serviceLocator.eventManager.on('map.paths.byAttribute.hide', this.hidePathsByAttribute);
+        serviceLocator.eventManager.on('map.paths.clearFilter', this.clearPathsFilter);
+        serviceLocator.eventManager.on('map.showContextMenu', this.showContextMenu);
+        serviceLocator.eventManager.on('map.hideContextMenu', this.hideContextMenu);
+        serviceLocator.eventManager.emit('map.loaded');
+        Preferences.addChangeListener(this.onPreferencesChange);
+        this.updateMapLayers();
+    };
+
+    onPreferencesChange = (updates: any) => {
+        if (Object.keys(updates).some((key) => ['mapTileVectorOpacity', 'mapTileRasterXYZOpacity'].includes(key))) {
+            this.setState({
+                vectorTilesLayerConfig: mapTileVectorLayerConfig(Preferences.current),
+                rasterXYZLayerConfig: mapTileRasterXYZLayerConfig(Preferences.current)
+            });
+        }
+    };
+
+    componentWillUnmount = () => {
+        serviceLocator.removeService('layerManager');
+        serviceLocator.removeService('pathLayerManager');
+        // removeResizeListener(this.mapContainer, this.onResizeContainer);
+        serviceLocator.eventManager.off('map.updateEnabledLayers', this.updateEnabledLayers);
+        serviceLocator.eventManager.off('map.updateLayer', this.updateLayer);
+        serviceLocator.eventManager.off('map.updateLayers', this.updateLayers);
+        serviceLocator.eventManager.off('map.layers.updateFilter', this.updateFilter);
+        serviceLocator.eventManager.off('map.clearFilter', this.clearFilter);
+        serviceLocator.eventManager.off('map.showLayer', this.showLayer);
+        serviceLocator.eventManager.off('map.hideLayer', this.hideLayer);
+        serviceLocator.eventManager.off('map.fitBounds', this.fitBounds);
+        serviceLocator.eventManager.off('map.paths.byAttribute.show', this.showPathsByAttribute);
+        serviceLocator.eventManager.off('map.paths.byAttribute.hide', this.hidePathsByAttribute);
+        serviceLocator.eventManager.off('map.paths.clearFilter', this.clearPathsFilter);
+        serviceLocator.eventManager.off('map.showContextMenu', this.showContextMenu);
+        serviceLocator.eventManager.off('map.hideContextMenu', this.hideContextMenu);
+    };
+
+    fitBounds = (bounds: [[number, number], [number, number]]) => {
+        // Use a mercator viewport to fit the bounds, as suggested by https://stackoverflow.com/questions/69744838/how-to-use-fitbounds-in-deckgl-on-timer-without-npm-and-es6
+        this.viewport = new WebMercatorViewport(this.state.viewState).fitBounds(bounds, {
+            padding: 20
+        });
+        const { latitude, longitude, zoom } = this.viewport;
+        this.setState({
+            viewState: {
+                ...this.state.viewState,
+                latitude,
+                longitude,
+                zoom
+            }
+        });
+        this.updateMapLayers();
+    };
+
+    private updateVisibleLayers = () => {
+        this.setState({
+            visibleLayers: this.layerManager
+                .getEnabledLayers()
+                .filter((layer) => layer.visible)
+                .map((layer) => layer.id)
+        });
+        this.updateMapLayers();
+    };
+
+    /* getEventHandler = (events: MapEventHandlerDescription[]) => {
+        return (e) => this.executeEvents(e, events);
+    }; */
+
+    showLayer = (layerName: string) => {
+        this.layerManager.showLayer(layerName);
+        this.updateVisibleLayers();
+    };
+
+    hideLayer = (layerName: string) => {
+        this.layerManager.hideLayer(layerName);
+        this.updateVisibleLayers();
+    };
+
+    clearFilter = (layerName: string) => {
+        this.layerManager.clearFilter(layerName);
+        this.updateVisibleLayers();
+    };
+
+    updateFilter = (args: { layerName: string; filter: ((feature: GeoJSON.Feature) => 0 | 1) | undefined }) => {
+        this.layerManager.updateFilter(args.layerName, args.filter);
+        this.updateCounts[args.layerName] = (this.updateCounts[args.layerName] || 0) + 1;
+        this.updateVisibleLayers();
+    };
+
+    setRef = (ref) => {
+        this.mapContainer = ref;
+    };
+
+    updateLayer = (args: {
+        layerName: string;
+        data: GeoJSON.FeatureCollection | ((original: GeoJSON.FeatureCollection) => GeoJSON.FeatureCollection);
+    }) => {
+        this.layerManager.updateLayer(args.layerName, args.data);
+        this.updateCounts[args.layerName] = (this.updateCounts[args.layerName] || 0) + 1;
+        this.updateVisibleLayers();
+    };
+
+    updateLayers = (geojsonByLayerName) => {
+        this.layerManager.updateLayers(geojsonByLayerName);
+        Object.keys(geojsonByLayerName).forEach(
+            (layerName) => (this.updateCounts[layerName] = (this.updateCounts[layerName] || 0) + 1)
+        );
+        this.updateVisibleLayers();
+    };
+
+    updateEnabledLayers = (enabledLayers: string[]) => {
+        this.layerManager.updateEnabledLayers(enabledLayers);
+        this.updateVisibleLayers();
+    };
+
+    showContextMenu = (
+        position: [number, number],
+        elements: { key?: string; title: string; onClick: () => void; onHover?: () => void }[]
+    ) => {
+        const contextMenu = document.getElementById('tr__main-map-context-menu');
+        if (!contextMenu || !this.state.contextMenuRoot) {
+            return;
+        }
+        contextMenu.style.left = position[0] + 'px';
+        contextMenu.style.top = position[1] + 'px';
+        contextMenu.style.display = 'block';
+
+        this.state.contextMenuRoot.render(
+            <ul>
+                {elements.map((element) => (
+                    <li
+                        key={element.key ? element.key : element.title}
+                        style={{ display: 'block', padding: '5px' }}
+                        onClick={() => {
+                            element.onClick();
+                            contextMenu.style.display = 'none';
+                        }}
+                        onMouseOver={() => element.onHover && element.onHover()}
+                    >
+                        {this.props.t(element.title)}
+                    </li>
+                ))}
+            </ul>
+        );
+    };
+
+    hideContextMenu = () => {
+        if (!this.state.contextMenu || !this.state.contextMenuRoot) {
+            return;
+        }
+        const contextMenu = this.state.contextMenu;
+        contextMenu.style.display = 'none';
+        this.state.contextMenuRoot.render(<React.Fragment></React.Fragment>);
+    };
+
+    private updateUserPrefs = _debounce((viewState) => {
+        // Save map zoom and center to user preferences
+        Preferences.update(
+            {
+                'map.zoom': viewState.zoom,
+                'map.center': [viewState.longitude, viewState.latitude]
+            },
+            serviceLocator.socketEventManager
+        );
+    }, 500);
+
+    // Throttle the state update function to control the frame ratection
+    private throttledSetState = _throttle((newViewState) => {
+        this.setState({ viewState: newViewState });
+        // Only update layers if zoom changed significantly
+        if (Math.abs(this.state.viewState.zoom - newViewState.zoom) > 0.1) {
+            this.updateMapLayers();
+        }
+        // Always update viewport for coordinate calculations
+        this.viewport = new WebMercatorViewport(newViewState);
+        // Still debounce preference updates
+        this.updateUserPrefs(newViewState);
+        this.updateMapLayers();
+    }, 100); // 100ms period is good enough // Adjust the debounce delay as needed
+
+    // FIXME: Find the type for this
+    onViewStateChange = (viewStateChange) => {
+        this.throttledSetState(viewStateChange.viewState);
+        /*const newViewState = viewStateChange.viewState;
+        // Only update state if there's a meaningful change
+        if (
+            Math.abs(this.state.viewState.zoom - newViewState.zoom) > 0.001 ||
+            Math.abs(this.state.viewState.longitude - newViewState.longitude) > 0.0001 ||
+            Math.abs(this.state.viewState.latitude - newViewState.latitude) > 0.0001 ||
+            this.state.viewState.pitch !== newViewState.pitch ||
+            this.state.viewState.bearing !== newViewState.bearing
+        ) {
+            this.setState({ viewState: newViewState });
+            // Only update layers if zoom changed significantly
+            if (Math.abs(this.state.viewState.zoom - newViewState.zoom) > 0.1) {
+                this.updateMapLayers();
+            }
+            // Always update viewport for coordinate calculations
+            this.viewport = new WebMercatorViewport(newViewState);
+            // Still debounce preference updates
+            this.updateUserPrefs(newViewState);
+        }*/
+    };
+
+    // Recreate the viewport with the correct width and height to convert
+    // pixels to coordinates. It is not necessary to update the state here as
+    // width and height are not property that we need to track in our state.
+    // FIXME But should we update the state? it works fine without...
+    onResize = ({ width, height }: { width: number; height: number }) => {
+        this.viewport = new WebMercatorViewport({ ...this.state.viewState, width, height });
+    };
+
+    onTooltip = (pickInfo: PickingInfo) => {
+        if (pickInfo.picked === true && pickInfo.layer) {
+            if (pickInfo.layer && !pickInfo.object) {
+                // it is indeed possible to have a layer and no object:
+                return null;
+            }
+            const tooltipEvents = this.mapEventsManager.getTooltipEvents(pickInfo.layer.id).onTooltip;
+            if (tooltipEvents) {
+                for (let i = 0; i < tooltipEvents.length; i++) {
+                    const tooltip = this.mapEventsManager.executeTooltipEvent(
+                        tooltipEvents[i],
+                        pickInfo,
+                        this.props.activeSection
+                    );
+                    if (tooltip !== undefined) {
+                        return typeof tooltip === 'string'
+                            ? tooltip
+                            : tooltip.containsHtml === true
+                                ? { html: tooltip.text }
+                                : tooltip.text;
+                    }
+                }
+            }
+        }
+        return null;
+    };
+
+    setIsDragging = (dragging: boolean) => {
+        // FIXME Do not drag if in editing mode?
+        if (this.state.mapEditTool !== undefined) {
+            return;
+        }
+        this.setState({ isDragging: dragging });
+    };
+
+    pickMultipleObjects: typeof Deck.prototype.pickMultipleObjects = (opts: {
+        x: number;
+        y: number;
+        radius?: number | undefined;
+        depth?: number | undefined;
+        layerIds?: string[] | undefined;
+        unproject3D?: boolean | undefined;
+    }): PickingInfo[] => (this.mapContainer.current as Deck).pickMultipleObjects(opts);
+
+    pickObject: typeof Deck.prototype.pickObject = (opts: {
+        x: number;
+        y: number;
+        radius?: number | undefined;
+        depth?: number | undefined;
+        layerIds?: string[] | undefined;
+        unproject3D?: boolean | undefined;
+    }): PickingInfo | null => (this.mapContainer.current as Deck).pickObject(opts);
+
+    pixelsToCoordinates = (pixels: [number, number]): number[] => {
+        return this.viewport.unproject(pixels);
+    };
+
+    // This function is called whenever there is a state change, except when it
+    // is only panning. See if we can fine-tune or debounce it to avoid too many
+    // layer calculations as this may be costly
+    private updateMapLayers = () => {
+        // FIXME This was in the render function previously, but some users
+        // faced very slow panning times. We hypothesize that layer calculation
+        // may be a cause, so it is moved to a function that calculates a local
+        // field on every state change, except panning. See if this solves the
+        // slowness issues and remove this fixme if it does.
+
+        // FIXME2 Refactor the layer to make it independent from the map state.
+        // Currently, only the zoom level is used, but see if we can avoid this
+        // somehow.
+
+        // Disable events on layers if the map is in editing mode
+        const mapEditTool = this.state.mapEditTool;
+        const enabledLayers = this.layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
+        const layers: Layer[] = enabledLayers
+            .flatMap((layer) =>
+                getLayer({
+                    layerDescription: layer,
+                    viewState: this.state.viewState,
+                    events: mapEditTool === undefined ? this.mapEventsManager.getLayerEvents(layer.id) : undefined,
+                    activeSection: this.props.activeSection,
+                    setIsDragging: this.setIsDragging,
+                    mapCallbacks: this.mapCallbacks,
+                    updateCount: this.updateCounts[layer.id] || 0,
+                    filter: this.layerManager.getFilter(layer.id)
+                })
+            )
+            .filter((layer) => layer !== undefined) as Layer[];
+        if (mapEditTool !== undefined) {
+            layers.push(
+                ...mapEditTool.getLayers({
+                    viewState: this.state.viewState,
+                    activeSection: this.props.activeSection,
+                    setIsDragging: this.setIsDragging,
+                    mapCallbacks: this.mapCallbacks,
+                    updateCount: this.state.editUpdateCount
+                })
+            );
+        }
+        this.layers = layers;
+    };
+
+    render() {
+        const layers = this.layers;
+
+        const enabledLayers = this.layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
+        const needAnimation =
+            Preferences.get('map.enableMapAnimations', true) &&
+            enabledLayers.find((layer) => layer.configuration.type === 'animatedArrowPath') !== undefined;
+
+        return (
+            <section id="tr__main-map">
+                <div id="tr__main-map-context-menu" className="tr__main-map-context-menu"></div>
+                {this.props.children}
+                <div onContextMenu={(evt) => evt.preventDefault()}>
+                    <DeckGL
+                        ref={this.mapContainer}
+                        viewState={this.state.viewState}
+                        controller={
+                            {
+                                scrollZoom: true,
+                                doubleClickZoom: false,
+                                dragPan: !this.state.isDragging,
+                                type: TransitionMapController,
+                                mapEventsManager: this.state.activeMapEventManager,
+                                mapCallbacks: this.mapCallbacks,
+                                activeSection: this.props.activeSection
+                            } as any
+                        }
+                        _animate={needAnimation}
+                        layers={layers}
+                        onViewStateChange={this.onViewStateChange}
+                        getTooltip={this.onTooltip}
+                        onResize={this.onResize}
+                        getCursor={({ isHovering, isDragging }) => {
+                            // Show a crosshair cursor when the measure tool is enabled
+                            // TODO Different edit tools may have different cursors, maybe add a function to the edit tool?
+                            if (this.state.mapEditTool !== undefined) {
+                                return 'crosshair';
+                            }
+                            return isDragging ? 'grabbing' : isHovering ? 'pointer' : 'grab';
+                        }}
+                    >
+                        <MapLibreMap mapStyle={this.state.vectorTilesLayerConfig.styleUrl}>
+                            {this.state.rasterXYZLayerConfig.url && this.state.rasterXYZLayerConfig.opacity > 0 && (
+                                <MapLibreSource
+                                    id="raster-tiles"
+                                    type="raster"
+                                    tiles={[this.state.rasterXYZLayerConfig.url]}
+                                    tileSize={this.state.rasterXYZLayerConfig.tileSize}
+                                    minzoom={this.state.rasterXYZLayerConfig.minzoom}
+                                    maxzoom={this.state.rasterXYZLayerConfig.maxzoom}
+                                >
+                                    <MapLibreLayer
+                                        id="raster-layer"
+                                        type="raster"
+                                        paint={{
+                                            'raster-opacity': this.state.rasterXYZLayerConfig.opacity
+                                        }}
+                                    />
+                                </MapLibreSource>
+                            )}
+                        </MapLibreMap>
+                    </DeckGL>
+                    <div className="tr__map-button-container">
+                        {/* FIXME Add a condition to enable this tool depending on the active section */}
+                        <MapButton
+                            title="main:MeasureTool"
+                            key="mapbtn_measuretool"
+                            className={`${this.state.mapEditTool?.getEditMode() === MeasureToolMapFeature.editMode ? 'active' : ''}`}
+                            onClick={() => {
+                                if (this.state.mapEditTool?.getEditMode() === MeasureToolMapFeature.editMode) {
+                                    this.disableEditTool();
+                                } else {
+                                    this.enableEditTool(MeasureToolMapFeature);
+                                }
+                            }}
+                            iconPath={'/dist/images/icons/interface/ruler_white.svg'}
+                        />
+                        {this.props.activeSection === 'nodes' && (
+                            <MapButton
+                                title="main:PolygonDrawTool"
+                                key="mapbtn_polygontool"
+                                className={`${this.state.mapEditTool?.getEditMode() === PolygonDrawMapFeature.editMode ? 'active' : ''}`}
+                                onClick={() => {
+                                    if (this.state.mapEditTool?.getEditMode() === PolygonDrawMapFeature.editMode) {
+                                        this.disableEditTool();
+                                    } else {
+                                        this.enableEditTool(PolygonDrawMapFeature);
+                                    }
+                                }}
+                                iconPath={'/dist/images/icons/interface/select_white.svg'}
+                            />
+                        )}
+                    </div>
+                    {this.state.mapEditTool && this.state.mapEditTool.getMapComponent()}
+                </div>
+            </section>
+        );
+    }
+}
+
+export default withTranslation(['transit', 'main'])(MainMap);
