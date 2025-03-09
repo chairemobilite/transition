@@ -45,7 +45,7 @@ export type TransitionMapLayerProps = {
     viewState: ViewState;
     events?: { [evtName in layerEventNames]?: MapLayerEventHandlerDescriptor[] };
     activeSection: string;
-    setDragging: (dragging: boolean) => void;
+    setIsDragging: (dragging: boolean) => void;
     mapCallbacks: MapCallbacks;
     updateCount: number;
     filter?: (feature: GeoJSON.Feature) => 0 | 1;
@@ -595,7 +595,7 @@ const addEvents = (
     if (onDragStartEvt || onDragEvt || onDragEndEvt) {
         const onDragStartArr = onDragStartEvt === undefined ? [] : onDragStartEvt;
         layerEvents.onDragStart = (info: PickingInfo, e: MjolnirGestureEvent) => {
-            props.setDragging(true);
+            props.setIsDragging(true);
             // Do not use handleEvents for drag start/end, otherwise, the stopPropagation will not properly change the dragging state of the map. Those events are not supported on the map anyway.
             return onDragStartArr
                 .filter(checkHandler)
@@ -613,7 +613,7 @@ const addEvents = (
     if (onDragStartEvt || onDragEvt || onDragEndEvt) {
         const onDragEndArr = onDragEndEvt === undefined ? [] : onDragEndEvt;
         layerEvents.onDragEnd = (info: PickingInfo, e: MjolnirGestureEvent) => {
-            props.setDragging(false);
+            props.setIsDragging(false);
             // Do not use handleEvents for drag start/end, otherwise, the stopPropagation will not properly change the dragging state of the map. Those events are not supported on the map anyway.
             return onDragEndArr
                 .filter(checkHandler)
