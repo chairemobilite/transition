@@ -2,21 +2,16 @@ import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next';
 import _throttle from 'lodash/throttle';
 import { Layer, LayerProps } from '@deck.gl/core';
-
-// deck.gl and maps
 import { DeckGL, DeckGLRef } from '@deck.gl/react';
 import { WebMercatorViewport, PickingInfo } from '@deck.gl/core';
 import { Map as MapLibreMap, Source as MapLibreSource, Layer as MapLibreLayer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
-
 // chaire-lib-common:
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-
 // chaire-lib-frontend:
 import globalMapEvents from 'chaire-lib-frontend/lib/services/map/events/GlobalMapEvents';
 import MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManager';
-
 // transition-frontend:
 import transitionMapEvents from '../../services/map/events';
 import TransitPathFilterManager from '../../services/map/TransitPathFilterManager';
@@ -37,7 +32,11 @@ import { MapEditTool, TransitionMapControllerProps, MainMapProps } from './types
 import { getDefaultViewState } from './defaults/TransitionMainMapDefaults';
 import { ContextMenuManager } from '../../services/map/ContextMenuManager';
 
+const times: { [key: string]: number } = {};
+const counts = {};
+
 const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
+
     const { t } = useTranslation(['transit', 'main']);
 
     // Refs
@@ -47,7 +46,6 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     const updateCountsRef = useRef<{ [layerName: string]: number }>({});
     const contextMenuManagerRef = useRef<ContextMenuManager | undefined>(undefined);
     // Internal ViewState ref for smooth rendering
-    const internalViewStateRef = useRef(getDefaultViewState(center, zoom));
 
     // Services - create these once and maintain stable references
     const layerManager = useMemo(() => new MapLayerManager(layersConfig), []);
@@ -63,7 +61,6 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         return new MapEventsManager(mapEventsArr, mapCallbacks);
     }, [mapCallbacks]); // Only depend on mapCallbacks which is stable
 
-
     // State
     const [viewState, setViewState] = useState(getDefaultViewState(center, zoom)); // FIXME: removing the viewState makes the interface not able to pan/zoom or other updates/update layers. However, the state is not read anywhere. Weird...
     const [visibleLayers, setVisibleLayers] = useState<string[]>([]); // FIXME: removing the visibleLayers makes the interface not able to update layers. However, the state is not read anywhere. Weird...
@@ -76,7 +73,14 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     const [selectedObjectDraggingCount, setSelectedObjectDraggingCount] = useState(0);
     const [activeMapEventManager, setActiveMapEventManager] = useState<MapEventsManager>(mapEventsManager);
 
+    // useCallback
+
     const updateUserPrefs = useCallback((updatedViewState) => {
+        if (!times['updateUserPrefs']) {
+            times['updateUserPrefs'] = 0;
+            counts['updateUserPrefs'] = 0;
+        }
+        const startTime = performance.now();
         // Save map zoom and center to user preferences
         Preferences.update(
             {
@@ -87,10 +91,19 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             false // do not emit prefs change event, otherwise it will call onPreferencesChange
         );
         serviceLocator.eventManager.emit('map.updateMouseCoordinates', [updatedViewState.longitude, updatedViewState.latitude]);
+        const endTime = performance.now();
+        times['updateUserPrefs'] += endTime - startTime;
+        counts['updateUserPrefs'] += 1;
     }, []);
 
     // Update map layers - core function to rebuild layers
     const updateMapLayers = useCallback(() => {
+        if (!times['updateMapLayers']) {
+            times['updateMapLayers'] = 0;
+            counts['updateMapLayers'] = 0;
+        }
+        const startTime = performance.now();
+
         console.log('updateMapLayers');
         const deckGlLayers: Layer<LayerProps>[] = [];
 
@@ -101,7 +114,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         enabledLayers.forEach((layer) => {
             const layerResult = getLayer({
                 layerDescription: layer,
-                viewState: internalViewStateRef.current,
+                viewState,
                 events: mapEditTool === undefined ? mapEventsManager.getLayerEvents(layer.id) : undefined,
                 activeSection,
                 setIsDragging,
@@ -125,7 +138,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         // Right now, the multi-select tool flickers when creating the polygon, but it does not flicker with the measure tool.
         if (mapEditTool !== undefined) {
             const deckGlEditLayers = mapEditTool.getLayers({
-                viewState: internalViewStateRef.current,
+                viewState,
                 activeSection,
                 setIsDragging,
                 mapCallbacks,
@@ -139,10 +152,20 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
 
         // Store the layers in the ref for rendering
         deckGlLayersRef.current = deckGlLayers;
+
+        const endTime = performance.now();
+        times['updateMapLayers'] += endTime - startTime;
+        counts['updateMapLayers'] += 1;
     }, [activeSection, editUpdateCount, layerManager, mapCallbacks, mapEditTool, mapEventsManager, selectedObjectsCount, selectedObjectDraggingCount]);
 
     // Update visible layers
     const updateVisibleLayers = useCallback(() => {
+        if (!times['updateVisibleLayers']) {
+            times['updateVisibleLayers'] = 0;
+            counts['updateVisibleLayers'] = 0;
+        }
+        const startTime = performance.now();
+
         const newVisibleLayers = layerManager
             .getEnabledLayers()
             .filter((layer) => layer.visible)
@@ -150,14 +173,24 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
 
         setVisibleLayers(newVisibleLayers);
         updateMapLayers();
+
+        const endTime = performance.now();
+        times['updateVisibleLayers'] += endTime - startTime;
+        counts['updateVisibleLayers'] += 1;
     }, [layerManager, updateMapLayers]);
 
     // Throttled view state update
     const throttledSetViewState = useCallback(_throttle((newViewState) => {
+        if (!times['throttledSetViewState']) {
+            times['throttledSetViewState'] = 0;
+            counts['throttledSetViewState'] = 0;
+        }
+        const startTime = performance.now();
 
         // Update viewport for coordinate calculations
         viewportRef.current = new WebMercatorViewport(newViewState);
 
+        setViewState(newViewState);
         // Only update layers if zoom changed significantly
         /*if (Math.abs(viewState.zoom - newViewState.zoom) > 0.1) {
             updateMapLayers();
@@ -165,37 +198,61 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
 
         // Update user preferences (throttled)
         updateUserPrefs(newViewState);
-    }, 500), []);
+
+        const endTime = performance.now();
+        times['throttledSetViewState'] += endTime - startTime;
+        counts['throttledSetViewState'] += 1;
+    }, 100), []);
 
     // View state change handler
     const onViewStateChange = useCallback(({ viewState: newViewState }) => {
-        // Update internal ref immediately for smooth rendering
-        internalViewStateRef.current = newViewState;
-
-        // If dragging, update layers immediately to show real-time updates
-        /*if (isDragging) {
-            updateMapLayers();
-        }*/
-
-        setViewState(newViewState);
+        if (!times['onViewStateChange']) {
+            times['onViewStateChange'] = 0;
+            counts['onViewStateChange'] = 0;
+        }
+        const startTime = performance.now();
 
         // Continue with throttled updates:
         throttledSetViewState(newViewState);
+
+        const endTime = performance.now();
+        times['onViewStateChange'] += endTime - startTime;
+        counts['onViewStateChange'] += 1;
     }, []);
 
     // Window resize handler
     const onResize = useCallback(({ width, height }) => {
+        if (!times['onResize']) {
+            times['onResize'] = 0;
+            counts['onResize'] = 0;
+        }
+        const startTime = performance.now();
+
         viewportRef.current = new WebMercatorViewport({
-            ...internalViewStateRef.current,
+            ...viewState,
             width,
             height
         });
+
+        const endTime = performance.now();
+        times['onResize'] += endTime - startTime;
+        counts['onResize'] += 1;
     }, []);
 
     // Tooltip handler
     const onTooltip = useCallback((pickInfo: PickingInfo) => {
+        if (!times['onTooltip']) {
+            times['onTooltip'] = 0;
+            counts['onTooltip'] = 0;
+        }
+        const startTime = performance.now();
+
+        const result = null;
         if (pickInfo.picked === true && pickInfo.layer) {
             if (pickInfo.layer && !pickInfo.object) {
+                const endTime = performance.now();
+                times['onTooltip'] += endTime - startTime;
+                counts['onTooltip'] += 1;
                 // it is indeed possible to have a layer and no object:
                 return null;
             }
@@ -208,6 +265,9 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                         activeSection
                     );
                     if (tooltip !== undefined) {
+                        const endTime = performance.now();
+                        times['onTooltip'] += endTime - startTime;
+                        counts['onTooltip'] += 1;
                         return typeof tooltip === 'string'
                             ? tooltip
                             : tooltip.containsHtml === true
@@ -217,29 +277,61 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                 }
             }
         }
-        return null;
+        const endTime = performance.now();
+        times['onTooltip'] += endTime - startTime;
+        counts['onTooltip'] += 1;
+        return result;
     }, [activeSection, mapEventsManager]);
 
     // Handle preferences change
     const onPreferencesChange = useCallback((updates: any) => {
+        if (!times['onPreferencesChange']) {
+            times['onPreferencesChange'] = 0;
+            counts['onPreferencesChange'] = 0;
+        }
+        const startTime = performance.now();
         if (Object.keys(updates).some((key) => ['mapTileVectorOpacity', 'mapTileRasterXYZOpacity'].includes(key))) {
             setVectorTilesLayerConfig(mapTileVectorLayerConfig(Preferences.current));
             setRasterXYZLayerConfig(mapTileRasterXYZLayerConfig(Preferences.current));
         }
+        const endTime = performance.now();
+        times['onPreferencesChange'] += endTime - startTime;
+        counts['onPreferencesChange'] += 1;
     }, []);
 
     // this serves as a way to know when to refresh layers and get the correct map events
     const updateSelectedObjectsCount = useCallback(() => {
+        if (!times['updateSelectedObjectsCount']) {
+            times['updateSelectedObjectsCount'] = 0;
+            counts['updateSelectedObjectsCount'] = 0;
+        }
+        const startTime = performance.now();
         setSelectedObjectsCount((prev) => prev + 1);
+        const endTime = performance.now();
+        times['updateSelectedObjectsCount'] += endTime - startTime;
+        counts['updateSelectedObjectsCount'] += 1;
     }, []);
 
     // this serves as a way to know when to refresh layers and get the correct map events while dragging
     const updateSelectedObjectDraggingCount = useCallback(() => {
+        if (!times['updateSelectedObjectDraggingCount']) {
+            times['updateSelectedObjectDraggingCount'] = 0;
+            counts['updateSelectedObjectDraggingCount'] = 0;
+        }
+        const startTime = performance.now();
         setSelectedObjectDraggingCount((prev) => prev + 1);
+        const endTime = performance.now();
+        times['updateSelectedObjectDraggingCount'] += endTime - startTime;
+        counts['updateSelectedObjectDraggingCount'] += 1;
     }, []);
 
     // Enable edit tool
     const enableEditTool = useCallback((ToolConstructor: any) => {
+        if (!times['enableEditTool']) {
+            times['enableEditTool'] = 0;
+            counts['enableEditTool'] = 0;
+        }
+        const startTime = performance.now();
         const newMapEditTool = new ToolConstructor({
             onUpdate: () => {
                 setEditUpdateCount((prev) => prev + 1);
@@ -255,61 +347,134 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         setMapEditTool(newMapEditTool);
         setActiveMapEventManager(new MapEventsManager(newMapEditTool.getMapEvents(), mapCallbacks));
         updateMapLayers();
+        const endTime = performance.now();
+        times['enableEditTool'] += endTime - startTime;
+        counts['enableEditTool'] += 1;
     }, [mapCallbacks, mapEventsManager, updateMapLayers]);
 
     // Disable edit tool
     const disableEditTool = useCallback(() => {
+        if (!times['disableEditTool']) {
+            times['disableEditTool'] = 0;
+            counts['disableEditTool'] = 0;
+        }
+        const startTime = performance.now();
         setMapEditTool(undefined);
         setActiveMapEventManager(mapEventsManager);
         updateMapLayers();
+        const endTime = performance.now();
+        times['disableEditTool'] += endTime - startTime;
+        counts['disableEditTool'] += 1;
     }, [mapEventsManager, updateMapLayers]);
 
     // Show paths by attribute
     const showPathsByAttribute = useCallback((attribute: string, value: any) => {
+        if (!times['showPathsByAttribute']) {
+            times['showPathsByAttribute'] = 0;
+            counts['showPathsByAttribute'] = 0;
+        }
+        const startTime = performance.now();
         if (attribute === 'agency_id') {
             pathFilterManager.showAgencyId(value);
         } else if (attribute === 'line_id') {
             pathFilterManager.showLineId(value);
         }
+        const endTime = performance.now();
+        times['showPathsByAttribute'] += endTime - startTime;
+        counts['showPathsByAttribute'] += 1;
     }, [pathFilterManager]);
 
     // Hide paths by attribute
     const hidePathsByAttribute = useCallback((attribute: string, value: any) => {
+        if (!times['hidePathsByAttribute']) {
+            times['hidePathsByAttribute'] = 0;
+            counts['hidePathsByAttribute'] = 0;
+        }
+        const startTime = performance.now();
         if (attribute === 'agency_id') {
             pathFilterManager.hideAgencyId(value);
         } else if (attribute === 'line_id') {
             pathFilterManager.hideLineId(value);
         }
+        const endTime = performance.now();
+        times['hidePathsByAttribute'] += endTime - startTime;
+        counts['hidePathsByAttribute'] += 1;
     }, [pathFilterManager]);
 
     // Clear paths filter
     const clearPathsFilter = useCallback(() => {
+        if (!times['clearPathsFilter']) {
+            times['clearPathsFilter'] = 0;
+            counts['clearPathsFilter'] = 0;
+        }
+        const startTime = performance.now();
         pathFilterManager.clearFilter();
+        const endTime = performance.now();
+        times['clearPathsFilter'] += endTime - startTime;
+        counts['clearPathsFilter'] += 1;
     }, [pathFilterManager]);
 
     // Show layer
     const showLayer = useCallback((layerName: string) => {
+        if (!times['showLayer']) {
+            times['showLayer'] = 0;
+            counts['showLayer'] = 0;
+        }
+        const startTime = performance.now();
+
         layerManager.showLayer(layerName);
         updateVisibleLayers();
+
+        const endTime = performance.now();
+        times['showLayer'] += endTime - startTime;
+        counts['showLayer'] += 1;
     }, [layerManager, updateVisibleLayers]);
 
     // Hide layer
     const hideLayer = useCallback((layerName: string) => {
+        if (!times['hideLayer']) {
+            times['hideLayer'] = 0;
+            counts['hideLayer'] = 0;
+        }
+        const startTime = performance.now();
+
         layerManager.hideLayer(layerName);
         updateVisibleLayers();
+
+        const endTime = performance.now();
+        times['hideLayer'] += endTime - startTime;
+        counts['hideLayer'] += 1;
     }, [layerManager, updateVisibleLayers]);
 
     // Clear filter
     const clearFilter = useCallback((layerName: string) => {
+        if (!times['clearFilter']) {
+            times['clearFilter'] = 0;
+            counts['clearFilter'] = 0;
+        }
+        const startTime = performance.now();
         layerManager.clearFilter(layerName);
         updateVisibleLayers();
+        const endTime = performance.now();
+        times['clearFilter'] += endTime - startTime;
+        counts['clearFilter'] += 1;
     }, [layerManager, updateVisibleLayers]);
 
     // Update filter
     const updateFilter = useCallback((args: { layerName: string; filter: ((feature: GeoJSON.Feature) => 0 | 1) | undefined }) => {
+        if (!times['updateFilter']) {
+            times['updateFilter'] = 0;
+            counts['updateFilter'] = 0;
+        }
+        const startTime = performance.now();
+
         layerManager.updateFilter(args.layerName, args.filter);
         updateCountsRef.current[args.layerName] = (updateCountsRef.current[args.layerName] || 0) + 1;
         updateVisibleLayers();
+
+        const endTime = performance.now();
+        times['updateFilter'] += endTime - startTime;
+        counts['updateFilter'] += 1;
     }, [layerManager, updateVisibleLayers]);
 
     // Update layer
@@ -317,24 +482,52 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         layerName: string;
         data: GeoJSON.FeatureCollection | ((original: GeoJSON.FeatureCollection) => GeoJSON.FeatureCollection);
     }) => {
+        if (!times['updateLayer']) {
+            times['updateLayer'] = 0;
+            counts['updateLayer'] = 0;
+        }
+        const startTime = performance.now();
+
         layerManager.updateLayer(args.layerName, args.data);
         updateCountsRef.current[args.layerName] = (updateCountsRef.current[args.layerName] || 0) + 1;
         updateVisibleLayers();
+
+        const endTime = performance.now();
+        times['updateLayer'] += endTime - startTime;
+        counts['updateLayer'] += 1;
     }, [layerManager, updateVisibleLayers]);
 
     // Update layers
     const updateLayers = useCallback((geojsonByLayerName: any) => {
+        if (!times['updateLayers']) {
+            times['updateLayers'] = 0;
+            counts['updateLayers'] = 0;
+        }
+        const startTime = performance.now();
+
         layerManager.updateLayers(geojsonByLayerName);
         Object.keys(geojsonByLayerName).forEach(
             (layerName) => (updateCountsRef.current[layerName] = (updateCountsRef.current[layerName] || 0) + 1)
         );
         updateVisibleLayers();
+
+        const endTime = performance.now();
+        times['updateLayers'] += endTime - startTime;
+        counts['updateLayers'] += 1;
     }, [layerManager, updateVisibleLayers]);
 
     // Update enabled layers
     const updateEnabledLayers = useCallback((enabledLayers: string[]) => {
+        if (!times['updateEnabledLayers']) {
+            times['updateEnabledLayers'] = 0;
+            counts['updateEnabledLayers'] = 0;
+        }
+        const startTime = performance.now();
         layerManager.updateEnabledLayers(enabledLayers);
         updateVisibleLayers();
+        const endTime = performance.now();
+        times['updateEnabledLayers'] += endTime - startTime;
+        counts['updateEnabledLayers'] += 1;
     }, [layerManager, updateVisibleLayers]);
 
     // Show context menu - made into a callback with proper dependencies
@@ -342,43 +535,82 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         position: [number, number],
         elements: { key?: string; title: string; onClick: () => void; onHover?: () => void }[]
     ) => {
+        if (!times['showContextMenu']) {
+            times['showContextMenu'] = 0;
+            counts['showContextMenu'] = 0;
+        }
+        const startTime = performance.now();
         contextMenuManagerRef.current?.show(position, elements);
+        const endTime = performance.now();
+        times['showContextMenu'] += endTime - startTime;
     }, []);
 
     // Hide context menu - also made into a callback with proper dependencies
     const hideContextMenu = useCallback(() => {
+        if (!times['hideContextMenu']) {
+            times['hideContextMenu'] = 0;
+            counts['hideContextMenu'] = 0;
+        }
+        const startTime = performance.now();
         contextMenuManagerRef.current?.hide();
+        const endTime = performance.now();
+        times['hideContextMenu'] += endTime - startTime;
+        counts['hideContextMenu'] += 1;
     }, []);
 
     // Fit bounds
     const fitBounds = useCallback((bounds: [[number, number], [number, number]]) => {
-        if (!viewportRef.current) return;
+        if (!times['fitBounds']) {
+            times['fitBounds'] = 0;
+            counts['fitBounds'] = 0;
+        }
+        const startTime = performance.now();
+
+        if (!viewportRef.current) {
+            const endTime = performance.now();
+            times['fitBounds'] += endTime - startTime;
+            counts['fitBounds'] += 1;
+            return;
+        }
 
         // Use a mercator viewport to fit the bounds
-        const viewport = new WebMercatorViewport(internalViewStateRef.current).fitBounds(bounds, {
+        const viewport = new WebMercatorViewport(viewState).fitBounds(bounds, {
             padding: 20
         });
 
         const { latitude, longitude, zoom } = viewport;
         const newViewState = {
-            ...internalViewStateRef.current,
+            ...viewState,
             latitude,
             longitude,
             zoom
         };
 
         // Update both refs
-        internalViewStateRef.current = newViewState;
         viewportRef.current = viewport;
 
         // Update state
         setViewState(newViewState);
         updateMapLayers();
+
+        const endTime = performance.now();
+        times['fitBounds'] += endTime - startTime;
+        counts['fitBounds'] += 1;
     }, [updateMapLayers]);
 
+
+    // useEffect
     // Initialize context menu manager
     useEffect(() => {
+        if (!times['initializeContextMenuManager']) {
+            times['initializeContextMenuManager'] = 0;
+            counts['initializeContextMenuManager'] = 0;
+        }
+        const startTime = performance.now();
         contextMenuManagerRef.current = new ContextMenuManager('tr__main-map-context-menu', t);
+        const endTime = performance.now();
+        times['initializeContextMenuManager'] += endTime - startTime;
+        counts['initializeContextMenuManager'] += 1;
 
         return () => {
             contextMenuManagerRef.current?.destroy();
@@ -387,8 +619,13 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
 
     // Initialize services and set up event listeners - empty dependency array to run only once
     useEffect(() => {
+        if (!times['initializeServices']) {
+            times['initializeServices'] = 0;
+            counts['initializeServices'] = 0;
+        }
+        const startTime = performance.now();
         // Initialize viewport
-        viewportRef.current = new WebMercatorViewport(internalViewStateRef.current);
+        viewportRef.current = new WebMercatorViewport(viewState);
 
         // Add services to service locator
         serviceLocator.addService('layerManager', layerManager);
@@ -399,6 +636,10 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
 
         // Initial map loaded notification
         serviceLocator.eventManager.emit('map.loaded');
+
+        const endTime = performance.now();
+        times['initializeServices'] += endTime - startTime;
+        counts['initializeServices'] += 1;
 
         // Clean up on unmount
         return () => {
@@ -412,8 +653,18 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     const eventListenersRegistered = useRef(false);
 
     useEffect(() => {
+        if (!times['eventListenersRegistered']) {
+            times['eventListenersRegistered'] = 0;
+            counts['eventListenersRegistered'] = 0;
+        }
+        const startTime = performance.now();
         // Only register once to prevent event loops
-        if (eventListenersRegistered.current) return;
+        if (eventListenersRegistered.current) {
+            const endTime = performance.now();
+            times['eventListenersRegistered'] += endTime - startTime;
+            counts['eventListenersRegistered'] += 1;
+            return;
+        }
 
         // Set up event listeners
         serviceLocator.eventManager.on('map.updateEnabledLayers', updateEnabledLayers);
@@ -439,6 +690,9 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
 
         // Mark as registered to prevent duplicate registrations
         eventListenersRegistered.current = true;
+        const endTime = performance.now();
+        times['eventListenersRegistered'] += endTime - startTime;
+        counts['eventListenersRegistered'] += 1;
 
         // Clean up on unmount
         return () => {
@@ -468,22 +722,56 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                 eventListenersRegistered.current = false;
             }
         };
+
     }, []); // Empty dependency array to avoid recreating listeners
 
     // Handle section changes - KEY FIX: Respond properly to activeSection changes
     useEffect(() => {
+        if (!times['handleSectionChanges']) {
+            times['handleSectionChanges'] = 0;
+            counts['handleSectionChanges'] = 0;
+        }
+        const startTime = performance.now();
         // Update enabled layers when section changes
         layerManager.updateEnabledLayers(sectionLayers[activeSection] || []);
         updateVisibleLayers();
         updateMapLayers();
+        const endTime = performance.now();
+        times['handleSectionChanges'] += endTime - startTime;
+        counts['handleSectionChanges'] += 1;
     }, [activeSection, layerManager, updateMapLayers, updateVisibleLayers]);
 
+
     // Determine if animation is needed
-    const enabledLayers = layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
-    const needAnimation = useMemo(() =>
-        Preferences.get('map.enableMapAnimations', true) &&
-        enabledLayers.find((layer) => layer.configuration.type === 'animatedArrowPath') !== undefined,
-    [enabledLayers]);
+    const needAnimation = useCallback(() => {
+        if (!times['needAnimation']) {
+            times['needAnimation'] = 0;
+            counts['needAnimation'] = 0;
+        }
+        const startTime = performance.now();
+        if (Preferences.get('map.enableMapAnimations', true)) {
+            const endTime = performance.now();
+            times['needAnimation'] += endTime - startTime;
+            counts['needAnimation'] += 1;
+            return layerManager
+                .getEnabledLayers()
+                .filter((layer) => layer.visible === true)
+                .find((layer) => layer.configuration.type === 'animatedArrowPath') !== undefined;
+        }
+        const endTime = performance.now();
+        times['needAnimation'] += endTime - startTime;
+        counts['needAnimation'] += 1;
+        return false;
+    }, [layerManager, updateMapLayers]);
+
+    // Add similar timing code to all other functions...
+    useEffect(() => {
+        const interval = setInterval(() => {
+            console.log('Performance metrics:', times, counts);
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <section id="tr__main-map">
@@ -492,7 +780,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             <div onContextMenu={(evt) => evt.preventDefault()}>
                 <DeckGL
                     ref={mapContainer}
-                    viewState={internalViewStateRef.current} // Use internal view state ref for smooth rendering
+                    viewState={viewState} // Use internal view state ref for smooth rendering
                     controller={{
                         scrollZoom: true,
                         doubleClickZoom: false,
@@ -502,7 +790,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                         mapCallbacks,
                         activeSection
                     } as TransitionMapControllerProps}
-                    _animate={needAnimation}
+                    _animate={needAnimation()}
                     layers={deckGlLayersRef.current}
                     onViewStateChange={onViewStateChange}
                     getTooltip={onTooltip}
