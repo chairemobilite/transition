@@ -385,7 +385,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 'map.zoom': viewState.zoom,
                 'map.center': [viewState.longitude, viewState.latitude]
             },
-            serviceLocator.socketEventManager
+            serviceLocator.socketEventManager,
+            false // do not emit prefs change event, otherwise it will call onPreferencesChange
         );
     }, 500);
 
