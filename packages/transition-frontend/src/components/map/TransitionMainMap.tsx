@@ -83,7 +83,8 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                 'map.zoom': updatedViewState.zoom,
                 'map.center': [updatedViewState.longitude, updatedViewState.latitude]
             },
-            serviceLocator.socketEventManager
+            serviceLocator.socketEventManager,
+            false // do not emit prefs change event, otherwise it will call onPreferencesChange
         );
         serviceLocator.eventManager.emit('map.updateMouseCoordinates', [updatedViewState.longitude, updatedViewState.latitude]);
     }, []);

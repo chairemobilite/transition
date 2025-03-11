@@ -203,7 +203,8 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
      */
     public async update(
         valuesByPath: Partial<PreferencesModelWithIdAndData>,
-        socket?: EventEmitter
+        socket?: EventEmitter,
+        emitChangeEvent?: boolean
     ): Promise<PreferencesModelWithIdAndData> {
         try {
             const _valuesByPath = _cloneDeep(valuesByPath);
@@ -217,7 +218,9 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
                     _set(this._attributes, path, _valuesByPath[path]);
                 }
             }
-            this._eventEmitter.emit(prefChangeEvent, _valuesByPath);
+            if (emitChangeEvent) {
+                this._eventEmitter.emit(prefChangeEvent, _valuesByPath);
+            }
         } catch {
             console.error('Error loading preferences from server');
         }
