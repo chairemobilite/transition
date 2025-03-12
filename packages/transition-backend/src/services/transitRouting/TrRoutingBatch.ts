@@ -136,6 +136,8 @@ class TrRoutingBatch {
             // Log progress at most for each 1% progress
             const logInterval = Math.ceil(odTripsCount / 100);
             const benchmarkStart = performance.now();
+            let lastLogTime = performance.now();
+            let lastLogCount = startIndex;
             const logOdTripBefore = (index: number) => {
                 if ((index + 1) % logInterval === 0) {
                     console.log(`Routing odTrip ${index + 1}/${odTripsCount}`);
@@ -144,13 +146,20 @@ class TrRoutingBatch {
             const logOdTripAfter = (index: number) => {
                 if (benchmarkStart >= 0 && index > 0 && index % 100 === 0) {
                     // Log the calculation speed every 100 calculations. Divide the number of completed calculation (substract startIndex if the task was resumed) by the time taken in seconds. Round to 2 decimals
-                    console.log(
-                        'calc/sec',
-                        Math.round(
-                            (100 * (completedRoutingsCount - startIndex)) /
-                                ((performance.now() - benchmarkStart) / 1000)
-                        ) / 100
-                    );
+                    // TODO: Check if we could do all this magic with some function in the performance class
+                    const now = performance.now(); // Save now() to not have to call multiple time
+                    // Calculate rate since the last logged line
+                    const currentRate =
+                        Math.round((100 * (completedRoutingsCount - lastLogCount)) / ((now - lastLogTime) / 1000)) /
+                        100;
+                    lastLogTime = now;
+                    lastLogCount = completedRoutingsCount;
+
+                    // Calculate rate since the beginning
+                    const globalRate =
+                        Math.round((100 * (completedRoutingsCount - startIndex)) / ((now - benchmarkStart) / 1000)) /
+                        100;
+                    console.log(`calc/sec: ${globalRate} (current: ${currentRate})`);
                 }
             };
             const checkpointTracker = new CheckpointTracker(
