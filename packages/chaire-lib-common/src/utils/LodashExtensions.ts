@@ -8,12 +8,13 @@ import _isObject from 'lodash/isObject';
 import _isEmpty from 'lodash/isEmpty';
 import _isFinite from 'lodash/isFinite';
 import _isDate from 'lodash/isDate';
+import _isString from 'lodash/isString';
 
 const _isBlank = function (value) {
     return (
         value === undefined ||
         value === null ||
-        value === '' ||
+        (_isString(value) && value.trim() === '') ||
         value.toString().length === 0 ||
         (_isObject(value) && _isEmpty(value) && typeof value !== 'function' && !_isDate(value))
     );

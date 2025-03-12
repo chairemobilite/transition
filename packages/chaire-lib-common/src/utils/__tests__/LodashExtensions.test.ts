@@ -9,7 +9,10 @@ import each from 'jest-each';
 
 test('should check if isBlank', function() {
   expect(LE._isBlank(1.3)).toBe(false);
+  expect(LE._isBlank('')).toBe(true);
+  expect(LE._isBlank(' ')).toBe(true);
   expect(LE._isBlank('test')).toBe(false);
+  expect(LE._isBlank('\t')).toBe(true);
   expect(LE._isBlank(['test'])).toBe(false);
   expect(LE._isBlank(Infinity)).toBe(false);
   expect(LE._isBlank(null)).toBe(true);
