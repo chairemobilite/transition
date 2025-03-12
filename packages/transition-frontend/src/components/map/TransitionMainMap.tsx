@@ -35,14 +35,6 @@ import { ContextMenuManager } from '../../services/map/ContextMenuManager';
 const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     const { t } = useTranslation(['transit', 'main']);
 
-    // Refs
-    const mapContainer = useRef<DeckGLRef>(null);
-    const viewportRef = useRef<WebMercatorViewport | null>(null);
-    const deckGlLayersRef = useRef<Layer<LayerProps>[]>([]);
-    const updateCountsRef = useRef<{ [layerName: string]: number }>({});
-    const contextMenuManagerRef = useRef<ContextMenuManager | undefined>(undefined);
-    // Internal ViewState ref for smooth rendering
-
     // Services - create these once and maintain stable references
     const layerManager = useMemo(() => new MapLayerManager(layersConfig), []);
     const pathFilterManager = useMemo(() => new TransitPathFilterManager(), []);
@@ -72,6 +64,44 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     const [selectedObjectDraggingCount, setSelectedObjectDraggingCount] = useState(0);
     const [activeMapEventManager, setActiveMapEventManager] = useState<MapEventsManager>(mapEventsManager);
 
+    // Fit bounds
+    const fitBounds = (bounds: [[number, number], [number, number]]) => {
+        if (!viewportRef.current) {
+            return;
+        }
+
+        // Use a mercator viewport to fit the bounds
+        const viewport = new WebMercatorViewport(viewState).fitBounds(bounds, {
+            padding: 20
+        });
+
+        const { latitude, longitude, zoom } = viewport;
+        const newViewState = {
+            ...viewState,
+            latitude,
+            longitude,
+            zoom
+        };
+
+        // Update both refs
+        viewportRef.current = viewport;
+
+        // Update state
+        setViewState(newViewState);
+        updateMapLayers();
+    };
+
+    // Refs
+    const mapContainer = useRef<DeckGLRef>(null);
+    const viewportRef = useRef<WebMercatorViewport | null>(null);
+    const deckGlLayersRef = useRef<Layer<LayerProps>[]>([]);
+    const updateCountsRef = useRef<{ [layerName: string]: number }>({});
+    const contextMenuManagerRef = useRef<ContextMenuManager | undefined>(undefined);
+    // Because the fitBound function is registered as an event listener, we need to keep it in a ref to have the latest version
+    const fitBoundsRef = useRef(fitBounds);
+    fitBoundsRef.current = fitBounds;
+    // Internal ViewState ref for smooth rendering
+
     // useCallback
 
     const updateUserPrefs = useCallback((updatedViewState) => {
@@ -92,7 +122,6 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
 
     // Update map layers - core function to rebuild layers
     const updateMapLayers = useCallback(() => {
-        console.log('updateMapLayers');
         const deckGlLayers: Layer<LayerProps>[] = [];
 
         const enabledLayers = layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
@@ -165,7 +194,6 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         _throttle((newViewState) => {
             // Update viewport for coordinate calculations
             viewportRef.current = new WebMercatorViewport(newViewState);
-
             setViewState(newViewState);
             // Only update layers if zoom changed significantly
             /*if (Math.abs(viewState.zoom - newViewState.zoom) > 0.1) {
@@ -384,36 +412,6 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         contextMenuManagerRef.current?.hide();
     }, []);
 
-    // Fit bounds
-    const fitBounds = useCallback(
-        (bounds: [[number, number], [number, number]]) => {
-            if (!viewportRef.current) {
-                return;
-            }
-
-            // Use a mercator viewport to fit the bounds
-            const viewport = new WebMercatorViewport(viewState).fitBounds(bounds, {
-                padding: 20
-            });
-
-            const { latitude, longitude, zoom } = viewport;
-            const newViewState = {
-                ...viewState,
-                latitude,
-                longitude,
-                zoom
-            };
-
-            // Update both refs
-            viewportRef.current = viewport;
-
-            // Update state
-            setViewState(newViewState);
-            updateMapLayers();
-        },
-        [updateMapLayers]
-    );
-
     // useEffect
     // Initialize context menu manager
     useEffect(() => {
@@ -451,10 +449,15 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     const eventListenersRegistered = useRef(false);
 
     useEffect(() => {
+        // Update refs with the latest versions of the callbacks
+        fitBoundsRef.current = fitBounds;
+
         // Only register once to prevent event loops
         if (eventListenersRegistered.current) {
             return;
         }
+
+        const fitBoundsCallback = (bounds: [[number, number], [number, number]]) => fitBoundsRef.current(bounds);
 
         // Set up event listeners
         serviceLocator.eventManager.on('map.updateEnabledLayers', updateEnabledLayers);
@@ -464,7 +467,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         serviceLocator.eventManager.on('map.clearFilter', clearFilter);
         serviceLocator.eventManager.on('map.showLayer', showLayer);
         serviceLocator.eventManager.on('map.hideLayer', hideLayer);
-        serviceLocator.eventManager.on('map.fitBounds', fitBounds);
+        serviceLocator.eventManager.on('map.fitBounds', fitBoundsCallback);
         serviceLocator.eventManager.on('map.paths.byAttribute.show', showPathsByAttribute);
         serviceLocator.eventManager.on('map.paths.byAttribute.hide', hidePathsByAttribute);
         serviceLocator.eventManager.on('map.paths.clearFilter', clearPathsFilter);
@@ -491,7 +494,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                 serviceLocator.eventManager.off('map.clearFilter', clearFilter);
                 serviceLocator.eventManager.off('map.showLayer', showLayer);
                 serviceLocator.eventManager.off('map.hideLayer', hideLayer);
-                serviceLocator.eventManager.off('map.fitBounds', fitBounds);
+                serviceLocator.eventManager.off('map.fitBounds', fitBoundsCallback);
                 serviceLocator.eventManager.off('map.paths.byAttribute.show', showPathsByAttribute);
                 serviceLocator.eventManager.off('map.paths.byAttribute.hide', hidePathsByAttribute);
                 serviceLocator.eventManager.off('map.paths.clearFilter', clearPathsFilter);
