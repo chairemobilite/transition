@@ -131,13 +131,7 @@ class TrRoutingBatch {
             }
             this.batchRoutingQueryAttributes.routingModes = routingModes;
 
-            // TODO: This is a test
-            // When we do not calculate alternatives, we are not saturating all the code that we have available.
-            // Let's test having twice the concurrency in the queue if we do not ask for alternatives
-            const desiredConcurrency = this.batchRoutingQueryAttributes.withAlternatives
-                ? trRoutingInstancesCount
-                : trRoutingInstancesCount * 2;
-            const promiseQueue = new pQueue({ concurrency: desiredConcurrency });
+            const promiseQueue = new pQueue({ concurrency: trRoutingInstancesCount });
 
             // Log progress at most for each 1% progress
             const logInterval = Math.ceil(odTripsCount / 100);
