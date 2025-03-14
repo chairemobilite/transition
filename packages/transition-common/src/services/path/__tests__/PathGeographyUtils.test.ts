@@ -796,3 +796,81 @@ test('Update Geography', async () => {
     expect(pathWithNoLine.validate).toHaveBeenCalledTimes(1);
     expect(pathWithNoLine.emptyGeography).toHaveBeenCalledTimes(1);
 });
+
+test('Update Geography with manual routing type for terminal nodes', async () => {
+    // Prepare data and mock functions
+    const mockRouteEngine = jest.fn();
+    const mockRouteManual = jest.fn();
+    // Mock routing services functions
+    routingServiceManager.getRoutingServiceForEngine('engine').mapMatch = mockRouteEngine;
+    routingServiceManager.getRoutingServiceForEngine('manual').mapMatch = mockRouteManual;
+
+    /* Test with a path where one of the terminal nodes has a 'manual' routing type */
+    const pathWithManualTerminal = new TransitPathStub({
+        id: "path1",
+        line_id: line.get('id'),
+        nodes: [node1.properties.id, node3.properties.id, node4.properties.id],
+        data: {
+            nodeTypes: ["engine", "engine", "manual"],
+            waypoints: [],
+            waypointTypes: [],
+            routingEngine: 'engine',
+            routingMode: 'driving',
+        }
+    }) as any;
+
+    // Prepare path mapping results
+    const terminalsRoutingResult = {
+        tracepoints: [node1, node4],
+        matchings: [
+            {
+                confidence: 99,
+                distance: 50,
+                duration: 360,
+                legs: [{ distance: 1000, duration: 66.67 }]
+            }
+        ]
+    };
+    const segmentRoutingResult = {
+        tracepoints: [node1, node3],
+        matchings: [
+            {
+                confidence: 99,
+                distance: 50,
+                duration: 360,
+                legs: [/* data not important at this stage */]
+            }
+        ]
+    };
+    mockRouteManual.mockReturnValue(terminalsRoutingResult);
+    mockRouteEngine.mockReturnValue(segmentRoutingResult);
+    pathWithManualTerminal.refreshStats = jest.fn();
+    pathWithManualTerminal.validate = jest.fn();
+    pathWithManualTerminal.emptyGeography = jest.fn();
+
+    await updateGeography(pathWithManualTerminal);
+    expect(pathWithManualTerminal.refreshStats).toHaveBeenCalledTimes(1);
+    expect(pathWithManualTerminal.validate).toHaveBeenCalledTimes(1);
+    expect(pathWithManualTerminal.emptyGeography).toHaveBeenCalledTimes(0);
+
+    expect(mockRouteManual).toHaveBeenCalledWith(expect.objectContaining({
+        mode: 'driving',
+        points: {
+            type: 'FeatureCollection' as const,
+            features: [
+                expect.objectContaining({ ...node1, properties: expect.objectContaining(node1.properties) }),
+                expect.objectContaining({ ...node4, properties: expect.objectContaining(node4.properties) })
+            ]
+        }
+    }));
+    expect(mockRouteEngine).toHaveBeenCalledWith(expect.objectContaining({
+        mode: 'driving',
+        points: {
+            type: 'FeatureCollection' as const,
+            features: [
+                expect.objectContaining({ ...node1, properties: expect.objectContaining(node1.properties) }),
+                expect.objectContaining({ ...node3, properties: expect.objectContaining(node3.properties) })
+            ]
+        }
+    }));
+});
