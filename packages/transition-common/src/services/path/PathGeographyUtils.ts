@@ -254,10 +254,16 @@ class PathGeographyUtils {
         nodesAndWaypointsGeojsons: FeatureCollection<Point>
     ) {
         try {
-            const directPath = await routingService.mapMatch({
+            const terminals = this.getTerminalGeojson(nodesAndWaypointsGeojsons);
+            const shouldUseManual =
+                terminals.features.find((feature) => feature.properties?.type === 'manual') !== undefined;
+            const directPathRoutingService = shouldUseManual
+                ? routingServiceManager.getRoutingServiceForEngine('manual')
+                : routingService;
+            const directPath = await directPathRoutingService.mapMatch({
                 mode: routingMode,
                 defaultRunningSpeed: defaultRunningSpeedMps,
-                points: this.getTerminalGeojson(nodesAndWaypointsGeojsons)
+                points: terminals
             });
             return directPath;
         } catch (error) {
