@@ -49,12 +49,12 @@ Now, with the same terminal you've just opened, run this command to copy your Ge
 > Note: If you're using another GeoJSON file than the one provided as an example (`examples/polygon_rtl_area.geojson`), you need to modify the path specified in the first argument of the command
 
 ```
-docker cp ./examples/polygon_rtl_area.geojson docker-dev-transition-www-1:/app/examples/runtime/imports/polygon.geojson
+docker cp ./examples/polygon_rtl_area.geojson transition-transition-www-1:/app/examples/runtime/imports/polygon.geojson
 ```
 
-Then, in  Docker Desktop, select **Containers** on the left, then click on `docker-dev-transition-www-1` and go to the `Terminal` tab. Run the following commands.
+Then, in  Docker Desktop, select **Containers** on the left, then click on `transition-transition-www-1` and go to the `Terminal` tab. Run the following commands.
 
-> Note: You can also use `docker exec -it docker-dev-transition-www-1` to run these commands without Docker Desktop
+> Note: You can also use `docker exec -it transition-transition-www-1` to run these commands without Docker Desktop
 
 ```
 yarn setup && yarn migrate
