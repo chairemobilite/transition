@@ -6,6 +6,7 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
+import moment from 'moment';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
@@ -14,25 +15,28 @@ import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
+import config from 'chaire-lib-common/lib/config/shared/project.config';
 import PreferencesSectionProps from '../PreferencesSectionProps';
-import moment from 'moment';
 
 const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
     props: PreferencesSectionProps & WithTranslation
 ) => {
     const prefs = props.preferences.getAttributes();
 
-    const sections = prefs.sections.transition;
-    const sectionsChoices: { value: string; label: string }[] = [];
-    for (const sectionShortname in sections) {
-        const section = sections[sectionShortname];
-        if (section.enabled !== false) {
-            sectionsChoices.push({
-                label: props.t(section.localizedTitle),
-                value: sectionShortname
-            });
+    const sectionsChoices = React.useMemo(() => {
+        const sections = config.sections;
+        const sectionsChoices: { value: string; label: string }[] = [];
+        for (const sectionShortname in sections) {
+            const section = sections[sectionShortname];
+            if (section.enabled !== false) {
+                sectionsChoices.push({
+                    label: props.t(section.localizedTitle),
+                    value: sectionShortname
+                });
+            }
         }
-    }
+        return sectionsChoices;
+    }, []);
 
     return (
         <Collapsible trigger={props.t('main:preferences:General')} open={true} transitionTime={100}>

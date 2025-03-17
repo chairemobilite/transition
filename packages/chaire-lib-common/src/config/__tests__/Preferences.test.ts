@@ -28,13 +28,13 @@ const originalPreferences = _cloneDeep(Preferences.attributes);
 
 beforeEach(() => {
     // Reset preferences to the default value
-    Object.assign(Preferences.attributes, _cloneDeep(originalPreferences));
+    Preferences.setAttributes(_cloneDeep(originalPreferences));
+    jest.clearAllMocks();
     fetchMock.doMock();
     fetchMock.mockClear();
 });
 
 test('Test default preferences', () => {
-    expect(Preferences.get('sections')).toMatchObject(defaultPreferences.sections);
     expect(Preferences.getDefault()).toMatchObject(defaultPreferences);
 });
 
@@ -60,36 +60,36 @@ test('Test set preferences', () => {
 });
 
 describe('Updating preferences', () => {
-    // Test adding a section to transition
-    const sectionData = {
+    // Test adding an arbitrary object to the preferences
+    const prefData = {
         localizedTitle: 'myTitle',
         icon: '/path/to/my/icon'
     };
     const myNewPrefs: Partial<PreferencesModel> = {
-        sections: {
+        prefTitle: {
             test: {
-                mySection: sectionData
+                mySection: prefData
             }
         }
     };
 
     test('Update Preferences object without dot notations', async () => {
         await Preferences.update(myNewPrefs, stubEmitter);
-        expect(Preferences.get('sections.test.mySection')).toMatchObject(sectionData);
-        expect(Preferences.get('sections.test', {})).toMatchObject({
-            mySection: sectionData
+        expect(Preferences.get('prefTitle.test.mySection')).toMatchObject(prefData);
+        expect(Preferences.get('prefTitle.test', {})).toMatchObject({
+            mySection: prefData
         });
     });
 
     test('Update Preferences object with dot notations', async () => {
         await Preferences.update({
-            'sections.test.mySection': sectionData
+            'prefTitle.test.mySection': prefData
         }, stubEmitter);
-        expect(Preferences.get('sections.test.mySection')).toMatchObject(sectionData);
+        expect(Preferences.get('prefTitle.test.mySection')).toMatchObject(prefData);
         // make sure it has correctly set the values as objects
-        // If this fails, it means that lodash set was not called and a key named 'sections.test.mySection' was created in the Preference object, which is incorrect
-        expect(Preferences.get('sections.test', {})).toMatchObject({
-            mySection: sectionData
+        // If this fails, it means that lodash set was not called and a key named 'prefTitle.test.mySection' was created in the Preference object, which is incorrect
+        expect(Preferences.get('prefTitle.test', {})).toMatchObject({
+            mySection: prefData
         });
     });
 
@@ -97,16 +97,16 @@ describe('Updating preferences', () => {
         await Preferences.update(myNewPrefs, stubEmitter);
 
         expect(mockStubUpdatePreferences).toHaveBeenLastCalledWith(myNewPrefs, expect.anything());
-        expect(Preferences.get('sections.test.mySection')).toMatchObject(sectionData);
+        expect(Preferences.get('prefTitle.test.mySection')).toMatchObject(prefData);
     });
 
     test('Update from socket routes, with error', async () => {
         mockStubUpdatePreferences.mockImplementationOnce((data, callback) => callback(Status.createError('Error from socket')));
-        expect(mockStubUpdatePreferences).toHaveBeenLastCalledWith(myNewPrefs, expect.anything());
-
+        
         await Preferences.update(myNewPrefs, stubEmitter);
+        expect(mockStubUpdatePreferences).toHaveBeenLastCalledWith(myNewPrefs, expect.anything());
         // No changes to preferences should happen
-        expect(Preferences.get('sections.test.mySection')).toBeUndefined();
+        expect(Preferences.get('prefTitle.test.mySection')).toBeUndefined();
     });
 
     test('Update from fetch', async () => {
@@ -119,7 +119,7 @@ describe('Updating preferences', () => {
             method: 'POST',
             body: JSON.stringify({ valuesByPath: myNewPrefs })
         }));
-        expect(Preferences.get('sections.test.mySection')).toMatchObject(sectionData);
+        expect(Preferences.get('prefTitle.test.mySection')).toMatchObject(prefData);
     });
 
     test('Update from fetch, with error', async () => {
@@ -132,7 +132,7 @@ describe('Updating preferences', () => {
             body: JSON.stringify({ valuesByPath: myNewPrefs })
         }));
         // No changes to preferences should happen
-        expect(Preferences.get('sections.test.mySection')).toBeUndefined();
+        expect(Preferences.get('prefTitle.test.mySection')).toBeUndefined();
     });
 });
 
@@ -220,7 +220,7 @@ describe('Preferences listener', () => {
 
     test('Listen on update', async () => {
         const myNewPrefs: Partial<PreferencesModel> = {
-            sections: {
+            prefTitle: {
                 test: {
                     mySection: {
                         localizedTitle: 'prefTitle',
@@ -252,7 +252,7 @@ describe('Preferences listener', () => {
 
     test('Listen on update with error, no call expected', async () => {
         const myNewPrefs: Partial<PreferencesModel> = {
-            sections: {
+            prefTitle: {
                 test: {
                     mySection: {
                         localizedTitle: 'prefTitle',

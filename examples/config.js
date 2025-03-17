@@ -154,6 +154,16 @@ module.exports = {
         overwriteExistingFile          : true
       }
     },
+
+    // Enable/Disable sections of the application
+    // sections: {
+    //     simulations: {
+    //         enabled: true
+    //    },
+    //    routing: {
+    //        enabled: false
+    //    },
+    //},
   
     defaultPreferences: {
       transit: {

@@ -8,6 +8,7 @@ import config from './shared/project.config';
 import lineModesDefaultValues from './lineModesDefaultValues';
 import constants from './constants';
 
+// @deprecated This type has moved to chaire-lib's project configuration
 interface SectionDescription {
     localizedTitle: string;
     icon: string;
@@ -19,7 +20,10 @@ export interface PreferencesModel {
     defaultSection: string;
     infoPanelPosition: string;
     dateTimeFormat: string;
-    sections: {
+    // @deprecated This type has moved to chaire-lib's project configuration.
+    // Use the project configuration's `sections` instead, as it is not a
+    // preference, but an instance specific configuration.
+    sections?: {
         [key: string]: {
             [key: string]: SectionDescription;
         };
@@ -36,55 +40,6 @@ const defaultPreferences: PreferencesModel = {
     defaultSection: 'agencies',
     infoPanelPosition: 'right',
     dateTimeFormat: 'YYYY-MM-DD HH:mm',
-    sections: {
-        transition: {
-            agencies: {
-                localizedTitle: 'transit:transitAgency:AgenciesAndLines',
-                icon: '/dist/images/icons/transit/lines_white.svg'
-            },
-            nodes: {
-                localizedTitle: 'transit:transitNode:Nodes',
-                icon: '/dist/images/icons/transit/node_white.svg'
-            },
-            services: {
-                localizedTitle: 'transit:transitService:Services',
-                icon: '/dist/images/icons/transit/service_white.svg'
-            },
-            scenarios: {
-                localizedTitle: 'transit:transitScenario:Scenarios',
-                icon: '/dist/images/icons/transit/scenario_white.svg'
-            },
-            routing: {
-                localizedTitle: 'main:Routing',
-                icon: '/dist/images/icons/interface/routing_white.svg'
-            },
-            accessibilityMap: {
-                localizedTitle: 'main:AccessibilityMap',
-                icon: '/dist/images/icons/interface/accessibility_map_white.svg'
-            },
-            batchCalculation: {
-                localizedTitle: 'main:BatchCalculation',
-                icon: '/dist/images/icons/interface/od_routing_white.svg'
-            },
-            simulations: {
-                localizedTitle: 'transit:simulation:Simulations',
-                icon: '/dist/images/icons/interface/simulation_white.svg',
-                enabled: false
-            },
-            gtfsImport: {
-                localizedTitle: 'transit:gtfs:Import',
-                icon: '/dist/images/icons/interface/import_white.svg'
-            },
-            gtfsExport: {
-                localizedTitle: 'transit:gtfs:Export',
-                icon: '/dist/images/icons/interface/export_white.svg'
-            },
-            preferences: {
-                localizedTitle: 'main:Preferences',
-                icon: '/dist/images/icons/interface/preferences_white.svg'
-            }
-        }
-    },
     map: {
         center: [config.mapDefaultCenter.lon, config.mapDefaultCenter.lat],
         zoom: 10

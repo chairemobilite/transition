@@ -405,6 +405,22 @@ export const setProjectConfiguration = (newConfig: Partial<ProjectConfiguration<
         }
     }
 
+    // If there are still section configurations in the defaultPreferences section of the project config, set it as section config.
+    // FIXME Remove this if a reasonable time after march 2025, to give time to instances to update their configuration
+    const defaultPreferences = (newConfig as any)?.defaultPreferences;
+    if (defaultPreferences && defaultPreferences.sections) {
+        console.warn(
+            'The `defaultPreferences`\'s `sections` configuration is deprecated and will be removed in the future. Please use `sections.[sectionName]` configuration options instead, with the same format as the defaultPreferences.'
+        );
+        Object.keys(defaultPreferences.sections).forEach((appName) => {
+            Object.keys(defaultPreferences.sections[appName]).forEach((sectionName) => {
+                _merge(newConfig, {
+                    sections: { [sectionName]: defaultPreferences.sections[appName][sectionName] }
+                });
+            });
+        });
+    }
+
     setProjectConfigurationCommon(newConfig);
 };
 

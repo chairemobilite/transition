@@ -6,6 +6,14 @@
  */
 import _merge from 'lodash/merge';
 
+type SectionType = {
+    localizedTitle: string;
+    icon: string;
+    showMap?: boolean;
+    showFullSizePanel?: boolean;
+    enabled?: boolean;
+};
+
 // TODO Some project config option depend on the application, so should not be
 // typed in chaire-lib. Each app (transition , evolution, etc) should add types
 // to the config and should have a project.config file which imports this one
@@ -98,6 +106,14 @@ export type ProjectConfiguration<AdditionalConfig> = {
      * Absolute directory where project data will be stored (import files, osrm data, user data, caches, etc)
      */
     projectDirectory: string;
+
+    /**
+     * Configuration for the sections in the project. Used for apps that use the
+     * contributions system, with "dashboard" components
+     */
+    sections: {
+        [sectionName: string]: SectionType;
+    };
 } & AdditionalConfig;
 
 // Initialize default configuration
@@ -106,7 +122,8 @@ const projectConfig: ProjectConfiguration<any> = {
     separateAdminLoginPage: false,
     projectShortname: 'default',
     userDiskQuota: '1gb',
-    maxFileUploadMB: 256
+    maxFileUploadMB: 256,
+    sections: {}
 };
 
 /**

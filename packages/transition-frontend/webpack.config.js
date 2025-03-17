@@ -18,6 +18,9 @@ if (!process.env.NODE_ENV) {
     process.env.NODE_ENV = 'development';
 }
 
+// Make sure Transition specific config are loaded
+require('transition-common/lib/config/project.config');
+// Read the configuration file
 const configuration = require('chaire-lib-backend/lib/config/server.config');
 // Extract from the config all options that we should not send to the frontend.
 // The `{ ...config }` will be sent to the frontend

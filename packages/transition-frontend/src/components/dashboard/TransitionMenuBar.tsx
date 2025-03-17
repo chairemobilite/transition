@@ -9,7 +9,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import config from 'chaire-lib-common/lib/config/shared/project.config';
 
 // TODO Menu items should not be provided directly by widgets, it should be
 // built from descriptive elements, or contributions should register their own
@@ -17,7 +17,7 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 const MenuBar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
     props: LayoutSectionProps & WithTranslation
 ) => {
-    const sectionsConfig = Preferences.get('sections.transition');
+    const sectionsConfig = config.sections;
 
     const onClickHandler = function (e) {
         e.preventDefault();
