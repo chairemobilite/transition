@@ -6,6 +6,10 @@
 
 services:
   transition-www:
+    # This line is necessary to specify that the build context is at the root of the app,
+    # otherwise the Dockerfile will not be detected. The docker-compose command *must* be
+    # ran from the root folder of the app, as mentioned above
+    build: .
     command:
       - /bin/sh 
       - /app/docker-dev/entrypoint-dev.sh
