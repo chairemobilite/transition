@@ -156,14 +156,14 @@ export default class OsmDataPreparationNonResidential {
         const allPoIBuildings: PoiBuilding[] = osmGeojsonService.getGeojsonsFromRawData(
             this._osmGeojsonData,
             allOsmBuildings,
-            { generateNodesIfNotFound: true, continueOnMissingGeojson: false }
+            { generateNodesIfNotFound: true, continueOnMissingGeojson: true }
         );
 
         const allBuildingPartsRaw = this._osmRawData.queryOr(queryBuildingPartsFromOsm);
         const allBuildingParts: SingleGeoFeature[] = osmGeojsonService
             .getGeojsonsFromRawData(this._osmGeojsonData, allBuildingPartsRaw, {
                 generateNodesIfNotFound: true,
-                continueOnMissingGeojson: false
+                continueOnMissingGeojson: true
             })
             .map((part) => part.geojson);
 
