@@ -115,7 +115,6 @@ export class TransitAccessibilityMapCalculator {
             maxTravelTimeSeconds: number;
             timeOfTripType: 'departure' | 'arrival';
             location: Feature<Point>;
-            accessibleNodes?: { ids: string[]; durations: number[] };
         }
     ): AccessibilityMapQueryOptions {
         const params: AccessibilityMapQueryOptions = {
@@ -175,7 +174,7 @@ export class TransitAccessibilityMapCalculator {
         const specifiedTime = !_isBlank(departureTime) ? (departureTime as number) : (arrivalTime as number);
         const times = getTimes(specifiedTime, attributes.deltaSeconds, attributes.deltaIntervalSeconds);
 
-        const { isCancelled, accessibleNodes, ...queryOptions } = options;
+        const { isCancelled, ...queryOptions } = options;
         const promises: Promise<TrRoutingResultAccessibilityMap>[] = [];
         let specifiedTimeIndex = 0;
 
@@ -197,8 +196,7 @@ export class TransitAccessibilityMapCalculator {
                 location: attributes.locationGeojson,
                 timeSecondsSinceMidnight: time,
                 maxTravelTimeSeconds: durations[0],
-                timeOfTripType: !_isBlank(departureTime) ? 'departure' : 'arrival',
-                accessibleNodes
+                timeOfTripType: !_isBlank(departureTime) ? 'departure' : 'arrival'
             });
 
             //accessibleMap expect the port number to be in an HostPort struct

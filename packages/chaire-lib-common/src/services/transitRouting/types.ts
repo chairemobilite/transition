@@ -86,7 +86,6 @@ export interface AccessibilityMapQueryOptions extends TrRoutingBaseQueryOptions 
      * To point from/to which to get the accessibility map
      */
     location: GeoJSON.Feature<GeoJSON.Point>;
-    accessibleNodes?: { ids: string[]; durations: number[] };
 }
 
 export type TrRoutingResultPath = { type: 'path'; path: TrRoutingApi.TrRoutingPath };

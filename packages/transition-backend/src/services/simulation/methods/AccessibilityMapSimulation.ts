@@ -18,7 +18,6 @@ import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
 import { TransitAccessibilityMapCalculator } from '../../accessibilityMap/TransitAccessibilityMapCalculator';
 import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
-import AccessibleNodeCache from './AccessibleNodeCache';
 
 export const AccessMapSimulationTitle = 'AccessMapSimulation';
 export interface AccessMapSimulationOptions {
@@ -31,8 +30,6 @@ type AccessMapSimulationResults = {
     // TODO Array of costs for 5 places, if we keep each place, it's too much data, or is it?
     placesCost: number[];
 };
-
-const accessibleNodeCache = new AccessibleNodeCache(10000);
 
 export class AccessibilityMapSimulationFactory implements SimulationMethodFactory<AccessMapSimulationOptions> {
     getDescriptor = () => new AccessMapSimulationDescriptor();
@@ -193,11 +190,6 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
             const placesToTest = places.splice(0, 5);
             const costs: number[] = [];
             const promises = placesToTest.map(async (place) => {
-                const accessibleNodes = await accessibleNodeCache.getAccessibleNodes(
-                    place,
-                    nodeCollection,
-                    this.simulationDataAttributes.routingAttributes.maxAccessEgressTravelTimeSeconds
-                );
                 const randomDepartureTime = random.int(SIMULATION_TIME_RANGE[0], SIMULATION_TIME_RANGE[1]);
                 accessMapRouting.attributes.locationGeojson = turfPoint(place.geography.coordinates);
                 accessMapRouting.attributes.departureTimeSecondsSinceMidnight = randomDepartureTime;
@@ -205,8 +197,7 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
                     const { result } = await TransitAccessibilityMapCalculator.calculate(
                         accessMapRouting.getAttributes(),
                         {
-                            port: options.trRoutingPort,
-                            accessibleNodes
+                            port: options.trRoutingPort
                         }
                     );
 
