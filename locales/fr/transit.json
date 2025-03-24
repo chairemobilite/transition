@@ -745,7 +745,7 @@
         "Comparisons": "Comparaisons",
         "ScenarioN": "Scénario {{scenarioNumber}}",
         "ScenarioComparison": "Comparaison de scénarios",
-        "ScenarioAlternatives": "Parcours alternatifs pour le scénario {{scenarioNumber}}, {{scenarioName}}",
+        "ScenarioAlternatives": "Parcours alternatifs pour le scénario {{scenarioNumber}}",
         "ScenarioError": "Erreur pour le scénario {{scenarioNumber}}:"
     },
     "gtfs": {
