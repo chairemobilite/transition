@@ -19,6 +19,5 @@ export interface TransitMapCalculationOptions {
      * @memberof TransitMapCalculationOptions
      */
     additionalProperties?: { [key: string]: any };
-    accessibleNodes?: { ids: string[]; durations: number[] };
     [key: string]: any;
 }
