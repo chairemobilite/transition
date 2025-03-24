@@ -109,11 +109,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         );
     };
 
-    const handleKeyUp = (e: React.KeyboardEvent) => {
-        // submit on Enter or space key
-        // FIXME Remove the deprecated `which` property
-        if (e.key === 'Enter' || e.key === ' ' || e.which === 13 || e.which === 32) {
-            handleSubmit();
+    const handleEnterKeyUp = (e: React.KeyboardEvent) => {
+        // Submit form on 'Enter' inside the element
+        if (e.key === 'Enter') {
+            submitButtonRef.current?.click();
         }
     };
 
@@ -126,7 +125,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                 {formState.error && <FormErrors errors={[formState.error]} />}
                 {register && !isAuthenticated && <FormErrors errors={['auth:usernameOrEmailAlreadyExists']} />}
             </div>
-
             <div className="apptr__form-container question-empty">
                 <div className="apptr__form-input-container">
                     <label htmlFor="email" className="_flex">
@@ -144,7 +142,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                     />
                 </div>
             </div>
-
             {!withEmailOnly && (
                 <div className="apptr__form-container question-empty">
                     <div className="apptr__form-input-container">
@@ -162,7 +159,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                     </div>
                 </div>
             )}
-
             <div className="apptr__form-container question-empty">
                 <div className="apptr__form-input-container">
                     <label htmlFor="password" className="_flex">
@@ -178,7 +174,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                     />
                 </div>
             </div>
-
             <div className="apptr__form-container question-empty">
                 <div className="apptr__form-input-container">
                     <label htmlFor="passwordConfirmation" className="_flex">
@@ -191,22 +186,25 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
                         className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string _input-password"
                         value={formState.passwordConfirmation}
                         onChange={handleInputChange}
+                        {...(withCaptcha ? {} : { onKeyUp: handleEnterKeyUp })} // Only add onKeyUp if not using captcha
                     />
                 </div>
             </div>
-
             {withCaptcha && (
                 <div className="apptr__form-container question-empty">
-                    <CaptchaComponent value={formState.userCaptcha} onChange={(e) => handleInputChange(e)} />
+                    <CaptchaComponent
+                        value={formState.userCaptcha}
+                        onChange={(e) => handleInputChange(e)}
+                        onKeyUp={handleEnterKeyUp}
+                    />
                 </div>
             )}
-
             <Button
+                type="submit"
                 isVisible={true}
                 onClick={handleSubmit}
                 inputRef={submitButtonRef as React.RefObject<HTMLButtonElement>}
                 label={t(['transition:auth:Register', 'auth:Register'])}
-                onKeyUp={handleKeyUp}
             />
         </form>
     );

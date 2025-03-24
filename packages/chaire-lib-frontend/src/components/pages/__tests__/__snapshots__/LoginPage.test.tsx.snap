@@ -63,7 +63,7 @@ exports[`Login page rendering Allow registration, no forgot password page 1`] = 
     >
       <button
         class="button green large"
-        type="button"
+        type="submit"
       >
          
         auth:Login
@@ -160,7 +160,7 @@ exports[`Login page rendering Registration allowed, allow forget password 1`] = 
     >
       <button
         class="button green large"
-        type="button"
+        type="submit"
       >
          
         auth:Login
@@ -246,7 +246,7 @@ exports[`Login page rendering Registration not allowed, no forgot password page 
     >
       <button
         class="button green large"
-        type="button"
+        type="submit"
       >
          
         auth:Login
