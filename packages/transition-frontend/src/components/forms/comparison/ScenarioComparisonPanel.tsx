@@ -295,7 +295,11 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
     private getScenarioNameById(id: string): string {
         for (const scenario of this.state.scenarioCollection.features) {
             if (scenario.id === id) {
-                return scenario.toString(false);
+                let scenarioName = scenario.toString(false) as string;
+                if (scenarioName.length >= 30) {
+                    scenarioName = scenarioName.substring(0, 30).trim() + '...';
+                }
+                return scenarioName;
             }
         }
         return '';
