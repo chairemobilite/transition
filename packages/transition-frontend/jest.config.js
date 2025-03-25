@@ -14,5 +14,6 @@ module.exports = {
     setupFilesAfterEnv: [
         ...baseConfig.setupFilesAfterEnv
     ],
-    testEnvironment: 'jsdom'
+    testEnvironment: 'jsdom',
+    modulePathIgnorePatterns: ['spec.ts']
 };
