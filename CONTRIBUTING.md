@@ -40,12 +40,46 @@ Unfamiliar with the review process? Read [The ABC of a Pull Request](docs/ABC_of
 
 ## Testing:
 
-There are 2 types of tests: unit tests and sequential tests.
+There are 3 types of tests: unit tests, sequential tests, and UI tests
 
 * Unit tests are run using `yarn test` and run the complete test suites for all the packages
 * Sequential tests are integration tests that require a test database (different from the one used in the application, as it truncates all the tables at the end). They are run with `yarn test:sequential`. Before running those, the database needs to be setup with the following `yarn` commands:
   * `yarn setup-test`: Same as `yarn setup`, but for the TEST environment.
   * `yarn migrate-test`: Same as `yarn migrate`, but for the TEST environment.
+* UI tests are integration tests that use the Playwright library to do operations such as clicking and typing on the Transition UI to verify the final compiled project runs properly. The setup is more complex, and is detailed in the next section of this file.
+
+### UI testing with Playwright
+To execute UI tests with Playwright, you first have to create an account that will be used for logging in to Transition during the tests. This only needs to be done once:
+```
+yarn create-user --username testUser --email user@test.ts --password testPassword --admin
+```
+You may also use your own account, but in that case, you need to add the variables `PLAYWRIGHT_TEST_USER`, `PLAYWRIGHT_TEST_EMAIL`, and `PLAYWRIGHT_TEST_PASSWORD` to the `.env` file and define them with your account's credentials.
+
+Next, configure Playwright by copying the example config file and select the browser to test in:
+```
+cp packages/transition-frontend/playwright-example.config.ts packages/transition-frontend/playwright.config.ts
+```
+
+Next, install browser dependencies to correctly execute the tests. If it is not done, an arror message should tell you the command when attempting to run the test. It is possible to install each browser separaly with the following command, for example `firefox`:
+```
+npx playwright install --with-deps firefox
+```
+
+Now that Playwright is configured, you need to start the application as you would run it normally:
+```
+yarn build:dev or yarn build:prod
+yarn start
+```
+
+Then, to run the tests:
+```
+yarn test:ui
+```
+
+You can also use this command to open a graphic interface that allows you to run tests individually and gives more info:
+```
+yarn test:ui --ui
+```
 
 ## Debugging
 

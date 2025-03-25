@@ -7,7 +7,7 @@ This folder contains an example configuration file, as well as necessary files t
 2. Update the .env file and set the `PROJECT_CONFIG` to point to the config file in this directory
 
 ```
-PROJECT_CONFIG=</path/to/this/repo>/examples/transition/config.js
+PROJECT_CONFIG=</path/to/this/repo>/examples/config.js
 ```
 
 3. Follow the [installation instructions](../../README.md#installation) at the root of this repo to setup the database and create users

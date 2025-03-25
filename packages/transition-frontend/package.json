@@ -18,7 +18,7 @@
     "test": "cross-env NODE_ENV=test jest --config=jest.config.js",
     "test:unit": "cross-env NODE_ENV=test jest --config=jest.config.js",
     "test:sequential": "echo 'cross-env NODE_ENV=test jest --config=jest.sequential.config.js --runInBand'",
-    "test:ui": "echo 'cross-env NODE_ENV=test jest --config=jest.ui.config.js'",
+    "test:ui": "LOCALE_DIR=$(pwd)/locales npx playwright test",
     "lint": "eslint .",
     "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write"
   },
@@ -66,6 +66,7 @@
   },
   "devDependencies": {
     "@alienfast/i18next-loader": "^2.0.2",
+    "@playwright/test": "^1.50.0",
     "@testing-library/react": "^16.1.0",
     "@types/geojson": "^7946.0.15",
     "@types/jest": "^29.5.14",

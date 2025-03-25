@@ -1,0 +1,72 @@
+name: Run UI tests with Playwright
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-run-UI-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+    strategy:
+      matrix:
+        node-version: [22.x]
+    env:
+      PROJECT_CONFIG: ${{ github.workspace }}/.github/config-for-github-ui-tests.js
+      PG_CONNECTION_STRING_PREFIX: postgres://testuser:testpassword@localhost:5432/
+      PG_DATABASE_PRODUCTION: testdb
+      PG_DATABASE_DEVELOPMENT: testdb
+      CI: true ## This is to make sure that the tests run in CI mode
+      PLAYWRIGHT_TEST_USER: testUser
+      PLAYWRIGHT_TEST_EMAIL: user@test.ts
+      PLAYWRIGHT_TEST_PASSWORD: testPassword
+    steps:
+    - uses: actions/checkout@v4
+    - name: copy env file
+      run: cp .env.example .env
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Install
+      run: yarn
+    - name: Compile
+      run: yarn compile
+    - name: Build Client bundle
+      run: yarn build:prod
+    - name: Create DB
+      run: yarn setup && yarn migrate
+      env:
+        NODE_ENV: production
+    - name: Get Playwright config
+      run: cp packages/transition-frontend/playwright-example.config.ts packages/transition-frontend/playwright.config.ts
+    - name: Create test user
+      run: yarn create-user --username $PLAYWRIGHT_TEST_USER --email $PLAYWRIGHT_TEST_EMAIL --password $PLAYWRIGHT_TEST_PASSWORD --admin
+    - name: Start application
+      run: yarn start &
+      env:
+        NODE_ENV: production
+    - name: Run UI tests
+      run: yarn test:ui
+    - name: Archive UI Test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-results-${{matrix.node-version}} # This is to make sure that the results are stored in a unique name
+        path: packages/transition-frontend/test-results
+        retention-days: 2
