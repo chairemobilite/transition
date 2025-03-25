@@ -14,6 +14,9 @@
         "n/no-missing-require": ["error", {
             "tryExtensions": [".js", ".json", ".node", ".ts"]
         }],
+        "n/no-unpublished-import": ["error", {
+            "allowModules": ["@playwright/test"]
+        }],
         "indent": ["error", 4, {"VariableDeclarator": 0}],
         "linebreak-style": ["error", "unix"],
         "no-dupe-keys": "error",
