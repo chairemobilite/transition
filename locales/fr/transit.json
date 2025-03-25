@@ -734,8 +734,15 @@
         "Comparisons": "Comparaisons",
         "ScenarioN": "Scénario {{scenarioNumber}}",
         "ScenarioComparison": "Comparaison de scénarios",
-        "ScenarioAlternatives": "Parcours alternatifs pour le scénario {{scenarioNumber}}, {{scenarioName}}",
+        "ScenarioAlternatives": "Parcours alternatifs pour le scénario {{scenarioNumber}}, {{scenarioName}} :",
         "ScenarioError": "Erreur pour le scénario {{scenarioNumber}}:"
+    },
+    "accessibilityComparison": {
+        "Title": "Comparaison de cartes d'accessibilité",
+        "Legend": "Légende",
+        "ScenarioIntersection": "Intersection des scénarios",
+        "Intersection": "Intersection",
+        "SelectMaxTime": "Sélectionner le temps maximal à afficher (en minutes)"
     },
     "gtfs": {
         "ButtonImport": "Importer",

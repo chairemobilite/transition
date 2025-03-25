@@ -86,3 +86,43 @@ export const calculateAccessibilityMap = async (
         );
     });
 };
+
+export const calculateMapIntersection = async (
+    maps: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>,
+    color: string
+): Promise<TransitAccessibilityMapWithPolygonResult | null> => {
+    return new Promise((resolve, reject) => {
+        serviceLocator.socketEventManager.emit(
+            'accessibiliyMap.getIntersection',
+            maps,
+            color,
+            (intersectionResult: Status.Status<TransitAccessibilityMapWithPolygonResult | null>) => {
+                if (Status.isStatusOk(intersectionResult)) {
+                    resolve(Status.unwrap(intersectionResult));
+                } else {
+                    reject(intersectionResult.error);
+                }
+            }
+        );
+    });
+};
+
+export const calculateMapDifference = async (
+    maps: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>,
+    color: string
+): Promise<TransitAccessibilityMapWithPolygonResult | null> => {
+    return new Promise((resolve, reject) => {
+        serviceLocator.socketEventManager.emit(
+            'accessibiliyMap.getDifference',
+            maps,
+            color,
+            (differenceResult: Status.Status<TransitAccessibilityMapWithPolygonResult | null>) => {
+                if (Status.isStatusOk(differenceResult)) {
+                    resolve(Status.unwrap(differenceResult));
+                } else {
+                    reject(differenceResult.error);
+                }
+            }
+        );
+    });
+};

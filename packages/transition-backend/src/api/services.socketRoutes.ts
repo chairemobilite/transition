@@ -151,6 +151,48 @@ export default function (socket: EventEmitter, userId?: number) {
         }
     );
 
+    socket.on(
+        'accessibiliyMap.getIntersection',
+        async (
+            maps: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>,
+            color: string,
+            callback: (status: Status.Status<TransitAccessibilityMapWithPolygonResult | null>) => void
+        ) => {
+            try {
+                const intersection = await TransitAccessibilityMapCalculator.getPolygonsIntersection(maps, color);
+                callback(Status.createOk(intersection));
+            } catch (error) {
+                console.error(error);
+                callback(
+                    Status.createError(
+                        error instanceof Error ? error.message : 'Error while calculating polygons intersection'
+                    )
+                );
+            }
+        }
+    );
+
+    socket.on(
+        'accessibiliyMap.getDifference',
+        async (
+            maps: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>,
+            color: string,
+            callback: (status: Status.Status<TransitAccessibilityMapWithPolygonResult | null>) => void
+        ) => {
+            try {
+                const difference = await TransitAccessibilityMapCalculator.getPolygonsDifference(maps, color);
+                callback(Status.createOk(difference));
+            } catch (error) {
+                console.error(error);
+                callback(
+                    Status.createError(
+                        error instanceof Error ? error.message : 'Error while calculating polygons difference'
+                    )
+                );
+            }
+        }
+    );
+
     // These routes create tasks, which need to be associated to a user. If
     // there is no userId here, it means the socket routes are set from CLI and
     // it can't run these tasks now.
