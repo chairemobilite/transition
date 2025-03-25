@@ -69,20 +69,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ withForgotPassword = false, heade
         );
     };
 
-    const handleKeyPress = (e: React.KeyboardEvent<HTMLFormElement>) => {
-        if (e.key === 'Enter' || e.which === 13) {
+    const handleEnterKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        // Submit form on 'Enter' inside the element
+        if (e.key === 'Enter') {
             submitButtonRef.current?.click();
         }
     };
 
-    const handleKeyUp = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ' || e.which === 13 || e.which === 32) {
-            handleSubmit();
-        }
-    };
-
     return (
-        <form className="apptr__form apptr__form-auth" onKeyUp={handleKeyPress} onSubmit={(e) => e.preventDefault()}>
+        <form className="apptr__form apptr__form-auth" onSubmit={(e) => e.preventDefault()}>
             <div className="apptr__form-label-container center">
                 <div className="apptr__form__label-standalone no-question">
                     <p>{headerText || t('auth:pleaseEnterLoginCredentials')}</p>
@@ -120,6 +115,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ withForgotPassword = false, heade
                         className="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
                         value={formState.password}
                         onChange={handleInputChange}
+                        onKeyUp={handleEnterKeyPress}
                     />
                     {withForgotPassword && (
                         <div className="right _small">
@@ -132,11 +128,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ withForgotPassword = false, heade
             </div>
 
             <Button
+                type="submit"
                 isVisible={true}
                 onClick={handleSubmit}
                 inputRef={submitButtonRef as React.RefObject<HTMLButtonElement>}
                 label={t('auth:Login')}
-                onKeyUp={handleKeyUp}
             />
         </form>
     );

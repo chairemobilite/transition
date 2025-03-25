@@ -68,9 +68,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ headerText, buttonText }) => {
     };
 
     const handleKeyUp = (e: React.KeyboardEvent) => {
-        // Submit form on enter or space keys inside the email input
+        // Submit form on 'Enter' or 'space' keys inside the email input
         if (e.key === 'Enter' || e.key === ' ') {
-            handleSubmit();
+            submitButtonRef.current?.click();
         }
     };
 
@@ -111,6 +111,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ headerText, buttonText }) => {
             </div>
 
             <Button
+                type="submit"
                 isVisible={true}
                 onClick={handleSubmit}
                 inputRef={submitButtonRef as React.RefObject<HTMLButtonElement>}
