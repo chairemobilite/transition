@@ -100,47 +100,132 @@ interface ScheduleDefaults {
     DEFAULT_SEATED_CAPACITY: number;
 }
 
+// Interface for generateTrips options
+interface GenerateTripsOptions {
+    startAtSecondsSinceMidnight: number;
+    endAtSecondsSinceMidnight: number;
+    outboundIntervalSeconds: number;
+    inboundIntervalSeconds: number;
+    outboundTotalTimeSeconds: number;
+    inboundTotalTimeSeconds: number;
+    units: TransitUnit[];
+    outboundPath: TransitPath;
+    inboundPath?: TransitPath;
+    period?: any;
+}
+
+// Interface for calculateResourceRequirements options
+interface CalculateResourcesOptions {
+    period: any;
+    startAtSecondsSinceMidnight: number;
+    endAtSecondsSinceMidnight: number;
+    outboundTotalTimeSeconds: number;
+    inboundTotalTimeSeconds: number;
+    secondAllowed?: boolean;
+}
+
+interface GenerateTripsWithIntervalsOptions {
+    startAtSecondsSinceMidnight: number;
+    endAtSecondsSinceMidnight: number;
+    outboundIntervalSeconds: number;
+    inboundIntervalSeconds: number;
+    outboundTotalTimeSeconds: number;
+    inboundTotalTimeSeconds: number;
+    units: TransitUnit[];
+    outboundPath: TransitPath;
+    inboundPath?: TransitPath;
+}
+
+// Interface for initializeUnits
+interface InitializeUnitsOptions {
+    units: TransitUnit[];
+    startFromDestination: boolean;
+    startTime: number;
+}
+
+// Interface for generateDepartureSchedules
+interface GenerateDepartureSchedulesOptions {
+    startTime: number;
+    endTime: number;
+    outboundIntervalSeconds: number;
+    inboundIntervalSeconds: number;
+    outboundTotalTimeSeconds: number;
+    inboundTotalTimeSeconds: number;
+    startFromDestination: boolean;
+    hasInboundPath: boolean;
+}
+
+// Interface for processSimultaneousDepartures
+interface ProcessSimultaneousDeparturesOptions {
+    currentTime: number;
+    units: TransitUnit[];
+    outboundPath: TransitPath;
+    inboundPath?: TransitPath;
+    outboundTotalTimeSeconds: number;
+    inboundTotalTimeSeconds: number;
+    trips: any[];
+    usedUnitsIds: Set<number>;
+    outboundDepartures: number[];
+    inboundDepartures: number[];
+}
+
+// Interface for processIndividualDepartures
+interface ProcessIndividualDeparturesOptions {
+    currentTime: number;
+    nextOutbound: number;
+    nextInbound: number;
+    units: TransitUnit[];
+    outboundPath: TransitPath;
+    inboundPath?: TransitPath;
+    outboundTotalTimeSeconds: number;
+    inboundTotalTimeSeconds: number;
+    trips: any[];
+    usedUnitsIds: Set<number>;
+    outboundDepartures: number[];
+    inboundDepartures: number[];
+}
+
+// Interface for processDeparture
+interface ProcessDepartureOptions {
+    currentTime: number;
+    totalTimeSeconds: number;
+    units: TransitUnit[];
+    path: TransitPath;
+    trips: any[];
+    direction: UnitDirection;
+}
+
+// Interface for generateTrip
+interface GenerateTripOptions {
+    tripStartAtSeconds: number;
+    unit: TransitUnit;
+    path: TransitPath;
+    segments: any[];
+    nodes: string[];
+    dwellTimes: number[];
+    blockId?: string | null;
+}
+
 // interface for schedule generation strategies
 interface ScheduleGenerationStrategy {
-    calculateResourceRequirements(
-        period: any,
-        startAtSecondsSinceMidnight: number,
-        endAtSecondsSinceMidnight: number,
-        outboundTotalTimeSeconds: number,
-        inboundTotalTimeSeconds: number,
-        secondAllowed?: boolean
-    ): {
+    calculateResourceRequirements(options: CalculateResourcesOptions): {
         units: TransitUnit[];
         outboundIntervalSeconds: number;
         inboundIntervalSeconds: number;
     };
 
-    generateTrips(
-        startAtSecondsSinceMidnight: number,
-        endAtSecondsSinceMidnight: number,
-        outboundIntervalSeconds: number,
-        inboundIntervalSeconds: number,
-        outboundTotalTimeSeconds: number,
-        inboundTotalTimeSeconds: number,
-        units: TransitUnit[],
-        outboundPath: TransitPath,
-        inboundPath?: TransitPath,
-        period?: any
-    ): { trips: SchedulePeriodTrip[]; realUnitCount: number };
+    generateTrips(options: GenerateTripsOptions): {
+        trips: SchedulePeriodTrip[];
+        realUnitCount: number;
+    };
 }
 
 abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy {
     // Shared methods for all strategies
-    protected generateTrip(
-        tripStartAtSeconds: number,
-        unit: TransitUnit,
-        path: TransitPath,
-        segments,
-        nodes: string[],
-        dwellTimes,
-        blockId = null
-    ) {
+    protected generateTrip(options: GenerateTripOptions) {
         try {
+            const { tripStartAtSeconds, unit, path, segments, nodes, dwellTimes, blockId = null } = options;
+
             const tripArrivalTimesSeconds: (number | null)[] = [];
             const tripDepartureTimesSeconds: (number | null)[] = [];
             const canBoards: boolean[] = [];
@@ -148,6 +233,7 @@ abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy {
             const nodesCount = nodes.length;
             let tripTimeSoFar = tripStartAtSeconds;
 
+            // Reste de l'implémentation inchangée...
             for (let i = 0; i < nodesCount; i++) {
                 const segment = segments[i];
                 const dwellTimeSeconds = dwellTimes[i];
@@ -188,38 +274,26 @@ abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy {
                 unitDirection: unit.direction,
                 unitReadyAt: unit.expectedReturnTime || unit.expectedArrivalTime
             };
+
             return trip;
-        } catch {
-            throw `The path ${path.getId()} for line ${path.getLine()?.getAttributes().shortname} (${
-                path.attributes.line_id
-            }) is not valid. Please recalculate routing for this path`;
+        } catch (error) {
+            throw `The path ${options.path.getId()} for line ${options.path.getLine()?.getAttributes().shortname} (${
+                options.path.attributes.line_id
+            }) is not valid. Please recalculate routing for this path, error : ${error}`;
         }
     }
 
     // Abstract methods that sub classes need to implement
-    abstract calculateResourceRequirements(
-        period: any,
-        startAtSecondsSinceMidnight: number,
-        endAtSecondsSinceMidnight: number,
-        outboundTotalTimeSeconds: number,
-        inboundTotalTimeSeconds: number
-    ): {
+    abstract calculateResourceRequirements(options: CalculateResourcesOptions): {
         units: TransitUnit[];
         outboundIntervalSeconds: number;
         inboundIntervalSeconds: number;
     };
 
-    abstract generateTrips(
-        startAtSecondsSinceMidnight: number,
-        endAtSecondsSinceMidnight: number,
-        outboundIntervalSeconds: number,
-        inboundIntervalSeconds: number,
-        outboundTotalTimeSeconds: number,
-        inboundTotalTimeSeconds: number,
-        units: TransitUnit[],
-        outboundPath: TransitPath,
-        inboundPath?: TransitPath
-    ): { trips: SchedulePeriodTrip[]; realUnitCount: number };
+    abstract generateTrips(options: GenerateTripsOptions): {
+        trips: SchedulePeriodTrip[];
+        realUnitCount: number;
+    };
 }
 
 class ScheduleStrategyFactory {
@@ -230,31 +304,104 @@ class ScheduleStrategyFactory {
         case ScheduleCalculationMode.BASIC:
             return new BasicScheduleStrategy();
         default:
-            return new AsymmetricScheduleStrategy(); // Default strategy
+            return new BasicScheduleStrategy(); // Default strategy
         }
     }
 }
 
+/**
+ * Asymmetric Schedule Generation Strategy
+ *
+ * This strategy supports asymmetric transit schedules, allowing different intervals and logic
+ * for outbound and inbound directions. It dynamically assigns transit units to departures based on availability,
+ * direction, and scheduling constraints.
+ *
+ * Main Features:
+ * - Different intervals for outbound and inbound directions
+ * - Resource allocation based on either fixed unit count or defined intervals
+ * - Dynamic unit availability tracking and optimal assignment
+ * - Simulation of return trips when no inbound path is defined
+ *
+ * Schedule Generation Process:
+ * 1. Resource Calculation
+ *    - Method: `calculateResourceRequirements`
+ *    - Determines number of units and intervals using either:
+ *        a) Fixed unit count
+ *        b) Specified interval(s)
+ *
+ * 2. Unit Initialization
+ *    - Method: `initializeUnits`
+ *    - Sets initial state for each unit (location, direction, availability)
+ *
+ * 3. Departure Planning
+ *    - Method: `generateDepartureSchedules`
+ *    - Computes outbound and inbound departure timestamps based on intervals and total times
+ *
+ * 4. Trip Generation Loop
+ *    - Method: `generateTripsWithIntervals` or `generateTripsWithFixedUnits`
+ *    - At each timestamp, the strategy:
+ *        a) Updates unit availability (`updateAllUnitsAvailability`)
+ *        b) Selects appropriate unit (`findBestUnit`)
+ *        c) Creates and assigns trips (`processDeparture`, `generateTrip`)
+ *        d) Handles:
+ *           - Simultaneous departures (`processSimultaneousDepartures`)
+ *           - Individual departures (`processIndividualDepartures`)
+ *
+ * Helper Methods:
+ * - `updateUnitAvailability`: Updates a single unit's location and direction based on time
+ * - `findBestUnit`: Chooses the best available unit for a departure
+ * - `processDeparture`: Builds a trip and updates unit state
+ * - `generateTrip`: Constructs trip data (arrival/departure per node)
+ *
+ * Special Case Handling:
+ * - No inbound path: Simulates ghost return trips by resetting units to origin
+ * - Different intervals: Handles out-of-sync departures for each direction
+ *
+ * Entrypoint:
+ * - `generateTrips`: Delegates to interval-based or unit-count-based generation strategies
+ */
+
 class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
-    calculateResourceRequirements(
-        period: any,
-        startAtSecondsSinceMidnight: number,
-        endAtSecondsSinceMidnight: number,
-        outboundTotalTimeSeconds: number,
-        inboundTotalTimeSeconds: number,
-        secondAllowed?: boolean
-    ): {
-        units: TransitUnit[];
-        outboundIntervalSeconds: number;
-        inboundIntervalSeconds: number;
-    } {
+    /**
+     * Calculates resource requirements for transit scheduling
+     *
+     * This method determines the number of transit units and departure intervals
+     * based on two possible input scenarios:
+     * 1. Fixed number of units
+     * 2. Specified departure intervals
+     *
+     * @param period - Scheduling period configuration
+     * @param startAtSecondsSinceMidnight - Start time of the service period
+     * @param endAtSecondsSinceMidnight - End time of the service period
+     * @param outboundTotalTimeSeconds - Total duration of the outbound trip
+     * @param inboundTotalTimeSeconds - Total duration of the inbound trip
+     * @param secondAllowed - Flag to allow precise second-level intervals
+     *
+     * @returns Object containing:
+     *  - units: Array of initialized transit units
+     *  - outboundIntervalSeconds: Interval between outbound departures
+     *  - inboundIntervalSeconds: Interval between inbound departures
+     */
+    calculateResourceRequirements(options: CalculateResourcesOptions) {
+        const {
+            period,
+            startAtSecondsSinceMidnight,
+            endAtSecondsSinceMidnight,
+            outboundTotalTimeSeconds,
+            inboundTotalTimeSeconds,
+            secondAllowed
+        } = options;
+
         const cycleTimeSeconds = outboundTotalTimeSeconds + inboundTotalTimeSeconds;
         // TODO: add a way to ask the user if we need to return back to first stop when there is no inbound path.
         let tripsIntervalSeconds: number = 0;
         let tripsNumberOfUnits: number = 0;
         let totalPeriod = -1;
+
+        // Scenario 1: Fixed number of units specified
         if (_isNumber(period.number_of_units)) {
             period.inboundIntervalSeconds = 0;
+            // Calculate number of units and their intervals
             tripsNumberOfUnits = period.number_of_units;
             tripsIntervalSeconds = Math.ceil(cycleTimeSeconds / period.number_of_units);
             if (secondAllowed !== true) {
@@ -264,7 +411,10 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             period.calculated_interval_seconds = tripsIntervalSeconds;
             period.calculated_number_of_units = period.numberOfUnits;
         } else if (_isNumber(period.interval_seconds) && _isNumber(period.inbound_interval_seconds)) {
+            // Scenario 2: Intervals specified for outbound and inbound trips
             totalPeriod = endAtSecondsSinceMidnight - startAtSecondsSinceMidnight;
+
+            // Calculate required units based on outbound and inbound intervals
             const outboundUnitsFloat = totalPeriod / period.interval_seconds;
             const inboundUnitsFloat = totalPeriod / period.inbound_interval_seconds;
 
@@ -274,6 +424,7 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             tripsNumberOfUnits = Math.max(outboundUnits, inboundUnits);
         }
 
+        // Initialize transit units with default properties
         const units: TransitUnit[] = Array.from({ length: tripsNumberOfUnits }, (_, i) => ({
             id: i + 1,
             totalCapacity: SCHEDULE_DEFAULTS.DEFAULT_TOTAL_CAPACITY,
@@ -293,6 +444,7 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         };
     }
 
+    //Set Current position of Unit
     private updateUnitAvailability(unit: TransitUnit, currentTimeSeconds: number): void {
         if (unit.expectedArrivalTime <= currentTimeSeconds) {
             if (unit.direction === UnitDirection.OUTBOUND) {
@@ -307,6 +459,7 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         }
     }
 
+    //choose the best bus to optimize generation. We prioritize those already in circulation
     private findBestUnit(
         currentTime: number,
         direction: UnitDirection.OUTBOUND | UnitDirection.INBOUND,
@@ -331,24 +484,28 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         return unusedUnits[0] || null;
     }
 
-    private processDeparture(
-        currentTime: number,
-        totalTimeSeconds: number,
-        units: TransitUnit[],
-        path: TransitPath,
-        trips: any[],
-        direction: UnitDirection
-    ) {
+    private processDeparture(options: ProcessDepartureOptions) {
+        const { currentTime, totalTimeSeconds, units, path, trips, direction } = options;
+
         const unitTransit = this.findBestUnit(currentTime, direction, units);
         if (unitTransit) {
-            const trip = this.generateTrip(
-                currentTime,
-                unitTransit,
-                path,
-                path.getAttributes().data.segments,
-                path.getAttributes().nodes,
-                path.getData('dwellTimeSeconds')
-            );
+            const dwellTimesData = path.getData('dwellTimeSeconds');
+
+            const dwellTimes: number[] = Array.isArray(dwellTimesData)
+                ? dwellTimesData.map((time) => Number(time))
+                : [];
+
+            const segments = path.getAttributes().data.segments || [];
+
+            const trip = this.generateTrip({
+                tripStartAtSeconds: currentTime,
+                unit: unitTransit,
+                path: path,
+                segments: segments,
+                nodes: path.getAttributes().nodes,
+                dwellTimes: dwellTimes
+            });
+
             trips.push(trip);
             unitTransit.direction = direction;
             unitTransit.currentLocation = UnitLocation.IN_TRANSIT;
@@ -358,210 +515,361 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         return { unitId: null };
     }
 
-    generateTrips(
-        startAtSecondsSinceMidnight: number,
-        endAtSecondsSinceMidnight: number,
-        outboundIntervalSeconds: number,
-        inboundIntervalSeconds: number,
-        outboundTotalTimeSeconds: number,
-        inboundTotalTimeSeconds: number,
-        units: TransitUnit[],
-        outboundPath: TransitPath,
-        inboundPath?: TransitPath
-    ) {
+    // Helper method to initialize all units
+    private initializeUnits(options: InitializeUnitsOptions): void {
+        const { units, startFromDestination, startTime } = options;
+
+        units.forEach((unit) => {
+            unit.currentLocation = startFromDestination ? UnitLocation.DESTINATION : UnitLocation.ORIGIN;
+            unit.direction = null;
+            unit.expectedArrivalTime = startTime;
+            unit.expectedReturnTime = null;
+            unit.lastTripEndTime = null;
+        });
+    }
+
+    // Helper method to generate departure schedules
+    private generateDepartureSchedules(options: GenerateDepartureSchedulesOptions): {
+        outboundDepartures: number[];
+        inboundDepartures: number[];
+    } {
+        const outboundDepartures: number[] = [];
+        const inboundDepartures: number[] = [];
+        let time: number;
+
+        if (options.startFromDestination && options.hasInboundPath) {
+            // Start with inbound departures
+            time = options.startTime;
+            inboundDepartures.push(time);
+            while ((time += options.inboundIntervalSeconds) < options.endTime) {
+                inboundDepartures.push(time);
+            }
+
+            // Then schedule outbound departures
+            time = options.startTime + options.inboundTotalTimeSeconds;
+            outboundDepartures.push(time);
+            while ((time += options.outboundIntervalSeconds) < options.endTime) {
+                outboundDepartures.push(time);
+            }
+        } else {
+            // Start with outbound departures
+            time = options.startTime;
+            outboundDepartures.push(time);
+            while ((time += options.outboundIntervalSeconds) < options.endTime) {
+                outboundDepartures.push(time);
+            }
+
+            // Then schedule inbound departures if needed
+            if (options.hasInboundPath) {
+                time = options.startTime + options.outboundTotalTimeSeconds;
+                inboundDepartures.push(time);
+                while ((time += options.inboundIntervalSeconds) < options.endTime) {
+                    inboundDepartures.push(time);
+                }
+            }
+        }
+
+        return { outboundDepartures, inboundDepartures };
+    }
+    // Update all units availability based on current time
+    private updateAllUnitsAvailability(units: TransitUnit[], currentTime: number, inboundPath?: TransitPath): void {
+        units.forEach((unit) => {
+            // Handle "ghost trip" simulation when there's no inbound path
+            if (
+                !inboundPath &&
+                unit.currentLocation === UnitLocation.DESTINATION &&
+                currentTime >= unit.expectedArrivalTime
+            ) {
+                unit.currentLocation = UnitLocation.ORIGIN;
+                unit.direction = null;
+                unit.lastTripEndTime = currentTime;
+            } else {
+                this.updateUnitAvailability(unit, currentTime);
+            }
+        });
+    }
+
+    // Process simultaneous departures in both directions
+    private processSimultaneousDepartures(options: ProcessSimultaneousDeparturesOptions): void {
+        // Process outbound departure
+        options.outboundDepartures.shift();
+        const outboundResult = this.processDeparture({
+            currentTime: options.currentTime,
+            totalTimeSeconds: options.outboundTotalTimeSeconds,
+            units: options.units,
+            path: options.outboundPath,
+            trips: options.trips,
+            direction: UnitDirection.OUTBOUND
+        } as ProcessDepartureOptions);
+
+        if (outboundResult.unitId) options.usedUnitsIds.add(outboundResult.unitId);
+
+        // Process inbound departure if there's an inbound path
+        options.inboundDepartures.shift();
+        if (options.inboundPath) {
+            const inboundResult = this.processDeparture({
+                currentTime: options.currentTime,
+                totalTimeSeconds: options.inboundTotalTimeSeconds,
+                units: options.units,
+                path: options.inboundPath,
+                trips: options.trips,
+                direction: UnitDirection.INBOUND
+            });
+            if (inboundResult.unitId) options.usedUnitsIds.add(inboundResult.unitId);
+        }
+    }
+    // Process individual outbound or inbound departures
+    private processIndividualDepartures(options: ProcessIndividualDeparturesOptions): void {
+        // Process outbound departure
+        if (options.currentTime === options.nextOutbound) {
+            options.outboundDepartures.shift();
+            const result = this.processDeparture({
+                currentTime: options.currentTime,
+                totalTimeSeconds: options.outboundTotalTimeSeconds,
+                units: options.units,
+                path: options.outboundPath,
+                trips: options.trips,
+                direction: UnitDirection.OUTBOUND
+            });
+            if (result.unitId) options.usedUnitsIds.add(result.unitId);
+        }
+
+        // Process inbound departure
+        if (options.currentTime === options.nextInbound) {
+            options.inboundDepartures.shift();
+            if (options.inboundPath) {
+                const result = this.processDeparture({
+                    currentTime: options.currentTime,
+                    totalTimeSeconds: options.inboundTotalTimeSeconds,
+                    units: options.units,
+                    path: options.inboundPath,
+                    trips: options.trips,
+                    direction: UnitDirection.INBOUND
+                });
+                if (result.unitId) options.usedUnitsIds.add(result.unitId);
+            }
+        }
+    }
+
+    /**
+     * Generates trips when intervals are specified
+     * Handles complex scheduling with dynamic unit assignments
+     */
+    private generateTripsWithIntervals(options: GenerateTripsWithIntervalsOptions) {
         const trips: any[] = [];
-        const unitsCount = units.length;
         const usedUnitsIds = new Set<number>();
 
-        if (outboundIntervalSeconds !== null && inboundIntervalSeconds !== null && inboundIntervalSeconds !== 0) {
-            const startFromDestination = inboundPath ? inboundIntervalSeconds < outboundIntervalSeconds : false;
+        // Determine starting location based on interval comparison
+        const startFromDestination = options.inboundPath
+            ? options.inboundIntervalSeconds < options.outboundIntervalSeconds
+            : false;
 
-            // Initializes all transit units with their starting point and reinitializes their states
-            units.forEach((unit) => {
-                unit.currentLocation = startFromDestination ? UnitLocation.DESTINATION : UnitLocation.ORIGIN;
-                unit.direction = null;
-                unit.expectedArrivalTime = startAtSecondsSinceMidnight;
-                unit.expectedReturnTime = null;
-                unit.lastTripEndTime = null;
-            });
+        // Initialize units based on starting location
+        this.initializeUnits({
+            units: options.units,
+            startFromDestination: startFromDestination,
+            startTime: options.startAtSecondsSinceMidnight
+        });
+        // Generate departure schedules
+        const { outboundDepartures, inboundDepartures } = this.generateDepartureSchedules({
+            startTime: options.startAtSecondsSinceMidnight,
+            endTime: options.endAtSecondsSinceMidnight,
+            outboundIntervalSeconds: options.outboundIntervalSeconds,
+            inboundIntervalSeconds: options.inboundIntervalSeconds,
+            outboundTotalTimeSeconds: options.outboundTotalTimeSeconds,
+            inboundTotalTimeSeconds: options.inboundTotalTimeSeconds,
+            startFromDestination,
+            hasInboundPath: !!options.inboundPath
+        } as GenerateDepartureSchedulesOptions);
 
-            let time = startAtSecondsSinceMidnight;
-            const outboundDepartures: number[] = [];
-            const inboundDepartures: number[] = [];
+        // Process all departures in chronological order
+        while (outboundDepartures.length > 0 || inboundDepartures.length > 0) {
+            const nextOutbound = outboundDepartures[0] || Infinity;
+            const nextInbound = inboundDepartures[0] || Infinity;
+            const currentTime = Math.min(nextOutbound, nextInbound);
 
-            // Generating schdules
-            if (startFromDestination && inboundPath) {
-                //Logic for trips from the destination
-                inboundDepartures.push(time);
-                while ((time += inboundIntervalSeconds) < endAtSecondsSinceMidnight) {
-                    inboundDepartures.push(time);
-                }
-                time = startAtSecondsSinceMidnight + inboundTotalTimeSeconds;
-                outboundDepartures.push(time);
-                while ((time += outboundIntervalSeconds) < endAtSecondsSinceMidnight) {
-                    outboundDepartures.push(time);
-                }
+            // Update unit availability
+            this.updateAllUnitsAvailability(options.units, currentTime, options.inboundPath);
+
+            // Handle departures based on their type
+            if (nextOutbound === currentTime && nextInbound === currentTime) {
+                // Process simultaneous departures
+                this.processSimultaneousDepartures({
+                    currentTime,
+                    units: options.units,
+                    outboundPath: options.outboundPath,
+                    inboundPath: options.inboundPath,
+                    outboundTotalTimeSeconds: options.outboundTotalTimeSeconds,
+                    inboundTotalTimeSeconds: options.inboundTotalTimeSeconds,
+                    trips,
+                    usedUnitsIds,
+                    outboundDepartures,
+                    inboundDepartures
+                } as ProcessSimultaneousDeparturesOptions);
             } else {
-                // Logic for trips from the origin
-                outboundDepartures.push(time);
-                while ((time += outboundIntervalSeconds) < endAtSecondsSinceMidnight) {
-                    outboundDepartures.push(time);
-                }
-
-                if (inboundPath) {
-                    time = startAtSecondsSinceMidnight + outboundTotalTimeSeconds;
-                    inboundDepartures.push(time);
-                    while ((time += inboundIntervalSeconds) < endAtSecondsSinceMidnight) {
-                        inboundDepartures.push(time);
-                    }
-                }
+                // Process individual departures
+                this.processIndividualDepartures({
+                    currentTime,
+                    nextOutbound,
+                    nextInbound,
+                    units: options.units,
+                    outboundPath: options.outboundPath,
+                    inboundPath: options.inboundPath,
+                    outboundTotalTimeSeconds: options.outboundTotalTimeSeconds,
+                    inboundTotalTimeSeconds: options.inboundTotalTimeSeconds,
+                    trips,
+                    usedUnitsIds,
+                    outboundDepartures,
+                    inboundDepartures
+                } as ProcessIndividualDeparturesOptions);
             }
+        }
 
-            // Verification for the "ghost trip"
-            while (outboundDepartures.length > 0 || inboundDepartures.length > 0) {
-                const nextOutbound = outboundDepartures[0] || Infinity;
-                const nextInbound = inboundDepartures[0] || Infinity;
-                const currentTime = Math.min(nextOutbound, nextInbound);
+        return {
+            trips,
+            realUnitCount: usedUnitsIds.size
+        };
+    }
 
-                units.forEach((unit) => {
-                    // if there are no inboundPaths, simulating the inbound trip to origine
-                    if (
-                        !inboundPath &&
-                        unit.currentLocation === UnitLocation.DESTINATION &&
-                        currentTime >= unit.expectedArrivalTime
-                    ) {
-                        unit.currentLocation = UnitLocation.ORIGIN;
-                        unit.direction = null;
-                        unit.lastTripEndTime = currentTime;
-                    } else {
-                        this.updateUnitAvailability(unit, currentTime);
-                    }
-                });
+    /**
+     * Generates trips when a fixed number of units is specified
+     * Uses a time-based approach to distribute trips across units
+     */
+    private generateTripsWithFixedUnits(options: {
+        startAtSecondsSinceMidnight: number;
+        endAtSecondsSinceMidnight: number;
+        outboundIntervalSeconds: number;
+        outboundTotalTimeSeconds: number;
+        inboundTotalTimeSeconds: number;
+        units: TransitUnit[];
+        outboundPath: TransitPath;
+        inboundPath?: TransitPath;
+    }) {
+        const trips: any[] = [];
+        const unitsCount = options.units.length;
 
-                // Handles simultaneous departures in both directions
-                if (nextOutbound === currentTime && nextInbound === currentTime) {
-                    outboundDepartures.shift();
-                    const result = this.processDeparture(
-                        currentTime,
-                        outboundTotalTimeSeconds,
-                        units,
-                        outboundPath,
-                        trips,
-                        UnitDirection.OUTBOUND
-                    );
-                    if (result.unitId) usedUnitsIds.add(result.unitId);
-                } else {
-                    // Handles solo departures in each directions
-                    if (currentTime === nextOutbound) {
-                        outboundDepartures.shift();
-                        const result = this.processDeparture(
-                            currentTime,
-                            outboundTotalTimeSeconds,
-                            units,
-                            outboundPath,
-                            trips,
-                            UnitDirection.OUTBOUND
-                        );
-                        if (result.unitId) usedUnitsIds.add(result.unitId);
-                    }
-                    if (currentTime === nextInbound) {
-                        inboundDepartures.shift();
-                        if (inboundPath) {
-                            const result = this.processDeparture(
-                                currentTime,
-                                inboundTotalTimeSeconds,
-                                units,
-                                inboundPath,
-                                trips,
-                                UnitDirection.INBOUND
-                            );
-                            if (result.unitId) usedUnitsIds.add(result.unitId);
-                        }
-                    }
-                }
-            }
-            const realUnitCount = usedUnitsIds.size;
+        // Path and time segment extraction
+        const outboundSegments = options.outboundPath.getAttributes().data.segments;
+        const outboundNodes = options.outboundPath.getAttributes().nodes;
+        const outboundDwellTimes = options.outboundPath.getData('dwellTimeSeconds');
 
-            return {
-                trips,
-                realUnitCount
-            };
-        } else {
-            //if there is a number of units specified
-            const outboundSegments = outboundPath.getAttributes().data.segments;
-            const outboundNodes = outboundPath.getAttributes().nodes;
-            const outboundDwellTimes = outboundPath.getData('dwellTimeSeconds');
+        const inboundSegments = options.inboundPath ? options.inboundPath.getAttributes().data.segments : undefined;
+        const inboundNodes = options.inboundPath ? options.inboundPath.getAttributes().nodes : undefined;
+        const cycleTimeSeconds = options.outboundTotalTimeSeconds + options.inboundTotalTimeSeconds;
 
-            const inboundSegments = inboundPath ? inboundPath.getAttributes().data.segments : undefined;
-            const inboundNodes = inboundPath ? inboundPath.getAttributes().nodes : undefined;
-            const inboundDwellTimes = inboundPath ? inboundPath.getAttributes().data.dwellTimeSeconds : undefined;
-            const cycleTimeSeconds = outboundTotalTimeSeconds + inboundTotalTimeSeconds;
+        // Initialize units with staggered start times
+        for (let i = 0; i < unitsCount; i++) {
+            const unit = options.units[i];
+            unit.timeInCycle = Math.ceil((i * cycleTimeSeconds) / unitsCount);
+        }
 
-            // For each unit, initializes the time in cycle
+        // Trip generation loop
+        for (
+            let timeSoFar = options.startAtSecondsSinceMidnight;
+            timeSoFar < options.endAtSecondsSinceMidnight;
+            timeSoFar++
+        ) {
             for (let i = 0; i < unitsCount; i++) {
-                const unit = units[i];
-                unit.timeInCycle = Math.ceil((i * cycleTimeSeconds) / unitsCount);
-            }
-            for (let timeSoFar = startAtSecondsSinceMidnight; timeSoFar < endAtSecondsSinceMidnight; timeSoFar++) {
-                // Handle the current time
-                for (let i = 0; i < unitsCount; i++) {
-                    // Verify if unit cycle needs to be reinitialized
-                    const unit = units[i];
-                    if (unit.timeInCycle >= cycleTimeSeconds) {
-                        if ((timeSoFar - startAtSecondsSinceMidnight) % outboundIntervalSeconds === 0) {
-                            unit.timeInCycle = 0;
-                        }
-                    }
+                const unit = options.units[i];
 
-                    // Handle current unit
-                    if (unit.timeInCycle === 0) {
-                        trips.push(
-                            this.generateTrip(
-                                timeSoFar,
-                                unit,
-                                outboundPath,
-                                outboundSegments,
-                                outboundNodes,
-                                outboundDwellTimes
-                            )
-                        );
-                    } else if (inboundPath && unit.timeInCycle === outboundTotalTimeSeconds) {
-                        // FIXME The number of units is not necessarily a rounded number, so there may be more frequent return trips at the beginning of the period until it stabilizes
-                        trips.push(
-                            this.generateTrip(
-                                timeSoFar,
-                                unit,
-                                inboundPath,
-                                inboundSegments,
-                                inboundNodes as string[],
-                                inboundDwellTimes
-                            )
-                        );
+                // Cycle reset logic
+                if (unit.timeInCycle >= cycleTimeSeconds) {
+                    if ((timeSoFar - options.startAtSecondsSinceMidnight) % options.outboundIntervalSeconds === 0) {
+                        unit.timeInCycle = 0;
                     }
-                    unit.timeInCycle++;
                 }
+
+                // Outbound trip generation
+                if (unit.timeInCycle === 0) {
+                    trips.push(
+                        this.generateTrip({
+                            tripStartAtSeconds: timeSoFar,
+                            unit: unit,
+                            path: options.outboundPath,
+                            segments: outboundSegments || [],
+                            nodes: outboundNodes,
+                            dwellTimes: Array.isArray(outboundDwellTimes) ? outboundDwellTimes : []
+                        })
+                    );
+                } else if (options.inboundPath && unit.timeInCycle === options.outboundTotalTimeSeconds) {
+                    // Inbound trip generation
+                    trips.push(
+                        this.generateTrip({
+                            tripStartAtSeconds: timeSoFar,
+                            unit: unit,
+                            path: options.inboundPath,
+                            segments: inboundSegments || [],
+                            nodes: inboundNodes as string[],
+                            dwellTimes: Array.isArray(outboundDwellTimes) ? outboundDwellTimes : []
+                        })
+                    );
+                }
+
+                unit.timeInCycle++;
             }
-            return {
-                trips,
-                realUnitCount: units.length
-            };
+        }
+
+        return {
+            trips,
+            realUnitCount: options.units.length
+        };
+    }
+
+    /**
+     * Main method for generating trips, delegating to specific strategies
+     */
+    generateTrips(options: GenerateTripsOptions) {
+        const {
+            startAtSecondsSinceMidnight,
+            endAtSecondsSinceMidnight,
+            outboundIntervalSeconds,
+            inboundIntervalSeconds,
+            outboundTotalTimeSeconds,
+            inboundTotalTimeSeconds,
+            units,
+            outboundPath,
+            inboundPath
+        } = options;
+
+        // Check if intervals are specified
+        if (outboundIntervalSeconds !== null && inboundIntervalSeconds !== null) {
+            return this.generateTripsWithIntervals({
+                startAtSecondsSinceMidnight,
+                endAtSecondsSinceMidnight,
+                outboundIntervalSeconds,
+                inboundIntervalSeconds,
+                outboundTotalTimeSeconds,
+                inboundTotalTimeSeconds,
+                units,
+                outboundPath,
+                inboundPath
+            });
+        } else {
+            // Fallback to fixed units strategy
+            return this.generateTripsWithFixedUnits({
+                startAtSecondsSinceMidnight,
+                endAtSecondsSinceMidnight,
+                outboundIntervalSeconds,
+                outboundTotalTimeSeconds,
+                inboundTotalTimeSeconds,
+                units,
+                outboundPath,
+                inboundPath
+            });
         }
     }
 }
 
 class BasicScheduleStrategy extends BaseScheduleStrategy {
-    calculateResourceRequirements(
-        period: any,
-        startAtSecondsSinceMidnight: number,
-        endAtSecondsSinceMidnight: number,
-        outboundTotalTimeSeconds: number,
-        inboundTotalTimeSeconds: number,
-        secondAllowed?: boolean
-    ): {
-        units: TransitUnit[];
-        outboundIntervalSeconds: number;
-        inboundIntervalSeconds: number;
-    } {
+    calculateResourceRequirements(options: CalculateResourcesOptions) {
+        const {
+            period,
+            startAtSecondsSinceMidnight,
+            outboundTotalTimeSeconds,
+            inboundTotalTimeSeconds,
+            secondAllowed
+        } = options;
+
         const cycleTimeSeconds = outboundTotalTimeSeconds + inboundTotalTimeSeconds;
 
         // TODO: add a way to ask the user if we need to return back to first stop when there is no inbound path.
@@ -608,18 +916,18 @@ class BasicScheduleStrategy extends BaseScheduleStrategy {
         };
     }
 
-    generateTrips(
-        startAtSecondsSinceMidnight: number,
-        endAtSecondsSinceMidnight: number,
-        outboundIntervalSeconds: number,
-        inboundIntervalSeconds: number,
-        outboundTotalTimeSeconds: number,
-        inboundTotalTimeSeconds: number,
-        units: TransitUnit[],
-        outboundPath: TransitPath,
-        inboundPath?: TransitPath,
-        period?: any
-    ) {
+    generateTrips(options: GenerateTripsOptions) {
+        const {
+            startAtSecondsSinceMidnight,
+            endAtSecondsSinceMidnight,
+            outboundIntervalSeconds,
+            outboundTotalTimeSeconds,
+            inboundTotalTimeSeconds,
+            units,
+            outboundPath,
+            inboundPath
+        } = options;
+
         const outboundSegments = outboundPath.getAttributes().data.segments;
         const outboundNodes = outboundPath.getAttributes().nodes;
         const outboundDwellTimes = outboundPath.getData('dwellTimeSeconds');
@@ -653,26 +961,26 @@ class BasicScheduleStrategy extends BaseScheduleStrategy {
                 // Handle current unit
                 if (unit.timeInCycle === 0) {
                     trips.push(
-                        this.generateTrip(
-                            timeSoFar,
-                            unit,
-                            outboundPath,
-                            outboundSegments,
-                            outboundNodes,
-                            outboundDwellTimes
-                        )
+                        this.generateTrip({
+                            tripStartAtSeconds: timeSoFar,
+                            unit: unit,
+                            path: outboundPath,
+                            segments: outboundSegments || [],
+                            nodes: outboundNodes,
+                            dwellTimes: Array.isArray(outboundDwellTimes) ? outboundDwellTimes : []
+                        })
                     );
                 } else if (inboundPath && unit.timeInCycle === outboundTotalTimeSeconds) {
                     // FIXME The number of units is not necessarily a rounded number, so there may be more frequent return trips at the beginning of the period until it stabilizes
                     trips.push(
-                        this.generateTrip(
-                            timeSoFar,
-                            unit,
-                            inboundPath,
-                            inboundSegments,
-                            inboundNodes as string[],
-                            inboundDwellTimes
-                        )
+                        this.generateTrip({
+                            tripStartAtSeconds: timeSoFar,
+                            unit: unit,
+                            path: inboundPath,
+                            segments: inboundSegments || [],
+                            nodes: inboundNodes as string[],
+                            dwellTimes: Array.isArray(inboundDwellTimes) ? inboundDwellTimes : []
+                        })
                     );
                 }
                 unit.timeInCycle++;
@@ -681,7 +989,7 @@ class BasicScheduleStrategy extends BaseScheduleStrategy {
 
         return {
             trips,
-            realUnitCount: period.calculated_number_of_units
+            realUnitCount: options.period.calculated_number_of_units
         };
     }
 }
@@ -945,17 +1253,17 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         const strategy = ScheduleStrategyFactory.createStrategy(calculationMode);
 
         const secondAllowed = this.get('allow_seconds_based_schedules') === true;
-        const { units, outboundIntervalSeconds, inboundIntervalSeconds } = strategy.calculateResourceRequirements(
+        const { units, outboundIntervalSeconds, inboundIntervalSeconds } = strategy.calculateResourceRequirements({
             period,
             startAtSecondsSinceMidnight,
             endAtSecondsSinceMidnight,
             outboundTotalTimeSeconds,
             inboundTotalTimeSeconds,
             secondAllowed
-        );
+        });
 
         // Generate trips according to the strategy
-        const result = strategy.generateTrips(
+        const result = strategy.generateTrips({
             startAtSecondsSinceMidnight,
             endAtSecondsSinceMidnight,
             outboundIntervalSeconds,
@@ -966,7 +1274,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             outboundPath,
             inboundPath,
             period
-        );
+        } as GenerateTripsOptions);
 
         // Update period attributes
         period.trips = result.trips;
