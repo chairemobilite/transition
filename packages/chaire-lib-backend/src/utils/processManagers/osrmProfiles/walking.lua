@@ -23,6 +23,7 @@ function setup()
     default_mode            = mode.walking,
     default_speed           = walking_speed,
     oneway_handling         = 'specific',     -- respect 'oneway:foot' but not 'oneway'
+    side_road_multiplier    = 1.0, -- Needs to be defined for way_handlers.penalties
 
     barrier_blacklist = Set {
       'yes',
