@@ -18,13 +18,13 @@ import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 
-enum UnitLocation {
+export enum UnitLocation {
     ORIGIN = 'origin',
     DESTINATION = 'destination',
     IN_TRANSIT = 'in_transit'
 }
 
-enum UnitDirection {
+export enum UnitDirection {
     OUTBOUND = 'outbound',
     INBOUND = 'inbound'
 }
@@ -83,7 +83,7 @@ export interface ScheduleAttributes extends GenericAttributes {
     periods: SchedulePeriod[];
 }
 
-interface TransitUnit {
+export interface TransitUnit {
     id: number;
     totalCapacity: number;
     seatedCapacity: number;
@@ -196,7 +196,7 @@ interface ProcessDepartureOptions {
 }
 
 // Interface for generateTrip
-interface GenerateTripOptions {
+export interface GenerateTripOptions {
     tripStartAtSeconds: number;
     unit: TransitUnit;
     path: TransitPath;
@@ -219,8 +219,7 @@ interface ScheduleGenerationStrategy {
         realUnitCount: number;
     };
 }
-
-abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy {
+export abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy {
     // Shared methods for all strategies
     protected generateTrip(options: GenerateTripOptions) {
         try {
@@ -296,7 +295,7 @@ abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy {
     };
 }
 
-class ScheduleStrategyFactory {
+export class ScheduleStrategyFactory {
     static createStrategy(mode: ScheduleCalculationMode): ScheduleGenerationStrategy {
         switch (mode) {
         case ScheduleCalculationMode.ASYMMETRIC:
@@ -361,7 +360,7 @@ class ScheduleStrategyFactory {
  * - `generateTrips`: Delegates to interval-based or unit-count-based generation strategies
  */
 
-class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
+export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
     /**
      * Calculates resource requirements for transit scheduling
      *
@@ -459,7 +458,7 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         }
     }
 
-    //choose the best bus to optimize generation. We prioritize those already in circulation
+    //choose the best unit to optimize generation. We prioritize those already in circulation
     private findBestUnit(
         currentTime: number,
         direction: UnitDirection.OUTBOUND | UnitDirection.INBOUND,
@@ -860,7 +859,7 @@ class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
     }
 }
 
-class BasicScheduleStrategy extends BaseScheduleStrategy {
+export class BasicScheduleStrategy extends BaseScheduleStrategy {
     calculateResourceRequirements(options: CalculateResourcesOptions) {
         const {
             period,
