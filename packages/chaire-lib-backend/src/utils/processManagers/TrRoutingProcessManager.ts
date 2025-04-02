@@ -33,12 +33,14 @@ const startTrRoutingProcess = async (
         debug = undefined,
         cacheDirectoryPath,
         cacheAllScenarios = false,
-        logFiles
+        logFiles,
+        memcachedServer
     }: {
         debug?: boolean;
         cacheDirectoryPath?: string;
         cacheAllScenarios?: boolean; // Flag to enable the trRouting connection cache for all scenario`
         logFiles: TrRoutingConfig['logs'];
+        memcachedServer?: string; // If defined, enable use of memcached and use the value as the server URL
     }
 ) => {
     const osrmWalkingServerInfo = osrmService.getMode('walking').getHostPort();
@@ -72,6 +74,11 @@ const startTrRoutingProcess = async (
         commandArgs.push('--cacheAllConnectionSets=true');
     }
 
+    // Enable memcached usage in TrRouting
+    if (memcachedServer) {
+        commandArgs.push(`--useMemcached="${memcachedServer}"`);
+    }
+
     const waitString = 'ready.';
 
     const processStatus = await ProcessManager.startProcess({
@@ -80,7 +87,7 @@ const startTrRoutingProcess = async (
         command,
         commandArgs,
         waitString,
-        useShell: false,
+        useShell: true, //FIXME: For unknown reason yet, libmemcached pool need trRouting to be run in a shell to work (https://github.com/chairemobilite/transition/issues/1322)
         cwd,
         attemptRestart,
         logFiles: {
@@ -199,11 +206,41 @@ const startBatch = async function (
     const cacheAllScenarios = batchTrRoutingConfig.cacheAllScenarios;
     const debugFromParamOrConfig = debug !== undefined ? debug : batchTrRoutingConfig.debug;
 
+    // Start Memcached
+    // TODO This is a placeholder variable to be used when we implement config options to control the use of memcached
+    // We could add options to enable/disable and to set a specific host/port
+    const startMemcached = true;
+    let memcachedServer;
+    if (startMemcached) {
+        const memcachedPort = 11212; // 11211 is the default memcached port, we use +1 to not clash
+        const memcachedProcessStatus = await ProcessManager.startProcess({
+            serviceName: 'memcached',
+            tagName: 'memcached',
+            command: 'memcached',
+            commandArgs: [
+                `--port=${memcachedPort}`,
+                '--user=nobody', // Memcached does not want to run as root, let's drop to nobody
+                '-vv'
+            ], // Enable detailled output for logging
+            waitString: '',
+            useShell: false,
+            attemptRestart: false
+        });
+        if (memcachedProcessStatus.status === 'error' && memcachedProcessStatus.error.code === 'ENOENT') {
+            console.error('memcached executable does not exist in path');
+        } else if (memcachedProcessStatus.status === 'started') {
+            memcachedServer = 'localhost:11212';
+        } else {
+            console.error('cannot start memcached:', memcachedProcessStatus);
+        }
+    }
+
     const params = {
         cacheDirectoryPath: cacheDirectoryPath,
         cacheAllScenarios,
         debug: debugFromParamOrConfig,
-        logFiles: batchTrRoutingConfig.logs
+        logFiles: batchTrRoutingConfig.logs,
+        memcachedServer: memcachedServer
     };
 
     await startTrRoutingProcess(port, false, numberOfCpus, params);
@@ -217,6 +254,10 @@ const startBatch = async function (
 
 const stopBatch = async function (port: number = serverConfig.getTrRoutingConfig('batch').port) {
     await stop({ port: port });
+
+    // TODO Consider keeping memcached around, to speed up later calculation that might use
+    // the same data
+    await ProcessManager.stopProcess('memcached', 'memcached');
 
     return {
         status: 'stopped',
