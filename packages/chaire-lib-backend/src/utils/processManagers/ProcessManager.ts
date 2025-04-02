@@ -139,9 +139,24 @@ const startProcess = async function ({
                 };
                 const startedProcess = spawn(command, commandArgs, spawnParams);
 
+                // In case we don't have a waitString (if the started process does not display anything) for example, let's trigger a success on the spawn event.
+                if (waitString === '') {
+                    startedProcess.on('spawn', () => {
+                        const pidFilename = `${PID_DIRECTORY}/${serviceName}.pid`;
+                        console.log(fileManager.writeFile(pidFilename, startedProcess.pid?.toString()));
+                        console.log(`${tagName} server (${serviceName}) started pid:${startedProcess.pid}`);
+                        resolve({
+                            status: 'started',
+                            service: tagName,
+                            action: 'start',
+                            name: serviceName
+                        });
+                    });
+                }
+
                 startedProcess.stdout.on('data', (data) => {
                     // Validate that process is running with a specific output string
-                    if (data.includes(waitString)) {
+                    if (waitString !== '' && data.includes(waitString)) {
                         const pidFilename = `${PID_DIRECTORY}/${serviceName}.pid`;
                         console.log(fileManager.writeFile(pidFilename, startedProcess.pid?.toString()));
                         console.log(`${tagName} server (${serviceName}) started pid:${startedProcess.pid}`);
