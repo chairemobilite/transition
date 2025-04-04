@@ -117,7 +117,6 @@ const AlternativesSelect: React.FunctionComponent<AlternativesSelectProps> = (pr
                         scenarioNumber: '1',
                         scenarioName: props.scenarioNames.name1
                     })}
-                    :
                 </div>
                 <AlternativesSelectOneScenario
                     result={result1}
@@ -130,7 +129,6 @@ const AlternativesSelect: React.FunctionComponent<AlternativesSelectProps> = (pr
                         scenarioNumber: '2',
                         scenarioName: props.scenarioNames.name2
                     })}
-                    :
                 </div>
                 <AlternativesSelectOneScenario
                     result={result2}

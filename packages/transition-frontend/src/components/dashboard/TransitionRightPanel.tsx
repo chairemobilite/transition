@@ -12,6 +12,7 @@ import TransitScenariosPanel from '../forms/scenario/TransitScenarioPanel';
 import TransitServicesPanel from '../forms/service/TransitServicePanel';
 import TransitRoutingForm from '../forms/transitRouting/TransitRoutingForm';
 import TransitAccessibilityMapForm from '../forms/accessibilityMap/AccessibilityMapForm';
+import AccessibilityComparisonForm from '../forms/accessibilityComparison/AccessibilityComparisonForm';
 import ScenarioComparisonPanel from '../forms/comparison/ScenarioComparisonPanel';
 import GtfsImportForm from '../forms/gtfs/GtfsImportForm';
 import GtfsExportForm from '../forms/gtfs/GtfsExportForm';
@@ -38,6 +39,8 @@ const RightPanel: React.FunctionComponent<RightPanelProps> = (props: RightPanelP
             {props.activeSection === 'services' && <TransitServicesPanel />}
 
             {props.activeSection === 'accessibilityMap' && <TransitAccessibilityMapForm />}
+
+            {props.activeSection === 'accessibilityComparison' && <AccessibilityComparisonForm />}
 
             {props.activeSection === 'routing' && (
                 <TransitRoutingForm availableRoutingModes={props.availableRoutingModes} />

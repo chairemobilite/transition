@@ -285,21 +285,40 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
         this.setState({ object: this.state.object });
     }
 
-    private onTripTimeChange = (time: { value: any; valid?: boolean }, timeType: 'departure' | 'arrival') => {
-        this.onValueChange(
-            timeType === 'departure' ? 'departureTimeSecondsSinceMidnight' : 'arrivalTimeSecondsSinceMidnight',
-            time
-        );
+    private onTripTimeChange = (
+        time: { value: any; valid?: boolean },
+        timeType: 'departure' | 'arrival',
+        altRouting: TransitRouting
+    ) => {
+        const timeAttribute =
+            timeType === 'departure' ? 'departureTimeSecondsSinceMidnight' : 'arrivalTimeSecondsSinceMidnight';
+        this.updateBothRoutingEngines(timeAttribute, time, altRouting);
     };
 
     private getScenarioNameById(id: string): string {
         for (const scenario of this.state.scenarioCollection.features) {
             if (scenario.id === id) {
-                return scenario.toString(false);
+                let scenarioName = scenario.toString(false) as string;
+                if (scenarioName.length >= 30) {
+                    scenarioName = scenarioName.substring(0, 30).trim() + '...';
+                }
+                return scenarioName;
             }
         }
         return '';
     }
+
+    private updateBothRoutingEngines = (
+        path: string,
+        newValue: { value: any; valid?: boolean },
+        altRouting: TransitRouting,
+        resetResults = true
+    ) => {
+        this.onValueChange(path, newValue, resetResults);
+        if (newValue.valid || newValue.valid === undefined) {
+            altRouting.attributes[path] = newValue.value;
+        }
+    };
 
     render() {
         if (!this.state.scenarioCollection) {
@@ -307,7 +326,7 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
         }
 
         const routing = this.state.object;
-        const alternateRouting = this.state.alternateScenarioRouting;
+        const altRouting = this.state.alternateScenarioRouting;
         const routingId = routing.get('id');
 
         if (_isBlank(routing.get('withAlternatives'))) {
@@ -335,10 +354,14 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
                                 arrivalTimeSecondsSinceMidnight={
                                     this.state.object.getAttributes().arrivalTimeSecondsSinceMidnight
                                 }
-                                onValueChange={this.onTripTimeChange}
+                                onValueChange={(time, timeType) => {
+                                    this.onTripTimeChange(time, timeType, altRouting);
+                                }}
                             />
                             <TransitRoutingBaseComponent
-                                onValueChange={this.onValueChange}
+                                onValueChange={(path, newValue) =>
+                                    this.updateBothRoutingEngines(path, newValue, altRouting)
+                                }
                                 attributes={this.state.object.getAttributes()}
                             />
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
@@ -367,7 +390,7 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
                                         t={this.props.t}
                                         onValueChange={(e) => {
                                             this.onValueChange('alternateScenario2Id', { value: e.target.value }, true);
-                                            alternateRouting.attributes.scenarioId = e.target.value;
+                                            altRouting.attributes.scenarioId = e.target.value;
                                         }}
                                     />
                                 </InputWrapper>
@@ -390,7 +413,11 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
                                     t={this.props.t}
                                     isBoolean={true}
                                     onValueChange={(e) =>
-                                        this.onValueChange('withAlternatives', { value: _toBool(e.target.value) })
+                                        this.updateBothRoutingEngines(
+                                            'withAlternatives',
+                                            { value: _toBool(e.target.value) },
+                                            altRouting
+                                        )
                                     }
                                 />
                             </InputWrapper>
@@ -405,7 +432,9 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
                                     <InputString
                                         id={`formFieldTransitRoutingRoutingName${routingId}`}
                                         value={this.state.formValues.routingName}
-                                        onValueUpdated={(value) => this.onValueChange('routingName', value, false)}
+                                        onValueUpdated={(value) =>
+                                            this.updateBothRoutingEngines('routingName', value, altRouting, false)
+                                        }
                                         pattern={'[^,"\':;\r\n\t\\\\]*'}
                                     />
                                 </InputWrapper>
@@ -444,7 +473,7 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
                                 <InputStringFormatted
                                     id={`formFieldTransitRoutingPort${routingId}`}
                                     value={this.state.formValues.routingPort}
-                                    onValueUpdated={(e) => this.onValueChange('routingPort', e)}
+                                    onValueUpdated={(e) => this.updateBothRoutingEngines('routingPort', e, altRouting)}
                                     stringToValue={_toInteger}
                                     valueToString={_toString}
                                 />
@@ -453,7 +482,7 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
                                 <InputString
                                     id={`formFieldTransitRoutingOdTripUuid${routingId}`}
                                     value={this.state.formValues.odTripUuid}
-                                    onValueUpdated={(e) => this.onValueChange('odTripUuid', e)}
+                                    onValueUpdated={(e) => this.updateBothRoutingEngines('odTripUuid', e, altRouting)}
                                 />
                             </InputWrapper>
                         </div>
@@ -484,7 +513,7 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
                                         } else {
                                             this.setState({
                                                 object: routing,
-                                                alternateScenarioRouting: alternateRouting
+                                                alternateScenarioRouting: altRouting
                                             });
                                         }
                                     }}

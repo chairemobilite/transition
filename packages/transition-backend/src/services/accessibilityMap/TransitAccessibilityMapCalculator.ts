@@ -10,7 +10,9 @@ import {
     multiLineString as turfMultiLineString,
     circle as turfCircle,
     area as turfArea,
-    polygonToLine as turfPolygonToLine
+    polygonToLine as turfPolygonToLine,
+    intersect as turfIntersect,
+    difference as turfDifference
     //multiPolygon as turfMultiPolygon
 } from '@turf/turf';
 import { Feature, FeatureCollection, Point, MultiPolygon, MultiLineString } from 'geojson';
@@ -249,6 +251,101 @@ export class TransitAccessibilityMapCalculator {
             }
             throw trError;
         }
+    }
+
+    static async getPolygonsDifference(
+        polygons: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>,
+        color: string
+    ): Promise<TransitAccessibilityMapWithPolygonResult | null> {
+        return new Promise((resolve) => {
+            const difference = turfDifference(polygons) as Feature<MultiPolygon> | null;
+            if (difference === null) {
+                resolve(null);
+            }
+
+            let polygonStroke = turfPolygonToLine(difference!);
+            if (polygonStroke.type === 'Feature') {
+                polygonStroke = turfFeatureCollection([polygonStroke]);
+            }
+            const polygonStroke2 = turfFeatureCollection([]) as FeatureCollection<GeoJSON.LineString>;
+            for (let i = 0, countI = polygonStroke.features.length; i < countI; i++) {
+                const feature = polygonStroke.features[i];
+                if (feature.geometry.type === 'MultiLineString') {
+                    // this is a polygon with hole, we need to separate into two LineStrings.
+                    for (let j = 1, countJ = feature.geometry.coordinates.length; j < countJ; j++) {
+                        polygonStroke2.features.push(turfLineString(feature.geometry.coordinates[j]));
+                    }
+                    // TODO Copied from original code, but should it be .push instead of features[i] ?
+                    polygonStroke2.features[i] = turfLineString(feature.geometry.coordinates[0]); // keep the first one as is, but convert to LineString
+                } else {
+                    polygonStroke2.features.push(feature as Feature<GeoJSON.LineString>);
+                }
+            }
+
+            const multiLineStroke = turfMultiLineString(
+                polygonStroke2.features.map((lineString) => {
+                    return lineString.geometry.coordinates;
+                })
+            );
+
+            difference!.properties!.color = color;
+
+            resolve({
+                polygons: turfFeatureCollection([difference!]),
+                strokes: turfFeatureCollection([multiLineStroke])
+            });
+        });
+    }
+
+    static async getPolygonsIntersection(
+        polygons: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>,
+        color: string
+    ): Promise<TransitAccessibilityMapWithPolygonResult | null> {
+        return new Promise((resolve) => {
+            const durationMinutes = polygons.features[0].properties!.durationMinutes;
+            const intersection = turfIntersect(polygons, {
+                properties: { color, durationMinutes }
+            }) as Feature<MultiPolygon> | null;
+
+            if (intersection === null) {
+                resolve(null);
+            }
+
+            const area = turfArea(intersection!);
+            intersection!.properties!.areaSqM = area;
+            intersection!.properties!.areaSqKm = area / 1000000;
+            intersection!.properties!.areaSqMiles = area / 1000000 / 2.58999;
+
+            let polygonStroke = turfPolygonToLine(intersection!);
+            if (polygonStroke.type === 'Feature') {
+                polygonStroke = turfFeatureCollection([polygonStroke]);
+            }
+            const polygonStroke2 = turfFeatureCollection([]) as FeatureCollection<GeoJSON.LineString>;
+            for (let i = 0, countI = polygonStroke.features.length; i < countI; i++) {
+                const feature = polygonStroke.features[i];
+                if (feature.geometry.type === 'MultiLineString') {
+                    // this is a polygon with hole, we need to separate into two LineStrings.
+                    for (let j = 1, countJ = feature.geometry.coordinates.length; j < countJ; j++) {
+                        polygonStroke2.features.push(turfLineString(feature.geometry.coordinates[j]));
+                    }
+                    // TODO Copied from original code, but should it be .push instead of features[i] ?
+                    polygonStroke2.features[i] = turfLineString(feature.geometry.coordinates[0]); // keep the first one as is, but convert to LineString
+                } else {
+                    polygonStroke2.features.push(feature as Feature<GeoJSON.LineString>);
+                }
+            }
+
+            const multiLineStroke = turfMultiLineString(
+                polygonStroke2.features.map((lineString) => {
+                    return lineString.geometry.coordinates;
+                })
+            );
+
+            resolve({
+                polygons: turfFeatureCollection([intersection!]),
+                strokes: turfFeatureCollection([multiLineStroke])
+            });
+        });
     }
 
     // FIXME: Type the options
