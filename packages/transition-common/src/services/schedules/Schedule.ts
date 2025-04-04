@@ -301,9 +301,9 @@ export class ScheduleStrategyFactory {
         case ScheduleCalculationMode.ASYMMETRIC:
             return new AsymmetricScheduleStrategy();
         case ScheduleCalculationMode.BASIC:
-            return new BasicScheduleStrategy();
+            return new SymmetricScheduleStrategy();
         default:
-            return new BasicScheduleStrategy(); // Default strategy
+            return new SymmetricScheduleStrategy(); // Default strategy
         }
     }
 }
@@ -369,12 +369,13 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
      * 1. Fixed number of units
      * 2. Specified departure intervals
      *
-     * @param period - Scheduling period configuration
-     * @param startAtSecondsSinceMidnight - Start time of the service period
-     * @param endAtSecondsSinceMidnight - End time of the service period
-     * @param outboundTotalTimeSeconds - Total duration of the outbound trip
-     * @param inboundTotalTimeSeconds - Total duration of the inbound trip
-     * @param secondAllowed - Flag to allow precise second-level intervals
+     * @param options - Object containing scheduling calculation parameters
+     * @param options.period - Scheduling period configuration
+     * @param options.startAtSecondsSinceMidnight - Start time of the service period
+     * @param options.endAtSecondsSinceMidnight - End time of the service period
+     * @param options.outboundTotalTimeSeconds - Total duration of the outbound trip
+     * @param options.inboundTotalTimeSeconds - Total duration of the inbound trip
+     * @param options.secondAllowed - Flag to allow precise second-level intervals
      *
      * @returns Object containing:
      *  - units: Array of initialized transit units
@@ -818,32 +819,23 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
      * Main method for generating trips, delegating to specific strategies
      */
     generateTrips(options: GenerateTripsOptions) {
-        const {
-            startAtSecondsSinceMidnight,
-            endAtSecondsSinceMidnight,
-            outboundIntervalSeconds,
-            inboundIntervalSeconds,
-            outboundTotalTimeSeconds,
-            inboundTotalTimeSeconds,
-            units,
-            outboundPath,
-            inboundPath
-        } = options;
+        const { outboundIntervalSeconds, inboundIntervalSeconds } = options;
 
         // Check if intervals are specified
         if (outboundIntervalSeconds !== null && inboundIntervalSeconds !== null) {
-            return this.generateTripsWithIntervals({
+            return this.generateTripsWithIntervals(options);
+        } else {
+            const {
                 startAtSecondsSinceMidnight,
                 endAtSecondsSinceMidnight,
                 outboundIntervalSeconds,
-                inboundIntervalSeconds,
                 outboundTotalTimeSeconds,
                 inboundTotalTimeSeconds,
                 units,
                 outboundPath,
                 inboundPath
-            });
-        } else {
+            } = options;
+
             // Fallback to fixed units strategy
             return this.generateTripsWithFixedUnits({
                 startAtSecondsSinceMidnight,
@@ -859,7 +851,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
     }
 }
 
-export class BasicScheduleStrategy extends BaseScheduleStrategy {
+export class SymmetricScheduleStrategy extends BaseScheduleStrategy {
     calculateResourceRequirements(options: CalculateResourcesOptions) {
         const {
             period,

@@ -10,7 +10,7 @@ import _omit from 'lodash/omit';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import EventManagerMock from 'chaire-lib-common/lib/test/services/events/EventManagerMock';
-import Schedule, { SchedulePeriod, ScheduleStrategyFactory, ScheduleCalculationMode, AsymmetricScheduleStrategy, BasicScheduleStrategy, BaseScheduleStrategy,
+import Schedule, { SchedulePeriod, ScheduleStrategyFactory, ScheduleCalculationMode, AsymmetricScheduleStrategy, SymmetricScheduleStrategy, BaseScheduleStrategy,
     UnitDirection, UnitLocation, SchedulePeriodTrip, TransitUnit, GenerateTripOptions } from '../Schedule';
 import { getScheduleAttributes } from './ScheduleData.test';
 import { getPathObject } from '../../path/__tests__/PathData.test';
@@ -570,29 +570,29 @@ describe('createStrategy', () => {
         expect(strategy).toBeInstanceOf(AsymmetricScheduleStrategy);
     });
 
-    it('should return BasicScheduleStrategy for BASIC mode', () => {
+    it('should return SymmetricScheduleStrategy for BASIC mode', () => {
         const strategy = ScheduleStrategyFactory.createStrategy(ScheduleCalculationMode.BASIC);
-        expect(strategy).toBeInstanceOf(BasicScheduleStrategy);
+        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
     });
 
-    it('should return BasicScheduleStrategy for undefined mode', () => {
+    it('should return SymmetricScheduleStrategy for undefined mode', () => {
         const strategy = ScheduleStrategyFactory.createStrategy(undefined as unknown as ScheduleCalculationMode);
-        expect(strategy).toBeInstanceOf(BasicScheduleStrategy);
+        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
     });
 
-    it('should return BasicScheduleStrategy for null mode', () => {
+    it('should return SymmetricScheduleStrategy for null mode', () => {
         const strategy = ScheduleStrategyFactory.createStrategy(null as unknown as ScheduleCalculationMode);
-        expect(strategy).toBeInstanceOf(BasicScheduleStrategy);
+        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
     });
 
-    it('should return BasicScheduleStrategy for unknown mode', () => {
+    it('should return SymmetricScheduleStrategy for unknown mode', () => {
         const strategy = ScheduleStrategyFactory.createStrategy('UNKNOWN_MODE' as ScheduleCalculationMode);
-        expect(strategy).toBeInstanceOf(BasicScheduleStrategy);
+        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
     });
 
     it('should use default case for non-enum values', () => {
         const strategy = ScheduleStrategyFactory.createStrategy('123' as ScheduleCalculationMode);
-        expect(strategy).toBeInstanceOf(BasicScheduleStrategy);
+        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
     });
 });
 
