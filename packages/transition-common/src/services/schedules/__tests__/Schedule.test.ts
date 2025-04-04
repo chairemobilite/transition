@@ -10,7 +10,8 @@ import _omit from 'lodash/omit';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import EventManagerMock from 'chaire-lib-common/lib/test/services/events/EventManagerMock';
-import Schedule, { SchedulePeriod } from '../Schedule';
+import Schedule, { SchedulePeriod, ScheduleStrategyFactory, ScheduleCalculationMode, AsymmetricScheduleStrategy, SymmetricScheduleStrategy, BaseScheduleStrategy,
+    UnitDirection, UnitLocation, SchedulePeriodTrip, TransitUnit, GenerateTripOptions } from '../Schedule';
 import { getScheduleAttributes } from './ScheduleData.test';
 import { getPathObject } from '../../path/__tests__/PathData.test';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
@@ -505,3 +506,93 @@ describe('generateForPeriod', () => {
 
 
 });
+
+describe('BaseScheduleStrategy generateTrip', () => {
+    let validOptions: GenerateTripOptions;
+    class TestStrategy extends BaseScheduleStrategy {
+        public testGenerateTrip(options: GenerateTripOptions) {
+          return this.generateTrip(options); // Expose protected method
+        }
+        calculateResourceRequirements() { return {} as { units: TransitUnit[]; outboundIntervalSeconds: number; inboundIntervalSeconds: number; }; }
+        generateTrips() { return {} as {
+                trips: SchedulePeriodTrip[];
+                realUnitCount: number;
+            }; }
+    }
+
+    beforeEach(() => {
+        // Create a mock implementation of the abstract class
+        // Setup valid options that should work
+        const pathCollection = new PathCollection([], {});
+        validOptions = {
+            tripStartAtSeconds: 3600, // 1 hour
+            unit: {
+                id: 1,
+                totalCapacity: 100,
+                seatedCapacity: 50,
+                currentLocation: UnitLocation.ORIGIN,
+                expectedArrivalTime: 3600,
+                expectedReturnTime: 7200,
+                direction: UnitDirection.OUTBOUND,
+                lastTripEndTime: null,
+                timeInCycle: 1
+            },
+            path: getPathObject({ lineId, pathCollection }, 'smallReal'),
+            segments: [
+                { travelTimeSeconds: 300 }, // 5 minutes
+                { travelTimeSeconds: 420 }  // 7 minutes
+            ],
+            nodes: ['node1', 'node2', 'node3'],
+            dwellTimes: [60, 60] // 1 minute each
+        };
+    });
+
+    it('should successfully generate trip with valid options', () => {
+        let strategy = new TestStrategy();
+        const trip = strategy.testGenerateTrip(validOptions);
+        expect(trip).toBeDefined();
+        expect(trip.node_arrival_times_seconds.length).toBe(3);
+    });
+
+    it('segments length does not match nodes length - 1', () => {
+        let strategy = new TestStrategy();
+        const invalidOptions = {
+            ...validOptions,
+            segments: [{ travelTimeSeconds: 300 }] // Only 1 segment for 3 nodes
+        };
+        expect(() => strategy.testGenerateTrip(invalidOptions)).toThrow();
+    });
+});
+
+describe('createStrategy', () => {
+    it('should return AsymmetricScheduleStrategy for ASYMMETRIC mode', () => {
+        const strategy = ScheduleStrategyFactory.createStrategy(ScheduleCalculationMode.ASYMMETRIC);
+        expect(strategy).toBeInstanceOf(AsymmetricScheduleStrategy);
+    });
+
+    it('should return SymmetricScheduleStrategy for BASIC mode', () => {
+        const strategy = ScheduleStrategyFactory.createStrategy(ScheduleCalculationMode.BASIC);
+        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
+    });
+
+    it('should return SymmetricScheduleStrategy for undefined mode', () => {
+        const strategy = ScheduleStrategyFactory.createStrategy(undefined as unknown as ScheduleCalculationMode);
+        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
+    });
+
+    it('should return SymmetricScheduleStrategy for null mode', () => {
+        const strategy = ScheduleStrategyFactory.createStrategy(null as unknown as ScheduleCalculationMode);
+        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
+    });
+
+    it('should return SymmetricScheduleStrategy for unknown mode', () => {
+        const strategy = ScheduleStrategyFactory.createStrategy('UNKNOWN_MODE' as ScheduleCalculationMode);
+        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
+    });
+
+    it('should use default case for non-enum values', () => {
+        const strategy = ScheduleStrategyFactory.createStrategy('123' as ScheduleCalculationMode);
+        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
+    });
+});
+
