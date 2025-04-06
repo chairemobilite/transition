@@ -124,7 +124,7 @@ interface CalculateResourcesOptions {
     secondAllowed?: boolean;
 }
 
-interface GenerateTripsWithIntervalsOptions {
+export interface GenerateTripsWithIntervalsOptions {
     startAtSecondsSinceMidnight: number;
     endAtSecondsSinceMidnight: number;
     outboundIntervalSeconds: number;
@@ -137,14 +137,14 @@ interface GenerateTripsWithIntervalsOptions {
 }
 
 // Interface for initializeUnits
-interface InitializeUnitsOptions {
+export interface InitializeUnitsOptions {
     units: TransitUnit[];
     startFromDestination: boolean;
     startTime: number;
 }
 
 // Interface for generateDepartureSchedules
-interface GenerateDepartureSchedulesOptions {
+export interface GenerateDepartureSchedulesOptions {
     startTime: number;
     endTime: number;
     outboundIntervalSeconds: number;
@@ -156,7 +156,7 @@ interface GenerateDepartureSchedulesOptions {
 }
 
 // Interface for processSimultaneousDepartures
-interface ProcessSimultaneousDeparturesOptions {
+export interface ProcessSimultaneousDeparturesOptions {
     currentTime: number;
     units: TransitUnit[];
     outboundPath: TransitPath;
@@ -170,7 +170,7 @@ interface ProcessSimultaneousDeparturesOptions {
 }
 
 // Interface for processIndividualDepartures
-interface ProcessIndividualDeparturesOptions {
+export interface ProcessIndividualDeparturesOptions {
     currentTime: number;
     nextOutbound: number;
     nextInbound: number;
@@ -186,7 +186,7 @@ interface ProcessIndividualDeparturesOptions {
 }
 
 // Interface for processDeparture
-interface ProcessDepartureOptions {
+export interface ProcessDepartureOptions {
     currentTime: number;
     totalTimeSeconds: number;
     units: TransitUnit[];
@@ -207,7 +207,7 @@ export interface GenerateTripOptions {
 }
 
 // interface for schedule generation strategies
-interface ScheduleGenerationStrategy {
+export interface ScheduleGenerationStrategy {
     calculateResourceRequirements(options: CalculateResourcesOptions): {
         units: TransitUnit[];
         outboundIntervalSeconds: number;
@@ -445,7 +445,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
     }
 
     //Set Current position of Unit
-    private updateUnitAvailability(unit: TransitUnit, currentTimeSeconds: number): void {
+    protected updateUnitAvailability(unit: TransitUnit, currentTimeSeconds: number): void {
         if (unit.expectedArrivalTime <= currentTimeSeconds) {
             if (unit.direction === UnitDirection.OUTBOUND) {
                 unit.currentLocation = UnitLocation.DESTINATION;
@@ -460,7 +460,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
     }
 
     //choose the best unit to optimize generation. We prioritize those already in circulation
-    private findBestUnit(
+    protected findBestUnit(
         currentTime: number,
         direction: UnitDirection.OUTBOUND | UnitDirection.INBOUND,
         units: TransitUnit[]
@@ -484,7 +484,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         return unusedUnits[0] || null;
     }
 
-    private processDeparture(options: ProcessDepartureOptions) {
+    protected processDeparture(options: ProcessDepartureOptions) {
         const { currentTime, totalTimeSeconds, units, path, trips, direction } = options;
 
         const unitTransit = this.findBestUnit(currentTime, direction, units);
@@ -516,7 +516,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
     }
 
     // Helper method to initialize all units
-    private initializeUnits(options: InitializeUnitsOptions): void {
+    protected initializeUnits(options: InitializeUnitsOptions): void {
         const { units, startFromDestination, startTime } = options;
 
         units.forEach((unit) => {
@@ -529,7 +529,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
     }
 
     // Helper method to generate departure schedules
-    private generateDepartureSchedules(options: GenerateDepartureSchedulesOptions): {
+    protected generateDepartureSchedules(options: GenerateDepartureSchedulesOptions): {
         outboundDepartures: number[];
         inboundDepartures: number[];
     } {
@@ -572,7 +572,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         return { outboundDepartures, inboundDepartures };
     }
     // Update all units availability based on current time
-    private updateAllUnitsAvailability(units: TransitUnit[], currentTime: number, inboundPath?: TransitPath): void {
+    protected updateAllUnitsAvailability(units: TransitUnit[], currentTime: number, inboundPath?: TransitPath): void {
         units.forEach((unit) => {
             // Handle "ghost trip" simulation when there's no inbound path
             if (
@@ -590,7 +590,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
     }
 
     // Process simultaneous departures in both directions
-    private processSimultaneousDepartures(options: ProcessSimultaneousDeparturesOptions): void {
+    protected processSimultaneousDepartures(options: ProcessSimultaneousDeparturesOptions): void {
         // Process outbound departure
         options.outboundDepartures.shift();
         const outboundResult = this.processDeparture({
@@ -619,7 +619,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         }
     }
     // Process individual outbound or inbound departures
-    private processIndividualDepartures(options: ProcessIndividualDeparturesOptions): void {
+    protected processIndividualDepartures(options: ProcessIndividualDeparturesOptions): void {
         // Process outbound departure
         if (options.currentTime === options.nextOutbound) {
             options.outboundDepartures.shift();
