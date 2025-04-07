@@ -20,7 +20,6 @@ extern crate rouille;
 extern crate serde_json;
 
 mod enum_mappings;
-mod my_error;
 mod routers;
 mod utils;
 
