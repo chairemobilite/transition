@@ -113,14 +113,3 @@ pub mod zone_capnp {
 pub mod zoneCollection_capnp {
   include!("./zoneCollection_capnp.rs");
 }
-
-// octavi:
-#[allow(non_snake_case)]
-pub mod taxiPoint_capnp {
-  include!("./octavi/taxiPoint_capnp.rs");
-}
-
-#[allow(non_snake_case)]
-pub mod taxiPointCollection_capnp {
-  include!("./octavi/taxiPointCollection_capnp.rs");
-}

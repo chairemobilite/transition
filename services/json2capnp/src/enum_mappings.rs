@@ -12,7 +12,6 @@ use crate::household_capnp::household::{
 };
 use crate::odTrip_capnp::od_trip::{Activity, Mode};
 use crate::person_capnp::person::{AgeGroup, Gender, Occupation};
-//use crate::taxiPoint_capnp::taxi_point::{Device as TaxiDevice, Status as TaxiStatus};
 
 pub fn data_source_type(input: &str) -> DataSourceType {
     match input {
@@ -315,58 +314,3 @@ pub fn activity_to_str(input: &Activity) -> &str {
         Activity::Unknown                       => "unknown"
     }
 }
-
-/*pub fn taxi_status(input: &str) -> TaxiStatus {
-    match input {
-        "none"                                  => TaxiStatus::None,
-        "free"                                  => TaxiStatus::Free,
-        "occupied"                              => TaxiStatus::Occupied,
-        "unavailable"                           => TaxiStatus::Unavailable,
-        "oncoming"                              => TaxiStatus::Oncoming,
-        "other"                                 => TaxiStatus::Other,
-        "unknown"                               => TaxiStatus::Unknown,
-        "answering"                             => TaxiStatus::Answering,
-        "off"                                   => TaxiStatus::Off,
-        _                                       => TaxiStatus::None
-    }
-}
-
-pub fn taxi_status_to_str(input: &TaxiStatus) -> &str {
-    match input {
-        TaxiStatus::None                        => "none",
-        TaxiStatus::Free                        => "free",
-        TaxiStatus::Occupied                    => "occupied",
-        TaxiStatus::Unavailable                 => "unavailable",
-        TaxiStatus::Oncoming                    => "oncoming",
-        TaxiStatus::Other                       => "other",
-        TaxiStatus::Unknown                     => "unknown",
-        TaxiStatus::Answering                   => "answering",
-        TaxiStatus::Off                         => "off"
-    }
-}
-
-pub fn taxi_device(input: &str) -> TaxiDevice {
-    match input {
-        "none"                                  => TaxiDevice::None,
-        "phone"                                 => TaxiDevice::Phone,
-        "tablet"                                => TaxiDevice::Tablet,
-        "taximeter"                             => TaxiDevice::Taximeter,
-        "otherdevice"                           => TaxiDevice::Otherdevice,
-        "other"                                 => TaxiDevice::Other,
-        "unknown"                               => TaxiDevice::Unknown,
-        _                                       => TaxiDevice::None
-    }
-}
-
-pub fn taxi_device_to_str(input: &TaxiDevice) -> &str {
-    match input {
-        TaxiDevice::None                        => "none",
-        TaxiDevice::Phone                       => "phone",
-        TaxiDevice::Tablet                      => "tablet",
-        TaxiDevice::Taximeter                   => "taximeter",
-        TaxiDevice::Otherdevice                 => "otherdevice",
-        TaxiDevice::Other                       => "other",
-        TaxiDevice::Unknown                     => "unknown"
-    }
-}
-*/

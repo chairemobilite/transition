@@ -30,8 +30,6 @@ pub mod service_collection_router;
 pub mod scenario_collection_router;
 pub mod zone_collection_router;
 
-pub mod taxi_point_collection_router;
-
 fn failed_response(cache_name: &str, error: &dyn Error) -> rouille::Response {
 
     let json = json!({
