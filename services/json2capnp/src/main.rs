@@ -131,8 +131,6 @@ fn main() {
               (POST) (/zones)       => { routers::write_collection_route("zones", "zones", &config, &routers::zone_collection_router::write_collection, request) },
               (POST) (/units)       => { routers::write_collection_route("units", "units", &config, &routers::unit_collection_router::write_collection, request) },
 
-              // taxi:
-              //(POST) (/taxiPoints)  => { routers::write_route("taxiPoints", "items", &config, &routers::taxi_point_collection_router::write_collection, request) },
               (GET) (/dataSources) => { routers::read_collection_route("dataSources", "dataSources", &config, &routers::data_source_collection_router::read_collection) },
               (GET) (/agencies)    => { routers::read_collection_route("agencies", "agencies", &config, &routers::agency_collection_router::read_collection) },
               (GET) (/garages)     => { routers::read_collection_route("garages", "garages", &config, &routers::garage_collection_router::read_collection) },
