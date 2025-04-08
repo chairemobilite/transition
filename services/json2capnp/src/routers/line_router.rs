@@ -31,7 +31,6 @@ use crate::utils::{
 pub fn write_object(
     cache_directory_path: &str,
     json: &serde_json::Value,
-    _: &serde_json::Value,
 ) -> ::std::result::Result<(), capnp::Error> {
 
     let mut message = ::capnp::message::Builder::new_default();
@@ -232,7 +231,6 @@ pub fn write_object(
 pub fn read_object(
     object_uuid: &String,
     cache_directory_path: &str,
-    _ : &serde_json::Value//config: &serde_json::Value,
 ) -> ::std::result::Result<serde_json::Value, capnp::Error> {
 
     let object_file_path_name = format!("{}/line_{}.capnpbin", cache_directory_path, object_uuid);
