@@ -9,13 +9,7 @@ json = "0.12"
 capnp = "0.14"
 rouille = "3.0"
 serde_json = "1.0"
-uuid = "0.8"
-polyline = "0.9"
-geo = "0.17.0"
-geojson = "0.22.0"
-geobuf = "0.1"
-protobuf = "2.22.0"
-regex = "1.5.5"
+transition_capnp_data = { path = "transition_capnp_data" }
 
 [dev-dependencies]
 pretty_assertions = "0.6"
