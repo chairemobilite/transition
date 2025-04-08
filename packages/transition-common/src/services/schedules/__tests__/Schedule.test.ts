@@ -12,7 +12,7 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import EventManagerMock from 'chaire-lib-common/lib/test/services/events/EventManagerMock';
 import Schedule, { SchedulePeriod, ScheduleStrategyFactory, ScheduleCalculationMode, AsymmetricScheduleStrategy, SymmetricScheduleStrategy, BaseScheduleStrategy,
     UnitDirection, UnitLocation, SchedulePeriodTrip, TransitUnit, GenerateTripOptions, ProcessDepartureOptions, ProcessSimultaneousDeparturesOptions,
-     ProcessIndividualDeparturesOptions, GenerateTripsWithIntervalsOptions, GenerateDepartureSchedulesOptions, InitializeUnitsOptions  } from '../Schedule';
+     ProcessIndividualDeparturesOptions, GenerateTripsWithIntervalsOptions, GenerateDepartureSchedulesOptions, InitializeUnitsOptions, GenerateTripsOptions  } from '../Schedule';
 import { getScheduleAttributes } from './ScheduleData.test';
 import { getPathObject } from '../../path/__tests__/PathData.test';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
@@ -1479,3 +1479,386 @@ describe('processIndividualDepartures', () => {
         expect(usedUnitsIds).toEqual(new Set([1]));
     });
 });
+
+describe('generateTripsWithIntervals', () => {
+    class TestStrategy extends AsymmetricScheduleStrategy {
+        public calls: Record<string, any[]> = {
+            initializeUnits: [],
+            generateDepartureSchedules: [],
+            updateAllUnitsAvailability: [],
+            processSimultaneousDepartures: [],
+            processIndividualDepartures: []
+        };
+    
+        public testGenerateTripsWithIntervals(options: GenerateTripsWithIntervalsOptions) {
+            return this["generateTripsWithIntervals"](options);
+        }
+    
+        protected initializeUnits(options: InitializeUnitsOptions) {
+            this.calls.initializeUnits.push(options);
+            options.units.forEach((unit) => {
+                unit.currentLocation = options.startFromDestination
+                    ? UnitLocation.DESTINATION
+                    : UnitLocation.ORIGIN;
+            });
+        }
+    
+        protected generateDepartureSchedules(options: GenerateDepartureSchedulesOptions) {
+            this.calls.generateDepartureSchedules.push(options);
+            return {
+                outboundDepartures: [100, 300],
+                inboundDepartures: [200, 400]
+            };
+        }
+    
+        protected updateAllUnitsAvailability(units: TransitUnit[], currentTime: number, inboundPath?: TransitPath) {
+            this.calls.updateAllUnitsAvailability.push({ units: [...units], currentTime, inboundPath });
+        }
+    
+        protected processSimultaneousDepartures(options: ProcessSimultaneousDeparturesOptions) {
+            this.calls.processSimultaneousDepartures.push(options);
+            options.trips.push({ type: 'simultaneous', time: options.currentTime });
+            options.usedUnitsIds.add(99);
+            options.outboundDepartures.shift();
+            options.inboundDepartures.shift();
+        }
+    
+        protected processIndividualDepartures(options: ProcessIndividualDeparturesOptions) {
+            this.calls.processIndividualDepartures.push(options);
+            const direction = options.nextOutbound === options.currentTime ? 'outbound' : 'inbound';
+            options.trips.push({ type: 'individual', direction, time: options.currentTime });
+            options.usedUnitsIds.add(direction === 'outbound' ? 1 : 2);
+            if (direction === 'outbound') options.outboundDepartures.shift();
+            else options.inboundDepartures.shift();
+        }
+    }
+    
+    const mockUnit: TransitUnit = {
+        id: 1,
+        totalCapacity: 50,
+        seatedCapacity: 20,
+        currentLocation: UnitLocation.ORIGIN,
+        expectedArrivalTime: 0,
+        expectedReturnTime: null,
+        direction: null,
+        lastTripEndTime: null,
+        timeInCycle: 0
+    };
+    
+    const createOptions = (overrides = {}): GenerateTripsWithIntervalsOptions => ({
+        startAtSecondsSinceMidnight: 0,
+        endAtSecondsSinceMidnight: 1000,
+        outboundIntervalSeconds: 200,
+        inboundIntervalSeconds: 300,
+        outboundTotalTimeSeconds: 100,
+        inboundTotalTimeSeconds: 100,
+        units: [mockUnit],
+        outboundPath: { get: () => 'outbound' } as any,
+        inboundPath: { get: () => 'inbound' } as any,
+        ...overrides
+    });
+    
+    describe('generateTripsWithIntervals', () => {
+        let strategy: TestStrategy;
+    
+        beforeEach(() => {
+            strategy = new TestStrategy();
+        });
+    
+        test('should generate trips ', () => {
+            const options = createOptions({
+                outboundIntervalSeconds: 300,
+                inboundIntervalSeconds: 200
+            });
+    
+            const result = strategy.testGenerateTripsWithIntervals(options);
+    
+            expect(strategy.calls.initializeUnits[0]).toMatchObject({
+                units: options.units,
+                startFromDestination: true,
+                startTime: options.startAtSecondsSinceMidnight
+            });
+    
+            expect(strategy.calls.generateDepartureSchedules.length).toBe(1);
+            expect(strategy.calls.updateAllUnitsAvailability.length).toBe(4);
+            expect(strategy.calls.processSimultaneousDepartures.length).toBe(0);
+            expect(strategy.calls.processIndividualDepartures.length).toBe(4);
+    
+            expect(result.trips.length).toBe(4);
+            expect(result.realUnitCount).toBeGreaterThanOrEqual(0);
+        });
+    
+        test('should handle simultaneous departures when both intervals result in same time', () => {
+            strategy = new TestStrategy();
+            strategy['generateDepartureSchedules'] = () => ({
+                outboundDepartures: [100],
+                inboundDepartures: [100]
+            });
+    
+            const options = createOptions({
+                outboundIntervalSeconds: 100,
+                inboundIntervalSeconds: 100
+            });
+    
+            strategy.testGenerateTripsWithIntervals(options);
+    
+            expect(strategy.calls.processSimultaneousDepartures.length).toBe(1);
+            expect(strategy.calls.processIndividualDepartures.length).toBe(0);
+        });
+    
+        test('should work without inbound path', () => {
+            const options = createOptions({
+                inboundPath: undefined,
+                inboundIntervalSeconds: 0,
+                inboundTotalTimeSeconds: 0
+            });
+    
+            strategy.testGenerateTripsWithIntervals(options);
+    
+            expect(strategy.calls.initializeUnits[0].startFromDestination).toBe(false);
+        });
+    
+        test('should return empty trips if no departures are generated', () => {
+            strategy['generateDepartureSchedules'] = () => ({
+                outboundDepartures: [],
+                inboundDepartures: []
+            });
+    
+            const result = strategy.testGenerateTripsWithIntervals(createOptions());
+    
+            expect(result.trips).toEqual([]);
+            expect(result.realUnitCount).toBe(0);
+        });
+    });
+});
+
+describe('generateTripsWithFixedUnits', () => {
+    class TestStrategy extends AsymmetricScheduleStrategy {
+        public testGenerateTripsWithFixedUnits(options: any) {
+            return this['generateTripsWithFixedUnits'](options);
+        }
+    }
+
+    const createMockPath = (direction: 'outbound' | 'inbound') => ({
+        getAttributes: () => ({
+            data: {
+                segments: [{ travelTimeSeconds: 10 }]
+            },
+            nodes: [`${direction}-node1`, `${direction}-node2`]
+        }),
+        getData: (key: string) => key === 'dwellTimeSeconds' ? [5, 5] : undefined,
+        get: (key: string) => key === 'id' ? `mock-${direction}-id` : undefined,
+        getId: () => `mock-${direction}-id`,
+        getLine: () => ({ getAttributes: () => ({ shortname: `${direction}-line` }) }),
+        attributes: {
+            line_id: `${direction}-line-id`
+        }
+    });
+
+    const mockOutboundPath = createMockPath('outbound');
+    const mockInboundPath = createMockPath('inbound');
+
+    const createUnits = (count: number): TransitUnit[] =>
+        Array.from({ length: count }, (_, i) => ({
+            id: i + 1,
+            totalCapacity: 50,
+            seatedCapacity: 20,
+            currentLocation: UnitLocation.ORIGIN,
+            expectedArrivalTime: 0,
+            expectedReturnTime: null,
+            direction: null,
+            lastTripEndTime: null,
+            timeInCycle: 0
+        }));
+
+    let strategy: TestStrategy;
+
+    beforeEach(() => {
+        strategy = new TestStrategy();
+    });
+
+    it('should initialize timeInCycle staggered across units', () => {
+        const units = createUnits(4);
+
+        strategy.testGenerateTripsWithFixedUnits({
+            startAtSecondsSinceMidnight: 0,
+            endAtSecondsSinceMidnight: 1,
+            outboundIntervalSeconds: 300,
+            outboundTotalTimeSeconds: 100,
+            inboundTotalTimeSeconds: 100,
+            units,
+            outboundPath: mockOutboundPath,
+            inboundPath: mockInboundPath
+        });
+
+        const expectedStartTimes = [0, 50, 100, 150]; // 200 cycle / 4 units
+        const actual = units.map(u => u.timeInCycle);
+        expect(actual).toEqual(expectedStartTimes.map(t => t + 1)); // +1 due to final increment
+    });
+
+    it('should generate outbound trips at correct times', () => {
+        const units = createUnits(1);
+
+        const result = strategy.testGenerateTripsWithFixedUnits({
+            startAtSecondsSinceMidnight: 0,
+            endAtSecondsSinceMidnight: 3,
+            outboundIntervalSeconds: 1,
+            outboundTotalTimeSeconds: 1,
+            inboundTotalTimeSeconds: 1,
+            units,
+            outboundPath: mockOutboundPath,
+            inboundPath: undefined
+        });
+
+        const outboundTrips = result.trips.filter(t => t.path_id === 'mock-outbound-id');
+        expect(outboundTrips.length).toBeGreaterThan(0);
+        expect(result.realUnitCount).toBe(1);
+    });
+
+    it('should generate inbound trips only when inboundPath is defined', () => {
+        const units = createUnits(1);
+
+        const result = strategy.testGenerateTripsWithFixedUnits({
+            startAtSecondsSinceMidnight: 0,
+            endAtSecondsSinceMidnight: 3,
+            outboundIntervalSeconds: 1,
+            outboundTotalTimeSeconds: 1,
+            inboundTotalTimeSeconds: 1,
+            units,
+            outboundPath: mockOutboundPath,
+            inboundPath: mockInboundPath
+        });
+
+        const inboundTrips = result.trips.filter(t => t.path_id === 'mock-inbound-id');
+        expect(inboundTrips.length).toBeGreaterThan(0);
+    });
+
+    it('should reset timeInCycle when appropriate', () => {
+        const units = createUnits(1);
+
+        const result = strategy.testGenerateTripsWithFixedUnits({
+            startAtSecondsSinceMidnight: 0,
+            endAtSecondsSinceMidnight: 10,
+            outboundIntervalSeconds: 2,
+            outboundTotalTimeSeconds: 1,
+            inboundTotalTimeSeconds: 1,
+            units,
+            outboundPath: mockOutboundPath,
+            inboundPath: mockInboundPath
+        });
+
+        const outboundTrips = result.trips.filter(t => t.path_id === 'mock-outbound-id');
+        const outboundTimes = outboundTrips.map(t => t.departure_time_seconds);
+
+        expect(outboundTimes).toContain(0);
+        expect(outboundTimes).toContain(2);
+        expect(outboundTimes).toContain(4);
+    });
+
+    it('should return realUnitCount equal to units.length', () => {
+        const units = createUnits(3);
+
+        const result = strategy.testGenerateTripsWithFixedUnits({
+            startAtSecondsSinceMidnight: 0,
+            endAtSecondsSinceMidnight: 1,
+            outboundIntervalSeconds: 1,
+            outboundTotalTimeSeconds: 1,
+            inboundTotalTimeSeconds: 1,
+            units,
+            outboundPath: mockOutboundPath,
+            inboundPath: mockInboundPath
+        });
+
+        expect(result.realUnitCount).toBe(3);
+    });
+});
+
+describe('generateTrips', () => {
+    class TestStrategy extends AsymmetricScheduleStrategy {
+        public testGenerateTrips(options: any) {
+            return this.generateTrips(options);
+        }
+    }
+
+    const createMockPath = (direction: 'outbound' | 'inbound') => ({
+        getAttributes: () => ({
+            data: {
+                segments: [{ travelTimeSeconds: 10 }]
+            },
+            nodes: [`${direction}-node1`, `${direction}-node2`]
+        }),
+        getData: (key: string) => key === 'dwellTimeSeconds' ? [5, 5] : undefined,
+        get: (key: string) => key === 'id' ? `mock-${direction}-id` : undefined,
+        getId: () => `mock-${direction}-id`,
+        getLine: () => ({ getAttributes: () => ({ shortname: `${direction}-line` }) }),
+        attributes: {
+            line_id: `${direction}-line-id`
+        }
+    });
+
+    const mockOutboundPath = createMockPath('outbound');
+    const mockInboundPath = createMockPath('inbound');
+
+    const createUnits = (count: number): TransitUnit[] =>
+        Array.from({ length: count }, (_, i) => ({
+            id: i + 1,
+            totalCapacity: 50,
+            seatedCapacity: 20,
+            currentLocation: UnitLocation.ORIGIN,
+            expectedArrivalTime: 0,
+            expectedReturnTime: null,
+            direction: null,
+            lastTripEndTime: null,
+            timeInCycle: 0
+        }));
+
+    let strategy: TestStrategy;
+
+    beforeEach(() => {
+        strategy = new TestStrategy();
+    });
+
+    it('should use generateTripsWithIntervals when both intervals are provided', () => {
+        const units = createUnits(2);
+
+        const result = strategy.testGenerateTrips({
+            startAtSecondsSinceMidnight: 0,
+            endAtSecondsSinceMidnight: 300,
+            outboundIntervalSeconds: 60,
+            inboundIntervalSeconds: 60,
+            outboundTotalTimeSeconds: 100,
+            inboundTotalTimeSeconds: 100,
+            units,
+            outboundPath: mockOutboundPath,
+            inboundPath: mockInboundPath
+        });
+
+        const outboundTrips = result.trips.filter(t => t.path_id === 'mock-outbound-id');
+        const inboundTrips = result.trips.filter(t => t.path_id === 'mock-inbound-id');
+        expect(outboundTrips.length).toBeGreaterThan(0);
+        expect(inboundTrips.length).toBeGreaterThan(0);
+    });
+
+    it('should use generateTripsWithFixedUnits when one or both intervals are null', () => {
+        const units = createUnits(1);
+
+        const result = strategy.testGenerateTrips({
+            startAtSecondsSinceMidnight: 0,
+            endAtSecondsSinceMidnight: 3,
+            outboundIntervalSeconds: null, // triggers fallback
+            inboundIntervalSeconds: null,
+            outboundTotalTimeSeconds: 1,
+            inboundTotalTimeSeconds: 1,
+            units,
+            outboundPath: mockOutboundPath,
+            inboundPath: mockInboundPath
+        });
+
+        const outboundTrips = result.trips.filter(t => t.path_id === 'mock-outbound-id');
+        expect(outboundTrips.length).toBeGreaterThan(0);
+        expect(result.realUnitCount).toBe(1);
+    });
+});
+
+
+

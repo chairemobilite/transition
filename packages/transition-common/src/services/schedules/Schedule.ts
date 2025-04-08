@@ -101,7 +101,7 @@ interface ScheduleDefaults {
 }
 
 // Interface for generateTrips options
-interface GenerateTripsOptions {
+export interface GenerateTripsOptions {
     startAtSecondsSinceMidnight: number;
     endAtSecondsSinceMidnight: number;
     outboundIntervalSeconds: number;
@@ -655,7 +655,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
      * Generates trips when intervals are specified
      * Handles complex scheduling with dynamic unit assignments
      */
-    private generateTripsWithIntervals(options: GenerateTripsWithIntervalsOptions) {
+    protected generateTripsWithIntervals(options: GenerateTripsWithIntervalsOptions) {
         const trips: any[] = [];
         const usedUnitsIds = new Set<number>();
 
@@ -735,7 +735,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
      * Generates trips when a fixed number of units is specified
      * Uses a time-based approach to distribute trips across units
      */
-    private generateTripsWithFixedUnits(options: {
+    protected generateTripsWithFixedUnits(options: {
         startAtSecondsSinceMidnight: number;
         endAtSecondsSinceMidnight: number;
         outboundIntervalSeconds: number;
