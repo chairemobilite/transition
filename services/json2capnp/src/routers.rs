@@ -18,17 +18,12 @@ pub mod node_router;
 pub mod node_collection_router;
 pub mod line_router;
 pub mod line_collection_router;
-pub mod person_collection_router;
-pub mod household_collection_router;
 pub mod data_source_collection_router;
 pub mod agency_collection_router;
 pub mod path_collection_router;
 pub mod place_collection_router;
-pub mod garage_collection_router;
-pub mod unit_collection_router;
 pub mod service_collection_router;
 pub mod scenario_collection_router;
-pub mod zone_collection_router;
 
 fn failed_response(cache_name: &str, error: &dyn Error) -> rouille::Response {
 
