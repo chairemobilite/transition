@@ -68,7 +68,7 @@ fn success_response(cache_name: &str, json_data: Option<&serde_json::Value>) -> 
 
 }
 
-pub fn write_collection_route(collection_name: &str, cache_file_name: &str, config: &serde_json::Value, write_fn: &dyn Fn(&serde_json::Value, &mut std::fs::File, &serde_json::Value) -> ::std::result::Result<(), capnp::Error>, request: &rouille::Request) -> rouille::Response {
+pub fn write_collection_route(collection_name: &str, cache_file_name: &str, config: &serde_json::Value, write_fn: &dyn Fn(&serde_json::Value, &mut std::fs::File) -> ::std::result::Result<(), capnp::Error>, request: &rouille::Request) -> rouille::Response {
 
     let json : serde_json::Value   = try_or_400!(rouille::input::json_input(request));
     let json_cache_directory_path  = json.get("cache_directory_path").unwrap_or(&serde_json::Value::Null);
@@ -126,7 +126,7 @@ pub fn write_collection_route(collection_name: &str, cache_file_name: &str, conf
 
     if file.is_ok()
     {
-        match &write_fn(&json, &mut file.unwrap(), config) {
+        match &write_fn(&json, &mut file.unwrap()) {
             Err(error) => return failed_response(collection_name, error),
             Ok(()) => return success_response(collection_name, None)
         }
@@ -138,7 +138,7 @@ pub fn write_collection_route(collection_name: &str, cache_file_name: &str, conf
 
 }
 
-pub fn read_collection_route(collection_name: &str, cache_file_name: &str, config: &serde_json::Value, read_fn: &dyn Fn(&mut std::fs::File, &serde_json::Value) -> ::std::result::Result<serde_json::Value, capnp::Error>) -> rouille::Response {
+pub fn read_collection_route(collection_name: &str, cache_file_name: &str, config: &serde_json::Value, read_fn: &dyn Fn(&mut std::fs::File) -> ::std::result::Result<serde_json::Value, capnp::Error>) -> rouille::Response {
 
     let custom_subdirectory_path  = config.get("custom_subdirectory_path").unwrap_or(&serde_json::Value::Null);
     let data_source_uuid          = config.get("data_source_uuid").unwrap_or(&serde_json::Value::Null);
@@ -194,7 +194,7 @@ pub fn read_collection_route(collection_name: &str, cache_file_name: &str, confi
 
     if file.is_ok()
     {
-        match &read_fn(&mut file.unwrap(), config) {
+        match &read_fn(&mut file.unwrap()) {
             Err(error) => return failed_response(collection_name, error),
             Ok(json_value) => return success_response(collection_name, Some(&json_value))
         }
@@ -207,7 +207,7 @@ pub fn read_collection_route(collection_name: &str, cache_file_name: &str, confi
 }
 
 
-pub fn write_object_route(collection_name: &str, subdirectory: &str, config: &serde_json::Value, write_fn: &dyn Fn(&str, &serde_json::Value, &serde_json::Value) -> ::std::result::Result<(), capnp::Error>, request: &rouille::Request) -> rouille::Response {
+pub fn write_object_route(collection_name: &str, subdirectory: &str, config: &serde_json::Value, write_fn: &dyn Fn(&str, &serde_json::Value) -> ::std::result::Result<(), capnp::Error>, request: &rouille::Request) -> rouille::Response {
 
     let json : serde_json::Value   = try_or_400!(rouille::input::json_input(request));
     let json_cache_directory_path  = json.get("cache_directory_path").unwrap_or(&serde_json::Value::Null);
@@ -250,14 +250,14 @@ pub fn write_object_route(collection_name: &str, subdirectory: &str, config: &se
     }
     
     let absolute_path = String::from(path.to_str().unwrap());
-    match &write_fn(&absolute_path.as_str(), &json, config) {
+    match &write_fn(&absolute_path.as_str(), &json) {
         Err(error) => return failed_response(collection_name, error),
         Ok(()) => return success_response(collection_name, None)
     }
 
 }
 
-pub fn read_object_route(object_name: &str, object_uuid: &String, subdirectory: &str, config: &serde_json::Value, read_fn: &dyn Fn(&String, &str, &serde_json::Value) -> ::std::result::Result<serde_json::Value, capnp::Error>) -> rouille::Response {
+pub fn read_object_route(object_name: &str, object_uuid: &String, subdirectory: &str, config: &serde_json::Value, read_fn: &dyn Fn(&String, &str) -> ::std::result::Result<serde_json::Value, capnp::Error>) -> rouille::Response {
 
     let custom_subdirectory_path  = config.get("custom_subdirectory_path").unwrap_or(&serde_json::Value::Null);
     let data_source_uuid          = config.get("data_source_uuid").unwrap_or(&serde_json::Value::Null);
@@ -294,7 +294,7 @@ pub fn read_object_route(object_name: &str, object_uuid: &String, subdirectory: 
     let absolute_path = String::from(path.to_str().unwrap());
     println!("absolute_path: {}", absolute_path);
 
-    match &read_fn(object_uuid, &absolute_path.as_str(), config) {
+    match &read_fn(object_uuid, &absolute_path.as_str()) {
         Err(error) => return failed_response(object_name, error),
         Ok(json_value) => return success_response(object_name, Some(&json_value))
     }

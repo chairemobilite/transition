@@ -18,7 +18,6 @@ use protobuf::Message;
 pub fn write_collection(
     json: &serde_json::Value,
     file: &mut std::fs::File,
-    _: &serde_json::Value,
 ) -> ::std::result::Result<(), capnp::Error> {
     let mut message = ::capnp::message::Builder::new_default();
     
@@ -118,7 +117,6 @@ pub fn write_collection(
 
 pub fn read_collection(
     file: &mut std::fs::File,
-    _ : &serde_json::Value//config: &serde_json::Value,
 ) -> ::std::result::Result<serde_json::Value, capnp::Error> {
 
     let message_reader   = serialize_packed::read_message(BufReader::new(file), ::capnp::message::ReaderOptions::new())?;
