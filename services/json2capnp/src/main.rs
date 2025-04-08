@@ -19,11 +19,8 @@ extern crate rouille;
 #[macro_use]
 extern crate serde_json;
 
-mod enum_mappings;
 mod routers;
-mod utils;
-
-include!("./capnp/include.rs");
+use transition_capnp_data;
 
 fn main() {
 
@@ -114,29 +111,29 @@ fn main() {
                 Response::text(format!("empty response"))
               },
 
-              (POST) (/dataSources) => { routers::write_collection_route("dataSources", "dataSources", &config, &routers::data_source_collection_router::write_collection, request) },
-              (POST) (/agencies)    => { routers::write_collection_route("agencies", "agencies", &config, &routers::agency_collection_router::write_collection, request) },
-              (POST) (/paths)       => { routers::write_collection_route("paths", "paths", &config, &routers::path_collection_router::write_collection, request) },
-              (POST) (/nodes)       => { routers::write_collection_route("nodes", "nodes", &config, &routers::node_collection_router::write_collection, request) },
-              (POST) (/node)        => { routers::write_object_route("node", "nodes", &config, &routers::node_router::write_object, request) },
-              (POST) (/lines)       => { routers::write_collection_route("lines", "lines", &config, &routers::line_collection_router::write_collection, request) },
-              (POST) (/line)        => { routers::write_object_route("line", "lines", &config, &routers::line_router::write_object, request) },
-              (POST) (/odTrips)     => { routers::write_collection_route("odTrips", "odTrips", &config, &routers::od_trip_collection_router::write_collection, request) },
-              (POST) (/places)      => { routers::write_collection_route("places", "places", &config, &routers::place_collection_router::write_collection, request) },
-              (POST) (/scenarios)   => { routers::write_collection_route("scenarios", "scenarios", &config, &routers::scenario_collection_router::write_collection, request) },
-              (POST) (/services)    => { routers::write_collection_route("services", "services", &config, &routers::service_collection_router::write_collection, request) },
+              (POST) (/dataSources) => { routers::write_collection_route("dataSources", "dataSources", &config, &transition_capnp_data::serialization::data_source_collection::write_collection, request) },
+              (POST) (/agencies)    => { routers::write_collection_route("agencies", "agencies", &config, &transition_capnp_data::serialization::agency_collection::write_collection, request) },
+              (POST) (/paths)       => { routers::write_collection_route("paths", "paths", &config, &transition_capnp_data::serialization::path_collection::write_collection, request) },
+              (POST) (/nodes)       => { routers::write_collection_route("nodes", "nodes", &config, &transition_capnp_data::serialization::node_collection::write_collection, request) },
+              (POST) (/node)        => { routers::write_object_route("node", "nodes", &config, &transition_capnp_data::serialization::node::write_object, request) },
+              (POST) (/lines)       => { routers::write_collection_route("lines", "lines", &config, &transition_capnp_data::serialization::line_collection::write_collection, request) },
+              (POST) (/line)        => { routers::write_object_route("line", "lines", &config, &transition_capnp_data::serialization::line::write_object, request) },
+              (POST) (/odTrips)     => { routers::write_collection_route("odTrips", "odTrips", &config, &transition_capnp_data::serialization::od_trip_collection::write_collection, request) },
+              (POST) (/places)      => { routers::write_collection_route("places", "places", &config, &transition_capnp_data::serialization::place_collection::write_collection, request) },
+              (POST) (/scenarios)   => { routers::write_collection_route("scenarios", "scenarios", &config, &transition_capnp_data::serialization::scenario_collection::write_collection, request) },
+              (POST) (/services)    => { routers::write_collection_route("services", "services", &config, &transition_capnp_data::serialization::service_collection::write_collection, request) },
 
-              (GET) (/dataSources) => { routers::read_collection_route("dataSources", "dataSources", &config, &routers::data_source_collection_router::read_collection) },
-              (GET) (/agencies)    => { routers::read_collection_route("agencies", "agencies", &config, &routers::agency_collection_router::read_collection) },
-              (GET) (/paths)       => { routers::read_collection_route("paths", "paths", &config, &routers::path_collection_router::read_collection) },
-              (GET) (/nodes)       => { routers::read_collection_route("nodes", "nodes", &config, &routers::node_collection_router::read_collection) },
-              (GET) (/node)        => { routers::read_object_route("node", &object_uuid, "nodes", &config, &routers::node_router::read_object) },
-              (GET) (/lines)       => { routers::read_collection_route("lines", "lines", &config, &routers::line_collection_router::read_collection) },
-              (GET) (/line)        => { routers::read_object_route("line", &object_uuid, "lines", &config, &routers::line_router::read_object) },
-              (GET) (/odTrips)     => { routers::read_collection_route("odTrips", "odTrips", &config, &routers::od_trip_collection_router::read_collection) },
-              (GET) (/places)      => { routers::read_collection_route("places", "places", &config, &routers::place_collection_router::read_collection) },
-              (GET) (/scenarios)   => { routers::read_collection_route("scenarios", "scenarios", &config, &routers::scenario_collection_router::read_collection) },
-              (GET) (/services)    => { routers::read_collection_route("services", "services", &config, &routers::service_collection_router::read_collection) },
+              (GET) (/dataSources) => { routers::read_collection_route("dataSources", "dataSources", &config, &transition_capnp_data::serialization::data_source_collection::read_collection) },
+              (GET) (/agencies)    => { routers::read_collection_route("agencies", "agencies", &config, &transition_capnp_data::serialization::agency_collection::read_collection) },
+              (GET) (/paths)       => { routers::read_collection_route("paths", "paths", &config, &transition_capnp_data::serialization::path_collection::read_collection) },
+              (GET) (/nodes)       => { routers::read_collection_route("nodes", "nodes", &config, &transition_capnp_data::serialization::node_collection::read_collection) },
+              (GET) (/node)        => { routers::read_object_route("node", &object_uuid, "nodes", &config, &transition_capnp_data::serialization::node::read_object) },
+              (GET) (/lines)       => { routers::read_collection_route("lines", "lines", &config, &transition_capnp_data::serialization::line_collection::read_collection) },
+              (GET) (/line)        => { routers::read_object_route("line", &object_uuid, "lines", &config, &transition_capnp_data::serialization::line::read_object) },
+              (GET) (/odTrips)     => { routers::read_collection_route("odTrips", "odTrips", &config, &transition_capnp_data::serialization::od_trip_collection::read_collection) },
+              (GET) (/places)      => { routers::read_collection_route("places", "places", &config, &transition_capnp_data::serialization::place_collection::read_collection) },
+              (GET) (/scenarios)   => { routers::read_collection_route("scenarios", "scenarios", &config, &transition_capnp_data::serialization::scenario_collection::read_collection) },
+              (GET) (/services)    => { routers::read_collection_route("services", "services", &config, &transition_capnp_data::serialization::service_collection::read_collection) },
 
               _ => rouille::Response::empty_404()
             )
