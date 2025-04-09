@@ -280,26 +280,7 @@ const defaultPreferences: PreferencesModel = {
                         endAtHour: 24
                     }
                 ]
-            },
-            custom: {
-                name: {
-                  fr: 'Périodes personnalisées',
-                  en: 'Custom Periods'
-                },
-                periods: [
-                  {
-                    shortname: 'custom_period_1',
-                    name: {
-                      fr: 'Période personnalisée 1',
-                      en: 'Custom Period 1'
-                    },
-                    startAtHour: 8,
-                    endAtHour: 10,
-                    isCustom: true // Add this flag to identify custom periods
-                  }
-                ],
-                isCustomizable: true // Add this flag to identify this group can have periods added
-              }
+            }
         },
         stations: {
             defaultColor: '#0086FF'
