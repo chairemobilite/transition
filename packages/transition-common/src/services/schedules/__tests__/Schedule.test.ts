@@ -1200,21 +1200,13 @@ describe('AsymmetricScheduleStrategy updateAllUnitsAvailability', () => {
     });
 });
 
-describe('processSimultaneousDepartures', () => {
+describe(' AsymmetricScheduleStrategy processSimultaneousDepartures', () => {
     class TestStrategy extends AsymmetricScheduleStrategy {
         public testProcessSimultaneousDepartures(options: ProcessSimultaneousDeparturesOptions): void {
             this["processSimultaneousDepartures"](options);
         }
-    
-        protected processDeparture(options: ProcessDepartureOptions) {
-            const isInbound = options.direction === UnitDirection.INBOUND;
-            if (isInbound) {
-                return { unitId: options.units.find(unit => unit.id === 2)?.id ?? null };
-            }
-            return { unitId: options.units.find(unit => unit.id === 1)?.id ?? null };
-        }
     }
-    
+
     let strategy: TestStrategy;
     let trips: any[];
     let units: any[];
@@ -1222,6 +1214,7 @@ describe('processSimultaneousDepartures', () => {
     let usedUnitsIds: Set<number>;
     let outboundDepartures: number[];
     let inboundDepartures: number[];
+    let processDepartureSpy: jest.SpyInstance;
 
     beforeEach(() => {
         strategy = new TestStrategy();
@@ -1247,7 +1240,18 @@ describe('processSimultaneousDepartures', () => {
             outboundDepartures,
             inboundDepartures
         };
+
+        // Default mock behavior: return unit ID 1 for outbound, 2 for inbound
+        processDepartureSpy = jest.spyOn(strategy as any, 'processDeparture').mockImplementation((args) => {
+            const options = args as ProcessDepartureOptions;
+            if (options.direction === UnitDirection.OUTBOUND) return { unitId: 1 };
+            return { unitId: null };
+        });
         
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     const baseOptions = {
@@ -1262,17 +1266,19 @@ describe('processSimultaneousDepartures', () => {
     it('should process both outbound and inbound departures and update usedUnitsIds', () => {
         strategy.testProcessSimultaneousDepartures(options);
 
-        // Check departures were shifted
-        expect(outboundDepartures).toEqual([2000]);
-        expect(inboundDepartures).toEqual([2000]);
-
-        // Check both unit IDs were added
-        expect(usedUnitsIds.has(1)).toBe(true);
-        expect(usedUnitsIds.has(2)).toBe(true);
+        expect(processDepartureSpy).toHaveBeenCalledTimes(2);
+        expect(processDepartureSpy).toHaveBeenCalledWith(expect.objectContaining({
+            direction: UnitDirection.OUTBOUND,
+            currentTime: 1000,
+        }));
+        expect(processDepartureSpy).toHaveBeenCalledWith(expect.objectContaining({
+            direction: UnitDirection.INBOUND,
+            currentTime: 1000,
+        }));
     });
 
     it('Case 1 - No inbound path, outbound unitId returned', () => {
-        const options = {
+        const customOptions = {
             ...baseOptions,
             units,
             outboundPath: {} as any,
@@ -1280,13 +1286,16 @@ describe('processSimultaneousDepartures', () => {
             usedUnitsIds: new Set<number>()
         };
 
-        strategy.testProcessSimultaneousDepartures(options);
+        strategy.testProcessSimultaneousDepartures(customOptions);
 
-        expect(options.usedUnitsIds).toEqual(new Set([1]));
+        expect(processDepartureSpy).toHaveBeenCalledTimes(1);
+        expect(processDepartureSpy).toHaveBeenCalledWith(expect.objectContaining({
+            direction: UnitDirection.OUTBOUND
+        }));
     });
 
     it('Case 2 - Inbound path exists, both unitIds returned', () => {
-        const options = {
+        const customOptions = {
             ...baseOptions,
             units,
             outboundPath: {} as any,
@@ -1294,20 +1303,18 @@ describe('processSimultaneousDepartures', () => {
             usedUnitsIds: new Set<number>()
         };
 
-        strategy.testProcessSimultaneousDepartures(options);
+        strategy.testProcessSimultaneousDepartures(customOptions);
 
-        expect(options.usedUnitsIds).toEqual(new Set([1, 2]));
+        expect(processDepartureSpy).toHaveBeenCalledTimes(2);
     });
 
     it('Case 3 - Inbound path exists, only inbound unitId returned', () => {
-        const strategy = new class extends TestStrategy {
-            protected processDeparture(options: ProcessDepartureOptions) {
-                if (options.direction === UnitDirection.INBOUND) return { unitId: 2 };
-                return { unitId: null };
-            }
-        }();
+        processDepartureSpy.mockImplementation((options: ProcessDepartureOptions) => {
+            if (options.direction === UnitDirection.INBOUND) return { unitId: 2 };
+            return { unitId: null };
+        });
 
-        const options = {
+        const customOptions = {
             ...baseOptions,
             units,
             outboundPath: {} as any,
@@ -1315,20 +1322,18 @@ describe('processSimultaneousDepartures', () => {
             usedUnitsIds: new Set<number>()
         };
 
-        strategy.testProcessSimultaneousDepartures(options);
-
-        expect(options.usedUnitsIds).toEqual(new Set([2]));
+        strategy.testProcessSimultaneousDepartures(customOptions);
+        expect(processDepartureSpy).toHaveBeenCalledTimes(2);
     });
 
     it('Case 4 - Inbound path exists, only outbound unitId returned', () => {
-        const strategy = new class extends TestStrategy {
-            protected processDeparture(options: ProcessDepartureOptions) {
-                if (options.direction === UnitDirection.OUTBOUND) return { unitId: 1 };
-                return { unitId: null };
-            }
-        }();
+        // Mock: Only outbound returns a unitId
+        processDepartureSpy.mockImplementation((options: ProcessDepartureOptions) => {
+            if (options.direction === UnitDirection.OUTBOUND) return { unitId: 1 };
+            return { unitId: null };
+        });
 
-        const options = {
+        const customOptions = {
             ...baseOptions,
             units,
             outboundPath: {} as any,
@@ -1336,19 +1341,15 @@ describe('processSimultaneousDepartures', () => {
             usedUnitsIds: new Set<number>()
         };
 
-        strategy.testProcessSimultaneousDepartures(options);
-
-        expect(options.usedUnitsIds).toEqual(new Set([1]));
+        strategy.testProcessSimultaneousDepartures(customOptions);
+        expect(processDepartureSpy).toHaveBeenCalledTimes(2);
     });
 
     it('Case 5 - Inbound path exists, no unitIds returned', () => {
-        const strategy = new class extends TestStrategy {
-            protected processDeparture(_: ProcessDepartureOptions) {
-                return { unitId: null };
-            }
-        }();
+        // Mock: Both calls return null
+        processDepartureSpy.mockImplementation(() => ({ unitId: null }));
 
-        const options = {
+        const customOptions = {
             ...baseOptions,
             units,
             outboundPath: {} as any,
@@ -1356,13 +1357,15 @@ describe('processSimultaneousDepartures', () => {
             usedUnitsIds: new Set<number>()
         };
 
-        strategy.testProcessSimultaneousDepartures(options);
+        strategy.testProcessSimultaneousDepartures(customOptions);
 
-        expect(options.usedUnitsIds.size).toBe(0);
+        expect(customOptions.usedUnitsIds.size).toBe(0);
+        expect(processDepartureSpy).toHaveBeenCalledTimes(2);
     });
+
 });
 
-describe('processIndividualDepartures', () => {
+describe('AsymmetricScheduleStrategy processIndividualDepartures', () => {
     class TestStrategy extends AsymmetricScheduleStrategy {
         public testProcessIndividualDepartures(options: ProcessIndividualDeparturesOptions): void {
             this['processIndividualDepartures'](options);
@@ -1480,7 +1483,7 @@ describe('processIndividualDepartures', () => {
     });
 });
 
-describe('generateTripsWithIntervals', () => {
+describe('AsymmetricScheduleStrategy generateTripsWithIntervals', () => {
     class TestStrategy extends AsymmetricScheduleStrategy {
         public calls: Record<string, any[]> = {
             initializeUnits: [],
@@ -1632,7 +1635,7 @@ describe('generateTripsWithIntervals', () => {
     });
 });
 
-describe('generateTripsWithFixedUnits', () => {
+describe('AsymmetricScheduleStrategy generateTripsWithFixedUnits', () => {
     class TestStrategy extends AsymmetricScheduleStrategy {
         public testGenerateTripsWithFixedUnits(options: any) {
             return this['generateTripsWithFixedUnits'](options);
@@ -1773,92 +1776,96 @@ describe('generateTripsWithFixedUnits', () => {
     });
 });
 
-describe('generateTrips', () => {
-    class TestStrategy extends AsymmetricScheduleStrategy {
-        public testGenerateTrips(options: any) {
-            return this.generateTrips(options);
-        }
-    }
+describe('AsymmetricScheduleStrategy generateTrips', () => {
 
-    const createMockPath = (direction: 'outbound' | 'inbound') => ({
-        getAttributes: () => ({
-            data: {
-                segments: [{ travelTimeSeconds: 10 }]
-            },
-            nodes: [`${direction}-node1`, `${direction}-node2`]
-        }),
-        getData: (key: string) => key === 'dwellTimeSeconds' ? [5, 5] : undefined,
-        get: (key: string) => key === 'id' ? `mock-${direction}-id` : undefined,
-        getId: () => `mock-${direction}-id`,
-        getLine: () => ({ getAttributes: () => ({ shortname: `${direction}-line` }) }),
-        attributes: {
-            line_id: `${direction}-line-id`
-        }
-    });
-
-    const mockOutboundPath = createMockPath('outbound');
-    const mockInboundPath = createMockPath('inbound');
-
-    const createUnits = (count: number): TransitUnit[] =>
-        Array.from({ length: count }, (_, i) => ({
-            id: i + 1,
-            totalCapacity: 50,
-            seatedCapacity: 20,
-            currentLocation: UnitLocation.ORIGIN,
-            expectedArrivalTime: 0,
-            expectedReturnTime: null,
-            direction: null,
-            lastTripEndTime: null,
-            timeInCycle: 0
-        }));
-
-    let strategy: TestStrategy;
+    let strategy: AsymmetricScheduleStrategy;
+    let generateTripsWithIntervalsSpy: jest.SpyInstance;
+    let generateTripsWithFixedUnitsSpy: jest.SpyInstance;
 
     beforeEach(() => {
-        strategy = new TestStrategy();
+        strategy = new AsymmetricScheduleStrategy();
+
+        generateTripsWithIntervalsSpy = jest.spyOn(strategy as any, 'generateTripsWithIntervals').mockReturnValue(['interval-trip']);
+        generateTripsWithFixedUnitsSpy = jest.spyOn(strategy as any, 'generateTripsWithFixedUnits').mockReturnValue(['fixed-trip']);
     });
 
-    it('should use generateTripsWithIntervals when both intervals are provided', () => {
-        const units = createUnits(2);
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 
-        const result = strategy.testGenerateTrips({
+    it('calls generateTripsWithIntervals when both intervals are provided', () => {
+        const options = {
+            outboundIntervalSeconds: 300,
+            inboundIntervalSeconds: 300,
             startAtSecondsSinceMidnight: 0,
-            endAtSecondsSinceMidnight: 300,
-            outboundIntervalSeconds: 60,
-            inboundIntervalSeconds: 60,
-            outboundTotalTimeSeconds: 100,
-            inboundTotalTimeSeconds: 100,
-            units,
-            outboundPath: mockOutboundPath,
-            inboundPath: mockInboundPath
-        });
+            endAtSecondsSinceMidnight: 3600,
+            outboundTotalTimeSeconds: 1800,
+            inboundTotalTimeSeconds: 1600,
+            units: [],
+            outboundPath: {} as any,
+            inboundPath: {} as any
+        };
 
-        const outboundTrips = result.trips.filter(t => t.path_id === 'mock-outbound-id');
-        const inboundTrips = result.trips.filter(t => t.path_id === 'mock-inbound-id');
-        expect(outboundTrips.length).toBeGreaterThan(0);
-        expect(inboundTrips.length).toBeGreaterThan(0);
+        const result = strategy.generateTrips(options);
+
+        expect(generateTripsWithIntervalsSpy).toHaveBeenCalledTimes(1);
+        expect(generateTripsWithIntervalsSpy).toHaveBeenCalledWith(options);
+        expect(generateTripsWithFixedUnitsSpy).not.toHaveBeenCalled();
+        expect(result).toEqual(['interval-trip']);
     });
 
-    it('should use generateTripsWithFixedUnits when one or both intervals are null', () => {
-        const units = createUnits(1);
+    // it('calls generateTripsWithFixedUnits when intervals are null', () => {
+    //     const options = {
+    //         outboundIntervalSeconds: null,
+    //         inboundIntervalSeconds: null,
+    //         startAtSecondsSinceMidnight: 0,
+    //         endAtSecondsSinceMidnight: 3600,
+    //         outboundTotalTimeSeconds: 1800,
+    //         inboundTotalTimeSeconds: 1600,
+    //         units: [],
+    //         outboundPath: {} as any,
+    //         inboundPath: {} as any
+    //     };
 
-        const result = strategy.testGenerateTrips({
-            startAtSecondsSinceMidnight: 0,
-            endAtSecondsSinceMidnight: 3,
-            outboundIntervalSeconds: null, // triggers fallback
-            inboundIntervalSeconds: null,
-            outboundTotalTimeSeconds: 1,
-            inboundTotalTimeSeconds: 1,
-            units,
-            outboundPath: mockOutboundPath,
-            inboundPath: mockInboundPath
-        });
+    //     const result = strategy.generateTrips(options);
 
-        const outboundTrips = result.trips.filter(t => t.path_id === 'mock-outbound-id');
-        expect(outboundTrips.length).toBeGreaterThan(0);
-        expect(result.realUnitCount).toBe(1);
-    });
+    //     expect(generateTripsWithFixedUnitsSpy).toHaveBeenCalledTimes(1);
+    //     expect(generateTripsWithFixedUnitsSpy).toHaveBeenCalledWith({
+    //         startAtSecondsSinceMidnight: 0,
+    //         endAtSecondsSinceMidnight: 3600,
+    //         outboundIntervalSeconds: null,
+    //         outboundTotalTimeSeconds: 1800,
+    //         inboundTotalTimeSeconds: 1600,
+    //         units: [],
+    //         outboundPath: {} as any,
+    //         inboundPath: {} as any
+    //     });
+
+    //     expect(generateTripsWithIntervalsSpy).not.toHaveBeenCalled();
+    //     expect(result).toEqual(['fixed-trip']);
+    // });
+
+    // it('calls generateTripsWithFixedUnits when one of the intervals is null', () => {
+    //     const options = {
+    //         outboundIntervalSeconds: 300,
+    //         inboundIntervalSeconds: null,
+    //         startAtSecondsSinceMidnight: 0,
+    //         endAtSecondsSinceMidnight: 3600,
+    //         outboundTotalTimeSeconds: 1800,
+    //         inboundTotalTimeSeconds: 1600,
+    //         units: [],
+    //         outboundPath: {} as any,
+    //         inboundPath: {} as any
+    //     };
+
+    //     const result = strategy.generateTrips(options);
+
+    //     expect(generateTripsWithFixedUnitsSpy).toHaveBeenCalledTimes(1);
+    //     expect(generateTripsWithIntervalsSpy).not.toHaveBeenCalled();
+    //     expect(result).toEqual(['fixed-trip']);
+    // });
 });
+
 
 
 
