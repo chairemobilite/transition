@@ -12,6 +12,7 @@ import { faUndoAlt } from '@fortawesome/free-solid-svg-icons/faUndoAlt';
 import { faRedoAlt } from '@fortawesome/free-solid-svg-icons/faRedoAlt';
 import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
+import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { faSyncAlt } from '@fortawesome/free-solid-svg-icons/faSyncAlt';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
@@ -209,7 +210,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
             schedule.attributes.periods.splice(periodIndex, 1);
 
             // Trigger a re-render
-            // this.forceUpdate();
+            this.forceUpdate();
             this.onValueChange();
         }
     };
@@ -301,13 +302,13 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                             tReady={this.props.tReady}
                         />
 
-                        Add remove button for custom periods (except the first one)
+                        {/* Add remove button for custom periods (except the first one) */}
                         {periodsGroup.isCustomizable && i > 0 && (
                             <Button
-                                className="button button-danger period-remove-button"
                                 onClick={() => this.onRemoveCustomPeriod(i)}
                                 disabled={isFrozen}
-                                icon={faArrowLeft}
+                                icon={faTrash}
+                                color="red"
                             />
                         )}
                     </div>
@@ -318,10 +319,9 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                 periodsForms.push(
                     <div key="add_period_button" className="form-group add-period-container">
                         <Button
-                            className="button button-primary add-period-button"
                             onClick={this.onAddCustomPeriod}
                             disabled={isFrozen}
-                            icon={faArrowLeft}
+                            icon={faPlus}
                         >
                             {this.props.t('transit:transitSchedule:AddPeriod')}
                         </Button>
