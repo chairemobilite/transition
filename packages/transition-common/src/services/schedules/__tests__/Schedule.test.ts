@@ -509,182 +509,258 @@ describe('generateForPeriod', () => {
 
 });
 
-describe('BaseScheduleStrategy generateTrip', () => {
-    let validOptions: GenerateTripOptions;
-    class TestStrategy extends BaseScheduleStrategy {
-        public testGenerateTrip(options: GenerateTripOptions) {
-            return this.generateTrip(options); // Expose protected method
-        }
-        // Mock the abstract methods
-        calculateResourceRequirements() {
-            return {
-                units: [],
-                outboundIntervalSeconds: 0,
-                inboundIntervalSeconds: 0
-            };
-        }
-        
-        generateTrips() {
-            return {
-                trips: [],
-                realUnitCount: 0,
+describe('BaseScheduleStrategy', () => {
+    
+    describe('BaseScheduleStrategy generateTrip', () => {
+        let validOptions: GenerateTripOptions;
+        class TestStrategy extends BaseScheduleStrategy {
+            public testGenerateTrip(options: GenerateTripOptions) {
+                return this.generateTrip(options); // Expose protected method
+            }
+            // Mock the abstract methods
+            calculateResourceRequirements() {
+                return {
+                    units: [],
+                    outboundIntervalSeconds: 0,
+                    inboundIntervalSeconds: 0
+                };
+            }
+            
+            generateTrips() {
+                return {
+                    trips: [],
+                    realUnitCount: 0,
+                }
             }
         }
-    }
-
-    beforeEach(() => {
-        // Create a mock implementation of the abstract class with valid options that should work
-        const pathCollection = new PathCollection([], {});
-        validOptions = {
-            tripStartAtSeconds: 3600, // 1 hour
-            unit: {
-                id: 1,
-                totalCapacity: 100,
-                seatedCapacity: 50,
-                currentLocation: UnitLocation.ORIGIN,
-                expectedArrivalTime: 3600,
-                expectedReturnTime: 7200,
-                direction: UnitDirection.OUTBOUND,
-                lastTripEndTime: null,
-                timeInCycle: 1
-            },
-            path: getPathObject({ lineId, pathCollection }, 'smallReal'),
-            segments: [
-                { travelTimeSeconds: 300 }, // 5 minutes
-                { travelTimeSeconds: 420 }  // 7 minutes
-            ],
-            nodes: ['node1', 'node2', 'node3'],
-            dwellTimes: [60, 60] // 1 minute each
-        };
-    });
-
-    it('should successfully generate trip with valid options', () => {
-        let strategy = new TestStrategy();
-        const trip = strategy.testGenerateTrip(validOptions);
-        expect(trip).toBeDefined();
-        expect(trip.node_arrival_times_seconds.length).toBe(3);
-    });
-
-    it('segments length does not match nodes length - 1', () => {
-        let strategy = new TestStrategy();
-        const invalidOptions = {
-            ...validOptions,
-            segments: [{ travelTimeSeconds: 300 }]
-        };
-        expect(() => strategy.testGenerateTrip(invalidOptions)).toThrow();
+    
+        beforeEach(() => {
+            // Create a mock implementation of the abstract class with valid options that should work
+            const pathCollection = new PathCollection([], {});
+            validOptions = {
+                tripStartAtSeconds: 3600, // 1 hour
+                unit: {
+                    id: 1,
+                    totalCapacity: 100,
+                    seatedCapacity: 50,
+                    currentLocation: UnitLocation.ORIGIN,
+                    expectedArrivalTime: 3600,
+                    expectedReturnTime: 7200,
+                    direction: UnitDirection.OUTBOUND,
+                    lastTripEndTime: null,
+                    timeInCycle: 1
+                },
+                path: getPathObject({ lineId, pathCollection }, 'smallReal'),
+                segments: [
+                    { travelTimeSeconds: 300 }, // 5 minutes
+                    { travelTimeSeconds: 420 }  // 7 minutes
+                ],
+                nodes: ['node1', 'node2', 'node3'],
+                dwellTimes: [60, 60] // 1 minute each
+            };
+        });
+    
+        it('should successfully generate trip with valid options', () => {
+            let strategy = new TestStrategy();
+            const trip = strategy.testGenerateTrip(validOptions);
+            expect(trip).toBeDefined();
+            expect(trip.node_arrival_times_seconds.length).toBe(3);
+        });
+    
+        it('segments length does not match nodes length - 1', () => {
+            let strategy = new TestStrategy();
+            const invalidOptions = {
+                ...validOptions,
+                segments: [{ travelTimeSeconds: 300 }]
+            };
+            expect(() => strategy.testGenerateTrip(invalidOptions)).toThrow();
+        });
     });
 });
 
-describe('createStrategy', () => {
-    it('should return AsymmetricScheduleStrategy for ASYMMETRIC mode', () => {
-        const strategy = ScheduleStrategyFactory.createStrategy(ScheduleCalculationMode.ASYMMETRIC);
-        expect(strategy).toBeInstanceOf(AsymmetricScheduleStrategy);
-    });
-
-    it('should return SymmetricScheduleStrategy for BASIC mode', () => {
-        const strategy = ScheduleStrategyFactory.createStrategy(ScheduleCalculationMode.BASIC);
-        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
-    });
-
-    it('should return SymmetricScheduleStrategy for undefined mode', () => {
-        const strategy = ScheduleStrategyFactory.createStrategy(undefined as unknown as ScheduleCalculationMode);
-        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
-    });
-
-    it('should return SymmetricScheduleStrategy for null mode', () => {
-        const strategy = ScheduleStrategyFactory.createStrategy(null as unknown as ScheduleCalculationMode);
-        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
-    });
-
-    it('should return SymmetricScheduleStrategy for unknown mode', () => {
-        const strategy = ScheduleStrategyFactory.createStrategy('UNKNOWN_MODE' as ScheduleCalculationMode);
-        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
-    });
-
-    it('should use default case for non-enum values', () => {
-        const strategy = ScheduleStrategyFactory.createStrategy('123' as ScheduleCalculationMode);
-        expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
+describe ('ScheduleStrategyFactory', () => {
+    describe('createStrategy', () => {
+        it('should return AsymmetricScheduleStrategy for ASYMMETRIC mode', () => {
+            const strategy = ScheduleStrategyFactory.createStrategy(ScheduleCalculationMode.ASYMMETRIC);
+            expect(strategy).toBeInstanceOf(AsymmetricScheduleStrategy);
+        });
+    
+        it('should return SymmetricScheduleStrategy for BASIC mode', () => {
+            const strategy = ScheduleStrategyFactory.createStrategy(ScheduleCalculationMode.BASIC);
+            expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
+        });
+    
+        it('should return SymmetricScheduleStrategy for undefined mode', () => {
+            const strategy = ScheduleStrategyFactory.createStrategy(undefined as unknown as ScheduleCalculationMode);
+            expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
+        });
+    
+        it('should return SymmetricScheduleStrategy for null mode', () => {
+            const strategy = ScheduleStrategyFactory.createStrategy(null as unknown as ScheduleCalculationMode);
+            expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
+        });
+    
+        it('should return SymmetricScheduleStrategy for unknown mode', () => {
+            const strategy = ScheduleStrategyFactory.createStrategy('UNKNOWN_MODE' as ScheduleCalculationMode);
+            expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
+        });
+    
+        it('should use default case for non-enum values', () => {
+            const strategy = ScheduleStrategyFactory.createStrategy('123' as ScheduleCalculationMode);
+            expect(strategy).toBeInstanceOf(SymmetricScheduleStrategy);
+        });
     });
 });
 
-describe('calculateResourceRequirements', () => {
-    let scheduleStrategy = new AsymmetricScheduleStrategy();
-    describe('Scenario 1: Fixed number of units', () => {
-        it('should calculate correct interval when number_of_units is provided', () => {
-          const options = {
-            period: { number_of_units: 2 },
-            startAtSecondsSinceMidnight: 0,
-            endAtSecondsSinceMidnight: 3600,
-            outboundTotalTimeSeconds: 1200, // 20 min
-            inboundTotalTimeSeconds: 1800, // 30 min
-            secondAllowed: true
-          };
-          
-          const result =scheduleStrategy.calculateResourceRequirements(options);
-          expect(result.units.length).toBe(2);
-          expect(result.outboundIntervalSeconds).toBe(1500); // (20+30)/2 = 25 min (1500s)
-        });
-      
-        it('should round interval to minutes when secondAllowed is false', () => {
-          const options = {
-            period: { number_of_units: 3 },
-            startAtSecondsSinceMidnight: 0,
-            endAtSecondsSinceMidnight: 3600,
-            outboundTotalTimeSeconds: 1250,
-            inboundTotalTimeSeconds: 1750,
-            secondAllowed: false
-          };
-          
-          const result = scheduleStrategy.calculateResourceRequirements(options);
-          // (1250+1750)/3 = 1000s → arrondi à 1020s (17 min)
-          expect(result.outboundIntervalSeconds).toBe(1020);
-        });
-      });
-
-    describe('Scenario 2: Fixed intervals', () => {
-        it('should calculate required units based on outbound/inbound intervals', () => {
-          const options = {
-            period: {
-              interval_seconds: 900,  // 15 min
-              inbound_interval_seconds: 1200 // 20 min
-            },
-            startAtSecondsSinceMidnight: 0,
-            endAtSecondsSinceMidnight: 7200, // 2h
-            outboundTotalTimeSeconds: 1800,
-            inboundTotalTimeSeconds: 1800,
-            secondAllowed: true
-          };
-          
-          const result = scheduleStrategy.calculateResourceRequirements(options);
-          // 7200/900 = 8 unités pour outbound
-          // 7200/1200 = 6 unités pour inbound
-          // On prend le max (8)
-          expect(result.units.length).toBe(8);
-        });
-      
-      
-        it('should handle zero time period', () => {
+describe('AsymmetricScheduleStrategy', () => {
+    
+    describe('AsymmetricScheduleStrategy calculateResourceRequirements', () => {
+        let scheduleStrategy = new AsymmetricScheduleStrategy();
+        describe('Scenario 1: Fixed number of units', () => {
+            it('should calculate correct interval when number_of_units is provided', () => {
             const options = {
-              period: { number_of_units: 2 },
-              startAtSecondsSinceMidnight: 0,
-              endAtSecondsSinceMidnight: 0,
-              outboundTotalTimeSeconds: 1800,
-              inboundTotalTimeSeconds: 1800,
-              secondAllowed: true
+                period: { number_of_units: 2 },
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 3600,
+                outboundTotalTimeSeconds: 1200, // 20 min
+                inboundTotalTimeSeconds: 1800, // 30 min
+                secondAllowed: true
+            };
+            
+            const result =scheduleStrategy.calculateResourceRequirements(options);
+            expect(result.units.length).toBe(2);
+            expect(result.outboundIntervalSeconds).toBe(1500); // (20+30)/2 = 25 min (1500s)
+            });
+        
+            it('should round interval to minutes when secondAllowed is false', () => {
+            const options = {
+                period: { number_of_units: 3 },
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 3600,
+                outboundTotalTimeSeconds: 1250,
+                inboundTotalTimeSeconds: 1750,
+                secondAllowed: false
             };
             
             const result = scheduleStrategy.calculateResourceRequirements(options);
-            expect(result.units.length).toBe(2);
-            expect(result.outboundIntervalSeconds).toBe(1800); // (1800+1800)/2
-          });
-      
-      });
+            // (1250+1750)/3 = 1000s → arrondi à 1020s (17 min)
+            expect(result.outboundIntervalSeconds).toBe(1020);
+            });
+        });
 
-});
+        describe('Scenario 2: Fixed intervals', () => {
+            it('should calculate required units based on outbound/inbound intervals', () => {
+            const options = {
+                period: {
+                interval_seconds: 900,  // 15 min
+                inbound_interval_seconds: 1200 // 20 min
+                },
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 7200, // 2h
+                outboundTotalTimeSeconds: 1800,
+                inboundTotalTimeSeconds: 1800,
+                secondAllowed: true
+            };
+            
+            const result = scheduleStrategy.calculateResourceRequirements(options);
+            // 7200/900 = 8 unités pour outbound
+            // 7200/1200 = 6 unités pour inbound
+            // On prend le max (8)
+            expect(result.units.length).toBe(8);
+            });
+        
+        
+            it('should handle zero time period', () => {
+                const options = {
+                period: { number_of_units: 2 },
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 0,
+                outboundTotalTimeSeconds: 1800,
+                inboundTotalTimeSeconds: 1800,
+                secondAllowed: true
+                };
+                
+                const result = scheduleStrategy.calculateResourceRequirements(options);
+                expect(result.units.length).toBe(2);
+                expect(result.outboundIntervalSeconds).toBe(1800); // (1800+1800)/2
+            });
+        
+        });
 
-describe('updateUnitAvailability', () => {
-    let strategy: AsymmetricScheduleStrategy;
-    const baseUnit: TransitUnit = {
+    });
+
+    describe('AsymmetricScheduleStrategy updateUnitAvailability', () => {
+        let strategy: AsymmetricScheduleStrategy;
+        const baseUnit: TransitUnit = {
+            id: 1,
+            totalCapacity: 50,
+            seatedCapacity: 30,
+            currentLocation: UnitLocation.ORIGIN,
+            expectedArrivalTime: 0,
+            expectedReturnTime: null,
+            direction: null,
+            lastTripEndTime: null,
+            timeInCycle: 0
+        };
+    
+        beforeEach(() => {
+        strategy = new AsymmetricScheduleStrategy();
+        });
+        it('should update outbound unit to destination', () => {
+            const unit: TransitUnit = {
+            ...baseUnit,
+            direction: UnitDirection.OUTBOUND,
+            expectedArrivalTime: 1000
+            };
+
+            strategy["updateUnitAvailability"](unit, 1001);
+
+            expect(unit.currentLocation).toBe(UnitLocation.DESTINATION);
+            expect(unit.direction).toBeNull();
+            expect(unit.lastTripEndTime).toBe(1001);
+        });
+
+        it('should update inbound unit to origin', () => {
+            const unit: TransitUnit = {
+            ...baseUnit,
+            currentLocation: UnitLocation.DESTINATION,
+            direction: UnitDirection.INBOUND,
+            expectedArrivalTime: 1500,
+            timeInCycle: 300
+            };
+
+            strategy["updateUnitAvailability"](unit, 1500);
+
+            expect(unit.currentLocation).toBe(UnitLocation.ORIGIN);
+            expect(unit.direction).toBeNull();
+            expect(unit.lastTripEndTime).toBe(1500);
+        });
+
+        // when unit has not arrived
+        it('should not modify outbound unit', () => {
+            const unit: TransitUnit = {
+            ...baseUnit,
+            direction: UnitDirection.OUTBOUND,
+            expectedArrivalTime: 2000,
+            lastTripEndTime: 500
+            };
+
+            strategy["updateUnitAvailability"](unit, 1999);
+
+            expect(unit.currentLocation).toBe(UnitLocation.ORIGIN);
+            expect(unit.direction).toBe(UnitDirection.OUTBOUND);
+            expect(unit.lastTripEndTime).toBe(500);
+        });
+    });
+
+    describe('AsymmetricScheduleStrategy findBestUnit', () => {
+        let strategy: AsymmetricScheduleStrategy; 
+        
+        beforeEach(() => {
+        strategy = new AsymmetricScheduleStrategy();
+        });
+    
+        const baseUnit: TransitUnit = {
         id: 1,
         totalCapacity: 50,
         seatedCapacity: 30,
@@ -694,976 +770,725 @@ describe('updateUnitAvailability', () => {
         direction: null,
         lastTripEndTime: null,
         timeInCycle: 0
-      };
-  
-    beforeEach(() => {
-      strategy = new AsymmetricScheduleStrategy();
-    });
-    it('should update outbound unit to destination', () => {
-        const unit: TransitUnit = {
-        ...baseUnit,
-        direction: UnitDirection.OUTBOUND,
-        expectedArrivalTime: 1000
         };
 
-        strategy["updateUnitAvailability"](unit, 1001);
-
-        expect(unit.currentLocation).toBe(UnitLocation.DESTINATION);
-        expect(unit.direction).toBeNull();
-        expect(unit.lastTripEndTime).toBe(1001);
-    });
-
-    it('should update inbound unit to origin', () => {
-        const unit: TransitUnit = {
-        ...baseUnit,
-        currentLocation: UnitLocation.DESTINATION,
-        direction: UnitDirection.INBOUND,
-        expectedArrivalTime: 1500,
-        timeInCycle: 300
-        };
-
-        strategy["updateUnitAvailability"](unit, 1500);
-
-        expect(unit.currentLocation).toBe(UnitLocation.ORIGIN);
-        expect(unit.direction).toBeNull();
-        expect(unit.lastTripEndTime).toBe(1500);
-    });
-
-    // when unit has not arrived
-    it('should not modify outbound unit', () => {
-        const unit: TransitUnit = {
-        ...baseUnit,
-        direction: UnitDirection.OUTBOUND,
-        expectedArrivalTime: 2000,
-        lastTripEndTime: 500
-        };
-
-        strategy["updateUnitAvailability"](unit, 1999);
-
-        expect(unit.currentLocation).toBe(UnitLocation.ORIGIN);
-        expect(unit.direction).toBe(UnitDirection.OUTBOUND);
-        expect(unit.lastTripEndTime).toBe(500);
-    });
-});
-
-describe('findBestUnit', () => {
-    let strategy: AsymmetricScheduleStrategy; 
-    
-    beforeEach(() => {
-      strategy = new AsymmetricScheduleStrategy();
-    });
-  
-    const baseUnit: TransitUnit = {
-      id: 1,
-      totalCapacity: 50,
-      seatedCapacity: 30,
-      currentLocation: UnitLocation.ORIGIN,
-      expectedArrivalTime: 0,
-      expectedReturnTime: null,
-      direction: null,
-      lastTripEndTime: null,
-      timeInCycle: 0
-    };
-
-    it('should select correct outbound unit at origin', () => {
-        const units = [
-          { ...baseUnit, id: 1, currentLocation: UnitLocation.ORIGIN },
-          { ...baseUnit, id: 2, currentLocation: UnitLocation.DESTINATION }
-        ];
-      
-        const result = strategy["findBestUnit"](1000, UnitDirection.OUTBOUND, units);
-        expect(result?.id).toBe(1);
-    });
-
-    it('should select correct inbound unit at destination', () => {
-        const units = [
+        it('should select correct outbound unit at origin', () => {
+            const units = [
             { ...baseUnit, id: 1, currentLocation: UnitLocation.ORIGIN },
-            { ...baseUnit, id: 2, currentLocation: UnitLocation.DESTINATION }];
-    
-        const result = strategy["findBestUnit"](1000, UnitDirection.INBOUND, units);
-        expect(result?.id).toBe(2);
-    });
-
-    it('should prioritize used units by availability time', () => {
-        const units = [
-          { ...baseUnit, id: 1, lastTripEndTime: 1500 },
-          { ...baseUnit, id: 2, lastTripEndTime: 1200 },
-          { ...baseUnit, id: 3, lastTripEndTime: null }
-        ];
-      
-        const result = strategy["findBestUnit"](1300, UnitDirection.OUTBOUND, units);
-        expect(result?.id).toBe(2);
-      });
-      
-    it('should select unused unit if no used units are ready', () => {
-        const units = [
-            { ...baseUnit, id: 1, lastTripEndTime: 1500 },
-            { ...baseUnit, id: 2, lastTripEndTime: null }
-        ];
-        
-        const result = strategy["findBestUnit"](1000, UnitDirection.OUTBOUND, units);
-        expect(result?.id).toBe(2);
-    });
-
-    it('should return null when no units are available', () => {
-        const units = [
-            { ...baseUnit, id: 1, direction: UnitDirection.OUTBOUND },
             { ...baseUnit, id: 2, currentLocation: UnitLocation.DESTINATION }
-        ];
+            ];
         
-        const result = strategy["findBestUnit"](1000, UnitDirection.OUTBOUND, units);
-        expect(result).toBeNull();
+            const result = strategy["findBestUnit"](1000, UnitDirection.OUTBOUND, units);
+            expect(result?.id).toBe(1);
+        });
+
+        it('should select correct inbound unit at destination', () => {
+            const units = [
+                { ...baseUnit, id: 1, currentLocation: UnitLocation.ORIGIN },
+                { ...baseUnit, id: 2, currentLocation: UnitLocation.DESTINATION }];
+        
+            const result = strategy["findBestUnit"](1000, UnitDirection.INBOUND, units);
+            expect(result?.id).toBe(2);
+        });
+
+        it('should prioritize used units by availability time', () => {
+            const units = [
+            { ...baseUnit, id: 1, lastTripEndTime: 1500 },
+            { ...baseUnit, id: 2, lastTripEndTime: 1200 },
+            { ...baseUnit, id: 3, lastTripEndTime: null }
+            ];
+        
+            const result = strategy["findBestUnit"](1300, UnitDirection.OUTBOUND, units);
+            expect(result?.id).toBe(2);
+        });
+        
+        it('should select unused unit if no used units are ready', () => {
+            const units = [
+                { ...baseUnit, id: 1, lastTripEndTime: 1500 },
+                { ...baseUnit, id: 2, lastTripEndTime: null }
+            ];
+            
+            const result = strategy["findBestUnit"](1000, UnitDirection.OUTBOUND, units);
+            expect(result?.id).toBe(2);
+        });
+
+        it('should return null when no units are available', () => {
+            const units = [
+                { ...baseUnit, id: 1, direction: UnitDirection.OUTBOUND },
+                { ...baseUnit, id: 2, currentLocation: UnitLocation.DESTINATION }
+            ];
+            
+            const result = strategy["findBestUnit"](1000, UnitDirection.OUTBOUND, units);
+            expect(result).toBeNull();
+        });
+        
+        it('should handle empty units array', () => {
+            const result = strategy["findBestUnit"](1000, UnitDirection.OUTBOUND, []);
+            expect(result).toBeNull();
+        });
+        
+        it('should ignore not-ready units', () => {
+            const units = [
+                { ...baseUnit, id: 1, lastTripEndTime: 1500 }
+            ];
+            
+            const result = strategy["findBestUnit"](1000, UnitDirection.OUTBOUND, units);
+            expect(result).toBeNull();
+        });
+
+        it('should select unit at ready time', () => {
+            const units = [
+                { ...baseUnit, id: 1, lastTripEndTime: 1000 }
+            ];
+            
+            const result = strategy["findBestUnit"](1000, UnitDirection.OUTBOUND, units);
+            expect(result?.id).toBe(1);
+        });
+
     });
+
+    describe('AsymmetricScheduleStrategy processDeparture', () => {
+        let strategy: AsymmetricScheduleStrategy;
+        let trips: any[];
+        let mockPath: any;
+        let mockUnits: any[];
     
-    it('should handle empty units array', () => {
-        const result = strategy["findBestUnit"](1000, UnitDirection.OUTBOUND, []);
-        expect(result).toBeNull();
-    });
+        let findBestUnitSpy: jest.SpyInstance;
+        let generateTripSpy: jest.SpyInstance;
     
-    it('should ignore not-ready units', () => {
-        const units = [
-            { ...baseUnit, id: 1, lastTripEndTime: 1500 }
-        ];
-        
-        const result = strategy["findBestUnit"](1000, UnitDirection.OUTBOUND, units);
-        expect(result).toBeNull();
-    });
-
-    it('should select unit at ready time', () => {
-        const units = [
-            { ...baseUnit, id: 1, lastTripEndTime: 1000 }
-        ];
-        
-        const result = strategy["findBestUnit"](1000, UnitDirection.OUTBOUND, units);
-        expect(result?.id).toBe(1);
-    });
-
-});
-
-describe('AsymmetricScheduleStrategy processDeparture', () => {
-    let strategy: TestStrategyWithUnit;
-    let mockPath: any;
-    let mockUnits: any[];
-    let trips: any[];
-
-    class TestStrategyWithUnit extends AsymmetricScheduleStrategy {
-        public testProcessDeparture(options: ProcessDepartureOptions) {
-            return this['processDeparture'](options);
-        }
-
-        protected findBestUnit(_: number, __: UnitDirection, units: any[]) {
-            return units[0]; // Mock : always returns the first unit
-        }
-
-        protected generateTrip(options: GenerateTripOptions) {
-            return {
-                id: 'mocked-trip-id',
-                path_id: "number1",
-                departure_time_seconds: options.tripStartAtSeconds,
-                arrival_time_seconds: options.tripStartAtSeconds + 1000,
-                node_arrival_times_seconds: [options.tripStartAtSeconds + 300, options.tripStartAtSeconds + 750],
-                node_departure_times_seconds: [options.tripStartAtSeconds + 350, options.tripStartAtSeconds + 800],
-                nodes_can_board: [true, false],
-                nodes_can_unboard: [false, true],
-                block_id: null,
-                total_capacity: options.unit.totalCapacity,
-                seated_capacity: options.unit.seatedCapacity,
-                unit_id: null,
-                unitDirection: options.unit.direction,
-                unitReadyAt: options.unit.expectedReturnTime || options.unit.expectedArrivalTime
+        beforeEach(() => {
+            strategy = new AsymmetricScheduleStrategy();
+            trips = [];
+    
+            mockPath = {
+                getData: jest.fn(() => [60, 90, 120]),
+                getAttributes: jest.fn(() => ({
+                    data: { segments: [] },
+                    nodes: ['a', 'b', 'c']
+                }))
             };
-        }
-    }
-
-    class TestStrategyNoUnit extends TestStrategyWithUnit {
-        protected findBestUnit(_: number, __: UnitDirection, ___: any[]) {
-            return null;
-        }
-    }
-
-    beforeEach(() => {
-        trips = [];
-
-        mockPath = {
-            getData: jest.fn((key) => {
-                if (key === 'dwellTimeSeconds') return [60, 90, 120];
-                return [];
-            }),
-            getAttributes: jest.fn(() => ({
-                data: {
-                    segments: [{ travelTimeSeconds: 300 }, { travelTimeSeconds: 450 }]
-                },
-                nodes: ['nodeA', 'nodeB', 'nodeC']
-            }))
-        };
-
-        mockUnits = [
-            {
+    
+            mockUnits = [{
                 id: 1,
                 totalCapacity: 100,
                 seatedCapacity: 50,
                 currentLocation: UnitLocation.ORIGIN,
                 expectedArrivalTime: 3600,
                 expectedReturnTime: 7200,
-                direction: UnitDirection.OUTBOUND,
-                lastTripEndTime: null,
-                timeInCycle: 1
-            }
-        ];
-    });
-
-    it('should process departure and generate a trip when a unit is available', () => {
-        strategy = new TestStrategyWithUnit();
-
-        const result = strategy.testProcessDeparture({
-            currentTime: 1000,
-            totalTimeSeconds: 3600,
-            units: mockUnits,
-            path: mockPath,
-            trips,
-            direction: UnitDirection.OUTBOUND
-        });
-
-        expect(result.unitId).toBe(1);
-        expect(trips).toHaveLength(1);
-        expect(trips[0].id).toBe('mocked-trip-id');
-        expect(mockUnits[0].currentLocation).toBe(UnitLocation.IN_TRANSIT);
-        expect(mockUnits[0].expectedArrivalTime).toBe(4600);
-    });
-
-    it('should return unitId null when no unit is available', () => {
-        const strategyNoUnit = new TestStrategyNoUnit();
-
-        const result = strategyNoUnit.testProcessDeparture({
-            currentTime: 1000,
-            totalTimeSeconds: 3600,
-            units: mockUnits,
-            path: mockPath,
-            trips,
-            direction: UnitDirection.OUTBOUND
-        });
-
-        expect(result.unitId).toBeNull();
-        expect(trips).toHaveLength(0);
-    });
-});
-
-describe('AsymmetricScheduleStrategy initializeUnits', () => {
-    let strategy: AsymmetricScheduleStrategy;
-    let mockUnits: any[];
-
-    beforeEach(() => {
-        strategy = new AsymmetricScheduleStrategy();
-        mockUnits = [
-            {
-                id: 1,
-                totalCapacity: 100,
-                seatedCapacity: 50
-            },
-            {
-                id: 2,
-                totalCapacity: 80,
-                seatedCapacity: 40
-            }
-        ];
-    });
-
-    it('should initialize units starting from origin', () => {
-        strategy['initializeUnits']({
-            units: mockUnits,
-            startFromDestination: false,
-            startTime: 5000
-        });
-
-        mockUnits.forEach(unit => {
-            expect(unit.currentLocation).toBe(UnitLocation.ORIGIN);
-            expect(unit.direction).toBeNull();
-            expect(unit.expectedArrivalTime).toBe(5000);
-            expect(unit.expectedReturnTime).toBeNull();
-            expect(unit.lastTripEndTime).toBeNull();
-        });
-    });
-
-    it('should initialize units starting from destination', () => {
-        strategy['initializeUnits']({
-            units: mockUnits,
-            startFromDestination: true,
-            startTime: 8000
-        });
-
-        mockUnits.forEach(unit => {
-            expect(unit.currentLocation).toBe(UnitLocation.DESTINATION);
-            expect(unit.expectedArrivalTime).toBe(8000);
-        });
-    });
-});
-
-describe('AsymmetricScheduleStrategy generateDepartureSchedules', () => {
-    let strategy: AsymmetricScheduleStrategy;
-
-    beforeEach(() => {
-        strategy = new AsymmetricScheduleStrategy();
-    });
-
-    it('should generate outbound then inbound departures when starting from origin', () => {
-        const result = strategy['generateDepartureSchedules']({
-            startFromDestination: false,
-            hasInboundPath: true,
-            startTime: 0,
-            endTime: 1000,
-            outboundIntervalSeconds: 200,
-            inboundIntervalSeconds: 300,
-            outboundTotalTimeSeconds: 150,
-            inboundTotalTimeSeconds: 100
-        });
-
-        expect(result.outboundDepartures).toEqual([0, 200, 400, 600, 800]);
-        expect(result.inboundDepartures).toEqual([150, 450, 750]);
-    });
-
-    it('should generate only outbound departures when no inbound path', () => {
-        const result = strategy['generateDepartureSchedules']({
-            startFromDestination: false,
-            hasInboundPath: false,
-            startTime: 100,
-            endTime: 900,
-            outboundIntervalSeconds: 250,
-            inboundIntervalSeconds: 300,
-            outboundTotalTimeSeconds: 0,
-            inboundTotalTimeSeconds: 0
-        });
-
-        expect(result.outboundDepartures).toEqual([100, 350, 600, 850]);
-        expect(result.inboundDepartures).toEqual([]);
-    });
-
-    it('should generate inbound then outbound when starting from destination', () => {
-        const result = strategy['generateDepartureSchedules']({
-            startFromDestination: true,
-            hasInboundPath: true,
-            startTime: 500,
-            endTime: 2000,
-            outboundIntervalSeconds: 300,
-            inboundIntervalSeconds: 400,
-            outboundTotalTimeSeconds: 600,
-            inboundTotalTimeSeconds: 200
-        });
-
-        expect(result.inboundDepartures).toEqual([500, 900, 1300, 1700]);
-        expect(result.outboundDepartures).toEqual([700, 1000, 1300, 1600, 1900]);
-    });
-
-    it('should handle empty result if intervals exceed endTime', () => {
-        const result = strategy['generateDepartureSchedules']({
-            startFromDestination: true,
-            hasInboundPath: true,
-            startTime: 0,
-            endTime: 100,
-            outboundIntervalSeconds: 200,
-            inboundIntervalSeconds: 300,
-            outboundTotalTimeSeconds: 50,
-            inboundTotalTimeSeconds: 50
-        });
-
-        expect(result.outboundDepartures.length).toBe(1); // 0 + 50 = 50 is pushed
-        expect(result.inboundDepartures.length).toBe(1);  // 0 is pushed
-    });
-});
-
-describe('AsymmetricScheduleStrategy generateDepartureSchedules', () => {
-    let strategy: AsymmetricScheduleStrategy;
-
-    beforeEach(() => {
-        strategy = new AsymmetricScheduleStrategy();
-    });
-
-    it('should generate outbound then inbound departures when starting from origin', () => {
-        const result = strategy['generateDepartureSchedules']({
-            startFromDestination: false,
-            hasInboundPath: true,
-            startTime: 0,
-            endTime: 1000,
-            outboundIntervalSeconds: 200,
-            inboundIntervalSeconds: 300,
-            outboundTotalTimeSeconds: 150,
-            inboundTotalTimeSeconds: 100
-        });
-
-        expect(result.outboundDepartures).toEqual([0, 200, 400, 600, 800]);
-        expect(result.inboundDepartures).toEqual([150, 450, 750]);
-    });
-
-    it('should generate only outbound departures when no inbound path', () => {
-        const result = strategy['generateDepartureSchedules']({
-            startFromDestination: false,
-            hasInboundPath: false,
-            startTime: 100,
-            endTime: 900,
-            outboundIntervalSeconds: 250,
-            inboundIntervalSeconds: 300,
-            outboundTotalTimeSeconds: 0,
-            inboundTotalTimeSeconds: 0
-        });
-
-        expect(result.outboundDepartures).toEqual([100, 350, 600, 850]);
-        expect(result.inboundDepartures).toEqual([]);
-    });
-
-    it('should generate inbound then outbound when starting from destination', () => {
-        const result = strategy['generateDepartureSchedules']({
-            startFromDestination: true,
-            hasInboundPath: true,
-            startTime: 500,
-            endTime: 2000,
-            outboundIntervalSeconds: 300,
-            inboundIntervalSeconds: 400,
-            outboundTotalTimeSeconds: 600,
-            inboundTotalTimeSeconds: 200
-        });
-
-        expect(result.inboundDepartures).toEqual([500, 900, 1300, 1700]);
-        expect(result.outboundDepartures).toEqual([700, 1000, 1300, 1600, 1900]);
-    });
-
-    it('should handle empty result if intervals exceed endTime', () => {
-        const result = strategy['generateDepartureSchedules']({
-            startFromDestination: true,
-            hasInboundPath: true,
-            startTime: 0,
-            endTime: 100,
-            outboundIntervalSeconds: 200,
-            inboundIntervalSeconds: 300,
-            outboundTotalTimeSeconds: 50,
-            inboundTotalTimeSeconds: 50
-        });
-
-        expect(result.outboundDepartures.length).toBe(1); // 0 + 50 = 50 is pushed
-        expect(result.inboundDepartures.length).toBe(1);  // 0 is pushed
-    });
-});
-
-describe('AsymmetricScheduleStrategy updateAllUnitsAvailability', () => {
-    class TestStrategy extends AsymmetricScheduleStrategy {
-        public testUpdateAllUnitsAvailability(units: TransitUnit[], currentTime: number, inboundPath?: TransitPath) {
-            return this['updateAllUnitsAvailability'](units, currentTime, inboundPath);
-        }
-
-        protected updateUnitAvailability(unit: TransitUnit, currentTime: number): void {
-            unit.direction = "fake direction" as UnitDirection; // Juste un flag pour vérifier qu'elle est appelée
-        }
-    }
-
-    let strategy: TestStrategy;
-    let mockUnit1: any;
-    let mockUnit2: any;
-
-    beforeEach(() => {
-        strategy = new TestStrategy();
-
-        mockUnit1 = {
-            id: 1,
-            currentLocation: UnitLocation.DESTINATION,
-            expectedArrivalTime: 1000,
-            direction: UnitDirection.INBOUND,
-            lastTripEndTime: null
-        };
-
-        mockUnit2 = {
-            id: 2,
-            currentLocation: UnitLocation.ORIGIN,
-            expectedArrivalTime: 2000,
-            direction: UnitDirection.OUTBOUND,
-            lastTripEndTime: null
-        };
-    });
-
-    it('should teleport unit to ORIGIN when no inboundPath and arrival time is reached', () => {
-        strategy.testUpdateAllUnitsAvailability([mockUnit1], 1500);
-
-        expect(mockUnit1.currentLocation).toBe(UnitLocation.ORIGIN);
-        expect(mockUnit1.direction).toBeNull();
-        expect(mockUnit1.lastTripEndTime).toBe(1500);
-    });
-
-    it('should call updateUnitAvailability for unit that does not match ghost trip case', () => {
-        strategy.testUpdateAllUnitsAvailability([mockUnit2], 1500);
-
-        expect(mockUnit2.direction).toBe("fake direction" as UnitDirection);
-    });
-
-    it('should not teleport unit if inboundPath is provided', () => {
-        const inboundPath: any = {}; // Simule simplement la présence du paramètre
-        strategy.testUpdateAllUnitsAvailability([mockUnit1], 1500, inboundPath);
-
-        expect(mockUnit1.currentLocation).toBe(UnitLocation.DESTINATION); // Pas modifié
-        expect(mockUnit1.direction).toBe("fake direction" as UnitDirection); // Appelle la méthode fallback
-    });
-});
-
-describe(' AsymmetricScheduleStrategy processSimultaneousDepartures', () => {
-    class TestStrategy extends AsymmetricScheduleStrategy {
-        public testProcessSimultaneousDepartures(options: ProcessSimultaneousDeparturesOptions): void {
-            this["processSimultaneousDepartures"](options);
-        }
-    }
-
-    let strategy: TestStrategy;
-    let trips: any[];
-    let units: any[];
-    let options: ProcessSimultaneousDeparturesOptions;
-    let usedUnitsIds: Set<number>;
-    let outboundDepartures: number[];
-    let inboundDepartures: number[];
-    let processDepartureSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-        strategy = new TestStrategy();
-        trips = [];
-        units = [
-            { id: 1, currentLocation: UnitLocation.ORIGIN },
-            { id: 2, currentLocation: UnitLocation.DESTINATION }
-        ];
-
-        outboundDepartures = [1000, 2000];
-        inboundDepartures = [1000, 2000];
-        usedUnitsIds = new Set();
-
-        options = {
-            currentTime: 1000,
-            units,
-            outboundPath: {} as any,
-            inboundPath: {} as any,
-            outboundTotalTimeSeconds: 300,
-            inboundTotalTimeSeconds: 400,
-            trips: [],
-            usedUnitsIds,
-            outboundDepartures,
-            inboundDepartures
-        };
-
-        // Default mock behavior: return unit ID 1 for outbound, 2 for inbound
-        processDepartureSpy = jest.spyOn(strategy as any, 'processDeparture').mockImplementation((args) => {
-            const options = args as ProcessDepartureOptions;
-            if (options.direction === UnitDirection.OUTBOUND) return { unitId: 1 };
-            return { unitId: null };
-        });
-        
-    });
-
-    afterEach(() => {
-        jest.restoreAllMocks();
-    });
-
-    const baseOptions = {
-        currentTime: 1000,
-        outboundTotalTimeSeconds: 1800,
-        inboundTotalTimeSeconds: 1600,
-        trips: [],
-        outboundDepartures: [1000],
-        inboundDepartures: [1000]
-    };
-
-    it('should process both outbound and inbound departures and update usedUnitsIds', () => {
-        strategy.testProcessSimultaneousDepartures(options);
-
-        expect(processDepartureSpy).toHaveBeenCalledTimes(2);
-        expect(processDepartureSpy).toHaveBeenCalledWith(expect.objectContaining({
-            direction: UnitDirection.OUTBOUND,
-            currentTime: 1000,
-        }));
-        expect(processDepartureSpy).toHaveBeenCalledWith(expect.objectContaining({
-            direction: UnitDirection.INBOUND,
-            currentTime: 1000,
-        }));
-    });
-
-    it('Case 1 - No inbound path, outbound unitId returned', () => {
-        const customOptions = {
-            ...baseOptions,
-            units,
-            outboundPath: {} as any,
-            inboundPath: undefined,
-            usedUnitsIds: new Set<number>()
-        };
-
-        strategy.testProcessSimultaneousDepartures(customOptions);
-
-        expect(processDepartureSpy).toHaveBeenCalledTimes(1);
-        expect(processDepartureSpy).toHaveBeenCalledWith(expect.objectContaining({
-            direction: UnitDirection.OUTBOUND
-        }));
-    });
-
-    it('Case 2 - Inbound path exists, both unitIds returned', () => {
-        const customOptions = {
-            ...baseOptions,
-            units,
-            outboundPath: {} as any,
-            inboundPath: {} as any,
-            usedUnitsIds: new Set<number>()
-        };
-
-        strategy.testProcessSimultaneousDepartures(customOptions);
-
-        expect(processDepartureSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('Case 3 - Inbound path exists, only inbound unitId returned', () => {
-        processDepartureSpy.mockImplementation((options: ProcessDepartureOptions) => {
-            if (options.direction === UnitDirection.INBOUND) return { unitId: 2 };
-            return { unitId: null };
-        });
-
-        const customOptions = {
-            ...baseOptions,
-            units,
-            outboundPath: {} as any,
-            inboundPath: {} as any,
-            usedUnitsIds: new Set<number>()
-        };
-
-        strategy.testProcessSimultaneousDepartures(customOptions);
-        expect(processDepartureSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('Case 4 - Inbound path exists, only outbound unitId returned', () => {
-        // Mock: Only outbound returns a unitId
-        processDepartureSpy.mockImplementation((options: ProcessDepartureOptions) => {
-            if (options.direction === UnitDirection.OUTBOUND) return { unitId: 1 };
-            return { unitId: null };
-        });
-
-        const customOptions = {
-            ...baseOptions,
-            units,
-            outboundPath: {} as any,
-            inboundPath: {} as any,
-            usedUnitsIds: new Set<number>()
-        };
-
-        strategy.testProcessSimultaneousDepartures(customOptions);
-        expect(processDepartureSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('Case 5 - Inbound path exists, no unitIds returned', () => {
-        // Mock: Both calls return null
-        processDepartureSpy.mockImplementation(() => ({ unitId: null }));
-
-        const customOptions = {
-            ...baseOptions,
-            units,
-            outboundPath: {} as any,
-            inboundPath: {} as any,
-            usedUnitsIds: new Set<number>()
-        };
-
-        strategy.testProcessSimultaneousDepartures(customOptions);
-
-        expect(customOptions.usedUnitsIds.size).toBe(0);
-        expect(processDepartureSpy).toHaveBeenCalledTimes(2);
-    });
-
-});
-
-describe('AsymmetricScheduleStrategy processIndividualDepartures', () => {
-    class TestStrategy extends AsymmetricScheduleStrategy {
-        public testProcessIndividualDepartures(options: ProcessIndividualDeparturesOptions): void {
-            this['processIndividualDepartures'](options);
-        }
-
-        protected processDeparture(options: ProcessDepartureOptions) {
-            const isInbound = options.direction === UnitDirection.INBOUND;
-            if (isInbound) {
-                return { unitId: 2 };
-            }
-            return { unitId: 1 };
-        }
-    }
-
-    let strategy: TestStrategy;
-    let units: any[];
-    let usedUnitsIds: Set<number>;
-    let outboundDepartures: number[];
-    let inboundDepartures: number[];
-    let baseOptions: Omit<ProcessIndividualDeparturesOptions, 'nextOutbound' | 'nextInbound'>;
-
-    beforeEach(() => {
-        strategy = new TestStrategy();
-        units = [
-            { id: 1, currentLocation: UnitLocation.ORIGIN },
-            { id: 2, currentLocation: UnitLocation.DESTINATION }
-        ];
-        usedUnitsIds = new Set();
-        outboundDepartures = [1000];
-        inboundDepartures = [1000];
-
-        baseOptions = {
-            currentTime: 1000,
-            units,
-            outboundPath: {} as any,
-            inboundPath: {} as any,
-            outboundTotalTimeSeconds: 300,
-            inboundTotalTimeSeconds: 400,
-            trips: [],
-            usedUnitsIds,
-            outboundDepartures,
-            inboundDepartures
-        };
-    });
-
-    it('should process both outbound and inbound when currentTime matches both', () => {
-        const options = {
-            ...baseOptions,
-            nextOutbound: 1000,
-            nextInbound: 1000
-        };
-
-        strategy.testProcessIndividualDepartures(options);
-
-        expect(outboundDepartures).toEqual([]);
-        expect(inboundDepartures).toEqual([]);
-        expect(usedUnitsIds).toEqual(new Set([1, 2]));
-    });
-
-    it('should process only outbound when currentTime matches nextOutbound', () => {
-        const options = {
-            ...baseOptions,
-            nextOutbound: 1000,
-            nextInbound: 2000
-        };
-
-        strategy.testProcessIndividualDepartures(options);
-
-        expect(outboundDepartures).toEqual([]);
-        expect(inboundDepartures).toEqual([1000]);
-        expect(usedUnitsIds).toEqual(new Set([1]));
-    });
-
-    it('should process only inbound when currentTime matches nextInbound', () => {
-        const options = {
-            ...baseOptions,
-            nextOutbound: 2000,
-            nextInbound: 1000
-        };
-
-        strategy.testProcessIndividualDepartures(options);
-
-        expect(outboundDepartures).toEqual([1000]);
-        expect(inboundDepartures).toEqual([]);
-        expect(usedUnitsIds).toEqual(new Set([2]));
-    });
-
-    it('should not process anything when currentTime does not match either', () => {
-        const options = {
-            ...baseOptions,
-            nextOutbound: 2000,
-            nextInbound: 2000
-        };
-
-        strategy.testProcessIndividualDepartures(options);
-
-        expect(outboundDepartures).toEqual([1000]);
-        expect(inboundDepartures).toEqual([1000]);
-        expect(usedUnitsIds.size).toBe(0);
-    });
-
-    it('should process only outbound when inboundPath is missing', () => {
-        const options = {
-            ...baseOptions,
-            nextOutbound: 1000,
-            nextInbound: 1000,
-            inboundPath: undefined
-        };
-
-        strategy.testProcessIndividualDepartures(options);
-
-        expect(outboundDepartures).toEqual([]);
-        expect(inboundDepartures).toEqual([]);
-        expect(usedUnitsIds).toEqual(new Set([1]));
-    });
-});
-
-describe('AsymmetricScheduleStrategy generateTripsWithIntervals', () => {
-    class TestStrategy extends AsymmetricScheduleStrategy {
-        public calls: Record<string, any[]> = {
-            initializeUnits: [],
-            generateDepartureSchedules: [],
-            updateAllUnitsAvailability: [],
-            processSimultaneousDepartures: [],
-            processIndividualDepartures: []
-        };
+                direction: UnitDirection.OUTBOUND
+            }];
     
-        public testGenerateTripsWithIntervals(options: GenerateTripsWithIntervalsOptions) {
-            return this["generateTripsWithIntervals"](options);
-        }
+            findBestUnitSpy = jest
+                .spyOn(strategy as any, 'findBestUnit')
+                .mockReturnValue(mockUnits[0]);
     
-        protected initializeUnits(options: InitializeUnitsOptions) {
-            this.calls.initializeUnits.push(options);
-            options.units.forEach((unit) => {
-                unit.currentLocation = options.startFromDestination
-                    ? UnitLocation.DESTINATION
-                    : UnitLocation.ORIGIN;
+            generateTripSpy = jest
+                .spyOn(strategy as any, 'generateTrip')
+                .mockReturnValue({ id: 'mock-trip', unit_id: 1 });
+        });
+    
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+    
+        it('should return correct unitId and call internal methods with expected args', () => {
+            const result = strategy['processDeparture']({
+                currentTime: 1000,
+                totalTimeSeconds: 3600,
+                units: mockUnits,
+                path: mockPath,
+                trips,
+                direction: UnitDirection.OUTBOUND
             });
-        }
     
-        protected generateDepartureSchedules(options: GenerateDepartureSchedulesOptions) {
-            this.calls.generateDepartureSchedules.push(options);
-            return {
-                outboundDepartures: [100, 300],
-                inboundDepartures: [200, 400]
-            };
-        }
+            expect(result.unitId).toBe(1);
+            expect(findBestUnitSpy).toHaveBeenCalledWith(1000, UnitDirection.OUTBOUND, mockUnits);
+            expect(generateTripSpy).toHaveBeenCalledWith(expect.objectContaining({
+                tripStartAtSeconds: 1000,
+                unit: mockUnits[0],
+                path: mockPath,
+                segments: [],
+                nodes: ['a', 'b', 'c'],
+                dwellTimes: [60, 90, 120]
+            }));
+        });
     
-        protected updateAllUnitsAvailability(units: TransitUnit[], currentTime: number, inboundPath?: TransitPath) {
-            this.calls.updateAllUnitsAvailability.push({ units: [...units], currentTime, inboundPath });
-        }
+        it('should return null when no unit is available', () => {
+            findBestUnitSpy.mockReturnValue(null);
     
-        protected processSimultaneousDepartures(options: ProcessSimultaneousDeparturesOptions) {
-            this.calls.processSimultaneousDepartures.push(options);
-            options.trips.push({ type: 'simultaneous', time: options.currentTime });
-            options.usedUnitsIds.add(99);
-            options.outboundDepartures.shift();
-            options.inboundDepartures.shift();
-        }
+            const result = strategy['processDeparture']({
+                currentTime: 1000,
+                totalTimeSeconds: 3600,
+                units: mockUnits,
+                path: mockPath,
+                trips,
+                direction: UnitDirection.OUTBOUND
+            });
     
-        protected processIndividualDepartures(options: ProcessIndividualDeparturesOptions) {
-            this.calls.processIndividualDepartures.push(options);
-            const direction = options.nextOutbound === options.currentTime ? 'outbound' : 'inbound';
-            options.trips.push({ type: 'individual', direction, time: options.currentTime });
-            options.usedUnitsIds.add(direction === 'outbound' ? 1 : 2);
-            if (direction === 'outbound') options.outboundDepartures.shift();
-            else options.inboundDepartures.shift();
-        }
-    }
-    
-    const mockUnit: TransitUnit = {
-        id: 1,
-        totalCapacity: 50,
-        seatedCapacity: 20,
-        currentLocation: UnitLocation.ORIGIN,
-        expectedArrivalTime: 0,
-        expectedReturnTime: null,
-        direction: null,
-        lastTripEndTime: null,
-        timeInCycle: 0
-    };
-    
-    const createOptions = (overrides = {}): GenerateTripsWithIntervalsOptions => ({
-        startAtSecondsSinceMidnight: 0,
-        endAtSecondsSinceMidnight: 1000,
-        outboundIntervalSeconds: 200,
-        inboundIntervalSeconds: 300,
-        outboundTotalTimeSeconds: 100,
-        inboundTotalTimeSeconds: 100,
-        units: [mockUnit],
-        outboundPath: { get: () => 'outbound' } as any,
-        inboundPath: { get: () => 'inbound' } as any,
-        ...overrides
+            expect(result.unitId).toBeNull();
+            expect(generateTripSpy).not.toHaveBeenCalled();
+        });
     });
     
-    describe('generateTripsWithIntervals', () => {
+    describe('AsymmetricScheduleStrategy initializeUnits', () => {
+        let strategy: AsymmetricScheduleStrategy;
+        let mockUnits: any[];
+
+        beforeEach(() => {
+            strategy = new AsymmetricScheduleStrategy();
+            mockUnits = [
+                {
+                    id: 1,
+                    totalCapacity: 100,
+                    seatedCapacity: 50
+                },
+                {
+                    id: 2,
+                    totalCapacity: 80,
+                    seatedCapacity: 40
+                }
+            ];
+        });
+
+        it('should initialize units starting from origin', () => {
+            strategy['initializeUnits']({
+                units: mockUnits,
+                startFromDestination: false,
+                startTime: 5000
+            });
+
+            mockUnits.forEach(unit => {
+                expect(unit.currentLocation).toBe(UnitLocation.ORIGIN);
+                expect(unit.direction).toBeNull();
+                expect(unit.expectedArrivalTime).toBe(5000);
+                expect(unit.expectedReturnTime).toBeNull();
+                expect(unit.lastTripEndTime).toBeNull();
+            });
+        });
+
+        it('should initialize units starting from destination', () => {
+            strategy['initializeUnits']({
+                units: mockUnits,
+                startFromDestination: true,
+                startTime: 8000
+            });
+
+            mockUnits.forEach(unit => {
+                expect(unit.currentLocation).toBe(UnitLocation.DESTINATION);
+                expect(unit.expectedArrivalTime).toBe(8000);
+            });
+        });
+    });
+
+    describe('AsymmetricScheduleStrategy generateDepartureSchedules', () => {
+        let strategy: AsymmetricScheduleStrategy;
+
+        beforeEach(() => {
+            strategy = new AsymmetricScheduleStrategy();
+        });
+
+        it('should generate outbound then inbound departures when starting from origin', () => {
+            const result = strategy['generateDepartureSchedules']({
+                startFromDestination: false,
+                hasInboundPath: true,
+                startTime: 0,
+                endTime: 1000,
+                outboundIntervalSeconds: 200,
+                inboundIntervalSeconds: 300,
+                outboundTotalTimeSeconds: 150,
+                inboundTotalTimeSeconds: 100
+            });
+
+            expect(result.outboundDepartures).toEqual([0, 200, 400, 600, 800]);
+            expect(result.inboundDepartures).toEqual([150, 450, 750]);
+        });
+
+        it('should generate only outbound departures when no inbound path', () => {
+            const result = strategy['generateDepartureSchedules']({
+                startFromDestination: false,
+                hasInboundPath: false,
+                startTime: 100,
+                endTime: 900,
+                outboundIntervalSeconds: 250,
+                inboundIntervalSeconds: 300,
+                outboundTotalTimeSeconds: 0,
+                inboundTotalTimeSeconds: 0
+            });
+
+            expect(result.outboundDepartures).toEqual([100, 350, 600, 850]);
+            expect(result.inboundDepartures).toEqual([]);
+        });
+
+        it('should generate inbound then outbound when starting from destination', () => {
+            const result = strategy['generateDepartureSchedules']({
+                startFromDestination: true,
+                hasInboundPath: true,
+                startTime: 500,
+                endTime: 2000,
+                outboundIntervalSeconds: 300,
+                inboundIntervalSeconds: 400,
+                outboundTotalTimeSeconds: 600,
+                inboundTotalTimeSeconds: 200
+            });
+
+            expect(result.inboundDepartures).toEqual([500, 900, 1300, 1700]);
+            expect(result.outboundDepartures).toEqual([700, 1000, 1300, 1600, 1900]);
+        });
+
+        it('should handle empty result if intervals exceed endTime', () => {
+            const result = strategy['generateDepartureSchedules']({
+                startFromDestination: true,
+                hasInboundPath: true,
+                startTime: 0,
+                endTime: 100,
+                outboundIntervalSeconds: 200,
+                inboundIntervalSeconds: 300,
+                outboundTotalTimeSeconds: 50,
+                inboundTotalTimeSeconds: 50
+            });
+
+            expect(result.outboundDepartures.length).toBe(1); // 0 + 50 = 50 is pushed
+            expect(result.inboundDepartures.length).toBe(1);  // 0 is pushed
+        });
+    });
+
+    describe('AsymmetricScheduleStrategy generateDepartureSchedules', () => {
+        let strategy: AsymmetricScheduleStrategy;
+
+        beforeEach(() => {
+            strategy = new AsymmetricScheduleStrategy();
+        });
+
+        it('should generate outbound then inbound departures when starting from origin', () => {
+            const result = strategy['generateDepartureSchedules']({
+                startFromDestination: false,
+                hasInboundPath: true,
+                startTime: 0,
+                endTime: 1000,
+                outboundIntervalSeconds: 200,
+                inboundIntervalSeconds: 300,
+                outboundTotalTimeSeconds: 150,
+                inboundTotalTimeSeconds: 100
+            });
+
+            expect(result.outboundDepartures).toEqual([0, 200, 400, 600, 800]);
+            expect(result.inboundDepartures).toEqual([150, 450, 750]);
+        });
+
+        it('should generate only outbound departures when no inbound path', () => {
+            const result = strategy['generateDepartureSchedules']({
+                startFromDestination: false,
+                hasInboundPath: false,
+                startTime: 100,
+                endTime: 900,
+                outboundIntervalSeconds: 250,
+                inboundIntervalSeconds: 300,
+                outboundTotalTimeSeconds: 0,
+                inboundTotalTimeSeconds: 0
+            });
+
+            expect(result.outboundDepartures).toEqual([100, 350, 600, 850]);
+            expect(result.inboundDepartures).toEqual([]);
+        });
+
+        it('should generate inbound then outbound when starting from destination', () => {
+            const result = strategy['generateDepartureSchedules']({
+                startFromDestination: true,
+                hasInboundPath: true,
+                startTime: 500,
+                endTime: 2000,
+                outboundIntervalSeconds: 300,
+                inboundIntervalSeconds: 400,
+                outboundTotalTimeSeconds: 600,
+                inboundTotalTimeSeconds: 200
+            });
+
+            expect(result.inboundDepartures).toEqual([500, 900, 1300, 1700]);
+            expect(result.outboundDepartures).toEqual([700, 1000, 1300, 1600, 1900]);
+        });
+
+        it('should handle empty result if intervals exceed endTime', () => {
+            const result = strategy['generateDepartureSchedules']({
+                startFromDestination: true,
+                hasInboundPath: true,
+                startTime: 0,
+                endTime: 100,
+                outboundIntervalSeconds: 200,
+                inboundIntervalSeconds: 300,
+                outboundTotalTimeSeconds: 50,
+                inboundTotalTimeSeconds: 50
+            });
+
+            expect(result.outboundDepartures.length).toBe(1); // 0 + 50 = 50 is pushed
+            expect(result.inboundDepartures.length).toBe(1);  // 0 is pushed
+        });
+    });
+
+    describe('AsymmetricScheduleStrategy updateAllUnitsAvailability', () => {
+        let strategy: AsymmetricScheduleStrategy;
+        let updateUnitAvailabilitySpy: jest.SpyInstance;
+        let mockUnit1: any;
+        let mockUnit2: any;
+    
+        beforeEach(() => {
+            strategy = new AsymmetricScheduleStrategy();
+    
+            updateUnitAvailabilitySpy = jest.spyOn(strategy as any, 'updateUnitAvailability');
+    
+            mockUnit1 = {
+                id: 1,
+                currentLocation: UnitLocation.DESTINATION,
+                expectedArrivalTime: 1000,
+                direction: UnitDirection.INBOUND,
+                lastTripEndTime: null
+            };
+    
+            mockUnit2 = {
+                id: 2,
+                currentLocation: UnitLocation.ORIGIN,
+                expectedArrivalTime: 2000,
+                direction: UnitDirection.OUTBOUND,
+                lastTripEndTime: null
+            };
+        });
+    
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+    
+        it('should teleport unit to ORIGIN when no inboundPath and arrival time is reached', () => {
+            strategy['updateAllUnitsAvailability']([mockUnit1], 1500);
+    
+            expect(mockUnit1.currentLocation).toBe(UnitLocation.ORIGIN);
+            expect(mockUnit1.direction).toBeNull();
+            expect(mockUnit1.lastTripEndTime).toBe(1500);
+    
+            // Should not call fallback in this case
+            expect(updateUnitAvailabilitySpy).not.toHaveBeenCalled();
+        });
+    
+        it('should call updateUnitAvailability for unit not matching ghost trip condition', () => {
+            strategy['updateAllUnitsAvailability']([mockUnit2], 1500);
+    
+            expect(updateUnitAvailabilitySpy).toHaveBeenCalledTimes(1);
+            expect(updateUnitAvailabilitySpy).toHaveBeenCalledWith(mockUnit2, 1500);
+        });
+    
+        it('should NOT teleport unit if arrival time not yet reached', () => {
+            mockUnit1.expectedArrivalTime = 1600; // Future
+    
+            strategy['updateAllUnitsAvailability']([mockUnit1], 1500);
+    
+            // Should fall back to updateUnitAvailability
+            expect(updateUnitAvailabilitySpy).toHaveBeenCalledWith(mockUnit1, 1500);
+            expect(mockUnit1.currentLocation).toBe(UnitLocation.DESTINATION); // Not reset
+        });
+    
+        it('should NOT teleport unit if inboundPath is provided', () => {
+            const inboundPath: any = {}; // Just to pass the check
+    
+            strategy['updateAllUnitsAvailability']([mockUnit1], 1500, inboundPath);
+    
+            expect(mockUnit1.currentLocation).toBe(UnitLocation.ORIGIN);
+            expect(updateUnitAvailabilitySpy).toHaveBeenCalledWith(mockUnit1, 1500);
+        });
+    
+        it('should apply logic independently to multiple units', () => {
+            // Unit1: ghost-teleport
+            // Unit2: fallback
+            strategy['updateAllUnitsAvailability']([mockUnit1, mockUnit2], 1500);
+    
+            expect(mockUnit1.currentLocation).toBe(UnitLocation.ORIGIN);
+            expect(mockUnit1.direction).toBeNull();
+            expect(updateUnitAvailabilitySpy).toHaveBeenCalledWith(mockUnit2, 1500);
+            expect(updateUnitAvailabilitySpy).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe(' AsymmetricScheduleStrategy processSimultaneousDepartures', () => {
+
+        let strategy: AsymmetricScheduleStrategy;
+        let trips: any[];
+        let units: any[];
+        let options: ProcessSimultaneousDeparturesOptions;
+        let usedUnitsIds: Set<number>;
+        let outboundDepartures: number[];
+        let inboundDepartures: number[];
+        let processDepartureSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            strategy = new AsymmetricScheduleStrategy();
+            trips = [];
+            units = [
+                { id: 1, currentLocation: UnitLocation.ORIGIN },
+                { id: 2, currentLocation: UnitLocation.DESTINATION }
+            ];
+
+            outboundDepartures = [1000, 2000];
+            inboundDepartures = [1000, 2000];
+            usedUnitsIds = new Set();
+
+            options = {
+                currentTime: 1000,
+                units,
+                outboundPath: {} as any,
+                inboundPath: {} as any,
+                outboundTotalTimeSeconds: 300,
+                inboundTotalTimeSeconds: 400,
+                trips: [],
+                usedUnitsIds,
+                outboundDepartures,
+                inboundDepartures
+            };
+
+            // Default mock behavior: return unit ID 1 for outbound, 2 for inbound
+            processDepartureSpy = jest.spyOn(strategy as any, 'processDeparture').mockImplementation((args) => {
+                const options = args as ProcessDepartureOptions;
+                if (options.direction === UnitDirection.OUTBOUND) return { unitId: 1 };
+                return { unitId: null };
+            });
+            
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        const baseOptions = {
+            currentTime: 1000,
+            outboundTotalTimeSeconds: 1800,
+            inboundTotalTimeSeconds: 1600,
+            trips: [],
+            outboundDepartures: [1000],
+            inboundDepartures: [1000]
+        };
+
+        it('should process both outbound and inbound departures and update usedUnitsIds', () => {
+            strategy["processSimultaneousDepartures"](options);
+
+            expect(processDepartureSpy).toHaveBeenCalledTimes(2);
+            expect(processDepartureSpy).toHaveBeenCalledWith(expect.objectContaining({
+                direction: UnitDirection.OUTBOUND,
+                currentTime: 1000,
+            }));
+            expect(processDepartureSpy).toHaveBeenCalledWith(expect.objectContaining({
+                direction: UnitDirection.INBOUND,
+                currentTime: 1000,
+            }));
+        });
+
+        it('Case 1 - No inbound path, outbound unitId returned', () => {
+            const customOptions = {
+                ...baseOptions,
+                units,
+                outboundPath: {} as any,
+                inboundPath: undefined,
+                usedUnitsIds: new Set<number>()
+            };
+
+            strategy["processSimultaneousDepartures"](customOptions);
+
+            expect(processDepartureSpy).toHaveBeenCalledTimes(1);
+            expect(processDepartureSpy).toHaveBeenCalledWith(expect.objectContaining({
+                direction: UnitDirection.OUTBOUND
+            }));
+        });
+
+        it('Case 2 - Inbound path exists, both unitIds returned', () => {
+            const customOptions = {
+                ...baseOptions,
+                units,
+                outboundPath: {} as any,
+                inboundPath: {} as any,
+                usedUnitsIds: new Set<number>()
+            };
+
+            strategy["processSimultaneousDepartures"](customOptions);
+
+            expect(processDepartureSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it('Case 3 - Inbound path exists, only inbound unitId returned', () => {
+            processDepartureSpy.mockImplementation((options: ProcessDepartureOptions) => {
+                if (options.direction === UnitDirection.INBOUND) return { unitId: 2 };
+                return { unitId: null };
+            });
+
+            const customOptions = {
+                ...baseOptions,
+                units,
+                outboundPath: {} as any,
+                inboundPath: {} as any,
+                usedUnitsIds: new Set<number>()
+            };
+
+            strategy["processSimultaneousDepartures"](customOptions);
+            expect(processDepartureSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it('Case 4 - Inbound path exists, only outbound unitId returned', () => {
+            // Mock: Only outbound returns a unitId
+            processDepartureSpy.mockImplementation((options: ProcessDepartureOptions) => {
+                if (options.direction === UnitDirection.OUTBOUND) return { unitId: 1 };
+                return { unitId: null };
+            });
+
+            const customOptions = {
+                ...baseOptions,
+                units,
+                outboundPath: {} as any,
+                inboundPath: {} as any,
+                usedUnitsIds: new Set<number>()
+            };
+
+            strategy["processSimultaneousDepartures"](customOptions);
+            expect(processDepartureSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it('Case 5 - Inbound path exists, no unitIds returned', () => {
+            // Mock: Both calls return null
+            processDepartureSpy.mockImplementation(() => ({ unitId: null }));
+
+            const customOptions = {
+                ...baseOptions,
+                units,
+                outboundPath: {} as any,
+                inboundPath: {} as any,
+                usedUnitsIds: new Set<number>()
+            };
+
+            strategy["processSimultaneousDepartures"](customOptions);
+
+            expect(customOptions.usedUnitsIds.size).toBe(0);
+            expect(processDepartureSpy).toHaveBeenCalledTimes(2);
+        });
+
+    });
+
+    describe('AsymmetricScheduleStrategy processIndividualDepartures', () => {
+        class TestStrategy extends AsymmetricScheduleStrategy {
+            public testProcessIndividualDepartures(options: ProcessIndividualDeparturesOptions) {
+                return this['processIndividualDepartures'](options);
+            }
+        }
+    
         let strategy: TestStrategy;
+        let processDepartureSpy: jest.SpyInstance;
+        let options: ProcessIndividualDeparturesOptions;
     
         beforeEach(() => {
             strategy = new TestStrategy();
+    
+            processDepartureSpy = jest
+                .spyOn(strategy as any, 'processDeparture')
+                .mockImplementation(({ direction }: any) => {
+                    return direction === UnitDirection.OUTBOUND
+                        ? { unitId: 1 }
+                        : { unitId: 2 };
+                });
+    
+            options = {
+                currentTime: 1000,
+                nextOutbound: 1000,
+                nextInbound: 2000,
+                outboundDepartures: [1000],
+                inboundDepartures: [2000],
+                outboundTotalTimeSeconds: 3600,
+                inboundTotalTimeSeconds: 3600,
+                units: [],
+                outboundPath: {} as any,
+                inboundPath: {} as any,
+                trips: [],
+                usedUnitsIds: new Set<number>()
+            };
         });
     
-        test('should generate trips ', () => {
-            const options = createOptions({
-                outboundIntervalSeconds: 300,
-                inboundIntervalSeconds: 200
-            });
-    
-            const result = strategy.testGenerateTripsWithIntervals(options);
-    
-            expect(strategy.calls.initializeUnits[0]).toMatchObject({
-                units: options.units,
-                startFromDestination: true,
-                startTime: options.startAtSecondsSinceMidnight
-            });
-    
-            expect(strategy.calls.generateDepartureSchedules.length).toBe(1);
-            expect(strategy.calls.updateAllUnitsAvailability.length).toBe(4);
-            expect(strategy.calls.processSimultaneousDepartures.length).toBe(0);
-            expect(strategy.calls.processIndividualDepartures.length).toBe(4);
-    
-            expect(result.trips.length).toBe(4);
-            expect(result.realUnitCount).toBeGreaterThanOrEqual(0);
+        afterEach(() => {
+            jest.restoreAllMocks();
         });
     
-        test('should handle simultaneous departures when both intervals result in same time', () => {
-            strategy = new TestStrategy();
-            strategy['generateDepartureSchedules'] = () => ({
-                outboundDepartures: [100],
-                inboundDepartures: [100]
-            });
+        it('Case 1 - should process outbound only when currentTime matches nextOutbound', () => {
+            options.currentTime = 1000;
+            options.nextOutbound = 1000;
+            options.nextInbound = 2000;
     
-            const options = createOptions({
-                outboundIntervalSeconds: 100,
-                inboundIntervalSeconds: 100
-            });
+            strategy.testProcessIndividualDepartures(options);
     
-            strategy.testGenerateTripsWithIntervals(options);
-    
-            expect(strategy.calls.processSimultaneousDepartures.length).toBe(1);
-            expect(strategy.calls.processIndividualDepartures.length).toBe(0);
+            expect(processDepartureSpy).toHaveBeenCalledTimes(1);
+            expect(processDepartureSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ direction: UnitDirection.OUTBOUND })
+            );
+            expect(options.outboundDepartures).toEqual([]);
+            expect(options.inboundDepartures).toEqual([2000]);
+            expect(options.usedUnitsIds).toEqual(new Set([1]));
         });
     
-        test('should work without inbound path', () => {
-            const options = createOptions({
-                inboundPath: undefined,
-                inboundIntervalSeconds: 0,
-                inboundTotalTimeSeconds: 0
-            });
+        it('Case 2 - should process inbound only when currentTime matches nextInbound', () => {
+            options.currentTime = 2000;
+            options.nextOutbound = 1000;
+            options.nextInbound = 2000;
     
-            strategy.testGenerateTripsWithIntervals(options);
+            strategy.testProcessIndividualDepartures(options);
     
-            expect(strategy.calls.initializeUnits[0].startFromDestination).toBe(false);
+            expect(processDepartureSpy).toHaveBeenCalledTimes(1);
+            expect(processDepartureSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ direction: UnitDirection.INBOUND })
+            );
+            expect(options.inboundDepartures).toEqual([]);
+            expect(options.outboundDepartures).toEqual([1000]);
+            expect(options.usedUnitsIds).toEqual(new Set([2]));
         });
     
-        test('should return empty trips if no departures are generated', () => {
-            strategy['generateDepartureSchedules'] = () => ({
-                outboundDepartures: [],
-                inboundDepartures: []
-            });
+        it('Case 3 - should process both outbound and inbound when currentTime matches both', () => {
+            options.currentTime = 1000;
+            options.nextOutbound = 1000;
+            options.nextInbound = 1000;
     
-            const result = strategy.testGenerateTripsWithIntervals(createOptions());
+            strategy.testProcessIndividualDepartures(options);
     
-            expect(result.trips).toEqual([]);
-            expect(result.realUnitCount).toBe(0);
+            expect(processDepartureSpy).toHaveBeenCalledTimes(2);
+            expect(processDepartureSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ direction: UnitDirection.OUTBOUND })
+            );
+            expect(processDepartureSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ direction: UnitDirection.INBOUND })
+            );
+            expect(options.outboundDepartures).toEqual([]);
+            expect(options.inboundDepartures).toEqual([]);
+            expect(options.usedUnitsIds).toEqual(new Set([1, 2]));
+        });
+    
+        it('Case 4 - should do nothing if currentTime matches neither outbound nor inbound', () => {
+            options.currentTime = 1500;
+            options.nextOutbound = 1000;
+            options.nextInbound = 2000;
+    
+            strategy.testProcessIndividualDepartures(options);
+    
+            expect(processDepartureSpy).not.toHaveBeenCalled();
+            expect(options.outboundDepartures).toEqual([1000]);
+            expect(options.inboundDepartures).toEqual([2000]);
+            expect(options.usedUnitsIds.size).toBe(0);
+        });
+    
+        it('Case 5 - should skip inbound processing if inboundPath is not defined', () => {
+            options.currentTime = 1000;
+            options.nextOutbound = 5000;
+            options.nextInbound = 1000;
+            options.inboundPath = undefined;
+    
+            strategy.testProcessIndividualDepartures(options);
+    
+            expect(processDepartureSpy).not.toHaveBeenCalled();
+            expect(options.inboundDepartures).toEqual([]);
+            expect(options.usedUnitsIds.size).toBe(0);
         });
     });
-});
+    //
 
-describe('AsymmetricScheduleStrategy generateTripsWithFixedUnits', () => {
-    class TestStrategy extends AsymmetricScheduleStrategy {
-        public testGenerateTripsWithFixedUnits(options: any) {
-            return this['generateTripsWithFixedUnits'](options);
-        }
-    }
-
-    const createMockPath = (direction: 'outbound' | 'inbound') => ({
-        getAttributes: () => ({
-            data: {
-                segments: [{ travelTimeSeconds: 10 }]
-            },
-            nodes: [`${direction}-node1`, `${direction}-node2`]
-        }),
-        getData: (key: string) => key === 'dwellTimeSeconds' ? [5, 5] : undefined,
-        get: (key: string) => key === 'id' ? `mock-${direction}-id` : undefined,
-        getId: () => `mock-${direction}-id`,
-        getLine: () => ({ getAttributes: () => ({ shortname: `${direction}-line` }) }),
-        attributes: {
-            line_id: `${direction}-line-id`
-        }
-    });
-
-    const mockOutboundPath = createMockPath('outbound');
-    const mockInboundPath = createMockPath('inbound');
-
-    const createUnits = (count: number): TransitUnit[] =>
-        Array.from({ length: count }, (_, i) => ({
-            id: i + 1,
+    describe('AsymmetricScheduleStrategy generateTripsWithIntervals', () => {
+        const mockUnit: TransitUnit = {
+            id: 1,
             totalCapacity: 50,
             seatedCapacity: 20,
             currentLocation: UnitLocation.ORIGIN,
@@ -1672,198 +1497,370 @@ describe('AsymmetricScheduleStrategy generateTripsWithFixedUnits', () => {
             direction: null,
             lastTripEndTime: null,
             timeInCycle: 0
-        }));
-
-    let strategy: TestStrategy;
-
-    beforeEach(() => {
-        strategy = new TestStrategy();
-    });
-
-    it('should initialize timeInCycle staggered across units', () => {
-        const units = createUnits(4);
-
-        strategy.testGenerateTripsWithFixedUnits({
+        };
+    
+        const createOptions = (overrides = {}): GenerateTripsWithIntervalsOptions => ({
             startAtSecondsSinceMidnight: 0,
-            endAtSecondsSinceMidnight: 1,
-            outboundIntervalSeconds: 300,
+            endAtSecondsSinceMidnight: 1000,
+            outboundIntervalSeconds: 200,
+            inboundIntervalSeconds: 300,
             outboundTotalTimeSeconds: 100,
             inboundTotalTimeSeconds: 100,
-            units,
-            outboundPath: mockOutboundPath,
-            inboundPath: mockInboundPath
+            units: [mockUnit],
+            outboundPath: { get: () => 'outbound' } as any,
+            inboundPath: { get: () => 'inbound' } as any,
+            ...overrides
+        });
+    
+        let strategy: AsymmetricScheduleStrategy;
+        let processDepartureSpy: jest.SpyInstance;
+    
+        beforeEach(() => {
+            strategy = new AsymmetricScheduleStrategy();
+            processDepartureSpy = jest
+                .spyOn(strategy as any, 'processDeparture')
+                .mockImplementation(({ direction }: any) => {
+                    return direction === UnitDirection.OUTBOUND
+                        ? { unitId: 1 }
+                        : { unitId: 2 };
+                });
+        });
+    
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+    
+        it('should handle initialization, scheduling, and processing departures correctly', () => {
+            const initializeUnitsSpy = jest.spyOn(strategy as any, 'initializeUnits').mockImplementation(() => {});
+            const generateDepartureSchedulesSpy = jest.spyOn(strategy as any, 'generateDepartureSchedules').mockReturnValue({
+                outboundDepartures: [100, 300, 500],
+                inboundDepartures: [200, 300, 600]
+            });
+            
+            const updateAllUnitsAvailabilitySpy = jest
+                .spyOn(strategy as any, 'updateAllUnitsAvailability')
+                .mockImplementation(() => {});
+    
+            const processSimultaneousDeparturesSpy = jest
+                .spyOn(strategy as any, 'processSimultaneousDepartures')
+                .mockImplementation((args: any) => {
+                    args.trips.push({ tripId: `trip-${args.currentTime}` });
+                    args.usedUnitsIds.add(1); // or pick real unit from args.units
+                    args.outboundDepartures.shift();
+                    args.inboundDepartures.shift();
+                });
+    
+            const processIndividualDeparturesSpy = jest
+                .spyOn(strategy as any, 'processIndividualDepartures')
+                .mockImplementation((args: any) => {
+                    args.trips.push({ tripId: `trip-${args.currentTime}` });
+                    args.usedUnitsIds.add(1); // or simulate a unit ID dynamically
+                    if (args.currentTime === args.nextOutbound) {
+                        args.outboundDepartures.shift();
+                    } else {
+                        args.inboundDepartures.shift();
+                    }
+                });
+    
+            const options = createOptions({
+                inboundIntervalSeconds: 300,
+                outboundIntervalSeconds: 200,
+                startAtSecondsSinceMidnight: 10,
+                endAtSecondsSinceMidnight: 1000
+            });
+    
+            const result = strategy['generateTripsWithIntervals'](options);
+    
+            // Initialization check
+            expect(initializeUnitsSpy).toHaveBeenCalledWith({
+                units: options.units,
+                startFromDestination: false,
+                startTime: 10
+            });
+    
+            // Departure schedule generation check
+            expect(generateDepartureSchedulesSpy).toHaveBeenCalledWith({
+                startTime: 10,
+                endTime: 1000,
+                outboundIntervalSeconds: 200,
+                inboundIntervalSeconds: 300,
+                outboundTotalTimeSeconds: 100,
+                inboundTotalTimeSeconds: 100,
+                startFromDestination: false,
+                hasInboundPath: true
+            });
+    
+            // Unit availability should be updated at 100, 200, 300, 500, 600
+            expect(updateAllUnitsAvailabilitySpy).toHaveBeenCalledTimes(5);
+            expect(updateAllUnitsAvailabilitySpy).toHaveBeenNthCalledWith(1, options.units, 100, options.inboundPath);
+            expect(updateAllUnitsAvailabilitySpy).toHaveBeenNthCalledWith(2, options.units, 200, options.inboundPath);
+            expect(updateAllUnitsAvailabilitySpy).toHaveBeenNthCalledWith(3, options.units, 300, options.inboundPath);
+            expect(updateAllUnitsAvailabilitySpy).toHaveBeenNthCalledWith(4, options.units, 500, options.inboundPath);
+            expect(updateAllUnitsAvailabilitySpy).toHaveBeenNthCalledWith(5, options.units, 600, options.inboundPath);
+
+    
+            // Departure processing check
+            expect(processIndividualDeparturesSpy).toHaveBeenCalledTimes(4);
+            expect(processIndividualDeparturesSpy).toHaveBeenCalledWith(expect.objectContaining({
+                currentTime: 100,
+            }));
+            expect(processIndividualDeparturesSpy).toHaveBeenCalledWith(expect.objectContaining({
+                currentTime: 200,
+            }));
+            expect(processIndividualDeparturesSpy).toHaveBeenCalledWith(expect.objectContaining({
+                currentTime: 500,
+            }));
+            expect(processIndividualDeparturesSpy).toHaveBeenCalledWith(expect.objectContaining({
+                currentTime: 600,
+            }));
+
+            expect(processSimultaneousDeparturesSpy).toHaveBeenCalledTimes(1);
+            expect(processSimultaneousDeparturesSpy).toHaveBeenCalledWith(expect.objectContaining({
+                currentTime: 300
+            }));
+
+    
+            // Final result check
+            expect(result).toEqual({
+                trips: [
+                    { tripId: 'trip-100' },
+                    { tripId: 'trip-200' },
+                    { tripId: 'trip-300' },
+                    { tripId: 'trip-500' },
+                    { tripId: 'trip-600' }
+                ],
+                realUnitCount: 1
+            });
+        });
+    });
+    
+
+    describe('AsymmetricScheduleStrategy generateTripsWithFixedUnits', () => {
+
+        const createMockPath = (direction: 'outbound' | 'inbound') => ({
+            getAttributes: () => ({
+                data: {
+                    segments: [{ travelTimeSeconds: 10 }]
+                },
+                nodes: [`${direction}-node1`, `${direction}-node2`]
+            }),
+            getData: (key: string) => key === 'dwellTimeSeconds' ? [5, 5] : undefined,
+            get: (key: string) => key === 'id' ? `mock-${direction}-id` : undefined,
+            getId: () => `mock-${direction}-id`,
+            getLine: () => ({ getAttributes: () => ({ shortname: `${direction}-line` }) }),
+            attributes: {
+                line_id: `${direction}-line-id`
+            }
         });
 
-        const expectedStartTimes = [0, 50, 100, 150]; // 200 cycle / 4 units
-        const actual = units.map(u => u.timeInCycle);
-        expect(actual).toEqual(expectedStartTimes.map(t => t + 1)); // +1 due to final increment
-    });
+        const mockOutboundPath = createMockPath('outbound');
+        const mockInboundPath = createMockPath('inbound');
 
-    it('should generate outbound trips at correct times', () => {
-        const units = createUnits(1);
+        const createUnits = (count: number): TransitUnit[] =>
+            Array.from({ length: count }, (_, i) => ({
+                id: i + 1,
+                totalCapacity: 50,
+                seatedCapacity: 20,
+                currentLocation: UnitLocation.ORIGIN,
+                expectedArrivalTime: 0,
+                expectedReturnTime: null,
+                direction: null,
+                lastTripEndTime: null,
+                timeInCycle: 0
+            }));
 
-        const result = strategy.testGenerateTripsWithFixedUnits({
-            startAtSecondsSinceMidnight: 0,
-            endAtSecondsSinceMidnight: 3,
-            outboundIntervalSeconds: 1,
-            outboundTotalTimeSeconds: 1,
-            inboundTotalTimeSeconds: 1,
-            units,
-            outboundPath: mockOutboundPath,
-            inboundPath: undefined
+        let strategy: AsymmetricScheduleStrategy;
+
+        beforeEach(() => {
+            strategy = new AsymmetricScheduleStrategy();
         });
 
-        const outboundTrips = result.trips.filter(t => t.path_id === 'mock-outbound-id');
-        expect(outboundTrips.length).toBeGreaterThan(0);
-        expect(result.realUnitCount).toBe(1);
-    });
+        it('should initialize timeInCycle staggered across units', () => {
+            const units = createUnits(4);
 
-    it('should generate inbound trips only when inboundPath is defined', () => {
-        const units = createUnits(1);
+            strategy['generateTripsWithFixedUnits']({
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 1,
+                outboundIntervalSeconds: 300,
+                outboundTotalTimeSeconds: 100,
+                inboundTotalTimeSeconds: 100,
+                units,
+                outboundPath: mockOutboundPath,
+                inboundPath: mockInboundPath
+            } as any);
 
-        const result = strategy.testGenerateTripsWithFixedUnits({
-            startAtSecondsSinceMidnight: 0,
-            endAtSecondsSinceMidnight: 3,
-            outboundIntervalSeconds: 1,
-            outboundTotalTimeSeconds: 1,
-            inboundTotalTimeSeconds: 1,
-            units,
-            outboundPath: mockOutboundPath,
-            inboundPath: mockInboundPath
+            const expectedStartTimes = [0, 50, 100, 150]; // 200 cycle / 4 units
+            const actual = units.map(u => u.timeInCycle);
+            expect(actual).toEqual(expectedStartTimes.map(t => t + 1)); // +1 due to final increment
         });
 
-        const inboundTrips = result.trips.filter(t => t.path_id === 'mock-inbound-id');
-        expect(inboundTrips.length).toBeGreaterThan(0);
-    });
+        it('should generate outbound trips at correct times', () => {
+            const units = createUnits(1);
 
-    it('should reset timeInCycle when appropriate', () => {
-        const units = createUnits(1);
+            const result = strategy['generateTripsWithFixedUnits']({
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 3,
+                outboundIntervalSeconds: 1,
+                outboundTotalTimeSeconds: 1,
+                inboundTotalTimeSeconds: 1,
+                units,
+                outboundPath: mockOutboundPath,
+                inboundPath: undefined
+            }as any);
 
-        const result = strategy.testGenerateTripsWithFixedUnits({
-            startAtSecondsSinceMidnight: 0,
-            endAtSecondsSinceMidnight: 10,
-            outboundIntervalSeconds: 2,
-            outboundTotalTimeSeconds: 1,
-            inboundTotalTimeSeconds: 1,
-            units,
-            outboundPath: mockOutboundPath,
-            inboundPath: mockInboundPath
+            const outboundTrips = result.trips.filter(t => t.path_id === 'mock-outbound-id');
+            expect(outboundTrips.length).toBeGreaterThan(0);
+            expect(result.realUnitCount).toBe(1);
         });
 
-        const outboundTrips = result.trips.filter(t => t.path_id === 'mock-outbound-id');
-        const outboundTimes = outboundTrips.map(t => t.departure_time_seconds);
+        it('should generate inbound trips only when inboundPath is defined', () => {
+            const units = createUnits(1);
 
-        expect(outboundTimes).toContain(0);
-        expect(outboundTimes).toContain(2);
-        expect(outboundTimes).toContain(4);
-    });
+            const result = strategy['generateTripsWithFixedUnits']({
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 3,
+                outboundIntervalSeconds: 1,
+                outboundTotalTimeSeconds: 1,
+                inboundTotalTimeSeconds: 1,
+                units,
+                outboundPath: mockOutboundPath,
+                inboundPath: mockInboundPath
+            } as any);
 
-    it('should return realUnitCount equal to units.length', () => {
-        const units = createUnits(3);
-
-        const result = strategy.testGenerateTripsWithFixedUnits({
-            startAtSecondsSinceMidnight: 0,
-            endAtSecondsSinceMidnight: 1,
-            outboundIntervalSeconds: 1,
-            outboundTotalTimeSeconds: 1,
-            inboundTotalTimeSeconds: 1,
-            units,
-            outboundPath: mockOutboundPath,
-            inboundPath: mockInboundPath
+            const inboundTrips = result.trips.filter(t => t.path_id === 'mock-inbound-id');
+            expect(inboundTrips.length).toBeGreaterThan(0);
         });
 
-        expect(result.realUnitCount).toBe(3);
-    });
-});
+        it('should reset timeInCycle when appropriate', () => {
+            const units = createUnits(1);
 
-describe('AsymmetricScheduleStrategy generateTrips', () => {
+            const result = strategy['generateTripsWithFixedUnits']({
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 10,
+                outboundIntervalSeconds: 2,
+                outboundTotalTimeSeconds: 1,
+                inboundTotalTimeSeconds: 1,
+                units,
+                outboundPath: mockOutboundPath,
+                inboundPath: mockInboundPath
+            } as any);
 
-    let strategy: AsymmetricScheduleStrategy;
-    let generateTripsWithIntervalsSpy: jest.SpyInstance;
-    let generateTripsWithFixedUnitsSpy: jest.SpyInstance;
+            const outboundTrips = result.trips.filter(t => t.path_id === 'mock-outbound-id');
+            const outboundTimes = outboundTrips.map(t => t.departure_time_seconds);
 
-    beforeEach(() => {
-        strategy = new AsymmetricScheduleStrategy();
+            expect(outboundTimes).toContain(0);
+            expect(outboundTimes).toContain(2);
+            expect(outboundTimes).toContain(4);
+        });
 
-        generateTripsWithIntervalsSpy = jest.spyOn(strategy as any, 'generateTripsWithIntervals').mockReturnValue(['interval-trip']);
-        generateTripsWithFixedUnitsSpy = jest.spyOn(strategy as any, 'generateTripsWithFixedUnits').mockReturnValue(['fixed-trip']);
-    });
+        it('should return realUnitCount equal to units.length', () => {
+            const units = createUnits(3);
 
-    afterEach(() => {
-        jest.restoreAllMocks();
-    });
+            const result = strategy['generateTripsWithFixedUnits']({
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 1,
+                outboundIntervalSeconds: 1,
+                outboundTotalTimeSeconds: 1,
+                inboundTotalTimeSeconds: 1,
+                units,
+                outboundPath: mockOutboundPath,
+                inboundPath: mockInboundPath
+            } as any);
 
-    it('calls generateTripsWithIntervals when both intervals are provided', () => {
-        const options = {
-            outboundIntervalSeconds: 300,
-            inboundIntervalSeconds: 300,
-            startAtSecondsSinceMidnight: 0,
-            endAtSecondsSinceMidnight: 3600,
-            outboundTotalTimeSeconds: 1800,
-            inboundTotalTimeSeconds: 1600,
-            units: [],
-            outboundPath: {} as any,
-            inboundPath: {} as any
-        };
-
-        const result = strategy.generateTrips(options);
-
-        expect(generateTripsWithIntervalsSpy).toHaveBeenCalledTimes(1);
-        expect(generateTripsWithIntervalsSpy).toHaveBeenCalledWith(options);
-        expect(generateTripsWithFixedUnitsSpy).not.toHaveBeenCalled();
-        expect(result).toEqual(['interval-trip']);
+            expect(result.realUnitCount).toBe(3);
+        });
     });
 
-    // it('calls generateTripsWithFixedUnits when intervals are null', () => {
-    //     const options = {
-    //         outboundIntervalSeconds: null,
-    //         inboundIntervalSeconds: null,
-    //         startAtSecondsSinceMidnight: 0,
-    //         endAtSecondsSinceMidnight: 3600,
-    //         outboundTotalTimeSeconds: 1800,
-    //         inboundTotalTimeSeconds: 1600,
-    //         units: [],
-    //         outboundPath: {} as any,
-    //         inboundPath: {} as any
-    //     };
+    describe('AsymmetricScheduleStrategy generateTrips', () => {
 
-    //     const result = strategy.generateTrips(options);
+        let strategy: AsymmetricScheduleStrategy;
+        let generateTripsWithIntervalsSpy: jest.SpyInstance;
+        let generateTripsWithFixedUnitsSpy: jest.SpyInstance;
 
-    //     expect(generateTripsWithFixedUnitsSpy).toHaveBeenCalledTimes(1);
-    //     expect(generateTripsWithFixedUnitsSpy).toHaveBeenCalledWith({
-    //         startAtSecondsSinceMidnight: 0,
-    //         endAtSecondsSinceMidnight: 3600,
-    //         outboundIntervalSeconds: null,
-    //         outboundTotalTimeSeconds: 1800,
-    //         inboundTotalTimeSeconds: 1600,
-    //         units: [],
-    //         outboundPath: {} as any,
-    //         inboundPath: {} as any
-    //     });
+        beforeEach(() => {
+            strategy = new AsymmetricScheduleStrategy();
 
-    //     expect(generateTripsWithIntervalsSpy).not.toHaveBeenCalled();
-    //     expect(result).toEqual(['fixed-trip']);
-    // });
+            generateTripsWithIntervalsSpy = jest.spyOn(strategy as any, 'generateTripsWithIntervals').mockReturnValue(['interval-trip']);
+            generateTripsWithFixedUnitsSpy = jest.spyOn(strategy as any, 'generateTripsWithFixedUnits').mockReturnValue(['fixed-trip']);
+        });
 
-    // it('calls generateTripsWithFixedUnits when one of the intervals is null', () => {
-    //     const options = {
-    //         outboundIntervalSeconds: 300,
-    //         inboundIntervalSeconds: null,
-    //         startAtSecondsSinceMidnight: 0,
-    //         endAtSecondsSinceMidnight: 3600,
-    //         outboundTotalTimeSeconds: 1800,
-    //         inboundTotalTimeSeconds: 1600,
-    //         units: [],
-    //         outboundPath: {} as any,
-    //         inboundPath: {} as any
-    //     };
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
 
-    //     const result = strategy.generateTrips(options);
+        it('calls generateTripsWithIntervals when both intervals are provided', () => {
+            const options = {
+                outboundIntervalSeconds: 300,
+                inboundIntervalSeconds: 300,
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 3600,
+                outboundTotalTimeSeconds: 1800,
+                inboundTotalTimeSeconds: 1600,
+                units: [],
+                outboundPath: {} as any,
+                inboundPath: {} as any
+            };
 
-    //     expect(generateTripsWithFixedUnitsSpy).toHaveBeenCalledTimes(1);
-    //     expect(generateTripsWithIntervalsSpy).not.toHaveBeenCalled();
-    //     expect(result).toEqual(['fixed-trip']);
-    // });
+            const result = strategy.generateTrips(options);
+
+            expect(generateTripsWithIntervalsSpy).toHaveBeenCalledTimes(1);
+            expect(generateTripsWithIntervalsSpy).toHaveBeenCalledWith(options);
+            expect(generateTripsWithFixedUnitsSpy).not.toHaveBeenCalled();
+            expect(result).toEqual(['interval-trip']);
+        });
+
+        it('calls generateTripsWithFixedUnits when intervals are null', () => {
+            const options = {
+                outboundIntervalSeconds: null,
+                inboundIntervalSeconds: null,
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 3600,
+                outboundTotalTimeSeconds: 1800,
+                inboundTotalTimeSeconds: 1600,
+                units: [],
+                outboundPath: {} as any,
+                inboundPath: {} as any
+            } as any;
+
+            const result = strategy.generateTrips(options);
+
+            expect(generateTripsWithFixedUnitsSpy).toHaveBeenCalledTimes(1);
+            expect(generateTripsWithFixedUnitsSpy).toHaveBeenCalledWith({
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 3600,
+                outboundIntervalSeconds: null,
+                outboundTotalTimeSeconds: 1800,
+                inboundTotalTimeSeconds: 1600,
+                units: [],
+                outboundPath: {} as any,
+                inboundPath: {} as any
+            });
+
+            expect(generateTripsWithIntervalsSpy).not.toHaveBeenCalled();
+            expect(result).toEqual(['fixed-trip']);
+        });
+
+        it('calls generateTripsWithFixedUnits when one of the intervals is null', () => {
+            const options = {
+                outboundIntervalSeconds: 300,
+                inboundIntervalSeconds: null,
+                startAtSecondsSinceMidnight: 0,
+                endAtSecondsSinceMidnight: 3600,
+                outboundTotalTimeSeconds: 1800,
+                inboundTotalTimeSeconds: 1600,
+                units: [],
+                outboundPath: {} as any,
+                inboundPath: {} as any
+            } as any;
+
+            const result = strategy.generateTrips(options);
+
+            expect(generateTripsWithFixedUnitsSpy).toHaveBeenCalledTimes(1);
+            expect(generateTripsWithIntervalsSpy).not.toHaveBeenCalled();
+            expect(result).toEqual(['fixed-trip']);
+        });
+    });
+
 });
 
 
