@@ -393,15 +393,13 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         } = options;
 
         const cycleTimeSeconds = outboundTotalTimeSeconds + inboundTotalTimeSeconds;
-        // TODO: add a way to ask the user if we need to return back to first stop when there is no inbound path.
         let tripsIntervalSeconds: number = 0;
         let tripsNumberOfUnits: number = 0;
         let totalPeriod = -1;
 
-        // Scenario 1: Fixed number of units specified
+        // Scénario 1: Nombre fixe d'unités spécifié
         if (_isNumber(period.number_of_units)) {
             period.inboundIntervalSeconds = 0;
-            // Calculate number of units and their intervals
             tripsNumberOfUnits = period.number_of_units;
             tripsIntervalSeconds = Math.ceil(cycleTimeSeconds / period.number_of_units);
             if (secondAllowed !== true) {
@@ -411,25 +409,38 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             period.calculated_interval_seconds = tripsIntervalSeconds;
             period.calculated_number_of_units = period.numberOfUnits;
         } else if (_isNumber(period.interval_seconds) && _isNumber(period.inbound_interval_seconds)) {
-            // Scenario 2: Intervals specified for outbound and inbound trips
+            // Scenario 2: Specified intervals for outbound and inbound trips
             totalPeriod = endAtSecondsSinceMidnight - startAtSecondsSinceMidnight;
 
-            // Calculate required units based on outbound and inbound intervals
-            const outboundUnitsFloat = totalPeriod / period.interval_seconds;
-            const inboundUnitsFloat = totalPeriod / period.inbound_interval_seconds;
+            // Precise calculation of unit requirements for each direction
 
-            const outboundUnits = Math.ceil(outboundUnitsFloat);
-            const inboundUnits = Math.ceil(inboundUnitsFloat);
+            // For outbound trips: how many units are needed to maintain the interval
+            const outboundUnitsNeeded = Math.ceil(outboundTotalTimeSeconds / period.interval_seconds);
 
-            tripsNumberOfUnits = Math.max(outboundUnits, inboundUnits);
+            // For inbound trips: how many units are needed to maintain the interval
+            const inboundUnitsNeeded = Math.ceil(inboundTotalTimeSeconds / period.inbound_interval_seconds);
+
+            // We need enough units for both directions
+            tripsNumberOfUnits = outboundUnitsNeeded + inboundUnitsNeeded;
+
+            // Check if additional units are needed for simultaneous starts
+            const simultaneousStartsNeeded = Math.min(
+                Math.ceil(totalPeriod / period.interval_seconds),
+                Math.ceil(totalPeriod / period.inbound_interval_seconds)
+            );
+
+            // Ensure a minimum number of units for initial simultaneous departures
+            if (simultaneousStartsNeeded > tripsNumberOfUnits) {
+                tripsNumberOfUnits = simultaneousStartsNeeded;
+            }
         }
 
-        // Initialize transit units with default properties
+        // Initialize units with default properties
         const units: TransitUnit[] = Array.from({ length: tripsNumberOfUnits }, (_, i) => ({
             id: i + 1,
             totalCapacity: SCHEDULE_DEFAULTS.DEFAULT_TOTAL_CAPACITY,
             seatedCapacity: SCHEDULE_DEFAULTS.DEFAULT_SEATED_CAPACITY,
-            currentLocation: UnitLocation.ORIGIN,
+            currentLocation: UnitLocation.ORIGIN, // Will be adjusted later
             expectedArrivalTime: startAtSecondsSinceMidnight,
             expectedReturnTime: null,
             direction: null,
@@ -535,37 +546,21 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
     } {
         const outboundDepartures: number[] = [];
         const inboundDepartures: number[] = [];
-        let time: number;
 
-        if (options.startFromDestination && options.hasInboundPath) {
-            // Start with inbound departures
+        // Générer les départs outbound (aller) avec intervalle strict
+        let time = options.startTime;
+        outboundDepartures.push(time);
+        while ((time += options.outboundIntervalSeconds) < options.endTime) {
+            outboundDepartures.push(time);
+        }
+
+        // Générer les départs inbound (retour) avec intervalle strict
+        if (options.hasInboundPath) {
+            // Commencer également à l'heure de départ
             time = options.startTime;
             inboundDepartures.push(time);
             while ((time += options.inboundIntervalSeconds) < options.endTime) {
                 inboundDepartures.push(time);
-            }
-
-            // Then schedule outbound departures
-            time = options.startTime + options.inboundTotalTimeSeconds;
-            outboundDepartures.push(time);
-            while ((time += options.outboundIntervalSeconds) < options.endTime) {
-                outboundDepartures.push(time);
-            }
-        } else {
-            // Start with outbound departures
-            time = options.startTime;
-            outboundDepartures.push(time);
-            while ((time += options.outboundIntervalSeconds) < options.endTime) {
-                outboundDepartures.push(time);
-            }
-
-            // Then schedule inbound departures if needed
-            if (options.hasInboundPath) {
-                time = options.startTime + options.outboundTotalTimeSeconds;
-                inboundDepartures.push(time);
-                while ((time += options.inboundIntervalSeconds) < options.endTime) {
-                    inboundDepartures.push(time);
-                }
             }
         }
 
@@ -659,18 +654,65 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         const trips: any[] = [];
         const usedUnitsIds = new Set<number>();
 
-        // Determine starting location based on interval comparison
-        const startFromDestination = options.inboundPath
-            ? options.inboundIntervalSeconds < options.outboundIntervalSeconds
-            : false;
+        // Check if we have a return trip
+        const hasInboundPath = !!options.inboundPath;
 
-        // Initialize units based on starting location
+        // Precise calculation of unit distribution
+        let outboundUnits = options.units.length;
+        let inboundUnits = 0;
+
+        if (hasInboundPath) {
+            // If we have a return trip, distribute units based on needs
+            // More precise calculation based on the total number of units and the needs of each direction
+
+            // Estimate the number of cycles during the period
+            const periodDuration = options.endAtSecondsSinceMidnight - options.startAtSecondsSinceMidnight;
+
+            // Estimated number of departures in each direction during the period
+            const outboundDepartures = Math.ceil(periodDuration / options.outboundIntervalSeconds);
+            const inboundDepartures = Math.ceil(periodDuration / options.inboundIntervalSeconds);
+
+            // Calculate the distribution ratio based on the number of departures
+            const totalDepartures = outboundDepartures + inboundDepartures;
+            const outboundRatio = outboundDepartures / totalDepartures;
+            const inboundRatio = inboundDepartures / totalDepartures;
+
+            // Distribute units based on ratios, with a minimum of 1 unit per direction
+            outboundUnits = Math.max(1, Math.floor(options.units.length * outboundRatio));
+            inboundUnits = Math.max(1, options.units.length - outboundUnits);
+
+            // Ensure at least one unit on each side
+            if (outboundUnits === 0) outboundUnits = 1;
+            if (inboundUnits === 0) inboundUnits = 1;
+
+            // Adjust if necessary to respect the total number of units
+            while (outboundUnits + inboundUnits > options.units.length) {
+                if (outboundRatio <= inboundRatio && outboundUnits > 1) {
+                    outboundUnits--;
+                } else if (inboundUnits > 1) {
+                    inboundUnits--;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        // Initialize all units at the origin first
         this.initializeUnits({
             units: options.units,
-            startFromDestination: startFromDestination,
+            startFromDestination: false,
             startTime: options.startAtSecondsSinceMidnight
         });
-        // Generate departure schedules
+
+        // Then manually distribute units for return trips
+        if (hasInboundPath && inboundUnits > 0) {
+            for (let i = options.units.length - inboundUnits; i < options.units.length; i++) {
+                const unit = options.units[i];
+                unit.currentLocation = UnitLocation.DESTINATION;
+            }
+        }
+
+        // Generate precise departure schedules
         const { outboundDepartures, inboundDepartures } = this.generateDepartureSchedules({
             startTime: options.startAtSecondsSinceMidnight,
             endTime: options.endAtSecondsSinceMidnight,
@@ -678,11 +720,11 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             inboundIntervalSeconds: options.inboundIntervalSeconds,
             outboundTotalTimeSeconds: options.outboundTotalTimeSeconds,
             inboundTotalTimeSeconds: options.inboundTotalTimeSeconds,
-            startFromDestination,
-            hasInboundPath: !!options.inboundPath
+            startFromDestination: false,
+            hasInboundPath: hasInboundPath
         } as GenerateDepartureSchedulesOptions);
 
-        // Process all departures in chronological order
+        // Process all departures chronologically
         while (outboundDepartures.length > 0 || inboundDepartures.length > 0) {
             const nextOutbound = outboundDepartures[0] || Infinity;
             const nextInbound = inboundDepartures[0] || Infinity;
@@ -691,9 +733,9 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             // Update unit availability
             this.updateAllUnitsAvailability(options.units, currentTime, options.inboundPath);
 
-            // Handle departures based on their type
+            // Process departures
             if (nextOutbound === currentTime && nextInbound === currentTime) {
-                // Process simultaneous departures
+                // Simultaneous departures - prioritize both directions
                 this.processSimultaneousDepartures({
                     currentTime,
                     units: options.units,
@@ -707,7 +749,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
                     inboundDepartures
                 } as ProcessSimultaneousDeparturesOptions);
             } else {
-                // Process individual departures
+                // Individual departures
                 this.processIndividualDepartures({
                     currentTime,
                     nextOutbound,
@@ -730,7 +772,6 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             realUnitCount: usedUnitsIds.size
         };
     }
-
     /**
      * Generates trips when a fixed number of units is specified
      * Uses a time-based approach to distribute trips across units
@@ -1108,20 +1149,6 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         return null;
     }
 
-    private updateUnitAvailability(unit: TransitUnit, currentTimeSeconds: number): void {
-        if (unit.expectedArrivalTime <= currentTimeSeconds) {
-            if (unit.direction === UnitDirection.OUTBOUND) {
-                unit.currentLocation = UnitLocation.DESTINATION;
-                unit.direction = null;
-                unit.lastTripEndTime = currentTimeSeconds;
-            } else if (unit.direction === UnitDirection.INBOUND) {
-                unit.currentLocation = UnitLocation.ORIGIN;
-                unit.direction = null;
-                unit.lastTripEndTime = currentTimeSeconds;
-            }
-        }
-    }
-
     // TODO Type the directions somewhere
     private getNextAvailableUnit(units: any[], direction: any, timeSeconds: number, numberOfUnits?: number) {
         if (numberOfUnits === undefined) {
@@ -1198,7 +1225,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         ) {
             return Status.createError('missing intervals or number of units');
         }
-        //const line                              = this._collectionManager.get('lines').getById(this.get('line_id'));
+        //const line = this._collectionManager.get('lines').getById(this.get('line_id'));
 
         // get the paths
         const outboundPathId = period.outbound_path_id;
