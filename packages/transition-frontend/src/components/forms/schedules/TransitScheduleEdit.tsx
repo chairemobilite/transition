@@ -154,6 +154,67 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         }
     };
 
+    onAddCustomPeriod = () => {
+        const { schedule } = this.props;
+        const periodsGroups = Preferences.get('transit.periods');
+        const periodsGroupShortname = schedule.attributes.periods_group_shortname;
+
+        if (periodsGroupShortname && periodsGroups[periodsGroupShortname] && periodsGroups[periodsGroupShortname].isCustomizable) {
+            // Get the current periods
+            const periodsGroup = periodsGroups[periodsGroupShortname];
+            const periods = periodsGroup.periods;
+
+            // Generate a new period with a unique shortname
+            const newPeriodId = periods.length + 1;
+            const newPeriod = {
+                shortname: `custom_period_${newPeriodId}`,
+                name: {
+                    fr: `Période personnalisée ${newPeriodId}`,
+                    en: `Custom Period ${newPeriodId}`
+                },
+                startAtHour: 8, // Default values
+                endAtHour: 10,
+                isCustom: true
+            };
+
+            // Add the new period to the periods group
+            periodsGroup.periods.push(newPeriod);
+
+            // Add the corresponding period to the schedule
+            const schedulePeriod = {
+                period_shortname: newPeriod.shortname,
+                start_at_hour: newPeriod.startAtHour,
+                end_at_hour: newPeriod.endAtHour,
+                trips: [],
+                id: `period_${newPeriod.shortname}_${newPeriodId}`, // Add missing id
+                data: {} // Add missing data object
+            };
+
+            schedule.attributes.periods.push(schedulePeriod);
+
+            // Trigger a re-render
+            this.onValueChange('periods', { value: schedule.attributes.periods });
+        }
+    };
+
+    onRemoveCustomPeriod = (periodIndex) => {
+        const { schedule } = this.props;
+        const periodsGroups = Preferences.get('transit.periods');
+        const periodsGroupShortname = schedule.attributes.periods_group_shortname;
+
+        if (periodsGroupShortname && periodsGroups[periodsGroupShortname] && periodsGroups[periodsGroupShortname].isCustomizable) {
+            // Remove from periodsGroup
+            const periodsGroup = periodsGroups[periodsGroupShortname];
+            periodsGroup.periods.splice(periodIndex, 1);
+
+            // Remove from schedule
+            schedule.attributes.periods.splice(periodIndex, 1);
+
+            // Trigger a re-render
+            this.onValueChange('periods', { value: schedule.attributes.periods });
+        }
+    };
+
     render() {
         const line = this.props.line;
         const isFrozen = line.isFrozen();
@@ -240,10 +301,29 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                             i18n={this.props.i18n}
                             tReady={this.props.tReady}
                         />
+                        {periodsGroup.isCustomizable && i > 0 && (
+                            <Button
+                                onClick={() => this.onRemoveCustomPeriod(i)}
+                                disabled={isFrozen}
+                                icon={faTrash}
+                                color="red"
+                            />
+                        )}
                     </div>
                 );
             }
-
+            if (periodsGroup.isCustomizable) {
+                periodsForms.push(
+                    <div key="add_period_button" className="form-group add-period-container">
+                        <Button
+                            onClick={this.onAddCustomPeriod}
+                            disabled={isFrozen}
+                            icon={faPlus}
+                            label={this.props.t('transit:transitSchedule:AddCustomPeriod')}
+                        />
+                    </div>
+                );
+            }
         }
 
         return (
