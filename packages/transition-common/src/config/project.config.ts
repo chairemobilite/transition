@@ -38,6 +38,10 @@ const defaultSectionsConfig = {
         localizedTitle: 'main:AccessibilityMap',
         icon: '/dist/images/icons/interface/accessibility_map_white.svg'
     },
+    accessibilityComparison: {
+        localizedTitle: 'transit:accessibilityComparison:Title',
+        icon: '/dist/images/icons/interface/map_comparison_white.svg'
+    },
     batchCalculation: {
         localizedTitle: 'main:BatchCalculation',
         icon: '/dist/images/icons/interface/od_routing_white.svg'

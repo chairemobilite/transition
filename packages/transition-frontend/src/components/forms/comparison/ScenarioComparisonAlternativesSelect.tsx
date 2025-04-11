@@ -113,11 +113,13 @@ const AlternativesSelect: React.FunctionComponent<AlternativesSelectProps> = (pr
         <React.Fragment>
             <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 3fr 1fr', columnGap: '10px' }}>
                 <div>
-                    {t('transit:transitComparison:ScenarioAlternatives', {
-                        scenarioNumber: '1',
-                        scenarioName: props.scenarioNames.name1
-                    })}
-                    :
+                    <div>
+                        {t('transit:transitComparison:ScenarioAlternatives', {
+                            scenarioNumber: '1'
+                        }) + ','}
+                    </div>
+                    {/* If the scenario's name takes 3 lines or more, it will truncate itself with an ellipsis. */}
+                    <div className="tr__form-limit-to-two-lines">{props.scenarioNames.name1}</div>
                 </div>
                 <AlternativesSelectOneScenario
                     result={result1}
@@ -126,11 +128,12 @@ const AlternativesSelect: React.FunctionComponent<AlternativesSelectProps> = (pr
                     useAlternateLayerAndColor={false}
                 />
                 <div style={{ color: '#ff00ff' }}>
-                    {t('transit:transitComparison:ScenarioAlternatives', {
-                        scenarioNumber: '2',
-                        scenarioName: props.scenarioNames.name2
-                    })}
-                    :
+                    <div>
+                        {t('transit:transitComparison:ScenarioAlternatives', {
+                            scenarioNumber: '2'
+                        }) + ','}
+                    </div>
+                    <div className="tr__form-limit-to-two-lines">{props.scenarioNames.name2}</div>
                 </div>
                 <AlternativesSelectOneScenario
                     result={result2}

@@ -27,7 +27,18 @@ export interface TransitAccessibilityMapResult {
 export interface TransitAccessibilityMapWithPolygonResult {
     polygons: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon>;
     strokes: GeoJSON.FeatureCollection<GeoJSON.MultiLineString>;
-    resultByNode: TrRoutingResultAccessibilityMap | undefined;
+    resultByNode?: TrRoutingResultAccessibilityMap;
+}
+
+export interface TransitAccessibilityMapComparisonResult {
+    polygons: GeoJSONComparison<GeoJSON.MultiPolygon>;
+    strokes: GeoJSONComparison<GeoJSON.MultiLineString>;
+}
+
+interface GeoJSONComparison<T extends GeoJSON.MultiPolygon | GeoJSON.MultiLineString> {
+    intersection: GeoJSON.Feature<T, GeoJSON.GeoJsonProperties>[];
+    scenario1Minus2: GeoJSON.Feature<T, GeoJSON.GeoJsonProperties>[];
+    scenario2Minus1: GeoJSON.Feature<T, GeoJSON.GeoJsonProperties>[];
 }
 
 /**

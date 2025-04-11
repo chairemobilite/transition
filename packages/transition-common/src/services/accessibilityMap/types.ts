@@ -21,3 +21,12 @@ export interface TransitMapCalculationOptions {
     additionalProperties?: { [key: string]: any };
     [key: string]: any;
 }
+
+/**
+ * Options for the colors of the displayed map when calculating the map comparison.
+ */
+export interface TransitMapColorOptions {
+    intersectionColor: string;
+    scenario1Minus2Color: string;
+    scenario2Minus1Color: string;
+}
