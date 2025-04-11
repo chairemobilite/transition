@@ -63,6 +63,32 @@ export default function (
         options
     );
 
+    const handleFileImport = (options: FileUploadOptions, saveToFile: string) => {
+        if (options.data && options.data.objects) {
+            const importObjectsName = options.data.objects;
+            const objectImporter = importerByObjectName[importObjectsName];
+            if (!objectImporter) {
+                return; // No import to run on this file
+            }
+            if (objectImporter.type === 'importerObject') {
+                objectImporter.object
+                    .import(saveToFile)
+                    .then(() => {
+                        console.log('finished importing file', saveToFile);
+                        socket.emit(`importer.${importObjectsName}Imported`, objectImporter.object.attributes);
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
+            } else if (objectImporter.type === 'function') {
+                objectImporter.fct(socket, absoluteUserDir, saveToFile);
+            } else {
+                console.log('Nothing to import for file', saveToFile);
+                socket.emit(`importer.${importObjectsName}Imported`);
+            }
+        }
+    };
+
     // TODO Handle file chunking
     socket.on(
         'uploadFile',
@@ -88,33 +114,61 @@ export default function (
                 );
 
                 // Import the file if necessary
-                if (writeResult && options.data && options.data.objects) {
-                    const importObjectsName = options.data.objects;
-                    const objectImporter = importerByObjectName[importObjectsName];
-                    if (!objectImporter) {
-                        // No import to run on this file
-                        return;
-                    }
-                    if (objectImporter.type === 'importerObject') {
-                        objectImporter.object
-                            .import(saveToFile)
-                            .then(() => {
-                                console.log('finished importing');
-                                socket.emit(`importer.${importObjectsName}Imported`, objectImporter.object.attributes);
-                            })
-                            .catch((error) => {
-                                console.error(error);
-                            });
-                    } else if (objectImporter.type === 'function') {
-                        objectImporter.fct(socket, absoluteUserDir, saveToFile);
-                    } else {
-                        console.log('finished importing');
-                        socket.emit(`importer.${importObjectsName}Imported`);
-                    }
+                if (writeResult) {
+                    // Import the file if necessary
+                    handleFileImport(options, saveToFile);
                 }
             } catch (error) {
                 console.error('Error uploading file', error);
                 progressCallback({ status: 'error', error: 'ErrorUploadingFile' });
+            }
+        }
+    );
+
+    // Get the chunk size for upload from the server
+    socket.on('getChunkSize', (callback: (chunkSize: number) => void) => {
+        callback(allOptions.chunkSizeMB * 1024 * 1024); // Send chunk size in bytes
+    });
+
+    // Handle chunked file uploads
+    socket.on(
+        'uploadFileChunk',
+        (
+            chunk: Buffer,
+            options: FileUploadOptions & { chunkIndex: number; totalChunks: number },
+            progressCallback: (response: FileUploadStatus) => void
+        ) => {
+            try {
+                const saveToFolder = allOptions.uploadDirs[options.uploadType] || allOptions.uploadDirs['imports'];
+                const importFileName =
+                    typeof options.data.filename === 'string' ? sanitizeFileName(options.data.filename) : 'upload.txt';
+                const saveToFile = `${saveToFolder}/${importFileName}`;
+
+                // Append the chunk to the file, or write the file if it is the first chunk
+                const writeResult =
+                    options.chunkIndex === 0
+                        ? fileManager.writeFileAbsolute(saveToFile, chunk)
+                        : fileManager.appendFileAbsolute(saveToFile, chunk);
+                if (writeResult === null) {
+                    progressCallback({ status: 'error', error: 'CannotWriteChunk' });
+                    return;
+                }
+
+                // If it's the last chunk, finalize the upload
+                if (options.chunkIndex + 1 === options.totalChunks) {
+                    progressCallback({ status: 'completed' });
+
+                    // Import the file if necessary
+                    handleFileImport(options, saveToFile);
+                } else {
+                    progressCallback({
+                        status: 'uploading',
+                        progress: (options.chunkIndex + 1) / options.totalChunks
+                    });
+                }
+            } catch (error) {
+                console.error('Error uploading file chunk', error);
+                progressCallback({ status: 'error', error: 'ErrorUploadingChunk' });
             }
         }
     );

@@ -192,3 +192,193 @@ describe('Upload entire file', () => {
     });
 });
 
+describe('Upload file chunks', () => {
+    // Mock some chunks
+    const chunk1 = Buffer.from('chunk1content');
+    const chunk2 = Buffer.from('chunk2content');
+
+    test('Save chunks correctly and finalize upload', async () => {
+        // Add a resolve function to be called when the socket route has finished
+        let resolveFct: undefined | ((val: unknown) => void) = undefined;
+        const promise = new Promise((resolve) => {
+            resolveFct = resolve;
+        });
+        const progressCallback = jest.fn().mockImplementation((response: FileUploadStatus) => {
+            if (response.status === 'completed') {
+                resolveFct!(true);
+            }
+        });
+
+        const filename = 'chunkedfile.txt';
+
+        // Emit first chunk
+        socketStub.emit('uploadFileChunk', chunk1, {
+            uploadType: 'test',
+            data: { filename },
+            chunkIndex: 0,
+            totalChunks: 2
+        }, progressCallback);
+
+        // Emit second chunk
+        socketStub.emit('uploadFileChunk', chunk2, {
+            uploadType: 'test',
+            data: { filename },
+            chunkIndex: 1,
+            totalChunks: 2
+        }, progressCallback);
+
+        await promise;
+
+        expect(writeFileAbsoluteMock).toHaveBeenCalledWith(`${absoluteUserDir}/imports/${filename}`, chunk1);
+        expect(appendFileAbsoluteMock).toHaveBeenCalledWith(`${absoluteUserDir}/imports/${filename}`, chunk2);
+        expect(progressCallback).toHaveBeenCalledWith({ status: 'uploading', progress: 0.5 });
+        expect(progressCallback).toHaveBeenCalledWith({ status: 'completed' });
+    });
+
+    test('Custom dir and trigger importer', async () => {
+        // Add a resolve function to be called when the socket route has finished
+        let resolveFct: undefined | ((val: unknown) => void) = undefined;
+        const promise = new Promise((resolve) => {
+            resolveFct = resolve;
+        });
+        const progressCallback = jest.fn().mockImplementation((response: FileUploadStatus) => {
+            if (response.status === 'completed') {
+                resolveFct!(true);
+            }
+        });
+
+        const filename = 'chunkedfile.txt';
+
+        // Emit first chunk
+        socketStub.emit('uploadFileChunk', chunk1, {
+            uploadType: 'someType',
+            data: { filename, objects: 'test' },
+            chunkIndex: 0,
+            totalChunks: 2
+        }, progressCallback);
+
+        // Emit second chunk
+        socketStub.emit('uploadFileChunk', chunk2, {
+            uploadType: 'someType',
+            data: { filename, objects: 'test' },
+            chunkIndex: 1,
+            totalChunks: 2
+        }, progressCallback);
+
+        await promise;
+
+        expect(writeFileAbsoluteMock).toHaveBeenCalledWith(`${customImportDir}/${filename}`, chunk1);
+        expect(fileManager.appendFileAbsolute).toHaveBeenCalledWith(`${customImportDir}/${filename}`, chunk2);
+        expect(importerMock).toHaveBeenCalled();
+        expect(progressCallback).toHaveBeenCalledWith({ status: 'completed' });
+    });
+
+    each([
+        ['../../../passwd', 'passwd'],
+        ['C://overwrite', 'overwrite'],
+        ['blabla/../some\\hello.bla', 'hello.bla']
+    ]).test('Unsanitized file name: %s => %s', async (unsanitizedFileName, expected) => {
+        // Add a resolve function to be called when the socket route has finished
+        let resolveFct: undefined | ((val: unknown) => void) = undefined;
+        const promise = new Promise((resolve, reject) => {
+            resolveFct = resolve;
+        });
+        const progressCallback = jest.fn().mockImplementation((response: FileUploadStatus) => {
+            if (response.status === 'completed') {
+                resolveFct!(true);
+            }
+        });
+
+       // Emit first chunk
+       socketStub.emit('uploadFileChunk', chunk1, {
+            uploadType: 'test',
+            data: { filename: unsanitizedFileName },
+            chunkIndex: 0,
+            totalChunks: 2
+        }, progressCallback);
+
+        // Emit second chunk
+        socketStub.emit('uploadFileChunk', chunk2, {
+            uploadType: 'test',
+            data: { filename: unsanitizedFileName },
+            chunkIndex: 1,
+            totalChunks: 2
+        }, progressCallback);
+
+        await promise;
+
+        expect(writeFileAbsoluteMock).toHaveBeenCalledWith(`${absoluteUserDir}/imports/${expected}`, chunk1);
+        expect(appendFileAbsoluteMock).toHaveBeenCalledWith(`${absoluteUserDir}/imports/${expected}`, chunk2);
+        expect(progressCallback).toHaveBeenCalledWith({ status: 'uploading', progress: 0.5 });
+        expect(progressCallback).toHaveBeenCalledWith({ status: 'completed' });
+    });
+
+    test('Error writing first chunk', async () => {
+        // Add a resolve function to be called when the socket route has finished
+        let resolveFct: undefined | ((val: unknown) => void) = undefined;
+        const promise = new Promise((resolve) => {
+            resolveFct = resolve;
+        });
+        const progressCallback = jest.fn().mockImplementation((response: FileUploadStatus) => {
+            expect(response).toEqual({ status: 'error', error: 'CannotWriteChunk' });
+            resolveFct!(true);
+        });
+
+        // Return null when writing file for first chunk
+        writeFileAbsoluteMock.mockReturnValueOnce(null);
+        const filename = 'chunkedfile.txt';
+
+        socketStub.emit('uploadFileChunk', chunk1, {
+            uploadType: 'test',
+            data: { filename },
+            chunkIndex: 0,
+            totalChunks: 2
+        }, progressCallback);
+
+        await promise;
+
+        expect(writeFileAbsoluteMock).toHaveBeenCalledWith(`${absoluteUserDir}/imports/${filename}`, chunk1);
+        expect(progressCallback).toHaveBeenCalledWith({ status: 'error', error: 'CannotWriteChunk' });
+    });
+
+    test('Error appending subsequent chunk', async () => {
+        // Add a resolve function to be called when the socket route has finished
+        let resolveFct: undefined | ((val: unknown) => void) = undefined;
+        const promise = new Promise((resolve) => {
+            resolveFct = resolve;
+        });
+        const progressCallback = jest.fn().mockImplementation((response: FileUploadStatus) => {
+            if (response.status === 'error') {
+                resolveFct!(true);
+            }
+        });
+
+        const filename = 'chunkedfile.txt';
+
+        appendFileAbsoluteMock.mockReturnValueOnce(null);
+
+        // Emit first chunk
+        socketStub.emit('uploadFileChunk', chunk1, {
+            uploadType: 'test',
+            data: { filename },
+            chunkIndex: 0,
+            totalChunks: 2
+        }, progressCallback);
+
+        // Emit second chunk
+        socketStub.emit('uploadFileChunk', chunk2, {
+            uploadType: 'test',
+            data: { filename },
+            chunkIndex: 1,
+            totalChunks: 2
+        }, progressCallback);
+
+        await promise;
+
+        expect(writeFileAbsoluteMock).toHaveBeenCalledWith(`${absoluteUserDir}/imports/${filename}`, chunk1);
+        expect(appendFileAbsoluteMock).toHaveBeenCalledWith(`${absoluteUserDir}/imports/${filename}`, chunk2);
+        expect(progressCallback).toHaveBeenCalledWith({ status: 'uploading', progress: 0.5 });
+        expect(progressCallback).toHaveBeenCalledWith({ status: 'error', error: 'CannotWriteChunk' });
+    });
+
+});
