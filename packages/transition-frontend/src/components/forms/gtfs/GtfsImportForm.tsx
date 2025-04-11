@@ -8,7 +8,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
 import { faFileImport } from '@fortawesome/free-solid-svg-icons/faFileImport';
 import Loader from 'react-spinners/BeatLoader';
-import SocketIOFileClient from 'socket.io-file-client';
 import { useTranslation } from 'react-i18next';
 
 import InputFile from 'chaire-lib-frontend/lib/components/input/InputFile';
@@ -19,16 +18,15 @@ import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GtfsConstants, GtfsImportStatus } from 'transition-common/lib/api/gtfs';
 import { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import GtfsImportServiceComponent from './GtfsImportServiceComponent';
 import GtfsImportAgenciesComponent from './GtfsImportAgenciesComponent';
 import GtfsImportNodesComponent from './GtfsImportNodesComponent';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
+import { useFileUploader } from 'chaire-lib-frontend/lib/components/input/FileUploaderHook';
 
 const GtfsImportForm: React.FC = () => {
-    const [isUploaded, setIsUploaded] = useState(false);
     const [isPrepared, setIsPrepared] = useState(false);
     const [periodsGroupShortname, setPeriodsGroupShortname] = useState<string | undefined>(undefined);
     const [warnings, setWarnings] = useState<any[]>([]);
@@ -42,13 +40,9 @@ const GtfsImportForm: React.FC = () => {
     });
 
     const { t, i18n } = useTranslation(['transit', 'notifications']);
+    const { upload } = useFileUploader(false, 'UploadingGtfsFile');
 
     const fileImportRef = useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>;
-    const zipFileUploader = useRef(
-        new SocketIOFileClient(serviceLocator.socketEventManager._eventManager, {
-            chunkSize: Preferences.current.socketUploadChunkSize
-        })
-    );
 
     const updateSelection = (
         path: 'agency' | 'line' | 'service',
@@ -92,17 +86,6 @@ const GtfsImportForm: React.FC = () => {
     };
 
     useEffect(() => {
-        const uploader = zipFileUploader.current;
-
-        const onZipFileUploadStart = (_fileInfo) => {
-            serviceLocator.eventManager.emit('progress', { name: 'UploadingGtfsFile', progress: 0.0 });
-        };
-
-        const onZipFileUploadComplete = () => {
-            serviceLocator.eventManager.emit('progress', { name: 'UploadingGtfsFile', progress: 1.0 });
-            setIsUploaded(true);
-        };
-
         const onZipFileUploadError = (error) => {
             console.log('GTFS file upload error!', error);
             setErrors((prevErrors) => [...prevErrors, 'transit:gtfs:errors:ErrorUploadingFile']);
@@ -153,20 +136,12 @@ const GtfsImportForm: React.FC = () => {
             setOperationInProgress(false);
         };
 
-        uploader.on('start', onZipFileUploadStart);
-        uploader.on('complete', onZipFileUploadComplete);
-        uploader.on('error', onZipFileUploadError);
-
         serviceLocator.socketEventManager.on('gtfsImporter.gtfsFilePrepared', onGtfsFilePrepared);
         serviceLocator.socketEventManager.on('gtfsImporter.gtfsFileUnzipped', onGtfsFileUnzipped);
         serviceLocator.socketEventManager.on(GtfsConstants.GTFS_DATA_IMPORTED, onGtfsDataImported);
         serviceLocator.socketEventManager.on('gtfsImporter.gtfsUploadError', onZipFileUploadError);
 
         return () => {
-            uploader.off('start', onZipFileUploadStart);
-            uploader.off('complete', onZipFileUploadComplete);
-            uploader.off('error', onZipFileUploadError);
-
             serviceLocator.socketEventManager.off('gtfsImporter.gtfsFilePrepared', onGtfsFilePrepared);
             serviceLocator.socketEventManager.off('gtfsImporter.gtfsFileUnzipped', onGtfsFileUnzipped);
             serviceLocator.socketEventManager.off(GtfsConstants.GTFS_DATA_IMPORTED, onGtfsDataImported);
@@ -267,13 +242,16 @@ const GtfsImportForm: React.FC = () => {
                         label=""
                         color="blue"
                         onClick={() => {
-                            zipFileUploader.current.upload(fileImportRef.current, {
-                                uploadTo: 'gtfs',
-                                data: {
-                                    objects: 'gtfs',
-                                    filename: 'import.zip'
-                                }
-                            });
+                            if (fileImportRef.current.files && fileImportRef.current.files.length > 0) {
+                                const file = fileImportRef.current.files[0];
+                                upload(file, {
+                                    uploadType: 'gtfs',
+                                    data: {
+                                        objects: 'gtfs',
+                                        filename: 'import.zip'
+                                    }
+                                });
+                            }
                         }}
                     />
                 )}

@@ -5,12 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import _cloneDeep from 'lodash/cloneDeep';
 import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
 
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
-import FileUploaderHOC, { FileUploaderHOCProps } from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
+import { useFileUploader } from 'chaire-lib-frontend/lib/components/input/FileUploaderHook';
 import InputFile from 'chaire-lib-frontend/lib/components/input/InputFile';
 import TransitOdDemandFromCsv, {
     TransitOdDemandFromCsvAttributes
@@ -31,13 +31,12 @@ interface ConfigureDemandFromCsvFormProps {
  * Select a CSV file, map fields to required parameters, then upload file to
  * server
  *
- * @param {(ConfigureDemandFromCsvFormProps & FileUploaderHOCProps &
- * WithTranslation)} props
+ * @param {(ConfigureDemandFromCsvFormProps)} props
  * @return {*}
  */
-const ConfigureDemandFromCsvForm: React.FunctionComponent<
-    ConfigureDemandFromCsvFormProps & FileUploaderHOCProps & WithTranslation
-> = (props: ConfigureDemandFromCsvFormProps & FileUploaderHOCProps & WithTranslation) => {
+const ConfigureDemandFromCsvForm: React.FunctionComponent<ConfigureDemandFromCsvFormProps> = (
+    props: ConfigureDemandFromCsvFormProps
+): any => {
     const [demand] = React.useState(
         props.currentDemand?.demand ||
             new TransitOdDemandFromCsv(
@@ -49,6 +48,9 @@ const ConfigureDemandFromCsvForm: React.FunctionComponent<
     const [loading, setLoading] = React.useState(false);
     const [updateCnt, setUpdateCnt] = React.useState(0);
     const [readyToUpload, setReadyToUpload] = React.useState(false);
+    const { upload, uploadStatus } = useFileUploader(false);
+    const { t } = useTranslation(['transit', 'main']);
+    const fileImportRef = React.useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>;
 
     const onCsvFileChange = async (file: File) => {
         setLoading(true);
@@ -73,14 +75,16 @@ const ConfigureDemandFromCsvForm: React.FunctionComponent<
     };
 
     const onUpload = () => {
-        // upload csv file to server:
-        props.fileUploader.upload(props.fileImportRef.current, {
-            uploadTo: 'imports',
-            data: {
-                objects: 'csv',
-                filename: 'batchRouting.csv'
-            }
-        });
+        if (fileImportRef.current.files && fileImportRef.current.files.length > 0) {
+            const file = fileImportRef.current.files[0];
+            upload(file, {
+                uploadType: 'imports',
+                data: {
+                    objects: 'csv',
+                    filename: 'batchRouting.csv'
+                }
+            });
+        }
 
         demand.updateRoutingPrefs();
     };
@@ -92,18 +96,18 @@ const ConfigureDemandFromCsvForm: React.FunctionComponent<
     }, []);
 
     React.useEffect(() => {
-        if (props.uploadStatus.status === 'completed') {
+        if (uploadStatus.status === 'completed') {
             props.onComplete({ type: 'csv', demand, csvFields: csvFileAttributes });
         }
-    }, [props.uploadStatus.status]);
+    }, [uploadStatus.status]);
 
     return (
         <div className="tr__form-section">
-            <InputWrapper twoColumns={true} label={props.t('main:CsvFile')}>
+            <InputWrapper twoColumns={true} label={t('main:CsvFile')}>
                 <InputFile
                     id={'formFieldTransitDemandCsvFile'}
                     accept={'.csv'}
-                    inputRef={props.fileImportRef}
+                    inputRef={fileImportRef}
                     onChange={(e) => {
                         const files = e.target.files;
                         if (files && files.length > 0) onCsvFileChange(files[0]);
@@ -123,12 +127,12 @@ const ConfigureDemandFromCsvForm: React.FunctionComponent<
                     <FormErrors errors={demand.getErrors()} />
                     {readyToUpload && (
                         <div className="tr__form-buttons-container">
-                            <span title={props.t('transit:batchCalculation:UploadFile')}>
+                            <span title={t('transit:batchCalculation:UploadFile')}>
                                 <Button
                                     disabled={!readyToUpload}
                                     key="next"
                                     color="blue"
-                                    label={props.t('transit:batchCalculation:UploadFile')}
+                                    label={t('transit:batchCalculation:UploadFile')}
                                     icon={faUpload}
                                     iconClass="_icon-alone"
                                     onClick={onUpload}
@@ -142,4 +146,4 @@ const ConfigureDemandFromCsvForm: React.FunctionComponent<
     );
 };
 
-export default FileUploaderHOC(withTranslation(['transit', 'main'])(ConfigureDemandFromCsvForm), false);
+export default ConfigureDemandFromCsvForm;
