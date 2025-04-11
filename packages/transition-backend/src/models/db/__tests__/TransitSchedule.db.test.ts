@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2022-2025, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
@@ -19,8 +19,10 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const agencyId = uuidV4();
 const lineId = uuidV4();
+const lineId2 = uuidV4();
 const serviceId = uuidV4();
 const pathId = uuidV4();
+const pathId2 = uuidV4();
 
 // TODO this requires a lot of stubs, when moving to typescript, add separate tests to test the calls without actually touching the database, but keep those tests as integration tests
 
@@ -37,8 +39,16 @@ beforeAll(async () => {
         id: lineId,
         agency_id: agencyId
     } as any);
+    await linesDbQueries.create({
+        id: lineId2,
+        agency_id: agencyId
+    } as any);
     await pathsDbQueries.create({
         id: pathId,
+        line_id: lineId
+    } as any);
+    await pathsDbQueries.create({
+        id: pathId2,
         line_id: lineId
     } as any);
     await servicesDbQueries.create({
@@ -174,6 +184,89 @@ const scheduleForServiceId = {
     }],
     "periods_group_shortname": "all_day",
 };
+const scheduleForServiceId2Period = [{
+    // Period with start and end hours and multiple trips
+    integer_id: undefined,
+    id: uuidV4(),
+    "end_at_hour": 12,
+    "interval_seconds": 1800,
+    "outbound_path_id": pathId,
+    "period_shortname": "all_day_period_shortname",
+    "start_at_hour": 7,
+    "trips": [{
+        integer_id: undefined,
+        "arrival_time_seconds": 27015,
+        "block_id": "a2cadcb8-ee17-4bd7-9e77-bd400ad73064",
+        "departure_time_seconds": 25200,
+        "id": uuidV4(),
+        "node_arrival_times_seconds": [null, 25251, 26250, 27015] as any,
+        "node_departure_times_seconds": [25200, 25261, 26260, null] as any,
+        "nodes_can_board": [true, true, true, false],
+        "nodes_can_unboard": [false, true, true, true],
+        "path_id": pathId,
+        "seated_capacity": 20,
+        "total_capacity": 50
+    }, {
+        integer_id: undefined,
+        "arrival_time_seconds": 32416,
+        "departure_time_seconds": 30601,
+        "id": uuidV4(),
+        "node_arrival_times_seconds": [null, 30652, 31650, 32416] as any,
+        "node_departure_times_seconds": [30601, 30662, 31660, null] as any,
+        "nodes_can_board": [true, true, true, false],
+        "nodes_can_unboard": [false, true, true, true],
+        "path_id": pathId,
+        "seated_capacity": 20,
+        "total_capacity": 50
+    }, {
+        integer_id: undefined,
+        "arrival_time_seconds": 34216,
+        "departure_time_seconds": 32401,
+        "id": uuidV4(),
+        "node_arrival_times_seconds": [null, 32452, 33450, 34216] as any,
+        "node_departure_times_seconds": [32401, 32462, 33460, null] as any,
+        "nodes_can_board": [true, true, true, false],
+        "nodes_can_unboard": [false, true, true, true],
+        "path_id": pathId,
+        "seated_capacity": 20,
+        "total_capacity": 50
+    }]
+}, {
+    // Period with custom start and end, with a single trip
+    integer_id: undefined,
+    id: uuidV4(),
+    "custom_start_at_str": "13:15",
+    "custom_end_at_str": "17:24",
+    "end_at_hour": 18,
+    "interval_seconds": 1800,
+    "outbound_path_id": pathId,
+    "period_shortname": "all_day_custom_period",
+    "start_at_hour": 13,
+    "trips": [{
+        integer_id: undefined,
+        "arrival_time_seconds": 50000,
+        "departure_time_seconds": 48000,
+        "id": uuidV4(),
+        "node_arrival_times_seconds": [null, 48050, 49450, 50000] as any,
+        "node_departure_times_seconds": [48000, 48060, 49460, null] as any,
+        "nodes_can_board": [true, true, true, false],
+        "nodes_can_unboard": [false, true, true, true],
+        "path_id": pathId,
+        "seated_capacity": 20,
+        "total_capacity": 50
+    }]
+}, {
+    // Period with custom start and end, without trips
+    integer_id: undefined,
+    id: uuidV4(), 
+    "custom_start_at_str": "18:00",
+    "custom_end_at_str": "23:00",
+    "end_at_hour": 23,
+    "interval_seconds": 1800,
+    "outbound_path_id": pathId,
+    "period_shortname": "all_day_custom_period",
+    "start_at_hour": 18
+}];
 
 /** Function to verify 2 schedules are identical to the trip level. It's easier
  * to debug failed test than a matchObject on the scheduleAttributes */
@@ -555,4 +648,65 @@ describe('Schedules, with transactions', () => {
         expectSchedulesSame(dataRead, originalSchedule);
     });
 
+});
+
+describe('Schedules save', () => {
+    beforeAll(async () => {
+        jest.setTimeout(10000);
+        await dbQueries.truncateSchedules();
+        await dbQueries.truncateSchedulePeriods();
+        await dbQueries.truncateScheduleTrips();
+
+    });
+
+    test('Create and update multiple schedules with success using saveAll', async() => {
+        const originalSchedule1 = _cloneDeep(scheduleForServiceId) as any;
+        let originalSchedule2 = _cloneDeep(scheduleForServiceId) as any;
+        
+        originalSchedule2.id = uuidV4();
+        originalSchedule2.periods = scheduleForServiceId2Period;
+        
+        originalSchedule2.line_id = lineId2;
+    
+        let originalUpdatedSchedules: any[] = [];
+        let newIds: any[] = [];
+        
+        await knex.transaction(async (trx) => {
+            // Save the original schedules 
+            newIds = await dbQueries.saveAll([originalSchedule1, originalSchedule2], { transaction: trx });
+    
+            // Read the schedules we just saved from the DB
+            const updatedSchedules = await Promise.all(
+                newIds.map(id => dbQueries.read(id, { transaction: trx }))
+            );
+    
+            // edit those schedules
+            updatedSchedules.forEach((schedule) => {
+                delete schedule.updated_at;
+                schedule.periods.forEach((period) => {
+                    delete period.updated_at;
+                    if (period.trips) {
+                        period.trips.forEach((trip) => delete trip.updated_at);
+                    }
+                });
+                
+                if (schedule.line_id === scheduleForServiceId.line_id) {
+                    schedule.periods.splice(1, 1);
+                    schedule.periods[0].trips.splice(2, 1);
+                } else {
+                    schedule.periods.splice(0, 1);
+                }
+            });
+    
+            originalUpdatedSchedules = updatedSchedules;
+            await dbQueries.saveAll(updatedSchedules, { transaction: trx });
+        });
+    
+        // Verify if the objects were correctly saved
+        const readSchedules = await Promise.all(newIds.map(id => dbQueries.read(id)));
+        
+        for (let i = 0; i < readSchedules.length; i++) {
+            expectSchedulesSame(readSchedules[i], originalUpdatedSchedules[i]);
+        }
+    });
 });

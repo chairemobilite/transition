@@ -120,5 +120,31 @@ export default {
                 );
             }
         });
+    },
+
+    saveAll: function (
+        objects: GenericObject<any>[],
+        socket: EventEmitter,
+        socketPrefix: string,
+        collection
+    ): Promise<any> {
+        return new Promise((resolve) => {
+            const attributesList = objects.map((obj) => obj.getAttributes());
+            socket.emit(`${socketPrefix}.updateBatch`, attributesList, (response) => {
+                if (!response.error) {
+                    objects.forEach((object) => {
+                        object._wasFrozen = object.getAttributes().is_frozen === true;
+                        if (collection) {
+                            if (collection.getIndex(object.getAttributes().id) >= 0) {
+                                collection.updateById(object.getAttributes().id, object);
+                            } else {
+                                collection.add(object);
+                            }
+                        }
+                    });
+                }
+                resolve(response);
+            });
+        });
     }
 };
