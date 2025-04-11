@@ -11,6 +11,7 @@ import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/D
 import Line from 'transition-common/lib/services/line/Line';
 import Schedule from 'transition-common/lib/services/schedules/Schedule';
 import TransitSchedulesList from '../forms/schedules/TransitScheduleList';
+import TransitScheduleBatchList from '../forms/schedules/TransitScheduleBatchList';
 
 interface TransitionFSPanelState {
     selectedLine?: Line;
@@ -53,6 +54,7 @@ const FullSizePanel: React.FunctionComponent<LayoutSectionProps> = (_props: Layo
             {state.selectedLine && (
                 <TransitSchedulesList selectedSchedule={state.selectedSchedule} selectedLine={state.selectedLine} />
             )}
+            {!state.selectedLine && <TransitScheduleBatchList />}
         </React.Fragment>
     );
 };
