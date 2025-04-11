@@ -6,7 +6,7 @@
  */
 import { EventEmitter } from 'events';
 import { createServer } from 'http';
-import Server from 'socket.io';
+import { Server } from 'socket.io';
 import Client from 'socket.io-client';
 
 import { isSocketIo } from '../socketUtils';
