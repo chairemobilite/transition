@@ -560,29 +560,27 @@ export class TransitAccessibilityMapCalculator {
     private static getPolygonStrokes(
         polygon: Feature<MultiPolygon, GeoJsonProperties>
     ): Feature<MultiLineString, GeoJsonProperties> {
-        // TODO Can this be other than a feature collection? If so, we need to handle the various cases
         let polygonStroke = turfPolygonToLine(polygon);
         if (polygonStroke.type === 'Feature') {
             polygonStroke = turfFeatureCollection([polygonStroke]);
         }
-        const polygonStroke2: FeatureCollection<LineString> = turfFeatureCollection([]);
+        const polygonStrokesWithHoles: FeatureCollection<LineString> = turfFeatureCollection([]);
 
         for (let i = 0, countI = polygonStroke.features.length; i < countI; i++) {
             const feature = polygonStroke.features[i];
             if (feature.geometry.type === 'MultiLineString') {
                 // this is a polygon with hole, we need to separate into two LineStrings.
                 for (let j = 1, countJ = feature.geometry.coordinates.length; j < countJ; j++) {
-                    polygonStroke2.features.push(turfLineString(feature.geometry.coordinates[j]));
+                    polygonStrokesWithHoles.features.push(turfLineString(feature.geometry.coordinates[j]));
                 }
-                // TODO Copied from original code, but should it be .push instead of features[i] ?
-                polygonStroke2.features[i] = turfLineString(feature.geometry.coordinates[0]); // keep the first one as is, but convert to LineString
+                polygonStrokesWithHoles.features.push(turfLineString(feature.geometry.coordinates[0])); // keep the first one as is, but convert to LineString
             } else {
-                polygonStroke2.features.push(feature as Feature<LineString>);
+                polygonStrokesWithHoles.features.push(feature as Feature<LineString>);
             }
         }
 
         return turfMultiLineString(
-            polygonStroke2.features.map((lineString) => {
+            polygonStrokesWithHoles.features.map((lineString) => {
                 return lineString.geometry.coordinates;
             })
         );
