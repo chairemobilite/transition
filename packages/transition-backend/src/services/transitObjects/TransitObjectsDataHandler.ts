@@ -1,5 +1,5 @@
 /*
- * Copyright 2024, Polytechnique Montreal and contributors
+ * Copyright 2024-2025, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
@@ -35,7 +35,7 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { isSocketIo } from '../../api/socketUtils';
 
-interface TransitObjectDataHandler {
+export interface TransitObjectDataHandler {
     lowerCaseName: string;
     className: string;
     classNamePlural: string;
@@ -55,6 +55,7 @@ interface TransitObjectDataHandler {
     loadCache?: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
     saveCollectionCache?: (collection, customCachePath) => Promise<Record<string, any>>;
     loadCollectionCache?: (customCachePath) => Promise<Record<string, any>>;
+    updateBatch?: (socket: EventEmitter, attributes: GenericAttributes[]) => Promise<Record<string, any>>;
 }
 
 const transitClassesConfig = {
@@ -447,6 +448,46 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                     }
                     console.error(error);
                     return error.export();
+                }
+            };
+        }
+
+        if (lowerCasePlural === 'schedules') {
+            dataHandler.updateBatch = async (
+                socket: EventEmitter,
+                attributeList: GenericAttributes[]
+            ): Promise<Record<string, any>> => {
+                try {
+                    const updatedIds = await transitClassConfig.dbQueries.saveAll(attributeList);
+
+                    if (isSocketIo(socket)) {
+                        socket.broadcast.emit('data.updated');
+                    }
+
+                    if (transitClassConfig.cacheQueries.objectToCache) {
+                        try {
+                            for (const updatedId of updatedIds) {
+                                const updatedObject = await transitClassConfig.dbQueries.read(updatedId);
+                                await transitClassConfig.cacheQueries.objectToCache(
+                                    updatedObject.attributes ? updatedObject.attributes : updatedObject,
+                                    updatedObject.attributes?.data?.customCachePath
+                                );
+                            }
+                        } catch (error) {
+                            throw new TrError(
+                                `cannot update cache files for ${transitClassConfig.classNamePlural} because of an error: ${error}`,
+                                'SKTTRUPB0001',
+                                'CacheCouldNotBeUpdatedBecauseError'
+                            );
+                        }
+                    } else {
+                        socket.emit('cache.dirty');
+                    }
+
+                    return { ids: updatedIds.map((updatedId) => ({ id: updatedId })) };
+                } catch (error) {
+                    console.error('Error batch updating schedules: ', error);
+                    return TrError.isTrError(error) ? error.export() : { error: 'Error updating batch' };
                 }
             };
         }

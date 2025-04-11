@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2022-2025, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
@@ -105,6 +105,7 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
                 ...rest,
                 selectedSchedule: serviceLocator.selectedObjectsManager.getSingleSelection('schedule')
             }));
+
         const onUpdateLayersFilter = () => {
             setRerender(rerender + 1);
         };

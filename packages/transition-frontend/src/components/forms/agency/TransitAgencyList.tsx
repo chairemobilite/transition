@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2022-2025, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
@@ -128,6 +128,20 @@ const TransitAgencyList: React.FunctionComponent<AgencyListProps> = (props: Agen
                         iconClass="_icon"
                         label={props.t('transit:transitLine:New')}
                         onClick={newLine}
+                    />
+                </div>
+            )}
+
+            {!objectSelected && props.agencyCollection && (
+                <div className="tr__form-buttons-container">
+                    <Button
+                        color="blue"
+                        iconPath={'/dist/images/icons/transit/schedule_white.svg'}
+                        iconClass="_icon"
+                        label={props.t('transit:transitSchedule:BatchSchedules')}
+                        onClick={function () {
+                            serviceLocator.eventManager.emit('fullSizePanel.show');
+                        }}
                     />
                 </div>
             )}

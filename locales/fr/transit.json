@@ -164,6 +164,9 @@
     },
     "transitSchedule": {
         "Schedules": "Horaires",
+        "BatchSchedules": "Modifier des horaires en lot",
+        "ConfirmBatchLineSelection": "Confirmer les lignes sélectionnées",
+        "ReturnBatchLineSelection": "Retour à la sélection des lignes",
         "List": "Horaires",
         "Delete": "Supprimer l'horaire",
         "ConfirmDelete": "Confirmez-vous que vous désirez bien supprimer cet horaire?",
@@ -202,7 +205,9 @@
         "nTrip": "{{n}} voyage",
         "nTrips": "{{n}} voyages",
         "SymmetricSchedule": "Horaires symétriques",
-        "AsymmetricSchedule": "Horaires asymétriques"
+        "AsymmetricSchedule": "Horaires asymétriques",
+        "BatchGenerationSuccess": "{{n}} horaires ont été générés avec succès",
+        "OverwriteScheduleWarningBatch": "Attention: {{n}} ligne(s) ont déjà un horaire associé à ce service. L'horaire existant sera écrasé."
     },
     "transitUnit": {
         "List": "Unités",
