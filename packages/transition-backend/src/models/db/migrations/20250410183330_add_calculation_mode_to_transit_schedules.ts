@@ -29,12 +29,18 @@ const schemaName = 'demo_transition';
  * @returns A promise to alter the table
  */
 export async function up(knex: Knex): Promise<unknown> {
+    const hasTable = await knex.schema.withSchema(schemaName).hasTable(tableName);
+    if (!hasTable) {
+        return Promise.resolve();
+    }
+
     const hasColumn = await knex.schema.withSchema(schemaName).hasColumn(tableName, 'calculation_mode');
     if (!hasColumn) {
         return knex.schema.withSchema(schemaName).alterTable(tableName, (table: Knex.TableBuilder) => {
             table.string('calculation_mode', 255);
         });
     }
+
     return Promise.resolve();
 }
 
@@ -45,11 +51,18 @@ export async function up(knex: Knex): Promise<unknown> {
  * @returns A promise to alter the table
  */
 export async function down(knex: Knex): Promise<unknown> {
+    const hasTable = await knex.schema.withSchema(schemaName).hasTable(tableName);
+    if (!hasTable) {
+        console.warn(`⚠️ Table ${schemaName}.${tableName} does not exist, skipping drop of "calculation_mode" column.`);
+        return Promise.resolve();
+    }
+
     const hasColumn = await knex.schema.withSchema(schemaName).hasColumn(tableName, 'calculation_mode');
     if (hasColumn) {
         return knex.schema.withSchema(schemaName).alterTable(tableName, (table: Knex.TableBuilder) => {
             table.dropColumn('calculation_mode');
         });
     }
+
     return Promise.resolve();
 }
