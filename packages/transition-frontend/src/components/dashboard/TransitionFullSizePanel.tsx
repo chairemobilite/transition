@@ -11,16 +11,19 @@ import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/D
 import Line from 'transition-common/lib/services/line/Line';
 import Schedule from 'transition-common/lib/services/schedules/Schedule';
 import TransitSchedulesList from '../forms/schedules/TransitScheduleList';
+import TransitScheduleBatchLineSelect from '../forms/schedules/TransitScheduleBatchList';
 
 interface TransitionFSPanelState {
     selectedLine?: Line;
     selectedSchedule?: Schedule;
+    selectedScheduleMode: String;
 }
 
 const FullSizePanel: React.FunctionComponent<LayoutSectionProps> = (_props: LayoutSectionProps) => {
     const [state, setState] = React.useState<TransitionFSPanelState>({
         selectedLine: serviceLocator.selectedObjectsManager.getSingleSelection('line'),
-        selectedSchedule: serviceLocator.selectedObjectsManager.getSingleSelection('schedule')
+        selectedSchedule: serviceLocator.selectedObjectsManager.getSingleSelection('schedule'),
+        selectedScheduleMode: serviceLocator.selectedObjectsManager.getSingleSelection('scheduleMode')
     });
 
     React.useEffect(() => {
@@ -36,22 +39,34 @@ const FullSizePanel: React.FunctionComponent<LayoutSectionProps> = (_props: Layo
                 ...rest,
                 selectedSchedule: serviceLocator.selectedObjectsManager.getSingleSelection('schedule')
             }));
+        const onSelectedScheduleModeUpdate = () =>
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+            setState(({ selectedScheduleMode, ...rest }) => ({
+                ...rest,
+                selectedScheduleMode: serviceLocator.selectedObjectsManager.getSingleSelection('scheduleMode')
+            }));
         serviceLocator.eventManager.on('selected.update.line', onSelectedLineUpdate);
         serviceLocator.eventManager.on('selected.deselect.line', onSelectedLineUpdate);
         serviceLocator.eventManager.on('selected.update.schedule', onSelectedScheduleUpdate);
         serviceLocator.eventManager.on('selected.deselect.schedule', onSelectedScheduleUpdate);
+        serviceLocator.eventManager.on('selected.update.scheduleMode', onSelectedScheduleModeUpdate);
         return () => {
             serviceLocator.eventManager.off('selected.update.line', onSelectedLineUpdate);
             serviceLocator.eventManager.off('selected.deselect.line', onSelectedLineUpdate);
             serviceLocator.eventManager.off('selected.update.schedule', onSelectedScheduleUpdate);
             serviceLocator.eventManager.off('selected.deselect.schedule', onSelectedScheduleUpdate);
+            serviceLocator.eventManager.off('selected.update.scheduleMode', onSelectedScheduleModeUpdate);
         };
     }, []);
 
     return (
+        
         <React.Fragment>
-            {state.selectedLine && (
+            {state.selectedLine && state.selectedScheduleMode === 'single' && (
                 <TransitSchedulesList selectedSchedule={state.selectedSchedule} selectedLine={state.selectedLine} />
+            )}
+            {!state.selectedLine && state.selectedScheduleMode === 'batch' && (
+                <TransitScheduleBatchLineSelect/>
             )}
         </React.Fragment>
     );

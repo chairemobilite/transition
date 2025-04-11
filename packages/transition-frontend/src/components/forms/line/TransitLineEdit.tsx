@@ -390,6 +390,7 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
                                     iconClass="_icon"
                                     label={this.props.t('transit:transitSchedule:Schedules')}
                                     onClick={function () {
+                                        serviceLocator.selectedObjectsManager.setSelection('scheduleMode', ['single'])
                                         serviceLocator.eventManager.emit('fullSizePanel.show');
                                     }.bind(this)}
                                 />

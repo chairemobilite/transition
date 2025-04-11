@@ -131,6 +131,21 @@ const TransitAgencyList: React.FunctionComponent<AgencyListProps> = (props: Agen
                     />
                 </div>
             )}
+
+            {!objectSelected && props.agencyCollection && (
+                <div className="tr__form-buttons-container">
+                    <Button
+                        color="blue"
+                        iconPath={'/dist/images/icons/transit/schedule_white.svg'}
+                        iconClass="_icon"
+                        label={props.t('transit:transitSchedule:BatchSchedules')}
+                        onClick={function () {
+                            serviceLocator.selectedObjectsManager.setSelection('scheduleMode', ['batch'])
+                            serviceLocator.eventManager.emit('fullSizePanel.show');
+                        }.bind(this)}
+                    />
+                </div>
+            )}
         </div>
     );
 };

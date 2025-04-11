@@ -31,6 +31,7 @@ import * as scenariosCacheQueries from '../../models/capnpCache/transitScenarios
 import * as servicesCacheQueries from '../../models/capnpCache/transitServices.cache.queries';
 
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import { ScheduleAttributes } from 'transition-common/src/services/schedules/Schedule';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { isSocketIo } from '../../api/socketUtils';
@@ -456,6 +457,16 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
 
     return allDataHandlers;
 }
+async function updateSchedulesBatch(attributes: ScheduleAttributes[]){
+    try {
+        const updatedSchedules = await schedulesDbQueries.batchUpdate(attributes);
+        return { updatedSchedules};
+    } catch (error) {
+        console.error(error);
+        return TrError.isTrError(error) ? error.export() : { error };
+    }
+};
 
 const transitObjectDataHandlers: Record<string, TransitObjectDataHandler> = createDataHandlers();
+export { updateSchedulesBatch };
 export default transitObjectDataHandlers;
