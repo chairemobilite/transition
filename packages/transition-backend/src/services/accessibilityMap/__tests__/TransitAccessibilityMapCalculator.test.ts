@@ -630,4 +630,32 @@ describe('Test accessibility map with results', () => {
         expect(comparison[0].strokes.scenario2Minus1[0].geometry.coordinates[0]).toEqual(expectedScenario2Minus1);
         expect(comparison[0].polygons.scenario2Minus1[0].properties!.color).toEqual(colors.scenario2Minus1Color);
     });
+
+    test('Test get polygon strokes with simple polygons', async () => {
+        // Test that the map comparison function works correctly using a simple polygon with a hole in the middle.
+        const polygon: GeoJSON.Feature<GeoJSON.MultiPolygon> = {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "coordinates": [
+                        [
+                            [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]],
+                            [[1, 1], [9, 1], [9, 9], [1, 9], [1, 1]]
+                        ]
+                    ],
+                    "type": "MultiPolygon"
+                }
+        };
+
+        const strokes = TransitAccessibilityMapCalculator['getPolygonStrokes'](polygon);
+
+        const expectedStrokes = [
+            [[1, 1], [9, 1], [9, 9], [1, 9], [1, 1]],
+            [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]
+        ];
+
+        expect(strokes.geometry.type).toEqual('MultiLineString');
+        expect(strokes.geometry.coordinates).toHaveLength(2);
+        expect(strokes.geometry.coordinates).toEqual(expectedStrokes);
+    });
 });
