@@ -154,6 +154,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         }
     };
 
+    // In TransitScheduleEdit.tsx, modify the onAddCustomPeriod method:
     onAddCustomPeriod = () => {
         const { schedule } = this.props;
         const periodsGroups = Preferences.get('transit.periods');
@@ -172,7 +173,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                     fr: `Période personnalisée ${newPeriodId}`,
                     en: `Custom Period ${newPeriodId}`
                 },
-                startAtHour: 8, // Default values
+                startAtHour: 8, // Default values that user will be able to edit
                 endAtHour: 10,
                 isCustom: true
             };
@@ -185,9 +186,11 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                 period_shortname: newPeriod.shortname,
                 start_at_hour: newPeriod.startAtHour,
                 end_at_hour: newPeriod.endAtHour,
+                custom_start_at_str: decimalHourToTimeStr(newPeriod.startAtHour), // Add default string values
+                custom_end_at_str: decimalHourToTimeStr(newPeriod.endAtHour),
                 trips: [],
-                id: `period_${newPeriod.shortname}_${newPeriodId}`, // Add missing id
-                data: {} // Add missing data object
+                id: `period_${newPeriod.shortname}_${newPeriodId}`,
+                data: {}
             };
 
             schedule.attributes.periods.push(schedulePeriod);
@@ -297,9 +300,6 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                             allowSecondsBasedSchedules={allowSecondsBasedSchedules}
                             resetChangesCount={this.resetChangesCount}
                             onValueChange={this.onValueChange}
-                            t={this.props.t}
-                            i18n={this.props.i18n}
-                            tReady={this.props.tReady}
                         />
                         {periodsGroup.isCustomizable && i > 0 && (
                             <Button

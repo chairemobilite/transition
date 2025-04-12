@@ -1,6 +1,6 @@
 import React from 'react';
 import _toString from 'lodash/toString';
-import { WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSyncAlt } from '@fortawesome/free-solid-svg-icons/faSyncAlt';
 import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
@@ -23,7 +23,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Schedule from 'transition-common/lib/services/schedules/Schedule';
 import Line from 'transition-common/lib/services/line/Line';
 
-interface TransitSchedulePeriodProps extends WithTranslation {
+interface TransitSchedulePeriodProps {
     schedule: Schedule;
     line: Line;
     periodIndex: number;
@@ -41,6 +41,9 @@ interface TransitSchedulePeriodProps extends WithTranslation {
 }
 
 const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
+    // Use the useTranslation hook instead of receiving t as a prop
+    const { t, i18n } = useTranslation();
+
     const {
         schedule,
         period,
@@ -55,11 +58,10 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
         allowSecondsBasedSchedules,
         resetChangesCount,
         onValueChange,
-        t,
         line
     } = props;
 
-    const periodName = period.name[props.i18n.language];
+    const periodName = period.name[i18n.language];
     const periodShortname = period.shortname;
     const periodStartAtTimeStr = decimalHourToTimeStr(period.startAtHour);
     const periodEndAtTimeStr = decimalHourToTimeStr(period.endAtHour);
@@ -153,9 +155,41 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
             <h4 className="_aside-heading-container" style={{ minHeight: '30rem' }}>
                 <span className="_aside-heading">
                     <FontAwesomeIcon icon={faClock} className="_icon" />{' '}
-                    <span className="_strong">{periodStartAtTimeStr}</span>{' '}
-                    <FontAwesomeIcon icon={faArrowDown} className="_icon" />{' '}
-                    <span className="_strong">{periodEndAtTimeStr}</span> <span>• {periodName}</span>
+                    {period.isCustom ? (
+                        // Clickable display for custom periods
+                        <>
+                            <span
+                                className="_strong clickable-time"
+                                onClick={() => {
+                                    // Focus the custom start time input field when clicked
+                                    const startTimeInput = document.getElementById(`formFieldTransitScheduleCustomStartAtPeriod${periodShortname}${scheduleId}`);
+                                    if (startTimeInput) startTimeInput.focus();
+                                }}
+                                style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                            >
+                                {customStartAtStr || periodStartAtTimeStr}
+                            </span>{' '}
+                            <FontAwesomeIcon icon={faArrowDown} className="_icon" />{' '}
+                            <span
+                                className="_strong clickable-time"
+                                onClick={() => {
+                                    // Focus the custom end time input field when clicked
+                                    const endTimeInput = document.getElementById(`formFieldTransitScheduleCustomEndAtPeriod${periodShortname}${scheduleId}`);
+                                    if (endTimeInput) endTimeInput.focus();
+                                }}
+                                style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                            >
+                                {customEndAtStr || periodEndAtTimeStr}
+                            </span>
+                        </>
+                    ) : (
+                        <>
+                            <span className="_strong">{periodStartAtTimeStr}</span>{' '}
+                            <FontAwesomeIcon icon={faArrowDown} className="_icon" />{' '}
+                            <span className="_strong">{periodEndAtTimeStr}</span>
+                        </>
+                    )}
+                    <span>• {periodName}</span>
                 </span>
             </h4>
             <div className="tr__form-section">
