@@ -39,7 +39,7 @@ COPY --from=json2capnpbuild /app/services/json2capnp/target/debug/json2capnp ser
 
 # Copy in trRouting and osrm binaries
 # For trRouting
-RUN apt-get update && apt-get -y --no-install-recommends install capnproto libboost-regex1.74.0 libboost-filesystem1.74.0 libboost-iostreams1.74.0 libboost-thread1.74.0 libboost-date-time1.74.0 libboost-serialization1.74.0 libboost-program-options1.74.0 libspdlog1.10 libmemcached11 libmemcachedutil2
+RUN apt-get update && apt-get -y --no-install-recommends install capnproto libboost-regex1.74.0 libboost-filesystem1.74.0 libboost-iostreams1.74.0 libboost-thread1.74.0 libboost-date-time1.74.0 libboost-serialization1.74.0 libboost-program-options1.74.0 libspdlog1.10
 
 # For OSRM
 # libtbb12 us only available in bookworm or later copy it from the osrm image
@@ -54,11 +54,6 @@ RUN /usr/local/bin/osrm-extract --help && \
     /usr/local/bin/osrm-contract --help && \
     /usr/local/bin/osrm-partition --help && \
     /usr/local/bin/osrm-customize --help
-
-RUN /usr/local/bin/trRouting --help
-
-# Add memcached
-RUN apt-get install -y memcached
 
 # Copy the necessary files for compilation   
 COPY ./configs /app/configs

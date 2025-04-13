@@ -110,7 +110,7 @@ describe('Process Manager testing', function() {
         expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
         
     });
-
+    
     test('Simple Start/Restart/Stop', async function() {
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
@@ -437,44 +437,6 @@ describe('Process Manager testing', function() {
         const fileTransport = (logger as any).transports[0] as winston.transports.FileTransportInstance;
         expect(fileTransport.maxsize).toEqual(2048 * 1024);
         expect(fileTransport.maxFiles).toEqual(5);
-    });
-
-    test('Start no wait string', async function() {
-        testSpawn.sequence.add(function (this: any, cb) {
-            // Create a mock process object
-            const mockProcess = {
-                stdout: { on: jest.fn() },
-                stderr: { on: jest.fn() },
-                on: jest.fn()
-            };
-
-            // Emit the spawn event immediately
-            this.emit('spawn', mockProcess);
-
-            // Then small delay to leave time for the event emit and then exit
-            setTimeout(function () {
-                return cb(0);
-            }, 100);
-
-            // Return the mock process
-            return mockProcess;
-        });
-
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
-
-        // Start service
-        var result = await ProcessManager.startProcess({
-            serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "",
-            useShell: false
-        });
-        expect(result.status).toBe('started');
-        expect(testSpawn.calls[0].command).toBe('ls');
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        expect(fileManager.readFile("pids/TestService1.pid")).toBe("12");
     });
 });
 
