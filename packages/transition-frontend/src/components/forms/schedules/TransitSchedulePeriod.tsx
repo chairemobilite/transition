@@ -41,7 +41,6 @@ interface TransitSchedulePeriodProps {
 }
 
 const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
-    // Use the useTranslation hook instead of receiving t as a prop
     const { t, i18n } = useTranslation();
 
     const {
@@ -130,6 +129,9 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
     /* */
 
     const handleGenerateSchedule = () => {
+        schedule.set(`periods[${periodIndex}].outbound_path_id`, outboundPathId);
+        schedule.set(`periods[${periodIndex}].inbound_path_id`, inboundPathId);
+
         const response = schedule.generateForPeriod(periodShortname);
         if (response.trips) {
             schedule.set(`periods[${periodIndex}].trips`, response.trips);
@@ -144,7 +146,7 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
 
     return (
         <div
-            className="tr__form-section _flex-container-row"
+            className={`tr__form-section _flex-container-row ${period.isCustom ? 'custom-period' : ''}`}
             key={periodShortname}
             style={{
                 borderRight: '1px solid rgba(255,255,255,0.2)',
@@ -156,12 +158,10 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
                 <span className="_aside-heading">
                     <FontAwesomeIcon icon={faClock} className="_icon" />{' '}
                     {period.isCustom ? (
-                        // Clickable display for custom periods
                         <>
                             <span
                                 className="_strong clickable-time"
                                 onClick={() => {
-                                    // Focus the custom start time input field when clicked
                                     const startTimeInput = document.getElementById(`formFieldTransitScheduleCustomStartAtPeriod${periodShortname}${scheduleId}`);
                                     if (startTimeInput) startTimeInput.focus();
                                 }}
@@ -173,7 +173,6 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
                             <span
                                 className="_strong clickable-time"
                                 onClick={() => {
-                                    // Focus the custom end time input field when clicked
                                     const endTimeInput = document.getElementById(`formFieldTransitScheduleCustomEndAtPeriod${periodShortname}${scheduleId}`);
                                     if (endTimeInput) endTimeInput.focus();
                                 }}

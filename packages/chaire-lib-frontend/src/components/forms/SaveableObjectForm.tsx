@@ -100,6 +100,17 @@ export abstract class SaveableObjectForm<
         });
     };
 
+    protected openModal = (modalName: keyof this['state']) => (e?: any) => {
+        if (e?.stopPropagation) e.stopPropagation();
+        this.setState({ [modalName]: true } as Pick<this['state'], typeof modalName>);
+    };
+
+    protected closeModal = (modalName: keyof this['state']) => (e?: any) => {
+        if (e?.stopPropagation) e.stopPropagation();
+        this.setState({ [modalName]: false } as Pick<this['state'], typeof modalName>);
+    };
+
+
     protected async onBack(e: any): Promise<void> {
         if (e && typeof e.stopPropagation === 'function') {
             e.stopPropagation();

@@ -10,6 +10,7 @@ export type choiceType = {
     value: string;
     disabled?: boolean;
     label?: string;
+    className?: string;
     choices?: choiceType[];
     [key: string]: unknown;
 };
@@ -67,19 +68,31 @@ const InputSelect: React.FunctionComponent<InputSelectProps> = ({
         if (choice.choices) {
             const childChoices = choice.choices.map((childChoice) => {
                 return (
-                    <option key={`${childChoice.value}`} value={childChoice.value} disabled={choice.disabled}>
+                    <option
+                        key={`choice_${childChoice.value}`}
+                        value={childChoice.value}
+                        disabled={childChoice.disabled === true}
+                    >
                         {childChoice.label || t(`${localePrefix}:${childChoice.value}`)}
                     </option>
                 );
             });
             selectChoices.push(
-                <optgroup key={`group_${choice.value}`} label={choice.label || t(`${localePrefix}:${choice.value}`)}>
+                <optgroup
+                    key={`group_${choice.value}`}
+                    label={choice.label || t(`${localePrefix}:${choice.value}`)}
+                >
                     {childChoices}
                 </optgroup>
             );
         } else {
             selectChoices.push(
-                <option key={`${choice.value}`} value={choice.value} disabled={choice.disabled}>
+                <option
+                    key={`choice_${choice.value}`}
+                    value={choice.value}
+                    disabled={choice.disabled === true}
+                    className={choice.className}
+                >
                     {choice.label || t(`${localePrefix}:${choice.value}`)}
                 </option>
             );
@@ -87,17 +100,8 @@ const InputSelect: React.FunctionComponent<InputSelectProps> = ({
     }
 
     return (
-        <select
-            autoComplete="none"
-            className="tr__form-input-select apptr__input _input-select"
-            {...defaultAttributes}
-            style={{
-                overflow: 'hidden',
-                whiteSpace: 'nowrap',
-                textOverflow: 'ellipsis'
-            }}
-        >
-            {!noBlank && <option key={'_blank'} value=""></option>}
+        <select {...defaultAttributes}>
+            {!noBlank && <option value=""></option>}
             {selectChoices}
         </select>
     );

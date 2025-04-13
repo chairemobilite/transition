@@ -37,9 +37,11 @@ import {
     minutesToSeconds
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
-import Schedule from 'transition-common/lib/services/schedules/Schedule';
+import Schedule, { SchedulePeriod } from 'transition-common/lib/services/schedules/Schedule';
 import Line from 'transition-common/lib/services/line/Line';
 import TransitSchedulePeriod from './TransitSchedulePeriod';
+import { faFloppyDisk } from '@fortawesome/free-solid-svg-icons/faFloppyDisk';
+import InputModal from 'chaire-lib-frontend/lib/components/input/InputModal';
 
 interface ScheduleFormProps {
     schedule: Schedule;
@@ -50,6 +52,7 @@ interface ScheduleFormProps {
 
 interface ScheduleFormState extends SaveableObjectState<Schedule> {
     scheduleErrors: string[];
+    showSaveTemplateModal: boolean;
 }
 
 class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps & WithTranslation, ScheduleFormState> {
@@ -64,7 +67,8 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
             confirmModalBackIsOpen: false,
             formValues: {},
             selectedObjectName: 'schedule',
-            scheduleErrors: []
+            scheduleErrors: [],
+            showSaveTemplateModal: false
         };
     }
 
@@ -154,9 +158,8 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         }
     };
 
-    // In TransitScheduleEdit.tsx, modify the onAddCustomPeriod method:
     onAddCustomPeriod = () => {
-        const { schedule } = this.props;
+        const schedule = this.props.schedule;
         const periodsGroups = Preferences.get('transit.periods');
         const periodsGroupShortname = schedule.attributes.periods_group_shortname;
 
@@ -182,12 +185,12 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
             periodsGroup.periods.push(newPeriod);
 
             // Add the corresponding period to the schedule
-            const schedulePeriod = {
+            const schedulePeriod: SchedulePeriod = {
                 period_shortname: newPeriod.shortname,
                 start_at_hour: newPeriod.startAtHour,
                 end_at_hour: newPeriod.endAtHour,
-                custom_start_at_str: decimalHourToTimeStr(newPeriod.startAtHour), // Add default string values
-                custom_end_at_str: decimalHourToTimeStr(newPeriod.endAtHour),
+                custom_start_at_str: decimalHourToTimeStr(newPeriod.startAtHour) || '', // Now string, not string | null
+                custom_end_at_str: decimalHourToTimeStr(newPeriod.endAtHour) || '',
                 trips: [],
                 id: `period_${newPeriod.shortname}_${newPeriodId}`,
                 data: {}
@@ -201,7 +204,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
     };
 
     onRemoveCustomPeriod = (periodIndex) => {
-        const { schedule } = this.props;
+        const schedule = this.props.schedule;
         const periodsGroups = Preferences.get('transit.periods');
         const periodsGroupShortname = schedule.attributes.periods_group_shortname;
 
@@ -215,6 +218,85 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
 
             // Trigger a re-render
             this.onValueChange('periods', { value: schedule.attributes.periods });
+        }
+    };
+
+    savePeriodsTemplate = (templateName: string) => {
+        const schedule = this.props.schedule;
+        const periodsGroups = Preferences.get('transit.periods');
+        const periodsGroupShortname = schedule.attributes.periods_group_shortname;
+
+        if (periodsGroupShortname && periodsGroups[periodsGroupShortname]) {
+            // Create a template shortname without spaces and special chars
+            const templateShortname = `user_${templateName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+
+            // Get the current periods configuration
+            const currentTemplate = periodsGroups[periodsGroupShortname];
+
+            // Create a deep copy of the template to avoid reference issues
+            const newTemplate = {
+                name: {
+                    fr: templateName,
+                    en: templateName
+                },
+                periods: JSON.parse(JSON.stringify(currentTemplate.periods || [])),
+                isCustomizable: true
+            };
+
+            // Make sure each period has the required properties
+            newTemplate.periods.forEach(period => {
+                if (!period.name) {
+                    period.name = { en: period.shortname, fr: period.shortname };
+                }
+            });
+
+            // Save to localStorage
+            const savedTemplates = JSON.parse(localStorage.getItem('transitPeriodsTemplates') || '{}');
+            savedTemplates[templateShortname] = newTemplate;
+            localStorage.setItem('transitPeriodsTemplates', JSON.stringify(savedTemplates));
+
+            // Update the preferences (for this session)
+            const updatedPeriodsGroups = { ...periodsGroups };
+            updatedPeriodsGroups[templateShortname] = newTemplate;
+            // Fix: Pass an object with the transit.periods property
+            Preferences.update({
+                'transit.periods': updatedPeriodsGroups
+            });
+
+            // Close the modal
+            this.closeModal('showSaveTemplateModal');
+            this.onChangePeriodsGroup(templateShortname);
+
+            // Notify the user
+            serviceLocator.eventManager.emit('info', this.props.t('transit:transitSchedule:TemplateSaved'));
+        }
+    };
+
+    deletePeriodsTemplate = () => {
+        const schedule = this.props.schedule;
+        const periodsGroupShortname = schedule.attributes.periods_group_shortname;
+
+        // Only allow deleting user templates
+        if (periodsGroupShortname && periodsGroupShortname.startsWith('user_')) {
+            // Remove from localStorage
+            const savedTemplates = JSON.parse(localStorage.getItem('transitPeriodsTemplates') || '{}');
+            delete savedTemplates[periodsGroupShortname];
+            localStorage.setItem('transitPeriodsTemplates', JSON.stringify(savedTemplates));
+
+            // Update preferences
+            const periodsGroups = Preferences.get('transit.periods');
+            const updatedPeriodsGroups = { ...periodsGroups };
+            delete updatedPeriodsGroups[periodsGroupShortname];
+            // Fix: Pass an object with the transit.periods property
+            Preferences.update({
+                'transit.periods': updatedPeriodsGroups
+            });
+
+            // Switch to default template
+            this.onChangePeriodsGroup('default');
+
+            // Notify the user
+            serviceLocator.eventManager.emit('info', this.props.t('transit:transitSchedule:TemplateDeleted'));
         }
     };
 
@@ -256,11 +338,24 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         const periodsGroupShortname = schedule.attributes.periods_group_shortname || '';
         const periodsGroup = periodsGroupShortname ? periodsGroups[periodsGroupShortname] : null;
         const periodsGroupChoices = Object.keys(periodsGroups).map((periodsGroupShortname) => {
-            const periodsGroup = periodsGroups[periodsGroupShortname];
+            const periodsGroup = periodsGroups[periodsGroupShortname] || {};
+            const isCustomOption = periodsGroupShortname === 'custom';
+            const isUserTemplate = periodsGroupShortname.startsWith('user_');
+
             return {
                 value: periodsGroupShortname,
-                label: periodsGroup.name[this.props.i18n.language] || periodsGroupShortname
+                label: periodsGroup.name && periodsGroup.name[this.props.i18n.language]
+                    ? periodsGroup.name[this.props.i18n.language]
+                    : periodsGroupShortname,
+                isCustomOption,  // Flag to identify custom option
+                className: isUserTemplate ? 'user-template-option' : isCustomOption ? 'custom-option-button' : ''
             };
+        });
+
+        periodsGroupChoices.sort((a, b) => {
+            if (a.value === 'custom') return 1;
+            if (b.value === 'custom') return -1;
+            return 0;
         });
 
         const periodsForms: any[] = [];
@@ -275,7 +370,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
 
                 const periodShortname = period.shortname;
 
-                const schedulePeriod = schedule.attributes.periods[i] || {
+                const schedulePeriod: SchedulePeriod = schedule.attributes.periods[i] || {
                     period_shortname: periodShortname,
                     start_at_hour: period.startAtHour,
                     end_at_hour: period.endAtHour
@@ -354,6 +449,30 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                             t={this.props.t}
                             onValueChange={(e) => this.onChangePeriodsGroup(e.target.value)}
                         />
+                    </div>
+                    <div className="tr__form-buttons-container _center">
+                        {periodsGroupShortname && periodsGroups[periodsGroupShortname] && (
+                            <>
+                                <Button
+                                    color="blue"
+                                    icon={faFloppyDisk}
+                                    iconClass="_icon"
+                                    label={this.props.t('transit:transitSchedule:SaveAsTemplate')}
+                                    onClick={this.openModal('showSaveTemplateModal')}
+                                    disabled={isFrozen}
+                                />
+                                {periodsGroupShortname.startsWith('user_') && (
+                                    <Button
+                                        color="red"
+                                        icon={faTrash}
+                                        iconClass="_icon"
+                                        label={this.props.t('transit:transitSchedule:DeleteTemplate')}
+                                        onClick={this.deletePeriodsTemplate}
+                                        disabled={isFrozen}
+                                    />
+                                )}
+                            </>
+                        )}
                     </div>
                     <div className="apptr__form-input-container _two-columns">
                         <label>{this.props.t('transit:transitSchedule:AllowSecondsBasedSchedules')}</label>
@@ -474,6 +593,18 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                     )}
                 </div>
                 <div className="_flex-container-row">{periodsForms}</div>
+                {this.state.showSaveTemplateModal && (
+                    <InputModal
+                        isOpen={true}
+                        onClose={this.closeModal('showSaveTemplateModal')}
+                        onConfirm={this.savePeriodsTemplate}
+                        title={this.props.t('transit:transitSchedule:SaveTemplateTitle')}
+                        confirmButtonColor="blue"
+                        confirmButtonLabel={this.props.t('transit:transitSchedule:SaveTemplate')}
+                        closeButtonLabel={this.props.t('main:Cancel')}
+                        inputPlaceholder={this.props.t('transit:transitSchedule:TemplateNamePlaceholder')}
+                    />
+                )}
             </form>
         );
     }

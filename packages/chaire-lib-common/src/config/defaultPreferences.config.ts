@@ -7,6 +7,7 @@
 import config from './shared/project.config';
 import lineModesDefaultValues from './lineModesDefaultValues';
 import constants from './constants';
+import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 
 // @deprecated This type has moved to chaire-lib's project configuration
 interface SectionDescription {
@@ -283,8 +284,8 @@ const defaultPreferences: PreferencesModel = {
             },
             custom: {
                 name: {
-                  fr: 'Périodes personnalisées',
-                  en: 'Custom Periods'
+                  fr: `${faPlus} Ajouter des périodes personnalisées`,
+                  en: `${faPlus} Add custom periods`
                 },
                 periods: [
                   {
@@ -295,12 +296,11 @@ const defaultPreferences: PreferencesModel = {
                     },
                     startAtHour: 8,
                     endAtHour: 10,
-                    isCustom: true // Add this flag to identify custom periods
+                    isCustom: true
                   }
                 ],
-                isCustomizable: true // Add this flag to identify this group can have periods added
-            
-            }
+                isCustomizable: true
+            },
         },
         stations: {
             defaultColor: '#0086FF'
