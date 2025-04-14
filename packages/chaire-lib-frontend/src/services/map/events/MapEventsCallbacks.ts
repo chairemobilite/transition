@@ -12,3 +12,11 @@ export type MapUpdateLayerEventType = {
         data: GeoJSON.FeatureCollection | ((original: GeoJSON.FeatureCollection) => GeoJSON.FeatureCollection);
     };
 };
+
+export type MapFilterLayerEventType = {
+    name: 'map.layers.updateFilter';
+    arguments: {
+        layerName: string;
+        filter: ((feature: GeoJSON.Feature) => 0 | 1) | undefined;
+    };
+};

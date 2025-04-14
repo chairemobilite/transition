@@ -20,6 +20,13 @@ export interface PreferencesModel {
     defaultSection: string;
     infoPanelPosition: string;
     dateTimeFormat: string;
+    mapTileVectorStyleUrl: string;
+    mapTileVectorOpacity: number;
+    mapTileRasterXYZUrl: string | undefined; // if undefined: do not show XYZ tiles
+    mapTileRasterXYZMinZoom: number;
+    mapTileRasterXYZMaxZoom: number;
+    mapTileRasterXYZTileSize: number;
+    mapTileRasterXYZOpacity: number;
     // @deprecated This type has moved to chaire-lib's project configuration.
     // Use the project configuration's `sections` instead, as it is not a
     // preference, but an instance specific configuration.
@@ -40,9 +47,18 @@ const defaultPreferences: PreferencesModel = {
     defaultSection: 'agencies',
     infoPanelPosition: 'right',
     dateTimeFormat: 'YYYY-MM-DD HH:mm',
+    mapTileVectorStyleUrl:
+        process.env.CUSTOM_VECTOR_TILES_STYLE_URL || 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    mapTileVectorOpacity: 0.7,
+    mapTileRasterXYZUrl: process.env.CUSTOM_RASTER_TILES_XYZ_URL || undefined,
+    mapTileRasterXYZMinZoom: Number(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM) || 0,
+    mapTileRasterXYZMaxZoom: Number(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM) || 22,
+    mapTileRasterXYZTileSize: Number(process.env.CUSTOM_RASTER_TILES_TILE_SIZE) || 256,
+    mapTileRasterXYZOpacity: Number(process.env.CUSTOM_RASTER_TILES_TILE_OPACITY) || 0.5,
     map: {
         center: [config.mapDefaultCenter.lon, config.mapDefaultCenter.lat],
-        zoom: 10
+        zoom: 10,
+        enableMapAnimations: true
     },
     showAggregatedOdTripsLayer: true,
     socketUploadChunkSize: 10240000,
@@ -351,20 +367,20 @@ const defaultPreferences: PreferencesModel = {
                 maxTotalTravelTimeSeconds: 10800,
                 walkingSpeedMps: 1.3888888888,
                 walkingSpeedFactor: 1.0, // walking travel times are weighted using this factor: Example: > 1.0 means faster walking, < 1.0 means slower walking
-                originLocationColor: 'rgba(140, 212, 0, 1.0)',
-                destinationLocationColor: 'rgba(212, 35, 14, 1.0)',
-                walkingSegmentsColor: 'rgba(160,160,160,1.0)',
+                originLocationColor: '#8cd400',
+                destinationLocationColor: '#d4230e',
+                walkingSegmentsColor: '#a0a0a0',
                 walking: {
-                    color: 'rgba(255, 238, 0,1.0)'
+                    color: '#ffee00'
                 },
                 cycling: {
-                    color: 'rgba(0, 204, 51,1.0)'
+                    color: '#00cc33'
                 },
                 driving: {
-                    color: 'rgba(229, 45, 0,1.0)'
+                    color: '#e52d00'
                 },
                 default: {
-                    color: 'rgba(160,160,160,1.0)'
+                    color: '#a0a0a0'
                 }
             },
             transitAccessibilityMap: {
@@ -381,8 +397,8 @@ const defaultPreferences: PreferencesModel = {
                 walkingSpeedMps: 1.3888888888,
                 walkingSpeedFactor: 1.0, // walking travel times are weighted using this factor: Example: > 1.0 means faster walking, < 1.0 means slower walking
                 maxTotalTravelTimeSeconds: 1800,
-                locationColor: 'rgba(47, 138, 243, 1.0)',
-                polygonColor: 'rgba(47, 138, 243, 0.4)'
+                locationColor: '#2f8af3',
+                polygonColor: '#2f8af366'
             },
             transitOdTrips: {
                 minWaitingTimeSeconds: 180,
