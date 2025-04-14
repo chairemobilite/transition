@@ -158,7 +158,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         }
     };
 
-    onAddCustomPeriod = () => {
+    private onAddCustomPeriod = () => {
         const schedule = this.props.schedule;
         const periodsGroups = Preferences.get('transit.periods');
         const periodsGroupShortname = schedule.attributes.periods_group_shortname;
@@ -169,6 +169,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
             const periods = periodsGroup.periods;
 
             // Generate a new period with a unique shortname
+            // TODO: The name of each period is imposed and not customizable at the moment
             const newPeriodId = periods.length + 1;
             const newPeriod = {
                 shortname: `custom_period_${newPeriodId}`,
@@ -176,7 +177,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                     fr: `Période personnalisée ${newPeriodId}`,
                     en: `Custom Period ${newPeriodId}`
                 },
-                startAtHour: 8, // Default values that user will be able to edit
+                startAtHour: 8,
                 endAtHour: 10,
                 isCustom: true
             };
@@ -203,7 +204,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         }
     };
 
-    onRemoveCustomPeriod = (periodIndex) => {
+    private onRemoveCustomPeriod = (periodIndex) => {
         const schedule = this.props.schedule;
         const periodsGroups = Preferences.get('transit.periods');
         const periodsGroupShortname = schedule.attributes.periods_group_shortname;
@@ -221,7 +222,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         }
     };
 
-    savePeriodsTemplate = (templateName: string) => {
+    private savePeriodsTemplate = (templateName: string) => {
         const schedule = this.props.schedule;
         const periodsGroups = Preferences.get('transit.periods');
         const periodsGroupShortname = schedule.attributes.periods_group_shortname;
@@ -250,7 +251,8 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                 }
             });
 
-            // Save to localStorage
+            // TODO: User Periods templates are currently saved in localStorage
+            // We should maybe save them in the database in the future
             const savedTemplates = JSON.parse(localStorage.getItem('transitPeriodsTemplates') || '{}');
             savedTemplates[templateShortname] = newTemplate;
             localStorage.setItem('transitPeriodsTemplates', JSON.stringify(savedTemplates));
@@ -265,14 +267,10 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
 
             // Close the modal
             this.closeModal('showSaveTemplateModal');
-            this.onChangePeriodsGroup(templateShortname);
-
-            // Notify the user
-            serviceLocator.eventManager.emit('info', this.props.t('transit:transitSchedule:TemplateSaved'));
         }
     };
 
-    deletePeriodsTemplate = () => {
+    private deletePeriodsTemplate = () => {
         const schedule = this.props.schedule;
         const periodsGroupShortname = schedule.attributes.periods_group_shortname;
 
@@ -292,11 +290,36 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                 'transit.periods': updatedPeriodsGroups
             });
 
+            // Find all schedules using this template and update them to use default
+            const line = this.props.line;
+            const schedules = line.getSchedules();
+            let updatedSchedulesCount = 0;
+
+            // Update all affected schedules to use the default template
+            Object.values(schedules).forEach(scheduleObj => {
+                const scheduleToCheck = scheduleObj as Schedule;
+                if (scheduleToCheck.attributes.periods_group_shortname === periodsGroupShortname) {
+                    scheduleToCheck.set('periods_group_shortname', 'default');
+                    // Mark the schedule as changed so it will be saved
+                    scheduleToCheck.attributes.periods = scheduleToCheck.attributes.periods || [];
+                    updatedSchedulesCount++;
+                }
+            });
+
+            // Also update the current schedule if it's using this template
+            if (schedule.attributes.periods_group_shortname === periodsGroupShortname) {
+                schedule.set('periods_group_shortname', 'default');
+            }
+
             // Switch to default template
             this.onChangePeriodsGroup('default');
 
             // Notify the user
-            serviceLocator.eventManager.emit('info', this.props.t('transit:transitSchedule:TemplateDeleted'));
+            const infoMessage = updatedSchedulesCount > 0 ?
+                this.props.t('transit:transitSchedule:TemplateDeletedWithSchedulesUpdated', { count: updatedSchedulesCount }) :
+                this.props.t('transit:transitSchedule:TemplateDeleted');
+
+            serviceLocator.eventManager.emit('info', infoMessage);
         }
     };
 
@@ -336,6 +359,13 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
 
         const periodsGroups = Preferences.get('transit.periods');
         const periodsGroupShortname = schedule.attributes.periods_group_shortname || '';
+
+        if (periodsGroupShortname && !periodsGroups[periodsGroupShortname]) {
+            // The template no longer exists, fall back to default
+            schedule.set('periods_group_shortname', 'default');
+            serviceLocator.eventManager.emit('warning', this.props.t('transit:transitSchedule:TemplateNotFoundFallback'));
+        }
+
         const periodsGroup = periodsGroupShortname ? periodsGroups[periodsGroupShortname] : null;
         const periodsGroupChoices = Object.keys(periodsGroups).map((periodsGroupShortname) => {
             const periodsGroup = periodsGroups[periodsGroupShortname] || {};
@@ -451,26 +481,34 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                         />
                     </div>
                     <div className="tr__form-buttons-container _center">
-                        {periodsGroupShortname && periodsGroups[periodsGroupShortname] && (
+                        {periodsGroupShortname === 'custom' && (
+                            <Button
+                                color="blue"
+                                icon={faFloppyDisk}
+                                iconClass="_icon"
+                                label={this.props.t('transit:transitSchedule:SaveAsTemplate')}
+                                onClick={this.openModal('showSaveTemplateModal')}
+                                disabled={isFrozen}
+                            />
+                        )}
+                        {periodsGroupShortname.startsWith('user_') && (
                             <>
                                 <Button
                                     color="blue"
-                                    icon={faFloppyDisk}
+                                    icon={faSyncAlt}
                                     iconClass="_icon"
-                                    label={this.props.t('transit:transitSchedule:SaveAsTemplate')}
-                                    onClick={this.openModal('showSaveTemplateModal')}
+                                    label={this.props.t('transit:transitSchedule:UpdateTemplate')}
+                                    onClick={() => this.savePeriodsTemplate(periodsGroups[periodsGroupShortname].name?.en || 'Updated Template')}
                                     disabled={isFrozen}
                                 />
-                                {periodsGroupShortname.startsWith('user_') && (
-                                    <Button
-                                        color="red"
-                                        icon={faTrash}
-                                        iconClass="_icon"
-                                        label={this.props.t('transit:transitSchedule:DeleteTemplate')}
-                                        onClick={this.deletePeriodsTemplate}
-                                        disabled={isFrozen}
-                                    />
-                                )}
+                                <Button
+                                    color="red"
+                                    icon={faTrash}
+                                    iconClass="_icon"
+                                    label={this.props.t('transit:transitSchedule:DeleteTemplate')}
+                                    onClick={this.deletePeriodsTemplate}
+                                    disabled={isFrozen}
+                                />
                             </>
                         )}
                     </div>

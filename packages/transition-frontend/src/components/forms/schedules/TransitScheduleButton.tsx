@@ -58,9 +58,30 @@ const TransitScheduleButton: React.FunctionComponent<ScheduleButtonProps> = (pro
     const serviceId = props.schedule.attributes.service_id;
     const periodsGroups = Preferences.get('transit.periods');
     const periodsGroupShortname = props.schedule.attributes.periods_group_shortname;
-    const periodsGroupName = periodsGroupShortname
-        ? periodsGroups[periodsGroupShortname].name[props.i18n.language]
-        : '';
+    // Add defensive check before accessing the template
+    let periodsGroupName = '-';
+    if (periodsGroupShortname) {
+        // Check if the template exists
+        if (periodsGroups[periodsGroupShortname]) {
+            periodsGroupName = periodsGroups[periodsGroupShortname].name[props.i18n.language];
+        } else {
+            // The template doesn't exist anymore, set it to default
+            props.schedule.set('periods_group_shortname', 'default');
+
+            // If we can save right away, do so (optional)
+            // Try to save the change silently
+            try {
+                props.schedule.save(serviceLocator.socketEventManager);
+            } catch (e) {
+                console.warn('Could not save schedule with updated template', e);
+            }
+
+            // Use default template name if it exists
+            if (periodsGroups['default'] && periodsGroups['default'].name) {
+                periodsGroupName = periodsGroups['default'].name[props.i18n.language];
+            }
+        }
+    }
     const service = serviceLocator.collectionManager.get('services').getById(serviceId);
     const tripsCount = props.schedule.tripsCount();
 
