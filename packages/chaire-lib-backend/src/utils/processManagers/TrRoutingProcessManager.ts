@@ -87,7 +87,7 @@ const startTrRoutingProcess = async (
         command,
         commandArgs,
         waitString,
-        useShell: true, //FIXME: For unknown reason yet, libmemcached pool need trRouting to be run in a shell to work (https://github.com/chairemobilite/transition/issues/1322)
+        useShell: false, //TEMP Revert to no shell //FIXME: For unknown reason yet, libmemcached pool need trRouting to be run in a shell to work (https://github.com/chairemobilite/transition/issues/1322)
         cwd,
         attemptRestart,
         logFiles: {

@@ -68,7 +68,7 @@ describe('TrRouting Process Manager: start', () => {
             command: 'trRouting',
             commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: false,
             logFiles: {
@@ -94,7 +94,7 @@ describe('TrRouting Process Manager: start', () => {
             command: './trRouting',
             commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: __dirname,
             attemptRestart: false,
             logFiles: {
@@ -119,7 +119,7 @@ describe('TrRouting Process Manager: start', () => {
             command: './trRouting',
             commandArgs: ['--port=1234', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: __dirname,
             attemptRestart: false,
             logFiles: {
@@ -144,7 +144,7 @@ describe('TrRouting Process Manager: start', () => {
             command: './trRouting',
             commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=/tmp/cache`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: __dirname,
             attemptRestart: false,
             logFiles: {
@@ -171,7 +171,7 @@ describe('TrRouting Process Manager: start', () => {
             command: 'trRouting',
             commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2', '--cacheAllConnectionSets=true'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: false,
             logFiles: {
@@ -199,7 +199,7 @@ describe('TrRouting Process Manager: start', () => {
             command: 'trRouting',
             commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${cacheDirectoryPath}`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: false,
             logFiles: {
@@ -225,7 +225,7 @@ describe('TrRouting Process Manager: start', () => {
             command: 'trRouting',
             commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2', '--cacheAllConnectionSets=true'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: false,
             logFiles: {
@@ -251,7 +251,7 @@ describe('TrRouting Process Manager: start', () => {
             command: 'trRouting',
             commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: false,
             logFiles: {
@@ -284,7 +284,7 @@ describe('TrRouting Process Manager: restart', () => {
             command: 'trRouting',
             commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: true,
             logFiles: {
@@ -310,7 +310,7 @@ describe('TrRouting Process Manager: restart', () => {
             command: './trRouting',
             commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: __dirname,
             attemptRestart: true,
             logFiles: {
@@ -335,7 +335,7 @@ describe('TrRouting Process Manager: restart', () => {
             command: './trRouting',
             commandArgs: ['--port=1234', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: __dirname,
             attemptRestart: true,
             logFiles: {
@@ -360,7 +360,7 @@ describe('TrRouting Process Manager: restart', () => {
             command: './trRouting',
             commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=/tmp/cache`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: __dirname,
             attemptRestart: true,
             logFiles: {
@@ -387,7 +387,7 @@ describe('TrRouting Process Manager: restart', () => {
             command: 'trRouting',
             commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2', '--cacheAllConnectionSets=true'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: true,
             logFiles: {
@@ -417,7 +417,7 @@ describe('TrRouting Process Manager: restart', () => {
             command: 'trRouting',
             commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${cacheDirectoryPath}`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: true,
             logFiles: {
@@ -454,7 +454,7 @@ describe('TrRouting Process Manager: restart', () => {
             command: 'trRouting',
             commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: true,
             logFiles: {
@@ -480,7 +480,7 @@ describe('TrRouting Process Manager: restart', () => {
             command: 'trRouting',
             commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: true,
             logFiles: {
@@ -522,7 +522,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             command: 'trRouting',
             commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, "--useMemcached=\"localhost:11212\""],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: false,
             logFiles: {
@@ -545,7 +545,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             command: 'trRouting',
             commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', "--useMemcached=\"localhost:11212\""],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: false,
             logFiles: {
@@ -572,7 +572,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             command: 'trRouting',
             commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2', "--useMemcached=\"localhost:11212\""],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: false,
             logFiles: {
@@ -595,7 +595,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             command: 'trRouting',
             commandArgs: ['--port=12345', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', "--useMemcached=\"localhost:11212\""],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: false,
             logFiles: {
@@ -621,7 +621,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             command: 'trRouting',
             commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--cacheAllConnectionSets=true', "--useMemcached=\"localhost:11212\""],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: false,
             logFiles: {
@@ -648,7 +648,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             command: 'trRouting',
             commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${cacheDirectoryPath}`, '--threads=4', "--useMemcached=\"localhost:11212\""],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: false,
             logFiles: {
@@ -673,7 +673,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             command: 'trRouting',
             commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', "--useMemcached=\"localhost:11212\""],
             waitString: 'ready.',
-            useShell: true,
+            useShell: false,
             cwd: undefined,
             attemptRestart: false,
             logFiles: {
