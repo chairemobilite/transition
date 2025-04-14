@@ -60,6 +60,25 @@ export class PathCollection
     loadFromCollection(collection) {
         return CollectionLoadable.loadGeojsonFromCollection(this, collection);
     }
+
+    // TODO: Consider always having the simplified version of the path in the collection and load the full path only when necessary. There may be side-effects to doing this and there may be additional properties required in the main collection. Needs some thought.
+    toGeojsonSimplified(): GeoJSON.FeatureCollection<GeoJSON.LineString> {
+        const features = this.features.map(({ id, geometry, properties, type }) => ({
+            type,
+            id,
+            geometry,
+            properties: {
+                mode: properties.mode,
+                color: properties.color,
+                line_id: properties.line_id,
+                id: properties.id
+            }
+        }));
+        return {
+            type: 'FeatureCollection',
+            features
+        };
+    }
 }
 
 export default PathCollection;

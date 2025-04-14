@@ -90,7 +90,7 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
                 serviceLocator.collectionManager.refresh('paths');
                 (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
                     layerName: 'transitPaths',
-                    data: serviceLocator.collectionManager.get('paths').toGeojson()
+                    data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
                 });
                 serviceLocator.collectionManager.refresh('lines');
                 serviceLocator.eventManager.emit('progress', { name: 'DeletingLine', progress: 1.0 });
@@ -142,7 +142,7 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
             serviceLocator.collectionManager.refresh('paths');
             (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
                 layerName: 'transitPaths',
-                data: serviceLocator.collectionManager.get('paths').toGeojson()
+                data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
             });
             serviceLocator.eventManager.emit('progress', { name: 'SavingLine', progress: 1.0 });
             serviceLocator.eventManager.emit('fullSizePanel.hide');

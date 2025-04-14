@@ -35,7 +35,8 @@ const pathAttributes1 = {
         waypointTypes: []
     },
     geography: { type: 'LineString' as const, coordinates: [[-73, 45], [-73.1, 45]] as [number, number][] },
-    is_frozen: false
+    is_frozen: false,
+    mode: 'bus'
 };
 
 const pathAttributes2= {
@@ -52,7 +53,8 @@ const pathAttributes2= {
     segments: [],
     geography: { type: 'LineString' as const, coordinates: [[-74, 46], [-74.001, 46.001]] as [number, number][] },
     is_enabled: true,
-    is_frozen: true
+    is_frozen: true,
+    mode: 'trolleybus'
 };
 
 const path1Geojson = {
@@ -121,7 +123,7 @@ test('path collection progress', () => {
     pathCollection.progress('Test', 0);
 
     expect(eventManager.emitProgress).toHaveBeenCalledTimes(1);
-})
+});
 
 test('update path feature', () => {
 
@@ -206,4 +208,23 @@ test('static attributes', () => {
     expect(collection.instanceClass.getCapitalizedPluralName()).toEqual('Paths');
     expect(collection.socketPrefix).toEqual('transitPaths');
     expect(collection.displayName).toEqual('PathCollection');
+});
+
+test('toGeojsonSimplified', () => {
+    const pathCollection = new PathCollection([path1Geojson, path2Geojson], {}, eventManager);
+    const simplified = pathCollection.toGeojsonSimplified();
+    expect(simplified.type).toEqual('FeatureCollection');
+    expect(simplified.features.length).toEqual(2);
+    expect(simplified.features[0].properties).toEqual({
+        mode: 'bus',
+        color: undefined,
+        id: pathAttributes1.id,
+        line_id: lineId,
+    });
+    expect(simplified.features[1].properties).toEqual({
+        mode: 'trolleybus',
+        color: undefined,
+        id: pathAttributes2.id,
+        line_id: lineId,
+    });
 });
