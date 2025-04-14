@@ -133,10 +133,6 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
             layerName: 'accessibilityMapPolygons',
             data: turfFeatureCollection([])
         });
-        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-            layerName: 'accessibilityMapPolygonStrokes',
-            data: turfFeatureCollection([])
-        });
         this.setState({
             currentResult: undefined,
             loading: false
@@ -144,17 +140,13 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
     }
 
     polygonCalculated(currentResult: TransitAccessibilityMapWithPolygonResult) {
-        const { polygons, strokes, resultByNode } = currentResult;
+        const { polygons, resultByNode } = currentResult;
 
         console.log('polygons calculated');
 
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'accessibilityMapPolygons',
             data: polygons
-        });
-        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-            layerName: 'accessibilityMapPolygonStrokes',
-            data: strokes
         });
 
         this.setState({
