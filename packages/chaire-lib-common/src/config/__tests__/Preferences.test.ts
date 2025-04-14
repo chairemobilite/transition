@@ -54,6 +54,20 @@ test('Test get preferences', () => {
     expect(Preferences.get('osrmRouting.directoryPrefix')).toBe('test');
 });
 
+test('Test get color preferences', () => {
+    // TODO: post-deck.gl migration. Remove when the color specific block is removed from the code
+    // Manually add color preferences to the preferences object
+    const colors = {
+        rgbaColor: 'rgba(255, 128, 0, 0.5)',
+        rgbaColor2: 'rgba(2, 255, 255, 0.1)',
+        hexColor: '#345678',
+    }
+    Preferences.attributes.colors = colors;
+    expect(Preferences.get('colors.rgbaColor')).toEqual('#ff800080');
+    expect(Preferences.get('colors.rgbaColor2')).toEqual('#02ffff1a');
+    expect(Preferences.get('colors.hexColor')).toEqual('#345678');
+});
+
 test('Test set preferences', () => {
     Preferences.set('foo.bar', 'foobar');
     expect(Preferences.get('foo.bar')).toBe('foobar');

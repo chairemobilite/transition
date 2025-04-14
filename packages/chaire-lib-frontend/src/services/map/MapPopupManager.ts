@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
 
 /**
  * Class that keeps track of the popups currently displaying on the map (there
@@ -18,6 +17,8 @@ import MapboxGL from 'mapbox-gl';
  * @class MapPopupManager
  */
 class MapPopupManager {
+    // TODO Re-implement for mapbox, or at least retrieve the popup functionality
+    /*
     private map: MapboxGL.Map | undefined;
     private _popupsByName: { [key: string]: MapboxGL.Popup } = {};
 
@@ -49,7 +50,7 @@ class MapPopupManager {
         for (const popupName in this._popupsByName) {
             this.removePopup(popupName);
         }
-    }
+    } */
 }
 
 export default MapPopupManager;
