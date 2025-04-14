@@ -169,11 +169,24 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
     }
 
     componentDidMount() {
+        // If the previously selected scenario was deleted, the current scenario ID will remain but the scenario itself will no longer exist, leading to an error.
+        // In that case, change it to undefined.
+        const scenarioId = this.state.object.attributes.scenarioId;
+        const scenario = this.state.scenarioCollection.getById(scenarioId);
+        if (scenarioId !== undefined && scenario === undefined) {
+            this.onValueChange('scenarioId', { value: undefined });
+        }
+
         serviceLocator.eventManager.on('collection.update.scenarios', this.onScenarioCollectionUpdate);
     }
 
     componentWillUnmount() {
         serviceLocator.eventManager.off('collection.update.scenarios', this.onScenarioCollectionUpdate);
+    }
+
+    onValueChange(path: string, newValue: { value: any; valid?: boolean } = { value: null, valid: true }) {
+        this.setState({ routingErrors: [] }); //When a value is changed, remove the current routingErrors to stop displaying them.
+        super.onValueChange(path, newValue);
     }
 
     private onTripTimeChange = (time: { value: any; valid?: boolean }, timeType: 'departure' | 'arrival') => {
