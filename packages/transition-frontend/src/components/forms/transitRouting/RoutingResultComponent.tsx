@@ -39,8 +39,8 @@ const showCurrentAlternative = async (result, alternativeIndex) => {
         data: result.originDestinationToGeojson()
     });
     serviceLocator.eventManager.emit('map.updateLayers', {
-        routingPaths: pathGeojson,
-        routingPathsStrokes: pathGeojson
+        routingPoints: result.originDestinationToGeojson(),
+        routingPaths: pathGeojson
     });
 };
 

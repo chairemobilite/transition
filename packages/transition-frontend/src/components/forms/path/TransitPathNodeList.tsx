@@ -33,7 +33,7 @@ const TransitPathNodeList: React.FunctionComponent<PathListProps> = (props: Path
                 }, 300);
             }
         }
-    }, []);
+    }, [props.selectedPath]);
 
     const nodesGeojsonFeatures = props.selectedPath.nodesGeojsons();
 
