@@ -81,7 +81,7 @@ class TransitAgencyEdit extends SaveableObjectForm<Agency, AgencyFormProps, Agen
                 serviceLocator.collectionManager.refresh('paths');
                 (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
                     layerName: 'transitPaths',
-                    data: serviceLocator.collectionManager.get('paths').toGeojson()
+                    data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
                 });
                 serviceLocator.collectionManager
                     .get('lines')

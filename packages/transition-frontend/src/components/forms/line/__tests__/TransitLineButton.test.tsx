@@ -223,6 +223,7 @@ describe('TransitLineButton', () => {
                 if (collectionName === 'paths') {
                     return {
                         toGeojson: jest.fn().mockReturnValue({}),
+                        toGeojsonSimplified: jest.fn().mockReturnValue({})
                     };
                 }
                 return { refresh: jest.fn() }; // Default return
