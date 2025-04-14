@@ -95,6 +95,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
         newValue: { value: any; valid?: boolean } = { value: null, valid: true },
         resetResults = true
     ) => {
+        setRoutingErrors([]); //When a value is changed, remove the current routingErrors to stop displaying them.
         onFormFieldChange(path, newValue);
         if (newValue.valid || newValue.valid === undefined) {
             const updatedObject = transitRouting;
@@ -282,6 +283,16 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
             serviceLocator.eventManager.off('collection.update.scenarios', onScenarioCollectionUpdate);
         };
     }, []);
+
+    // If the previously selected scenario was deleted, the current scenario ID will remain but the scenario itself will no longer exist, leading to an error.
+    // In that case, change it to undefined.
+    useEffect(() => {
+        const scenarioId = transitRouting.attributes.scenarioId;
+        const scenario = scenarioCollection.getById(scenarioId);
+        if (scenarioId !== undefined && scenario === undefined) {
+            onValueChange('scenarioId', { value: undefined });
+        }
+    }, [scenarioCollection]);
 
     if (!scenarioCollection) {
         return <LoadingPage />;

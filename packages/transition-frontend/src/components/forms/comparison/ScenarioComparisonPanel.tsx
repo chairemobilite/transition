@@ -92,6 +92,7 @@ const ScenarioComparisonPanel: React.FC = () => {
         newValue: { value: any; valid?: boolean } = { value: null, valid: true },
         resetResultsFlag = true
     ) => {
+        setRoutingErrors([]); //When a value is changed, remove the current routingErrors to stop displaying them.
         onFormFieldChange(path, newValue);
         if (
             newValue.valid ||
@@ -314,6 +315,24 @@ const ScenarioComparisonPanel: React.FC = () => {
             serviceLocator.eventManager.off('collection.update.scenarios', onScenarioCollectionUpdate);
         };
     }, []);
+
+    // If a previously selected scenario was deleted, the current scenario ID will remain but the scenario itself will no longer exist, leading to an error.
+    // In that case, change it to undefined.
+    useEffect(() => {
+        const scenarioId1 = routingObj.attributes.scenarioId;
+        const scenario1 = scenarioCollection.getById(scenarioId1);
+        if (scenarioId1 !== undefined && scenario1 === undefined) {
+            routingObj.set('scenarioId', undefined);
+            onValueChange('alternateScenario1Id', { value: undefined });
+        }
+
+        const scenarioId2 = alternateRoutingObj.attributes.scenarioId;
+        const scenario2 = scenarioCollection.getById(scenarioId2);
+        if (scenarioId2 !== undefined && scenario2 === undefined) {
+            alternateRoutingObj.set('scenarioId', undefined);
+            onValueChange('alternateScenario2Id', { value: undefined });
+        }
+    }, [scenarioCollection]);
 
     if (!scenarioCollection) {
         return <LoadingPage />;

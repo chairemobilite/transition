@@ -287,6 +287,22 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
     }
 
     componentDidMount() {
+        // If a previously selected scenario was deleted, the current scenario ID will remain but the scenario itself will no longer exist, leading to an error.
+        // In that case, change it to undefined.
+        const scenarioId1 = this.state.object.attributes.scenarioId;
+        const scenario1 = this.state.scenarioCollection.getById(scenarioId1);
+        if (scenarioId1 !== undefined && scenario1 === undefined) {
+            this.state.object.set('scenarioId', undefined);
+            this.onValueChange('alternateScenario1Id', { value: undefined });
+        }
+
+        const scenarioId2 = this.state.alternateScenarioRouting.attributes.scenarioId;
+        const scenario2 = this.state.scenarioCollection.getById(scenarioId2);
+        if (scenarioId2 !== undefined && scenario2 === undefined) {
+            this.state.alternateScenarioRouting.set('scenarioId', undefined);
+            this.onValueChange('alternateScenario2Id', { value: undefined });
+        }
+
         const contextMenu = document.getElementById('tr__main-map-context-menu');
         this.setState({
             contextMenu,
@@ -333,6 +349,11 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
 
         this.setState({ displayMaxTimeSelect: true });
         this.getDurations();
+    }
+
+    onValueChange(path: string, newValue: { value: any; valid?: boolean } = { value: null, valid: true }) {
+        this.setState({ routingErrors: [] }); //When a value is changed, remove the current routingErrors to stop displaying them.
+        super.onValueChange(path, newValue);
     }
 
     // FIXME: We only want this menu to be available when the comparison mode is locations, so we include it here instead of AccessibilityMapSectionMapEvents.ts.
