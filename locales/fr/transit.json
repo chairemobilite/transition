@@ -197,7 +197,15 @@
         "PeriodsGroup": "Groupe de périodes",
         "PeriodsGroups": "Groupes de périodes",
         "nTrip": "{{n}} voyage",
-        "nTrips": "{{n}} voyages"
+        "nTrips": "{{n}} voyages",
+        "RemovePeriod": "Supprimer la période",
+        "AddCustomPeriod": "Ajouter une période",
+        "SaveAsTemplate": "Sauvegarder comme modèle",
+        "UpdateTemplate": "Mettre à jour le modèle",
+        "DeleteTemplate": "Supprimer le modèle",
+        "SaveTemplateTitle": "Le nom de votre modèle de groupe de périodes : ",
+        "SaveTemplate": "Sauvegarder le modèle",
+        "TemplateNamePlaceholder": "Mon modèle de groupe de périodes"
     },
     "transitUnit": {
         "List": "Unités",

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import { useTranslation } from 'react-i18next';
-import InputString from './InputString'; // Ajustez le chemin d'importation
+import InputString from './InputString';
 
 interface InputModalProps {
     isOpen: boolean;

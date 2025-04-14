@@ -158,169 +158,118 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         }
     };
 
+    private getCustomizablePeriodsGroup() {
+        const groupKey = this.props.schedule.attributes.periods_group_shortname;
+        const allGroups = Preferences.get('transit.periods');
+        const group = groupKey ? allGroups[groupKey] : undefined;
+
+        return group?.isCustomizable ? { group, allGroups, groupKey } : null;
+    }
+
     private onAddCustomPeriod = () => {
-        const schedule = this.props.schedule;
-        const periodsGroups = Preferences.get('transit.periods');
-        const periodsGroupShortname = schedule.attributes.periods_group_shortname;
+        const data = this.getCustomizablePeriodsGroup();
+        if (!data) return;
 
-        if (periodsGroupShortname && periodsGroups[periodsGroupShortname] && periodsGroups[periodsGroupShortname].isCustomizable) {
-            // Get the current periods
-            const periodsGroup = periodsGroups[periodsGroupShortname];
-            const periods = periodsGroup.periods;
+        const { group, groupKey } = data;
+        const nextPeriodId = group.periods.length + 1;
 
-            // Generate a new period with a unique shortname
-            // TODO: The name of each period is imposed and not customizable at the moment
-            const newPeriodId = periods.length + 1;
-            const newPeriod = {
-                shortname: `custom_period_${newPeriodId}`,
-                name: {
-                    fr: `Période personnalisée ${newPeriodId}`,
-                    en: `Custom Period ${newPeriodId}`
-                },
-                startAtHour: 8,
-                endAtHour: 10,
-                isCustom: true
-            };
+        // TODO: The name of each period is imposed and not customizable at the moment
+        const newPeriod = {
+            shortname: `custom_period_${nextPeriodId}`,
+            name: {
+                fr: `Période personnalisée ${nextPeriodId}`,
+                en: `Custom Period ${nextPeriodId}`
+            },
+            startAtHour: 8,
+            endAtHour: 10,
+            isCustom: true
+        };
 
-            // Add the new period to the periods group
-            periodsGroup.periods.push(newPeriod);
+        group.periods.push(newPeriod);
 
-            // Add the corresponding period to the schedule
-            const schedulePeriod: SchedulePeriod = {
-                period_shortname: newPeriod.shortname,
-                start_at_hour: newPeriod.startAtHour,
-                end_at_hour: newPeriod.endAtHour,
-                custom_start_at_str: decimalHourToTimeStr(newPeriod.startAtHour) || '', // Now string, not string | null
-                custom_end_at_str: decimalHourToTimeStr(newPeriod.endAtHour) || '',
-                trips: [],
-                id: `period_${newPeriod.shortname}_${newPeriodId}`,
-                data: {}
-            };
+        const newSchedulePeriod: SchedulePeriod = {
+            period_shortname: newPeriod.shortname,
+            start_at_hour: newPeriod.startAtHour,
+            end_at_hour: newPeriod.endAtHour,
+            custom_start_at_str: decimalHourToTimeStr(newPeriod.startAtHour) || '',
+            custom_end_at_str: decimalHourToTimeStr(newPeriod.endAtHour) || '',
+            trips: [],
+            id: `period_${newPeriod.shortname}_${nextPeriodId}`,
+            data: {}
+        };
 
-            schedule.attributes.periods.push(schedulePeriod);
-
-            // Trigger a re-render
-            this.onValueChange('periods', { value: schedule.attributes.periods });
-        }
+        this.props.schedule.attributes.periods.push(newSchedulePeriod);
+        this.onValueChange('periods', { value: this.props.schedule.attributes.periods });
     };
 
-    private onRemoveCustomPeriod = (periodIndex) => {
-        const schedule = this.props.schedule;
-        const periodsGroups = Preferences.get('transit.periods');
-        const periodsGroupShortname = schedule.attributes.periods_group_shortname;
+    private onRemoveCustomPeriod = (periodIndex: number) => {
+        const data = this.getCustomizablePeriodsGroup();
+        if (!data) return;
 
-        if (periodsGroupShortname && periodsGroups[periodsGroupShortname] && periodsGroups[periodsGroupShortname].isCustomizable) {
-            // Remove from periodsGroup
-            const periodsGroup = periodsGroups[periodsGroupShortname];
-            periodsGroup.periods.splice(periodIndex, 1);
+        const { group } = data;
 
-            // Remove from schedule
-            schedule.attributes.periods.splice(periodIndex, 1);
-
-            // Trigger a re-render
-            this.onValueChange('periods', { value: schedule.attributes.periods });
-        }
+        group.periods.splice(periodIndex, 1);
+        this.props.schedule.attributes.periods.splice(periodIndex, 1);
+        this.onValueChange('periods', { value: this.props.schedule.attributes.periods });
     };
 
     private savePeriodsTemplate = (templateName: string) => {
-        const schedule = this.props.schedule;
-        const periodsGroups = Preferences.get('transit.periods');
-        const periodsGroupShortname = schedule.attributes.periods_group_shortname;
+        const data = this.getCustomizablePeriodsGroup();
+        if (!data) return;
 
-        if (periodsGroupShortname && periodsGroups[periodsGroupShortname]) {
-            // Create a template shortname without spaces and special chars
-            const templateShortname = `user_${templateName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+        const { group, allGroups } = data;
 
-            // Get the current periods configuration
-            const currentTemplate = periodsGroups[periodsGroupShortname];
+        const key = `user_${templateName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+        const template = {
+            name: { fr: templateName, en: templateName },
+            periods: JSON.parse(JSON.stringify(group.periods)),
+            isCustomizable: true
+        };
 
-            // Create a deep copy of the template to avoid reference issues
-            const newTemplate = {
-                name: {
-                    fr: templateName,
-                    en: templateName
-                },
-                periods: JSON.parse(JSON.stringify(currentTemplate.periods || [])),
-                isCustomizable: true
-            };
+        template.periods.forEach(p => {
+            if (!p.name) p.name = { en: p.shortname, fr: p.shortname };
+        });
 
-            // Make sure each period has the required properties
-            newTemplate.periods.forEach(period => {
-                if (!period.name) {
-                    period.name = { en: period.shortname, fr: period.shortname };
-                }
-            });
+        // TODO: User Periods templates are currently saved in localStorage
+        // We should maybe save them in the database in the future
+        const stored = JSON.parse(localStorage.getItem('transitPeriodsTemplates') || '{}');
+        stored[key] = template;
+        localStorage.setItem('transitPeriodsTemplates', JSON.stringify(stored));
 
-            // TODO: User Periods templates are currently saved in localStorage
-            // We should maybe save them in the database in the future
-            const savedTemplates = JSON.parse(localStorage.getItem('transitPeriodsTemplates') || '{}');
-            savedTemplates[templateShortname] = newTemplate;
-            localStorage.setItem('transitPeriodsTemplates', JSON.stringify(savedTemplates));
+        Preferences.update({ 'transit.periods': { ...allGroups, [key]: template } });
 
-            // Update the preferences (for this session)
-            const updatedPeriodsGroups = { ...periodsGroups };
-            updatedPeriodsGroups[templateShortname] = newTemplate;
-            // Fix: Pass an object with the transit.periods property
-            Preferences.update({
-                'transit.periods': updatedPeriodsGroups
-            });
-
-            // Close the modal
-            this.closeModal('showSaveTemplateModal');
-        }
+        this.closeModal('showSaveTemplateModal');
     };
 
     private deletePeriodsTemplate = () => {
-        const schedule = this.props.schedule;
-        const periodsGroupShortname = schedule.attributes.periods_group_shortname;
+        const { schedule, line } = this.props;
+        const groupKey = schedule.attributes.periods_group_shortname;
 
-        // Only allow deleting user templates
-        if (periodsGroupShortname && periodsGroupShortname.startsWith('user_')) {
-            // Remove from localStorage
-            const savedTemplates = JSON.parse(localStorage.getItem('transitPeriodsTemplates') || '{}');
-            delete savedTemplates[periodsGroupShortname];
-            localStorage.setItem('transitPeriodsTemplates', JSON.stringify(savedTemplates));
+        if (!groupKey?.startsWith('user_')) return;
 
-            // Update preferences
-            const periodsGroups = Preferences.get('transit.periods');
-            const updatedPeriodsGroups = { ...periodsGroups };
-            delete updatedPeriodsGroups[periodsGroupShortname];
-            // Fix: Pass an object with the transit.periods property
-            Preferences.update({
-                'transit.periods': updatedPeriodsGroups
-            });
+        const stored = JSON.parse(localStorage.getItem('transitPeriodsTemplates') || '{}');
+        delete stored[groupKey];
+        localStorage.setItem('transitPeriodsTemplates', JSON.stringify(stored));
 
-            // Find all schedules using this template and update them to use default
-            const line = this.props.line;
-            const schedules = line.getSchedules();
-            let updatedSchedulesCount = 0;
+        const allGroups = Preferences.get('transit.periods');
+        const updatedGroups = { ...allGroups };
+        delete updatedGroups[groupKey];
+        Preferences.update({ 'transit.periods': updatedGroups });
 
-            // Update all affected schedules to use the default template
-            Object.values(schedules).forEach(scheduleObj => {
-                const scheduleToCheck = scheduleObj as Schedule;
-                if (scheduleToCheck.attributes.periods_group_shortname === periodsGroupShortname) {
-                    scheduleToCheck.set('periods_group_shortname', 'default');
-                    // Mark the schedule as changed so it will be saved
-                    scheduleToCheck.attributes.periods = scheduleToCheck.attributes.periods || [];
-                    updatedSchedulesCount++;
-                }
-            });
+        const schedules = line.getSchedules();
 
-            // Also update the current schedule if it's using this template
-            if (schedule.attributes.periods_group_shortname === periodsGroupShortname) {
-                schedule.set('periods_group_shortname', 'default');
+        Object.values(schedules).forEach((s: Schedule) => {
+            if (s.attributes.periods_group_shortname === groupKey) {
+                s.set('periods_group_shortname', 'default');
+                s.attributes.periods = s.attributes.periods || [];
             }
+        });
 
-            // Switch to default template
-            this.onChangePeriodsGroup('default');
-
-            // Notify the user
-            const infoMessage = updatedSchedulesCount > 0 ?
-                this.props.t('transit:transitSchedule:TemplateDeletedWithSchedulesUpdated', { count: updatedSchedulesCount }) :
-                this.props.t('transit:transitSchedule:TemplateDeleted');
-
-            serviceLocator.eventManager.emit('info', infoMessage);
+        if (schedule.attributes.periods_group_shortname === groupKey) {
+            schedule.set('periods_group_shortname', 'default');
         }
+
+        this.onChangePeriodsGroup('default');
     };
 
     render() {
@@ -363,7 +312,6 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         if (periodsGroupShortname && !periodsGroups[periodsGroupShortname]) {
             // The template no longer exists, fall back to default
             schedule.set('periods_group_shortname', 'default');
-            serviceLocator.eventManager.emit('warning', this.props.t('transit:transitSchedule:TemplateNotFoundFallback'));
         }
 
         const periodsGroup = periodsGroupShortname ? periodsGroups[periodsGroupShortname] : null;
@@ -377,7 +325,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                 label: periodsGroup.name && periodsGroup.name[this.props.i18n.language]
                     ? periodsGroup.name[this.props.i18n.language]
                     : periodsGroupShortname,
-                isCustomOption,  // Flag to identify custom option
+                isCustomOption,
                 className: isUserTemplate ? 'user-template-option' : isCustomOption ? 'custom-option-button' : ''
             };
         });
@@ -389,7 +337,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         });
 
         const periodsForms: any[] = [];
-        // TODO Extract the period form to sub-classes
+
         if (periodsGroupShortname && periodsGroup) {
             const periods = periodsGroup.periods;
             if (_isBlank(schedule.get('periods'))) {
@@ -432,6 +380,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                 disabled={isFrozen}
                                 icon={faTrash}
                                 color="red"
+                                label={this.props.t('transit:transitSchedule:RemovePeriod')}
                             />
                         )}
                     </div>

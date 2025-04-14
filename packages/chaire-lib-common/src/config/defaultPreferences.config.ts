@@ -283,8 +283,8 @@ const defaultPreferences: PreferencesModel = {
             },
             custom: {
                 name: {
-                  fr: 'Ajouter des périodes personnalisées',
-                  en: 'Add custom periods'
+                  fr: '+ Ajouter des périodes personnalisées',
+                  en: '+ Add custom periods'
                 },
                 periods: [
                   {
