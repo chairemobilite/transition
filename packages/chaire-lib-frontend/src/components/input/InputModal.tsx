@@ -48,14 +48,14 @@ const InputModal: React.FC<InputModalProps> = ({
         setIsValid(inputData.valid);
     };
 
-    const handleConfirm = (e: React.MouseEvent) => {
+    const handleConfirm = () => {
         if (isValid) {
             onConfirm(inputValue);
             onClose();
         }
     };
 
-    const handleCancel = (e: React.MouseEvent) => {
+    const handleCancel = () => {
         onClose();
     };
 
@@ -89,7 +89,11 @@ const InputModal: React.FC<InputModalProps> = ({
 
                 <div className={'tr__form-buttons-container _center'}>
                     <div className="center">
-                        <button className={`button ${confirmButtonColor || 'blue'}`} onClick={handleConfirm} disabled={!isValid}>
+                        <button
+                            className={`button ${confirmButtonColor || 'blue'}`}
+                            onClick={handleConfirm}
+                            disabled={!isValid}
+                        >
                             {confirmButtonLabel || t('Confirm')}
                         </button>
                     </div>

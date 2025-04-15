@@ -71,17 +71,14 @@ const InputSelect: React.FunctionComponent<InputSelectProps> = ({
                     <option
                         key={`choice_${childChoice.value}`}
                         value={childChoice.value}
-                        disabled={childChoice.disabled === true}
+                        disabled={childChoice.disabled}
                     >
                         {childChoice.label || t(`${localePrefix}:${childChoice.value}`)}
                     </option>
                 );
             });
             selectChoices.push(
-                <optgroup
-                    key={`group_${choice.value}`}
-                    label={choice.label || t(`${localePrefix}:${choice.value}`)}
-                >
+                <optgroup key={`group_${choice.value}`} label={choice.label || t(`${localePrefix}:${choice.value}`)}>
                     {childChoices}
                 </optgroup>
             );
@@ -90,7 +87,7 @@ const InputSelect: React.FunctionComponent<InputSelectProps> = ({
                 <option
                     key={`choice_${choice.value}`}
                     value={choice.value}
-                    disabled={choice.disabled === true}
+                    disabled={choice.disabled}
                     className={choice.className}
                 >
                     {choice.label || t(`${localePrefix}:${choice.value}`)}
@@ -100,7 +97,16 @@ const InputSelect: React.FunctionComponent<InputSelectProps> = ({
     }
 
     return (
-        <select {...defaultAttributes}>
+        <select
+            autoComplete="none"
+            className="tr__form-input-select apptr__input _input-select"
+            {...defaultAttributes}
+            style={{
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis'
+            }}
+        >
             {!noBlank && <option value=""></option>}
             {selectChoices}
         </select>

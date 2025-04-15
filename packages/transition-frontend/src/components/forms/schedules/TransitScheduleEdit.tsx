@@ -5,9 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import _toString from 'lodash/toString';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUndoAlt } from '@fortawesome/free-solid-svg-icons/faUndoAlt';
 import { faRedoAlt } from '@fortawesome/free-solid-svg-icons/faRedoAlt';
 import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
@@ -16,11 +14,7 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { faSyncAlt } from '@fortawesome/free-solid-svg-icons/faSyncAlt';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
-import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
-import { faArrowDown } from '@fortawesome/free-solid-svg-icons/faArrowDown';
 
-import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
-import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputSelect, { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
@@ -28,14 +22,8 @@ import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors'
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
-import { _isBlank, _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
-import {
-    decimalHourToTimeStr,
-    secondsSinceMidnightToTimeStr,
-    secondsToMinutes,
-    minutesToSeconds
-} from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { decimalHourToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import Schedule, { SchedulePeriod } from 'transition-common/lib/services/schedules/Schedule';
 import Line from 'transition-common/lib/services/line/Line';
@@ -170,7 +158,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         const data = this.getCustomizablePeriodsGroup();
         if (!data) return;
 
-        const { group, groupKey } = data;
+        const { group } = data;
         const nextPeriodId = group.periods.length + 1;
 
         // TODO: The name of each period is imposed and not customizable at the moment
@@ -226,7 +214,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
             isCustomizable: true
         };
 
-        template.periods.forEach(p => {
+        template.periods.forEach((p) => {
             if (!p.name) p.name = { en: p.shortname, fr: p.shortname };
         });
 
@@ -322,9 +310,10 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
 
             return {
                 value: periodsGroupShortname,
-                label: periodsGroup.name && periodsGroup.name[this.props.i18n.language]
-                    ? periodsGroup.name[this.props.i18n.language]
-                    : periodsGroupShortname,
+                label:
+                    periodsGroup.name && periodsGroup.name[this.props.i18n.language]
+                        ? periodsGroup.name[this.props.i18n.language]
+                        : periodsGroupShortname,
                 isCustomOption,
                 className: isUserTemplate ? 'user-template-option' : isCustomOption ? 'custom-option-button' : ''
             };
@@ -447,7 +436,11 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                                     icon={faSyncAlt}
                                     iconClass="_icon"
                                     label={this.props.t('transit:transitSchedule:UpdateTemplate')}
-                                    onClick={() => this.savePeriodsTemplate(periodsGroups[periodsGroupShortname].name?.en || 'Updated Template')}
+                                    onClick={() =>
+                                        this.savePeriodsTemplate(
+                                            periodsGroups[periodsGroupShortname].name?.en || 'Updated Template'
+                                        )
+                                    }
                                     disabled={isFrozen}
                                 />
                                 <Button
