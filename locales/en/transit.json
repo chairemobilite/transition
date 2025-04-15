@@ -197,7 +197,15 @@
         "PeriodsGroup": "Periods group",
         "PeriodsGroups": "Periods groups",
         "nTrip": "{{n}} trip",
-        "nTrips": "{{n}} trips"
+        "nTrips": "{{n}} trips",
+        "RemovePeriod": "Remove period",
+        "AddCustomPeriod": "Add a period",
+        "SaveAsTemplate": "Save as template",
+        "UpdateTemplate": "Update template",
+        "DeleteTemplate": "Delete template",
+        "SaveTemplateTitle": "Name of your periods group template:",
+        "SaveTemplate": "Save template",
+        "TemplateNamePlaceholder": "My periods template"
     },
     "transitUnit": {
         "List": "Units",

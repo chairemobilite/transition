@@ -280,6 +280,25 @@ const defaultPreferences: PreferencesModel = {
                         endAtHour: 24
                     }
                 ]
+            },
+            custom: {
+                name: {
+                    fr: '+ Ajouter des périodes personnalisées',
+                    en: '+ Add custom periods'
+                },
+                periods: [
+                    {
+                        shortname: 'custom_period_1',
+                        name: {
+                            fr: 'Période personnalisée 1',
+                            en: 'Custom Period 1'
+                        },
+                        startAtHour: 8,
+                        endAtHour: 10,
+                        isCustom: true
+                    }
+                ],
+                isCustomizable: true
             }
         },
         stations: {

@@ -416,3 +416,15 @@ label .button,
         width: 680px;
     }
 }
+
+// Minh test
+select {
+    option.custom-option-button {
+        color: white;
+        font-weight: bold;
+    }
+
+    option.user-template-option {
+        font-style: italic;
+    }
+}
