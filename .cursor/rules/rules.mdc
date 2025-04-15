@@ -1,0 +1,37 @@
+---
+description: Always use
+globs: 
+---
+
+# Transition Project Guidelines
+
+## Build & Test Commands
+- Build: `yarn compile` (all) or `yarn compile:dev` (watch mode)
+- Lint: `yarn lint` (all) or `yarn workspace [package-name] lint`
+- Format: `yarn format` (all) or `yarn workspace [package-name] format`
+- Test all: `yarn test`
+- Test single file: `yarn workspace [package-name] test -t 'test description'`
+- Test specific package: `yarn workspace [package-name] test`
+- Setup test DB: `yarn setup-test` then `yarn migrate-test`
+
+## Code Style
+- TypeScript with strict typing, indentation 4 spaces
+- Braces style: 1tbs (one true brace style) with `{` on same line
+- Quotes: single quotes for strings
+- Arrow functions: always use parentheses for params
+- Imports: group by external, internal, relative paths with blank line between
+- Errors: use explicit error handling with proper typing
+- Naming: camelCase for vars/functions, PascalCase for classes/interfaces/types
+- React components: functional components with hooks preferred
+- Comments: JSDoc for public APIs and complex logic
+
+## Project Structure
+- Monorepo with workspaces in packages/ directory
+- Module boundaries: respect package dependencies
+
+## Workspaces
+### chaire-lib-backend, chaire-lib-fronted, chaire-lib-common
+General libraries and utils used in all our projects (also outside transition). Transition-only code should not go there.
+
+### transition-backend, transition-frontend, transition-common
+Code specific to Transition
