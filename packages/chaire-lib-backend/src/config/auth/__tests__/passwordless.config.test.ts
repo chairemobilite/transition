@@ -8,7 +8,7 @@ import passport from 'passport';
 import { TestUtils } from 'chaire-lib-common/lib/test';
 
 import passwordlessLogin from '../passwordless.config';
-import { sendEmail } from '../../../services/auth/userEmailNotifications';
+import { sendEmail, validateEmailExists } from '../../../services/auth/userEmailNotifications';
 import usersDbQueries from '../../../models/db/users.db.queries';
 import { userAuthModel } from '../../../services/auth/userAuthModel';
 
@@ -34,6 +34,7 @@ jest.mock('../../../models/db/users.db.queries', () => ({
 const mockFind = usersDbQueries.find as jest.MockedFunction<typeof usersDbQueries.find>;
 const mockCreate = usersDbQueries.create as jest.MockedFunction<typeof usersDbQueries.create>;
 const mockSetLastLogin = usersDbQueries.setLastLogin as jest.MockedFunction<typeof usersDbQueries.setLastLogin>;
+const mockValidateEmailExists = validateEmailExists as jest.MockedFunction<typeof validateEmailExists>;
 
 // Initialize various user data
 const newUserEmail = 'newUser@transition.city';
@@ -63,6 +64,7 @@ beforeEach(() => {
             ...attribs
         }
     });
+    mockValidateEmailExists.mockImplementation((email, _errorMessage) => email as string);
     mockSetLastLogin.mockClear();
 });
 
@@ -141,7 +143,7 @@ describe('Complete send/verify flow for existing user', () => {
 
         expect(mockedSendEmail).toHaveBeenCalledTimes(1);
         expect(mockedSendEmail).toHaveBeenLastCalledWith({
-            toUser: { email: existingUserEmail, displayName: '', id: existingUser.id, lang: null },
+            toUser: { email: existingUserEmail, displayName: '', lang: null },
             mailText: ['customServer:magicLinkEmailText', 'server:magicLinkEmailText'],
             mailSubject: ['customServer:magicLinkEmailSubject', 'server:magicLinkEmailSubject']
         }, { magicLinkUrl: { url: expect.stringContaining('/magic/verify') } });

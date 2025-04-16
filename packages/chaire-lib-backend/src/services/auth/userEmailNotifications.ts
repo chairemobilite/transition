@@ -11,8 +11,7 @@ import mailTransport from '../mailer/transport';
 import UserModel from './userAuthModel';
 
 type UserEmailData = {
-    id: number;
-    email: string | null | undefined;
+    email: string;
     displayName: string;
     lang: string | null;
 };
@@ -27,10 +26,6 @@ export const sendEmail = async (
     userNotification: UserNotification,
     translateKeys: { [name: string]: any }
 ): Promise<void> => {
-    if (typeof userNotification.toUser.email !== 'string') {
-        console.error(`Mail should be sent to user ${userNotification.toUser.id}, but the user does not have an email`);
-        return;
-    }
     const transport = mailTransport;
     if (transport === null) {
         throw new Error('Mail transport configuration error. Email cannot be sent');
@@ -68,14 +63,17 @@ export const sendEmail = async (
 
 const getConfirmEmailsToSend = async (user: IUserModel, strategy?: string): Promise<UserNotification[]> => {
     const actualStrategy = strategy === 'confirmByAdmin' ? 'confirmByAdmin' : 'confirmByUser';
+    const validatedEmail = validateEmailExists(
+        user.email,
+        `User with display name "${user.displayName}" does not have address to send confirmation email to.`
+    );
     if (actualStrategy === 'confirmByUser') {
         return [
             {
                 mailText: 'server:confirmByUserText',
                 mailSubject: 'server:confirmByUserSubject',
                 toUser: {
-                    id: user.id,
-                    email: user.email,
+                    email: validatedEmail,
                     displayName: user.displayName,
                     lang: user.langPref
                 }
@@ -93,22 +91,27 @@ const getConfirmEmailsToSend = async (user: IUserModel, strategy?: string): Prom
         mailText: 'server:pendingConfirmByAdminText',
         mailSubject: 'server:pendingConfirmByAdminSubject',
         toUser: {
-            id: user.id,
-            email: user.email,
+            email: validatedEmail,
             displayName: user.displayName,
             lang: user.langPref
         }
     };
-    const notifications: UserNotification[] = adminUsers.map((admin) => ({
-        mailText: 'server:confirmByAdminText',
-        mailSubject: 'server:confirmByAdminSubject',
-        toUser: {
-            id: admin.attributes.id,
-            email: admin.attributes.email,
-            displayName: admin.displayName,
-            lang: admin.langPref
-        }
-    }));
+
+    const notifications: UserNotification[] = adminUsers.map((admin) => {
+        const validatedAdminEmail = validateEmailExists(
+            admin.attributes.email,
+            `Admin user with display name "${admin.displayName}" does not have address to send confirmation email to.`
+        );
+        return {
+            mailText: 'server:confirmByAdminText',
+            mailSubject: 'server:confirmByAdminSubject',
+            toUser: {
+                email: validatedAdminEmail,
+                displayName: admin.displayName,
+                lang: admin.langPref
+            }
+        };
+    });
     notifications.push(userNotificationPending);
     return notifications;
 };
@@ -119,12 +122,15 @@ const getConfirmEmailsToSend = async (user: IUserModel, strategy?: string): Prom
  */
 export const sendWelcomeEmail = async (user: IUserModel): Promise<void> => {
     try {
+        const validatedEmail = validateEmailExists(
+            user.email,
+            `User with display name "${user.displayName}" does not have address to send welcome email to.`
+        );
         const email = {
             mailText: ['customServer:welcomeEmailText', 'server:welcomeEmailText'],
             mailSubject: ['customServer:welcomeEmailSubject', 'server:welcomeEmailSubject'],
             toUser: {
-                id: user.id,
-                email: user.email,
+                email: validatedEmail,
                 displayName: user.displayName,
                 lang: user.langPref
             }
@@ -168,12 +174,15 @@ export const sendConfirmationEmail = async (
 
 export const sendConfirmedByAdminEmail = async (user: IUserModel): Promise<void> => {
     try {
+        const validatedEmail = validateEmailExists(
+            user.email,
+            `User with display name "${user.displayName}" does not have address to send confirmation by admin email to.`
+        );
         const email = {
             mailText: 'server:confirmedByAdminEmailText',
             mailSubject: 'server:confirmedByAdminEmailSubject',
             toUser: {
-                id: user.id,
-                email: user.email,
+                email: validatedEmail,
                 displayName: user.displayName,
                 lang: user.langPref
             }
@@ -193,12 +202,15 @@ export const sendConfirmedByAdminEmail = async (user: IUserModel): Promise<void>
  */
 export const resetPasswordEmail = async (user: IUserModel, options: { resetPasswordUrl: string }): Promise<void> => {
     try {
+        const validatedEmail = validateEmailExists(
+            user.email,
+            `User with display name "${user.displayName}" does not have address to send reset password email to.`
+        );
         const email = {
             mailText: 'server:resetPasswordEmailText',
             mailSubject: 'server:resetPasswordEmailSubject',
             toUser: {
-                id: user.id,
-                email: user.email,
+                email: validatedEmail,
                 displayName: user.displayName,
                 lang: user.langPref
             }
@@ -209,4 +221,12 @@ export const resetPasswordEmail = async (user: IUserModel, options: { resetPassw
         console.log('Error sending password reset email: ', error);
         throw error;
     }
+};
+
+export const validateEmailExists = (email: string | null | undefined, errorMessage: string): string => {
+    if (typeof email !== 'string' || email.length === 0) {
+        throw new Error(errorMessage);
+    }
+
+    return email;
 };
