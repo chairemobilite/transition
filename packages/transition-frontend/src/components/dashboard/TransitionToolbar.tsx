@@ -88,9 +88,10 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
     onShowLayer = (layerName: string) => {
         if (this.state.layersVisibility[layerName] === false) {
             this.setState((oldState) => {
-                oldState.layersVisibility[layerName] = true;
+                const newLayersVisibility = { ...oldState.layersVisibility };
+                newLayersVisibility[layerName] = true;
                 return {
-                    layersVisibility: oldState.layersVisibility
+                    layersVisibility: newLayersVisibility
                 };
             });
         }
@@ -99,9 +100,10 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
     onHideLayer = (layerName: string) => {
         if (this.state.layersVisibility[layerName] === true) {
             this.setState((oldState) => {
-                oldState.layersVisibility[layerName] = false;
+                const newLayersVisibility = { ...oldState.layersVisibility };
+                newLayersVisibility[layerName] = false;
                 return {
-                    layersVisibility: oldState.layersVisibility
+                    layersVisibility: newLayersVisibility
                 };
             });
         }
