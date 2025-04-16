@@ -8,7 +8,7 @@ import { PassportStatic } from 'passport';
 import url from 'url';
 import MagicLoginStrategy from 'passport-magic-login';
 import MagicWithDirectSignup from '../../services/auth/pwdLessDirectSignupStrategy';
-import { sendEmail } from '../../services/auth/userEmailNotifications';
+import { sendEmail, validateEmailExists } from '../../services/auth/userEmailNotifications';
 import { IAuthModel, IUserModel } from '../../services/auth/authModel';
 
 // MagicLoginStrategy sends a link even for registration, for first-time users.
@@ -25,13 +25,16 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
         const model = await authModel.find({ email: destination });
         const user =
             model === undefined ? authModel.newUser({ id: -1, email: destination, username: destination }) : model;
+        const validatedEmail = validateEmailExists(
+            user.email,
+            `User with display name "${user.displayName}" does not have address to send magic link email to.`
+        );
         sendEmail(
             {
                 mailText: ['customServer:magicLinkEmailText', 'server:magicLinkEmailText'],
                 mailSubject: ['customServer:magicLinkEmailSubject', 'server:magicLinkEmailSubject'],
                 toUser: {
-                    id: user.id,
-                    email: user.email,
+                    email: validatedEmail,
                     displayName: user.displayName,
                     lang: user.langPref
                 }

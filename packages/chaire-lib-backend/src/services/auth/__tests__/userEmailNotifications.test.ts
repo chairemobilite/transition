@@ -8,7 +8,7 @@ import { Transporter } from 'nodemailer';
 import nodemailerMock  from 'nodemailer-mock';
 import { v4 as uuidV4 } from 'uuid';
 
-import { sendConfirmationEmail, sendConfirmedByAdminEmail, resetPasswordEmail, sendEmail } from '../userEmailNotifications';
+import { sendConfirmationEmail, sendConfirmedByAdminEmail, resetPasswordEmail, sendEmail, validateEmailExists } from '../userEmailNotifications';
 import UserModel from '../userAuthModel';
 import { registerTranslationDir } from '../../../config/i18next';
 import usersDbQueries from '../../../models/db/users.db.queries';
@@ -173,13 +173,19 @@ test('Confirmed by admin email', async () => {
     expect(sentEmails[0].subject).toContain('compte confirmé');
 });
 
+test('Validate email exists', async () => {
+    expect(() => validateEmailExists(null, 'null email')).toThrow('null email');
+    expect(() => validateEmailExists(undefined, 'undefined email')).toThrow('undefined email');
+    expect(() => validateEmailExists('', 'empty email')).toThrow('empty email');
+    expect(validateEmailExists(fromEmail, '')).toBe(fromEmail);
+});
+
 describe('sendEmail function', () => {
     test('Send email, arbitrary email', async () => {
         await sendEmail({
             mailText: 'Test Text',
             mailSubject: 'Test subject',
             toUser: {
-                id: defaultUserData.id,
                 email: defaultUserData.email,
                 lang: 'en',
                 displayName: defaultUserData.email
@@ -200,7 +206,6 @@ describe('sendEmail function', () => {
             mailText: ['translationNs1:textString', 'translationNs2:textString'],
             mailSubject: ['translationNs1:subjectString', 'translationNs2:subjectString'],
             toUser: {
-                id: defaultUserData.id,
                 email: defaultUserData.email,
                 lang: 'en',
                 displayName: defaultUserData.email
