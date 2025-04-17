@@ -32,16 +32,17 @@ import { MapEditTool, TransitionMapControllerProps, MainMapProps } from './types
 import { getDefaultViewState } from './defaults/TransitionMainMapDefaults';
 import { ContextMenuManager } from '../../services/map/ContextMenuManager';
 
+const layerManager = new MapLayerManager(layersConfig);
+
 const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     const { t } = useTranslation(['transit', 'main']);
 
     // Services - create these once and maintain stable references
-    const layerManager = useMemo(() => new MapLayerManager(layersConfig), []);
     const pathFilterManager = useMemo(() => new TransitPathFilterManager(), []);
     const mapCallbacks = useMemo<MapCallbacks>(
         () => ({
-            pickMultipleObjects: (opts) => mapContainer.current?.pickMultipleObjects(opts) || [],
-            pickObject: (opts) => mapContainer.current?.pickObject(opts) || null,
+            pickMultipleObjects: (opts) => mapContainerRef.current?.pickMultipleObjects(opts) || [],
+            pickObject: (opts) => mapContainerRef.current?.pickObject(opts) || null,
             pixelsToCoordinates: (pixels) => viewportRef.current?.unproject(pixels) || [0, 0]
         }),
         []
@@ -67,45 +68,20 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     const [selectedObjectDraggingCount, setSelectedObjectDraggingCount] = useState(0);
     const [activeMapEventManager, setActiveMapEventManager] = useState<MapEventsManager>(mapEventsManager);
 
-    // Fit bounds
-    const fitBounds = (bounds: [[number, number], [number, number]]) => {
-        if (!viewportRef.current) {
-            return;
-        }
-
-        // Use a mercator viewport to fit the bounds
-        const viewport = new WebMercatorViewport(viewState).fitBounds(bounds, {
-            padding: 20
-        });
-
-        const { latitude, longitude, zoom } = viewport;
-        const newViewState = {
-            ...viewState,
-            latitude,
-            longitude,
-            zoom
-        };
-
-        // Update both refs
-        viewportRef.current = viewport;
-
-        // Update state
-        setViewState(newViewState);
-        updateMapLayers();
-    };
-
     // Refs
-    const mapContainer = useRef<DeckGLRef>(null);
+    const zoomRef = useRef<number>(zoom);
+    const mapContainerRef = useRef<DeckGLRef>(null);
     const viewportRef = useRef<WebMercatorViewport | null>(null);
     const deckGlLayersRef = useRef<Layer<LayerProps>[]>([]);
     const updateCountsRef = useRef<{ [layerName: string]: number }>({});
     const contextMenuManagerRef = useRef<ContextMenuManager | undefined>(undefined);
     // Because the fitBound function is registered as an event listener, we need to keep it in a ref to have the latest version
-    const fitBoundsRef = useRef(fitBounds);
-    fitBoundsRef.current = fitBounds;
     // Internal ViewState ref for smooth rendering
 
     // useCallback
+
+
+
 
     const updateUserPrefs = useCallback((updatedViewState) => {
         // Save map zoom and center to user preferences
@@ -124,7 +100,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     }, []);
 
     // Update map layers - core function to rebuild layers
-    const updateMapLayers = () => {
+    const updateMapLayers = useCallback(() => {
         const deckGlLayers: Layer<LayerProps>[] = [];
 
         const enabledLayers = layerManager.getEnabledLayers().filter((layer) => layer.visible === true);
@@ -132,7 +108,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         enabledLayers.forEach((layer) => {
             const layerResult = getLayer({
                 layerDescription: layer,
-                viewState,
+                zoom: zoomRef.current,
                 events: mapEditTool === undefined ? mapEventsManager.getLayerEvents(layer.id) : undefined,
                 activeSection,
                 setIsDragging,
@@ -156,7 +132,6 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         // Right now, the multi-select tool flickers when creating the polygon, but it does not flicker with the measure tool.
         if (mapEditTool !== undefined) {
             const deckGlEditLayers = mapEditTool.getLayers({
-                viewState,
                 activeSection,
                 setIsDragging,
                 mapCallbacks,
@@ -170,7 +145,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
 
         // Store the layers in the ref for rendering
         deckGlLayersRef.current = deckGlLayers;
-    };
+    }, [activeSection, mapEditTool, mapCallbacks, selectedObjectsCount, editUpdateCount, mapEventsManager, updateCountsRef, updateUserPrefs]);
 
     // Update visible layers
     const updateVisibleLayers = useCallback(() => {
@@ -180,8 +155,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             .map((layer) => layer.id);
 
         setVisibleLayers(newVisibleLayers);
-        updateMapLayers();
-    }, [layerManager, updateMapLayers]);
+    }, []);
 
     // Throttled view state update
     const throttledSetViewState = useCallback(
@@ -189,22 +163,24 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             // Update viewport for coordinate calculations
             viewportRef.current = new WebMercatorViewport(newViewState);
             setViewState(newViewState);
+            zoomRef.current = newViewState.zoom;
+            updateMapLayers();
             // Only update layers if zoom changed significantly
-            /*if (Math.abs(viewState.zoom - newViewState.zoom) > 0.1) {
+            /*if (Math.abs(zoomRef.current - newViewState.zoom) > 0.1) {
             updateMapLayers();
         }*/
 
             // Update user preferences (throttled)
             updateUserPrefs(newViewState);
         }, 100),
-        []
+        [updateMapLayers]
     );
 
     // View state change handler
     const onViewStateChange = useCallback(({ viewState: newViewState }) => {
         // Continue with throttled updates:
         throttledSetViewState(newViewState);
-    }, []);
+    }, [updateMapLayers]);
 
     // Window resize handler
     const onResize = useCallback(({ width, height }) => {
@@ -212,6 +188,28 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             ...viewState,
             width,
             height
+        });
+    }, [viewState]);
+
+    // Fit bounds
+    const fitBounds = useCallback((bounds: [[number, number], [number, number]]) => {
+        // Update state
+        setViewState((prevViewState) => {
+            // Use a mercator viewport to fit the bounds
+            const viewport = new WebMercatorViewport(prevViewState).fitBounds(bounds, {
+                padding: 20
+            });
+
+            const { latitude, longitude, zoom } = viewport;
+            const newViewState = {
+                ...prevViewState,
+                latitude,
+                longitude,
+                zoom
+            };
+            zoomRef.current = newViewState.zoom;
+            viewportRef.current = viewport;
+            return newViewState;
         });
     }, []);
 
@@ -324,8 +322,9 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         (layerName: string) => {
             layerManager.showLayer(layerName);
             updateVisibleLayers();
+            updateMapLayers();
         },
-        [layerManager, updateVisibleLayers]
+        [updateVisibleLayers, updateMapLayers]
     );
 
     // Hide layer
@@ -333,8 +332,9 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         (layerName: string) => {
             layerManager.hideLayer(layerName);
             updateVisibleLayers();
+            updateMapLayers();
         },
-        [layerManager, updateVisibleLayers]
+        [updateVisibleLayers, updateMapLayers]
     );
 
     // Clear filter
@@ -342,8 +342,9 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         (layerName: string) => {
             layerManager.clearFilter(layerName);
             updateVisibleLayers();
+            updateMapLayers();
         },
-        [layerManager, updateVisibleLayers]
+        [updateVisibleLayers, updateMapLayers]
     );
 
     // Update filter
@@ -352,8 +353,9 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             layerManager.updateFilter(args.layerName, args.filter);
             updateCountsRef.current[args.layerName] = (updateCountsRef.current[args.layerName] || 0) + 1;
             updateVisibleLayers();
+            updateMapLayers();
         },
-        [layerManager, updateVisibleLayers]
+        [updateVisibleLayers, updateMapLayers]
     );
 
     // Update layer
@@ -365,8 +367,9 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             layerManager.updateLayer(args.layerName, args.data);
             updateCountsRef.current[args.layerName] = (updateCountsRef.current[args.layerName] || 0) + 1;
             updateVisibleLayers();
+            updateMapLayers();
         },
-        [layerManager, updateVisibleLayers]
+        [updateVisibleLayers, updateMapLayers]
     );
 
     // Update layers
@@ -377,8 +380,9 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                 (layerName) => (updateCountsRef.current[layerName] = (updateCountsRef.current[layerName] || 0) + 1)
             );
             updateVisibleLayers();
+            updateMapLayers();
         },
-        [layerManager, updateVisibleLayers]
+        [updateVisibleLayers, updateMapLayers]
     );
 
     // Update enabled layers
@@ -387,7 +391,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             layerManager.updateEnabledLayers(enabledLayers);
             updateVisibleLayers();
         },
-        [layerManager, updateVisibleLayers]
+        [updateVisibleLayers]
     );
 
     // Show context menu - made into a callback with proper dependencies
@@ -443,25 +447,21 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     const eventListenersRegistered = useRef(false);
 
     useEffect(() => {
-        // Update refs with the latest versions of the callbacks
-        fitBoundsRef.current = fitBounds;
 
         // Only register once to prevent event loops
         if (eventListenersRegistered.current) {
             return;
         }
 
-        const fitBoundsCallback = (bounds: [[number, number], [number, number]]) => fitBoundsRef.current(bounds);
-
         // Set up event listeners
-        serviceLocator.eventManager.on('map.updateEnabledLayers', updateEnabledLayers);
+        //serviceLocator.eventManager.on('map.updateEnabledLayers', updateEnabledLayers);
         serviceLocator.eventManager.on('map.updateLayer', updateLayer);
         serviceLocator.eventManager.on('map.updateLayers', updateLayers);
         serviceLocator.eventManager.on('map.layers.updateFilter', updateFilter);
         serviceLocator.eventManager.on('map.clearFilter', clearFilter);
         serviceLocator.eventManager.on('map.showLayer', showLayer);
         serviceLocator.eventManager.on('map.hideLayer', hideLayer);
-        serviceLocator.eventManager.on('map.fitBounds', fitBoundsCallback);
+        serviceLocator.eventManager.on('map.fitBounds', fitBounds);
         serviceLocator.eventManager.on('map.paths.byAttribute.show', showPathsByAttribute);
         serviceLocator.eventManager.on('map.paths.byAttribute.hide', hidePathsByAttribute);
         serviceLocator.eventManager.on('map.paths.clearFilter', clearPathsFilter);
@@ -481,14 +481,14 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         // Clean up on unmount
         return () => {
             if (eventListenersRegistered.current) {
-                serviceLocator.eventManager.off('map.updateEnabledLayers', updateEnabledLayers);
+                //serviceLocator.eventManager.off('map.updateEnabledLayers', updateEnabledLayers);
                 serviceLocator.eventManager.off('map.updateLayer', updateLayer);
                 serviceLocator.eventManager.off('map.updateLayers', updateLayers);
                 serviceLocator.eventManager.off('map.layers.updateFilter', updateFilter);
                 serviceLocator.eventManager.off('map.clearFilter', clearFilter);
                 serviceLocator.eventManager.off('map.showLayer', showLayer);
                 serviceLocator.eventManager.off('map.hideLayer', hideLayer);
-                serviceLocator.eventManager.off('map.fitBounds', fitBoundsCallback);
+                serviceLocator.eventManager.off('map.fitBounds', fitBounds);
                 serviceLocator.eventManager.off('map.paths.byAttribute.show', showPathsByAttribute);
                 serviceLocator.eventManager.off('map.paths.byAttribute.hide', hidePathsByAttribute);
                 serviceLocator.eventManager.off('map.paths.clearFilter', clearPathsFilter);
@@ -514,7 +514,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         layerManager.updateEnabledLayers(sectionLayers[activeSection] || []);
         updateVisibleLayers();
         updateMapLayers();
-    }, [activeSection, layerManager, updateMapLayers, updateVisibleLayers]);
+    }, [activeSection, updateVisibleLayers, updateMapLayers]);
 
     // Determine if animation is needed
     const needAnimation = useCallback(() => {
@@ -527,7 +527,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             );
         }
         return false;
-    }, [layerManager, updateMapLayers]);
+    }, []);
 
     return (
         <section id="tr__main-map">
@@ -535,7 +535,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             {children}
             <div onContextMenu={(evt) => evt.preventDefault()}>
                 <DeckGL
-                    ref={mapContainer}
+                    ref={mapContainerRef}
                     viewState={viewState} // Use internal view state ref for smooth rendering
                     controller={
                         {

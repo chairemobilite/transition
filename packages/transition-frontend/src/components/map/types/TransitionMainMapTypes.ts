@@ -8,7 +8,7 @@ import { MapCallbacks } from 'chaire-lib-frontend/lib/services/map/IMapEventHand
 
 export type MapEditTool = {
     getLayers: (args: {
-        viewState: { longitude: number; latitude: number; zoom: number; pitch: number; bearing: number };
+        //viewState: { longitude: number; latitude: number; zoom: number; pitch: number; bearing: number };
         activeSection: string;
         setIsDragging: (isDragging: boolean) => void;
         mapCallbacks: MapCallbacks;

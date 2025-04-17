@@ -42,7 +42,7 @@ export type ViewState = {
 
 export type TransitionMapLayerProps = {
     layerDescription: LayerDescription.MapLayer;
-    viewState: ViewState;
+    zoom: number;
     events?: { [evtName in layerEventNames]?: MapLayerEventHandlerDescriptor[] };
     activeSection: string;
     setIsDragging: (dragging: boolean) => void;
@@ -155,7 +155,7 @@ const getLayerFeatureFilter = (props: TransitionMapLayerProps, config: LayerDesc
     if (featureMinZoom !== undefined) {
         getFilterFcts.push(featureMinZoom);
         // Display the feature if the min zoom is less than the current zoom
-        filterRanges.push([0, Math.floor(props.viewState.zoom)]);
+        filterRanges.push([0, Math.floor(props.zoom)]);
     }
     if (config.canFilter === true) {
         getFilterFcts.push(props.filter !== undefined ? props.filter : (_feature) => 1);
@@ -185,13 +185,13 @@ const getCommonProperties = (
 ): { [layerProperty: string]: any } | undefined => {
     const layerProperties: any = {};
     const minZoom = config.minZoom === undefined ? undefined : layerNumberGetter(config.minZoom, undefined);
-    if (typeof minZoom === 'number' && props.viewState.zoom <= minZoom) {
+    if (typeof minZoom === 'number' && props.zoom <= minZoom) {
         return undefined;
     } else if (typeof minZoom === 'function') {
         console.log('Function for minZoom level not supported yet');
     }
     const maxZoom = config.maxZoom === undefined ? undefined : layerNumberGetter(config.maxZoom, undefined);
-    if (typeof maxZoom === 'number' && props.viewState.zoom >= maxZoom) {
+    if (typeof maxZoom === 'number' && props.zoom >= maxZoom) {
         return undefined;
     } else if (typeof maxZoom === 'function') {
         console.log('Function for maxZoom level not supported yet');
