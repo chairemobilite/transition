@@ -304,10 +304,10 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     }
 
     removeConsecutiveDuplicateNodes() {
-        const nodeIds = this.getAttributes().nodes;
-        const nodesTypes = this.getAttributes().data.nodeTypes;
-        const waypoints = this.getAttributes().data.waypoints;
-        const waypointTypes = this.getAttributes().data.waypointTypes;
+        const nodeIds = this.attributes.nodes;
+        const nodesTypes = this.attributes.data.nodeTypes;
+        const waypoints = this.attributes.data.waypoints;
+        const waypointTypes = this.attributes.data.waypointTypes;
 
         const nodesCount = nodeIds.length;
 
@@ -338,10 +338,10 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
      * @returns The updated path
      */
     insertNodeId(nodeId: string, insertIndex: number | null, nodeType = 'engine'): Promise<{ path: Path }> {
-        const nodeIds = this.getAttributes().nodes;
-        const nodeTypes = this.getAttributes().data.nodeTypes || [];
-        const waypointsByNodeIndex = this.getAttributes().data.waypoints || [];
-        const waypointTypesByNodeIndex = this.getAttributes().data.waypointTypes || [];
+        const nodeIds = this.attributes.nodes;
+        const nodeTypes = this.attributes.data.nodeTypes || [];
+        const waypointsByNodeIndex = this.attributes.data.waypoints || [];
+        const waypointTypesByNodeIndex = this.attributes.data.waypointTypes || [];
         if (insertIndex === undefined || insertIndex === null) {
             insertIndex = nodeIds.length;
             nodeIds.push(nodeId);
@@ -454,30 +454,30 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         let afterNodeWaypoints: [number, number][] = [];
         let afterNodeWaypointTypes: string[] = [];
         if (_isBlank(insertIndex) && !_isBlank(afterNodeIndex)) {
-            afterNodeWaypoints = this.getAttributes().data.waypoints[afterNodeIndex as number] || [];
-            afterNodeWaypointTypes = this.getAttributes().data.waypointTypes[afterNodeIndex as number] || [];
+            afterNodeWaypoints = this.attributes.data.waypoints[afterNodeIndex as number] || [];
+            afterNodeWaypointTypes = this.attributes.data.waypointTypes[afterNodeIndex as number] || [];
             afterNodeWaypoints.push(waypointCoordinates);
             afterNodeWaypointTypes.push(waypointType);
         } else if (!_isBlank(insertIndex) && !_isBlank(afterNodeIndex)) {
-            afterNodeWaypoints = this.getAttributes().data.waypoints[afterNodeIndex as number] || [];
-            afterNodeWaypointTypes = this.getAttributes().data.waypointTypes[afterNodeIndex as number] || [];
+            afterNodeWaypoints = this.attributes.data.waypoints[afterNodeIndex as number] || [];
+            afterNodeWaypointTypes = this.attributes.data.waypointTypes[afterNodeIndex as number] || [];
             afterNodeWaypoints.splice(insertIndex as number, 0, waypointCoordinates);
             afterNodeWaypointTypes.splice(insertIndex as number, 0, waypointType);
         } else if (this.attributes.geography === undefined) {
             // No geography, insert at the end, or don't insert if path is empty
-            if (this.getAttributes().nodes.length === 0) {
+            if (this.attributes.nodes.length === 0) {
                 return { path: this };
             }
-            afterNodeIndex = this.getAttributes().nodes.length - 1;
-            afterNodeWaypoints = this.getAttributes().data.waypoints[afterNodeIndex] || [];
-            afterNodeWaypointTypes = this.getAttributes().data.waypointTypes[afterNodeIndex] || [];
+            afterNodeIndex = this.attributes.nodes.length - 1;
+            afterNodeWaypoints = this.attributes.data.waypoints[afterNodeIndex] || [];
+            afterNodeWaypointTypes = this.attributes.data.waypointTypes[afterNodeIndex] || [];
             afterNodeWaypoints.push(waypointCoordinates);
             afterNodeWaypointTypes.push(waypointType);
         } else {
             // we need to determine where to put waypoint on path, if the point is close enough to the line, take this point
             // TODO Move the search of the best location out of this function and add the waypoint at the end of the path is indexes are not set instead
-            const waypointsByNodeIndex = this.getAttributes().data.waypoints;
-            const waypointTypesByNodeIndex = this.getAttributes().data.waypointTypes;
+            const waypointsByNodeIndex = this.attributes.data.waypoints;
+            const waypointTypesByNodeIndex = this.attributes.data.waypointTypes;
             const globalCoordinates = this.attributes.geography.coordinates;
             const segmentBeforeWaypoint = turfLineSlice(
                 turfHelpers.point(globalCoordinates[0]),
@@ -654,8 +654,8 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     */
     getCumulativeTimeForNodeIndex(nodeIndex: number): number | undefined {
         let tripTimeSoFar = 0;
-        const segments = this.getAttributes().data.segments || [];
-        const dwellTimes = this.getAttributes().data.dwellTimeSeconds || [];
+        const segments = this.attributes.data.segments || [];
+        const dwellTimes = this.attributes.data.dwellTimeSeconds || [];
 
         for (let i = 0; i < nodeIndex; i++) {
             const segment = segments[i];
@@ -678,7 +678,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     */
     getCumulativeDistanceForNodeIndex(nodeIndex: number): number | undefined {
         let tripDistanceSoFar = 0;
-        const segments = this.getAttributes().data.segments || [];
+        const segments = this.attributes.data.segments || [];
 
         for (let i = 0; i < nodeIndex; i++) {
             const segment = segments[i];
@@ -699,10 +699,10 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     getNodesDistancesFromPathWithNodesRoutingRadii(
         nodeCollection: NodeCollection | undefined = this._collectionManager?.get('nodes')
     ): { nodeId: string; distanceMeters: number; routingRadiusMeters: number }[] {
-        const nodeIds = this.getAttributes().nodes;
+        const nodeIds = this.attributes.nodes;
         const nodesCount = nodeIds.length;
-        const coordinates = this.getAttributes().geography?.coordinates;
-        const segments = this.getAttributes().segments;
+        const coordinates = this.attributes.geography?.coordinates;
+        const segments = this.attributes.segments;
         if (
             !nodeCollection ||
             !segments ||
@@ -966,7 +966,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     canRoute() {
         let canRoute = true;
         const errors: string[] = [];
-        const pathData = this.getAttributes().data;
+        const pathData = this.attributes.data;
 
         if (this.countNodes() < 2) {
             canRoute = false;
@@ -1050,12 +1050,12 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             canRoute = false;
             errors.push('transit:transitPath:errors:DefaultRunningSpeedIsTooHigh');
         }
-        const travelTimeWithoutDwellTimesSeconds = this.getAttributes().data.travelTimeWithoutDwellTimesSeconds;
-        const operatingSpeedMetersPerSecond = this.getAttributes().data.operatingSpeedMetersPerSecond;
-        const operatingTimeWithoutLayoverTimeSeconds = this.getAttributes().data.operatingTimeWithoutLayoverTimeSeconds;
+        const travelTimeWithoutDwellTimesSeconds = this.attributes.data.travelTimeWithoutDwellTimesSeconds;
+        const operatingSpeedMetersPerSecond = this.attributes.data.operatingSpeedMetersPerSecond;
+        const operatingTimeWithoutLayoverTimeSeconds = this.attributes.data.operatingTimeWithoutLayoverTimeSeconds;
         if (
-            this.getAttributes().nodes.length >= 2 &&
-            this.getAttributes().geography &&
+            this.attributes.nodes.length >= 2 &&
+            this.attributes.geography &&
             (!travelTimeWithoutDwellTimesSeconds ||
                 _isBlank(travelTimeWithoutDwellTimesSeconds) ||
                 isNaN(travelTimeWithoutDwellTimesSeconds) ||
@@ -1066,7 +1066,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
                 _isBlank(operatingTimeWithoutLayoverTimeSeconds) ||
                 isNaN(operatingTimeWithoutLayoverTimeSeconds))
         ) {
-            this.getAttributes().data.routingFailed = true;
+            this.attributes.data.routingFailed = true;
             canRoute = false;
         }
 
@@ -1078,7 +1078,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
 
     validate() {
         super.validate();
-        const data = this.getAttributes().data;
+        const data = this.attributes.data;
         const canRouteResults = this.canRoute();
         this._isValid = this._isValid && canRouteResults.canRoute;
         this._errors = canRouteResults.errors;
@@ -1227,7 +1227,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     }
 
     toString(showId = false) {
-        const attributes = this.getAttributes();
+        const attributes = this.attributes;
         const name = attributes.name;
         if (name) {
             return `${name}` + (showId ? ` ${attributes.id}` : '');
@@ -1253,7 +1253,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     getInterNodesDistances() {
         const interNodesDistances: number[] = [];
         if (this.isComplete()) {
-            this.getAttributes().data.segments?.forEach((segment) => {
+            this.attributes.data.segments?.forEach((segment) => {
                 if (segment && segment.distanceMeters) {
                     interNodesDistances.push(segment.distanceMeters);
                 }

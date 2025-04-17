@@ -36,7 +36,7 @@ class SimulationCollection extends GenericObjectCollection<Simulation> implement
 
     forCsv() {
         return this._features.map((service) => {
-            const attributes = service.getAttributes();
+            const attributes = service.attributes;
             return {
                 uuid: attributes.id,
                 shortname: attributes.shortname,

@@ -81,7 +81,7 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                     <span
                         className="_path-node-circle 1.9rem _strong"
                         style={{
-                            backgroundColor: node.getAttributes().color,
+                            backgroundColor: node.attributes.color,
                             textShadow: '0rem 0rem 0.2rem rgba(0,0,0,1.0),0rem 0rem 0.2rem rgba(0,0,0,1.0)', // double shadow for clear outline
                             paddingTop: '0.4rem',
                             color: 'rgba(255,255,255,1.0)',

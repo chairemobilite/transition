@@ -56,10 +56,10 @@ test('duplicate service', async () => {
     // Copy the service a first time
     const copy1 = await duplicateService(baseService, { socket: eventManager, serviceCollection });
 
-    expect(copy1.getAttributes().id).not.toEqual(baseService.getAttributes().id);
-    expect(copy1.getAttributes().name).not.toEqual(baseService.getAttributes().name);
+    expect(copy1.attributes.id).not.toEqual(baseService.attributes.id);
+    expect(copy1.attributes.name).not.toEqual(baseService.attributes.name);
     const expected = _omit(serviceAttributes1, ['id', 'name']);
-    const actual = _omit(copy1.getAttributes(), ['id', 'name']);
+    const actual = _omit(copy1.attributes, ['id', 'name']);
 
     expect(actual).toEqual(expected);
     expect(serviceSaveFct).toHaveBeenCalledTimes(1);
@@ -68,10 +68,10 @@ test('duplicate service', async () => {
     // Make a second copy to make sure it id added with a different acronym
     const copy2 = await duplicateService(baseService, { socket: eventManager, serviceCollection });
 
-    expect(copy2.getAttributes().id).not.toEqual(baseService.getAttributes().id);
-    expect(copy2.getAttributes().id).not.toEqual(copy1.getAttributes().id);
-    expect(copy2.getAttributes().name).not.toEqual(baseService.getAttributes().name);
-    expect(copy2.getAttributes().name).not.toEqual(copy1.getAttributes().name);
+    expect(copy2.attributes.id).not.toEqual(baseService.attributes.id);
+    expect(copy2.attributes.id).not.toEqual(copy1.attributes.id);
+    expect(copy2.attributes.name).not.toEqual(baseService.attributes.name);
+    expect(copy2.attributes.name).not.toEqual(copy1.attributes.name);
     expect(serviceSaveFct).toHaveBeenCalledTimes(2);
     expect(serviceCollection.size()).toEqual(3);
 
@@ -87,9 +87,9 @@ test('duplicate service with suffix', async () => {
     const suffix = 'suffix';
     const copy1 = await duplicateService(baseService, { socket: eventManager, serviceCollection, newServiceSuffix: suffix });
 
-    expect(copy1.getAttributes().id).not.toEqual(baseService.getAttributes().id);
-    expect(copy1.getAttributes().name).not.toEqual(baseService.getAttributes().name);
-    expect(copy1.getAttributes().name).toContain(suffix);
+    expect(copy1.attributes.id).not.toEqual(baseService.attributes.id);
+    expect(copy1.attributes.name).not.toEqual(baseService.attributes.name);
+    expect(copy1.attributes.name).toContain(suffix);
     
     expect(serviceSaveFct).toHaveBeenCalledTimes(1);
     expect(serviceCollection.size()).toEqual(2);
@@ -104,8 +104,8 @@ test('duplicate service no collection or suffix', async () => {
     // Copy the service a first time
     const copy1 = await duplicateService(baseService, { socket: eventManager });
 
-    expect(copy1.getAttributes().id).not.toEqual(baseService.getAttributes().id);
-    expect(copy1.getAttributes().name).toEqual(baseService.getAttributes().name);
+    expect(copy1.attributes.id).not.toEqual(baseService.attributes.id);
+    expect(copy1.attributes.name).toEqual(baseService.attributes.name);
     
     expect(serviceSaveFct).toHaveBeenCalledTimes(1);
     expect(serviceCollection.size()).toEqual(1);

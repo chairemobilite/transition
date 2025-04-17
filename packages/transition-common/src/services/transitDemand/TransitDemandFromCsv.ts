@@ -33,7 +33,7 @@ export abstract class TransitDemandFromCsv<T extends DemandCsvAttributes> extend
     validate(): boolean {
         this._isValid = true;
         this.errors = [];
-        const attributes = this.getAttributes();
+        const attributes = this.attributes;
         if (attributes.csvFile) {
             if (_isBlank(attributes.idAttribute)) {
                 this._isValid = false;

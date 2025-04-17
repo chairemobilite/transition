@@ -93,6 +93,9 @@ export class GenericObject<T extends GenericAttributes> {
         return newAttribs as T;
     }
 
+    /**
+     * @deprecated Use the .attributes accessor instead.
+     */
     getAttributes(): T {
         return this._attributes;
     }

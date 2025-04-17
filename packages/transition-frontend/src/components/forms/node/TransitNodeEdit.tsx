@@ -354,7 +354,7 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
                                 disabled={isFrozen}
                                 stringToValue={_toInteger}
                                 valueToString={_toString}
-                                value={node.getAttributes().default_dwell_time_seconds}
+                                value={node.attributes.default_dwell_time_seconds}
                                 key={`formFieldTransitNodeEditDefaultDwellTimeSeconds${nodeId}${this.resetChangesCount}`}
                                 onValueUpdated={(value) => this.onValueChange('default_dwell_time_seconds', value)}
                             />

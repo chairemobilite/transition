@@ -22,7 +22,7 @@ const getAgencyGtfsId = (agency: Agency): string => {
 };
 
 const objectToGtfs = (agency: Agency, includeCustomFields = false): GtfsAgency => {
-    const agencyAttributes = agency.getAttributes();
+    const agencyAttributes = agency.attributes;
     const gtfsFields: GtfsAgency = {
         agency_id: getAgencyGtfsId(agency), // slugified acronym or uuid, required
         agency_name: agencyAttributes.name || getAgencyGtfsId(agency), // required

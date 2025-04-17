@@ -23,7 +23,7 @@ for (let i = 0, countI = lineModesConfig.length; i < countI; i++) {
 const PreferencesSectionTransitLines: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
     props: PreferencesSectionProps & WithTranslation
 ) => {
-    const prefs = props.preferences.getAttributes();
+    const prefs = props.preferences.attributes;
 
     const lineModesDefaultValuesPrefs = lineModesArray.map((mode) => {
         return (

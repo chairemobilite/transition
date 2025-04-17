@@ -64,7 +64,7 @@ const serviceAttributes2: ServiceAttributes = {
 test('should construct new services', function() {
 
     const service1 = new Service(weekdayServiceAttributes, true);
-    expect(service1.getAttributes()).toEqual(weekdayServiceAttributes);
+    expect(service1.attributes).toEqual(weekdayServiceAttributes);
     expect(service1.isNew()).toBe(true);
 
     const service2 = new Service(serviceAttributes2, false);

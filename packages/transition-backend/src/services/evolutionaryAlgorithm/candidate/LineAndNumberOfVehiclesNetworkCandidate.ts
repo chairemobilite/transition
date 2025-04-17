@@ -165,7 +165,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
                   JSON.stringify(
                       this.chromosome.lines
                           .filter((line) => line === true)
-                          .map((line, i) => allLines[i].getAttributes().shortname)
+                          .map((line, i) => allLines[i].attributes.shortname)
                           .join('|')
                   ) +
                   ']'

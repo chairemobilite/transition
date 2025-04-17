@@ -60,7 +60,7 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
 
     validate(): boolean {
         this._isValid = true;
-        const routingModes = this.getAttributes().routingModes || [];
+        const routingModes = this.attributes.routingModes || [];
         const hasTransitRoutingMode = routingModes.includes('transit');
         this.errors = [];
         if (routingModes.length === 0) {
@@ -69,24 +69,24 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
         }
         if (
             hasTransitRoutingMode &&
-            _isBlank(this.getAttributes().odTripUuid) &&
-            _isBlank(this.getAttributes().departureTimeSecondsSinceMidnight) &&
-            _isBlank(this.getAttributes().arrivalTimeSecondsSinceMidnight)
+            _isBlank(this.attributes.odTripUuid) &&
+            _isBlank(this.attributes.departureTimeSecondsSinceMidnight) &&
+            _isBlank(this.attributes.arrivalTimeSecondsSinceMidnight)
         ) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:DepartureAndArrivalTimeAreBlank');
         }
         if (
             hasTransitRoutingMode &&
-            _isBlank(this.getAttributes().odTripUuid) &&
-            !_isBlank(this.getAttributes().departureTimeSecondsSinceMidnight) &&
-            !_isBlank(this.getAttributes().arrivalTimeSecondsSinceMidnight)
+            _isBlank(this.attributes.odTripUuid) &&
+            !_isBlank(this.attributes.departureTimeSecondsSinceMidnight) &&
+            !_isBlank(this.attributes.arrivalTimeSecondsSinceMidnight)
         ) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:DepartureAndArrivalTimeAreBothNotBlank');
         }
         if (hasTransitRoutingMode) {
-            const { valid: queryAttrValid, errors: queryAttrErrors } = validateTrQueryAttributes(this.getAttributes());
+            const { valid: queryAttrValid, errors: queryAttrErrors } = validateTrQueryAttributes(this.attributes);
             if (!queryAttrValid) {
                 this._isValid = false;
                 this.errors.push(...queryAttrErrors);
@@ -103,7 +103,7 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
                 : {
                     type: 'Feature',
                     id: 1,
-                    properties: { id: 1, color: this.getAttributes().originLocationColor, location: 'origin' },
+                    properties: { id: 1, color: this.attributes.originLocationColor, location: 'origin' },
                     geometry: { type: 'Point', coordinates: coordinates }
                 };
         if (updatePreferences) {
@@ -120,7 +120,7 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
                     id: 1,
                     properties: {
                         id: 2,
-                        color: this.getAttributes().destinationLocationColor,
+                        color: this.attributes.destinationLocationColor,
                         location: 'destination'
                     },
                     geometry: { type: 'Point', coordinates: coordinates }
@@ -131,20 +131,20 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
     }
 
     hasOrigin() {
-        return this.getAttributes().originGeojson !== undefined;
+        return this.attributes.originGeojson !== undefined;
     }
 
     hasDestination() {
-        return this.getAttributes().destinationGeojson !== undefined;
+        return this.attributes.destinationGeojson !== undefined;
     }
 
     originDestinationToGeojson(): GeoJSON.FeatureCollection<GeoJSON.Point> {
         const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
-        const origin = this.getAttributes().originGeojson;
+        const origin = this.attributes.originGeojson;
         if (origin) {
             features.push(origin);
         }
-        const destination = this.getAttributes().destinationGeojson;
+        const destination = this.attributes.destinationGeojson;
         if (destination) {
             features.push(destination);
         }
@@ -155,7 +155,7 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
     }
 
     originLat() {
-        const origin = this.getAttributes().originGeojson;
+        const origin = this.attributes.originGeojson;
         if (origin) {
             return origin.geometry.coordinates[1];
         }
@@ -163,7 +163,7 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
     }
 
     originLon() {
-        const origin = this.getAttributes().originGeojson;
+        const origin = this.attributes.originGeojson;
         if (origin) {
             return origin.geometry.coordinates[0];
         }
@@ -171,7 +171,7 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
     }
 
     destinationLat() {
-        const destination = this.getAttributes().destinationGeojson;
+        const destination = this.attributes.destinationGeojson;
         if (destination) {
             return destination.geometry.coordinates[1];
         }
@@ -179,7 +179,7 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
     }
 
     destinationLon() {
-        const destination = this.getAttributes().destinationGeojson;
+        const destination = this.attributes.destinationGeojson;
         if (destination) {
             return destination.geometry.coordinates[0];
         }
@@ -228,7 +228,7 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
     }
 
     toTripRoutingQueryAttributes = (): TripRoutingQueryAttributes => {
-        const attributes = validateAndCreateTripRoutingAttributes(this.getAttributes());
+        const attributes = validateAndCreateTripRoutingAttributes(this.attributes);
         attributes.timeSecondsSinceMidnight = !_isBlank(this.attributes.departureTimeSecondsSinceMidnight)
             ? (this.attributes.departureTimeSecondsSinceMidnight as number)
             : !_isBlank(this.attributes.arrivalTimeSecondsSinceMidnight)

@@ -33,7 +33,7 @@ beforeEach(() => {
 
 test('Test constructor', function() {
     const schedule1 = new Schedule(scheduleAttributes, true);
-    expect(schedule1.getAttributes()).toEqual(scheduleAttributes);
+    expect(schedule1.attributes).toEqual(scheduleAttributes);
     expect(schedule1.isNew()).toBe(true);
 
     const schedule2 = new Schedule(scheduleAttributes, false);
@@ -43,7 +43,7 @@ test('Test constructor', function() {
     const scheduleAttributesCopy = _omit(scheduleAttributes, ['periods', 'allow_seconds_based_schedules']);
     const expected = { ..._cloneDeep(scheduleAttributesCopy), periods: [], allow_seconds_based_schedules: false };
     const schedule3 = new Schedule(scheduleAttributesCopy, true);
-    expect(schedule3.getAttributes()).toEqual(expected);
+    expect(schedule3.attributes).toEqual(expected);
     expect(schedule3.isNew()).toBe(true);
 });
 
@@ -61,15 +61,15 @@ test('should validate', function() {
     expect(schedule.validate()).toBe(true);
 
     // Test no period group shortname
-    delete schedule.getAttributes().periods_group_shortname;
+    delete schedule.attributes.periods_group_shortname;
     expect(schedule.validate()).toBe(false);
     schedule.set('periods_group_shortname', scheduleAttributes.periods_group_shortname);
     expect(schedule.validate()).toBe(true);
 
     // Test period with both interval and unit count
-    schedule.getAttributes().periods[0].number_of_units = 4;
+    schedule.attributes.periods[0].number_of_units = 4;
     expect(schedule.validate()).toBe(false);
-    delete schedule.getAttributes().periods[0].interval_seconds;
+    delete schedule.attributes.periods[0].interval_seconds;
     expect(schedule.validate()).toBe(true);
 });
 
@@ -78,13 +78,13 @@ test('Save schedule', async () => {
     schedule.startEditing();
     await schedule.save(eventManager);
     expect(eventManager.emit).toHaveBeenCalledTimes(1);
-    expect(eventManager.emit).toHaveBeenCalledWith('transitSchedule.create', schedule.getAttributes(), expect.anything());
+    expect(eventManager.emit).toHaveBeenCalledWith('transitSchedule.create', schedule.attributes, expect.anything());
 
     // Update
     schedule.set('mode', 'train');
     await schedule.save(eventManager);
     expect(eventManager.emit).toHaveBeenCalledTimes(2);
-    expect(eventManager.emit).toHaveBeenCalledWith('transitSchedule.update', schedule.getId(), schedule.getAttributes(), expect.anything());
+    expect(eventManager.emit).toHaveBeenCalledWith('transitSchedule.update', schedule.getId(), schedule.attributes, expect.anything());
 });
 
 test('Delete schedule', async () => {
@@ -274,7 +274,7 @@ describe('generateForPeriod', () => {
         // Expected values
         const expectedTripCnt = 8;
         const expectedFirstDeparture = timeStrToSecondsSinceMidnight('10:00') as number;
-        const dwellTimes = path.getAttributes().data.dwellTimeSeconds as number[];
+        const dwellTimes = path.attributes.data.dwellTimeSeconds as number[];
         const expectedPathDuration = (path.attributes.data.segments as any[]).reduce((total, current) => total + current.travelTimeSeconds, 0) + dwellTimes.reduce((total, current) => total + current, 0) - dwellTimes[dwellTimes.length - 1];
 
         // Validate return value, and 0.6 vehicle
@@ -308,7 +308,7 @@ describe('generateForPeriod', () => {
         // Expected values
         const expectedTripCntPerDirection = 8;
         const expectedFirstDeparture = timeStrToSecondsSinceMidnight('10:00') as number;
-        const dwellTimes = path.getAttributes().data.dwellTimeSeconds as number[];
+        const dwellTimes = path.attributes.data.dwellTimeSeconds as number[];
         const expectedPathDuration = (path.attributes.data.segments as any[]).reduce((total, current) => total + current.travelTimeSeconds, 0) + dwellTimes.reduce((total, current) => total + current, 0) - dwellTimes[dwellTimes.length - 1];
 
         // Validate return value and 1.2 vehicles
@@ -371,7 +371,7 @@ describe('generateForPeriod', () => {
 
         // Expected values
         const expectedFirstDeparture = timeStrToSecondsSinceMidnight('10:00') as number;
-        const dwellTimes = path.getAttributes().data.dwellTimeSeconds as number[];
+        const dwellTimes = path.attributes.data.dwellTimeSeconds as number[];
         const expectedPathDuration = (path.attributes.data.segments as any[]).reduce((total, current) => total + current.travelTimeSeconds, 0) + dwellTimes.reduce((total, current) => total + current, 0) - dwellTimes[dwellTimes.length - 1];
         const expectedFrequency = path.attributes.data.operatingTimeWithLayoverTimeSeconds as number;
         const expectedTripCntPerDirection = Math.ceil(2 * 3600 / expectedFrequency);
@@ -426,7 +426,7 @@ describe('generateForPeriod', () => {
         // Expected values
         const expectedTripCntPerDirection = 9;
         const expectedFirstDeparture = timeStrToSecondsSinceMidnight('10:00') as number;
-        const dwellTimes = path.getAttributes().data.dwellTimeSeconds as number[];
+        const dwellTimes = path.attributes.data.dwellTimeSeconds as number[];
         const expectedPathDuration = (path.attributes.data.segments as any[]).reduce((total, current) => total + current.travelTimeSeconds, 0) + dwellTimes.reduce((total, current) => total + current, 0) - dwellTimes[dwellTimes.length - 1];
 
         // Validate return value and 1.2 vehicles
@@ -870,10 +870,10 @@ describe('AsymmetricScheduleStrategy', () => {
     
             mockPath = {
                 getData: jest.fn(() => [60, 90, 120]),
-                getAttributes: jest.fn(() => ({
+                attributes: {
                     data: { segments: [] },
                     nodes: ['a', 'b', 'c']
-                }))
+                }
             };
     
             mockUnits = [{
@@ -1477,18 +1477,16 @@ describe('AsymmetricScheduleStrategy', () => {
     describe('AsymmetricScheduleStrategy generateTripsWithFixedUnits', () => {
 
         const createMockPath = (direction: 'outbound' | 'inbound') => ({
-            getAttributes: () => ({
+            getData: (key: string) => key === 'dwellTimeSeconds' ? [5, 5] : undefined,
+            get: (key: string) => key === 'id' ? `mock-${direction}-id` : undefined,
+            getId: () => `mock-${direction}-id`,
+            getLine: () => ({ shortname: `${direction}-line` }),
+            attributes: {
+                line_id: `${direction}-line-id`,
                 data: {
                     segments: [{ travelTimeSeconds: 10 }]
                 },
                 nodes: [`${direction}-node1`, `${direction}-node2`]
-            }),
-            getData: (key: string) => key === 'dwellTimeSeconds' ? [5, 5] : undefined,
-            get: (key: string) => key === 'id' ? `mock-${direction}-id` : undefined,
-            getId: () => `mock-${direction}-id`,
-            getLine: () => ({ getAttributes: () => ({ shortname: `${direction}-line` }) }),
-            attributes: {
-                line_id: `${direction}-line-id`
             }
         });
 

@@ -158,7 +158,7 @@ class SimulationEdit extends SaveableObjectForm<Simulation, SimulationFormProps,
                             <InputText
                                 id={`formFieldTransitSimulationEditDescription${simulationId}`}
                                 disabled={isFrozen}
-                                value={simulation.getAttributes().description}
+                                value={simulation.attributes.description}
                                 onValueChange={(e) => this.onValueChange('description', { value: e.target.value })}
                             />
                         </div>

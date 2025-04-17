@@ -84,7 +84,7 @@ test('should construct scenario collection with or without features', function()
     expect(odTripCollectionEmpty.size()).toBe(0);
     expect(odTripCollectionEmpty.getFeatures()[0]).toBeUndefined();
 
-    expect(odTripCollection3.forJson()[2]).toEqual(odTrip3.getAttributes());
+    expect(odTripCollection3.forJson()[2]).toEqual(odTrip3.attributes);
     expect(odTripCollection3.forCsv()[2]).toEqual({
         id: odTripAttributes3.id,
         routingName: odTripAttributes3.internal_id,

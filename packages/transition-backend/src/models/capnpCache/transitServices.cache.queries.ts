@@ -27,7 +27,7 @@ const collectionToCache = function (collection: ServiceCollection, cachePathDire
         CacheCollection,
         CollectionClass: ServiceCollection,
         capnpParser: function (object: Service, cacheObject: CacheObject) {
-            const attributes = object.getAttributes();
+            const attributes = object.attributes;
 
             cacheObject.setUuid(attributes.id);
             cacheObject.setName(attributes.name || '');

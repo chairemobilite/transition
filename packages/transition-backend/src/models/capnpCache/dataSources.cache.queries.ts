@@ -28,7 +28,7 @@ const collectionToCache = function (collection: DataSourceCollection, cachePathD
         CacheCollection,
         CollectionClass: DataSourceCollection,
         capnpParser: function (object: DataSource, cacheObject: CacheObject) {
-            const attributes = object.getAttributes();
+            const attributes = object.attributes;
 
             cacheObject.setUuid(attributes.id);
             cacheObject.setType(Object.values(DataSource_Type).indexOf(_snakeCase(attributes.type).toUpperCase()));

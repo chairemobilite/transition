@@ -68,7 +68,7 @@ const scenarioAttributes3= {
 test('should construct new scenarios', function() {
 
     const scenario1 = new Scenario(scenarioAttributes1, true);
-    expect(scenario1.getAttributes()).toEqual(scenarioAttributes1);
+    expect(scenario1.attributes).toEqual(scenarioAttributes1);
     expect(scenario1.isNew()).toBe(true);
 
     const scenario2 = new Scenario(scenarioAttributes2, false);

@@ -52,7 +52,7 @@ const stubAlgorithm = new SimulationAlgorithmDescriptorStub();
 test('should construct new simulations', function() {
 
     const simulation1 = new Simulation(simulationAttributes1, true);
-    expect(simulation1.getAttributes()).toEqual({
+    expect(simulation1.attributes).toEqual({
         ...simulationAttributes1,
         isEnabled: true,
         is_frozen: false

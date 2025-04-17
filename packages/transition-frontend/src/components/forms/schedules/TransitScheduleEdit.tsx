@@ -204,7 +204,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                 outboundPathsChoices.push({
                     value: path.getId(),
                     label: `${path.toString(false)} (${this.props.t(
-                        'transit:transitPath:directions:' + path.getAttributes().direction
+                        'transit:transitPath:directions:' + path.attributes.direction
                     )})`
                 });
             } else if (path.get('direction') === 'inbound') {
@@ -212,7 +212,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                 inboundPathsChoices.push({
                     value: path.getId(),
                     label: `${path.toString(false)} (${this.props.t(
-                        'transit:transitPath:directions:' + path.getAttributes().direction
+                        'transit:transitPath:directions:' + path.attributes.direction
                     )})`
                 });
             }

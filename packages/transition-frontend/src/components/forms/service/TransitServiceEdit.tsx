@@ -113,7 +113,7 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
         if (servicesToMerge.length > 0) {
             const name =
                 this.props.t('transit:transitService:MergeName') +
-                servicesToMerge.map((s) => (s.getAttributes().name || '').substring(0, 10)).join(', ');
+                servicesToMerge.map((s) => (s.attributes.name || '').substring(0, 10)).join(', ');
             this.props.service.set('name', name);
         }
 
@@ -242,7 +242,7 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
                             <InputString
                                 id={`formFieldTransitServiceEditName${serviceId}`}
                                 disabled={isFrozen}
-                                value={service.getAttributes().name}
+                                value={service.attributes.name}
                                 onValueUpdated={(value) => this.onValueChange('name', value)}
                             />
                         </div>
@@ -261,8 +261,8 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
                                 id={`formFieldTransitServiceEditStartDate${serviceId}`}
                                 onChange={(start, end) => this.onValidityPeriodChange(start, end)}
                                 dateFormat="YYYY-MM-DD"
-                                startDate={service.getAttributes().start_date}
-                                endDate={service.getAttributes().end_date}
+                                startDate={service.attributes.start_date}
+                                endDate={service.attributes.end_date}
                                 language={this.props.i18n.language}
                                 disabled={isFrozen}
                             />
@@ -272,7 +272,7 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
                                 <label>{this.props.t('transit:transitService:Color')}</label>
                                 <InputColor
                                     id={`formFieldTransitServiceEditColor${serviceId}`}
-                                    value={service.getAttributes().color}
+                                    value={service.attributes.color}
                                     onValueChange={(e) => this.onValueChange('color', { value: e.target.value })}
                                     defaultColor={Preferences.get('transit.agencies.defaultColor', '#0086FF')}
                                 />
@@ -305,7 +305,7 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
                             <InputText
                                 id={`formFieldTransitServiceEditDescription${serviceId}`}
                                 disabled={isFrozen}
-                                value={service.getAttributes().description}
+                                value={service.attributes.description}
                                 onValueChange={(e) => this.onValueChange('description', { value: e.target.value })}
                             />
                         </div>

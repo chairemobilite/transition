@@ -201,7 +201,7 @@ class TransitNodeCollectionEdit extends React.Component<
         }
 
         const node = this.props.nodes[0];
-        const isFrozen = node.getAttributes().is_frozen || false;
+        const isFrozen = node.attributes.is_frozen || false;
         const nodeId = node.getId();
         const hasPaths = node.hasPaths();
         const isContainSelectedFrozenNodes =

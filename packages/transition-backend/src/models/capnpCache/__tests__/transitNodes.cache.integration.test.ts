@@ -150,7 +150,7 @@ each([
         const newObject = await cacheQueries.objectFromCache(node.getId());
 
         expect(newObject).toBeDefined();
-        expect(getNonNullObject((newObject as ObjectClass).getAttributes())).toEqual(getNonNullObject(node.getAttributes()));
+        expect(getNonNullObject((newObject as ObjectClass).attributes)).toEqual(getNonNullObject(node.attributes));
 
         // Delete the object
         Preferences.set("json2Capnp.enabled", writePreference);
@@ -189,7 +189,7 @@ each([
         const promises = nodes.map(async obj => await cacheQueries.objectFromCache(obj.getId()));
         const newObjects = await Promise.all(promises);
 
-        expect(newObjects.map(newObj => getNonNullObject((newObj as ObjectClass).getAttributes()))).toEqual(nodes.map(obj => getNonNullObject(obj.getAttributes())));
+        expect(newObjects.map(newObj => getNonNullObject((newObj as ObjectClass).attributes))).toEqual(nodes.map(obj => getNonNullObject(obj.attributes)));
 
         // Delete the object
         Preferences.set("json2Capnp.enabled", writePreference);

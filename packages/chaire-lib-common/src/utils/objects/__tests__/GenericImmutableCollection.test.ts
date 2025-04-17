@@ -13,7 +13,7 @@ import CollectionManager from '../CollectionManager';
 
 class GenericImmutableCollectionImpl extends GenericImmutableCollection<GenericObject<GenericAttributes>> {
     protected getFeatureId(feature: GenericObject<GenericAttributes>): string {
-        return feature.getAttributes().id;
+        return feature.attributes.id;
     }
 }
 
@@ -66,7 +66,7 @@ test('test collection attributes', function() {
     };
     const immCollection = new GenericImmutableCollectionImpl([], attributes);
 
-    expect(immCollection.getAttributes()).toEqual(attributes);
+    expect(immCollection.attributes).toEqual(attributes);
 
 });
 
@@ -77,10 +77,10 @@ test('test constructor with features', function() {
     expect(immCollection.size()).toBe(2);
     expect(immCollection.length).toBe(2);
     expect(immCollection.getFeatures().length).toBe(2);
-    expect(immCollection.getFeatures()[0]?.getAttributes()).toEqual(originalAttribs1);
-    expect(immCollection.getFeatures()[1]?.getAttributes()).toEqual(originalAttribs2);
-    expect(immCollection.getFeatures()[2]?.getAttributes()).toBeUndefined();
-    expect(immCollection.getById(originalAttribs2.id)?.getAttributes()).toEqual(originalAttribs2);
+    expect(immCollection.getFeatures()[0]?.attributes).toEqual(originalAttribs1);
+    expect(immCollection.getFeatures()[1]?.attributes).toEqual(originalAttribs2);
+    expect(immCollection.getFeatures()[2]?.attributes).toBeUndefined();
+    expect(immCollection.getById(originalAttribs2.id)?.attributes).toEqual(originalAttribs2);
     expect(immCollection.getById(uuidV4())).toBeUndefined();
     expect(immCollection.getIds()).toEqual([originalAttribs1.id, originalAttribs2.id]);
     expect(immCollection.getIndex(uuidV4())).toBeUndefined();
@@ -89,8 +89,8 @@ test('test constructor with features', function() {
 
     // Test the features getter
     expect(immCollection.features.length).toBe(2);
-    expect(immCollection.features[0]?.getAttributes()).toEqual(originalAttribs1);
-    expect(immCollection.features[1]?.getAttributes()).toEqual(originalAttribs2);
-    expect(immCollection.features[2]?.getAttributes()).toBeUndefined();
+    expect(immCollection.features[0]?.attributes).toEqual(originalAttribs1);
+    expect(immCollection.features[1]?.attributes).toEqual(originalAttribs2);
+    expect(immCollection.features[2]?.attributes).toBeUndefined();
 
 });

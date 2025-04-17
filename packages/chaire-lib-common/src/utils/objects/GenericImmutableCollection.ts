@@ -35,6 +35,10 @@ export default abstract class GenericImmutableCollection<F> {
         return this._features;
     }
 
+    get attributes(): { [key: string]: unknown } {
+        return this._attributes;
+    }
+
     size(): number {
         return this._features.length;
     }
@@ -90,6 +94,9 @@ export default abstract class GenericImmutableCollection<F> {
         return this.getIndex(featureId);
     }
 
+    /**
+     * @deprecated Use the .attributes accessor instead.
+     */
     getAttributes(): { [key: string]: unknown } {
         return this._attributes;
     }

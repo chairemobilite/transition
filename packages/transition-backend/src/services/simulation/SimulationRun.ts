@@ -136,7 +136,7 @@ export default class SimulationRunBackend extends SimulationRun {
     public getCacheDirectoryPath(): string {
         return this.attributes.options.cachePathDirectory
             ? `simulations/${this.attributes.options.cachePathDirectory}`
-            : `simulations/sim_${this.getAttributes().simulation_id}/${this.toString()}`;
+            : `simulations/sim_${this.attributes.simulation_id}/${this.toString()}`;
     }
 
     public getProjectRelativeCacheDirectoryPath(): string {

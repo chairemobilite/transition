@@ -58,26 +58,26 @@ test('duplicate simple agency', async () => {
     // Copy the agency a first time
     const copy1 = await duplicateAgency(baseAgency, { socket: eventManager });
 
-    expect(copy1.getAttributes().id).not.toEqual(baseAgency.getAttributes().id);
-    expect(copy1.getAttributes().acronym).not.toEqual(baseAgency.getAttributes().acronym);
-    expect(copy1.getAttributes().name).toEqual(baseAgency.getAttributes().name);
-    expect(copy1.getAttributes().data).toEqual(_omit(baseAgency.getAttributes().data, 'gtfs'));
-    expect(copy1.getAttributes().garage_ids).toEqual([]);
-    expect(copy1.getAttributes().unit_ids).toEqual([]);
+    expect(copy1.attributes.id).not.toEqual(baseAgency.attributes.id);
+    expect(copy1.attributes.acronym).not.toEqual(baseAgency.attributes.acronym);
+    expect(copy1.attributes.name).toEqual(baseAgency.attributes.name);
+    expect(copy1.attributes.data).toEqual(_omit(baseAgency.attributes.data, 'gtfs'));
+    expect(copy1.attributes.garage_ids).toEqual([]);
+    expect(copy1.attributes.unit_ids).toEqual([]);
     expect(agencySaveFct).toHaveBeenCalledTimes(2);
     expect(agencyCollection.size()).toEqual(2);
     
     // Make a second copy to make sure it id added with a different acronym
     const copy2 = await duplicateAgency(baseAgency, { socket: eventManager });
 
-    expect(copy2.getAttributes().id).not.toEqual(baseAgency.getAttributes().id);
-    expect(copy2.getAttributes().id).not.toEqual(copy1.getAttributes().id);
-    expect(copy2.getAttributes().acronym).not.toEqual(baseAgency.getAttributes().acronym);
-    expect(copy2.getAttributes().acronym).not.toEqual(copy1.getAttributes().acronym);
-    expect(copy2.getAttributes().name).toEqual(baseAgency.getAttributes().name);
-    expect(copy2.getAttributes().data).toEqual(_omit(baseAgency.getAttributes().data, 'gtfs'));
-    expect(copy1.getAttributes().garage_ids).toEqual([]);
-    expect(copy1.getAttributes().unit_ids).toEqual([]);
+    expect(copy2.attributes.id).not.toEqual(baseAgency.attributes.id);
+    expect(copy2.attributes.id).not.toEqual(copy1.attributes.id);
+    expect(copy2.attributes.acronym).not.toEqual(baseAgency.attributes.acronym);
+    expect(copy2.attributes.acronym).not.toEqual(copy1.attributes.acronym);
+    expect(copy2.attributes.name).toEqual(baseAgency.attributes.name);
+    expect(copy2.attributes.data).toEqual(_omit(baseAgency.attributes.data, 'gtfs'));
+    expect(copy1.attributes.garage_ids).toEqual([]);
+    expect(copy1.attributes.unit_ids).toEqual([]);
     expect(agencySaveFct).toHaveBeenCalledTimes(4);
     expect(agencyCollection.size()).toEqual(3);
 
@@ -98,11 +98,11 @@ test('duplicate simple agency with params', async () => {
         newName: newAgencyName
     });
 
-    expect(copy.getAttributes().id).not.toEqual(baseAgency.getAttributes().id);
-    expect(copy.getAttributes().acronym).toEqual(newAcronym);
-    expect(copy.getAttributes().name).toEqual(newAgencyName);
-    expect(copy.getAttributes().garage_ids).toEqual([]);
-    expect(copy.getAttributes().unit_ids).toEqual([]);
+    expect(copy.attributes.id).not.toEqual(baseAgency.attributes.id);
+    expect(copy.attributes.acronym).toEqual(newAcronym);
+    expect(copy.attributes.name).toEqual(newAgencyName);
+    expect(copy.attributes.garage_ids).toEqual([]);
+    expect(copy.attributes.unit_ids).toEqual([]);
     expect(agencySaveFct).toHaveBeenCalledTimes(2);
 });
 

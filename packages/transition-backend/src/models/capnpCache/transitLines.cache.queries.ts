@@ -139,7 +139,7 @@ const importParser = function (cacheObject: CacheObjectClass) {
 };
 
 const exportParser = function (object: Line, cacheObject: CacheObjectClass) {
-    const attributes = object.getAttributes();
+    const attributes = object.attributes;
 
     const schedules: ScheduleAttributes[] = [];
     for (const serviceId in attributes.scheduleByServiceId) {
@@ -298,12 +298,12 @@ const collectionToCache = function (collection, cachePathDirectory?: string) {
         CollectionClass: LineCollection,
         CacheCollection,
         parser: function (object: Line) {
-            const attributes = object.getAttributes();
+            const attributes = object.attributes;
 
             return attributes;
         },
         capnpParser: function (object: Line, cacheObject: CacheObjectClass) {
-            const attributes = object.getAttributes();
+            const attributes = object.attributes;
 
             cacheObject.setUuid(attributes.id);
             cacheObject.setMode(attributes.mode || '');

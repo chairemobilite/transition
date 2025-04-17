@@ -194,12 +194,9 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
                 accessMapRouting.attributes.locationGeojson = turfPoint(place.geography.coordinates);
                 accessMapRouting.attributes.departureTimeSecondsSinceMidnight = randomDepartureTime;
                 try {
-                    const { result } = await TransitAccessibilityMapCalculator.calculate(
-                        accessMapRouting.getAttributes(),
-                        {
-                            port: options.trRoutingPort
-                        }
-                    );
+                    const { result } = await TransitAccessibilityMapCalculator.calculate(accessMapRouting.attributes, {
+                        port: options.trRoutingPort
+                    });
 
                     const nodeStats = result.getAccessibilityStatsForDuration(
                         options.transitRoutingParameters.maxTotalTravelTimeSeconds || 3600,

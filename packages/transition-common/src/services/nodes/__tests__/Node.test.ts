@@ -39,11 +39,11 @@ const nodeAttributes2= {
 test('should construct new nodes', function() {
 
     const node1 = new Node(nodeAttributes1, true);
-    expect(node1.getAttributes()).toEqual({ ...nodeAttributes1, data: { ...nodeAttributes1.data, routingRadiusPixelsAtMaxZoom: expect.anything() } });
+    expect(node1.attributes).toEqual({ ...nodeAttributes1, data: { ...nodeAttributes1.data, routingRadiusPixelsAtMaxZoom: expect.anything() } });
     expect(node1.isNew()).toBe(true);
 
     const node2 = new Node(nodeAttributes2, false);
-    expect(node2.getAttributes()).toEqual({ ...nodeAttributes2, routing_radius_meters: 50, default_dwell_time_seconds: 20, data: { routingRadiusPixelsAtMaxZoom: expect.anything() }});
+    expect(node2.attributes).toEqual({ ...nodeAttributes2, routing_radius_meters: 50, default_dwell_time_seconds: 20, data: { routingRadiusPixelsAtMaxZoom: expect.anything() }});
     expect(node2.isNew()).toBe(false);
 
 });
@@ -110,25 +110,25 @@ describe('Manage stops in node', () => {
         const node = new Node(nodeAttributesCopy, true);
 
         // At the beginning, there are not stops
-        expect(node.getAttributes().data.stops).toBeUndefined();
+        expect(node.attributes.data.stops).toBeUndefined();
 
         // Add the data from stop1 2 times, there should be one stop at the end
         node.addStop(stop1);
-        expect(node.getAttributes().data.stops?.length).toEqual(1);
-        expect((node.getAttributes().data.stops as any)[0]).toEqual(stop1);
+        expect(node.attributes.data.stops?.length).toEqual(1);
+        expect((node.attributes.data.stops as any)[0]).toEqual(stop1);
 
         node.addStop(stop1);
-        expect(node.getAttributes().data.stops?.length).toEqual(1);
+        expect(node.attributes.data.stops?.length).toEqual(1);
 
         // Add the data from stop2
         node.addStop(stop2);
-        expect(node.getAttributes().data.stops?.length).toEqual(2);
-        expect((node.getAttributes().data.stops as any)[0]).toEqual(stop1);
-        expect((node.getAttributes().data.stops as any)[1]).toEqual(stop2);
+        expect(node.attributes.data.stops?.length).toEqual(2);
+        expect((node.attributes.data.stops as any)[0]).toEqual(stop1);
+        expect((node.attributes.data.stops as any)[1]).toEqual(stop2);
 
         // Node's final attributes after stop additions
         expect(node.toGeojson().geometry).toEqual(nodeAttributesCopy.geography);
-        expect(node.getAttributes().routing_radius_meters).toEqual(Math.ceil(Math.max(distanceFromStop1, distanceFromStop2)));
+        expect(node.attributes.routing_radius_meters).toEqual(Math.ceil(Math.max(distanceFromStop1, distanceFromStop2)));
     });
 
     test('Update stops', () => {
@@ -136,51 +136,51 @@ describe('Manage stops in node', () => {
 
         // Add the data from stop1, then update that same stop
         node.addStop(stop1);
-        expect(node.getAttributes().data.stops?.length).toEqual(1);
-        expect((node.getAttributes().data.stops as any)[0]).toEqual(stop1);
+        expect(node.attributes.data.stops?.length).toEqual(1);
+        expect((node.attributes.data.stops as any)[0]).toEqual(stop1);
 
         const modifiedStop1 = Object.assign({}, stop1);
         modifiedStop1.data = {
             something: 'abcdef'
         }
         node.addStop(modifiedStop1);
-        expect(node.getAttributes().data.stops?.length).toEqual(1);
-        expect((node.getAttributes().data.stops as any)[0]).toEqual(modifiedStop1);
+        expect(node.attributes.data.stops?.length).toEqual(1);
+        expect((node.attributes.data.stops as any)[0]).toEqual(modifiedStop1);
 
         // Modify the ID, but keep all the same
         modifiedStop1.id = uuidV4();
         node.addStop(modifiedStop1, { updateCentroid: false });
-        expect(node.getAttributes().data.stops?.length).toEqual(1);
-        expect((node.getAttributes().data.stops as any)[0]).toEqual(modifiedStop1);
+        expect(node.attributes.data.stops?.length).toEqual(1);
+        expect((node.attributes.data.stops as any)[0]).toEqual(modifiedStop1);
 
         // Node's final attributes after stop additions, only one stop is there and the distance is smaller than radius
         expect(node.toGeojson().geometry).toEqual(nodeAttributesCopy.geography);
-        expect(node.getAttributes().routing_radius_meters).toEqual(nodeAttributesCopy.routing_radius_meters);
+        expect(node.attributes.routing_radius_meters).toEqual(nodeAttributesCopy.routing_radius_meters);
     });
 
     test('Add stops and update centroid', () => {
         const node = new Node(nodeAttributesCopy, true);
 
         // At the beginning, there are not stops
-        expect(node.getAttributes().data.stops).toBeUndefined();
+        expect(node.attributes.data.stops).toBeUndefined();
 
         // Add the data from stop1 2 times, there should be one stop at the end
         node.addStop(stop1, { updateCentroid: true });
-        expect(node.getAttributes().data.stops?.length).toEqual(1);
-        expect((node.getAttributes().data.stops as any)[0]).toEqual(stop1);
+        expect(node.attributes.data.stops?.length).toEqual(1);
+        expect((node.attributes.data.stops as any)[0]).toEqual(stop1);
 
         node.addStop(stop1, { updateCentroid: true });
-        expect(node.getAttributes().data.stops?.length).toEqual(1);
+        expect(node.attributes.data.stops?.length).toEqual(1);
 
         // Add the data from stop2
         node.addStop(stop2, { updateCentroid: true });
-        expect(node.getAttributes().data.stops?.length).toEqual(2);
-        expect((node.getAttributes().data.stops as any)[0]).toEqual(stop1);
-        expect((node.getAttributes().data.stops as any)[1]).toEqual(stop2);
+        expect(node.attributes.data.stops?.length).toEqual(2);
+        expect((node.attributes.data.stops as any)[0]).toEqual(stop1);
+        expect((node.attributes.data.stops as any)[1]).toEqual(stop2);
 
         // Node's final attributes after stop additions. The centroid should have been updated so stops are within current radius
         expect(node.toGeojson().geometry).not.toEqual(nodeAttributesCopy.geography);
-        expect(node.getAttributes().routing_radius_meters).toEqual(nodeAttributesCopy.routing_radius_meters);
+        expect(node.attributes.routing_radius_meters).toEqual(nodeAttributesCopy.routing_radius_meters);
     });
 
     test('Remove stops', () => {
@@ -188,13 +188,13 @@ describe('Manage stops in node', () => {
 
         // Add the data from stop1, then remove
         node.addStop(stop1);
-        expect(node.getAttributes().data.stops?.length).toEqual(1);
-        expect((node.getAttributes().data.stops as any)[0]).toEqual(stop1);
+        expect(node.attributes.data.stops?.length).toEqual(1);
+        expect((node.attributes.data.stops as any)[0]).toEqual(stop1);
 
         node.removeStop('arbitrary');
-        expect(node.getAttributes().data.stops?.length).toEqual(1);
+        expect(node.attributes.data.stops?.length).toEqual(1);
         node.removeStop(stop1.id);
-        expect(node.getAttributes().data.stops?.length).toEqual(0);
+        expect(node.attributes.data.stops?.length).toEqual(0);
     });
 
     test('Get stop', () => {

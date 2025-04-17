@@ -75,7 +75,7 @@ export const onTransitPathsMouseEnter = (e: MapboxGL.MapLayerMouseEvent) => {
         hoverPath(
             path.getId(),
             e.lngLat.toArray() as [number, number],
-            `${line ? line.toString() : ''} • ${path.toString(false)} (${path.getAttributes().direction})`
+            `${line ? line.toString() : ''} • ${path.toString(false)} (${path.attributes.direction})`
         );
 
         e.originalEvent.stopPropagation();

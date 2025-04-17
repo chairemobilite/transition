@@ -22,7 +22,7 @@ const hoverNode = (node: Node, nodeTitle = node.toString(false)) => {
     if (serviceLocator && serviceLocator.keyboardManager && serviceLocator.keyboardManager.keyIsPressed('alt')) {
         popup.setHTML(
             `<p>${nodeTitle}<br />${nodeId}${
-                node.getAttributes().data.weight ? `<br />w${Math.round(node.getAttributes().data.weight)}` : ''
+                node.attributes.data.weight ? `<br />w${Math.round(node.attributes.data.weight)}` : ''
             }</p>`
         );
     } else {

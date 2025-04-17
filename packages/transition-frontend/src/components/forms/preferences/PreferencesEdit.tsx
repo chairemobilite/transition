@@ -66,7 +66,7 @@ class PreferencesPanel extends SaveableObjectForm<PreferencesClass, PreferencesP
 
     onDeselect() {
         serviceLocator.eventManager.off('selected.deselect.preferences', this.onDeselect); // adding this to componentWillUnmount triggers an infinite deselect loop
-        serviceLocator.eventManager.emit('section.change', preferences.getAttributes().defaultSection);
+        serviceLocator.eventManager.emit('section.change', preferences.attributes.defaultSection);
     }
 
     resetPrefToDefault(path) {

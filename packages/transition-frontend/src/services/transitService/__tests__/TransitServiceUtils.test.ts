@@ -170,9 +170,9 @@ test('Can Merge', () => {
 test('Merge services with conflict', async () => {
     // TODO Stub those objects when they are in typescript
     // TODO Generic collection
-    const testServiceWeekday = new Service(serviceWeekday.getAttributes(), false);
-    const testServiceExtended = new Service(extendedWeekday.getAttributes(), false);
-    const testServiceWeekend = new Service(serviceWeekend.getAttributes(), false);
+    const testServiceWeekday = new Service(serviceWeekday.attributes, false);
+    const testServiceExtended = new Service(extendedWeekday.attributes, false);
+    const testServiceWeekend = new Service(serviceWeekend.attributes, false);
     jest.spyOn(testServiceWeekday, 'delete').mockResolvedValue(Status.createOk({ id: serviceWeekday.id }));
     jest.spyOn(testServiceExtended, 'delete').mockResolvedValue(Status.createOk({ id: extendedWeekday.id }));
     jest.spyOn(testServiceWeekend, 'delete').mockResolvedValue(Status.createOk({ id: serviceWeekend.id }));
@@ -278,9 +278,9 @@ test('Merge services no conflict', async () => {
     // Same as previous test, but without the conflicting line 4
     // TODO Stub those objects when they are in typescript
     // TODO Generic collection
-    const testServiceWeekday = new Service(serviceWeekday.getAttributes(), false);
-    const testServiceExtended = new Service(extendedWeekday.getAttributes(), false);
-    const testServiceWeekend = new Service(serviceWeekend.getAttributes(), false);
+    const testServiceWeekday = new Service(serviceWeekday.attributes, false);
+    const testServiceExtended = new Service(extendedWeekday.attributes, false);
+    const testServiceWeekend = new Service(serviceWeekend.attributes, false);
     jest.spyOn(testServiceWeekday, 'delete').mockResolvedValue(Status.createOk({ id: serviceWeekday.id }));
     jest.spyOn(testServiceExtended, 'delete').mockResolvedValue(Status.createOk({ id: extendedWeekday.id }));
     jest.spyOn(testServiceWeekend, 'delete').mockResolvedValue(Status.createOk({ id: serviceWeekend.id }));

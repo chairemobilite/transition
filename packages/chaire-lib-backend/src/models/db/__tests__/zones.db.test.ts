@@ -141,9 +141,9 @@ describe(`${objectName}`, () => {
         delete collection[1].attributes.updated_at;
         // Objects are sorted by shortname, so object 2 will be first
         expect(collection[0].attributes.id).toBe(_newObjectAttributes2.id);
-        expect(collection[0].attributes).toEqual(new ObjectClass(_newObjectAttributes2, false).getAttributes());
+        expect(collection[0].attributes).toEqual(new ObjectClass(_newObjectAttributes2, false).attributes);
         expect(collection[1].attributes.id).toBe(_newObjectAttributes.id);
-        expect(collection[1].attributes).toEqual(new ObjectClass(_newObjectAttributes, false).getAttributes());
+        expect(collection[1].attributes).toEqual(new ObjectClass(_newObjectAttributes, false).attributes);
         
     });
 
@@ -158,7 +158,7 @@ describe(`${objectName}`, () => {
 
         let error: any = undefined;
         try {
-            await dbQueries.updateMultiple([updatedObject.getAttributes(), updatedObject2.getAttributes()]);
+            await dbQueries.updateMultiple([updatedObject.attributes, updatedObject2.attributes]);
         } catch(err) {
             error = err;
         }
@@ -181,7 +181,7 @@ describe(`${objectName}`, () => {
         const updatedObject = new ObjectClass(_updatedAttributes, true);
         const _updatedAttributes2 = { id: newObjectAttributes2.id, ...updatedAttributes };
 
-        const response = await dbQueries.updateMultiple([updatedObject.getAttributes(), _updatedAttributes2]);
+        const response = await dbQueries.updateMultiple([updatedObject.attributes, _updatedAttributes2]);
         expect(response.length).toEqual(2);
 
         // Make sure both objects have been updated
@@ -205,10 +205,10 @@ describe(`${objectName}`, () => {
         // Find new object
         const object1 = collection.find((obj) => obj.getId() === _newObjectAttributes.id);
         expect(object1).toBeDefined();
-        expect((object1 as any).getAttributes()).toEqual(new ObjectClass(_newObjectAttributes, false).getAttributes());
+        expect((object1 as any).attributes).toEqual(new ObjectClass(_newObjectAttributes, false).attributes);
         const object2 = collection.find((obj) => obj.getId() === _newObjectAttributes2.id);
         expect(object2).toBeDefined();
-        expect((object2 as any).getAttributes()).toEqual(new ObjectClass(_newObjectAttributes2, false).getAttributes());
+        expect((object2 as any).attributes).toEqual(new ObjectClass(_newObjectAttributes2, false).attributes);
     });
 
     test('should delete objects from database', async() => {
@@ -229,7 +229,7 @@ describe(`${objectName}`, () => {
 
         let error: any = undefined;
         try {
-            await dbQueries.createMultiple([newObject.getAttributes(), newObject2.getAttributes()]);
+            await dbQueries.createMultiple([newObject.attributes, newObject2.attributes]);
         } catch(err) {
             error = err;
         }
@@ -244,7 +244,7 @@ describe(`${objectName}`, () => {
         const newObject = new ObjectClass(newObjectAttributes, true);
         const newObject2 = new ObjectClass(newObjectAttributes2, true);
 
-        const ids = await dbQueries.createMultiple([newObject.getAttributes(), newObject2.getAttributes()]);
+        const ids = await dbQueries.createMultiple([newObject.attributes, newObject2.attributes]);
         
         expect(ids).toEqual([{ id: newObject.getId() }, { id: newObject2.getId() }]);
         const _collection = await dbQueries.collection();
@@ -265,7 +265,7 @@ describe(`${objectName}`, () => {
         delete collection[0].attributes.updated_at;
         delete collection[0].attributes.integer_id;
         expect(collection[0].getId()).toBe(_newObjectAttributes2.id);
-        expect(collection[0].getAttributes()).toEqual(new ObjectClass(_newObjectAttributes2, false).getAttributes());
+        expect(collection[0].attributes).toEqual(new ObjectClass(_newObjectAttributes2, false).attributes);
 
     });
 

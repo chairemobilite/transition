@@ -331,7 +331,7 @@ export class ServiceImporter implements GtfsObjectImporter<ServiceImportData, Se
             .getFeatures()
             .filter(
                 (service) =>
-                    service.getAttributes().data?.gtfs?.service_id === serviceAttributes.data?.gtfs?.service_id &&
+                    service.attributes.data?.gtfs?.service_id === serviceAttributes.data?.gtfs?.service_id &&
                     this.areServicesCompatible(service.attributes, serviceAttributes)
             )
             .find((service) => {

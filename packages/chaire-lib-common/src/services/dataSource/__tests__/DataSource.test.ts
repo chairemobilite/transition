@@ -27,7 +27,7 @@ const dataSourceMinimalAttributes= {
 test('should construct new scenarios', function() {
 
     const scenario1 = new DataSource(dataSourceCompleteAttributes, true);
-    expect(scenario1.getAttributes()).toEqual(dataSourceCompleteAttributes);
+    expect(scenario1.attributes).toEqual(dataSourceCompleteAttributes);
     expect(scenario1.isNew()).toBe(true);
 
     const scenario2 = new DataSource(dataSourceMinimalAttributes, false);

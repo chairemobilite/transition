@@ -32,7 +32,7 @@ let msgErrors = {
 
 beforeEach(function () {
     const routing = new TransitRouting({});
-    const batchRoutingQueries = routing.getAttributes().savedForBatch;
+    const batchRoutingQueries = routing.attributes.savedForBatch;
     attributes = {
         id: '000',
         is_frozen: false,
@@ -247,7 +247,7 @@ describe('Test add elements for batch', () => {
 
     test('Test add valid element', () => {
         const routing = new TransitRouting({});
-        const batchRoutingQueries = routing.getAttributes().savedForBatch;
+        const batchRoutingQueries = routing.attributes.savedForBatch;
         routing.addElementForBatch(element1);
         expect(batchRoutingQueries.length).toEqual(1);
 
@@ -267,7 +267,7 @@ describe('Test add elements for batch', () => {
 
     test('Test duplicate element', () => {
         const routing = new TransitRouting({});
-        const batchRoutingQueries = routing.getAttributes().savedForBatch;
+        const batchRoutingQueries = routing.attributes.savedForBatch;
         routing.addElementForBatch(element1);
         expect(batchRoutingQueries.length).toEqual(1);
 

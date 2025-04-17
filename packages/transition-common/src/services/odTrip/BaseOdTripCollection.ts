@@ -43,7 +43,7 @@ class BaseOdTripCollection extends GenericObjectCollection<BaseOdTrip> implement
 
     forCsv() {
         return this._features.map((odPair) => {
-            const attributes = odPair.getAttributes();
+            const attributes = odPair.attributes;
             return {
                 id: attributes.id,
                 routingName: attributes.internal_id,
@@ -63,7 +63,7 @@ class BaseOdTripCollection extends GenericObjectCollection<BaseOdTrip> implement
     }
 
     loadFromServer(socket, collectionManager?) {
-        const dataSourceId = (this.getAttributes() as BaseOdTripCollectionAttributes).dataSourceId;
+        const dataSourceId = (this.attributes as BaseOdTripCollectionAttributes).dataSourceId;
         return CollectionLoadable.loadFromServer(this, socket, collectionManager, dataSourceId);
     }
 

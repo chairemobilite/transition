@@ -60,8 +60,8 @@ test('pointsInWalkingTravelTimeRadiusSecondsAround', async () => {
     expect(mockRouteEngine).toHaveBeenCalledTimes(1);
     expect(mockRouteEngine).toHaveBeenCalledWith({mode: 'walking', origin: point1, destinations: [genericPlace1.toGeojson(), genericPlace2.toGeojson(), genericPlace3.toGeojson()]});
     expect(walkingPoints).toEqual([
-        { id: genericPlace1.getAttributes().id, walkingTravelTimesSeconds: Math.ceil(tableFromResults.durations[0]), walkingDistancesMeters: Math.ceil(tableFromResults.distances[0]) },
-        { id: genericPlace3.getAttributes().id, walkingTravelTimesSeconds: Math.ceil(tableFromResults.durations[2]), walkingDistancesMeters: Math.ceil(tableFromResults.distances[2]) }
+        { id: genericPlace1.attributes.id, walkingTravelTimesSeconds: Math.ceil(tableFromResults.durations[0]), walkingDistancesMeters: Math.ceil(tableFromResults.distances[0]) },
+        { id: genericPlace3.attributes.id, walkingTravelTimesSeconds: Math.ceil(tableFromResults.durations[2]), walkingDistancesMeters: Math.ceil(tableFromResults.distances[2]) }
     ]);
 
 });

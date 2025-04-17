@@ -446,10 +446,10 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                         <div className="tr__form-section">
                             <TimeOfTripComponent
                                 departureTimeSecondsSinceMidnight={
-                                    this.state.object.getAttributes().departureTimeSecondsSinceMidnight
+                                    this.state.object.attributes.departureTimeSecondsSinceMidnight
                                 }
                                 arrivalTimeSecondsSinceMidnight={
-                                    this.state.object.getAttributes().arrivalTimeSecondsSinceMidnight
+                                    this.state.object.attributes.arrivalTimeSecondsSinceMidnight
                                 }
                                 onValueChange={(time, timeType) => {
                                     this.onTripTimeChange(time, timeType, alternateRouting);
@@ -548,7 +548,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                 onValueChange={(path, newValue) =>
                                     this.updateBothRoutingEngines(path, newValue, alternateRouting)
                                 }
-                                attributes={this.state.object.getAttributes()}
+                                attributes={this.state.object.attributes}
                             />
                             <InputWrapper
                                 smallInput={true}

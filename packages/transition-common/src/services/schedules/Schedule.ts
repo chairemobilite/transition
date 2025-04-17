@@ -262,7 +262,7 @@ export abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy
 
             return trip;
         } catch (error) {
-            throw `The path ${options.path.getId()} for line ${options.path.getLine()?.getAttributes().shortname} (${
+            throw `The path ${options.path.getId()} for line ${options.path.getLine()?.attributes.shortname} (${
                 options.path.attributes.line_id
             }) is not valid. Please recalculate routing for this path, error : ${error}`;
         }
@@ -491,14 +491,14 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
                 ? dwellTimesData.map((time) => Number(time))
                 : new Array(Node.length).fill(0);
 
-            const segments = path.getAttributes().data.segments || [];
+            const segments = path.attributes.data.segments || [];
 
             const trip = this.generateTrip({
                 tripStartAtSeconds: currentTime,
                 unit: unitTransit,
                 path: path,
                 segments: segments,
-                nodes: path.getAttributes().nodes,
+                nodes: path.attributes.nodes,
                 dwellTimes: dwellTimes
             });
 
@@ -727,12 +727,12 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         const unitsCount = options.units.length;
 
         // Path and time segment extraction
-        const outboundSegments = options.outboundPath.getAttributes().data.segments;
-        const outboundNodes = options.outboundPath.getAttributes().nodes;
+        const outboundSegments = options.outboundPath.attributes.data.segments;
+        const outboundNodes = options.outboundPath.attributes.nodes;
         const outboundDwellTimes = options.outboundPath.getData('dwellTimeSeconds');
 
-        const inboundSegments = options.inboundPath ? options.inboundPath.getAttributes().data.segments : undefined;
-        const inboundNodes = options.inboundPath ? options.inboundPath.getAttributes().nodes : undefined;
+        const inboundSegments = options.inboundPath ? options.inboundPath.attributes.data.segments : undefined;
+        const inboundNodes = options.inboundPath ? options.inboundPath.attributes.nodes : undefined;
         const cycleTimeSeconds = options.outboundTotalTimeSeconds + options.inboundTotalTimeSeconds;
 
         // Initialize units with staggered start times
@@ -897,13 +897,13 @@ export class SymmetricScheduleStrategy extends BaseScheduleStrategy {
             inboundPath
         } = options;
 
-        const outboundSegments = outboundPath.getAttributes().data.segments;
-        const outboundNodes = outboundPath.getAttributes().nodes;
+        const outboundSegments = outboundPath.attributes.data.segments;
+        const outboundNodes = outboundPath.attributes.nodes;
         const outboundDwellTimes = outboundPath.getData('dwellTimeSeconds');
 
-        const inboundSegments = inboundPath ? inboundPath.getAttributes().data.segments : undefined;
-        const inboundNodes = inboundPath ? inboundPath.getAttributes().nodes : undefined;
-        const inboundDwellTimes = inboundPath ? inboundPath.getAttributes().data.dwellTimeSeconds : undefined;
+        const inboundSegments = inboundPath ? inboundPath.attributes.data.segments : undefined;
+        const inboundNodes = inboundPath ? inboundPath.attributes.nodes : undefined;
+        const inboundDwellTimes = inboundPath ? inboundPath.attributes.data.dwellTimeSeconds : undefined;
 
         const trips: any[] = [];
         const unitsCount = units.length;
@@ -989,15 +989,15 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
     validate() {
         super.validate();
         this.errors = [];
-        if (!this.getAttributes().service_id) {
+        if (!this.attributes.service_id) {
             this._isValid = false;
             this.errors.push('transit:transitSchedule:errors:ServiceIsRequired');
         }
-        if (!this.getAttributes().periods_group_shortname) {
+        if (!this.attributes.periods_group_shortname) {
             this._isValid = false;
             this.errors.push('transit:transitSchedule:errors:PeriodsGroupIsRequired');
         }
-        const periods = this.getAttributes().periods;
+        const periods = this.attributes.periods;
         for (let i = 0, count = periods.length; i < count; i++) {
             const period = periods[i];
             if (period.interval_seconds && period.number_of_units) {
@@ -1062,7 +1062,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
     getAssociatedPathIds(): string[] {
         const associatedPathIds: { [pathId: string]: boolean } = {};
 
-        const periods = this.getAttributes().periods;
+        const periods = this.attributes.periods;
         for (let i = 0, countI = periods.length; i < countI; i++) {
             const period = periods[i];
             period.trips.forEach((trip) => (associatedPathIds[trip.path_id] = true));
@@ -1072,7 +1072,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
     }
 
     getPeriod(periodShortname: string) {
-        const periods = this.getAttributes().periods;
+        const periods = this.attributes.periods;
         const index = Schedule.getPeriodIndex(periodShortname, periods);
         return index === null ? null : periods[index];
     }
@@ -1149,7 +1149,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         }
 
         // Get schedule generating mode
-        const calculationMode = this.getAttributes().calculation_mode || ScheduleCalculationMode.BASIC;
+        const calculationMode = this.attributes.calculation_mode || ScheduleCalculationMode.BASIC;
 
         if (!this._collectionManager.get('lines') || !this._collectionManager.get('paths')) {
             return Status.createError('missing lines and/or paths collections');
@@ -1199,9 +1199,9 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         // get outbound/inbound paths info to calculate number of units required or minimum interval and travel times:
 
         // calculate durations
-        const outboundTotalTimeSeconds = outboundPath.getAttributes().data.operatingTimeWithLayoverTimeSeconds || 0;
+        const outboundTotalTimeSeconds = outboundPath.attributes.data.operatingTimeWithLayoverTimeSeconds || 0;
         const inboundTotalTimeSeconds = inboundPath
-            ? inboundPath.getAttributes().data.operatingTimeWithLayoverTimeSeconds || 0
+            ? inboundPath.attributes.data.operatingTimeWithLayoverTimeSeconds || 0
             : 0;
 
         // Create the generation strategy

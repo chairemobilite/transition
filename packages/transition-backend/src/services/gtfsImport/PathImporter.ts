@@ -79,7 +79,7 @@ const generateAndImportPaths = async (
                     );
                     allWarnings.push({
                         text: GtfsMessages.PathGenerationErrorForLine,
-                        params: { lineShortName: line.getAttributes().shortname || gtfsLineId }
+                        params: { lineShortName: line.attributes.shortname || gtfsLineId }
                     });
                 }
             });
@@ -113,7 +113,7 @@ const generatePathsForLine = (
     const pathsWithoutShape: Path[] = [];
     // Pre-fill paths by shape ID with the existing paths
     line.getPaths().forEach((path) => {
-        const gtfsData = path.getAttributes().data.gtfs;
+        const gtfsData = path.attributes.data.gtfs;
         if (gtfsData) {
             const paths = pathByShapeId[gtfsData.shape_id] || [];
             paths.push(path);
@@ -134,7 +134,7 @@ const generatePathsForLine = (
         if (shapeId) {
             // TODO Could there really be multiple paths for a single shape with different stops?
             const pathsForShape = pathByShapeId[shapeId] || [];
-            const samePath = pathsForShape.find((path) => _isEqual(path.getAttributes().nodes, nodeIds));
+            const samePath = pathsForShape.find((path) => _isEqual(path.attributes.nodes, nodeIds));
             if (samePath) {
                 pathIdByTripId[trip.trip_id] = samePath.getId();
                 continue;
@@ -148,14 +148,14 @@ const generatePathsForLine = (
             allWarnings = allWarnings.concat(warnings);
         } else {
             // Path has no shape, try to find one with the exact same stops
-            const samePath = pathsWithoutShape.find((path) => _isEqual(path.getAttributes().nodes, nodeIds));
+            const samePath = pathsWithoutShape.find((path) => _isEqual(path.attributes.nodes, nodeIds));
             if (samePath) {
                 pathIdByTripId[trip.trip_id] = samePath.getId();
                 continue;
             }
             allWarnings.push({
                 text: GtfsMessages.TripWithNoShape,
-                params: { tripId: trip.trip_id, lineShortName: line.getAttributes().shortname || trip.route_id }
+                params: { tripId: trip.trip_id, lineShortName: line.attributes.shortname || trip.route_id }
             });
             // Need to generate a new path without a shape
             const { newPath, warnings } = generatePathWithoutShape(line, trip, stopTimes, nodeIds, importData);

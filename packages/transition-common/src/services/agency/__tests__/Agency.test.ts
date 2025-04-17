@@ -52,11 +52,11 @@ const agencyAttributes2= {
 test('should construct new agencies', function() {
 
     const agency1 = new Agency(agencyAttributes1, true);
-    expect(agency1.getAttributes()).toEqual(agencyAttributes1);
+    expect(agency1.attributes).toEqual(agencyAttributes1);
     expect(agency1.isNew()).toBe(true);
 
     const agency2 = new Agency(agencyAttributes2, false);
-    expect(agency2.getAttributes()).toEqual(agencyAttributes2);
+    expect(agency2.attributes).toEqual(agencyAttributes2);
     expect(agency2.isNew()).toBe(false);
     
     // no collection manager, so lines should be empty:

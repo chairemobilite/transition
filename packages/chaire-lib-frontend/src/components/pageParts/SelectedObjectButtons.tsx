@@ -73,7 +73,7 @@ const SelectedObjectButtons: React.FunctionComponent<SelectedObjectButtonsProps<
     const objectSingularName = object.getSingularName();
     const objectPluralName = object.getPluralName();
     const objectCapitalizedSingularName = object.getCapitalizedSingularName();
-    const isFrozen = object.getAttributes().is_frozen;
+    const isFrozen = object.attributes.is_frozen;
     // That may not be the role of this widget to deal with this manager
     const selectObjectManager = serviceLocator.selectedObjectsManager;
     const deleteAction = props.deleteAction ? props.deleteAction : props.onDelete;

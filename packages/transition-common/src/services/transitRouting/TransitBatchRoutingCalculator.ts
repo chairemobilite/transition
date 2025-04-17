@@ -65,7 +65,7 @@ export class TransitBatchRoutingCalculator {
             throw trError;
         }
 
-        const attributes = transitDemand.getAttributes();
+        const attributes = transitDemand.attributes;
         const parameters: TransitBatchRoutingDemandAttributes = {
             type: 'csv',
             configuration: {

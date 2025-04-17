@@ -92,7 +92,7 @@ export default abstract class GenericMapObjectCollection<
         if (this._features) {
             for (let i = 0, count = this.size(); i < count; i++) {
                 const feature = this._features[i];
-                const attributes = feature.getAttributes();
+                const attributes = feature.attributes;
                 if (parser && typeof parser === 'function') {
                     jsonArray.push(parser(attributes));
                 } else {

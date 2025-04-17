@@ -35,7 +35,7 @@ export class BatchAccessibilityMapCalculator {
             serviceLocator.socketEventManager.emit(
                 TrRoutingConstants.BATCH_ACCESS_MAP,
                 params,
-                routingEngine.getAttributes(),
+                routingEngine.attributes,
                 (routingStatus: Status.Status<TransitBatchCalculationResult>) => {
                     if (Status.isStatusOk(routingStatus)) {
                         resolve(Status.unwrap(routingStatus));

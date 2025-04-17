@@ -60,8 +60,8 @@ test('duplicate simple line, no paths, no schedules', async () => {
     // Copy the line a first time
     const copy1 = await duplicateLine(baseLine, { socket: eventManager });
 
-    expect(copy1.getAttributes().id).not.toEqual(baseLine.getAttributes().id);
-    let actual = _omit(copy1.getAttributes(), 'id');
+    expect(copy1.attributes.id).not.toEqual(baseLine.attributes.id);
+    let actual = _omit(copy1.attributes, 'id');
     let expected = _omit(lineAttributes, 'id');
     expect(actual).toEqual(expected);
     expect(lineSaveFct).toHaveBeenCalledTimes(1);
@@ -73,10 +73,10 @@ test('duplicate simple line, no paths, no schedules', async () => {
     const agencyId = uuidV4();
     const copy2 = await duplicateLine(baseLine, { socket: eventManager, agencyId, newShortname, newLongname });
 
-    expect(copy2.getAttributes().id).not.toEqual(baseLine.getAttributes().id);
-    expect(copy2.getAttributes().id).not.toEqual(copy1.getAttributes().id);
+    expect(copy2.attributes.id).not.toEqual(baseLine.attributes.id);
+    expect(copy2.attributes.id).not.toEqual(copy1.attributes.id);
     expected = Object.assign(expected, { agency_id: agencyId, longname: newLongname, shortname: newShortname });
-    actual = _omit(copy2.getAttributes(), 'id');
+    actual = _omit(copy2.attributes, 'id');
     expect(actual).toEqual(expected);
     expect(lineSaveFct).toHaveBeenCalledTimes(2);
     expect(lineCollection.size()).toEqual(3);
@@ -99,8 +99,8 @@ test('duplicate line with path', async () => {
     const newPath = newPaths[0];
     expect(newPath.getId()).not.toEqual(path.getId());
 
-    const expectedPath = _omit(path.getAttributes(), 'id');
-    const actualPath = _omit(newPath.getAttributes(), 'id');
+    const expectedPath = _omit(path.attributes, 'id');
+    const actualPath = _omit(newPath.attributes, 'id');
     expectedPath.line_id = copy1.getId();
     expect(actualPath).toEqual(expectedPath);
 
@@ -126,7 +126,7 @@ describe('duplicate line with path and schedules', () => {
         serviceCollection.add(service);
         const scheduleAttributes = getScheduleAttributes({ lineId: lineAttributes.id, serviceId: service.getId(), pathId: path.getId() });
         schedule = new Schedule(scheduleAttributes, true);
-        lineAttributes.scheduleByServiceId[service.getId()] = schedule.getAttributes();
+        lineAttributes.scheduleByServiceId[service.getId()] = schedule.attributes;
 
         // Create a line object with path and schedule
         baseLine = new Line(lineAttributes, false, collectionManager);
@@ -156,7 +156,7 @@ describe('duplicate line with path and schedules', () => {
         expect(newSchedule.getId()).not.toEqual(schedule.getId());
         
         // Validate the schedule's data, just to make sure the new ids for service, line, and paths are OK
-        const newScheduleAttributes = newSchedule.getAttributes();
+        const newScheduleAttributes = newSchedule.attributes;
         expect(newScheduleAttributes.line_id).toEqual(copy.getId());
         expect(newScheduleAttributes.service_id).toEqual(service.getId());
 
@@ -181,7 +181,7 @@ describe('duplicate line with path and schedules', () => {
         expect(newSchedule.getId()).not.toEqual(schedule.getId());
         
         // Validate the schedule's data, just to make sure the new ids for service, line, and paths are OK
-        const newScheduleAttributes = newSchedule.getAttributes();
+        const newScheduleAttributes = newSchedule.attributes;
         expect(newScheduleAttributes.line_id).toEqual(copy.getId());
         expect(newScheduleAttributes.service_id).toEqual(newServiceId);
 
@@ -211,7 +211,7 @@ describe('duplicate line with path and schedules', () => {
         expect(newSchedule.getId()).not.toEqual(schedule.getId());
         
         // Validate the schedule's data, just to make sure the new ids for service, line, and paths are OK
-        const newScheduleAttributes = newSchedule.getAttributes();
+        const newScheduleAttributes = newSchedule.attributes;
         expect(newScheduleAttributes.line_id).toEqual(copy.getId());
         expect(newScheduleAttributes.service_id).toEqual(otherService.getId());
 

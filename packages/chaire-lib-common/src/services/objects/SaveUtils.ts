@@ -20,11 +20,11 @@ export default {
         callback: (() => void) | undefined = undefined
     ): Promise<Status.Status<{ id: string | undefined }>> {
         return new Promise((resolve) => {
-            const id = object.getAttributes().id;
+            const id = object.attributes.id;
             socket.emit(
                 `${socketPrefix}.delete`,
-                object.getAttributes().id,
-                _get(object.getAttributes(), 'data.customCachePath'),
+                object.attributes.id,
+                _get(object.attributes, 'data.customCachePath'),
                 (status: Status.Status<{ id: string | undefined }>) => {
                     if (Status.isStatusOk(status)) {
                         const { id: deletedId } = Status.unwrap(status);
@@ -49,7 +49,7 @@ export default {
     deleteInMemory: function (object: GenericObject<any>, collection) {
         object.setDeleted();
         if (collection) {
-            collection.removeById(object.getAttributes().id);
+            collection.removeById(object.attributes.id);
         }
     },
 
@@ -60,8 +60,8 @@ export default {
                 collection.add(this);
             }
         } else {
-            if (collection.getIndex(object.getAttributes().id) >= 0) {
-                collection.updateById(object.getAttributes().id, object);
+            if (collection.getIndex(object.attributes.id) >= 0) {
+                collection.updateById(object.attributes.id, object);
             } else {
                 collection.add(object);
             }
@@ -81,10 +81,10 @@ export default {
                 object.setNew(false);
                 socket.emit(
                     `${socketPrefix}.create`,
-                    object.getAttributes(),
+                    object.attributes,
                     ((response) => {
                         if (!response.error) {
-                            object._wasFrozen = object.getAttributes().is_frozen === true;
+                            object._wasFrozen = object.attributes.is_frozen === true;
                             if (response.integer_id) {
                                 object.set('integer_id', response.integer_id);
                             }
@@ -102,14 +102,14 @@ export default {
             } else {
                 socket.emit(
                     `${socketPrefix}.update`,
-                    object.getAttributes().id,
-                    object.getAttributes(),
+                    object.attributes.id,
+                    object.attributes,
                     ((response) => {
                         if (!response.error) {
-                            object._wasFrozen = object.getAttributes().is_frozen === true;
+                            object._wasFrozen = object.attributes.is_frozen === true;
                             if (collection) {
-                                if (collection.getIndex(object.getAttributes().id) >= 0) {
-                                    collection.updateById(object.getAttributes().id, object);
+                                if (collection.getIndex(object.attributes.id) >= 0) {
+                                    collection.updateById(object.attributes.id, object);
                                 } else {
                                     collection.add(object);
                                 }

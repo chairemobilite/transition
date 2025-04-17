@@ -183,13 +183,13 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
             const routingsByPairsOfNodes = {};
 
             const routingMode =
-                path1.getAttributes().data.routingMode ||
+                path1.attributes.data.routingMode ||
                 Preferences.get('transit.paths.data.defaultRoutingMode', 'driving');
             const routingEngine =
-                path1.getAttributes().data.routingEngine ||
+                path1.attributes.data.routingEngine ||
                 Preferences.get('transit.paths.data.defaultRoutingEngine', 'manual');
 
-            const path1TerminalNodeId = path1.getAttributes().nodes[path1.countNodes() - 1];
+            const path1TerminalNodeId = path1.attributes.nodes[path1.countNodes() - 1];
             const path1TerminalGeojson: GeoJSON.Feature<GeoJSON.Point> = this._collectionManager
                 .get('nodes')
                 .getById(path1TerminalNodeId);
@@ -201,7 +201,7 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
             for (const path2 of completePaths) {
                 const path2Id = path2.getId();
                 if (routingEngine === 'engine') {
-                    const path2TerminalNodeId = path2.getAttributes().nodes[0];
+                    const path2TerminalNodeId = path2.attributes.nodes[0];
                     const path2TerminalGeojson: GeoJSON.Feature<GeoJSON.Point> = this._collectionManager
                         .get('nodes')
                         .getById(path2TerminalNodeId);
@@ -252,7 +252,7 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
                 false,
                 this._collectionManager
             );
-            const periods = schedule.getAttributes().periods;
+            const periods = schedule.attributes.periods;
             const trips: SchedulePeriodTrip[] = [];
             const number_of_units: number[] = [];
             for (let i = 0, countI = periods.length; i < countI; i++) {
@@ -297,7 +297,7 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
                 for (let k = 0, countK = units.length; k < countK; k++) {
                     const unit = units[k];
                     const deadHeadTime =
-                        this.getAttributes().data.deathis.getData('deadHeadTravelTimesBetweenPathsByPathId')[
+                        this.attributes.data.deathis.getData('deadHeadTravelTimesBetweenPathsByPathId')[
                             unit.completedPathId
                         ][trip.path_id] || 0;
                     if (unit.readyAtSeconds + deadHeadTime <= tripDepartureTimeSeconds) {
@@ -339,7 +339,7 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
     }
 
     getSchedules(): { [key: string]: Schedule } {
-        const scheduleByServiceId = this.getAttributes().scheduleByServiceId;
+        const scheduleByServiceId = this.attributes.scheduleByServiceId;
         const scheduleObjectsByServiceId = {};
         for (const serviceId in scheduleByServiceId) {
             scheduleObjectsByServiceId[serviceId] = this.getSchedule(serviceId);
@@ -526,15 +526,15 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
             }
         }
         // Update the service's scheduled lines
-        const service = this._collectionManager?.get('services')?.getById(schedule.getAttributes().service_id);
+        const service = this._collectionManager?.get('services')?.getById(schedule.attributes.service_id);
         if (service) service.addScheduledLine(this.getId());
 
-        const serviceId = schedule.getAttributes().service_id;
-        const periods = schedule.getAttributes().periods;
+        const serviceId = schedule.attributes.service_id;
+        const periods = schedule.attributes.periods;
         // remove old periodsGroup if it was changed:
         if (periods.length > 0) {
             const periodsGroups = Preferences.current.transit.periods;
-            const periodsGroupShortname = schedule.getAttributes().periods_group_shortname || '';
+            const periodsGroupShortname = schedule.attributes.periods_group_shortname || '';
             const periodsGroup = periodsGroups[periodsGroupShortname];
             const periodsShortnames = periodsGroup.periods.map((period) => {
                 return period.shortname;
@@ -582,7 +582,7 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
     private _getPathForDirection(direction: PathDirection): TransitPath[] {
         const paths: TransitPath[] = [];
         this._paths.forEach((path) => {
-            if (path.getAttributes().direction === direction) {
+            if (path.attributes.direction === direction) {
                 paths.push(path);
             }
         });
@@ -615,15 +615,15 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
 
     validate() {
         super.validate();
-        if (!this.getAttributes().agency_id) {
+        if (!this.attributes.agency_id) {
             this._isValid = false;
             this._errors.push('transit:transitLine:errors:AgencyIsRequired');
         }
-        if (!this.getAttributes().shortname && !this.getAttributes().longname) {
+        if (!this.attributes.shortname && !this.attributes.longname) {
             this._isValid = false;
             this._errors.push('transit:transitLine:errors:ShortnameOrLongnameIsRequired');
         }
-        if (!this.getAttributes().mode) {
+        if (!this.attributes.mode) {
             this._isValid = false;
             this._errors.push('transit:transitLine:errors:ModeIsRequired');
         }
@@ -636,7 +636,7 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
         if (this._paths.length === 1) {
             const outboundPath = this._paths[0];
             const totalWeight = outboundPath.getTotalWeight();
-            const cycleTimeSeconds = outboundPath.getAttributes().data.totalTravelTimeWithReturnBackSeconds;
+            const cycleTimeSeconds = outboundPath.attributes.data.totalTravelTimeWithReturnBackSeconds;
 
             if (totalWeight && cycleTimeSeconds) {
                 return totalWeight * cycleTimeSeconds;
@@ -651,8 +651,8 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
                 const firstPathWeight = firstPath.getTotalWeight();
                 const secondPathWeight = secondPath.getTotalWeight();
                 const cycleTimeSeconds =
-                    (firstPath.getAttributes().data.operatingTimeWithoutLayoverTimeSeconds || 0) +
-                    (secondPath.getAttributes().data.operatingTimeWithoutLayoverTimeSeconds || 0);
+                    (firstPath.attributes.data.operatingTimeWithoutLayoverTimeSeconds || 0) +
+                    (secondPath.attributes.data.operatingTimeWithoutLayoverTimeSeconds || 0);
                 if (firstPathWeight && secondPathWeight && cycleTimeSeconds) {
                     return (firstPathWeight + secondPathWeight) * cycleTimeSeconds;
                 }
@@ -693,8 +693,8 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
     }
 
     toString(showId = false) {
-        const shortname = this.getAttributes().shortname;
-        const longname = this.getAttributes().longname;
+        const shortname = this.attributes.shortname;
+        const longname = this.attributes.longname;
         const baseName =
             shortname && longname ? `${shortname} ${longname}` : shortname ? shortname : longname ? longname : '';
         return showId ? (_isBlank(baseName) ? this.id : `${baseName} ${this.id}`) : baseName;

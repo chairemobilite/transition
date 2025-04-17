@@ -30,7 +30,7 @@ import { NodeCollection as CacheCollection } from '../capnpDataModel/nodeCollect
 import { Node as CacheObjectClass } from '../capnpDataModel/node.capnp';
 
 const exportParser = function (object: Node, cacheObject: CacheObjectClass) {
-    const attributes = object.getAttributes();
+    const attributes = object.attributes;
 
     const geography = attributes.geography;
 

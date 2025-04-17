@@ -27,7 +27,7 @@ const collectionToCache = async (collection: ScenarioCollection, cachePathDirect
         CacheCollection,
         CollectionClass: ScenarioCollection,
         capnpParser: function (object: Scenario, cacheObject: CacheObject) {
-            const attributes = object.getAttributes();
+            const attributes = object.attributes;
 
             cacheObject.setUuid(attributes.id);
             cacheObject.setName(attributes.name || '');

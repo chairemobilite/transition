@@ -155,7 +155,7 @@ describe('GTFS Stops import', () => {
             const oneNode = data[keys[i]];
             expect(oneNode.isNew()).toBeTruthy();
             // expect no undefined attributes in the gtfs data
-            const stopData = oneNode.getAttributes().data?.stops as any;
+            const stopData = oneNode.attributes.data?.stops as any;
             expect(stopData).toBeDefined();
             for (let j = 0; j < stopData.length; j++) {
                 const gtfsData = stopData[j].data.gtfs as any;
@@ -182,7 +182,7 @@ describe('GTFS Stops import', () => {
         const keys = Object.keys(data);
         for (let i = 0; i < keys.length; i++) {
             const oneNode = data[keys[i]];
-            expect(oneNode.getAttributes().color).toEqual('#123456');
+            expect(oneNode.attributes.color).toEqual('#123456');
         }
     });
 
@@ -229,7 +229,7 @@ describe('GTFS Stops import', () => {
         for (let i = 0; i < keys.length; i++) {
             const oneNode = data[keys[i]];
             expect(oneNode.isNew()).toBeFalsy();
-            expect((oneNode.getAttributes().data.stops || []).length).toEqual(1);
+            expect((oneNode.attributes.data.stops || []).length).toEqual(1);
         }
     });
 
@@ -337,13 +337,13 @@ describe('GTFS Stops import', () => {
         const keys = Object.keys(data);
         for (let i = 0; i < keys.length; i++) {
             const oneNode = data[keys[i]];
-            const originalData = currentData['stops.txt'].find(data => data.stop_code === oneNode.getAttributes().code);
+            const originalData = currentData['stops.txt'].find(data => data.stop_code === oneNode.attributes.code);
             expect(originalData).toBeDefined();
-            expect(oneNode.getAttributes().color).toEqual(originalData.tr_node_color);
+            expect(oneNode.attributes.color).toEqual(originalData.tr_node_color);
             // Radius may have been updated if stops are further away than original radius
-            expect(oneNode.getAttributes().routing_radius_meters).toBeGreaterThanOrEqual(parseInt(originalData.tr_routing_radius_meters));
-            expect(oneNode.getAttributes().default_dwell_time_seconds).toEqual(parseInt(originalData.tr_default_dwell_time_seconds));
-            expect(oneNode.getAttributes().data.canBeUsedAsTerminal).toEqual(originalData.tr_can_be_used_as_terminal === 'true' ? true : false);
+            expect(oneNode.attributes.routing_radius_meters).toBeGreaterThanOrEqual(parseInt(originalData.tr_routing_radius_meters));
+            expect(oneNode.attributes.default_dwell_time_seconds).toEqual(parseInt(originalData.tr_default_dwell_time_seconds));
+            expect(oneNode.attributes.data.canBeUsedAsTerminal).toEqual(originalData.tr_can_be_used_as_terminal === 'true' ? true : false);
         }
     });
 

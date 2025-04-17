@@ -30,7 +30,7 @@ export class TransitOdDemandFromCsv extends TransitDemandFromCsv<TransitOdDemand
 
     validate(): boolean {
         super.validate();
-        const attributes = this.getAttributes();
+        const attributes = this.attributes;
         if (attributes.csvFile) {
             if (_isBlank(attributes.projection)) {
                 this._isValid = false;

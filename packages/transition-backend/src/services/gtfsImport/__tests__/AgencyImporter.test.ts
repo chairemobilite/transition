@@ -157,7 +157,7 @@ describe('GTFS Agency import', () => {
         expect(agencySaveFct).toHaveBeenCalledTimes(1);
         const newAgency = data[gtfsValidSimpleData['agency.txt'][0].agency_id];
         expect(newAgency).toBeDefined();
-        expect(newAgency.getAttributes()).toEqual(expect.objectContaining({
+        expect(newAgency.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             acronym: gtfsValidSimpleData['agency.txt'][0].agency_id,
             name: gtfsValidSimpleData['agency.txt'][0].agency_name,
@@ -183,7 +183,7 @@ describe('GTFS Agency import', () => {
         expect(agencySaveFct).toHaveBeenCalledTimes(1);
         const newAgency = data[gtfsValidSimpleData['agency.txt'][0].agency_id];
         expect(newAgency).toBeDefined();
-        expect(newAgency.getAttributes()).toEqual(expect.objectContaining({
+        expect(newAgency.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             acronym: gtfsValidSimpleData['agency.txt'][0].agency_id,
             name: gtfsValidSimpleData['agency.txt'][0].agency_name,
@@ -251,7 +251,7 @@ describe('GTFS Agency import', () => {
         expect(agencySaveFct).toHaveBeenCalledTimes(1);
         const newAgency = data[gtfsValidSimpleData['agency.txt'][0].agency_id];
         expect(newAgency).toBeDefined();
-        expect(newAgency.getAttributes()).toEqual(expect.objectContaining({
+        expect(newAgency.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             acronym: `${currentAgency1.acronym}`,
             name: gtfsValidSimpleData['agency.txt'][0].agency_name,
@@ -307,7 +307,7 @@ describe('GTFS Agency import', () => {
         const newAgency = data[gtfsValidSimpleData['agency.txt'][0].agency_id];
         expect(newAgency).toBeDefined();
         const newAgencyAttribs = Object.assign({}, currentAgency1, changedAttribs);
-        expect(newAgency.getAttributes()).toEqual(expect.objectContaining(newAgencyAttribs));
+        expect(newAgency.attributes).toEqual(expect.objectContaining(newAgencyAttribs));
     });
 
     each([
@@ -351,7 +351,7 @@ describe('GTFS Agency import', () => {
         expect(agencySaveFct).toHaveBeenCalledTimes(1);
         const newAgency = data[gtfsValidSimpleData['agency.txt'][0].agency_id];
         expect(newAgency).toBeDefined();
-        expect(newAgency.getAttributes()).toEqual(expect.objectContaining({
+        expect(newAgency.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             acronym: `${expectedAcronym}`,
             name: gtfsValidSimpleData['agency.txt'][0].agency_name,
@@ -383,7 +383,7 @@ describe('GTFS Agency import', () => {
         expect(agencySaveFct).toHaveBeenCalledTimes(1);
         const newAgency = data[AgencyImporter.DEFAULT_AGENCY_ACRONYM];
         expect(newAgency).toBeDefined();
-        expect(newAgency.getAttributes()).toEqual(expect.objectContaining({
+        expect(newAgency.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             acronym: AgencyImporter.DEFAULT_AGENCY_ACRONYM,
             name: gtfsValidSingleAgencyData['agency.txt'][0].agency_name,
@@ -416,7 +416,7 @@ describe('GTFS Agency import', () => {
         expect(agencySaveFct).toHaveBeenCalledTimes(1);
         const newAgency = data[gtfsValidTransitionGeneratedData['agency.txt'][0].agency_id];
         expect(newAgency).toBeDefined();
-        expect(newAgency.getAttributes()).toEqual(expect.objectContaining({
+        expect(newAgency.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             acronym: gtfsValidTransitionGeneratedData['agency.txt'][0].agency_id,
             name: gtfsValidTransitionGeneratedData['agency.txt'][0].agency_name,

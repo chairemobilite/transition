@@ -40,7 +40,7 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
     }
 
     validate() {
-        const attributes = this.getAttributes();
+        const attributes = this.attributes;
         this._isValid = true;
         this.errors = [];
         if (
@@ -144,7 +144,7 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
             this.errors.push('transit:transitRouting:errors:WalkingSpeedMpsIsTooLow');
         }
 
-        const { valid: queryAttrValid, errors: queryAttrErrors } = validateTrQueryAttributes(this.getAttributes());
+        const { valid: queryAttrValid, errors: queryAttrErrors } = validateTrQueryAttributes(this.attributes);
         if (!queryAttrValid) {
             this._isValid = false;
             this.errors.push(...queryAttrErrors);
@@ -172,12 +172,12 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
     }
 
     hasLocation() {
-        return this.getAttributes().locationGeojson !== undefined;
+        return this.attributes.locationGeojson !== undefined;
     }
 
     locationToGeojson(): GeoJSON.FeatureCollection {
         const features: GeoJSON.Feature[] = [];
-        const location = this.getAttributes().locationGeojson;
+        const location = this.attributes.locationGeojson;
         if (location) {
             features.push(location);
         }

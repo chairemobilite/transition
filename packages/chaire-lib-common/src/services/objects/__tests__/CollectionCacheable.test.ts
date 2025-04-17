@@ -24,7 +24,7 @@ class GenericObjectStub extends GenericObject<GenericAttributes> {
 }
 class CollectionStub extends GenericCollection<GenericObjectStub> {
     protected getFeatureId(feature: GenericObjectStub): string {
-        return feature.getAttributes().id;
+        return feature.attributes.id;
     }
     protected static socketPrefix = 'collectionStub';
     newObject(attribs: Partial<GenericAttributes>): GenericObjectStub {
