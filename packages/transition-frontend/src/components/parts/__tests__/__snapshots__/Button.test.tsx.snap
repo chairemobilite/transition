@@ -29,7 +29,7 @@ exports[`All props 1`] = `
       >
         <img
           alt="duplicate"
-          class="_icon"
+          class="_icon-alone"
           src="/dist/images/icons/interface/copy_white.svg"
         />
       </span>
@@ -84,7 +84,7 @@ exports[`Flush action buttons 1`] = `
       >
         <img
           alt="duplicate"
-          class="_icon"
+          class="_icon-alone"
           src="/dist/images/icons/interface/copy_white.svg"
         />
       </span>
@@ -179,7 +179,7 @@ exports[`Not selected, with altText 1`] = `
       >
         <img
           alt="duplicate"
-          class="_icon"
+          class="_icon-alone"
           src="/dist/images/icons/interface/copy_white.svg"
         />
       </span>

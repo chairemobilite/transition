@@ -80,7 +80,7 @@ const Button: React.FunctionComponent<ButtonProps> = (props: ButtonProps) => {
                         title={props.onDuplicate.altText}
                     >
                         <img
-                            className="_icon"
+                            className="_icon-alone"
                             src={'/dist/images/icons/interface/copy_white.svg'}
                             alt={props.onDuplicate.altText}
                         />

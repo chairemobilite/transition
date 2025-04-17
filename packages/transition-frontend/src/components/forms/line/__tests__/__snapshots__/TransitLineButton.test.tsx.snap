@@ -80,7 +80,7 @@ exports[`TransitLineButton All props 1`] = `
       >
         <img
           alt="transit:transitLine:DuplicateLine"
-          class="_icon"
+          class="_icon-alone"
           src="/dist/images/icons/interface/copy_white.svg"
         />
       </span>
@@ -172,7 +172,7 @@ exports[`TransitLineButton Minimal props 1`] = `
       >
         <img
           alt="transit:transitLine:DuplicateLine"
-          class="_icon"
+          class="_icon-alone"
           src="/dist/images/icons/interface/copy_white.svg"
         />
       </span>
