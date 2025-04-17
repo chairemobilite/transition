@@ -112,6 +112,7 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
         newValue: { value: any; valid?: boolean } = { value: null, valid: true },
         resetResults = true
     ) {
+        this.setState({ routingErrors: undefined }); //When a value is changed, remove the current routingErrors to stop displaying them.
         super.onValueChange(path, newValue);
         if (resetResults) {
             this.resetResults();
