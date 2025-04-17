@@ -36,7 +36,7 @@ beforeEach(() => {
 })
 
 test('Get by id', () => {
-    let feature = mapCollection.getById(genericPlace1.getAttributes().id);
+    let feature = mapCollection.getById(genericPlace1.attributes.id);
     expect(feature).toBeDefined();
     expect(feature).toEqual(genericPlace1.toGeojson());
 
@@ -46,9 +46,9 @@ test('Get by id', () => {
 });
 
 test('Get by integer id', () => {
-    let id = mapCollection.getIdByIntegerId(genericPlace1.getAttributes().integer_id as number);
+    let id = mapCollection.getIdByIntegerId(genericPlace1.attributes.integer_id as number);
     expect(id).toBeDefined();
-    expect(id).toEqual(genericPlace1.getAttributes().id);
+    expect(id).toEqual(genericPlace1.attributes.id);
 
     // Unknown id
     id = mapCollection.getIdByIntegerId(1000);
@@ -59,11 +59,11 @@ test('Update feature or object by ID', () => {
 
     // Add a field to the genericPlace1 object
     let newName = 'Has a name now';
-    genericPlace1.getAttributes().name = newName;
+    genericPlace1.attributes.name = newName;
 
     mapCollection.updateById(genericPlace1.getId(), genericPlace1);
     expect(mapCollection.getFeatures().length).toEqual(3);
-    let feature = mapCollection.getById(genericPlace1.getAttributes().id);
+    let feature = mapCollection.getById(genericPlace1.attributes.id);
     expect(feature).toBeDefined();
     expect((feature as any).properties.name).toEqual(newName);
 
@@ -73,7 +73,7 @@ test('Update feature or object by ID', () => {
     place1Geojson.properties.name = newName;
     mapCollection.updateById(genericPlace1.getId(), place1Geojson);
     expect(mapCollection.getFeatures().length).toEqual(3);
-    feature = mapCollection.getById(genericPlace1.getAttributes().id);
+    feature = mapCollection.getById(genericPlace1.attributes.id);
     expect(feature).toBeDefined();
     expect((feature as any).properties.name).toEqual(newName);
 
@@ -83,11 +83,11 @@ test('Update feature or object', () => {
 
     // Add a field to the genericPlace1 object
     let newName = 'Has a name now';
-    genericPlace1.getAttributes().name = newName;
+    genericPlace1.attributes.name = newName;
 
     mapCollection.updateFeature(genericPlace1);
     expect(mapCollection.getFeatures().length).toEqual(3);
-    let feature = mapCollection.getById(genericPlace1.getAttributes().id);
+    let feature = mapCollection.getById(genericPlace1.attributes.id);
     expect(feature).toBeDefined();
     expect((feature as any).properties.name).toEqual(newName);
 
@@ -97,7 +97,7 @@ test('Update feature or object', () => {
     place1Geojson.properties.name = newName;
     mapCollection.updateFeature(place1Geojson);
     expect(mapCollection.getFeatures().length).toEqual(3);
-    feature = mapCollection.getById(genericPlace1.getAttributes().id);
+    feature = mapCollection.getById(genericPlace1.attributes.id);
     expect(feature).toBeDefined();
     expect((feature as any).properties.name).toEqual(newName);
 

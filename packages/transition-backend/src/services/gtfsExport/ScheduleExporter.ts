@@ -60,7 +60,7 @@ const objectToGtfs = (
                 }
             }
             const { path, distances: pathDistancesTraveledMeters } = pathsById[trip.path_id];
-            const pathGeography = path.getAttributes().geography;
+            const pathGeography = path.attributes.geography;
             const pathCoordinates = pathGeography.coordinates;
             const pathNodeIds = path.attributes.nodes;
             const pathSegments = path.attributes.segments;
@@ -68,7 +68,7 @@ const objectToGtfs = (
                 route_id: lineId, // required
                 service_id: gtfsServiceId, // required
                 trip_id: trip.id, // required
-                trip_headsign: path.getAttributes().name || path.getAttributes().direction || undefined, // optional
+                trip_headsign: path.attributes.name || path.attributes.direction || undefined, // optional
                 trip_short_name: undefined, // optional
                 direction_id: path.get('direction') === 'inbound' ? 1 : (0 as 1 | 0), // shortname and/or longname required
                 block_id: trip.block_id, // optional, TODO: implement blocks

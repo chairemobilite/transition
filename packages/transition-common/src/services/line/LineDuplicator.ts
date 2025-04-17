@@ -108,7 +108,7 @@ export const duplicateLine = async (
             await newSchedule.save(socket);
             duplicatedLine.addSchedule(newSchedule);
             serviceIdsUsed.push(newServiceId);
-            newDuplicatedSchedules[newServiceId] = newSchedule.getAttributes();
+            newDuplicatedSchedules[newServiceId] = newSchedule.attributes;
         }
     }
 

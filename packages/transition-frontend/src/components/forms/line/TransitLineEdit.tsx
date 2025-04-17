@@ -302,7 +302,7 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
                                 <InputColor
                                     id={`formFieldTransitLineEditColor${lineId}`}
                                     value={line.attributes.color}
-                                    defaultColor={Preferences.getAttributes().transit.lines.defaultColor}
+                                    defaultColor={Preferences.attributes.transit.lines.defaultColor}
                                     onValueChange={(e) => this.onValueChange('color', { value: e.target.value })}
                                 />
                             </div>

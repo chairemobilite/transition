@@ -266,10 +266,10 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                         <div className="tr__form-section">
                             <TimeOfTripComponent
                                 departureTimeSecondsSinceMidnight={
-                                    this.state.object.getAttributes().departureTimeSecondsSinceMidnight
+                                    this.state.object.attributes.departureTimeSecondsSinceMidnight
                                 }
                                 arrivalTimeSecondsSinceMidnight={
-                                    this.state.object.getAttributes().arrivalTimeSecondsSinceMidnight
+                                    this.state.object.attributes.arrivalTimeSecondsSinceMidnight
                                 }
                                 onValueChange={this.onTripTimeChange}
                             />
@@ -335,7 +335,7 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
 
                             <TransitRoutingBaseComponent
                                 onValueChange={this.onValueChange}
-                                attributes={this.state.object.getAttributes()}
+                                attributes={this.state.object.attributes}
                             />
                             <InputWrapper
                                 smallInput={true}

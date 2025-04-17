@@ -18,7 +18,7 @@ import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 const PreferencesSectionTransitLineMode: React.FunctionComponent<PreferencesSectionLineModeProps & WithTranslation> = (
     props: PreferencesSectionLineModeProps & WithTranslation
 ) => {
-    const prefs = props.preferences.getAttributes();
+    const prefs = props.preferences.attributes;
 
     const routingModes: { value: string; disabled?: boolean }[] = [];
     const compatibleRoutingModes = props.lineModesConfigByMode[props.mode].compatibleRoutingModes;

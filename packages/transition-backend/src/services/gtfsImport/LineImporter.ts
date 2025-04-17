@@ -156,10 +156,10 @@ export class LineImporter implements GtfsObjectImporter<LineImportData, Line> {
             .getFeatures()
             .find(
                 (line) =>
-                    line.getAttributes().agency_id === options.agencyId &&
-                    (line.getAttributes().data?.gtfs?.route_id === lineToImport.line.route_id ||
-                        (line.getAttributes().shortname === lineToImport.line.route_short_name &&
-                            line.getAttributes().longname === lineToImport.line.route_long_name))
+                    line.attributes.agency_id === options.agencyId &&
+                    (line.attributes.data?.gtfs?.route_id === lineToImport.line.route_id ||
+                        (line.attributes.shortname === lineToImport.line.route_short_name &&
+                            line.attributes.longname === lineToImport.line.route_long_name))
             );
         if (existingLine) {
             // Update line attributes if so requested

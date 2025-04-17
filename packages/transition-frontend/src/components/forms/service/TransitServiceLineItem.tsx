@@ -20,16 +20,16 @@ const TransitServiceLineItem: React.FunctionComponent<TransitServiceLineItemProp
     const { t } = useTranslation('transit');
 
     const agencyCollection = serviceLocator.collectionManager.get('agencies');
-    const agency: Agency | undefined = agencyCollection?.getById(line.getAttributes().agency_id);
+    const agency: Agency | undefined = agencyCollection?.getById(line.attributes.agency_id);
 
     return (
         <Button key={line.getId()} isSelected={false} flushActionButtons={false}>
             <ButtonCell alignment="left">
                 <img
                     className="_list-element _icon-alone"
-                    src={`/dist/images/icons/transit/modes/${line.getAttributes().mode}_white.svg`}
-                    alt={t(`transit:transitLine:modes:${line.getAttributes().mode}`)}
-                    title={t(`transit:transitLine:modes:${line.getAttributes().mode}`)}
+                    src={`/dist/images/icons/transit/modes/${line.attributes.mode}_white.svg`}
+                    alt={t(`transit:transitLine:modes:${line.attributes.mode}`)}
+                    title={t(`transit:transitLine:modes:${line.attributes.mode}`)}
                 />
             </ButtonCell>
             <ButtonCell alignment="left">
@@ -37,9 +37,7 @@ const TransitServiceLineItem: React.FunctionComponent<TransitServiceLineItemProp
             </ButtonCell>
             <ButtonCell alignment="left">{line.attributes.shortname}</ButtonCell>
             <ButtonCell alignment="left">{line.attributes.longname}</ButtonCell>
-            <ButtonCell alignment="left">
-                {agency ? agency.getAttributes().name : t('transit:UnknownAgency')}
-            </ButtonCell>
+            <ButtonCell alignment="left">{agency ? agency.attributes.name : t('transit:UnknownAgency')}</ButtonCell>
         </Button>
     );
 };

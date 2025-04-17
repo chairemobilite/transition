@@ -35,7 +35,7 @@ class ScenarioCollection extends GenericObjectCollection<Scenario> implements Pr
 
     forCsv() {
         return this._features.map((scenario) => {
-            const attributes = scenario.getAttributes();
+            const attributes = scenario.attributes;
             return {
                 uuid: attributes.id,
                 name: attributes.name,

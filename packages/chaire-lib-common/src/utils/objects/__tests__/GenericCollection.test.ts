@@ -12,7 +12,7 @@ import GenericCollection from '../GenericCollection';
 
 class GenericCollectionImpl extends GenericCollection<GenericObject<GenericAttributes>> {
     protected getFeatureId(feature: GenericObject<GenericAttributes>): string {
-        return feature.getAttributes().id;
+        return feature.attributes.id;
     }
 }
 

@@ -70,7 +70,7 @@ export default async function importGeojsonPlaces(geojsonFilePath: string, dataS
 
         // Create data source in the database or reset its data
         if (currentDataSourceAttributes === undefined) {
-            await dataSourcesDbQuery.create(currentDataSource.getAttributes());
+            await dataSourcesDbQuery.create(currentDataSource.attributes);
         } else {
             await placesDbQueries.deleteForDataSourceId(dataSourceId);
         }

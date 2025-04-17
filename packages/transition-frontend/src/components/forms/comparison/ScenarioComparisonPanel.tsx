@@ -75,18 +75,18 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
             scenarioCollection: serviceLocator.collectionManager.get('scenarios'),
             loading: false,
             formValues: {
-                routingName: routingEngine.getAttributes().routingName || '',
+                routingName: routingEngine.attributes.routingName || '',
                 routingModes: ['transit'],
-                minWaitingTimeSeconds: routingEngine.getAttributes().minWaitingTimeSeconds,
-                maxAccessEgressTravelTimeSeconds: routingEngine.getAttributes().maxAccessEgressTravelTimeSeconds,
-                maxTransferTravelTimeSeconds: routingEngine.getAttributes().maxTransferTravelTimeSeconds,
-                maxFirstWaitingTimeSeconds: routingEngine.getAttributes().maxFirstWaitingTimeSeconds,
-                maxTotalTravelTimeSeconds: routingEngine.getAttributes().maxTotalTravelTimeSeconds,
-                alternateScenario1Id: routingEngine.getAttributes().scenarioId,
-                alternateScenario2Id: routingEngine.getAttributes().scenarioId,
-                withAlternatives: routingEngine.getAttributes().withAlternatives,
-                routingPort: routingEngine.getAttributes().routingPort,
-                odTripUuid: routingEngine.getAttributes().odTripUuid
+                minWaitingTimeSeconds: routingEngine.attributes.minWaitingTimeSeconds,
+                maxAccessEgressTravelTimeSeconds: routingEngine.attributes.maxAccessEgressTravelTimeSeconds,
+                maxTransferTravelTimeSeconds: routingEngine.attributes.maxTransferTravelTimeSeconds,
+                maxFirstWaitingTimeSeconds: routingEngine.attributes.maxFirstWaitingTimeSeconds,
+                maxTotalTravelTimeSeconds: routingEngine.attributes.maxTotalTravelTimeSeconds,
+                alternateScenario1Id: routingEngine.attributes.scenarioId,
+                alternateScenario2Id: routingEngine.attributes.scenarioId,
+                withAlternatives: routingEngine.attributes.withAlternatives,
+                routingPort: routingEngine.attributes.routingPort,
+                odTripUuid: routingEngine.attributes.odTripUuid
             }
         };
 
@@ -139,7 +139,7 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
             arrivalTimeSecondsSinceMidnight,
             originGeojson,
             destinationGeojson
-        } = routing.getAttributes();
+        } = routing.attributes;
         if (!originGeojson || !destinationGeojson) {
             return;
         }
@@ -157,7 +157,7 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
             object: routing,
             formValues: {
                 ...this.state.formValues,
-                routingName: routing.getAttributes().routingName
+                routingName: routing.attributes.routingName
             }
         });
     }
@@ -247,7 +247,7 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
     };
 
     private downloadCsv() {
-        const elements = this.state.object.getAttributes().savedForBatch;
+        const elements = this.state.object.attributes.savedForBatch;
         const lines: string[] = [];
         lines.push('id,routingName,originLon,originLat,destinationLon,destinationLat,time');
         elements.forEach((element, index) => {
@@ -326,7 +326,7 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
         const routingId = routing.get('id');
 
         if (_isBlank(routing.get('withAlternatives'))) {
-            routing.getAttributes().withAlternatives = false;
+            routing.attributes.withAlternatives = false;
         }
 
         const scenarios = this.state.scenarioCollection.features.map((scenario) => {
@@ -345,10 +345,10 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
                         <div className="tr__form-section">
                             <TimeOfTripComponent
                                 departureTimeSecondsSinceMidnight={
-                                    this.state.object.getAttributes().departureTimeSecondsSinceMidnight
+                                    this.state.object.attributes.departureTimeSecondsSinceMidnight
                                 }
                                 arrivalTimeSecondsSinceMidnight={
-                                    this.state.object.getAttributes().arrivalTimeSecondsSinceMidnight
+                                    this.state.object.attributes.arrivalTimeSecondsSinceMidnight
                                 }
                                 onValueChange={(time, timeType) => {
                                     this.onTripTimeChange(time, timeType, alternateRouting);
@@ -358,7 +358,7 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
                                 onValueChange={(path, newValue) =>
                                     this.updateBothRoutingEngines(path, newValue, alternateRouting)
                                 }
-                                attributes={this.state.object.getAttributes()}
+                                attributes={this.state.object.attributes}
                             />
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
                                 <InputWrapper
@@ -442,13 +442,13 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
                                         onClick={() => this.saveRoutingForBatch(routing)}
                                     />
                                 </div>
-                                {this.state.object.getAttributes().savedForBatch.length > 0 && (
+                                {this.state.object.attributes.savedForBatch.length > 0 && (
                                     <div className="tr__form-buttons-container">
                                         <Button
                                             icon={faFileDownload}
                                             label={`${this.props.t(
                                                 'transit:transitRouting:DownloadBatchRoutingCsv'
-                                            )} (${this.state.object.getAttributes().savedForBatch.length})`}
+                                            )} (${this.state.object.attributes.savedForBatch.length})`}
                                             color="blue"
                                             onClick={this.downloadCsv}
                                         />

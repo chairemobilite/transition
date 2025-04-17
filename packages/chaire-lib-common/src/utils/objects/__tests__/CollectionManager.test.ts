@@ -13,7 +13,7 @@ import EventManagerMock from '../../../test/services/events/EventManagerMock';
 
 class GenericCollectionImpl extends GenericImmutableCollection<GenericObject<GenericAttributes>> {
     protected getFeatureId(feature: GenericObject<GenericAttributes>): string {
-        return feature.getAttributes().id;
+        return feature.attributes.id;
     }
 }
 

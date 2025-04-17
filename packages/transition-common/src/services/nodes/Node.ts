@@ -359,7 +359,7 @@ export class Node extends GenericPlace<NodeAttributes> implements Saveable {
             (maxDistance, stopData) =>
                 Math.max(
                     maxDistance,
-                    turf.distance(this.getAttributes().geography, stopData.geography, { units: 'meters' })
+                    turf.distance(this.attributes.geography, stopData.geography, { units: 'meters' })
                 ),
             0
         );
@@ -486,15 +486,15 @@ export class Node extends GenericPlace<NodeAttributes> implements Saveable {
                 const shouldUpdateGeometries = this.hasChangedGeography();
                 socket.emit(
                     'transitNode.save',
-                    this.getAttributes(),
+                    this.attributes,
                     shouldUpdateGeometries,
                     (responseStatus: Status.Status<number>) => {
                         if (Status.isStatusOk(responseStatus)) {
-                            this._wasFrozen = this.getAttributes().is_frozen === true;
+                            this._wasFrozen = this.attributes.is_frozen === true;
                             const collection = this._collectionManager?.get('nodes');
                             if (collection) {
-                                if (collection?.getIndex(this.getAttributes().id) >= 0) {
-                                    collection.updateById(this.getAttributes().id, this);
+                                if (collection?.getIndex(this.attributes.id) >= 0) {
+                                    collection.updateById(this.attributes.id, this);
                                 } else {
                                     collection.add(this);
                                 }

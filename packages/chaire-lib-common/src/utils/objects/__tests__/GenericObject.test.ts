@@ -54,7 +54,7 @@ test('test constructor and clone', () =>
     expect(objectWithAttribs.get('data')).toEqual({ ...originalAttribs.data });
     expect(objectWithAttribs.isFrozen()).toEqual(true);
     expect(objectWithAttribs.isNew()).toEqual(false);
-    expect(objectWithAttribs.getAttributes()).toEqual({ geography: undefined, ...originalAttribs })
+    expect(objectWithAttribs.attributes).toEqual({ geography: undefined, ...originalAttribs })
 
     // Test duplicate
     const duplicatedObject = objectWithAttribs.duplicate();
@@ -148,9 +148,9 @@ test('Clone with default or true for deleteSpecifics and isNew', () =>
     const clonedObjectWithTrue = objectWithAttribs.clone(true, true);
     expect(clonedObjectWithTrue.getId()).toBeTruthy();
     expect(clonedObjectWithTrue.getId()).not.toEqual(objectWithAttribs.getId());
-    expect(clonedObjectWithTrue.getAttributes().integer_id).not.toEqual(objectWithAttribs.getAttributes().integer_id);
-    expect(clonedObjectWithTrue.getAttributes().created_at).not.toEqual(objectWithAttribs.getAttributes().created_at);
-    expect(clonedObjectWithTrue.getAttributes().updated_at).not.toEqual(objectWithAttribs.getAttributes().updated_at);
+    expect(clonedObjectWithTrue.attributes.integer_id).not.toEqual(objectWithAttribs.attributes.integer_id);
+    expect(clonedObjectWithTrue.attributes.created_at).not.toEqual(objectWithAttribs.attributes.created_at);
+    expect(clonedObjectWithTrue.attributes.updated_at).not.toEqual(objectWithAttribs.attributes.updated_at);
     expect(clonedObjectWithTrue.get('data')).toEqual({ ...originalAttribs.data });
     expect(clonedObjectWithTrue.isFrozen()).toEqual(true);
     expect(clonedObject.isNew()).toEqual(true);
@@ -164,9 +164,9 @@ test('Clone with false for deleteSpecifics and isNew', () =>
     const clonedObjectWithFalse = objectWithAttribs.clone(false, false);
     expect(clonedObjectWithFalse.getId()).toBeTruthy();
     expect(clonedObjectWithFalse.getId()).toEqual(objectWithAttribs.getId());
-    expect(clonedObjectWithFalse.getAttributes().integer_id).toEqual(objectWithAttribs.getAttributes().integer_id);
-    expect(clonedObjectWithFalse.getAttributes().created_at).toEqual(objectWithAttribs.getAttributes().created_at);
-    expect(clonedObjectWithFalse.getAttributes().updated_at).toEqual(objectWithAttribs.getAttributes().updated_at);
+    expect(clonedObjectWithFalse.attributes.integer_id).toEqual(objectWithAttribs.attributes.integer_id);
+    expect(clonedObjectWithFalse.attributes.created_at).toEqual(objectWithAttribs.attributes.created_at);
+    expect(clonedObjectWithFalse.attributes.updated_at).toEqual(objectWithAttribs.attributes.updated_at);
     expect(clonedObjectWithFalse.get('data')).toEqual({ ...originalAttribs.data });
     expect(clonedObjectWithFalse.isFrozen()).toEqual(true);
     expect(clonedObjectWithFalse.isNew()).toEqual(false);

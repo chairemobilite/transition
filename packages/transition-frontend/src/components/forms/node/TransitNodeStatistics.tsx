@@ -50,12 +50,12 @@ const TransitNodeStatistics: React.FunctionComponent<NodeStatsProps> = (props: N
             const pathGeojson = pathCollection.getById(associatedPathId);
             if (pathGeojson) {
                 const path = new Path(pathGeojson.properties, false, serviceLocator.collectionManager);
-                const direction = path.getAttributes().direction;
+                const direction = path.attributes.direction;
                 const line = path.getLine() as Line;
                 associatedLineIds.push(line.getId());
                 const agency = line.getAgency();
                 if (agency && line) {
-                    return `${agency.getAttributes().acronym} | ${line.getAttributes().shortname} | ${props.t(
+                    return `${agency.attributes.acronym} | ${line.attributes.shortname} | ${props.t(
                         `transit:transitPath:directions:${direction}`
                     )} • ${path.getShortenedId()}`;
                 } else {

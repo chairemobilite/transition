@@ -15,7 +15,7 @@ import PreferencesSectionProps from '../PreferencesSectionProps';
 const PreferencesSectionTransitScenarios: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
     props: PreferencesSectionProps & WithTranslation
 ) => {
-    const prefs = props.preferences.getAttributes();
+    const prefs = props.preferences.attributes;
 
     return (
         <Collapsible trigger={props.t('transit:transitScenario:Scenarios')} open={true} transitionTime={100}>

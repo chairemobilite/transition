@@ -88,7 +88,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
 
         // this default section will use default preferences because users prefs are not loaded yet.
         // The state will be updated after loading user prefs.
-        const activeSection = Preferences.getAttributes().defaultSection;
+        const activeSection = Preferences.attributes.defaultSection;
         const mainMapLayerGroups = ['transit'];
 
         this.state = {
@@ -254,8 +254,8 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                     preferencesLoaded: true,
                     socketConnected: true,
                     socketWasConnected: true,
-                    activeSection: Preferences.getAttributes().defaultSection,
-                    infoPanelPosition: Preferences.getAttributes().infoPanelPosition
+                    activeSection: Preferences.attributes.defaultSection,
+                    infoPanelPosition: Preferences.attributes.infoPanelPosition
                 });
             });
         }

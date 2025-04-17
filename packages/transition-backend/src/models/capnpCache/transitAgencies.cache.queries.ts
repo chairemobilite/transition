@@ -24,7 +24,7 @@ const collectionToCache = function (collection: AgencyCollection, cachePathDirec
         CacheCollection,
         CollectionClass: AgencyCollection,
         capnpParser: function (object: Agency, cacheObject: CacheObject) {
-            const attributes = object.getAttributes();
+            const attributes = object.attributes;
             if (!attributes.data) {
                 attributes.data = {};
             }

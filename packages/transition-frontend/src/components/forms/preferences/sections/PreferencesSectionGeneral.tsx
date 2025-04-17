@@ -21,7 +21,7 @@ import PreferencesSectionProps from '../PreferencesSectionProps';
 const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
     props: PreferencesSectionProps & WithTranslation
 ) => {
-    const prefs = props.preferences.getAttributes();
+    const prefs = props.preferences.attributes;
 
     const sectionsChoices = React.useMemo(() => {
         const sections = config.sections;

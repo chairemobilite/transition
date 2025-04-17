@@ -72,17 +72,17 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
             loading: false,
             // FIXME tahini: There's probably a better way for this, like with useState
             formValues: {
-                routingName: routingEngine.getAttributes().routingName || '',
-                routingModes: routingEngine.getAttributes().routingModes || ['transit'],
-                minWaitingTimeSeconds: routingEngine.getAttributes().minWaitingTimeSeconds,
-                maxAccessEgressTravelTimeSeconds: routingEngine.getAttributes().maxAccessEgressTravelTimeSeconds,
-                maxTransferTravelTimeSeconds: routingEngine.getAttributes().maxTransferTravelTimeSeconds,
-                maxFirstWaitingTimeSeconds: routingEngine.getAttributes().maxFirstWaitingTimeSeconds,
-                maxTotalTravelTimeSeconds: routingEngine.getAttributes().maxTotalTravelTimeSeconds,
-                scenarioId: routingEngine.getAttributes().scenarioId,
-                withAlternatives: routingEngine.getAttributes().withAlternatives,
-                routingPort: routingEngine.getAttributes().routingPort,
-                odTripUuid: routingEngine.getAttributes().odTripUuid
+                routingName: routingEngine.attributes.routingName || '',
+                routingModes: routingEngine.attributes.routingModes || ['transit'],
+                minWaitingTimeSeconds: routingEngine.attributes.minWaitingTimeSeconds,
+                maxAccessEgressTravelTimeSeconds: routingEngine.attributes.maxAccessEgressTravelTimeSeconds,
+                maxTransferTravelTimeSeconds: routingEngine.attributes.maxTransferTravelTimeSeconds,
+                maxFirstWaitingTimeSeconds: routingEngine.attributes.maxFirstWaitingTimeSeconds,
+                maxTotalTravelTimeSeconds: routingEngine.attributes.maxTotalTravelTimeSeconds,
+                scenarioId: routingEngine.attributes.scenarioId,
+                withAlternatives: routingEngine.attributes.withAlternatives,
+                routingPort: routingEngine.attributes.routingPort,
+                odTripUuid: routingEngine.attributes.odTripUuid
             }
         };
 
@@ -133,7 +133,7 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
             arrivalTimeSecondsSinceMidnight,
             originGeojson,
             destinationGeojson
-        } = routing.getAttributes();
+        } = routing.attributes;
         if (!originGeojson || !destinationGeojson) {
             return;
         }
@@ -152,7 +152,7 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
             object: routing,
             formValues: {
                 ...this.state.formValues,
-                routingName: routing.getAttributes().routingName
+                routingName: routing.attributes.routingName
             }
         });
     }
@@ -234,7 +234,7 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
     };
 
     private downloadCsv() {
-        const elements = this.state.object.getAttributes().savedForBatch;
+        const elements = this.state.object.attributes.savedForBatch;
         const lines: string[] = [];
         lines.push('id,routingName,originLon,originLat,destinationLon,destinationLat,time');
         elements.forEach((element, index) => {
@@ -299,7 +299,7 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
         const hasTransitModeSelected = selectedRoutingModes.includes('transit');
 
         if (_isBlank(routing.get('withAlternatives'))) {
-            routing.getAttributes().withAlternatives = false;
+            routing.attributes.withAlternatives = false;
         }
 
         const scenarios = this.state.scenarioCollection.features.map((scenario) => {
@@ -336,10 +336,10 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
                             {hasTransitModeSelected && (
                                 <TimeOfTripComponent
                                     departureTimeSecondsSinceMidnight={
-                                        this.state.object.getAttributes().departureTimeSecondsSinceMidnight
+                                        this.state.object.attributes.departureTimeSecondsSinceMidnight
                                     }
                                     arrivalTimeSecondsSinceMidnight={
-                                        this.state.object.getAttributes().arrivalTimeSecondsSinceMidnight
+                                        this.state.object.attributes.arrivalTimeSecondsSinceMidnight
                                     }
                                     onValueChange={this.onTripTimeChange}
                                 />
@@ -347,7 +347,7 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
                             {hasTransitModeSelected && (
                                 <TransitRoutingBaseComponent
                                     onValueChange={this.onValueChange}
-                                    attributes={this.state.object.getAttributes()}
+                                    attributes={this.state.object.attributes}
                                 />
                             )}
                             {hasTransitModeSelected && (
@@ -410,13 +410,13 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
                                         onClick={() => this.saveRoutingForBatch(routing)}
                                     />
                                 </div>
-                                {this.state.object.getAttributes().savedForBatch.length > 0 && (
+                                {this.state.object.attributes.savedForBatch.length > 0 && (
                                     <div className="tr__form-buttons-container">
                                         <Button
                                             icon={faFileDownload}
                                             label={`${this.props.t(
                                                 'transit:transitRouting:DownloadBatchRoutingCsv'
-                                            )} (${this.state.object.getAttributes().savedForBatch.length})`}
+                                            )} (${this.state.object.attributes.savedForBatch.length})`}
                                             color="blue"
                                             onClick={this.downloadCsv}
                                         />

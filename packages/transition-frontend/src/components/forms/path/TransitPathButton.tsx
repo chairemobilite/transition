@@ -71,7 +71,7 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
         serviceLocator.socketEventManager.emit('transitPath.read', props.path.getId(), null, async (response) => {
             try {
                 const pathToReverse = new Path({ ...response.path }, false, serviceLocator.collectionManager);
-                const direction = pathToReverse.getAttributes().direction;
+                const direction = pathToReverse.attributes.direction;
                 const newAttributes = pathToReverse.getClonedAttributes();
                 delete newAttributes.name;
                 const newData = newAttributes.data as Partial<PathAttributesData>;
@@ -183,7 +183,7 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
     }, []);
 
     const isFrozen = props.path.isFrozen();
-    const halfCycleTimeSeconds = props.path.getAttributes().data.operatingTimeWithLayoverTimeSeconds;
+    const halfCycleTimeSeconds = props.path.attributes.data.operatingTimeWithLayoverTimeSeconds;
     const halfCycleTimeMinutes = halfCycleTimeSeconds ? halfCycleTimeSeconds / 60 : undefined;
 
     return (

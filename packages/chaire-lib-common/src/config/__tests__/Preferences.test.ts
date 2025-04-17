@@ -39,7 +39,7 @@ test('Test default preferences', () => {
 });
 
 test('Test current match attributes', () => {
-    expect(Preferences.current).toMatchObject(Preferences.getAttributes());
+    expect(Preferences.current).toMatchObject(Preferences.attributes);
 });
 
 test('Test initialize PreferencesClass with custom attributes', () => {

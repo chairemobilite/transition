@@ -80,7 +80,7 @@ test('should construct zones collection with or without features', function() {
     expect(odTripCollectionEmpty.size()).toBe(0);
     expect(odTripCollectionEmpty.getFeatures()[0]).toBeUndefined();
 
-    expect(odTripCollection3.forJson()[2]).toEqual(odTrip3.getAttributes());
+    expect(odTripCollection3.forJson()[2]).toEqual(odTrip3.attributes);
 
 });
 

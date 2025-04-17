@@ -71,7 +71,7 @@ export const duplicateAgency = async (
 
     // TODO Duplicate garages and units
 
-    duplicatedAgency.getAttributes().line_ids = newLineIds;
+    duplicatedAgency.attributes.line_ids = newLineIds;
     duplicatedAgency.refreshLines();
 
     await duplicatedAgency.save(socket);

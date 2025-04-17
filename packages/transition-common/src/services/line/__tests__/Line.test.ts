@@ -43,7 +43,7 @@ const lineModePreferences = {
     }
 };
 
-Preferences.setAttributes(Object.assign({}, Preferences.getAttributes(), linePreferences));
+Preferences.setAttributes(Object.assign({}, Preferences.attributes, linePreferences));
 
 beforeEach(() => {
     EventManagerMock.mockClear();
@@ -52,14 +52,14 @@ beforeEach(() => {
 test('New lines', () => {
 
     const line = new Line(lineAttributesBaseData, true);
-    expect(line.getAttributes()).toEqual(lineAttributesBaseData);
+    expect(line.attributes).toEqual(lineAttributesBaseData);
     expect(line.isNew()).toBe(true);
 
 });
 
 test('New line default data', () => {
     const line = new Line(lineAttributesMinimalData, true);
-    expect(line.getAttributes()).toEqual({
+    expect(line.attributes).toEqual({
         ...lineAttributesMinimalData,
         scheduleByServiceId: {},
         path_ids: [],
@@ -110,13 +110,13 @@ test('Save line', async () => {
     line.startEditing();
     await line.save(eventManager as any);
     expect(eventManager.emit).toHaveBeenCalledTimes(1);
-    expect(eventManager.emit).toHaveBeenCalledWith('transitLine.create', line.getAttributes(), expect.anything());
+    expect(eventManager.emit).toHaveBeenCalledWith('transitLine.create', line.attributes, expect.anything());
 
     // Update
     line.set('mode', 'train');
     await line.save(eventManager as any);
     expect(eventManager.emit).toHaveBeenCalledTimes(2);
-    expect(eventManager.emit).toHaveBeenCalledWith('transitLine.update', line.getId(), line.getAttributes(), expect.anything());
+    expect(eventManager.emit).toHaveBeenCalledWith('transitLine.update', line.getId(), line.attributes, expect.anything());
 });
 
 test('Delete line', async () => {
@@ -158,24 +158,24 @@ test('getClonedAttributes', () => {
 test('newPath', () => {
     const line = new Line(lineAttributesBaseData, true);
     const newPath = line.newPath();
-    expect(newPath.getAttributes().id).toBeDefined();
-    expect(newPath.getAttributes().mode).toEqual(line.getAttributes().mode);
-    expect(newPath.getAttributes().color).toEqual(line.getAttributes().color);
-    expect(newPath.getAttributes().data).toEqual(expect.objectContaining(lineModes[0].defaultValues.data));
+    expect(newPath.attributes.id).toBeDefined();
+    expect(newPath.attributes.mode).toEqual(line.attributes.mode);
+    expect(newPath.attributes.color).toEqual(line.attributes.color);
+    expect(newPath.attributes.data).toEqual(expect.objectContaining(lineModes[0].defaultValues.data));
 
     const pathInitialData = { direction: 'inbound' as const, name: 'test', color: '#112233' };
     const newPathWithData = line.newPath(pathInitialData);
-    expect(newPathWithData.getAttributes().id).toBeDefined();
-    expect(newPathWithData.getAttributes().mode).toEqual(line.getAttributes().mode);
-    expect(newPathWithData.getAttributes().data).toEqual(expect.objectContaining(lineModes[0].defaultValues.data));
-    expect(newPathWithData.getAttributes()).toEqual(expect.objectContaining(pathInitialData));
+    expect(newPathWithData.attributes.id).toBeDefined();
+    expect(newPathWithData.attributes.mode).toEqual(line.attributes.mode);
+    expect(newPathWithData.attributes.data).toEqual(expect.objectContaining(lineModes[0].defaultValues.data));
+    expect(newPathWithData.attributes).toEqual(expect.objectContaining(pathInitialData));
 });
 
 test('newPath with custom line mode default values', () => {
-    Preferences.setAttributes(Object.assign({}, Preferences.getAttributes(), lineModePreferences));
+    Preferences.setAttributes(Object.assign({}, Preferences.attributes, lineModePreferences));
     const line = new Line(lineAttributesBaseData, true);
     const newPath = line.newPath();
-    expect(newPath.getAttributes().data.defaultDwellTimeSeconds).toEqual(24);
+    expect(newPath.attributes.data.defaultDwellTimeSeconds).toEqual(24);
 });
 
 describe('Test schedules management', () => {

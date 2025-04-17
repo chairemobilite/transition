@@ -35,7 +35,7 @@ class AgencyCollection extends GenericObjectCollection<Agency> implements Progre
 
     forCsv() {
         return this._features.map((agency) => {
-            const attributes = agency.getAttributes();
+            const attributes = agency.attributes;
             return {
                 uuid: attributes.id,
                 acronym: attributes.acronym,
@@ -49,7 +49,7 @@ class AgencyCollection extends GenericObjectCollection<Agency> implements Progre
 
     forJson() {
         return this._features.map((agency) => {
-            return agency.getAttributes();
+            return agency.attributes;
         });
     }
 

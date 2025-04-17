@@ -98,10 +98,10 @@ export async function calculateAccessibilityMap(
         // The calculateWithPolygons function in TransitAccessibilityMapCalculator requires a node collection,
         // so the nodes currently in the database are loaded here
         await updateNodeCollection();
-        routingResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(routing.getAttributes(), {});
+        routingResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(routing.attributes, {});
     } else {
         const accessibilityMap: TransitAccessibilityMapResult = await TransitAccessibilityMapCalculator.calculate(
-            routing.getAttributes(),
+            routing.attributes,
             {}
         );
         routingResult = {

@@ -247,8 +247,8 @@ describe(`${objectName}`, () => {
 
         // At this point, newObjectAttributes and newObjectAttributes2 are in the database
         await pathsDbQueries.createMultiple([
-            new Path(newPathWithTwoAssociatedNodesAttributes, false).getAttributes(),
-            new Path(newPathWithOneAssociatedNodeAttributes, true).getAttributes(),
+            new Path(newPathWithTwoAssociatedNodesAttributes, false).attributes,
+            new Path(newPathWithOneAssociatedNodeAttributes, true).attributes,
         ]);
 
         await expect(async () => {
@@ -400,14 +400,14 @@ describe('Nodes, with transactions', () => {
         // Empty the table and add 1 object
         await dbQueries.truncate();
         const newObject = new ObjectClass(testObjectAttributes, true);
-        await dbQueries.create(newObject.getAttributes());
+        await dbQueries.create(newObject.attributes);
     });
 
     test('Create, update with success', async() => {
         const newName = 'new name';
         await knex.transaction(async (trx) => {
             const newObject = new ObjectClass(testObjectAttributes2, true);
-            await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+            await dbQueries.create(newObject.attributes, { transaction: trx });
             await dbQueries.update(testObjectAttributes.id, { name: newName }, { transaction: trx });
         });
 
@@ -432,7 +432,7 @@ describe('Nodes, with transactions', () => {
         try {
             await knex.transaction(async (trx) => {
                 const newObject = new ObjectClass(testObjectAttributes2, true);
-                await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+                await dbQueries.create(newObject.attributes, { transaction: trx });
                 // Update with a bad field
                 await dbQueries.update(testObjectAttributes.id, { simulation_id: uuidV4() } as any, { transaction: trx });
             });
@@ -455,7 +455,7 @@ describe('Nodes, with transactions', () => {
         try {
             await knex.transaction(async (trx) => {
                 const newObject = new ObjectClass(testObjectAttributes2, true);
-                await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+                await dbQueries.create(newObject.attributes, { transaction: trx });
                 await dbQueries.update(testObjectAttributes.id, { name: currentNodeNewName }, { transaction: trx });
                 await dbQueries.delete(testObjectAttributes.id, { transaction: trx });
                 throw 'error';

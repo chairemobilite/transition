@@ -155,9 +155,9 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
                 )}
                 <img
                     className="_list-element _icon-alone"
-                    src={`/dist/images/icons/transit/modes/${props.line.getAttributes().mode}_white.svg`}
-                    alt={props.t(`transit:transitLine:modes:${props.line.getAttributes().mode}`)}
-                    title={props.t(`transit:transitLine:modes:${props.line.getAttributes().mode}`)}
+                    src={`/dist/images/icons/transit/modes/${props.line.attributes.mode}_white.svg`}
+                    alt={props.t(`transit:transitLine:modes:${props.line.attributes.mode}`)}
+                    title={props.t(`transit:transitLine:modes:${props.line.attributes.mode}`)}
                 />
             </ButtonCell>
             {isFrozen && (

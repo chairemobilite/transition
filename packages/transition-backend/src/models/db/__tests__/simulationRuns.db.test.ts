@@ -193,7 +193,7 @@ describe(`${objectName}`, () => {
 
         let error: any = undefined;
         try {
-            await dbQueries.updateMultiple([updatedObject.getAttributes(), updatedObject2.getAttributes()]);
+            await dbQueries.updateMultiple([updatedObject.attributes, updatedObject2.attributes]);
         } catch(err) {
             error = err;
         }
@@ -216,7 +216,7 @@ describe(`${objectName}`, () => {
         const updatedObject = new ObjectClass(_updatedAttributes, true);
         const _updatedAttributes2 = { id: newObjectAttributes2.id, ...updatedAttributes };
 
-        const response = await dbQueries.updateMultiple([updatedObject.getAttributes(), _updatedAttributes2]);
+        const response = await dbQueries.updateMultiple([updatedObject.attributes, _updatedAttributes2]);
         expect(response.length).toEqual(2);
 
         // Make sure both objects have been updated
@@ -260,7 +260,7 @@ describe(`${objectName}`, () => {
 
         let error: any = undefined;
         try {
-            await dbQueries.createMultiple([newObject.getAttributes(), newObject2.getAttributes()]);
+            await dbQueries.createMultiple([newObject.attributes, newObject2.attributes]);
         } catch(err) {
             error = err;
         }
@@ -275,7 +275,7 @@ describe(`${objectName}`, () => {
         const newObject = new ObjectClass(newObjectAttributes, true);
         const newObject2 = new ObjectClass(newObjectAttributes2, true);
 
-        const ids = await dbQueries.createMultiple([newObject.getAttributes(), newObject2.getAttributes()]);
+        const ids = await dbQueries.createMultiple([newObject.attributes, newObject2.attributes]);
         
         expect(ids).toEqual([{ id: newObject.getId() }, { id: newObject2.getId() }]);
         const _collection = await dbQueries.getForSimulation(simulationId);
@@ -401,7 +401,7 @@ describe(`${objectName}`, () => {
         // Recreate runs
         const newObject = new ObjectClass(newObjectAttributes, true);
         const newObject2 = new ObjectClass(newObjectAttributes2, true);
-        await dbQueries.createMultiple([newObject.getAttributes(), newObject2.getAttributes()]);
+        await dbQueries.createMultiple([newObject.attributes, newObject2.attributes]);
 
         // Add scenarios again for the simulation runs
         await scenariosDbQueries.create(scenarioAttributes2);
@@ -430,7 +430,7 @@ describe(`${objectName}`, () => {
         const newObject = new ObjectClass(newObjectAttributes, true);
         const newObject2 = new ObjectClass(newObjectAttributes2, true);
 
-        const ids = await dbQueries.createMultiple([newObject.getAttributes(), newObject2.getAttributes()]);
+        const ids = await dbQueries.createMultiple([newObject.attributes, newObject2.attributes]);
 
         // Add scenarios again for the simulation runs
         await scenariosDbQueries.create(scenarioAttributes1);

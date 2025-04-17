@@ -58,12 +58,12 @@ export class AgencyImporter implements GtfsObjectImporter<AgencyImportData, Agen
                     .getFeatures()
                     .filter(
                         (existing) =>
-                            existing.getAttributes().acronym === actualAgencyId ||
-                            actualAgencyId === existing.getAttributes().data?.gtfs?.agency_id
+                            existing.attributes.acronym === actualAgencyId ||
+                            actualAgencyId === existing.attributes.data?.gtfs?.agency_id
                     )
                     .map((existing) => ({
                         id: existing.getId(),
-                        acronym: existing.getAttributes().acronym
+                        acronym: existing.attributes.acronym
                     }));
 
                 // Default behavior is to overwrite the first matching agency.
@@ -148,7 +148,7 @@ export class AgencyImporter implements GtfsObjectImporter<AgencyImportData, Agen
             const agencyToReplace = this._existingAgencies
                 .getFeatures()
                 .find((existing) => existing.getId() === agencyAction.agencyId);
-            const newAcronym = agencyToReplace ? agencyToReplace.getAttributes().acronym : undefined;
+            const newAcronym = agencyToReplace ? agencyToReplace.attributes.acronym : undefined;
             if (agencyToReplace) {
                 // Found the agency to replace, delete it and create it again
                 await agencyToReplace.delete(serviceLocator.socketEventManager);

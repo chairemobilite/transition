@@ -188,7 +188,7 @@ export const calculateDistances = (
         totalDistanceInMeters: number;
     }
 ) => {
-    console.log(`generating shape distances for path ${path.getId()} of line ${path.getAttributes().line_id}`);
+    console.log(`generating shape distances for path ${path.getId()} of line ${path.attributes.line_id}`);
 
     const result = calculateDistancesFromLineShape(params);
     return result.status === 'success' ? result : calculateDistancesBySegments(params);
@@ -205,7 +205,7 @@ export const generateGeographyAndSegmentsFromGtfs = (
     defaultLayoverRatioOverTotalTravelTime = 0.1,
     defaultMinLayoverTimeSeconds = 180
 ): ErrorMessage[] => {
-    path.getAttributes().nodes = nodeIds; // reset nodes, they will be regenerated from stop times
+    path.attributes.nodes = nodeIds; // reset nodes, they will be regenerated from stop times
 
     // Return errors when generating the path
     const errors: ErrorMessage[] = [];
@@ -274,7 +274,7 @@ export const generateGeographyAndSegmentsFromGtfs = (
         // it saves us the calculation of the distance along the shape for each individual coordinate.
     }
     if (shapeDistancesFailed) {
-        console.log(`could not generate distances from shape for line id ${path.getAttributes().line_id}`);
+        console.log(`could not generate distances from shape for line id ${path.attributes.line_id}`);
 
         // we create an incomplete path to allow schedule generation but without segments shapes and distances:
         const segments = [];
@@ -298,7 +298,7 @@ export const generateGeographyAndSegmentsFromGtfs = (
             totalTravelTimeWithoutDwellTimesSeconds += travelTimeSeconds;
             totalTravelTimeWithDwellTimesSeconds += dwellTimeSeconds + travelTimeSeconds;
         }
-        const customLayoverMinutes = path.getAttributes().data.customLayoverMinutes;
+        const customLayoverMinutes = path.attributes.data.customLayoverMinutes;
         const layoverTimeSeconds =
             customLayoverMinutes !== undefined
                 ? customLayoverMinutes * 60
@@ -333,8 +333,8 @@ export const generateGeographyAndSegmentsFromGtfs = (
             waypointTypes: []
         };
 
-        path.getAttributes().segments = segments;
-        path.getAttributes().data = Object.assign(path.getAttributes().data, pathData);
+        path.attributes.segments = segments;
+        path.attributes.data = Object.assign(path.attributes.data, pathData);
     } else {
         if (!shapeDistancesAreInMeters) {
             stopTimeDistances[0].distanceTraveled = 0;
@@ -431,7 +431,7 @@ export const generateGeographyAndSegmentsFromGtfs = (
             totalTravelTimeWithoutDwellTimesSeconds += travelTimeSeconds;
             totalTravelTimeWithDwellTimesSeconds += dwellTimeSeconds + travelTimeSeconds;
         }
-        const customLayoverMinutes = path.getAttributes().data.customLayoverMinutes;
+        const customLayoverMinutes = path.attributes.data.customLayoverMinutes;
         const layoverTimeSeconds =
             customLayoverMinutes !== undefined
                 ? customLayoverMinutes * 60
@@ -470,14 +470,14 @@ export const generateGeographyAndSegmentsFromGtfs = (
 
         completeShape.geometry.coordinates = globalCoordinates;
 
-        path.getAttributes().segments = segments;
-        path.getAttributes().data = Object.assign(path.getAttributes().data, pathData);
+        path.attributes.segments = segments;
+        path.attributes.data = Object.assign(path.attributes.data, pathData);
 
         const terminalsGeojsons = [
             path.collectionManager.get('nodes').getById(nodeIds[0]),
             path.collectionManager.get('nodes').getById(nodeIds[nodeIds.length - 1])
         ];
-        path.getAttributes().data.birdDistanceBetweenTerminals = turfLength(
+        path.attributes.data.birdDistanceBetweenTerminals = turfLength(
             turfHelpers.lineString([
                 terminalsGeojsons[0].geometry.coordinates,
                 terminalsGeojsons[1].geometry.coordinates
@@ -502,7 +502,7 @@ export const generateGeographyAndSegmentsFromStopTimes = (
     defaultLayoverRatioOverTotalTravelTime = 0.1,
     defaultMinLayoverTimeSeconds = 180
 ): ErrorMessage[] => {
-    path.getAttributes().nodes = nodeIds; // reset nodes, they will be regenerated from stop times
+    path.attributes.nodes = nodeIds; // reset nodes, they will be regenerated from stop times
 
     // Return errors when generating the path
     const errors: ErrorMessage[] = [];
@@ -567,7 +567,7 @@ export const generateGeographyAndSegmentsFromStopTimes = (
         // Since we simply have coordinates, the index of the coordinates is the stop index
         segments.push(i);
     }
-    const customLayoverMinutes = path.getAttributes().data.customLayoverMinutes;
+    const customLayoverMinutes = path.attributes.data.customLayoverMinutes;
     const layoverTimeSeconds =
         customLayoverMinutes !== undefined
             ? customLayoverMinutes * 60
@@ -601,8 +601,8 @@ export const generateGeographyAndSegmentsFromStopTimes = (
         waypointTypes: []
     };
 
-    path.getAttributes().segments = segments;
-    path.getAttributes().data = Object.assign(path.getAttributes().data, pathData);
+    path.attributes.segments = segments;
+    path.attributes.data = Object.assign(path.attributes.data, pathData);
 
     path.setData('gtfs', { shape_id: undefined });
     path.setData('from_gtfs', true);

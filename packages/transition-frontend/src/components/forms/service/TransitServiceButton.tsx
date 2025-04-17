@@ -115,7 +115,7 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
                 flushActionButtons={scheduledLineCount === 0}
             >
                 <ButtonCell alignment="left">
-                    <span className="_circle-button" style={{ backgroundColor: service.getAttributes().color }}></span>
+                    <span className="_circle-button" style={{ backgroundColor: service.attributes.color }}></span>
                 </ButtonCell>
                 {isFrozen && (
                     <ButtonCell alignment="left">

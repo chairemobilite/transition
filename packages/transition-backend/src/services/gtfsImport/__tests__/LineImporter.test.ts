@@ -98,7 +98,7 @@ describe('GTFS Line import', () => {
         expect(lineSaveFct).toHaveBeenCalledTimes(2);
         const newLine = data[gtfsValidSimpleData['routes.txt'][0].route_id];
         expect(newLine).toBeDefined();
-        expect(newLine.getAttributes()).toEqual(expect.objectContaining({
+        expect(newLine.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             agency_id: agencyId,
             shortname: gtfsValidSimpleData['routes.txt'][0].route_short_name,
@@ -114,7 +114,7 @@ describe('GTFS Line import', () => {
 
         const newLine2 = data[gtfsValidSimpleData['routes.txt'][1].route_id];
         expect(newLine2).toBeDefined();
-        expect(newLine2.getAttributes()).toEqual(expect.objectContaining({
+        expect(newLine2.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             agency_id: agencyId,
             shortname: gtfsValidSimpleData['routes.txt'][1].route_short_name,
@@ -185,12 +185,12 @@ describe('GTFS Line import', () => {
         const newLine = data[gtfsValidSimpleData['routes.txt'][0].route_id];
         expect(newLine).toBeDefined();
         const newLine1Attribs = Object.assign({}, existingLineAttribs1, changedAttribs[0]);
-        expect(newLine.getAttributes()).toEqual(expect.objectContaining(newLine1Attribs));
+        expect(newLine.attributes).toEqual(expect.objectContaining(newLine1Attribs));
 
         const newLine2 = data[gtfsValidSimpleData['routes.txt'][1].route_id];
         expect(newLine2).toBeDefined();
         const newLine2Attribs = Object.assign({}, existingLineAttribs2, changedAttribs[1]);
-        expect(newLine2.getAttributes()).toEqual(expect.objectContaining(newLine2Attribs));
+        expect(newLine2.attributes).toEqual(expect.objectContaining(newLine2Attribs));
     });
 
     test('Test import line data, two selected, line exists, different agency', async () => {
@@ -233,7 +233,7 @@ describe('GTFS Line import', () => {
         expect(lineSaveFct).toHaveBeenCalledTimes(2);
         const newLine = data[gtfsValidSimpleData['routes.txt'][0].route_id];
         expect(newLine).toBeDefined();
-        expect(newLine.getAttributes()).toEqual(expect.objectContaining({
+        expect(newLine.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             agency_id: agencyId,
             shortname: gtfsValidSimpleData['routes.txt'][0].route_short_name,
@@ -249,7 +249,7 @@ describe('GTFS Line import', () => {
 
         const newLine2 = data[gtfsValidSimpleData['routes.txt'][1].route_id];
         expect(newLine2).toBeDefined();
-        expect(newLine2.getAttributes()).toEqual(expect.objectContaining({
+        expect(newLine2.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             agency_id: agencyId,
             shortname: gtfsValidSimpleData['routes.txt'][1].route_short_name,
@@ -291,7 +291,7 @@ describe('GTFS Line import', () => {
         expect(lineSaveFct).toHaveBeenCalledTimes(2);
         const newLine = data[gtfsValidTransitionGeneratedData['routes.txt'][0].route_id];
         expect(newLine).toBeDefined();
-        expect(newLine.getAttributes()).toEqual(expect.objectContaining({
+        expect(newLine.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             agency_id: agencyId,
             shortname: gtfsValidTransitionGeneratedData['routes.txt'][0].route_short_name,
@@ -311,7 +311,7 @@ describe('GTFS Line import', () => {
 
         const newLine2 = data[gtfsValidTransitionGeneratedData['routes.txt'][1].route_id];
         expect(newLine2).toBeDefined();
-        expect(newLine2.getAttributes()).toEqual(expect.objectContaining({
+        expect(newLine2.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             agency_id: agencyId,
             shortname: gtfsValidTransitionGeneratedData['routes.txt'][1].route_short_name,
@@ -343,7 +343,7 @@ describe('GTFS Line import', () => {
         expect(lineSaveFct).toHaveBeenCalledTimes(1);
         const newLine = data[gtfsValidTransitionGeneratedData['routes.txt'][0].route_id];
         expect(newLine).toBeDefined();
-        expect(newLine.getAttributes().color).toEqual('#FFFFFF');
+        expect(newLine.attributes.color).toEqual('#FFFFFF');
 
         // Import again, this time with a default agency color
         const defaultColor = '#ABCDEF';
@@ -351,6 +351,6 @@ describe('GTFS Line import', () => {
         expect(lineSaveFct).toHaveBeenCalledTimes(2);
         const newLine2 = data2[gtfsValidTransitionGeneratedData['routes.txt'][0].route_id];
         expect(newLine2).toBeDefined();
-        expect(newLine2.getAttributes().color).toEqual(defaultColor);
+        expect(newLine2.attributes.color).toEqual(defaultColor);
     });
 })

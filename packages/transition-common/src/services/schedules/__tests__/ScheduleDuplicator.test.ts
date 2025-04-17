@@ -23,7 +23,7 @@ test('Duplicate schedule, same line path and services', async () => {
 
     // Validate the schedule's data
     const expectedSched = getScheduleAttributes({ pathId, scheduleId: newSchedule.getId() });
-    const actualSched = newSchedule.getAttributes();
+    const actualSched = newSchedule.attributes;
     const expectedBaseSchedules = _omit(expectedSched, 'periods', 'integer_id');
     const actualSchedule = _omit(actualSched, 'periods');
     const expectedPeriods = expectedSched.periods;
@@ -58,12 +58,12 @@ test('Duplicate schedule, different line, path and services', async () => {
     // Copy the line and make sure the path was correctly copied
     const newSchedule = await duplicateSchedule(schedule, { lineId: newLineId, serviceId: newServiceId, pathIdsMapping: pathMapping });
     expect(newSchedule.getId()).not.toEqual(schedule.getId());
-    expect(newSchedule.getAttributes().line_id).not.toEqual(schedule.getAttributes().line_id);
-    expect(newSchedule.getAttributes().service_id).not.toEqual(schedule.getAttributes().service_id);
+    expect(newSchedule.attributes.line_id).not.toEqual(schedule.attributes.line_id);
+    expect(newSchedule.attributes.service_id).not.toEqual(schedule.attributes.service_id);
 
     // Validate the schedule's data
     const expectedSched = getScheduleAttributes({ pathId: newPathId, lineId: newLineId, serviceId: newServiceId, scheduleId: newSchedule.getId() });
-    const actualSched = newSchedule.getAttributes();
+    const actualSched = newSchedule.attributes;
     const expectedBaseSchedules = _omit(expectedSched, 'periods', 'integer_id');
     const actualSchedule = _omit(actualSched, 'periods');
     const expectedPeriods = expectedSched.periods;
@@ -74,7 +74,7 @@ test('Duplicate schedule, different line, path and services', async () => {
     for (let i = 0; i < expectedPeriods.length; i++) {
         const expectedPeriod = _omit(expectedPeriods[i], ['id', 'trips', 'integer_id', 'schedule_id']);
         const actualPeriod = _omit(actualPeriods[i], ['id', 'trips']);
-        expect(actualPeriod.outbound_path_id).not.toEqual(schedule.getAttributes().periods[i].outbound_path_id);
+        expect(actualPeriod.outbound_path_id).not.toEqual(schedule.attributes.periods[i].outbound_path_id);
         const expectedTrips = expectedPeriods[i].trips;
         const actualTrips = actualPeriods[i].trips;
         expect(actualPeriod).toEqual(expectedPeriod);

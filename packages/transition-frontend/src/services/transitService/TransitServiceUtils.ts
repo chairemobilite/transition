@@ -14,7 +14,7 @@ export const getServiceLabel = (service: Service, t: (arg0: string) => string): 
     let label = service.toString();
     const serviceWeekdays: string[] = [];
     for (let i = 0, count = serviceDays.length; i < count; i++) {
-        if (service.getAttributes()[serviceDays[i]] === true) {
+        if (service.attributes[serviceDays[i]] === true) {
             serviceWeekdays.push(t(`main:dateTime:weekdaysAbbr:${serviceDays[i]}`));
         }
     }
@@ -41,13 +41,13 @@ export const canMergeServices = (service: Service, mergee: Service): boolean => 
         }
     }
     // Check that the dates correspond
-    const serviceStartDate = service.getAttributes().start_date;
-    const serviceEndDate = service.getAttributes().end_date;
+    const serviceStartDate = service.attributes.start_date;
+    const serviceEndDate = service.attributes.end_date;
     if (serviceStartDate && serviceEndDate) {
         const start = Date.parse(serviceStartDate);
         const end = Date.parse(serviceEndDate);
-        const mergeeStart = Date.parse(mergee.getAttributes().start_date);
-        const mergeeEnd = Date.parse(mergee.getAttributes().end_date);
+        const mergeeStart = Date.parse(mergee.attributes.start_date);
+        const mergeeEnd = Date.parse(mergee.attributes.end_date);
         if (mergeeEnd < start || mergeeStart > end) {
             return false;
         }
@@ -73,7 +73,7 @@ export const serviceMatches = (
     }
 ): boolean => {
     if (filter.name) {
-        const serviceName = service.getAttributes().name;
+        const serviceName = service.attributes.name;
         // The name can be a string contained in the serviceName, or a regex
         try {
             if (serviceName && !(serviceName.includes(filter.name) || serviceName.match(filter.name))) {

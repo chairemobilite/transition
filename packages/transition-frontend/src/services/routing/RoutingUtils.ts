@@ -77,7 +77,7 @@ export const calculateAccessibilityMap = async (
 
         serviceLocator.socketEventManager.emit(
             'accessibiliyMap.calculateWithPolygons',
-            routing.getAttributes(),
+            routing.attributes,
             options,
             (mapResult: Status.Status<TransitAccessibilityMapWithPolygonResult>) => {
                 if (options.isCancelled && options.isCancelled()) {

@@ -180,7 +180,7 @@ describe('calculateAccessibilityMap', () => {
         const routingResults = await calculateAccessibilityMap(routing);
 
         expect(routingResults).toEqual(results);
-        expect(calculateAccessibilityMapMock).toHaveBeenCalledWith(routing.getAttributes(), {});
+        expect(calculateAccessibilityMapMock).toHaveBeenCalledWith(routing.attributes, {});
         expect(routing.updateRoutingPrefs).not.toHaveBeenCalled();
     });
 
@@ -205,7 +205,7 @@ describe('calculateAccessibilityMap', () => {
         const routingResults = await calculateAccessibilityMap(routing, true);
         
         expect(routingResults).toEqual(results);
-        expect(calculateAccessibilityMapMock).toHaveBeenCalledWith(routing.getAttributes(), {});
+        expect(calculateAccessibilityMapMock).toHaveBeenCalledWith(routing.attributes, {});
         expect(routing.updateRoutingPrefs).toHaveBeenCalledTimes(1);
     });
 

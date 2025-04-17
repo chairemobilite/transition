@@ -32,7 +32,7 @@ class GenericObjectStub extends GenericObject<GenericAttributesStub> {
 }
 class CollectionStub extends GenericObjectCollection<GenericObjectStub> {
     protected getFeatureId(feature: GenericObjectStub): string {
-        return feature.getAttributes().id;
+        return feature.attributes.id;
     }
     protected static socketPrefix = 'collectionStub';
     newObject(attribs: Partial<GenericAttributesStub>, isNew?: boolean, collManager?: any): GenericObjectStub {
@@ -49,7 +49,7 @@ class CollectionStubProgressable extends GenericObjectCollection<GenericObjectSt
         eventManager.emitProgress(`collectionStub${progressEventName}`, completeRatio);
     }
     protected getFeatureId(feature: GenericObjectStub): string {
-        return feature.getAttributes().id;
+        return feature.attributes.id;
     }
 }
 

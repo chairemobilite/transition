@@ -220,7 +220,7 @@ describe(`${objectName}`, () => {
 
         const _updatedAttributes = Object.assign({}, newObjectAttributesWithSchedule);
         const updatedObject = new ObjectClass(_updatedAttributes, false);
-        const id = await dbQueries.update(newObjectAttributesWithSchedule.id, updatedObject.getAttributes());
+        const id = await dbQueries.update(newObjectAttributesWithSchedule.id, updatedObject.attributes);
         const schedId1 = await schedulesDbQueries.save(scheduleForServiceId);
         (scheduleForServiceId as any).integer_id = schedId1;
         const schedId2 = await schedulesDbQueries.save(scheduleForServiceId2);
@@ -277,9 +277,9 @@ describe(`${objectName}`, () => {
         collection[0].attributes.service_ids?.sort((sidA, sidB) => sidA.localeCompare(sidB));
         collection[1].attributes.service_ids?.sort((sidA, sidB) => sidA.localeCompare(sidB));
         expect(collection[0].getId()).toBe(_newObjectAttributes.id);
-        expect(collection[0].getAttributes()).toMatchObject(new ObjectClass(_newObjectAttributes, false).getAttributes());
+        expect(collection[0].attributes).toMatchObject(new ObjectClass(_newObjectAttributes, false).attributes);
         expect(collection[1].getId()).toBe(_newObjectAttributes2.id);
-        expect(collection[1].getAttributes()).toMatchObject(new ObjectClass(_newObjectAttributes2, false).getAttributes());
+        expect(collection[1].attributes).toMatchObject(new ObjectClass(_newObjectAttributes2, false).attributes);
         
     });
 
@@ -299,7 +299,7 @@ describe(`${objectName}`, () => {
         _newObjectAttributes.service_ids = [serviceId, serviceId2].sort((sidA, sidB) => sidA.localeCompare(sidB));
         collection[0].attributes.service_ids?.sort((sidA, sidB) => sidA.localeCompare(sidB));
         expect(collection[0].getId()).toBe(_newObjectAttributes.id);
-        expect(collection[0].getAttributes()).toMatchObject(new ObjectClass(_newObjectAttributes, false).getAttributes());
+        expect(collection[0].attributes).toMatchObject(new ObjectClass(_newObjectAttributes, false).attributes);
                 
     });
 
@@ -309,7 +309,7 @@ describe(`${objectName}`, () => {
         const objectCollection = new Collection([], {});
         objectCollection.loadFromCollection(_collection);
         // Make sure the original object has no schedules
-        expect((objectCollection.getById(newObjectAttributesWithSchedule.id) as Line).getAttributes().scheduleByServiceId).toEqual({});
+        expect((objectCollection.getById(newObjectAttributesWithSchedule.id) as Line).attributes.scheduleByServiceId).toEqual({});
         await dbQueries.collectionWithSchedules(objectCollection.features);
         const collection = objectCollection.features;
         const _newObjectAttributes = Object.assign({}, newObjectAttributesWithSchedule);
@@ -324,9 +324,9 @@ describe(`${objectName}`, () => {
         collection[0].attributes.service_ids?.sort((sidA, sidB) => sidA.localeCompare(sidB));
         collection[1].attributes.service_ids?.sort((sidA, sidB) => sidA.localeCompare(sidB));
         expect(collection[0].getId()).toEqual(_newObjectAttributes.id);
-        expect(collection[0].getAttributes()).toMatchObject(new ObjectClass(_newObjectAttributes, false).getAttributes());
+        expect(collection[0].attributes).toMatchObject(new ObjectClass(_newObjectAttributes, false).attributes);
         expect(collection[1].getId()).toEqual(_newObjectAttributes2.id);
-        expect(collection[1].getAttributes()).toMatchObject(new ObjectClass(_newObjectAttributes2, false).getAttributes());
+        expect(collection[1].attributes).toMatchObject(new ObjectClass(_newObjectAttributes2, false).attributes);
     });
 
     test('should delete objects from database', async() => {
@@ -347,7 +347,7 @@ describe('Lines, with transactions', () => {
         // Empty the table and add 1 object
         await dbQueries.truncate();
         const newObject = new ObjectClass(newObjectAttributesWithSchedule, true);
-        await dbQueries.create(newObject.getAttributes());
+        await dbQueries.create(newObject.attributes);
     });
 
     test('Create, update with success', async() => {
@@ -358,7 +358,7 @@ describe('Lines, with transactions', () => {
         delete attributesWihoutSched2.scheduleByServiceId;
         await knex.transaction(async (trx) => {
             const newObject = new ObjectClass(newObjectAttributes2, true);
-            await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+            await dbQueries.create(newObject.attributes, { transaction: trx });
             await dbQueries.update(newObjectAttributesWithSchedule.id, { shortname: currentLineNewName }, { transaction: trx });
         });
 
@@ -385,7 +385,7 @@ describe('Lines, with transactions', () => {
         try {
             await knex.transaction(async (trx) => {
                 const newObject = new ObjectClass(newObjectAttributes2, true);
-                await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+                await dbQueries.create(newObject.attributes, { transaction: trx });
                 // Update with unexisting agency ID, should throw an error
                 await dbQueries.update(newObjectAttributesWithSchedule.id, { agency_id: uuidV4() }, { transaction: trx });
             });
@@ -410,7 +410,7 @@ describe('Lines, with transactions', () => {
         try {
             await knex.transaction(async (trx) => {
                 const newObject = new ObjectClass(newObjectAttributes2, true);
-                await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+                await dbQueries.create(newObject.attributes, { transaction: trx });
                 await dbQueries.update(newObjectAttributesWithSchedule.id, { shortname: currentLineNewName }, { transaction: trx });
                 await dbQueries.delete(newObjectAttributesWithSchedule.id, { transaction: trx });
                 throw 'error';

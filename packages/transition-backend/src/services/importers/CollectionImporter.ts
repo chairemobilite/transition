@@ -58,7 +58,7 @@ class CollectionImporter<T extends GenericAttributes> {
         if (!object.validate()) {
             throw `${object.errors}`;
         }
-        // Do not push object.getAttributes() as unset fields may end up being set here
+        // Do not push object.attributes as unset fields may end up being set here
         return attributes;
     }
 
@@ -92,10 +92,10 @@ class CollectionImporter<T extends GenericAttributes> {
                     // value of other fields. So saving the whole objects like
                     // here would be better? Anyway, we assume whatever is
                     // imported was first exported from a valid instance...
-                    updatedObjects.push(object.getAttributes());
+                    updatedObjects.push(object.attributes);
                 } else {
                     // Here we push the complete new object's attributes which may have filled the blank mandatory fields
-                    newObjects.push(object.getAttributes());
+                    newObjects.push(object.attributes);
                 }
             });
             await Promise.all(promises);

@@ -29,7 +29,7 @@ export default {
             socket.emit(
                 `${socketPrefix}.saveCollectionCache`,
                 customCollection,
-                _get(collection.getAttributes(), 'data.customCachePath'),
+                _get(collection.attributes, 'data.customCachePath'),
                 (response) => {
                     if (!response.error) {
                         resolve(response);
@@ -61,7 +61,7 @@ export default {
         return new Promise((resolve, reject) => {
             socket.emit(
                 `${socketPrefix}.loadCollectionCache`,
-                _get(collection.getAttributes(), 'data.customCachePath'),
+                _get(collection.attributes, 'data.customCachePath'),
                 (response) => {
                     if (!response.error) {
                         resolve(response);

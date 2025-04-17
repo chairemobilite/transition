@@ -217,7 +217,7 @@ describe('ObjectToCache', () => {
             object: stubObjects[0],
             cacheName: objectName,
             bodyData: {},
-            parser: (object) => ({...object.getAttributes(), extra: 'extra' })
+            parser: (object) => ({...object.attributes, extra: 'extra' })
         };
         await json2CapnpRust.objectToCache(callParams);
         expect(writeCacheMock).toHaveBeenCalledTimes(1);

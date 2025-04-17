@@ -59,7 +59,7 @@ const pathPreferences = {
     }
 };
 
-Preferences.setAttributes(Object.assign({}, Preferences.getAttributes(), pathPreferences));
+Preferences.setAttributes(Object.assign({}, Preferences.attributes, pathPreferences));
 
 const lineId = uuidV4();
 const node1Id = uuidV4();
@@ -143,14 +143,14 @@ beforeEach(() => {
 test('New paths', () => {
 
     const path = new Path(pathAttributesFullData, true);
-    expect(path.getAttributes()).toEqual(pathAttributesFullData);
+    expect(path.attributes).toEqual(pathAttributesFullData);
     expect(path.isNew()).toBe(true);
 
 });
 
 test('New path default data', () => {
     const path = new Path(pathAttributesNoData, true);
-    expect(path.getAttributes()).toEqual({
+    expect(path.attributes).toEqual({
         ...pathAttributesNoData,
         data: {
             waypoints: [],
@@ -219,13 +219,13 @@ test('Save path', async () => {
     path.startEditing();
     await path.save(eventManager as any);
     expect(eventManager.emit).toHaveBeenCalledTimes(1);
-    expect(eventManager.emit).toHaveBeenCalledWith('transitPath.create', path.getAttributes(), expect.anything());
+    expect(eventManager.emit).toHaveBeenCalledWith('transitPath.create', path.attributes, expect.anything());
 
     // Update
     path.set('direction', 'loop');
     await path.save(eventManager as any);
     expect(eventManager.emit).toHaveBeenCalledTimes(2);
-    expect(eventManager.emit).toHaveBeenCalledWith('transitPath.update', path.getId(), path.getAttributes(), expect.anything());
+    expect(eventManager.emit).toHaveBeenCalledWith('transitPath.update', path.getId(), path.attributes, expect.anything());
 });
 
 test('Delete path', async () => {

@@ -237,7 +237,7 @@ const createSchedule = (
             trips: [],
             data: {}
         };
-        schedule.getAttributes().periods.push(periodSchedule);
+        schedule.attributes.periods.push(periodSchedule);
     }
     return schedule;
 };
@@ -333,7 +333,7 @@ const generateExactTrips = (schedule: Schedule, periods: TripAndStopTimes[][], i
 
             const newTrip = {
                 id: uuidV4(),
-                schedule_period_id: schedule.getAttributes().periods[periodIndex].integer_id,
+                schedule_period_id: schedule.attributes.periods[periodIndex].integer_id,
                 path_id: pathId,
                 departure_time_seconds: tripDepartureTimeSeconds,
                 arrival_time_seconds: tripArrivalTimeSeconds,
@@ -345,7 +345,7 @@ const generateExactTrips = (schedule: Schedule, periods: TripAndStopTimes[][], i
                 // TODO: We ignore the block_id during import, so we set it to null here. When we do something with the block,
             };
 
-            (schedule as Schedule).getAttributes().periods[periodIndex].trips.push(newTrip);
+            (schedule as Schedule).attributes.periods[periodIndex].trips.push(newTrip);
         });
     }
 };

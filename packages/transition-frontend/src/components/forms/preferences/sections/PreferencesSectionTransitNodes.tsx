@@ -18,7 +18,7 @@ import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 const PreferencesSectionTransitNodes: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
     props: PreferencesSectionProps & WithTranslation
 ) => {
-    const prefs = props.preferences.getAttributes();
+    const prefs = props.preferences.attributes;
 
     return (
         <Collapsible trigger={props.t('transit:transitNode:Nodes')} open={true} transitionTime={100}>

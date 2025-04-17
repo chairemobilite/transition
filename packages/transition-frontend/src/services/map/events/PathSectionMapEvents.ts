@@ -150,7 +150,7 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
             clickedNodeIndex < 0
         ) {
             const path = selectedPath;
-            const waypointType = path.getAttributes().data.temporaryManualRouting
+            const waypointType = path.attributes.data.temporaryManualRouting
                 ? 'manual'
                 : path.getData('routingEngine', 'engine');
             path.insertWaypoint(e.lngLat.toArray(), waypointType, null, null).then((_response) => {
@@ -163,9 +163,9 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
             clickedWaypointIndex < 0
         ) {
             // TODO Should not be determined here, the default value should be provided by the functions themselves
-            const waypointType = path.getAttributes().data.temporaryManualRouting
+            const waypointType = path.attributes.data.temporaryManualRouting
                 ? 'manual'
-                : path.getAttributes().data.routingEngine || 'engine';
+                : path.attributes.data.routingEngine || 'engine';
             let insertOrRemoveNodePromise: Promise<{ path: TransitPath }> | undefined = undefined;
             if (clickedNodeIndex >= 0 || clickedSelectedNodeIndex >= 0) {
                 // add node
@@ -181,7 +181,7 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
                 }
             } else {
                 // add waypoint
-                const lastNodeIndex = path.getAttributes().nodes.length - 1;
+                const lastNodeIndex = path.attributes.nodes.length - 1;
                 if (lastNodeIndex < 0) {
                     return;
                 }

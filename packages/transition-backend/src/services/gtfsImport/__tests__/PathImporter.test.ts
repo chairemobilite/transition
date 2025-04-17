@@ -25,8 +25,8 @@ jest.mock('../../path/PathGtfsGeographyGenerator', () => ({
 const mockedPathGenerationFromGTFS = generateGeographyAndSegmentsFromGtfs as jest.MockedFunction<typeof generateGeographyAndSegmentsFromGtfs>;
 const mockedPathGenerationFromStopTimes = generateGeographyAndSegmentsFromStopTimes as jest.MockedFunction<typeof generateGeographyAndSegmentsFromStopTimes>;
 const setPathGeography = (path: Path, nodeIds: string[], gtfsShapeId: string | undefined) => {
-    path.getAttributes().nodes = nodeIds;
-    path.getAttributes().geography = {
+    path.attributes.nodes = nodeIds;
+    path.attributes.geography = {
         type: 'LineString' as const,
         coordinates: []
     };
@@ -119,7 +119,7 @@ describe('One line, 2 identical simple trips', () => {
     test('Generate path, with pre-existing paths', async () => {
         // Create collection manager and line for tests
         const innerCollectionManager = new CollectionManager(null, { });
-        const innerLine = new Line(line.getAttributes(), false, innerCollectionManager);
+        const innerLine = new Line(line.attributes, false, innerCollectionManager);
         innerCollectionManager.add('lines', new LineCollection([innerLine], {}));
 
         // make a first call and add paths to the line
@@ -127,7 +127,7 @@ describe('One line, 2 identical simple trips', () => {
         expect(pathsDbQueries.createMultiple).toHaveBeenCalledTimes(1);
         const pathAttributes = (pathsDbQueries.createMultiple as any).mock.calls[0][0];
         const paths = pathAttributes.map((attribs, index) => (new Path({ ...attribs, integer_id: index }, false)).toGeojson());
-        innerLine.getAttributes().path_ids = pathAttributes.map(attribs => attribs.id);
+        innerLine.attributes.path_ids = pathAttributes.map(attribs => attribs.id);
         const pathCollection = new PathCollection(paths, {});
         innerCollectionManager.add('paths', pathCollection);
         innerLine.refreshPaths();

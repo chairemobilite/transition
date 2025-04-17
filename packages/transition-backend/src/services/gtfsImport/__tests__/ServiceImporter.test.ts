@@ -218,7 +218,7 @@ describe('GTFS Service import', () => {
         expect(serviceSaveFct).toHaveBeenCalledTimes(1);
         const newService = data[gtfsValidSimpleData['calendar.txt'][0].service_id];
         expect(newService).toBeDefined();
-        expect(newService.getAttributes()).toEqual(expect.objectContaining({
+        expect(newService.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             monday: true,
             tuesday: true,
@@ -303,11 +303,11 @@ describe('GTFS Service import', () => {
         expect(importedService).toBeDefined();
         if (expectExisting) {
             expect(serviceSaveFct).toHaveBeenCalledTimes(0);
-            expect(importedService.getAttributes()).toEqual(expect.objectContaining(existingServiceAttribs1));
+            expect(importedService.attributes).toEqual(expect.objectContaining(existingServiceAttribs1));
         } else {
             expect(mockGetUniqueServiceName).toHaveBeenCalledTimes(1);
             expect(serviceSaveFct).toHaveBeenCalledTimes(1);
-            expect(importedService.getAttributes()).toEqual(expect.objectContaining({
+            expect(importedService.attributes).toEqual(expect.objectContaining({
                 id: expect.anything(),
                 name: `${gtfsValidSimpleData['calendar.txt'][0].service_id}-1`,
                 monday: true,
@@ -343,7 +343,7 @@ describe('GTFS Service import', () => {
         expect(serviceSaveFct).toHaveBeenCalledTimes(1);
         const newService = data[gtfsValidTransitionGeneratedData['calendar.txt'][0].service_id];
         expect(newService).toBeDefined();
-        expect(newService.getAttributes()).toEqual(expect.objectContaining({
+        expect(newService.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             monday: true,
             tuesday: true,
@@ -378,7 +378,7 @@ describe('GTFS Service import', () => {
         expect(serviceSaveFct).toHaveBeenCalledTimes(1);
         const newService = data[gtfsValidSimpleData['calendar.txt'][0].service_id];
         expect(newService).toBeDefined();
-        expect(newService.getAttributes()).toEqual(expect.objectContaining({
+        expect(newService.attributes).toEqual(expect.objectContaining({
             id: expect.anything(),
             monday: true,
             tuesday: true,
@@ -415,7 +415,7 @@ describe('GTFS Service import', () => {
         expect(serviceSaveFct).toHaveBeenCalledTimes(1);
         const newService = data[gtfsValidTransitionGeneratedData['calendar.txt'][0].service_id];
         expect(newService).toBeDefined();
-        expect(newService.getAttributes()).toEqual(expect.objectContaining({
+        expect(newService.attributes).toEqual(expect.objectContaining({
             name: gtfsValidTransitionGeneratedData['calendar.txt'][0].service_id,
             data: expect.objectContaining({
                 gtfs: {
@@ -446,7 +446,7 @@ describe('GTFS Service import', () => {
         expect(serviceSaveFct).toHaveBeenCalledTimes(2);
         const newService = data[gtfsValidTransitionGeneratedData['calendar.txt'][0].service_id];
         expect(newService).toBeDefined();
-        expect(newService.getAttributes()).toEqual(expect.objectContaining({
+        expect(newService.attributes).toEqual(expect.objectContaining({
             name: gtfsValidTransitionGeneratedData['calendar.txt'][0].service_id,
             data: expect.objectContaining({
                 gtfs: {
@@ -456,7 +456,7 @@ describe('GTFS Service import', () => {
         }));
         const newService2 = data[otherServiceToImport.service_id];
         expect(newService2).toBeDefined();
-        expect(newService2.getAttributes()).toEqual(expect.objectContaining({
+        expect(newService2.attributes).toEqual(expect.objectContaining({
             name: service1ForImport.name,
             data: expect.objectContaining({
                 gtfs: {

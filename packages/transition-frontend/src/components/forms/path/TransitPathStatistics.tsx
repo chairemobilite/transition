@@ -63,7 +63,7 @@ interface PathStatsProps extends WithTranslation {
 
 const TransitPathStatistics: React.FunctionComponent<PathStatsProps> = (props: PathStatsProps) => {
     const path = props.path;
-    const pathData = path.getAttributes().data;
+    const pathData = path.attributes.data;
     const variables = pathData.variables;
     const firstNode = props.firstNode;
     const lastNode = props.lastNode;

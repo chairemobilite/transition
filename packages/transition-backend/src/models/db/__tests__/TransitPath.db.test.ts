@@ -162,7 +162,7 @@ describe(`${objectName}`, function() {
         //delete attributes.agency_id;
         delete attributes.color;
         delete attributes.data.variables;
-        const _newObjectAttributes = newObject.getAttributes();
+        const _newObjectAttributes = newObject.attributes;
         delete _newObjectAttributes.color;
         delete _newObjectAttributes.data.variables;
         expect(attributes).toEqual(_newObjectAttributes);
@@ -219,9 +219,9 @@ describe(`${objectName}`, function() {
         delete collection[1].properties.color;
 
         expect(collection[0].properties.id).toBe(_newObjectAttributes.id);
-        expect(collection[0].properties).toEqual(new ObjectClass(_newObjectAttributes, false).getAttributes());
+        expect(collection[0].properties).toEqual(new ObjectClass(_newObjectAttributes, false).attributes);
         expect(collection[1].properties.id).toBe(_newObjectAttributes2.id);
-        expect(collection[1].properties).toEqual(new ObjectClass(_newObjectAttributes2, false).getAttributes());
+        expect(collection[1].properties).toEqual(new ObjectClass(_newObjectAttributes2, false).attributes);
         
     });
 
@@ -335,14 +335,14 @@ describe('Paths, with transactions', () => {
         // Empty the table and add 1 object
         await dbQueries.truncate();
         const newObject = new ObjectClass(newObjectAttributes, true);
-        await dbQueries.create(newObject.getAttributes());
+        await dbQueries.create(newObject.attributes);
     });
 
     test('Create, update with success', async() => {
         const newName = 'new name';
         await knex.transaction(async (trx) => {
             const newObject = new ObjectClass(newObjectAttributes2, true);
-            await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+            await dbQueries.create(newObject.attributes, { transaction: trx });
             await dbQueries.update(newObjectAttributes.id, { name: newName }, { transaction: trx });
         });
 
@@ -367,7 +367,7 @@ describe('Paths, with transactions', () => {
         try {
             await knex.transaction(async (trx) => {
                 const newObject = new ObjectClass(newObjectAttributes2, true);
-                await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+                await dbQueries.create(newObject.attributes, { transaction: trx });
                 // Update with a bad field
                 await dbQueries.update(newObjectAttributes.id, { simulation_id: uuidV4() } as any, { transaction: trx });
             });
@@ -390,7 +390,7 @@ describe('Paths, with transactions', () => {
         try {
             await knex.transaction(async (trx) => {
                 const newObject = new ObjectClass(newObjectAttributes2, true);
-                await dbQueries.create(newObject.getAttributes(), { transaction: trx });
+                await dbQueries.create(newObject.attributes, { transaction: trx });
                 await dbQueries.update(newObjectAttributes.id, { name: currentNewName }, { transaction: trx });
                 await dbQueries.delete(newObjectAttributes.id, { transaction: trx });
                 throw 'error';

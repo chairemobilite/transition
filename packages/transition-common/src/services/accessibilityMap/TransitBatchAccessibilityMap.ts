@@ -38,7 +38,7 @@ export class TransitBatchAccessibilityMap extends TransitDemandFromCsv<TransitDe
         super.validate();
         this._routing.validate();
         this.errors.concat(this._routing.getErrors());
-        const attributes = this.getAttributes();
+        const attributes = this.attributes;
         if (attributes.csvFile) {
             if (_isBlank(attributes.projection)) {
                 this._isValid = false;

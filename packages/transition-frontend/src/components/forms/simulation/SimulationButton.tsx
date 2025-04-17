@@ -81,10 +81,7 @@ const SimulationButton: React.FunctionComponent<SimulationButtonProps> = (props:
             flushActionButtons={true}
         >
             <ButtonCell alignment="left">
-                <span
-                    className="_circle-button"
-                    style={{ backgroundColor: props.simulation.getAttributes().color }}
-                ></span>
+                <span className="_circle-button" style={{ backgroundColor: props.simulation.attributes.color }}></span>
             </ButtonCell>
             {isFrozen && (
                 <ButtonCell alignment="left">
