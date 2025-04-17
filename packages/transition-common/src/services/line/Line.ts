@@ -462,7 +462,7 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
                 return;
             }
 
-            const lineId = this.get('id');
+            const lineId = this.get('idgetL');
 
             const outboundPaths = this.getOutboundPaths();
             const inboundPaths = this.getInboundPaths();

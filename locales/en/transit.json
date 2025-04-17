@@ -164,6 +164,9 @@
     },
     "transitSchedule": {
         "Schedules": "Timetables",
+        "BatchSchedules": "Edit multiple timetables",
+        "ConfirmBatchLineSelection": "Confirm selected lines",
+        "ReturnBatchLineSelection": "Return to line selection",
         "List": "Timetables",
         "Delete": "Delete timetable",
         "ConfirmDelete": "Do you confirm deletion of this timetable?",

@@ -120,5 +120,32 @@ export default {
                 );
             }
         });
+    },
+
+    saveAll: function (
+        objects: GenericObject<any>[],
+        socket: EventEmitter,
+        socketPrefix: string,
+        collection,
+        callback: (() => void) | undefined = undefined
+    ): Promise<any> {
+        return new Promise((resolve) => {
+            const attributesList = objects.map(obj => obj.getAttributes());
+    
+            console.log(`[saveAll] Emitting socket event: ${socketPrefix}.updateBatch`);
+            console.log('[saveAll] Attributes list to send:', attributesList);
+    
+            socket.emit(
+                `${socketPrefix}.updateBatch`,
+                attributesList,
+                (response) => {
+                    console.log('[saveAll] Response received from backend:', response);
+                    if (callback) callback();
+                    resolve(response);
+                }
+            );
+        });
     }
+    
+    
 };

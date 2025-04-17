@@ -164,6 +164,9 @@
     },
     "transitSchedule": {
         "Schedules": "Horaires",
+        "BatchSchedules": "Modifier des horaires en lot",
+        "ConfirmBatchLineSelection": "Confirmer les lignes sélectionnées",
+        "ReturnBatchLineSelection": "Retour à la sélection des lignes",
         "List": "Horaires",
         "Delete": "Supprimer l'horaire",
         "ConfirmDelete": "Confirmez-vous que vous désirez bien supprimer cet horaire?",

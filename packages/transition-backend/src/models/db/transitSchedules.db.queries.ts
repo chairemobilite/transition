@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2022-2025, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
@@ -402,6 +402,9 @@ const save = async function (scheduleData: ScheduleAttributes, options: { transa
         : await createFromScheduleData(scheduleData, options);
 };
 
+const saveAll = async function (schedulesData: ScheduleAttributes[], options: { transaction?: Knex.Transaction } = {}) {
+    return await Promise.all(schedulesData.map((scheduleData) => save(scheduleData, options)));
+};
 // Private function to get the period ids for a given schedule, select within
 // the current transaction
 const _getPeriodIdsForSchedule = async function (
@@ -586,6 +589,10 @@ export default {
         { transaction }: { transaction?: Knex.Transaction } = {}
     ) => save({ ...scheduleData, id: scheduleId }, { transaction }),
     save,
+    saveAll: (
+        schedulesData: ScheduleAttributes[],
+        { transaction }: { transaction?: Knex.Transaction } = {}
+    ) => saveAll(schedulesData, { transaction }),
     delete: deleteScheduleData,
     getScheduleIdsForLine,
     truncateSchedules: truncate.bind(null, knex, scheduleTable),

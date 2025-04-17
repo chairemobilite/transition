@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2022-2025, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
@@ -119,6 +119,20 @@ function setupObjectSocketRoutes(socket: EventEmitter) {
                     callback(response);
                 }
             );
+        }
+
+        // Update multiple objects in the database and cache if required
+        if (lowerCasePlural === 'schedules' && dataHandler.updateBatch) {
+            socket.on(`transit${dataHandler.classNamePlural}.updateBatch`, async (attributesList, callback) => {
+                try {
+                    console.log('Socket updateBatch called with:', attributesList);
+                    const response = await dataHandler.updateBatch!(socket, attributesList);
+                    console.log('Success:', response); 
+                    callback(response);
+                } catch (error) {
+                    console.log('Error caught:', error);
+                }
+            });
         }
     }
 

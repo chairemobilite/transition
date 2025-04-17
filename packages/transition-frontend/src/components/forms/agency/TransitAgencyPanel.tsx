@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Polytechnique Montreal and contributors
+ * Copyright 2022-2025, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
@@ -40,6 +40,7 @@ interface AgencyPanelState {
     selectedLine?: Line;
     selectedPath?: Path;
     selectedSchedule?: Schedule;
+    selectedScheduleMode: string;
 }
 
 const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPanelProps) => {
@@ -58,7 +59,8 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
         selectedAgency: serviceLocator.selectedObjectsManager.getSingleSelection('agency'),
         selectedLine: serviceLocator.selectedObjectsManager.getSingleSelection('line'),
         selectedPath: serviceLocator.selectedObjectsManager.getSingleSelection('path'),
-        selectedSchedule: serviceLocator.selectedObjectsManager.getSingleSelection('schedule')
+        selectedSchedule: serviceLocator.selectedObjectsManager.getSingleSelection('schedule'),
+        selectedScheduleMode: serviceLocator.selectedObjectsManager.getSingleSelection('scheduleMode')
     });
 
     React.useEffect(() => {
@@ -105,6 +107,14 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
                 ...rest,
                 selectedSchedule: serviceLocator.selectedObjectsManager.getSingleSelection('schedule')
             }));
+
+        const onSelectedScheduleMode = () =>
+            /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+            setState(({ selectedScheduleMode, ...rest }) => ({
+                ...rest,
+                selectedScheduleMode: serviceLocator.selectedObjectsManager.getSingleSelection('scheduleMode')
+            }));
+
         const onUpdateLayersFilter = () => {
             setRerender(rerender + 1);
         };
@@ -120,6 +130,7 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
         serviceLocator.eventManager.on('selected.update.schedule', onSelectedScheduleUpdate);
         serviceLocator.eventManager.on('selected.deselect.schedule', onSelectedScheduleUpdate);
         serviceLocator.eventManager.on('map.layers.updateFilter', onUpdateLayersFilter);
+        serviceLocator.eventManager.on('selected.update.scheduleMode', onSelectedScheduleMode)
         return () => {
             serviceLocator.eventManager.off('collection.update.agencies', onAgencyCollectionUpdate);
             serviceLocator.eventManager.off('selected.update.agency', onSelectedAgencyUpdate);
@@ -133,6 +144,8 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
             serviceLocator.eventManager.off('selected.update.schedule', onSelectedScheduleUpdate);
             serviceLocator.eventManager.off('selected.deselect.schedule', onSelectedScheduleUpdate);
             serviceLocator.eventManager.off('map.layers.updateFilter', onUpdateLayersFilter);
+            serviceLocator.eventManager.off('selected.update.scheduleMode', onSelectedScheduleMode)
+
         };
     }, []);
 
@@ -141,7 +154,7 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
 
     return (
         <div id="tr__form-transit-agencies-panel" className="tr__form-transit-agencies-panel tr__panel">
-            {!state.selectedAgency && !state.selectedLine && !importerSelected && (
+            {!state.selectedAgency && !state.selectedLine && !importerSelected && !state.selectedScheduleMode &&(
                 <AgenciesList
                     agencyCollection={state.agencyCollection}
                     agenciesListState={agenciesListState}
@@ -150,9 +163,9 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
                 />
             )}
 
-            {state.selectedAgency && !importerSelected && <AgencyEdit agency={state.selectedAgency} />}
+            {state.selectedAgency && !importerSelected && !state.selectedScheduleMode && <AgencyEdit agency={state.selectedAgency} />}
 
-            {state.selectedLine && !importerSelected && (
+            {state.selectedLine && !importerSelected && state.selectedScheduleMode!=="batch" && (
                 <LineEdit
                     line={state.selectedLine}
                     selectedPath={state.selectedPath}
@@ -162,19 +175,19 @@ const AgencyPanel: React.FunctionComponent<AgencyPanelProps> = (props: AgencyPan
                 />
             )}
 
-            {!objectSelected && agencyImporterSelected && (
+            {!objectSelected && agencyImporterSelected && state.selectedScheduleMode!=="batch" && (
                 <AgencyImportForm setImporterSelected={setAgencyImporterSelected} />
             )}
 
-            {!objectSelected && lineImporterSelected && (
+            {!objectSelected && lineImporterSelected && state.selectedScheduleMode!=="batch" && (
                 <LineImportForm setImporterSelected={setLineImporterSelected} />
             )}
 
-            {!objectSelected && pathImporterSelected && (
+            {!objectSelected && pathImporterSelected && state.selectedScheduleMode!=="batch" && (
                 <PathImportForm setImporterSelected={setPathImporterSelected} />
             )}
 
-            {!objectSelected && !importerSelected && (
+            {!objectSelected && !importerSelected && state.selectedScheduleMode!=="batch" && (
                 <Collapsible trigger={props.t('form:importExport')} transitionTime={100}>
                     <h3 className="tr__form-buttons-container">{props.t('transit:transitAgency:Agencies')}</h3>
                     {!agencyImporterSelected && (
