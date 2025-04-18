@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import sharedSession from 'express-socket.io-session';
 import socketMiddleWare from 'socketio-wildcard';
-import socketIO from 'socket.io';
+import sharedSession from 'express-socket.io-session';
+import { Server as SocketIOServer, Socket } from 'socket.io';
 import events from 'events';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -23,7 +23,7 @@ import clientEventManager from './utils/ClientEventManager';
 
 const socketWildCard = socketMiddleWare();
 
-const setupSocketServerApp = async function (server, session) {
+const setupSocketServerApp = async function (server, sessionMiddleware) {
     // Start the worker pool for worker threads
     startPool();
 
@@ -62,19 +62,14 @@ const setupSocketServerApp = async function (server, session) {
         console.log('failed to start trRouting at startup');
     }
 
-    const io = socketIO(server, {
+    const io = new SocketIOServer(server, {
         pingTimeout: 60000,
         transports: ['websocket'],
         maxHttpBufferSize: 1e8 // 100MB
     });
 
-    // FIXME Call to restore unsecure behavior from socket.io < 2.4.0 (https://socket.io/blog/socket-io-2-4-0/). We should eventually pass to socket.io v3 and make sure the app is secure.
-    io.origins((_, callback) => {
-        callback(null, true);
-    });
-
     io.use(
-        sharedSession(session, {
+        sharedSession(sessionMiddleware, {
             autoSave: true
         })
     );
@@ -85,11 +80,11 @@ const setupSocketServerApp = async function (server, session) {
     }
 
     io.use((socket, next) => {
+        // FIXME We should remove the need to use any, but the session field is not present in the handshake type, though this type should be overridden by the express-socket.io-session package. See if there are incompatibilities with socket.io 4
         if (
-            socket.handshake.session &&
-            // TODO Is it possible to type the session?
-            (socket.handshake.session as any).passport &&
-            (socket.handshake.session as any).passport.user > 0
+            (socket.handshake as any).session &&
+            (socket.handshake as any).session.passport &&
+            (socket.handshake as any).session.passport.user > 0
         ) {
             return next();
         }
@@ -100,7 +95,7 @@ const setupSocketServerApp = async function (server, session) {
         console.log('error!', error);
     });
 
-    io.on('connection', (socket: socketIO.Socket) => {
+    io.on('connection', (socket: Socket) => {
         const userId = (socket as any).handshake.session.passport.user;
         socket.on('disconnect', () => {
             io.emit('user disconnected');

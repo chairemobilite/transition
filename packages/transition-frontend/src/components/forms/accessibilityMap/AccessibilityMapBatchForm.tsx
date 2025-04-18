@@ -28,15 +28,14 @@ import TransitBatchAccessibilityMap, {
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
-// ** File upload
-import FileUploaderHOC, { FileUploaderHOCProps } from 'chaire-lib-frontend/lib/components/input/FileUploaderHOC';
 import { _toInteger, _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import BatchAttributesSelection from './widgets/BatchAttributesSelection';
 import { BatchAccessibilityMapCalculator } from '../../../services/accessibilityMap/BatchAccessibilityMapCalculator';
 import ExecutableJobComponent from '../../parts/executableJob/ExecutableJobComponent';
+import { FileUploadStatus } from 'chaire-lib-common/lib/utils/files/fileUpload/types';
 
-export interface BatchAccessibilityMapFormProps extends FileUploaderHOCProps {
+export interface BatchAccessibilityMapFormProps {
     routingEngine: TransitAccessibilityMapRouting;
 }
 
@@ -64,6 +63,7 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
     BatchAccessibilityMapFormProps & WithTranslation,
     BatchAccessibilityMapFormState
 > {
+    // FIXME Convert to function component to allow to use the useFileUploader hook
     constructor(props: BatchAccessibilityMapFormProps & WithTranslation) {
         super(props);
 
@@ -87,11 +87,12 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
             errors: [],
             warnings: []
         };
+
+        this.onCsvFileChange = this.onCsvFileChange.bind(this);
+        this.onUploadCsv = this.onUploadCsv.bind(this);
     }
 
-    onCsvFileChange = (file: File) => {
-        // ** File upload
-
+    onCsvFileChange(file: File) {
         const batchRouting = this.state.object;
 
         batchRouting.attributes.csvFile = { location: 'upload', filename: file.name };
@@ -109,7 +110,44 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
             errors: [],
             warnings: []
         });
-    };
+    }
+
+    async onUploadCsv() {
+        if (this.state.csvFile) {
+            const file = this.state.csvFile;
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                serviceLocator.socketEventManager.emit(
+                    'uploadFile',
+                    file,
+                    {
+                        uploadType: 'imports',
+                        data: {
+                            objects: 'csv',
+                            filename: 'batchAccessMap.csv'
+                        }
+                    },
+                    (response: FileUploadStatus) => {
+                        console.log('Batch accessibility map upload status', response);
+                        if (response.status === 'completed') {
+                            this.setState((_oldState) => {
+                                return {
+                                    csvUploadedToServer: true
+                                };
+                            });
+                        }
+                    }
+                );
+            };
+
+            reader.onerror = () => {
+                this.setState({ errors: ['Failed to read the file'] });
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+    }
 
     onSubmitCsv = async () => {
         if (this.state.csvFile !== undefined) {
@@ -123,27 +161,6 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
 
     onCalculationNameChange = (path: string, value: { value: any; valid?: boolean }) => {
         this.onValueChange(path, value);
-    };
-
-    onUploadCsv = () => {
-        // ** File upload
-
-        // upload csv file to server:
-        this.props.fileUploader.upload(this.props.fileImportRef.current, {
-            uploadTo: 'imports',
-            data: {
-                objects: 'csv',
-                filename: 'batchAccessMap.csv'
-            }
-        });
-
-        this.state.object.updateRoutingPrefs();
-
-        this.setState((_oldState) => {
-            return {
-                csvUploadedToServer: true
-            };
-        });
     };
 
     onCalculateBatch = async () => {
@@ -247,13 +264,15 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
                         <InputFile
                             id={`formFieldTransitBatchRoutingCsvFile${accessMapRoutingId}`}
                             accept={'.csv'}
-                            inputRef={this.props.fileImportRef}
                             onChange={(e) => {
                                 const files = e.target.files;
                                 if (files && files.length > 0) this.onCsvFileChange(files[0]);
                             }}
                         />
                     </div>
+                    {!this.state.csvUploadedToServer && (
+                        <Button label={this.props.t('main:PrepareData')} color="green" onClick={this.onUploadCsv} />
+                    )}
                     {this.state.csvAttributes && (
                         <BatchAttributesSelection
                             onValueChange={this.onValueChange}
@@ -297,15 +316,6 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
                                 <Loader size={8} color={'#aaaaaa'} loading={true}></Loader>
                             )}
                             {this.state.csvAttributes &&
-                                !this.state.csvUploadedToServer &&
-                                !this.state.batchRoutingInProgress && (
-                                <Button
-                                    label={this.props.t('main:PrepareData')}
-                                    color="green"
-                                    onClick={this.onUploadCsv}
-                                />
-                            )}
-                            {this.state.csvAttributes &&
                                 this.state.csvUploadedToServer &&
                             /*!this.state.batchRoutingInProgress &&*/ accessMapRouting.validate() &&
                                 hasAllAttributesSet && (
@@ -324,6 +334,4 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
     }
 }
 
-// ** File upload
-//export default FileUploaderHOC(TransitRoutingForm, null, false);
-export default FileUploaderHOC(withTranslation(['transit', 'main'])(AccessibilityMapBatchForm), false);
+export default withTranslation(['transit', 'main'])(AccessibilityMapBatchForm);
