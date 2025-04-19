@@ -69,7 +69,7 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
                 serviceLocator.collectionManager.refresh('paths');
                 (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
                     layerName: 'transitPaths',
-                    data: serviceLocator.collectionManager.get('paths').toGeojson()
+                    data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
                 });
                 await serviceLocator.collectionManager.get('lines').loadFromServer(serviceLocator.socketEventManager);
                 serviceLocator.collectionManager.refresh('lines');
@@ -101,7 +101,7 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
         serviceLocator.collectionManager.refresh('agencies');
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'transitPaths',
-            data: serviceLocator.collectionManager.get('paths').toGeojson()
+            data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
         });
         serviceLocator.eventManager.emit('progress', { name: 'SavingAgency', progress: 1.0 });
     };

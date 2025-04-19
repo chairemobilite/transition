@@ -67,7 +67,7 @@ export const loadLayersAndCollections = async ({
         await pathCollection.loadFromServer(serviceLocator.socketEventManager);
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'transitPaths',
-            data: pathCollection.toGeojson()
+            data: pathCollection.toGeojsonSimplified()
         });
         serviceLocator.collectionManager.add('paths', pathCollection);
 
