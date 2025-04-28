@@ -72,7 +72,7 @@
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.16",
     "@types/mapbox-gl": "^2.3.1",
-    "@types/node": "^22.10.1",
+    "@types/node": "^22.15.3",
     "@types/osrm": "^5.25.5",
     "@types/react-dom": "^19.0.2",
     "@types/react-mathjax": "^1.0.4",
