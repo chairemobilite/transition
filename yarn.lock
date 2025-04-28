@@ -10351,10 +10351,10 @@ random-bytes@~1.0.0:
   resolved "https://registry.yarnpkg.com/random-bytes/-/random-bytes-1.0.0.tgz#4f68a1dc0ae58bd3fb95848c30324db75d64360b"
   integrity sha1-T2ih3Arli9P7lYSMMDJNt11kNgs=
 
-random@^5.1.1:
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/random/-/random-5.1.1.tgz#fc721bcfcc586e73d3dc93e2d8571cf8f452ab81"
-  integrity sha512-iidvORUvXY1ItoYxO0eduHCKl22QV0G6460vRHe862dUagJKPhRyjUGwK8ioOCG4NRuFvExHFpqMngsnr2miwA==
+random@^5.4.0:
+  version "5.4.0"
+  resolved "https://registry.yarnpkg.com/random/-/random-5.4.0.tgz#918163426c03dd1a1eed377c4682faebae725a4f"
+  integrity sha512-Y147ufdzRqcQuBpKkoW7N3+B/SW4X6pF3ZfsNy+bF1r3i/I+j2zobnCp+9vN1nIJDjObI/174PCySTa3FECynQ==
 
 randombytes@^2.1.0:
   version "2.1.0"
