@@ -40,7 +40,7 @@
     "mapbox-gl": "chairemobilite/mapbox-gl-js#39bbf9aeb1859424e29cff2584715fddc9d018b9",
     "moment": "^2.30.1",
     "moment-business-days": "^1.2.0",
-    "papaparse": "^5.4.1",
+    "papaparse": "^5.5.2",
     "react": "^19.0.0",
     "react-collapsible": "^2.10.0",
     "react-color": "^2.19.3",
