@@ -61,6 +61,6 @@
     "jest-fetch-mock": "^3.0.3",
     "prettier-eslint-cli": "^8.0.1",
     "seedrandom": "^3.0.5",
-    "ts-jest": "^29.2.5"
+    "ts-jest": "^29.3.2"
   }
 }
