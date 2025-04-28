@@ -3048,10 +3048,10 @@
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.16.tgz#8ebe53d69efada7044454e3305c19017d97ced2a"
   integrity sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==
 
-"@types/geokdbush@^1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@types/geokdbush/-/geokdbush-1.1.2.tgz#143b9e891f83259b54d1885691e77ebfda3f8e2f"
-  integrity sha512-NSMl27OjVE9jY8IaGKcvRRU53vyo5g2IxdVB7CIauo+dpuRF6JPnoTIHb9stCvu0AFCEDWC7XqL4IgTcDrBmHQ==
+"@types/geokdbush@^1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@types/geokdbush/-/geokdbush-1.1.5.tgz#d71e881e1f595002541843cbd39bbebf2fc993c5"
+  integrity sha512-jIsYnXY+RQ/YCyBqeEHxYN9mh+7PqKJUJUp84wLfZ7T2kqyVPNaXwZuvf1A2uQUkrvVqEbsG94ff8jH32AlLvA==
   dependencies:
     "@types/kdbush" "^1"
 
@@ -3161,10 +3161,10 @@
   resolved "https://registry.yarnpkg.com/@types/kdbush/-/kdbush-1.0.3.tgz#39078fce100237180c900357bfaa69e39960439d"
   integrity sha512-lXIQSkfJSMnJgRPI4eAdUdxZZ9bGTipXkysoorfN3Ac6o1xr2Nfkxyi4p6VXLhz7S3si+ILRGdTrPlSfu12OqA==
 
-"@types/kdbush@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@types/kdbush/-/kdbush-3.0.0.tgz#ba9a14305ebb9fc5770dc5731f272bd9fa67fb18"
-  integrity sha512-G7c8tWLneqgHLXqm1DKj6D7+kPPTSd9cRa5LKVgt61/kYY3enSDiS3V/yeJ8VHA4fW1bzRxfnXUYTOszolv0OA==
+"@types/kdbush@^3.0.5":
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/@types/kdbush/-/kdbush-3.0.5.tgz#7c308f18d364ac5623a15b85d7da0a635cf5516e"
+  integrity sha512-tdJz7jaWFu4nR+8b2B+CdPZ6811ighYylWsu2hpsivapzW058yP0KdfZuNY89IiRe5jbKvBGXN3LQdN2KPXVdQ==
 
 "@types/keygrip@*":
   version "1.0.6"
