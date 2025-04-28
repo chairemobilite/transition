@@ -101,7 +101,7 @@
     "sass-loader": "^14.2.1",
     "source-map-loader": "^5.0.0",
     "style-loader": "^3.3.4",
-    "ts-jest": "^29.2.5",
+    "ts-jest": "^29.3.2",
     "ts-loader": "^9.5.1",
     "ts-shader-loader": "^2.0.2",
     "webpack": "^5.97.1",

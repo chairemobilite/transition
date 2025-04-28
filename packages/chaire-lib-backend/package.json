@@ -105,6 +105,6 @@
         "prettier-eslint-cli": "^8.0.1",
         "supertest": "^7.0.0",
         "supertest-session": "^5.0.1",
-        "ts-jest": "^29.2.5"
+        "ts-jest": "^29.3.2"
     }
 }
