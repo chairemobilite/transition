@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import UsersTable, { UserDisplay } from './UsersTable';
 import { DefaultColumnFilter } from './TableFilters';
 import WidgetChangePermission from './WidgetChangePermission';
+import WidgetSetAdmin from './WidgetSetAdmin';
 
 const UsersComponent: React.FC = () => {
     const { t } = useTranslation('admin');
@@ -88,7 +89,11 @@ const UsersComponent: React.FC = () => {
                 Header: t('admin:user:isAdmin'),
                 accessor: 'is_admin',
                 Cell: (cellProps) => (
-                    <input type="checkbox" className={'_input-checkbox'} disabled={true} checked={cellProps.value} />
+                    <WidgetSetAdmin
+                        isAdmin={cellProps.value}
+                        userUuid={cellProps.row.original.uuid}
+                        userId={cellProps.row.original.id}
+                    />
                 )
             }
         ];
