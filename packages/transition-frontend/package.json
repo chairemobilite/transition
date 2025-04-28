@@ -62,7 +62,7 @@
     "timezone": "^1.0.23",
     "transition-common": "0.2.0-2",
     "typescript": "^5.8.3",
-    "uuid": "^11.0.3"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@alienfast/i18next-loader": "^2.0.2",

@@ -40,7 +40,7 @@
     "random": "^5.1.1",
     "timezone": "^1.0.23",
     "typescript": "^5.8.3",
-    "uuid": "^11.0.3"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/geojson": "^7946.0.15",
