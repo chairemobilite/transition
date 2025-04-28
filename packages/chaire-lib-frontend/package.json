@@ -59,7 +59,7 @@
     "redux": "^5.0.1",
     "redux-thunk": "^3.1.0",
     "remark-gfm": "^4.0.0",
-    "typescript": "^5.7.2"
+    "typescript": "^5.8.3"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
@@ -75,8 +75,8 @@
     "@types/react-dom": "^19.0.2",
     "@types/react-loadable": "^5.5.11",
     "@types/react-select": "^5.0.1",
-    "@typescript-eslint/eslint-plugin": "^8.17.0",
-    "@typescript-eslint/parser": "^8.17.0",
+    "@typescript-eslint/eslint-plugin": "^8.31.1",
+    "@typescript-eslint/parser": "^8.31.1",
     "copyfiles": "^2.4.1",
     "cross-env": "^7.0.3",
     "eslint": "^8.57.1",
