@@ -8,7 +8,6 @@ import GeoJSON from 'geojson';
 import * as turf from '@turf/turf';
 
 import { SingleGeometry } from './GeoJSONUtils';
-import pointInPolygon from './pointInPolygon';
 
 // TODO Can we type this?
 const getComparisonMethod = (feature: GeoJSON.Feature): ((a: any, b: any) => boolean) => {
@@ -16,7 +15,7 @@ const getComparisonMethod = (feature: GeoJSON.Feature): ((a: any, b: any) => boo
         return (a, b) => turf.booleanPointOnLine(a, b, {});
     }
     if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
-        return (a, b) => pointInPolygon(a, b, false);
+        return (a, b) => turf.booleanPointInPolygon(a, b, { ignoreBoundary: false });
     }
     if (feature.geometry.type === 'MultiLineString') {
         return (point: any, multiLineStringFeature: any) => {

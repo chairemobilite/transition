@@ -10055,11 +10055,6 @@ playwright@1.51.1:
   optionalDependencies:
     fsevents "2.3.2"
 
-point-in-polygon-hao@^0.0.7:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/point-in-polygon-hao/-/point-in-polygon-hao-0.0.7.tgz#4ecc4d62f64a7cfd5b9ca9c080a347af3fb5adf9"
-  integrity sha512-n2iT5jaDfrJyTBOmfm5HqSmns+VPbZq3mt9er9LSU28g6dWD+3FBQl0G47IOemtIY0NA24jpq3TDQ5EmMNouAA==
-
 point-in-polygon-hao@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/point-in-polygon-hao/-/point-in-polygon-hao-1.1.0.tgz#37f5f4fbe14e89fa8a3bb7f67c9158079d2ede7c"

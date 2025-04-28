@@ -4,9 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { bbox } from '@turf/turf';
+import { bbox, booleanPointInPolygon } from '@turf/turf';
 import { DataOsmRaw, OsmRawDataType, OsmRawDataTypeNode } from './dataOsmRaw';
-import pointInPolygon from '../../../services/geodata/pointInPolygon';
 import { SingleGeoFeature } from '../../../services/geodata/GeoJSONUtils';
 
 export type FeatureEntrancesOptions = {
@@ -182,7 +181,11 @@ export const getNodesInside = function (
     const nodesInsidePolygon: OsmRawDataTypeNode[] = [];
 
     for (let i = 0; i < nodeGeojsonsInBBox.length; i++) {
-        if (pointInPolygon(nodeGeojsonsInBBox[i].geometry, geojson.geometry, options.ignoreBoundary || false)) {
+        if (
+            booleanPointInPolygon(nodeGeojsonsInBBox[i].geometry, geojson.geometry, {
+                ignoreBoundary: options.ignoreBoundary || false
+            })
+        ) {
             const nodeId = nodeGeojsonsInBBox[i].id;
             if (nodeId !== undefined) {
                 nodesInsidePolygon.push(nodesById.nodes[nodeId]);
