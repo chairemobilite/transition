@@ -46,7 +46,7 @@
     "@types/geokdbush": "^1.1.2",
     "@types/jest": "^29.5.14",
     "@types/kdbush": "^3.0.0",
-    "@types/lodash": "^4.17.13",
+    "@types/lodash": "^4.17.16",
     "@types/node": "^22.10.1",
     "@types/p-queue": "^3.2.1",
     "@typescript-eslint/eslint-plugin": "^8.17.0",
