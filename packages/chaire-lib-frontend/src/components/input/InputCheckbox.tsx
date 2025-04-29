@@ -205,7 +205,7 @@ export interface InputCheckboxBoolProps extends InputCheckboxCommonProps {
     isChecked?: boolean;
     defaultChecked?: boolean;
     label?: string;
-    onValueChange: (e: any) => void;
+    onValueChange: (e: { target: { value: boolean } }) => void;
 }
 
 class InputCheckboxBooleanInner extends React.Component<InputCheckboxBoolProps> {
