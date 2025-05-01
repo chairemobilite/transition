@@ -6,7 +6,8 @@
  */
 import fs from 'fs';
 import slugify from 'slugify';
-import * as GtfsTypes from 'gtfs-types';
+// eslint-disable-next-line n/no-unpublished-import
+import type * as GtfsTypes from 'gtfs-types';
 import { unparse } from 'papaparse';
 import moment from 'moment';
 

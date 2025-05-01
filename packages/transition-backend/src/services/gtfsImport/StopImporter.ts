@@ -5,7 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import PQueue from 'p-queue';
-import * as GtfsTypes from 'gtfs-types';
+// eslint-disable-next-line n/no-unpublished-import
+import type * as GtfsTypes from 'gtfs-types';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';

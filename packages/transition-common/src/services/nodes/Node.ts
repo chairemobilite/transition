@@ -7,7 +7,8 @@
 import _get from 'lodash/get';
 import _isEqual from 'lodash/isEqual';
 import * as turf from '@turf/turf';
-import * as GtfsTypes from 'gtfs-types';
+// eslint-disable-next-line n/no-unpublished-import
+import type * as GtfsTypes from 'gtfs-types';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { GenericPlace, GenericPlaceAttributes } from 'chaire-lib-common/lib/utils/objects/GenericPlace';

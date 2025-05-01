@@ -4,7 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import * as GtfsTypes from 'gtfs-types';
+// eslint-disable-next-line n/no-unpublished-import
+import type * as GtfsTypes from 'gtfs-types';
 import { Path, TimeAndDistance } from 'transition-common/lib/services/path/Path';
 import { StopTime } from '../gtfsImport/GtfsImportTypes';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
