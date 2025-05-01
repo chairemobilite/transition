@@ -4,11 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { AbilityBuilder, Ability } from '@casl/ability';
+import { AbilityBuilder, MongoAbility, createMongoAbility } from '@casl/ability';
 import { UserAttributes } from '../users/user';
 
-const roleMap: { [key: string]: ((builder: AbilityBuilder<Ability>, user: UserAttributes) => void)[] } = {
-    admin: [({ can }: AbilityBuilder<Ability>) => can('manage', 'all')]
+const roleMap: { [key: string]: ((builder: AbilityBuilder<MongoAbility>, user: UserAttributes) => void)[] } = {
+    admin: [({ can }: AbilityBuilder<MongoAbility>) => can('manage', 'all')]
 };
 
 export const DEFAULT_ROLE_NAME = 'default';
@@ -36,8 +36,6 @@ const ADMIN_ROLE_NAME = 'admin';
  * this role. Abilities can be anything used in the application. Common strings
  * are 'create', 'read', 'update', 'delete'. 'manage' is a wildcard and grants
  * all permissions. Any other permission type can be added.
- * @param {string | undefined} homePage Optional home page to link to by default
- * for this role
  *
  * Example call to this function would be
  * ```
@@ -53,7 +51,7 @@ const ADMIN_ROLE_NAME = 'admin';
  */
 export const addRole = (
     roleName: string,
-    abilitiesFunction: (builder: AbilityBuilder<Ability>, user: UserAttributes) => void
+    abilitiesFunction: (builder: AbilityBuilder<MongoAbility>, user: UserAttributes) => void
 ) => {
     if (roleMap[roleName]) {
         roleMap[roleName].push(abilitiesFunction);
@@ -130,8 +128,8 @@ export const getHomePage = (user: UserAttributes): string | undefined => {
 /**
  * @param user contains details about logged in user: its id, name, email, etc
  */
-export default function defineAbilitiesFor(user: UserAttributes): Ability {
-    const builder: AbilityBuilder<Ability> = new AbilityBuilder(Ability);
+export default function defineAbilitiesFor(user: UserAttributes): MongoAbility {
+    const builder: AbilityBuilder<MongoAbility> = new AbilityBuilder(createMongoAbility);
 
     const userPermissions = user.permissions || {};
     if (user.is_admin) {
@@ -157,5 +155,5 @@ export default function defineAbilitiesFor(user: UserAttributes): Ability {
         }
     }
 
-    return new Ability(builder.rules);
+    return createMongoAbility(builder.rules);
 }

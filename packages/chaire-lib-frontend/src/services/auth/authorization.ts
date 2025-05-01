@@ -4,17 +4,16 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Ability } from '@casl/ability';
+import { createMongoAbility, MongoAbility } from '@casl/ability';
 import { unpackRules } from '@casl/ability/extra';
 import { BaseUser } from 'chaire-lib-common/lib/services/user/userType';
 
 export const deserializeRules = (user: BaseUser) => {
     if (!user.serializedPermissions) {
-        return new Ability();
+        return createMongoAbility();
     }
     const rules = unpackRules(user.serializedPermissions);
-    // TODO: See why the types do not work
-    return new Ability(rules as any);
+    return createMongoAbility(rules);
 };
 
 /**
@@ -26,7 +25,7 @@ export const deserializeRules = (user: BaseUser) => {
  * or 'update' subject of type 'Users', the permissions to send would be {Users:
  * ['read', 'update'] }
  */
-const isAuthorized = (ability: Ability, permissions: { [subject: string]: string | string[] }): boolean => {
+const isAuthorized = (ability: MongoAbility, permissions: { [subject: string]: string | string[] }): boolean => {
     // Check if the user has required permission, admin is a special case [for now]
     const permissionSubjects = Object.keys(permissions);
     for (let i = 0; i < permissionSubjects.length; i++) {
