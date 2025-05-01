@@ -58,7 +58,7 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
                 <InputWrapper label={props.t('main:preferences:InfoPanelPosition')}>
                     <InputSelect
                         id={'formFieldPreferencesInfoPanelPosition'}
-                        value={prefs.infoPanelPosition}
+                        value={prefs.infoPanelPosition === 'left' ? 'left' : 'right'}
                         choices={[
                             {
                                 label: props.t('main:Left'),
@@ -71,6 +71,7 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
                         ]}
                         t={props.t}
                         onValueChange={(e) => props.onValueChange('infoPanelPosition', { value: e.target.value })}
+                        noBlank={true}
                     />
                     <PreferencesResetToDefaultButton
                         resetPrefToDefault={props.resetPrefToDefault}

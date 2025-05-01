@@ -50,6 +50,14 @@ interface DashboardProps extends WithTranslation {
 
 interface DashboardState {
     activeSection: string;
+    /**
+     * Position of the info panel. Currently, it is right by default. Only other
+     * supported option for now is 'left'. So we use special cases for 'left'
+     * and put it on the right for any other position.
+     *
+     * FIXME: Use an enum instead of a string and make sure only those values
+     * can be taken.
+     */
     infoPanelPosition: string;
     preferencesLoaded: boolean;
     socketConnected: boolean;
@@ -330,11 +338,11 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                         <LeftMenu activeSection={this.state.activeSection} contributions={this.contributions.menuBar} />
                         <SplitView
                             minLeftWidth={this.state.infoPanelPosition === 'left' ? 500 : 150}
-                            initialLeftWidth={this.state.infoPanelPosition === 'right' ? '65%' : '35%'}
+                            initialLeftWidth={this.state.infoPanelPosition !== 'left' ? '65%' : '35%'}
                             leftViewID={this.state.infoPanelPosition} // Just has to be something that changes when we switch the info panel position from R to L.
                             hideRightViewWhenResizing={this.state.infoPanelPosition === 'left'}
-                            hideLeftViewWhenResizing={this.state.infoPanelPosition === 'right'}
-                            right={this.state.infoPanelPosition === 'right' ? infoPanelComponent : mapComponent}
+                            hideLeftViewWhenResizing={this.state.infoPanelPosition !== 'left'}
+                            right={this.state.infoPanelPosition !== 'left' ? infoPanelComponent : mapComponent}
                             left={this.state.infoPanelPosition === 'left' ? infoPanelComponent : mapComponent}
                         />
                         {this.state.unsavedChangesModalIsOpen && (
