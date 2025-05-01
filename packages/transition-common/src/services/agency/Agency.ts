@@ -4,7 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Agency as GtfsAgency } from 'gtfs-types';
+// eslint-disable-next-line n/no-unpublished-import
+import type { Agency as GtfsAgency } from 'gtfs-types';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';

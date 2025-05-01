@@ -6,7 +6,8 @@
  */
 import fs from 'fs';
 import { unparse } from 'papaparse';
-import * as GtfsTypes from 'gtfs-types';
+// eslint-disable-next-line n/no-unpublished-import
+import type * as GtfsTypes from 'gtfs-types';
 
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
 import dbQueries from '../../models/db/transitSchedules.db.queries';

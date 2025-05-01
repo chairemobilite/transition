@@ -4,7 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Route as GtfsRouteSpec } from 'gtfs-types';
+// eslint-disable-next-line n/no-unpublished-import
+import type { Route as GtfsRouteSpec } from 'gtfs-types';
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
 import Line, { LineAttributes } from 'transition-common/lib/services/line/Line';

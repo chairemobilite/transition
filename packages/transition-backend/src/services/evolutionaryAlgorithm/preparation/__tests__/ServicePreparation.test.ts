@@ -6,7 +6,7 @@
  */
 import { v4 as uuidV4 } from 'uuid';
 import _cloneDeep from 'lodash/cloneDeep';
-import { lineString as turfLineString } from '@turf/helpers';
+import { lineString as turfLineString } from '@turf/turf';
 
 import { prepareServices } from '../ServicePreparation';
 import Line from 'transition-common/lib/services/line/Line';

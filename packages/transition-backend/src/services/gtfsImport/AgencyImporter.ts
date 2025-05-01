@@ -12,7 +12,8 @@ import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { AgencyImportData, GtfsImportData, GtfsAgency } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import { getUniqueAgencyAcronym } from 'transition-common/lib/services/agency/AgencyUtils';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { Agency as GtfsAgencySpec } from 'gtfs-types';
+// eslint-disable-next-line n/no-unpublished-import
+import type { Agency as GtfsAgencySpec } from 'gtfs-types';
 import { GtfsObjectImporter } from './GtfsObjectImporter';
 import { formatColor, GtfsInternalData } from './GtfsImportTypes';
 

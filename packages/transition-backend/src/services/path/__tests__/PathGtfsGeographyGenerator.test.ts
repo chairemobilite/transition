@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import * as GtfsTypes from 'gtfs-types';
+import type * as GtfsTypes from 'gtfs-types';
 import * as PathGtfsGenerator from '../PathGtfsGeographyGenerator';
 import { length as turfLength } from '@turf/turf';
 import Path from 'transition-common/lib/services/path/Path';

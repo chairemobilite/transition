@@ -5,7 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import fs from 'fs';
-import * as GtfsTypes from 'gtfs-types';
+// eslint-disable-next-line n/no-unpublished-import
+import type * as GtfsTypes from 'gtfs-types';
 import { unparse } from 'papaparse';
 
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';

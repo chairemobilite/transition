@@ -22,7 +22,8 @@ import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericOb
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
-import { Route as GtfsRoute } from 'gtfs-types';
+// eslint-disable-next-line n/no-unpublished-import
+import type { Route as GtfsRoute } from 'gtfs-types';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 const lineModesConfigByMode = {};
