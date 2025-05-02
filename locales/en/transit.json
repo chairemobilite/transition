@@ -558,6 +558,8 @@
         "WalkingSpeedKph": "Walking speed (km/h)",
         "RoutingModes": "Calculate for the following modes",
         "waiting": "waiting",
+        "Longitude": "Longitude",
+        "Latitude": "Latitude",
         "OriginLongitude": "Origin longitude",
         "OriginLatitude": "Origin latitude",
         "DestinationLongitude": "Destination longitude",
