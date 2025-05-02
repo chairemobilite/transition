@@ -17,12 +17,12 @@ export const useContextMenu = () => {
     const { t } = useTranslation(['transit', 'main']);
 
     useEffect(() => {
-        contextMenuManagerRef.current = new ContextMenuManager('tr__main-map-context-menu', t);
+        contextMenuManagerRef.current = new ContextMenuManager('tr__main-map-context-menu');
 
         return () => {
             contextMenuManagerRef.current?.destroy();
         };
-    }, [t]);
+    }, []);
 
     const showContextMenu = React.useCallback(
         (

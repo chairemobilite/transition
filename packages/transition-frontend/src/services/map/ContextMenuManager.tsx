@@ -5,9 +5,10 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Root, createRoot } from 'react-dom/client';
 import { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 
 export interface ContextMenuItem {
     key?: string;
@@ -16,14 +17,53 @@ export interface ContextMenuItem {
     onHover?: () => void;
 }
 
+type ContextMenuProps = {
+    elements: ContextMenuItem[];
+    onHide: () => void;
+};
+
+const ContextMenu: React.FC<ContextMenuProps> = ({ elements, onHide }) => {
+    const { t } = useTranslation(['transit', 'main']);
+    const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+                onHide();
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [wrapperRef]);
+
+    return (
+        <div ref={wrapperRef}>
+            <ul>
+                {elements.map((element) => (
+                    <li
+                        key={element.key ? element.key : element.title}
+                        style={{ display: 'block', padding: '5px' }}
+                        onClick={() => {
+                            element.onClick();
+                            onHide();
+                        }}
+                        onMouseOver={() => element.onHover && element.onHover()}
+                    >
+                        {t(element.title)}
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+};
+
 export class ContextMenuManager {
     private root: Root | undefined;
     private elementId: string;
-    private t: TFunction;
 
-    constructor(elementId: string, t: TFunction) {
+    constructor(elementId: string) {
         this.elementId = elementId;
-        this.t = t;
         this.initialize();
     }
 
@@ -46,21 +86,12 @@ export class ContextMenuManager {
         element.style.display = 'block';
 
         this.root.render(
-            <ul>
-                {elements.map((element) => (
-                    <li
-                        key={element.key ? element.key : element.title}
-                        style={{ display: 'block', padding: '5px' }}
-                        onClick={() => {
-                            element.onClick();
-                            this.hide();
-                        }}
-                        onMouseOver={() => element.onHover && element.onHover()}
-                    >
-                        {this.t(element.title)}
-                    </li>
-                ))}
-            </ul>
+            <ContextMenu
+                elements={elements}
+                onHide={() => {
+                    this.hide();
+                }}
+            />
         );
     }
 
