@@ -65,10 +65,12 @@ export class TransitionMapController extends MapController {
     }
 
     private _onPointerMove(event: MjolnirGestureEvent | MjolnirPointerEvent) {
+        event.stopPropagation();
         return this._executeMapOrSelectEvents('onPointerMove', undefined, event);
     }
 
     private _onDblClick(pickInfo: PickingInfo | null | undefined, event: MjolnirGestureEvent) {
+        event.stopPropagation();
         const eventName = event.leftButton ? 'onLeftDblClick' : event.rightButton ? 'onRightDblClick' : undefined;
         if (eventName === undefined) {
             return false;
@@ -77,6 +79,7 @@ export class TransitionMapController extends MapController {
     }
 
     private _onClick(pickInfo: PickingInfo | null | undefined, event: MjolnirGestureEvent): boolean {
+        event.stopPropagation();
         const eventName = event.leftButton ? 'onLeftClick' : event.rightButton ? 'onRightClick' : undefined;
         if (eventName === undefined) {
             return false;
