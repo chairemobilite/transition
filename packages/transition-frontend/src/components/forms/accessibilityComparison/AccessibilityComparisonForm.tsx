@@ -41,6 +41,7 @@ import {
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import AccessibilityComparisonStatsComponent from './AccessibilityComparisonStatsComponent';
 import * as AccessibilityComparisonConstants from './AccessibilityComparisonConstants';
+import AccessibilityMapCoordinatesComponent from '../accessibilityMap/widgets/AccessibilityMapCoordinateComponent';
 import TimeOfTripComponent from '../transitRouting/widgets/TimeOfTripComponent';
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
@@ -108,9 +109,6 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
             alternateScenario2Id: ''
         };
 
-        this.onClickedOnMap = this.onClickedOnMap.bind(this);
-        this.onDragLocation = this.onDragLocation.bind(this);
-        this.onUpdateLocation = this.onUpdateLocation.bind(this);
         this.displayMap = this.displayMap.bind(this);
         this.calculateRouting = this.calculateRouting.bind(this);
         this.onScenarioCollectionUpdate = this.onScenarioCollectionUpdate.bind(this);
@@ -125,20 +123,6 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
 
     onScenarioCollectionUpdate() {
         this.setState({ scenarioCollection: serviceLocator.collectionManager.get('scenarios') });
-    }
-
-    onClickedOnMap(coordinates) {
-        const routing = this.state.object;
-        const routingAlternate = this.state.alternateScenarioRouting;
-        routing.setLocation(coordinates);
-        routingAlternate.setLocation(coordinates);
-
-        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-            layerName: 'accessibilityMapPoints',
-            data: routing.locationToGeojson()
-        });
-
-        this.removePolygons();
     }
 
     async calculateRouting(refresh = false) {
@@ -268,34 +252,6 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
         }
     }
 
-    onDragLocation(coordinates) {
-        const routing = this.state.object;
-        const routingAlternate = this.state.alternateScenarioRouting;
-        if (routing.hasLocation()) {
-            routing.setLocation(coordinates, false);
-            routingAlternate.setLocation(coordinates, false);
-            // only update layer for better performance:
-            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-                layerName: 'accessibilityMapPoints',
-                data: routing.locationToGeojson()
-            });
-            this.removePolygons();
-        }
-    }
-
-    onUpdateLocation(coordinates) {
-        const routing = this.state.object;
-        const routingAlternate = this.state.alternateScenarioRouting;
-        // only update layer and routing engine object:
-        routing.setLocation(coordinates);
-        routingAlternate.setLocation(coordinates, false);
-        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-            layerName: 'accessibilityMapPoints',
-            data: routing.locationToGeojson()
-        });
-        this.removePolygons();
-    }
-
     displayMap(index: number) {
         const currentResult = this.state.finalMap[index];
         const { polygons, strokes } = currentResult;
@@ -318,16 +274,10 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
     }
 
     componentDidMount() {
-        serviceLocator.eventManager.on('routing.transitAccessibilityMap.dragLocation', this.onDragLocation);
-        serviceLocator.eventManager.on('routing.transitAccessibilityMap.updateLocation', this.onUpdateLocation);
-        serviceLocator.eventManager.on('routing.transitAccessibilityMap.clickedOnMap', this.onClickedOnMap);
         serviceLocator.eventManager.on('collection.update.scenarios', this.onScenarioCollectionUpdate);
     }
 
     componentWillUnmount() {
-        serviceLocator.eventManager.off('routing.transitAccessibilityMap.dragLocation', this.onDragLocation);
-        serviceLocator.eventManager.off('routing.transitAccessibilityMap.updateLocation', this.onUpdateLocation);
-        serviceLocator.eventManager.off('routing.transitAccessibilityMap.clickedOnMap', this.onClickedOnMap);
         serviceLocator.eventManager.off('collection.update.scenarios', this.onScenarioCollectionUpdate);
     }
 
@@ -383,6 +333,26 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
         this.onValueChange(path, newValue);
         if (newValue.valid || newValue.valid === undefined) {
             alternateRouting.attributes[path] = newValue.value;
+        }
+    };
+
+    private onUpdateCoordinates = (coordinates?: GeoJSON.Position, checkIfHasLocation: boolean = false) => {
+        if (coordinates === undefined) {
+            return;
+        }
+
+        const routing = this.state.object;
+        const routingAlternate = this.state.alternateScenarioRouting;
+        // We want to check if there is already a location when dragging the point, to avoid bugs with the location being undefined.
+        // This is unnecessary when clicking the map, as the location is directly set no matter what.
+        if (checkIfHasLocation ? routing.hasLocation() : true) {
+            routing.setLocation(coordinates);
+            routingAlternate.setLocation(coordinates, false);
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'accessibilityMapPoints',
+                data: routing.locationToGeojson()
+            });
+            this.removePolygons();
         }
     };
 
@@ -534,6 +504,11 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                     />
                                 </InputWrapper>
                             </div>
+                            <AccessibilityMapCoordinatesComponent
+                                id={'formFieldTransitAccessibilityMapComparisonLocation'}
+                                locationGeojson={this.state.object.attributes.locationGeojson}
+                                onUpdateCoordinates={this.onUpdateCoordinates}
+                            />
                             <InputWrapper label={this.props.t('transit:transitRouting:PlaceName')}>
                                 <InputString
                                     id={`formFieldTransitAccessibilityMapPlaceName${routingId}`}
