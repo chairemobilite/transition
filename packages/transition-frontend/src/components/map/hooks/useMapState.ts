@@ -88,6 +88,11 @@ export const useMapState = (initialCenter: [number, number], initialZoom: number
             width,
             height
         });
+        throttledSetViewState({
+            ...viewStateRef.current,
+            width,
+            height
+        });
     }, []);
 
     // Fit bounds handler

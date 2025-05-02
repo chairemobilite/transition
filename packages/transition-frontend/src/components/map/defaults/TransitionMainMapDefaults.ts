@@ -10,6 +10,8 @@ export const viewStateHasChanged = (previousState: any, newState: any) => {
     return (
         previousState.latitude !== newState.latitude ||
         previousState.longitude !== newState.longitude ||
-        previousState.zoom !== newState.zoom
+        previousState.zoom !== newState.zoom ||
+        previousState.width !== newState.width ||
+        previousState.height !== newState.height
     );
 };
