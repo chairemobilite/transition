@@ -236,6 +236,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                 <Menu className="tr__top-menu-buttons-container">
                     {this.state.dataNeedsUpdate && (
                         <MenuItem
+                            key="tr__top-menu-button-fetch-data"
                             title={this.props.t('transit:FetchNewData')}
                             className="tr__top-menu-button"
                             onClick={this.fetchData}
@@ -250,6 +251,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                     )}
                     {this.state.layersVisibility.transitPaths === true && (
                         <MenuItem
+                            key="tr__top-menu-button-hide-paths"
                             title={this.props.t('transit:transitPath:HidePaths')}
                             className="tr__top-menu-button"
                             onClick={function () {
@@ -266,6 +268,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                     )}
                     {this.state.layersVisibility.transitPaths === false && (
                         <MenuItem
+                            key="tr__top-menu-button-show-paths"
                             title={this.props.t('transit:transitPath:ShowPaths')}
                             className="tr__top-menu-button"
                             onClick={function () {
@@ -282,6 +285,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                     )}
                     {this.state.layersVisibility.transitNodes === true && (
                         <MenuItem
+                            key="tr__top-menu-button-hide-nodes"
                             title={this.props.t('transit:transitNode:HideNodes')}
                             className="tr__top-menu-button"
                             onClick={function () {
@@ -298,6 +302,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                     )}
                     {this.state.layersVisibility.transitNodes === false && (
                         <MenuItem
+                            key="tr__top-menu-button-show-nodes"
                             title={this.props.t('transit:transitNode:ShowNodes')}
                             className="tr__top-menu-button"
                             onClick={function () {
@@ -316,6 +321,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                     {Preferences.get('showAggregatedOdTripsLayer') &&
                         this.state.layersVisibility.aggregatedOD === true && (
                         <MenuItem
+                            key="tr__top-menu-button-hide-aggregated-od"
                             title={this.props.t('od:HideAggregatedOD')}
                             className="tr__top-menu-button"
                             onClick={function () {
@@ -333,6 +339,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                     {Preferences.get('showAggregatedOdTripsLayer') &&
                         this.state.layersVisibility.aggregatedOD === false && (
                         <MenuItem
+                            key="tr__top-menu-button-show-aggregated-od"
                             title={this.props.t('od:ShowAggregatedOD')}
                             className="tr__top-menu-button"
                             onClick={function () {
@@ -349,6 +356,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                     )}
 
                     <MenuItem
+                        key="tr__top-menu-button-save-and-update-nodes"
                         title={this.props.t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
                         className="tr__top-menu-button"
                         onClick={this.saveAndUpdateNodes}
@@ -365,6 +373,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                         />
                     </MenuItem>
                     <MenuItem
+                        key="tr__top-menu-button-save-all-cache"
                         title={this.props.t('main:SaveAllData')}
                         className="tr__top-menu-button"
                         onClick={this.saveAllCache}
@@ -381,6 +390,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                         />
                     </MenuItem>
                     <MenuItem
+                        key="tr__top-menu-button-restart-tr-routing"
                         title={this.props.t('main:RestartTrRouting')}
                         className="tr__top-menu-button"
                         onClick={this.restartTrRouting}
