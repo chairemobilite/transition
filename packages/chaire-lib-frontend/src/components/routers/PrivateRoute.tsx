@@ -19,14 +19,12 @@ export type PrivateRouteProps = RouteProps & {
 };
 
 const PrivateRoute = ({ permissions, component: Component, ...rest }: PrivateRouteProps) => {
-    const auth = useSelector((state: { auth: AuthState }) => ({
-        isAuthenticated: !!state.auth.isAuthenticated,
-        user: state.auth.user
-    }));
+    const user = useSelector((state: { auth: AuthState }) => state.auth.user);
+    const isAuthenticated = useSelector((state: { auth: AuthState }) => !!state.auth.isAuthenticated);
 
-    return auth.isAuthenticated && auth.user ? (
+    return isAuthenticated && user ? (
         permissions ? (
-            auth.user.isAuthorized(permissions) ? (
+            user.isAuthorized(permissions) ? (
                 <React.Fragment>
                     <Header path={rest.path as string} appName={config?.appName as string} />
                     <Component {...rest.componentProps} />
