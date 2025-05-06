@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { PropsWithChildren } from 'react';
 import _get from 'lodash/get';
 import io from 'socket.io-client';
-import { useTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 import EventEmitter from 'events';
 import { sectionLayers } from '../../config/layers.config';
 
@@ -43,28 +43,13 @@ import {
 } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
 
-type DashboardProps = {
+interface DashboardProps extends WithTranslation {
     contributions: DashboardContribution[];
-    mainMap: React.ComponentType<MainMapProps & React.PropsWithChildren<object>>;
-};
+    mainMap: React.ComponentType<MainMapProps & PropsWithChildren>;
+}
 
-type ContributionGroups = {
-    bottomPanel: Contribution<PanelSectionProps>[];
-    menuBar: Contribution<PanelSectionProps>[];
-    toolbar: Contribution<PanelSectionProps>[];
-    fullSize: Contribution<PanelSectionProps>[];
-    rightPanel: Contribution<PanelSectionProps>[];
-};
-
-const Dashboard: React.FC<DashboardProps> = ({ contributions, mainMap }) => {
-    const { t } = useTranslation(['main', 'form', 'menu', 'od', 'transit', 'notifications', 'variables']);
-
-    // State
-    const [preferencesLoaded, setPreferencesLoaded] = useState<boolean>(false);
-    const [socketConnected, setSocketConnected] = useState<boolean>(false);
-    const [socketWasConnected, setSocketWasConnected] = useState<boolean>(false);
-    const [showFullSizePanel, setShowFullSizePanel] = useState<boolean>(false);
-    const [activeSection, setActiveSection] = useState<string>(Preferences.attributes.defaultSection);
+interface DashboardState {
+    activeSection: string;
     /**
      * Position of the info panel. Currently, it is right by default. Only other
      * supported option for now is 'left'. So we use special cases for 'left'
@@ -73,132 +58,134 @@ const Dashboard: React.FC<DashboardProps> = ({ contributions, mainMap }) => {
      * FIXME: Use an enum instead of a string and make sure only those values
      * can be taken.
      */
-    const [infoPanelPosition, setInfoPanelPosition] = useState<string>(
-        Preferences.attributes.infoPanelPosition || 'right'
-    );
-    const [mainMapLayerGroups] = useState<string[]>(['transit']);
-    const [unsavedChangesModalIsOpen, setUnsavedChangesModalIsOpen] = useState<boolean>(false);
-    const [availableRoutingModes, setAvailableRoutingModes] = useState<string[]>([]);
+    infoPanelPosition: string;
+    preferencesLoaded: boolean;
+    socketConnected: boolean;
+    socketWasConnected: boolean;
+    showFullSizePanel: boolean;
+    mainMapLayerGroups: string[];
+    unsavedChangesModalIsOpen: boolean;
+    availableRoutingModes: string[];
+}
 
-    // Socket ref to persist across renders
-    const socketRef = useRef<any | null>(null);
+/**
+ * TODO: For now, hard code the dashboard for Transition here. But it should be
+ * in chaire-lib and offer the possibility to pass the application modules when
+ * the API for it has stabilised.
+ */
+class Dashboard extends React.Component<DashboardProps, DashboardState> {
+    private contributions: {
+        bottomPanel: Contribution<PanelSectionProps>[];
+        menuBar: Contribution<PanelSectionProps>[];
+        toolbar: Contribution<PanelSectionProps>[];
+        fullSize: Contribution<PanelSectionProps>[];
+        rightPanel: Contribution<PanelSectionProps>[];
+    };
+    socket: any;
 
-    // Setup contribution groups
-    const contributionGroups = useRef<ContributionGroups>({
-        bottomPanel: [],
-        menuBar: [],
-        toolbar: [],
-        fullSize: [],
-        rightPanel: []
-    });
+    constructor(props: DashboardProps) {
+        super(props);
 
-    // Initialize services
-    useEffect(() => {
-        // Initialize service locator with required services
+        // this default section will use default preferences because users prefs are not loaded yet.
+        // The state will be updated after loading user prefs.
+        const activeSection = Preferences.attributes.defaultSection;
+        const mainMapLayerGroups = ['transit'];
+
+        this.state = {
+            preferencesLoaded: false,
+            socketConnected: false,
+            socketWasConnected: false,
+            showFullSizePanel: false,
+            activeSection,
+            infoPanelPosition: 'right',
+            mainMapLayerGroups,
+            unsavedChangesModalIsOpen: false,
+            availableRoutingModes: []
+        };
+
         serviceLocator.addService('eventManager', new EventManager(new EventEmitter()));
         serviceLocator.addService('collectionManager', new CollectionManager(serviceLocator.eventManager));
         serviceLocator.addService('selectedObjectsManager', new SelectedObjectsManager(serviceLocator.eventManager));
         serviceLocator.addService('keyboardManager', KeyboardManager);
         serviceLocator.addService('notificationService', new NotificationService());
 
-        // Setup contribution groups
-        const allLayoutContribs = contributions.flatMap((contrib) => contrib.getLayoutContributions());
-        contributionGroups.current = {
+        serviceLocator.eventManager.emit('progress', { name: 'MapLoading', progress: 0.0 });
+
+        Preferences.addChangeListener(this.onPreferencesChange);
+
+        const allLayoutContribs = props.contributions.flatMap((contrib) => contrib.getLayoutContributions());
+        this.contributions = {
             bottomPanel: allLayoutContribs.filter((contrib) => contrib.placement === 'bottomPanel'),
             menuBar: allLayoutContribs.filter((contrib) => contrib.placement === 'menu'),
             toolbar: allLayoutContribs.filter((contrib) => contrib.placement === 'toolbar'),
             fullSize: allLayoutContribs.filter((contrib) => contrib.placement === 'mapOverlay'),
             rightPanel: allLayoutContribs.filter((contrib) => contrib.placement === 'primarySidebar')
         };
+    }
 
-        // Initial progress event
-        serviceLocator.eventManager.emit('progress', { name: 'MapLoading', progress: 0.0 });
+    componentDidMount = () => {
+        serviceLocator.eventManager.emit('progress', { name: 'MapLoading', progress: 0.0 }); // this does not trigger notification in TopMenu because TopMenu is not yet mounted.
+        serviceLocator.eventManager.on('map.loaded', this.onMapLoaded);
+        serviceLocator.eventManager.on('fullSizePanel.show', this.onShowFullSizePanel);
+        serviceLocator.eventManager.on('fullSizePanel.hide', this.onHideFullSizePanel);
+        serviceLocator.eventManager.on('section.change', this.onChangeSection);
 
-        // Add preferences change listener
-        Preferences.addChangeListener(onPreferencesChange);
+        document.addEventListener('keydown', this.handleKeyDown, false);
+        document.addEventListener('keyup', this.handleKeyUp, false);
 
-        // Cleanup function
-        return () => {
-            Preferences.removeChangeListener(onPreferencesChange);
-        };
-    }, [contributions]);
-
-    // Setup event listeners and socket connection
-    useEffect(() => {
-        // Register event listeners
-        serviceLocator.eventManager.emit('progress', { name: 'MapLoading', progress: 0.0 });
-        serviceLocator.eventManager.on('map.loaded', onMapLoaded);
-        serviceLocator.eventManager.on('fullSizePanel.show', onShowFullSizePanel);
-        serviceLocator.eventManager.on('fullSizePanel.hide', onHideFullSizePanel);
-        serviceLocator.eventManager.on('section.change', onChangeSection);
-
-        // Register keyboard event handlers
-        document.addEventListener('keydown', handleKeyDown, false);
-        document.addEventListener('keyup', handleKeyUp, false);
-
-        // Setup socket connection
-        socketRef.current = io({
+        this.socket = io({
             transports: ['websocket'],
-            reconnectionAttempts: 100,
-            timeout: 120000 // Use timeout instead of heartbeatTimeout
+            reconnectionAttempts: 100 //,
+            //timeout: 100000
         }).connect();
+        this.socket.heartbeatTimeout = 120000;
 
-        if (socketRef.current) {
-            socketRef.current.on('connect', socketConnectHandler);
-            socketRef.current.on('disconnect', socketDisconnectHandler);
-        }
+        this.socket.on('connect', this.socketConnectHandler);
+        this.socket.on('disconnect', this.socketDisconnectHandler);
+    };
 
-        // Cleanup function
-        return () => {
-            serviceLocator.eventManager.off('map.loaded', onMapLoaded);
-            serviceLocator.eventManager.off('fullSizePanel.show', onShowFullSizePanel);
-            serviceLocator.eventManager.off('fullSizePanel.hide', onHideFullSizePanel);
-            serviceLocator.eventManager.off('section.change', onChangeSection);
+    componentWillUnmount = () => {
+        serviceLocator.eventManager.off('map.loaded', this.onMapLoaded);
+        serviceLocator.eventManager.off('fullSizePanel.show', this.onShowFullSizePanel);
+        serviceLocator.eventManager.off('fullSizePanel.hide', this.onHideFullSizePanel);
+        serviceLocator.eventManager.off('section.change', this.onChangeSection);
 
-            document.removeEventListener('keydown', handleKeyDown, false);
-            document.removeEventListener('keyup', handleKeyUp, false);
+        document.removeEventListener('keydown', this.handleKeyDown, false);
+        document.removeEventListener('keyup', this.handleKeyUp, false);
 
-            if (socketRef.current) {
-                socketRef.current.off('connect', socketConnectHandler);
-                socketRef.current.off('disconnect', socketDisconnectHandler);
-                socketRef.current.disconnect();
-            }
-        };
-    }, []);
+        this.socket.off('connect', this.socketConnectHandler);
+        this.socket.off('disconnect', this.socketDisconnectHandler);
+    };
 
-    // Keyboard event handlers
-    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    handleKeyDown = (e: KeyboardEvent) => {
         serviceLocator.keyboardManager.keyDown(e);
-    }, []);
+    };
 
-    const handleKeyUp = useCallback((e: KeyboardEvent) => {
+    handleKeyUp = (e: KeyboardEvent) => {
         serviceLocator.keyboardManager.keyUp(e);
-    }, []);
+    };
 
-    // Panel visibility handlers
-    const onShowFullSizePanel = useCallback(() => {
-        setShowFullSizePanel(true);
-    }, []);
+    onShowFullSizePanel = () => {
+        this.setState({ showFullSizePanel: true });
+    };
 
-    const onHideFullSizePanel = useCallback(() => {
-        setShowFullSizePanel(false);
-    }, []);
+    onHideFullSizePanel = () => {
+        this.setState({ showFullSizePanel: false });
+    };
 
-    // Section change handler
-    const onChangeSection = useCallback((section: string, fullSizePanel: boolean) => {
+    onChangeSection = (section: string, fullSizePanel: boolean) => {
         // Verify if there are unsaved changes
         const selectedObjectsByType = serviceLocator.selectedObjectsManager.getSelections();
         const selectedObjects = Object.values(selectedObjectsByType).flatMap((objects) => objects);
         const selectedObjectsWithChanges = selectedObjects.some((object: any) => {
-            // Check if object has changed
+            // TODO: update the any type with typeguard
             if (object && object.hasChanged && typeof object.hasChanged === 'function' && object.hasChanged()) {
                 return true;
             }
             return false;
         });
-
         if (selectedObjectsWithChanges) {
-            setUnsavedChangesModalIsOpen(true);
+            this.setState({ unsavedChangesModalIsOpen: true });
         } else {
             serviceLocator.selectedObjectsManager.deselectAll();
 
@@ -207,36 +194,37 @@ const Dashboard: React.FC<DashboardProps> = ({ contributions, mainMap }) => {
                 'map.updateEnabledLayers',
                 sectionLayers[section] // will be undefined if section has no layers
             );
-
-            setActiveSection(section);
-            setShowFullSizePanel(fullSizePanel);
+            this.setState({ activeSection: section, showFullSizePanel: fullSizePanel });
         }
-    }, []);
+    };
 
-    // Preferences change handler
-    const onPreferencesChange = useCallback((_updates: any) => {
-        const newInfoPanelPosition = Preferences.get('infoPanelPosition');
-        setInfoPanelPosition(newInfoPanelPosition);
-    }, []);
+    onPreferencesChange = (_updates: any) => {
+        const infoPanelPosition = Preferences.get('infoPanelPosition');
+        this.setState({ infoPanelPosition });
+    };
 
-    // Load layers and collections
-    const loadLayersAndCollectionsHandler = useCallback(() => {
-        if (!mainMapLayerGroups.includes('transit')) {
+    loadLayersAndCollections = () => {
+        if (!this.state.mainMapLayerGroups.includes('transit')) {
             return;
         }
-
-        // Create collections
+        // TODO: Commented code will be back eventually (soon-ish), keeping it here as a reminder.
         const dataSourceCollection = new DataSourceCollection([], {}, serviceLocator.eventManager);
         const simulationCollection = new SimulationCollection([], {}, serviceLocator.eventManager);
+
         const nodeCollection = new NodeCollection([], {}, serviceLocator.eventManager);
+        //const stationCollection  = new StationCollection([], {}, serviceLocator.eventManager);
         const agencyCollection = new AgencyCollection([], {}, serviceLocator.eventManager);
         const lineCollection = new LineCollection([], {}, serviceLocator.eventManager);
         const pathCollection = new PathCollection([], {}, serviceLocator.eventManager);
+        // const unitCollection     = new UnitCollection([], {}, serviceLocator.eventManager);
+        // const garageCollection   = new GarageCollection([], {}, serviceLocator.eventManager);
+
         const serviceCollection = new ServiceCollection([], {}, serviceLocator.eventManager);
         const scenarioCollection = new ScenarioCollection([], {}, serviceLocator.eventManager);
         const placeCollection = new PlaceCollection([], {}, serviceLocator.eventManager);
 
-        // Load layers and collections
+        // const aggregatedODGeojsonCollection = new AggregatedODGeojsonCollection([], {}, serviceLocator.eventManager);
+
         loadLayersAndCollections({
             dataSourceCollection,
             simulationCollection,
@@ -249,134 +237,142 @@ const Dashboard: React.FC<DashboardProps> = ({ contributions, mainMap }) => {
             placeCollection,
             serviceLocator
         });
-    }, [mainMapLayerGroups]);
+    };
 
-    // Socket connection handlers
-    const socketConnectHandler = useCallback(() => {
+    socketConnectHandler = () => {
         console.log('SOCKET: connected to socket');
-
-        if (socketRef.current) {
-            serviceLocator.addService('socketEventManager', new EventManager(socketRef.current));
-            serviceLocator.notificationService.registerEventsOnEmitter(serviceLocator.socketEventManager);
-        }
+        const socketWasConnected = this.state.socketWasConnected;
+        serviceLocator.addService('socketEventManager', new EventManager(this.socket));
+        serviceLocator.notificationService.registerEventsOnEmitter(serviceLocator.socketEventManager);
 
         if (socketWasConnected) {
-            setSocketConnected(true);
+            this.setState({ socketConnected: true });
         } else {
-            // First load the preferences, then set socket state to connected
+            // firsty load the preferences, then set socket state to connected, so the main map can get preferences on first load.
             Preferences.load(serviceLocator.socketEventManager).then(() => {
-                setPreferencesLoaded(true);
-                setSocketConnected(true);
-                setSocketWasConnected(true);
-                setActiveSection(Preferences.attributes.defaultSection);
-                setInfoPanelPosition(Preferences.attributes.infoPanelPosition);
+                this.setState({
+                    preferencesLoaded: true,
+                    socketConnected: true,
+                    socketWasConnected: true,
+                    activeSection: Preferences.attributes.defaultSection,
+                    infoPanelPosition: Preferences.attributes.infoPanelPosition
+                });
             });
         }
 
-        // Get available OSRM routing modes from server
+        // Get available osrm routing modes from server:
         serviceLocator.socketEventManager.emit(
             'service.osrmRouting.availableRoutingModes',
-            (routingModes: string[]) => {
-                setAvailableRoutingModes(routingModes);
+            (availableRoutingModes: string[]) => {
+                this.setState({
+                    availableRoutingModes
+                });
             }
         );
-    }, [socketWasConnected]);
+    };
 
-    const socketDisconnectHandler = useCallback(() => {
+    socketDisconnectHandler = () => {
         console.log('SOCKET: disconnected from socket');
-        if (serviceLocator.socketEventManager) {
-            serviceLocator.notificationService.deregisterEventsOnEmitter(serviceLocator.socketEventManager);
-        }
-        setSocketConnected(false);
-    }, []);
+        serviceLocator.notificationService.deregisterEventsOnEmitter(serviceLocator.socketEventManager);
+        this.setState({ socketConnected: false });
+    };
 
-    // Map loaded handler
-    const onMapLoaded = useCallback(() => {
+    onMapLoaded = () => {
         serviceLocator.eventManager.emit('progress', { name: 'MapLoading', progress: 1.0 });
-        loadLayersAndCollectionsHandler();
-    }, [loadLayersAndCollectionsHandler]);
+        this.loadLayersAndCollections();
+    };
 
-    // Close unsaved changes modal
-    const closeUnsavedChangesModal = useCallback((e: React.MouseEvent) => {
+    closeUnsavedChangesModal = (e: React.MouseEvent) => {
         if (e && typeof e.stopPropagation === 'function') {
             e.stopPropagation();
         }
-        setUnsavedChangesModalIsOpen(false);
-    }, []);
+        this.setState({
+            unsavedChangesModalIsOpen: false
+        });
+    };
 
-    // Loading screen
-    if (!preferencesLoaded || (!socketConnected && !socketWasConnected)) {
-        return <LoadingPage />;
-    }
+    render() {
+        if (!this.state.preferencesLoaded || (!this.state.socketConnected && !this.state.socketWasConnected)) {
+            return <LoadingPage />;
+        }
 
-    // Prepare map configuration
-    const preferencesMapCenter = _get(Preferences.current, 'map.center', null) as [number, number];
-    const mapCenter = preferencesMapCenter;
-    const preferencesMapZoom = _get(Preferences.current, 'map.zoom', null) as number;
-    const mapZoom = preferencesMapZoom || 10;
-    const Map = mainMap;
+        const preferencesMapCenter = _get(Preferences.current, 'map.center', null);
+        const mapCenter = preferencesMapCenter;
+        const preferencesMapZoom = _get(Preferences.current, 'map.zoom', null);
+        const mapZoom = preferencesMapZoom || 10;
+        const Map = this.props.mainMap;
 
-    // Prepare components
-    const mapComponent = (
-        <Map center={mapCenter} zoom={mapZoom} activeSection={activeSection}>
-            {showFullSizePanel && (
-                <FullSizePanel activeSection={activeSection} contributions={contributionGroups.current.fullSize} />
-            )}
-        </Map>
-    );
-
-    const infoPanelComponent = (
-        <RightPanel
-            activeSection={activeSection}
-            contributions={contributionGroups.current.rightPanel}
-            availableRoutingModes={availableRoutingModes}
-        />
-    );
-
-    return (
-        <React.Fragment>
-            {!socketConnected && socketWasConnected && (
-                <div className="_container _center _full-width">
-                    <p className="_error">{t('main:connectionIsOffline')}</p>
-                </div>
-            )}
-            <section id="tr__dashboard" className={!socketConnected && socketWasConnected ? '_hide' : ''}>
-                <Toolbar activeSection={activeSection} contributions={contributionGroups.current.toolbar} />
-                <div id="tr__main-container">
-                    <LeftMenu activeSection={activeSection} contributions={contributionGroups.current.menuBar} />
-                    <SplitView
-                        minLeftWidth={infoPanelPosition === 'left' ? 500 : 150}
-                        initialLeftWidth={infoPanelPosition !== 'left' ? '65%' : '35%'}
-                        leftViewID={infoPanelPosition} // Just has to be something that changes when we switch the info panel position from R to L.
-                        hideRightViewWhenResizing={infoPanelPosition === 'left'}
-                        hideLeftViewWhenResizing={infoPanelPosition !== 'left'}
-                        right={infoPanelPosition !== 'left' ? infoPanelComponent : mapComponent}
-                        left={infoPanelPosition === 'left' ? infoPanelComponent : mapComponent}
+        const mapComponent = (
+            <Map center={mapCenter} zoom={mapZoom} activeSection={this.state.activeSection}>
+                {this.state.showFullSizePanel && (
+                    <FullSizePanel
+                        activeSection={this.state.activeSection}
+                        contributions={this.contributions.fullSize}
                     />
-                    {unsavedChangesModalIsOpen && (
-                        <ConfirmModal
-                            isOpen={true}
-                            title={t('main:UnsavedChanges')}
-                            closeModal={closeUnsavedChangesModal}
-                            confirmButtonColor="grey"
-                            confirmButtonLabel={t('main:OK')}
-                            showCancelButton={false}
+                )}
+            </Map>
+        );
+
+        const infoPanelComponent = (
+            <RightPanel
+                activeSection={this.state.activeSection}
+                contributions={this.contributions.rightPanel}
+                availableRoutingModes={this.state.availableRoutingModes}
+            />
+        );
+
+        return (
+            <React.Fragment>
+                {!this.state.socketConnected && this.state.socketWasConnected && (
+                    <div className="_container _center _full-width">
+                        <p className="_error">{this.props.t('main:connectionIsOffline')}</p>
+                    </div>
+                )}
+                <section
+                    id="tr__dashboard"
+                    className={!this.state.socketConnected && this.state.socketWasConnected ? '_hide' : ''}
+                >
+                    <Toolbar activeSection={this.state.activeSection} contributions={this.contributions.toolbar} />
+                    <div id="tr__main-container">
+                        {/* TODO Should not need to pass the i18n props, anyway, we won't have to pass the Map component as props soon either */}
+                        <LeftMenu activeSection={this.state.activeSection} contributions={this.contributions.menuBar} />
+                        <SplitView
+                            minLeftWidth={this.state.infoPanelPosition === 'left' ? 500 : 150}
+                            initialLeftWidth={this.state.infoPanelPosition !== 'left' ? '65%' : '35%'}
+                            leftViewID={this.state.infoPanelPosition} // Just has to be something that changes when we switch the info panel position from R to L.
+                            hideRightViewWhenResizing={this.state.infoPanelPosition === 'left'}
+                            hideLeftViewWhenResizing={this.state.infoPanelPosition !== 'left'}
+                            right={this.state.infoPanelPosition !== 'left' ? infoPanelComponent : mapComponent}
+                            left={this.state.infoPanelPosition === 'left' ? infoPanelComponent : mapComponent}
                         />
-                    )}
-                </div>
+                        {this.state.unsavedChangesModalIsOpen && (
+                            <ConfirmModal
+                                isOpen={true}
+                                title={this.props.t('main:UnsavedChanges')}
+                                closeModal={this.closeUnsavedChangesModal}
+                                confirmButtonColor="grey"
+                                confirmButtonLabel={this.props.t('main:OK')}
+                                showCancelButton={false}
+                            />
+                        )}
+                    </div>
 
-                <BottomPanel activeSection={activeSection} contributions={contributionGroups.current.bottomPanel} />
-            </section>
-            <footer>
-                <ul className="_pale">
-                    <li>
-                        <a href="https://github.com/chairemobilite/transition/">Github</a> •{' '}
-                        <a href="https://github.com/chairemobilite/trRouting/">trRouting</a> •{' '}
-                    </li>
-                </ul>
-            </footer>
-        </React.Fragment>
-    );
-};
+                    <BottomPanel
+                        activeSection={this.state.activeSection}
+                        contributions={this.contributions.bottomPanel}
+                    />
+                </section>
+                <footer>
+                    <ul className="_pale">
+                        <li>
+                            <a href="https://github.com/chairemobilite/transition/">Github</a> •{' '}
+                            <a href="https://github.com/chairemobilite/trRouting/">trRouting</a> •{' '}
+                        </li>
+                    </ul>
+                </footer>
+            </React.Fragment>
+        );
+    }
+}
 
-export default Dashboard;
+export default withTranslation(['main', 'form', 'menu', 'od', 'transit', 'notifications', 'variables'])(Dashboard);
