@@ -626,6 +626,7 @@ const addEvents = (
 };
 
 const getLayer = (props: TransitionMapLayerProps): Layer<LayerProps>[] | undefined => {
+    console.log('getLayer', props.layerDescription.layerData);
     if (props.layerDescription.layerData === undefined) {
         return undefined;
     }
