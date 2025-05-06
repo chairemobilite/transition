@@ -254,10 +254,6 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
             layerName: 'accessibilityMapPolygons',
             data: turfFeatureCollection([])
         });
-        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-            layerName: 'accessibilityMapPolygonStrokes',
-            data: turfFeatureCollection([])
-        });
         this.setState({
             loading: false
         });
@@ -298,17 +294,13 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
 
     displayMap(index: number) {
         const currentResult = this.state.finalMap[index];
-        const { polygons, strokes } = currentResult;
+        const { polygons } = currentResult;
 
         console.log('polygons calculated');
 
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'accessibilityMapPolygons',
             data: polygons
-        });
-        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-            layerName: 'accessibilityMapPolygonStrokes',
-            data: strokes
         });
 
         this.setState({
@@ -387,7 +379,10 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
     };
 
     private convertToRGBA = (rgbValue: string, alpha: number) => {
-        return rgbValue.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
+        const hexAlpha = Math.round(alpha * 255)
+            .toString(16)
+            .padStart(2, '0');
+        return `${rgbValue}${hexAlpha}`;
     };
 
     render() {
