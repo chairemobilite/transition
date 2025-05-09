@@ -164,6 +164,9 @@
     },
     "transitSchedule": {
         "Schedules": "Timetables",
+        "BatchSchedules": "Edit multiple timetables",
+        "ConfirmBatchLineSelection": "Confirm selected lines",
+        "ReturnBatchLineSelection": "Return to line selection",
         "List": "Timetables",
         "Delete": "Delete timetable",
         "ConfirmDelete": "Do you confirm deletion of this timetable?",
@@ -202,7 +205,9 @@
         "nTrip": "{{n}} trip",
         "nTrips": "{{n}} trips",
         "SymmetricSchedule": "Symmetrical schedule",
-        "AsymmetricSchedule": "Asymmetrical schedule"
+        "AsymmetricSchedule": "Asymmetrical schedule",
+        "BatchGenerationSuccess": "{{n}} schedules were successfully generated",
+        "OverwriteScheduleWarningBatch": "Warning: {{n}} line(s) already have a schedule for this service. The existing schedule will be overwritten."
     },
     "transitUnit": {
         "List": "Units",

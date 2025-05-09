@@ -227,7 +227,10 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
                             onDelete={this.onDelete}
                             openDeleteConfirmModal={this.openDeleteConfirmModal}
                             object={line}
-                            backAction={this.onBack}
+                            backAction={(e) => {
+                                this.onBack(e);
+                                serviceLocator.eventManager.emit('fullSizePanel.hide');
+                            }}
                             openBackConfirmModal={this.openBackConfirmModal}
                             saveAction={this.onSave}
                         />

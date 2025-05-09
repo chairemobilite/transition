@@ -462,7 +462,7 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
             if (periodIndex === null) {
                 return;
             }
-
+            // TODO This function does not seem to be called anywhere
             const lineId = this.get('id');
 
             const outboundPaths = this.getOutboundPaths();

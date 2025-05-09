@@ -5,21 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import _toString from 'lodash/toString';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUndoAlt } from '@fortawesome/free-solid-svg-icons/faUndoAlt';
 import { faRedoAlt } from '@fortawesome/free-solid-svg-icons/faRedoAlt';
-import { faTrash } from '@fortawesome/free-solid-svg-icons/faTrash';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
-import { faSyncAlt } from '@fortawesome/free-solid-svg-icons/faSyncAlt';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
-import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
-import { faArrowDown } from '@fortawesome/free-solid-svg-icons/faArrowDown';
-
-import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
-import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputSelect, { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
@@ -27,17 +18,11 @@ import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors'
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
-import { _isBlank, _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
-import {
-    decimalHourToTimeStr,
-    secondsSinceMidnightToTimeStr,
-    secondsToMinutes,
-    minutesToSeconds
-} from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import Schedule, { ScheduleCalculationMode } from 'transition-common/lib/services/schedules/Schedule';
 import Line from 'transition-common/lib/services/line/Line';
+import TransitSchedulePeriod from './TransitSchedulePeriod';
 
 interface ScheduleFormProps {
     schedule: Schedule;
@@ -165,24 +150,6 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
         }
     };
 
-    isReadyForScheduleGeneration(
-        calculationMode: ScheduleCalculationMode,
-        inboundInterval?: number,
-        outboundInterval?: number,
-        numberOfUnits?: number
-    ) {
-        return (
-            (calculationMode === ScheduleCalculationMode.BASIC &&
-                !_isBlank(outboundInterval) &&
-                _isBlank(numberOfUnits)) ||
-            (calculationMode === ScheduleCalculationMode.ASYMMETRIC &&
-                !_isBlank(outboundInterval) &&
-                !_isBlank(inboundInterval) &&
-                _isBlank(numberOfUnits)) ||
-            (!_isBlank(numberOfUnits) && _isBlank(outboundInterval) && _isBlank(inboundInterval))
-        );
-    }
-
     render() {
         const line = this.props.line;
         const isFrozen = line.isFrozen();
@@ -245,10 +212,7 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
             for (let i = 0, count = periods.length; i < count; i++) {
                 const period = periods[i];
 
-                const periodName = period.name[this.props.i18n.language];
                 const periodShortname = period.shortname;
-                const periodStartAtTimeStr = decimalHourToTimeStr(period.startAtHour);
-                const periodEndAtTimeStr = decimalHourToTimeStr(period.endAtHour);
 
                 const schedulePeriod = schedule.attributes.periods[i] || {
                     period_shortname: periodShortname,
@@ -257,313 +221,26 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                 };
                 schedule.attributes.periods[i] = schedulePeriod;
 
-                const trips = schedulePeriod.trips || [];
-                const tripsCount = trips.length;
-
-                const actualOutboundPathId = schedulePeriod.outbound_path_id;
-                let outboundPathId = actualOutboundPathId;
-                const actualInboundPathId = schedulePeriod.inbound_path_id;
-                let inboundPathId = actualInboundPathId;
-                if (_isBlank(outboundPathId) && outboundPathsChoices.length === 1) {
-                    outboundPathId = outboundPathsChoices[0].value; // set to outbound path if only one exists
-                    schedulePeriod.outbound_path_id = outboundPathId;
-                }
-                if (_isBlank(inboundPathId) && inboundPathsChoices.length === 1) {
-                    inboundPathId = inboundPathsChoices[0].value; // set to inbound path if only one exists
-                    schedulePeriod.inbound_path_id = inboundPathId;
-                }
-
-                const outboundTripsCells: any[] = [];
-                const inboundTripsCells: any[] = [];
-                const tripRows: any[] = [];
-                for (let tripI = 0; tripI < tripsCount; tripI++) {
-                    const trip = trips[tripI];
-                    if (outboundPathIds.includes(trip.path_id)) {
-                        // outbound trip
-                        outboundTripsCells.push(
-                            <td key={`outboundTrip_${tripI}`}>
-                                {secondsSinceMidnightToTimeStr(
-                                    trip.departure_time_seconds,
-                                    true,
-                                    allowSecondsBasedSchedules
-                                )}
-                            </td>
-                        );
-                    } else if (inboundPathIds.includes(trip.path_id)) {
-                        inboundTripsCells.push(
-                            <td key={`inboundTrip_${tripI}`}>
-                                {secondsSinceMidnightToTimeStr(
-                                    trip.departure_time_seconds,
-                                    true,
-                                    allowSecondsBasedSchedules
-                                )}
-                            </td>
-                        );
-                    }
-                }
-                const totalNumberOfTripRows = Math.max(outboundTripsCells.length, inboundTripsCells.length);
-
-                for (let rowI = 0; rowI < totalNumberOfTripRows; rowI++) {
-                    tripRows.push(
-                        <tr key={rowI}>
-                            {outboundTripsCells[rowI] || <td key={`emptyOutboundTrip_${rowI}`}></td>}
-                            {inboundTripsCells[rowI] || <td key={`emptyInboundTrip_${rowI}`}></td>}
-                        </tr>
-                    );
-                }
-
-                const outboundIntervalSeconds = schedulePeriod.interval_seconds;
-                const inboundIntervalSeconds = schedulePeriod.inbound_interval_seconds;
-                const calculatedIntervalSeconds = schedulePeriod.calculated_interval_seconds;
-                const numberOfUnits = schedulePeriod.number_of_units;
-                const calculatedNumberOfUnits = schedulePeriod.calculated_number_of_units;
-                const customStartAtStr =
-                    schedulePeriod.custom_start_at_str || decimalHourToTimeStr(period.startAtHour) || undefined;
-                const customEndAtStr = schedulePeriod.custom_end_at_str || undefined;
-
-                /* temporary for calculations: TODO Do we really need this? */
-                line.attributes.data.tmpIntervalSeconds = outboundIntervalSeconds || calculatedIntervalSeconds;
-                line.attributes.data.tmpNumberOfUnits = numberOfUnits || calculatedNumberOfUnits;
-                /* */
-
-                const periodsForm = (
-                    <div
-                        className="tr__form-section _flex-container-row"
-                        key={periodShortname}
-                        style={{
-                            borderRight: '1px solid rgba(255,255,255,0.2)',
-                            alignItems: 'flex-start',
-                            minWidth: '20rem'
-                        }}
-                    >
-                        <h4 className="_aside-heading-container" style={{ minHeight: '30rem' }}>
-                            <span className="_aside-heading">
-                                <FontAwesomeIcon icon={faClock} className="_icon" />{' '}
-                                <span className="_strong">{periodStartAtTimeStr}</span>{' '}
-                                <FontAwesomeIcon icon={faArrowDown} className="_icon" />{' '}
-                                <span className="_strong">{periodEndAtTimeStr}</span> <span>• {periodName}</span>
-                            </span>
-                        </h4>
-                        <div className="tr__form-section">
-                            <div className="tr__form-section">
-                                <div className="apptr__form-input-container">
-                                    <label>{this.props.t('transit:transitSchedule:OutboundPath')}</label>
-                                    <InputSelect
-                                        id={`formFieldTransitScheduleOutboundPathPeriod${periodShortname}${scheduleId}`}
-                                        value={outboundPathId}
-                                        choices={outboundPathsChoices}
-                                        disabled={isFrozen}
-                                        t={this.props.t}
-                                        onValueChange={(e) =>
-                                            this.onValueChange(`periods[${i}].outbound_path_id`, {
-                                                value: e.target.value
-                                            })
-                                        }
-                                    />
-                                </div>
-
-                                {allowSecondsBasedSchedules !== true && (
-                                    <div className="apptr__form-input-container">
-                                        <label>{this.props.t('transit:transitSchedule:outboundIntervalMinutes')}</label>
-                                        <InputStringFormatted
-                                            id={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}`}
-                                            disabled={isFrozen}
-                                            value={outboundIntervalSeconds}
-                                            onValueUpdated={(value) => {
-                                                this.onValueChange(`periods[${i}].interval_seconds`, value);
-                                            }}
-                                            key={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}${this.resetChangesCount}`}
-                                            stringToValue={minutesToSeconds}
-                                            valueToString={(val) => _toString(secondsToMinutes(val))}
-                                        />
-                                    </div>
-                                )}
-                                {allowSecondsBasedSchedules === true && (
-                                    <div className="apptr__form-input-container">
-                                        <label>{this.props.t('transit:transitSchedule:outboundIntervalSeconds')}</label>
-                                        <InputStringFormatted
-                                            id={`formFieldTransitScheduleIntervalSecondsPeriod${periodShortname}${scheduleId}`}
-                                            disabled={isFrozen}
-                                            value={outboundIntervalSeconds}
-                                            stringToValue={_toInteger}
-                                            valueToString={_toString}
-                                            key={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}${this.resetChangesCount}`}
-                                            onValueUpdated={(value) => {
-                                                this.onValueChange(`periods[${i}].interval_seconds`, value);
-                                            }}
-                                        />
-                                    </div>
-                                )}
-
-                                <div className="apptr__form-input-container">
-                                    <label>{this.props.t('transit:transitSchedule:InboundPath')}</label>
-                                    <InputSelect
-                                        id={`formFieldTransitScheduleInboundPathPeriod${periodShortname}${scheduleId}`}
-                                        value={inboundPathId}
-                                        choices={inboundPathsChoices}
-                                        disabled={isFrozen}
-                                        t={this.props.t}
-                                        onValueChange={(e) =>
-                                            this.onValueChange(`periods[${i}].inbound_path_id`, {
-                                                value: e.target.value
-                                            })
-                                        }
-                                    />
-                                </div>
-                                {allowSecondsBasedSchedules !== true &&
-                                    calculationMode === ScheduleCalculationMode.ASYMMETRIC && (
-                                    <div className="apptr__form-input-container">
-                                        <label>
-                                            {this.props.t('transit:transitSchedule:inboundIntervalMinutes')}
-                                        </label>
-                                        <InputStringFormatted
-                                            id={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}`}
-                                            disabled={isFrozen}
-                                            value={inboundIntervalSeconds}
-                                            onValueUpdated={(value) =>
-                                                this.onValueChange(`periods[${i}].inbound_interval_seconds`, value)
-                                            }
-                                            key={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}${this.resetChangesCount}`}
-                                            stringToValue={minutesToSeconds}
-                                            valueToString={(val) => _toString(secondsToMinutes(val))}
-                                        />
-                                    </div>
-                                )}
-
-                                {allowSecondsBasedSchedules === true &&
-                                    schedule.attributes.calculation_mode === ScheduleCalculationMode.ASYMMETRIC && (
-                                    <div className="apptr__form-input-container">
-                                        <label>
-                                            {this.props.t('transit:transitSchedule:inboundIntervalSeconds')}
-                                        </label>
-                                        <InputStringFormatted
-                                            id={`formFieldTransitScheduleIntervalSecondsPeriod${periodShortname}${scheduleId}`}
-                                            disabled={isFrozen}
-                                            value={inboundIntervalSeconds}
-                                            stringToValue={_toInteger}
-                                            valueToString={_toString}
-                                            key={`formFieldTransitScheduleIntervalMinutesPeriod${periodShortname}${scheduleId}${this.resetChangesCount}`}
-                                            onValueUpdated={(value) =>
-                                                this.onValueChange(`periods[${i}].inbound_interval_seconds`, value)
-                                            }
-                                        />
-                                    </div>
-                                )}
-                                <p className="_small _oblique">
-                                    {!outboundIntervalSeconds &&
-                                    !inboundIntervalSeconds &&
-                                    calculatedIntervalSeconds &&
-                                    numberOfUnits
-                                        ? `${this.props.t('transit:transitSchedule:CalculatedInterval')}: ${Math.ceil(
-                                            calculatedIntervalSeconds / 60
-                                        )} ${this.props.t('main:minuteAbbr')}`
-                                        : ''}
-                                </p>
-                                <div className="apptr__form-input-container">
-                                    <label>{this.props.t('transit:transitSchedule:NumberOfUnits')}</label>
-                                    <InputStringFormatted
-                                        id={`formFieldTransitScheduleNumberOfUnitsPeriod${periodShortname}${scheduleId}`}
-                                        disabled={isFrozen}
-                                        value={numberOfUnits}
-                                        stringToValue={_toInteger}
-                                        valueToString={_toString}
-                                        key={`formFieldTransitScheduleNumberOfUnitsPeriod${periodShortname}${scheduleId}${this.resetChangesCount}`}
-                                        onValueUpdated={(value) =>
-                                            this.onValueChange(`periods[${i}].number_of_units`, value)
-                                        }
-                                    />
-                                </div>
-                                <p className="_small _oblique">
-                                    {!numberOfUnits && calculatedNumberOfUnits && outboundIntervalSeconds
-                                        ? `${roundToDecimals(calculatedNumberOfUnits, 1)} ${this.props.t(
-                                            'transit:transitSchedule:requiredUnits'
-                                        )}`
-                                        : ''}
-                                </p>
-                                <div className="apptr__form-input-container">
-                                    <label>{this.props.t('transit:transitSchedule:CustomStartAt')}</label>
-                                    <InputString
-                                        id={`formFieldTransitScheduleCustomStartAtPeriod${periodShortname}${scheduleId}`}
-                                        disabled={isFrozen}
-                                        value={customStartAtStr}
-                                        onValueUpdated={(value) =>
-                                            this.onValueChange(`periods[${i}].custom_start_at_str`, value)
-                                        }
-                                    />
-                                </div>
-                                <div className="apptr__form-input-container">
-                                    <label>{this.props.t('transit:transitSchedule:CustomEndAt')}</label>
-                                    <InputString
-                                        id={`formFieldTransitScheduleCustomEndAtPeriod${periodShortname}${scheduleId}`}
-                                        disabled={isFrozen}
-                                        value={customEndAtStr}
-                                        onValueUpdated={(value) =>
-                                            this.onValueChange(`periods[${i}].custom_end_at_str`, value)
-                                        }
-                                    />
-                                </div>
-                            </div>
-                            <div className="tr__form-section">
-                                {isFrozen !== true && (
-                                    <div className="tr__form-buttons-container _left">
-                                        {this.isReadyForScheduleGeneration(
-                                            calculationMode,
-                                            inboundIntervalSeconds,
-                                            outboundIntervalSeconds,
-                                            numberOfUnits
-                                        ) && (
-                                            <Button
-                                                color="blue"
-                                                icon={faSyncAlt}
-                                                iconClass="_icon"
-                                                label={this.props.t('transit:transitSchedule:GenerateSchedule')}
-                                                onClick={function () {
-                                                    const response = schedule.generateForPeriod(periodShortname);
-                                                    if (response.trips) {
-                                                        schedule.set(`periods[${i}].trips`, response.trips);
-                                                    }
-                                                    serviceLocator.selectedObjectsManager.setSelection('schedule', [
-                                                        schedule
-                                                    ]);
-                                                }}
-                                            />
-                                        )}
-                                    </div>
-                                )}
-                                {isFrozen !== true && tripsCount > 0 && (
-                                    <div className="tr__form-buttons-container _left">
-                                        <Button
-                                            color="red"
-                                            icon={faTrash}
-                                            iconClass="_icon"
-                                            label={this.props.t('transit:transitSchedule:RemoveSchedule')}
-                                            onClick={function () {
-                                                schedule.set(`periods[${i}].trips`, []);
-                                                serviceLocator.selectedObjectsManager.setSelection('schedule', [
-                                                    schedule
-                                                ]);
-                                            }}
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                            {tripsCount > 0 && (
-                                <div className="tr__form-section">
-                                    <table className="_schedule">
-                                        <tbody>
-                                            <tr>
-                                                <th>{this.props.t('transit:transitPath:directions:outbound')}</th>
-                                                <th>{this.props.t('transit:transitPath:directions:inbound')}</th>
-                                            </tr>
-                                            {tripRows}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                periodsForms.push(
+                    <TransitSchedulePeriod
+                        key={`period_form_${periodShortname}`}
+                        schedule={schedule}
+                        line={line}
+                        periodIndex={i}
+                        period={period}
+                        schedulePeriod={schedulePeriod}
+                        outboundPathsChoices={outboundPathsChoices}
+                        inboundPathsChoices={inboundPathsChoices}
+                        outboundPathIds={outboundPathIds}
+                        inboundPathIds={inboundPathIds}
+                        isFrozen={isFrozen}
+                        scheduleId={scheduleId}
+                        allowSecondsBasedSchedules={allowSecondsBasedSchedules}
+                        resetChangesCount={this.resetChangesCount}
+                        calculationMode={calculationMode}
+                        onValueChange={this.onValueChange}
+                    />
                 );
-                periodsForms.push(periodsForm);
             }
         }
 
