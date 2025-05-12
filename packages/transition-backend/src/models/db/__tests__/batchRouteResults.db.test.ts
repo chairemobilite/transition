@@ -102,7 +102,7 @@ afterAll(async() => {
     await dbQueries.truncate();
     await jobsDbQueries.truncate();
     await knex.raw(`TRUNCATE TABLE users CASCADE`);
-    dbQueries.destroy();
+    await knex.destroy();
 });
 
 describe(`${objectName}`, () => {

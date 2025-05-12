@@ -106,7 +106,9 @@ const createUser = async (knex: Knex, tableName: string = 'users', user: UserAtt
     }
 }
 
-
+afterAll(async () => {
+    await knex.destroy();
+});
 
 describe(`Tokens Database: Token exists in Tokens table`, () => {
 
@@ -120,7 +122,7 @@ describe(`Tokens Database: Token exists in Tokens table`, () => {
     
     afterAll(async() => {
         await truncate(knex, 'tokens');
-        await truncate(knex, 'users')
+        await truncate(knex, 'users');
     });
 
     test('Should return api token', async () => {

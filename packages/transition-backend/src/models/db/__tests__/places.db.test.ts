@@ -6,6 +6,7 @@
  */
 import { v4 as uuidV4 } from 'uuid';
 import { point as turfPoint } from '@turf/turf';
+import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import dbQueries from '../places.db.queries';
 import dataSourcesDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
@@ -81,8 +82,7 @@ beforeAll(async () => {
 afterAll(async() => {
     await dbQueries.truncate();
     await dataSourcesDbQueries.truncate();
-    dbQueries.destroy();
-    dataSourcesDbQueries.destroy();
+    await knex.destroy();
 });
 
 describe(`${objectName}`, () => {

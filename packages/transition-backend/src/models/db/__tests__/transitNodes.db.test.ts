@@ -136,7 +136,7 @@ beforeAll(async () => {
 afterAll(async () => {
     await dbQueries.truncate();
     await pathsDbQueries.truncate();
-    dbQueries.destroy();
+    await knex.destroy();
 });
 
 describe(`${objectName}`, () => {
