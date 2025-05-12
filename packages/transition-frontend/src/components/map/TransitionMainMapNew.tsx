@@ -30,16 +30,25 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     useEffect(() => {
         serviceLocator.eventManager.emit('map.loaded');
 
-        getData().then((data: { nodes: GeoJSON.FeatureCollection, paths: GeoJSON.FeatureCollection }) => {
+        getData().then((data: { nodes: GeoJSON.FeatureCollection; paths: GeoJSON.FeatureCollection }) => {
             console.log('data', data);
             const layerNameById = {
-                'paths': 'transitPaths',
-                'nodes': 'transitNodes'
+                paths: 'transitPaths',
+                nodes: 'transitNodes'
             };
             const deckGlLayers: Layer<LayerProps>[][] = ['paths', 'nodes'].map((layerName) => {
-                console.log('config', layersConfig, { ...layersConfig[layerNameById[layerName]], layerData: data[layerName], id: layerName });
+                console.log('config', layersConfig, {
+                    ...layersConfig[layerNameById[layerName]],
+                    layerData: data[layerName],
+                    id: layerName
+                });
                 const layerResult = getLayer({
-                    layerDescription: { configuration: { type: layersConfig[layerNameById[layerName]].type }, ...layersConfig[layerNameById[layerName]], layerData: data[layerName], id: layerName },
+                    layerDescription: {
+                        visible: true,
+                        configuration: layersConfig[layerNameById[layerName]],
+                        layerData: data[layerName],
+                        id: layerName
+                    },
                     zoom: 15,
                     events: undefined,
                     activeSection: activeSection,
@@ -61,11 +70,38 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                     return [];
                 }
             });
+            console.log('adding animated layer', data.paths.features[0]);
+            // Select the first path
+            deckGlLayers.push(
+                getLayer({
+                    layerDescription: {
+                        visible: true,
+                        configuration: layersConfig['transitPathsSelected'] as any,
+                        layerData: {
+                            type: 'FeatureCollection',
+                            features: [data.paths.features[0]]
+                        },
+                        id: 'transitPathsSelected'
+                    },
+                    zoom: 15,
+                    events: undefined,
+                    activeSection: activeSection,
+                    setIsDragging: () => {
+                        return;
+                    },
+                    mapCallbacks: {
+                        pickMultipleObjects: () => [],
+                        pickObject: () => null,
+                        pixelsToCoordinates: () => [0, 0]
+                    },
+                    updateCount: 0
+                })!
+            );
+
             console.log('deckGlLayersFlat', deckGlLayers.flat());
             setDeckGlLayers(deckGlLayers.flat());
         });
     }, []);
-
 
     return (
         <section id="tr__main-map">
@@ -76,7 +112,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                     //viewState={viewState}
                     //controller={controllerOptions}
                     controller={true}
-                    _animate={false}
+                    _animate={true}
                     layers={deckGlLayers}
                     initialViewState={initialViewState}
                     //onViewStateChange={onViewStateChange}
@@ -130,7 +166,7 @@ const getCollection = async (collectionName: string): Promise<GeoJSON.FeatureCol
     });
 };
 
-const getData = async (): Promise<{ nodes: GeoJSON.FeatureCollection, paths: GeoJSON.FeatureCollection }> => {
+const getData = async (): Promise<{ nodes: GeoJSON.FeatureCollection; paths: GeoJSON.FeatureCollection }> => {
     const nodes = await getCollection('nodes');
     const paths = await getCollection('paths');
     return {
