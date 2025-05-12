@@ -126,13 +126,7 @@ afterAll(async () => {
     await dbQueries.truncate();
     await linesDbQueries.truncate();
     await agencyDbQueries.truncate();
-    schedulesDbQueries.destroy();
-    schedulesDbQueries.destroy();
-    schedulesDbQueries.destroy();
-    servicesDbQueries.destroy();
-    scenariosDbQueries.destroy();
-    dbQueries.destroy();
-    linesDbQueries.destroy();
+    await knex.destroy();
 });
 
 describe(`${objectName}`, function() {

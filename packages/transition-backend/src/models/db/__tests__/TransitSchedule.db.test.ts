@@ -54,11 +54,7 @@ afterAll(async () => {
     await pathsDbQueries.truncate();
     await linesDbQueries.truncate();
     await agenciesDbQueries.truncate();
-    await dbQueries.destroy();
-    await servicesDbQueries.destroy();
-    await pathsDbQueries.destroy();
-    await linesDbQueries.destroy();
-    await agenciesDbQueries.destroy();
+    await knex.destroy();
 });
 
 const pathStub1 = {

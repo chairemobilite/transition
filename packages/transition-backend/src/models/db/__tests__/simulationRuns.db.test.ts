@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
+import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import dbQueries from '../simulationRuns.db.queries';
 import simulationDbQueries from '../simulations.db.queries';
@@ -103,9 +104,7 @@ afterAll(async() => {
     await dbQueries.truncate();
     await simulationDbQueries.truncate();
     await scenariosDbQueries.truncate();
-    scenariosDbQueries.destroy();
-    simulationDbQueries.destroy();
-    dbQueries.destroy();
+    await knex.destroy();
 });
 
 describe(`${objectName}`, () => {

@@ -7,7 +7,7 @@
 import { v4 as uuidV4 } from 'uuid';
 import _cloneDeep from 'lodash/cloneDeep';
 import each from 'jest-each';
-import knex from 'chaire-lib-backend/lib/config/shared/db.config';
+import knex from '../../../config/shared/db.config';
 
 import dbQueries from '../users.db.queries';
 import { truncate } from '../default.db.queries';
@@ -59,6 +59,7 @@ beforeAll(async () => {
 
 afterAll(async() => {
     await truncate(knex, 'users');
+    await knex.destroy();
 });
 
 each([

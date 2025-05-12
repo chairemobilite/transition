@@ -109,8 +109,7 @@ afterAll(async() => {
     await linesDbQueries.truncate();
     await agenciesDbQueries.truncate();
     await schedulesDbQueries.truncateSchedules();
-    simulationDbQueries.destroy();
-    dbQueries.destroy();
+    await knex.destroy();
 });
 
 describe(`${objectName}`, function() {

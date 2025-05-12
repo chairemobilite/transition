@@ -149,9 +149,7 @@ afterAll(async function() {
     await dbQueries.truncate();
     await agenciesDbQueries.truncate();
     await servicesDbQueries.truncate();
-    await dbQueries.destroy();
-    await servicesDbQueries.destroy();
-    await agenciesDbQueries.destroy();
+    await knex.destroy();
 });
 
 describe(`${objectName}`, () => {

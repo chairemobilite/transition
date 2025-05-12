@@ -76,7 +76,7 @@ beforeAll(async () => {
 afterAll(async() => {
     await dbQueries.truncate();
     await truncate(knex, 'users');
-    dbQueries.destroy();
+    await knex.destroy();
 });
 
 describe(`${objectName}`, () => {

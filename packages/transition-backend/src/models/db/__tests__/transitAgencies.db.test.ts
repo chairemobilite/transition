@@ -67,8 +67,7 @@ beforeAll(async () => {
 afterAll(async() => {
     await dbQueries.truncate();
     await simulationDbQueries.truncate();
-    simulationDbQueries.destroy();
-    dbQueries.destroy();
+    await knex.destroy();
 });
 
 describe(`${objectName}`, () => {

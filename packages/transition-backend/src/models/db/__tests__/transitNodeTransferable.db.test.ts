@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
+import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import dbQueries from '../transitNodeTransferable.db.queries';
 import nodesDbQueries from '../transitNodes.db.queries';
@@ -42,6 +43,7 @@ beforeAll(async () => {
 afterAll(async () => {
     await dbQueries.truncate();
     await nodesDbQueries.truncate();
+    await knex.destroy();
 });
 
 describe(`${objectName}`, () => {

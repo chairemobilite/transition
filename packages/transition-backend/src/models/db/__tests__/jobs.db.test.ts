@@ -88,7 +88,7 @@ beforeEach(() => {
 afterAll(async() => {
     await dbQueries.truncate();
     await knex.raw(`TRUNCATE TABLE users CASCADE`);
-    dbQueries.destroy();
+    await knex.destroy();
 });
 
 describe(`${objectName}`, () => {

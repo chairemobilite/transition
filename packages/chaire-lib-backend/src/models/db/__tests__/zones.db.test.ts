@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
+import knex from '../../../config/shared/db.config';
 
 import dbQueries from '../zones.db.queries';
 import dataSourceDbQueries from '../dataSources.db.queries';
@@ -62,8 +63,7 @@ beforeAll(async () => {
 afterAll(async() => {
     await dbQueries.truncate();
     await dataSourceDbQueries.truncate();
-    dataSourceDbQueries.destroy();
-    dbQueries.destroy();
+    await knex.destroy();
 });
 
 describe(`${objectName}`, () => {
