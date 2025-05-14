@@ -13,7 +13,7 @@ RUN cargo build
 
 
 # Build Node app
-FROM node:22-bookworm
+FROM node:24-bookworm
 WORKDIR /app
 # Install all the json package dependencies in an intermediary image. To do so, we copy each package.json files
 # and run yarn install which will download all the listed packages in the image.
