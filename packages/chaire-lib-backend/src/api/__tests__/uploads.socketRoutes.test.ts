@@ -18,10 +18,14 @@ jest.mock('../../utils/filesystem/fileManager', () => ({
         readFileAbsolute: jest.fn(),
         writeFileAbsolute: jest.fn().mockReturnValue('file'),
         appendFileAbsolute: jest.fn().mockReturnValue('file'),
+        directoryManager: {
+            createDirectoryIfNotExistsAbsolute: jest.fn().mockReturnValue(true),
+        }
     }
 }));
 const writeFileAbsoluteMock = fileManager.writeFileAbsolute as jest.MockedFunction<typeof fileManager.writeFileAbsolute>;
 const appendFileAbsoluteMock = fileManager.appendFileAbsolute as jest.MockedFunction<typeof fileManager.appendFileAbsolute>;
+const createDirectoryMock = fileManager.directoryManager.createDirectoryIfNotExistsAbsolute as jest.MockedFunction<typeof fileManager.directoryManager.createDirectoryIfNotExistsAbsolute>; 
 
 const socketStub = new EventEmitter();
 const importerMock = jest.fn();
@@ -66,6 +70,7 @@ describe('Upload entire file', () => {
 
         await promise;
 
+        expect(createDirectoryMock).toHaveBeenCalledWith(`${absoluteUserDir}/imports`);
         expect(writeFileAbsoluteMock).toHaveBeenCalledWith(`${absoluteUserDir}/imports/${filename}`, 'somefilecontent');
         expect(importerMock).not.toHaveBeenCalled();
     });
@@ -93,6 +98,7 @@ describe('Upload entire file', () => {
 
         await promise;
 
+        expect(createDirectoryMock).toHaveBeenCalledWith(`${customImportDir}`);
         expect(writeFileAbsoluteMock).toHaveBeenCalledWith(`${customImportDir}/${filename}`, 'somefilecontent');
         expect(importerMock).toHaveBeenCalled();
     });
@@ -229,6 +235,7 @@ describe('Upload file chunks', () => {
 
         await promise;
 
+        expect(createDirectoryMock).toHaveBeenCalledWith(`${absoluteUserDir}/imports`);
         expect(writeFileAbsoluteMock).toHaveBeenCalledWith(`${absoluteUserDir}/imports/${filename}`, chunk1);
         expect(appendFileAbsoluteMock).toHaveBeenCalledWith(`${absoluteUserDir}/imports/${filename}`, chunk2);
         expect(progressCallback).toHaveBeenCalledWith({ status: 'uploading', progress: 0.5 });
@@ -267,6 +274,7 @@ describe('Upload file chunks', () => {
 
         await promise;
 
+        expect(createDirectoryMock).toHaveBeenCalledWith(`${customImportDir}`);
         expect(writeFileAbsoluteMock).toHaveBeenCalledWith(`${customImportDir}/${filename}`, chunk1);
         expect(fileManager.appendFileAbsolute).toHaveBeenCalledWith(`${customImportDir}/${filename}`, chunk2);
         expect(importerMock).toHaveBeenCalled();
