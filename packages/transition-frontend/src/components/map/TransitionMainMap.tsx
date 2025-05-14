@@ -30,6 +30,7 @@ import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map
 import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import MapControlsMenu from './TransitionMapControlsMenu';
 
 MapboxGL.accessToken = process.env.MAPBOX_ACCESS_TOKEN || '';
 
@@ -215,6 +216,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         });
 
         this.map.addControl(new MapboxGL.ScaleControl(), 'bottom-right');
+        this.map.addControl(new MapControlsMenu(this.props.t), 'top-right');
 
         for (const eventName in this.mapEvents) {
             for (const layerName in this.mapEvents[eventName]) {

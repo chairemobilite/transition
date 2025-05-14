@@ -285,5 +285,11 @@
     "ShowingNofX": "{{n}} de {{x}} résultats",
     "PageNofX": "Page {{n}} de {{x}}",
     "GoToPage": "Aller à la page",
-    "ShowN": "{{n}} par page"
+    "ShowN": "{{n}} par page",
+    "map": {
+        "controls": {
+            "title": "Contrôles de la carte",
+            "resetView": "Réinitialiser la vue au centre/zoom par défaut"
+        }
+    }
 }

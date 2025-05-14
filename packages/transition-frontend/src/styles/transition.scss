@@ -1,2 +1,54 @@
 @import '~chaire-lib-frontend/lib/styles/settings';
 @import './jobTables';
+
+// Map controls dropdown menu
+.tr__map-controls {
+    position: relative;
+}
+  
+.tr__map-controls-button {
+    background: #fff;
+    border: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.875rem;
+    height: 1.875rem;
+    padding: 0;
+}
+  
+.tr__map-controls-button .fa-cog {
+    font-size: 2rem;
+}
+  
+.tr__map-controls-dropdown {
+    position: absolute;
+    padding: 0.5rem;
+    top: 3.2rem;
+    right: 0;
+    background: #fff;
+    border-radius: 0.25rem;
+    box-shadow: 0 0 0.625rem rgba(0,0,0,0.1);
+    z-index: 1;
+    overflow: hidden;
+}
+  
+.tr__map-controls-dropdown-item {
+    background: none;
+    padding: 0;
+    border: none;
+    text-align: right;
+    cursor: pointer;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    width: max-content !important;
+}
+  
+.tr__map-controls-dropdown-item:hover {
+    background-color: #f5f5f5;
+}
+  
+.tr__map-controls-dropdown-item:last-child {
+    border-bottom: none;
+}
