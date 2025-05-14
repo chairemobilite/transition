@@ -89,23 +89,30 @@ export default function (
         }
     };
 
-    // TODO Handle file chunking
+    // Get the absolute file path to save the file to, and makes sure the directory exists
+    const prepareUploadFileAndDir = (options: FileUploadOptions): string => {
+        // Get the folder where to save the file
+        const saveToFolder = allOptions.uploadDirs[options.uploadType] || allOptions.uploadDirs['imports'];
+        if (!allOptions.uploadDirs[options.uploadType]) {
+            console.error(`No folder set for upload type ${options.uploadType}. Saving to 'imports' directory.`);
+        }
+
+        const importFileName =
+            typeof options.data.filename === 'string' ? sanitizeFileName(options.data.filename) : 'upload.txt';
+
+        const saveToFile = `${saveToFolder}/${importFileName}`;
+
+        // Create the directory if it does not exist
+        fileManager.directoryManager.createDirectoryIfNotExistsAbsolute(saveToFolder);
+        return saveToFile;
+    };
+
+    // Handle file uploads of complete files
     socket.on(
         'uploadFile',
         (file, options: FileUploadOptions, progressCallback: (response: FileUploadStatus) => void) => {
             try {
-                // Get the folder where to save the file
-                const saveToFolder = allOptions.uploadDirs[options.uploadType] || allOptions.uploadDirs['imports'];
-                if (!allOptions.uploadDirs[options.uploadType]) {
-                    console.error(
-                        `No folder set for upload type ${options.uploadType}. Saving to 'imports' directory.`
-                    );
-                }
-
-                const importFileName =
-                    typeof options.data.filename === 'string' ? sanitizeFileName(options.data.filename) : 'upload.txt';
-
-                const saveToFile = `${saveToFolder}/${importFileName}`;
+                const saveToFile = prepareUploadFileAndDir(options);
 
                 // save the content to the disk
                 const writeResult = fileManager.writeFileAbsolute(saveToFile, file);
@@ -139,10 +146,7 @@ export default function (
             progressCallback: (response: FileUploadStatus) => void
         ) => {
             try {
-                const saveToFolder = allOptions.uploadDirs[options.uploadType] || allOptions.uploadDirs['imports'];
-                const importFileName =
-                    typeof options.data.filename === 'string' ? sanitizeFileName(options.data.filename) : 'upload.txt';
-                const saveToFile = `${saveToFolder}/${importFileName}`;
+                const saveToFile = prepareUploadFileAndDir(options);
 
                 // Append the chunk to the file, or write the file if it is the first chunk
                 const writeResult =
