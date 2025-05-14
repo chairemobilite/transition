@@ -88,20 +88,25 @@ export const parseCsvFile = async (
                 resolve('completed');
             },
             transformHeader: (header) => {
-                // Remove the BOM character if it's there
+                // Check for BOM character first
+                let processedHeader = header;
                 if (header.charCodeAt(0) === 0xfeff) {
-                    const newHeader = header.slice(1);
-                    // If the header is quoted, remove quotes
-                    if (
-                        newHeader.length > 1 &&
-                        newHeader.charAt(0) === '"' &&
-                        newHeader.charAt(0) === newHeader.charAt(newHeader.length - 1)
-                    ) {
-                        return newHeader.substring(1, newHeader.length - 1);
-                    }
-                    return newHeader;
+                    processedHeader = header.slice(1);
                 }
-                return header;
+
+                // Trim whitespace
+                processedHeader = processedHeader.trim();
+
+                // If the header is quoted, remove quotes
+                if (
+                    processedHeader.length > 1 &&
+                    processedHeader.charAt(0) === '"' &&
+                    processedHeader.charAt(0) === processedHeader.charAt(processedHeader.length - 1)
+                ) {
+                    return processedHeader.substring(1, processedHeader.length - 1);
+                }
+
+                return processedHeader;
             }
         });
     });
