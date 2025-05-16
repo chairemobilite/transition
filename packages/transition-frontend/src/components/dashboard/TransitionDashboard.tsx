@@ -11,7 +11,7 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import EventEmitter from 'events';
 import { sectionLayers } from '../../config/layers.config';
 
-import { MainMapProps } from '../map/TransitionMainMap';
+import { MainMapProps } from '../map/types/TransitionMainMapTypes';
 import FullSizePanel from 'chaire-lib-frontend/lib/components/dashboard/FullSizePanel';
 import { LoadingPage } from 'chaire-lib-frontend/lib/components/pages';
 import Toolbar from 'chaire-lib-frontend/lib/components/dashboard/Toolbar';
@@ -42,6 +42,7 @@ import {
     PanelSectionProps
 } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
+import TransitPathFilterManager from '../../services/map/TransitPathFilterManager';
 
 interface DashboardProps extends WithTranslation {
     contributions: DashboardContribution[];
@@ -108,6 +109,8 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         serviceLocator.addService('selectedObjectsManager', new SelectedObjectsManager(serviceLocator.eventManager));
         serviceLocator.addService('keyboardManager', KeyboardManager);
         serviceLocator.addService('notificationService', new NotificationService());
+        // Add path filter manager to service locator
+        serviceLocator.addService('pathLayerManager', new TransitPathFilterManager());
 
         serviceLocator.eventManager.emit('progress', { name: 'MapLoading', progress: 0.0 });
 
