@@ -21,18 +21,23 @@ import { lineAttributesBaseData } from './LineData.test';
 import { getPathObjectWithData } from '../../path/__tests__/PathData.test';
 import { getScheduleAttributes } from '../../schedules/__tests__/ScheduleData.test';
 import Schedule from '../../schedules/Schedule';
+import { duplicateSchedules } from '../../schedules/ScheduleDuplicator';
 
 const lineSaveFct = Line.prototype.save = jest.fn();
-Line.prototype.refreshSchedules = jest.fn();
+const lineRefreshSchedulesFct =Line.prototype.refreshSchedules = jest.fn();
 const pathSaveFct = Path.prototype.save = jest.fn();
 const serviceSaveFct = Service.prototype.save = jest.fn();
-const scheduleSaveFct = Schedule.prototype.save = jest.fn();
 const eventManager = EventManagerMock.eventManagerMock;
 
 let lineCollection: LineCollection;
 let pathCollection: PathCollection;
 let serviceCollection: ServiceCollection;
 let collectionManager: CollectionManager;
+
+jest.mock('../../schedules/ScheduleDuplicator', () => ({
+    duplicateSchedules: jest.fn()
+}));
+const duplicateSchedulesMock = duplicateSchedules as jest.MockedFunction<typeof duplicateSchedules>;
 
 beforeEach(() => {
     lineCollection = new LineCollection([], {});
@@ -43,10 +48,7 @@ beforeEach(() => {
         services: serviceCollection,
         paths: pathCollection
     });
-    lineSaveFct.mockClear();
-    pathSaveFct.mockClear();
-    serviceSaveFct.mockClear;
-    scheduleSaveFct.mockClear();
+    jest.clearAllMocks();
     EventManagerMock.mockClear();
 });
 
@@ -140,55 +142,46 @@ describe('duplicate line with path and schedules', () => {
         // Make sure there are no schedules and no service has been duplicated
         expect(serviceCollection.size()).toEqual(1);
         expect(copy.getSchedules()).toEqual({});
-        expect(scheduleSaveFct).not.toHaveBeenCalled();
+        expect(duplicateSchedulesMock).not.toHaveBeenCalled();
+        expect(lineRefreshSchedulesFct).not.toHaveBeenCalled();
     });
 
     test('duplicate line with the schedules, but on the same service', async () => {
         // Copy the line and make sure the path was correctly copied
         const copy = await duplicateLine(baseLine, { socket: eventManager, duplicateServices: false, duplicateSchedules: true });
-        expect(scheduleSaveFct).toHaveBeenCalledTimes(1);
-        const newPaths = copy.paths;
 
-        // Make sure there are schedules but no service has been duplicated
+        // Validate schedules duplication call has been correctly done
+        expect(duplicateSchedulesMock).toHaveBeenCalledTimes(1);
+        expect(lineRefreshSchedulesFct).toHaveBeenCalledTimes(1);
+        expect(duplicateSchedulesMock).toHaveBeenCalledWith(eventManager,{
+            lineIdMapping: { [baseLine.getId()]: copy.getId() },
+            serviceIdMapping: { },
+            pathIdMapping: { [baseLine.paths[0].getId()]: copy.paths[0].getId() }
+        });
+
+        // Make sure no service has been duplicated
+        expect(serviceSaveFct).not.toHaveBeenCalled();
         expect(serviceCollection.size()).toEqual(1);
-
-        const newSchedule = copy.getSchedules()[service.getId()];
-        expect(newSchedule.getId()).not.toEqual(schedule.getId());
         
-        // Validate the schedule's data, just to make sure the new ids for service, line, and paths are OK
-        const newScheduleAttributes = newSchedule.attributes;
-        expect(newScheduleAttributes.line_id).toEqual(copy.getId());
-        expect(newScheduleAttributes.service_id).toEqual(service.getId());
-
-        // Validate the period's path id
-        for (let i = 0; i < newScheduleAttributes.periods.length; i++) {
-            expect(newScheduleAttributes.periods[i].outbound_path_id).toEqual(newPaths[0].getId());
-        }
     });
 
     test('duplicate line with the schedules, duplicating service too', async () => {
         // Copy the line and make sure the path was correctly copied
         const copy = await duplicateLine(baseLine, { socket: eventManager, duplicateServices: true, duplicateSchedules: true });
-        expect(scheduleSaveFct).toHaveBeenCalledTimes(1);
-        const newPaths = copy.paths;
 
-        // Make sure there are schedules but no service has been duplicated
+        // Make sure the service has been duplicated and find its new ID
         expect(serviceSaveFct).toHaveBeenCalledTimes(1);
         expect(serviceCollection.size()).toEqual(2);
-        const newServiceId = Object.keys(copy.attributes.scheduleByServiceId)[0];
+        const newServiceId = serviceCollection.getFeatures().filter(feature => feature.getId() !== service.getId())[0].getId();
 
-        const newSchedule = copy.getSchedules()[newServiceId];
-        expect(newSchedule.getId()).not.toEqual(schedule.getId());
-        
-        // Validate the schedule's data, just to make sure the new ids for service, line, and paths are OK
-        const newScheduleAttributes = newSchedule.attributes;
-        expect(newScheduleAttributes.line_id).toEqual(copy.getId());
-        expect(newScheduleAttributes.service_id).toEqual(newServiceId);
-
-        // Validate the period's path id
-        for (let i = 0; i < newScheduleAttributes.periods.length; i++) {
-            expect(newScheduleAttributes.periods[i].outbound_path_id).toEqual(newPaths[0].getId());
-        }
+        // Validate schedules duplication call has been correctly done
+        expect(duplicateSchedulesMock).toHaveBeenCalledTimes(1);
+        expect(lineRefreshSchedulesFct).toHaveBeenCalledTimes(1);
+        expect(duplicateSchedulesMock).toHaveBeenCalledWith(eventManager,{
+            lineIdMapping: { [baseLine.getId()]: copy.getId() },
+            serviceIdMapping: { [service.getId()]: newServiceId },
+            pathIdMapping: { [baseLine.paths[0].getId()]: copy.paths[0].getId() }
+        });
     });
 
     test('duplicate line with the schedules, with service mapping', async () => {
@@ -200,25 +193,39 @@ describe('duplicate line with path and schedules', () => {
 
         // Copy the line and make sure the path was correctly copied
         const copy = await duplicateLine(baseLine, { socket: eventManager, duplicateServices: true, duplicateSchedules: true, serviceIdsMapping });
-        const newPaths = copy.paths;
 
         // Make sure there are schedules but no service has been duplicated
-        expect(serviceSaveFct).toHaveBeenCalledTimes(1);
+        expect(serviceSaveFct).toHaveBeenCalledTimes(0);
         expect(serviceCollection.size()).toEqual(2);
 
-        expect(scheduleSaveFct).toHaveBeenCalledTimes(1);
-        const newSchedule = copy.getSchedules()[otherService.getId()];
-        expect(newSchedule.getId()).not.toEqual(schedule.getId());
-        
-        // Validate the schedule's data, just to make sure the new ids for service, line, and paths are OK
-        const newScheduleAttributes = newSchedule.attributes;
-        expect(newScheduleAttributes.line_id).toEqual(copy.getId());
-        expect(newScheduleAttributes.service_id).toEqual(otherService.getId());
+        // Validate schedules duplication call has been correctly done
+        expect(duplicateSchedulesMock).toHaveBeenCalledTimes(1);
+        expect(lineRefreshSchedulesFct).toHaveBeenCalledTimes(1);
+        expect(duplicateSchedulesMock).toHaveBeenCalledWith(eventManager,{
+            lineIdMapping: { [baseLine.getId()]: copy.getId() },
+            serviceIdMapping: { [service.getId()]: otherService.getId() },
+            pathIdMapping: { [baseLine.paths[0].getId()]: copy.paths[0].getId() }
+        });
+    });
 
-        // Validate the period's path id
-        for (let i = 0; i < newScheduleAttributes.periods.length; i++) {
-            expect(newScheduleAttributes.periods[i].outbound_path_id).toEqual(newPaths[0].getId());
-        }
+    test('duplicate line with the schedules, but line has no schedules', async () => {
+        // Remove schedules from the line
+        baseLine.attributes.scheduleByServiceId = {};
+        // Copy the line and make sure the path was correctly copied
+        const copy = await duplicateLine(baseLine, { socket: eventManager, duplicateServices: false, duplicateSchedules: true });
+
+        // Validate schedules duplication call has been correctly done
+        expect(duplicateSchedulesMock).toHaveBeenCalledTimes(1);
+        expect(lineRefreshSchedulesFct).toHaveBeenCalledTimes(1);
+        expect(duplicateSchedulesMock).toHaveBeenCalledWith(eventManager,{
+            lineIdMapping: { [baseLine.getId()]: copy.getId() },
+            serviceIdMapping: { },
+            pathIdMapping: { [baseLine.paths[0].getId()]: copy.paths[0].getId() }
+        });
+
+        // Make sure no service has been duplicated
+        expect(serviceSaveFct).not.toHaveBeenCalled();
+        expect(serviceCollection.size()).toEqual(1);
     });
 });
 
