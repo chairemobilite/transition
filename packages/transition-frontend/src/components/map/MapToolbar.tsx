@@ -5,20 +5,19 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { WebMercatorViewport } from '@deck.gl/core';
+import defaultPreferences from 'chaire-lib-common/lib/config/defaultPreferences.config';
 
 import { MapButton } from '../parts/MapButton';
 import { MapEditTool } from './types/TransitionMainMapTypes';
 import { MeasureToolMapFeature } from './tools/MapMeasureTool';
 import { PolygonDrawMapFeature } from './tools/MapPolygonDrawTool';
-import { getDefaultViewState } from './defaults/TransitionMainMapDefaults';
 
 interface MapToolbarProps {
     activeSection: string;
     mapEditTool?: MapEditTool;
     enableEditTool: (toolConstructor: any) => void;
     disableEditTool: () => void;
-    viewState: any;
+    flyTo: (arg: { latitude: number; longitude: number; zoom: number }) => void;
 }
 
 export const MapToolbar: React.FC<MapToolbarProps> = ({
@@ -26,7 +25,7 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
     mapEditTool,
     enableEditTool,
     disableEditTool,
-    viewState
+    flyTo
 }) => {
     return (
         <div className="tr__map-button-container">
@@ -36,12 +35,10 @@ export const MapToolbar: React.FC<MapToolbarProps> = ({
                 className={''}
                 onClick={(e) => {
                     e.stopPropagation();
-                    const { zoom, latitude, longitude } = getDefaultViewState();
-                    const viewport = new WebMercatorViewport({
-                        ...viewState,
-                        zoom,
-                        latitude,
-                        longitude
+                    flyTo({
+                        latitude: defaultPreferences.map.center[1],
+                        longitude: defaultPreferences.map.center[0],
+                        zoom: defaultPreferences.map.zoom
                     });
                 }}
                 iconPath={'/dist/images/icons/interface/preferences_white.svg'}

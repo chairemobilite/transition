@@ -68,7 +68,10 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     }, [mapCallbacks]);
 
     // Use custom hooks
-    const { viewState, zoomRef, viewportRef, onViewStateChange, onResize, fitBounds } = useMapState(center, zoom);
+    const { viewState, zoomRef, viewportRef, onViewStateChange, onResize, fitBounds, flyTo } = useMapState(
+        center,
+        zoom
+    );
 
     // Use the edit tools hook
     const { mapEditTool, activeMapEventManager, enableEditTool, disableEditTool, getEditToolLayers } = useMapEditTools(
@@ -189,7 +192,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                     mapEditTool={mapEditTool}
                     enableEditTool={enableEditTool}
                     disableEditTool={disableEditTool}
-                    viewState={viewState}
+                    flyTo={flyTo}
                 />
                 {mapEditTool && mapEditTool.getMapComponent()}
             </div>
