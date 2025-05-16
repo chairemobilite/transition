@@ -286,6 +286,7 @@ const getStrokedLayer = (props: TransitionMapLayerProps, layerProperties: any): 
         pickable: false,
         widthMinPixels: layerProperties.widthMinPixels !== undefined ? layerProperties.widthMinPixels + 2 : undefined,
         widthMaxPixels: layerProperties.widthMaxPixels !== undefined ? layerProperties.widthMaxPixels + 2 : undefined,
+        visible: props.layerDescription.visible !== false,
         getLineWidth:
             typeof layerProperties.getLineWidth === 'function'
                 ? (feature) => layerProperties.getLineWidth(feature) + 2
@@ -333,11 +334,11 @@ const getLineLayer = (
             getPath: (d) => d.geometry.coordinates,
             updateTriggers: {
                 getPath: props.updateCount,
-                getColor: props.updateCount,
                 getLineColor: props.updateCount,
                 getLineWidth: props.updateCount,
                 getFilterValue: layerProperties.getFilterValue !== undefined ? props.updateCount : undefined
             },
+            visible: props.layerDescription.visible !== false,
             ...eventsToAdd,
             ...layerProperties
         })
@@ -375,6 +376,7 @@ const getAnimatedArrowPathLayer = (
             //getDistanceBetweenArrows: 15,
             //widthMaxPixels: 50,
             //speedDivider: 10,
+            visible: props.layerDescription.visible !== false,
             disableAnimation: Preferences.get('map.enableMapAnimations', true) ? false : true,
             extensions: [new AnimatedArrowPathExtension()],
             ...eventsToAdd,
@@ -549,6 +551,7 @@ const getScatterLayer = (
                 getFillColor: props.updateCount,
                 getFilterValue: layerProperties.getFilterValue !== undefined ? props.updateCount : undefined
             },
+            visible: props.layerDescription.visible !== false,
             ...eventsToAdd,
             ...layerProperties
         })
