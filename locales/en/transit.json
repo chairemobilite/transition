@@ -543,6 +543,7 @@
         "CompareWithScenario": "Compare with scenario",
         "OdTripUuid": "OD trip uuid",
         "PlaceName": "Place name",
+        "PlaceNameN": "Place {{n}} name",
         "RoutingName": "Route name",
         "CalculationName": "Calculation name",
         "MinimumWaitingTimeMinutes": "Minimum waiting time (minutes)",
@@ -759,8 +760,16 @@
         "Title": "Accessibility map comparison",
         "Legend": "Legend",
         "ScenarioIntersection": "Intersection of the scenarios",
+        "LocationIntersection": "Intersection of the locations",
+        "LocationN": "Location {{locationNumber}}",
         "Difference": "Difference",
-        "SelectMaxTime": "Select max time to display (minutes)"
+        "SelectMaxTime": "Select max time to display (minutes)",
+        "ComparisonByScenario": "Comparison by scenario",
+        "ComparisonByLocation": "Comparison by location",
+        "contextMenu": {
+            "SetAsLocation1": "Set as Location 1",
+            "SetAsLocation2": "Set as Location 2"
+        }
     },
     "gtfs": {
         "ButtonImport": "Import",
