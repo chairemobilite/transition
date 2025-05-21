@@ -543,6 +543,7 @@
         "CompareWithScenario": "Comparer avec scénario",
         "OdTripUuid": "Uuid du déplacement OD",
         "PlaceName": "Nom du lieu",
+        "PlaceNameN": "Nom du lieu {{n}}",
         "RoutingName": "Nom du parcours",
         "CalculationName": "Nom du calcul",
         "MinimumWaitingTimeMinutes": "Temps minimum d'attente (minutes)",
@@ -759,8 +760,16 @@
         "Title": "Comparaison de cartes d'accessibilité",
         "Legend": "Légende",
         "ScenarioIntersection": "Intersection des scénarios",
+        "LocationIntersection": "Intersection des lieux",
+        "LocationN": "Lieu {{locationNumber}}",
         "Difference": "Différence",
-        "SelectMaxTime": "Sélectionner le temps maximal à afficher (en minutes)"
+        "SelectMaxTime": "Sélectionner le temps maximal à afficher (en minutes)",
+        "ComparisonByScenario": "Comparaison par scénario",
+        "ComparisonByLocation": "Comparaison par lieu",
+        "contextMenu": {
+            "SetAsLocation1": "Définir comme le Lieu 1",
+            "SetAsLocation2": "Définir comme le Lieu 2"
+        }
     },
     "gtfs": {
         "ButtonImport": "Importer",

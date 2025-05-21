@@ -6,7 +6,9 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
+import { createRoot, Root } from 'react-dom/client';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons/faFileDownload';
 import _get from 'lodash/get';
@@ -75,6 +77,8 @@ interface TransitRoutingFormState extends ChangeEventsState<TransitAccessibility
     possibleMaxTimes: { value: string }[];
     displayMaxTimeSelect: boolean;
     finalMap: TransitAccessibilityMapWithPolygonAndTimeResult[];
+    contextMenu: HTMLElement | null;
+    contextMenuRoot: Root | undefined;
     alternateScenario1Id?: string;
     alternateScenario2Id?: string;
 }
@@ -100,19 +104,24 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
             geojsonDownloadUrl: null,
             jsonDownloadUrl: null,
             csvDownloadUrl: null,
-            formValues: {},
+            formValues: {
+                selectedMode: 'scenarios'
+            },
             selectedMaxTime: 0,
             possibleMaxTimes: [],
             displayMaxTimeSelect: false,
             finalMap: [],
             alternateScenario1Id: '',
-            alternateScenario2Id: ''
+            alternateScenario2Id: '',
+            contextMenu: null,
+            contextMenuRoot: undefined
         };
 
         this.displayMap = this.displayMap.bind(this);
         this.calculateRouting = this.calculateRouting.bind(this);
         this.onScenarioCollectionUpdate = this.onScenarioCollectionUpdate.bind(this);
 
+        routingEngine.updatePointColor(AccessibilityComparisonConstants.INTERSECTION_COLOR);
         if (routingEngine.hasLocation()) {
             (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
                 layerName: 'accessibilityMapPoints',
@@ -159,8 +168,8 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
 
             const colors = {
                 intersectionColor: this.convertToRGBA(AccessibilityComparisonConstants.INTERSECTION_COLOR, 0.6),
-                scenario1Minus2Color: this.convertToRGBA(AccessibilityComparisonConstants.SCENARIO_1_COLOR, 0.6),
-                scenario2Minus1Color: this.convertToRGBA(AccessibilityComparisonConstants.SCENARIO_2_COLOR, 0.6)
+                scenario1Minus2Color: this.convertToRGBA(AccessibilityComparisonConstants.MAP_1_COLOR, 0.6),
+                scenario2Minus1Color: this.convertToRGBA(AccessibilityComparisonConstants.MAP_2_COLOR, 0.6)
             };
 
             const mapComparison = await calculateAccessibilityMapComparison(
@@ -274,11 +283,18 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
     }
 
     componentDidMount() {
+        const contextMenu = document.getElementById('tr__main-map-context-menu');
+        this.setState({
+            contextMenu,
+            contextMenuRoot: contextMenu ? createRoot(contextMenu) : undefined
+        });
         serviceLocator.eventManager.on('collection.update.scenarios', this.onScenarioCollectionUpdate);
+        serviceLocator.eventManager.on('map.showMapComparisonContextMenu', this.showContextMenu);
     }
 
     componentWillUnmount() {
         serviceLocator.eventManager.off('collection.update.scenarios', this.onScenarioCollectionUpdate);
+        serviceLocator.eventManager.off('map.showMapComparisonContextMenu', this.showContextMenu);
     }
 
     getDurations() {
@@ -315,6 +331,39 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
         this.getDurations();
     }
 
+    // We only want this menu to be available when the comparison mode is locations, so we include it here instead of the accessibility map events.
+    // If it was on the other file, we wouldn't be able to read the current mode, and the menu would always be available on this page.
+    private showContextMenu = (e, elements) => {
+        if (this.state.formValues.selectedMode !== 'locations') {
+            return;
+        }
+        const contextMenu = this.state.contextMenu;
+        if (!contextMenu || !this.state.contextMenuRoot) {
+            return;
+        }
+        contextMenu.style.left = e.point.x + 'px';
+        contextMenu.style.top = e.point.y + 'px';
+        contextMenu.style.display = 'block';
+
+        this.state.contextMenuRoot.render(
+            <ul>
+                {elements.map((element) => (
+                    <li
+                        key={element.key ? element.key : element.title}
+                        style={{ display: 'block', padding: '5px' }}
+                        onClick={() => {
+                            element.onClick();
+                            contextMenu.style.display = 'none';
+                        }}
+                        onMouseOver={() => element.onHover && element.onHover()}
+                    >
+                        {this.props.t(element.title)}
+                    </li>
+                ))}
+            </ul>
+        );
+    };
+
     private onTripTimeChange = (
         time: { value: any; valid?: boolean },
         timeType: 'departure' | 'arrival',
@@ -336,7 +385,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
         }
     };
 
-    private onUpdateCoordinates = (coordinates?: GeoJSON.Position, checkIfHasLocation: boolean = false) => {
+    private onUpdateCoordinatesBothEngines = (coordinates?: GeoJSON.Position, checkIfHasLocation: boolean = false) => {
         if (coordinates === undefined) {
             return;
         }
@@ -353,6 +402,56 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
             this.removePolygons();
         }
     };
+
+    private onUpdateCoordinatesEngine1 = (coordinates?: GeoJSON.Position, checkIfHasLocation: boolean = false) => {
+        if (coordinates === undefined) {
+            return;
+        }
+
+        const routing = this.state.object;
+        if (checkIfHasLocation ? routing.hasLocation() : true) {
+            routing.setLocation(coordinates);
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'accessibilityMapPoints',
+                data: this.bothLocationsToGeojson()
+            });
+            this.removePolygons();
+        }
+    };
+
+    private onUpdateCoordinatesEngine2 = (coordinates?: GeoJSON.Position, checkIfHasLocation: boolean = false) => {
+        if (coordinates === undefined) {
+            return;
+        }
+
+        const routingAlternate = this.state.alternateScenarioRouting;
+        if (checkIfHasLocation ? routingAlternate.hasLocation() : true) {
+            routingAlternate.setLocation(coordinates, true, false);
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'accessibilityMapPoints',
+                data: this.bothLocationsToGeojson()
+            });
+            this.removePolygons();
+        }
+    };
+
+    private bothLocationsToGeojson(): GeoJSON.FeatureCollection<GeoJSON.Point> {
+        const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
+        const routing = this.state.object;
+        const location1 = routing.attributes.locationGeojson;
+        if (location1) {
+            features.push(location1);
+        }
+        const routingAlternate = this.state.alternateScenarioRouting;
+        const location2 = routingAlternate.attributes.locationGeojson;
+        if (location2) {
+            features.push(location2);
+        }
+        return {
+            type: 'FeatureCollection',
+            features
+        };
+    }
 
     private convertToRGBA = (rgbValue: string, alpha: number) => {
         return rgbValue.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
@@ -383,29 +482,35 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
             };
         });
 
-        return (
-            <React.Fragment>
-                <form
-                    id="tr__form-transit-accessibility-map"
-                    className="tr__form-transit-accessibility-map apptr__form"
-                >
-                    <h3>{this.props.t('transit:accessibilityComparison:Title')}</h3>
+        const comparisonModes = AccessibilityComparisonConstants.COMPARISON_MODES;
 
+        const returnTabContent = (mode: string) => {
+            return (
+                <React.Fragment>
                     <Collapsible
                         trigger={this.props.t('transit:accessibilityComparison:Legend')}
                         open={true}
                         transitionTime={100}
                     >
                         <div className="tr__form-section">
-                            {this.props.t('transit:transitComparison:ScenarioN', { scenarioNumber: '1' })}: &nbsp;
-                            <span style={{ color: AccessibilityComparisonConstants.SCENARIO_1_COLOR }}>&#9673;</span>
+                            {mode === 'scenarios'
+                                ? this.props.t('transit:transitComparison:ScenarioN', { scenarioNumber: '1' })
+                                : this.props.t('transit:accessibilityComparison:LocationN', { locationNumber: '1' })}
+                            : &nbsp;
+                            <span style={{ color: AccessibilityComparisonConstants.MAP_1_COLOR }}>&#9673;</span>
                         </div>
                         <div className="tr__form-section">
-                            {this.props.t('transit:transitComparison:ScenarioN', { scenarioNumber: '2' })}: &nbsp;
-                            <span style={{ color: AccessibilityComparisonConstants.SCENARIO_2_COLOR }}>&#9673;</span>
+                            {mode === 'scenarios'
+                                ? this.props.t('transit:transitComparison:ScenarioN', { scenarioNumber: '2' })
+                                : this.props.t('transit:accessibilityComparison:LocationN', { locationNumber: '2' })}
+                            : &nbsp;
+                            <span style={{ color: AccessibilityComparisonConstants.MAP_2_COLOR }}>&#9673;</span>
                         </div>
                         <div className="tr__form-section">
-                            {this.props.t('transit:accessibilityComparison:ScenarioIntersection')}: &nbsp;
+                            {this.props.t(
+                                `transit:accessibilityComparison:${mode === 'scenarios' ? 'Scenario' : 'Location'}Intersection`
+                            )}
+                            : &nbsp;
                             <span style={{ color: AccessibilityComparisonConstants.INTERSECTION_COLOR }}>&#9673;</span>
                         </div>
                     </Collapsible>
@@ -472,50 +577,108 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                     type="number"
                                 />
                             </InputWrapper>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-                                <InputWrapper
-                                    label={this.props.t('transit:transitComparison:ScenarioN', { scenarioNumber: '1' })}
-                                >
-                                    <InputSelect
-                                        id={`formFieldTransitAccessibilityMapScenario1${routingId}`}
-                                        value={routing.attributes.scenarioId}
-                                        choices={scenarios}
-                                        t={this.props.t}
-                                        onValueChange={(e) => {
-                                            this.onValueChange('alternateScenario1Id', { value: e.target.value });
-                                            routing.attributes.scenarioId = e.target.value;
-                                        }}
+                            {mode === 'scenarios' && (
+                                <React.Fragment>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+                                        <InputWrapper
+                                            label={this.props.t('transit:transitComparison:ScenarioN', {
+                                                scenarioNumber: '1'
+                                            })}
+                                        >
+                                            <InputSelect
+                                                id={`formFieldTransitAccessibilityMapScenario1${routingId}`}
+                                                value={routing.attributes.scenarioId}
+                                                choices={scenarios}
+                                                t={this.props.t}
+                                                onValueChange={(e) => {
+                                                    this.onValueChange('alternateScenario1Id', {
+                                                        value: e.target.value
+                                                    });
+                                                    routing.attributes.scenarioId = e.target.value;
+                                                }}
+                                            />
+                                        </InputWrapper>
+                                        <InputWrapper
+                                            label={this.props.t('transit:transitComparison:ScenarioN', {
+                                                scenarioNumber: '2'
+                                            })}
+                                        >
+                                            <InputSelect
+                                                id={`formFieldTransitAccessibilityMapScenario2${routingId}`}
+                                                value={alternateRouting.attributes.scenarioId}
+                                                choices={scenarios}
+                                                t={this.props.t}
+                                                onValueChange={(e) => {
+                                                    this.onValueChange('alternateScenario2Id', {
+                                                        value: e.target.value
+                                                    });
+                                                    alternateRouting.attributes.scenarioId = e.target.value;
+                                                }}
+                                            />
+                                        </InputWrapper>
+                                    </div>
+                                    <AccessibilityMapCoordinatesComponent
+                                        id={'formFieldTransitAccessibilityMapComparisonLocation'}
+                                        locationGeojson={this.state.object.attributes.locationGeojson}
+                                        onUpdateCoordinates={this.onUpdateCoordinatesBothEngines}
                                     />
-                                </InputWrapper>
-                                <InputWrapper
-                                    label={this.props.t('transit:transitComparison:ScenarioN', { scenarioNumber: '2' })}
-                                >
-                                    <InputSelect
-                                        id={`formFieldTransitAccessibilityMapScenario2${routingId}`}
-                                        value={alternateRouting.attributes.scenarioId}
-                                        choices={scenarios}
-                                        t={this.props.t}
-                                        onValueChange={(e) => {
-                                            this.onValueChange('alternateScenario2Id', { value: e.target.value });
-                                            alternateRouting.attributes.scenarioId = e.target.value;
-                                        }}
+                                    <InputWrapper label={this.props.t('transit:transitRouting:PlaceName')}>
+                                        <InputString
+                                            id={`formFieldTransitAccessibilityMapPlaceName${routingId}`}
+                                            value={routing.attributes.placeName}
+                                            onValueUpdated={(value) =>
+                                                this.updateBothRoutingEngines('placeName', value, alternateRouting)
+                                            }
+                                        />
+                                    </InputWrapper>
+                                </React.Fragment>
+                            )}
+                            {mode === 'locations' && (
+                                <React.Fragment>
+                                    <InputWrapper label={this.props.t('transit:transitRouting:Scenario')}>
+                                        <InputSelect
+                                            id={`formFieldTransitAccessibilityMapScenario${routingId}`}
+                                            value={routing.attributes.scenarioId}
+                                            choices={scenarios}
+                                            t={this.props.t}
+                                            onValueChange={(e) => {
+                                                this.onValueChange('scenarioId', { value: e.target.value });
+                                                routing.attributes.scenarioId = e.target.value;
+                                                alternateRouting.attributes.scenarioId = e.target.value;
+                                            }}
+                                        />
+                                    </InputWrapper>
+                                    <AccessibilityMapCoordinatesComponent
+                                        id={'formFieldTransitAccessibilityMapComparisonLocation1'}
+                                        locationGeojson={this.state.object.attributes.locationGeojson}
+                                        onUpdateCoordinates={this.onUpdateCoordinatesEngine1}
                                     />
-                                </InputWrapper>
-                            </div>
-                            <AccessibilityMapCoordinatesComponent
-                                id={'formFieldTransitAccessibilityMapComparisonLocation'}
-                                locationGeojson={this.state.object.attributes.locationGeojson}
-                                onUpdateCoordinates={this.onUpdateCoordinates}
-                            />
-                            <InputWrapper label={this.props.t('transit:transitRouting:PlaceName')}>
-                                <InputString
-                                    id={`formFieldTransitAccessibilityMapPlaceName${routingId}`}
-                                    value={routing.attributes.placeName}
-                                    onValueUpdated={(value) =>
-                                        this.updateBothRoutingEngines('placeName', value, alternateRouting)
-                                    }
-                                />
-                            </InputWrapper>
+                                    <InputWrapper label={this.props.t('transit:transitRouting:PlaceNameN', { n: '1' })}>
+                                        <InputString
+                                            id={`formFieldTransitAccessibilityMapPlace1Name${routingId}`}
+                                            value={routing.attributes.placeName}
+                                            onValueUpdated={(value) => this.onValueChange('placeName', value)}
+                                        />
+                                    </InputWrapper>
+                                    <br />
+                                    <AccessibilityMapCoordinatesComponent
+                                        id={'formFieldTransitAccessibilityMapComparisonLocation2'}
+                                        locationGeojson={this.state.object.attributes.locationGeojson}
+                                        onUpdateCoordinates={this.onUpdateCoordinatesEngine2}
+                                        isLocation1={false}
+                                    />
+                                    <InputWrapper label={this.props.t('transit:transitRouting:PlaceNameN', { n: '2' })}>
+                                        <InputString
+                                            id={`formFieldTransitAccessibilityMapPlace2Name${routingId}`}
+                                            value={alternateRouting.attributes.placeName}
+                                            onValueUpdated={(value) => {
+                                                this.onValueChange('place2Name', value);
+                                                alternateRouting.attributes.placeName = value.value;
+                                            }}
+                                        />
+                                    </InputWrapper>
+                                </React.Fragment>
+                            )}
 
                             <TransitRoutingBaseComponent
                                 onValueChange={(path, newValue) =>
@@ -613,10 +776,11 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                 onClick={() => {
                                     DownloadsUtils.downloadJsonFromBlob(
                                         this.state.geojsonDownloadUrl,
-                                        `accessibilityMap_${direction}_${routing.get(
-                                            'placeName',
-                                            ''
-                                        )}_${timeStrWithoutColon}_${moment().format('YYYYMMDD_HHmmss')}.geojson`
+                                        `accessibilityMap_${direction}_${routing.get('placeName', '')}${
+                                            mode === 'locations' && alternateRouting.attributes.placeName
+                                                ? `${routing.attributes.placeName ? '_and_' : ''}${alternateRouting.get('placeName', '')}`
+                                                : ''
+                                        }_${timeStrWithoutColon}_${moment().format('YYYYMMDD_HHmmss')}.geojson`
                                     );
                                 }}
                             />
@@ -675,12 +839,75 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                     />
                                 </InputWrapper>
                             )}
-                            <AccessibilityComparisonStatsComponent accessibilityPolygons={this.state.currentPolygons} />
+                            <AccessibilityComparisonStatsComponent
+                                accessibilityPolygons={this.state.currentPolygons}
+                                mode={mode}
+                            />
                         </React.Fragment>
                     )}
-                </form>
+                </React.Fragment>
+            );
+        };
+
+        return (
+            <form id="tr__form-transit-accessibility-map" className="tr__form-transit-accessibility-map apptr__form">
+                <h3>{this.props.t('transit:accessibilityComparison:Title')}</h3>
+                <br></br>
+                <Tabs
+                    onSelect={(index, lastIndex, _e) => {
+                        if (index !== lastIndex) {
+                            const value = comparisonModes[index];
+                            this.onValueChange('selectedMode', { value });
+                            if (value === 'scenarios') {
+                                routing.updatePointColor(AccessibilityComparisonConstants.INTERSECTION_COLOR);
+                                alternateRouting.updatePointColor(AccessibilityComparisonConstants.INTERSECTION_COLOR);
+                                if (routing.hasLocation()) {
+                                    alternateRouting.setLocation(
+                                        routing.attributes.locationGeojson!.geometry.coordinates
+                                    );
+                                    (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
+                                        'map.updateLayer',
+                                        {
+                                            layerName: 'accessibilityMapPoints',
+                                            data: routing.locationToGeojson()
+                                        }
+                                    );
+                                }
+                            } else if (value === 'locations') {
+                                routing.updatePointColor(AccessibilityComparisonConstants.MAP_1_COLOR);
+                                alternateRouting.updatePointColor(AccessibilityComparisonConstants.MAP_2_COLOR);
+                                alternateRouting.attributes.scenarioId = routing.attributes.scenarioId;
+                                if (routing.hasLocation()) {
+                                    alternateRouting.setLocation(
+                                        routing.attributes.locationGeojson!.geometry.coordinates,
+                                        true,
+                                        false
+                                    );
+                                    (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
+                                        'map.updateLayer',
+                                        {
+                                            layerName: 'accessibilityMapPoints',
+                                            data: this.bothLocationsToGeojson()
+                                        }
+                                    );
+                                }
+                            }
+                        }
+                    }}
+                >
+                    <TabList>
+                        <Tab key={comparisonModes[0]}>
+                            {this.props.t('transit:accessibilityComparison:ComparisonByScenario')}
+                        </Tab>
+                        <Tab key={comparisonModes[1]}>
+                            {this.props.t('transit:accessibilityComparison:ComparisonByLocation')}
+                        </Tab>
+                    </TabList>
+                    <TabPanel key={comparisonModes[0]}>{returnTabContent(comparisonModes[0])}</TabPanel>
+                    <TabPanel key={comparisonModes[1]}>{returnTabContent(comparisonModes[1])}</TabPanel>
+                </Tabs>
                 {/* TODO: Add batch calculation form */}
-            </React.Fragment>
+            </form>
         );
     }
 }

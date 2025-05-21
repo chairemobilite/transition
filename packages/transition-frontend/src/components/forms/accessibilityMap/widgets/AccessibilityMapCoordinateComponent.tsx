@@ -16,12 +16,14 @@ interface AccessibilityMapCoordinatesComponentProps extends WithTranslation {
     locationGeojson?: GeoJSON.Feature<GeoJSON.Point>;
     onUpdateCoordinates: (coordinates?: GeoJSON.Position, checkIfHasLocation?: boolean) => void;
     id: string;
+    isLocation1?: boolean;
 }
 
 interface AccessibilityMapCoordinatesComponentState {
     lat?: number;
     lon?: number;
     externalUpdate: number;
+    isLocation1: boolean;
 }
 
 class AccessibilityMapCoordinatesComponent extends React.Component<
@@ -33,7 +35,8 @@ class AccessibilityMapCoordinatesComponent extends React.Component<
         this.state = {
             lat: props.locationGeojson?.geometry.coordinates[1],
             lon: props.locationGeojson?.geometry.coordinates[0],
-            externalUpdate: 0
+            externalUpdate: 0,
+            isLocation1: props.isLocation1 === undefined ? true : props.isLocation1
         };
     }
 
@@ -42,22 +45,15 @@ class AccessibilityMapCoordinatesComponent extends React.Component<
         this.props.onUpdateCoordinates(coord, checkIfHasLocation);
     };
 
-    onDragLocation = (coordinates: GeoJSON.Position) => {
-        this.setState({
-            lat: coordinates[1],
-            lon: coordinates[0],
-            externalUpdate: this.state.externalUpdate + 1
-        });
-        this.updateLocation(coordinates[0], coordinates[1], true);
-    };
-
-    onUpdateLocation = (coordinates: GeoJSON.Position) => {
-        this.setState({
-            lat: coordinates[1],
-            lon: coordinates[0],
-            externalUpdate: this.state.externalUpdate + 1
-        });
-        this.updateLocation(coordinates[0], coordinates[1]);
+    onDragLocation = (coordinates: GeoJSON.Position, updateLocation1: boolean = true) => {
+        if (this.state.isLocation1 === updateLocation1) {
+            this.setState({
+                lat: coordinates[1],
+                lon: coordinates[0],
+                externalUpdate: this.state.externalUpdate + 1
+            });
+            this.updateLocation(coordinates[0], coordinates[1], true);
+        }
     };
 
     locationToGeojson = (): GeoJSON.FeatureCollection<GeoJSON.Point> => {
@@ -77,28 +73,28 @@ class AccessibilityMapCoordinatesComponent extends React.Component<
 
     hasCoordinates = (
         state: AccessibilityMapCoordinatesComponentState
-    ): state is { lat: number; lon: number; externalUpdate: number } => {
-        return this.state.lat !== undefined && this.state.lon !== undefined;
+    ): state is { lat: number; lon: number; externalUpdate: number; isLocation1: boolean } => {
+        return state.lat !== undefined && state.lon !== undefined;
     };
 
-    onClickedOnMap = (coordinates: GeoJSON.Position) => {
-        this.setState({
-            lat: coordinates[1],
-            lon: coordinates[0],
-            externalUpdate: this.state.externalUpdate + 1
-        });
-        this.updateLocation(coordinates[0], coordinates[1]);
+    onClickedOnMap = (coordinates: GeoJSON.Position, updateLocation1: boolean = true) => {
+        if (this.state.isLocation1 === updateLocation1) {
+            this.setState({
+                lat: coordinates[1],
+                lon: coordinates[0],
+                externalUpdate: this.state.externalUpdate + 1
+            });
+            this.updateLocation(coordinates[0], coordinates[1]);
+        }
     };
 
     componentDidMount() {
         serviceLocator.eventManager.on('routing.transitAccessibilityMap.dragLocation', this.onDragLocation);
-        serviceLocator.eventManager.on('routing.transitAccessibilityMap.updateLocation', this.onUpdateLocation);
         serviceLocator.eventManager.on('routing.transitAccessibilityMap.clickedOnMap', this.onClickedOnMap);
     }
 
     componentWillUnmount() {
         serviceLocator.eventManager.off('routing.transitAccessibilityMap.dragLocation', this.onDragLocation);
-        serviceLocator.eventManager.off('routing.transitAccessibilityMap.updateLocation', this.onUpdateLocation);
         serviceLocator.eventManager.off('routing.transitAccessibilityMap.clickedOnMap', this.onClickedOnMap);
     }
 
