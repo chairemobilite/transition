@@ -44,6 +44,7 @@ import AccessibilityMapStatsComponent from './AccessibilityMapStatsComponent';
 import TimeOfTripComponent from '../transitRouting/widgets/TimeOfTripComponent';
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
 import AccessibilityMapBatchForm from './AccessibilityMapBatchForm';
+import AccessibilityMapCoordinatesComponent from './widgets/AccessibilityMapCoordinateComponent';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
@@ -83,9 +84,6 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
             formValues: {}
         };
 
-        this.onClickedOnMap = this.onClickedOnMap.bind(this);
-        this.onDragLocation = this.onDragLocation.bind(this);
-        this.onUpdateLocation = this.onUpdateLocation.bind(this);
         this.polygonCalculated = this.polygonCalculated.bind(this);
         this.calculateRouting = this.calculateRouting.bind(this);
         this.onScenarioCollectionUpdate = this.onScenarioCollectionUpdate.bind(this);
@@ -100,21 +98,6 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
 
     onScenarioCollectionUpdate() {
         this.setState({ scenarioCollection: serviceLocator.collectionManager.get('scenarios') });
-    }
-
-    onClickedOnMap(coordinates) {
-        const routing = this.state.object;
-        /*if (!routing.hasLocation()) /* allow click on map to change location */
-        //{
-        routing.setLocation(coordinates);
-        //}
-
-        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-            layerName: 'accessibilityMapPoints',
-            data: routing.locationToGeojson()
-        });
-
-        this.removePolygons();
     }
 
     async calculateRouting(refresh = false) {
@@ -160,32 +143,6 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
         });
     }
 
-    onDragLocation(coordinates) {
-        const routing = this.state.object;
-        if (routing.hasLocation()) {
-            routing.setLocation(coordinates, false);
-            // only update layer for better performance:
-            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-                layerName: 'accessibilityMapPoints',
-                data: routing.locationToGeojson()
-            });
-            this.removePolygons();
-            //this.calculateRouting();
-        }
-    }
-
-    onUpdateLocation(coordinates) {
-        const routing = this.state.object;
-        // only both layer and routing engine object:
-        routing.setLocation(coordinates);
-        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-            layerName: 'accessibilityMapPoints',
-            data: routing.locationToGeojson()
-        });
-        this.removePolygons();
-        //this.calculateRouting();
-    }
-
     polygonCalculated(currentResult: TransitAccessibilityMapWithPolygonResult) {
         const { polygons, strokes, resultByNode } = currentResult;
 
@@ -210,16 +167,10 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
     }
 
     componentDidMount() {
-        serviceLocator.eventManager.on('routing.transitAccessibilityMap.dragLocation', this.onDragLocation);
-        serviceLocator.eventManager.on('routing.transitAccessibilityMap.updateLocation', this.onUpdateLocation);
-        serviceLocator.eventManager.on('routing.transitAccessibilityMap.clickedOnMap', this.onClickedOnMap);
         serviceLocator.eventManager.on('collection.update.scenarios', this.onScenarioCollectionUpdate);
     }
 
     componentWillUnmount() {
-        serviceLocator.eventManager.off('routing.transitAccessibilityMap.dragLocation', this.onDragLocation);
-        serviceLocator.eventManager.off('routing.transitAccessibilityMap.updateLocation', this.onUpdateLocation);
-        serviceLocator.eventManager.off('routing.transitAccessibilityMap.clickedOnMap', this.onClickedOnMap);
         serviceLocator.eventManager.off('collection.update.scenarios', this.onScenarioCollectionUpdate);
     }
 
@@ -228,6 +179,22 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
             timeType === 'departure' ? 'departureTimeSecondsSinceMidnight' : 'arrivalTimeSecondsSinceMidnight',
             time
         );
+    };
+
+    private onUpdateCoordinates = (coordinates?: GeoJSON.Position, checkIfHasLocation: boolean = false) => {
+        if (coordinates === undefined) {
+            return;
+        }
+
+        const routing = this.state.object;
+        if (checkIfHasLocation ? routing.hasLocation() : true) {
+            routing.setLocation(coordinates);
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'accessibilityMapPoints',
+                data: routing.locationToGeojson()
+            });
+            this.removePolygons();
+        }
     };
 
     render() {
@@ -325,6 +292,11 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                                     onValueChange={(e) => this.onValueChange('scenarioId', { value: e.target.value })}
                                 />
                             </InputWrapper>
+                            <AccessibilityMapCoordinatesComponent
+                                id={'formFieldTransitAccessibilityMapLocation'}
+                                locationGeojson={this.state.object.attributes.locationGeojson}
+                                onUpdateCoordinates={this.onUpdateCoordinates}
+                            />
                             <InputWrapper label={this.props.t('transit:transitRouting:PlaceName')}>
                                 <InputString
                                     id={`formFieldTransitAccessibilityMapPlaceName${routingId}`}
