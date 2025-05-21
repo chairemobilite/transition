@@ -16,6 +16,7 @@ interface AccessibilityMapCoordinatesComponentProps {
     locationGeojson?: GeoJSON.Feature<GeoJSON.Point>;
     onUpdateCoordinates: (coordinates?: GeoJSON.Position, checkIfHasLocation?: boolean) => void;
     id: string;
+    locationName?: string;
 }
 
 interface AccessibilityMapCoordinatesComponentState {
@@ -24,6 +25,8 @@ interface AccessibilityMapCoordinatesComponentState {
     externalUpdate: number;
 }
 
+// TODO: Generalize this component to make it work with any parent component, and replace the coordinates component used in the routing tab with it.
+// See issue #1402
 const AccessibilityMapCoordinatesComponent: React.FunctionComponent<AccessibilityMapCoordinatesComponentProps> = (
     props: AccessibilityMapCoordinatesComponentProps
 ) => {
@@ -35,28 +38,37 @@ const AccessibilityMapCoordinatesComponent: React.FunctionComponent<Accessibilit
         externalUpdate: 0
     });
 
-    const updateLocation = (lon?: number, lat?: number, checkIfHasLocation: boolean = false) => {
-        const coord = lon !== undefined && lat !== undefined ? [lon, lat] : undefined;
-        props.onUpdateCoordinates(coord, checkIfHasLocation);
-    };
+    const locationName = props.locationName === undefined ? 'accessibilityMapLocation' : props.locationName;
+
+    const updateLocation = React.useCallback(
+        (lon?: number, lat?: number, checkIfHasLocation: boolean = false) => {
+            const coord = lon !== undefined && lat !== undefined ? [lon, lat] : undefined;
+            props.onUpdateCoordinates(coord, checkIfHasLocation);
+        },
+        [props.onUpdateCoordinates]
+    );
 
     React.useEffect(() => {
-        const onDragLocation = (coordinates: GeoJSON.Position, updateLocation1: boolean = true) => {
-            setState(({}) => ({
-                lat: coordinates[1],
-                lon: coordinates[0],
-                externalUpdate: state.externalUpdate + 1
-            }));
-            updateLocation(coordinates[0], coordinates[1], true);
+        const onDragLocation = (coordinates: GeoJSON.Position, currentDraggingFeature: string) => {
+            if (locationName === currentDraggingFeature) {
+                setState((prevState) => ({
+                    lat: coordinates[1],
+                    lon: coordinates[0],
+                    externalUpdate: prevState.externalUpdate + 1
+                }));
+                updateLocation(coordinates[0], coordinates[1], true);
+            }
         };
 
-        const onClickedOnMap = (coordinates: GeoJSON.Position, updateLocation1: boolean = true) => {
-            setState(({}) => ({
-                lat: coordinates[1],
-                lon: coordinates[0],
-                externalUpdate: state.externalUpdate + 1
-            }));
-            updateLocation(coordinates[0], coordinates[1]);
+        const onClickedOnMap = (coordinates: GeoJSON.Position, currentDraggingFeature: string) => {
+            if (locationName === currentDraggingFeature) {
+                setState((prevState) => ({
+                    lat: coordinates[1],
+                    lon: coordinates[0],
+                    externalUpdate: prevState.externalUpdate + 1
+                }));
+                updateLocation(coordinates[0], coordinates[1]);
+            }
         };
 
         serviceLocator.eventManager.on('routing.transitAccessibilityMap.dragLocation', onDragLocation);
