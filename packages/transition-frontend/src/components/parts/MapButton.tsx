@@ -14,6 +14,7 @@ interface MapButtonBaseProps {
     title: string;
     onClick: (e: MouseEvent) => void;
     className?: string;
+    style?: any;
 }
 
 interface MapButtonProps extends MapButtonBaseProps {
@@ -24,17 +25,17 @@ interface MapButtonWithIconProps extends MapButtonBaseProps {
     icon: IconProp;
 }
 
-const MapButtonBase = ({ title, onClick, children, className = '' }: React.PropsWithChildren<MapButtonBaseProps>) => {
+const MapButtonBase = ({ title, onClick, children, className = '', style }: React.PropsWithChildren<MapButtonBaseProps>) => {
     const { t } = useTranslation();
     return (
-        <button className={`tr__map-button ${className}`} onClick={onClick} title={t(title)}>
+        <button className={`tr__map-button ${className}`} onClick={onClick} title={t(title)} style={style}>
             {children}
         </button>
     );
 };
 
-export const MapButton: React.FC<MapButtonProps> = ({ title, onClick, iconPath, className = '' }) => (
-    <MapButtonBase title={title} onClick={onClick} className={className}>
+export const MapButton: React.FC<MapButtonProps> = ({ title, onClick, iconPath, className = '', style }) => (
+    <MapButtonBase title={title} onClick={onClick} className={className} style={style}>
         <img src={iconPath} alt={title} className="tr__map-button-icon" />
     </MapButtonBase>
 );

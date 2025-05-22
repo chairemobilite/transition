@@ -12,7 +12,7 @@ import {
     MapLayerEventHandlerDescriptor
 } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import * as LayerDescription from 'chaire-lib-frontend/lib/services/map/layers/LayerDescription';
-import { ScatterplotLayer, GeoJsonLayer, PickingInfo, TextLayer, PathLayer } from 'deck.gl';
+import { ScatterplotLayer, GeoJsonLayer, PickingInfo, TextLayer, PathLayer, LineLayer } from 'deck.gl';
 import { MjolnirGestureEvent } from 'mjolnir.js';
 import { DataFilterExtension } from '@deck.gl/extensions';
 import AnimatedArrowPathExtension from './AnimatedArrowPathLayerExtension';
@@ -648,6 +648,77 @@ const getLayer = (props: TransitionMapLayerProps): Layer<LayerProps>[] | undefin
     }
     console.log('unknown layer', props.layerDescription.configuration);
     return undefined;
+};
+
+export const getLineLayerTmp = (
+    props: TransitionMapLayerProps
+): LineLayer<any>[] | undefined => {
+    const config = props.layerDescription.configuration as LayerDescription.LineLayerConfiguration;
+    const layerProperties: any = getCommonLineProperties(props, config);
+    // The layer is not to be displayed, don't add it
+    if (layerProperties === undefined) {
+        return undefined;
+    }
+    if (layerProperties.lineWidthScale) {
+        layerProperties.widthScale = layerProperties.lineWidthScale;
+        delete layerProperties.lineWidthScale;
+    }
+    delete layerProperties.getColor;
+    delete layerProperties.getFilterValue
+    delete layerProperties.extensions
+    delete layerProperties.filterRange
+
+    return [
+        new LineLayer({
+            id: props.layerDescription.id,
+            data: props.layerDescription.layerData,
+            getSourcePosition: (d) => d.start,
+            getTargetPosition: (d) => d.end,
+            getColor: (d) => d.color,
+            updateTriggers: {
+                getSourcePosition: props.updateCount,
+                getTargetPosition: props.updateCount,
+                getColor: props.updateCount,
+                getWidth: props.updateCount,
+                getFilterValue: layerProperties.getFilterValue !== undefined ? props.updateCount : undefined
+            },
+            visible: props.layerDescription.visible !== false,
+            ...layerProperties
+        })
+    ];
+};
+
+export const getPathLayerTmp = (
+    props: TransitionMapLayerProps
+): PathLayer<any> | undefined => {
+    const config = props.layerDescription.configuration as LayerDescription.LineLayerConfiguration;
+    const layerProperties: any = getCommonLineProperties(props, config);
+    // The layer is not to be displayed, don't add it
+    if (layerProperties === undefined) {
+        return undefined;
+    }
+    if (layerProperties.lineWidthScale) {
+        layerProperties.widthScale = layerProperties.lineWidthScale;
+        delete layerProperties.lineWidthScale;
+    }
+    delete layerProperties.getColor;
+    delete layerProperties.getFilterValue
+    delete layerProperties.extensions
+    delete layerProperties.filterRange
+
+    return new PathLayer({
+        id: props.layerDescription.id,
+        data: props.layerDescription.layerData,
+        getPath: (d) => d.path,
+        getColor: (d) => d.color,
+        updateTriggers: {
+            getPath: props.updateCount,
+            getColor: props.updateCount,
+            getFilterValue: layerProperties.getFilterValue !== undefined ? props.updateCount : undefined
+        },
+        ...layerProperties,
+        visible: props.layerDescription.visible !== false
+    });
 };
 
 export default getLayer;
