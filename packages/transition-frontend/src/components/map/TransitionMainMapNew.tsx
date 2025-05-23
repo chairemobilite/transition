@@ -10,7 +10,7 @@ import { MainMapProps } from './types/TransitionMainMapTypes';
 import type { Layer, MapViewState } from '@deck.gl/core';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import layersConfig from '../../config/layers.config';
-import getLayer, { getLineLayerTmp, getPathLayerTmp, getPathLayerTmpBinary } from './layers/TransitionMapLayer';
+import getLayer, { getGeojsonLayerNoAlpha, getLineLayerTmp, getPathLayerTmp, getPathLayerTmpBinary } from './layers/TransitionMapLayer';
 import { MapButton } from '../parts/MapButton';
 import { FeatureCollection, LineString, GeoJsonProperties } from 'geojson';
 
@@ -178,7 +178,27 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             },
             updateCount: 0
         })!);
-
+        // Our path layer that is slow
+        deckGlLayers.push(getGeojsonLayerNoAlpha({
+            layerDescription: {
+                visible: lineLayerIsVisible && lineLayerStyle === 6,
+                configuration: layersConfig['transitPaths'] as any,
+                layerData: data.paths,
+                id: 'transitPathsNoAlpha'
+            },
+            zoom: 15,
+            events: undefined,
+            activeSection: activeSection,
+            setIsDragging: () => {
+                return;
+            },
+            mapCallbacks: {
+                pickMultipleObjects: () => [],
+                pickObject: () => null,
+                pixelsToCoordinates: () => [0, 0]
+            },
+            updateCount: 0
+        })!);
         console.log('adding animated layer', data.paths.features[0]);
         // Select the first path
         deckGlLayers.push(
@@ -305,18 +325,6 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                             iconPath={'/dist/images/icons/transit/lines_white.svg'}
                         />
                         <MapButton
-                            title="Couche Line sans doublons"
-                            key="mapbtn_lineLineNoDup"
-                            className={`${lineLayerStyle === 4 ? 'active' : ''}`}
-                            style={{ border: `${lineLayerStyle === 4 ? '5px' : '1px'} solid yellow` }}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setLineLayerIsVisible(true);
-                                setLineLayerStyle(4);
-                            }}
-                            iconPath={'/dist/images/icons/transit/lines_white.svg'}
-                        />
-                        <MapButton
                             title="Couche Path"
                             key="mapbtn_linePath"
                             className={`${lineLayerStyle === 3 ? 'active' : ''}`}
@@ -329,6 +337,18 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                             iconPath={'/dist/images/icons/transit/lines_white.svg'}
                         />
                         <MapButton
+                            title="Couche Line sans doublons"
+                            key="mapbtn_lineLineNoDup"
+                            className={`${lineLayerStyle === 4 ? 'active' : ''}`}
+                            style={{ border: `${lineLayerStyle === 4 ? '5px' : '1px'} solid yellow` }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setLineLayerIsVisible(true);
+                                setLineLayerStyle(4);
+                            }}
+                            iconPath={'/dist/images/icons/transit/lines_white.svg'}
+                        />
+                        <MapButton
                             title="Couche Path binaire"
                             key="mapbtn_linePathBinary"
                             className={`${lineLayerStyle === 5 ? 'active' : ''}`}
@@ -337,6 +357,18 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                                 e.stopPropagation();
                                 setLineLayerIsVisible(true);
                                 setLineLayerStyle(5);
+                            }}
+                            iconPath={'/dist/images/icons/transit/lines_white.svg'}
+                        />
+                        <MapButton
+                            title="Couche Geojson sans opacité"
+                            key="mapbtn_geojsonNoAlpha"
+                            className={`${lineLayerStyle === 5 ? 'active' : ''}`}
+                            style={{ border: `${lineLayerStyle === 6 ? '5px' : '1px'} solid orange` }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setLineLayerIsVisible(true);
+                                setLineLayerStyle(6);
                             }}
                             iconPath={'/dist/images/icons/transit/lines_white.svg'}
                         />
@@ -503,5 +535,3 @@ const getData = async (): Promise<{ nodes: GeoJSON.FeatureCollection; paths: Geo
 };
 
 export default MainMap;
-
-
