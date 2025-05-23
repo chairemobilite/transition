@@ -721,4 +721,36 @@ export const getPathLayerTmp = (
     });
 };
 
+export const getPathLayerTmpBinary = (
+    props: TransitionMapLayerProps
+): PathLayer<any> | undefined => {
+    const config = props.layerDescription.configuration as LayerDescription.LineLayerConfiguration;
+    const layerProperties: any = getCommonLineProperties(props, config);
+    // The layer is not to be displayed, don't add it
+    if (layerProperties === undefined) {
+        return undefined;
+    }
+    if (layerProperties.lineWidthScale) {
+        layerProperties.widthScale = layerProperties.lineWidthScale;
+        delete layerProperties.lineWidthScale;
+    }
+    delete layerProperties.getColor;
+    delete layerProperties.getFilterValue
+    delete layerProperties.extensions
+    delete layerProperties.filterRange
+
+    return new PathLayer({
+        id: props.layerDescription.id,
+        data: props.layerDescription.layerData,
+        _pathType: 'open', // this instructs the layer to skip normalization and use the binary as-is
+        updateTriggers: {
+            getPath: props.updateCount,
+            getColor: props.updateCount,
+            getFilterValue: layerProperties.getFilterValue !== undefined ? props.updateCount : undefined
+        },
+        ...layerProperties,
+        visible: props.layerDescription.visible !== false
+    });
+};
+
 export default getLayer;
