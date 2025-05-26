@@ -12,7 +12,7 @@ import { BrowserRouter } from 'react-router';
 
 import i18n from 'chaire-lib-frontend/lib/config/i18n.config';
 import TransitionRouter from './components/routers/TransitionRouter';
-import MainMap from './components/map/TransitionMainMap';
+import MainMap from './components/map/TransitionMainMapNew';
 import configureStore from 'chaire-lib-frontend/lib/store/configureStore';
 import { LoadingPage } from 'chaire-lib-frontend/lib/components/pages';
 import config from 'chaire-lib-frontend/lib/config/project.config';

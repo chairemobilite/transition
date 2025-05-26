@@ -8,16 +8,15 @@ import { validate as uuidValidate } from 'uuid';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManager';
+import EventManager from 'chaire-lib-common/lib/services/events/EventManager';
+import { MapFilterLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
-class PathMapLayerManager {
-    private _layerManager: MapLayerManager;
+class TransitPathFilterManager {
     private _layerName = 'transitPaths';
     private _hiddenAgencyIds = new Map();
     private _hiddenLineIds = new Map();
 
-    constructor(mapLayerManager: MapLayerManager) {
-        this._layerManager = mapLayerManager;
+    constructor() {
         this.updateFromPreferences();
     }
 
@@ -159,12 +158,13 @@ class PathMapLayerManager {
                 hiddenLineIds.push(hiddenLineId);
             }
         });
-
-        this._layerManager.updateFilter(this._layerName, [
-            '!',
-            ['match', ['get', 'line_id'], hiddenLineIds.length === 0 ? ['none'] : hiddenLineIds, true, false]
-        ]);
-        serviceLocator.eventManager.emit('map.layers.updateFilter');
+        (serviceLocator.eventManager as EventManager).emitEvent<MapFilterLayerEventType>('map.layers.updateFilter', {
+            layerName: this._layerName,
+            filter:
+                this._hiddenLineIds.size === 0
+                    ? undefined
+                    : (feature) => (this._hiddenLineIds.get(feature.properties?.line_id) === true ? 0 : 1)
+        });
         Preferences.update(
             {
                 'map.layers.hiddenAgencyIds': hiddenAgencyIds,
@@ -175,4 +175,4 @@ class PathMapLayerManager {
     }
 }
 
-export default PathMapLayerManager;
+export default TransitPathFilterManager;

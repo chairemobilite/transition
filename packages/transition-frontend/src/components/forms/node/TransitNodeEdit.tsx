@@ -141,19 +141,6 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
             transitNodes1000mRadius: turfFeatureCollection(geojson.geometry ? [geojson] : []),
             transitNodesRoutingRadius: turfFeatureCollection(geojson.geometry ? [geojson] : [])
         });
-        this.props.node
-            .getIsochroneGeojson(serviceLocator.socketEventManager, 'walking', [5, 10, 15, 20])
-            .then((response) => {
-                if (response.geojson) {
-                    serviceLocator.eventManager.emit('map.updateLayers', {
-                        isochronePolygons: response.geojson
-                    });
-                } else {
-                    serviceLocator.eventManager.emit('map.updateLayers', {
-                        isochronePolygons: turfFeatureCollection([])
-                    });
-                }
-            });
     }
 
     onDragEnd = (coordinates: [number, number]) => {
@@ -169,8 +156,7 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
             transitNodes500mRadius: turfFeatureCollection([]),
             transitNodes750mRadius: turfFeatureCollection([]),
             transitNodes1000mRadius: turfFeatureCollection([]),
-            transitNodesRoutingRadius: turfFeatureCollection([]),
-            isochronePolygons: turfFeatureCollection([])
+            transitNodesRoutingRadius: turfFeatureCollection([])
         });
     }
 
@@ -179,7 +165,7 @@ class TransitNodeEdit extends SaveableObjectForm<Node, NodeFormProps, NodeFormSt
             layerName: 'transitNodesSelected',
             data: (oldGeojson: GeoJSON.FeatureCollection) => {
                 (oldGeojson.features[0].geometry as GeoJSON.Point).coordinates = coordinates;
-                return oldGeojson;
+                return turfFeatureCollection([oldGeojson.features[0]]);
             }
         });
     }
