@@ -36,6 +36,8 @@ class AnonymousLoginStrategy<A> {
                 isTest: false
             });
             if (newUser !== undefined) {
+                // Record new user login information
+                newUser.recordLogin();
                 this.success(newUser.sanitize());
             } else {
                 throw 'Cannot save new user';
