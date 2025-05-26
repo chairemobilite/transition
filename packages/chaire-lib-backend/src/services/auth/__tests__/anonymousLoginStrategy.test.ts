@@ -27,15 +27,15 @@ jest.mock('../../../models/db/users.db.queries', () => ({
             ...attribs
         }
     }),
-    find: jest.fn().mockResolvedValue(undefined)
+    find: jest.fn().mockResolvedValue(undefined),
+    setLastLogin: jest.fn().mockResolvedValue(undefined)
 }));
 const mockCreate = usersDbQueries.create as jest.MockedFunction<typeof usersDbQueries.create>;
 const mockFind = usersDbQueries.find as jest.MockedFunction<typeof usersDbQueries.find>;
+const mockSetLastLogin = usersDbQueries.setLastLogin as jest.MockedFunction<typeof usersDbQueries.setLastLogin>;
 
 beforeEach(() => {
-    logInFct.mockClear();
-    mockCreate.mockClear();
-    mockFind.mockClear();
+    jest.clearAllMocks();
 });
 
 const strategy = new AnonymousLoginStrategy(userAuthModel);
@@ -73,6 +73,7 @@ test('Anonymous strategy success', async () => {
         preferences: null
     });
     expect(logInFct).toHaveBeenCalledWith({ id: newUserId, username: expect.stringContaining('anonym_'), email: undefined, firstName: '', lastName: '', preferences: {}, serializedPermissions: []}, expect.anything(), expect.anything());
+    expect(mockSetLastLogin).toHaveBeenCalledWith(newUserId);
 });
 
 test('Anonymous strategy success, but duplicate user name', async () => {
@@ -106,6 +107,7 @@ test('Anonymous strategy success, but duplicate user name', async () => {
         preferences: null
     });
     expect(logInFct).toHaveBeenCalledWith({ id: newUserId, username: expect.stringContaining('anonym_'), email: undefined, firstName: '', lastName: '', preferences: {}, serializedPermissions: []}, expect.anything(), expect.anything());
+    expect(mockSetLastLogin).toHaveBeenCalledWith(newUserId);
 });
 
 test('Anonymous strategy with too many duplicate trials, should fail', async () => {
@@ -129,6 +131,7 @@ test('Anonymous strategy with too many duplicate trials, should fail', async () 
     await authPromise;
     expect(mockCreate).not.toHaveBeenCalled();
     expect(logInFct).not.toHaveBeenCalled();
+    expect(mockSetLastLogin).not.toHaveBeenCalled();
     expect(endFct).toHaveBeenCalledTimes(1);
 });
 
@@ -151,5 +154,6 @@ test('Anonymous strategy failure', async () => {
     await authPromise;
     expect(mockCreate).toHaveBeenCalledTimes(1);
     expect(logInFct).not.toHaveBeenCalled();
+    expect(mockSetLastLogin).not.toHaveBeenCalled();
     expect(endFct).toHaveBeenCalledTimes(1);
 });
