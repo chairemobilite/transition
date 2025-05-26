@@ -25,7 +25,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     const [nodeLayerIsVisible, setNodeLayerIsVisible] = useState(true);
     const [pathLayerIsVisible, setPathLayerIsVisible] = useState(true);
     const [lineLayerStyle, setLineLayerStyle] = useState(1);
-    const [data, setData] = useState<{ nodes: GeoJSON.FeatureCollection; paths: GeoJSON.FeatureCollection; lineData: any; pathData: any, lineNoDup: any; pathBinaryData: any } | null>(
+    const [data, setData] = useState<{ nodes: GeoJSON.FeatureCollection; paths: GeoJSON.FeatureCollection; lineData: any; pathData: any, lineNoDup: any; pathBinaryData: any, pathBinaryDataRGB: any } | null>(
         null
     );
 
@@ -40,7 +40,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
     useEffect(() => {
         serviceLocator.eventManager.emit('map.loaded');
 
-        getData().then((data: { nodes: GeoJSON.FeatureCollection; paths: GeoJSON.FeatureCollection; lineData: any; pathData: any, lineNoDup: any; pathBinaryData: any; }) => {
+        getData().then((data: { nodes: GeoJSON.FeatureCollection; paths: GeoJSON.FeatureCollection; lineData: any; pathData: any, lineNoDup: any; pathBinaryData: any; pathBinaryDataRGB: any}) => {
             console.log('data', data);
             setData(data);
         });
@@ -185,6 +185,27 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                 configuration: layersConfig['transitPaths'] as any,
                 layerData: data.paths,
                 id: 'transitPathsNoAlpha'
+            },
+            zoom: 15,
+            events: undefined,
+            activeSection: activeSection,
+            setIsDragging: () => {
+                return;
+            },
+            mapCallbacks: {
+                pickMultipleObjects: () => [],
+                pickObject: () => null,
+                pixelsToCoordinates: () => [0, 0]
+            },
+            updateCount: 0
+        })!);
+        // Same path layer, but with binary data
+        deckGlLayers.push(getPathLayerTmpBinary({
+            layerDescription: {
+                visible: lineLayerIsVisible && lineLayerStyle === 7,
+                configuration: layersConfig['transitPaths'] as any,
+                layerData: data.pathBinaryDataRGB,
+                id: 'transitPathsAsPathBinaryRGB'
             },
             zoom: 15,
             events: undefined,
@@ -352,7 +373,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                             title="Couche Path binaire"
                             key="mapbtn_linePathBinary"
                             className={`${lineLayerStyle === 5 ? 'active' : ''}`}
-                            style={{ border: `${lineLayerStyle === 5 ? '5px' : '1px'} solid cyan` }}
+                            style={{ border: `${lineLayerStyle === 5 ? '5px' : '1px'} solid aqua` }}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setLineLayerIsVisible(true);
@@ -363,12 +384,24 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                         <MapButton
                             title="Couche Geojson sans opacité"
                             key="mapbtn_geojsonNoAlpha"
-                            className={`${lineLayerStyle === 5 ? 'active' : ''}`}
+                            className={`${lineLayerStyle === 6 ? 'active' : ''}`}
                             style={{ border: `${lineLayerStyle === 6 ? '5px' : '1px'} solid orange` }}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setLineLayerIsVisible(true);
                                 setLineLayerStyle(6);
+                            }}
+                            iconPath={'/dist/images/icons/transit/lines_white.svg'}
+                        />
+                        <MapButton
+                            title="Couche Path binaire RGB"
+                            key="mapbtn_pathBinaryRGB"
+                            className={`${lineLayerStyle === 7 ? 'active' : ''}`}
+                            style={{ border: `${lineLayerStyle === 7 ? '5px' : '1px'} solid silver` }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setLineLayerIsVisible(true);
+                                setLineLayerStyle(7);
                             }}
                             iconPath={'/dist/images/icons/transit/lines_white.svg'}
                         />
@@ -511,7 +544,32 @@ function pathToBinaryData(pathLayerData) {
     };
 };
 
-const getData = async (): Promise<{ nodes: GeoJSON.FeatureCollection; paths: GeoJSON.FeatureCollection, lineData: any, pathData: any, lineNoDup: any, pathBinaryData: any }> => {
+function pathToBinaryDataRGB(pathLayerData) {
+    // Flatten PATH_DATA into several binary buffers. This is typically done on the server or in a worker
+    // [-122.4, 37.7, -122.5, 37.8, -122.6, 37.85, ...]
+    const positions = new Float64Array(pathLayerData.map(d => d.path).flat(2));
+    // The color attribute must supply one color for each vertex
+    // [255, 0, 0, 255, 0, 0, 255, 0, 0, ...]
+    const colors = new Uint8Array(pathLayerData.map(d => d.path.map(_ => [d.color[0], d.color[1], d.color[2]])).flat(2));
+    // The "layout" that tells PathLayer where each path starts
+    const startIndices = new Uint32Array(pathLayerData.reduce((acc, d) => {
+        const lastIndex = acc[acc.length - 1];
+        acc.push(lastIndex + d.path.length);
+            return acc;
+        }, [0]));
+    console.log('startIndeices', startIndices);
+        
+    return {
+        length: pathLayerData.length,
+        startIndices: startIndices, // this is required to render the paths correctly!
+        attributes: {
+            getPath: {value: positions, size: 2},
+            getColor: {value: colors, size: 3}
+        }
+    };
+};
+
+const getData = async (): Promise<{ nodes: GeoJSON.FeatureCollection; paths: GeoJSON.FeatureCollection, lineData: any, pathData: any, lineNoDup: any, pathBinaryData: any, pathBinaryDataRGB: any }> => {
     const nodes = await getCollection('nodes');
     const paths = await getCollection('paths');
     const lineData = pathToLineLayerData(paths as GeoJSON.FeatureCollection<GeoJSON.LineString>);
@@ -530,7 +588,8 @@ const getData = async (): Promise<{ nodes: GeoJSON.FeatureCollection; paths: Geo
         lineData,
         pathData,
         lineNoDup,
-        pathBinaryData
+        pathBinaryData,
+        pathBinaryDataRGB: pathToBinaryDataRGB(pathData)
     };
 };
 
