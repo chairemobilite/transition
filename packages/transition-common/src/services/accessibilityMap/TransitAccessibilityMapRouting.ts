@@ -153,7 +153,7 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
         return this._isValid;
     }
 
-    setLocation(coordinates, updatePreferences = true) {
+    setLocation(coordinates, updatePreferences = true, locationName = 'accessibilityMapLocation') {
         this.set(
             'locationGeojson',
             turfPoint(
@@ -161,7 +161,7 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
                 {
                     id: 1,
                     color: this.get('locationColor'),
-                    location: 'accessibilityMapLocation'
+                    location: locationName
                 },
                 { id: 1 }
             )
@@ -190,6 +190,14 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
 
     locationLon() {
         return this.hasLocation() ? this.get('locationGeojson.geometry.coordinates[0]') : null;
+    }
+
+    // Changes the color of the displayed point without changing its position.
+    updatePointColor(color: string) {
+        this.set('locationColor', color);
+        if (this.hasLocation() && this.attributes.locationGeojson?.properties) {
+            this.attributes.locationGeojson!.properties.color = color;
+        }
     }
 
     updateRoutingPrefs() {
