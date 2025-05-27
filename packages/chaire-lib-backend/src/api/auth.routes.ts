@@ -39,13 +39,13 @@ const defaultFailureCallback = (err, _req: Request, res: Response, _next) => {
     });
 };
 
-export default <U extends IUserModel>(app: express.Express, authModel: IAuthModel<U>, passport: PassportStatic) => {
+export default <U extends IUserModel>(router: express.Router, authModel: IAuthModel<U>, passport: PassportStatic) => {
     if (config.auth && config.auth.google === true) {
-        app.get(
+        router.get(
             '/googlelogin',
             passport.authenticate('google', { scope: 'https://www.googleapis.com/auth/userinfo.email' })
         );
-        app.get('/googleoauth', passport.authenticate('google', { failureRedirect: '/login' }), (req, res) => {
+        router.get('/googleoauth', passport.authenticate('google', { failureRedirect: '/login' }), (req, res) => {
             if (req.user) {
                 res.redirect('/survey');
             } else {
@@ -57,8 +57,8 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
     }
 
     if (config.auth && config.auth.facebook === true) {
-        app.get('/facebooklogin', passport.authenticate('facebook'));
-        app.get('/facebookoauth', passport.authenticate('facebook', { failureRedirect: '/login' }), (req, res) => {
+        router.get('/facebooklogin', passport.authenticate('facebook'));
+        router.get('/facebookoauth', passport.authenticate('facebook', { failureRedirect: '/login' }), (req, res) => {
             if (req.user) {
                 res.redirect('/survey');
             } else {
@@ -69,7 +69,7 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
         });
     }
 
-    app.get('/verifyAuthentication', (req, res) => {
+    router.get('/verifyAuthentication', (req, res) => {
         if (req.isAuthenticated() && req.user) {
             return res.status(200).json({
                 user: sanitizeUserAttributes(req.user as UserAttributes),
@@ -82,7 +82,7 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
         }
     });
 
-    app.post(
+    router.post(
         '/login',
         passport.authenticate('local-login', { failWithError: true, failureMessage: true }),
         defaultSuccessCallback,
@@ -90,14 +90,14 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
     );
 
     if (config.auth && config.auth.passwordless) {
-        app.post(
+        router.post(
             '/pwdless',
             passport.authenticate('passwordless-enter-login'),
             defaultSuccessCallback,
             defaultFailureCallback
         );
 
-        app.get(
+        router.get(
             '/pwdless/verify',
             passport.authenticate('passwordless-login'),
             (req, res) => {
@@ -115,14 +115,24 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
     }
 
     if (config.auth && config.auth.anonymous === true) {
-        app.get('/anonymous', passport.authenticate('anonymous-login'), defaultSuccessCallback, defaultFailureCallback);
+        router.get(
+            '/anonymous',
+            passport.authenticate('anonymous-login'),
+            defaultSuccessCallback,
+            defaultFailureCallback
+        );
     }
 
     if (config.auth && config.auth.directToken !== undefined && config.auth.directToken !== false) {
-        app.get('/direct-token', passport.authenticate('direct-token'), defaultSuccessCallback, defaultFailureCallback);
+        router.get(
+            '/direct-token',
+            passport.authenticate('direct-token'),
+            defaultSuccessCallback,
+            defaultFailureCallback
+        );
     }
 
-    app.post('/verify', async (req, res) => {
+    router.post('/verify', async (req, res) => {
         try {
             let callback: ((user: U) => void) | undefined = undefined;
             if (getConfirmEmailStrategy() === 'confirmByAdmin') {
@@ -140,7 +150,7 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
         }
     });
 
-    app.get('/logout', (req, res) => {
+    router.get('/logout', (req, res) => {
         req.logout({}, (err) => {
             if (err !== undefined) {
                 console.error(`Error logging out: ${err}. Will destroy session anyway.`);
@@ -154,7 +164,7 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
         });
     });
 
-    app.post(
+    router.post(
         '/register',
         passport.authenticate('local-signup', { failWithError: true, failureMessage: true }),
         (req: Request, res: Response) => {
@@ -166,7 +176,7 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
         defaultFailureCallback
     );
 
-    app.post('/update_user_preferences', (req, res) => {
+    router.post('/update_user_preferences', (req, res) => {
         const valuesByPath = req.body.valuesByPath;
         if (req.isAuthenticated() && req.user) {
             const user = authModel.newUser({ ...req.user });
@@ -191,7 +201,7 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
         }
     });
 
-    app.get('/reset_user_preferences', async (req, res) => {
+    router.get('/reset_user_preferences', async (req, res) => {
         if (req.isAuthenticated() && req.user) {
             const user = authModel.newUser({ ...req.user });
             try {
@@ -207,7 +217,7 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
         }
     });
 
-    app.get('/load_user_preferences', async (req, res) => {
+    router.get('/load_user_preferences', async (req, res) => {
         if (req.isAuthenticated() && req.user) {
             const user = authModel.newUser({ ...req.user });
             return res.status(200).json(Status.createOk(user.attributes.preferences));
@@ -217,7 +227,7 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
         }
     });
 
-    app.post('/forgot', async (req, res) => {
+    router.post('/forgot', async (req, res) => {
         const token = crypto.randomBytes(20).toString('hex');
         try {
             // TODO Responsibility for user login management is usually in passport, move it there
@@ -252,7 +262,7 @@ export default <U extends IUserModel>(app: express.Express, authModel: IAuthMode
         }
     });
 
-    app.post('/reset/:token', async (req, res) => {
+    router.post('/reset/:token', async (req, res) => {
         try {
             const newPwd = req.body.newPassword ? req.body.newPassword : undefined;
             const response = await authModel.resetPassword(req.params.token, newPwd);
