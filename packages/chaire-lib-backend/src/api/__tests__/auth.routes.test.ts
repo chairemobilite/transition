@@ -89,7 +89,9 @@ const app = express();
 // FIXME Since upgrading @types/node, the types are wrong and we get compilation error. It is documented for example https://github.com/DefinitelyTyped/DefinitelyTyped/issues/53584 the real fix would require upgrading a few packages and may have side-effects. Simple casting works for now.
 app.use(express.json({ limit: '500mb' }) as RequestHandler);
 app.use(express.urlencoded({extended: true}) as RequestHandler);
-authRoutes(app, userAuthModel, passport);
+const router = express.Router();
+authRoutes(router, userAuthModel, passport);
+app.use(router);
 
 beforeEach(() => {
     authResponse = {
