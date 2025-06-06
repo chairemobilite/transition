@@ -7,7 +7,7 @@
 import { Line } from './Line';
 import { Path as TransitPath } from '../path/Path';
 import { duplicateService } from '../service/ServiceDuplicator';
-import { duplicateSchedule } from '../schedules/ScheduleDuplicator';
+import { duplicateSchedules as duplicateSchedulesFct } from '../schedules/ScheduleDuplicator';
 
 export interface DuplicateLineOptions {
     socket: any;
@@ -74,42 +74,29 @@ export const duplicateLine = async (
     duplicatedLine.attributes.path_ids = newPathIds;
     duplicatedLine.refreshPaths();
 
-    const serviceIdsUsed: string[] = [];
-    const newDuplicatedSchedules = {};
-
     // duplicate schedules:
     if (duplicateSchedules) {
-        await baseLine.refreshSchedules(socket);
-
         const oldSchedules = baseLine.getSchedules();
-
+        // Duplicate services if necessary and not duplicated already
         for (const serviceId in oldSchedules) {
-            let newServiceId = serviceId;
-
-            if (duplicateServices && oldNewServiceidsMapping[serviceId]) {
-                newServiceId = oldNewServiceidsMapping[serviceId];
-            } else if (duplicateServices) {
+            if (duplicateServices && oldNewServiceidsMapping[serviceId] === undefined) {
+                // duplicate the service
                 const oldService = collectionManager.get('services').getById(serviceId);
                 const newService = await duplicateService(oldService, {
                     socket,
                     newServiceSuffix,
                     serviceCollection: collectionManager.get('services')
                 });
-                newServiceId = newService.getId();
-                oldNewServiceidsMapping[serviceId] = newServiceId;
+                oldNewServiceidsMapping[serviceId] = newService.getId();
             }
-
-            const oldSchedule = oldSchedules[serviceId];
-            const newSchedule = await duplicateSchedule(oldSchedule, {
-                lineId: duplicatedLine.getId(),
-                serviceId: newServiceId,
-                pathIdsMapping: oldNewPathIdsMapping
-            });
-            await newSchedule.save(socket);
-            duplicatedLine.addSchedule(newSchedule);
-            serviceIdsUsed.push(newServiceId);
-            newDuplicatedSchedules[newServiceId] = newSchedule.attributes;
         }
+
+        await duplicateSchedulesFct(socket, {
+            lineIdMapping: { [baseLine.getId()]: duplicatedLine.getId() },
+            pathIdMapping: oldNewPathIdsMapping,
+            serviceIdMapping: oldNewServiceidsMapping
+        });
+        await duplicatedLine.refreshSchedules(socket);
     }
 
     return duplicatedLine;
