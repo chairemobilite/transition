@@ -10,7 +10,7 @@ import { MainMapProps } from './types/TransitionMainMapTypes';
 import type { Layer, MapViewState } from '@deck.gl/core';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import layersConfig from '../../config/layers.config';
-import getLayer, { getGeojsonExample, getGeojsonExample2, getGeojsonLayerNoAlpha, getLineLayerTmp, getPathLayerTmp, getPathLayerTmpBinary } from './layers/TransitionMapLayer';
+import getLayer, { getGeojsonExample, getGeojsonExample2, getGeojsonLayerNoAlpha, getLineLayerTmp, getPathLayerTmp, getPathLayerTmpBinary, getRoads } from './layers/TransitionMapLayer';
 import { MapButton } from '../parts/MapButton';
 import { FeatureCollection, LineString, GeoJsonProperties } from 'geojson';
 
@@ -262,6 +262,27 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             },
             updateCount: 0
         })!);
+        // Same geojson layer, but with the same width as our data
+        deckGlLayers.push(getRoads({
+            layerDescription: {
+                visible: lineLayerIsVisible && lineLayerStyle === 10,
+                configuration: layersConfig['transitPaths'] as any,
+                layerData: data.paths,
+                id: 'geojsonRoads'
+            },
+            zoom: 15,
+            events: undefined,
+            activeSection: activeSection,
+            setIsDragging: () => {
+                return;
+            },
+            mapCallbacks: {
+                pickMultipleObjects: () => [],
+                pickObject: () => null,
+                pixelsToCoordinates: () => [0, 0]
+            },
+            updateCount: 0
+        })!);
         console.log('adding animated layer', data.paths.features[0]);
         // Select the first path
         deckGlLayers.push(
@@ -450,6 +471,18 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                                 e.stopPropagation();
                                 setLineLayerIsVisible(true);
                                 setLineLayerStyle(9);
+                            }}
+                            iconPath={'/dist/images/icons/transit/lines_white.svg'}
+                        />
+                        <MapButton
+                            title="Geojson comme dans l'exemple (bis)"
+                            key="mapbtn_geojsonExampleBis"
+                            className={`${lineLayerStyle === 10 ? 'active' : ''}`}
+                            style={{ border: `${lineLayerStyle === 10 ? '5px' : '1px'} solid white` }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setLineLayerIsVisible(true);
+                                setLineLayerStyle(10);
                             }}
                             iconPath={'/dist/images/icons/transit/lines_white.svg'}
                         />
