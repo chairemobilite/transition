@@ -75,7 +75,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
         })!);
         // Add various versions of the line layer
         // Our path layer that is slow
-        deckGlLayers.push(...getLayer({
+        /*deckGlLayers.push(...getLayer({
             layerDescription: {
                 visible: lineLayerIsVisible && lineLayerStyle === 1,
                 configuration: layersConfig['transitPaths'] as any,
@@ -219,7 +219,7 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                 pixelsToCoordinates: () => [0, 0]
             },
             updateCount: 0
-        })!);
+        })!);*/
         // geojson layer, but with same properties as example
         deckGlLayers.push(getGeojsonExample({
             layerDescription: {
