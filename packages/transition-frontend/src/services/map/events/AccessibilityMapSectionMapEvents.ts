@@ -4,9 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import { MjolnirEvent } from 'mjolnir.js';
+import { PickingInfo } from 'deck.gl';
 
-import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import { MapEventHandlerDescription, PointInfo } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 /* This file encapsulates map events specific for the 'accessibilityMap' section */
@@ -14,51 +15,45 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 const isAccessMapActiveSection = (activeSection: string) =>
     activeSection === 'accessibilityMap' || activeSection === 'accessibilityComparison';
 
-const onAccessMapSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
-    serviceLocator.eventManager.emit('routing.transitAccessibilityMap.clickedOnMap', e.lngLat.toArray());
-    e.originalEvent.stopPropagation();
+const onAccessMapSectionMapClick = (pointInfo: PointInfo, _event: MjolnirEvent) => {
+    serviceLocator.eventManager.emit('routing.transitAccessibilityMap.clickedOnMap', pointInfo.coordinates);
+    return true;
 };
 
-const onAccessMapMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
-    if (!e.features || e.features.length === 0) {
-        return;
+const onLocationDrag = (info: PickingInfo, _event: MjolnirEvent) => {
+    const location = info.object?.properties?.location;
+    if (!location) {
+        return false;
     }
-    // start drag:
-    const map = e.target as any;
-    serviceLocator.eventManager.emit('map.disableDragPan');
-    map._currentDraggingFeature = 'accessibilityMapLocation';
-    e.originalEvent.stopPropagation();
+    serviceLocator.eventManager.emit('routing.transitAccessibilityMap.dragLocation', info.coordinate);
+    return true;
 };
 
-const onAccessMapMouseUp = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
-    if (map._currentDraggingFeature === 'accessibilityMapLocation') {
-        serviceLocator.eventManager.emit('routing.transitAccessibilityMap.dragLocation', e.lngLat.toArray());
-        map._currentDraggingFeature = null;
-        serviceLocator.eventManager.emit('map.enableDragPan');
-        e.originalEvent.stopPropagation();
+const onLocationDragEnd = (info: PickingInfo, _event: MjolnirEvent) => {
+    const location = info.object?.properties?.location;
+    if (!location) {
+        return false;
     }
-};
-
-const onAccessMapMouseMove = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
-    if (map._currentDraggingFeature === 'accessibilityMapLocation') {
-        serviceLocator.eventManager.emit('routing.transitAccessibilityMap.dragLocation', e.lngLat.toArray());
-        e.originalEvent.stopPropagation();
-    }
+    serviceLocator.eventManager.emit('routing.transitAccessibilityMap.dragLocation', info.coordinate);
+    return true;
 };
 
 const accessMapSectionEventDescriptors: MapEventHandlerDescription[] = [
-    { type: 'map', eventName: 'click', condition: isAccessMapActiveSection, handler: onAccessMapSectionMapClick },
+    { type: 'map', eventName: 'onLeftClick', condition: isAccessMapActiveSection, handler: onAccessMapSectionMapClick },
     {
         type: 'layer',
-        eventName: 'mousedown',
         layerName: 'accessibilityMapPoints',
+        eventName: 'onDrag',
         condition: isAccessMapActiveSection,
-        handler: onAccessMapMouseDown
+        handler: onLocationDrag
     },
-    { type: 'map', eventName: 'mouseup', condition: isAccessMapActiveSection, handler: onAccessMapMouseUp },
-    { type: 'map', eventName: 'mousemove', condition: isAccessMapActiveSection, handler: onAccessMapMouseMove }
+    {
+        type: 'layer',
+        layerName: 'accessibilityMapPoints',
+        eventName: 'onDragEnd',
+        condition: isAccessMapActiveSection,
+        handler: onLocationDragEnd
+    }
 ];
 
 export default accessMapSectionEventDescriptors;
