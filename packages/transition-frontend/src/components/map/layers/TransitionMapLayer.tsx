@@ -857,4 +857,23 @@ export const getGeojsonExample2 = (
     });
 };
 
+export const getRoads = (
+    props: TransitionMapLayerProps,
+): GeoJsonLayer | undefined => {
+
+    return new GeoJsonLayer({
+        id: props.layerDescription.id,
+        data: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/highway/roads.json',
+        getLineColor: [253, 174, 97],
+        getLineWidth: 10,
+        lineWidthMinPixels: 0.5,
+        updateTriggers: {
+            getLineColor: props.updateCount,
+            getLineWidth: props.updateCount
+        },
+        pickable: true,
+        visible: props.layerDescription.visible !== false,
+    });
+};
+
 export default getLayer;
