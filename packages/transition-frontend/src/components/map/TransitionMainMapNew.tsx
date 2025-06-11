@@ -10,7 +10,7 @@ import { MainMapProps } from './types/TransitionMainMapTypes';
 import type { Layer, MapViewState } from '@deck.gl/core';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import layersConfig from '../../config/layers.config';
-import getLayer, { getGeojsonLayerNoAlpha, getLineLayerTmp, getPathLayerTmp, getPathLayerTmpBinary } from './layers/TransitionMapLayer';
+import getLayer, { getGeojsonExample, getGeojsonExample2, getGeojsonLayerNoAlpha, getLineLayerTmp, getPathLayerTmp, getPathLayerTmpBinary } from './layers/TransitionMapLayer';
 import { MapButton } from '../parts/MapButton';
 import { FeatureCollection, LineString, GeoJsonProperties } from 'geojson';
 
@@ -220,6 +220,48 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
             },
             updateCount: 0
         })!);
+        // geojson layer, but with same properties as example
+        deckGlLayers.push(getGeojsonExample({
+            layerDescription: {
+                visible: lineLayerIsVisible && lineLayerStyle === 8,
+                configuration: layersConfig['transitPaths'] as any,
+                layerData: data.paths,
+                id: 'transitPathGeojsonExample'
+            },
+            zoom: 15,
+            events: undefined,
+            activeSection: activeSection,
+            setIsDragging: () => {
+                return;
+            },
+            mapCallbacks: {
+                pickMultipleObjects: () => [],
+                pickObject: () => null,
+                pixelsToCoordinates: () => [0, 0]
+            },
+            updateCount: 0
+        })!);
+        // Same geojson layer, but with the same width as our data
+        deckGlLayers.push(getGeojsonExample2({
+            layerDescription: {
+                visible: lineLayerIsVisible && lineLayerStyle === 9,
+                configuration: layersConfig['transitPaths'] as any,
+                layerData: data.paths,
+                id: 'transitPathGeojsonExample2'
+            },
+            zoom: 15,
+            events: undefined,
+            activeSection: activeSection,
+            setIsDragging: () => {
+                return;
+            },
+            mapCallbacks: {
+                pickMultipleObjects: () => [],
+                pickObject: () => null,
+                pixelsToCoordinates: () => [0, 0]
+            },
+            updateCount: 0
+        })!);
         console.log('adding animated layer', data.paths.features[0]);
         // Select the first path
         deckGlLayers.push(
@@ -269,27 +311,9 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                     <MapLibreMap
                         mapStyle={vectorTilesLayerConfig.styleUrl}
                         renderWorldCopies={true} // Improve panning experience
-                        reuseMaps={true} // Reuse WebGL context for better performance
-                    >
-                        {rasterXYZLayerConfig.url && rasterXYZLayerConfig.opacity > 0 && (
-                            <MapLibreSource
-                                id="raster-tiles"
-                                type="raster"
-                                tiles={[rasterXYZLayerConfig.url]}
-                                tileSize={rasterXYZLayerConfig.tileSize}
-                                minzoom={rasterXYZLayerConfig.minzoom}
-                                maxzoom={rasterXYZLayerConfig.maxzoom}
-                            >
-                                <MapLibreLayer
-                                    id="raster-layer"
-                                    type="raster"
-                                    paint={{
-                                        'raster-opacity': rasterXYZLayerConfig.opacity
-                                    }}
-                                />
-                            </MapLibreSource>
-                        )}
-                    </MapLibreMap>
+                        reuseMaps // Reuse WebGL context for better performance
+                    />
+                
                     <div className="tr__map-button-container">
                         <MapButton
                             title="Changer visibilité des lignes"
@@ -402,6 +426,30 @@ const MainMap = ({ zoom, center, activeSection, children }: MainMapProps) => {
                                 e.stopPropagation();
                                 setLineLayerIsVisible(true);
                                 setLineLayerStyle(7);
+                            }}
+                            iconPath={'/dist/images/icons/transit/lines_white.svg'}
+                        />
+                        <MapButton
+                            title="Geojson comme dans l'exemple"
+                            key="mapbtn_geojsonExample"
+                            className={`${lineLayerStyle === 8 ? 'active' : ''}`}
+                            style={{ border: `${lineLayerStyle === 8 ? '5px' : '1px'} solid red` }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setLineLayerIsVisible(true);
+                                setLineLayerStyle(8);
+                            }}
+                            iconPath={'/dist/images/icons/transit/lines_white.svg'}
+                        />
+                        <MapButton
+                            title="Geojson comme dans l'exemple (bis)"
+                            key="mapbtn_geojsonExampleBis"
+                            className={`${lineLayerStyle === 9 ? 'active' : ''}`}
+                            style={{ border: `${lineLayerStyle === 9 ? '5px' : '1px'} solid lime` }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setLineLayerIsVisible(true);
+                                setLineLayerStyle(9);
                             }}
                             iconPath={'/dist/images/icons/transit/lines_white.svg'}
                         />
@@ -572,6 +620,10 @@ function pathToBinaryDataRGB(pathLayerData) {
 const getData = async (): Promise<{ nodes: GeoJSON.FeatureCollection; paths: GeoJSON.FeatureCollection, lineData: any, pathData: any, lineNoDup: any, pathBinaryData: any, pathBinaryDataRGB: any }> => {
     const nodes = await getCollection('nodes');
     const paths = await getCollection('paths');
+    paths?.features.forEach((feature) => {
+        const color = feature.properties!.color;
+        feature.properties!.featureColor = (typeof color === 'string' && color.startsWith('#') ? stringToColor(color) : [0, 0, 0, 255]) as any;
+    });
     const lineData = pathToLineLayerData(paths as GeoJSON.FeatureCollection<GeoJSON.LineString>);
     const lineNoDup = pathToLineLayerDataNoDup(paths as GeoJSON.FeatureCollection<GeoJSON.LineString>);
     const pathData = pathToPathLayerData(paths as GeoJSON.FeatureCollection<GeoJSON.LineString>);

@@ -806,4 +806,55 @@ export const getGeojsonLayerNoAlpha = (
     });
 };
 
+type PathProperties = {
+    featureColor: [number, number, number] | [number, number, number, number];
+    type: string;
+    id: string;
+    name: string;
+    color: string;
+};
+  
+type Path = GeoJSON.Feature<GeoJSON.LineString | GeoJSON.MultiLineString, PathProperties>;
+export const getGeojsonExample = (
+    props: TransitionMapLayerProps,
+): GeoJsonLayer | undefined => {
+
+    return new GeoJsonLayer({
+        id: props.layerDescription.id,
+        data: props.layerDescription.layerData.features,
+        getLineColor: ((f: Path) => f.properties.featureColor) as any,
+        lineWidthMinPixels: 0.5,
+        getLineWidth: 1,
+        updateTriggers: {
+            getLineColor: props.updateCount,
+            getLineWidth: props.updateCount
+        },
+        pickable: true,
+        visible: props.layerDescription.visible !== false,
+    });
+};
+
+export const getGeojsonExample2 = (
+    props: TransitionMapLayerProps,
+): GeoJsonLayer | undefined => {
+
+    return new GeoJsonLayer({
+        id: props.layerDescription.id,
+        data: props.layerDescription.layerData.features,
+        getLineColor:( (f: Path) => {
+            const color = f.properties.color;
+            return (typeof color === 'string' && color.startsWith('#') ? stringToColor(color) : [0, 0, 0, 255]) as any;
+        }) as any,
+        widthScale: 4,
+        lineWidthMinPixels: 2,
+        lineWidthMaxPixels: 6,
+        updateTriggers: {
+            getLineColor: props.updateCount,
+            getLineWidth: props.updateCount
+        },
+        pickable: true,
+        visible: props.layerDescription.visible !== false,
+    });
+};
+
 export default getLayer;
