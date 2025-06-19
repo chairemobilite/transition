@@ -76,7 +76,7 @@ const getTaskCancelledFct = (task: ExecutableJob<JobDataType>) => {
     return () => refreshError || task.status === 'cancelled';
 };
 
-const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>) => {
+const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>): Promise<boolean> => {
     const absoluteUserDir = task.getJobFileDirectory();
     const inputFileName = task.attributes.resources?.files.input;
     if (inputFileName === undefined) {
@@ -96,9 +96,10 @@ const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>) => {
     );
     task.attributes.data.results = result;
     task.attributes.resources = { files };
+    return result.completed;
 };
 
-const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>) => {
+const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>): Promise<boolean> => {
     const absoluteUserDir = task.getJobFileDirectory();
     const { files, ...result } = await batchAccessibilityMap(
         task.attributes.data.parameters.batchAccessMapAttributes,
@@ -109,9 +110,11 @@ const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>) =>
     );
     task.attributes.data.results = result;
     task.attributes.resources = { files };
+    return result.completed;
 };
 
-const wrapTaskExecution = async (id: number) => {
+// Exported for unit tests
+export const wrapTaskExecution = async (id: number) => {
     // Load task from database and execute only if it is pending, or resume tasks in progress
     const task = await ExecutableJob.loadTask(id);
     if (task.status !== 'pending' && task.status !== 'inProgress') {
@@ -124,17 +127,23 @@ const wrapTaskExecution = async (id: number) => {
     // Execute the right function for this task
     try {
         assertDiskUsage(task);
+        let taskResultStatus = true;
         switch (task.attributes.name) {
         case 'batchRoute':
-            await wrapBatchRoute(task as ExecutableJob<BatchRouteJobType>);
+            taskResultStatus = await wrapBatchRoute(task as ExecutableJob<BatchRouteJobType>);
             break;
         case 'batchAccessMap':
-            await wrapBatchAccessMap(task as ExecutableJob<BatchAccessMapJobType>);
+            taskResultStatus = await wrapBatchAccessMap(task as ExecutableJob<BatchAccessMapJobType>);
             break;
         default:
             console.log(`Unknown task ${task.attributes.name}`);
+            taskResultStatus = false;
         }
-        task.setCompleted();
+        if (taskResultStatus) {
+            task.setCompleted();
+        } else {
+            task.setFailed();
+        }
     } catch (error) {
         console.error(
             `Setting job ${task.attributes.id} (${task.attributes.name}) as failed because of an error: ${error}`
