@@ -68,3 +68,27 @@
 
     }
 }
+
+.expandable-messages__trigger {
+    font-size: $font-size-small;
+    opacity: 0.5;
+    font-weight: 500;
+    line-height: 1;
+    text-decoration: none;
+    padding: 0 0.2rem;
+    margin: 0 0.3rem;
+    background: none;
+    display: inline-block;
+    border: none;
+    color: $text-default-color;
+
+    &:hover,
+    &:active,
+    &:focus {
+        color: $text-active-color;
+    }
+}
+
+.expandable-messages__trigger:hover {
+    text-decoration: underline;
+}

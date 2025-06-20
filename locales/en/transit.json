@@ -953,6 +953,8 @@
         "ConfirmDelete": "Do you confirm deletion of this job? All related files will be deleted.",
         "Cancel": "Cancel job",
         "ConfirmCancel": "Do you confirm cancellation of this job?",
+        "ViewWarningsAndErrors": "View messages",
+        "WarningsAndErrors": "Errors and warnings",
         "batchRoute": {
             "files": {
                 "input": "Input file: {{filename}}",

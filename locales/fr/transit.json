@@ -953,6 +953,8 @@
         "ConfirmDelete": "Confirmez-vous que vous désirez bien supprimer cette tâche? Tous les fichiers associés seront détruits",
         "Cancel": "Annuler la tâche",
         "ConfirmCancel": "Confirmez-vous que vous désirez bien annuler cette tâche?",
+        "ViewWarningsAndErrors": "Voir les messages",
+        "WarningsAndErrors": "Erreurs et avertissements",
         "batchRoute": {
             "files": {
                 "input": "Fichier d'entrée: {{filename}}",
