@@ -40,27 +40,43 @@ const extractOdTrip = (
     projection: { srid: number; value: string }
 ): BaseOdTrip => {
     const internalId = line[options.idAttribute];
+    const [originLat, originLon, destinationLat, destinationLon] = [
+        parseFloat(line[options.originYAttribute]),
+        parseFloat(line[options.originXAttribute]),
+        parseFloat(line[options.destinationYAttribute]),
+        parseFloat(line[options.destinationXAttribute])
+    ];
+    if ((isNaN(originLat) || isNaN(originLon)) && (isNaN(destinationLat) || isNaN(destinationLon))) {
+        throw new TrError(
+            'Origin and destination coordinates are invalid',
+            'ODTRIP002',
+            'transit:transitRouting:errors:InvalidOriginDestinationCoordinates'
+        );
+    }
+    if (isNaN(originLat) || isNaN(originLon)) {
+        throw new TrError(
+            'Origin coordinates are invalid',
+            'ODTRIP003',
+            'transit:transitRouting:errors:InvalidOriginCoordinates'
+        );
+    }
+    if (isNaN(destinationLat) || isNaN(destinationLon)) {
+        throw new TrError(
+            'Destination coordinates are invalid',
+            'ODTRIP004',
+            'transit:transitRouting:errors:InvalidDestinationCoordinates'
+        );
+    }
     const originGeography =
         projection.srid === constants.geographicCoordinateSystem.srid
-            ? turfPoint([parseFloat(line[options.originXAttribute]), parseFloat(line[options.originYAttribute])])
-                .geometry
-            : turfPoint(
-                proj4(projection.value, constants.geographicCoordinateSystem.value, [
-                    parseFloat(line[options.originXAttribute]),
-                    parseFloat(line[options.originYAttribute])
-                ])
-            ).geometry;
+            ? turfPoint([originLon, originLat]).geometry
+            : turfPoint(proj4(projection.value, constants.geographicCoordinateSystem.value, [originLon, originLat]))
+                .geometry;
     const destinationGeography =
         projection.srid === constants.geographicCoordinateSystem.srid
-            ? turfPoint([
-                parseFloat(line[options.destinationXAttribute]),
-                parseFloat(line[options.destinationYAttribute])
-            ]).geometry
+            ? turfPoint([destinationLon, destinationLat]).geometry
             : turfPoint(
-                proj4(projection.value, constants.geographicCoordinateSystem.value, [
-                    parseFloat(line[options.destinationXAttribute]),
-                    parseFloat(line[options.destinationYAttribute])
-                ])
+                proj4(projection.value, constants.geographicCoordinateSystem.value, [destinationLon, destinationLat])
             ).geometry;
 
     let arrivalTime: number | null | undefined = undefined;
