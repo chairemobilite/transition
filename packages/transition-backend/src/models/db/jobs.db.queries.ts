@@ -13,15 +13,36 @@ import { JobAttributes, JobDataType, JobStatus } from 'transition-common/lib/ser
 
 const tableName = 'tr_jobs';
 
+// Convert the db fields to the attributes used in the Job class. We need to map
+// status_messages field to the statusMessages property and change nulls to
+// undefined
 const attributesParser = <U extends JobDataType>({
     resources,
     updated_at,
+    status_messages,
     ...rest
-}: JobAttributes<U>): JobAttributes<U> => ({
+}: Omit<JobAttributes<U>, 'statusMessages'> & {
+    status_messages: JobAttributes<U>['statusMessages'];
+}): JobAttributes<U> => ({
         resources: resources || undefined,
         updated_at: updated_at || undefined,
+        statusMessages: status_messages || undefined,
         ...rest
     });
+
+// Convert application attributes to the db fields. The statusMessages property
+// is mapped to the status_messages field
+const attributesCleaner = <U extends JobDataType>(
+    attributes: Partial<JobAttributes<U>>
+): Omit<JobAttributes<U>, 'statusMessages'> & { status_messages: JobAttributes<U>['statusMessages'] } => {
+    const { statusMessages, ...rest } = attributes;
+    const _attributes: any = {
+        status_messages: statusMessages,
+        ...rest
+    };
+
+    return _attributes;
+};
 
 /**
  * Get a paginated collection of jobs
@@ -126,7 +147,9 @@ const read = async (id: number): Promise<JobAttributes<JobDataType>> => {
                 'DatabaseCannotReadBecauseObjectDoesNotExist'
             );
         } else {
-            const _newObject = attributesParser(rows[0] as unknown as JobAttributes<JobDataType>);
+            const _newObject = attributesParser(
+                rows[0] as typeof attributesParser extends (arg: infer T) => any ? T : never
+            );
             return _newObject;
         }
     } catch (error) {
@@ -140,7 +163,7 @@ const read = async (id: number): Promise<JobAttributes<JobDataType>> => {
 
 const create = async (job: Omit<JobAttributes<JobDataType>, 'id'>): Promise<number> => {
     try {
-        const returningArray = await knex(tableName).insert(job).returning('id');
+        const returningArray = await knex(tableName).insert(attributesCleaner(job)).returning('id');
         return returningArray[0].id;
     } catch (error) {
         throw new TrError(
@@ -160,10 +183,15 @@ const create = async (job: Omit<JobAttributes<JobDataType>, 'id'>): Promise<numb
  */
 const update = async (
     id: number,
-    attributes: Partial<Pick<JobAttributes<JobDataType>, 'status' | 'data' | 'resources' | 'internal_data'>>
+    attributes: Partial<
+        Pick<JobAttributes<JobDataType>, 'status' | 'data' | 'resources' | 'internal_data' | 'statusMessages'>
+    >
 ): Promise<number> => {
     try {
-        const returningArray = await knex(tableName).update(attributes).where('id', id).returning('id');
+        const returningArray = await knex(tableName)
+            .update(attributesCleaner(attributes))
+            .where('id', id)
+            .returning('id');
         return returningArray[0].id;
     } catch (error) {
         throw new TrError(

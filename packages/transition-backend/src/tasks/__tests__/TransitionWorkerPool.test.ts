@@ -111,11 +111,10 @@ describe('batch route execution', () => {
         expect(updatableTask.attributes.data.results).toEqual({
             calculationName: 'calculation',
             detailed: true,
-            completed: true,
-            warnings: ['warning1', 'warning2'],
-            errors: []
+            completed: true
         });
         expect(updatableTask.attributes.resources).toEqual({ files: batchRouteResult.files });
+        expect(updatableTask.attributes.statusMessages).toEqual({ errors: [], warnings: ['warning1', 'warning2'] });
         
         // Verify batchRoute was called with correct parameters
         expect(mockBatchRoute).toHaveBeenCalledWith(
@@ -191,11 +190,10 @@ describe('batch route execution', () => {
         expect(updatableTask.attributes.data.results).toEqual({
             calculationName: 'failed reading',
             detailed: false,
-            completed: false,
-            warnings: [],
-            errors: ['error1', 'error2']
+            completed: false
         });
         expect(updatableTask.attributes.resources).toEqual({ files: batchRouteResult.files });
+        expect(updatableTask.attributes.statusMessages).toEqual({ errors: ['error1', 'error2'], warnings: [] });
         
         // Verify batchRoute was called with correct parameters
         expect(mockBatchRoute).toHaveBeenCalledWith(
@@ -267,6 +265,7 @@ describe('batch route execution', () => {
         expect(updatableTask.attributes.data.parameters).toEqual(mockedTask.attributes.data.parameters);
         expect(updatableTask.attributes.data.results).toBeUndefined();
         expect(updatableTask.attributes.resources).toEqual(mockedTask.attributes.resources);
+        expect(updatableTask.attributes.statusMessages).toEqual({ errors: ['transit:transitRouting:errors:UserDiskQuotaReached'] });
         
         // Verify task life cycle functions
         expect(updatableTask.setCompleted).not.toHaveBeenCalled();
@@ -291,7 +290,7 @@ describe('batch route execution', () => {
                 id: 34,
                 user_id: 1,
                 name: 'batchRoute',
-                status: 'pending',
+                status: 'inProgress',
                 data: {
                     parameters: {
                         demandAttributes: { type: 'csv' } as any,
@@ -312,7 +311,7 @@ describe('batch route execution', () => {
             detailed: true,
             completed: true,
             errors: [],
-            warnings: ['warning1', 'warning2'],
+            warnings: [],
             files: { input: 'file.csv', csv: 'results.csv', detailedCsv: 'detailed.csv', geojson: 'geo.json' }
         }
         mockBatchRoute.mockResolvedValueOnce(batchRouteResult);
@@ -325,11 +324,10 @@ describe('batch route execution', () => {
         expect(updatableTask.attributes.data.results).toEqual({
             calculationName: 'calculation',
             detailed: true,
-            completed: true,
-            warnings: ['warning1', 'warning2'],
-            errors: []
+            completed: true
         });
         expect(updatableTask.attributes.resources).toEqual({ files: batchRouteResult.files });
+        expect(updatableTask.attributes.statusMessages).toBeUndefined();
         
         // Verify batchRoute was called with correct parameters
         expect(mockBatchRoute).toHaveBeenCalledWith(

@@ -1,3 +1,5 @@
+import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+
 /*
  * Copyright 2022, Polytechnique Montreal and contributors
  *
@@ -21,6 +23,7 @@ export interface JobAttributes<TData extends JobDataType> {
     user_id: number;
     name: TData[JobNameKey];
     status: JobStatus;
+    statusMessages?: { errors?: ErrorMessage[]; warnings?: ErrorMessage[]; infos?: ErrorMessage[] };
     /**
      * Data internal to the job management, that is not relevant to the users
      */
