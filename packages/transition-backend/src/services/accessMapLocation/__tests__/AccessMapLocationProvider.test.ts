@@ -31,17 +31,13 @@ test('Parse a csv file, 4326 projection, departure time, HMM times', async () =>
             id: 'id1',
             originX: -34,
             originY: 45,
-            destinationX: -34.23,
-            destinationY: 45.45,
             time: '0800',
             unused: '0500'
         },
         {
             id: 'id2',
-            originX: 30,
-            originY: 40,
-            destinationX: -30.5,
-            destinationY: 40.234,
+            originX: '30',
+            originY: '40',
             time: '1032',
             unused: '0500'
         },
@@ -49,8 +45,6 @@ test('Parse a csv file, 4326 projection, departure time, HMM times', async () =>
             id: 'id3',
             originX: 30,
             originY: 40,
-            destinationX: -30.5,
-            destinationY: 40.234,
             time: '000',
             unused: '0500'
         }
@@ -77,13 +71,13 @@ test('Parse a csv file, 4326 projection, departure time, HMM times', async () =>
     }));
     expect(locations[1]).toEqual(expect.objectContaining({
         id: data[1].id,
-        geography: { type: 'Point' as const, coordinates: [data[1].originX, data[1].originY]},
+        geography: { type: 'Point' as const, coordinates: [parseFloat(data[1].originX as string), parseFloat(data[1].originY as string)]},
         timeType: 'departure',
         timeOfTrip: 10 * 60 * 60 + 32 * 60
     }));
     expect(locations[2]).toEqual(expect.objectContaining({
         id: data[2].id,
-        geography: { type: 'Point' as const, coordinates: [data[1].originX, data[1].originY]},
+        geography: { type: 'Point' as const, coordinates: [data[2].originX, data[2].originY]},
         timeType: 'departure',
         timeOfTrip: 0
     }));
@@ -229,6 +223,40 @@ test('Parse a csv file, faulty lines and time in seconds', async () => {
         timeOfTrip: 0,
         data: data[4]
     }));
+});
+
+test('Parse a csv file, wrong coordinates format', async () => {
+    const data = [
+        // Invalid location coordinates format
+        {
+            id: 'id1',
+            originX: 'thirtyfour',
+            originY: 'fortyfive',
+            time: '0800',
+            unused: '0500'
+        },
+    ];
+    currentData = data;
+    const options = {
+        projection: '4326',
+        idAttribute: 'id',
+        xAttribute: 'originX',
+        yAttribute: 'originY',
+        timeAttributeDepartureOrArrival: 'departure' as const,
+        timeFormat: 'secondsSinceMidnight',
+        timeAttribute: 'time',
+    };
+
+    const { locations, errors } = await parseLocationsFromCsv('path/to/file.csv', options);
+    expect(locations.length).toEqual(0);
+    expect(errors.length).toEqual(2);
+    expect(errors).toEqual([
+        {
+            text: 'transit:transitRouting:errors:BatchRouteErrorOnLine',
+            params: { n: '1' }
+        },
+        'transit:transitRouting:errors:InvalidLocationCoordinates',
+    ])
 });
 
 test('Parse a csv file, too many faulty lines', async () => {
