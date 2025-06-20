@@ -9,6 +9,6 @@
 
 export const INTERSECTION_COLOR = 'rgb(47, 138, 243)';
 
-export const SCENARIO_1_COLOR = 'rgb(252, 208, 89)';
+export const MAP_1_COLOR = 'rgb(252, 208, 89)';
 
-export const SCENARIO_2_COLOR = 'rgb(231, 74, 184)';
+export const MAP_2_COLOR = 'rgb(231, 74, 184)';
