@@ -154,7 +154,8 @@
             "social": "Social services",
             "transport": "Transport and logistics",
             "transit": "Public transport and transit",
-            "utility": "Utility"
+            "utility": "Utility",
+            "flat": "Housing"
         },
         "detailedCategories": {
             "conference_center": "Conference centers",
@@ -199,7 +200,7 @@
             "school_research": "Education - Research",
             "school_secondary": "Education - Secondary",
             "school_university": "Education - University",
-            "service_other": "Services",
+            "service_other": "Services - Others",
             "service_atm": "Services - ATMs",
             "service_bank": "Services - Banks",
             "service_beauty": "Services - Beauty shops",
@@ -212,7 +213,7 @@
             "service_rental": "Services - Rental",
             "service_storage": "Services - Storage",
             "service_veterinary": "Services - Veterinary",
-            "shop_other": "Shops",
+            "shop_other": "Shops - Others",
             "shop_bicycle": "Shops - Bikes",
             "shop_car": "Shops - Cars",
             "shop_clothes": "Shops - Clothes",
@@ -231,7 +232,8 @@
             "transit_ferry_terminal": "Ferry terminals",
             "transit_train_station": "Train stations",
             "transit_station": "Public transport and transit stations",
-            "utility": "Utility"
+            "utility": "Utility",
+            "flat": "Housing"
         }
     },
     "odTrip": {

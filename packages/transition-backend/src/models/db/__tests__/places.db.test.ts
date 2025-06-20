@@ -10,6 +10,12 @@ import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import dbQueries from '../places.db.queries';
 import dataSourcesDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
+import {
+    categories,
+    detailedCategories,
+    PlaceCategory,
+    PlaceDetailedCategory
+} from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
 import GeojsonCollection from 'transition-common/lib/services/places/PlaceCollection';
 import ObjectClass, { PlaceAttributes } from 'transition-common/lib/services/places/Place';
 
@@ -35,7 +41,9 @@ const newObjectAttributes = {
         bar: 'foo',
         nodes: [0, 2, 4],
         nodesTravelTimes: [123, 456, 789],
-        nodesDistances: [246, 357, 250]
+        nodesDistances: [246, 357, 250],
+        category: 'restaurant',
+        category_detailed: 'restaurant_restaurant'
     }
 } as PlaceAttributes;
 
@@ -54,7 +62,9 @@ const newObjectAttributes2 = {
     walking_5min_accessible_nodes_count: 22,
     data: {
         foo2: 'bar2',
-        bar2: 'foo2'
+        bar2: 'foo2',
+        category: 'restaurant',
+        category_detailed: 'restaurant_cafe'
     }
 } as PlaceAttributes;
 
@@ -137,6 +147,107 @@ describe(`${objectName}`, () => {
         const newObject = new ObjectClass(newObjectAttributes2, true);
         const id = await dbQueries.create(newObject.attributes)
         expect(id).toBe(newObjectAttributes2.id);
+
+    });
+
+    // These tests are executed here, so that there will only be one of each object in the database.
+    describe('get right amount of POIs in polygon', () => {
+
+        // We add an object with no data to the db, as well as one with data but no categories, both of them placed in between the two main objects.
+        // This way, we can test that only objects with categories are counted.
+        const objectWithNoDataAttributes = {
+            id: uuidV4(),
+            internal_id: 'internalTestId3',
+            data_source_id: dataSourceId,
+            geography: turfPoint([-73.55, 45.55]).geometry
+        } as PlaceAttributes;
+
+        const objectWithNoCategoriesAttributes = {
+            id: uuidV4(),
+            internal_id: 'internalTestId4',
+            data_source_id: dataSourceId,
+            geography: turfPoint([-73.55, 45.55]).geometry,
+            data: {
+                foo4: 'bar4',
+                bar4: 'foo4'
+            }
+        } as PlaceAttributes;
+
+        const accessiblePlacesCountByCategory = categories.reduce(
+            (categoriesAsKeys, category) => ((categoriesAsKeys[category] = 0), categoriesAsKeys),
+            {}
+        ) as { [key in PlaceCategory]: number };
+        const accessiblePlacesCountByDetailedCategory = detailedCategories.reduce(
+            (categoriesAsKeys, category) => ((categoriesAsKeys[category] = 0), categoriesAsKeys),
+            {}
+        ) as { [key in PlaceDetailedCategory]: number };
+
+        test('add objects with no categories to database', async () => {
+
+            const objectWithNoData = new ObjectClass(objectWithNoDataAttributes, true);
+            const idNoData = await dbQueries.create(objectWithNoData.attributes);
+            expect(idNoData).toBe(objectWithNoDataAttributes.id);
+
+            const objectWithNoCategories = new ObjectClass(objectWithNoCategoriesAttributes, true);
+            const idNoCategories = await dbQueries.create(objectWithNoCategories.attributes);
+            expect(idNoCategories).toBe(objectWithNoCategoriesAttributes.id);
+
+        });
+
+        test('test with polygon that has zero POI', async () => {
+
+            const polygonWithNoPoints: GeoJSON.Polygon = {
+                type: 'Polygon',
+                coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+            };
+
+            const resultNoPoints = await dbQueries.getPOIsCategoriesCountInPolygon(polygonWithNoPoints);
+
+            expect(resultNoPoints).toEqual({ accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory });
+
+        });
+
+        test('test with polygon that has one POI', async () => {
+
+            const polygonWithOnePoint: GeoJSON.Polygon = {
+                type: 'Polygon',
+                coordinates: [[[-73.55, 45.55], [-73.55, 45.65], [-73.45, 45.65], [-73.45, 45.55], [-73.55, 45.55]]]
+            };
+
+            accessiblePlacesCountByCategory.restaurant = 1;
+            accessiblePlacesCountByDetailedCategory.restaurant_cafe = 1;
+
+            const resultOnePoint = await dbQueries.getPOIsCategoriesCountInPolygon(polygonWithOnePoint);
+
+            expect(resultOnePoint).toEqual({ accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory });
+
+        });
+
+        test('test with polygon that has two POIs', async () => {
+
+            const polygonWithBothPoints: GeoJSON.Polygon = {
+                type: 'Polygon',
+                coordinates: [[[-100, -100], [-100, 100], [100, 100], [100, -100], [-100, -100]]]
+            };
+
+            accessiblePlacesCountByCategory.restaurant = 2;
+            accessiblePlacesCountByDetailedCategory.restaurant_restaurant = 1;
+
+            const resultBothPoints = await dbQueries.getPOIsCategoriesCountInPolygon(polygonWithBothPoints);
+
+            expect(resultBothPoints).toEqual({ accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory });
+
+        });
+
+        test('delete objects with no categories from database', async() => {
+
+            const idNoData = await dbQueries.delete(objectWithNoDataAttributes.id);
+            expect(idNoData).toBe(objectWithNoDataAttributes.id);
+
+            const idNoCategories = await dbQueries.delete(objectWithNoCategoriesAttributes.id);
+            expect(idNoCategories).toBe(objectWithNoCategoriesAttributes.id);
+
+        });
 
     });
 

@@ -154,7 +154,8 @@
             "social": "Services sociaux",
             "transport": "Transport et logistique",
             "transit": "Transport publics et collectif",
-            "utility": "Travaux publics"
+            "utility": "Travaux publics",
+            "flat": "Logements"
         },
         "detailedCategories": {
             "conference_center": "Centre de conférences",
@@ -172,7 +173,7 @@
             "landfill": "Dépotoirs",
             "quarry": "Carrières",
             "leisure_other": "Loisirs - Autres",
-            "leisure_park": "Leisure - Parcs",
+            "leisure_park": "Loisirs - Parcs",
             "leisure_adult": "Loisirs - Adultes",
             "leisure_art": "Loisirs - Arts",
             "leisure_cinema": "Loisirs - Cinémas",
@@ -231,7 +232,8 @@
             "transit_ferry_terminal": "Gares fluviale",
             "transit_train_station": "Gares de train",
             "transit_station": "Stations et gares de transport public et collectif",
-            "utility": "Travaux publics"
+            "utility": "Travaux publics",
+            "flat": "Logements"
         }
     },
     "odTrip": {

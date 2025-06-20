@@ -23,6 +23,12 @@ import {
     stringifyDataSourceIds
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
+import {
+    categories,
+    detailedCategories,
+    PlaceCategory,
+    PlaceDetailedCategory
+} from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
 import { PlaceAttributes } from 'transition-common/lib/services/places/Place';
 
 const tableName = 'tr_places';
@@ -66,6 +72,64 @@ const collection = async (dataSourceIds: string[] = [], sampleSize?: number): Pr
             `cannot fetch places collection because of a database error (knex error: ${error})`,
             'DBQPLC0002',
             'PlaceCollectionCouldNotBeFetchedBecauseDatabaseError'
+        );
+    }
+};
+
+const getPOIsCategoriesCountInPolygon = async (
+    accessibilityPolygon: GeoJSON.MultiPolygon | GeoJSON.Polygon
+): Promise<{
+    accessiblePlacesCountByCategory: { [key in PlaceCategory]: number };
+    accessiblePlacesCountByDetailedCategory: { [key in PlaceDetailedCategory]: number };
+}> => {
+    try {
+        const accessiblePlacesCountByCategory = categories.reduce(
+            (categoriesAsKeys, category) => ((categoriesAsKeys[category] = 0), categoriesAsKeys),
+            {}
+        ) as { [key in PlaceCategory]: number };
+
+        const accessiblePlacesCountByDetailedCategory = detailedCategories.reduce(
+            (categoriesAsKeys, category) => ((categoriesAsKeys[category] = 0), categoriesAsKeys),
+            {}
+        ) as { [key in PlaceDetailedCategory]: number };
+
+        //TODO: Get category and category_detailed out of the data field and index them to improve performance when doing this request over a large area.
+        const categoriesResponse = await knex.raw(
+            `
+            SELECT data->>'category' AS category, COUNT(*) AS count
+            FROM ${tableName}
+            WHERE data->>'category' IS NOT NULL
+            AND ST_WITHIN(geography::geometry, ST_GeomFromGeoJSON(?))
+            GROUP BY data->>'category';
+        `,
+            [JSON.stringify(accessibilityPolygon)]
+        );
+
+        for (const row of categoriesResponse.rows) {
+            accessiblePlacesCountByCategory[row.category] = Number(row.count);
+        }
+
+        const detailedCategoriesResponse = await knex.raw(
+            `
+            SELECT data->>'category_detailed' as category_detailed, COUNT(*) AS count
+            FROM ${tableName}
+            WHERE data->>'category_detailed' IS NOT NULL
+            AND ST_WITHIN(geography::geometry, ST_GeomFromGeoJSON(?))
+            GROUP BY data->>'category_detailed';
+        `,
+            [JSON.stringify(accessibilityPolygon)]
+        );
+
+        for (const row of detailedCategoriesResponse.rows) {
+            accessiblePlacesCountByDetailedCategory[row.category_detailed] = Number(row.count);
+        }
+
+        return { accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory };
+    } catch (error) {
+        throw new TrError(
+            `cannot fetch places category counts because of a database error (knex error: ${error})`,
+            'DBFPCC0001',
+            'PlaceCategoryCountCouldNotBeFetchedBecauseDatabaseError'
         );
     }
 };
@@ -217,5 +281,6 @@ export default {
     destroy: destroy.bind(null, knex),
     collection,
     geojsonCollection,
+    getPOIsCategoriesCountInPolygon,
     countForDataSources
 };

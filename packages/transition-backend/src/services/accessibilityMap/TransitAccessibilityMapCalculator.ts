@@ -47,6 +47,7 @@ import {
 } from 'transition-common/lib/services/accessibilityMap/types';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import nodeDbQueries from '../../models/db/transitNodes.db.queries';
+import placesDbQueries from '../../models/db/places.db.queries';
 
 const getDurations = (maxDuration: number, numberOfPolygons: number): number[] => {
     const durations = [maxDuration];
@@ -468,9 +469,6 @@ export class TransitAccessibilityMapCalculator {
                 }).geometry.coordinates
             ];
 
-            const { accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory } =
-                result.getAccessibilityStatsForDuration(duration, nodeCollection);
-
             // include starting/ending location circle:
             const travelTimesByNodeId = result.getTraveTimesByNodeId();
 
@@ -518,6 +516,10 @@ export class TransitAccessibilityMapCalculator {
             polygon.geometry.coordinates = polygonCoordinates;
 
             const area = turfArea(polygon);
+
+            const { accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory } =
+                await placesDbQueries.getPOIsCategoriesCountInPolygon(polygon.geometry);
+
             polygon.properties = {
                 durationSeconds: Math.round(duration),
                 durationMinutes: Math.round(duration / 60),
