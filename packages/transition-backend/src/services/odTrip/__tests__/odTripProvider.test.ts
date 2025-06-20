@@ -36,12 +36,13 @@ test('Parse a csv file, 4326 projection, departure time, HMM times', async () =>
             time: '0800',
             unused: '0500'
         },
+        // String coordinates
         {
             id: 'id2',
-            originX: 30,
-            originY: 40,
-            destinationX: -30.5,
-            destinationY: 40.234,
+            originX: '30',
+            originY: '40',
+            destinationX: '-30.5',
+            destinationY: '40.234',
             time: '1032',
             unused: '0500'
         },
@@ -80,15 +81,15 @@ test('Parse a csv file, 4326 projection, departure time, HMM times', async () =>
     }));
     expect(odTrips[1].attributes).toEqual(expect.objectContaining({
         internal_id: data[1].id,
-        origin_geography: { type: 'Point' as const, coordinates: [data[1].originX, data[1].originY]},
-        destination_geography: { type: 'Point' as const, coordinates: [data[1].destinationX, data[1].destinationY]},
+        origin_geography: { type: 'Point' as const, coordinates: [parseFloat(data[1].originX as string), parseFloat(data[1].originY as string)]},
+        destination_geography: { type: 'Point' as const, coordinates: [parseFloat(data[1].destinationX as string), parseFloat(data[1].destinationY as string)]},
         timeType: 'departure',
         timeOfTrip: 10 * 60 * 60 + 32 * 60
     }));
     expect(odTrips[2].attributes).toEqual(expect.objectContaining({
         internal_id: data[2].id,
-        origin_geography: { type: 'Point' as const, coordinates: [data[1].originX, data[1].originY]},
-        destination_geography: { type: 'Point' as const, coordinates: [data[1].destinationX, data[1].destinationY]},
+        origin_geography: { type: 'Point' as const, coordinates: [data[2].originX, data[2].originY]},
+        destination_geography: { type: 'Point' as const, coordinates: [data[2].destinationX, data[2].destinationY]},
         timeType: 'departure',
         timeOfTrip: 0
     }));
@@ -242,6 +243,75 @@ test('Parse a csv file, faulty lines and time in seconds', async () => {
         timeType: 'departure',
         timeOfTrip: 0
     }));
+});
+
+test('Parse a csv file, wrong coordinates format', async () => {
+    const data = [
+        // Invalid origin coordinates format
+        {
+            id: 'id1',
+            originX: 'thirtyfour',
+            originY: 'fortyfive',
+            destinationX: -34.23,
+            destinationY: 45.45,
+            time: '0800',
+            unused: '0500'
+        },
+        // Invalid destination coordinates format
+        {
+            id: 'id1',
+            originX: -34.23,
+            originY: 45.25,
+            destinationX: 'thirtyfour',
+            destinationY: 'fortyfive',
+            time: '0800',
+            unused: '0500'
+        },
+        // Invalid origin and destination coordinates format
+        {
+            id: 'id1',
+            originX: 'thirtythree',
+            originY: 'fortyfour',
+            destinationX: 'thirtyfour',
+            destinationY: 'fortyfive',
+            time: '0800',
+            unused: '0500'
+        },
+    ];
+    currentData = data;
+    const options = {
+        projection: '4326',
+        idAttribute: 'id',
+        originXAttribute: 'originX',
+        originYAttribute: 'originY',
+        destinationXAttribute: 'destinationX',
+        destinationYAttribute: 'destinationY',
+        timeAttributeDepartureOrArrival: 'departure' as const,
+        timeFormat: 'secondsSinceMidnight',
+        timeAttribute: 'time',
+    };
+
+    const { odTrips, errors } = await parseOdTripsFromCsv('path/to/file.csv', options);
+    expect(odTrips.length).toEqual(0);
+    // 2 error messages per row: one for the line error and one for the coordinates error
+    expect(errors.length).toEqual(data.length * 2);
+    expect(errors).toEqual([
+        {
+            text: 'transit:transitRouting:errors:BatchRouteErrorOnLine',
+            params: { n: '1' }
+        },
+        'transit:transitRouting:errors:InvalidOriginCoordinates',
+        {
+            text: 'transit:transitRouting:errors:BatchRouteErrorOnLine',
+            params: { n: '2' }
+        },
+        'transit:transitRouting:errors:InvalidDestinationCoordinates',
+        {
+            text: 'transit:transitRouting:errors:BatchRouteErrorOnLine',
+            params: { n: '3' }
+        },
+        'transit:transitRouting:errors:InvalidOriginDestinationCoordinates'
+    ])
 });
 
 test('Parse a csv file, too many faulty lines', async () => {

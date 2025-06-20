@@ -46,14 +46,21 @@ const newObjectAttributes: Omit<JobAttributes<TestJobType>, 'id'> = {
     name: 'test' as const,
     user_id: userAttributes.id,
     internal_data: {},
-    data: data.data
+    data: data.data,
+    statusMessages: { errors: ['string'], warnings: ['warning1', {
+        text: 'text',
+        params: {
+            key1: 'key'
+        }
+    }]}
 };
 
 const updatedAttributes = {
     status: 'inProgress' as const,
     internal_data: {
         checkpoint: 34
-    }
+    },
+    statusMessages: { errors: ['string2'] }
 }
 
 const newObjectAttributes2: Omit<JobAttributes<TestJobType2>, 'id'> = {
@@ -169,7 +176,7 @@ describe(`${objectName}`, () => {
         expect(error).toBeDefined();
 
         // Update the object1 to its original value
-        await dbQueries.update(currentIdForObject1 as number, { status: newObjectAttributes.status, internal_data: newObjectAttributes.internal_data });
+        await dbQueries.update(currentIdForObject1 as number, { status: newObjectAttributes.status, internal_data: newObjectAttributes.internal_data, statusMessages: newObjectAttributes.statusMessages });
     });
 
     test('Read collections by job type', async() => {
