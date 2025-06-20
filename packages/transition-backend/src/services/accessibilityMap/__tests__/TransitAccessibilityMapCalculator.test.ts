@@ -7,10 +7,17 @@
 import { circle as turfCircle } from '@turf/turf';
 import transitRoutingService from 'chaire-lib-backend/lib/services/transitRouting/TransitRoutingService';
 import { TestUtils } from 'chaire-lib-common/lib/test';
+import {
+    categories,
+    detailedCategories,
+    PlaceCategory,
+    PlaceDetailedCategory
+} from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
 import polygonClipping from 'polygon-clipping';
 
 import { TransitAccessibilityMapCalculator } from '../TransitAccessibilityMapCalculator';
 import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
+import placesDbQueries from '../../../models/db/places.db.queries';
 
 const defaultAttributes = {
     locationGeojson: TestUtils.makePoint([-73, 45]),
@@ -20,10 +27,29 @@ const defaultAttributes = {
     arrivalTimeSecondsSinceMidnight: 25200
 }
 
+const accessiblePlacesCountByCategory = categories.reduce(
+    (categoriesAsKeys, category) => ((categoriesAsKeys[category] = 0), categoriesAsKeys),
+    {}
+) as { [key in PlaceCategory]: number };
+accessiblePlacesCountByCategory.education = 10;
+
+const accessiblePlacesCountByDetailedCategory = detailedCategories.reduce(
+    (categoriesAsKeys, category) => ((categoriesAsKeys[category] = 0), categoriesAsKeys),
+    {}
+) as { [key in PlaceDetailedCategory]: number };
+accessiblePlacesCountByDetailedCategory.school_secondary = 6;
+accessiblePlacesCountByDetailedCategory.school_university = 4;
+
 jest.mock('../../../models/db/transitNodes.db.queries', () => ({
     geojsonCollection: jest.fn()
 }));
 const mockedNodesDbCollection = nodesDbQueries.geojsonCollection as jest.MockedFunction<typeof nodesDbQueries.geojsonCollection>;
+
+jest.mock('../../../models/db/places.db.queries', () => ({
+    getPOIsCategoriesCountInPolygon: jest.fn()
+}));
+const mockedPlacesPOIsCount = placesDbQueries.getPOIsCategoriesCountInPolygon as jest.MockedFunction<typeof placesDbQueries.getPOIsCategoriesCountInPolygon>;
+
 jest.mock('chaire-lib-backend/lib/services/transitRouting/TransitRoutingService', () => ({
     accessibleMap: jest.fn()
 }));
@@ -165,6 +191,7 @@ describe('Test accessibility map with results', () => {
         }
     };
     mockedNodesDbCollection.mockResolvedValue({ type: 'FeatureCollection', features: [ node1, node2, node3 ] });
+    mockedPlacesPOIsCount.mockResolvedValue({accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory})
 
     test('Test one polygon, 2 nodes, with additional properties', async() => {
         const attributes = {
@@ -219,6 +246,14 @@ describe('Test accessibility map with results', () => {
         expect(polygonProperties?.scenarioId).toEqual(defaultAttributes.scenarioId);
         expect(polygonProperties?.arrivalTimeSecondsSinceMidnight).toEqual(defaultAttributes.arrivalTimeSecondsSinceMidnight);
         expect(polygonProperties).toEqual(expect.objectContaining(additionalProperties));
+
+        expect(mockedPlacesPOIsCount).toHaveBeenCalledTimes(1);
+        expect(mockedPlacesPOIsCount).toHaveBeenCalledWith(polygons.features[0].geometry);
+        expect(polygonProperties?.accessiblePlacesCountByCategory).toEqual(accessiblePlacesCountByCategory);
+        expect(polygonProperties?.accessiblePlacesCountByDetailedCategory).toEqual(accessiblePlacesCountByDetailedCategory);
+        expect(polygonProperties?.cat_education).toEqual(10);
+        expect(polygonProperties?.catDet_school_secondary).toEqual(6);
+        expect(polygonProperties?.catDet_school_university).toEqual(4);
     });
 
     test('Test one polygon, 2 nodes, different walking speed', async() => {
