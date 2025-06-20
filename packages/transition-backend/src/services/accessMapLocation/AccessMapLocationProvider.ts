@@ -38,15 +38,19 @@ const extractLocation = (
     projection: { srid: number; value: string }
 ): AccessibilityMapLocation => {
     const internalId = line[options.idAttribute];
+    const [locationLat, locationLon] = [parseFloat(line[options.yAttribute]), parseFloat(line[options.xAttribute])];
+    if (isNaN(locationLat) || isNaN(locationLon)) {
+        throw new TrError(
+            'Location coordinates are invalid',
+            'ODTRIP002',
+            'transit:transitRouting:errors:InvalidLocationCoordinates'
+        );
+    }
     const location =
         projection.srid === constants.geographicCoordinateSystem.srid
-            ? turfPoint([parseFloat(line[options.xAttribute]), parseFloat(line[options.yAttribute])]).geometry
-            : turfPoint(
-                proj4(projection.value, constants.geographicCoordinateSystem.value, [
-                    parseFloat(line[options.xAttribute]),
-                    parseFloat(line[options.yAttribute])
-                ])
-            ).geometry;
+            ? turfPoint([locationLon, locationLat]).geometry
+            : turfPoint(proj4(projection.value, constants.geographicCoordinateSystem.value, [locationLon, locationLat]))
+                .geometry;
 
     let time: number | null | undefined = undefined;
     if (options.timeFormat === 'HH:MM') {
