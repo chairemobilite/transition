@@ -17,6 +17,7 @@ import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
 import { BatchAccessMapJobType } from '../services/transitRouting/BatchAccessibilityMapJob';
 import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 import Users from 'chaire-lib-backend/lib/services/users/users';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 prepareSocketRoutes();
 
@@ -56,7 +57,11 @@ function taskUpdateListener() {
 const assertDiskUsage = (task: ExecutableJob<JobDataType>) => {
     const diskUsage = Users.getUserDiskUsage(task.attributes.user_id);
     if (diskUsage.remaining !== undefined && diskUsage.remaining <= 0) {
-        throw 'UserDiskQuotaReached';
+        throw new TrError(
+            'Maximum allowed disk space reached',
+            'TRJOB0001',
+            'transit:transitRouting:errors:UserDiskQuotaReached'
+        );
     }
 };
 
@@ -82,7 +87,7 @@ const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>): Promise<b
     if (inputFileName === undefined) {
         throw 'InvalidInputFile';
     }
-    const { files, ...result } = await batchRoute(
+    const { files, errors, warnings, ...result } = await batchRoute(
         task.attributes.data.parameters.demandAttributes,
         task.attributes.data.parameters.transitRoutingAttributes,
         {
@@ -96,12 +101,19 @@ const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>): Promise<b
     );
     task.attributes.data.results = result;
     task.attributes.resources = { files };
+    // Set status messages if there are errors or warnings
+    if (errors.length > 0 || warnings.length > 0) {
+        task.attributes.statusMessages = {
+            errors: errors,
+            warnings: warnings
+        };
+    }
     return result.completed;
 };
 
 const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>): Promise<boolean> => {
     const absoluteUserDir = task.getJobFileDirectory();
-    const { files, ...result } = await batchAccessibilityMap(
+    const { files, errors, warnings, ...result } = await batchAccessibilityMap(
         task.attributes.data.parameters.batchAccessMapAttributes,
         task.attributes.data.parameters.accessMapAttributes,
         absoluteUserDir,
@@ -110,6 +122,13 @@ const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>): P
     );
     task.attributes.data.results = result;
     task.attributes.resources = { files };
+    // Set status messages if there are errors or warnings
+    if (errors.length > 0 || warnings.length > 0) {
+        task.attributes.statusMessages = {
+            errors: errors,
+            warnings: warnings
+        };
+    }
     return result.completed;
 };
 
@@ -148,6 +167,15 @@ export const wrapTaskExecution = async (id: number) => {
         console.error(
             `Setting job ${task.attributes.id} (${task.attributes.name}) as failed because of an error: ${error}`
         );
+        if (TrError.isTrError(error)) {
+            task.attributes.statusMessages = {
+                errors: [error.export().localizedMessage]
+            };
+        } else {
+            task.attributes.statusMessages = {
+                errors: ['transit:transitRouting:errors:TransitBatchRouteCannotBeCalculatedBecauseError']
+            };
+        }
         task.setFailed();
     }
     await task.save(taskListener);

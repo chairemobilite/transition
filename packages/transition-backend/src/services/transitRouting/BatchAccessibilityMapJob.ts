@@ -15,7 +15,7 @@ export type BatchAccessMapJobType = {
             batchAccessMapAttributes: TransitDemandFromCsvAccessMapAttributes;
             accessMapAttributes: AccessibilityMapAttributes;
         };
-        results?: TransitBatchCalculationResult;
+        results?: Omit<TransitBatchCalculationResult, 'errors' | 'warnings'>;
     };
     files: { input: true; csv: true; geojson: true };
 };

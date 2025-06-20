@@ -15,7 +15,7 @@ export type BatchRouteJobType = {
             demandAttributes: TransitBatchRoutingDemandAttributes;
             transitRoutingAttributes: BatchCalculationParameters;
         };
-        results?: TransitBatchCalculationResult;
+        results?: Omit<TransitBatchCalculationResult, 'errors' | 'warnings'>;
     };
     files: { input: true; csv: true; detailedCsv: true; geojson: true };
 };
