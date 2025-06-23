@@ -15,6 +15,9 @@ const AccessibilityMapStatsComponent: React.FunctionComponent<AccessibilityMapSt
     props: AccessibilityMapStatsComponentProps
 ) => {
     const features = props.accessibilityPolygons.features;
+
+    const language = props.i18n.language;
+
     features.sort((feat1, feat2) => {
         const duration1 = feat1.properties?.durationMinutes;
         const duration2 = feat2.properties?.durationMinutes;
@@ -70,11 +73,11 @@ const AccessibilityMapStatsComponent: React.FunctionComponent<AccessibilityMapSt
                     </tr>
                     <tr>
                         <th>{props.t('transit:transitRouting:AccessibilityMapAreaSquareKm')}</th>
-                        <td>{Math.round(properties.areaSqKm * 100) / 100}</td>
+                        <td>{(Math.round(properties.areaSqKm * 100) / 100).toLocaleString(language)}</td>
                     </tr>
                     <tr>
                         <th>{props.t('transit:transitRouting:AccessibilityMapAreaSquarem')}</th>
-                        <td>{Math.round(properties.areaSqM)}</td>
+                        <td>{Math.round(properties.areaSqM).toLocaleString(language)}</td>
                     </tr>
                     {atLeastOneCategoryNotEmpty && (
                         <tr>
