@@ -17,13 +17,16 @@ export interface AccessibilityMapStatsComponentProps {
 const AccessibilityMapStatsComponent: React.FunctionComponent<AccessibilityMapStatsComponentProps> = (
     props: AccessibilityMapStatsComponentProps
 ) => {
-    const { t } = useTranslation(['transit', 'main']);
+    const { t, i18n } = useTranslation(['transit', 'main']);
 
     //We make the background color a very transparent white so that nested collapsibles can be distinguished with increasingly light colors.
     const collapsibleBackgroundColor = 'rgba(255, 255, 255, 0.05)';
     const textEmphasizedColor = 'rgb(216, 239, 253)';
 
     const features = props.accessibilityPolygons.features;
+
+    const language = i18n.language;
+
     features.sort((feat1, feat2) => {
         const duration1 = feat1.properties?.durationMinutes;
         const duration2 = feat2.properties?.durationMinutes;
@@ -121,11 +124,11 @@ const AccessibilityMapStatsComponent: React.FunctionComponent<AccessibilityMapSt
                     </tr>
                     <tr>
                         <th>{t('transit:transitRouting:AccessibilityMapAreaSquareKm')}</th>
-                        <td>{Math.round(properties.areaSqKm * 100) / 100}</td>
+                        <td>{(Math.round(properties.areaSqKm * 100) / 100).toLocaleString(language)}</td>
                     </tr>
                     <tr>
                         <th>{t('transit:transitRouting:AccessibilityMapAreaSquarem')}</th>
-                        <td>{Math.round(properties.areaSqM)}</td>
+                        <td>{Math.round(properties.areaSqM).toLocaleString(language)}</td>
                     </tr>
                     {categoryTotal > 0 && (
                         <React.Fragment>
