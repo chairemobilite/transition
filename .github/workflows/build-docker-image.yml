@@ -6,6 +6,9 @@ on:
       - "main"
       - "deck-gl-poc"
   workflow_dispatch:
+  schedule:
+    # Do a daily rebuild at 2:00 AM UTC
+    - cron: '0 2 * * *'
 
 env:
   GITHUB_REGISTRY: ghcr.io
