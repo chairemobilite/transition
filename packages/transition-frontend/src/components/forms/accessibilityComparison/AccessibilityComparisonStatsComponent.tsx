@@ -21,7 +21,9 @@ export interface AccessibilityComparisonStatsComponentProps {
 const AccessibilityComparisonStatsComponent: React.FunctionComponent<AccessibilityComparisonStatsComponentProps> = (
     props: AccessibilityComparisonStatsComponentProps
 ) => {
-    const { t } = useTranslation(['transit', 'main']);
+    const { t, i18n } = useTranslation(['transit', 'main']);
+
+    const language = i18n.language;
 
     const sortByDuration = (features: GeoJSON.Feature[]) => {
         features.sort((feat1, feat2) => {
@@ -68,15 +70,24 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
                 </tr>
                 <tr>
                     <th>{t('transit:transitRouting:AccessibilityMapAreaSquareKm')}</th>
-                    <td>{Math.round(properties1.areaSqKm * 100) / 100}</td>
-                    <td>{Math.round(properties2.areaSqKm * 100) / 100}</td>
-                    <td>{Math.round((properties2.areaSqKm - properties1.areaSqKm) * 100) / 100}</td>
+                    <td>{(Math.round(properties1.areaSqKm * 100) / 100).toLocaleString(language)}</td>
+                    <td>{(Math.round(properties2.areaSqKm * 100) / 100).toLocaleString(language)}</td>
+                    <td>
+                        {(Math.round((properties2.areaSqKm - properties1.areaSqKm) * 100) / 100).toLocaleString(
+                            language,
+                            { signDisplay: 'exceptZero' }
+                        )}
+                    </td>
                 </tr>
                 <tr>
                     <th>{t('transit:transitRouting:AccessibilityMapAreaSquarem')}</th>
-                    <td>{Math.round(properties1.areaSqM)}</td>
-                    <td>{Math.round(properties2.areaSqM)}</td>
-                    <td>{Math.round(properties2.areaSqM - properties1.areaSqM)}</td>
+                    <td>{Math.round(properties1.areaSqM).toLocaleString(language)}</td>
+                    <td>{Math.round(properties2.areaSqM).toLocaleString(language)}</td>
+                    <td>
+                        {Math.round(properties2.areaSqM - properties1.areaSqM).toLocaleString(language, {
+                            signDisplay: 'exceptZero'
+                        })}
+                    </td>
                 </tr>
                 {/* TODO: Add more rows when POIs are fixed. */}
             </React.Fragment>
