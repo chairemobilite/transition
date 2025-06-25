@@ -4,9 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import { MjolnirEvent } from 'mjolnir.js';
+import { PickingInfo } from 'deck.gl';
 
-import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import { MapEventHandlerDescription, PointInfo } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 /* This file encapsulates map events specific for the 'accessibilityMap' section */
@@ -16,67 +17,41 @@ const isAccessMapActiveSection = (activeSection: string) =>
 
 const isAccessMapComparisonActiveSection = (activeSection: string) => activeSection === 'accessibilityComparison';
 
-const onAccessMapSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
+const onAccessMapSectionMapClick = (pointInfo: PointInfo, _event: MjolnirEvent) => {
     serviceLocator.eventManager.emit(
         'routing.transitAccessibilityMap.clickedOnMap',
-        e.lngLat.toArray(),
+        pointInfo.coordinates,
         'accessibilityMapLocation'
     );
-    e.originalEvent.stopPropagation();
+    return true;
 };
 
-const onAccessMapMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
-    if (!e.features || e.features.length === 0) {
-        return;
+const onLocationDrag = (info: PickingInfo, _event: MjolnirEvent) => {
+    const location = info.object?.properties?.location;
+    if (!location) {
+        return false;
     }
-    // start drag:
-    const feature = e.features[0];
-    const map = e.target as any;
-    serviceLocator.eventManager.emit('map.disableDragPan');
-    map._currentDraggingFeature = feature.properties?.location;
-    e.originalEvent.stopPropagation();
+    serviceLocator.eventManager.emit('routing.transitAccessibilityMap.dragLocation', info.coordinate, location);
+    return true;
 };
 
-const onAccessMapMouseUp = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
-    if (
-        map._currentDraggingFeature === 'accessibilityMapLocation' ||
-        map._currentDraggingFeature === 'accessibilityMapLocation2'
-    ) {
-        serviceLocator.eventManager.emit(
-            'routing.transitAccessibilityMap.dragLocation',
-            e.lngLat.toArray(),
-            map._currentDraggingFeature
-        );
-        map._currentDraggingFeature = null;
-        serviceLocator.eventManager.emit('map.enableDragPan');
-        e.originalEvent.stopPropagation();
+const onLocationDragEnd = (info: PickingInfo, _event: MjolnirEvent) => {
+    const location = info.object?.properties?.location;
+    if (!location) {
+        return false;
     }
+    serviceLocator.eventManager.emit('routing.transitAccessibilityMap.dragLocation', info.coordinate, location);
+    return true;
 };
 
-const onAccessMapMouseMove = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
-    if (
-        map._currentDraggingFeature === 'accessibilityMapLocation' ||
-        map._currentDraggingFeature === 'accessibilityMapLocation2'
-    ) {
-        serviceLocator.eventManager.emit(
-            'routing.transitAccessibilityMap.dragLocation',
-            e.lngLat.toArray(),
-            map._currentDraggingFeature
-        );
-        e.originalEvent.stopPropagation();
-    }
-};
-
-const onLocationComparisonContextMenu = (e: MapboxGL.MapMouseEvent) => {
-    serviceLocator.eventManager.emit('map.showMapComparisonContextMenu', e, [
+const onLocationComparisonContextMenu = (pointInfo: PointInfo, _event: MjolnirEvent) => {
+    serviceLocator.eventManager.emit('map.showMapComparisonContextMenu', pointInfo.pixel, [
         {
             title: 'transit:accessibilityComparison:contextMenu:SetAsLocation1',
             onClick: () =>
                 serviceLocator.eventManager.emit(
                     'routing.transitAccessibilityMap.clickedOnMap',
-                    e.lngLat.toArray(),
+                    pointInfo.coordinates,
                     'accessibilityMapLocation'
                 )
         },
@@ -85,30 +60,36 @@ const onLocationComparisonContextMenu = (e: MapboxGL.MapMouseEvent) => {
             onClick: () =>
                 serviceLocator.eventManager.emit(
                     'routing.transitAccessibilityMap.clickedOnMap',
-                    e.lngLat.toArray(),
+                    pointInfo.coordinates,
                     'accessibilityMapLocation2'
                 )
         }
     ]);
+    return true;
 };
 
 const accessMapSectionEventDescriptors: MapEventHandlerDescription[] = [
-    { type: 'map', eventName: 'click', condition: isAccessMapActiveSection, handler: onAccessMapSectionMapClick },
+    { type: 'map', eventName: 'onLeftClick', condition: isAccessMapActiveSection, handler: onAccessMapSectionMapClick },
     {
         type: 'map',
-        eventName: 'contextmenu',
+        eventName: 'onRightClick',
         condition: isAccessMapComparisonActiveSection,
         handler: onLocationComparisonContextMenu
     },
     {
         type: 'layer',
-        eventName: 'mousedown',
         layerName: 'accessibilityMapPoints',
+        eventName: 'onDrag',
         condition: isAccessMapActiveSection,
-        handler: onAccessMapMouseDown
+        handler: onLocationDrag
     },
-    { type: 'map', eventName: 'mouseup', condition: isAccessMapActiveSection, handler: onAccessMapMouseUp },
-    { type: 'map', eventName: 'mousemove', condition: isAccessMapActiveSection, handler: onAccessMapMouseMove }
+    {
+        type: 'layer',
+        layerName: 'accessibilityMapPoints',
+        eventName: 'onDragEnd',
+        condition: isAccessMapActiveSection,
+        handler: onLocationDragEnd
+    }
 ];
 
 export default accessMapSectionEventDescriptors;
