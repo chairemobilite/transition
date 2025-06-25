@@ -25,6 +25,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.1",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mapbox/mapbox-gl-draw": "^1.4.3",
+    "@pitininja/cap-react-widget": "^1.1.1",
     "@turf/turf": "^7.1.0",
     "chaire-lib-common": "^0.2.2",
     "date-fns": "^2.30.0",

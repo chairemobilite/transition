@@ -24,6 +24,15 @@ const CaptchaComponent: React.FunctionComponent<CaptchaProps> = (props: CaptchaP
                     console.error('Error loading captcha component:', err);
                     setError('Failed to load captcha component');
                 });
+        } else if (config.captchaComponentType === 'capjs') {
+            import('./CapJsCaptcha')
+                .then((module) => {
+                    setCaptchaImpl(() => module.default);
+                })
+                .catch((err) => {
+                    console.error('Error loading captcha component:', err);
+                    setError('Failed to load captcha component');
+                });
         } else {
             setError(`Unsupported captcha component type: ${config.captchaComponentType}`);
         }

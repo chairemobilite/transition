@@ -26,6 +26,7 @@
         "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write"
     },
     "dependencies": {
+        "@cap.js/server": "^2.0.0",
         "@casl/ability": "^6.7.3",
         "@opentelemetry/api": "^1.9.0",
         "@opentelemetry/core": "^1.29.0",
@@ -34,8 +35,8 @@
         "@opentelemetry/instrumentation-express": "^0.46.0",
         "@opentelemetry/instrumentation-http": "^0.56.0",
         "@opentelemetry/resources": "^1.29.0",
-        "@opentelemetry/sdk-trace-node": "^1.29.0",
         "@opentelemetry/sdk-trace-base": "^1.29.0",
+        "@opentelemetry/sdk-trace-node": "^1.29.0",
         "@turf/turf": "^7.1.0",
         "@zeit/fetch-retry": "^5.0.1",
         "bcryptjs": "^2.4.3",
