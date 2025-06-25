@@ -9,7 +9,7 @@ import { startRegisterWithPassword } from '../../../../actions/Auth';
 import Button from '../../../input/Button';
 import FormErrors from '../../../pageParts/FormErrors';
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
-import CaptchaComponent, { validateCaptcha } from './CaptchaComponent';
+import CaptchaComponent from '../../../captcha/CaptchaComponent';
 import { _isEmail } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { RootState } from '../../../../store/configureStore';
 
@@ -24,7 +24,8 @@ type FormState = {
     email: string;
     password: string;
     passwordConfirmation: string;
-    userCaptcha: string;
+    captchaValid: boolean;
+    captchaReloadKey: number;
     error?: ErrorMessage;
 };
 
@@ -47,7 +48,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         email: '',
         password: '',
         passwordConfirmation: '',
-        userCaptcha: ''
+        captchaValid: false,
+        captchaReloadKey: 0
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -77,7 +79,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         if (!_isEmail(formState.email)) {
             return 'auth:invalidEmail';
         }
-        if (withCaptcha && !validateCaptcha(formState.userCaptcha)) {
+        if (withCaptcha && formState.captchaValid !== true) {
             return 'auth:captchaMismatch';
         }
         return undefined;
@@ -89,7 +91,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             setFormState((prev) => ({
                 ...prev,
                 error,
-                ...(withCaptcha ? { userCaptcha: '' } : {})
+                // Increment captcha reload key for the captcha who may need to
+                // reload. Do not invalidate as some captchas, like
+                // pow-captchas, don't need reloading. Let captcha component
+                // decide what to do
+                ...(withCaptcha ? { captchaReloadKey: prev.captchaReloadKey + 1 } : {})
             }));
             return;
         }
@@ -193,9 +199,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             {withCaptcha && (
                 <div className="apptr__form-container question-empty">
                     <CaptchaComponent
-                        value={formState.userCaptcha}
-                        onChange={(e) => handleInputChange(e)}
-                        onKeyUp={handleEnterKeyUp}
+                        onCaptchaValid={(isValid) =>
+                            setFormState((prev) => ({
+                                ...prev,
+                                captchaValid: isValid
+                            }))
+                        }
+                        reloadKey={formState.captchaReloadKey}
                     />
                 </div>
             )}

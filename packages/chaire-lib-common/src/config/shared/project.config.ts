@@ -85,6 +85,13 @@ export type ProjectConfiguration<AdditionalConfig> = {
         facebook?: boolean;
     };
     separateAdminLoginPage: boolean;
+    /**
+     * The type of captcha to use in the application, where required. `simple`
+     * means a simple captcha where the user needs to identify a string of
+     * character from an image and does not require any additional
+     * configuration. Defaults to `simple`.
+     */
+    captchaComponentType: 'simple';
     // @deprecated
     confirmEmail?: boolean;
     // @deprecated
@@ -123,7 +130,8 @@ const projectConfig: ProjectConfiguration<any> = {
     projectShortname: 'default',
     userDiskQuota: '1gb',
     maxFileUploadMB: 256,
-    sections: {}
+    sections: {},
+    captchaComponentType: 'simple'
 };
 
 /**
