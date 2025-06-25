@@ -91,7 +91,7 @@ export type ProjectConfiguration<AdditionalConfig> = {
      * character from an image and does not require any additional
      * configuration. Defaults to `simple`.
      */
-    captchaComponentType: 'simple';
+    captchaComponentType: 'simple' | 'capjs';
     // @deprecated
     confirmEmail?: boolean;
     // @deprecated

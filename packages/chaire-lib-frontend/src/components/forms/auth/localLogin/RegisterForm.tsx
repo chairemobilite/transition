@@ -199,7 +199,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             {withCaptcha && (
                 <div className="apptr__form-container question-empty">
                     <CaptchaComponent
-                        onCaptchaValid={(isValid) =>
+                        onCaptchaValid={(isValid, _captchaValue) =>
+                            // FIXME Consider doing something about the captcha
+                            // value, like sending to the backend for validation
+                            // if the captcha components supports it
                             setFormState((prev) => ({
                                 ...prev,
                                 captchaValid: isValid

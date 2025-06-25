@@ -273,6 +273,19 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
+"@cap.js/server@^1.0.16":
+  version "1.0.16"
+  resolved "https://registry.yarnpkg.com/@cap.js/server/-/server-1.0.16.tgz#354c2dfd2d5b3b0e02bb115b2858dcd8fd66fc8c"
+  integrity sha512-sUutpIiSdFwVkyHJWMQqdfz7DDD3vE/uT7pA80fV2yOWA/wQRlNkIGhQNsWBazwhkPhA2bFsLLIhPvp8MUv10w==
+  dependencies:
+    "@types/node" "^22.14.1"
+    typescript "^5.8.3"
+
+"@cap.js/widget@^0.1.20":
+  version "0.1.21"
+  resolved "https://registry.yarnpkg.com/@cap.js/widget/-/widget-0.1.21.tgz#6047bc612c4a5586be05c3ba8ade4a9f313fab7c"
+  integrity sha512-b/gGS3OSTqpHjqgUcOkdyrOmDqpmVHu3XdZDIWlnex4i4IPs6oNiVy82tN/Uh5/LnBHW4vYvwCGkMUUDVcI+WQ==
+
 "@casl/ability@^6.7.3":
   version "6.7.3"
   resolved "https://registry.yarnpkg.com/@casl/ability/-/ability-6.7.3.tgz#3c831c8230ccd32bd8eebc6d10f3d7e28e473958"
@@ -1243,6 +1256,13 @@
     "@parcel/watcher-win32-arm64" "2.5.1"
     "@parcel/watcher-win32-ia32" "2.5.1"
     "@parcel/watcher-win32-x64" "2.5.1"
+
+"@pitininja/cap-react-widget@^1.0.0-beta.4":
+  version "1.0.0-beta.4"
+  resolved "https://registry.yarnpkg.com/@pitininja/cap-react-widget/-/cap-react-widget-1.0.0-beta.4.tgz#a6defa75c2dd13da5a68f91c410be528dbfc0c0e"
+  integrity sha512-OXCOXkNhaz2q8Y+Hbo7EPpy8VdkzqB6TJn5nA2j6qqjG3XyoNGD0Cb6HFzRIFMynZQDEcUyenEH3CP63mc3VvQ==
+  dependencies:
+    "@cap.js/widget" "^0.1.20"
 
 "@pkgjs/parseargs@^0.11.0":
   version "0.11.0"
@@ -3243,7 +3263,7 @@
   resolved "https://registry.yarnpkg.com/@types/ms/-/ms-0.7.34.tgz#10964ba0dee6ac4cd462e2795b6bebd407303433"
   integrity sha512-nG96G3Wp6acyAgJqGasjODb+acrI7KltPiRxzHPXnP3NgI28bpQDRv53olbqGXbfcgF5aiiHmO3xpwEpS5Ld9g==
 
-"@types/node@*", "@types/node@>=10.0.0", "@types/node@>=13.7.0", "@types/node@^22.15.3":
+"@types/node@*", "@types/node@>=10.0.0", "@types/node@>=13.7.0", "@types/node@^22.15.3", "@types/node@^22.14.1":
   version "22.15.3"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-22.15.3.tgz#b7fb9396a8ec5b5dfb1345d8ac2502060e9af68b"
   integrity sha512-lX7HFZeHf4QG/J7tBZqrCAXwz9J5RD56Y6MpP0eJkka8p+K0RY/yBTW7CYFJ4VGCclxqOLKmiGP5juQc6MKgcw==
