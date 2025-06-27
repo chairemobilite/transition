@@ -19,6 +19,7 @@ import { getConfirmEmailStrategy } from '../config/auth/localLogin.config';
 import { UserAttributes } from '../services/users/user';
 import { IAuthModel, IUserModel } from '../services/auth/authModel';
 import { PassportStatic } from 'passport';
+import setupCaptchRoutes from './captcha.routes';
 
 const defaultSuccessCallback = (req: Request, res: Response) => {
     // Handle success
@@ -276,4 +277,7 @@ export default <U extends IUserModel>(router: express.Router, authModel: IAuthMo
             });
         }
     });
+
+    // Setup eventual captcha routes for the application, as it is often related to authentication
+    setupCaptchRoutes(router);
 };
