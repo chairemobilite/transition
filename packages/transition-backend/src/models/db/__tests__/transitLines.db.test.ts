@@ -15,6 +15,7 @@ import schedulesDbQueries from '../transitSchedules.db.queries';
 import pathsDbQueries from '../transitPaths.db.queries';
 import Collection        from 'transition-common/lib/services/line/LineCollection';
 import ObjectClass, { Line, LineAttributes }       from 'transition-common/lib/services/line/Line';
+import { cleanScenarioData, insertDataForScenarios } from './transitDataByScenario.db.data';
 
 const objectName = 'line';
 const agencyId   = '273a583c-df49-440f-8f44-f39fb0033c56';
@@ -283,7 +284,7 @@ describe(`${objectName}`, () => {
 
     test('should read collection from database with specific line ids', async() => {
         
-        const _collection = await dbQueries.collection([newObjectAttributesWithSchedule.id, uuidV4()]);
+        const _collection = await dbQueries.collection({ lineIds: [newObjectAttributesWithSchedule.id, uuidV4()] });
         const objectCollection = new Collection([], {});
         objectCollection.loadFromCollection(_collection);
         const collection = objectCollection.features;
@@ -424,6 +425,103 @@ describe('Lines, with transactions', () => {
         const object1 = collection.find((obj) => obj.id === attributesWihoutSched.id);
         expect(object1).toBeDefined();
         expect(object1).toEqual(expect.objectContaining(attributesWihoutSched));
+    });
+
+});
+
+describe('Lines, filtered by scenarios', () => {
+
+    let scenarioDbData: any;
+    beforeAll(async () => {
+        scenarioDbData = await insertDataForScenarios();
+    });
+
+    afterAll(async () => {
+        await cleanScenarioData();
+    });
+
+    test('Get lines for a specific scenario, all lines expected', async() => {
+        const expectedLineIds = scenarioDbData.lineIds;
+        const lines = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServices });
+
+        expect(lines.length).toEqual(expectedLineIds.length);
+        for (const line of lines) {
+            expect(expectedLineIds).toContain(line.id);
+        }
+    });
+
+    test('Get lines for a specific scenario, filtered lines expected', async () => {
+        const expectedLineIds = [scenarioDbData.lineIds[0]];
+        const lines = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithService2 });
+
+        expect(lines.length).toEqual(expectedLineIds.length);
+        for (const line of lines) {
+            expect(expectedLineIds).toContain(line.id);
+        }
+    });
+
+    test('Get lines for a specific scenario, with only agencies', async() => {
+        const expectedLineIds = [scenarioDbData.lineIds[0]];
+        const lines = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServicesOnlyAgency1 });
+
+        expect(lines.length).toEqual(expectedLineIds.length);
+        for (const line of lines) {
+            expect(expectedLineIds).toContain(line.id);
+        }
+    });
+
+    test('Get lines for a specific scenario, with exclude agencies', async() => {
+        const expectedLineIds = [scenarioDbData.lineIds[1]];
+        const lines = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServicesWithoutAgency1 });
+
+        expect(lines.length).toEqual(expectedLineIds.length);
+        for (const line of lines) {
+            expect(expectedLineIds).toContain(line.id);
+        }
+    });
+
+    test('Get lines for a specific scenario, with only lines', async() => {
+        const expectedLineIds = [scenarioDbData.lineIds[0]];
+        const lines = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServicesOnlyLine1 });
+
+        expect(lines.length).toEqual(expectedLineIds.length);
+        for (const line of lines) {
+            expect(expectedLineIds).toContain(line.id);
+        }
+    });
+
+    test('Get lines for a specific scenario, with exclude lines', async() => {
+        const expectedLineIds = [scenarioDbData.lineIds[1]];
+        const lines = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServicesWithoutLine1 });
+
+        expect(lines.length).toEqual(expectedLineIds.length);
+        for (const line of lines) {
+            expect(expectedLineIds).toContain(line.id);
+        }
+    });
+
+    test('Get lines for a specific scenario, with include multiple lines, should have all lines', async() => {
+        const expectedLineIds = scenarioDbData.lineIds;
+        const lines = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWith2LinesIncluded });
+
+        expect(lines.length).toEqual(expectedLineIds.length);
+        for (const line of lines) {
+            expect(expectedLineIds).toContain(line.id);
+        }
+    });
+
+    test('Get lines for a specific scenario, with exclude multiple lines, should be empty', async() => {
+        const expectedLineIds = [];
+        const lines = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWith2LinesExcluded });
+
+        expect(lines.length).toEqual(expectedLineIds.length);
+    });
+
+    test('Get lines for a specific scenario, empty scenario', async() => {
+        const expectedLineIds = [];
+        const lines = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithEmptyServices });
+
+        expect(lines.length).toEqual(expectedLineIds.length);
     });
 
 });
