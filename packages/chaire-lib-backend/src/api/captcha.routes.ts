@@ -10,7 +10,7 @@ import config from '../config/server.config';
 import { fileManager } from '../utils/filesystem/fileManager';
 
 // Define the type for the validation function
-export type CaptchaValidationFunction = (token: string) => Promise<boolean>;
+export type CaptchaValidationFunction = (token: string, opts: { keepToken: boolean }) => Promise<boolean>;
 
 // This variable will hold the validation function once the library is loaded
 let validateCaptcha: CaptchaValidationFunction | undefined = undefined;
@@ -22,14 +22,27 @@ export interface CaptchaMiddlewareOptions {
     headerName?: string; // Header to look for
     errorStatusCode?: number; // Status code to return on failure (default: 403)
     errorMessage?: string; // Error message to return
+    /**
+     * Whether to re-use or delete the token after validation. If set to `true`,
+     * many requests can re-use the same captcha token, as long as the token
+     * does not expire or the server restarts. If `false, once a request is done
+     * with a captcha token, then the server will delete the token and it cannot
+     * be used again in queries. The user will have to answer to the captcha
+     * once again, with a new token, so the forms calling the routes with
+     * `keepToken` set to `false` should make sure that upon errors from the
+     * server, if a subsequent call to the backend has to be done, a new token
+     * will have to be generated.  Defaults to `false`
+     */
+    keepToken?: boolean;
 }
 
-const defaultMiddlewareOptions: CaptchaMiddlewareOptions = {
+const defaultMiddlewareOptions: Required<CaptchaMiddlewareOptions> = {
     tokenField: 'captchaToken',
     queryParam: 'captchaToken',
     headerName: 'X-Captcha-Token',
     errorStatusCode: 403,
-    errorMessage: 'Captcha validation failed'
+    errorMessage: 'Captcha validation failed',
+    keepToken: false // Default to using the token only once
 };
 
 export default (router: express.Router) => {
@@ -58,9 +71,9 @@ export default (router: express.Router) => {
                 });
 
                 // Define the validation function
-                validateCaptcha = async (token: string): Promise<boolean> => {
+                validateCaptcha = async (token: string, opts): Promise<boolean> => {
                     try {
-                        const validationResult = await cap.validateToken(token);
+                        const validationResult = await cap.validateToken(token, { keepToken: opts.keepToken });
                         return validationResult.success === true;
                     } catch (error) {
                         console.error('CapJS validation error:', error);
@@ -97,7 +110,7 @@ export default (router: express.Router) => {
  */
 export const validateCaptchaToken = (options: CaptchaMiddlewareOptions = {}) => {
     // Merge with default options
-    const opts = { ...defaultMiddlewareOptions, ...options };
+    const opts: Required<CaptchaMiddlewareOptions> = { ...defaultMiddlewareOptions, ...options };
 
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         // Check if validation function is initialized
@@ -127,7 +140,7 @@ export const validateCaptchaToken = (options: CaptchaMiddlewareOptions = {}) => 
 
         try {
             // Validate the token
-            const isValid = await validateCaptcha(token);
+            const isValid = await validateCaptcha(token, { keepToken: opts.keepToken });
             if (isValid) {
                 // Token is valid, proceed with request
                 return next();

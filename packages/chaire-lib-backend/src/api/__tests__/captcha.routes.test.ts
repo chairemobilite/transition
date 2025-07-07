@@ -54,8 +54,8 @@ jest.mock('@cap.js/server', () => {
             return redeemChallengeMock(params);
         }
 
-        async validateToken(token) {
-            return validateTokenMock(token);
+        async validateToken(token, opts) {
+            return validateTokenMock(token, opts);
         }
     }
 
@@ -107,7 +107,7 @@ describe('Captcha Routes Tests', () => {
             middlewareApp.use(express.json());
             middlewareApp.post(
                 '/protected',
-                validateCaptchaToken(),
+                validateCaptchaToken({ keepToken: true }),
                 (req, res) => res.status(200).json({ success: true })
             );
             
@@ -196,7 +196,7 @@ describe('Captcha Routes Tests', () => {
                 
                 // Verify validateToken was called correctly
                 expect(validateTokenMock).toHaveBeenCalledTimes(1);
-                expect(validateTokenMock).toHaveBeenCalledWith(validToken);
+                expect(validateTokenMock).toHaveBeenCalledWith(validToken, { keepToken: true });
             });
 
             it('should call validateToken with invalid token', async () => {
@@ -211,7 +211,31 @@ describe('Captcha Routes Tests', () => {
                 
                 // Verify validateToken was called correctly
                 expect(validateTokenMock).toHaveBeenCalledTimes(1);
-                expect(validateTokenMock).toHaveBeenCalledWith(invalidToken);
+                expect(validateTokenMock).toHaveBeenCalledWith(invalidToken, { keepToken: true });
+            });
+
+            it('should call validateToken with { keepToken: false } if middleware configured so', async () => {
+                // Setup middleware app with keepToken set to false
+                const middlewareAppTokenNotKept = express();
+                middlewareAppTokenNotKept.use(express.json());
+                middlewareAppTokenNotKept.post(
+                    '/protected',
+                    validateCaptchaToken({ keepToken: false }),
+                    (req, res) => res.status(200).json({ success: true })
+                );
+
+                const validToken = 'validToken';
+                const response = await request(middlewareAppTokenNotKept)
+                    .post('/protected')
+                    .send({ captchaToken: validToken });
+
+                // Verify the API response
+                expect(response.status).toBe(200);
+                expect(response.body).toHaveProperty('success', true);
+                
+                // Verify validateToken was called correctly
+                expect(validateTokenMock).toHaveBeenCalledTimes(1);
+                expect(validateTokenMock).toHaveBeenCalledWith(validToken, { keepToken: false });
             });
 
             it('should not call validateToken when no token is provided', async () => {
