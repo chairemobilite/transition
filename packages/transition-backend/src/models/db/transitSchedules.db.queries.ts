@@ -800,6 +800,39 @@ const duplicateSchedule = async ({
     }
 };
 
+const getTripsInTimeRange = async ({
+    rangeStart,
+    rangeEnd,
+    lineIds,
+    serviceIds
+}: {
+    rangeStart: number;
+    rangeEnd: number;
+    lineIds: string[];
+    serviceIds: string[];
+}): Promise<(SchedulePeriodTrip & { line_id: string; service_id: string })[]> => {
+    try {
+        const query = knex(tripTable)
+            .select([`${tripTable}.*`, `${scheduleTable}.service_id`, `${scheduleTable}.line_id`])
+            .join(periodTable, `${tripTable}.schedule_period_id`, `${periodTable}.id`)
+            .join(scheduleTable, `${periodTable}.schedule_id`, `${scheduleTable}.id`)
+            .whereIn(`${scheduleTable}.line_id`, lineIds)
+            .whereIn(`${scheduleTable}.service_id`, serviceIds)
+            .andWhere(`${tripTable}.departure_time_seconds`, '<=', rangeEnd)
+            .andWhere(`${tripTable}.arrival_time_seconds`, '>=', rangeStart);
+
+        const rows = await query;
+        const trips = rows.map(scheduleTripsAttributesParser);
+        return trips as (SchedulePeriodTrip & { line_id: string; service_id: string })[];
+    } catch (error) {
+        throw new TrError(
+            `Cannot get trips in time range ${rangeStart}-${rangeEnd} in database (knex error: ${error})`,
+            'DBSCHED0004',
+            'TransitScheduleCannotUpdateBecauseDatabaseError'
+        );
+    }
+};
+
 export default {
     exists: exists.bind(null, knex, scheduleTable),
     read: readScheduleData,
@@ -828,5 +861,6 @@ export default {
     collection,
     /** Read the schedules for a list of lines */
     readForLines,
-    duplicateSchedule
+    duplicateSchedule,
+    getTripsInTimeRange
 };
