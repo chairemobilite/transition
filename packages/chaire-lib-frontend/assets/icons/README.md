@@ -11,3 +11,7 @@ Modified by: Pierre-Léo Bourbonnais (simplified geometry, changed viewbox, opti
 ### bicycle_without_rider
 License: MIT
 Author: Pierre-Léo Bourbonnais
+
+### bicycle_without_rider_electric
+License: MIT
+Author: Pierre-Léo Bourbonnais
