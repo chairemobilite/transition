@@ -995,8 +995,8 @@
         }
     },
     "batchCalculation": {
-        "List": "Tâches de calcul",
-        "New": "Nouveau calcul",
+        "RoutingList": "Tâches de calcul",
+        "RoutingNew": "Nouveau calcul",
         "UploadFile": "Téléverser le fichier",
         "DemandData": "Données de la demande",
         "AnalysisParameters": "Paramètres",
@@ -1010,7 +1010,11 @@
             "InputFileUnavailable": "Le fichier d'entrée n'existe pas pour cette tâche",
             "ErrorGettingReplayParameters": "Un problème est survenu lors de l'obtention de la configuration pour ré-exécuter un calcul",
             "ParallelCalculationsIsTooLow": "Le nombre de calculs parallèles doit être positif ou non défini pour utiliser le maximum disponible"
-        }
+        },
+        "RoutingCalculation": "Calcul de chemin",
+        "ValidationCalculation": "Validation de trajets",
+        "ValidationList": "Tâches de validation",
+        "ValidationNew": "Nouvelle tâche"
     },
     "preferences": {
         "routing": {

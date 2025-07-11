@@ -995,8 +995,8 @@
         }
     },
     "batchCalculation": {
-        "List": "Calculation jobs",
-        "New": "New calculation",
+        "RoutingList": "Calculation jobs",
+        "RoutingNew": "New calculation",
         "UploadFile": "Upload file",
         "DemandData": "Demand data",
         "AnalysisParameters": "Parameters",
@@ -1010,7 +1010,11 @@
             "InputFileUnavailable": "Input file does not exist for this job",
             "ErrorGettingReplayParameters": "Error getting execution data to replay calculation",
             "ParallelCalculationsIsTooLow": "Number of parallel calculations should be positive or left undefined to use the maximum available"
-        }
+        },
+        "RoutingCalculation": "Routing",
+        "ValidationCalculation": "Trip validation",
+        "ValidationList": "Validation jobs",
+        "ValidationNew": "New validation"
     },
     "preferences": {
         "routing": {

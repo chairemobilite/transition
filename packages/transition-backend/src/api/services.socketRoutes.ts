@@ -18,6 +18,7 @@ import { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-commo
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import {
     TransitBatchRoutingDemandAttributes,
+    TransitBatchValidationDemandAttributes,
     TransitDemandFromCsvAccessMapAttributes
 } from 'transition-common/lib/services/transitDemand/types';
 
@@ -38,6 +39,7 @@ import {
     TransitAccessibilityMapWithPolygonResult,
     TransitAccessibilityMapComparisonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
+import { TransitApi } from 'transition-common/lib/api/transit';
 
 // TODO The socket routes should validate parameters as even typescript cannot guarantee the types over the network
 // TODO Add more unit tests as the called methods are cleaned up
@@ -332,6 +334,45 @@ export default function (socket: EventEmitter, userId?: number) {
                     await job.refresh();
                     // TODO Do a quick return with task detail instead of waiting for task to finish
                     callback(Status.createOk(job.attributes.data.results));
+                } catch (error) {
+                    console.error(error);
+                    callback(Status.createError(TrError.isTrError(error) ? error.message : error));
+                }
+            }
+        );
+
+        socket.on(
+            TransitApi.BATCH_VALIDATE,
+            async (
+                _parameters: TransitBatchValidationDemandAttributes,
+                _transitValidationAttributes: BatchCalculationParameters,
+                callback
+            ) => {
+                try {
+                    console.log('Executing validation batch job');
+                    throw 'Not implemented yet';
+                } catch (error) {
+                    console.error(error);
+                    callback(Status.createError(TrError.isTrError(error) ? error.message : error));
+                }
+            }
+        );
+
+        socket.on(
+            TransitApi.BATCH_VALIDATE_REPLAY,
+            async (
+                jobId: number,
+                callback: (
+                    status: Status.Status<{
+                        parameters: BatchCalculationParameters;
+                        demand: TransitBatchValidationDemandAttributes;
+                        csvFields: string[];
+                    }>
+                ) => void
+            ) => {
+                try {
+                    console.log(`Replaying batch validation job ${jobId}`);
+                    throw 'Not implemented yet';
                 } catch (error) {
                     console.error(error);
                     callback(Status.createError(TrError.isTrError(error) ? error.message : error));
