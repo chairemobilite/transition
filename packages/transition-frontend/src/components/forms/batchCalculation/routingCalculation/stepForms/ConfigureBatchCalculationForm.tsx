@@ -16,12 +16,12 @@ import {
     isBatchParametersValid,
     BatchCalculationParameters
 } from 'transition-common/lib/services/batchCalculation/types';
-import TransitRoutingBaseComponent from '../../transitRouting/widgets/TransitRoutingBaseComponent';
+import TransitRoutingBaseComponent from '../../../transitRouting/widgets/TransitRoutingBaseComponent';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
-import * as BatchAttributeSelectionWidgets from '../../transitCalculation/widgets/AttributeSelectionWidget';
+import * as BatchAttributeSelectionWidgets from '../../../transitCalculation/widgets/AttributeSelectionWidget';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
