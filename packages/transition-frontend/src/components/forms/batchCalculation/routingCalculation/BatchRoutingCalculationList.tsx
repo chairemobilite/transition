@@ -10,7 +10,7 @@ import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { faRedoAlt } from '@fortawesome/free-solid-svg-icons/faRedoAlt';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 
-import ExecutableJobComponent from '../../parts/executableJob/ExecutableJobComponent';
+import ExecutableJobComponent from '../../../parts/executableJob/ExecutableJobComponent';
 import TransitBatchRoutingCalculator from 'transition-common/lib/services/transitRouting/TransitBatchRoutingCalculator';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
