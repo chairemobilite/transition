@@ -10,11 +10,13 @@ import { EventEmitter } from 'events';
 
 import { batchRoute } from '../services/transitRouting/TrRoutingBatch';
 import { batchAccessibilityMap } from '../services/transitRouting/TrAccessibilityMapBatch';
+import { batchValidation } from '../services/transitRouting/TrRoutingValidationBatch';
 import prepareSocketRoutes from '../scripts/prepareProcessRoutes';
 import OSRMProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import { ExecutableJob } from '../services/executableJob/ExecutableJob';
 import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
 import { BatchAccessMapJobType } from '../services/transitRouting/BatchAccessibilityMapJob';
+import { BatchValidationJobType } from '../services/transitRouting/BatchValidationJob';
 import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -120,6 +122,36 @@ const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>): P
     return result.completed;
 };
 
+const wrapBatchValidation = async (task: ExecutableJob<BatchValidationJobType>): Promise<boolean> => {
+    const absoluteUserDir = task.getJobFileDirectory();
+    const inputFileName = task.attributes.resources?.files.input;
+    if (inputFileName === undefined) {
+        throw 'InvalidInputFile';
+    }
+    const { files, errors, warnings, ...result } = await batchValidation(
+        task.attributes.data.parameters.demandAttributes,
+        task.attributes.data.parameters.validationAttributes,
+        {
+            jobId: task.attributes.id,
+            absoluteBaseDirectory: absoluteUserDir,
+            inputFileName,
+            progressEmitter: newProgressEmitter(task),
+            isCancelled: getTaskCancelledFct(task),
+            currentCheckpoint: task.attributes.internal_data.checkpoint
+        }
+    );
+    task.attributes.data.results = result;
+    task.attributes.resources = { files };
+    // Set status messages if there are errors or warnings
+    if (errors.length > 0 || warnings.length > 0) {
+        task.attributes.statusMessages = {
+            errors: errors,
+            warnings: warnings
+        };
+    }
+    return result.completed;
+};
+
 // Exported for unit tests
 export const wrapTaskExecution = async (id: number) => {
     // Load task from database and execute only if it is pending, or resume tasks in progress
@@ -141,6 +173,9 @@ export const wrapTaskExecution = async (id: number) => {
             break;
         case 'batchAccessMap':
             taskResultStatus = await wrapBatchAccessMap(task as ExecutableJob<BatchAccessMapJobType>);
+            break;
+        case 'batchValidation':
+            taskResultStatus = await wrapBatchValidation(task as ExecutableJob<BatchValidationJobType>);
             break;
         default:
             console.log(`Unknown task ${task.attributes.name}`);
