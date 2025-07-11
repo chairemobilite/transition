@@ -7,8 +7,8 @@
 import React from 'react';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import BatchCalculationList from './BatchCalculationList';
-import BatchCalculationForm from './BatchCalculationForm';
+import BatchCalculationList from './routingCalculation/BatchRoutingCalculationList';
+import BatchCalculationForm from './routingCalculation/BatchRoutingCalculationForm';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
 

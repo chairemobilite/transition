@@ -16,10 +16,10 @@ import TransitOdDemandFromCsv, {
     TransitOdDemandFromCsvAttributes
 } from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import BatchAttributesSelection from '../../transitRouting/widgets/BatchAttributesSelection';
+import BatchAttributesSelection from '../../../transitRouting/widgets/BatchAttributesSelection';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { TransitDemandFromCsvFile } from '../../../../services/transitDemand/frontendTypes';
+import { TransitDemandFromCsvFile } from '../../../../../services/transitDemand/frontendTypes';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 
 interface ConfigureDemandFromCsvFormProps {
