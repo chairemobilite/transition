@@ -117,13 +117,13 @@ describe('TransitRoutingValidation', () => {
     const agency1 = new Agency({
         id: agency1Id,
         name: 'Agency1',
-        shortname: 'A1',
+        acronym: 'A1',
         internal_id: 'A1'
     }, true);
     const agency2 = new Agency({
         id: agency2Id,
         name: 'Agency2',
-        shortname: 'A2',
+        acronym: 'A2',
         internal_id: 'A2'
     }, true);
 
@@ -235,9 +235,9 @@ describe('TransitRoutingValidation', () => {
 
         // Mock collections
         mockLineCollection.prototype.getFeatures.mockReturnValue([line1, line2, line3]);
-        mockAgencyCollection.prototype.getByShortname.mockImplementation((shortname) => {
-            if (shortname === 'A1') return agency1;
-            if (shortname === 'A2') return agency2;
+        mockAgencyCollection.prototype.findByAcronym.mockImplementation((acronym) => {
+            if (acronym === 'A1') return agency1;
+            if (acronym === 'A2') return agency2;
             return undefined;
         });
         mockServiceCollection.prototype.getById.mockImplementation((id) => {
@@ -287,7 +287,7 @@ describe('TransitRoutingValidation', () => {
     });
 
     test('Multiple lines not found', async () => {
-        mockAgencyCollection.prototype.getByShortname.mockImplementation(() => undefined);
+        mockAgencyCollection.prototype.findByAcronym.mockImplementation(() => undefined);
         
         const validation = new TransitRoutingValidation(routingParams);
         const result = await validation.run({
@@ -457,6 +457,51 @@ describe('TransitRoutingValidation', () => {
         const result = await validation.run({
             odTrip: odTripWithArrival,
             dateOfTrip: testDate,
+            declaredTrip: [{ line: '1', agency: 'A1' }]
+        });
+
+        // With the current implementation, if trips are found, it should return true
+        // (The full route validation isn't implemented yet)
+        expect(result).toBe(true);
+
+        expect(mockDbLineCollectionWithSchedules).toHaveBeenCalledWith([line1]);
+        expect(mockGetTripsInTimeRange).toHaveBeenCalledWith({
+            rangeStart: baseOdTrip.attributes.timeOfTrip - routingParams.bufferSeconds - routingParams.maxTotalTravelTimeSeconds,
+            rangeEnd: baseOdTrip.attributes.timeOfTrip + routingParams.bufferSeconds,
+            lineIds: [line1Id],
+            serviceIds: [weekdayServiceId]
+        });
+    });
+
+    test('With trips available at time, no date, validation OK', async () => {
+        // Mock lines with services
+        mockDbLineCollectionWithSchedules.mockResolvedValue([
+            new Line({ ...line1.attributes, id: line1Id, scheduleByServiceId: { [weekdayServiceId]: { service_id: weekdayServiceId } } }, false),
+        ]);
+        
+        // Mock trips available in the time range
+        mockGetTripsInTimeRange.mockResolvedValue([
+            {
+                id: uuidV4(),
+                schedule_period_id: 1,
+                path_id: line1PathId1,
+                departure_time_seconds: 8 * 3600,
+                arrival_time_seconds: 9 * 3600,
+                line_id: line1Id,
+                service_id: weekdayServiceId
+            } as any
+        ]);
+
+        // Mock access/egress paths
+        mockTableFrom.mockResolvedValue({ distances: [1000, 3000], durations: [600, 1800] });
+        mockTableTo.mockResolvedValue({ distances: [1000, 4000], durations: [1200, 2400] });
+
+        // Use an odTrip with arrival time type
+        const odTripWithArrival = new BaseOdTrip(_cloneDeep(baseOdTrip.attributes), false);
+        odTripWithArrival.attributes.timeType = 'arrival';
+        const validation = new TransitRoutingValidation(routingParams);
+        const result = await validation.run({
+            odTrip: odTripWithArrival,
             declaredTrip: [{ line: '1', agency: 'A1' }]
         });
 

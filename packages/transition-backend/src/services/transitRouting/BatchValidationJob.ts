@@ -4,14 +4,14 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { TransitBatchValidationDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { TransitValidationAttributes } from './TransitRoutingValidation';
 
 export type BatchValidationJobType = {
     name: 'batchValidation';
     data: {
         parameters: {
-            demandAttributes: TransitBatchRoutingDemandAttributes;
+            demandAttributes: TransitBatchValidationDemandAttributes;
             validationAttributes: TransitValidationAttributes;
         };
         results?: {
@@ -21,5 +21,5 @@ export type BatchValidationJobType = {
             invalidCount: number;
         };
     };
-    files: { input: true };
+    files: { input: true; csv: true };
 };
