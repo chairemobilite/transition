@@ -53,10 +53,6 @@ export class TransitValidationDemandFromCsv extends TransitDemandFromCsv<Transit
                 this._isValid = false;
                 this.errors.push('transit:transitRouting:errors:DestinationYAttributeIsMissing');
             }
-            if (_isBlank(attributes.tripDateAttribute)) {
-                this._isValid = false;
-                this.errors.push('transit:batchCalculation:errors:TripDateAttributeIsMissing');
-            }
             if (_isBlank(attributes.agenciesAttributePrefix)) {
                 this._isValid = false;
                 this.errors.push('transit:batchCalculation:errors:AgenciesAttributePrefixIsMissing');

@@ -8,14 +8,15 @@ import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import { truncate, destroy } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { OdTripRouteResult } from '../../services/transitRouting/types';
+import { OdTripRouteResult, TripValidationResult } from '../../services/transitRouting/types';
 
 const tableName = 'tr_batch_route_results';
 
+// FIXME Reusing the table for the validation result, but the table's name is not right for it. Either rename or decide what to do for the validation results
 type TripJobResult = {
     jobId: number;
     tripIndex: number;
-    data: OdTripRouteResult;
+    data: OdTripRouteResult | TripValidationResult;
 };
 
 const create = async (result: TripJobResult): Promise<void> => {
