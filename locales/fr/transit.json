@@ -751,6 +751,7 @@
         "YAttribute": "Colonne de la coordonnée y (ou latitude)",
         "TimeAttribute": "Colonne de l'heure de départ ou d'arrivée",
         "TimeFormat": "Format de l'heure de départ ou d'arrivée",
+        "TripDateAttribute": "Colonne de la date du trajet",
         "TimeAttributeDepartureOrArrival": "Type d'heure",
         "departureTime": "Heure de départ",
         "arrivalTime": "Heure d'arrivée",
@@ -992,6 +993,12 @@
                 "csv": "CSV",
                 "geojson": "GeoJSON"
             }
+        },
+        "batchValidation": {
+            "files": {
+                "input": "Fichier d'entrée: {{filename}}",
+                "csv": "CSV"
+            }
         }
     },
     "batchCalculation": {
@@ -1009,12 +1016,17 @@
         "errors": {
             "InputFileUnavailable": "Le fichier d'entrée n'existe pas pour cette tâche",
             "ErrorGettingReplayParameters": "Un problème est survenu lors de l'obtention de la configuration pour ré-exécuter un calcul",
-            "ParallelCalculationsIsTooLow": "Le nombre de calculs parallèles doit être positif ou non défini pour utiliser le maximum disponible"
+            "ParallelCalculationsIsTooLow": "Le nombre de calculs parallèles doit être positif ou non défini pour utiliser le maximum disponible",
+            "AgenciesAttributePrefixIsMissing": "La colonne du préfixe d'agences est requise.",
+            "LinesAttributePrefixIsMissing": "La colonne du préfixe de lignes est requise."
         },
         "RoutingCalculation": "Calcul de chemin",
         "ValidationCalculation": "Validation de trajets",
         "ValidationList": "Tâches de validation",
-        "ValidationNew": "Nouvelle tâche"
+        "ValidationNew": "Nouvelle tâche",
+        "AgenciesAttributePrefix": "Préfixe de colonne pour les agences",
+        "LinesAttributePrefix": "Préfixe de colonne pour les lignes",
+        "TripBuffer": "Tampon de temps pour les trajets (en minutes) (pas fonctionnel)"
     },
     "preferences": {
         "routing": {

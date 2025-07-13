@@ -25,7 +25,7 @@ import { PathAttributes } from 'transition-common/lib/services/path/Path';
 import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
-type DeclaredLine = { line: string; agency: string };
+export type DeclaredLine = { line: string; agency: string };
 
 export type TransitValidationMessage =
     | {
@@ -108,7 +108,7 @@ export class TransitRoutingValidation {
         declaredTrip
     }: {
         odTrip: BaseOdTrip;
-        dateOfTrip: Date;
+        dateOfTrip?: Date;
         declaredTrip: DeclaredLine[];
     }): Promise<true | TransitValidationMessage> => {
         // No declared trip, return with a noDeclaredTrip message
@@ -122,7 +122,7 @@ export class TransitRoutingValidation {
 
         // Identify the lines use by the declared trip
         const declaredTransitLines: { line?: Line; declaredLine: DeclaredLine }[] = declaredTrip.map((declaredLine) => {
-            const agencyId = this._agencyCollection!.getByShortname(declaredLine.agency)?.id;
+            const agencyId = this._agencyCollection!.findByAcronym(declaredLine.agency)?.id;
             if (!agencyId) {
                 return { declaredLine };
             }
@@ -152,9 +152,9 @@ export class TransitRoutingValidation {
                     return false;
                 }
                 // Check if the service is active on the date of the trip
-                return service.isValidForDate(dateOfTrip);
+                return dateOfTrip !== undefined ? service.isValidForDate(dateOfTrip) : true;
             });
-            const validServices = services.map(([serviceId, schedule]) => schedule);
+            const validServices = services.map(([_serviceId, schedule]) => schedule);
             return { line, validServices, declaredLine: declaredTransitLines[idx].declaredLine };
         });
 
@@ -318,7 +318,9 @@ export class TransitRoutingValidation {
     ): Promise<GeoJSON.Feature<GeoJSON.Point>[]> => {
         // Calculate points in bird distance first
         const walkingDistance = maxWalkingTravelTimeSeconds * this.routingParameters.walkingSpeedMps!;
-        const pointsInBirdDistance = points.filter((point) => turfDistance(refGeometry, point) <= walkingDistance);
+        const pointsInBirdDistance = points.filter(
+            (point) => turfDistance(refGeometry, point, { units: 'meters' }) <= walkingDistance
+        );
 
         if (pointsInBirdDistance.length === 0) {
             return [];

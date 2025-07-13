@@ -18,6 +18,7 @@ import { TransitBatchCalculationResult } from 'transition-common/lib/services/ba
 import resultsDbQueries from '../../models/db/batchRouteResults.db.queries';
 import { CheckpointTracker } from '../executableJob/JobCheckpointTracker';
 import { resultIsUnimodal } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
+import { OdTripRouteResult } from './types';
 import { ExecutableJob } from '../executableJob/ExecutableJob';
 import { BatchRouteJobType, BatchRouteResultVisitor } from './BatchRoutingJob';
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
@@ -253,7 +254,7 @@ class TrRoutingBatch {
                 }
                 // TODO Try to pipe the result generator and processor directly into this database result stream, to avoid all the awaits
                 const result = resultsDbQueries.resultParser(row);
-                await resultVisitor.visitTripResult(result.data);
+                await resultVisitor.visitTripResult(result.data as OdTripRouteResult);
             }
             console.log('Generated results for job %d', this.job.id);
 

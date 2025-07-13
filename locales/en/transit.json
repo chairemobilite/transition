@@ -750,6 +750,7 @@
         "XAttribute": "Column for x (or longitude)",
         "YAttribute": "Column for y (or latitude)",
         "TimeAttribute": "Column for departure or arrival time",
+        "TripDateAttribute": "Column for trip date",
         "TimeFormat": "Departure/arrival time format",
         "TimeAttributeDepartureOrArrival": "Time type",
         "departureTime": "Departure time",
@@ -992,6 +993,12 @@
                 "csv": "CSV",
                 "geojson": "GeoJSON"
             }
+        },
+        "batchValidation": {
+            "files": {
+                "input": "Input file: {{filename}}",
+                "csv": "CSV"
+            }
         }
     },
     "batchCalculation": {
@@ -1009,12 +1016,17 @@
         "errors": {
             "InputFileUnavailable": "Input file does not exist for this job",
             "ErrorGettingReplayParameters": "Error getting execution data to replay calculation",
-            "ParallelCalculationsIsTooLow": "Number of parallel calculations should be positive or left undefined to use the maximum available"
+            "ParallelCalculationsIsTooLow": "Number of parallel calculations should be positive or left undefined to use the maximum available",
+            "AgenciesAttributePrefixIsMissing": "Column prefix for agencies is required.",
+            "LinesAttributePrefixIsMissing": "Column prefix for lines is required."
         },
         "RoutingCalculation": "Routing",
         "ValidationCalculation": "Trip validation",
         "ValidationList": "Validation jobs",
-        "ValidationNew": "New validation"
+        "ValidationNew": "New validation",
+        "AgenciesAttributePrefix": "Column prefix for agencies",
+        "LinesAttributePrefix": "Column prefix for lines",
+        "TripBuffer": "Trip buffer (minutes) (not working yet)"
     },
     "preferences": {
         "routing": {

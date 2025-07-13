@@ -8,7 +8,6 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 
-import { _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import {
     isBatchParametersValid,
@@ -20,9 +19,9 @@ import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors'
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 export interface ConfigureValidationParametersFormProps {
+    // FIXME Wrong type, we should have a type for the validation parameters with the buffer
     validationParameters: BatchCalculationParameters;
     availableRoutingModes?: string[];
     scenarioCollection: ScenarioCollection;
@@ -40,7 +39,7 @@ const ConfigureValidationParametersForm: React.FunctionComponent<ConfigureValida
 ) => {
     const [updateCnt, setUpdateCnt] = React.useState(0);
     const [errors, setErrors] = React.useState<string[]>([]);
-    const [bufferSeconds, setBufferSeconds] = React.useState(900); // Default buffer of 15 minutes
+    const [bufferMinutes, setBufferMinutes] = React.useState(15); // Default buffer of 15 minutes
     const { t } = useTranslation('transit');
 
     React.useEffect(() => {
@@ -58,7 +57,7 @@ const ConfigureValidationParametersForm: React.FunctionComponent<ConfigureValida
     };
 
     const onBufferValueChange = (value: { value: number; valid?: boolean }): void => {
-        setBufferSeconds(value.value);
+        setBufferMinutes(value.value);
         setUpdateCnt(updateCnt + 1);
     };
 
@@ -85,10 +84,10 @@ const ConfigureValidationParametersForm: React.FunctionComponent<ConfigureValida
                 />
             </InputWrapper>
 
-            <InputWrapper smallInput={true} label={t('transit:transitRouting:BufferSeconds')}>
+            <InputWrapper smallInput={true} label={t('transit:batchCalculation:TripBuffer')}>
                 <InputStringFormatted
-                    id={'formFieldTransitBatchRoutingBufferSeconds'}
-                    value={bufferSeconds}
+                    id={'formFieldTransitBatchRoutingBufferMinutes'}
+                    value={bufferMinutes}
                     onValueUpdated={onBufferValueChange}
                     stringToValue={_toInteger}
                     valueToString={_toString}

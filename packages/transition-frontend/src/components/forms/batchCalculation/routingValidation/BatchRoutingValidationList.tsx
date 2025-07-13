@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, Polytechnique Montreal and contributors
+ * Copyright 2025, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
@@ -65,7 +65,7 @@ const BatchRoutingValidationList: React.FunctionComponent<BatchValidationListPro
             <ExecutableJobComponent
                 customActions={[{ callback: replayJob, title: 'transit:batchCalculation:ReplayJob', icon: faRedoAlt }]}
                 defaultPageSize={10}
-                jobType="batchValidate"
+                jobType="batchValidation"
             />
         </div>
     );

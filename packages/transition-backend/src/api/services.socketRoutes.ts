@@ -40,6 +40,8 @@ import {
     TransitAccessibilityMapComparisonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { TransitApi } from 'transition-common/lib/api/transit';
+import { BatchValidationJobType } from '../services/transitRouting/BatchValidationJob';
+import { TransitValidationAttributes } from '../services/transitRouting/TransitRoutingValidation';
 
 // TODO The socket routes should validate parameters as even typescript cannot guarantee the types over the network
 // TODO Add more unit tests as the called methods are cleaned up
@@ -344,13 +346,54 @@ export default function (socket: EventEmitter, userId?: number) {
         socket.on(
             TransitApi.BATCH_VALIDATE,
             async (
-                _parameters: TransitBatchValidationDemandAttributes,
-                _transitValidationAttributes: BatchCalculationParameters,
+                parameters: TransitBatchValidationDemandAttributes,
+                validationAttributes: TransitValidationAttributes,
                 callback
             ) => {
                 try {
-                    console.log('Executing validation batch job');
-                    throw 'Not implemented yet';
+                    socket.emit('progress', { name: 'BatchValidation', progress: null });
+                    const inputFiles: {
+                        [Property in keyof BatchValidationJobType[fileKey]]?:
+                            | string
+                            | { filepath: string; renameTo: string };
+                    } = {};
+                    if (parameters.configuration.csvFile.location === 'upload') {
+                        inputFiles.input = {
+                            filepath: `${directoryManager.userDataDirectory}/${userId}/imports/batchValidation.csv`,
+                            renameTo: parameters.configuration.csvFile.filename
+                        };
+                    } else {
+                        const batchValidateJob = await ExecutableJob.loadTask<BatchValidationJobType>(
+                            parameters.configuration.csvFile.fromJob
+                        );
+                        if (batchValidateJob.attributes.name !== 'batchValidation') {
+                            throw 'Requested job is not a batchValidate job';
+                        }
+                        if (batchValidateJob.attributes.user_id !== userId) {
+                            throw 'Not allowed to get the input file from job';
+                        }
+                        const filePath = batchValidateJob.getFilePath('input');
+                        if (filePath === undefined) {
+                            throw 'InputFileNotAvailable';
+                        }
+                        inputFiles.input = filePath;
+                    }
+
+                    const job: ExecutableJob<BatchValidationJobType> = await ExecutableJob.createJob({
+                        user_id: userId,
+                        name: 'batchValidation',
+                        data: {
+                            parameters: {
+                                demandAttributes: parameters,
+                                validationAttributes
+                            }
+                        },
+                        inputFiles,
+                        hasOutputFiles: true
+                    });
+                    await job.enqueue();
+                    await job.refresh();
+                    callback(Status.createOk(job.attributes.data.results));
                 } catch (error) {
                     console.error(error);
                     callback(Status.createError(TrError.isTrError(error) ? error.message : error));
@@ -364,15 +407,40 @@ export default function (socket: EventEmitter, userId?: number) {
                 jobId: number,
                 callback: (
                     status: Status.Status<{
-                        parameters: BatchCalculationParameters;
+                        parameters: TransitValidationAttributes;
                         demand: TransitBatchValidationDemandAttributes;
                         csvFields: string[];
                     }>
                 ) => void
             ) => {
                 try {
-                    console.log(`Replaying batch validation job ${jobId}`);
-                    throw 'Not implemented yet';
+                    const job = await ExecutableJob.loadTask(jobId);
+                    if (job.attributes.name !== 'batchValidation') {
+                        throw 'Requested job is not a batchValidation job';
+                    }
+                    const batchValidationJob = job as ExecutableJob<BatchValidationJobType>;
+                    const attributes = batchValidationJob.attributes.data.parameters;
+                    const filePath = batchValidationJob.getFilePath('input');
+                    if (filePath === undefined) {
+                        throw 'InputFileUnavailable';
+                    }
+                    const demand = new TransitOdDemandFromCsv(attributes.demandAttributes.configuration);
+                    demand.attributes.saveToDb = false;
+                    const csvFileStream = fs.createReadStream(filePath);
+                    const csvFields = await demand.setCsvFile(csvFileStream, { location: 'server', fromJob: jobId });
+                    callback(
+                        Status.createOk({
+                            parameters: attributes.validationAttributes,
+                            demand: {
+                                type: attributes.demandAttributes.type,
+                                configuration: {
+                                    ...attributes.demandAttributes.configuration,
+                                    csvFile: { location: 'server', fromJob: jobId }
+                                }
+                            },
+                            csvFields
+                        })
+                    );
                 } catch (error) {
                     console.error(error);
                     callback(Status.createError(TrError.isTrError(error) ? error.message : error));

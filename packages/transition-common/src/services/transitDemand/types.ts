@@ -41,7 +41,7 @@ export type TransitDemandFromCsvAccessMapAttributes = TransitDemandFromCsvAttrib
 export type TransitDemandFromCsValidationAttributes = TransitDemandFromCsvRoutingAttributes & {
     agenciesAttributePrefix: string;
     linesAttributePrefix: string;
-    tripDateAttribute: string;
+    tripDateAttribute?: string;
 };
 
 export type TransitBatchValidationDemandAttributes = {
