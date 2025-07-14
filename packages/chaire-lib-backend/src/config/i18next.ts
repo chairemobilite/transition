@@ -21,6 +21,8 @@ const getTranslationPath = (lng: string, namespace: string) => {
         const translationPath = translationPaths[i];
         if (fileManager.fileExistsAbsolute(`${translationPath}/${lng}/${namespace}.yml`)) {
             return `${translationPath}/{{lng}}/{{ns}}.yml`;
+        } else if (fileManager.fileExistsAbsolute(`${translationPath}/${lng}/${namespace}.yaml`)) {
+            return `${translationPath}/{{lng}}/{{ns}}.yaml`;
         } else if (fileManager.fileExistsAbsolute(`${translationPath}/${lng}/${namespace}.json`)) {
             return `${translationPath}/{{lng}}/{{ns}}.json`;
         }
