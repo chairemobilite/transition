@@ -23,3 +23,25 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+### bus
+
+#### bus_city
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### bus_city_electric
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### bus_intercity
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### bus_intercity_electric
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
