@@ -5,19 +5,21 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 ## Modes
 
-### bicycle_with_rider
+### bicycle
+
+#### bicycle_with_rider
 
 - Source: https://github.com/32pixelsCo/zest-icons/blob/master/packages/zest-free/images/travel/bicycle.svg | modes/bicycle/sources/bicycle_with_rider_original.svg
 - License: Zest Free License
 - Copyright: © 2019-2021 32pixels, LLC.
 - Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (simplified geometry, changed viewbox, optimized)
 
-### bicycle_without_rider
+#### bicycle_without_rider
 
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
 
-### bicycle_without_rider_electric
+#### bicycle_without_rider_electric
 
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
