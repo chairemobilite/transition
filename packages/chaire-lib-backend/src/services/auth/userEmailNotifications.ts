@@ -70,8 +70,8 @@ const getConfirmEmailsToSend = async (user: IUserModel, strategy?: string): Prom
     if (actualStrategy === 'confirmByUser') {
         return [
             {
-                mailText: 'server:confirmByUserText',
-                mailSubject: 'server:confirmByUserSubject',
+                mailText: ['customServer:confirmByUserText', 'server:confirmByUserText'],
+                mailSubject: ['customServer:confirmByUserSubject', 'server:confirmByUserSubject'],
                 toUser: {
                     email: validatedEmail,
                     displayName: user.displayName,
@@ -88,8 +88,8 @@ const getConfirmEmailsToSend = async (user: IUserModel, strategy?: string): Prom
     const adminUsers = admins.map((adminAttribs) => new UserModel(adminAttribs));
     // Send email to admins and a notification to the user
     const userNotificationPending = {
-        mailText: 'server:pendingConfirmByAdminText',
-        mailSubject: 'server:pendingConfirmByAdminSubject',
+        mailText: ['customServer:pendingConfirmByAdminText', 'server:pendingConfirmByAdminText'],
+        mailSubject: ['customServer:pendingConfirmByAdminSubject', 'server:pendingConfirmByAdminSubject'],
         toUser: {
             email: validatedEmail,
             displayName: user.displayName,
@@ -103,8 +103,8 @@ const getConfirmEmailsToSend = async (user: IUserModel, strategy?: string): Prom
             `Admin user with display name "${admin.displayName}" does not have address to send confirmation email to.`
         );
         return {
-            mailText: 'server:confirmByAdminText',
-            mailSubject: 'server:confirmByAdminSubject',
+            mailText: ['customServer:confirmByAdminText', 'server:confirmByAdminText'],
+            mailSubject: ['customServer:confirmByAdminSubject', 'server:confirmByAdminSubject'],
             toUser: {
                 email: validatedAdminEmail,
                 displayName: admin.displayName,
@@ -179,8 +179,8 @@ export const sendConfirmedByAdminEmail = async (user: IUserModel): Promise<void>
             `User with display name "${user.displayName}" does not have address to send confirmation by admin email to.`
         );
         const email = {
-            mailText: 'server:confirmedByAdminEmailText',
-            mailSubject: 'server:confirmedByAdminEmailSubject',
+            mailText: ['customServer:confirmedByAdminEmailText', 'server:confirmedByAdminEmailText'],
+            mailSubject: ['customServer:confirmedByAdminEmailSubject', 'server:confirmedByAdminEmailSubject'],
             toUser: {
                 email: validatedEmail,
                 displayName: user.displayName,
@@ -207,8 +207,8 @@ export const resetPasswordEmail = async (user: IUserModel, options: { resetPassw
             `User with display name "${user.displayName}" does not have address to send reset password email to.`
         );
         const email = {
-            mailText: 'server:resetPasswordEmailText',
-            mailSubject: 'server:resetPasswordEmailSubject',
+            mailText: ['customServer:resetPasswordEmailText', 'server:resetPasswordEmailText'],
+            mailSubject: ['customServer:resetPasswordEmailSubject', 'server:resetPasswordEmailSubject'],
             toUser: {
                 email: validatedEmail,
                 displayName: user.displayName,
