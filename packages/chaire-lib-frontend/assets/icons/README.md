@@ -14,7 +14,9 @@ Each icon can have different variants by specification (example: the bicycle ico
 * Multi-color, inside a map marker (suffix _\_color\_marker_)
 * Multi-color, inside a circle (suffix _\_color\_round_)
 
-To change the icon main color, use css. Each icon svg tag has the class "svg-icon" and the id equal to the file name (icon name).
+## CSS and styling
+
+To change the icon main color, use css. Each icon svg tag has the class "svg-icon" and the id equal to "svg-icon_ICON_NAME". When creating/adding a new icon, the id and class should be added for compatibility and styling opportunities (changing colors, opacity, etc.)
 
 ## Credits and Licenses
 
