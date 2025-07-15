@@ -5,6 +5,7 @@ on:
     branches: 
       - "main"
       - "deck-gl-poc"
+      - "validationTrajets"
   workflow_dispatch:
   schedule:
     # Do a daily rebuild at 2:00 AM UTC
