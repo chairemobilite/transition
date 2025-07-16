@@ -120,6 +120,7 @@ export default class SimulationRunBackend extends SimulationRun {
                     }
                 });
             });
+            // TODO This await should to be moved outside the for loop, but then we need to make sure we have independant trRouting for all simulations
             const results = await simulationFunctionPromise;
             allResults[method] = results;
         }
