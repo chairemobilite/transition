@@ -42,6 +42,8 @@ import { collectionToCache as dataSourceCollectionToCache } from '../../models/c
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 
+import capnp_serialization from 'transition-rust-backend';
+
 /**
  * Recreate the cache from the database
  *
