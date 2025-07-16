@@ -38,6 +38,8 @@ import { collectionToCache as pathCollectionToCache } from '../../models/capnpCa
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 
+import capnp_serialization from 'transition-rust-backend';
+
 /**
  * Load agencies from database and save to cache
  * @param options.cachePathDirectory - Optional cache directory path
