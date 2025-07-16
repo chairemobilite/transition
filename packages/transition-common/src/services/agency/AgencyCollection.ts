@@ -33,6 +33,10 @@ class AgencyCollection extends GenericObjectCollection<Agency> implements Progre
             this._eventManager.emitProgress(`${AgencyCollection.displayName}${progressEventName}`, completeRatio);
     }
 
+    findByAcronym(acronym: string): Agency | undefined {
+        return this.features.find((feature) => feature.attributes.acronym === acronym);
+    }
+
     forCsv() {
         return this._features.map((agency) => {
             const attributes = agency.attributes;

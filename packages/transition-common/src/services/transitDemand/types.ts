@@ -37,3 +37,14 @@ export type TransitDemandFromCsvAccessMapAttributes = TransitDemandFromCsvAttrib
     cpuCount: number;
     maxCpuCount?: number;
 };
+
+export type TransitDemandFromCsValidationAttributes = TransitDemandFromCsvRoutingAttributes & {
+    agenciesAttributePrefix: string;
+    linesAttributePrefix: string;
+    tripDateAttribute?: string;
+};
+
+export type TransitBatchValidationDemandAttributes = {
+    type: 'csv';
+    configuration: TransitDemandFromCsValidationAttributes;
+};

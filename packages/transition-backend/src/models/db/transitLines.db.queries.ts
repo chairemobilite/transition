@@ -53,7 +53,7 @@ const attributesParser = (dbAttributes: {
     return dbAttributes as unknown as LineAttributes;
 };
 
-const collection = async (lineIds?: string[]) => {
+const collection = async ({ lineIds, scenarioId }: { lineIds?: string[]; scenarioId?: string } = {}) => {
     try {
         // TODO There used to be a order by p.integer_id for path order, but
         // this query as is won't work with the distinct, which is required
@@ -78,6 +78,16 @@ const collection = async (lineIds?: string[]) => {
             .where('l.is_enabled', 'TRUE');
         if (lineIds !== undefined) {
             query.whereIn('l.id', lineIds);
+        }
+        if (scenarioId !== undefined) {
+            query
+                .join('tr_transit_scenario_services as scServ', 'scServ.service_id', 'sched.service_id')
+                .join('tr_transit_scenarios as sc', 'sc.id', 'scServ.scenario_id')
+                .where('sc.id', scenarioId)
+                .whereRaw(knex.raw('(sc.only_lines = \'{}\' or l.id = ANY(sc.only_lines))'))
+                .whereRaw(knex.raw('(sc.except_lines = \'{}\' or l.id != ALL(sc.except_lines))'))
+                .whereRaw(knex.raw('(sc.only_agencies = \'{}\' or l.agency_id = ANY(sc.only_agencies))'))
+                .whereRaw(knex.raw('(sc.except_agencies = \'{}\' or l.agency_id != ALL(sc.except_agencies))'));
         }
         const collection = await query.groupByRaw('l.id').orderByRaw('LPAD(l.shortname, 20, \'0\'), l.id');
         if (collection) {
