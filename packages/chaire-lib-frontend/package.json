@@ -11,7 +11,7 @@
     "compile": "tsc && yarn copy-files",
     "compile:dev": "tsc -w",
     "clean": "rimraf lib/",
-    "copy-files": "copyfiles -u 1 src/styles/*.scss lib/",
+    "copy-files": "copyfiles -u 1 src/styles/*.scss lib/ && copyfiles -u 1 -e ./assets/icons/sources/* -e ./assets/icons/**/sources/* -e ./assets/icons/**/**/sources/* ./assets/icons/**/* ./assets/icons/**/**/* ./lib/assets/",
     "test": "cross-env NODE_ENV=test jest --config=jest.config.js",
     "test:unit": "cross-env NODE_ENV=test jest --config=jest.config.js",
     "test:sequential": "echo 'cross-env NODE_ENV=test jest --config=jest.sequential.config.js --runInBand'",
