@@ -295,10 +295,56 @@ describe(`${objectName}`, () => {
 
     });
 
+    test('add json data', async() => {
+
+        const internalIdArray = ['test', 'test2'];
+        const jsonArray = [{ testNumber: 1, a: 'aaaa', b: null }, { testNumber: 1, child: { a: 'aaa' }}];
+        await dbQueries.addJsonDataBatch(internalIdArray, jsonArray);
+
+        const _collection = await dbQueries.collection();
+        expect(_collection.length).toEqual(2);
+
+        const modifiedObject1 = _collection.find((object) => object.internal_id === 'test');
+        expect(modifiedObject1?.data).toEqual(jsonArray[0]);
+
+        const modifiedObject2 = _collection.find((object) => object.internal_id === 'test2');
+        expect(modifiedObject2?.data).toEqual(jsonArray[1]);
+
+    });
+
+    test('add zones with converted geography', async() => {
+
+        newObjectAttributes.id = uuidV4();
+        newObjectAttributes2.id = uuidV4();
+        const newObject = new ObjectClass(newObjectAttributes, true);
+        const newObject2 = new ObjectClass(newObjectAttributes2, true);
+        const zonesBatch = [newObject.attributes, newObject2.attributes];
+
+        const srIdArray = ['3347', '3347'];
+        const geographyArray = [
+            'MULTIPOLYGON(((8978545.64571433 2146380.76285718, 8978655.2371429 2146599.65428575, 8978660.66571433 2146479.86857146, 8978545.64571433 2146380.76285718)))',
+            'MULTIPOLYGON(((8978829.84857147 2146989.38571432, 8978655.2371429 2146599.65428575, 8978582.4771429 2146647.18000003, 8978707.7571429 2146898.96285718, 8978753.12857147 2147015.20285718, 8978829.84857147 2146989.38571432)))'
+        ];
+        await dbQueries.addZonesAndConvertedGeography(zonesBatch, srIdArray, geographyArray);
+
+        const convertedCoordinateArray1 = [[[[-52.774208189,47.525948808], [-52.771360085,47.526982704], [-52.772213374,47.52607973], [-52.774208189,47.525948808]]]];
+        const convertedCoordinateArray2 = [[[[-52.766509988,47.52892911], [-52.771360085,47.526982704], [-52.771782992,47.527705008], [-52.768515111,47.528898194], [-52.76714082,47.529513295], [-52.766509988,47.52892911]]]];
+
+        const _collection = await dbQueries.collection();
+        expect(_collection.length).toEqual(4);
+
+        const addedObject1 = _collection.find((object) => object.id === newObjectAttributes.id);
+        expect(addedObject1?.geography.coordinates).toEqual(convertedCoordinateArray1);
+
+        const addedObject2 = _collection.find((object) => object.id === newObjectAttributes2.id);
+        expect(addedObject2?.geography.coordinates).toEqual(convertedCoordinateArray2);
+
+    });
+
     test('delete for data source', async() => {
         
         const _collectionBefore = await dbQueries.collection({ dataSourceId });
-        expect(_collectionBefore.length).toEqual(1);
+        expect(_collectionBefore.length).toEqual(2);
 
         const id = await dbQueries.deleteForDataSourceId(dataSourceId)
         expect(id).toEqual(dataSourceId);
