@@ -164,13 +164,106 @@ const getZonesContaining = async (
     }
 };
 
+/**
+ * Imports the data of a zones array in the database (minus the geography), and then adds the geography after converting to WGS84, the format used by transition.
+ *
+ * @param inputArray An array of objects with the attributes 'zone', 'spatialReferenceId', and 'geography'.
+ * @param inputArray[].zone The attributes of the zone that will be inserted into the database, minus the geography
+ * @param inputArray[].spatialReferenceId An identifier representing the coordinate system of the geography we want to insert (see https://epsg.io/).
+ * @param inputArray[].geography The geography of the zone that we want to convert to the WGS84 format.
+ * Must be formatted as an OGC Well-Known text representation (for example, "POLYGON((0 1, 1 2, 2 3, 0 1))" )
+ */
+const addZonesAndConvertedGeography = async (
+    inputArray: {
+        zone: Omit<ZoneAttributes, 'geography'>;
+        spatialReferenceId: string;
+        geography: string;
+    }[]
+): Promise<void> => {
+    try {
+        if (inputArray.length === 0) {
+            return;
+        }
+
+        await knex.transaction(async (trx) => {
+            const zonesBatch = inputArray.map((input) => input.zone);
+            const dbIdArray = await createMultiple(knex, tableName, attributesCleaner, zonesBatch, { returning: 'id' });
+
+            const data = dbIdArray.map((id, index) => {
+                if (!uuidValidate(id.id)) {
+                    throw new TrError(
+                        `Cannot read object from table ${tableName} because the required parameter id is missing, blank or not a valid uuid`,
+                        'DBQZONE0005',
+                        'MissingZoneIdWhenAddingConvertedGeography'
+                    );
+                }
+                return [id.id, inputArray[index].spatialReferenceId, inputArray[index].geography];
+            });
+
+            //The placeholder syntax allows us to repeat an operation on many rows of data with the same structure, each "(?, ?, ?)"" representing a row containing individual values from the three arrays we enter.
+            const placeholders = data.map(() => '(?, ?, ?)').join(',');
+            const bindings = data.flat();
+            // The ST_Transform function will convert the zone boundary from one coordinate system to an other. The spatialReferenceId is the system used by the input, while 4326 is the id for WGS84, the system we want to convert to.
+            const query = `
+                WITH input(id, spatialReferenceId, boundary) AS (VALUES ${placeholders})
+                UPDATE ${tableName} z
+                SET geography = ST_Transform(ST_GeomFromText(input.boundary, input.spatialReferenceId::integer), 4326)::geography
+                FROM input
+                WHERE z.id = input.id::uuid
+            `;
+            await trx.raw(query, bindings);
+        });
+    } catch (error) {
+        throw new TrError(
+            `Problem adding new object to table ${tableName} (knex error: ${error})`,
+            'DBQZONE0005',
+            'ProblemAddingObject'
+        );
+    }
+};
+
+/**
+ * Updates the table, adding json data to the 'data' column on rows with specific 'internal_id'.
+ *
+ * @param inputArray An array of objects with the attributes 'internalId', and 'json'.
+ * @param inputArray[].internalId The internal_id value of the row we want to modify.
+ * @param inputArray[].json An object with the data we want to add to the row.
+ */
+const addJsonDataBatch = async (inputArray: { internalId: string; json: { [key: string]: any } }[]): Promise<void> => {
+    try {
+        if (inputArray.length === 0) {
+            return;
+        }
+
+        await knex.transaction(async (trx) => {
+            const data = inputArray.map((input) => [input.internalId, JSON.stringify(input.json)]);
+            const placeholders = data.map(() => '(?, ?)').join(',');
+            const bindings = data.flat();
+            const query = `
+                WITH input(internal_id, data) AS (VALUES ${placeholders})
+                UPDATE ${tableName} z
+                SET data = input.data::json
+                FROM input
+                WHERE z.internal_id = input.internal_id
+            `;
+            await trx.raw(query, bindings);
+        });
+    } catch (error) {
+        throw new TrError(
+            `Problem updating object in table ${tableName} (knex error: ${error})`,
+            'DBQZONE0006',
+            'ProblemUpdatingObject'
+        );
+    }
+};
+
 export default {
     exists: exists.bind(null, knex, tableName),
     read,
     create: (newObject: ZoneAttributes, returning?: string) => {
         return create(knex, tableName, attributesCleaner, newObject, { returning });
     },
-    createMultiple: (newObjects: ZoneAttributes[], returning?: string[]) => {
+    createMultiple: (newObjects: ZoneAttributes[], returning?: string | string[]) => {
         return createMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
     },
     update: (id: string, updatedObject: Partial<ZoneAttributes>, returning?: string) => {
@@ -185,5 +278,7 @@ export default {
     destroy: destroy.bind(null, knex),
     collection,
     deleteForDataSourceId: deleteForDataSourceId.bind(null, knex, tableName),
-    getZonesContaining
+    getZonesContaining,
+    addZonesAndConvertedGeography,
+    addJsonDataBatch
 };
