@@ -11,6 +11,7 @@ let pool: WorkerPool | undefined = undefined;
 
 export const startPool = () => {
     // TODO: Add a server preference for the maximum number of workers
+    console.log('Starting worker pool');
     pool = workerpool.pool(__dirname + '/TransitionWorkerPool.js', { maxWorkers: 1 });
 };
 
