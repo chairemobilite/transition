@@ -34,26 +34,34 @@ const attributesCleaner = function (attributes: Partial<AgencyAttributes>): Part
     return _attributes;
 };
 
-const collection = async (): Promise<AgencyAttributes[]> => {
+const collection = async ({ scenarioId }: { scenarioId?: string } = {}): Promise<AgencyAttributes[]> => {
     try {
-        const response = await knex.raw(
-            `
-        SELECT 
-            a.*,
-            COALESCE(a.color, '${Preferences.current.transit.agencies.defaultColor}') as color,
-            array_remove(array_agg(l.id ORDER BY LPAD(l.shortname, 20, '0')), NULL) AS line_ids,
-            array_remove(array_agg(DISTINCT u.id), NULL) AS unit_ids,
-            array_remove(array_agg(DISTINCT g.id), NULL) AS garage_ids
-        FROM tr_transit_agencies a 
-        LEFT JOIN tr_transit_lines   l ON l.agency_id = a.id
-        LEFT JOIN tr_transit_units   u ON u.agency_id = a.id
-        LEFT JOIN tr_transit_garages g ON g.agency_id = a.id
-        WHERE a.is_enabled IS TRUE
-        GROUP BY a.id
-        ORDER BY COUNT(l.id) DESC, a.acronym, a.name, a.id;
-    `
-        );
-        const collection = response.rows;
+        const agenciesQuery = knex('tr_transit_agencies as a')
+            .select(
+                'a.*',
+                knex.raw('COALESCE(a.color, ?) as color', [Preferences.current.transit.agencies.defaultColor]),
+                knex.raw('array_remove(array_agg(l.id ORDER BY LPAD(l.shortname, 20, \'0\')), NULL) AS line_ids'),
+                knex.raw('array_remove(array_agg(DISTINCT u.id), NULL) AS unit_ids'),
+                knex.raw('array_remove(array_agg(DISTINCT g.id), NULL) AS garage_ids')
+            )
+            .leftJoin('tr_transit_lines as l', 'l.agency_id', 'a.id')
+            .leftJoin('tr_transit_units as u', 'u.agency_id', 'a.id')
+            .leftJoin('tr_transit_garages as g', 'g.agency_id', 'a.id')
+            .where('a.is_enabled', true)
+            .groupBy('a.id')
+            .orderByRaw('COUNT(l.id) DESC, a.acronym, a.name, a.id');
+        if (scenarioId) {
+            agenciesQuery
+                .join('tr_transit_schedules as sched', 'sched.line_id', 'l.id')
+                .join('tr_transit_services as serv', 'sched.service_id', 'serv.id')
+                .join('tr_transit_scenario_services as scServ', 'scServ.service_id', 'serv.id')
+                .join('tr_transit_scenarios as sc', 'sc.id', 'scServ.scenario_id')
+                .where('sc.id', scenarioId)
+                .whereRaw(knex.raw('(sc.only_agencies = \'{}\' or a.id = ANY(sc.only_agencies))'))
+                .whereRaw(knex.raw('(sc.except_agencies = \'{}\' or a.id != ALL(sc.except_agencies))'));
+        }
+        const rows = await agenciesQuery;
+        const collection = rows;
         if (collection) {
             return collection;
         }
