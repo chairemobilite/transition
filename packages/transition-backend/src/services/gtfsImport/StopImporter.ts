@@ -97,7 +97,8 @@ export class StopImporter implements GtfsObjectPreparator<StopImportData> {
         const updatedNodesById = {};
 
         // Split the nodes to import into already existing nodes to update and new nodes
-        const promiseQueue = new PQueue({ concurrency: 1 });
+        // FIXME Concurrency of 10 to mitigate the fact that the `nodesinWalkingTravelTimeRadiusSecondsAround` function takes a lot of time
+        const nodeInRangePromiseQueue = new PQueue({ concurrency: 10 });
         const promiseProducer = async (stopData: StopImportData) => {
             // FIXME When radius is 0, KDBush sometimes does not return a node
             // even if one at the exact same location exists, so we force the
@@ -138,7 +139,7 @@ export class StopImporter implements GtfsObjectPreparator<StopImportData> {
         };
 
         const nodesInRangePromises = stops.map(async (feature) =>
-            promiseQueue.add(async () => promiseProducer(feature))
+            nodeInRangePromiseQueue.add(async () => promiseProducer(feature))
         );
 
         // Run all the promises, no matter their result.
@@ -147,8 +148,11 @@ export class StopImporter implements GtfsObjectPreparator<StopImportData> {
         // TODO: Update the radius of nodes to make sure all of their included stops are inside the radius.
 
         // TODO: Batch update/create nodes when a method is readily available for it
+        // Save one node at a time because of transferrable nodes calculation that have race condition if it is not the case.
+        // FIXME Transferrable nodes calculation should be done only at the end of the import
+        const savePromiseQueue = new PQueue({ concurrency: 1 });
         const updatePromises = Object.keys(updatedNodesById).map(async (key) =>
-            promiseQueue.add(async () => updatedNodesById[key].save(serviceLocator.socketEventManager))
+            savePromiseQueue.add(async () => updatedNodesById[key].save(serviceLocator.socketEventManager))
         );
         await Promise.allSettled(updatePromises);
 
