@@ -145,3 +145,26 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+### foot
+
+#### foot
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### foot_with_backpack
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### foot_with_pale_backpack
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### run
+
+- Source: https://www.svgrepo.com/download/489113/run.svg | modes/foot/sources/run_original.svg
+- License: CC0 License
+- Author: Gabriele Malaspina
