@@ -113,3 +113,13 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+
+### car/taxi
+
+#### car_driver_with_passenger, car_driver_without_passenger, car_no_steering_wheel, car_passenger, car_with_steering_wheel, taxi_driver_with_passenger, taxi_driver_without_passenger, taxi_no_steering_wheel, taxi_passenger, taxi_with_steering_wheel, car_driver_with_passenger_left, car_driver_without_passenger_left, car_no_steering_wheel_left, car_passenger_left, car_with_steering_wheel_left, taxi_driver_with_passenger_left, taxi_driver_without_passenger_left, taxi_no_steering_wheel_left, taxi_passenger_left, taxi_with_steering_wheel_left
+
+- Source: https://github.com/framework7io/framework7-icons/blob/7fb38494ba82cbef74d4f7e725431544c8ea1ee5/src/sf/car_fill.svg | modes/car/sources/car_original.svg
+- License: MIT License
+- Copyright: © 2016 Vladimir Kharlampidi
+- Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (added mirrors and passenger and/or driver and/or steering wheel and/or roof taxi sign)
