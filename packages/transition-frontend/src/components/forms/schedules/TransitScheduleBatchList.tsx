@@ -19,6 +19,7 @@ import TransitScheduleBatchEdit from './TransitScheduleBatchEdit';
 import Schedule from 'transition-common/lib/services/schedules/Schedule';
 import { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
+import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 
 interface BatchListProps {
     batchSelectedLines: LineCollection;
@@ -37,9 +38,9 @@ const TransitScheduleBatchList: React.FunctionComponent<BatchListProps & WithTra
         selectedNewSchedules: []
     });
     const agencyCollection = serviceLocator.collectionManager.get('agencies').getFeatures();
-    const linesCollection = serviceLocator.collectionManager.get('lines').getFeatures();
+    const lines = serviceLocator.collectionManager.get('lines').getFeatures();
     // Only the lines with one inbound and one outbound path are displayed
-    const filteredlinesCollection = linesCollection.filter(
+    const filteredlines = lines.filter(
         (line) => line.getOutboundPaths().length > 0 && line.getInboundPaths().length > 0
     );
     const transitServices = serviceLocator.collectionManager.get('services');
@@ -104,7 +105,7 @@ const TransitScheduleBatchList: React.FunctionComponent<BatchListProps & WithTra
     agencyCollection.forEach((agency) => {
         const agencyLinesButtons: any[] = [];
         agency.getLines().forEach((line) => {
-            if (filteredlinesCollection.includes(line))
+            if (filteredlines.includes(line))
                 agencyLinesButtons.push(
                     <TransitScheduleBatchButton
                         disabled={state.isSelectionConfirmed === true}
@@ -149,11 +150,11 @@ const TransitScheduleBatchList: React.FunctionComponent<BatchListProps & WithTra
             {state.isSelectionConfirmed === false && (
                 <div className="tr__form-buttons-container _left">
                     <Button
-                        disabled={state.batchSelectedLines.length === filteredlinesCollection.length}
+                        disabled={state.batchSelectedLines.length === filteredlines.length}
                         color="blue"
                         label={props.t('main:SelectAll')}
                         onClick={function () {
-                            state.batchSelectedLines.setFeatures(filteredlinesCollection);
+                            state.batchSelectedLines.setFeatures(filteredlines);
                             setState({
                                 batchSelectedLines: state.batchSelectedLines,
                                 isSelectionConfirmed: false,
@@ -178,6 +179,9 @@ const TransitScheduleBatchList: React.FunctionComponent<BatchListProps & WithTra
                 </div>
             )}
 
+            {lines.length > filteredlines.length && (
+                <FormErrors errors={['transit:transitSchedule:batchMinTwoPathWarning']} errorType="Warning" />
+            )}
             {state.isSelectionConfirmed === false && <ButtonList>{linesButtons}</ButtonList>}
 
             <div className="tr__form-buttons-container _left">
