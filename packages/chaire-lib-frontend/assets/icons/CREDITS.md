@@ -168,3 +168,10 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 - Source: https://www.svgrepo.com/download/489113/run.svg | modes/foot/sources/run_original.svg
 - License: CC0 License
 - Author: Gabriele Malaspina
+
+### kick_scooter
+
+#### kick_scooter
+
+- Source: https://www.svgrepo.com/download/271438/scooter.svg | modes/kick_scooter/sources/kick_scooter_original.svg
+- License: CC0 License
