@@ -175,3 +175,10 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 - Source: https://www.svgrepo.com/download/271438/scooter.svg | modes/kick_scooter/sources/kick_scooter_original.svg
 - License: CC0 License
+
+### airplane
+
+#### airplane
+
+- Source: https://www.svgrepo.com/download/3862/air-transport.svg | modes/airplane/sources/airplane_original.svg
+- License: CC0 License
