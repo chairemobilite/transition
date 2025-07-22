@@ -123,3 +123,25 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 - License: MIT License
 - Copyright: © 2016 Vladimir Kharlampidi
 - Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (added mirrors and passenger and/or driver and/or steering wheel and/or roof taxi sign)
+
+### boat
+
+#### boat
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### ferry_with_car
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+- Includes car icon from:
+    - Source: https://github.com/framework7io/framework7-icons/blob/7fb38494ba82cbef74d4f7e725431544c8ea1ee5/src/sf/car_fill.svg | modes/car/sources/car_original.svg
+    - License: MIT License
+    - Copyright: © 2016 Vladimir Kharlampidi
+    - Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (added mirrors)
+
+#### ferry_without_car
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
