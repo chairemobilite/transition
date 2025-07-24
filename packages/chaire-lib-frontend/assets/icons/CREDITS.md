@@ -181,3 +181,10 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 - Source: https://www.svgrepo.com/download/3862/air-transport.svg | modes/airplane/sources/airplane_original.svg
 - License: CC0 License
+
+### wheelchair
+
+#### wheelchair
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
