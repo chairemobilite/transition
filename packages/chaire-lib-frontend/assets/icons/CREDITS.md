@@ -189,6 +189,12 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
 
+#### wheelchair_electric
+
+- Source: https://www.svgrepo.com/download/490721/electric-wheelchair-bold.svg | modes/wheelchair/sources/wheelchair_electric_original.svg
+- License: PD License
+- Author: IonutNeagu
+
 ### scooter
 
 #### scooter, scooter_electric
