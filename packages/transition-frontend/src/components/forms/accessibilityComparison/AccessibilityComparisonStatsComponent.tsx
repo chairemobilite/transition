@@ -4,11 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import React, { JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from 'react-tooltip';
 import * as AccessibilityComparisonConstants from './accessibilityComparisonConstants';
 import { ComparisonMode } from './comparisonModes';
+import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 
 export interface AccessibilityComparisonStatsComponentProps {
     accessibilityPolygons: {
@@ -24,6 +25,12 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
     const { t, i18n } = useTranslation(['transit', 'main']);
 
     const language = i18n.language;
+
+    // State to track show/hide for categories and detailed categories for each duration
+    const [showCategoriesState, setShowCategoriesState] = useState<Record<number, boolean>>({});
+    const [showEmptyDetailedCategoriesState, setShowEmptyDetailedCategoriesState] = useState<Record<number, boolean>>(
+        {}
+    );
 
     const sortByDuration = (features: GeoJSON.Feature[]) => {
         features.sort((feat1, feat2) => {
@@ -55,16 +62,93 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
         const properties2 = features.result2.properties;
         if (!properties1 || !properties2) return null;
 
-        // TODO: The component this file is derived from has a section that is supposed to calculate stats for POI.
-        // However, POI import does not work correctly right now, so there is no point in having this section at the moment.
-        // In the future, when POI are fixed, add this sections back (use ../accessibilityMap/AccessibilityMapStatsComponent.tsx as reference)
+        const durationMinutes = Math.round(properties1.durationMinutes);
+
+        // Get current state for this specific duration
+        const showCategories = showCategoriesState[durationMinutes] || false;
+        const showEmptyDetailedCategories = showEmptyDetailedCategoriesState[durationMinutes] || false;
+
+        // Helper functions to update state for this specific duration
+        const setShowCategories = (value: boolean) => {
+            setShowCategoriesState((prev) => ({ ...prev, [durationMinutes]: value }));
+        };
+
+        const setShowEmptyDetailedCategories = (value: boolean) => {
+            setShowEmptyDetailedCategoriesState((prev) => ({ ...prev, [durationMinutes]: value }));
+        };
+
+        // fetch number of accessible places per category and detailed category:
+        const accessiblePlacesCountByCategory: JSX.Element[] = [];
+        const accessiblePlacesCountByDetailedCategory: JSX.Element[] = [];
+        const accessiblePlacesCountByDetailedCategoryEmpty: JSX.Element[] = [];
+
+        let categoryTotal1 = 0;
+        let categoryTotal2 = 0;
+        if (properties1.accessiblePlacesCountByCategory && properties2.accessiblePlacesCountByCategory) {
+            for (const category in properties1.accessiblePlacesCountByCategory) {
+                categoryTotal1 += Number(properties1.accessiblePlacesCountByCategory[category]);
+                categoryTotal2 += Number(properties2.accessiblePlacesCountByCategory[category]);
+                accessiblePlacesCountByCategory.push(
+                    <tr key={category}>
+                        <th>{t(`main:places:categories:${category}`)}</th>
+                        <td>{properties1.accessiblePlacesCountByCategory[category]}</td>
+                        <td>{properties2.accessiblePlacesCountByCategory[category]}</td>
+                        <td>
+                            {(
+                                properties2.accessiblePlacesCountByCategory[category] -
+                                properties1.accessiblePlacesCountByCategory[category]
+                            ).toLocaleString(undefined, { signDisplay: 'exceptZero' })}
+                        </td>
+                    </tr>
+                );
+            }
+        }
+        if (
+            properties1.accessiblePlacesCountByDetailedCategory &&
+            properties2.accessiblePlacesCountByDetailedCategory
+        ) {
+            for (const detailedCategory in properties1.accessiblePlacesCountByDetailedCategory) {
+                if (
+                    properties1.accessiblePlacesCountByDetailedCategory[detailedCategory] > 0 ||
+                    properties2.accessiblePlacesCountByDetailedCategory[detailedCategory] > 0
+                ) {
+                    accessiblePlacesCountByDetailedCategory.push(
+                        <tr key={detailedCategory}>
+                            <th>{t(`main:places:detailedCategories:${detailedCategory}`)}</th>
+                            <td>{properties1.accessiblePlacesCountByDetailedCategory[detailedCategory]}</td>
+                            <td>{properties2.accessiblePlacesCountByDetailedCategory[detailedCategory]}</td>
+                            <td>
+                                {(
+                                    properties2.accessiblePlacesCountByDetailedCategory[detailedCategory] -
+                                    properties1.accessiblePlacesCountByDetailedCategory[detailedCategory]
+                                ).toLocaleString(undefined, { signDisplay: 'exceptZero' })}
+                            </td>
+                        </tr>
+                    );
+                } else {
+                    accessiblePlacesCountByDetailedCategoryEmpty.push(
+                        <tr key={detailedCategory}>
+                            <th>{t(`main:places:detailedCategories:${detailedCategory}`)}</th>
+                            <td>{properties1.accessiblePlacesCountByDetailedCategory[detailedCategory]}</td>
+                            <td>{properties2.accessiblePlacesCountByDetailedCategory[detailedCategory]}</td>
+                            <td>
+                                {(
+                                    properties2.accessiblePlacesCountByDetailedCategory[detailedCategory] -
+                                    properties1.accessiblePlacesCountByDetailedCategory[detailedCategory]
+                                ).toLocaleString(undefined, { signDisplay: 'exceptZero' })}
+                            </td>
+                        </tr>
+                    );
+                }
+            }
+        }
 
         return (
-            <React.Fragment key={properties1.durationMinutes}>
+            <React.Fragment key={durationMinutes}>
                 <tr>
                     <th className="_header">
                         {t('transit:transitRouting:AccessibilityMapAreaTitle', {
-                            n: Math.round(properties1.durationMinutes)
+                            n: durationMinutes
                         })}
                     </th>
                 </tr>
@@ -89,14 +173,76 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
                         })}
                     </td>
                 </tr>
-                {/* TODO: Add more rows when POIs are fixed. */}
+                {(categoryTotal1 > 0 || categoryTotal2 > 0) && (
+                    <React.Fragment>
+                        <tr>
+                            <th className="_header" data-tooltip-id="accessible-POI-header">
+                                {t('transit:transitRouting:NumberOfAccessiblePOIsInNMinutesByCategory', {
+                                    n: durationMinutes
+                                })}
+                            </th>
+                        </tr>
+                        <tr>
+                            <th colSpan={4}>
+                                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                    <InputCheckboxBoolean
+                                        id={`showCategoriesCheckbox${durationMinutes}`}
+                                        label={t('transit:transitRouting:SeeCategories')}
+                                        isChecked={showCategories}
+                                        onValueChange={(e) => setShowCategories(e.target.value)}
+                                    />
+                                </div>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th>{t('transit:transitRouting:TotalPOIs')}</th>
+                            <td>{categoryTotal1}</td>
+                            <td>{categoryTotal2}</td>
+                            <td>
+                                {(categoryTotal2 - categoryTotal1).toLocaleString(undefined, {
+                                    signDisplay: 'exceptZero'
+                                })}
+                            </td>
+                        </tr>
+                        {showCategories && (
+                            <React.Fragment>
+                                {accessiblePlacesCountByCategory}
+                                <tr>
+                                    <th className="_header">
+                                        {t(
+                                            'transit:transitRouting:NumberOfAccessiblePOIsInNMinutesByDetailedCategory',
+                                            {
+                                                n: durationMinutes
+                                            }
+                                        )}
+                                    </th>
+                                </tr>
+                                {accessiblePlacesCountByDetailedCategory}
+                                <tr>
+                                    <th colSpan={4}>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                            <InputCheckboxBoolean
+                                                id={`showEmptyDetailedCategoriesCheckbox${durationMinutes}`}
+                                                label={t('transit:transitRouting:ShowEmptyDetailedCategories')}
+                                                isChecked={showEmptyDetailedCategories}
+                                                onValueChange={(e) => setShowEmptyDetailedCategories(e.target.value)}
+                                            />
+                                        </div>
+                                    </th>
+                                </tr>
+                                {showEmptyDetailedCategories && accessiblePlacesCountByDetailedCategoryEmpty}
+                            </React.Fragment>
+                        )}
+                    </React.Fragment>
+                )}
+                <br />
             </React.Fragment>
         );
     });
 
     return (
         <div className="tr__form-section">
-            <table className="_statistics" style={{ borderSpacing: '10px' }}>
+            <table className="_statistics" style={{ borderSpacing: '10px 5px' }}>
                 <thead>
                     <tr>
                         <th></th>
@@ -127,6 +273,9 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
                         ? t('transit:transitComparison:ScenarioN', { scenarioNumber: '1' })
                         : t('transit:accessibilityComparison:LocationN', { locationNumber: '1' })}
                 </span>
+            </Tooltip>
+            <Tooltip id="accessible-POI-header" opacity={1} style={{ maxWidth: '90%', zIndex: 100 }}>
+                <span>{t('transit:transitRouting:AccessiblePOIsPopup')}</span>
             </Tooltip>
         </div>
     );
