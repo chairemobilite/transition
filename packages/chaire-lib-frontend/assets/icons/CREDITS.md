@@ -170,7 +170,7 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 ### kick_scooter
 
-#### kick_scooter
+#### kick_scooter, kick_scooter_electric
 
 - Source: https://www.svgrepo.com/download/271438/scooter.svg | modes/kick_scooter/sources/kick_scooter_original.svg
 - License: CC0 License
@@ -191,7 +191,7 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 ### scooter
 
-#### scooter
+#### scooter, scooter_electric
 
 - License: CC0 License
 
@@ -211,4 +211,3 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
 - Montage of minibus and wheelchair icons
-
