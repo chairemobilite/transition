@@ -218,3 +218,10 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+### mobility_scooter
+
+#### mobility_scooter
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
