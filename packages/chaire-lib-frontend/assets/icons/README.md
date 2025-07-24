@@ -1,4 +1,4 @@
-# Open-source Icons
+# Open-source icons and interface elements
 
 ## Names and Paths
 
@@ -23,3 +23,7 @@ To change the icon main color, use CSS. Each icon svg tag has the class "svg-ico
 Credits/sources/modifications are available for each icon in CREDITS.md, including license names matching detailed licenses in LICENSES.md
 
 When modified, the original icon can also be included in the specific icon directory in the sources subdirectory.
+
+## Ornaments
+
+Ornaments are small images that can be added to any app for beautification

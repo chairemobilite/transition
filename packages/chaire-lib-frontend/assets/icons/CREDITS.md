@@ -3,6 +3,15 @@
 Licenses are listed, sourced and defined in LICENSES.md
 Some icons can be made of multiple original icons (like a bus with a bus stop, or pedestrian alongside a train station). In these cases, all the sources are listed with their licenses.
 
+## Interface
+
+### ornaments
+
+#### circle_flowers
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
 ## Modes
 
 ### bicycle
