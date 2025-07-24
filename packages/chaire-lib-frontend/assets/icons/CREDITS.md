@@ -188,3 +188,13 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+### scooter
+
+#### scooter
+
+- License: CC0 License
+
+#### scooter_side
+
+- License: PD License
