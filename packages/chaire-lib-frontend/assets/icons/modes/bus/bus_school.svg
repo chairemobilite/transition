@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="svg-icon-bus_school" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 800 800">
+<svg id="svg-icon-bus_school" class="svg-icon" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 800 800">
     <path d="M599.5,745.89v17.951c0,19.8,16.2,36,36,36h43.5c19.8,0,36-16.2,36-36v-17.951h-115.5Z"/>
     <path d="M89,745.89v17.951c0,19.8,16.2,36,36,36h43.5c19.8,0,36-16.2,36-36v-17.951h-115.5Z"/>
     <path d="M56.498,268.89h-26.498C13.5,268.89,0,282.39,0,298.89v81.475C0,396.865,13.5,410.365,30,410.365h26.498v-141.475Z"/>
