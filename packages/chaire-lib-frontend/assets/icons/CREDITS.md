@@ -211,3 +211,10 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
 - Montage of minibus and wheelchair icons
+
+### motorcycle
+
+#### motorcycle, motorcycle_electric
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
