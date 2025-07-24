@@ -198,3 +198,17 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 #### scooter_side
 
 - License: PD License
+
+### minibus
+
+#### minibus
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### minibus_with_wheelchair
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+- Montage of minibus and wheelchair icons
+
