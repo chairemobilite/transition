@@ -207,12 +207,12 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 ### minibus
 
-#### minibus
+#### minibus, minibus_electric
 
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
 
-#### minibus_with_wheelchair
+#### minibus_with_wheelchair, minibus_electric_with_wheelchair
 
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
