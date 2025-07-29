@@ -24,6 +24,14 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
 
+#### question_mark
+
+- Font
+  - Name: Open Sans Bold
+  - License: SIL Open Font License
+  - Authors: Steve Matteson
+  - Source: https://fonts.google.com/specimen/Open+Sans
+
 ## Modes
 
 ### bicycle
@@ -271,12 +279,243 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
     - Authors: Steve Matteson
     - Source: https://fonts.google.com/specimen/Open+Sans
 
-### unknown
+## Activities
 
-#### question_mark
+### home
 
-- Font
-    - Name: Open Sans Bold
-    - License: SIL Open Font License
-    - Authors: Steve Matteson
-    - Source: https://fonts.google.com/specimen/Open+Sans
+#### home
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### home_secondary
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### home_with_briefcase
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### home_with_road
+
+- Home
+    - License: MIT License
+    - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+- Road
+    - License: CC0 License
+    - Source: https://www.svgrepo.com/svg/13025/route-top-view | activities/work/sources/road_original.svg
+    - Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (rotate, translate, change opacity)
+- Combined by: Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+### work
+
+#### building_office
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### building_office_with_road
+
+- Building
+    - License: MIT License
+    - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+- Road
+    - License: CC0 License
+    - Source: https://www.svgrepo.com/svg/13025/route-top-view | activities/work/sources/road_original.svg
+    - Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (rotate, translate, change opacity)
+- Combined by: Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### briefcase
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### briefcase_with_road
+
+- briefcase
+    - License: MIT License
+    - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+- Road
+    - License: CC0 License
+    - Source: https://www.svgrepo.com/svg/13025/route-top-view | activities/work/sources/road_original.svg
+    - Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (rotate, translate, change opacity)
+- Combined by: Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### truck
+
+- License: CC0 License
+- Source: https://www.svgrepo.com/svg/48819/truck | activities/work/sources/truck_original.svg
+- Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (scale, simplify, remove text)
+
+#### truck_with_road
+
+- Truck
+    - License: CC0 License
+    - Source: https://www.svgrepo.com/svg/48819/truck | activities/work/sources/truck_original.svg
+    - Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (scale, simplify, remove text)
+- Road
+    - License: CC0 License
+    - Source: https://www.svgrepo.com/svg/13025/route-top-view | activities/work/sources/road_original.svg
+    - Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (rotate, translate, change opacity)
+- Combined by: Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### worker_with_necktie
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+### accompany_drop_fetch_someone
+
+#### accompany_someone
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### fetch_someone
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### drop_someone
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### drop_fetch_someone
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+### other
+
+#### electric_charging_station
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### carsharing_station
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### medical_cross
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### restaurant
+
+- Source: https://www.svgrepo.com/svg/482416/fork-and-spoon-meal | activities/other/sources/restaurant_original.svg
+- License: Icooon Mono License
+- Author: TopeconHeroes/Icooon Mono
+
+#### volunteering
+
+- Hand
+    - Source: https://www.svgrepo.com/svg/167671/hand-holding-up-a-book | activities/other/sources/volunteering_hand_original.svg
+    - License: CC0 License
+- Heart
+    - Source: https://www.svgrepo.com/svg/535436/heart | activities/other/sources/volunteering_heart_original.svg
+    - License: PD License
+    - Author: Noah Jacobus
+- Combined by: Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### worship
+
+- Source: https://www.svgrepo.com/svg/398089/place-of-worship | activities/other/sources/worship_original.svg
+- License: Apache License
+- Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (remove color, simplify and realign)
+
+### school
+
+#### graduation_cap
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### school_building_small
+
+- Source: https://www.svgrepo.com/svg/380926/school-education-learning-classroom-study | activities/school/sources/school_building_small_original.svg
+- License: CC0 License
+
+#### school_building_large
+
+- Source: https://www.svgrepo.com/svg/107569/school-campus | activities/school/sources/school_building_small_original.svg
+- License: CC0 License
+
+### services
+
+#### bank
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### cat_dog
+
+- Dog
+    - Source: https://fontawesome.com/icons/dog?f=classic&s=solid | activities/services/sources/dog_original.svg
+    - License: CC BY 4.0
+    - Author: FortAwesome
+- Cat
+    - Source: https://fontawesome.com/icons/cat?f=classic&s=solid | activities/services/sources/cat_original.svg
+    - License: CC BY 4.0
+    - Author: FortAwesome
+- Combined by: Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### gas_station
+
+- Source: https://www.svgrepo.com/svg/525352/gas-station | activities/services/sources/gas_station_original.svg
+- Author: R4IN80W
+- License: CC BY 4.0
+
+### shopping
+
+#### shopping_cart
+
+- Source: https://www.svgrepo.com/svg/477562/shopping-cart-free-15 | activities/shopping/sources/shooping_cart_original.svg
+- License: Icooon Mono License
+- Author: TopeconHeroes/Icooon Mono
+
+#### shopping_basket
+
+- Source: https://www.svgrepo.com/svg/54380/shopping-basket | activities/shopping/sources/shooping_basket_original.svg
+- License: CC0 License
+
+#### shopping_basket_with_home
+
+- Shopping basket
+    - Source: https://www.svgrepo.com/svg/54380/shopping-basket | activities/shopping/sources/shooping_basket_original.svg
+    - License: CC0 License
+- Home
+    - License: MIT License
+    - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+- Combined by: Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+### leisure
+
+#### luggages
+
+- Luggage small
+    - Source: https://www.svgrepo.com/svg/377075/suitcase-2 | activities/leisure/sources/luggage_small_original.svg
+    - License: MIT License
+    - Author: halfmage
+- Luggage large
+    - Source: https://www.svgrepo.com/svg/431773/luggage | activities/leisure/sources/luggage_large_original.svg
+    - License: Apache License
+    - Author: Richard9394
+- Combined by: Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### music
+
+- Source: https://www.svgrepo.com/svg/377901/quodlibet | activities/leisure/sources/music_original.svg
+- License: PD License
+- Author: jcubic
+- Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (reflect, rotate, fill note, increase stem width)
+
+#### sports_run
+
+- Source: https://www.svgrepo.com/svg/22698/man-sprinting | activities/leisure/sources/sports_run_original.svg
+- License: CC0 License
+
