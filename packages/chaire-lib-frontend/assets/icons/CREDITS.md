@@ -302,3 +302,33 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+### other
+
+#### electric_charging_station
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### carsharing_station
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### volunteering
+
+- Hand
+    - Source: https://www.svgrepo.com/svg/167671/hand-holding-up-a-book | activities/other/sources/volunteering_hand_original.svg
+    - License: CC0 License
+- Heart
+    - Source: https://www.svgrepo.com/svg/535436/heart | activities/other/sources/volunteering_heart_original.svg
+    - License: PD License
+    - Author: Noah Jacobus
+- Combined by: Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### worship
+
+- Source: https://www.svgrepo.com/svg/398089/place-of-worship | activities/other/sources/worship_original.svg
+- License: Apache License
+- Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (remove color, simplify and realign)
+
