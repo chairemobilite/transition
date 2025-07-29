@@ -5,6 +5,18 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 ## Interface
 
+### arrows
+
+#### arrow_down
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### arrow_down_bold
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
 ### ornaments
 
 #### circle_flowers
