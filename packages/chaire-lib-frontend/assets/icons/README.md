@@ -14,6 +14,8 @@ Each icon can have different variants by specification (example: the bicycle ico
 * Multi-color, inside a map marker (suffix _\_color\_marker_)
 * Multi-color, inside a circle (suffix _\_color\_round_)
 
+Icon names should be unique overall (no matter if they are in activities, modes or interface directories or in sub directories)
+
 ## CSS and styling
 
 To change the icon main color, use CSS. Each icon svg tag has the class "svg-icon" and the id equal to "svg-icon-ICON_NAME". For example, for an icon file named "bicycle_with_rider.svg", the ID would be "svg-icon-bicycle_with_rider". When creating/adding a new icon, the id and class should be added for compatibility and styling opportunities (changing colors, opacity, etc.)
