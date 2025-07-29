@@ -24,6 +24,14 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
 
+#### question_mark
+
+- Font
+  - Name: Open Sans Bold
+  - License: SIL Open Font License
+  - Authors: Steve Matteson
+  - Source: https://fonts.google.com/specimen/Open+Sans
+
 ## Modes
 
 ### bicycle
@@ -265,16 +273,6 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 - Source: https://www.svgrepo.com/download/270923/hot-air-balloon.svg | modes/other/sources/air_balloon_original.svg
 - License: CC0 License
 - Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (added question mark)
-- Font
-    - Name: Open Sans Bold
-    - License: SIL Open Font License
-    - Authors: Steve Matteson
-    - Source: https://fonts.google.com/specimen/Open+Sans
-
-### unknown
-
-#### question_mark
-
 - Font
     - Name: Open Sans Bold
     - License: SIL Open Font License
