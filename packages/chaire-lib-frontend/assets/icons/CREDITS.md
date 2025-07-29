@@ -280,3 +280,27 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
     - License: SIL Open Font License
     - Authors: Steve Matteson
     - Source: https://fonts.google.com/specimen/Open+Sans
+
+## Activities
+
+### accompany_drop_fetch_someone
+
+#### accompany_someone
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### fetch_someone
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### drop_someone
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### drop_fetch_someone
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
