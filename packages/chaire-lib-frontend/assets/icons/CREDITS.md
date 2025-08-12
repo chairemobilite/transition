@@ -17,13 +17,6 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
 
-### ornaments
-
-#### circle_flowers
-
-- License: MIT License
-- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
-
 #### question_mark
 
 - Font
@@ -31,6 +24,13 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
   - License: SIL Open Font License
   - Authors: Steve Matteson
   - Source: https://fonts.google.com/specimen/Open+Sans
+
+### ornaments
+
+#### circle_flowers
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
 
 ## Modes
 
@@ -263,6 +263,14 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 ### other
 
+#### question_mark
+
+- Font
+  - Name: Open Sans Bold
+  - License: SIL Open Font License
+  - Authors: Steve Matteson
+  - Source: https://fonts.google.com/specimen/Open+Sans
+
 #### air_balloon
 
 - Source: https://www.svgrepo.com/download/270923/hot-air-balloon.svg | modes/other/sources/air_balloon_original.svg
@@ -427,6 +435,14 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 - Source: https://www.svgrepo.com/svg/398089/place-of-worship | activities/other/sources/worship_original.svg
 - License: Apache License
 - Modified by: Pierre-Léo Bourbonnais (Polytechnique Montreal) (remove color, simplify and realign)
+
+#### question_mark
+
+- Font
+  - Name: Open Sans Bold
+  - License: SIL Open Font License
+  - Authors: Steve Matteson
+  - Source: https://fonts.google.com/specimen/Open+Sans
 
 ### school
 

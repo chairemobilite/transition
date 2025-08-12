@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="svg-icon-bus_city" class="svg-icon" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 800 800">
+<svg class="svg-icon-modes-bus_city svg-icon svg-icon-modes" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 800 800">
     <path d="M539.5,745.89v17.951c0,19.8,16.2,36,36,36h43.5c19.8,0,36-16.2,36-36v-17.951h-115.5Z"/>
     <path d="M149,745.89v17.951c0,19.8,16.2,36,36,36h43.5c19.8,0,36-16.2,36-36v-17.951h-115.5Z"/>
     <path d="M56.498,208.89h-26.498c-16.5,0-30,13.5-30,30v81.475c0,16.5,13.5,30,30,30h26.498v-141.475Z"/>
