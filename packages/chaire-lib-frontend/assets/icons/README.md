@@ -14,11 +14,11 @@ Each icon can have different variants by specification (example: the bicycle ico
 * Multi-color, inside a map marker (suffix _\_color\_marker_)
 * Multi-color, inside a circle (suffix _\_color\_round_)
 
-Icon names should be unique overall (no matter if they are in activities, modes or interface directories or in sub directories)
+Icon names should be unique within each directory (activities, modes, or interface); otherwise, class names collide and prevent distinct styling.
 
 ## CSS and styling
 
-To change the icon main color, use CSS. Each icon svg tag has the class "svg-icon" and the id equal to "svg-icon-ICON_NAME". For example, for an icon file named "bicycle_with_rider.svg", the ID would be "svg-icon-bicycle_with_rider". When creating/adding a new icon, the id and class should be added for compatibility and styling opportunities (changing colors, opacity, etc.)
+To change the icon main color, use CSS. Each icon svg tag must include three classes: "svg-icon", "svg-icon-DIRECTORY" (such as activities, modes, or interface), and "svg-icon-DIRECTORY-ICON_NAME". For example, for "modes/bicycle/bicycle_with_rider.svg", use: class="svg-icon svg-icon-modes svg-icon-modes-bicycle_with_rider". Nested SVG elements should use directory‑prefixed class names (e.g., svg-icon-modes-bicycle_with_rider-road). Existing "svg-icon-opacity-*" classes are preserved. Always include all three classes for compatibility and styling opportunities (colors, opacity, etc.).
 
 ## Credits and Licenses
 
