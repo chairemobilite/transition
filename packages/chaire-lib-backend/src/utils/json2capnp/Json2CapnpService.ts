@@ -17,10 +17,18 @@ const fetch = async (url: string, opts) => {
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
+import { capnp_serialization } from 'transition-rust-backend';
+
+
 class Json2CapnpService {
     // TODO Support the cache path directory or remove from method
     async writeCache(cacheName: string, jsonData: any, _cachePathDirectory?: string) {
         try {
+
+            if (cacheName == "lines" ) {
+                capnp_serialization.writeLineCollection("/tmp/linestest", JSON.stringify(jsonData))
+            }
+            
             const request = `${this.getUrlPrefix()}${cacheName}`;
             const response = await fetch(request, {
                 method: 'POST',
