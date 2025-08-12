@@ -164,13 +164,60 @@ const getZonesContaining = async (
     }
 };
 
+const addZonesAndConvertedGeography = async (
+    zonesBatch: ZoneAttributes[],
+    srIdArray: string[],
+    geographyArray: string[]
+): Promise<void> => {
+    try {
+        if (zonesBatch.length !== srIdArray.length || srIdArray.length !== geographyArray.length) {
+            throw new Error(
+                `The numer of id, srId, and geographies in the current batch do not match (id: ${zonesBatch.length}, srId: ${srIdArray.length}, geography: ${geographyArray.length}).`
+            );
+        }
+
+        const dbIdArray = await createMultiple(knex, tableName, attributesCleaner, zonesBatch, { returning: 'id' });
+
+        await knex.transaction((trx) => {
+            const cases = dbIdArray
+                .map((id, index) => {
+                    if (!uuidValidate(id.id)) {
+                        throw new TrError(
+                            `Cannot read object from table ${tableName} because the required parameter id is missing, blank or not a valid uuid`,
+                            'DBQZONE0005',
+                            'MissingZoneIdWhenAddingConvertedGeography'
+                        );
+                    }
+                    return `WHEN id = '${id.id}' THEN ST_Transform(ST_GeomFromText('${geographyArray[index]}',${srIdArray[index]}),4326)::geography`;
+                })
+                .join(' ');
+
+            const ids = dbIdArray.map((id) => `'${id.id}'`).join(',');
+
+            const query = `
+                UPDATE ${tableName} 
+                SET geography = CASE ${cases} END 
+                WHERE id IN (${ids})
+            `;
+
+            return trx.raw(query);
+        });
+    } catch (error) {
+        throw new TrError(
+            `Problem adding new object to table ${tableName} (knex error: ${error})`,
+            'DBQZONE0007',
+            'ProblemAddingObject'
+        );
+    }
+};
+
 export default {
     exists: exists.bind(null, knex, tableName),
     read,
     create: (newObject: ZoneAttributes, returning?: string) => {
         return create(knex, tableName, attributesCleaner, newObject, { returning });
     },
-    createMultiple: (newObjects: ZoneAttributes[], returning?: string[]) => {
+    createMultiple: (newObjects: ZoneAttributes[], returning?: string | string[]) => {
         return createMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
     },
     update: (id: string, updatedObject: Partial<ZoneAttributes>, returning?: string) => {
@@ -185,5 +232,6 @@ export default {
     destroy: destroy.bind(null, knex),
     collection,
     deleteForDataSourceId: deleteForDataSourceId.bind(null, knex, tableName),
-    getZonesContaining
+    getZonesContaining,
+    addZonesAndConvertedGeography
 };
