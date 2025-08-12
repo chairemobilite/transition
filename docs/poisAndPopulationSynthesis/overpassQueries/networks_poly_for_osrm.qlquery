@@ -1,0 +1,25 @@
+[timeout:100]
+[out:xml]
+;
+(
+    {{polyboundary="BOUNDARY"}}
+    way["highway"](poly:{{polyboundary}});
+    node(w);
+    node(r);
+    way(r);
+    way["railway"](poly:{{polyboundary}});
+    node(w);
+    node(r);
+    way(r);
+    way["man_made"="pier"](poly:{{polyboundary}});
+    node(w);
+    node(r);
+    way(r);
+    way["leisure"="track"](poly:{{polyboundary}});
+    node(w);
+    node(r);
+    way(r);
+
+);
+out meta;
+>;

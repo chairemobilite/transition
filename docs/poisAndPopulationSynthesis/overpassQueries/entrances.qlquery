@@ -1,0 +1,10 @@
+[out:json][timeout:100];
+
+(
+{{polyboundary="BOUNDARY"}}
+
+node["entrance"](poly:{{polyboundary}}); // for buildings
+node["routing:entrance"~"main|shop|yes"](poly:{{polyboundary}}); // for areas
+
+);
+out geom;
