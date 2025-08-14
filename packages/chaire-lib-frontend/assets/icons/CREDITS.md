@@ -25,6 +25,18 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
   - Authors: Steve Matteson
   - Source: https://fonts.google.com/specimen/Open+Sans
 
+### markers
+
+#### marker_round, marker_round_fill
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
+#### marker_square, marker_square_fill
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
+
 ### ornaments
 
 #### circle_flowers

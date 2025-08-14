@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg class="svg-icon-marker_square-activities-medical_cross svg-icon-marker_square svg-icon-marker_square-activities" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 800 800">
+    <defs>
+        <style>
+            .svg-icon-marker-background { fill: #fff; }
+
+        </style>
+    </defs>
+    <path class="svg-icon-marker-marker_square" d="M678.707,0H121.24C79.611,0,45.744,33.867,45.744,75.496v557.467c0,41.629,33.867,75.496,75.496,75.496h130.099c148.693,5.043,148.635,91.541,148.635,91.541,0,0-.058-86.499,148.636-91.541h130.097c41.629,0,75.496-33.867,75.496-75.496V75.496C754.203,33.868,720.336,0,678.707,0h0Z"/>
+    <path class="svg-icon-marker-background" d="M139.566,48.525h520.814c25.017,0,45.297,20.28,45.297,45.297v520.814c0,25.017-20.28,45.297-45.297,45.297H139.566c-25.017,0-45.297-20.28-45.297-45.297V93.822c0-25.017,20.28-45.297,45.297-45.297Z"/>
+    <g class="svg-icon-content" transform="translate(120, 75) scale(0.7)">
+        <path d="M800,502.1h-297.9v297.9h-204.2v-297.9H0v-204.2h297.9V0h204.2v297.9h297.9v204.2Z"/>
+    </g>
+</svg>
