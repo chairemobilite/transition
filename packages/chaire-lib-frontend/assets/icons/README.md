@@ -8,11 +8,40 @@ All icons are in svg format with empty/transparent background and are categorize
 * Interface: interface icons (interface/) with subdirectories for specific application sections or kind of interface
 
 Each icon can have different variants by specification (example: the bicycle icon has bicycle_with_rider and bicycle_without_rider variants in the modes/bicycle directory) and variants by usage:
-* Single color (no suffix) (always available)
-* Single color, inside a map marker (suffix _\_marker_)
-* Single color, inside a circle (suffix _\_round_)
-* Multi-color, inside a map marker (suffix _\_color\_marker_)
-* Multi-color, inside a circle (suffix _\_color\_round_)
+* Standalone (no suffix) (always available)
+* Inside a map marker (suffix `-marker_round` or `-marker_square`)
+
+### Map Marker Icons
+
+Map marker icons embed the original icon content within standardized marker shapes for use in mapping applications. Two marker shapes are available:
+
+* **Round markers** (`-marker_round`): Teardrop-shaped markers with a circular content area
+* **Square markers** (`-marker_square`): Square-shaped markers with rounded corners and a pointer
+
+Marker icons include:
+1. A marker background shape (round teardrop or square with pointer)
+2. A white background circle/square for the content area
+3. The original icon content scaled and positioned within the marker
+4. Proper CSS classes for styling (e.g., `svg-icon-marker_round-activities-home`)
+
+The marker variants maintain all original styling including opacity settings and multi-part icon structures.
+
+### Automated Marker Generation
+
+Use the included `create-marker-icons.js` script to automatically generate marker variants:
+
+```bash
+# Generate markers for all icons in a category
+node create-marker-icons.js activities
+
+# Generate markers for a specific icon
+node create-marker-icons.js activities home
+
+# Force overwrite existing markers
+node create-marker-icons.js --force activities home_secondary
+```
+
+The script preserves all original styling, handles multi-part icons, and generates properly formatted output. It automatically skips `sources` directories containing reference files.
 
 Icon names should be unique within each directory (activities, modes, or interface); otherwise, class names collide and prevent distinct styling.
 
