@@ -4,22 +4,18 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
-import Loadable from 'react-loadable';
+import React, { lazy, Suspense } from 'react';
 import Loader from 'react-spinners/HashLoader';
 
-const loader = function Loading() {
-    return <Loader size={30} color={'#aaaaaa'} loading={true} />;
-};
+const LoaderComponent = () => <Loader size={30} color={'#aaaaaa'} loading={true} />;
 
-const UsersComponent = Loadable({
-    loader: () => import('../../pageParts/admin/users/UsersComponent'),
-    loading: loader
-});
+const UsersComponent = lazy(() => import('../../pageParts/admin/users/UsersComponent'));
 
 const UsersPage: React.FC = () => (
     <div className="admin">
-        <UsersComponent />
+        <Suspense fallback={<LoaderComponent />}>
+            <UsersComponent />
+        </Suspense>
     </div>
 );
 
