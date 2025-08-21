@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg class="svg-icon-interface-marker_square_with_down_arrow svg-icon-interface svg-icon" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 800 800">
+    <defs>
+        <style>
+            .svg-icon-marker-background { fill: #fff; }
+        </style>
+    </defs>
+    <path class="svg-icon-marker-marker_square" d="M678.707,0H121.24C79.611,0,45.744,33.867,45.744,75.496v557.467c0,41.629,33.867,75.496,75.496,75.496h130.099c148.693,5.043,148.635,91.541,148.635,91.541,0,0-.058-86.499,148.636-91.541h130.097c41.629,0,75.496-33.867,75.496-75.496V75.496C754.203,33.868,720.336,0,678.707,0h0Z"/>
+    <path class="svg-icon-marker-background" d="M139.566,48.525h520.814c25.017,0,45.297,20.28,45.297,45.297v520.814c0,25.017-20.28,45.297-45.297,45.297H139.566c-25.017,0-45.297-20.28-45.297-45.297V93.822c0-25.017,20.28-45.297,45.297-45.297Z"/>
+    <path class="svg-icon-marker-marker_square_with_down_arrow-down_arrow" d="M428.7,376.9V124.2c0-15.5-12.1-28.8-27.6-29.3-16.3-.6-29.7,12.5-29.7,28.6v253.4h-115.5c-11.6,0-18.4,13-11.8,22.5l144.2,208c5.7,8.2,17.9,8.2,23.6,0l144.2-208c6.6-9.5-.2-22.5-11.8-22.5h-115.5Z"/>
+</svg>
