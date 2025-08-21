@@ -27,12 +27,12 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 
 ### markers
 
-#### marker_round, marker_round_fill
+#### marker_round, marker_round_fill, marker_round_with_down_arrow, marker_round_with_small_circle
 
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
 
-#### marker_square, marker_square_fill
+#### marker_square, marker_square_fill, marker_square_with_down_arrow
 
 - License: MIT License
 - Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
