@@ -547,3 +547,7 @@ Some icons can be made of multiple original icons (like a bus with a bus stop, o
 - Source: https://www.svgrepo.com/svg/22698/man-sprinting | activities/leisure/sources/sports_run_original.svg
 - License: CC0 License
 
+#### walk
+
+- License: MIT License
+- Copyright: © 2025 Pierre-Léo Bourbonnais (Polytechnique Montreal)
