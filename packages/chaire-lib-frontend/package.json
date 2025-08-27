@@ -17,7 +17,7 @@
     "test:sequential": "echo 'cross-env NODE_ENV=test jest --config=jest.sequential.config.js --runInBand'",
     "test:ui": "echo 'cross-env NODE_ENV=test jest --config=jest.ui.config.js'",
     "lint": "eslint .",
-    "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write"
+    "format": "prettier-eslint \"./src/**/*.{ts,tsx}\" --write"
   },
   "dependencies": {
     "@casl/ability": "^6.7.3",

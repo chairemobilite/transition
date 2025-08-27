@@ -20,7 +20,7 @@
     "test:sequential": "echo 'cross-env NODE_ENV=test jest --config=jest.sequential.config.js --runInBand'",
     "test:ui": "LOCALE_DIR=$(pwd)/locales npx playwright test",
     "lint": "eslint .",
-    "format": "prettier-eslint $PWD/'src/**/*.{ts,tsx}' --write"
+    "format": "prettier-eslint \"./src/**/*.{ts,tsx}\" --write"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.1",
