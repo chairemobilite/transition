@@ -161,3 +161,72 @@ test('Test exporting unknown lines', async () => {
     expect(mockWriteStream.end).toHaveBeenCalledTimes(1);
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/routes.txt'));
 });
+
+describe('GTFS Color validation tests', () => {
+    
+    test('Test existing line colors are exported without # prefix', async () => {
+        // Test with the existing lineAttributes1 which should have colors processed
+        const response = await exportLine([lineAttributes1.id], { 
+            directoryPath: 'test', 
+            quotesFct: quoteFct, 
+            agencyToGtfsId 
+        });
+        
+        expect(response.status).toEqual('success');
+        expect(mockWriteStream.write).toHaveBeenCalledTimes(1);
+        
+        const writtenData = mockWriteStream.write.mock.calls[0][0];
+        
+        // Verify that the CSV output doesn't contain any # symbols in color fields
+        // Split by lines and check the data row (second line)
+        const lines = writtenData.split('\n');
+        const dataRow = lines[1]; // First line is header, second is data
+        
+        // The data should not contain # symbols
+        expect(dataRow).not.toMatch(/#[0-9A-Fa-f]{6}/); // No # followed by 6 hex digits
+        
+        // Verify specific colors from lineAttributes1 are present without #
+        expect(dataRow).toContain('112233'); // route_color from lineAttributes1
+        expect(dataRow).toContain('123456'); // route_text_color from lineAttributes1
+    });
+
+    test('Test line without specific color data', async () => {
+        // Test with lineAttributes2 which has no color in data.gtfs
+        const response = await exportLine([lineAttributes2.id], { 
+            directoryPath: 'test', 
+            quotesFct: quoteFct, 
+            agencyToGtfsId 
+        });
+        
+        expect(response.status).toEqual('success');
+        expect(mockWriteStream.write).toHaveBeenCalledTimes(1);
+        
+        const writtenData = mockWriteStream.write.mock.calls[0][0];
+        
+        // Verify no # symbols in the output
+        const lines = writtenData.split('\n');
+        const dataRow = lines[1];
+        expect(dataRow).not.toMatch(/#[0-9A-Fa-f]{6}/);
+    });
+
+    test('route_text_color with leading # is stripped', async () => {
+        const attrsWithHash = {
+            ...lineAttributes1,
+            id: uuidV4(),
+            data: {
+                ...lineAttributes1.data,
+                gtfs: { ...lineAttributes1.data.gtfs, route_text_color: '#ABCDEF' }
+            }
+        };
+        // Override mocked collection once for this test
+        const queries = require('../../../models/db/transitLines.db.queries');
+        (queries.collection as jest.Mock).mockResolvedValueOnce([attrsWithHash, lineAttributes2, lineAttributesNotForExport]);
+
+        const response = await exportLine([attrsWithHash.id], { directoryPath: 'test', quotesFct: quoteFct, agencyToGtfsId });
+        expect(response.status).toEqual('success');
+        const writtenData = mockWriteStream.write.mock.calls[0][0] as string;
+        const dataRow = writtenData.split('\n')[1];
+        expect(dataRow).toContain('ABCDEF');
+        expect(dataRow).not.toMatch(/#[0-9A-Fa-f]{6}/);
+    });
+});

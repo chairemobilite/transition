@@ -28,6 +28,18 @@ const getGtfsRouteType = (mode: string, extended = false) => {
     throw new TrError(`Unknow route mode ${mode}`, 'GTFSEXP0005');
 };
 
+// Utility function to clean up color hex string
+const cleanHexColor = (color: string | undefined): string | undefined => {
+    if (!color) return undefined;
+    const hex = color.trim().replace(/^#/, '');
+    // Accept only 6 hex digits per GTFS; otherwise omit the field
+    if (!/^[0-9a-fA-F]{6}$/.test(hex)) {
+        console.warn('Trying to export invalid GTFS color %s', hex);
+        return undefined;
+    }
+    return hex.toUpperCase();
+};
+
 const objectToGtfs = (line: Line, agencyId: string, includeCustomFields = false): GtfsRoute | undefined => {
     const attributes = line.attributes;
     const vehicleType = getGtfsRouteType(attributes.mode);
@@ -35,6 +47,8 @@ const objectToGtfs = (line: Line, agencyId: string, includeCustomFields = false)
         // Not a route to be exported to gtfs
         return undefined;
     }
+    const textColor = attributes.data.gtfs?.route_text_color || line.getPreferredTextColorBasedOnLineColor();
+
     const gtfsFields: GtfsRoute = {
         route_id: line.getId(),
         agency_id: agencyId, // slugified acronym or uuid, required
@@ -43,8 +57,8 @@ const objectToGtfs = (line: Line, agencyId: string, includeCustomFields = false)
         route_desc: attributes.description, // optional
         route_type: vehicleType, // required
         route_url: attributes.data.gtfs?.route_url, // optional
-        route_color: attributes.color !== undefined ? attributes.color.substring(1) : undefined, // optional
-        route_text_color: attributes.data.gtfs?.route_text_color || line.getPreferredTextColorBasedOnLineColor(), // optional
+        route_color: cleanHexColor(attributes.color), // optional
+        route_text_color: cleanHexColor(textColor), // optional
         route_sort_order: attributes.data.gtfs?.route_sort_order, // optional
         continuous_pickup: attributes.data.gtfs?.continuous_pickup, // optional
         continuous_drop_off: attributes.data.gtfs?.continuous_drop_off // optional
