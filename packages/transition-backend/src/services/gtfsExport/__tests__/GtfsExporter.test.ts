@@ -4,6 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import fs from 'fs';
+import path from 'path';
+import JSZip from 'jszip';
+import os from 'os';
 import { v4 as uuidV4 } from 'uuid';
 
 import { exportGtfs } from '../GtfsExporter';
@@ -208,4 +212,80 @@ test('Test agency export failure', async() => {
     expect(mockedScheduleExport).not.toHaveBeenCalled();
     expect(mockedStopExport).not.toHaveBeenCalled();
     expect(mockedPathExport).not.toHaveBeenCalled();
+});
+
+
+// Validate ZIP file compression
+test('Test ZIP file compression validation', async() => {
+    const testDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'gtfs-compress-'));
+    const testGtfsDirectory = `${testDirectory}/gtfs`;
+
+    // Create test directory
+    fileManager.directoryManager.createDirectoryIfNotExistsAbsolute(testDirectory);
+    fileManager.directoryManager.createDirectoryIfNotExistsAbsolute(testGtfsDirectory);
+    
+    // Sample data with repetitive content that should compress well
+    const sampleData = {
+        'agency.txt': 'agency_id,agency_name,agency_url,agency_timezone\ntest_agency,Test Agency Name,http://example.com,America/Montreal\n'.repeat(100),
+        'routes.txt': 'route_id,agency_id,route_short_name,route_long_name,route_type\nroute_1,test_agency,1,Test Route Long Name,3\n'.repeat(100)
+    };
+    
+    try {
+        // Mock the export methods to create actual test files
+        mockedAgencyExport.mockImplementationOnce(async (_agencyIds, options) => {
+            const filePath = path.join(options.directoryPath, 'agency.txt');
+            await fs.promises.writeFile(filePath, sampleData['agency.txt']);
+            return { status: 'success', lineIds: [], agencyToGtfsId: {} };
+        });
+
+        mockedLineExport.mockImplementationOnce(async (_lineIds, options) => {
+            const filePath = path.join(options.directoryPath, 'routes.txt');
+            await fs.promises.writeFile(filePath, sampleData['routes.txt']);
+            return { status: 'success', serviceIds: [] };
+        });
+
+        // Mock other exports to return success without creating files
+        mockedServiceExport.mockResolvedValue({ status: 'success', serviceToGtfsId: {} });
+        mockedScheduleExport.mockResolvedValue({ status: 'success', pathIds: [], nodeIds: [] });
+        mockedStopExport.mockResolvedValue({ status: 'success' });
+        mockedPathExport.mockResolvedValue({ status: 'success' });
+
+        // Export GTFS
+        const zipFileName = await exportGtfs(agencies, testDirectory);
+        const zipFilePath = path.join(testDirectory, zipFileName);
+
+        // Verify ZIP file exists
+        expect(fs.existsSync(zipFilePath)).toBe(true);
+
+        // Calculate uncompressed size
+        let uncompressedSize = 0;
+        Object.values(sampleData).forEach(content => {
+            uncompressedSize += Buffer.byteLength(content, 'utf8');
+        });
+
+        // Get compressed size
+        const zipStats = fs.statSync(zipFilePath);
+        const compressedSize = zipStats.size;
+
+        // Verify compression occurred (should be significantly smaller for repetitive data)
+        const compressionRatio = compressedSize / uncompressedSize;
+        expect(compressionRatio).toBeLessThan(0.9); // Compression expected
+        
+        // Verify ZIP file is valid and contains expected files
+        const zipContent = fs.readFileSync(zipFilePath);
+        const zip = await JSZip.loadAsync(zipContent);
+        
+        expect(zip.file('agency.txt')).toBeTruthy();
+        expect(zip.file('routes.txt')).toBeTruthy();
+
+        // Verify content integrity
+        const agencyContent = await zip.file('agency.txt')?.async('string');
+        expect(agencyContent).toBe(sampleData['agency.txt']);
+
+    } finally {
+        // Clean up test directory
+        if (fs.existsSync(testDirectory)) {
+            await fs.promises.rm(testDirectory, { recursive: true, force: true });
+        }
+    }
 });

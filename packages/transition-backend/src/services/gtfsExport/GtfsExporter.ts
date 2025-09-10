@@ -52,7 +52,11 @@ const writeZipFile = async (
         zipper
             .generateNodeStream({
                 type: 'nodebuffer',
-                streamFiles: true
+                streamFiles: true,
+                compression: 'DEFLATE',
+                compressionOptions: {
+                    level: 9
+                }
             })
             .pipe(fs.createWriteStream(zipAbsoluteFilePath))
             .on('finish', () => {
