@@ -88,12 +88,32 @@ const objectToGtfs = (
                 const distanceTraveledKm = pathDistancesTraveledMeters[coordinateIndex] / 1000;
                 const arrival = nodesArrivals[k];
                 const departure = nodesDepartures[k];
+                const arrivalTimeStr =
+                    typeof arrival === 'number' ? secondsSinceMidnightToTimeStr(arrival, true, true) : undefined;
+                const departureTimeStr =
+                    typeof departure === 'number' ? secondsSinceMidnightToTimeStr(departure, true, true) : undefined;
+                // Per GTFS specification
+                // (https://gtfs.org/documentation/schedule/reference/#stop_timestxt):
+                // arrival_time and departure_time are "Conditionally Required" - must be provided for
+                // timepoints. "If there are not separate times for arrival and departure at a stop,
+                // arrival_time and departure_time should be the same."
+                const arrivalTime = arrivalTimeStr ?? departureTimeStr;
+                const departureTime = departureTimeStr ?? arrivalTimeStr;
+
+                if (arrivalTime === undefined && departureTime === undefined) {
+                    // TODO If both time are not available, we should implement time interpolation
+                    // For now, simply throw an error
+                    throw new Error(
+                        `Missing both arrival_time and departure_time for trip ${trip.id} at stop_sequence ${k + 1}`
+                    );
+                }
+
                 const canBoard = nodesCanBoard[k];
                 const canUnboard = nodesCanUnboard[k];
                 const stopTime = {
                     trip_id: trip.id, // required
-                    arrival_time: k > 0 ? secondsSinceMidnightToTimeStr(arrival, true, true) : undefined, // required
-                    departure_time: k < countK - 1 ? secondsSinceMidnightToTimeStr(departure, true, true) : undefined, // required
+                    arrival_time: arrivalTime, // required
+                    departure_time: departureTime, // required
                     stop_id: pathNodeIds[k], // required
                     stop_sequence: k + 1, // required
                     stop_headsign: undefined, // optional, TODO: implement this?
