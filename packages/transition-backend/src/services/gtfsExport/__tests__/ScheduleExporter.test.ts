@@ -488,3 +488,83 @@ test('Test error handling - both arrival_time and departure_time missing', async
     // Should not have written any data due to the error
     expect(mockWriteStopTimeStream.write).not.toHaveBeenCalled();
 });
+
+test('Test GTFS compliance - handles >24h times for midnight-crossing schedules', async () => {
+    // Test that times exceeding 24 hours are properly formatted for late-night schedules
+    // GTFS specification allows hours >= 24 for services that cross midnight
+    
+    const scheduleWith24hPlus: ScheduleAttributes = {
+        ...scheduleAttributes1,
+        periods: [
+            {
+                ...scheduleAttributes1.periods[0],
+                trips: [
+                    {
+                        id: 'test_trip_midnight_crossing',
+                        arrival_time_seconds: 99000,
+                        departure_time_seconds: 90600,
+                        path_id:  pathAttributes.id,
+                        node_arrival_times_seconds: [
+                            90600,  // 25:10:00 (1 day + 1h + 10min)
+                            97800   // 27:10:00 (1 day + 3h + 10min)
+                        ],
+                        node_departure_times_seconds: [
+                            90600,  // 25:10:00
+                            99000   // 27:30:00 (1 day + 3h + 30min)
+                        ],
+                        nodes_can_board: [true, false],
+                        nodes_can_unboard: [false, true],
+                        data: {}
+                    }
+                ]
+            }
+        ]
+    };
+
+    schedulesToReturn = [scheduleWith24hPlus];
+    const response = await exportSchedule([lineId], { 
+        directoryPath: 'test', 
+        quotesFct: quoteFct, 
+        serviceToGtfsId 
+    });
+
+    expect(response.status).toEqual('success');
+    expect(mockWriteStopTimeStream.write).toHaveBeenCalled();
+    
+    const stopTimesOutput = mockWriteStopTimeStream.write.mock.calls[0][0] as string;
+    const stopTimesLines = stopTimesOutput.split('\n').filter(line => 
+        line.trim() && !line.startsWith('"trip_id"')
+    );
+
+    // Verify we have the expected number of stop times
+    expect(stopTimesLines).toHaveLength(2);
+
+    // Parse and validate the first stop time (25:10:00)
+    const firstStopFields = stopTimesLines[0].split(',');
+    const firstArrival = firstStopFields[1].replace(/"/g, '');
+    const firstDeparture = firstStopFields[2].replace(/"/g, '');
+    
+    expect(firstArrival).toBe('25:10:00');
+    expect(firstDeparture).toBe('25:10:00');
+
+    // Parse and validate the second stop time (27:10:00 arrival, 27:30:00 departure)
+    const secondStopFields = stopTimesLines[1].split(',');
+    const secondArrival = secondStopFields[1].replace(/"/g, '');
+    const secondDeparture = secondStopFields[2].replace(/"/g, '');
+    
+    expect(secondArrival).toBe('27:10:00');
+    expect(secondDeparture).toBe('27:30:00');
+
+    // Validate GTFS time format compliance (HH:MM:SS with possible H >= 24)
+    [firstArrival, firstDeparture, secondArrival, secondDeparture].forEach(timeStr => {
+        expect(timeStr).toMatch(/^\d{1,2}:\d{2}:\d{2}$/);
+        expect(timeStr).toBeTruthy();
+        expect(timeStr).not.toBe('');
+    });
+
+    // Verify that hours can indeed be >= 24 (GTFS specification compliance)
+    const firstHour = parseInt(firstArrival.split(':')[0]);
+    const secondHour = parseInt(secondArrival.split(':')[0]);
+    expect(firstHour).toBeGreaterThanOrEqual(24);
+    expect(secondHour).toBeGreaterThanOrEqual(24);
+});
