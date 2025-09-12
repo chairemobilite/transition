@@ -280,28 +280,28 @@ test('Test exporting one schedule', async () => {
     // Match strings for each trip individually, to better catch errors in one trip
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
         '"trip_id","arrival_time","departure_time","stop_id","stop_sequence","stop_headsign","pickup_type","drop_off_type","continuous_pickup","continuous_drop_off","shape_dist_traveled","timepoint"',
-        `"${scheduleAttributes1.periods[0].trips[0].id}",,"7:00:00","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
+        `"${scheduleAttributes1.periods[0].trips[0].id}","7:00:00","7:00:00","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
         `"${scheduleAttributes1.periods[0].trips[0].id}","7:00:51","7:01:01","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
         `"${scheduleAttributes1.periods[0].trips[0].id}","7:17:30","7:17:40","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
-        `"${scheduleAttributes1.periods[0].trips[0].id}","7:30:15",,"${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
+        `"${scheduleAttributes1.periods[0].trips[0].id}","7:30:15","7:30:15","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
     ].join('\n')));
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
-        `"${scheduleAttributes1.periods[0].trips[1].id}",,"8:30:01","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
+        `"${scheduleAttributes1.periods[0].trips[1].id}","8:30:01","8:30:01","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
         `"${scheduleAttributes1.periods[0].trips[1].id}","8:30:52","8:31:02","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
         `"${scheduleAttributes1.periods[0].trips[1].id}","8:47:30","8:47:40","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
-        `"${scheduleAttributes1.periods[0].trips[1].id}","9:00:16",,"${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
+        `"${scheduleAttributes1.periods[0].trips[1].id}","9:00:16","9:00:16","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
     ].join('\n')));
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
-        `"${scheduleAttributes1.periods[0].trips[2].id}",,"9:00:01","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
+        `"${scheduleAttributes1.periods[0].trips[2].id}","9:00:01","9:00:01","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
         `"${scheduleAttributes1.periods[0].trips[2].id}","9:00:52","9:01:02","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
         `"${scheduleAttributes1.periods[0].trips[2].id}","9:17:30","9:17:40","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
-        `"${scheduleAttributes1.periods[0].trips[2].id}","9:30:16",,"${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
+        `"${scheduleAttributes1.periods[0].trips[2].id}","9:30:16","9:30:16","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
     ].join('\n')));
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
-        `"${scheduleAttributes1.periods[1].trips[0].id}",,"13:20:00","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
+        `"${scheduleAttributes1.periods[1].trips[0].id}","13:20:00","13:20:00","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
         `"${scheduleAttributes1.periods[1].trips[0].id}","13:20:50","13:21:00","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
         `"${scheduleAttributes1.periods[1].trips[0].id}","13:44:10","13:44:20","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
-        `"${scheduleAttributes1.periods[1].trips[0].id}","13:53:20",,"${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
+        `"${scheduleAttributes1.periods[1].trips[0].id}","13:53:20","13:53:20","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
     ].join('\n')));
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/trips.txt'));
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/stop_times.txt'));
@@ -324,16 +324,16 @@ test('Test exporting one schedule including multiple paths', async () => {
     // Match strings for each trip individually, to better catch errors in one trip
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
         '"trip_id","arrival_time","departure_time","stop_id","stop_sequence","stop_headsign","pickup_type","drop_off_type","continuous_pickup","continuous_drop_off","shape_dist_traveled","timepoint"',
-        `"${scheduleAttributes2.periods[0].trips[0].id}",,"7:00:00","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
+        `"${scheduleAttributes2.periods[0].trips[0].id}","7:00:00","7:00:00","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
         `"${scheduleAttributes2.periods[0].trips[0].id}","7:00:51","7:01:01","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
         `"${scheduleAttributes2.periods[0].trips[0].id}","7:17:30","7:17:40","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
-        `"${scheduleAttributes2.periods[0].trips[0].id}","7:30:15",,"${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
+        `"${scheduleAttributes2.periods[0].trips[0].id}","7:30:15","7:30:15","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
     ].join('\n')));
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
-        `"${scheduleAttributes2.periods[0].trips[1].id}",,"7:00:00","${pathAttributes2.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
+        `"${scheduleAttributes2.periods[0].trips[1].id}","7:00:00","7:00:00","${pathAttributes2.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
         `"${scheduleAttributes2.periods[0].trips[1].id}","7:00:51","7:01:01","${pathAttributes2.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
         `"${scheduleAttributes2.periods[0].trips[1].id}","7:17:30","7:17:40","${pathAttributes2.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
-        `"${scheduleAttributes2.periods[0].trips[1].id}","7:30:15",,"${pathAttributes2.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
+        `"${scheduleAttributes2.periods[0].trips[1].id}","7:30:15","7:30:15","${pathAttributes2.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
     ].join('\n')));
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/trips.txt'));
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/stop_times.txt'));
@@ -387,4 +387,104 @@ test('Test exporting no schedules', async () => {
     expect(mockWriteStopTimeStream.end).toHaveBeenCalledTimes(1);
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/trips.txt'));
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/stop_times.txt'));
+});
+
+test('Test GTFS compliance - arrival_time and departure_time are always populated', async () => {
+    // This test validates the fix for missing trip edge times that cause GTFS validation errors
+    schedulesToReturn = [scheduleAttributes1];
+    const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
+    expect(response.status).toEqual('success');
+
+    expect(mockWriteStopTimeStream.write).toHaveBeenCalledTimes(1);
+    const stopTimesOutput = mockWriteStopTimeStream.write.mock.calls[0][0] as string;
+    const stopTimesLines = stopTimesOutput.split('\n').filter(line => line.trim() && !line.startsWith('"trip_id"'));
+
+    // Validate that EVERY stop time record has BOTH arrival_time AND departure_time
+    stopTimesLines.forEach((line, index) => {
+        const fields = line.split(',');
+        const tripId = fields[0].replace(/"/g, ''); // Remove quotes
+        const arrivalTime = fields[1].replace(/"/g, ''); // Remove quotes
+        const departureTime = fields[2].replace(/"/g, ''); // Remove quotes
+        const stopSequence = fields[4].replace(/"/g, ''); // Remove quotes
+
+        // GTFS Compliance: Both arrival_time and departure_time must be populated
+        expect(arrivalTime).toBeTruthy();
+        expect(arrivalTime).not.toBe('');
+        expect(departureTime).toBeTruthy();
+        expect(departureTime).not.toBe('');
+
+        // Validate time format (HH:MM:SS)
+        expect(arrivalTime).toMatch(/^\d{1,2}:\d{2}:\d{2}$/);
+        expect(departureTime).toMatch(/^\d{1,2}:\d{2}:\d{2}$/);
+    });
+
+    // Additional validation: Check specific expected patterns from the test data
+    // First stop should have both arrival and departure times (not empty)
+    expect(stopTimesOutput).toContain('"7:00:00","7:00:00"'); // First stop
+    expect(stopTimesOutput).toContain('"7:30:15","7:30:15"'); // Last stop
+});
+
+test('Test GTFS compliance with edge cases - missing arrival or departure times', async () => {
+    // Create test data that simulates missing arrival/departure times to verify fallback logic
+    const scheduleWithMissingTimes = JSON.parse(JSON.stringify(scheduleAttributes1));
+
+    // Simulate a trip where first stop has no arrival time and last stop has no departure time
+    const firstTrip = scheduleWithMissingTimes.periods[0].trips[0];
+
+    // Set first stop arrival to null (simulating missing data)
+    firstTrip.node_arrival_times_seconds[0] = null;
+    // Set last stop departure to null (simulating missing data)
+    const lastIndex = firstTrip.node_departure_times_seconds.length - 1;
+    firstTrip.node_departure_times_seconds[lastIndex] = null;
+
+    schedulesToReturn = [scheduleWithMissingTimes];
+    const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
+    expect(response.status).toEqual('success');
+
+    expect(mockWriteStopTimeStream.write).toHaveBeenCalledTimes(1);
+    const stopTimesOutput = mockWriteStopTimeStream.write.mock.calls[0][0] as string;
+    const stopTimesLines = stopTimesOutput.split('\n').filter(line => line.trim() && !line.startsWith('"trip_id"'));
+
+    // Even with missing data, ALL stop times should still have both arrival and departure times
+    stopTimesLines.forEach((line) => {
+        const fields = line.split(',');
+        const arrivalTime = fields[1].replace(/"/g, '');
+        const departureTime = fields[2].replace(/"/g, '');
+
+        // The fix should ensure these are never empty
+        expect(arrivalTime).toBeTruthy();
+        expect(arrivalTime).not.toBe('');
+        expect(departureTime).toBeTruthy();
+        expect(departureTime).not.toBe('');
+    });
+});
+
+test('Test error handling - both arrival_time and departure_time missing', async () => {
+    // This test validates the safety check that throws an error when both times are missing
+    const scheduleWithBothTimesMissing = JSON.parse(JSON.stringify(scheduleAttributes1));
+
+    // Simulate a trip where a stop has BOTH arrival and departure times missing
+    const firstTrip = scheduleWithBothTimesMissing.periods[0].trips[0];
+
+    // Set both times to null for the second stop (not first or last, to avoid other edge cases)
+    firstTrip.node_arrival_times_seconds[1] = null;
+    firstTrip.node_departure_times_seconds[1] = null;
+
+    schedulesToReturn = [scheduleWithBothTimesMissing];
+
+    // This should throw an error and result in a failed export
+    const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
+    expect(response.status).toEqual('error');
+
+    if (response.status === 'error') {
+        // Verify the error message is what we expect
+        expect(response.error).toBeInstanceOf(Error);
+        const errorMessage = (response.error as Error).message;
+        expect(errorMessage).toContain('Missing both arrival_time and departure_time');
+        expect(errorMessage).toContain(`trip ${firstTrip.id}`);
+        expect(errorMessage).toContain('stop_sequence 2');
+    }
+
+    // Should not have written any data due to the error
+    expect(mockWriteStopTimeStream.write).not.toHaveBeenCalled();
 });
