@@ -47,6 +47,7 @@ export type TransitValidationMessage =
           type: 'walkingDistanceTooLong';
           origin: 'origin' | DeclaredLine;
           destination: 'destination' | DeclaredLine;
+          distanceMeters: number;
       }
     | {
           type: 'incompatibleTrip';
@@ -59,6 +60,11 @@ export type TransitValidationMessage =
  */
 export type TransitValidationAttributes = Required<TransitQueryAttributes> & {
     bufferSeconds: number; // Buffer time to subtract to the trip departure time or add to the arrival time
+};
+
+type AccessiblePointWithDistance = {
+    point: GeoJSON.Feature<GeoJSON.Point>;
+    distanceMeters: number;
 };
 
 export class TransitRoutingValidation {
@@ -265,17 +271,18 @@ export class TransitRoutingValidation {
         const firstPossiblePaths = pathsAndNodes.filter(
             (pathAndNodes) => pathAndNodes.path.properties.line_id === firstLineUsed.id
         );
-        const possibleAccessNodes = await this.getAccessibleNodes(
+        const accessNodesResult = await this.getAccessibleNodes(
             'from',
             odTrip.attributes.origin_geography,
             firstPossiblePaths[0].nodes,
             this.routingParameters.maxAccessEgressTravelTimeSeconds!
         );
-        if (possibleAccessNodes.length === 0) {
+        if (accessNodesResult.status === 'distanceTooFar') {
             return {
                 type: 'walkingDistanceTooLong',
                 origin: 'origin',
-                destination: declaredTrip[0]
+                destination: declaredTrip[0],
+                distanceMeters: accessNodesResult.distanceMeters
             };
         }
 
@@ -284,17 +291,18 @@ export class TransitRoutingValidation {
         const lastPossiblePaths = pathsAndNodes.filter(
             (pathAndNodes) => pathAndNodes.path.properties.line_id === lastLineUsed.id
         );
-        const possibleEgressNodes = await this.getAccessibleNodes(
+        const egressNodesResult = await this.getAccessibleNodes(
             'to',
             odTrip.attributes.destination_geography,
             lastPossiblePaths[0].nodes,
             this.routingParameters.maxAccessEgressTravelTimeSeconds!
         );
-        if (possibleEgressNodes.length === 0) {
+        if (egressNodesResult.status === 'distanceTooFar') {
             return {
                 type: 'walkingDistanceTooLong',
                 origin: declaredTrip[declaredTrip.length - 1],
-                destination: 'destination'
+                destination: 'destination',
+                distanceMeters: egressNodesResult.distanceMeters
             };
         }
 
@@ -315,20 +323,50 @@ export class TransitRoutingValidation {
         refGeometry: GeoJSON.Point,
         points: GeoJSON.Feature<GeoJSON.Point>[],
         maxWalkingTravelTimeSeconds: number
-    ): Promise<GeoJSON.Feature<GeoJSON.Point>[]> => {
+    ): Promise<
+        | { status: 'accessible'; points: GeoJSON.Feature<GeoJSON.Point>[] }
+        | { status: 'distanceTooFar'; distanceMeters: number }
+    > => {
+        // Get the reference point and routing service
+        const refFeature = { type: 'Feature', geometry: refGeometry, properties: {} } as GeoJSON.Feature<GeoJSON.Point>;
+        const routingService = routingServiceManager.getRoutingServiceForEngine('engine');
+
         // Calculate points in bird distance first
         const walkingDistance = maxWalkingTravelTimeSeconds * this.routingParameters.walkingSpeedMps!;
-        const pointsInBirdDistance = points.filter(
-            (point) => turfDistance(refGeometry, point, { units: 'meters' }) <= walkingDistance
-        );
+        const pointsWithBirdDistance = points.map((point) => ({
+            point,
+            birdDistance: turfDistance(refGeometry, point, { units: 'meters' })
+        }));
+
+        // Sort by bird distance to find closest
+        pointsWithBirdDistance.sort((a, b) => a.birdDistance - b.birdDistance);
+
+        const pointsInBirdDistance = pointsWithBirdDistance
+            .filter(({ birdDistance }) => birdDistance <= walkingDistance)
+            .map(({ point }) => point);
 
         if (pointsInBirdDistance.length === 0) {
-            return [];
+            // No points within bird distance, return closest point
+            const closestPoint = pointsWithBirdDistance[0].point;
+
+            const routingResultJson =
+                direction === 'from'
+                    ? await routingService.tableFrom({
+                        mode: 'walking',
+                        origin: refFeature,
+                        destinations: [closestPoint]
+                    })
+                    : await routingService.tableTo({
+                        mode: 'walking',
+                        origins: [closestPoint],
+                        destination: refFeature
+                    });
+
+            const actualDistance = routingResultJson.distances[0];
+            return { status: 'distanceTooFar', distanceMeters: actualDistance };
         }
 
         // Calculat the actual distance using the routing service
-        const refFeature = { type: 'Feature', geometry: refGeometry, properties: {} } as GeoJSON.Feature<GeoJSON.Point>;
-        const routingService = routingServiceManager.getRoutingServiceForEngine('engine');
         const routingResultJson =
             direction === 'from'
                 ? await routingService.tableFrom({
@@ -344,13 +382,19 @@ export class TransitRoutingValidation {
 
         const distances = routingResultJson.distances;
         const accessibleNodes: GeoJSON.Feature<GeoJSON.Point>[] = [];
+        let minimumDistance = Infinity;
         for (let i = 0, count = pointsInBirdDistance.length; i < count; i++) {
             const nodeInBirdRadius = pointsInBirdDistance[i];
             const travelDistance = distances[i];
             if (!_isBlank(travelDistance) && travelDistance <= walkingDistance) {
                 accessibleNodes.push(nodeInBirdRadius);
+            } else {
+                // Keep track of the minimum distance for error reporting
+                minimumDistance = Math.min(minimumDistance, travelDistance);
             }
         }
-        return accessibleNodes;
+        return accessibleNodes.length > 0
+            ? { status: 'accessible', points: accessibleNodes }
+            : { status: 'distanceTooFar', distanceMeters: minimumDistance };
     };
 }
