@@ -13,15 +13,9 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 // Mock the knex transaction object.
 const transactionObjectMock = new Object(3);
 
-jest.mock('chaire-lib-backend/lib/config/shared/db.config', () => {
-    const originalModule =
-        jest.requireActual<typeof import('chaire-lib-backend/lib/config/shared/db.config')>('chaire-lib-backend/lib/config/shared/db.config');
-
-    return {
-        ...originalModule,
-        transaction: jest.fn().mockImplementation(async (callback) => await callback(transactionObjectMock))
-    };
-});
+jest.mock('chaire-lib-backend/lib/config/shared/db.config', () => ({
+    transaction: jest.fn().mockImplementation(async (callback) => await callback(transactionObjectMock))
+}));
 
 jest.mock('../../../../models/db/transitServices.db.queries', () => ({
     getServiceNamesStartingWith: jest.fn(),
