@@ -5,44 +5,65 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import BatchCalculationList from './BatchCalculationList';
-import BatchCalculationForm from './BatchCalculationForm';
+import BatchRoutingCalculationList from './routingCalculation/BatchRoutingCalculationList';
+import BatchCalculationForm from './routingCalculation/BatchRoutingCalculationForm';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { TransitBatchValidationDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
+import BatchRoutingValidationList from './routingValidation/BatchRoutingValidationList';
+import BatchRoutingValidationForm from './routingValidation/BatchRoutingValidationForm';
 
 export interface CalculationPanelPanelProps {
     availableRoutingModes?: string[];
 }
 
 const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps> = (props: CalculationPanelPanelProps) => {
-    // TODO: scenarioCollection is never read. Implement a use for it, or remove the hook and onScenarioCollectionUpdate() entirely.
-    // const [scenarioCollection, setScenarioCollection] = React.useState<ScenarioCollection | undefined>(
-    //     serviceLocator.collectionManager.get('scenarios')
-    // );
-
-    const [isNewAnalysis, setIsNewAnalysis] = React.useState(false);
-    const [initialValues, setInitialValues] = React.useState<
+    // State for routing calculation
+    const [isNewCalculation, setIsNewCalculation] = React.useState(false);
+    const [calculationInitialValues, setCalculationInitialValues] = React.useState<
         | {
               parameters: BatchCalculationParameters;
-              demand: TransitBatchRoutingDemandAttributes;
+              demand: TransitBatchValidationDemandAttributes;
               csvFields: string[];
           }
         | undefined
     >(undefined);
 
+    // State for routing validation
+    const [isNewValidation, setIsNewValidation] = React.useState(false);
+    const [validationInitialValues, setValidationInitialValues] = React.useState<
+        | {
+              parameters: BatchCalculationParameters;
+              demand: TransitBatchValidationDemandAttributes;
+              csvFields: string[];
+          }
+        | undefined
+    >(undefined);
+    const { t } = useTranslation(['transit', 'main']);
+
     const onScenarioCollectionUpdate = () => {
-        //setScenarioCollection(serviceLocator.collectionManager.get('scenarios'));
+        // No-op for now
     };
 
-    const onNewAnalysis = (parameters?: {
+    const onNewCalculation = (parameters?: {
         parameters: BatchCalculationParameters;
-        demand: TransitBatchRoutingDemandAttributes;
+        demand: TransitBatchValidationDemandAttributes;
         csvFields: string[];
     }) => {
-        setInitialValues(parameters);
-        setIsNewAnalysis(true);
+        setCalculationInitialValues(parameters);
+        setIsNewCalculation(true);
+    };
+
+    const onNewValidation = (parameters?: {
+        parameters: BatchCalculationParameters;
+        demand: TransitBatchValidationDemandAttributes;
+        csvFields: string[];
+    }) => {
+        setValidationInitialValues(parameters);
+        setIsNewValidation(true);
     };
 
     React.useEffect(() => {
@@ -54,15 +75,33 @@ const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps> = (p
 
     return (
         <div id="tr__form-transit-calculation-panel" className="tr__form-transit-calculation-panel tr__panel">
-            {isNewAnalysis === false && <BatchCalculationList onNewAnalysis={onNewAnalysis} />}
-            {isNewAnalysis && (
-                <BatchCalculationForm
-                    availableRoutingModes={props.availableRoutingModes}
-                    initialValues={initialValues}
-                    // TODO This function should receive some parameter, whether it is cancelled or a calculation is pending.
-                    onEnd={() => setIsNewAnalysis(false)}
-                />
-            )}
+            <Tabs>
+                <TabList>
+                    <Tab>{t('transit:batchCalculation:RoutingCalculation')}</Tab>
+                    <Tab>{t('transit:batchCalculation:ValidationCalculation')}</Tab>
+                </TabList>
+
+                <TabPanel>
+                    {isNewCalculation === false && <BatchRoutingCalculationList onNewAnalysis={onNewCalculation} />}
+                    {isNewCalculation && (
+                        <BatchCalculationForm
+                            availableRoutingModes={props.availableRoutingModes}
+                            initialValues={calculationInitialValues}
+                            onEnd={() => setIsNewCalculation(false)}
+                        />
+                    )}
+                </TabPanel>
+                <TabPanel>
+                    {isNewValidation === false && <BatchRoutingValidationList onNewAnalysis={onNewValidation} />}
+                    {isNewValidation && (
+                        <BatchRoutingValidationForm
+                            availableRoutingModes={props.availableRoutingModes}
+                            initialValues={validationInitialValues}
+                            onEnd={() => setIsNewValidation(false)}
+                        />
+                    )}
+                </TabPanel>
+            </Tabs>
         </div>
     );
 };

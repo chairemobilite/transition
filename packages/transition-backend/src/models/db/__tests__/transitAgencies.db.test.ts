@@ -11,6 +11,7 @@ import dbQueries           from '../transitAgencies.db.queries';
 import simulationDbQueries from '../simulations.db.queries';
 import Collection          from 'transition-common/lib/services/agency/AgencyCollection';
 import ObjectClass         from 'transition-common/lib/services/agency/Agency';
+import { cleanScenarioData, insertDataForScenarios } from './transitDataByScenario.db.data';
 
 const objectName   = 'agency';
 const simulationId = '373a583c-df49-440f-8f44-f39fb0033c56';
@@ -327,6 +328,66 @@ describe('Agency, with transactions', () => {
         const object1 = collection.find((obj) => obj.id === newObjectAttributes.id);
         expect(object1).toBeDefined();
         expect(object1).toEqual(expect.objectContaining(newObjectAttributes));
+    });
+
+});
+
+describe('Agencies, filtered by scenarios', () => {
+
+    let scenarioDbData: any;
+    beforeAll(async () => {
+        scenarioDbData = await insertDataForScenarios();
+    });
+
+    afterAll(async () => {
+        await cleanScenarioData();
+    });
+
+    test('Get agencies for a specific scenario, all agencies expected', async() => {
+        const expectedAgencyIds = scenarioDbData.agencyIds;
+        const agencies = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServices });
+
+        expect(agencies.length).toEqual(expectedAgencyIds.length);
+        for (const agency of agencies) {
+            expect(expectedAgencyIds).toContain(agency.id);
+        }
+    });
+
+    test('Get agencies for a specific scenario, filtered agencies expected', async () => {
+        const expectedAgencyIds = [scenarioDbData.agencyIds[0]];
+        const agencies = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithService2 });
+
+        expect(agencies.length).toEqual(expectedAgencyIds.length);
+        for (const agency of agencies) {
+            expect(expectedAgencyIds).toContain(agency.id);
+        }
+    });
+
+    test('Get agencies for a specific scenario, with only agencies', async() => {
+        const expectedAgencyIds = [scenarioDbData.agencyIds[0]];
+        const agencies = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServicesOnlyAgency1 });
+
+        expect(agencies.length).toEqual(expectedAgencyIds.length);
+        for (const agency of agencies) {
+            expect(expectedAgencyIds).toContain(agency.id);
+        }
+    });
+
+    test('Get agencies for a specific scenario, with exclude agencies', async() => {
+        const expectedAgencyIds = [scenarioDbData.agencyIds[1]];
+        const agencies = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServicesWithoutAgency1 });
+
+        expect(agencies.length).toEqual(expectedAgencyIds.length);
+        for (const agency of agencies) {
+            expect(expectedAgencyIds).toContain(agency.id);
+        }
+    });
+
+    test('Get agencies for a specific scenario, empty scenario', async() => {
+        const expectedAgencyIds = [];
+        const agencies = await dbQueries.collection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithEmptyServices });
+
+        expect(agencies.length).toEqual(expectedAgencyIds.length);
     });
 
 });

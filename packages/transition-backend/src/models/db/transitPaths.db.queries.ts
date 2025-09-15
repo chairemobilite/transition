@@ -31,6 +31,7 @@ const schedulesTableName = 'tr_transit_schedules';
 const periodsTableName = 'tr_transit_schedule_periods';
 const tripsTableName = 'tr_transit_schedule_trips';
 const scenariosServicesTableName = 'tr_transit_scenario_services';
+const scenariosTableName = 'tr_transit_scenarios';
 const st = knexPostgis(knex);
 
 // TODO Type the return values
@@ -165,8 +166,13 @@ const geojsonCollection = async (
             .innerJoin(`${tripsTableName} as trips`, 'trips.path_id', 'p.id')
             .innerJoin(`${periodsTableName} as periods`, 'periods.id', 'trips.schedule_period_id')
             .innerJoin(`${schedulesTableName} as sched`, 'sched.id', 'periods.schedule_id')
-            .innerJoin(`${scenariosServicesTableName} as sc`, 'sched.service_id', 'sc.service_id')
-            .andWhere('sc.scenario_id', params.scenarioId)
+            .innerJoin(`${scenariosServicesTableName} as scServ`, 'sched.service_id', 'scServ.service_id')
+            .innerJoin(`${scenariosTableName} as sc`, 'scServ.scenario_id', 'sc.id')
+            .andWhere('sc.id', params.scenarioId)
+            .whereRaw(knex.raw('(sc.only_lines = \'{}\' or l.id = ANY(sc.only_lines))'))
+            .whereRaw(knex.raw('(sc.except_lines = \'{}\' or l.id != ALL(sc.except_lines))'))
+            .whereRaw(knex.raw('(sc.only_agencies = \'{}\' or l.agency_id = ANY(sc.only_agencies))'))
+            .whereRaw(knex.raw('(sc.except_agencies = \'{}\' or l.agency_id != ALL(sc.except_agencies))'))
             .groupBy('p.id', 'l.color', 'l.mode');
     }
     return await geojsonCollectionFromQuery(baseQuery);

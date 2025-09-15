@@ -44,7 +44,7 @@ const attributesParser = (dbAttributes: {
     return dbAttributes as unknown as ServiceAttributes;
 };
 
-const collection = async (options: { serviceIds?: string[] } & WithTransaction = {}) => {
+const collection = async (options: { serviceIds?: string[]; scenarioId?: string } & WithTransaction = {}) => {
     try {
         // TODO When the complete collection is not sent to the client directly, there should be a sort option to this method
         const query = knex
@@ -64,6 +64,11 @@ const collection = async (options: { serviceIds?: string[] } & WithTransaction =
             .orderBy('s.name');
         if (options.serviceIds) {
             query.whereIn('s.id', options.serviceIds);
+        }
+        if (options.scenarioId) {
+            query
+                .join('tr_transit_scenario_services as scServ', 'scServ.service_id', 's.id')
+                .where('scServ.scenario_id', options.scenarioId);
         }
         if (options.transaction) {
             query.transacting(options.transaction);
