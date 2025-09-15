@@ -7,7 +7,7 @@
 import fs from 'fs';
 import { unparse } from 'papaparse';
 import { TransitBatchValidationDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
-import { TransitValidationAttributes, TransitValidationMessage } from './TransitRoutingValidation';
+import { DeclaredLine, TransitValidationAttributes, TransitValidationMessage } from './TransitRoutingValidation';
 import { TripValidationResult } from './types';
 
 const VALIDATION_CSV_FILE_NAME = 'validationResults.csv';
@@ -30,6 +30,7 @@ export interface ValidationRowData {
     lines?: string;
     unreachableOrigin?: string;
     unreachableDestination?: string;
+    unreachableDistanceMeters?: number | string;
 }
 
 /**
@@ -73,7 +74,8 @@ class ValidationResultProcessorFile implements ValidationResultProcessor {
             'message',
             'lines',
             'unreachableOrigin',
-            'unreachableDestination'
+            'unreachableDestination',
+            'unreachableDistanceMeters'
         ];
         this.csvStream.write(headers.join(',') + '\n');
     };
@@ -91,7 +93,8 @@ class ValidationResultProcessorFile implements ValidationResultProcessor {
                 message: result.message || '',
                 lines: result.lines || '',
                 unreachableOrigin: result.unreachableOrigin || '',
-                unreachableDestination: result.unreachableDestination || ''
+                unreachableDestination: result.unreachableDestination || '',
+                unreachableDistanceMeters: result.unreachableDistanceMeters || ''
             };
             this.csvStream.write(unparse([csvRow], { header: false }) + '\n');
         }
@@ -109,6 +112,8 @@ class ValidationResultProcessorFile implements ValidationResultProcessor {
     });
 }
 
+const declaredLineToString = (line: DeclaredLine): string => `${line.agency}:${line.line}`;
+
 const getLineData = (message?: TransitValidationMessage | boolean): string => {
     if (!message || typeof message === 'boolean') {
         return '';
@@ -118,7 +123,7 @@ const getLineData = (message?: TransitValidationMessage | boolean): string => {
         message.type === 'noServiceOnLine' ||
         message.type === 'noServiceOnLineAtTime'
     ) {
-        return message.line.map((line) => `${line.agency}:${line.line}`).join(', ');
+        return message.line.map(declaredLineToString).join(', ');
     }
     return '';
 };
@@ -128,10 +133,10 @@ const getUnreachableOrigin = (message?: TransitValidationMessage | boolean): str
         return '';
     }
     if (message.type === 'walkingDistanceTooLong') {
-        return message.origin === 'origin' ? 'origin' : message.origin.line;
+        return message.origin === 'origin' ? 'origin' : declaredLineToString(message.origin);
     }
     if (message.type === 'incompatibleTrip') {
-        return `${message.originLine.agency}:${message.originLine.line}`;
+        return declaredLineToString(message.originLine);
     }
     return '';
 };
@@ -141,10 +146,10 @@ const getUnreachableDestination = (message?: TransitValidationMessage | boolean)
         return '';
     }
     if (message.type === 'walkingDistanceTooLong') {
-        return message.destination === 'destination' ? 'destination' : message.destination.line;
+        return message.destination === 'destination' ? 'destination' : declaredLineToString(message.destination);
     }
     if (message.type === 'incompatibleTrip') {
-        return `${message.destinationLine.agency}:${message.destinationLine.line}`;
+        return declaredLineToString(message.destinationLine);
     }
     return '';
 };
@@ -168,7 +173,13 @@ export const formatValidationResultForCsv = (validationResult: TripValidationRes
                     : '',
         lines: getLineData(validationResult.results),
         unreachableOrigin: getUnreachableOrigin(validationResult.results),
-        unreachableDestination: getUnreachableDestination(validationResult.results)
+        unreachableDestination: getUnreachableDestination(validationResult.results),
+        unreachableDistanceMeters:
+            validationResult.results &&
+            typeof validationResult.results !== 'boolean' &&
+            validationResult.results.type === 'walkingDistanceTooLong'
+                ? validationResult.results.distanceMeters
+                : ''
     };
 
     return rowData;

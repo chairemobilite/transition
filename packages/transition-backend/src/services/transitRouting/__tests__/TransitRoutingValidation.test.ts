@@ -554,7 +554,8 @@ describe('TransitRoutingValidation', () => {
         expect(result).toEqual({
             type: 'walkingDistanceTooLong',
             origin: { line: '1', agency: 'A1' },
-            destination: 'destination'
+            destination: 'destination',
+            distanceMeters: 2000
         });
 
         expect(mockDbLineCollectionWithSchedules).toHaveBeenCalledWith([line1]);
@@ -604,7 +605,8 @@ describe('TransitRoutingValidation', () => {
         expect(result).toEqual({
             type: 'walkingDistanceTooLong',
             origin: 'origin',
-            destination: { line: '1', agency: 'A1' }
+            destination: { line: '1', agency: 'A1' },
+            distanceMeters: 2000
         });
 
         expect(mockDbLineCollectionWithSchedules).toHaveBeenCalledWith([line1]);
@@ -746,7 +748,8 @@ describe('TransitRoutingValidation', () => {
             expect(result).toEqual({
                 type: 'walkingDistanceTooLong',
                 origin: 'origin',
-                destination: { line: '1', agency: 'A1' }
+                destination: { line: '1', agency: 'A1' },
+                distanceMeters: 2000
             });
             expect(mockGetTransferableNodePairs).toHaveBeenCalledTimes(2);
             expect(mockGetTransferableNodePairs).toHaveBeenNthCalledWith(1, { pathsFrom: [line1PathId1], pathsTo: [line2PathId1, line2PathId2] });
@@ -781,7 +784,8 @@ describe('TransitRoutingValidation', () => {
             expect(result).toEqual({
                 type: 'walkingDistanceTooLong',
                 origin: { line: '3', agency: 'A2' },
-                destination: 'destination'
+                destination: 'destination',
+                distanceMeters: 2000
             });
             expect(mockGetTransferableNodePairs).toHaveBeenCalledTimes(2);
             expect(mockGetTransferableNodePairs).toHaveBeenNthCalledWith(1, { pathsFrom: [line1PathId1], pathsTo: [line2PathId1, line2PathId2] });
