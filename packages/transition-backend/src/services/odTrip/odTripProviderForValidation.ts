@@ -184,14 +184,21 @@ export const parseOdTripsFromCsv = async (
                 const date = options.tripDateAttribute ? line[options.tripDateAttribute] : undefined;
                 const agencies = Object.keys(line)
                     .filter((key) => key.startsWith(options.agenciesAttributePrefix))
-                    .map((key) => line[key])
-                    .filter((agency) => !_isBlank(agency));
+                    .map((key) => line[key]);
                 const lines = Object.keys(line)
                     .filter((key) => key.startsWith(options.linesAttributePrefix))
-                    .map((key) => line[key])
-                    .filter((line) => !_isBlank(line));
-                if (agencies.length !== lines.length) {
-                    throw 'Number of agencies is not the same as the number of lines';
+                    .map((key) => line[key]);
+                const nonBlankAgencies = agencies.filter((agency) => !_isBlank(agency));
+                const nonBlankLines = lines.filter((line) => !_isBlank(line));
+                if (nonBlankAgencies.length !== nonBlankLines.length) {
+                    // Log error, but don't throw error, we want to keep this trip in the result.
+                    addError(
+                        errors,
+                        'Number of agencies is not the same as the number of lines',
+                        nbErrors,
+                        rowNumber + 1
+                    );
+                    nbErrors++;
                 }
 
                 if (options.debug) {
@@ -206,7 +213,7 @@ export const parseOdTripsFromCsv = async (
                 odTrips.push({
                     trip: odTrip,
                     date: date ? new Date(date) : undefined,
-                    declaredTrip: agencies.map((agency, idx) => ({ agency, line: lines[idx] }))
+                    declaredTrip: nonBlankAgencies.map((agency, idx) => ({ agency, line: lines[idx] }))
                 });
             } catch (error) {
                 // File has header, row number in file is + 1
