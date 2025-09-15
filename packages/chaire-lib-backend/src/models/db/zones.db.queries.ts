@@ -164,13 +164,88 @@ const getZonesContaining = async (
     }
 };
 
+const addZonesAndConvertedGeography = async (
+    zonesBatch: ZoneAttributes[],
+    srIdArray: string[],
+    geographyArray: string[]
+): Promise<void> => {
+    try {
+        if (zonesBatch.length !== srIdArray.length || srIdArray.length !== geographyArray.length) {
+            throw new Error(
+                `The number of id, srId, and geographies in the current batch do not match (id: ${zonesBatch.length}, srId: ${srIdArray.length}, geography: ${geographyArray.length}).`
+            );
+        }
+
+        const dbIdArray = await createMultiple(knex, tableName, attributesCleaner, zonesBatch, { returning: 'id' });
+
+        await knex.transaction((trx) => {
+            const data = dbIdArray.map((id, index) => {
+                if (!uuidValidate(id.id)) {
+                    throw new TrError(
+                        `Cannot read object from table ${tableName} because the required parameter id is missing, blank or not a valid uuid`,
+                        'DBQZONE0005',
+                        'MissingZoneIdWhenAddingConvertedGeography'
+                    );
+                }
+                return [id.id, srIdArray[index], geographyArray[index]];
+            });
+            const placeholders = data.map(() => '(?, ?, ?)').join(',');
+            const bindings = data.flat();
+            const query = `
+                WITH input(id, srid, boundary) AS (VALUES ${placeholders})
+                UPDATE ${tableName} z
+                SET geography = ST_Transform(ST_GeomFromText(input.boundary, input.srid::integer), 4326)::geography
+                FROM input
+                WHERE z.id = input.id::uuid
+            `;
+            return trx.raw(query, bindings);
+        });
+    } catch (error) {
+        throw new TrError(
+            `Problem adding new object to table ${tableName} (knex error: ${error})`,
+            'DBQZONE0005',
+            'ProblemAddingObject'
+        );
+    }
+};
+
+const addJsonDataBatch = async (internalIdArray: string[], jsonArray: { [key: string]: any }[]): Promise<void> => {
+    try {
+        if (internalIdArray.length !== jsonArray.length) {
+            throw new Error(
+                `The number of id and json entries in the current batch do not match (id: ${internalIdArray.length}, json: ${jsonArray.length}).`
+            );
+        }
+
+        await knex.transaction((trx) => {
+            const data = internalIdArray.map((id, index) => [id, JSON.stringify(jsonArray[index])]);
+            const placeholders = data.map(() => '(?, ?)').join(',');
+            const bindings = data.flat();
+            const query = `
+                WITH input(internal_id, data) AS (VALUES ${placeholders})
+                UPDATE ${tableName} z
+                SET data = input.data::json
+                FROM input
+                WHERE z.internal_id = input.internal_id
+            `;
+            return trx.raw(query, bindings);
+        });
+    } catch (error) {
+        throw new TrError(
+            `Problem updating object in table ${tableName} (knex error: ${error})`,
+            'DBQZONE0006',
+            'ProblemUpdatingObject'
+        );
+    }
+};
+
 export default {
     exists: exists.bind(null, knex, tableName),
     read,
     create: (newObject: ZoneAttributes, returning?: string) => {
         return create(knex, tableName, attributesCleaner, newObject, { returning });
     },
-    createMultiple: (newObjects: ZoneAttributes[], returning?: string[]) => {
+    createMultiple: (newObjects: ZoneAttributes[], returning?: string | string[]) => {
         return createMultiple(knex, tableName, attributesCleaner, newObjects, { returning });
     },
     update: (id: string, updatedObject: Partial<ZoneAttributes>, returning?: string) => {
@@ -185,5 +260,7 @@ export default {
     destroy: destroy.bind(null, knex),
     collection,
     deleteForDataSourceId: deleteForDataSourceId.bind(null, knex, tableName),
-    getZonesContaining
+    getZonesContaining,
+    addZonesAndConvertedGeography,
+    addJsonDataBatch
 };
