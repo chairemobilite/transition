@@ -27,6 +27,7 @@ export interface ValidationRowData {
     destinationLon?: number | string;
     valid?: boolean;
     message?: string;
+    agency?: string;
     lines?: string;
     unreachableOrigin?: string;
     unreachableDestination?: string;
@@ -72,6 +73,7 @@ class ValidationResultProcessorFile implements ValidationResultProcessor {
             'destinationLon',
             'valid',
             'message',
+            'agency',
             'lines',
             'unreachableOrigin',
             'unreachableDestination',
@@ -91,6 +93,7 @@ class ValidationResultProcessorFile implements ValidationResultProcessor {
                 destinationLon: result.destinationLon || '',
                 valid: result.valid || false,
                 message: result.message || '',
+                agency: result.agency || '',
                 lines: result.lines || '',
                 unreachableOrigin: result.unreachableOrigin || '',
                 unreachableDestination: result.unreachableDestination || '',
@@ -171,6 +174,12 @@ export const formatValidationResultForCsv = (validationResult: TripValidationRes
                 : validationResult.results
                     ? validationResult.results.type
                     : '',
+        agency:
+            validationResult.results &&
+            typeof validationResult.results !== 'boolean' &&
+            validationResult.results.type === 'missingLineForAgency'
+                ? validationResult.results.agency
+                : '',
         lines: getLineData(validationResult.results),
         unreachableOrigin: getUnreachableOrigin(validationResult.results),
         unreachableDestination: getUnreachableDestination(validationResult.results),

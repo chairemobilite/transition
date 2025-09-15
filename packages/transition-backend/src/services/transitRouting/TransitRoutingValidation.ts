@@ -32,6 +32,10 @@ export type TransitValidationMessage =
           type: 'noDeclaredTrip';
       }
     | {
+          type: 'missingLineForAgency';
+          agency: string;
+      }
+    | {
           type: 'lineNotFound';
           line: DeclaredLine[];
       }
@@ -60,11 +64,6 @@ export type TransitValidationMessage =
  */
 export type TransitValidationAttributes = Required<TransitQueryAttributes> & {
     bufferSeconds: number; // Buffer time to subtract to the trip departure time or add to the arrival time
-};
-
-type AccessiblePointWithDistance = {
-    point: GeoJSON.Feature<GeoJSON.Point>;
-    distanceMeters: number;
 };
 
 export class TransitRoutingValidation {
@@ -125,6 +124,12 @@ export class TransitRoutingValidation {
         }
 
         await this.prepareData();
+
+        // Are there any blank lines in the declared trip?
+        const blankLine = declaredTrip.find((declaredLine) => _isBlank(declaredLine.line));
+        if (blankLine) {
+            return { type: 'missingLineForAgency', agency: blankLine.agency };
+        }
 
         // Identify the lines use by the declared trip
         const declaredTransitLines: { line?: Line; declaredLine: DeclaredLine }[] = declaredTrip.map((declaredLine) => {
