@@ -54,6 +54,7 @@
         "deleteSelectedNodes": "Supprimer les noeuds sélectionnés et inutilisés",
         "deleteSelectedPolygon": "Annuler la sélection",
         "editSelectedNodes": "Modifier les noeuds sélectionnés",
+        "selectedNodesCount": "Noeuds sélectionnés modifiables: {{count}}",
         "editFrozenSelectedNodesWarning": "Seulement les noeuds non verrouillés seront sauvegardés",
         "DeleteAllUnusedNodes": "Supprimer tous les noeuds non utilisés"
     },

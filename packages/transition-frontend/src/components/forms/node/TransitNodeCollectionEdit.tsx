@@ -210,9 +210,11 @@ class TransitNodeCollectionEdit extends React.Component<
 
         return (
             <form id="tr__form-transit-node-multi" className="tr__form-transit-node-edit apptr__form">
-                <h3>
-                    {this.props.t('transit:transitNode:editSelectedNodes', { count: this.state.editableNodeCount })}
-                </h3>
+                <h3>{this.props.t('transit:transitNode:editSelectedNodes')}</h3>
+                <p>
+                    &nbsp;
+                    {this.props.t('transit:transitNode:selectedNodesCount', { count: this.state.editableNodeCount })}
+                </p>
                 <Collapsible trigger={this.props.t('form:basicFields')} open={true} transitionTime={100}>
                     <div className="tr__form-section">
                         {isFrozen !== true && (
