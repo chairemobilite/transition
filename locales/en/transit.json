@@ -54,6 +54,7 @@
         "deleteSelectedNodes": "Delete unused selected nodes",
         "deleteSelectedPolygon": "Cancel selection",
         "editSelectedNodes": "Edit selected nodes",
+        "selectedNodesCount": "Selected editable nodes: {{count}}",
         "editFrozenSelectedNodesWarning": "only unfrozen nodes will be saved",
         "DeleteAllUnusedNodes": "Delete all unused nodes"
     },
