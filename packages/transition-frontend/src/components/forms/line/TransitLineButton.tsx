@@ -26,6 +26,10 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
     const [lineIsHidden, setLineIsHidden] = React.useState(props.lineIsHidden);
     const lineIsSelected = (props.selectedLine && props.selectedLine.getId() === props.line.getId()) || false;
 
+    React.useEffect(() => {
+        setLineIsHidden((prevState) => (prevState !== props.lineIsHidden ? props.lineIsHidden : prevState));
+    }, [props.lineIsHidden]);
+
     const onSelect: React.MouseEventHandler = async (e: React.MouseEvent) => {
         if (e) {
             e.stopPropagation();
