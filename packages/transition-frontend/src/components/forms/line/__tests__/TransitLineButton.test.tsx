@@ -144,6 +144,7 @@ describe('TransitLineButton', () => {
                     return {
                         loadFromServer: jest.fn().mockResolvedValue(undefined),
                         toGeojson: jest.fn().mockReturnValue({}),
+                        toGeojsonSimplified: jest.fn().mockReturnValue({})
                     };
                 }
                 return { refresh: jest.fn() };
@@ -184,6 +185,9 @@ describe('TransitLineButton', () => {
         // Ensure delete process executes correctly
         await waitFor(() => {
             expect(mockLine.delete).toHaveBeenCalledWith(serviceLocator.socketEventManager);
+            expect(serviceLocator.collectionManager.refresh).toHaveBeenCalledWith('paths');
+        });
+        await waitFor(() => {
             expect(serviceLocator.collectionManager.refresh).toHaveBeenCalledWith('lines');
         });
     });
