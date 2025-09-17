@@ -49,15 +49,16 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
         await props.line.delete(serviceLocator.socketEventManager);
         if (lineIsSelected) {
             serviceLocator.selectedObjectsManager.deselect('line');
-            if (lineHasPaths) {
-                // reload paths
-                await serviceLocator.collectionManager.get('paths').loadFromServer(serviceLocator.socketEventManager);
-                serviceLocator.collectionManager.refresh('paths');
-                (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-                    layerName: 'transitPaths',
-                    data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
-                });
-            }
+        }
+
+        if (lineHasPaths) {
+            // reload paths
+            await serviceLocator.collectionManager.get('paths').loadFromServer(serviceLocator.socketEventManager);
+            serviceLocator.collectionManager.refresh('paths');
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'transitPaths',
+                data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
+            });
         }
         serviceLocator.eventManager.emit('progress', { name: 'DeletingLine', progress: 1.0 });
         serviceLocator.collectionManager.refresh('lines');
