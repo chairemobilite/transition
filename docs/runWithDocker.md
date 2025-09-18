@@ -24,9 +24,6 @@ There is a few files to prepare in order to run Transition. It is suggested to c
 The first file is called `docker-compose.yml` and contains the definition of the docker images to run. Copy the following code to your local `docker-compose.yml` file.
 
 ```{yml}
-version: "3.7"
-# docker-compose version 1.22 is required for this version
-
 
 services:
   transition-www:
@@ -38,6 +35,10 @@ services:
       # CUSTOM Add environment variables. This can be any variable contained in the .env file. These have precedence over their value in .env
       PROJECT_CONFIG: /config/config.js
       TRANSITION_DOTENV: /config/.env
+    command:
+      - "/bin/sh"
+      - "-c"
+      - "sh -c \"cd services/json2capnp && pwd && ./json2capnp 2000 /config/runtime/cache/demo_transition > /config/runtime/json2capnp.log & yarn build:prod && yarn start\""
     depends_on:
       - postgres
     tty: true
