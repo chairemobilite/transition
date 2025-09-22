@@ -413,11 +413,8 @@ class TrRoutingBatch {
             console.log('tripRouting: Routing odTrip %d with coordinates %s', odTripIndex, origDestStr);
             const routingResult = await routeOdTrip(odTrip, {
                 trRoutingPort: options.trRoutingPort,
-                odTripIndex: odTripIndex,
-                odTripsCount: this.odTrips.length,
                 routing: this.batchRoutingQueryAttributes,
-                reverseOD: false,
-                pathCollection: this.pathCollection
+                reverseOD: false
             });
             // Delete geometries from unimodal results if they are not requested
             if (!this.batchRoutingQueryAttributes.withGeometries && routingResult.results) {

@@ -6,7 +6,6 @@
  */
 import { feature as turfFeature } from '@turf/turf';
 
-import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { OdTripRouteResult } from './types';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -16,17 +15,7 @@ import { TransitRoutingQueryAttributes, RoutingResultsByMode } from 'chaire-lib-
 interface RouteOdTripParameters {
     routing: TransitRoutingQueryAttributes;
     trRoutingPort?: number;
-    odTripIndex: number;
-    odTripsCount: number;
     reverseOD: boolean;
-    /**
-     * The collection of paths used in the scenario, required only if the
-     * geojson geometries are to be calculated
-     *
-     * @type {PathCollection}
-     * @memberof RouteOdTripParameters
-     */
-    pathCollection?: PathCollection;
 }
 
 const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripParameters): Promise<OdTripRouteResult> {
