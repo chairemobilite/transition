@@ -60,8 +60,6 @@ describe('Various scenario of trip calculation', () => {
 
         const result = await routeOdTrip(odTrip, {
             routing: routingAttributes,
-            odTripIndex: 0,
-            odTripsCount: 1,
             reverseOD: false,
         });
         const expectedUserResult = routeToUserObject(simplePathResult.routes[0]);
@@ -105,8 +103,6 @@ describe('Various scenario of trip calculation', () => {
 
         const result = await routeOdTrip(odTrip, {
             routing: routingAttributes,
-            odTripIndex: 0,
-            odTripsCount: 1,
             reverseOD: false,
         });
         const expectedUserResult = routeToUserObject(simplePathResult.routes[0]);
@@ -147,8 +143,6 @@ describe('Various scenario of trip calculation', () => {
 
         const result = await routeOdTrip(odTrip, {
             routing: routingAttributes,
-            odTripIndex: 0,
-            odTripsCount: 1,
             reverseOD: false,
         });
         const expectedUserResult = routeToUserObject(alternativesResult.routes[0]);
@@ -194,8 +188,6 @@ describe('Various scenario of trip calculation', () => {
 
         const result = await routeOdTrip(odTrip, {
             routing: routingAttributes,
-            odTripIndex: 0,
-            odTripsCount: 1,
             reverseOD: false,
         });
         expect(result).toEqual({
@@ -224,8 +216,6 @@ test('Test reverse OD', async () => {
 
     const result = await routeOdTrip(odTrip, {
         routing: routingAttributes,
-        odTripIndex: 0,
-        odTripsCount: 1,
         reverseOD: true,
     });
     expect(calculateMock).toHaveBeenCalledWith(expect.objectContaining({
