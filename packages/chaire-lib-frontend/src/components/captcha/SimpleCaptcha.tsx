@@ -6,8 +6,7 @@
  */
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-// FIXME Using the NoReload captcha (which can pose problems to users) because the "Reload Captcha" text is hardcoded in english. Switch when https://github.com/masroorejaz/react-simple-captcha/pull/2 is accepted
-import { loadCaptchaEnginge, LoadCanvasTemplateNoReload, validateCaptcha } from 'react-simple-captcha';
+import { loadCaptchaEnginge, LoadCanvasTemplate, validateCaptcha } from 'react-simple-captcha';
 import { CaptchaProps } from './CaptchaProps';
 
 export const CaptchaComponent: React.FunctionComponent<CaptchaProps> = (props: CaptchaProps) => {
@@ -35,7 +34,7 @@ export const CaptchaComponent: React.FunctionComponent<CaptchaProps> = (props: C
     return (
         <React.Fragment>
             <div>
-                <LoadCanvasTemplateNoReload />
+                <LoadCanvasTemplate reloadText={t('auth:ReloadCaptchaText')} />
             </div>
             <div className="apptr__form-input-container">
                 <label className="_flex">{t('auth:EnterCaptchaText')}</label>
