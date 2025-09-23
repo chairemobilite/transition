@@ -15,6 +15,7 @@ import { execJob } from '../../tasks/serverWorkerPool';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import clientEventManager from '../../utils/ClientEventManager';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 export type InitialJobData<TData extends JobDataType> = {
     inputFiles?: {
@@ -149,22 +150,72 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         });
     }
 
-    getFilePath = (fileName: keyof TData['files']): string | undefined => {
+    /**
+     * Does the job have a file attribute of the specified key
+     */
+    hasFile(file: keyof TData['files']): boolean {
+        const fileName = this.getFileName(file);
+        if (fileName === undefined) {
+            return false;
+        }
+        return true;
+    }
+
+    /** Return the filename associated with the specified key */
+    getFileName = (file: keyof TData['files']): string | undefined => {
         const jobFiles = this.attributes.resources?.files;
         if (jobFiles === undefined) {
             return undefined;
         }
-        const file = jobFiles[fileName];
+        const fileName = jobFiles[file];
+        return fileName;
+    };
+
+    /**
+     * Return the full absolute path of the file associated with the specified key
+     * Will throw if the file is not defined or does not exist
+     */
+    getFilePath = (file: keyof TData['files']): string => {
+        const fileName = this.getFileName(file);
         const files = directoryManager.getFilesAbsolute(this.getJobFileDirectory());
-        if (file === undefined || files === null || !files.includes(file)) {
-            return undefined;
+        if (fileName === undefined || files === null || !files.includes(fileName)) {
+            //TODO Define an TrError to throw
+            throw 'File not available';
         }
-        const filePath = path.join(this.getJobFileDirectory(), file);
+        const filePath = path.join(this.getJobFileDirectory(), fileName);
         if (!fs.existsSync(filePath)) {
-            return undefined;
+            //TODO Define an TrError to throw
+            throw 'File does not exist';
         }
         return filePath;
     };
+
+    /** Check if the job has a input file specified */
+    hasInputFile(): boolean {
+        return this.hasFile('input');
+    }
+
+    /** Return input filename */
+    getInputFileName(): string {
+        const inputFileName = this.getFileName('input');
+        if (inputFileName === undefined) {
+            throw new TrError('Invalid input file', 'TREJB0001', 'transit:transitRouting:errors:InvalidInputFile');
+        }
+        return inputFileName;
+    }
+
+    /**
+     * Return the full absolute path of the input file
+     * Will throw if the file is not defined or does not exist
+     */
+    getInputFilePath(): string {
+        try {
+            return this.getFilePath('input');
+        } catch {
+            // TODO We keep this error for the moment, as it's propagated and translated in the UI.
+            throw 'InputFileUnavailable';
+        }
+    }
 
     setCancelled(): boolean {
         if (this.status === 'pending' || this.status === 'inProgress') {

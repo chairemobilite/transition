@@ -15,6 +15,9 @@ import { batchAccessibilityMap } from '../TrAccessibilityMapBatch';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
+import { ExecutableJob } from '../../executableJob/ExecutableJob';
+import { BatchAccessMapJobType } from '../BatchAccessibilityMapJob';
+import jobsDbQueries from '../../../models/db/jobs.db.queries';
 
 const absoluteDir = `${directoryManager.userDataDirectory}/1/exports`;
 
@@ -69,42 +72,11 @@ jest.mock('../../../models/db/transitScenarios.db.queries', () => ({
     read: jest.fn().mockImplementation(() => ({ id: 'arbitrary', name: 'test scenario' }))
 }));
 
-beforeEach(() => {
-    mockedParseLocations.mockClear();
-    mockedStartBatch.mockClear();
-    mockedStopBatch.mockClear();
-    mockedCreateResult.mockClear();
-    mockedCalculateWithPolygon.mockClear();
-    mockResultProcessor.processResult.mockClear();
-    mockResultProcessor.end.mockClear();
-});
+jest.mock('../../../models/db/jobs.db.queries');
+const mockJobsDbQueries = jobsDbQueries as jest.Mocked<typeof jobsDbQueries>;
+let mockedJob: ExecutableJob<BatchAccessMapJobType>;
 
 // Test data
-const defaultParameters = {
-    calculationName: 'test',
-    projection: 'test',
-    idAttribute: 'id',
-    xAttribute: 'origX',
-    yAttribute: 'origX',
-    timeAttributeDepartureOrArrival: 'departure' as const,
-    timeFormat: 'HMM',
-    timeAttribute: 'timeattrib',
-    withGeometries: false,
-    detailed: false,
-    cpuCount: 1,
-    csvFile: { location: 'upload' as const, filename: 'input.csv' }
-};
-
-const defaultAttributes = {
-    maxTotalTravelTimeSeconds: 1800,
-    maxAccessEgressTravelTimeSeconds: 300,
-    scenarioId: 'arbitrary',
-    numberOfPolygons: 1,
-    deltaSeconds: 300,
-    deltaIntervalSeconds: 300,
-    id: 'arbitrary',
-    data: {}
-};
 
 const locations = [
     {
@@ -130,20 +102,81 @@ const locations = [
     }
 ];
 
+const mockJobAttributes = {
+    id: 1,
+    name: 'batchAccessMap' as const,
+    user_id: 123,
+    status: 'pending' as const,
+    internal_data: {},
+    data: {
+        parameters: {
+            batchAccessMapAttributes: {
+                type: 'csv' as const,
+                calculationName: 'test',
+                projection: 'test',
+                idAttribute: 'id',
+                xAttribute: 'origX',
+                yAttribute: 'origY',
+                timeAttributeDepartureOrArrival: 'departure' as const,
+                timeFormat: 'HMM',
+                timeAttribute: 'timeattrib',
+                withGeometries: false,
+                detailed: false,
+                cpuCount: 1,
+                csvFile: { location: 'upload' as const, filename: 'input.csv' }
+            },
+            accessMapAttributes: {
+                maxTotalTravelTimeSeconds: 1800,
+                maxAccessEgressTravelTimeSeconds: 300,
+                scenarioId: 'arbitrary',
+                numberOfPolygons: 1,
+                deltaSeconds: 300,
+                deltaIntervalSeconds: 300,
+                id: 'arbitrary',
+                data: {}
+            }
+        }
+    },
+    resources: {
+        files: {
+            input: 'input.csv'
+        }
+    }
+};
+
+beforeEach(async () => {
+    mockedParseLocations.mockClear();
+    mockedStartBatch.mockClear();
+    mockedStopBatch.mockClear();
+    mockedCreateResult.mockClear();
+    mockedCalculateWithPolygon.mockClear();
+    mockResultProcessor.processResult.mockClear();
+    mockResultProcessor.end.mockClear();
+
+    mockJobsDbQueries.read.mockResolvedValue(mockJobAttributes);
+    mockedJob = await ExecutableJob.loadTask(1);
+    jest.spyOn(mockedJob, 'getFilePath').mockImplementation(() => '123/1/input.csv');
+
+});
+
 test('3 locations, all successful', async() => {
     mockedParseLocations.mockResolvedValue({ locations, errors: [] });
-    const result = await batchAccessibilityMap(defaultParameters, defaultAttributes, absoluteDir, progressEmitter, isCancelledMock);
+    const result = await batchAccessibilityMap(mockedJob, progressEmitter, isCancelledMock);
     expect(result).toEqual({
-        calculationName: defaultParameters.calculationName,
-        detailed: defaultParameters.detailed,
+        calculationName: mockJobAttributes.data.parameters.batchAccessMapAttributes.calculationName,
+        detailed: mockJobAttributes.data.parameters.batchAccessMapAttributes.detailed,
         completed: true,
         errors: [],
         warnings: [],
-        files: { input: 'batchAccessMap.csv', csv: 'result.csv' }
+        files: { input: 'input.csv', csv: 'result.csv' }
     });
 
     // Make sure all functions have been called
     expect(mockedParseLocations).toHaveBeenCalledTimes(1);
+    expect(mockedParseLocations).toHaveBeenCalledWith(
+        expect.stringContaining(`${mockJobAttributes.user_id}/${mockJobAttributes.id}/input.csv`),
+        mockJobAttributes.data.parameters.batchAccessMapAttributes
+    );
     expect(mockResultProcessor.processResult).toHaveBeenCalledTimes(3);
     expect(mockResultProcessor.end).toHaveBeenCalledTimes(1);
     expect(mockedStartBatch).toHaveBeenCalledTimes(1);
@@ -153,10 +186,10 @@ test('3 locations, all successful', async() => {
 test('3 locations, error on first', async() => {
     mockedParseLocations.mockResolvedValue({ locations, errors: [] });
     mockedCalculateWithPolygon.mockRejectedValueOnce('Some error occurred');
-    const result = await batchAccessibilityMap(defaultParameters, defaultAttributes, absoluteDir, progressEmitter, isCancelledMock);
+    const result = await batchAccessibilityMap(mockedJob, progressEmitter, isCancelledMock);
     expect(result).toEqual(expect.objectContaining({
-        calculationName: defaultParameters.calculationName,
-        detailed: defaultParameters.detailed,
+        calculationName: mockJobAttributes.data.parameters.batchAccessMapAttributes.calculationName,
+        detailed: mockJobAttributes.data.parameters.batchAccessMapAttributes.detailed,
         completed: true,
         errors: []
     }));
@@ -164,6 +197,10 @@ test('3 locations, error on first', async() => {
 
     // Make sure all functions have been called
     expect(mockedParseLocations).toHaveBeenCalledTimes(1);
+    expect(mockedParseLocations).toHaveBeenCalledWith(
+        expect.stringContaining(`${mockJobAttributes.user_id}/${mockJobAttributes.id}/input.csv`),
+        mockJobAttributes.data.parameters.batchAccessMapAttributes
+    );
     expect(mockResultProcessor.processResult).toHaveBeenCalledTimes(3);
     expect(mockResultProcessor.end).toHaveBeenCalledTimes(1);
     expect(mockedStartBatch).toHaveBeenCalledTimes(1);

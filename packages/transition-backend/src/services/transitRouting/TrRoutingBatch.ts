@@ -14,16 +14,11 @@ import routeOdTrip from './TrRoutingOdTrip';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import {
-    TransitBatchRoutingDemandAttributes,
-    TransitDemandFromCsvRoutingAttributes
-} from 'transition-common/lib/services/transitDemand/types';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import odPairsDbQueries from '../../models/db/odPairs.db.queries';
 import pathDbQueries from '../../models/db/transitPaths.db.queries';
 import resultsDbQueries from '../../models/db/batchRouteResults.db.queries';
 import { getDataSource } from 'chaire-lib-backend/lib/services/dataSources/dataSources';
-import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import {
     BatchRoutingResultProcessor,
     createRoutingFileResultProcessor,
@@ -32,6 +27,8 @@ import {
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import { CheckpointTracker } from '../executableJob/JobCheckpointTracker';
 import { resultIsUnimodal } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
+import { ExecutableJob } from '../executableJob/ExecutableJob';
+import { BatchRouteJobType } from './BatchRoutingJob';
 
 const CHECKPOINT_INTERVAL = 250;
 
@@ -50,40 +47,30 @@ const CHECKPOINT_INTERVAL = 250;
  * completed od trips routed.
  * @returns
  */
+
 export const batchRoute = async (
-    demandParameters: TransitBatchRoutingDemandAttributes,
-    batchRoutingQueryAttributes: BatchCalculationParameters,
+    job: ExecutableJob<BatchRouteJobType>,
     options: {
-        jobId: number;
-        absoluteBaseDirectory: string;
-        inputFileName: string;
         progressEmitter: EventEmitter;
         isCancelled: () => boolean;
-        currentCheckpoint?: number;
     }
 ): Promise<
     TransitBatchCalculationResult & {
         files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
     }
 > => {
-    return new TrRoutingBatch(demandParameters.configuration, batchRoutingQueryAttributes, options).run();
+    return new TrRoutingBatch(job, options).run();
 };
 
 class TrRoutingBatch {
     private odTrips: BaseOdTrip[] = [];
     private errors: ErrorMessage[] = [];
-    private pathCollection: PathCollection | undefined = undefined;
 
     constructor(
-        private demandParameters: TransitDemandFromCsvRoutingAttributes,
-        private batchRoutingQueryAttributes: BatchCalculationParameters,
+        private job: ExecutableJob<BatchRouteJobType>,
         private options: {
-            jobId: number;
-            absoluteBaseDirectory: string;
-            inputFileName: string;
             progressEmitter: EventEmitter;
             isCancelled: () => boolean;
-            currentCheckpoint?: number;
         }
     ) {
         // Nothing else to do
@@ -94,8 +81,8 @@ class TrRoutingBatch {
             files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
         }
     > => {
-        console.log('TrRoutingService batchRoute Parameters', this.demandParameters);
-        const parameters = this.demandParameters;
+        const parameters = this.job.attributes.data.parameters.demandAttributes.configuration;
+        console.log('TrRoutingService batchRoute Parameters', parameters);
 
         try {
             // Get the odTrips to calculate
@@ -108,38 +95,29 @@ class TrRoutingBatch {
             this.options.progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
 
             // Delete any previous result for this job after checkpoint
-            await resultsDbQueries.deleteForJob(this.options.jobId, this.options.currentCheckpoint);
+            await resultsDbQueries.deleteForJob(this.job.id, this.job.attributes.internal_data.checkpoint);
 
             // Start the trRouting instances for the odTrips
             const [trRoutingInstancesCount, trRoutingPort] = await this.startTrRoutingInstances(odTripsCount);
 
             // Prepare indexes for calculations and progress report
-            const startIndex = this.options.currentCheckpoint || 0;
+            const startIndex = this.job.attributes.internal_data.checkpoint || 0;
             let completedRoutingsCount = startIndex;
             // Number of od pairs after which to report progress
-            const progressStep = Math.ceil(this.odTrips.length / 100);
+            const progressStep = Math.max(1, Math.ceil(this.odTrips.length / 100));
 
             this.options.progressEmitter.emit('progress', {
                 name: 'BatchRouting',
                 progress: completedRoutingsCount / odTripsCount
             });
 
-            // force add walking when selecting transit mode, so we can check if walking is better
-            const routingModes = this.batchRoutingQueryAttributes.routingModes;
-            if (routingModes.includes('transit') && !routingModes.includes('walking')) {
-                routingModes.push('walking');
-            }
-            this.batchRoutingQueryAttributes.routingModes = routingModes;
-
             const promiseQueue = new pQueue({ concurrency: trRoutingInstancesCount });
 
-            // Log progress at most for each 1% progress
-            const logInterval = Math.ceil(odTripsCount / 100);
             const benchmarkStart = performance.now();
             let lastLogTime = performance.now();
             let lastLogCount = startIndex;
             const logOdTripBefore = (index: number) => {
-                if ((index + 1) % logInterval === 0) {
+                if ((index + 1) % progressStep === 0) {
                     console.log(`Routing odTrip ${index + 1}/${odTripsCount}`);
                 }
             };
@@ -165,7 +143,7 @@ class TrRoutingBatch {
             const checkpointTracker = new CheckpointTracker(
                 CHECKPOINT_INTERVAL,
                 this.options.progressEmitter,
-                this.options.currentCheckpoint
+                this.job.attributes.internal_data.checkpoint
             );
             for (let odTripIndex = startIndex; odTripIndex < odTripsCount; odTripIndex++) {
                 promiseQueue.add(async () => {
@@ -201,7 +179,7 @@ class TrRoutingBatch {
             }
 
             await promiseQueue.onIdle();
-            console.log('Batch odTrip routing completed for job %d', this.options.jobId);
+            console.log('Batch odTrip routing completed for job %d', this.job.id);
             checkpointTracker.completed();
 
             this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
@@ -216,7 +194,7 @@ class TrRoutingBatch {
 
             const routingResult = {
                 calculationName: parameters.calculationName,
-                detailed: this.batchRoutingQueryAttributes.detailed,
+                detailed: this.job.attributes.data.parameters.transitRoutingAttributes.detailed,
                 completed: true,
                 errors: [],
                 warnings: this.errors,
@@ -247,17 +225,17 @@ class TrRoutingBatch {
             return routingResult;
         } catch (error) {
             if (Array.isArray(error)) {
-                console.log('Multiple errors in batch route calculations for job %d', this.options.jobId);
+                console.log('Multiple errors in batch route calculations for job %d', this.job.id);
                 return {
                     calculationName: parameters.calculationName,
                     detailed: false,
                     completed: false,
                     errors: error,
                     warnings: [],
-                    files: { input: this.options.inputFileName }
+                    files: { input: this.job.getInputFileName() }
                 };
             } else {
-                console.error(`Error in batch routing calculation job ${this.options.jobId}: ${error}`);
+                console.error(`Error in batch routing calculation job ${this.job.id}: ${error}`);
                 throw error;
             }
         } finally {
@@ -277,43 +255,34 @@ class TrRoutingBatch {
         detailedCsv?: string;
         geojson?: string;
     }> => {
-        console.log('Preparing result files for job %d...', this.options.jobId);
+        console.log('Preparing result files for job %d...', this.job.id);
         const { resultHandler, pathCollection } = await this.prepareResultData();
-        console.log('Prepared result files for job %d', this.options.jobId);
+        console.log('Prepared result files for job %d', this.job.id);
 
         // Log every 1% of the results
-        const resultCount = await resultsDbQueries.countResults(this.options.jobId);
-        const logInterval = Math.ceil(resultCount / 100);
+        const resultCount = await resultsDbQueries.countResults(this.job.id);
+        const logInterval = Math.max(1, Math.ceil(resultCount / 100));
         let currentResultIdx = 0;
 
-        console.log('Generating %d results for job %d...', resultCount, this.options.jobId);
-        const resultStream = resultsDbQueries.streamResults(this.options.jobId);
+        console.log('Generating %d results for job %d...', resultCount, this.job.id);
+        const resultStream = resultsDbQueries.streamResults(this.job.id);
 
         for await (const row of resultStream) {
             currentResultIdx++;
             if (currentResultIdx % logInterval === 0 || currentResultIdx === resultCount) {
-                console.log(
-                    'Generating results %d of %d for job %d...',
-                    currentResultIdx,
-                    resultCount,
-                    this.options.jobId
-                );
+                console.log('Generating results %d of %d for job %d...', currentResultIdx, resultCount, this.job.id);
             }
             // TODO Try to pipe the result generator and processor directly into this database result stream, to avoid all the awaits
             const result = resultsDbQueries.resultParser(row);
-            const processedResults = await generateFileOutputResults(
-                result.data,
-                this.batchRoutingQueryAttributes.routingModes,
-                {
-                    exportCsv: true,
-                    exportDetailed: this.batchRoutingQueryAttributes.detailed === true,
-                    withGeometries: this.batchRoutingQueryAttributes.withGeometries === true,
-                    pathCollection
-                }
-            );
+            const processedResults = await generateFileOutputResults(result.data, {
+                exportCsv: true,
+                exportDetailed: this.job.attributes.data.parameters.transitRoutingAttributes.detailed === true,
+                withGeometries: this.job.attributes.data.parameters.transitRoutingAttributes.withGeometries === true,
+                pathCollection
+            });
             resultHandler.processResult(processedResults);
         }
-        console.log('Generated results for job %d', this.options.jobId);
+        console.log('Generated results for job %d', this.job.id);
 
         resultHandler.end();
         return resultHandler.getFiles();
@@ -323,23 +292,17 @@ class TrRoutingBatch {
         resultHandler: BatchRoutingResultProcessor;
         pathCollection?: PathCollection;
     }> => {
-        const resultHandler = createRoutingFileResultProcessor(
-            this.options.absoluteBaseDirectory,
-            this.demandParameters,
-            this.batchRoutingQueryAttributes,
-            this.options.inputFileName
-        );
+        const resultHandler = createRoutingFileResultProcessor(this.job);
 
         let pathCollection: PathCollection | undefined = undefined;
-        if (this.batchRoutingQueryAttributes.withGeometries) {
+        if (this.job.attributes.data.parameters.transitRoutingAttributes.withGeometries) {
             pathCollection = new PathCollection([], {});
-            if (this.batchRoutingQueryAttributes.scenarioId) {
+            if (this.job.attributes.data.parameters.transitRoutingAttributes.scenarioId) {
                 const pathGeojson = await pathDbQueries.geojsonCollection({
-                    scenarioId: this.batchRoutingQueryAttributes.scenarioId
+                    scenarioId: this.job.attributes.data.parameters.transitRoutingAttributes.scenarioId
                 });
                 pathCollection.loadFromCollection(pathGeojson.features);
             }
-            this.pathCollection = pathCollection;
         }
         return { resultHandler, pathCollection };
     };
@@ -348,15 +311,16 @@ class TrRoutingBatch {
         odTrips: BaseOdTrip[];
         errors: ErrorMessage[];
     }> => {
-        console.log(`importing od trips from CSV file ${this.options.inputFileName}`);
+        console.log(`importing od trips from CSV file ${this.job.getInputFileName()}`);
         console.log('reading data from csv file...');
 
         const { odTrips, errors } = await parseOdTripsFromCsv(
-            `${this.options.absoluteBaseDirectory}/${this.options.inputFileName}`,
-            this.demandParameters
+            this.job.getInputFilePath(),
+            this.job.attributes.data.parameters.demandAttributes.configuration
         );
 
         const odTripsCount = odTrips.length;
+        //TODO Move this log inside parseOdTripsFromCsv
         console.log(odTripsCount + ' OdTrips parsed');
         this.options.progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
         return { odTrips, errors };
@@ -364,8 +328,11 @@ class TrRoutingBatch {
 
     // Get the number of parallel calculations to run, it makes sure to not exceed the server's maximum value
     private getParallelCalculationCount = (): number => {
-        if (typeof this.batchRoutingQueryAttributes.parallelCalculations === 'number') {
-            return Math.min(serverConfig.maxParallelCalculators, this.batchRoutingQueryAttributes.parallelCalculations);
+        if (typeof this.job.attributes.data.parameters.transitRoutingAttributes.parallelCalculations === 'number') {
+            return Math.min(
+                serverConfig.maxParallelCalculators,
+                this.job.attributes.data.parameters.transitRoutingAttributes.parallelCalculations
+            );
         } else {
             return serverConfig.maxParallelCalculators;
         }
@@ -413,11 +380,12 @@ class TrRoutingBatch {
             console.log('tripRouting: Routing odTrip %d with coordinates %s', odTripIndex, origDestStr);
             const routingResult = await routeOdTrip(odTrip, {
                 trRoutingPort: options.trRoutingPort,
-                routing: this.batchRoutingQueryAttributes,
+                routing: this.job.attributes.data.parameters.transitRoutingAttributes,
                 reverseOD: false
             });
             // Delete geometries from unimodal results if they are not requested
-            if (!this.batchRoutingQueryAttributes.withGeometries && routingResult.results) {
+            // TODO This should be handled lower in the stack and not make its way here. Need to check how deep the withGeometries flag goes
+            if (!this.job.attributes.data.parameters.transitRoutingAttributes.withGeometries && routingResult.results) {
                 const resultsByMode = routingResult.results;
                 Object.keys(resultsByMode).forEach((mode) => {
                     if (resultIsUnimodal(resultsByMode[mode]) && resultsByMode[mode].paths) {
@@ -429,7 +397,7 @@ class TrRoutingBatch {
             }
             // FIXME Do not synchronously wait for the save (~10% time overhead). When we have checkpoint support, we can do .then/catch to handle completion instead
             await resultsDbQueries.create({
-                jobId: this.options.jobId,
+                jobId: this.job.id,
                 tripIndex: odTripIndex,
                 data: routingResult
             });
