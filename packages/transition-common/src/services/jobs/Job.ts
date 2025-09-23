@@ -88,6 +88,11 @@ export class Job<TData extends JobDataType> {
         return this._attributes.name;
     }
 
+    /** Returns the numeric id */
+    get id(): number {
+        return this._attributes.id;
+    }
+
     /** Get the attributes without the status. To get the status, use the status
      * getter instead */
     get attributes(): Omit<JobAttributes<TData>, 'status'> {

@@ -72,6 +72,7 @@ describe('batch route execution', () => {
             save: jest.fn().mockResolvedValue(true),
             refresh: jest.fn().mockResolvedValue(true),
             getJobFileDirectory: jest.fn().mockReturnValue(userDir),
+            hasInputFile: jest.fn().mockReturnValue(true),
             status: 'pending',
             attributes: {
                 id: 34,
@@ -92,7 +93,9 @@ describe('batch route execution', () => {
         } as any;
         // The task that will be modified by the job function
         const updatableTask = _cloneDeep(mockedTask);
+
         mockLoadTask.mockResolvedValueOnce(updatableTask);
+        let capturedJob: any;
         const batchRouteResult = {
             calculationName: 'calculation',
             detailed: true,
@@ -101,7 +104,11 @@ describe('batch route execution', () => {
             warnings: ['warning1', 'warning2'],
             files: { input: 'file.csv', csv: 'results.csv', detailedCsv: 'detailed.csv', geojson: 'geo.json' }
         }
-        mockBatchRoute.mockResolvedValueOnce(batchRouteResult);
+        mockBatchRoute.mockImplementation((job, options) => {
+            // Deep clone to capture the state at call time
+            capturedJob = _cloneDeep(job);
+            return Promise.resolve(batchRouteResult);
+        });
 
         // Run the test
         await wrapTaskExecution(mockedTask.attributes.id);
@@ -117,18 +124,15 @@ describe('batch route execution', () => {
         expect(updatableTask.attributes.statusMessages).toEqual({ errors: [], warnings: ['warning1', 'warning2'] });
         
         // Verify batchRoute was called with correct parameters
-        expect(mockBatchRoute).toHaveBeenCalledWith(
-            mockedTask.attributes.data.parameters.demandAttributes,
-            mockedTask.attributes.data.parameters.transitRoutingAttributes,
-            expect.objectContaining({
-                jobId: mockedTask.attributes.id,
-                absoluteBaseDirectory: userDir,
-                inputFileName: mockedTask.attributes.resources.files.input,
-                isCancelled: expect.any(Function),
-                currentCheckpoint: undefined,
-                progressEmitter: expect.any(EventEmitter)
-            })
-        );
+        expect(mockBatchRoute).toHaveBeenCalledTimes(1);
+        expect(capturedJob).toEqual(mockedTask);
+        const [calledJob, calledOptions] = mockBatchRoute.mock.calls[0];
+        // Verify batchRoute options
+        expect(calledOptions).toEqual(expect.objectContaining({
+            progressEmitter: expect.any(EventEmitter),
+            isCancelled: expect.any(Function)
+        }));
+
         // Verify function calls
         expect(mockLoadTask).toHaveBeenCalledWith(mockedTask.attributes.id);
         expect(mockDiskUsage).toHaveBeenCalledWith(mockedTask.attributes.user_id);
@@ -151,6 +155,7 @@ describe('batch route execution', () => {
             save: jest.fn().mockResolvedValue(true),
             refresh: jest.fn().mockResolvedValue(true),
             getJobFileDirectory: jest.fn().mockReturnValue(userDir),
+            hasInputFile: jest.fn().mockReturnValue(true),
             status: 'pending',
             attributes: {
                 id: 34,
@@ -172,6 +177,7 @@ describe('batch route execution', () => {
         // The task that will be modified by the job function
         const updatableTask = _cloneDeep(mockedTask);
         mockLoadTask.mockResolvedValueOnce(updatableTask);
+        let capturedJob: any;
         const batchRouteResult = {
             calculationName: 'failed reading',
             detailed: false,
@@ -180,7 +186,11 @@ describe('batch route execution', () => {
             warnings: [],
             files: { input: 'file.csv' }
         }
-        mockBatchRoute.mockResolvedValueOnce(batchRouteResult);
+        mockBatchRoute.mockImplementation((job, options) => {
+            // Deep clone to capture the state at call time
+            capturedJob = _cloneDeep(job);
+            return Promise.resolve(batchRouteResult);
+        });
 
         // Run the test
         await wrapTaskExecution(mockedTask.attributes.id);
@@ -196,18 +206,15 @@ describe('batch route execution', () => {
         expect(updatableTask.attributes.statusMessages).toEqual({ errors: ['error1', 'error2'], warnings: [] });
         
         // Verify batchRoute was called with correct parameters
-        expect(mockBatchRoute).toHaveBeenCalledWith(
-            mockedTask.attributes.data.parameters.demandAttributes,
-            mockedTask.attributes.data.parameters.transitRoutingAttributes,
-            expect.objectContaining({
-                jobId: mockedTask.attributes.id,
-                absoluteBaseDirectory: userDir,
-                inputFileName: mockedTask.attributes.resources.files.input,
-                isCancelled: expect.any(Function),
-                currentCheckpoint: undefined,
-                progressEmitter: expect.any(EventEmitter)
-            })
-        );
+        expect(mockBatchRoute).toHaveBeenCalledTimes(1);
+        expect(capturedJob).toEqual(mockedTask);
+        const [calledJob, calledOptions] = mockBatchRoute.mock.calls[0];
+        // Verify batchRoute options
+        expect(calledOptions).toEqual(expect.objectContaining({
+            progressEmitter: expect.any(EventEmitter),
+            isCancelled: expect.any(Function)
+        }));
+
         // Verify function calls
         expect(mockLoadTask).toHaveBeenCalledWith(mockedTask.attributes.id);
         expect(mockDiskUsage).toHaveBeenCalledWith(mockedTask.attributes.user_id);
@@ -230,6 +237,7 @@ describe('batch route execution', () => {
             save: jest.fn().mockResolvedValue(true),
             refresh: jest.fn().mockResolvedValue(true),
             getJobFileDirectory: jest.fn().mockReturnValue(userDir),
+            hasInputFile: jest.fn().mockReturnValue(true),
             status: 'pending',
             attributes: {
                 id: 34,
@@ -285,6 +293,7 @@ describe('batch route execution', () => {
             save: jest.fn().mockResolvedValue(true),
             refresh: jest.fn().mockResolvedValue(true),
             getJobFileDirectory: jest.fn().mockReturnValue(userDir),
+            hasInputFile: jest.fn().mockReturnValue(true),
             status: 'inProgress',
             attributes: {
                 id: 34,
@@ -306,6 +315,7 @@ describe('batch route execution', () => {
         // The task that will be modified by the job function
         const updatableTask = _cloneDeep(mockedTask);
         mockLoadTask.mockResolvedValueOnce(updatableTask);
+        let capturedJob: any;
         const batchRouteResult = {
             calculationName: 'calculation',
             detailed: true,
@@ -314,8 +324,11 @@ describe('batch route execution', () => {
             warnings: [],
             files: { input: 'file.csv', csv: 'results.csv', detailedCsv: 'detailed.csv', geojson: 'geo.json' }
         }
-        mockBatchRoute.mockResolvedValueOnce(batchRouteResult);
-
+        mockBatchRoute.mockImplementation((job, options) => {
+            // Deep clone to capture the state at call time
+            capturedJob = _cloneDeep(job);
+            return Promise.resolve(batchRouteResult);
+        });
         // Run the test
         await wrapTaskExecution(mockedTask.attributes.id);
 
@@ -329,19 +342,16 @@ describe('batch route execution', () => {
         expect(updatableTask.attributes.resources).toEqual({ files: batchRouteResult.files });
         expect(updatableTask.attributes.statusMessages).toBeUndefined();
         
-        // Verify batchRoute was called with correct parameters
-        expect(mockBatchRoute).toHaveBeenCalledWith(
-            mockedTask.attributes.data.parameters.demandAttributes,
-            mockedTask.attributes.data.parameters.transitRoutingAttributes,
-            expect.objectContaining({
-                jobId: mockedTask.attributes.id,
-                absoluteBaseDirectory: userDir,
-                inputFileName: mockedTask.attributes.resources.files.input,
-                isCancelled: expect.any(Function),
-                currentCheckpoint: mockedTask.attributes.internal_data.checkpoint,
-                progressEmitter: expect.any(EventEmitter)
-            })
-        );
+         // Verify batchRoute was called with correct parameters
+        expect(mockBatchRoute).toHaveBeenCalledTimes(1);
+        expect(capturedJob).toEqual(mockedTask);
+        const [calledJob, calledOptions] = mockBatchRoute.mock.calls[0];
+        // Verify batchRoute options
+        expect(calledOptions).toEqual(expect.objectContaining({
+            progressEmitter: expect.any(EventEmitter),
+            isCancelled: expect.any(Function)
+        }));
+
         // Verify function calls
         expect(mockLoadTask).toHaveBeenCalledWith(mockedTask.attributes.id);
         expect(mockDiskUsage).toHaveBeenCalledWith(mockedTask.attributes.user_id);
@@ -354,8 +364,6 @@ describe('batch route execution', () => {
     });
 
     test('wrapTaskExecution should not execute cancelled task', async () => {
-        // Prepare test data
-        mockDiskUsage.mockReturnValueOnce({ used: 1000, remaining: 0 }); // Simulate no disk space left
         const mockedTask = {
             // Instance methods
             setInProgress: jest.fn(),
@@ -364,6 +372,7 @@ describe('batch route execution', () => {
             save: jest.fn().mockResolvedValue(true),
             refresh: jest.fn().mockResolvedValue(true),
             getJobFileDirectory: jest.fn().mockReturnValue(userDir),
+            hasInputFile: jest.fn().mockReturnValue(true),
             status: 'cancelled',
             attributes: {
                 id: 34,
@@ -401,5 +410,30 @@ describe('batch route execution', () => {
         expect(updatableTask.setInProgress).not.toHaveBeenCalled();
         expect(updatableTask.save).not.toHaveBeenCalled();
 
+    });
+
+    test('wrapTaskExecution fails when input file is missing', async () => {
+        const mockedTask = {
+            setInProgress: jest.fn(),
+            setCompleted: jest.fn(),
+            setFailed: jest.fn(),
+            save: jest.fn().mockResolvedValue(true),
+            refresh: jest.fn().mockResolvedValue(true),
+            getJobFileDirectory: jest.fn().mockReturnValue('/dir'),
+            hasInputFile: jest.fn().mockReturnValue(false),
+            status: 'pending',
+            attributes: { id: 42, user_id: 1, name: 'batchRoute', status: 'pending', data: { parameters: {} }, internal_data: {}, resources: {} }
+        } as any;
+        const updatableTask = _cloneDeep(mockedTask);
+        mockLoadTask.mockResolvedValueOnce(updatableTask);
+        
+        await wrapTaskExecution(mockedTask.attributes.id);
+        
+        expect(mockBatchRoute).not.toHaveBeenCalled();
+        expect(updatableTask.setFailed).toHaveBeenCalled();
+        expect(updatableTask.save).toHaveBeenCalledTimes(2);
+        expect(updatableTask.attributes.statusMessages?.errors).toEqual([
+            'transit:transitRouting:errors:InvalidInputFile'
+        ]);
     });
 });
