@@ -10,17 +10,17 @@ import { EventEmitter } from 'events';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
-import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import { parseLocationsFromCsv } from '../accessMapLocation/AccessMapLocationProvider';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import nodeDbQueries from '../../models/db/transitNodes.db.queries';
 import scenariosDbQueries from '../../models/db/transitScenarios.db.queries';
-import { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { createAccessMapFileResultProcessor } from './TrAccessibilityMapBatchResult';
 import { TransitAccessibilityMapCalculator } from '../accessibilityMap/TransitAccessibilityMapCalculator';
 import { AccessibilityMapLocation } from 'transition-common/lib/services/accessibilityMap/AccessibiltyMapLocation';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import { ExecutableJob } from '../executableJob/ExecutableJob';
+import { BatchAccessMapJobType } from './BatchAccessibilityMapJob';
 
 /**
  * Do batch accessibility map on a csv file input
@@ -34,25 +34,18 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
  * @returns
  */
 export const batchAccessibilityMap = async (
-    parameters: TransitDemandFromCsvAccessMapAttributes,
-    accessMapAttributes: AccessibilityMapAttributes,
-    absoluteBaseDirectory: string,
+    job: ExecutableJob<BatchAccessMapJobType>,
     progressEmitter: EventEmitter,
     isCancelled: () => boolean
 ): Promise<TransitBatchCalculationResult & { files: { input: string; csv?: string; geojson?: string } }> => {
-    // TODO Extract this somewhere, or allow configurable name
-    const csvFilePath = 'batchAccessMap.csv';
-
-    const files: { input: string; csv?: string; geojson?: string } = { input: csvFilePath };
-
-    console.log(`importing od trips from CSV file ${csvFilePath}`);
-    console.log('reading data from csv file...');
+    //TODO getInputFileName could in theory throw and it won't be catched here, but we validate earlier
+    // that we actually have an input file, so won't happen in reality
+    const files: { input: string; csv?: string; geojson?: string } = { input: job.getInputFileName() };
+    const parameters = job.attributes.data.parameters.batchAccessMapAttributes;
+    console.log(`importing access map locations from CSV file ${job.getInputFileName()}`);
 
     try {
-        const { locations, errors } = await parseLocationsFromCsv(
-            `${absoluteBaseDirectory}/${csvFilePath}`,
-            parameters
-        );
+        const { locations, errors } = await parseLocationsFromCsv(job.getInputFilePath(), parameters);
 
         const locationsCount = locations.length;
         console.log(locationsCount + ' locations parsed');
@@ -77,9 +70,9 @@ export const batchAccessibilityMap = async (
 
         // Prepare the result processor
         const resultProcessor = createAccessMapFileResultProcessor(
-            `${absoluteBaseDirectory}/`,
+            job.getJobFileDirectory(),
             parameters,
-            accessMapAttributes
+            job.attributes.data.parameters.accessMapAttributes
         );
 
         // Make sure the serviceLocator has the nodeCollection
@@ -89,8 +82,8 @@ export const batchAccessibilityMap = async (
             nodeCollection.loadFromCollection(nodeGeojson.features);
             serviceLocator.collectionManager.add('nodes', nodeCollection);
         }
-        const scenarioAttribs = accessMapAttributes.scenarioId
-            ? await scenariosDbQueries.read(accessMapAttributes.scenarioId)
+        const scenarioAttribs = job.attributes.data.parameters.accessMapAttributes.scenarioId
+            ? await scenariosDbQueries.read(job.attributes.data.parameters.accessMapAttributes.scenarioId)
             : undefined;
         const scenarioName = scenarioAttribs?.name;
 
@@ -99,15 +92,13 @@ export const batchAccessibilityMap = async (
             throw 'Cancelled';
         }
         progressEmitter.emit('progress', { name: 'BatchAccessMap', progress: 0.0 });
-        // Number of locations after which to report progress
-        const progressStep = Math.ceil(locations.length / 100);
 
         let completedRoutingsCount = 0;
 
         const promiseQueue = new pQueue({ concurrency: trRoutingInstancesCount });
 
         // Log progress at most for each 1% progress
-        const logInterval = Math.ceil(locationsCount / 100);
+        const logInterval = Math.max(1, Math.ceil(locationsCount / 100));
         const accessMapLocationTask = async ({
             location,
             locationIndex
@@ -124,7 +115,7 @@ export const batchAccessibilityMap = async (
                     console.log(`Calculating accessibility map ${locationIndex + 1}/${locationsCount}`);
                 }
 
-                const calculationAttributes = _cloneDeep(accessMapAttributes);
+                const calculationAttributes = _cloneDeep(job.attributes.data.parameters.accessMapAttributes);
                 calculationAttributes.locationGeojson = {
                     type: 'Feature' as const,
                     properties: {},
@@ -158,7 +149,7 @@ export const batchAccessibilityMap = async (
                     throw error;
                 } finally {
                     completedRoutingsCount++;
-                    if (completedRoutingsCount % progressStep === 0) {
+                    if (completedRoutingsCount % logInterval === 0) {
                         progressEmitter.emit('progress', {
                             name: 'BatchAccessMap',
                             progress: completedRoutingsCount / locationsCount
@@ -171,7 +162,7 @@ export const batchAccessibilityMap = async (
                         text: 'transit:transitRouting:errors:ErrorCalculatingLocation',
                         params: { id: location.id || String(locationIndex) }
                     });
-                    console.error(`Error getting od trip result ${error}`);
+                    console.error(`Error calculating accessibility map location: ${error}`);
                 }
             }
         };

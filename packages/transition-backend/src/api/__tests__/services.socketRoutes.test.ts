@@ -239,7 +239,8 @@ describe('trRouting routes', () => {
 
     const transitAttributes = {
         minWaitingTimeSeconds: 180,
-        scenarioId: 'arbitrary'
+        scenarioId: 'arbitrary',
+        routingModes: ['walking']
     };
 
     test('Batch route correctly', (done) => {
@@ -261,6 +262,39 @@ describe('trRouting routes', () => {
             }));
             expect(mockedEnqueue).toHaveBeenCalledTimes(1);
             expect(mockedRefresh).toHaveBeenCalledTimes(1);  
+            done();
+        });
+    });
+
+    test('Batch route auto add walking', (done) => {
+        const transitAttributesOnlyTransit = {
+            minWaitingTimeSeconds: 180,
+            scenarioId: 'arbitrary',
+            routingModes: ['transit']
+        };
+
+        mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: undefined });
+        mockedEnqueue.mockResolvedValueOnce(true);
+        mockedRefresh.mockResolvedValueOnce(true);
+        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributesOnlyTransit, (status) => {
+            expect(Status.isStatusOk(status));
+            expect(mockedJobCreate).toHaveBeenCalledTimes(1);
+            expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
+                name: 'batchRoute',
+                user_id: 1,
+                data: {
+                    parameters: {
+                        demandAttributes: demandParameters,
+                        transitRoutingAttributes: {
+                            minWaitingTimeSeconds: 180,
+                            scenarioId: 'arbitrary',
+                            routingModes: ['transit','walking']
+                        },
+                    }
+                }
+            }));
+            expect(mockedEnqueue).toHaveBeenCalledTimes(1);
+            expect(mockedRefresh).toHaveBeenCalledTimes(1);
             done();
         });
     });

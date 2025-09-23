@@ -221,12 +221,18 @@ export default function (socket: EventEmitter, userId?: number) {
                         if (batchRouteJob.attributes.user_id !== userId) {
                             throw 'Not allowed to get the input file from job';
                         }
-                        const filePath = batchRouteJob.getFilePath('input');
-                        if (filePath === undefined) {
-                            throw 'InputFileNotAvailable';
-                        }
-                        inputFiles.input = filePath;
+                        inputFiles.input = batchRouteJob.getInputFilePath();
                     }
+
+                    // Force add walking when selecting transit mode, so we can check if walking is better
+                    // TODO Consider doing that in the frontend, as a forceful suggestion to the user instead
+                    // forcing it for all use cases.
+                    const baseRoutingAttributes = transitRoutingAttributes;
+                    const modes = baseRoutingAttributes.routingModes || [];
+                    const routingModesForCalc =
+                        modes.includes('transit') && !modes.includes('walking')
+                            ? [...modes, 'walking' as const]
+                            : modes;
 
                     // TODO Handle the input file and add it to the task
                     const job: ExecutableJob<BatchRouteJobType> = await ExecutableJob.createJob({
@@ -235,7 +241,10 @@ export default function (socket: EventEmitter, userId?: number) {
                         data: {
                             parameters: {
                                 demandAttributes: parameters,
-                                transitRoutingAttributes
+                                transitRoutingAttributes: {
+                                    ...baseRoutingAttributes,
+                                    routingModes: routingModesForCalc
+                                }
                             }
                         },
                         inputFiles,
@@ -271,10 +280,7 @@ export default function (socket: EventEmitter, userId?: number) {
                     }
                     const batchRouteJob = job as ExecutableJob<BatchRouteJobType>;
                     const attributes = batchRouteJob.attributes.data.parameters;
-                    const filePath = batchRouteJob.getFilePath('input');
-                    if (filePath === undefined) {
-                        throw 'InputFileUnavailable';
-                    }
+                    const filePath = batchRouteJob.getInputFilePath();
                     const demand = new TransitOdDemandFromCsv(attributes.demandAttributes.configuration);
                     // Make sure saving to db is set to false, as it was already imported if so
                     demand.attributes.saveToDb = false;

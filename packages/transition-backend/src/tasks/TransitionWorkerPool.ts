@@ -80,23 +80,13 @@ const getTaskCancelledFct = (task: ExecutableJob<JobDataType>) => {
 };
 
 const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>): Promise<boolean> => {
-    const absoluteUserDir = task.getJobFileDirectory();
-    const inputFileName = task.attributes.resources?.files.input;
-    if (inputFileName === undefined) {
-        throw 'InvalidInputFile';
+    if (!task.hasInputFile()) {
+        throw new TrError('Invalid input file', 'TRJOB0002', 'transit:transitRouting:errors:InvalidInputFile');
     }
-    const { files, errors, warnings, ...result } = await batchRoute(
-        task.attributes.data.parameters.demandAttributes,
-        task.attributes.data.parameters.transitRoutingAttributes,
-        {
-            jobId: task.attributes.id,
-            absoluteBaseDirectory: absoluteUserDir,
-            inputFileName,
-            progressEmitter: newProgressEmitter(task),
-            isCancelled: getTaskCancelledFct(task),
-            currentCheckpoint: task.attributes.internal_data.checkpoint
-        }
-    );
+    const { files, errors, warnings, ...result } = await batchRoute(task, {
+        progressEmitter: newProgressEmitter(task),
+        isCancelled: getTaskCancelledFct(task)
+    });
     task.attributes.data.results = result;
     task.attributes.resources = { files };
     // Set status messages if there are errors or warnings
@@ -110,11 +100,11 @@ const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>): Promise<b
 };
 
 const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>): Promise<boolean> => {
-    const absoluteUserDir = task.getJobFileDirectory();
+    if (!task.hasInputFile()) {
+        throw new TrError('Invalid input file', 'TRJOB0003', 'transit:transitRouting:errors:InvalidInputFile');
+    }
     const { files, errors, warnings, ...result } = await batchAccessibilityMap(
-        task.attributes.data.parameters.batchAccessMapAttributes,
-        task.attributes.data.parameters.accessMapAttributes,
-        absoluteUserDir,
+        task,
         newProgressEmitter(task),
         getTaskCancelledFct(task)
     );

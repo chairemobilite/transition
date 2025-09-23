@@ -20,7 +20,9 @@ import Path from 'transition-common/lib/services/path/Path';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ErrorCodes } from 'chaire-lib-common/lib/services/transitRouting/types';
-
+import jobsDbQueries from '../../../models/db/jobs.db.queries';
+import { ExecutableJob } from '../../executableJob/ExecutableJob';
+import { BatchRouteJobType } from '../BatchRoutingJob';
 
 const absoluteDir = `${directoryManager.userDataDirectory}/1/exports`;
 
@@ -48,22 +50,48 @@ const odTrip = new BaseOdTrip({
     timeType: 'departure'
 });
 
-const defaultParameters = {
-    calculationName: 'test',
-    csvFile: { location: 'upload' as const, filename: 'input.csv' },
-    projection: 'test',
-    idAttribute: 'id',
-    originXAttribute: 'origX',
-    originYAttribute: 'origX',
-    destinationXAttribute: 'origX',
-    destinationYAttribute: 'origX',
-    timeAttributeDepartureOrArrival: 'departure' as const,
-    timeFormat: 'HMM',
-    timeAttribute: 'timeattrib',
-    withGeometries: false,
-    detailed: false,
-    cpuCount: 2,
-    saveToDb: false as false
+jest.mock('../../../models/db/jobs.db.queries');
+const mockJobsDbQueries = jobsDbQueries as jest.Mocked<typeof jobsDbQueries>;
+const jobId = 4;
+const inputFileName = 'input.csv';
+
+const mockJobAttributes = {
+    id: jobId,
+    name: 'batchRoute' as const,
+    user_id: 123,
+    status: 'pending' as const,
+    internal_data: {},
+    data: {
+        parameters: {
+            demandAttributes: {
+                type: 'csv' as const,
+                configuration: {
+                    calculationName: 'test',
+                    csvFile: { location: 'upload' as const, filename: inputFileName },
+                    projection: 'test',
+                    idAttribute: 'id',
+                    originXAttribute: 'origX',
+                    originYAttribute: 'origY',
+                    destinationXAttribute: 'origX',
+                    destinationYAttribute: 'origY',
+                    timeAttributeDepartureOrArrival: 'departure' as const,
+                    timeFormat: 'HMM',
+                    timeAttribute: 'timeattrib',
+                    withGeometries: false,
+                    detailed: false,
+                    cpuCount: 2,
+                    saveToDb: false as false
+                }
+            },
+            transitRoutingAttributes: {
+            }
+        }
+    },
+    resources: {
+        files: {
+            input: inputFileName
+        }
+    }
 };
 
 const results = {
@@ -83,7 +111,6 @@ const resetFileStreams = () => {
 const CSV_FILE_NAME = 'batchRoutingResults.csv';
 const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';
 const GEOMETRY_FILE_NAME = 'batchRoutingGeometryResults.geojson';
-const inputFileName = 'input.csv';
 
 const getCsvFile = () => {
     const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith(CSV_FILE_NAME));
@@ -107,9 +134,12 @@ const testRoutingModes = ['walking' as const, 'transit' as const];
 describe('File generator: Only CSV results', () => {
     let resultProcessor;
 
-    beforeAll(() => {
+    beforeAll(async () => {
         resetFileStreams();
-        resultProcessor = createRoutingFileResultProcessor(absoluteDir, defaultParameters, { routingModes: testRoutingModes, detailed: false, withGeometries: false, withAlternatives: false }, inputFileName);
+        mockJobAttributes.data.parameters.transitRoutingAttributes = { routingModes: testRoutingModes, detailed: false, withGeometries: false, withAlternatives: false };
+        mockJobsDbQueries.read.mockResolvedValue(mockJobAttributes);
+        const job : ExecutableJob<BatchRouteJobType> = await ExecutableJob.loadTask(1);
+        resultProcessor = createRoutingFileResultProcessor(job);
     })
 
     test('File initialization', () => {
@@ -158,9 +188,12 @@ describe('File generator: Only CSV results', () => {
 
 describe('File generator: CSV and detailed results', () => {
     let resultProcessor;
-    beforeAll(() => {
+    beforeAll(async () => {
         resetFileStreams();
-        resultProcessor = createRoutingFileResultProcessor(absoluteDir, defaultParameters, { routingModes: testRoutingModes, detailed: true, withGeometries: false, withAlternatives: false }, inputFileName);
+        mockJobAttributes.data.parameters.transitRoutingAttributes = { routingModes: testRoutingModes, detailed: true, withGeometries: false, withAlternatives: false };
+        mockJobsDbQueries.read.mockResolvedValue(mockJobAttributes);
+        const job : ExecutableJob<BatchRouteJobType> = await ExecutableJob.loadTask(1);
+        resultProcessor = createRoutingFileResultProcessor(job);
     })
 
     test('File initialization', () => {
@@ -224,9 +257,12 @@ describe('File generator: CSV and detailed results', () => {
 
 describe('File generator: CSV and geojson results', () => {
     let resultProcessor;
-    beforeAll(() => {
+    beforeAll(async () => {
         resetFileStreams();
-        resultProcessor = createRoutingFileResultProcessor(absoluteDir, defaultParameters, { routingModes: testRoutingModes, detailed: false, withGeometries: true, withAlternatives: false }, inputFileName);
+        mockJobAttributes.data.parameters.transitRoutingAttributes = { routingModes: testRoutingModes, detailed: false, withGeometries: true, withAlternatives: false };
+        mockJobsDbQueries.read.mockResolvedValue(mockJobAttributes);
+        const job : ExecutableJob<BatchRouteJobType> = await ExecutableJob.loadTask(1);
+        resultProcessor = createRoutingFileResultProcessor(job);
     })
 
     test('File initialization', () => {
@@ -328,7 +364,7 @@ describe('Generate CSV results only', () => {
             destination: destination.geometry,
             results: resultByMode
 
-        }, Object.keys(resultByMode) as any);
+        });
         const expectedUserResult = routeToUserObject(simplePathResult.routes[0]);
         expect(csvDetailed.length).toEqual(0);
         expect(geometries.length).toEqual(0);
@@ -382,7 +418,7 @@ describe('Generate CSV results only', () => {
             destination: destination.geometry,
             results: resultByMode
 
-        }, Object.keys(resultByMode) as any);
+        });
         const expectedUserResult = routeToUserObject(simplePathResult.routes[0]);
         expect(csvDetailed.length).toEqual(0);
         expect(geometries.length).toEqual(0);
@@ -438,7 +474,7 @@ describe('Generate CSV results only', () => {
             destination: destination.geometry,
             results: resultByMode
 
-        }, Object.keys(resultByMode) as any);
+        });
         const expectedUserResult = routeToUserObject(alternativesResult.routes[0]);
         expect(csvDetailed.length).toEqual(0);
         expect(geometries.length).toEqual(0);
@@ -522,7 +558,7 @@ describe('Generate CSV results only', () => {
             destination: destination.geometry,
             results: resultByMode
 
-        }, Object.keys(resultByMode) as any);
+        });
         expect(csvDetailed.length).toEqual(0);
         expect(geometries.length).toEqual(0);
         expect(csv).toBeDefined();
@@ -556,7 +592,7 @@ describe('detailed csv only result', () => {
             destination: destination.geometry,
             results: resultByMode
 
-        }, Object.keys(resultByMode) as any, { exportCsv: true, exportDetailed: true, withGeometries: false});
+        }, { exportCsv: true, exportDetailed: true, withGeometries: false});
         const expectedUserResult = routeToUserObject(simplePathResult.routes[0]);
         expect(csv.length).toEqual(1);
         expect(geometries.length).toEqual(0);
@@ -639,7 +675,7 @@ describe('detailed csv only result', () => {
             destination: destination.geometry,
             results: resultByMode
 
-        }, Object.keys(resultByMode) as any, { exportCsv: true, exportDetailed: true, withGeometries: false});
+        }, { exportCsv: true, exportDetailed: true, withGeometries: false});
         const expectedUserResult = routeToUserObject(simplePathResult.routes[0]);
         expect(csv.length).toEqual(1);
         expect(geometries.length).toEqual(0);
@@ -708,7 +744,7 @@ describe('detailed csv only result', () => {
             destination: destination.geometry,
             results: resultByMode
 
-        }, Object.keys(resultByMode) as any, { exportCsv: true, exportDetailed: true, withGeometries: false});
+        }, { exportCsv: true, exportDetailed: true, withGeometries: false});
         expect(csv.length).toEqual(2);
         expect(geometries.length).toEqual(0);
         expect(csvDetailed.length).toEqual(11);
@@ -869,7 +905,7 @@ describe('detailed csv only result', () => {
             destination: destination.geometry,
             results: resultByMode
 
-        }, Object.keys(resultByMode) as any, { exportCsv: true, exportDetailed: true, withGeometries: false});
+        }, { exportCsv: true, exportDetailed: true, withGeometries: false});
         expect(csv.length).toEqual(1);
         expect(geometries.length).toEqual(0);
         expect(csvDetailed.length).toEqual(0);
@@ -911,7 +947,7 @@ describe('geometries result', () => {
             destination: destination.geometry,
             results: resultByMode
 
-        }, Object.keys(resultByMode) as any, { exportCsv: true, exportDetailed: false, withGeometries: true, pathCollection});
+        }, { exportCsv: true, exportDetailed: false, withGeometries: true, pathCollection});
         expect(csv.length).toEqual(1);
         expect(csvDetailed.length).toEqual(0);
         expect(geometries.length).toEqual(1);
@@ -960,7 +996,7 @@ describe('geometries result', () => {
             destination: destination.geometry,
             results: resultByMode
 
-        }, Object.keys(resultByMode) as any, { exportCsv: true, exportDetailed: false, withGeometries: true, pathCollection});
+        }, { exportCsv: true, exportDetailed: false, withGeometries: true, pathCollection});
         expect(csv.length).toEqual(1);
         expect(csvDetailed.length).toEqual(0);
         expect(geometries.length).toEqual(3);
@@ -1018,7 +1054,7 @@ describe('geometries result', () => {
             destination: destination.geometry,
             results: resultByMode
 
-        }, Object.keys(resultByMode) as any, { exportCsv: true, exportDetailed: false, withGeometries: true, pathCollection});
+        }, { exportCsv: true, exportDetailed: false, withGeometries: true, pathCollection});
         expect(csv.length).toEqual(1);
         expect(csvDetailed.length).toEqual(0);
         expect(geometries.length).toEqual(0);

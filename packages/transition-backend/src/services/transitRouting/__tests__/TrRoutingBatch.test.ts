@@ -16,9 +16,13 @@ import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/Tra
 import { simplePathResult } from './TrRoutingResultStub';
 import odPairsDbQueries from '../../../models/db/odPairs.db.queries';
 import resultDbQueries from '../../../models/db/batchRouteResults.db.queries';
+import jobsDbQueries from '../../../models/db/jobs.db.queries';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import routeOdTrip from '../TrRoutingOdTrip';
 import { Readable } from 'stream';
+import { ExecutableJob } from '../../executableJob/ExecutableJob';
+import { BatchRouteJobType } from '../BatchRoutingJob';
+
 
 const absoluteDir = `${directoryManager.userDataDirectory}/1/exports`;
 
@@ -87,7 +91,7 @@ routeOdTripMock.mockImplementation(async (odTrip: BaseOdTrip) => ({
     }
 }));
 
-const dataSource = new DataSource({ name: 'name', shortnam: 'name' }, false);
+const dataSource = new DataSource({ name: 'name', shortname: 'name' }, false);
 jest.mock('chaire-lib-backend/lib/services/dataSources/dataSources', () => ({
     getDataSource: jest.fn().mockImplementation(async (options: { isNew: true, dataSourceName: string, type: DataSourceType } | { isNew: false, dataSourceId: string }) => {
         return dataSource;
@@ -123,31 +127,46 @@ const mockStreamResults = resultDbQueries.streamResults as jest.MockedFunction<t
 
 jest.mock('../../../models/db/odPairs.db.queries');
 const inputFileName = 'batchRouting.csv';
-const defaultParameters = {
-    calculationName: 'test',
-    csvFile: { location: 'upload' as const, filename: inputFileName },
-    projection: 'test',
-    idAttribute: 'id',
-    originXAttribute: 'origX',
-    originYAttribute: 'origX',
-    destinationXAttribute: 'origX',
-    destinationYAttribute: 'origX',
-    timeAttributeDepartureOrArrival: 'departure' as const,
-    timeFormat: 'HMM',
-    timeAttribute: 'timeattrib',
-    saveToDb: false as false
-}
-const defaultBatchParameters = {
-    routingModes: ['walking' as const ],
-    withGeometries: false,
-    withAlternatives: false,
-    detailed: false,
-    cpuCount: 2
-}
-const jobId = 4;
-let resultsInDbCnt = 0;
 
-beforeEach(() => {
+jest.mock('../../../models/db/jobs.db.queries');
+const mockJobsDbQueries = jobsDbQueries as jest.Mocked<typeof jobsDbQueries>;
+
+const jobId = 1;
+let resultsInDbCnt = 0;
+const mockJobAttributes = {
+    id: jobId,
+    name: 'batchRoute' as const,
+    user_id: 123,
+    status: 'pending' as const,
+    internal_data: {},
+    data: {
+        parameters: {
+            demandAttributes: {
+                type: 'csv' as const,
+                configuration: {
+                    calculationName: 'test',
+                    csvFile: { location: 'upload', filename: inputFileName },
+                    originAttributes: ['lat', 'lon'],
+                    destinationAttributes: ['lat', 'lon'],
+                    saveToDb: false
+                }
+            },
+            transitRoutingAttributes: {
+                routingModes: ['transit'],
+                detailed: false,
+                withGeometries: false
+            }
+        }
+    },
+    resources: {
+        files: {
+            input: inputFileName
+        }
+    }
+};
+let job: ExecutableJob<BatchRouteJobType>;
+
+beforeEach(async () => {
     resultsInDb.splice(0);
     resultsInDbCnt = 0;
     routeOdTripMock.mockClear();
@@ -168,16 +187,19 @@ beforeEach(() => {
             return this.push(null);
         }
     });
+    mockJobsDbQueries.read.mockResolvedValue(mockJobAttributes);
+    job = await ExecutableJob.loadTask(1);
+    jest.spyOn(job, 'getFilePath').mockImplementation(() => './batchRouting.csv');
 });
 
 test('Batch route to csv', async () => {
-    const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test' }) };
-    const result = await batchRoute(parameters, defaultBatchParameters, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock });
+
+    const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-        calculationName: parameters.configuration.calculationName,
-        detailed: defaultBatchParameters.detailed,
+        calculationName: 'test',
+        detailed: false,
         completed: true,
         errors: [],
         warnings: [],
@@ -205,13 +227,13 @@ test('Batch route to csv', async () => {
 test('Batch route with some errors', async () => {
     const errors = [ 'error1', 'error2' ];
     mockParseOdTripsFromCsv.mockResolvedValueOnce({ odTrips, errors });
-    const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test' }) };
-    const result = await batchRoute(parameters, defaultBatchParameters, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock });
+
+    const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-        calculationName: parameters.configuration.calculationName,
-        detailed: defaultBatchParameters.detailed,
+        calculationName: 'test',
+        detailed: false,
         completed: true,
         errors: [],
         warnings: errors,
@@ -239,12 +261,12 @@ test('Batch route with some errors', async () => {
 test('Batch route with too many errors', async () => {
     const errors = [ 'error1', 'error2' ];
     mockParseOdTripsFromCsv.mockRejectedValueOnce(errors);
-    const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test' }) };
-    const result = await batchRoute(parameters, defaultBatchParameters, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock });
+
+    const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
     expect(routeOdTripMock).toHaveBeenCalledTimes(0);
     expect(mockCreateStream).toHaveBeenCalledTimes(0);
     expect(result).toEqual({
-        calculationName: parameters.configuration.calculationName,
+        calculationName: 'test',
         detailed: false,
         completed: false,
         errors,
@@ -262,13 +284,14 @@ test('Batch route and save to db', async () => {
     (odPairsDbQueries.createMultiple as any).mockClear();
     (odPairsDbQueries.deleteForDataSourceId as any).mockClear();
 
-    const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { saveToDb: {type: 'new', dataSourceName: 'name'}, calculationName: 'test' }) };
-    const result = await batchRoute(parameters, defaultBatchParameters, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock });
+    job.attributes.data.parameters.demandAttributes.configuration.saveToDb = {type: 'new', dataSourceName: 'name'};
+
+    const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-        calculationName: parameters.configuration.calculationName,
-        detailed: defaultBatchParameters.detailed,
+        calculationName: 'test',
+        detailed: false,
         completed: true,
         errors: [],
         warnings: [],
@@ -300,17 +323,18 @@ describe('Batch route from checkpoint', () => {
 
     test('Checkpoint is 0', async () => {
         const currentCheckpoint = 0;
-        const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test' })};
-        const result = await batchRoute(parameters, defaultBatchParameters, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock, currentCheckpoint });
+        job.attributes.internal_data.checkpoint = currentCheckpoint;
+
+        const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length - currentCheckpoint);
         expect(mockCreateStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
-            calculationName: parameters.configuration.calculationName,
-            detailed: defaultBatchParameters.detailed,
+            calculationName: 'test',
+            detailed: false,
             completed: true,
             errors: [],
             warnings: [],
-            files: { input: 'batchRouting.csv', csv: 'batchRoutingResults.csv' }
+            files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
         });
         const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith('batchRoutingResults.csv'));
         expect(csvFileName).toBeDefined();
@@ -323,17 +347,18 @@ describe('Batch route from checkpoint', () => {
 
     test('Checkpoint of 1', async () => {
         const currentCheckpoint = 1;
-        const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test' })};
-        const result = await batchRoute(parameters, defaultBatchParameters, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock, currentCheckpoint });
+        job.attributes.internal_data.checkpoint = currentCheckpoint;
+
+        const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length - currentCheckpoint);
         expect(mockCreateStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
-            calculationName: parameters.configuration.calculationName,
-            detailed: defaultBatchParameters.detailed,
+            calculationName: 'test',
+            detailed: false,
             completed: true,
             errors: [],
             warnings: [],
-            files: { input: 'batchRouting.csv', csv: 'batchRoutingResults.csv' }
+            files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
         });
         const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith('batchRoutingResults.csv'));
         expect(csvFileName).toBeDefined();
@@ -350,8 +375,8 @@ describe('Batch route from checkpoint', () => {
         const largeOdTripsArray = Array(756).fill(odTrips[0]);
         mockParseOdTripsFromCsv.mockResolvedValueOnce({ odTrips: largeOdTripsArray, errors: [] });
         const currentCheckpoint = 0;
-        const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test', detailed: false })};
-        await batchRoute(parameters, defaultBatchParameters, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock, currentCheckpoint });
+        job.attributes.internal_data.checkpoint = currentCheckpoint;
+        await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
         expect(checkpointListenerMock).toHaveBeenCalledWith(250);
         expect(checkpointListenerMock).toHaveBeenCalledWith(500);
         expect(checkpointListenerMock).toHaveBeenCalledWith(750);
@@ -365,8 +390,8 @@ describe('Batch route from checkpoint', () => {
         const largeOdTripsArray = Array(756).fill(odTrips[0]);
         mockParseOdTripsFromCsv.mockResolvedValueOnce({ odTrips: largeOdTripsArray, errors: [] });
         const currentCheckpoint = 500;
-        const parameters = { type: 'csv' as const, configuration: Object.assign({}, defaultParameters, { calculationName: 'test' })};
-        await batchRoute(parameters,defaultBatchParameters, { jobId, absoluteBaseDirectory: absoluteDir, inputFileName, progressEmitter: socketMock, isCancelled: isCancelledMock, currentCheckpoint });
+        job.attributes.internal_data.checkpoint = currentCheckpoint;
+        await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
         expect(checkpointListenerMock).toHaveBeenCalledWith(750);
         expect(checkpointListenerMock).toHaveBeenCalledWith(756);
     });
