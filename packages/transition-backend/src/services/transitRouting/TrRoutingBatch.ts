@@ -32,6 +32,7 @@ import {
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import { CheckpointTracker } from '../executableJob/JobCheckpointTracker';
 import { resultIsUnimodal } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
+import { OdTripRouteResult } from './types';
 
 const CHECKPOINT_INTERVAL = 250;
 
@@ -302,7 +303,7 @@ class TrRoutingBatch {
             // TODO Try to pipe the result generator and processor directly into this database result stream, to avoid all the awaits
             const result = resultsDbQueries.resultParser(row);
             const processedResults = await generateFileOutputResults(
-                result.data,
+                result.data as OdTripRouteResult,
                 this.batchRoutingQueryAttributes.routingModes,
                 {
                     exportCsv: true,
