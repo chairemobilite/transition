@@ -967,6 +967,7 @@
         "JobType": "Name",
         "Data": "Parameters",
         "Resources": "Files",
+        "Actions": "Actions",
         "Status_pending": "Pending",
         "Status_inProgress": "In progress",
         "Status_cancelled": "Cancelled",

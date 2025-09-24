@@ -135,13 +135,13 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
             {
                 Header: t('transit:jobs:Date'),
                 accessor: 'created_at',
-                width: 100,
+                width: 70,
                 Cell: (cellProps) => moment(cellProps.value).format(Preferences.get('dateTimeFormat'))
             },
             {
                 Header: t('transit:jobs:EndTime'),
                 accessor: 'updated_at',
-                width: 100,
+                width: 70,
                 Cell: (cellProps) =>
                     cellProps.row.original.status === 'completed' || cellProps.row.original.status === 'failed'
                         ? moment(cellProps.value).format(Preferences.get('dateTimeFormat'))
@@ -150,7 +150,7 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
             {
                 Header: t('transit:jobs:Status'),
                 accessor: 'status',
-                width: 70,
+                width: 90,
                 Cell: (cellProps) => (
                     <React.Fragment>
                         <div className={`status_${cellProps.value}`}>{t(`transit:jobs:Status_${cellProps.value}`)}</div>
@@ -165,6 +165,7 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
             {
                 Header: t('transit:jobs:Data'),
                 accessor: 'data',
+                width: 100,
                 Cell: (cellProps) => (
                     <ExpandableText textToShorten={JSON.stringify(cellProps.value)}>
                         <textarea
@@ -180,6 +181,7 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
             {
                 Header: t('transit:jobs:Resources'),
                 accessor: 'hasFiles',
+                width: 100,
                 Cell: (cellProps) =>
                     cellProps.value !== true ? (
                         '--'
@@ -188,9 +190,9 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
                     )
             },
             {
-                Header: ' ',
+                Header: t('transit:jobs:Actions'),
                 accessor: 'id',
-                width: 'auto',
+                width: 70,
                 Cell: (cellProps) => (
                     <ButtonList>
                         <Button
