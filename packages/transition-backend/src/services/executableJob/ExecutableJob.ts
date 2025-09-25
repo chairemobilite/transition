@@ -15,6 +15,7 @@ import { execJob } from '../../tasks/serverWorkerPool';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import clientEventManager from '../../utils/ClientEventManager';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 export type InitialJobData<TData extends JobDataType> = {
     inputFiles?: {
@@ -149,22 +150,47 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         });
     }
 
-    getFilePath = (fileName: keyof TData['files']): string | undefined => {
+    hasFile(file: keyof TData['files']): boolean {
+        const fileName = this.getFileName(file);
+        if (fileName === undefined) {
+            return false;
+        }
+        return true;
+    }
+
+    getFileName = (file: keyof TData['files']): string | undefined => {
         const jobFiles = this.attributes.resources?.files;
         if (jobFiles === undefined) {
             return undefined;
         }
-        const file = jobFiles[fileName];
+        const fileName = jobFiles[file];
+        return fileName;
+    };
+
+    getFilePath = (file: keyof TData['files']): string | undefined => {
+        const fileName = this.getFileName(file);
         const files = directoryManager.getFilesAbsolute(this.getJobFileDirectory());
-        if (file === undefined || files === null || !files.includes(file)) {
+        if (fileName === undefined || files === null || !files.includes(fileName)) {
             return undefined;
         }
-        const filePath = path.join(this.getJobFileDirectory(), file);
+        const filePath = path.join(this.getJobFileDirectory(), fileName);
         if (!fs.existsSync(filePath)) {
             return undefined;
         }
         return filePath;
     };
+
+    hasInputFile(): boolean {
+        return this.hasFile('input');
+    }
+
+    getInputFileName(): string {
+        const inputFileName = this.getFileName('input');
+        if (inputFileName === undefined) {
+            throw new TrError('Invalid input file', 'TREJB0001', 'transit:transitRouting:errors:InvalidInputFile');
+        }
+        return inputFileName;
+    }
 
     setCancelled(): boolean {
         if (this.status === 'pending' || this.status === 'inProgress') {
