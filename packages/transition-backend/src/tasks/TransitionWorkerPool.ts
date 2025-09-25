@@ -19,8 +19,6 @@ import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
-prepareSocketRoutes();
-
 function newProgressEmitter(task: ExecutableJob<JobDataType>) {
     const eventEmitter = new EventEmitter();
     eventEmitter.on('progress', (progressData: { name: string; customText?: string; progress: number }) => {
