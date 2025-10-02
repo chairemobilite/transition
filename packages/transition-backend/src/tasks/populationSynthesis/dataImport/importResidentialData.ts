@@ -9,10 +9,10 @@ import { v4 as uuidV4 } from 'uuid';
 import { Point } from 'geojson';
 import * as turf from '@turf/turf';
 
-import { DataOsmRaw } from 'chaire-lib-common/lib/tasks/dataImport/data/dataOsmRaw';
-import { DataGeojson } from 'chaire-lib-common/lib/tasks/dataImport/data/dataGeojson';
-import { getOsmNodesFor } from 'chaire-lib-common/lib/tasks/dataImport/data/osmRawDataService';
-import { PlaceAttributes } from '../../../services/places';
+import { DataOsmRaw } from 'chaire-lib-backend/lib/tasks/dataImport/data/dataOsmRaw';
+import { DataGeojson } from 'chaire-lib-backend/lib/tasks/dataImport/data/dataGeojson';
+import { getOsmNodesFor } from 'chaire-lib-backend/lib/tasks/dataImport/data/osmRawDataService';
+import { PlaceAttributes } from 'transition-common/lib/services/places';
 import { splitOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
 import { queryResidentialZones, queryZonesWithResidences } from 'chaire-lib-common/lib/config/osm/osmFlatsLanduseTags';
 

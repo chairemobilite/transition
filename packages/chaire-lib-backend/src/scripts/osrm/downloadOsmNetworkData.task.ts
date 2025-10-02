@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { DownloadOsmNetworkData } from 'chaire-lib-common/lib/tasks/osrm/downloadOsmNetworkData';
+import { DownloadOsmNetworkData } from '../../tasks/osrm/downloadOsmNetworkData';
 import taskWrapper from '../../tasks/taskWrapper';
 
 import { fileManager } from '../../utils/filesystem/fileManager';

@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { DataFileGeojson } from 'chaire-lib-common/lib/tasks/dataImport/data/dataGeojson';
+import { DataFileGeojson } from 'chaire-lib-backend/lib/tasks/dataImport/data/dataGeojson';
 import fs               from 'fs';
 import { transformTranslate as turfTransformTranslate } from '@turf/turf';
 

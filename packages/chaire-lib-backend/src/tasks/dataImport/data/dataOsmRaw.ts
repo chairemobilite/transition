@@ -18,15 +18,6 @@ export interface OsmRawDataTypeIncoming {
     [key: string]: any;
 }
 
-export interface OsmRawQueryOr {
-    type?: 'way' | 'relation' | 'node';
-    id?: string | number;
-    tags?: { [key: string]: any };
-    nodes?: number[];
-    members?: { type: 'way' | 'relation' | 'node'; ref: number; [key: string]: any }[];
-    [key: string]: any;
-}
-
 export interface OsmRawDataTypeBase {
     id: string | number;
     tags?: {

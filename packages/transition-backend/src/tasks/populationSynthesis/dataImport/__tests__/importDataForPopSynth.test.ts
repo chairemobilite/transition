@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { DataFileOsmRaw } from 'chaire-lib-common/lib/tasks/dataImport/data/dataOsmRaw';
-import { DataFileGeojson } from 'chaire-lib-common/lib/tasks/dataImport/data/dataGeojson';
+import { DataFileOsmRaw } from 'chaire-lib-backend/lib/tasks/dataImport/data/dataOsmRaw';
+import { DataFileGeojson } from 'chaire-lib-backend/lib/tasks/dataImport/data/dataGeojson';
 import { ResidentialDataImporter } from '../importResidentialData';
 import fs               from 'fs';
 
