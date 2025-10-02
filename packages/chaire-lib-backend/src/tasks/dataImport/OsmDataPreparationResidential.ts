@@ -14,11 +14,14 @@ import {
     default as osmGeojsonService
 } from './data/osmGeojsonService';
 import { getEntrancesForBuilding } from './data/osmRawDataService';
-import { _toInteger } from '../../utils/LodashExtensions';
-import { queryResidentialZones, queryZonesWithResidences } from '../../config/osm/osmFlatsLanduseTags';
-import { findOverlappingFeatures } from '../../services/geodata/FindOverlappingFeatures';
-import { queryResidentialBuildings, defaultNumberOfFlats } from '../../config/osm/osmResidentialBuildingTags';
-import { SingleGeoFeature } from '../../services/geodata/GeoJSONUtils';
+import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { queryResidentialZones, queryZonesWithResidences } from 'chaire-lib-common/lib/config/osm/osmFlatsLanduseTags';
+import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
+import {
+    queryResidentialBuildings,
+    defaultNumberOfFlats
+} from 'chaire-lib-common/lib/config/osm/osmResidentialBuildingTags';
+import { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
 import { GeojsonOutputter } from './osmImportUtils';
 
 // fields to query in the osm raw data to get the residential buildings:

@@ -9,7 +9,7 @@ import validator from 'validator';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import { _isBlank, _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { GenericTask } from 'chaire-lib-common/lib/tasks/genericTask';
+import { GenericTask } from '../genericTask';
 import { userAuthModel } from '../../services/auth/userAuthModel';
 import { NewUserParams } from '../../services/auth/authModel';
 import { v4 as uuidV4 } from 'uuid';

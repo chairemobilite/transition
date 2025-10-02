@@ -5,10 +5,10 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { getStreetsAroundPoint } from '../OsmGetStreetsAroundPoint';
-import OsmDownloader from 'chaire-lib-common/lib/utils/osm/OsmOverpassDownloader';
+import OsmDownloader from 'chaire-lib-backend/lib/utils/osm/OsmOverpassDownloader';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 
-jest.mock('chaire-lib-common/lib/utils/osm/OsmOverpassDownloader', () => {
+jest.mock('chaire-lib-backend/lib/utils/osm/OsmOverpassDownloader', () => {
     return { downloadGeojson: jest.fn() };
 });
 

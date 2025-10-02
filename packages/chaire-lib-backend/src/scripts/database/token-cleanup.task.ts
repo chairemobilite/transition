@@ -7,7 +7,7 @@
 import '../../config/dotenv.config';
 import taskWrapper from '../../tasks/taskWrapper';
 import tokensDbQueries from '../../models/db/tokens.db.queries';
-import { GenericTask } from 'chaire-lib-common/lib/tasks/genericTask';
+import { GenericTask } from '../../tasks/genericTask';
 
 class CleanupApiTokenRun implements GenericTask {
     async run(_argv: { [key: string]: unknown }): Promise<void> {

@@ -6,7 +6,7 @@
  */
 import { bbox, booleanPointInPolygon } from '@turf/turf';
 import { DataOsmRaw, OsmRawDataType, OsmRawDataTypeNode } from './dataOsmRaw';
-import { SingleGeoFeature } from '../../../services/geodata/GeoJSONUtils';
+import { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
 
 export type FeatureEntrancesOptions = {
     entranceTypes?: string[];

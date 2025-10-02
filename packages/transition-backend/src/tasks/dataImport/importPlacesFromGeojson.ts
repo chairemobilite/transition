@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import GenericDataImportTask from 'chaire-lib-common/lib/tasks/dataImport/genericDataImportTask';
+import GenericDataImportTask from 'chaire-lib-backend/lib/tasks/dataImport/genericDataImportTask';
 import importGeojsonPlaces from '../../services/importers/PlacesDataSourceImporter';
 
 export default class ImportPlacesFromGeojson extends GenericDataImportTask {
