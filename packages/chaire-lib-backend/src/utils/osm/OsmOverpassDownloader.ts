@@ -10,7 +10,7 @@ import fs from 'fs';
 import { pipeline } from 'node:stream/promises';
 import JSONStream from 'JSONStream';
 
-import { geojsonToPolyBoundary } from '../geometry/ConversionUtils';
+import { geojsonToPolyBoundary } from 'chaire-lib-common/lib/utils/geometry/ConversionUtils';
 import allNodesXmlQuery from '../../config/osm/overpassQueries/allNodes';
 import allWaysAndRelationsXmlQuery from '../../config/osm/overpassQueries/allWaysAndRelations';
 

@@ -12,8 +12,8 @@ import {
     ZoneGeojsonProperties,
     ResidenceGeojsonProperties
 } from './data/osmGeojsonService';
-import { _toInteger } from '../../utils/LodashExtensions';
-import { splitOverlappingFeatures } from '../../services/geodata/FindOverlappingFeatures';
+import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { splitOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
 import { PromptGeojsonPolygonService } from '../../services/prompt/promptGeojsonService';
 
 // TODO: Make that configurable

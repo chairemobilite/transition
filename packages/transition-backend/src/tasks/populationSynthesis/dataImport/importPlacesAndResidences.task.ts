@@ -8,10 +8,10 @@
 import inquirer from 'inquirer';
 import inquirerFileTreeSelection from 'inquirer-file-tree-selection-prompt';
 
-import { DataOsmRaw, DataFileOsmRaw } from 'chaire-lib-common/lib/tasks/dataImport/data/dataOsmRaw';
-import { DataGeojson, DataFileGeojson } from 'chaire-lib-common/lib/tasks/dataImport/data/dataGeojson';
+import { DataOsmRaw, DataFileOsmRaw } from 'chaire-lib-backend/lib/tasks/dataImport/data/dataOsmRaw';
+import { DataGeojson, DataFileGeojson } from 'chaire-lib-backend/lib/tasks/dataImport/data/dataGeojson';
 import { ResidentialDataImporter } from './importResidentialData';
-import osmDownloader from 'chaire-lib-common/lib/utils/osm/OsmOverpassDownloader';
+import osmDownloader from 'chaire-lib-backend/lib/utils/osm/OsmOverpassDownloader';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
 
 inquirer.registerPrompt('file-tree-selection', inquirerFileTreeSelection);

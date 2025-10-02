@@ -5,9 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { circle as turfCircle } from '@turf/turf';
-import { DataGeojson } from 'chaire-lib-common/lib/tasks/dataImport/data/dataGeojson';
-import osmDownloader from 'chaire-lib-common/lib/utils/osm/OsmOverpassDownloader';
-import streetsXMLQuery from 'chaire-lib-common/lib/config/osm/overpassQueries/streets';
+import { DataGeojson } from 'chaire-lib-backend/lib/tasks/dataImport/data/dataGeojson';
+import osmDownloader from 'chaire-lib-backend/lib/utils/osm/OsmOverpassDownloader';
+import streetsXMLQuery from 'chaire-lib-backend/lib/config/osm/overpassQueries/streets';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 /*

@@ -8,10 +8,10 @@ import _uniqBy from 'lodash/uniqBy';
 import GenericDataImportTask from './genericDataImportTask';
 import GeoJSON from 'geojson';
 import { DataFileGeojson } from './data/dataGeojson';
-import { SingleGeoFeature } from '../../services/geodata/GeoJSONUtils';
+import { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
 import { PointOfInterest } from './data/osmGeojsonService';
-import { poiWeightCategories, poiIgnoredQueries } from '../../config/osm/osmPoiCategories';
-import { _isBlank } from '../../utils/LodashExtensions';
+import { poiWeightCategories, poiIgnoredQueries } from 'chaire-lib-common/lib/config/osm/osmPoiCategories';
+import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 const poiIgnoredTags = poiIgnoredQueries.map((query) => {
     return query.tags;
