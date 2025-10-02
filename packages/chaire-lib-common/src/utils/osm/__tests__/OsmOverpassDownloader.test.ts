@@ -108,19 +108,19 @@ const geojsonWritten = {
         {
             "type":"Feature",
             "id":"node/123",
-            "properties":{"timestamp":"2020-02-08T17:16:30Z","version":1,"changeset":1,"user":"osmUser","uid":1,"id":"node/123"},
+            "properties":{"id":"node/123","timestamp":"2020-02-08T17:16:30Z","version":1,"user":"osmUser","changeset":1,"uid":1},
             "geometry":{"type":"Point","coordinates":[-73.9678132,45.3941161]}
         },
         {
             "type":"Feature",
             "id":"node/234",
-            "properties":{"timestamp":"2020-02-08T17:16:30Z","version":1,"changeset":1,"user":"osmUser","uid":1,"id":"node/234"},
+            "properties":{"id":"node/234","timestamp":"2020-02-08T17:16:30Z","version":1,"user":"osmUser","changeset":1,"uid":1},
             "geometry":{"type":"Point","coordinates":[-73.9544677,45.3752717]}
         },
         {
             "type":"Feature",
             "id":"node/345",
-            "properties":{"timestamp":"2020-02-08T17:16:30Z","version":1,"changeset":1,"user":"osmUser","uid":1,"id":"node/345"},
+            "properties":{"id":"node/345","timestamp":"2020-02-08T17:16:30Z","version":1,"user":"osmUser","changeset":1,"uid":1},
             "geometry":{"type":"Point","coordinates":[-73.9545144,45.3751139]}
         }
 ]};
