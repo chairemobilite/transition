@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import fetch from 'node-fetch';
-import osmToGeojson from 'osmtogeojson';
+import osmToGeojson from 'osm2geojson-lite';
 import fs from 'fs';
 import { pipeline } from 'node:stream/promises';
 import JSONStream from 'JSONStream';
@@ -166,12 +166,15 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
         return new Promise((resolve, reject) => {
             //If there is an error when reading the json object, reject the promise.
             jsonStream.on('error', (e) => {
-                console.error(e);
+                console.error('error in json stream', e);
                 reject(e);
             });
 
             jsonStream.on('data', (element) => {
-                const geojsonData = osmToGeojson({ elements: [element] });
+                const geojsonData = osmToGeojson(
+                    { elements: [element] },
+                    { completeFeature: true, renderTagged: true, excludeWay: false }
+                );
                 if (geojsonData.features.length > 0) {
                     const featuresString = JSON.stringify(geojsonData.features).slice(1, -1); // Remove the opening and closing brackets
                     const dataOk = writeStream.write((firstIteration ? '' : ',') + featuresString); //Write the comma first (except on the first iteration) so that there will be no trailing comma.
