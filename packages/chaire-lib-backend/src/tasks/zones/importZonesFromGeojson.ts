@@ -7,7 +7,7 @@
 import inquirer from 'inquirer';
 import inquirerFileTreeSelection from 'inquirer-file-tree-selection-prompt';
 
-import { GenericTask } from 'chaire-lib-common/lib/tasks/genericTask';
+import { GenericTask } from '../genericTask';
 import { v4 as uuidV4 } from 'uuid';
 import { fileManager } from '../../utils/filesystem/fileManager';
 import dsQueries from '../../models/db/dataSources.db.queries';

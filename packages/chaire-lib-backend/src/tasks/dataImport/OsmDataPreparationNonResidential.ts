@@ -19,14 +19,14 @@ import {
     splitOverlappingFeatures,
     getOverlappingIndices,
     findOverlappingFeatures
-} from '../../services/geodata/FindOverlappingFeatures';
-import { findNearest } from '../../services/geodata/FindNearestFeature';
-import { SingleGeoFeature, isPolygon } from '../../services/geodata/GeoJSONUtils';
-import poiTagsQuery, { isPoiToProcess } from '../../config/osm/osmNodesActivityValidTagsQuery';
-import { detailedCategoryToCategory } from '../../config/osm/osmMappingDetailedCategoryToCategory';
-import propertiesToDetailedCategory from '../../config/osm/osmMappingTagsToDetailedCategory';
+} from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
+import { findNearest } from 'chaire-lib-common/lib/services/geodata/FindNearestFeature';
+import { SingleGeoFeature, isPolygon } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
+import poiTagsQuery, { isPoiToProcess } from 'chaire-lib-common/lib/config/osm/osmNodesActivityValidTagsQuery';
+import { detailedCategoryToCategory } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
+import propertiesToDetailedCategory from 'chaire-lib-common/lib/config/osm/osmMappingTagsToDetailedCategory';
 import { GeojsonOutputter } from './osmImportUtils';
-import { ignoreBuildings } from '../../config/osm/osmBuildingQuerySetup';
+import { ignoreBuildings } from 'chaire-lib-common/lib/config/osm/osmBuildingQuerySetup';
 
 // TODO: don't import building=cabin if no POI inside instead of taking the centroid (  Warning: building way/453810388 (https://projets.chaire.transition.city/id/#id=w453810388&map=19.00/45.38979799473684/-74.02757081052633) with points of interest does not have any entrance. Using the centroid instead)
 // TODO: ignore shop=mall as a POI

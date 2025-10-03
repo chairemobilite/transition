@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import importAndValidatePlaces from 'chaire-lib-common/lib/tasks/dataImport/importAndValidatePlaces';
+import importAndValidatePlaces from '../../tasks/dataImport/importAndValidatePlaces';
 import taskWrapper from '../../tasks/taskWrapper';
 
 import { fileManager } from '../../utils/filesystem/fileManager';

@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { OsmRawQueryOr } from '../../tasks/dataImport/data/dataOsmRaw';
+import { OsmRawQueryOr } from './OsmRawQueryType';
 import { Activities } from '../lookups';
 import { PlaceCategory, PlaceDetailedCategory } from './osmMappingDetailedCategoryToCategory';
 

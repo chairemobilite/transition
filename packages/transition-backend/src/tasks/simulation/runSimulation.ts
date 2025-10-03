@@ -9,7 +9,7 @@ import { TFunction } from 'i18next';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import i18n from 'chaire-lib-backend/lib/config/i18next';
-import { GenericTask } from 'chaire-lib-common/lib/tasks/genericTask';
+import { GenericTask } from 'chaire-lib-backend/lib/tasks/genericTask';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Simulation from 'transition-common/lib/services/simulation/Simulation';
