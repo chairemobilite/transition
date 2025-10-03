@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import inquirer from 'inquirer';
+import { input, password, confirm } from '@inquirer/prompts';
 import validator from 'validator';
 import _cloneDeep from 'lodash/cloneDeep';
 
@@ -55,49 +55,53 @@ export class CreateUser implements GenericTask {
         defaultConfirmed: boolean;
         preferences: any;
     }): Promise<void> => {
-        const answers = await inquirer.prompt([
-            {
-                type: 'input',
-                name: 'username',
-                message: 'username',
-                validate: this.validateUsername
-            },
-            {
-                type: 'input',
-                name: 'email',
-                message: 'email',
-                validate: this.validateEmail
-            },
-            {
-                type: 'password',
-                name: 'password',
-                message: 'password',
-                validate: (pwd: string) =>
-                    pwd.match(/^.{8,}$/) !== null ? true : 'Password must have at least 8 characters.'
-            },
-            {
-                type: 'input',
-                name: 'first_name',
-                default: ''
-            },
-            {
-                type: 'input',
-                name: 'last_name',
-                default: ''
-            },
-            {
-                name: 'is_admin',
-                type: 'confirm',
-                default: options.defaultAdmin
-            },
-            {
-                name: 'is_confirmed',
-                type: 'confirm',
-                default: options.defaultConfirmed
-            }
-        ]);
+        const username = await input({
+            message: 'username',
+            validate: this.validateUsername
+        });
 
-        const user = { ...answers, preferences: options.preferences };
+        const email = await input({
+            message: 'email',
+            validate: this.validateEmail
+        });
+
+        const pwd = await password({
+            message: 'password',
+            validate: (pwd: string) =>
+                pwd.match(/^.{8,}$/) !== null ? true : 'Password must have at least 8 characters.'
+        });
+
+        const first_name = await input({
+            message: 'first_name',
+            default: ''
+        });
+
+        const last_name = await input({
+            message: 'last_name',
+            default: ''
+        });
+
+        const is_admin = await confirm({
+            message: 'is_admin',
+            default: options.defaultAdmin
+        });
+
+        const is_confirmed = await confirm({
+            message: 'is_confirmed',
+            default: options.defaultConfirmed
+        });
+
+        const user = {
+            username,
+            email,
+            password: pwd,
+            first_name,
+            last_name,
+            is_admin,
+            is_confirmed,
+            preferences: options.preferences
+        };
+
         await this.createUser(user);
     };
 

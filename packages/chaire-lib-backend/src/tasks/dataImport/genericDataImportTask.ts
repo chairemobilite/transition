@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { readdirSync } from 'fs';
-import inquirer from 'inquirer';
+import { select, input } from '@inquirer/prompts';
 
 import { GenericTask } from '../genericTask';
 import { GeojsonOutputter } from './osmImportUtils';
@@ -86,42 +86,28 @@ export default abstract class GenericDataImportTask implements GenericTask {
             value: GenericDataImportTask.NEW_DATA_SOURCE_ID
         });
 
-        const answers = await inquirer.prompt([
-            {
-                type: 'list',
-                name: 'dataSourceId',
-                message: 'Please select a data source for import',
-                choices: dataSourcesChoices
-            },
-            {
-                when: function (answers) {
-                    return answers.dataSourceId === GenericDataImportTask.NEW_DATA_SOURCE_ID;
-                },
-                type: 'input',
-                name: 'newDataSourceShortname',
+        const dataSourceId = await select({
+            message: 'Please select a data source for import',
+            choices: dataSourcesChoices
+        });
+
+        if (dataSourceId === GenericDataImportTask.NEW_DATA_SOURCE_ID) {
+            const newDataSourceShortname = await input({
                 message: 'New data source shortname',
                 validate
-            },
-            {
-                when: function (answers) {
-                    return answers.dataSourceId === GenericDataImportTask.NEW_DATA_SOURCE_ID;
-                },
-                type: 'input',
-                name: 'newDataSourceName',
+            });
+            const newDataSourceName = await input({
                 message: 'New data source name'
-            }
-        ]);
-        if (answers['dataSourceId'] === GenericDataImportTask.NEW_DATA_SOURCE_ID) {
+            });
+
             this.fileManager.directoryManager.createDirectoryIfNotExistsAbsolute(
-                this._importDir +
-                    answers.newDataSourceShortname +
-                    GenericDataImportTask.ID_SEPARATOR +
-                    answers.newDataSourceName
+                this._importDir + newDataSourceShortname + GenericDataImportTask.ID_SEPARATOR + newDataSourceName
             );
+
+            return newDataSourceShortname;
         }
-        return answers['dataSourceId'] === GenericDataImportTask.NEW_DATA_SOURCE_ID
-            ? answers.newDataSourceShortname
-            : answers.dataSourceId;
+
+        return dataSourceId;
     };
 
     protected getDataSourceIdDirectory = async (dataSourceId: unknown): Promise<string> => {
@@ -148,18 +134,14 @@ export default abstract class GenericDataImportTask implements GenericTask {
         if (!this.fileManager.fileExistsAbsolute(absoluteFilePath)) {
             return true;
         }
-        const answers = await inquirer.prompt([
-            {
-                type: 'list',
-                name: 'overwrite',
-                message: `${message} already exists. Overwrite?`,
-                choices: [
-                    { name: 'Yes', value: true },
-                    { name: 'No', value: false }
-                ]
-            }
-        ]);
-        return answers.overwrite;
+        const overwrite = await select({
+            message: `${message} already exists. Overwrite?`,
+            choices: [
+                { name: 'Yes', value: true },
+                { name: 'No', value: false }
+            ]
+        });
+        return overwrite;
     }
 
     public async run(argv: { [key: string]: unknown }): Promise<void> {

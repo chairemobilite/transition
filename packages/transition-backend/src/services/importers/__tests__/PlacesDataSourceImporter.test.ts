@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { promisify } from 'util';
-import inquirer from 'inquirer';
 import importPlacesFromGeojson from '../PlacesDataSourceImporter';
 import placesDbQueries from '../../../models/db/places.db.queries';
 import dataSourcesDbQuery from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
@@ -25,10 +24,11 @@ jest.mock('../../../models/db/places.db.queries');
 jest.mock('chaire-lib-backend/lib/models/db/dataSources.db.queries');
 jest.mock('chaire-lib-common/lib/services/dataSource/DataSource');
 
-jest.mock('inquirer', () => ({
-    prompt: jest.fn()
+jest.mock('@inquirer/prompts', () => ({
+    select: jest.fn()
 }));
-const mockInquirerPrompt = inquirer.prompt as jest.MockedFunction<typeof inquirer.prompt>;
+import { select } from '@inquirer/prompts';
+const mockSelect = select as jest.MockedFunction<typeof select>;
 
 jest.mock('chaire-lib-backend/lib/utils/filesystem/fileManager', () => ({
     fileManager: {
@@ -54,7 +54,7 @@ describe('ImportPlacesFromGeojson', () => {
 
     test('should not import if data source exists and user chooses not to overwrite', async () => {
         (dataSourcesDbQuery.findByName as any).mockResolvedValue({ id: 'existingDataSourceId' });
-        mockInquirerPrompt.mockResolvedValueOnce({ overwrite: false });
+        mockSelect.mockResolvedValueOnce(false);
 
         await importPlacesFromGeojson('filename', 'data source');
 
@@ -65,7 +65,7 @@ describe('ImportPlacesFromGeojson', () => {
     // FIXME This test does not work. Not sure how to mock the promisified pipeline function, but copilot generated this and it no good.
     test('should import places from GeoJSON file', async () => {
         /*(dataSourcesDbQuery.findByName as any).mockResolvedValue(undefined);
-        mockInquirerPrompt.mockResolvedValueOnce({ overwrite: true });
+        mockSelect.mockResolvedValueOnce(true);
 
         const mockReadStream = jest.fn();
         const mockJsonStream = jest.fn();

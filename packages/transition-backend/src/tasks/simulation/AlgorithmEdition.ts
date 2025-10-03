@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import inquirer from 'inquirer';
+import { input, number, confirm, select, checkbox } from '@inquirer/prompts';
 import _cloneDeep from 'lodash/cloneDeep';
 import { TFunction } from 'i18next';
 
@@ -13,43 +13,41 @@ import { SimulationRuntimeOptions } from 'transition-common/lib/services/simulat
 import { SimulationAlgorithmOptionDescriptor } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
 import SimulationRunBackend from '../../services/simulation/SimulationRun';
 
-const getInquirerObject = async (
+const getPromptForDescriptor = async (
     descriptor: SimulationAlgorithmOptionDescriptor,
     options: { t: TFunction; name: string; default?: unknown }
-) => {
-    const defaultProps: { message: string; name: string; default?: unknown } = {
-        message: options.t(descriptor.i18nName),
-        name: options.name
-    };
-    if (options.default) {
-        defaultProps.default = options.default;
-    }
+): Promise<unknown> => {
+    const message = options.t(descriptor.i18nName);
+
     // TODO Add validators
     switch (descriptor.type) {
     case 'integer':
     case 'number':
-        return {
-            type: 'number',
-            ...defaultProps
-        };
+        return await number({
+            message,
+            default: options.default as number | undefined
+        });
     case 'boolean':
-        return {
-            type: 'confirm',
-            ...defaultProps
-        };
+        return await confirm({
+            message,
+            default: options.default as boolean | undefined
+        });
     case 'select': {
         const choices = await descriptor.choices();
-        return {
-            type: 'list',
-            choices: choices.map(({ value, label }) => ({ value, name: label ? options.t(label) : undefined })),
-            ...defaultProps
-        };
+        return await select({
+            message,
+            choices: choices.map(({ value, label }) => ({
+                value,
+                name: label ? options.t(label) : value
+            })),
+            default: options.default as string | undefined
+        });
     }
     default:
-        return {
-            type: 'input',
-            ...defaultProps
-        };
+        return await input({
+            message,
+            default: options.default as string | undefined
+        });
     }
 };
 
@@ -65,18 +63,17 @@ export const editAlgorithmConfiguration = async (
         throw 'Unknown or undefined algorithm';
     }
     const algoOptions = descriptor.getOptions();
-    const questions = await Promise.all(
-        Object.keys(algoOptions).map(
-            async (optionKey) =>
-                await getInquirerObject(algoOptions[optionKey], {
-                    t: options.t,
-                    name: optionKey,
-                    default: simulation.attributes.data.algorithmConfiguration?.config[optionKey]
-                })
-        )
-    );
 
-    const answers = await inquirer.prompt(questions);
+    const answers: Record<string, unknown> = {};
+    for (const optionKey of Object.keys(algoOptions)) {
+        const value = await getPromptForDescriptor(algoOptions[optionKey], {
+            t: options.t,
+            name: optionKey,
+            default: simulation.attributes.data.algorithmConfiguration?.config[optionKey]
+        });
+        answers[optionKey] = value;
+    }
+
     Object.assign(newParameters.algorithmConfiguration?.config || {}, answers);
 
     return newParameters;
@@ -89,84 +86,70 @@ type RuntimeConfiguration = {
 const getSimulationFunctions = async (options: {
     t: TFunction;
 }): Promise<{
-    [key: string]: unknown;
+    [key: string]: { [key: string]: unknown; weight: number };
 }> => {
     const methods = SimulationRunBackend.getSimulationMethods();
     const choices = Object.keys(methods).map((methodId) => ({
         value: methodId,
         name: options.t(methods[methodId].getDescriptor().getTranslatableName())
     }));
-    const simFunctionsAnswers = await inquirer.prompt([
-        {
-            type: 'checkbox',
-            name: 'simulationFunctions',
-            choices: choices,
-            message: options.t('transit:simulation:simulationMethods:SelectSimulationFunctions'),
-            validate: (selectedMethods: string[]) =>
-                selectedMethods.length > 0
-                    ? true
-                    : options.t('transit:simulation:simulationMethods:MustSelectOneFunction')
-        }
-    ]);
-    const selectedMethods = simFunctionsAnswers['simulationFunctions'] as string[];
 
-    const simulationFunctions = {};
+    const selectedMethods = await checkbox({
+        message: options.t('transit:simulation:simulationMethods:SelectSimulationFunctions'),
+        choices: choices,
+        validate: (selected) =>
+            selected.length > 0
+                ? true
+                : options.t('transit:simulation:simulationMethods:SelectAtLeastOneSimulationFunction')
+    });
 
+    const simulationFunctions: {
+        [key: string]: { [key: string]: unknown; weight: number };
+    } = {};
     let remainingMethodWeight = 1;
-    for (let methodIndex = 0; methodIndex < selectedMethods.length; methodIndex++) {
-        const methodId = selectedMethods[methodIndex];
-        console.log(`Selected Method: ${methodId}`);
 
-        // Request weight of the method if there is more than one
-        let currentWeight = remainingMethodWeight;
-        if (selectedMethods.length > 1) {
-            // For last method, use the remaining weight and add a message
-            if (methodIndex === selectedMethods.length - 1) {
-                console.log(
-                    `${options.t('transit:simulation:simulationMethods:MethodWeight', {
-                        interpolation: { escapeValue: false },
-                        method: options.t(methods[methodId].getDescriptor().getTranslatableName())
-                    })}: ${currentWeight}`
-                );
-            } else {
-                const weightAnswer = await inquirer.prompt([
-                    {
-                        type: 'number',
-                        name: 'methodWeight',
-                        message: options.t('transit:simulation:simulationMethods:MethodWeight', {
-                            interpolation: { escapeValue: false },
-                            method: options.t(methods[methodId].getDescriptor().getTranslatableName())
-                        }),
-                        validate: (weight: unknown) =>
-                            typeof weight === 'number' && weight >= 0 && weight <= remainingMethodWeight
-                                ? true
-                                : options.t('transit:simulation:simulationMethods:MethodWeightError', {
-                                    maxWeight: remainingMethodWeight
-                                }),
-                        default: remainingMethodWeight / (selectedMethods.length - methodIndex)
+    for (const [methodIndex, methodId] of selectedMethods.entries()) {
+        let currentWeight = 0;
+        if (selectedMethods.length === 1) {
+            currentWeight = 1;
+        } else if (selectedMethods.length - 1 === methodIndex) {
+            currentWeight = remainingMethodWeight;
+        } else {
+            const weightValue = await number({
+                message: options.t('transit:simulation:simulationMethods:MethodWeight', {
+                    methodName: options.t(methods[methodId].getDescriptor().getTranslatableName())
+                }),
+                validate: (value: number | undefined) => {
+                    if (value === undefined || value < 0 || value > remainingMethodWeight) {
+                        return options.t('transit:simulation:simulationMethods:MethodWeightError', {
+                            maxWeight: remainingMethodWeight
+                        });
                     }
-                ]);
-                currentWeight = weightAnswer['methodWeight'];
-            }
+                    return true;
+                },
+                default: remainingMethodWeight / (selectedMethods.length - methodIndex)
+            });
+            currentWeight = weightValue ?? 0;
         }
 
         // Request method's specific options. If the weight is 0, don't add it
         if (currentWeight > 0) {
             const descriptor = methods[methodId].getDescriptor();
             const methodOptions = descriptor.getOptions();
-            const questions = await Promise.all(
-                Object.keys(methodOptions).map(
-                    async (optionKey) =>
-                        await getInquirerObject(methodOptions[optionKey], {
-                            t: options.t,
-                            name: optionKey
-                        })
-                )
-            );
 
-            const answers = await inquirer.prompt(questions);
-            simulationFunctions[methodId] = answers;
-            simulationFunctions[methodId].weight = currentWeight;
+            const methodAnswers: Record<string, unknown> = {};
+            for (const optionKey of Object.keys(methodOptions)) {
+                const value = await getPromptForDescriptor(methodOptions[optionKey], {
+                    t: options.t,
+                    name: optionKey
+                });
+                methodAnswers[optionKey] = value;
+            }
+
+            simulationFunctions[methodId] = {
+                ...methodAnswers,
+                weight: currentWeight
+            };
         }
         remainingMethodWeight -= currentWeight;
     }
@@ -178,43 +161,45 @@ export const getRuntimeConfiguration = async (
     simulationData: SimulationDataAttributes,
     options: { t: TFunction }
 ): Promise<RuntimeConfiguration> => {
-    const answers = await inquirer.prompt([
-        {
-            name: 'seed',
-            message: options.t('server:simulation:randomSeed'),
-            type: 'input'
-        },
-        {
-            name: 'numberOfThreads',
+    const seed = await input({
+        message: options.t('server:simulation:randomSeed')
+    });
+
+    const numberOfThreads =
+        (await number({
             message: options.t('server:simulation:numberOfThreads'),
-            type: 'number',
-            default: 1
-        },
-        {
-            name: 'trRoutingStartingPort',
+            default: 1,
+            required: true
+        })) ?? 1;
+
+    const trRoutingStartingPort =
+        (await number({
             message: options.t('server:simulation:TrRoutingStartingPort'),
-            type: 'number',
-            default: 14000
-        },
-        {
-            name: 'fitnessSorter',
-            message: options.t('transit:simulation:fitness:fitnessSorter'),
-            type: 'list',
-            choices: [
-                {
-                    value: 'maximize',
-                    name: options.t('transit:simulation:fitness:maximize')
-                },
-                {
-                    value: 'minimize',
-                    name: options.t('transit:simulation:fitness:minimize')
-                }
-            ]
-        }
-    ]);
+            default: 14000,
+            required: true
+        })) ?? 14000;
+
+    const fitnessSorter = await select({
+        message: options.t('transit:simulation:fitness:fitnessSorter'),
+        choices: [
+            {
+                value: 'maximize',
+                name: options.t('transit:simulation:fitness:maximize')
+            },
+            {
+                value: 'minimize',
+                name: options.t('transit:simulation:fitness:minimize')
+            }
+        ]
+    });
 
     const simulationFunctions = await getSimulationFunctions(options);
-    answers.functions = simulationFunctions;
 
-    return answers;
+    return {
+        seed,
+        numberOfThreads,
+        trRoutingStartingPort,
+        fitnessSorter,
+        functions: simulationFunctions
+    };
 };

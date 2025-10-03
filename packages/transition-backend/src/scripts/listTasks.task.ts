@@ -7,7 +7,7 @@
 import 'chaire-lib-backend/lib/config/dotenv.config';
 
 import { listTasks } from './listTasks';
-import inquirer from 'inquirer';
+import { select, number } from '@inquirer/prompts';
 import path from 'path';
 
 const run = async function () {
@@ -17,27 +17,22 @@ const run = async function () {
         return;
     }
 
-    const taskAnswers = await inquirer.prompt([
-        {
-            type: 'list',
-            name: 'taskFilepath',
-            message: 'Select a task to run',
-            choices: tasksFilePaths.map((taskFilePath) => {
-                return {
-                    name: path.basename(taskFilePath, '.task.js'),
-                    value: taskFilePath
-                };
-            })
-        },
-        {
-            type: 'number',
-            name: 'memoryNeeded',
-            message: 'memoryNeeded (in Mb)',
-            default: 4096
-        }
-    ]);
+    const taskFilepath = await select({
+        message: 'Select a task to run',
+        choices: tasksFilePaths.map((taskFilePath) => {
+            return {
+                name: path.basename(taskFilePath, '.task.js'),
+                value: taskFilePath
+            };
+        })
+    });
 
-    console.log(`yarn node --max-old-space-size=${taskAnswers.memoryNeeded} ${taskAnswers.taskFilepath}`);
+    const memoryNeeded = await number({
+        message: 'memoryNeeded (in Mb)',
+        default: 4096
+    });
+
+    console.log(`yarn node --max-old-space-size=${memoryNeeded} ${taskFilepath}`);
 
     return;
 };
