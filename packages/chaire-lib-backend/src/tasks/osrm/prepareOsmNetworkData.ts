@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import inquirer from 'inquirer';
-import inquirerFileTreeSelection from 'inquirer-file-tree-selection-prompt';
+import { input, checkbox } from '@inquirer/prompts';
+import { fileSelector } from 'inquirer-file-selector';
 
 import { GenericTask } from '../genericTask';
 import { RoutingMode, routingModes } from 'chaire-lib-common/lib/config/routingModes';
@@ -33,7 +33,6 @@ export class PrepareOsmNetworkData implements GenericTask {
     // TODO Remove file manager from parameters
     constructor(fileManager: any) {
         this._fileManager = fileManager;
-        inquirer.registerPrompt('file-tree-selection', inquirerFileTreeSelection);
     }
 
     private async getOsmFile(defaultFileName: string, importDir: string, interactive = true): Promise<string> {
@@ -42,18 +41,13 @@ export class PrepareOsmNetworkData implements GenericTask {
             if (!interactive) {
                 throw new Error('File does not exist: ' + fileName);
             }
-            inquirer.registerPrompt('file-tree-selection', inquirerFileTreeSelection);
             // Ask the user for the file containing the geojson polygon
-            const answers = await inquirer.prompt([
-                {
-                    type: 'file-tree-selection',
-                    name: 'osmFilePath',
-                    message: 'Please select the openstreetmap network data file (.osm or .osm.pbf)',
-                    root: importDir,
-                    pageSize: 20
-                }
-            ]);
-            fileName = answers.osmFilePath;
+            const selection = await fileSelector({
+                message: 'Please select the openstreetmap network data file (.osm or .osm.pbf)',
+                basePath: importDir,
+                filter: (item) => item.isDirectory || item.name.endsWith('.osm') || item.name.endsWith('.pbf')
+            });
+            fileName = selection.path;
         }
         return fileName;
     }
@@ -86,20 +80,14 @@ export class PrepareOsmNetworkData implements GenericTask {
                     'No mode set for osm data preparation. Enter modes with command line arguments --mode <mode1> [--mode <mode2>]'
                 );
             }
-            const answers = await inquirer.prompt([
-                {
-                    type: 'checkbox',
-                    name: 'osrmPrepareModes',
-                    choices: routingModes.map((mode) => {
-                        return {
-                            label: mode,
-                            value: mode
-                        };
-                    }),
-                    message: 'For which mode(s) do you want to prepare osrm data?'
-                }
-            ]);
-            return answers.osrmPrepareModes;
+            const osrmPrepareModes = await checkbox({
+                message: 'For which mode(s) do you want to prepare osrm data?',
+                choices: routingModes.map((mode) => ({
+                    name: mode,
+                    value: mode
+                }))
+            });
+            return osrmPrepareModes as RoutingMode[];
         }
         return availableModes;
     }
@@ -118,16 +106,12 @@ export class PrepareOsmNetworkData implements GenericTask {
         if (!interactive) {
             return null;
         }
-        const answers = await inquirer.prompt([
-            {
-                type: 'input',
-                name: 'directoryPrefix',
-                message:
-                    'Please choose a name for the OSRM (routing engine) directory prefix or keep empty for default',
-                default: null
-            }
-        ]);
-        return answers.directoryPrefix;
+
+        const directoryPrefix = await input({
+            message: 'Please choose a name for the OSRM (routing engine) directory prefix or keep empty for default',
+            default: ''
+        });
+        return directoryPrefix || null;
     }
 
     public async run(argv: { [key: string]: unknown }): Promise<void> {

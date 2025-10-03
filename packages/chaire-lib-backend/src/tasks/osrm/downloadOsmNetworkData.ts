@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import inquirer from 'inquirer';
+import { select } from '@inquirer/prompts';
 
 import osmDownloader from '../../utils/osm/OsmOverpassDownloader';
 import { GenericTask } from '../genericTask';
@@ -45,18 +45,14 @@ export class DownloadOsmNetworkData implements GenericTask {
         if (!this._fileManager.fileExistsAbsolute(absoluteFilePath) || !interactive) {
             return true;
         }
-        const answers = await inquirer.prompt([
-            {
-                type: 'list',
-                name: 'overwrite',
-                message: `${message} already exists. Overwrite?`,
-                choices: [
-                    { name: 'Yes', value: true },
-                    { name: 'No', value: false }
-                ]
-            }
-        ]);
-        return answers.overwrite;
+        const overwrite = await select({
+            message: `${message} already exists. Overwrite?`,
+            choices: [
+                { name: 'Yes', value: true },
+                { name: 'No', value: false }
+            ]
+        });
+        return overwrite;
     }
 
     public async run(argv: { [key: string]: unknown }): Promise<void> {

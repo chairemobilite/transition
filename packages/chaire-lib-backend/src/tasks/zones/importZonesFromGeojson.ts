@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import inquirer from 'inquirer';
-import inquirerFileTreeSelection from 'inquirer-file-tree-selection-prompt';
+import { select, input } from '@inquirer/prompts';
+import { fileSelector } from 'inquirer-file-selector';
 
 import { GenericTask } from '../genericTask';
 import { v4 as uuidV4 } from 'uuid';
@@ -38,26 +38,17 @@ import { DataSourceAttributes } from 'chaire-lib-common/lib/services/dataSource/
  * @implements {GenericTask}
  */
 export class ImportZonesFromGeojson implements GenericTask {
-    // TODO Remove file manager from parameters
-    constructor() {
-        inquirer.registerPrompt('file-tree-selection', inquirerFileTreeSelection);
-    }
-
     private getGeojsonData = async (
         filePath?: string
     ): Promise<GeoJSON.FeatureCollection<GeoJSON.Polygon | GeoJSON.MultiPolygon>> => {
         let file = filePath;
         if (file === undefined) {
             // Request the file from the user
-            const answers = await inquirer.prompt([
-                {
-                    type: 'file-tree-selection',
-                    name: 'zoneFilePath',
-                    message: 'Please select the zones geojson file to import',
-                    pageSize: 20
-                }
-            ]);
-            file = answers.zoneFilePath;
+            const selection = await fileSelector({
+                message: 'Please select the zones geojson file to import',
+                filter: (item) => item.name.endsWith('.geojson') || item.name.endsWith('.json')
+            });
+            file = selection.path;
         }
         if (typeof file !== 'string') {
             throw new Error('File is undefined');
@@ -131,34 +122,22 @@ export class ImportZonesFromGeojson implements GenericTask {
                 value: '__newDataSource__'
             });
 
-            const answers = await inquirer.prompt([
-                {
-                    type: 'list',
-                    name: 'dataSourceId',
-                    message: 'Please select a data source (zones will be replaced) or create a new one for the zones',
-                    choices: dataSourcesChoices
-                },
-                {
-                    when: function (answers) {
-                        return answers.dataSourceId === '__newDataSource__';
-                    },
-                    type: 'input',
-                    name: 'newDataSourceShortname',
+            const dataSourceId = await select({
+                message: 'Please select a data source (zones will be replaced) or create a new one for the zones',
+                choices: dataSourcesChoices
+            });
+
+            if (dataSourceId === '__newDataSource__') {
+                const newDataSourceShortname = await input({
                     message: 'New data source shortname'
-                },
-                {
-                    when: function (answers) {
-                        return answers.dataSourceId === '__newDataSource__';
-                    },
-                    type: 'input',
-                    name: 'newDataSourceName',
+                });
+                const newDataSourceName = await input({
                     message: 'New data source name'
-                }
-            ]);
-            if (answers.dataSourceId === '__newDataSource__') {
+                });
+
                 const newDs = {
-                    shortname: answers.newDataSourceShortname,
-                    name: answers.newDataSourceName,
+                    shortname: newDataSourceShortname,
+                    name: newDataSourceName,
                     type: 'zones' as const,
                     data: {},
                     id: uuidV4()
@@ -166,8 +145,8 @@ export class ImportZonesFromGeojson implements GenericTask {
                 await dsQueries.create(newDs);
                 datasource = await dsQueries.read(newDs.id);
             } else {
-                datasource = zonesDs.find((ds) => ds.id === answers.dataSourceId);
-                await zonesQueries.deleteForDataSourceId(answers.dataSourceId);
+                datasource = zonesDs.find((ds) => ds.id === dataSourceId);
+                await zonesQueries.deleteForDataSourceId(dataSourceId);
             }
         }
         return (datasource as DataSourceAttributes).id;
@@ -193,24 +172,17 @@ export class ImportZonesFromGeojson implements GenericTask {
                     name: `${attribute} (${(firstFeature.properties || {})[attribute]})`
                 };
             });
-            const answers = await inquirer.prompt([
-                {
-                    type: 'list',
-                    name: 'shortnameAttribute',
-                    message: 'What is the attribute for each zone shortname?',
-                    choices: geojsonAttributesChoices,
-                    pageSize: Math.min(geojsonAttributesChoices.length, 20)
-                },
-                {
-                    type: 'list',
-                    name: 'nameAttribute',
-                    message: 'What is the attribute for each zone name?',
-                    choices: geojsonAttributesChoices,
-                    pageSize: Math.min(geojsonAttributesChoices.length, 20)
-                }
-            ]);
-            shortnameProperty = answers.shortnameAttribute;
-            nameProperty = answers.nameAttribute;
+            shortnameProperty = await select({
+                message: 'What is the attribute for each zone shortname?',
+                choices: geojsonAttributesChoices,
+                pageSize: Math.min(geojsonAttributesChoices.length, 20)
+            });
+
+            nameProperty = await select({
+                message: 'What is the attribute for each zone name?',
+                choices: geojsonAttributesChoices,
+                pageSize: Math.min(geojsonAttributesChoices.length, 20)
+            });
         }
         const zoneAttributes = geojsonData.features.map((zone, index) => ({
             geography: zone.geometry,
