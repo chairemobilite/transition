@@ -4,8 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import inquirer from 'inquirer';
-import inquirerFileTreeSelection from 'inquirer-file-tree-selection-prompt';
+import { fileSelector } from 'inquirer-file-selector';
 import { Polygon, FeatureCollection, Feature } from 'geojson';
 
 import { PromptGeojsonPolygonService, GeojsonServiceOptions } from './promptGeojsonService';
@@ -29,18 +28,13 @@ export class CliPromptGeojsonPolygonService implements PromptGeojsonPolygonServi
             if (!interactive) {
                 throw new Error('File does not exist: ' + fileName);
             }
-            inquirer.registerPrompt('file-tree-selection', inquirerFileTreeSelection);
             // Ask the user for the file containing the geojson polygon
-            const answers = await inquirer.prompt([
-                {
-                    type: 'file-tree-selection',
-                    name: 'polygonGeojson',
-                    message: textMessage,
-                    root: `${this._importDir}`,
-                    pageSize: 20
-                }
-            ]);
-            fileName = answers.polygonGeojson;
+            const selection = await fileSelector({
+                message: textMessage,
+                basePath: this._importDir,
+                filter: (item) => item.isDirectory || item.name.endsWith('.geojson') || item.name.endsWith('.json')
+            });
+            fileName = selection.path;
         }
         return fileName;
     }
