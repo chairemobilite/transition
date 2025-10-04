@@ -9,7 +9,7 @@ import { pipeline } from 'stream';
 import { promisify } from 'util';
 import JSONStream from 'JSONStream';
 import { v4 as uuidv4 } from 'uuid';
-import { select } from '@inquirer/prompts';
+import { confirm } from '@inquirer/prompts';
 
 import placesDbQueries from '../../models/db/places.db.queries';
 import dataSourcesDbQuery from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
@@ -23,12 +23,9 @@ const pipelineAsync = promisify(pipeline);
 // FIXME This prompt works only on command line where the user can answer. Need
 // to support arbitrary prompts, like going through a web interface.
 async function promptOverwriteDataSource(dataSourceName): Promise<boolean> {
-    const overwrite = await select({
+    const overwrite = await confirm({
         message: `${dataSourceName} already exists. Do you want to re-create the places in this data source?`,
-        choices: [
-            { name: 'Yes', value: true },
-            { name: 'No', value: false }
-        ]
+        default: false
     });
     return overwrite;
 }
