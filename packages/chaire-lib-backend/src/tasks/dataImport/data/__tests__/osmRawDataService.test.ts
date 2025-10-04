@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import fs from 'fs';
-import TestUtils from '../../../../test/TestUtils';
+import TestUtils from 'chaire-lib-common/lib/test/TestUtils';
 
 import { getOsmNodesFor, getNodesInside, getEntrancesForBuilding } from '../osmRawDataService';
 import { DataFileOsmRaw, DataOsmRaw, OsmRawDataType } from '../dataOsmRaw';

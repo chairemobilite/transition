@@ -68,7 +68,7 @@ import shopSupermarket from './osmPoiWeightCategories/shopSupermarket';
 import shopStationery from './osmPoiWeightCategories/shopStationery';
 import socialFacility from './osmPoiWeightCategories/socialFacility';
 import utility from './osmPoiWeightCategories/utility';
-import { OsmRawQueryOr } from '../../tasks/dataImport/data/dataOsmRaw';
+import { OsmRawQueryOr } from './OsmRawQueryType';
 import { POIWeightCategory } from './POIWeightCategoryType';
 
 /*

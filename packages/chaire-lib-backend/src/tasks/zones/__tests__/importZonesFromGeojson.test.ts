@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import _cloneDeep from 'lodash/cloneDeep';
-import inquirer from 'inquirer';
 import { v4 as uuidV4 } from 'uuid';
 
 import { ImportZonesFromGeojson } from '../importZonesFromGeojson';
@@ -24,11 +23,20 @@ jest.mock('../../../utils/filesystem/fileManager', () => ({
 const mockFileExists = fileManager.fileExistsAbsolute as jest.MockedFunction<typeof fileManager.fileExistsAbsolute>;
 const mockReadFile = fileManager.readFileAbsolute as jest.MockedFunction<typeof fileManager.readFileAbsolute>;
 
-jest.mock('inquirer', () => ({
-    prompt: jest.fn(),
-    registerPrompt: jest.fn()
+jest.mock('inquirer-file-selector', () => ({
+    fileSelector: jest.fn()
 }));
-const mockInquirerPrompt = inquirer.prompt as jest.MockedFunction<typeof inquirer.prompt>;
+import { fileSelector, Item } from 'inquirer-file-selector';
+//const mockFileSelector = fileSelector as jest.MockedFunction<(config: any) => Promise<Item>>;
+const mockFileSelector = fileSelector as unknown as jest.MockedFunction<(config: any) => Promise<Item>>;
+
+jest.mock('@inquirer/prompts', () => ({
+    select: jest.fn(),
+    input: jest.fn()
+}));
+import { select, input } from '@inquirer/prompts';
+const mockSelect = select as jest.MockedFunction<typeof select>;
+const mockInput = input as jest.MockedFunction<typeof input>;
 
 jest.mock('../../../models/db/zones.db.queries', () => ({
     deleteForDataSourceId: jest.fn(),
@@ -49,7 +57,9 @@ const mockDsCreate = dsQueries.create as jest.MockedFunction<typeof dsQueries.cr
 beforeEach(() => {
     mockFileExists.mockClear();
     mockReadFile.mockClear();
-    mockInquirerPrompt.mockClear();
+    mockFileSelector.mockClear();
+    mockSelect.mockClear();
+    mockInput.mockClear();
     mockDeleteForDsId.mockClear();
     mockCreateMultiple.mockClear();
     mockDsCollection.mockClear();
@@ -161,8 +171,10 @@ describe('Correct calls', () => {
         const dataSourceName = 'Data source';
         const dataSourceShortname = 'DS';
         mockReadFile.mockReturnValueOnce(JSON.stringify(featureCollection));
-        mockInquirerPrompt.mockResolvedValueOnce({ zoneFilePath: file });
-        mockInquirerPrompt.mockResolvedValueOnce({ dataSourceId: '__newDataSource__', newDataSourceShortname: dataSourceShortname, newDataSourceName: dataSourceName });
+        mockFileSelector.mockResolvedValueOnce({name: 'myFile.geojson', path: '/home/test/myFile.geojson', size: 100, createdMs: 100000, lastModifiedMs: 100000, isDirectory: false});
+        mockSelect.mockResolvedValueOnce('__newDataSource__');
+        mockInput.mockResolvedValueOnce(dataSourceShortname);
+        mockInput.mockResolvedValueOnce(dataSourceName);
         mockDsCollection.mockResolvedValueOnce(dataSources);
         mockDsRead.mockImplementationOnce(async (id) => ({
             shortname: dataSourceShortname,
@@ -177,22 +189,19 @@ describe('Correct calls', () => {
         await importZonesTask.run({});
 
         // A new data source should have been created, with 2 new zones and no prompt for properties as there is only one
-        expect(mockInquirerPrompt).toHaveBeenCalledWith([
-            expect.objectContaining({
-                choices: [{
-                    name: `${dataSources[0].name} - ${dataSources[0].shortname}`,
-                    value: dataSources[0].id
-                }, {
-                    name: `${dataSources[1].name} - ${dataSources[1].shortname}`,
-                    value: dataSources[1].id
-                }, {
-                    value: `__newDataSource__`,
-                    name: '--New data source--'
-                }]
-            }),
-            expect.anything(),
-            expect.anything()
-        ]);
+        expect(mockSelect).toHaveBeenCalledWith(expect.objectContaining({
+            choices: [{
+                name: `${dataSources[0].name} - ${dataSources[0].shortname}`,
+                value: dataSources[0].id
+            }, {
+                name: `${dataSources[1].name} - ${dataSources[1].shortname}`,
+                value: dataSources[1].id
+            }, {
+                value: `__newDataSource__`,
+                name: '--New data source--'
+            }]
+        }));
+        expect(mockInput).toHaveBeenCalledTimes(2);
         expect(mockDsCreate).toHaveBeenCalledWith(expect.objectContaining({
             shortname: dataSourceShortname,
             name: dataSourceName,
@@ -231,7 +240,8 @@ describe('Correct calls', () => {
 
         // A new data source should have been created, with 2 new zones and no prompt for properties as there is only one
         expect(mockDsCreate).not.toHaveBeenCalled();
-        expect(mockInquirerPrompt).not.toHaveBeenCalled();
+        expect(mockSelect).not.toHaveBeenCalled();
+        expect(mockInput).not.toHaveBeenCalled();
         expect(mockDeleteForDsId).toHaveBeenCalledWith(dataSources[0].id);
 
         expect(mockCreateMultiple).toHaveBeenCalledWith([expect.objectContaining({
@@ -278,7 +288,8 @@ describe('Correct calls', () => {
             id: expect.anything()
         }));
         const dataSource = mockDsCreate.mock.calls[0][0];
-        expect(mockInquirerPrompt).not.toHaveBeenCalled();
+        expect(mockSelect).not.toHaveBeenCalled();
+        expect(mockInput).not.toHaveBeenCalled();
         expect(mockDeleteForDsId).not.toHaveBeenCalled();
 
         expect(mockCreateMultiple).toHaveBeenCalledWith([expect.objectContaining({
@@ -314,7 +325,8 @@ describe('Correct calls', () => {
             }))
         };
         mockReadFile.mockReturnValueOnce(JSON.stringify(newFeatureCollection));
-        mockInquirerPrompt.mockResolvedValueOnce({ shortnameAttribute: 'property2', nameAttribute: 'property3' });
+        mockSelect.mockResolvedValueOnce('property2');
+        mockSelect.mockResolvedValueOnce('property3');
         
         // Import zones
         const importZonesTask = new ImportZonesFromGeojson();
@@ -333,15 +345,13 @@ describe('Correct calls', () => {
             name: `property3 (${newFeatureCollection.features[0].properties.property3})`,
             value: 'property3'
         }];
-        expect(mockInquirerPrompt).toHaveBeenCalledTimes(1);
-        expect(mockInquirerPrompt).toHaveBeenCalledWith([
-            expect.objectContaining({
-                choices: expectedAttributeChoices
-            }),
-            expect.objectContaining({
-                choices: expectedAttributeChoices
-            }),
-        ]);
+        expect(mockSelect).toHaveBeenCalledTimes(2);
+        expect(mockSelect).toHaveBeenNthCalledWith(1, expect.objectContaining({
+            choices: expectedAttributeChoices
+        }));
+        expect(mockSelect).toHaveBeenNthCalledWith(2, expect.objectContaining({
+            choices: expectedAttributeChoices
+        }));
 
         expect(mockCreateMultiple).toHaveBeenCalledWith([expect.objectContaining({
             id: expect.anything(),
@@ -378,7 +388,8 @@ describe('Correct calls', () => {
             }))
         };
         mockReadFile.mockReturnValueOnce(JSON.stringify(newFeatureCollection));
-        mockInquirerPrompt.mockResolvedValueOnce({ shortnameAttribute: 'property3', nameAttribute: 'property1' });
+        mockSelect.mockResolvedValueOnce('property3');
+        mockSelect.mockResolvedValueOnce('property1');
         
         // Import zones
         const importZonesTask = new ImportZonesFromGeojson();
@@ -397,15 +408,13 @@ describe('Correct calls', () => {
             name: `property3 (${newFeatureCollection.features[0].properties.property3})`,
             value: 'property3'
         }];
-        expect(mockInquirerPrompt).toHaveBeenCalledTimes(1);
-        expect(mockInquirerPrompt).toHaveBeenCalledWith([
-            expect.objectContaining({
-                choices: expectedAttributeChoices
-            }),
-            expect.objectContaining({
-                choices: expectedAttributeChoices
-            }),
-        ]);
+        expect(mockSelect).toHaveBeenCalledTimes(2);
+        expect(mockSelect).toHaveBeenNthCalledWith(1, expect.objectContaining({
+            choices: expectedAttributeChoices
+        }));
+        expect(mockSelect).toHaveBeenNthCalledWith(2, expect.objectContaining({
+            choices: expectedAttributeChoices
+        }));
 
         expect(mockCreateMultiple).toHaveBeenCalledWith([expect.objectContaining({
             id: expect.anything(),

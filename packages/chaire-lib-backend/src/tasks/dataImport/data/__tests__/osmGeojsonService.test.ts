@@ -6,7 +6,7 @@
  */
 import osmGeojsonService from '../osmGeojsonService';
 import { DataGeojson } from '../dataGeojson';
-import TestUtils from '../../../../test/TestUtils';
+import TestUtils from 'chaire-lib-common/lib/test/TestUtils';
 
 test('isRetirementHome', () => {
     expect(osmGeojsonService.isRetirementHome({})).toBe(false);

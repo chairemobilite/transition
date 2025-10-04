@@ -11,10 +11,10 @@ import JSONStream from 'JSONStream';
 import fs from 'fs';
 
 import GenericDataImportTask from './genericDataImportTask';
-import { SingleGeoFeature } from '../../services/geodata/GeoJSONUtils';
-import { ignoreBuildings } from '../../config/osm/osmBuildingQuerySetup';
-import { queryResidentialBuildings } from '../../config/osm/osmResidentialBuildingTags';
-import { findOverlappingFeatures } from '../../services/geodata/FindOverlappingFeatures';
+import { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
+import { ignoreBuildings } from 'chaire-lib-common/lib/config/osm/osmBuildingQuerySetup';
+import { queryResidentialBuildings } from 'chaire-lib-common/lib/config/osm/osmResidentialBuildingTags';
+import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
 
 export default class enhanceAndSaveOsmPolygonData extends GenericDataImportTask {
     private _warnings: string[] = [];

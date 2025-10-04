@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import inquirer from 'inquirer';
+import { select, confirm } from '@inquirer/prompts';
 import { TFunction } from 'i18next';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import i18n from 'chaire-lib-backend/lib/config/i18next';
-import { GenericTask } from 'chaire-lib-common/lib/tasks/genericTask';
+import { GenericTask } from 'chaire-lib-backend/lib/tasks/genericTask';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Simulation from 'transition-common/lib/services/simulation/Simulation';
@@ -64,15 +64,11 @@ export default class RunSimulation implements GenericTask {
                 };
             });
 
-        const answers = await inquirer.prompt([
-            {
-                type: 'list',
-                name: 'simulationId',
-                message: this.t('server:simulation:selectSimulation'),
-                choices: simulationChoices
-            }
-        ]);
-        return simulationCollection.getById(answers['simulationId']);
+        const simulationId = await select({
+            message: this.t('server:simulation:selectSimulation'),
+            choices: simulationChoices
+        });
+        return simulationCollection.getById(simulationId);
     };
 
     async run(argv: { [key: string]: unknown }): Promise<void> {
@@ -88,16 +84,12 @@ export default class RunSimulation implements GenericTask {
 
         // Confirm parameters to run with and edit if required
         console.log(this.t('server:simulation:willRunSimulationWithParams'), simulation.attributes.data);
-        const answers = await inquirer.prompt([
-            {
-                type: 'confirm',
-                name: 'needEdit',
-                message: this.t('server:simulation:edit'),
-                default: false
-            }
-        ]);
+        const needEdit = await confirm({
+            message: this.t('server:simulation:edit'),
+            default: false
+        });
         const dataParameters =
-            answers['needEdit'] === true
+            needEdit === true
                 ? await editAlgorithmConfiguration(simulation, { t: this.t })
                 : _cloneDeep(simulation.attributes.data);
 

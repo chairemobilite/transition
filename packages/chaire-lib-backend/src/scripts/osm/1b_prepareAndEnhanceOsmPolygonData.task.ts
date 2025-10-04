@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import enhanceAndSaveOsmPolygonData from 'chaire-lib-common/lib/tasks/dataImport/enhanceAndSaveOsmPolygonData';
+import enhanceAndSaveOsmPolygonData from '../../tasks/dataImport/enhanceAndSaveOsmPolygonData';
 import taskWrapper from '../../tasks/taskWrapper';
 
 import { fileManager } from '../../utils/filesystem/fileManager';
