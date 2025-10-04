@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { readdirSync } from 'fs';
-import { select, input } from '@inquirer/prompts';
+import { select, input, confirm } from '@inquirer/prompts';
 
 import { GenericTask } from '../genericTask';
 import { GeojsonOutputter } from './osmImportUtils';
@@ -134,12 +134,9 @@ export default abstract class GenericDataImportTask implements GenericTask {
         if (!this.fileManager.fileExistsAbsolute(absoluteFilePath)) {
             return true;
         }
-        const overwrite = await select({
+        const overwrite = await confirm({
             message: `${message} already exists. Overwrite?`,
-            choices: [
-                { name: 'Yes', value: true },
-                { name: 'No', value: false }
-            ]
+            default: false
         });
         return overwrite;
     }

@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { select } from '@inquirer/prompts';
+import { confirm } from '@inquirer/prompts';
 
 import osmDownloader from '../../utils/osm/OsmOverpassDownloader';
 import { GenericTask } from '../genericTask';
@@ -37,6 +37,8 @@ export class DownloadOsmNetworkData implements GenericTask {
         this._promptPolygon = promptPolygon;
     }
 
+    //TODO There's a similar function in genericDataImportTask, maybe we should move it to a common
+    // area and reuse it.
     protected async promptOverwriteIfExists(
         absoluteFilePath: string,
         message = 'File',
@@ -45,12 +47,9 @@ export class DownloadOsmNetworkData implements GenericTask {
         if (!this._fileManager.fileExistsAbsolute(absoluteFilePath) || !interactive) {
             return true;
         }
-        const overwrite = await select({
+        const overwrite = await confirm({
             message: `${message} already exists. Overwrite?`,
-            choices: [
-                { name: 'Yes', value: true },
-                { name: 'No', value: false }
-            ]
+            default: false
         });
         return overwrite;
     }
