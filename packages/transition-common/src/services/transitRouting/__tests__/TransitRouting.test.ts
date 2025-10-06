@@ -34,13 +34,10 @@ beforeEach(function () {
     const routing = new TransitRouting({});
     const batchRoutingQueries = routing.attributes.savedForBatch;
     attributes = {
-        id: '000',
-        is_frozen: false,
-        data: {},
         savedForBatch: batchRoutingQueries
     };
 
-    transitRouting = new TransitRouting(attributes, true);
+    transitRouting = new TransitRouting(attributes);
 });
 
 describe('origin destination function', () => {
@@ -204,9 +201,9 @@ describe('Validate function', () => {
         ['routing modes is not empty', objtestValidateEmptyRoutingModes],
     ]).test('%s', (nameTest, objTest) => {
         const allAttributes = Object.assign(attributes, objTest.attributes);
-        transitRouting.setAttributes(allAttributes);
+        transitRouting.mergeAttributes(allAttributes);
 
-        expect(transitRouting.validate()).toEqual(objTest.isValid);
+        expect(transitRouting.isValid()).toEqual(objTest.isValid);
 
         errors = transitRouting.getErrors();
 

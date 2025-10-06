@@ -7,8 +7,7 @@
 import _cloneDeep from 'lodash/cloneDeep';
 import GeoJSON from 'geojson';
 
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
+import { BaseObject } from 'chaire-lib-common/lib/utils/objects/BaseObject';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -16,15 +15,15 @@ import { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routi
 import { validateTrQueryAttributes } from './TransitRoutingQueryAttributes';
 import { validateAndCreateTripRoutingAttributes } from 'chaire-lib-common/lib/services/routing/RoutingAttributes';
 
-export interface TransitRoutingQuery {
+export type TransitRoutingQuery = {
     routingName?: string;
     departureTimeSecondsSinceMidnight?: number;
     arrivalTimeSecondsSinceMidnight?: number;
     originGeojson: GeoJSON.Feature<GeoJSON.Point>;
     destinationGeojson: GeoJSON.Feature<GeoJSON.Point>;
-}
+};
 
-interface TransitRoutingSingleCalcAttributes extends GenericAttributes {
+type TransitRoutingSingleCalcAttributes = {
     // FIXME Refactor to use timeSecondsSinceMidnight and timeType instead
     departureTimeSecondsSinceMidnight?: number;
     arrivalTimeSecondsSinceMidnight?: number;
@@ -36,36 +35,39 @@ interface TransitRoutingSingleCalcAttributes extends GenericAttributes {
     walkingSegmentsColor?: string;
     savedForBatch: TransitRoutingQuery[];
     routingPort?: number; // TODO deprecate this or allow different port for each routing mode
-}
+};
 
 export type TransitRoutingAttributes = TransitRoutingSingleCalcAttributes & Partial<TripRoutingQueryAttributes>;
 
 const MAX_BATCH_ELEMENTS = 100;
 
-const prepareTransitAttributes = (attributes: Partial<TransitRoutingAttributes>): Partial<TransitRoutingAttributes> => {
-    // Initialize the colors to the preference.
-    attributes.originLocationColor = Preferences.get('transit.routing.transit.originLocationColor');
-    attributes.destinationLocationColor = Preferences.get('transit.routing.transit.destinationLocationColor');
-
-    if (!attributes.savedForBatch) {
-        attributes.savedForBatch = [];
-    }
-    return attributes;
-};
-
-export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> {
-    constructor(attributes: Partial<TransitRoutingAttributes>, isNew = false) {
-        super(prepareTransitAttributes(attributes), isNew);
+export class TransitRouting extends BaseObject<TransitRoutingAttributes> {
+    constructor(attributes: Partial<TransitRoutingAttributes>) {
+        super(attributes);
     }
 
-    validate(): boolean {
-        this._isValid = true;
+    protected _prepareAttributes(attributes: Partial<TransitRoutingAttributes>): TransitRoutingAttributes {
+        // Initialize the colors to the preference.
+        if (attributes.originLocationColor === undefined) {
+            attributes.originLocationColor = Preferences.get('transit.routing.transit.originLocationColor');
+        }
+        if (attributes.destinationLocationColor === undefined) {
+            attributes.destinationLocationColor = Preferences.get('transit.routing.transit.destinationLocationColor');
+        }
+        if (!attributes.savedForBatch) {
+            attributes.savedForBatch = [];
+        }
+        return attributes as TransitRoutingAttributes;
+    }
+
+    protected _validate(): [boolean, string[]] {
+        let isValid = true;
+        const errors: string[] = [];
         const routingModes = this.attributes.routingModes || [];
         const hasTransitRoutingMode = routingModes.includes('transit');
-        this.errors = [];
         if (routingModes.length === 0) {
-            this._isValid = false;
-            this.errors.push('transit:transitRouting:errors:RoutingModesIsEmpty');
+            isValid = false;
+            errors.push('transit:transitRouting:errors:RoutingModesIsEmpty');
         }
         if (
             hasTransitRoutingMode &&
@@ -73,8 +75,8 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
             _isBlank(this.attributes.departureTimeSecondsSinceMidnight) &&
             _isBlank(this.attributes.arrivalTimeSecondsSinceMidnight)
         ) {
-            this._isValid = false;
-            this.errors.push('transit:transitRouting:errors:DepartureAndArrivalTimeAreBlank');
+            isValid = false;
+            errors.push('transit:transitRouting:errors:DepartureAndArrivalTimeAreBlank');
         }
         if (
             hasTransitRoutingMode &&
@@ -82,22 +84,23 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
             !_isBlank(this.attributes.departureTimeSecondsSinceMidnight) &&
             !_isBlank(this.attributes.arrivalTimeSecondsSinceMidnight)
         ) {
-            this._isValid = false;
-            this.errors.push('transit:transitRouting:errors:DepartureAndArrivalTimeAreBothNotBlank');
+            isValid = false;
+            errors.push('transit:transitRouting:errors:DepartureAndArrivalTimeAreBothNotBlank');
         }
         if (hasTransitRoutingMode) {
             const { valid: queryAttrValid, errors: queryAttrErrors } = validateTrQueryAttributes(this.attributes);
             if (!queryAttrValid) {
-                this._isValid = false;
-                this.errors.push(...queryAttrErrors);
+                isValid = false;
+                errors.push(...queryAttrErrors);
             }
         }
 
-        return this._isValid;
+        return [isValid, errors];
     }
 
     setOrigin(coordinates?: GeoJSON.Position, updatePreferences = true) {
-        this.attributes.originGeojson =
+        this.set(
+            'originGeojson',
             coordinates === undefined
                 ? undefined
                 : {
@@ -105,14 +108,16 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
                     id: 1,
                     properties: { id: 1, color: this.attributes.originLocationColor, location: 'origin' },
                     geometry: { type: 'Point', coordinates: coordinates }
-                };
+                }
+        );
         if (updatePreferences) {
             this.updateRoutingPrefs();
         }
     }
 
     setDestination(coordinates?: GeoJSON.Position, updatePreferences = true) {
-        this.attributes.destinationGeojson =
+        this.set(
+            'destinationGeojson',
             coordinates === undefined
                 ? undefined
                 : {
@@ -124,7 +129,8 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
                         location: 'destination'
                     },
                     geometry: { type: 'Point', coordinates: coordinates }
-                };
+                }
+        );
         if (updatePreferences) {
             this.updateRoutingPrefs();
         }
@@ -188,10 +194,7 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
 
     updateRoutingPrefs() {
         if (serviceLocator.socketEventManager) {
-            const exportedAttributes = _cloneDeep(this._attributes) as Partial<TransitRoutingAttributes>;
-            // Data and paths are volatile, do not save it in preferences
-            exportedAttributes.data = {};
-            delete exportedAttributes.id;
+            const exportedAttributes = _cloneDeep(this.attributes) as Partial<TransitRoutingAttributes>;
             Preferences.update(
                 {
                     'transit.routing.transit': exportedAttributes
@@ -202,7 +205,7 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
     }
 
     addElementForBatch(element: TransitRoutingQuery) {
-        const found = this._attributes.savedForBatch.find(
+        const found = this.attributes.savedForBatch.find(
             (obj) =>
                 obj.routingName === element.routingName &&
                 obj.arrivalTimeSecondsSinceMidnight === element.arrivalTimeSecondsSinceMidnight &&
@@ -215,15 +218,15 @@ export class TransitRouting extends ObjectWithHistory<TransitRoutingAttributes> 
         if (found) {
             return;
         }
-        if (this._attributes.savedForBatch.length >= MAX_BATCH_ELEMENTS) {
-            this._attributes.savedForBatch.splice(0, this._attributes.savedForBatch.length - MAX_BATCH_ELEMENTS + 1);
+        if (this.attributes.savedForBatch.length >= MAX_BATCH_ELEMENTS) {
+            this.attributes.savedForBatch.splice(0, this.attributes.savedForBatch.length - MAX_BATCH_ELEMENTS + 1);
         }
-        this._attributes.savedForBatch.push(element);
+        this.attributes.savedForBatch.push(element);
         this.updateRoutingPrefs();
     }
 
     resetBatchSelection() {
-        this._attributes.savedForBatch.splice(0, this._attributes.savedForBatch.length);
+        this.set('savedForBatch', []);
         this.updateRoutingPrefs();
     }
 
