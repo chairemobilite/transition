@@ -550,7 +550,6 @@
         "Scenario": "Scénario",
         "DataSource": "Source de données",
         "CompareWithScenario": "Comparer avec scénario",
-        "OdTripUuid": "Uuid du déplacement OD",
         "PlaceName": "Nom du lieu",
         "PlaceNameN": "Nom du lieu {{n}}",
         "RoutingName": "Nom du parcours",
@@ -599,8 +598,6 @@
         },
         "NewDataSource": "Nouvelle source de données",
         "OverwriteDataSource": "Source de données à écraser",
-        "BatchRoutingHasMoved": "La fonctionnalité de calcul multiple se trouve maintenant dans la section \"Calculs multiples\". Cette section est disponible via le menu de gauche.",
-        "GoToBatchRouting": "Aller à la section \"Calculs multiples\"",
         "errors": {
             "RoutingModesIsEmpty": "Veuillez sélectionner au moins un mode pour le calcul de chemin.",
             "DepartureAndArrivalTimeAreBlank": "L'heure de départ ou d'arrivée est requise.",

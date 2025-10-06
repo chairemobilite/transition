@@ -10,11 +10,9 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons/faFileDownload';
 import _cloneDeep from 'lodash/cloneDeep';
-import _toString from 'lodash/toString';
 import Loader from 'react-spinners/BeatLoader';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
-import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
@@ -28,9 +26,8 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 import ScenarioComparisonTab from './ScenarioComparisonTab';
-import { _toInteger, _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
-import TransitRoutingBatchForm from '../transitRouting/TransitRoutingBatchForm';
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
 import ODCoordinatesComponent from '../transitRouting/widgets/ODCoordinatesComponent';
 import TimeOfTripComponent from '../transitRouting/widgets/TimeOfTripComponent';
@@ -463,31 +460,6 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
                         </div>
                     </Collapsible>
 
-                    <Collapsible trigger={this.props.t('form:advancedFields')} transitionTime={100}>
-                        <div className="tr__form-section">
-                            <InputWrapper label={this.props.t('transit:transitRouting:RoutingPort')}>
-                                <InputStringFormatted
-                                    id={`formFieldTransitRoutingPort${routingId}`}
-                                    value={this.state.formValues.routingPort}
-                                    onValueUpdated={(e) =>
-                                        this.updateBothRoutingEngines('routingPort', e, alternateRouting)
-                                    }
-                                    stringToValue={_toInteger}
-                                    valueToString={_toString}
-                                />
-                            </InputWrapper>
-                            <InputWrapper label={this.props.t('transit:transitRouting:OdTripUuid')}>
-                                <InputString
-                                    id={`formFieldTransitRoutingOdTripUuid${routingId}`}
-                                    value={this.state.formValues.odTripUuid}
-                                    onValueUpdated={(e) =>
-                                        this.updateBothRoutingEngines('odTripUuid', e, alternateRouting)
-                                    }
-                                />
-                            </InputWrapper>
-                        </div>
-                    </Collapsible>
-
                     {this.state.object.getErrors() && this.state.alternateScenarioRouting.getErrors() && (
                         <FormErrors
                             errors={[
@@ -534,7 +506,6 @@ class ScenarioComparisonPanel extends ChangeEventsForm<ComparisonPanelProps, Com
                         />
                     )}
                 </form>
-                <TransitRoutingBatchForm routingEngine={this.state.object} isRoutingEngineValid={this.isValid} />
             </React.Fragment>
         );
     }

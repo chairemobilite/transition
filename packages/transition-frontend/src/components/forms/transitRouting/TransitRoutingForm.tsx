@@ -10,11 +10,9 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons/faFileDownload';
 import _cloneDeep from 'lodash/cloneDeep';
-import _toString from 'lodash/toString';
 import Loader from 'react-spinners/BeatLoader';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
-import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
@@ -29,9 +27,8 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 import RoutingResultsComponent from './RoutingResultsComponent';
-import { _toInteger, _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
-import TransitRoutingBatchForm from './TransitRoutingBatchForm';
 import TransitRoutingBaseComponent from './widgets/TransitRoutingBaseComponent';
 import ODCoordinatesComponent from './widgets/ODCoordinatesComponent';
 import TimeOfTripComponent from './widgets/TimeOfTripComponent';
@@ -431,27 +428,6 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
                         </div>
                     </Collapsible>
 
-                    <Collapsible trigger={this.props.t('form:advancedFields')} transitionTime={100}>
-                        <div className="tr__form-section">
-                            <InputWrapper label={this.props.t('transit:transitRouting:RoutingPort')}>
-                                <InputStringFormatted
-                                    id={`formFieldTransitRoutingPort${routingId}`}
-                                    value={this.state.formValues.routingPort}
-                                    onValueUpdated={(e) => this.onValueChange('routingPort', e)}
-                                    stringToValue={_toInteger}
-                                    valueToString={_toString}
-                                />
-                            </InputWrapper>
-                            <InputWrapper label={this.props.t('transit:transitRouting:OdTripUuid')}>
-                                <InputString
-                                    id={`formFieldTransitRoutingOdTripUuid${routingId}`}
-                                    value={this.state.formValues.odTripUuid}
-                                    onValueUpdated={(e) => this.onValueChange('odTripUuid', e)}
-                                />
-                            </InputWrapper>
-                        </div>
-                    </Collapsible>
-
                     {this.state.object.getErrors() && <FormErrors errors={this.state.object.getErrors()} />}
                     {this.state.routingErrors && <FormErrors errors={this.state.routingErrors} />}
                     {this.hasInvalidFields() && <FormErrors errors={['main:errors:InvalidFormFields']} />}
@@ -487,7 +463,6 @@ class TransitRoutingForm extends ChangeEventsForm<TransitRoutingFormProps, Trans
                         />
                     )}
                 </form>
-                <TransitRoutingBatchForm routingEngine={this.state.object} isRoutingEngineValid={this.isValid} />
             </React.Fragment>
         );
     }
