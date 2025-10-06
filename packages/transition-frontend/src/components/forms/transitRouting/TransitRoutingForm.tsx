@@ -44,7 +44,7 @@ export interface TransitRoutingFormProps {
 const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
     // State hooks to replace class state
     const transitRouting = useRef<TransitRouting>(
-        new TransitRouting(_cloneDeep(Preferences.get('transit.routing.transit')), false)
+        new TransitRouting(_cloneDeep(Preferences.get('transit.routing.transit')))
     ).current;
     // State value is not used
     const [, setRoutingAttributes] = useState<TransitRoutingAttributes>(transitRouting.attributes);
@@ -91,7 +91,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
     };
 
     const onValueChange = (
-        path: string,
+        path: keyof TransitRoutingAttributes,
         newValue: { value: any; valid?: boolean } = { value: null, valid: true },
         resetResults = true
     ) => {
@@ -290,8 +290,6 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
         return <LoadingPage />;
     }
 
-    const routingId = transitRouting.get('id');
-
     const routingModes = Array.from(new Set([...(props.availableRoutingModes || []), 'transit']));
     const routingModesChoices = routingModes.map((routingMode) => {
         return {
@@ -303,7 +301,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
     const hasTransitModeSelected = selectedRoutingModes.includes('transit');
 
     if (_isBlank(transitRouting.get('withAlternatives'))) {
-        transitRouting.attributes.withAlternatives = false;
+        transitRouting.set('withAlternatives', false);
     }
 
     const scenarios = scenarioCollection.features.map((scenario) => {
@@ -325,7 +323,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
                                 <InputMultiselect
                                     choices={routingModesChoices}
                                     t={t}
-                                    id={`formFieldTransitRoutingRoutingModes${routingId}`}
+                                    id={'formFieldTransitRoutingRoutingModes'}
                                     value={selectedRoutingModes}
                                     localePrefix="transit:transitPath:routingModes"
                                     onValueChange={(e) => onValueChange('routingModes', { value: e.target.value })}
@@ -352,7 +350,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
                         {hasTransitModeSelected && (
                             <InputWrapper label={t('transit:transitRouting:Scenario')}>
                                 <InputSelect
-                                    id={`formFieldTransitRoutingScenario${routingId}`}
+                                    id={'formFieldTransitRoutingScenario'}
                                     value={formValues.scenarioId}
                                     choices={scenarios}
                                     t={t}
@@ -363,7 +361,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
                         {hasTransitModeSelected && (
                             <InputWrapper label={t('transit:transitRouting:WithAlternatives')}>
                                 <InputRadio
-                                    id={`formFieldTransitRoutingWithAlternatives${routingId}`}
+                                    id={'formFieldTransitRoutingWithAlternatives'}
                                     value={formValues.withAlternatives}
                                     sameLine={true}
                                     disabled={false}
@@ -393,7 +391,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
                             />
                             <InputWrapper label={t('transit:transitRouting:RoutingName')}>
                                 <InputString
-                                    id={`formFieldTransitRoutingRoutingName${routingId}`}
+                                    id={'formFieldTransitRoutingRoutingName'}
                                     value={formValues.routingName}
                                     onValueUpdated={(value) => onValueChange('routingName', value, false)}
                                     pattern={'[^,"\':;\r\n\t\\\\]*'}
