@@ -550,7 +550,6 @@
         "Scenario": "Scenario",
         "DataSource": "Data source",
         "CompareWithScenario": "Compare with scenario",
-        "OdTripUuid": "OD trip uuid",
         "PlaceName": "Place name",
         "PlaceNameN": "Place {{n}} name",
         "RoutingName": "Route name",
@@ -599,8 +598,6 @@
         },
         "NewDataSource": "New data source name",
         "OverwriteDataSource": "Data source to overwrite",
-        "BatchRoutingHasMoved": "The batch routing calculation has moved to the batch calculations section. This section is available through the left menu.",
-        "GoToBatchRouting": "Go to batch calculations section",
         "errors": {
             "RoutingModesIsEmpty": "Please select at least one routing mode.",
             "DepartureAndArrivalTimeAreBlank": "Departure or arrival time is required.",
