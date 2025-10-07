@@ -46,9 +46,7 @@ const RightPanel: React.FunctionComponent<RightPanelProps> = (props: RightPanelP
                 <TransitRoutingForm availableRoutingModes={props.availableRoutingModes} />
             )}
 
-            {props.activeSection === 'comparison' && (
-                <ScenarioComparisonPanel availableRoutingModes={props.availableRoutingModes} />
-            )}
+            {props.activeSection === 'comparison' && <ScenarioComparisonPanel />}
 
             {props.activeSection === 'gtfsImport' && serviceLocator.socketEventManager && <GtfsImportForm />}
 
