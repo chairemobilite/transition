@@ -8,7 +8,6 @@ import {
     featureCollection as turfFeatureCollection,
     lineString as turfLineString,
     multiLineString as turfMultiLineString,
-    circle as turfCircle,
     area as turfArea,
     polygonToLine as turfPolygonToLine,
     intersect as turfIntersect,
@@ -23,9 +22,10 @@ import {
     LineString,
     GeoJsonProperties
 } from 'geojson';
-import polygonClipping from 'polygon-clipping';
+
 import _cloneDeep from 'lodash/cloneDeep';
 import _sum from 'lodash/sum';
+import { randomUUID } from 'crypto'; //TODO Only for console.time id, to me removed
 
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -48,6 +48,7 @@ import {
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import nodeDbQueries from '../../models/db/transitNodes.db.queries';
 import placesDbQueries from '../../models/db/places.db.queries';
+import { clipPolygon as clipPolygonWithPostGIS } from '../../models/db/geometryUtils.db.queries';
 
 const getDurations = (maxDuration: number, numberOfPolygons: number): number[] => {
     const durations = [maxDuration];
@@ -140,41 +141,6 @@ export class TransitAccessibilityMapCalculator {
             timeOfTripType: options.timeOfTripType
         };
         return params;
-    }
-
-    private static async clipPolygon(
-        nodeCircles,
-        isCancelled: (() => boolean) | false = false
-    ): Promise<polygonClipping.MultiPolygon> {
-        // return f.union(nodeCircles);
-        // TODO This is a much slower version of the simple above line, dividing the work, but allowing the user to cancel the request...
-        return new Promise((resolve, reject) => {
-            const pieces = 20;
-            const splitSize = Math.ceil(nodeCircles.length / pieces);
-            let clipped: polygonClipping.MultiPolygon = [];
-            const clipFunc = (previous, i) => {
-                const toClip = previous.concat(nodeCircles.slice(i * pieces, (i + 1) * pieces));
-                clipped = polygonClipping.union(toClip);
-                if (isCancelled && isCancelled()) {
-                    reject('Cancelled');
-                    return;
-                }
-                if (i < splitSize - 1) {
-                    setTimeout(() => {
-                        try {
-                            // The function will concat with previous, nothing to do for this case
-                            clipFunc(clipped, i + 1);
-                        } catch (error) {
-                            // Error clipping this data, reject the promise
-                            reject(error);
-                        }
-                    }, 0);
-                } else {
-                    resolve(clipped);
-                }
-            };
-            clipFunc(clipped, 0);
-        });
     }
 
     // FIXME: Type the options
@@ -343,13 +309,18 @@ export class TransitAccessibilityMapCalculator {
         const { isCancelled, additionalProperties } = options;
 
         try {
-            const polygons = await this.generatePolygons(attributes, result, durations, nbCalculations, {
+            //TODO Keep this time measurement for the moment, to monitor trends
+            const consoleTimerId = `Accessibility generatePolygons ${randomUUID().substring(0, 8)}`;
+            console.time(consoleTimerId);
+
+            const polygons = await this.generatePolygonsWithPostGIS(attributes, result, durations, nbCalculations, {
                 isCancelled,
                 additionalProperties
             });
             if (isCancelled && isCancelled()) {
                 throw 'Cancelled';
             }
+            console.timeEnd(consoleTimerId);
 
             return {
                 polygons: turfFeatureCollection(polygons.polygons),
@@ -416,7 +387,10 @@ export class TransitAccessibilityMapCalculator {
     }
 
     // TODO: Move to result class?
-    private static async generatePolygons(
+    /**
+     * Generate accessibility polygons using PostGIS
+     */
+    private static async generatePolygonsWithPostGIS(
         attributes: {
             walkingSpeedMps: number;
             maxAccessEgressTravelTimeSeconds: number;
@@ -434,44 +408,44 @@ export class TransitAccessibilityMapCalculator {
         const isCancelled = options.isCancelled || (() => false);
 
         durations.sort((a, b) => b - a); // durations must be in descending order so it appears correctly in qgis
+
         const polygons: Feature<MultiPolygon>[] = [];
         const polygonStrokes: Feature<MultiLineString>[] = [];
 
         const walkingSpeedMps = attributes.walkingSpeedMps;
         const maxDistanceMeters = Math.floor(attributes.maxAccessEgressTravelTimeSeconds * walkingSpeedMps);
 
-        // when a node is fully accessible in the previous duration (maxDistanceMeters === nodeRemainingDistanceMeters),
-        // we don't need to calculate remaining distance for the next duration,
-        // and the previous polygon can be used for the next duration because it is 100% contained
-        // TODO: implement this optimization also in updateNodesTravelTimes
         let stepI = 1;
         const stepsCount = durations.length * 2;
-        let nodeCircles = [
-            turfCircle(attributes.locationGeojson, maxDistanceMeters / 1000, { units: 'kilometers', steps: 64 })
-                .geometry.coordinates
-        ];
+
         const defaultGeojsonPolygon = getDefaultGeojsonPolygon(attributes.locationColor);
 
-        // Get the accessible node collection for this request
+        // Get the accessible node collection
         const accessibleNodeIds = Object.keys(result.getTraveTimesByNodeId());
         const nodeCollection = new NodeCollection([], {});
         const nodeGeojson = await nodeDbQueries.geojsonCollection({ nodeIds: accessibleNodeIds });
         nodeCollection.loadFromCollection(nodeGeojson.features);
 
+        // TODO We could probably let all this node filtering operation be done by postgis and generate the polygon at the same time
         for (let d = 0, size = durations.length; d < size; d++) {
             const duration = durations[d];
             if (isCancelled()) {
                 throw 'Cancelled';
             }
-            const durationMaxDistanceMeters = Math.min(maxDistanceMeters, Math.floor(duration * walkingSpeedMps));
-            nodeCircles = [
-                turfCircle(attributes.locationGeojson, durationMaxDistanceMeters / 1000, {
-                    units: 'kilometers',
-                    steps: 64
-                }).geometry.coordinates
-            ];
 
-            // include starting/ending location circle:
+            const durationMaxDistanceMeters = Math.min(maxDistanceMeters, Math.floor(duration * walkingSpeedMps));
+
+            // Build array of circles
+            const circles: Array<{ center: [number, number]; radiusKm: number }> = [];
+
+            // Add origin circle
+            const locationCoords = attributes.locationGeojson.geometry.coordinates;
+            circles.push({
+                center: [locationCoords[0], locationCoords[1]],
+                radiusKm: durationMaxDistanceMeters / 1000
+            });
+
+            // Add node circles
             const travelTimesByNodeId = result.getTraveTimesByNodeId();
 
             for (const nodeId in travelTimesByNodeId) {
@@ -480,6 +454,7 @@ export class TransitAccessibilityMapCalculator {
                     console.error('Node not found in collection: %s', nodeId);
                     continue;
                 }
+
                 const remainingTimesSeconds = travelTimesByNodeId[nodeId].map((travelTimeSeconds) => {
                     return travelTimeSeconds < duration ? duration - travelTimeSeconds : 0;
                 });
@@ -498,13 +473,17 @@ export class TransitAccessibilityMapCalculator {
                 const avgRemainingTimeSeconds = _sum(remainingTimesSeconds) / deltaCount;
                 let nodeRemainingDistanceMeters = Math.floor(avgRemainingTimeSeconds * walkingSpeedMps);
                 nodeRemainingDistanceMeters = Math.min(maxDistanceMeters, nodeRemainingDistanceMeters);
-                nodeCircles.push(
-                    turfCircle(nodeFeature, nodeRemainingDistanceMeters / 1000, { units: 'kilometers', steps: 64 })
-                        .geometry.coordinates
-                );
+
+                if (nodeRemainingDistanceMeters > 0) {
+                    const nodeCoords = nodeFeature.geometry.coordinates;
+                    circles.push({
+                        center: [nodeCoords[0], nodeCoords[1]],
+                        radiusKm: nodeRemainingDistanceMeters / 1000
+                    });
+                }
             }
 
-            // The backend does not have this event manager, so we only want to use it when it exists
+            // Emit progress before processing
             if (serviceLocator.eventManager) {
                 serviceLocator.eventManager.emit('progress', {
                     name: 'AccessibilityMapPolygonGeneration',
@@ -512,8 +491,9 @@ export class TransitAccessibilityMapCalculator {
                 });
             }
 
-            // TODO This is the veryyy sloooooow operation.
-            const polygonCoordinates = await this.clipPolygon(nodeCircles, isCancelled);
+            // Generate and union circles using PostGIS (auto-selects single query or batching)
+            const polygonCoordinates = await clipPolygonWithPostGIS(circles);
+
             const polygon = _cloneDeep(defaultGeojsonPolygon);
             polygon.geometry.coordinates = polygonCoordinates;
 
@@ -549,10 +529,9 @@ export class TransitAccessibilityMapCalculator {
             }
 
             polygons.push(polygon);
-
             polygonStrokes.push(this.getPolygonStrokes(polygon));
 
-            // The backend does not have this event manager, so we only want to use it when it exists
+            // Emit progress after processing
             if (serviceLocator.eventManager) {
                 serviceLocator.eventManager.emitProgress('AccessibilityMapPolygonGeneration', stepI++ / stepsCount);
             }
