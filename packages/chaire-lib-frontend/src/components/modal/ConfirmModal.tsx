@@ -4,13 +4,13 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import Modal from 'react-modal';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-export type ConfirmModalProps = WithTranslation & {
+export type ConfirmModalProps = {
     isOpen: boolean;
     closeModal: React.MouseEventHandler;
     text?: string;
@@ -27,90 +27,87 @@ export type ConfirmModalProps = WithTranslation & {
     confirmAction?: React.MouseEventHandler;
 };
 
-export class ConfirmModal extends React.Component<ConfirmModalProps> {
-    constructor(props) {
-        super(props);
-        if (!process.env.IS_TESTING) {
-            Modal.setAppElement('#app');
-        }
-    }
+export const ConfirmModal: React.FC<PropsWithChildren<ConfirmModalProps>> = (props) => {
+    const { t } = useTranslation(['main']);
 
-    confirm = (e: React.MouseEvent) => {
+    const confirm = (e: React.MouseEvent) => {
         // TODO This should always be a function, test before removing, old code may not know
-        if (typeof this.props.confirmAction === 'function') {
-            this.props.confirmAction(e);
+        if (typeof props.confirmAction === 'function') {
+            props.confirmAction(e);
         }
-        this.props.closeModal(e);
+        props.closeModal(e);
     };
 
-    cancel = (e: React.MouseEvent) => {
+    const cancel = (e: React.MouseEvent) => {
         // TODO If defined, this should always be a function, test before removing, old code may not know
-        if (typeof this.props.cancelAction === 'function') {
-            this.props.cancelAction(e);
+        if (typeof props.cancelAction === 'function') {
+            props.cancelAction(e);
         }
-        this.props.closeModal(e);
+        props.closeModal(e);
     };
 
-    render() {
-        const buttons = this.props.buttons;
-        const buttonsContent = buttons
-            ? Object.keys(buttons).map((key) => (
-                <div key={key} className="center">
-                    <button className={`button ${buttons[key].color || 'blue'}`} onClick={buttons[key].action}>
-                        {buttons[key].label}
-                    </button>
-                </div>
-            ))
-            : [];
+    const buttons = props.buttons;
+    const buttonsContent = buttons
+        ? Object.keys(buttons).map((key) => (
+            <div key={key} className="center">
+                <button className={`button ${buttons[key].color || 'blue'}`} onClick={buttons[key].action}>
+                    {buttons[key].label}
+                </button>
+            </div>
+        ))
+        : [];
 
-        if (!buttons && this.props.showCancelButton !== false) {
-            buttonsContent.push(
-                <div key={'cancel'} className="center">
-                    <button className={`button ${this.props.cancelButtonColor || 'grey'}`} onClick={this.cancel}>
-                        {this.props.cancelButtonLabel || this.props.t('main:Cancel')}
-                    </button>
-                </div>
-            );
-        }
-        if (!buttons && this.props.showConfirmButton !== false) {
-            buttonsContent.push(
-                <div key={'confirm'} className="center">
-                    <button className={`button ${this.props.confirmButtonColor || 'blue'}`} onClick={this.confirm}>
-                        {this.props.confirmButtonLabel || this.props.t('main:Confirm')}
-                    </button>
-                </div>
-            );
-        }
-
-        return (
-            <Modal
-                isOpen={this.props.isOpen === false ? false : true}
-                onRequestClose={this.cancel}
-                className="react-modal"
-                overlayClassName="react-modal-overlay"
-                contentLabel={this.props.title}
-            >
-                <div>
-                    {this.props.title && (
-                        <div className="center">
-                            <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>
-                                {this.props.title}
-                            </Markdown>
-                        </div>
-                    )}
-                    {this.props.text &&
-                        (this.props.containsHtml ? (
-                            <div dangerouslySetInnerHTML={{ __html: this.props.text }} />
-                        ) : (
-                            <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]} className="confirm-popup">
-                                {this.props.text}
-                            </Markdown>
-                        ))}
-                    <div className={'tr__form-buttons-container _center'}>{buttonsContent}</div>
-                </div>
-            </Modal>
+    if (!buttons && props.showCancelButton !== false) {
+        buttonsContent.push(
+            <div key={'cancel'} className="center">
+                <button type="button" className={`button ${props.cancelButtonColor || 'grey'}`} onClick={cancel}>
+                    {props.cancelButtonLabel || t('main:Cancel')}
+                </button>
+            </div>
         );
     }
-}
+    if (!buttons && props.showConfirmButton !== false) {
+        buttonsContent.push(
+            <div key={'confirm'} className="center">
+                <button type="button" className={`button ${props.confirmButtonColor || 'blue'}`} onClick={confirm}>
+                    {props.confirmButtonLabel || t('main:Confirm')}
+                </button>
+            </div>
+        );
+    }
 
-export default withTranslation('main')(ConfirmModal);
+    return (
+        <Modal
+            isOpen={props.isOpen === false ? false : true}
+            onRequestClose={cancel}
+            className="react-modal"
+            overlayClassName="react-modal-overlay"
+            contentLabel={props.title}
+        >
+            <div>
+                {props.title && (
+                    <div className="center">
+                        <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>{props.title}</Markdown>
+                    </div>
+                )}
+
+                {/* Render children if provided, otherwise use text prop with existing logic */}
+                {props.children ? (
+                    <div className="confirm-popup-content">{props.children}</div>
+                ) : props.text ? (
+                    props.containsHtml ? (
+                        <div dangerouslySetInnerHTML={{ __html: props.text }} />
+                    ) : (
+                        <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]} className="confirm-popup">
+                            {props.text}
+                        </Markdown>
+                    )
+                ) : null}
+
+                <div className={'tr__form-buttons-container _center'}>{buttonsContent}</div>
+            </div>
+        </Modal>
+    );
+};
+
+export default ConfirmModal;
