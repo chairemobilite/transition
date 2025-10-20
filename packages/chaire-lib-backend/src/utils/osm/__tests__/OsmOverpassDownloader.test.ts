@@ -7,12 +7,11 @@
 
 import OsmOverpassDownloader from '../OsmOverpassDownloader';
 import GeoJSON from 'geojson';
-import fetch from 'node-fetch';
-import { Readable, Writable } from 'node:stream';
+import { Writable } from 'node:stream';
 import fs from 'fs';
 
-jest.mock('node-fetch', () => jest.fn());
-const mockedFetch = fetch as jest.MockedFunction<typeof fetch>;
+global.fetch = jest.fn();
+const mockedFetch = global.fetch as jest.MockedFunction<typeof fetch>;
 
 const overpassQuery = `<osm-script output="OUTPUT" output-config="" timeout="120">
     <union into="_">
@@ -157,7 +156,7 @@ test('download json data from overpass', async () => {
         ok: true,
         status: 200,
         json: jsonResponse
-    });
+    } as Partial<Response> as Response);
     mockedFetch.mockResolvedValue(response);
 
     const jsonContent = await OsmOverpassDownloader.downloadJson(geojsonBoundaryPolygon, overpassQuery);
@@ -182,7 +181,7 @@ test('download geojson data from overpass', async () => {
         ok: true,
         status: 200,
         json: jsonResponse
-    });
+    } as Partial<Response> as Response);
     mockedFetch.mockResolvedValue(response);
 
     const geojsonContent = await OsmOverpassDownloader.downloadGeojson(geojsonBoundaryPolygon, overpassQuery);
@@ -215,7 +214,7 @@ test('download xml data from overpass', async () => {
         ok: true,
         status: 200,
         text: xmlResponse
-    });
+    } as Partial<Response> as Response);
     mockedFetch.mockResolvedValue(response);
 
     const xmlContent = await OsmOverpassDownloader.downloadXml(geojsonBoundaryPolygon, overpassQuery);
@@ -247,14 +246,17 @@ test('fetch and write geojson', async () => {
         return mockWriteStream;
     });
 
-    const streamBody = new Readable();
-    streamBody.push(JSON.stringify(jsonData));
-    streamBody.push(null);
+    const streamBody = new ReadableStream({
+        start(controller) {
+            controller.enqueue(new TextEncoder().encode(JSON.stringify(jsonData)));
+            controller.close();
+        }
+    });
     const response = Promise.resolve({
         ok: true,
         status: 200,
         body: streamBody
-    });
+    } as Partial<Response> as Response);
     mockedFetch.mockResolvedValue(response);
 
     const writeIsSuccessful = await OsmOverpassDownloader.fetchAndWriteGeojson('./test.json', geojsonBoundaryPolygon);

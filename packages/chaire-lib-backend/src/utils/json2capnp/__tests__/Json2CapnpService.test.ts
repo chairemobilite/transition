@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+// Must be mocked before the fetch-retry is loaded in Json2CapnpService
+const mockedFetch = jest.fn() as jest.MockedFunction<typeof fetch>;
+global.fetch = mockedFetch;
+
 import json2CapnpService from '../Json2CapnpService';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import fetch from 'node-fetch';
-
-jest.mock('node-fetch', () => jest.fn());
-const mockedFetch = fetch as jest.MockedFunction<typeof fetch>;
 
 const jsonCapnpDefaultPrefs = Preferences.get('json2Capnp');
 
@@ -24,12 +24,9 @@ describe('Valid calls and return values', () => {
             field1: 3
         };
 
-        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
-        jsonResponse.mockResolvedValue(jsonObject);
-        const response = Promise.resolve({
-            ok: true,
+        const response = new Response(JSON.stringify(jsonObject), {
             status: 200,
-            json: jsonResponse
+            headers: { 'Content-Type': 'application/json' }
         });
         mockedFetch.mockResolvedValue(response);
 
@@ -44,14 +41,9 @@ describe('Valid calls and return values', () => {
             field: 3,
             data: 'hello'
         };
-        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
-        jsonResponse.mockResolvedValue({
-            status: 'OK'
-        });
-        const response = Promise.resolve({
-            ok: true,
+        const response = new Response(JSON.stringify(jsonObject), {
             status: 200,
-            json: jsonResponse
+            headers: { 'Content-Type': 'application/json' }
         });
         mockedFetch.mockResolvedValue(response);
 
@@ -77,12 +69,9 @@ describe('Valid calls, with default preferences changes', () => {
         const jsonObject = {
             field1: 3
         };
-        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
-        jsonResponse.mockResolvedValue(jsonObject);
-        const response = Promise.resolve({
-            ok: true,
+        const response = new Response(JSON.stringify(jsonObject), {
             status: 200,
-            json: jsonResponse
+            headers: { 'Content-Type': 'application/json' }
         });
         mockedFetch.mockResolvedValue(response);
         const result = await json2CapnpService.readCache('test', {});
@@ -96,14 +85,9 @@ describe('Valid calls, with default preferences changes', () => {
             field: 3,
             data: 'hello'
         };
-        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
-        jsonResponse.mockResolvedValue({
-            status: 'OK'
-        });
-        const response = Promise.resolve({
-            ok: true,
+        const response = new Response(JSON.stringify(jsonObject), {
             status: 200,
-            json: jsonResponse
+            headers: { 'Content-Type': 'application/json' }
         });
         mockedFetch.mockResolvedValue(response);
         const result = await json2CapnpService.writeCache('test', jsonObject);
@@ -123,6 +107,7 @@ describe('Call errors', () => {
     });
 
     test('Read value', async () => {
+        // TODO Now we use the fetch-retry package, is this still relevant?
         // TODO Remove this timeout once we use a library with more control
         // 10 seconds, zeit retry automatically waits for a certain delay
         jest.setTimeout(10000);
@@ -134,6 +119,7 @@ describe('Call errors', () => {
     });
 
     test('Read value', async () => {
+        // TODO Now we use the fetch-retry package, is this still relevant?
         // TODO Remove this timeout once we use a library with more control
         // 10 seconds, zeit retry automatically waits for a certain delay
         jest.setTimeout(10000);
