@@ -6,10 +6,9 @@
  */
 import TrRoutingServiceBackend from '../TrRoutingServiceBackend';
 import TestUtils from 'chaire-lib-common/lib/test/TestUtils';
-import fetch from 'node-fetch';
 
-jest.mock('node-fetch', () => jest.fn());
-const mockedFetch = fetch as jest.MockedFunction<typeof fetch>;
+global.fetch = jest.fn();
+const mockedFetch = global.fetch as jest.MockedFunction<typeof fetch>;
 
 beforeEach(() => {
     jest.resetAllMocks(); // otherwise the mocks will accumulate the calls and haveBeenCalledTimes will not be accurate
@@ -25,15 +24,10 @@ const defaultParameters = {
 describe('Route queries', () => {
 
     test('Test simple call', async () => {
-        const jsonObject = {
-            status: 'success'
-        };
-        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
-        jsonResponse.mockResolvedValue(jsonObject);
-        const response = Promise.resolve({
-            ok: true,
+        const jsonObject = { status: 'success' };
+        const response = new Response(JSON.stringify(jsonObject), {
             status: 200,
-            json: jsonResponse
+            headers: { 'Content-Type': 'application/json' }
         });
         mockedFetch.mockResolvedValue(response);
 
@@ -56,12 +50,9 @@ describe('Route queries', () => {
         const jsonObject = {
             status: 'success'
         };
-        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
-        jsonResponse.mockResolvedValue(jsonObject);
-        const response = Promise.resolve({
-            ok: true,
+        const response = new Response(JSON.stringify(jsonObject), {
             status: 200,
-            json: jsonResponse
+            headers: { 'Content-Type': 'application/json' }
         });
         mockedFetch.mockResolvedValue(response);
 
@@ -81,12 +72,9 @@ describe('Route queries', () => {
         const jsonObject = {
             status: 'success'
         };
-        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
-        jsonResponse.mockResolvedValue(jsonObject);
-        const response = Promise.resolve({
-            ok: true,
+        const response = new Response(JSON.stringify(jsonObject), {
             status: 200,
-            json: jsonResponse
+            headers: { 'Content-Type': 'application/json' }
         });
         mockedFetch.mockResolvedValue(response);
 
@@ -132,12 +120,9 @@ describe('Legacy transit queries', () => {
         const jsonObject = {
             status: 'success'
         };
-        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
-        jsonResponse.mockResolvedValue(jsonObject);
-        const response = Promise.resolve({
-            ok: true,
+        const response = new Response(JSON.stringify(jsonObject), {
             status: 200,
-            json: jsonResponse
+            headers: { 'Content-Type': 'application/json' }
         });
         mockedFetch.mockResolvedValue(response);
 
@@ -166,12 +151,9 @@ describe('Summary queries', () => {
         const jsonObject = {
             status: 'success'
         };
-        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
-        jsonResponse.mockResolvedValue(jsonObject);
-        const response = Promise.resolve({
-            ok: true,
+        const response = new Response(JSON.stringify(jsonObject), {
             status: 200,
-            json: jsonResponse
+            headers: { 'Content-Type': 'application/json' }
         });
         mockedFetch.mockResolvedValue(response);
 
@@ -191,12 +173,9 @@ describe('Summary queries', () => {
         const jsonObject = {
             status: 'success'
         };
-        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
-        jsonResponse.mockResolvedValue(jsonObject);
-        const response = Promise.resolve({
-            ok: true,
+        const response = new Response(JSON.stringify(jsonObject), {
             status: 200,
-            json: jsonResponse
+            headers: { 'Content-Type': 'application/json' }
         });
         mockedFetch.mockResolvedValue(response);
 
@@ -230,6 +209,93 @@ describe('Summary queries', () => {
         expect(mockedFetch).toHaveBeenCalledTimes(1);
         expect(mockedFetch).toHaveBeenCalledWith(`http://localhost:4000/v2/summary?${expectedQueryString}`, expect.objectContaining({ method: 'GET' }));
         expect(result).toEqual(jsonObject);
+    });
+
+});
+
+describe('Retry and timeout behavior', () => {
+
+    beforeEach(() => {
+        jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    test('Should retry and succeed on second attempt', async () => {
+        const jsonObject = { status: 'success' };
+        const response = new Response(JSON.stringify(jsonObject), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        // First call fails, second succeeds
+        mockedFetch
+            .mockRejectedValueOnce(new Error('Network error'))
+            .mockResolvedValueOnce(response);
+
+        const expectedQueryString = `origin=${defaultParameters.originDestination[0].geometry.coordinates[0]},${defaultParameters.originDestination[0].geometry.coordinates[1]}&` +
+            `destination=${defaultParameters.originDestination[1].geometry.coordinates[0]},${defaultParameters.originDestination[1].geometry.coordinates[1]}&` +
+            `scenario_id=${defaultParameters.scenarioId}&` +
+            `time_of_trip=${defaultParameters.timeOfTrip}&` +
+            'time_type=0&' +
+            'alternatives=false';
+
+        const routePromise = TrRoutingServiceBackend.route(defaultParameters);
+
+        // Fast-forward through the 1-second retry delay
+        await jest.advanceTimersByTimeAsync(1000);
+
+        const result = await routePromise;
+
+        expect(mockedFetch).toHaveBeenCalledTimes(2);
+        expect(mockedFetch).toHaveBeenCalledWith(`http://localhost:4000/v2/route?${expectedQueryString}`, expect.objectContaining({ method: 'GET' }));
+        expect(result).toEqual(jsonObject);
+    });
+
+    test('Should fail after exhausting all retry attempts', async () => {
+        // Both attempts fail
+        mockedFetch
+            .mockRejectedValueOnce(new Error('Network error'))
+            .mockRejectedValueOnce(new Error('Network error'));
+
+        // TODO We use real timers for this test, we had issue with fake timer
+        // and the handling of the exception. Might need to be investigated further if
+        // we want to accelerate test execution.
+        jest.useRealTimers();
+
+        const routePromise = TrRoutingServiceBackend.route(defaultParameters);
+
+        await expect(routePromise).rejects.toThrow('TrRouting request failed, exhausted all retries');
+
+        expect(mockedFetch).toHaveBeenCalledTimes(2);
+    });
+
+    test('Should handle non-OK response and retry', async () => {
+        const errorResponse = new Response(JSON.stringify({ error: 'Server error' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const successResponse = new Response(JSON.stringify({ status: 'success' }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        // First call returns 500, second succeeds
+        mockedFetch
+            .mockResolvedValueOnce(errorResponse)
+            .mockResolvedValueOnce(successResponse);
+
+        const routePromise = TrRoutingServiceBackend.route(defaultParameters);
+
+        // Fast-forward through the 1-second retry delay
+        await jest.advanceTimersByTimeAsync(1000);
+
+        const result = await routePromise;
+
+        expect(mockedFetch).toHaveBeenCalledTimes(2);
+        expect(result).toEqual({ status: 'success' });
     });
 
 });

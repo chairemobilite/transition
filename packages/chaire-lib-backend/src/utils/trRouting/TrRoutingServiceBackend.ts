@@ -5,10 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-//TODO replace this fetch-retry library with one compatible with TS
-/* eslint-disable-next-line */
-const fetch = require('@zeit/fetch-retry')(require('node-fetch'));
-
 import ServerConfig from '../../config/ServerConfig';
 import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
 
@@ -22,7 +18,7 @@ import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
  * @class TrRoutingServiceBackend
  */
 class TrRoutingServiceBackend {
-    private request<T>(
+    private async request<T>(
         query: string,
         host: string | undefined,
         port: string | number | undefined,
@@ -30,24 +26,22 @@ class TrRoutingServiceBackend {
     ): Promise<T> {
         const trRoutingRequest = `${this.getUrlPrefix(host, port, customRequestPath)}?${query}`;
 
-        //console.log('trRoutingRequest', trRoutingRequest);
-
-        return new Promise((resolve, reject) => {
-            fetch(trRoutingRequest, {
-                retry: { retries: 2, retryDelay: 1000 },
-                method: 'GET'
-            })
-                .then((response) => {
-                    return response.json();
-                })
-                .then((routingResultJson) => {
-                    resolve(routingResultJson);
-                })
-                .catch((error) => {
-                    console.error(error);
-                    reject(error);
-                });
-        });
+        const maxAttempts = 2;
+        for (let i = 0; i < maxAttempts; i++) {
+            try {
+                const response = await fetch(trRoutingRequest, { method: 'GET' });
+                if (!response.ok) {
+                    throw new Error(`TrRouting request failed with status ${response.status}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`TrRouting Fetch error (try ${i}): ${error}`);
+                // Wait 1s until next attempt
+                await new Promise((r) => setTimeout(r, 1000));
+            }
+        }
+        console.error('TrRouting Request exhausted all retries');
+        throw new Error('TrRouting request failed, exhausted all retries');
     }
 
     // FIXME This call is still necessary for od trips and all_nodes, until all calls have been updated to API v2

@@ -4,11 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import fetch from 'node-fetch';
 import osmToGeojson from 'osm2geojson-lite';
 import fs from 'fs';
 import { pipeline } from 'node:stream/promises';
 import JSONStream from 'JSONStream';
+import { Readable } from 'node:stream';
+import type { ReadableStream } from 'node:stream/web';
 
 import { geojsonToPolyBoundary } from 'chaire-lib-common/lib/utils/geometry/ConversionUtils';
 import allNodesXmlQuery from '../../config/osm/overpassQueries/allNodes';
@@ -47,10 +48,10 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
         boundPoly: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature,
         overpassXmlQueryString = allNodesXmlQuery,
         output: OsmOutputType = 'json'
-    ) {
+    ): Promise<Response> {
         const boundPolyFormattedString = geojsonToPolyBoundary(boundPoly);
         if (boundPolyFormattedString === false) {
-            return {};
+            throw new Error('Invalid boundary polygon');
         }
         overpassXmlQueryString = overpassXmlQueryString
             .replace(/BOUNDARY/g, boundPolyFormattedString)
@@ -198,8 +199,11 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
                     resolve(true);
                 });
             });
-
-            pipeline(response.body, jsonStream); //Pipes the response's body to the jsonStream, and executes the streams' logic.
+            if (!response.body) {
+                throw new Error('Response body is null');
+            }
+            // Type assertion needed to bridge Web Streams API and Node.js streams
+            pipeline(Readable.fromWeb(response.body as ReadableStream<Uint8Array>), jsonStream); //Pipes the response's body to the jsonStream, and executes the streams' logic.
         });
     }
     /**
@@ -256,7 +260,11 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
         const response = await this.downloadData(boundPoly, overpassXmlQueryString, fileType);
         // Taken from fetch-node documentation
         console.log('Writing osm data to ' + filename);
-        await pipeline(response.body, fs.createWriteStream(filename));
+        if (!response.body) {
+            throw new Error('Response body is null');
+        }
+        // Type assertion needed to bridge Web Streams API and Node.js streams
+        await pipeline(Readable.fromWeb(response.body as ReadableStream<Uint8Array>), fs.createWriteStream(filename));
         console.log('Done writing osm data');
         return true;
     }

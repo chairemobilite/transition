@@ -5,14 +5,13 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import url from 'url';
-// TODO replace this fetch-retry library with one compatible with TS
-/* eslint-disable-next-line */
-const fetchRetry = require('@zeit/fetch-retry')(require('node-fetch'));
+import fetchRetryFactory from 'fetch-retry';
+const fetchWithRetry = fetchRetryFactory(global.fetch);
 
 // Only do 4 retries instead of the default 5, as the retry period increases at
 // each tentative. The default causes a too long wait period.
 const fetch = async (url: string, opts) => {
-    return await fetchRetry(url, Object.assign({ retry: { retries: 4 }, ...opts }));
+    return await fetchWithRetry(url, { retries: 4, ...opts });
 };
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
