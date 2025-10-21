@@ -30,7 +30,7 @@ export class BatchAccessibilityMapCalculator {
     private static async _calculate(
         params: TransitDemandFromCsvAccessMapAttributes,
         routingEngine: AccessibilityMapRouting
-    ): Promise<any> {
+    ): Promise<TransitBatchCalculationResult> {
         return new Promise((resolve, reject) => {
             serviceLocator.socketEventManager.emit(
                 TrRoutingConstants.BATCH_ACCESS_MAP,
