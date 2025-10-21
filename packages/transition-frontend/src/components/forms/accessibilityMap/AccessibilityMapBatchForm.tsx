@@ -173,8 +173,8 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
             const routingResult: any = await BatchAccessibilityMapCalculator.calculate(this.state.object);
             this.setState({
                 batchRoutingInProgress: false,
-                errors: routingResult.errors,
-                warnings: routingResult.warnings
+                errors: routingResult?.errors ?? [],
+                warnings: routingResult?.warnings ?? []
             });
         } catch (error) {
             this.setState({
