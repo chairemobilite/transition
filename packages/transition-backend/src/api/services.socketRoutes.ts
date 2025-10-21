@@ -26,7 +26,7 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ExecutableJob } from '../services/executableJob/ExecutableJob';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
-import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import { BatchCalculationParameters, TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 import { fileKey } from 'transition-common/lib/services/jobs/Job';
 import {
@@ -253,7 +253,13 @@ export default function (socket: EventEmitter, userId?: number) {
                     await job.enqueue();
                     await job.refresh();
                     // TODO Do a quick return with task detail instead of waiting for task to finish
-                    callback(Status.createOk(job.attributes.data.results));
+                    // Reconstruct the complete TransitBatchCalculationResult with errors and warnings
+                    const result: TransitBatchCalculationResult = {
+                        ...job.attributes.data.results,
+                        errors: job.attributes.statusMessages?.errors || [],
+                        warnings: job.attributes.statusMessages?.warnings || []
+                    };
+                    callback(Status.createOk(result));
                 } catch (error) {
                     console.error(error);
                     callback(Status.createError(TrError.isTrError(error) ? error.message : error));
@@ -333,7 +339,13 @@ export default function (socket: EventEmitter, userId?: number) {
                     await job.enqueue();
                     await job.refresh();
                     // TODO Do a quick return with task detail instead of waiting for task to finish
-                    callback(Status.createOk(job.attributes.data.results));
+                    // Reconstruct the complete TransitBatchCalculationResult with errors and warnings
+                    const result: TransitBatchCalculationResult = {
+                        ...job.attributes.data.results,
+                        errors: job.attributes.statusMessages?.errors || [],
+                        warnings: job.attributes.statusMessages?.warnings || []
+                    };
+                    callback(Status.createOk(result));
                 } catch (error) {
                     console.error(error);
                     callback(Status.createError(TrError.isTrError(error) ? error.message : error));
