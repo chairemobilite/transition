@@ -255,10 +255,10 @@ export default function (socket: EventEmitter, userId?: number) {
                     // TODO Do a quick return with task detail instead of waiting for task to finish
                     // Reconstruct the complete TransitBatchCalculationResult with errors and warnings
                     const result: TransitBatchCalculationResult = {
-                        ...job.attributes.data.results,
+                        ...(job.attributes.data.results || {}),
                         errors: job.attributes.statusMessages?.errors || [],
                         warnings: job.attributes.statusMessages?.warnings || []
-                    };
+                    } as TransitBatchCalculationResult;
                     callback(Status.createOk(result));
                 } catch (error) {
                     console.error(error);
@@ -341,10 +341,10 @@ export default function (socket: EventEmitter, userId?: number) {
                     // TODO Do a quick return with task detail instead of waiting for task to finish
                     // Reconstruct the complete TransitBatchCalculationResult with errors and warnings
                     const result: TransitBatchCalculationResult = {
-                        ...job.attributes.data.results,
+                        ...(job.attributes.data.results || {}),
                         errors: job.attributes.statusMessages?.errors || [],
                         warnings: job.attributes.statusMessages?.warnings || []
-                    };
+                    } as TransitBatchCalculationResult;
                     callback(Status.createOk(result));
                 } catch (error) {
                     console.error(error);

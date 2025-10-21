@@ -65,7 +65,13 @@ jest.mock('../../services/accessibilityMap/TransitAccessibilityMapCalculator', (
 const mockedCalculateMapWithPolygon = TransitAccessibilityMapCalculator.calculateWithPolygons as jest.MockedFunction<typeof TransitAccessibilityMapCalculator.calculateWithPolygons>;
 
 const mockedEnqueue = ExecutableJob.prototype.enqueue = jest.fn().mockResolvedValue(true);
-const mockedRefresh = ExecutableJob.prototype.refresh = jest.fn().mockResolvedValue(true);
+const mockedRefresh = ExecutableJob.prototype.refresh = jest.fn().mockImplementation(function(this: ExecutableJob<any>) {
+    // Mock the job attributes that are accessed after refresh
+    this.attributes.data = this.attributes.data || {};
+    this.attributes.data.results = this.attributes.data.results || {};
+    this.attributes.statusMessages = this.attributes.statusMessages || {};
+    return Promise.resolve(true);
+});
 
 beforeEach(() => {
     jest.clearAllMocks();
