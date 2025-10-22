@@ -165,6 +165,10 @@ For example, to run yarn test in the chaire-lib backend:
 You can also run the app this way with:
 `docker run -a STDOUT -it -v "${PWD}:/home/project" -w=/home/project/ testtransition yarn start`
 
+## Running tasks in the command prompt
+
+Transition provides a number of tasks that can be run from the command prompt without having to build the application and open the UI. For more information, see the [documentation on tasks](docs/tasks.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)

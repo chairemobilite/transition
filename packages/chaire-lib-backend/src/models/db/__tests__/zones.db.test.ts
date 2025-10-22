@@ -5,11 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
+import _cloneDeep from 'lodash/cloneDeep';
 import knex from '../../../config/shared/db.config';
 
 import dbQueries from '../zones.db.queries';
 import dataSourceDbQueries from '../dataSources.db.queries';
-import { Zone as ObjectClass } from 'chaire-lib-common/lib/services/zones/Zone';
+import { Zone as ObjectClass, ZoneAttributes } from 'chaire-lib-common/lib/services/zones/Zone';
 import Collection from 'chaire-lib-common/lib/services/zones/ZoneCollection';
 
 const objectName   = 'zone';
@@ -295,10 +296,76 @@ describe(`${objectName}`, () => {
 
     });
 
+    test('add json data', async() => {
+
+        const jsonArray = [{ testNumber: 1, a: 'aaaa', b: null }, { testNumber: 1, child: { a: 'aaa' }}];
+        const batch = [
+            { internalId: 'test', json: jsonArray[0] },
+            { internalId: 'test2', json: jsonArray[1] }
+        ];
+        await dbQueries.addJsonDataBatch(batch);
+
+        const _collection = await dbQueries.collection();
+        expect(_collection.length).toEqual(2);
+
+        const modifiedObject1 = _collection.find((object) => object.internal_id === 'test');
+        expect(modifiedObject1?.data).toEqual(jsonArray[0]);
+
+        const modifiedObject2 = _collection.find((object) => object.internal_id === 'test2');
+        expect(modifiedObject2?.data).toEqual(jsonArray[1]);
+
+    });
+
+    test('add zones with converted geography', async() => {
+
+        const _collectionBefore = await dbQueries.collection();
+
+        // The sql call tested here takes zones without geography as an input, so we clone the attributes and omit the geography from the type.
+        const clonedObjectAttributes = _cloneDeep(newObjectAttributes);
+        clonedObjectAttributes.id = uuidV4();
+        const newObject = new ObjectClass(clonedObjectAttributes, true);
+        const clonedZoneAttributes: Omit<ZoneAttributes, "geography"> = _cloneDeep(newObject.attributes);
+
+        const clonedObjectAttributes2 = _cloneDeep(newObjectAttributes2);
+        clonedObjectAttributes2.id = uuidV4();
+        const newObject2 = new ObjectClass(clonedObjectAttributes2, true);
+        const clonedZoneAttributes2: Omit<ZoneAttributes, "geography"> = _cloneDeep(newObject2.attributes);
+
+        // The coordinate system used here is EPSG:3347, a standard that contains the entirery of Canada, as well as parts of the United States and Greenland.
+        // We convert them to WGS 84, the ubiquitous worldwide coordinate system used by Transition.
+        const input1 = {
+            zone: clonedZoneAttributes,
+            spatialReferenceId: '3347',
+            geography: 'MULTIPOLYGON(((8978545.64571433 2146380.76285718, 8978655.2371429 2146599.65428575, 8978660.66571433 2146479.86857146, 8978545.64571433 2146380.76285718)))'
+        };
+
+        const input2 = {
+            zone: clonedZoneAttributes2,
+            spatialReferenceId: '3347',
+            geography: 'MULTIPOLYGON(((8978829.84857147 2146989.38571432, 8978655.2371429 2146599.65428575, 8978582.4771429 2146647.18000003, 8978707.7571429 2146898.96285718, 8978753.12857147 2147015.20285718, 8978829.84857147 2146989.38571432)))'
+        };
+
+        const batch = [input1, input2];
+        await dbQueries.addZonesAndConvertedGeography(batch);
+
+        const convertedCoordinateArray1 = [[[[-52.774208189,47.525948808], [-52.771360085,47.526982704], [-52.772213374,47.52607973], [-52.774208189,47.525948808]]]];
+        const convertedCoordinateArray2 = [[[[-52.766509988,47.52892911], [-52.771360085,47.526982704], [-52.771782992,47.527705008], [-52.768515111,47.528898194], [-52.76714082,47.529513295], [-52.766509988,47.52892911]]]];
+
+        const _collectionAfter = await dbQueries.collection();
+        expect(_collectionAfter.length - _collectionBefore.length).toEqual(2);
+
+        const addedObject1 = _collectionAfter.find((object) => object.id === clonedObjectAttributes.id);
+        expect(addedObject1?.geography.coordinates).toEqual(convertedCoordinateArray1);
+
+        const addedObject2 = _collectionAfter.find((object) => object.id === clonedObjectAttributes2.id);
+        expect(addedObject2?.geography.coordinates).toEqual(convertedCoordinateArray2);
+
+    });
+
     test('delete for data source', async() => {
         
         const _collectionBefore = await dbQueries.collection({ dataSourceId });
-        expect(_collectionBefore.length).toEqual(1);
+        expect(_collectionBefore.length).toEqual(2);
 
         const id = await dbQueries.deleteForDataSourceId(dataSourceId)
         expect(id).toEqual(dataSourceId);
