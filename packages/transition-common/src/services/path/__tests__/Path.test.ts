@@ -17,7 +17,7 @@ import each from 'jest-each';
 import Path from '../Path';
 import Node from '../../nodes/Node';
 import NodeCollection from '../../nodes/NodeCollection';
-import { getPathAttributesWithData } from './PathData.test';
+import { getPathAttributesWithData } from './PathData';
 import updatePathGeography from '../PathGeographyUtils'
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 

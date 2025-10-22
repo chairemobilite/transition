@@ -25,7 +25,6 @@ test('Table from', async () => {
     const response = {query: '', durations: [30, 32.1], distances: [1000, 1004.2]};
     const mockTableFrom = jest.fn().mockImplementation((params, callback) => callback(Status.createOk({query: '', durations: [30, 32.1], distances: [1000, 1004.2]})));
     eventManager.on('service.osrmRouting.tableFrom', mockTableFrom);
-    // Dummy test so this file passes, we should have a place to put stub classes
     const origin = TestUtils.makePoint([-73, 45]);
     const destination1 = TestUtils.makePoint([-73.1, 45.1]);
     const destination2 =TestUtils.makePoint([-73.1, 44.9]);
@@ -39,7 +38,6 @@ test('Table to', async () => {
     const response = {query: '', durations: [30, 32.1], distances: [1000, 1004.2]};
     const mockTableTo = jest.fn().mockImplementation((params, callback) => callback(Status.createOk(response)));
     eventManager.on('service.osrmRouting.tableTo', mockTableTo);
-    // Dummy test so this file passes, we should have a place to put stub classes
     const destination = TestUtils.makePoint([-73, 45]);
     const origin1 = TestUtils.makePoint([-73.1, 45.1]);
     const origin2 =TestUtils.makePoint([-73.1, 44.9]);

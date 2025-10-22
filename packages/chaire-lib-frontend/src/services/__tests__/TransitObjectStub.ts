@@ -82,7 +82,3 @@ export class GenericCollectionStub  {
 export class TransitNodeStub extends TransitObjectStub {
 
 }
-
-test('Dummy', () => {
-    // Dummy test so this file passes, we should have a place to put stub classes
-});

@@ -14,7 +14,7 @@ import lineModes from '../../../config/lineModes';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 import Line from '../Line';
-import { lineAttributesBaseData, lineAttributesMinimalData, lineAttributesWithPathAndSchedule } from './LineData.test';
+import { lineAttributesBaseData, lineAttributesMinimalData, lineAttributesWithPathAndSchedule } from './LineData';
 import { EventEmitter } from 'events';
 import Schedule from '../../schedules/Schedule';
 

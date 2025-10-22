@@ -232,7 +232,3 @@ export const getPathObject = ({
     pathCollection.add(path);
     return path;
 };
-
-test('Dummy Path', () => {
-    // Dummy test so this file passes
-});
