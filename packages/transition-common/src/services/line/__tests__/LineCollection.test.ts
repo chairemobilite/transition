@@ -12,7 +12,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 import Line from '../Line';
 import LineCollection from '../LineCollection';
-import { lineAttributesBaseData, lineAttributesMinimalData } from './LineData.test';
+import { lineAttributesBaseData, lineAttributesMinimalData } from './LineData';
 
 // TODO Bring the collection manager to a mocking library
 const eventManager = EventManagerMock.eventManagerMock;

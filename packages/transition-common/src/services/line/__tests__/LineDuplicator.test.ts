@@ -17,9 +17,9 @@ import ServiceCollection from '../../service/ServiceCollection';
 import Service from '../../service/Service';
 import PathCollection from '../../path/PathCollection';
 import Path from '../../path/Path';
-import { lineAttributesBaseData } from './LineData.test';
-import { getPathObjectWithData } from '../../path/__tests__/PathData.test';
-import { getScheduleAttributes } from '../../schedules/__tests__/ScheduleData.test';
+import { lineAttributesBaseData } from './LineData';
+import { getPathObjectWithData } from '../../path/__tests__/PathData';
+import { getScheduleAttributes } from '../../schedules/__tests__/ScheduleData';
 import Schedule from '../../schedules/Schedule';
 import { duplicateSchedules } from '../../schedules/ScheduleDuplicator';
 

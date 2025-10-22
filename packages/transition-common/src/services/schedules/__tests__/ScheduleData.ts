@@ -133,7 +133,3 @@ export const getScheduleAttributes: (params: any) => ScheduleAttributes = ({
         }],
     };
 };
-
-test('Dummy schedule data test', () => {
-    // Dummy test so this file passes
-})

@@ -46,8 +46,3 @@ export class SimulationAlgorithmDescriptorStub implements SimulationAlgorithmDes
     }
     
 }
-
-
-test('dummy', () => {
-    // Just to make this file pass
-})

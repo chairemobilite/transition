@@ -51,7 +51,3 @@ export const lineAttributesWithPathAndSchedule = {
     created_at: '2021-07-23T09:59:00.182Z',
     updated_at: '2021-07-23T10:17:00.182Z'
 } as LineAttributes;
-
-test('Dummy Line', function() {
-    // Dummy test so this file passes
-});

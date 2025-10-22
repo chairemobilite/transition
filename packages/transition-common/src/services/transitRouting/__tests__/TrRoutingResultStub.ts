@@ -7,11 +7,6 @@
 import { pathNoTransferRouteResult, pathOneTransferRouteResult } from 'chaire-lib-common/lib/test/services/transitRouting/TrRoutingConstantsStubs';
 import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/transitRouting/types';
 
-// TODO tahini: this is considered a test file, so we need a test, should be a mock
-test('Dummy', () => {
-	// Dummy test so this file passes, we should have a place to put stub classes
-});
-
 // A simple path without transfer
 export const simplePathResult: TrRoutingRouteResult = {
 	totalRoutesCalculated: 1,
