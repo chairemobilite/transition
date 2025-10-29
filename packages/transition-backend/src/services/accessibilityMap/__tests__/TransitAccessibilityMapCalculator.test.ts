@@ -193,14 +193,15 @@ describe('Test accessibility map with results', () => {
     mockedNodesDbCollection.mockResolvedValue({ type: 'FeatureCollection', features: [ node1, node2, node3 ] });
     mockedPlacesPOIsCount.mockResolvedValue({accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory})
 
-    test('Test one polygon, 2 nodes, with additional properties', async() => {
+    test('Test one polygon, 2 nodes, with additional properties and POIs', async() => {
         const attributes = {
             ...defaultAttributes,
             maxTotalTravelTimeSeconds: 600,
             minWaitingTimeSeconds: 120,
             maxAccessEgressTravelTimeSeconds: 180,
             maxTransferTravelTimeSeconds: 120,
-            walkingSpeedMps: 1
+            walkingSpeedMps: 1,
+            calculatePois: true
         }
         mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
@@ -263,7 +264,8 @@ describe('Test accessibility map with results', () => {
             minWaitingTimeSeconds: 120,
             maxAccessEgressTravelTimeSeconds: 180,
             maxTransferTravelTimeSeconds: 120,
-            walkingSpeedMps: 2
+            walkingSpeedMps: 2,
+            calculatePois: false
         }
         mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
@@ -304,6 +306,15 @@ describe('Test accessibility map with results', () => {
                 expect(actualString).toContain(expected[j].toString());
             }
         }
+
+        //Test that we get no POIs when calculatePois is explicitly set to false in the attributes
+        expect(mockedPlacesPOIsCount).toHaveBeenCalledTimes(0);
+        const polygonProperties = polygons.features[0].properties!;
+        expect(polygonProperties.accessiblePlacesCountByCategory).toBeUndefined();
+        expect(polygonProperties.accessiblePlacesCountByDetailedCategory).toBeUndefined();
+        expect(polygonProperties.cat_education).toBeUndefined();
+        expect(polygonProperties.catDet_school_secondary).toBeUndefined();
+        expect(polygonProperties.catDet_school_university).toBeUndefined();
     });
 
     test('Test 2 polygons, 2 nodes', async() => {
@@ -375,6 +386,15 @@ describe('Test accessibility map with results', () => {
             }
         }
         expect(mockedNodesDbCollection).toHaveBeenCalledWith({ nodeIds: [ node1.properties.id, node2.properties.id ] });
+
+        //Test that we get no POIs when calculatePois is omitted from the attributes
+        expect(mockedPlacesPOIsCount).toHaveBeenCalledTimes(0);
+        const polygonProperties = polygons.features[0].properties!;
+        expect(polygonProperties.accessiblePlacesCountByCategory).toBeUndefined();
+        expect(polygonProperties.accessiblePlacesCountByDetailedCategory).toBeUndefined();
+        expect(polygonProperties.cat_education).toBeUndefined();
+        expect(polygonProperties.catDet_school_secondary).toBeUndefined();
+        expect(polygonProperties.catDet_school_university).toBeUndefined();
     });
 
     test('Test one polygon, with delta', async() => {

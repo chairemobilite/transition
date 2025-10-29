@@ -382,7 +382,8 @@ const defaultPreferences: PreferencesModel = {
                 walkingSpeedFactor: 1.0, // walking travel times are weighted using this factor: Example: > 1.0 means faster walking, < 1.0 means slower walking
                 maxTotalTravelTimeSeconds: 1800,
                 locationColor: 'rgba(47, 138, 243, 1.0)',
-                polygonColor: 'rgba(47, 138, 243, 0.4)'
+                polygonColor: 'rgba(47, 138, 243, 0.4)',
+                calculatePois: false
             },
             transitOdTrips: {
                 minWaitingTimeSeconds: 180,

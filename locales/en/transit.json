@@ -580,6 +580,7 @@
         "RoutingPort": "Routing server port",
         "SampleRatio": "Sample ratio [0,1]",
         "WithAlternatives": "Calculate with alternatives",
+        "CalculatePois": "Calculate with points of interest",
         "Detailed": "Detailed results with steps",
         "WithGeometries": "Include route geometries (geojson)",
         "ReverseOD": "Reverse",

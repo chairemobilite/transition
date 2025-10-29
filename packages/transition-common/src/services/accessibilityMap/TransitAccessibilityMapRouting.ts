@@ -26,6 +26,7 @@ export interface AccessibilityMapCalculationAttributes extends GenericAttributes
     scenarioId?: string;
     locationColor?: string;
     placeName?: string;
+    calculatePois?: boolean;
 }
 
 export type AccessibilityMapAttributes = AccessibilityMapCalculationAttributes & TransitQueryAttributes;
