@@ -19,6 +19,7 @@ import { featureCollection as turfFeatureCollection } from '@turf/turf';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
+import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
@@ -35,6 +36,7 @@ import DownloadsUtils from 'chaire-lib-frontend/lib/services/DownloadsService';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import {
     secondsSinceMidnightToTimeStr,
     secondsToMinutes,
@@ -324,6 +326,31 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                                         _toString(!isNaN(parseFloat(value)) ? roundToDecimals(mpsToKph(value), 1) : '')
                                     }
                                     type="number"
+                                />
+                            </InputWrapper>
+                            <InputWrapper
+                                smallInput={true}
+                                label={this.props.t('transit:transitRouting:CalculatePois')}
+                            >
+                                <InputRadio
+                                    id={`formFieldTransitAccessibilityMapCalculatePOIS${routingId}`}
+                                    value={routing.attributes.calculatePois}
+                                    sameLine={true}
+                                    disabled={false}
+                                    choices={[
+                                        {
+                                            value: true
+                                        },
+                                        {
+                                            value: false
+                                        }
+                                    ]}
+                                    localePrefix="transit:transitRouting"
+                                    t={this.props.t}
+                                    isBoolean={true}
+                                    onValueChange={(e) =>
+                                        this.onValueChange('calculatePois', { value: _toBool(e.target.value) })
+                                    }
                                 />
                             </InputWrapper>
                         </div>

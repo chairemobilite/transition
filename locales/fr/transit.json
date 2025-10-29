@@ -580,6 +580,7 @@
         "RoutingPort": "Port du serveur de calcul",
         "SampleRatio": "Ratio de l'échantillon [0,1]",
         "WithAlternatives": "Calcul avec alternatives",
+        "CalculatePois": "Calcul avec lieux d'activité",
         "Detailed": "Résultats détaillés avec étapes",
         "WithGeometries": "Inclure les géométries des parcours (geojson)",
         "ReverseOD": "Inverser",
