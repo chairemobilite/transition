@@ -99,7 +99,8 @@ export const getAttributesOrDefault = (attributes: Partial<AccessibilityMapAttri
         scenarioId: attributes.scenarioId,
         locationColor: attributes.locationColor,
         color: attributes.color,
-        placeName: attributes.placeName
+        placeName: attributes.placeName,
+        calculatePois: attributes.calculatePois
     };
 };
 
@@ -422,6 +423,7 @@ export class TransitAccessibilityMapCalculator {
             locationGeojson: Feature<Point>;
             locationColor?: string;
             color?: string;
+            calculatePois?: boolean;
             [key: string]: any;
         },
         result: TransitAccessibilityMapResultByNode,
@@ -517,8 +519,13 @@ export class TransitAccessibilityMapCalculator {
 
             const area = turfArea(polygon);
 
-            const { accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory } =
-                await placesDbQueries.getPOIsCategoriesCountInPolygon(polygon.geometry);
+            let accessiblePlacesCountByCategory;
+            let accessiblePlacesCountByDetailedCategory;
+
+            if (attributes.calculatePois) {
+                ({ accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory } =
+                    await placesDbQueries.getPOIsCategoriesCountInPolygon(polygon.geometry));
+            }
 
             polygon.properties = {
                 durationSeconds: Math.round(duration),
