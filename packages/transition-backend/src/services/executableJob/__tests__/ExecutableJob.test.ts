@@ -7,7 +7,7 @@
 import _cloneDeep from 'lodash/cloneDeep';
 import { EventEmitter } from 'events';
 import each from 'jest-each';
-
+import fs from 'fs';
 import { TestUtils } from 'chaire-lib-common/lib/test';
 import { JobAttributes } from 'transition-common/lib/services/jobs/Job';
 import { execJob } from '../../../tasks/serverWorkerPool';
@@ -343,4 +343,123 @@ describe('Test status change', () => {
         expect(obj.status).toEqual(shouldChange ? 'cancelled' : status);
     });
 
-})
+});
+
+describe('Test stream methods', () => {
+    let jobObj: ExecutableJob<TestJobType>;
+
+    beforeEach(async () => {
+        mockedJobRead.mockResolvedValue(_cloneDeep(jobAttributes));
+        jobObj = await ExecutableJob.loadTask(jobAttributes.id);
+    });
+
+    describe('fileExists', () => {
+        test('Returns true when file exists', () => {
+            jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+            expect(jobObj.fileExists('testFile')).toBe(true);
+        });
+
+        test('Returns false when file does not exist', () => {
+            jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+            expect(jobObj.fileExists('testFile')).toBe(false);
+        });
+
+        test('Returns false when file is not defined in job', async () => {
+            const jobAttribsWithoutFile = {
+                ...jobAttributes,
+                resources: { files: {} }
+            };
+            mockedJobRead.mockResolvedValue(jobAttribsWithoutFile);
+            const jobWithoutFile = await ExecutableJob.loadTask(jobAttributes.id);
+            expect(jobWithoutFile.fileExists('testFile')).toBe(false);
+        });
+    });
+
+    describe('getReadStream', () => {
+        test('Returns read stream for existing file', () => {
+            jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+            const mockStream = {} as fs.ReadStream;
+            jest.spyOn(fs, 'createReadStream').mockReturnValue(mockStream);
+
+            const stream = jobObj.getReadStream('testFile');
+
+            expect(stream).toBe(mockStream);
+            expect(fs.createReadStream).toHaveBeenCalledWith(
+                expect.stringContaining('path/to/file')
+            );
+        });
+
+        test('Throws error when file is not defined', async () => {
+            const jobAttribsWithoutFile = {
+                ...jobAttributes,
+                resources: { files: {} }
+            };
+            mockedJobRead.mockResolvedValue(jobAttribsWithoutFile);
+            const jobWithoutFile = await ExecutableJob.loadTask(jobAttributes.id);
+
+            expect(() => jobWithoutFile.getReadStream('testFile')).toThrow();
+        });
+
+        test('Throws error when file does not exist', () => {
+            jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+
+            expect(() => jobObj.getReadStream('testFile')).toThrow();
+        });
+    });
+
+    describe('getWriteStream', () => {
+        test('Returns write stream for file', () => {
+            jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+            const mockStream = {} as fs.WriteStream;
+            jest.spyOn(fs, 'createWriteStream').mockReturnValue(mockStream);
+
+            const stream = jobObj.getWriteStream('testFile');
+
+            expect(stream).toBe(mockStream);
+            expect(fs.createWriteStream).toHaveBeenCalledWith(
+                expect.stringContaining('path/to/file'),
+                undefined
+            );
+        });
+
+        test('Returns write stream with options', () => {
+            jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+            const mockStream = {} as fs.WriteStream;
+            jest.spyOn(fs, 'createWriteStream').mockReturnValue(mockStream);
+            const options = { encoding: 'utf8' as BufferEncoding };
+
+            const stream = jobObj.getWriteStream('testFile', options);
+
+            expect(stream).toBe(mockStream);
+            expect(fs.createWriteStream).toHaveBeenCalledWith(
+                expect.stringContaining('path/to/file'),
+                options
+            );
+        });
+
+        test('Creates directory if it does not exist', () => {
+            jest.spyOn(fs, 'existsSync').mockReturnValue(false);
+            const mockStream = {} as fs.WriteStream;
+            jest.spyOn(fs, 'createWriteStream').mockReturnValue(mockStream);
+            const mkdirSpy = jest.spyOn(fs, 'mkdirSync').mockImplementation();
+
+            jobObj.getWriteStream('testFile');
+
+            expect(mkdirSpy).toHaveBeenCalledWith(
+                expect.any(String),
+                { recursive: true }
+            );
+        });
+
+        test('Throws error when file is not defined', async () => {
+            const jobAttribsWithoutFile = {
+                ...jobAttributes,
+                resources: { files: {} }
+            };
+            mockedJobRead.mockResolvedValue(jobAttribsWithoutFile);
+            const jobWithoutFile = await ExecutableJob.loadTask(jobAttributes.id);
+
+            expect(() => jobWithoutFile.getWriteStream('testFile')).toThrow();
+        });
+    });
+});
