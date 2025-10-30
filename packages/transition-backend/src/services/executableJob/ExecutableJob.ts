@@ -217,6 +217,74 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         }
     }
 
+    /**
+     * Check if a file exists for this job
+     * @param file - The file key to check
+     * @returns boolean indicating if the file exists
+     */
+    fileExists(file: keyof TData['files']): boolean {
+        const fileName = this.getFileName(file);
+        if (fileName === undefined) {
+            return false;
+        }
+        const filePath = path.join(this.getJobFileDirectory(), fileName);
+        return fs.existsSync(filePath);
+    }
+
+    /**
+     * Get a read stream for a file associated with this job
+     * @param file - The file key from the job's files definition
+     * @returns A readable stream for the file
+     * @throws {TrError} If the file is not defined or does not exist
+     */
+    getReadStream(file: keyof TData['files']): fs.ReadStream {
+        const fileName = this.getFileName(file);
+        if (fileName === undefined) {
+            throw new TrError(
+                `File '${String(file)}' is not defined for this job`,
+                'TREJB0002',
+                'transit:transitRouting:errors:FileNotDefined'
+            );
+        }
+        const filePath = path.join(this.getJobFileDirectory(), fileName);
+        if (!fs.existsSync(filePath)) {
+            throw new TrError(
+                `File '${String(file)}' does not exist at path: ${filePath}`,
+                'TREJB0003',
+                'transit:transitRouting:errors:FileDoesNotExist'
+            );
+        }
+        return fs.createReadStream(filePath);
+    }
+
+    /**
+     * Get a write stream for a file associated with this job
+     * Creates the file in the job's directory using the filename stored in resources
+     * @param file - The file key from the job's files definition
+     * @param options - Optional fs.WriteStream options
+     * @returns A writable stream for the file
+     * @throws {TrError} If the file is not defined in the job's resources
+     */
+    getWriteStream(file: keyof TData['files'], options?: Parameters<typeof fs.createWriteStream>[1]): fs.WriteStream {
+        const fileName = this.getFileName(file);
+        if (fileName === undefined) {
+            throw new TrError(
+                `File '${String(file)}' is not defined for this job`,
+                'TREJB0002',
+                'transit:transitRouting:errors:FileNotDefined'
+            );
+        }
+
+        // Ensure the directory exists
+        const directory = this.getJobFileDirectory();
+        if (!fs.existsSync(directory)) {
+            fs.mkdirSync(directory, { recursive: true });
+        }
+        // We cannot use getFilePath as it checks if the file exist
+        const filePath = path.join(directory, fileName);
+        return fs.createWriteStream(filePath, options);
+    }
+
     setCancelled(): boolean {
         if (this.status === 'pending' || this.status === 'inProgress') {
             this.status = 'cancelled';
