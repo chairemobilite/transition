@@ -1,0 +1,105 @@
+{
+    "$schema": "https://cdn.statically.io/gh/nguyenngoclongdev/cdn/main/schema/v11/terminal-keeper.json",
+    "theme": "tribe",
+    "active": "transition-dev",
+    "activateOnStartup": true,
+    "keepExistingTerminals": false,
+    "sessions": {
+        "transition-dev": [
+            {
+                "name": "git",
+                "commands": [
+                    "git status"
+                ],
+                "icon": "source-control",
+                "color": "terminal.ansiBlue"
+            },
+            {
+                "name": "compile-dev",
+                "commands": [
+                    "yarn compile:dev"
+                ],
+                "icon": "gear",
+                "color": "terminal.ansiYellow"
+            },
+            {
+                "name": "build",
+                "commands": [
+                    "yarn build:dev"
+                ],
+                "icon": "package",
+                "color": "terminal.ansiGreen"
+            },
+            {
+                "name": "server-debug",
+                "commands": [
+                    "yarn start:debug"
+                ],
+                "icon": "server",
+                "color": "terminal.ansiGreen"
+            },
+            {
+                "name": "test-all",
+                "commands": [
+                    "yarn test"
+                ],
+                "icon": "beaker",
+                "color": "terminal.ansiYellow"
+            },
+            {
+                "name": "test-transition-common",
+                "commands": [
+                    "cd packages/transition-common",
+                    "npx jest"
+                ],
+                "icon": "beaker",
+                "color": "terminal.ansiYellow"
+            },
+            {
+                "name": "test-transition-backend",
+                "commands": [
+                    "cd packages/transition-backend",
+                    "npx jest"
+                ],
+                "icon": "beaker",
+                "color": "terminal.ansiYellow"
+            },
+            {
+                "name": "test-transition-frontend",
+                "commands": [
+                    "cd packages/transition-frontend",
+                    "npx jest"
+                ],
+                "icon": "beaker",
+                "color": "terminal.ansiYellow"
+            },
+            {
+                "name": "test-chaire-lib-common",
+                "commands": [
+                    "cd packages/chaire-lib-common",
+                    "npx jest"
+                ],
+                "icon": "beaker",
+                "color": "terminal.ansiYellow"
+            },
+            {
+                "name": "test-chaire-lib-backend",
+                "commands": [
+                    "cd packages/chaire-lib-backend",
+                    "npx jest"
+                ],
+                "icon": "beaker",
+                "color": "terminal.ansiYellow"
+            },
+            {
+                "name": "test-chaire-lib-frontend",
+                "commands": [
+                    "cd packages/chaire-lib-frontend",
+                    "npx jest"
+                ],
+                "icon": "beaker",
+                "color": "terminal.ansiYellow"
+            }
+        ]
+    }
+}
