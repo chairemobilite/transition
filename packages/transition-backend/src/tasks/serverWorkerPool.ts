@@ -5,9 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import workerpool, { WorkerPool } from 'workerpool';
+import workerpool, { Pool } from 'workerpool';
 
-let pool: WorkerPool | undefined = undefined;
+let pool: Pool | undefined = undefined;
 
 export const startPool = () => {
     // TODO: Add a server preference for the maximum number of workers
@@ -15,9 +15,7 @@ export const startPool = () => {
     pool = workerpool.pool(__dirname + '/TransitionWorkerPool.js', { maxWorkers: 1 });
 };
 
-export const execJob = async (
-    ...parameters: Parameters<WorkerPool['exec']>
-): Promise<ReturnType<WorkerPool['exec']>> => {
+export const execJob = async (...parameters: Parameters<Pool['exec']>): Promise<ReturnType<Pool['exec']>> => {
     if (pool === undefined) {
         throw new TrError(`Error executing job '${parameters[0]}': No executor available`, 'EXECPOOL001');
     }

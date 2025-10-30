@@ -3624,13 +3624,6 @@
   resolved "https://registry.yarnpkg.com/@types/validator/-/validator-13.12.2.tgz#760329e756e18a4aab82fc502b51ebdfebbe49f5"
   integrity sha512-6SlHBzUW8Jhf3liqrGGXyTJSIFe4nqlJ5A5KaMZ2l/vbM3Wh3KSybots/wfWVzNLK4D1NZluDlSQIbIEPx6oyA==
 
-"@types/workerpool@^6.4.7":
-  version "6.4.7"
-  resolved "https://registry.yarnpkg.com/@types/workerpool/-/workerpool-6.4.7.tgz#f486a08d81fb785b3605da49f0552614c4866c23"
-  integrity sha512-DI2U4obcMzFViyNjLw0xXspim++qkAJ4BWRdYPVMMFtOpTvMr6PAk3UTZEoSqnZnvgUkJ3ck97Ybk+iIfuJHMg==
-  dependencies:
-    "@types/node" "*"
-
 "@types/yargs-parser@*":
   version "15.0.0"
   resolved "https://registry.yarnpkg.com/@types/yargs-parser/-/yargs-parser-15.0.0.tgz#cb3f9f741869e20cce330ffbeb9271590483882d"
@@ -12541,10 +12534,10 @@ word-wrap@^1.2.5:
   resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.5.tgz#d2c45c6dd4fbce621a66f136cbe328afd0410b34"
   integrity sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==
 
-workerpool@^6.5.1:
-  version "6.5.1"
-  resolved "https://registry.yarnpkg.com/workerpool/-/workerpool-6.5.1.tgz#060f73b39d0caf97c6db64da004cd01b4c099544"
-  integrity sha512-Fs4dNYcsdpYSAfVxhnl1L5zTksjvOJxtC5hzMNl+1t9B8hTJTdKDyZ5ju7ztgPy+ft9tBFXoOlDNiOT9WUXZlA==
+workerpool@^10.0.0:
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/workerpool/-/workerpool-10.0.0.tgz#73f972a4e74b05dc4e45a5c54ec8eb67b67365ba"
+  integrity sha512-q++kYpKoYSfe7myTA5bH8nov9XKpEj7ji3f/W2h4E8yrX42Fhdt6x3E5pgsmnL1+swBZXryUwudNQJmcuodqmw==
 
 "wrap-ansi-cjs@npm:wrap-ansi@^7.0.0":
   version "7.0.0"
