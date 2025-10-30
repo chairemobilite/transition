@@ -38,11 +38,11 @@ import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/typ
 const ScenarioComparisonPanel: React.FC = () => {
     // State hooks
     const routingObj = useRef<TransitRouting>(
-        new TransitRouting(_cloneDeep(Preferences.get('transit.routing.transit')), false)
+        new TransitRouting(_cloneDeep(Preferences.get('transit.routing.transit')))
     ).current;
     const [routingAttributes, setRoutingAttributes] = useState<TransitRoutingAttributes>(routingObj.attributes);
     const alternateRoutingObj = useRef<TransitRouting>(
-        new TransitRouting(_cloneDeep(Preferences.get('transit.routing.transit')), false)
+        new TransitRouting(_cloneDeep(Preferences.get('transit.routing.transit')))
     ).current;
     // State is not used
     const [, setAlternateRoutingAttributes] = useState<TransitRoutingAttributes>(alternateRoutingObj.attributes);
@@ -86,15 +86,19 @@ const ScenarioComparisonPanel: React.FC = () => {
         }
     };
 
+    // FIXME Try to have separate functions for alternate scenarios, or manage them separately, or send a specific object here is only one needs update
     const onValueChange = (
-        path: string,
+        path: keyof TransitRoutingAttributes | 'alternateScenario1Id' | 'alternateScenario2Id',
         newValue: { value: any; valid?: boolean } = { value: null, valid: true },
         resetResultsFlag = true
     ) => {
         onFormFieldChange(path, newValue);
-        if (newValue.valid || newValue.valid === undefined) {
+        if (
+            newValue.valid ||
+            (newValue.valid === undefined && path !== 'alternateScenario1Id' && path !== 'alternateScenario2Id')
+        ) {
             const updatedObject = routingObj;
-            updatedObject.set(path, newValue.value);
+            updatedObject.set(path as keyof TransitRoutingAttributes, newValue.value);
             if (typeof updatedObject.validate === 'function') {
                 updatedObject.validate();
             }
@@ -168,15 +172,15 @@ const ScenarioComparisonPanel: React.FC = () => {
         setLoading(true);
 
         try {
-            routing.attributes.routingModes = ['transit'];
+            routing.set('routingModes', ['transit']);
             // Calculate the route for the two scenarios one after the other
-            routing.attributes.scenarioId = formValues.alternateScenario1Id;
+            routing.set('scenarioId', formValues.alternateScenario1Id);
             const results1 = await calculateRouting(routing, refresh, { isCancelled });
             if (isCancelled()) {
                 return;
             }
-            alternate.attributes.routingModes = ['transit'];
-            alternate.attributes.scenarioId = formValues.alternateScenario2Id;
+            alternate.set('routingModes', ['transit']);
+            alternate.set('scenarioId', formValues.alternateScenario2Id);
             const results2 = await calculateRouting(alternate, refresh, { isCancelled });
             if (isCancelled()) {
                 return;
@@ -288,7 +292,7 @@ const ScenarioComparisonPanel: React.FC = () => {
     };
 
     const updateBothRoutingEngines = (
-        path: string,
+        path: keyof TransitRoutingAttributes,
         newValue: { value: any; valid?: boolean },
         alternateRouting: TransitRouting,
         resetResultsFlag = true
@@ -296,7 +300,7 @@ const ScenarioComparisonPanel: React.FC = () => {
         onValueChange(path, newValue, resetResultsFlag);
         if (newValue.valid || newValue.valid === undefined) {
             const updatedAlternate = alternateRouting;
-            updatedAlternate.attributes[path] = newValue.value;
+            updatedAlternate.set(path, newValue.value);
             setAlternateRoutingAttributes({ ...updatedAlternate.attributes });
         }
     };
@@ -323,10 +327,8 @@ const ScenarioComparisonPanel: React.FC = () => {
         return <LoadingPage />;
     }
 
-    const routingId = routingObj.get('id');
-
     if (_isBlank(routingObj.get('withAlternatives'))) {
-        routingObj.attributes.withAlternatives = false;
+        routingObj.set('withAlternatives', false);
     }
 
     const scenarios = scenarioCollection.features.map((scenario) => {
@@ -364,13 +366,13 @@ const ScenarioComparisonPanel: React.FC = () => {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
                             <InputWrapper label={t('transit:transitComparison:ScenarioN', { scenarioNumber: '1' })}>
                                 <InputSelect
-                                    id={`formFieldTransitRoutingScenario1${routingId}`}
+                                    id={'formFieldTransitRoutingScenario1'}
                                     value={formValues.alternateScenario1Id}
                                     choices={scenarios}
                                     t={t}
                                     onValueChange={(e) => {
                                         onValueChange('alternateScenario1Id', { value: e.target.value }, true);
-                                        routingObj.attributes.scenarioId = e.target.value;
+                                        routingObj.set('scenarioId', e.target.value);
                                     }}
                                 />
                             </InputWrapper>
@@ -379,20 +381,20 @@ const ScenarioComparisonPanel: React.FC = () => {
                                 textColor="#ff00ff"
                             >
                                 <InputSelect
-                                    id={`formFieldTransitRoutingScenario2${routingId}`}
+                                    id={'formFieldTransitRoutingScenario2'}
                                     value={formValues.alternateScenario2Id}
                                     choices={scenarios}
                                     t={t}
                                     onValueChange={(e) => {
                                         onValueChange('alternateScenario2Id', { value: e.target.value }, true);
-                                        alternateRoutingObj.attributes.scenarioId = e.target.value;
+                                        alternateRoutingObj.set('scenarioId', e.target.value);
                                     }}
                                 />
                             </InputWrapper>
                         </div>
                         <InputWrapper label={t('transit:transitRouting:WithAlternatives')}>
                             <InputRadio
-                                id={`formFieldTransitRoutingWithAlternatives${routingId}`}
+                                id={'formFieldTransitRoutingWithAlternatives'}
                                 value={formValues.withAlternatives}
                                 sameLine={true}
                                 disabled={false}
@@ -425,7 +427,7 @@ const ScenarioComparisonPanel: React.FC = () => {
                             />
                             <InputWrapper label={t('transit:transitRouting:RoutingName')}>
                                 <InputString
-                                    id={`formFieldTransitRoutingRoutingName${routingId}`}
+                                    id={'formFieldTransitRoutingRoutingName'}
                                     value={formValues.routingName}
                                     onValueUpdated={(value) =>
                                         updateBothRoutingEngines('routingName', value, alternateRoutingObj, false)
