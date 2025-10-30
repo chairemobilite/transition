@@ -1,0 +1,636 @@
+---
+description: General context for Transition app development
+globs: 
+alwaysApply: true
+---
+
+# Transition Project - AI Context Guide
+
+**This document provides comprehensive context for AI assistants working on the Transition codebase.**
+
+## Project Overview
+
+**Transition** is a transit planning and simulation platform developed by the Chaire Mobilité research group at Polytechnique Montréal. It's a full-stack web application for modeling, simulating, and planning public transit and alternative transportation systems.
+
+- **Website**: http://transition.city/
+- **Purpose**: Help transport planners (public or private) analyze transit networks, simulate scenarios, and plan transportation systems
+- **License**: MIT
+- **Repository**: github.com/chairemobilite/transition
+
+---
+
+## Architecture Overview
+
+Transition is a **monorepo** using Yarn workspaces, structured as a full-stack TypeScript/React application with the following architecture:
+
+```
+transition-fork/
+├── packages/                    # Main application packages (monorepo workspaces)
+│   ├── chaire-lib-backend/     # Shared backend library
+│   ├── chaire-lib-common/      # Shared common utilities
+│   ├── chaire-lib-frontend/    # Shared frontend library
+│   ├── transition-backend/     # Main backend application
+│   ├── transition-common/      # Transition-specific shared code
+│   └── transition-frontend/    # Main frontend React application
+├── services/                   # Additional services
+│   └── json2capnp/             # Rust service for Cap'n Proto caching
+├── pyTransition/               # Python client library for Transition API
+├── configs/                    # Shared configuration files (ESLint, Prettier, TypeScript)
+├── locales/                    # i18n translation files (en, fr)
+├── docs/                       # Documentation
+├── examples/                    # Example configuration files
+└── tests/                      # Integration tests
+```
+
+---
+
+## Technology Stack
+
+### Backend
+- **Runtime**: Node.js
+- **Language**: TypeScript
+- **Framework**: Express.js
+- **Real-time**: Socket.IO
+- **Database**: PostgreSQL with PostGIS extension
+- **ORM/Migrations**: Knex.js
+- **Authentication**: Passport.js (local, bearer token)
+- **Routing Engines**:
+  - **OSRM**: For road network routing (walking, cycling, driving, bus modes)
+  - **trRouting**: For public transit routing (primary engine)
+- **Cache**: Cap'n Proto format (via Rust service `json2capnp`)
+- **Build Tool**: TypeScript compiler (tsc)
+
+### Frontend
+- **Framework**: React with React Router
+- **State Management**: Redux with Redux Thunk
+- **Styling**: SCSS/SASS
+- **Maps**: Mapbox GL JS (custom fork: `chairemobilite/mapbox-gl-js`) (will be changed to maplibre/deck.gl)
+- **Build Tool**: Webpack
+- **UI Libraries**: React components (tabs, datepicker, modals, etc.)
+- **Internationalization**: i18next (react-i18next)
+
+### Additional Services
+- **json2capnp**: Rust service for converting JSON transit data to Cap'n Proto format for high-performance caching
+- **Memcached**: Used for caching (mentioned in Dockerfile)
+
+### Development Tools
+- **Package Manager**: Yarn (classic)
+- **Linting**: ESLint with TypeScript plugin
+- **Formatting**: Prettier (integrated with ESLint)
+- **Testing**: Jest (unit tests), Playwright (UI tests)
+- **Code Style**: Based on Google TypeScript Style (GTS) with customizations
+
+---
+
+## Package Breakdown
+
+### `chaire-lib-backend`
+Shared backend library containing:
+- Database models and migrations
+- API routing utilities
+- Authentication/passport strategies
+- OSRM and trRouting process managers
+- File upload handlers
+- Task management
+- Internationalization setup
+- User management
+
+**Key directories:**
+- `src/models/db/` - Database models (users, data sources)
+- `src/api/` - API route utilities
+- `src/config/` - Server configuration (knexfile, i18next)
+- `src/utils/processManagers/` - OSRM and trRouting managers
+- `src/scripts/` - Setup and migration scripts
+
+### `chaire-lib-common`
+Shared utilities used by both frontend and backend:
+- Common data types and interfaces
+- Utility functions (lodash extensions, GeoJSON helpers)
+- Routing utilities
+- Status/Result type handling
+
+### `chaire-lib-frontend`
+Shared frontend library:
+- React components (reusable UI elements)
+- Redux store configuration
+- Map components
+- Form components
+- i18n configuration
+- Styles
+
+### `transition-backend`
+Main backend application for transit planning:
+- Transit-specific models (agencies, lines, nodes, paths, services, scenarios)
+- GTFS import/export
+- Transit routing calculations
+- Accessibility map calculations
+- Batch calculation jobs
+- Simulations and evolutionary algorithms
+- Public REST API (v1.1)
+- Socket.IO API routes
+
+**Key entry point**: `src/server.ts` - Main server initialization
+
+**Key services:**
+- `src/services/gtfsImport/` - GTFS data import
+- `src/services/gtfsExport/` - GTFS data export
+- `src/services/transitRouting/` - Transit routing calculations
+- `src/services/simulation/` - Transit simulations
+- `src/services/evolutionaryAlgorithm/` - Genetic algorithm for transit optimization
+- `src/services/accessibilityMap/` - Accessibility map calculations
+- `src/api/` - API routes (socket and REST)
+
+**Database models:**
+- Transit agencies, lines, paths, nodes, services
+- Scenarios (transit network configurations)
+- OD trips (origin-destination pairs)
+- Data sources
+- Jobs (batch calculations)
+- Places
+
+### `transition-frontend`
+Main React frontend application:
+
+**Entry point**: `src/app-transition.tsx`
+
+**Key components:**
+- Dashboard with map-based interface
+- Forms for managing transit objects (agencies, lines, paths, nodes, services)
+- GTFS import/export forms
+- Routing calculation forms
+- Accessibility map forms
+- Scenario comparison tools
+- Batch calculation management
+- Simulation management
+
+**Routing**: Defined in `src/components/routers/TransitionRouter.tsx`
+
+### `transition-common`
+Shared code specific to Transition (not generic chaire-lib):
+- Transit-specific types
+- Common transit utilities
+
+---
+
+## Database Schema
+
+### Core Tables (chaire-lib-backend)
+- **users**: User accounts, authentication, permissions
+- **tr_data_sources**: Data source definitions (GTFS, OD trips, GPS traces, etc.)
+
+### Transit Tables (transition-backend)
+- **tr_transit_agencies**: Transit agencies
+- **tr_transit_lines**: Transit lines/routes
+- **tr_transit_paths**: Physical paths that lines follow
+- **tr_transit_nodes**: Transit stops/stations
+- **tr_transit_services**: Service definitions (schedules)
+- **tr_transit_scenarios**: Network scenarios for simulations
+- **tr_transit_units**: Vehicles (buses, trains, etc.)
+- **tr_transit_garages**: Vehicle depots
+- **tr_od_trips**: Origin-destination trip data
+- **tr_od_pairs**: OD pair aggregations
+- **tr_places**: Points of interest
+- **tr_jobs**: Batch calculation jobs
+
+**Database**: PostgreSQL with PostGIS for geographic data
+
+**Migrations**: Managed by Knex.js, located in:
+- `packages/chaire-lib-backend/src/models/db/migrations/`
+- `packages/transition-backend/src/models/db/migrations/`
+
+---
+
+## Key Concepts
+
+### Scenarios
+A **scenario** represents a complete transit network configuration at a point in time. Scenarios include:
+- All transit lines, paths, nodes, and services
+- Network configuration parameters
+- Used for comparisons and simulations
+
+### Transit Objects Hierarchy
+```
+Agency
+  └── Lines
+      └── Services (schedules)
+          └── Paths (physical route geometry)
+              └── Nodes (stops)
+```
+
+### Data Sources
+**Data sources** can be imported from various formats:
+- **GTFS**: General Transit Feed Specification (standard format)
+- **OD Trips**: Origin-destination trip matrices
+- **GPS Traces**: Vehicle tracking data
+- **OSM Data**: OpenStreetMap network data
+- **Places**: Points of interest
+- **Smart Card Data**: Transit usage data
+- **Operational Data**: Schedule/performance data
+
+### Routing Engines
+- **OSRM** (Open Source Routing Machine): Used for road-based routing (walking, cycling, driving, bus routing on streets)
+- **trRouting**: Used for public transit routing (finding transit trips between points using schedules)
+
+### Cap'n Proto Cache
+For performance, transit data is cached in Cap'n Proto format by the `json2capnp` Rust service. This provides:
+- Fast deserialization
+- Memory-efficient storage
+- Parallel access
+
+**Cache location**: Defined by `projectDirectory` in config.js (default: `examples/runtime/cache/`)
+
+---
+
+## Configuration
+
+### Environment Variables (.env file)
+Required environment variables:
+- `PG_CONNECTION_STRING_PREFIX`: PostgreSQL connection string (e.g., `postgres://postgres:password@localhost:5432/`)
+- `EXPRESS_SESSION_SECRET_KEY`: Random string for session encryption
+- `PROJECT_CONFIG`: Path to project config.js file
+- `MAPBOX_ACCESS_TOKEN`: Mapbox API token (for map display)
+- `MAPBOX_USER_ID`: Optional Mapbox style user ID
+- `MAPBOX_STYLE_ID`: Optional Mapbox style ID
+- `NODE_ENV`: `production`, `development`, or `test`
+- `STARTUP_RECREATE_CACHE`: Boolean - recreate cache on startup
+- `STARTUP_RESTART_JOBS`: Boolean - restart pending jobs on startup
+
+### Project Configuration (config.js)
+Example: `examples/config.js`
+
+**Key settings:**
+- `projectShortname`: Unique identifier for the project
+- `projectDirectory`: Root directory for runtime files (OSRM data, cache, imports, logs)
+- `mapDefaultCenter`: Default map center coordinates
+- `languages`: Supported languages array
+- `timezone`: Timezone for the project
+- `routing`: Configuration for routing engines (OSRM ports, trRouting ports)
+- `auth.localLogin`: Authentication settings
+- `defaultPreferences`: Default user preferences
+- `sections`: Enable/disable application sections
+
+**Runtime Directory Structure:**
+```
+projectDirectory/
+├── cache/           # Cap'n Proto cache files
+├── osrm/            # OSRM graph data
+├── imports/         # Imported data files
+└── logs/            # Application logs
+```
+
+---
+
+## API Architecture
+
+### Public REST API (v1.1)
+**Base URL**: `/api/v1/`
+
+**Authentication**: Bearer token (obtained via `/token` POST endpoint)
+
+**Key endpoints:**
+- `GET /api/v1/paths` - Get all transit paths (GeoJSON)
+- `GET /api/v1/nodes` - Get all transit nodes (GeoJSON)
+- `GET /api/v1/scenarios` - Get all scenarios
+- `GET /api/v1/agencies` - Get all agencies
+- `GET /api/v1/lines` - Get all lines
+- `GET /api/v1/services` - Get all services
+- `GET /api/v1/routingModes` - Get available routing modes
+- `POST /api/v1/route` - Calculate route between points
+- `POST /api/v1/accessibilityMap` - Calculate accessibility map
+
+**Documentation**: See `docs/APIv1/*.yml` files (OpenAPI/Swagger format)
+
+### Socket.IO API
+Used for real-time communication in the web application:
+- Real-time data updates
+- File uploads
+- Job status updates
+- Collaborative editing
+
+**Routes defined in:**
+- `packages/transition-backend/src/api/all.socketRoutes.ts`
+
+**Key socket namespaces:**
+- `gtfs` - GTFS import/export
+- `transit` - Transit object management
+- `simulations` - Simulation management
+- `jobs` - Batch job management
+- `cache` - Cache operations
+- `odPairs` - OD trip management
+- `places` - Place management
+- `routing` - Routing calculations
+
+---
+
+## Development Workflow
+
+1. **Build frontend:**
+   ```bash
+   yarn build:dev    # Development build (faster, larger)
+   # or
+   yarn build:prod   # Production build (minified)
+   ```
+
+2. **Start services:**
+   - Start json2capnp cache server (optional but recommended):
+     ```bash
+     yarn start:json2capnp -- 2000 /absolute/path/to/cache/directory/
+     ```
+   - Start Node.js server:
+     ```bash
+     yarn start       # Normal mode
+     yarn start:debug # Debug mode with extra logging
+     ```
+
+### Development Commands
+
+**Root level (workspace-level):**
+- `yarn setup` - Setup database
+- `yarn migrate` - Run database migrations
+- `yarn compile` - Compile all TypeScript packages
+- `yarn compile:dev` - Compile with watch mode
+- `yarn build:dev` - Build frontend (development)
+- `yarn build:prod` - Build frontend (production)
+- `yarn start` - Start backend server
+- `yarn start:debug` - Start with debug logging
+- `yarn test` - Run unit tests across all packages
+- `yarn test:sequential` - Run integration tests (requires test DB)
+- `yarn test:ui` - Run Playwright UI tests
+- `yarn lint` - Lint all code
+- `yarn format` - Format all code with Prettier
+- `yarn create-user` - Create a new user account
+
+**Package-level commands:**
+Can be run with `yarn workspace <package-name> run <command>`
+
+### Code Style
+- **Formatting**: Uses Prettier with ESLint integration
+- **Linting**: ESLint with TypeScript plugin
+- **Base rules**: Google TypeScript Style (GTS) from `configs/` directory
+- **Run before commits**: `yarn format`
+
+### Testing
+Three types of tests:
+
+1. **Unit tests** (`yarn test`):
+   - Jest-based
+   - Run in parallel
+   - Located in `__tests__/` directories
+
+2. **Sequential/Integration tests** (`yarn test:sequential`):
+   - Require test database (different from main DB)
+   - Setup: `yarn setup-test && yarn migrate-test`
+   - Run serially (not parallel)
+
+3. **UI tests** (`yarn test:ui`):
+   - Playwright-based
+   - Test full application flow
+   - Require running server and test user account
+
+---
+
+## Key Workflows
+
+### GTFS Import
+1. User uploads GTFS zip file via UI
+2. Backend validates and imports GTFS data
+3. Data parsed into transit objects (agencies, lines, nodes, services, paths)
+4. Stored in database
+5. Cache regenerated
+
+**Location**: `packages/transition-backend/src/services/gtfsImport/`
+
+### Transit Routing Calculation
+1. User provides origin, destination, scenario, and routing parameters
+2. Backend calls trRouting service with parameters
+3. trRouting calculates transit trip options
+4. Results formatted and returned as GeoJSON
+5. Frontend displays route on map
+
+**Location**: `packages/transition-backend/src/services/transitRouting/`
+
+### Accessibility Map Calculation
+1. User selects origin point, scenario, and time window
+2. Backend calculates reachable areas using transit network
+3. Results returned as polygons (isochrones)
+4. Frontend displays on map
+
+**Location**: `packages/transition-backend/src/services/accessibilityMap/`
+
+### Batch Calculations
+1. User defines OD pairs and calculation parameters
+2. Job created in database
+3. Worker pool processes jobs in background
+4. Progress tracked via Socket.IO
+5. Results saved to database or cache
+
+**Location**: `packages/transition-backend/src/tasks/`
+
+---
+
+## Common File Patterns
+
+### Backend Models
+**Database models** follow this pattern:
+- Location: `packages/transition-backend/src/models/db/`
+- Each model has:
+  - TypeScript class with methods
+  - Database queries (CRUD operations)
+  - Validation logic
+
+**Example**: Transit line model at `packages/transition-backend/src/models/db/TransitLine.ts`
+
+### Frontend Components
+**React components** follow this pattern:
+- Location: `packages/transition-frontend/src/components/`
+- Organized by feature (forms/, dashboard/, map/, etc.)
+- Use Redux for state management
+- Use i18next for translations
+- SCSS for styling
+
+### API Routes
+**Socket.IO routes**:
+- Location: `packages/transition-backend/src/api/*.socketRoutes.ts`
+- Registered in `all.socketRoutes.ts`
+
+**REST API routes**:
+- Location: `packages/transition-backend/src/api/public.routes.ts`
+- Uses Express router
+- Requires bearer token authentication
+
+### Tasks/Scripts
+**CLI tasks**:
+- Location: `packages/*/src/scripts/`
+- Can be run with: `yarn node path/to/task.js [args]`
+- Used for data import, setup, migrations, etc.
+
+---
+
+## Important Directories
+
+### `configs/`
+Shared configuration files:
+- `base.eslintrc.json`, `react.eslintrc.json`, `gts.eslintrc.json` - ESLint configs
+- `base.tsconfig.json`, `react.tsconfig.json`, `gts.tsconfig.json` - TypeScript configs
+- `base.prettierrc.js`, `gts.prettierrc.json` - Prettier configs
+Notes: 
+- No trailing spaces, even in comments/doc, no line with spaces only, replace with blank line
+- Use parentheses for arrow function params
+- Document non trivial functions and attributes, using jsdoc or inline comments when short
+- When creating tests, favor parametric tests when more than one expect is used, to simplify debugging of failed tests.
+- Indent using 4 spaces
+
+### `locales/`
+Internationalization files:
+- `en/` and `fr/` directories
+- JSON files for each namespace (auth.json, transit.json, main.json, etc.)
+
+### `docs/`
+Documentation:
+- API documentation (`APIv1/`)
+- Setup guides
+- Docker documentation
+- Evolutionary algorithm documentation
+
+### `examples/`
+Example files:
+- `config.js` - Example project configuration
+- `polygon_rtl_area.geojson` - Example polygon for OSRM data download
+
+---
+
+## Docker Support
+
+**Dockerfile**: Builds complete Transition application image
+
+**docker-compose.yml**: Example compose file for:
+- Transition application container
+- PostgreSQL/PostGIS container
+
+**Development with Docker**: See `docs/devWithDocker.md`
+
+**Key docker volumes:**
+- Transition project runtime data
+- PostGIS database data
+- OSRM data
+- Cache data
+
+---
+
+## Python Client Library
+
+**pyTransition**: Python library for interacting with Transition API
+
+**Location**: `pyTransition/`
+
+**Usage**: See `pyTransition/README.md`
+
+Allows Python scripts to:
+- Authenticate and get tokens
+- Fetch transit data (paths, nodes, scenarios)
+- Request route calculations
+- Request accessibility maps
+
+---
+
+## Key Dependencies
+
+### Backend Core
+- `express` - Web framework
+- `socket.io` - Real-time communication
+- `knex` - SQL query builder
+- `passport` - Authentication
+- `capnp-ts` - Cap'n Proto for TypeScript
+- `@turf/turf` - Geospatial utilities
+- `geojson` - GeoJSON types
+
+### Frontend Core
+- `react`, `react-dom` - React framework
+- `react-redux`, `redux` - State management
+- `react-router` - Routing
+- `mapbox-gl` - Map rendering
+- `i18next`, `react-i18next` - Internationalization
+
+### External Services Required
+- **PostgreSQL + PostGIS**: Database
+- **OSRM**: Road routing engine (can be local or remote)
+- **trRouting**: Transit routing engine (must be local, started by app)
+- **Rust + CapnProto**: For json2capnp service
+- **Memcached**: Caching (optional, mentioned in Docker setup)
+
+---
+
+## Common Tasks for AI Assistants
+
+### Adding a New Database Table
+1. Create migration file in `packages/*/src/models/db/migrations/`
+2. Define `up()` and `down()` functions
+3. Create model class in `packages/*/src/models/db/`
+4. Run `yarn migrate` to apply
+
+### Adding a New API Endpoint
+1. Add route handler in `packages/transition-backend/src/api/`
+2. Register in `all.socketRoutes.ts` (for Socket.IO) or `public.routes.ts` (for REST)
+3. Add authentication if needed
+4. Write tests in `__tests__/` directory
+
+### Adding a New Frontend Component
+1. Create component in `packages/transition-frontend/src/components/`
+2. Add routes in `TransitionRouter.tsx` if needed
+3. Add translations to `locales/` if needed
+4. Add styles in `styles/` directory
+
+### Modifying Transit Data Models
+1. Update database migration if schema changes
+2. Update Cap'n Proto schema in `packages/transition-backend/src/models/capnpDataModel/capnpFiles/`
+3. Regenerate TypeScript types from Cap'n Proto schemas
+4. Update cache service if needed
+
+### Adding a New Routing Mode
+1. Add configuration in `config.js` under `routing` section
+2. Configure OSRM instance (if road-based mode)
+3. Update frontend UI to include new mode
+4. Update routing service handlers
+
+---
+
+## Notes for AI Assistants
+
+### Important Patterns
+- **Type Safety**: Project uses TypeScript strictly - avoid `any` types
+- **GeoJSON**: All geographic data uses GeoJSON format (coordinates as [lon, lat])
+- **UUIDs**: Most entities use UUIDs as primary keys
+- **Status Types**: Services use a Status/Result pattern (see `chaire-lib-common`)
+- **Internationalization**: All user-facing strings should use i18next (`t()` function)
+- **Cap'n Proto**: Transit data cached in Cap'n Proto for performance - changes require cache regeneration
+
+### Common Issues
+- **OSRM not starting**: Check ports, ensure OSRM data files exist in projectDirectory/osrm/
+- **trRouting failures**: Ensure scenario is loaded, check trRouting service is running
+- **Cache issues**: Run `yarn start:json2capnp` service, or disable cache in config
+- **Database connection**: Check `.env` file has correct `PG_CONNECTION_STRING_PREFIX`
+- **Build errors**: May need `export NODE_OPTIONS=--openssl-legacy-provider` for Node 18+
+
+### Testing Considerations
+- Sequential tests require separate test database
+- UI tests require server running and test user account
+- Always run `yarn format` before committing
+- Check linter errors with `yarn lint`
+
+### Performance Considerations
+- Use Cap'n Proto cache for large transit networks
+- Batch calculations use worker pool for parallelization
+- OSRM can run multiple instances for different modes (walking, cycling, etc.)
+- trRouting has separate instances for single calculations vs batch calculations
+
+---
+
+## Additional Resources
+
+- **Main README**: `README.md` - Installation and setup instructions
+- **Contributing Guide**: `CONTRIBUTING.md` - Coding guidelines and PR process
+- **API Documentation**: `docs/APIv1/` - OpenAPI specification
+- **Docker Docs**: `docs/devWithDocker.md`, `docs/runWithDocker.md`
+- **Definitions**: See Overleaf link in main README for mathematical definitions
+
+---
