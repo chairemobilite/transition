@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { circle as turfCircle } from '@turf/turf';
 import transitRoutingService from 'chaire-lib-backend/lib/services/transitRouting/TransitRoutingService';
 import { TestUtils } from 'chaire-lib-common/lib/test';
 import {
@@ -13,11 +12,28 @@ import {
     PlaceCategory,
     PlaceDetailedCategory
 } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
-import polygonClipping from 'polygon-clipping';
 
 import { TransitAccessibilityMapCalculator } from '../TransitAccessibilityMapCalculator';
 import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
 import placesDbQueries from '../../../models/db/places.db.queries';
+import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
+
+// Mock knex for PostGIS operations
+jest.mock('chaire-lib-backend/lib/config/shared/db.config', () => {
+    const mockTransaction = jest.fn();
+    const mockRaw = jest.fn();
+
+    return {
+        __esModule: true,
+        default: {
+            transaction: mockTransaction,
+            raw: mockRaw
+        }
+    };
+});
+
+// Import knex after mocking
+import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 const defaultAttributes = {
     locationGeojson: TestUtils.makePoint([-73, 45]),
@@ -55,8 +71,21 @@ jest.mock('chaire-lib-backend/lib/services/transitRouting/TransitRoutingService'
 }));
 const mockedAccessibilityMap = transitRoutingService.accessibleMap as jest.MockedFunction<typeof transitRoutingService.accessibleMap>;
 
+const mockedKnexTransaction = knex.transaction as jest.MockedFunction<typeof knex.transaction>;
+const mockedKnexRaw = knex.raw as jest.MockedFunction<any>;
+
 beforeEach(() => {
     jest.clearAllMocks();
+
+    // Default mock setup for PostGIS operations
+    const mockTrx = {
+        raw: jest.fn().mockResolvedValue({ rows: [] })
+    };
+
+    // Mock the transaction to call the callback with the mock transaction
+    mockedKnexTransaction.mockImplementation(async (callback) => {
+        return await callback(mockTrx as any);
+    });
 })
 
 describe('Test trRouting calls with various parameters', () => {
@@ -145,7 +174,7 @@ describe('Test trRouting calls with various parameters', () => {
 
 });
 
-describe('Test accessibility map with results', () => {
+describe('Test accessibility map with results using PostGIS', () => {
 
     // Create node objects
     const node1Point = { type: 'Point' as const, coordinates: [-73.1, 45] };
@@ -190,10 +219,20 @@ describe('Test accessibility map with results', () => {
             geography: node3Point
         }
     };
-    mockedNodesDbCollection.mockResolvedValue({ type: 'FeatureCollection', features: [ node1, node2, node3 ] });
-    mockedPlacesPOIsCount.mockResolvedValue({accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory})
 
-    test('Test one polygon, 2 nodes, with additional properties', async() => {
+    beforeEach(() => {
+        mockedNodesDbCollection.mockResolvedValue({
+            type: 'FeatureCollection' as const,
+            features: [node1, node2, node3]
+        });
+
+        mockedPlacesPOIsCount.mockResolvedValue({
+            accessiblePlacesCountByCategory,
+            accessiblePlacesCountByDetailedCategory
+        });
+    });
+
+    test('Test one polygon with PostGIS single query', async() => {
         const attributes = {
             ...defaultAttributes,
             maxTotalTravelTimeSeconds: 600,
@@ -202,182 +241,179 @@ describe('Test accessibility map with results', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1
         }
+
         mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
-                departureTime: '06:55',
-                departureTimeSeconds: 24900,
-                id: node1.properties.id,
-                numberOfTransfers: 0,
-                totalTravelTimeSeconds: 250
-            },
-            {
                 departureTime: '06:52',
                 departureTimeSeconds: 24720,
-                id: node2.properties.id,
-                numberOfTransfers: 0,
-                totalTravelTimeSeconds: 500
-            }]
-        });
-        const maxWalkingDistanceKm = Math.floor(attributes.maxAccessEgressTravelTimeSeconds * attributes.walkingSpeedMps) / 1000;
-        const expectedMultiPolygons = [ 
-            turfCircle(node2Point.coordinates, ((attributes.maxTotalTravelTimeSeconds - 500) * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
-            turfCircle(node1Point.coordinates, (attributes.maxAccessEgressTravelTimeSeconds * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
-            turfCircle(attributes.locationGeojson, maxWalkingDistanceKm, { units: 'kilometers', steps: 64 }).geometry.coordinates
-        ]
-        const additionalProperties = { test: 'this is a test', other: 3 };
-        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes, { additionalProperties });
-        // Test that there is one polygon, with 2 disjoint circles
-        const polygons = accessibilityPolygon.polygons;
-        expect(polygons.features.length).toEqual(1);
-        const multiPolygonCoord = polygons.features[0].geometry.coordinates;
-        expect(multiPolygonCoord.length).toEqual(3);
-        for (let i = 0; i < 2; i++) {
-            const actual = multiPolygonCoord[i][0];
-            const expected = expectedMultiPolygons[i][0];
-            const actualString = actual.toString();
-            expect(actual.length).toEqual(expected.length);
-            for (let j = 0; j < actual.length; j++) {
-                expect(actualString).toContain(expected[j].toString());
-            }
-        }
-        const polygonProperties = polygons.features[0].properties;
-        expect(polygonProperties).toBeDefined();
-        expect(polygonProperties?.scenarioId).toEqual(defaultAttributes.scenarioId);
-        expect(polygonProperties?.arrivalTimeSecondsSinceMidnight).toEqual(defaultAttributes.arrivalTimeSecondsSinceMidnight);
-        expect(polygonProperties).toEqual(expect.objectContaining(additionalProperties));
-
-        expect(mockedPlacesPOIsCount).toHaveBeenCalledTimes(1);
-        expect(mockedPlacesPOIsCount).toHaveBeenCalledWith(polygons.features[0].geometry);
-        expect(polygonProperties?.accessiblePlacesCountByCategory).toEqual(accessiblePlacesCountByCategory);
-        expect(polygonProperties?.accessiblePlacesCountByDetailedCategory).toEqual(accessiblePlacesCountByDetailedCategory);
-        expect(polygonProperties?.cat_education).toEqual(10);
-        expect(polygonProperties?.catDet_school_secondary).toEqual(6);
-        expect(polygonProperties?.catDet_school_university).toEqual(4);
-    });
-
-    test('Test one polygon, 2 nodes, different walking speed', async() => {
-        const attributes = {
-            ...defaultAttributes,
-            maxTotalTravelTimeSeconds: 600,
-            minWaitingTimeSeconds: 120,
-            maxAccessEgressTravelTimeSeconds: 180,
-            maxTransferTravelTimeSeconds: 120,
-            walkingSpeedMps: 2
-        }
-        mockedAccessibilityMap.mockResolvedValueOnce({
-            type: 'nodes',
-            nodes: [{
-                departureTime: '06:55',
-                departureTimeSeconds: 24900,
                 id: node1.properties.id,
                 numberOfTransfers: 0,
-                totalTravelTimeSeconds: 250
+                totalTravelTimeSeconds: 480
             },
             {
-                departureTime: '06:52',
-                departureTimeSeconds: 24720,
+                departureTime: '06:55',
+                departureTimeSeconds: 24900,
                 id: node2.properties.id,
                 numberOfTransfers: 0,
-                totalTravelTimeSeconds: 500
+                totalTravelTimeSeconds: 420
             }]
         });
-        const maxWalkingDistanceKm = Math.floor(attributes.maxAccessEgressTravelTimeSeconds * attributes.walkingSpeedMps) / 1000;
-        const expectedMultiPolygons = [ 
-            turfCircle(node2Point.coordinates, ((attributes.maxTotalTravelTimeSeconds - 500) * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
-            turfCircle(node1Point.coordinates, (attributes.maxAccessEgressTravelTimeSeconds * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
-            turfCircle(attributes.locationGeojson, maxWalkingDistanceKm, { units: 'kilometers', steps: 64 }).geometry.coordinates
-        ]
-        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
-        // Test that there is one polygon, with 2 disjoint circles
-        const polygons = accessibilityPolygon.polygons;
-        expect(polygons.features.length).toEqual(1);
-        const multiPolygonCoord = polygons.features[0].geometry.coordinates;
-        const expectedCount = 3;
-        expect(multiPolygonCoord.length).toEqual(expectedCount);
-        for (let i = 0; i < expectedCount; i++) {
-            const actual = multiPolygonCoord[i][0];
-            const expected = expectedMultiPolygons[i][0];
-            const actualString = actual.toString();
-            expect(actual.length).toEqual(expected.length);
-            for (let j = 0; j < actual.length; j++) {
-                expect(actualString).toContain(expected[j].toString());
-            }
-        }
+
+        // Mock the PostGIS response with a simple polygon
+        const mockPolygonCoordinates = [
+            [
+                [-73.05, 45.05],
+                [-73.05, 44.95],
+                [-72.95, 44.95],
+                [-72.95, 45.05],
+                [-73.05, 45.05]
+            ]
+        ];
+
+        const mockTrx = {
+            raw: jest.fn()
+                .mockResolvedValueOnce({ rows: [] }) // SET work_mem
+                .mockResolvedValueOnce({ rows: [] }) // CREATE TEMPORARY TABLE
+                .mockResolvedValueOnce({ rows: [] }) // CREATE INDEX
+                .mockResolvedValueOnce({ rows: [] }) // ANALYZE
+                .mockResolvedValueOnce({
+                    rows: [{
+                        geometry_json: JSON.stringify({
+                            type: 'MultiPolygon',
+                            coordinates: mockPolygonCoordinates
+                        })
+                    }]
+                }) // ST_Union query
+        };
+
+        mockedKnexTransaction.mockImplementation(async (callback) => {
+            return await callback(mockTrx as any);
+        });
+
+        const result: TransitAccessibilityMapWithPolygonResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
+        // Verify that PostGIS transaction was called
+        expect(mockedKnexTransaction).toHaveBeenCalled();
+        // Verify the transaction operations were called
+        expect(mockTrx.raw).toHaveBeenCalledTimes(5);
+        // Verify the first call is setting work_mem
+        expect(mockTrx.raw).toHaveBeenCalledWith(
+            expect.stringContaining('SET LOCAL work_mem')
+        );
+        // Verify temporary table creation
+        expect(mockTrx.raw).toHaveBeenCalledWith(
+            expect.stringContaining('CREATE TEMPORARY TABLE ??'),
+            expect.arrayContaining([expect.stringMatching(/^temp_circles_/)])
+
+        );
+        // Verify spatial index creation
+        expect(mockTrx.raw).toHaveBeenCalledWith(
+            expect.stringContaining('CREATE INDEX ??'),
+            expect.any(Array)
+        );
+        // Verify the ST_Union query
+        expect(mockTrx.raw).toHaveBeenCalledWith(
+            expect.stringContaining('ST_Union'),
+            expect.any(Array)
+        );
+        // Verify nodes were queried
+        expect(mockedNodesDbCollection).toHaveBeenCalledWith({
+            nodeIds: [node1.properties.id, node2.properties.id]
+        });
+        // Verify the result structure
+        expect(result.polygons.features).toHaveLength(1);
+        expect(result.polygons.features[0].geometry.coordinates).toEqual(mockPolygonCoordinates);
     });
 
-    test('Test 2 polygons, 2 nodes', async() => {
+    test('Test multiple polygons with different durations using PostGIS', async() => {
         const attributes = {
             ...defaultAttributes,
-            maxTotalTravelTimeSeconds: 600,
+            maxTotalTravelTimeSeconds: 1200,
             minWaitingTimeSeconds: 120,
             maxAccessEgressTravelTimeSeconds: 180,
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1,
-            numberOfPolygons: 2
+            numberOfPolygons: 2  // Generate 2 polygons
         }
+
         mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
-                departureTime: '06:55',
-                departureTimeSeconds: 24900,
-                id: node1.properties.id,
-                numberOfTransfers: 0,
-                totalTravelTimeSeconds: 250
-            },
-            {
                 departureTime: '06:52',
                 departureTimeSeconds: 24720,
+                id: node1.properties.id,
+                numberOfTransfers: 0,
+                totalTravelTimeSeconds: 480
+            },
+            {
+                departureTime: '06:55',
+                departureTimeSeconds: 24900,
                 id: node2.properties.id,
                 numberOfTransfers: 0,
-                totalTravelTimeSeconds: 500
+                totalTravelTimeSeconds: 720
             }]
         });
-        const maxWalkingDistanceKm = Math.floor(attributes.maxAccessEgressTravelTimeSeconds * attributes.walkingSpeedMps) / 1000;
-        const expectedMultiPolygonsTotal = [ 
-            turfCircle(node2Point.coordinates, ((attributes.maxTotalTravelTimeSeconds - 500) * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
-            turfCircle(node1Point.coordinates, (attributes.maxAccessEgressTravelTimeSeconds * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
-            turfCircle(attributes.locationGeojson, maxWalkingDistanceKm, { units: 'kilometers', steps: 64 }).geometry.coordinates
-        ];
-        const expectedSmallerPolygon = [ 
-            turfCircle(node1Point.coordinates, (50 * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
-            turfCircle(attributes.locationGeojson, maxWalkingDistanceKm, { units: 'kilometers', steps: 64 }).geometry.coordinates
-        ];
-        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
-        // Test that there is one polygon, with 2 disjoint circles
-        const polygons = accessibilityPolygon.polygons;
-        expect(polygons.features.length).toEqual(2);
 
-        // Validate the larger polygon
-        const multiPolygonCoord = polygons.features[0].geometry.coordinates;
-        const expectedCount = 3;
-        expect(multiPolygonCoord.length).toEqual(expectedCount);
-        for (let i = 0; i < expectedCount; i++) {
-            const actual = multiPolygonCoord[i][0];
-            const expected = expectedMultiPolygonsTotal[i][0];
-            const actualString = actual.toString();
-            expect(actual.length).toEqual(expected.length);
-            for (let j = 0; j < actual.length; j++) {
-                expect(actualString).toContain(expected[j].toString());
-            }
-        }
+        // Mock PostGIS responses for multiple polygons (900s and 600s)
+        const largerPolygonCoordinates = [
+            [
+                [-73.1, 45.1],
+                [-73.1, 44.9],
+                [-72.9, 44.9],
+                [-72.9, 45.1],
+                [-73.1, 45.1]
+            ]
+        ];
 
-        // Validate the second smaller polygon
-        const smallerPolygonCoord = polygons.features[1].geometry.coordinates;
-        expect(smallerPolygonCoord.length).toEqual(2);
-        for (let i = 0; i < 2; i++) {
-            const actual = smallerPolygonCoord[i][0];
-            const expected = expectedSmallerPolygon[i][0];
-            const actualString = actual.toString();
-            expect(actual.length).toEqual(expected.length);
-            for (let j = 0; j < actual.length; j++) {
-                expect(actualString).toContain(expected[j].toString());
-            }
-        }
-        expect(mockedNodesDbCollection).toHaveBeenCalledWith({ nodeIds: [ node1.properties.id, node2.properties.id ] });
+        const smallerPolygonCoordinates = [
+            [
+                [-73.05, 45.05],
+                [-73.05, 44.95],
+                [-72.95, 44.95],
+                [-72.95, 45.05],
+                [-73.05, 45.05]
+            ]
+        ];
+
+        let callCount = 0;
+        const mockTrx = {
+            raw: jest.fn().mockImplementation(() => {
+                callCount++;
+                // Every 5th call returns polygon data (after setup queries)
+                if (callCount % 5 === 0) {
+                    const coords = callCount === 5 ? largerPolygonCoordinates : smallerPolygonCoordinates;
+                    return Promise.resolve({
+                        rows: [{
+                            geometry_json: JSON.stringify({
+                                type: 'MultiPolygon',
+                                coordinates: coords
+                            })
+                        }]
+                    });
+                }
+                return Promise.resolve({ rows: [] });
+            })
+        };
+
+        mockedKnexTransaction.mockImplementation(async (callback) => {
+            return await callback(mockTrx as any);
+        });
+
+        const result: TransitAccessibilityMapWithPolygonResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
+
+        // Should have 2 polygons (900s and 600s)
+        expect(result.polygons.features).toHaveLength(2);
+        // Verify that PostGIS was called twice (once for each duration)
+        expect(mockedKnexTransaction).toHaveBeenCalledTimes(2);
+        // Verify the larger polygon (1200s)
+        expect(result.polygons.features[0].properties!.durationSeconds).toEqual(1200);
+        expect(result.polygons.features[0].geometry.coordinates).toEqual(largerPolygonCoordinates);
+        // Verify the smaller polygon (600s)
+        expect(result.polygons.features[1].properties!.durationSeconds).toEqual(600);
+        expect(result.polygons.features[1].geometry.coordinates).toEqual(smallerPolygonCoordinates);
     });
 
-    test('Test one polygon, with delta', async() => {
+    test('Test polygon generation with delta using PostGIS', async() => {
         const attributes = {
             ...defaultAttributes,
             maxTotalTravelTimeSeconds: 600,
@@ -388,6 +424,8 @@ describe('Test accessibility map with results', () => {
             deltaSeconds: 300,
             deltaIntervalSeconds: 300
         }
+
+        // Mock responses for 3 time periods
         mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
@@ -398,6 +436,7 @@ describe('Test accessibility map with results', () => {
                 totalTravelTimeSeconds: 500
             }]
         });
+
         mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
@@ -415,6 +454,7 @@ describe('Test accessibility map with results', () => {
                 totalTravelTimeSeconds: 500
             }]
         });
+
         mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
@@ -422,47 +462,55 @@ describe('Test accessibility map with results', () => {
                 departureTimeSeconds: 25200,
                 id: node1.properties.id,
                 numberOfTransfers: 0,
-                totalTravelTimeSeconds: 250
-            },
-            {
-                departureTime: '06:57',
-                departureTimeSeconds: 25020,
-                id: node2.properties.id,
-                numberOfTransfers: 0,
-                totalTravelTimeSeconds: 500
+                totalTravelTimeSeconds: 100
             }]
         });
-        const maxWalkingDistanceKm = Math.floor(attributes.maxAccessEgressTravelTimeSeconds * attributes.walkingSpeedMps) / 1000;
-        const expectedMultiPolygonsTotal = [ 
-            turfCircle(node3Point.coordinates, Math.floor(((attributes.maxTotalTravelTimeSeconds - 500) / 3) * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
-            turfCircle(node2Point.coordinates, Math.floor(((attributes.maxTotalTravelTimeSeconds - 500) * 2 / 3) * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
-            turfCircle(node1Point.coordinates, (attributes.maxAccessEgressTravelTimeSeconds * attributes.walkingSpeedMps) / 1000, { units: 'kilometers', steps: 64 }).geometry.coordinates,
-            turfCircle(attributes.locationGeojson, maxWalkingDistanceKm, { units: 'kilometers', steps: 64 }).geometry.coordinates
+
+        const mockPolygonCoordinates = [
+            [
+                [-73.05, 45.05],
+                [-73.05, 44.95],
+                [-72.95, 44.95],
+                [-72.95, 45.05],
+                [-73.05, 45.05]
+            ]
         ];
-        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
-        // Test that there is one polygon, with 2 disjoint circles
-        const polygons = accessibilityPolygon.polygons;
-        expect(polygons.features.length).toEqual(1);
 
-        // Validate the larger polygon
-        const multiPolygonCoord = polygons.features[0].geometry.coordinates;
-        const expecteCount = 4;
-        expect(multiPolygonCoord.length).toEqual(expecteCount);
-        for (let i = 0; i < expecteCount; i++) {
-            const actual = multiPolygonCoord[i][0];
-            const expected = expectedMultiPolygonsTotal[i][0];
-            const actualString = actual.toString();
-            expect(actual.length).toEqual(expected.length);
-            for (let j = 0; j < actual.length; j++) {
-                expect(actualString).toContain(expected[j].toString());
-            }
-        }
+        const mockTrx = {
+            raw: jest.fn()
+                .mockResolvedValueOnce({ rows: [] }) // SET work_mem
+                .mockResolvedValueOnce({ rows: [] }) // CREATE TEMPORARY TABLE
+                .mockResolvedValueOnce({ rows: [] }) // CREATE INDEX
+                .mockResolvedValueOnce({ rows: [] }) // ANALYZE
+                .mockResolvedValueOnce({
+                    rows: [{
+                        geometry_json: JSON.stringify({
+                                type: 'MultiPolygon',
+                                coordinates: mockPolygonCoordinates
+                            })
+                    }]
+                })
+        };
 
+        mockedKnexTransaction.mockImplementation(async (callback) => {
+            return await callback(mockTrx as any);
+        });
+
+        const result: TransitAccessibilityMapWithPolygonResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
+
+        // Verify accessibility map was called 3 times (delta creates 3 time points)
+        expect(mockedAccessibilityMap).toHaveBeenCalledTimes(3);
+        // Verify nodes were queried with the combined node IDs from all delta calculations
+        expect(mockedNodesDbCollection).toHaveBeenCalledWith({
+            nodeIds: expect.arrayContaining([node1.properties.id, node2.properties.id, node3.properties.id])
+        });
+        // Verify PostGIS transaction was called
+        expect(mockedKnexTransaction).toHaveBeenCalled();
+        // Result should contain the polygon
+        expect(result.polygons.features).toHaveLength(1);
     });
 
-    test('Test one polygon, split of polygon clipping', async() => {
-        // The polygon clipping code, when the number of nodes is higher than
-        // 20, is split in pieces. It should return properly
+    test('Test empty nodes result with PostGIS', async() => {
         const attributes = {
             ...defaultAttributes,
             maxTotalTravelTimeSeconds: 600,
@@ -471,42 +519,54 @@ describe('Test accessibility map with results', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1
         }
-        const testNodes = Array(50).fill(1).map((_, index) => {
-            const geometry = { type: 'Point' as const, coordinates: [ -73 + index / 100, 45 + index / 100] };
-            const node = {
-                id: 3,
-                geometry: geometry,
-                type: 'Feature' as const,
-                properties: {
-                    id: `tempuuid${index}`,
-                    code: `tempcode${index}`,
-                    routing_radius_meters: 10,
-                    default_dwell_time_seconds: 20,
-                    data: {},
-                    geography: geometry
-                }
-            };
-            return node;
-        })
+
         mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
-            nodes: testNodes.map((node) => ({
-                departureTime: '06:55',
-                departureTimeSeconds: 24900,
-                id: node.properties.id,
-                numberOfTransfers: 0,
-                totalTravelTimeSeconds: 250
-            }))
+            nodes: []
         });
-        mockedNodesDbCollection.mockResolvedValueOnce({ type: 'FeatureCollection', features: testNodes });
-        const accessibilityPolygon = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
-        // Test that there is one polygon, with 2 disjoint circles
-        const polygons = accessibilityPolygon.polygons;
-        expect(polygons.features.length).toEqual(1);
-        expect(mockedNodesDbCollection).toHaveBeenCalledWith({ nodeIds: testNodes.map(node => node.properties.id) });
+
+        // Mock PostGIS response for origin circle only
+        const originCircleCoordinates = [
+            [
+                [-73.02, 45.02],
+                [-73.02, 44.98],
+                [-72.98, 44.98],
+                [-72.98, 45.02],
+                [-73.02, 45.02]
+            ]
+        ];
+
+        const mockTrx = {
+            raw: jest.fn()
+                .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({
+                    rows: [{
+                        geometry_json: JSON.stringify({
+                                type: 'MultiPolygon',
+                                coordinates: originCircleCoordinates
+                            })
+                    }]
+                })
+        };
+
+        mockedKnexTransaction.mockImplementation(async (callback) => {
+            return await callback(mockTrx as any);
+        });
+
+        const result: TransitAccessibilityMapWithPolygonResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
+
+        // Should still have a polygon (just the origin circle)
+        expect(result.polygons.features).toHaveLength(1);
+        // Verify PostGIS was called even with no nodes
+        expect(mockedKnexTransaction).toHaveBeenCalled();
+        // Nodes collection should be called with empty array
+        expect(mockedNodesDbCollection).toHaveBeenCalledWith({ nodeIds: [] });
     });
 
-    test('Test one polygon, error in polygon clipping', async() => {
+    test('Test PostGIS error handling', async() => {
         const attributes = {
             ...defaultAttributes,
             maxTotalTravelTimeSeconds: 600,
@@ -515,182 +575,189 @@ describe('Test accessibility map with results', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1
         }
+
         mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
             nodes: [{
-                departureTime: '06:55',
-                departureTimeSeconds: 24900,
+                departureTime: '06:52',
+                departureTimeSeconds: 24720,
                 id: node1.properties.id,
                 numberOfTransfers: 0,
-                totalTravelTimeSeconds: 250
+                totalTravelTimeSeconds: 480
+            }]
+        });
+
+        // Mock a PostGIS error
+        const mockError = new Error('PostGIS query failed');
+        mockedKnexTransaction.mockRejectedValue(mockError);
+
+        await expect(TransitAccessibilityMapCalculator.calculateWithPolygons(attributes))
+            .rejects.toThrow('PostGIS query failed');
+    });
+
+    test('Test circles array construction with varying node distances', async() => {
+        const attributes = {
+            ...defaultAttributes,
+            maxTotalTravelTimeSeconds: 900,
+            minWaitingTimeSeconds: 120,
+            maxAccessEgressTravelTimeSeconds: 180,
+            maxTransferTravelTimeSeconds: 120,
+            walkingSpeedMps: 1.5
+        }
+
+        // Mock nodes with different travel times
+        mockedAccessibilityMap.mockResolvedValueOnce({
+            type: 'nodes',
+            nodes: [{
+                departureTime: '06:52',
+                departureTimeSeconds: 24720,
+                id: node1.properties.id,
+                numberOfTransfers: 0,
+                totalTravelTimeSeconds: 300 // 600s remaining
             },
             {
                 departureTime: '06:52',
                 departureTimeSeconds: 24720,
                 id: node2.properties.id,
                 numberOfTransfers: 0,
-                totalTravelTimeSeconds: 500
+                totalTravelTimeSeconds: 600 // 300s remaining
+            },
+            {
+                departureTime: '06:52',
+                departureTimeSeconds: 24720,
+                id: node3.properties.id,
+                numberOfTransfers: 0,
+                totalTravelTimeSeconds: 900 // 0s remaining - should not generate circle
             }]
         });
-        let error: any = undefined;
-        const polygonClippingUnion = jest.spyOn(polygonClipping, 'union').mockImplementation(() => { throw 'error in polygon clipping'; });
 
-        try {
-            await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
-        } catch (err) {
-            error = err;
-        } finally {
-            polygonClippingUnion.mockRestore();
-        }
-        expect(error).toBeDefined();
+        const mockPolygonCoordinates = [];
+
+        const mockTrx = {
+            raw: jest.fn()
+                .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({
+                    rows: [{
+                        geometry_json: JSON.stringify({
+                            type: 'MultiPolygon',
+                            coordinates: mockPolygonCoordinates
+                        })
+                    }]
+                })
+        };
+
+        mockedKnexTransaction.mockImplementation(async (callback) => {
+            return await callback(mockTrx as any);
+        });
+
+        await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
+
+        // Verify the CREATE TEMPORARY TABLE call includes correct number of circles
+        // Should have 3 circles: origin + node1 + node2 (node3 has 0 remaining distance)
+        const createTableCall = mockTrx.raw.mock.calls.find(call =>
+            call[0].includes('CREATE TEMPORARY TABLE')
+        );
+        expect(createTableCall).toBeDefined();
+
+        // The SQL should contain 3 value tuples (origin, node1, node2)
+        const sql = createTableCall![0];
+        const valueMatches = sql.match(/ST_SetSRID\(ST_MakePoint/g);
+        expect(valueMatches).toHaveLength(3);
     });
+});
 
-    test('Test one polygon, error in polygon clipping split', async() => {
-        // The polygon clipping code, when the number of nodes is higher than
-        // 20, is split in pieces. Make sure an error in one piece returns as
-        // expected
+describe('Test PostGIS integration edge cases', () => {
+
+    test('Test unique table name generation', async() => {
         const attributes = {
             ...defaultAttributes,
             maxTotalTravelTimeSeconds: 600,
-            minWaitingTimeSeconds: 120,
-            maxAccessEgressTravelTimeSeconds: 180,
-            maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1
         }
-        const testNodes = Array(50).fill(1).map((_, index) => {
-            const geometry = { type: 'Point' as const, coordinates: [ -73 + index / 100, 45 + index / 100] };
-            const node = {
-                id: 3,
-                geometry: geometry,
-                type: 'Feature' as const,
-                properties: {
-                    id: `tempuuid${index}`,
-                    code: `tempcode${index}`,
-                    routing_radius_meters: 10,
-                    default_dwell_time_seconds: 20,
-                    data: {},
-                    geography: geometry
-                }
-            };
-            return node;
-        });
-        mockedNodesDbCollection.mockResolvedValueOnce({ type: 'FeatureCollection', features: testNodes});
+
         mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
-            nodes: testNodes.map((node) => ({
-                departureTime: '06:55',
-                departureTimeSeconds: 24900,
-                id: node.properties.id,
-                numberOfTransfers: 0,
-                totalTravelTimeSeconds: 250
-            }))
+            nodes: []
         });
-        let error: any = undefined;
-        const polygonClippingUnion = jest.spyOn(polygonClipping, 'union');
-        // First time, just return something
-        polygonClippingUnion.mockImplementationOnce(() => [[[[-73, 45], [-73.1, 45.1]]]]);
-        polygonClippingUnion.mockImplementationOnce(() => { throw 'error in polygon clipping'; })
 
-        try {
-            await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
-        } catch (err) {
-            error = err;
-        } finally {
-            polygonClippingUnion.mockRestore();
-        }
-        console.log(error);
-        expect(error).toBeDefined();
-        expect(mockedNodesDbCollection).toHaveBeenCalledWith({ nodeIds: testNodes.map(node => node.properties.id) });
+        mockedAccessibilityMap.mockResolvedValueOnce({
+            type: 'nodes',
+            nodes: []
+        });
+
+        const capturedTableNames: string[] = [];
+        const mockTrx = {
+            raw: jest.fn().mockImplementation((sql: string, bindings?: any[]) => {
+                // Capture table names from CREATE TEMPORARY TABLE statements
+                if (sql.includes('CREATE TEMPORARY TABLE ??') && bindings && bindings[0]) {
+                    capturedTableNames.push(bindings[0]);
+                }
+
+                if (sql.includes('ST_AsGeoJSON')) {
+                    return Promise.resolve({
+                        rows: [{
+                            geometry_json: JSON.stringify({
+                                type: 'MultiPolygon',
+                                coordinates: [[[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]]
+                            })
+                        }]
+                    });
+                }
+                return Promise.resolve({ rows: [] });
+
+            })
+        };
+
+        mockedKnexTransaction.mockImplementation(async (callback) => {
+            return await callback(mockTrx as any);
+        });
+
+        // Call twice to verify unique table names
+        await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
+        await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
+
+        // Verify we captured table names and they are different
+        expect(capturedTableNames).toHaveLength(2);
+        expect(capturedTableNames[0]).not.toEqual(capturedTableNames[1]);
+        expect(capturedTableNames[0]).toMatch(/^temp_circles_[a-f0-9_]{16}$/);
+        expect(capturedTableNames[1]).toMatch(/^temp_circles_[a-f0-9_]{16}$/);
     });
 
-    test('Test get map comparison with simple polygons', async () => {
-        // Test that the map comparison function works correctly using two simple square geoJSONs that intersect halfway through each other.
-        const polygon1: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon> = {
-            "type": "FeatureCollection",
-            "features": [{
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "coordinates": [
-                        [
-                            [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
-                        ]
-                    ],
-                    "type": "MultiPolygon"
-                }
-            }]
-        };
-
-        const polygon2: GeoJSON.FeatureCollection<GeoJSON.MultiPolygon> = {
-            "type": "FeatureCollection",
-            "features": [{
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "coordinates": [
-                        [
-                            [[0, 0.5], [1, 0.5], [1, 1.5], [0, 1.5], [0, 0.5]]
-                        ]
-                    ],
-                    "type": "MultiPolygon"
-                }
-            }]
-        };
-
-        const colors = {
-            intersectionColor: 'intersectionColor',
-            scenario1Minus2Color: 'scenario1Minus2Color',
-            scenario2Minus1Color: 'scenario2Minus1Color'
+    test('Test work_mem configuration', async() => {
+        const attributes = {
+            ...defaultAttributes,
+            maxTotalTravelTimeSeconds: 600,
+            walkingSpeedMps: 1
         }
 
-        const comparison = await TransitAccessibilityMapCalculator.getMapComparison(polygon1, polygon2, 1, colors);
+        mockedAccessibilityMap.mockResolvedValueOnce({
+            type: 'nodes',
+            nodes: []
+        });
 
-        const expectedIntersection = [[0, 0.5], [1, 0.5], [1, 1], [0, 1], [0, 0.5]];
-
-        const expectedScenario1Minus2 = [[0, 0], [1, 0], [1, 0.5], [0, 0.5], [0, 0]];
-
-        const expectedScenario2Minus1 = [[0, 1], [1, 1], [1, 1.5], [0, 1.5], [0, 1]];
-
-        expect(comparison).toHaveLength(1);
-
-        expect(comparison[0].polygons.intersection[0].geometry.coordinates[0]).toEqual(expectedIntersection);
-        expect(comparison[0].strokes.intersection[0].geometry.coordinates[0]).toEqual(expectedIntersection);
-        expect(comparison[0].polygons.intersection[0].properties!.color).toEqual(colors.intersectionColor);
-
-        expect(comparison[0].polygons.scenario1Minus2[0].geometry.coordinates[0]).toEqual(expectedScenario1Minus2);
-        expect(comparison[0].strokes.scenario1Minus2[0].geometry.coordinates[0]).toEqual(expectedScenario1Minus2);
-        expect(comparison[0].polygons.scenario1Minus2[0].properties!.color).toEqual(colors.scenario1Minus2Color);
-
-        expect(comparison[0].polygons.scenario2Minus1[0].geometry.coordinates[0]).toEqual(expectedScenario2Minus1);
-        expect(comparison[0].strokes.scenario2Minus1[0].geometry.coordinates[0]).toEqual(expectedScenario2Minus1);
-        expect(comparison[0].polygons.scenario2Minus1[0].properties!.color).toEqual(colors.scenario2Minus1Color);
-    });
-
-    test('Test get polygon strokes with simple polygons', async () => {
-        // Test that the map comparison function works correctly using a simple polygon with a hole in the middle.
-        const polygon: GeoJSON.Feature<GeoJSON.MultiPolygon> = {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "coordinates": [
-                        [
-                            [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]],
-                            [[1, 1], [9, 1], [9, 9], [1, 9], [1, 1]]
-                        ]
-                    ],
-                    "type": "MultiPolygon"
-                }
+        const mockTrx = {
+            raw: jest.fn()
+                .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({ rows: [] })
+                .mockResolvedValueOnce({ rows: [{ geometry: { coordinates: [] } }] })
         };
 
-        const strokes = TransitAccessibilityMapCalculator['getPolygonStrokes'](polygon);
+        mockedKnexTransaction.mockImplementation(async (callback) => {
+            return await callback(mockTrx as any);
+        });
 
-        const expectedStrokes = [
-            [[1, 1], [9, 1], [9, 9], [1, 9], [1, 1]],
-            [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]
-        ];
+        await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
 
-        expect(strokes.geometry.type).toEqual('MultiLineString');
-        expect(strokes.geometry.coordinates).toHaveLength(2);
-        expect(strokes.geometry.coordinates).toEqual(expectedStrokes);
+        // Verify work_mem was set
+        const workMemCall = mockTrx.raw.mock.calls[0][0];
+        expect(workMemCall).toContain('SET LOCAL work_mem');
+        expect(workMemCall).toContain('20MB');
+        expect(workMemCall).toContain('maintenance_work_mem');
+        expect(workMemCall).toContain('20MB');
     });
 });
