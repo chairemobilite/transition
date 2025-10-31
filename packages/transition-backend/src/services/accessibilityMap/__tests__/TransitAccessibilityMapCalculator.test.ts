@@ -193,14 +193,15 @@ describe('Test accessibility map with results', () => {
     mockedNodesDbCollection.mockResolvedValue({ type: 'FeatureCollection', features: [ node1, node2, node3 ] });
     mockedPlacesPOIsCount.mockResolvedValue({accessiblePlacesCountByCategory, accessiblePlacesCountByDetailedCategory})
 
-    test('Test one polygon, 2 nodes, with additional properties', async() => {
+    test('Test one polygon, 2 nodes, with additional properties and POIs', async() => {
         const attributes = {
             ...defaultAttributes,
             maxTotalTravelTimeSeconds: 600,
             minWaitingTimeSeconds: 120,
             maxAccessEgressTravelTimeSeconds: 180,
             maxTransferTravelTimeSeconds: 120,
-            walkingSpeedMps: 1
+            walkingSpeedMps: 1,
+            calculatePois: true
         }
         mockedAccessibilityMap.mockResolvedValueOnce({
             type: 'nodes',
@@ -304,6 +305,7 @@ describe('Test accessibility map with results', () => {
                 expect(actualString).toContain(expected[j].toString());
             }
         }
+        expect(mockedPlacesPOIsCount).toHaveBeenCalledTimes(0);
     });
 
     test('Test 2 polygons, 2 nodes', async() => {
