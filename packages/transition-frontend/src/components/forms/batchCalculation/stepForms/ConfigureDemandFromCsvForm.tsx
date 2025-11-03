@@ -39,10 +39,7 @@ const ConfigureDemandFromCsvForm: React.FunctionComponent<ConfigureDemandFromCsv
 ): any => {
     const [demand] = React.useState(
         props.currentDemand?.demand ||
-            new TransitOdDemandFromCsv(
-                Object.assign(_cloneDeep(Preferences.get('transit.routing.batch')), { saveToDb: false }),
-                false
-            )
+            new TransitOdDemandFromCsv(_cloneDeep(Preferences.get('transit.routing.batch')), false)
     );
     const [csvFileAttributes, setCsvFileAttributes] = React.useState<string[]>(props.currentDemand?.csvFields || []);
     const [loading, setLoading] = React.useState(false);

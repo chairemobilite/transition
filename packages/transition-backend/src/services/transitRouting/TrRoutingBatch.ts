@@ -15,20 +15,18 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
-import odPairsDbQueries from '../../models/db/odPairs.db.queries';
 import pathDbQueries from '../../models/db/transitPaths.db.queries';
 import resultsDbQueries from '../../models/db/batchRouteResults.db.queries';
-import { getDataSource } from 'chaire-lib-backend/lib/services/dataSources/dataSources';
 import {
     BatchRoutingResultProcessor,
     createRoutingFileResultProcessor,
     generateFileOutputResults
 } from './TrRoutingBatchResult';
-import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import { CheckpointTracker } from '../executableJob/JobCheckpointTracker';
 import { resultIsUnimodal } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
 import { ExecutableJob } from '../executableJob/ExecutableJob';
 import { BatchRouteJobType } from './BatchRoutingJob';
+import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 
 const CHECKPOINT_INTERVAL = 250;
 
@@ -200,27 +198,6 @@ class TrRoutingBatch {
                 warnings: this.errors,
                 files
             };
-
-            // FIXME Saving to DB should be done in a separate workflow. See #583
-            if (parameters.saveToDb !== false) {
-                console.log('Saving OD pairs to database...');
-                try {
-                    await saveOdPairs(this.odTrips, parameters.saveToDb);
-                } catch (error) {
-                    console.error(
-                        `Error saving od pairs to database: ${
-                            TrError.isTrError(error) ? JSON.stringify(error.export()) : JSON.stringify(error)
-                        }`
-                    );
-                    const localizedMessage = TrError.isTrError(error) ? error.export().localizedMessage : '';
-                    routingResult.warnings.push(
-                        localizedMessage !== ''
-                            ? localizedMessage
-                            : 'transit:transitRouting:errors:ErrorSavingOdTripsToDb'
-                    );
-                }
-                console.log('Saved OD pairs to database...');
-            }
 
             return routingResult;
         } catch (error) {
@@ -413,20 +390,3 @@ class TrRoutingBatch {
         }
     };
 }
-
-export const saveOdPairs = async (
-    odTrips: BaseOdTrip[],
-    saveOptions: { type: 'new'; dataSourceName: string } | { type: 'overwrite'; dataSourceId: string }
-) => {
-    const dataSource =
-        saveOptions.type === 'new'
-            ? await getDataSource({ isNew: true, dataSourceName: saveOptions.dataSourceName, type: 'odTrips' })
-            : await getDataSource({ isNew: false, dataSourceId: saveOptions.dataSourceId });
-    await odPairsDbQueries.deleteForDataSourceId(dataSource.getId());
-    await odPairsDbQueries.createMultiple(
-        odTrips.map((odTrip) => {
-            odTrip.attributes.dataSourceId = dataSource.getId();
-            return odTrip.attributes;
-        })
-    );
-};

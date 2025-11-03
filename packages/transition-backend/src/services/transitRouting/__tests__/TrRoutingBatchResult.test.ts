@@ -15,7 +15,6 @@ import { createRoutingFileResultProcessor, generateFileOutputResults } from '../
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { getDefaultCsvAttributes, getDefaultStepsAttributes } from '../ResultAttributes';
 import { routeToUserObject, TrRoutingBoardingStep, TrRoutingUnboardingStep, TrRoutingWalkingStep } from 'chaire-lib-common/src/services/transitRouting/TrRoutingResultConversion';
-import { UnimodalRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import Path from 'transition-common/lib/services/path/Path';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -79,8 +78,7 @@ const mockJobAttributes = {
                     timeAttribute: 'timeattrib',
                     withGeometries: false,
                     detailed: false,
-                    cpuCount: 2,
-                    saveToDb: false as false
+                    cpuCount: 2
                 }
             },
             transitRoutingAttributes: {
