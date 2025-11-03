@@ -7,6 +7,7 @@
 import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import { OdTripRouteResult } from './types';
 
 export type BatchRouteJobType = {
     name: 'batchRoute';
@@ -19,3 +20,9 @@ export type BatchRouteJobType = {
     };
     files: { input: true; csv: true; detailedCsv: true; geojson: true };
 };
+
+export interface BatchRouteResultVisitor<TReturnType> {
+    visitTripResult: (routingResult: OdTripRouteResult) => Promise<void>;
+    end: () => void;
+    getResult: () => TReturnType;
+}

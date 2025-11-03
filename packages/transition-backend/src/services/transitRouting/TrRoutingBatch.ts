@@ -11,22 +11,17 @@ import { EventEmitter } from 'events';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import serverConfig from 'chaire-lib-backend/lib/config/server.config';
 import routeOdTrip from './TrRoutingOdTrip';
-import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
-import pathDbQueries from '../../models/db/transitPaths.db.queries';
+
 import resultsDbQueries from '../../models/db/batchRouteResults.db.queries';
-import {
-    BatchRoutingResultProcessor,
-    createRoutingFileResultProcessor,
-    generateFileOutputResults
-} from './TrRoutingBatchResult';
 import { CheckpointTracker } from '../executableJob/JobCheckpointTracker';
 import { resultIsUnimodal } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
 import { ExecutableJob } from '../executableJob/ExecutableJob';
-import { BatchRouteJobType } from './BatchRoutingJob';
+import { BatchRouteJobType, BatchRouteResultVisitor } from './BatchRoutingJob';
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { BatchRouteFileResultVisitor } from './batchRouteCalculation/BatchRouteFileResultVisitor';
 
 const CHECKPOINT_INTERVAL = 250;
 
@@ -183,11 +178,16 @@ class TrRoutingBatch {
             this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
 
             // FIXME Should we return here if the job is cancelled? Or we still
-            // generate the results that have been calculated since now?
+            // generate the results that have been calculated since now? Anyway,
+            // on we decouple result handling from the job execution, we could
+            // handle results on cancelled jobs also, if we want
 
-            // Generate the output files
+            // Handle the result
             this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
-            const files = await this.generateResultFiles();
+            // FIXME We hardcode the result visitor to file output for now, but we could have other implementations (like calculating statistics, or nothing at all)
+            // FIXME2 Also, since we do not have any way of handling the results after the job is done yet, the visitor handler is now part of the job, but later, handling results could be done on completed jobs, and not as part of the job
+            const resultVisitor = new BatchRouteFileResultVisitor(this.job);
+            const { files } = await this.handlResults(resultVisitor);
             this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 1.0 });
 
             const routingResult = {
@@ -226,62 +226,43 @@ class TrRoutingBatch {
         }
     };
 
-    private generateResultFiles = async (): Promise<{
-        input: string;
-        csv?: string;
-        detailedCsv?: string;
-        geojson?: string;
-    }> => {
-        console.log('Preparing result files for job %d...', this.job.id);
-        const { resultHandler, pathCollection } = await this.prepareResultData();
-        console.log('Prepared result files for job %d', this.job.id);
+    private handlResults = async <TReturnType>(
+        resultVisitor: BatchRouteResultVisitor<TReturnType>
+    ): Promise<TReturnType> => {
+        // Generate the output files
+        this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
 
-        // Log every 1% of the results
-        const resultCount = await resultsDbQueries.countResults(this.job.id);
-        const logInterval = Math.max(1, Math.ceil(resultCount / 100));
-        let currentResultIdx = 0;
+        try {
+            // Log every 1% of the results
+            const resultCount = await resultsDbQueries.countResults(this.job.id);
+            const logInterval = Math.max(1, Math.ceil(resultCount / 100));
+            let currentResultIdx = 0;
 
-        console.log('Generating %d results for job %d...', resultCount, this.job.id);
-        const resultStream = resultsDbQueries.streamResults(this.job.id);
+            console.log('Generating %d results for job %d...', resultCount, this.job.id);
+            const resultStream = resultsDbQueries.streamResults(this.job.id);
 
-        for await (const row of resultStream) {
-            currentResultIdx++;
-            if (currentResultIdx % logInterval === 0 || currentResultIdx === resultCount) {
-                console.log('Generating results %d of %d for job %d...', currentResultIdx, resultCount, this.job.id);
+            for await (const row of resultStream) {
+                currentResultIdx++;
+                if (currentResultIdx % logInterval === 0 || currentResultIdx === resultCount) {
+                    console.log(
+                        'Generating results %d of %d for job %d...',
+                        currentResultIdx,
+                        resultCount,
+                        this.job.id
+                    );
+                }
+                // TODO Try to pipe the result generator and processor directly into this database result stream, to avoid all the awaits
+                const result = resultsDbQueries.resultParser(row);
+                await resultVisitor.visitTripResult(result.data);
             }
-            // TODO Try to pipe the result generator and processor directly into this database result stream, to avoid all the awaits
-            const result = resultsDbQueries.resultParser(row);
-            const processedResults = await generateFileOutputResults(result.data, {
-                exportCsv: true,
-                exportDetailed: this.job.attributes.data.parameters.transitRoutingAttributes.detailed === true,
-                withGeometries: this.job.attributes.data.parameters.transitRoutingAttributes.withGeometries === true,
-                pathCollection
-            });
-            resultHandler.processResult(processedResults);
+            console.log('Generated results for job %d', this.job.id);
+
+            resultVisitor.end();
+
+            return resultVisitor.getResult();
+        } finally {
+            this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 1.0 });
         }
-        console.log('Generated results for job %d', this.job.id);
-
-        resultHandler.end();
-        return resultHandler.getFiles();
-    };
-
-    private prepareResultData = async (): Promise<{
-        resultHandler: BatchRoutingResultProcessor;
-        pathCollection?: PathCollection;
-    }> => {
-        const resultHandler = createRoutingFileResultProcessor(this.job);
-
-        let pathCollection: PathCollection | undefined = undefined;
-        if (this.job.attributes.data.parameters.transitRoutingAttributes.withGeometries) {
-            pathCollection = new PathCollection([], {});
-            if (this.job.attributes.data.parameters.transitRoutingAttributes.scenarioId) {
-                const pathGeojson = await pathDbQueries.geojsonCollection({
-                    scenarioId: this.job.attributes.data.parameters.transitRoutingAttributes.scenarioId
-                });
-                pathCollection.loadFromCollection(pathGeojson.features);
-            }
-        }
-        return { resultHandler, pathCollection };
     };
 
     private getOdTrips = async (): Promise<{

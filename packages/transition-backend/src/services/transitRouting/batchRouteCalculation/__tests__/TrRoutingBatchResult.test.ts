@@ -9,19 +9,19 @@ import { ObjectWritableMock } from 'stream-mock';
 
 
 import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
-import { simplePathResult, alternativesResult, walkingRouteResult, cyclingRouteResult } from './TrRoutingResultStub';
+import { simplePathResult, alternativesResult, walkingRouteResult, cyclingRouteResult } from '../../__tests__/TrRoutingResultStub';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { createRoutingFileResultProcessor, generateFileOutputResults } from '../TrRoutingBatchResult';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import { getDefaultCsvAttributes, getDefaultStepsAttributes } from '../ResultAttributes';
+import { getDefaultCsvAttributes, getDefaultStepsAttributes } from '../../ResultAttributes';
 import { routeToUserObject, TrRoutingBoardingStep, TrRoutingUnboardingStep, TrRoutingWalkingStep } from 'chaire-lib-common/src/services/transitRouting/TrRoutingResultConversion';
 import Path from 'transition-common/lib/services/path/Path';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ErrorCodes } from 'chaire-lib-common/lib/services/transitRouting/types';
-import jobsDbQueries from '../../../models/db/jobs.db.queries';
-import { ExecutableJob } from '../../executableJob/ExecutableJob';
-import { BatchRouteJobType } from '../BatchRoutingJob';
+import jobsDbQueries from '../../../../models/db/jobs.db.queries';
+import { ExecutableJob } from '../../../executableJob/ExecutableJob';
+import { BatchRouteJobType } from '../../BatchRoutingJob';
 
 const absoluteDir = `${directoryManager.userDataDirectory}/1/exports`;
 
@@ -49,7 +49,7 @@ const odTrip = new BaseOdTrip({
     timeType: 'departure'
 });
 
-jest.mock('../../../models/db/jobs.db.queries');
+jest.mock('../../../../models/db/jobs.db.queries');
 const mockJobsDbQueries = jobsDbQueries as jest.Mocked<typeof jobsDbQueries>;
 const jobId = 4;
 const inputFileName = 'input.csv';
