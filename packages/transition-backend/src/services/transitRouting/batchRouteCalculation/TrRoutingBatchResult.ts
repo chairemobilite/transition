@@ -11,8 +11,8 @@ import { join } from 'path';
 
 import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
-import { getDefaultCsvAttributes, getDefaultStepsAttributes } from './ResultAttributes';
-import { OdTripRouteOutput, OdTripRouteResult } from './types';
+import { getDefaultCsvAttributes, getDefaultStepsAttributes } from '../ResultAttributes';
+import { OdTripRouteOutput, OdTripRouteResult } from '../types';
 import { unparse } from 'papaparse';
 import { ErrorCodes, TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
 import { TransitRoutingResultData } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
@@ -25,8 +25,8 @@ import { BatchCalculationParameters } from 'transition-common/lib/services/batch
 import { pathIsRoute } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 import { resultToObject } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
-import { ExecutableJob } from '../executableJob/ExecutableJob';
-import { BatchRouteJobType } from './BatchRoutingJob';
+import { ExecutableJob } from '../../executableJob/ExecutableJob';
+import { BatchRouteJobType } from '../BatchRoutingJob';
 
 const CSV_FILE_NAME = 'batchRoutingResults.csv';
 const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';
@@ -58,6 +58,7 @@ class BatchRoutingResultProcessorFile implements BatchRoutingResultProcessor {
     constructor(private job: ExecutableJob<BatchRouteJobType>) {
         this.initResultFiles();
     }
+
     private initResultFiles = () => {
         const csvAttributes = getDefaultCsvAttributes(this.batchParameters.routingModes || []);
 
