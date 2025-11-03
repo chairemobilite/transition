@@ -4,9 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
 import { TransitDemandFromCsv, DemandCsvAttributes } from './TransitDemandFromCsv';
 import { TransitDemandFromCsvRoutingAttributes } from './types';
 
@@ -18,14 +16,6 @@ export type TransitOdDemandFromCsvAttributes = DemandCsvAttributes & Partial<Tra
 export class TransitOdDemandFromCsv extends TransitDemandFromCsv<TransitOdDemandFromCsvAttributes> {
     constructor(attributes: Partial<TransitOdDemandFromCsvAttributes>, isNew = false) {
         super(attributes, isNew, 'transit.routing.batch');
-    }
-
-    _prepareAttributes(attributes: Partial<TransitOdDemandFromCsvAttributes>) {
-        if (attributes.saveToDb === undefined) {
-            attributes.saveToDb = false;
-        }
-
-        return super._prepareAttributes(attributes);
     }
 
     validate(): boolean {
@@ -53,28 +43,7 @@ export class TransitOdDemandFromCsv extends TransitDemandFromCsv<TransitOdDemand
                 this.errors.push('transit:transitRouting:errors:DestinationYAttributeIsMissing');
             }
         }
-        if (attributes.saveToDb !== false) {
-            const dataSourceCollection: DataSourceCollection = serviceLocator.collectionManager.get('dataSources');
-            if (attributes.saveToDb?.type === 'new') {
-                // For new data source, make sure an odTrip data source with that name does not already exists
-                // TODO Should we check shortname too?
-                const dataSources = dataSourceCollection.getByAttribute('name', attributes.saveToDb.dataSourceName);
-                if (dataSources.find((ds) => ds.attributes.type === 'odTrips') !== undefined) {
-                    this._isValid = false;
-                    this.errors.push('transit:transitRouting:errors:DataSourceAlreadyExists');
-                }
-            } else if (attributes.saveToDb?.type === 'overwrite') {
-                // For data source replacement, make sure it exists
-                const dataSource = dataSourceCollection.getById(attributes.saveToDb.dataSourceId);
-                if (dataSource === undefined) {
-                    this._isValid = false;
-                    this.errors.push('transit:transitRouting:errors:DataSourceDoesNotExists');
-                } else if (dataSource.attributes.type !== 'odTrips') {
-                    this._isValid = false;
-                    this.errors.push('transit:transitRouting:errors:InvalidOdTripsDataSource');
-                }
-            }
-        }
+
         return this._isValid;
 
         // TODO: add validations for all attributes fields

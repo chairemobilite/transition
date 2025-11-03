@@ -41,8 +41,7 @@ describe('Test Calculate', () => {
         originXAttribute: 'xorig',
         originYAttribute: 'yorig',
         destinationXAttribute: 'xdest',
-        destinationYAttribute: 'ydest',
-        saveToDb: false as const
+        destinationYAttribute: 'ydest'
     };
     const defaultDemand = new TransitOdDemandFromCsv(defaultDemandAttributes);
     const defaultQueryParams = {
@@ -70,7 +69,6 @@ describe('Test Calculate', () => {
             timeAttributeDepartureOrArrival: defaultDemandAttributes.timeAttributeDepartureOrArrival,
             timeFormat: defaultDemandAttributes.timeFormat,
             timeAttribute: defaultDemandAttributes.timeAttribute,
-            saveToDb: defaultDemandAttributes.saveToDb,
             csvFile: { location: 'upload', filename: 'input.csv' }
         }
     }

@@ -79,7 +79,6 @@ export class TransitBatchRoutingCalculator {
                 timeAttributeDepartureOrArrival: attributes.timeAttributeDepartureOrArrival || 'departure',
                 timeFormat: attributes.timeFormat as string,
                 timeAttribute: attributes.timeAttribute as string,
-                saveToDb: attributes.saveToDb || false,
                 csvFile:
                     attributes.csvFile === undefined
                         ? { location: 'upload', filename: 'batchRouting.csv' }

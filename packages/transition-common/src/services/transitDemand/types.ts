@@ -19,7 +19,6 @@ export type TransitDemandFromCsvRoutingAttributes = TransitDemandFromCsvAttribut
     originYAttribute: string;
     destinationXAttribute: string;
     destinationYAttribute: string;
-    saveToDb: false | { type: 'new'; dataSourceName: string } | { type: 'overwrite'; dataSourceId: string };
 };
 
 export type TransitBatchRoutingDemandAttributes = {

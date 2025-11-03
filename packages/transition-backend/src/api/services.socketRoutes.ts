@@ -282,8 +282,6 @@ export default function (socket: EventEmitter, userId?: number) {
                     const attributes = batchRouteJob.attributes.data.parameters;
                     const filePath = batchRouteJob.getInputFilePath();
                     const demand = new TransitOdDemandFromCsv(attributes.demandAttributes.configuration);
-                    // Make sure saving to db is set to false, as it was already imported if so
-                    demand.attributes.saveToDb = false;
                     const csvFileStream = fs.createReadStream(filePath);
                     const csvFields = await demand.setCsvFile(csvFileStream, { location: 'server', fromJob: jobId });
                     callback(

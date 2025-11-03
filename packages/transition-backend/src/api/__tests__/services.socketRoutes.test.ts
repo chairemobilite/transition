@@ -226,8 +226,7 @@ describe('trRouting routes', () => {
         configuration: {
             calculationName: 'test',
             csvFile: { location: 'upload', filename: 'myCoolFile.csv' },
-            cpuCount: 1,
-            saveToDb: false
+            cpuCount: 1
         }
     };
 
