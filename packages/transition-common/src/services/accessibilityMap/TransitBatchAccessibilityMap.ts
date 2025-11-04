@@ -15,6 +15,7 @@ export interface TransitDemandFromCsvAccessMapAttributes extends DemandCsvAttrib
     // TODO Move to a BatchAccessMap type, similar to BatchCalculationParameters
     detailed?: boolean;
     withGeometries?: boolean;
+    calculatePois?: boolean;
     cpuCount?: number;
     maxCpuCount?: number;
 }

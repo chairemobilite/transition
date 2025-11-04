@@ -128,6 +128,7 @@ export const batchAccessibilityMap = async (
                     calculationAttributes.arrivalTimeSecondsSinceMidnight = location.timeOfTrip;
                     calculationAttributes.departureTimeSecondsSinceMidnight = undefined;
                 }
+                calculationAttributes.calculatePois = parameters.calculatePois;
 
                 try {
                     const routingResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(
