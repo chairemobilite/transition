@@ -363,7 +363,7 @@ describe('batch route execution', () => {
         expect(updatableTask.save).toHaveBeenCalledTimes(2); // One for in progress, one for completed
     });
 
-    test('wrapTaskExecution should not execute cancelled task', async () => {
+    test.each(['completed', 'failed', 'cancelled', 'paused'])('wrapTaskExecution should not execute %s task', async (status) => {
         const mockedTask = {
             // Instance methods
             setInProgress: jest.fn(),
@@ -373,12 +373,12 @@ describe('batch route execution', () => {
             refresh: jest.fn().mockResolvedValue(true),
             getJobFileDirectory: jest.fn().mockReturnValue(userDir),
             hasInputFile: jest.fn().mockReturnValue(true),
-            status: 'cancelled',
+            status: status,
             attributes: {
                 id: 34,
                 user_id: 1,
                 name: 'batchRoute',
-                status: 'cancelled',
+                status: status,
                 data: {
                     parameters: {
                         demandAttributes: { type: 'csv' } as any,
@@ -409,7 +409,6 @@ describe('batch route execution', () => {
         expect(updatableTask.setFailed).not.toHaveBeenCalled();
         expect(updatableTask.setInProgress).not.toHaveBeenCalled();
         expect(updatableTask.save).not.toHaveBeenCalled();
-
     });
 
     test('wrapTaskExecution fails when input file is missing', async () => {

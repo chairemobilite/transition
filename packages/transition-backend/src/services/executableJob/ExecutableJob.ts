@@ -10,7 +10,7 @@ import path from 'path';
 
 import Job, { JobAttributes, JobDataType, fileKey } from 'transition-common/lib/services/jobs/Job';
 import jobsDbQueries from '../../models/db/jobs.db.queries';
-import { directoryManager } from 'chaire-lib-backend/lib//utils/filesystem/directoryManager';
+import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { execJob } from '../../tasks/serverWorkerPool';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
@@ -137,7 +137,6 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
     }
 
     async enqueue(progressEmitter?: EventEmitter): Promise<any> {
-        // TODO Handle the cancellation
         const jobProgressEmitter =
             progressEmitter !== undefined
                 ? progressEmitter
@@ -312,7 +311,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
     }
 
     setCancelled(): boolean {
-        if (this.status === 'pending' || this.status === 'inProgress') {
+        if (this.status === 'pending' || this.status === 'inProgress' || this.status === 'paused') {
             this.status = 'cancelled';
             return true;
         }
@@ -338,6 +337,43 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
     setFailed(): boolean {
         if (this.status === 'inProgress') {
             this.status = 'failed';
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Set the status to 'paused' for pending or in progress job. The caller
+     * needs to save the task after setting the status.
+     *
+     * @returns Whether the task has successfully be put to paused.
+     */
+    setPaused(): boolean {
+        if (this.status === 'inProgress' || this.status === 'pending') {
+            this.status = 'paused';
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Resume a paused job and enqueue it again. Callers do not need to save the
+     * job, as it has been saved before enqueuing.
+     *
+     * @param progressEmitter Optional event emitter to use for job progress
+     * events
+     * @returns Whether the task was successfully resumed. It will return
+     * `false` if the task was not paused
+     */
+    async resume(progressEmitter?: EventEmitter): Promise<boolean> {
+        if (this.status === 'paused') {
+            // Resuming a paused job puts it back to a pending. If it was started
+            // before and checkpointing is activated, the job should restart where it
+            // was
+            this.status = 'pending';
+            // Enqueue the job again
+            // FIXME If the job was paused while in progress and resumed shortly after, the job may still be running in the worker. We should have a way to make sure the worker is aware of state change. See issue #1558
+            await this.enqueue(progressEmitter);
             return true;
         }
         return false;

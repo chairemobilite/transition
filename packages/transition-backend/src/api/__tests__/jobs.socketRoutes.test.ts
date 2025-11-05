@@ -9,6 +9,7 @@ import { EventEmitter } from 'events';
 import { DirectoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import jobsRoutes from '../jobs.socketRoutes';
+import { execJob } from '../../tasks/serverWorkerPool';
 import jobsDbQueries from '../../models/db/jobs.db.queries';
 import { JobAttributes } from 'transition-common/lib/services/jobs/Job';
 
@@ -19,11 +20,20 @@ jobsRoutes(socketStub, userId);
 jest.mock('../../models/db/jobs.db.queries', () => {
     return {
         collection: jest.fn().mockResolvedValue({ jobs: [], totalCount: 0 }),
-        read: jest.fn()
+        read: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn()
     }
 });
 const mockedCollection = jobsDbQueries.collection as jest.MockedFunction<typeof jobsDbQueries.collection>;
 const mockedRead = jobsDbQueries.read as jest.MockedFunction<typeof jobsDbQueries.read>;
+const mockedUpdate = jobsDbQueries.update as jest.MockedFunction<typeof jobsDbQueries.update>;
+const mockedDelete = jobsDbQueries.delete as jest.MockedFunction<typeof jobsDbQueries.delete>;
+
+jest.mock('../../tasks/serverWorkerPool', () => (
+    { execJob: jest.fn() }
+));
+const mockedPool = execJob as jest.MockedFunction<typeof execJob>;
 
 type TestJobType = {
     name: 'test';
@@ -38,13 +48,25 @@ type TestJobType = {
         testFile2: boolean;
         testFile3: boolean;
     }
-}
+};
+
+beforeEach(() => {
+    jest.clearAllMocks();
+});
+
+const defaultJobAttributes: JobAttributes<TestJobType> = {
+    id: 4,
+    name: 'test' as const,
+    user_id: 3,
+    status: 'inProgress',
+    internal_data: {},
+    data: { parameters: { foo: 'bar' } },
+    resources: { files: { testFile: 'file.csv', testFile2: 'noExtension', testFile3: 'doesNotExist.csv' } },
+    created_at: '2022-08-08 13:21:34',
+    updated_at: '2022-08-08 13:26:14'
+};
 
 describe('Jobs list', () => {
-
-    beforeEach(() => {
-        mockedCollection.mockClear();
-    });
 
     test('List jobs properly', (done) => {
         const jobs = [{id: 1, user_id: userId, name: 'test', status: 'pending' as const, internal_data: {}, data: {}}];
@@ -85,20 +107,12 @@ describe('Job files', () => {
     DirectoryManager.prototype.getFilesAbsolute = mockGetFiles;
     
     const jobAttributes: JobAttributes<TestJobType> = {
-        id: 4,
-        name: 'test' as const,
-        user_id: 3,
+        ...defaultJobAttributes,
         status: 'completed',
         internal_data: {},
         data: { parameters: { foo: 'bar' } },
         resources: { files: { testFile: 'file.csv', testFile2: 'noExtension', testFile3: 'doesNotExist.csv' } },
-        created_at: '2022-08-08 13:21:34',
-        updated_at: '2022-08-08 13:26:14'
     };
-
-    beforeEach(() => {
-        mockedRead.mockClear();
-    });
 
     test('Get job files properly', (done) => {
         mockedRead.mockResolvedValue(jobAttributes);
@@ -128,6 +142,116 @@ describe('Job files', () => {
             expect(Status.isStatusOk(status)).toEqual(false);
             expect(mockedRead).toHaveBeenCalledTimes(1);
             expect(mockedRead).toHaveBeenCalledWith(jobAttributes.id);
+            done();
+        });
+    });
+
+});
+
+describe('Job pause', () => {
+
+    test('Pause job successfully', (done) => {
+        mockedRead.mockResolvedValue(defaultJobAttributes);
+        mockedUpdate.mockResolvedValue(defaultJobAttributes.id);
+        socketStub.emit('executableJobs.pause', defaultJobAttributes.id, async (status) => {
+            expect(Status.isStatusOk(status)).toEqual(true);
+            expect(Status.unwrap(status)).toEqual(true);
+            expect(mockedRead).toHaveBeenCalledTimes(1);
+            expect(mockedRead).toHaveBeenCalledWith(defaultJobAttributes.id);
+            done();
+        });
+    });
+
+    test('Pause job with error', (done) => {
+        mockedRead.mockRejectedValueOnce('error');
+        socketStub.emit('executableJobs.pause', defaultJobAttributes.id, async (status) => {
+            expect(Status.isStatusOk(status)).toEqual(false);
+            expect(mockedRead).toHaveBeenCalledTimes(1);
+            expect(mockedRead).toHaveBeenCalledWith(defaultJobAttributes.id);
+            done();
+        });
+    });
+
+});
+
+describe('Job resume', () => {
+
+    test('Resume job successfully', (done) => {
+        const pausedJobAttributes = { ...defaultJobAttributes, status: 'paused' as const };
+        mockedRead.mockResolvedValue(pausedJobAttributes);
+        mockedUpdate.mockResolvedValue(pausedJobAttributes.id);
+        socketStub.emit('executableJobs.resume', defaultJobAttributes.id, async (status) => {
+            expect(Status.isStatusOk(status)).toEqual(true);
+            expect(Status.unwrap(status)).toEqual(true);
+            expect(mockedRead).toHaveBeenCalledTimes(1);
+            expect(mockedRead).toHaveBeenCalledWith(defaultJobAttributes.id);
+            expect(mockedPool).toHaveBeenCalledTimes(1);
+            done();
+        });
+    });
+
+    test('Resume job with error', (done) => {
+        mockedRead.mockRejectedValueOnce('error');
+        socketStub.emit('executableJobs.resume', defaultJobAttributes.id, async (status) => {
+            expect(Status.isStatusOk(status)).toEqual(false);
+            expect(mockedRead).toHaveBeenCalledTimes(1);
+            expect(mockedRead).toHaveBeenCalledWith(defaultJobAttributes.id);
+            expect(mockedPool).not.toHaveBeenCalled();
+            done();
+        });
+    });
+
+});
+
+describe('Job delete', () => {
+
+    test('Delete job successfully', (done) => {
+        mockedRead.mockResolvedValue(defaultJobAttributes);
+        mockedDelete.mockResolvedValue(defaultJobAttributes.id);
+        socketStub.emit('executableJobs.delete', defaultJobAttributes.id, async (status) => {
+            expect(Status.isStatusOk(status)).toEqual(true);
+            expect(Status.unwrap(status)).toEqual(true);
+            expect(mockedRead).toHaveBeenCalledTimes(1);
+            expect(mockedRead).toHaveBeenCalledWith(defaultJobAttributes.id);
+            expect(mockedDelete).toHaveBeenCalledTimes(1);
+            expect(mockedDelete).toHaveBeenCalledWith(defaultJobAttributes.id);
+            done();
+        });
+    });
+
+    test('Delete job with error', (done) => {
+        mockedRead.mockRejectedValueOnce('error');
+        socketStub.emit('executableJobs.delete', defaultJobAttributes.id, async (status) => {
+            expect(Status.isStatusOk(status)).toEqual(false);
+            expect(mockedRead).toHaveBeenCalledTimes(1);
+            expect(mockedRead).toHaveBeenCalledWith(defaultJobAttributes.id);
+            expect(mockedDelete).not.toHaveBeenCalled();
+            done();
+        });
+    });
+
+});
+
+describe('Job cancel', () => {
+
+    test('Cancel job successfully', (done) => {
+        mockedRead.mockResolvedValue(defaultJobAttributes);
+        mockedUpdate.mockResolvedValue(defaultJobAttributes.id);
+        socketStub.emit('executableJobs.cancel', defaultJobAttributes.id, async (status) => {
+            expect(Status.isStatusOk(status)).toEqual(true);
+            expect(Status.unwrap(status)).toEqual(true);
+            expect(mockedRead).toHaveBeenCalledTimes(1);
+            expect(mockedRead).toHaveBeenCalledWith(defaultJobAttributes.id);
+            done();
+        });
+    });
+
+    test('Cancel job with error', (done) => {
+        mockedRead.mockRejectedValueOnce('error');
+        socketStub.emit('executableJobs.cancel', defaultJobAttributes.id, async (status) => {
+            expect(Status.isStatusOk(status)).toEqual(false);
+            expect(mockedRead).toHaveBeenCalledTimes(1);
+            expect(mockedRead).toHaveBeenCalledWith(defaultJobAttributes.id);
             done();
         });
     });
