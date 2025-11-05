@@ -29,7 +29,7 @@ export type TripValidationResult = {
     internalId: string;
     origin?: GeoJSON.Point;
     destination?: GeoJSON.Point;
-    results?: TransitValidationMessage | true;
+    results?: TransitValidationMessage;
     error?: string | { error: string; errorCode: string };
     valid: boolean;
 };

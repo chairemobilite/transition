@@ -32,6 +32,10 @@ export interface ValidationRowData {
     unreachableOrigin?: string;
     unreachableDestination?: string;
     unreachableDistanceMeters?: number | string;
+    accessDistanceMeters?: number | string;
+    egressDistanceMeters?: number | string;
+    transferDistanceMetersTotal?: number | string;
+    transferDistancesMeters?: string;
 }
 
 /**
@@ -77,7 +81,11 @@ class ValidationResultProcessorFile implements ValidationResultProcessor {
             'lines',
             'unreachableOrigin',
             'unreachableDestination',
-            'unreachableDistanceMeters'
+            'unreachableDistanceMeters',
+            'accessDistanceMeters',
+            'egressDistanceMeters',
+            'transferDistanceMetersTotal',
+            'transferDistancesMeters'
         ];
         this.csvStream.write(headers.join(',') + '\n');
     };
@@ -97,7 +105,11 @@ class ValidationResultProcessorFile implements ValidationResultProcessor {
                 lines: result.lines || '',
                 unreachableOrigin: result.unreachableOrigin || '',
                 unreachableDestination: result.unreachableDestination || '',
-                unreachableDistanceMeters: result.unreachableDistanceMeters || ''
+                unreachableDistanceMeters: result.unreachableDistanceMeters || '',
+                accessDistanceMeters: result.accessDistanceMeters || '',
+                egressDistanceMeters: result.egressDistanceMeters || '',
+                transferDistanceMetersTotal: result.transferDistanceMetersTotal || '',
+                transferDistancesMeters: result.transferDistancesMeters || ''
             };
             this.csvStream.write(unparse([csvRow], { header: false }) + '\n');
         }
@@ -168,26 +180,33 @@ export const formatValidationResultForCsv = (validationResult: TripValidationRes
         destinationLat: validationResult.destination?.coordinates[1],
         destinationLon: validationResult.destination?.coordinates[0],
         valid: validationResult.valid,
-        message:
-            validationResult.results && validationResult.results === true
-                ? 'found'
-                : validationResult.results
-                    ? validationResult.results.type
-                    : '',
+        message: validationResult.results ? validationResult.results.type : '',
         agency:
-            validationResult.results &&
-            typeof validationResult.results !== 'boolean' &&
-            validationResult.results.type === 'missingLineForAgency'
+            validationResult.results && validationResult.results.type === 'missingLineForAgency'
                 ? validationResult.results.agency
                 : '',
         lines: getLineData(validationResult.results),
         unreachableOrigin: getUnreachableOrigin(validationResult.results),
         unreachableDestination: getUnreachableDestination(validationResult.results),
         unreachableDistanceMeters:
-            validationResult.results &&
-            typeof validationResult.results !== 'boolean' &&
-            validationResult.results.type === 'walkingDistanceTooLong'
+            validationResult.results && validationResult.results.type === 'walkingDistanceTooLong'
                 ? validationResult.results.distanceMeters
+                : '',
+        accessDistanceMeters:
+            validationResult.results && validationResult.results.type === 'validTrip'
+                ? validationResult.results.accessDistanceMeters
+                : '',
+        egressDistanceMeters:
+            validationResult.results && validationResult.results.type === 'validTrip'
+                ? validationResult.results.egressDistanceMeters
+                : '',
+        transferDistanceMetersTotal:
+            validationResult.results && validationResult.results.type === 'validTrip'
+                ? validationResult.results.transferDistancesMeters.reduce((sum, val) => sum + val, 0)
+                : '',
+        transferDistancesMeters:
+            validationResult.results && validationResult.results.type === 'validTrip'
+                ? validationResult.results.transferDistancesMeters.join('|')
                 : ''
     };
 

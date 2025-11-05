@@ -220,6 +220,7 @@ class TrRoutingValidationBatch {
                 declaredTrip: odTrip.declaredTrip
             });
 
+            const validTrip = validationResult.type === 'validTrip';
             // Store result in database and for file generation
             const resultData = {
                 uuid: odTrip.trip.getId(),
@@ -227,7 +228,7 @@ class TrRoutingValidationBatch {
                 origin: odTrip.trip.attributes.origin_geography,
                 destination: odTrip.trip.attributes.destination_geography,
                 results: validationResult,
-                valid: validationResult === true || false
+                valid: validTrip
             };
 
             await validationResultsDbQueries.create({
@@ -237,7 +238,7 @@ class TrRoutingValidationBatch {
             });
 
             // Update counts
-            if (validationResult === true) {
+            if (validTrip) {
                 this.validCount++;
             } else {
                 this.invalidCount++;

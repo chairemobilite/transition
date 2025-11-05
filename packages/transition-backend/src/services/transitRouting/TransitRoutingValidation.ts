@@ -20,6 +20,7 @@ import transitLinesDbQueries from '../../models/db/transitLines.db.queries';
 import transitPathsDbQueries from '../../models/db/transitPaths.db.queries';
 import schedulesDbQueries from '../../models/db/transitSchedules.db.queries';
 import transitNodeTransferableDbQueries from '../../models/db/transitNodeTransferable.db.queries';
+import { TransferableNodePair } from '../../models/db/transitNodeTransferable.db.queries';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { PathAttributes } from 'transition-common/lib/services/path/Path';
 import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
@@ -57,6 +58,12 @@ export type TransitValidationMessage =
           type: 'incompatibleTrip';
           originLine: DeclaredLine;
           destinationLine: DeclaredLine;
+      }
+    | {
+          type: 'validTrip';
+          accessDistanceMeters: number;
+          egressDistanceMeters: number;
+          transferDistancesMeters: number[];
       };
 
 /**
@@ -115,7 +122,7 @@ export class TransitRoutingValidation {
         odTrip: BaseOdTrip;
         dateOfTrip?: Date;
         declaredTrip: DeclaredLine[];
-    }): Promise<true | TransitValidationMessage> => {
+    }): Promise<TransitValidationMessage> => {
         // No declared trip, return with a noDeclaredTrip message
         if (declaredTrip.length === 0) {
             return {
@@ -244,6 +251,7 @@ export class TransitRoutingValidation {
         // [For each combination of lines entered]
         // First, get the transferable nodes for each line pairs in the declared
         // trip, they should be already calculated in the database
+        const transferableNodePairsArray: TransferableNodePair[][] = [];
         for (let i = 0; i < declaredTrip.length - 1; i++) {
             const fromLine = linesUsed[i];
             const toLine = linesUsed[i + 1];
@@ -269,6 +277,7 @@ export class TransitRoutingValidation {
                     destinationLine: declaredTransitLines[i + 1].declaredLine
                 };
             }
+            transferableNodePairsArray.push(transferableNodePairs);
         }
 
         // Get the nearest entry node to the origin in the first line
@@ -320,7 +329,18 @@ export class TransitRoutingValidation {
         // Set prevArrivalTime to the stop time at exit node of trip_i
         // Trip found, return true
 
-        return true;
+        const accessDistanceMeters = Math.min(...accessNodesResult.nodes.map((node) => node.distanceMeters));
+        const egressDistanceMeters = Math.min(...egressNodesResult.nodes.map((node) => node.distanceMeters));
+        // Get the shortest transfer distances for each transfer pairs
+        const minimalTransferDistances = transferableNodePairsArray.map((transferableNodePairs) =>
+            Math.min(...transferableNodePairs.map((node) => node.walking_travel_distance_meters))
+        );
+        return {
+            type: 'validTrip',
+            accessDistanceMeters: accessDistanceMeters,
+            egressDistanceMeters: egressDistanceMeters,
+            transferDistancesMeters: minimalTransferDistances
+        };
     };
 
     private getAccessibleNodes = async (
@@ -329,7 +349,7 @@ export class TransitRoutingValidation {
         points: GeoJSON.Feature<GeoJSON.Point>[],
         maxWalkingTravelTimeSeconds: number
     ): Promise<
-        | { status: 'accessible'; points: GeoJSON.Feature<GeoJSON.Point>[] }
+        | { status: 'accessible'; nodes: { point: GeoJSON.Feature<GeoJSON.Point>; distanceMeters: number }[] }
         | { status: 'distanceTooFar'; distanceMeters: number }
     > => {
         // Get the reference point and routing service
@@ -337,7 +357,7 @@ export class TransitRoutingValidation {
         const routingService = routingServiceManager.getRoutingServiceForEngine('engine');
 
         // Calculate points in bird distance first
-        const walkingDistance = maxWalkingTravelTimeSeconds * this.routingParameters.walkingSpeedMps!;
+        const walkingDistanceMeters = maxWalkingTravelTimeSeconds * this.routingParameters.walkingSpeedMps!;
         const pointsWithBirdDistance = points.map((point) => ({
             point,
             birdDistance: turfDistance(refGeometry, point, { units: 'meters' })
@@ -347,7 +367,7 @@ export class TransitRoutingValidation {
         pointsWithBirdDistance.sort((a, b) => a.birdDistance - b.birdDistance);
 
         const pointsInBirdDistance = pointsWithBirdDistance
-            .filter(({ birdDistance }) => birdDistance <= walkingDistance)
+            .filter(({ birdDistance }) => birdDistance <= walkingDistanceMeters)
             .map(({ point }) => point);
 
         if (pointsInBirdDistance.length === 0) {
@@ -386,20 +406,20 @@ export class TransitRoutingValidation {
                 });
 
         const distances = routingResultJson.distances;
-        const accessibleNodes: GeoJSON.Feature<GeoJSON.Point>[] = [];
+        const accessibleNodes: { point: GeoJSON.Feature<GeoJSON.Point>; distanceMeters: number }[] = [];
         let minimumDistance = Infinity;
         for (let i = 0, count = pointsInBirdDistance.length; i < count; i++) {
             const nodeInBirdRadius = pointsInBirdDistance[i];
             const travelDistance = distances[i];
-            if (!_isBlank(travelDistance) && travelDistance <= walkingDistance) {
-                accessibleNodes.push(nodeInBirdRadius);
+            if (!_isBlank(travelDistance) && travelDistance <= walkingDistanceMeters) {
+                accessibleNodes.push({ point: nodeInBirdRadius, distanceMeters: travelDistance });
             } else {
                 // Keep track of the minimum distance for error reporting
                 minimumDistance = Math.min(minimumDistance, travelDistance);
             }
         }
         return accessibleNodes.length > 0
-            ? { status: 'accessible', points: accessibleNodes }
+            ? { status: 'accessible', nodes: accessibleNodes }
             : { status: 'distanceTooFar', distanceMeters: minimumDistance };
     };
 }

@@ -144,7 +144,7 @@ const getToNode = async (nodeId: string): Promise<string[]> => {
     }
 };
 
-type TransferableNodePair = {
+export type TransferableNodePair = {
     from: { pathId: string; nodeId: string };
     to: { pathId: string; nodeId: string };
     walking_travel_time_seconds: number;
