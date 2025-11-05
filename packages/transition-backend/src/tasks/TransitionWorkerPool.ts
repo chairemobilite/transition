@@ -76,7 +76,10 @@ const getTaskCancelledFct = (task: ExecutableJob<JobDataType>) => {
             })
             .catch(() => (refreshError = true)); // This will catch deleted jobs
     }, 5000);
-    return () => refreshError || task.status === 'cancelled';
+    // TODO Consider different callbacks for paused and cancelled, or at least
+    // some way for the job executor to know which one it is (deleted, cancelled
+    // or paused)
+    return () => refreshError || task.status === 'cancelled' || task.status === 'paused';
 };
 
 const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>): Promise<boolean> => {

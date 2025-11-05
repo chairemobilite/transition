@@ -52,6 +52,12 @@
         font-weight: 500;
     }
 
+    .status_paused {
+        background-color: $button-grey;
+        color: $input-background;
+        font-weight: 500;
+    }
+
     .th,
     .td {
         margin: 0;

@@ -16,7 +16,51 @@ export type JobNameKey = 'name';
 export type JobDataKey = 'data';
 export type fileKey = 'files';
 
-export type JobStatus = 'pending' | 'inProgress' | 'completed' | 'failed' | 'cancelled';
+/**
+ * Possible statuses for a job
+ *
+ * - 'pending': The job is created and waiting to be executed, it may be a new
+ *   or resumed job. Next possible statuses: 'inProgress', 'cancelled', 'paused'
+ * - 'inProgress': The job is currently being executed. Next possible statuses:
+ *   'completed', 'failed', 'cancelled', 'paused'
+ * - 'paused': The job has been temporarily paused and can be resumed manually.
+ *   Next possible statuses: 'cancelled', 'pending'
+ * - 'completed': The job has been successfully completed. This is a terminal
+ *   state.
+ * - 'failed': The job has encountered an error and did not complete
+ *   successfully. This is a terminal state.
+ * - 'cancelled': The job has been cancelled manually before completion. This
+ *   is a terminal state.
+ *
+ * Here's a state diagram of the job statuses and their possible transitions.
+ * States marked with '*' are terminal.
+ *
+ *
+ *                          +-----------+
+ *                          | completed*|
+ *                          +-----------+
+ *                                ^
+ *                                |
+ *                                |
+ * +-----------+            +-----------+             +-----------+
+ * |  pending  |-----run--->|inProgress |--onError--->|  failed*  |
+ * +-----------+            +-----------+             +-----------+
+ *  |  ^  |                       |  |
+ *  |  |  |                       |  |
+ *  |  |  pause                pause |
+ *  |  |  |                       |  |
+ *  |  |  |     +-----------+     |  |
+ *  |  |  |---->|  paused   |<----|  cancel
+ *  |  -resume- +-----------+        |
+ *  |                 |              |
+ *  |                 |              |
+ *  |                 cancel         |
+ *  cancel            |              |
+ *  |           +-----v-----+        |
+ *  |---------->| cancelled*|<-------|
+ *              +-----------+
+ */
+export type JobStatus = 'pending' | 'inProgress' | 'paused' | 'completed' | 'failed' | 'cancelled';
 
 export interface JobAttributes<TData extends JobDataType> {
     id: number;
