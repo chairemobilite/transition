@@ -124,4 +124,28 @@ export default function (socket: EventEmitter, userId: number) {
             callback(Status.createError('Error cancelling job'));
         }
     });
+
+    socket.on(JobsConstants.PAUSE_JOB, async (id: number, callback: (status: Status.Status<boolean>) => void) => {
+        try {
+            const job = await ExecutableJob.loadTask(id);
+            if (job.setPaused()) {
+                await job.save(socket);
+            }
+            callback(Status.createOk(true));
+        } catch (error) {
+            console.error(error);
+            callback(Status.createError('Error pausing job'));
+        }
+    });
+
+    socket.on(JobsConstants.RESUME_JOB, async (id: number, callback: (status: Status.Status<boolean>) => void) => {
+        try {
+            const job = await ExecutableJob.loadTask(id);
+            await job.resume(socket);
+            callback(Status.createOk(true));
+        } catch (error) {
+            console.error(error);
+            callback(Status.createError('Error resuming job'));
+        }
+    });
 }

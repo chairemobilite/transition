@@ -298,10 +298,11 @@ describe('Test status change', () => {
     each([
         ['pending', true],
         ['inProgress', false],
+        ['paused', false],
         ['completed', false],
         ['failed', false],
         ['cancelled', false]
-    ]).test('Change from %s to inProgress', async (status, shouldChange) => {
+    ]).test('Change from "%s" to inProgress', async (status, shouldChange) => {
         const obj = await loadObjWithStatus(status);
         expect(obj.setInProgress()).toEqual(shouldChange);
         expect(obj.status).toEqual(shouldChange ? 'inProgress' : status);
@@ -310,10 +311,11 @@ describe('Test status change', () => {
     each([
         ['pending', false],
         ['inProgress', true],
+        ['paused', false],
         ['completed', false],
         ['failed', false],
         ['cancelled', false]
-    ]).test('Change from %s to completed', async (status, shouldChange) => {
+    ]).test('Change from "%s" to completed', async (status, shouldChange) => {
         const obj = await loadObjWithStatus(status);
         expect(obj.setCompleted()).toEqual(shouldChange);
         expect(obj.status).toEqual(shouldChange ? 'completed' : status);
@@ -322,10 +324,11 @@ describe('Test status change', () => {
     each([
         ['pending', false],
         ['inProgress', true],
+        ['paused', false],
         ['completed', false],
         ['failed', false],
         ['cancelled', false]
-    ]).test('Change from %s to failed', async (status, shouldChange) => {
+    ]).test('Change from "%s" to failed', async (status, shouldChange) => {
         const obj = await loadObjWithStatus(status);
         expect(obj.setFailed()).toEqual(shouldChange);
         expect(obj.status).toEqual(shouldChange ? 'failed' : status);
@@ -334,13 +337,41 @@ describe('Test status change', () => {
     each([
         ['pending', true],
         ['inProgress', true],
+        ['paused', true],
         ['completed', false],
         ['failed', false],
         ['cancelled', false]
-    ]).test('Change from %s to cancelled', async (status, shouldChange) => {
+    ]).test('Change from "%s" to cancelled', async (status, shouldChange) => {
         const obj = await loadObjWithStatus(status);
         expect(obj.setCancelled()).toEqual(shouldChange);
         expect(obj.status).toEqual(shouldChange ? 'cancelled' : status);
+    });
+
+    each([
+        ['pending', true],
+        ['inProgress', true],
+        ['paused', false],
+        ['completed', false],
+        ['failed', false],
+        ['cancelled', false]
+    ]).test('pause job with status "%s"', async (status, shouldChange) => {
+        const obj = await loadObjWithStatus(status);
+        expect(obj.setPaused()).toEqual(shouldChange);
+        expect(obj.status).toEqual(shouldChange ? 'paused' : status);
+    });
+
+    each([
+        ['pending', false],
+        ['inProgress', false],
+        ['paused', true],
+        ['completed', false],
+        ['failed', false],
+        ['cancelled', false]
+    ]).test('resume a job with status "%s" to pending', async (status, shouldChange) => {
+        const obj = await loadObjWithStatus(status);
+        // No internal data, the job should go back to pending
+        expect(await obj.resume()).toEqual(shouldChange);
+        expect(obj.status).toEqual(shouldChange ? 'pending' : status);
     });
 
 });
