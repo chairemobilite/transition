@@ -378,6 +378,22 @@ describe(`schedules`, function () {
         expect(schedulesForNonexistentLine).toEqual([]);
     });
 
+    test('readForLines', async() => {
+        // Read the schedule for the line ID requested
+        const schedulesForLine = await dbQueries.readForLines([scheduleForServiceId.line_id]);
+        expect(schedulesForLine.length).toEqual(1);
+        expectSchedulesSame(schedulesForLine[0], scheduleForServiceId as any);
+
+        // Read the schedule for multiple lines, only one has schedules
+        const schedulesForMultipleLine = await dbQueries.readForLines([scheduleForServiceId.line_id, lineId2]);
+        expect(schedulesForMultipleLine.length).toEqual(1);
+        expectSchedulesSame(schedulesForMultipleLine[0], scheduleForServiceId as any);
+
+        // Read for a line id without data
+        const schedulesForNonexistentLine = await dbQueries.readForLines([uuidV4()]);
+        expect(schedulesForNonexistentLine).toEqual([]);
+    });
+
     test('test collection', async function() {
         const collection = await dbQueries.collection();
         expect(collection.length).toEqual(1);

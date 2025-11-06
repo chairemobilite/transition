@@ -520,7 +520,7 @@ const deleteScheduleData = async function (id: number | string, options: Paramet
     return await deleteRecord(knex, scheduleTable, id, options);
 };
 
-const getCollectionSubquery = () => {
+const getCollectionSubquery = (lineIds: string[] = []) => {
     // Get the complete collection from DB, with trips aggregated
     const subquery = knex(`${periodTable} as p`)
         .leftJoin(`${tripTable} as trip`, function () {
@@ -534,6 +534,12 @@ const getCollectionSubquery = () => {
         )
         .groupByRaw('p.id, trip.schedule_period_id')
         .as('periods');
+    if (lineIds.length > 0) {
+        subquery.whereIn(
+            'p.schedule_id',
+            knex(`${scheduleTable} as sched`).select('sched.id').whereIn('sched.line_id', lineIds)
+        );
+    }
     return knex(`${scheduleTable} as sched`)
         .leftJoin(subquery, function () {
             this.on('sched.id', 'periods.schedule_id');
@@ -572,7 +578,9 @@ const readForLines = async function (lineIds: string[]): Promise<ScheduleAttribu
         // Empty line array, return empty
         return [];
     }
-    const collection = await getCollectionSubquery().whereIn('sched.line_id', lineIds).orderByRaw('sched.line_id');
+    const collection = await getCollectionSubquery(lineIds)
+        .whereIn('sched.line_id', lineIds)
+        .orderByRaw('sched.line_id');
     return collection.map(dbRowToScheduleAttributes);
 };
 
