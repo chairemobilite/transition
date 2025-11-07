@@ -10,10 +10,12 @@ export type JobDataType = {
     name: string;
     data: { [key: string]: unknown };
     files: { [fileTitle: string]: boolean };
+    internal_data?: Record<string, unknown>;
 };
 
 export type JobNameKey = 'name';
 export type JobDataKey = 'data';
+export type JobInternalDataKey = 'internal_data';
 export type fileKey = 'files';
 
 /**
@@ -61,6 +63,7 @@ export type fileKey = 'files';
  *              +-----------+
  */
 export type JobStatus = 'pending' | 'inProgress' | 'paused' | 'completed' | 'failed' | 'cancelled';
+type DefaultInternalData = { checkpoint?: number };
 
 export interface JobAttributes<TData extends JobDataType> {
     id: number;
@@ -69,11 +72,15 @@ export interface JobAttributes<TData extends JobDataType> {
     status: JobStatus;
     statusMessages?: { errors?: ErrorMessage[]; warnings?: ErrorMessage[]; infos?: ErrorMessage[] };
     /**
-     * Data internal to the job management, that is not relevant to the users
+     * Data internal to the job management, that is not relevant to the users.
+     * This data is persisted and can be used for job checkpointing, resuming
+     * interrupted jobs, and tracking internal execution state. While this data
+     * may change frequently during job execution, it is stored in the database
+     * to ensure job recovery after system failures.
      */
-    internal_data: {
-        checkpoint?: number;
-    };
+    internal_data: TData[JobInternalDataKey] extends Record<string, unknown>
+        ? DefaultInternalData & TData[JobInternalDataKey] // If the job's TData type defines internal_data, merge it with DefaultInternalData
+        : DefaultInternalData; // Otherwise, simply use the checkpoint number
     data: {
         [Property in keyof TData[JobDataKey]]: TData[JobDataKey][Property];
     };
