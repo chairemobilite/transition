@@ -169,15 +169,24 @@ export const wrapTaskExecution = async (id: number) => {
     await task.save(taskListener);
 };
 
+// Graceful shutdown handler
+const shutdown = async (code: number | undefined) => {
+    console.log('Worker received a shutdown request with code ', code);
+    // TODO Implement proper shutdown of the tasks, like killing ongoing trRouting processes to avoid defunct (if this callback is called in case of dramatic termination)
+};
+
 const run = async () => {
     // Prepare socket routes to be able to use them
     prepareSocketRoutes();
     await OSRMProcessManager.configureAllOsrmServers(false);
 
     // create a worker and register public functions
-    workerpool.worker({
-        task: wrapTaskExecution
-    });
+    workerpool.worker(
+        {
+            task: wrapTaskExecution
+        },
+        { onTerminate: shutdown }
+    );
 };
 
 run();

@@ -21,3 +21,14 @@ export const execJob = async (...parameters: Parameters<Pool['exec']>): Promise<
     }
     return pool.exec(...parameters);
 };
+
+export const terminatePool = async () => {
+    if (pool !== undefined) {
+        console.log('Terminating worker pool');
+        // Forcing termination to avoid waiting for long running tasks
+        // TODO Implement proper abort mechanism for the tasks, so they can be cleanly stopped
+        await pool.terminate(true);
+        console.log('Terminated worker pool');
+        pool = undefined;
+    }
+};
