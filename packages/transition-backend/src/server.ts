@@ -15,7 +15,7 @@ import { hideBin } from 'yargs/helpers';
 import express from 'express';
 import { registerTranslationDir, addTranslationNamespace } from 'chaire-lib-backend/lib/config/i18next';
 import config from 'chaire-lib-backend/lib/config/server.config';
-import { startPool } from './tasks/serverWorkerPool';
+import { startPool, terminatePool } from './tasks/serverWorkerPool';
 import OSRMProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import { _booleish } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -134,5 +134,18 @@ const setupAll = async function () {
 
     console.log('Setup done');
 };
+// Register shutdown handlers
+process.on('SIGINT', () => {
+    console.log('Received SIGINT. Performing cleanup...');
+    terminatePool()
+        .catch((error) => console.error('Failed to terminate worker pool', error))
+        .finally(() => process.exit(0));
+});
 
+process.on('SIGTERM', () => {
+    console.log('Received SIGTERM. Performing cleanup...');
+    terminatePool()
+        .catch((error) => console.error('Failed to terminate worker pool', error))
+        .finally(() => process.exit(0));
+});
 setupAll();
