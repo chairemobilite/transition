@@ -1,0 +1,1 @@
+The github markdown math expression parser needs text expressions with subscripts to use a space before the subscript underscore otherwise it thinks the underscore must trigger italic text and fails to parse the math expression and render it correctly. Example: {text}_i -> {text}_ i
