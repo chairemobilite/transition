@@ -20,13 +20,16 @@ const attributesParser = <U extends JobDataType>({
     resources,
     updated_at,
     status_messages,
+    parent_job_id,
     ...rest
-}: Omit<JobAttributes<U>, 'statusMessages'> & {
+}: Omit<JobAttributes<U>, 'statusMessages' | 'parentJobId'> & {
     status_messages: JobAttributes<U>['statusMessages'];
+    parent_job_id: number | null;
 }): JobAttributes<U> => ({
         resources: resources || undefined,
         updated_at: updated_at || undefined,
         statusMessages: status_messages || undefined,
+        parentJobId: parent_job_id === null ? undefined : parent_job_id,
         ...rest
     });
 
@@ -34,10 +37,14 @@ const attributesParser = <U extends JobDataType>({
 // is mapped to the status_messages field
 const attributesCleaner = <U extends JobDataType>(
     attributes: Partial<JobAttributes<U>>
-): Omit<JobAttributes<U>, 'statusMessages'> & { status_messages: JobAttributes<U>['statusMessages'] } => {
-    const { statusMessages, ...rest } = attributes;
+): Omit<JobAttributes<U>, 'statusMessages' | 'parentJobId'> & {
+    status_messages: JobAttributes<U>['statusMessages'];
+    parent_job_id?: number;
+} => {
+    const { statusMessages, parentJobId, ...rest } = attributes;
     const _attributes: any = {
         status_messages: statusMessages,
+        parent_job_id: parentJobId,
         ...rest
     };
 
@@ -51,6 +58,8 @@ const attributesCleaner = <U extends JobDataType>(
  * the job data. `jobType` is the title of the jobs to fetch. `pageIndex` and
  * `pageSize` allow paging the query. To return all rows, pageSize can be set to
  * 0. `sort` allow to specify a field and sort direction.
+ * `parentId` let's you filter only the child of that id or if set to null only
+ * get the jobs that have no parents (so only top level jobs)
  * @returns
  */
 const collection = async (
@@ -58,29 +67,38 @@ const collection = async (
         userId?: number;
         jobType?: string;
         statuses?: JobStatus[];
-        pageIndex: number;
-        pageSize: number;
+        pageIndex?: number;
+        pageSize?: number;
         sort?: { field: keyof JobAttributes<JobDataType>; direction: 'asc' | 'desc' }[];
-    } = { pageIndex: 0, pageSize: 0 }
+        parentId?: number | null;
+    } = {}
 ): Promise<{ jobs: JobAttributes<JobDataType>[]; totalCount: number }> => {
     try {
+        const { userId, jobType, statuses, pageIndex = 0, pageSize = 0, sort, parentId } = options;
+
         const addWhere = (query: Knex.QueryBuilder) => {
-            if (options.userId !== undefined) {
-                query.where('user_id', options.userId);
+            if (userId !== undefined) {
+                query.where('user_id', userId);
             }
-            if (options.jobType !== undefined) {
-                query.where('name', options.jobType);
+            if (jobType !== undefined) {
+                query.where('name', jobType);
             }
-            if (options.statuses !== undefined) {
-                const statuses = options.statuses;
-                if (statuses.length === 1) {
-                    query.where('status', options.statuses[0]);
-                } else if (statuses.length > 1) {
-                    query.whereIn('status', statuses);
+            if (statuses !== undefined) {
+                const statusesArray = statuses;
+                if (statusesArray.length === 1) {
+                    query.where('status', statusesArray[0]);
+                } else if (statusesArray.length > 1) {
+                    query.whereIn('status', statusesArray);
                 }
             }
+            if (parentId === null) {
+                // Only return parent jobs if no parent is specified
+                query.whereNull('parent_job_id');
+            } else if (parentId !== undefined) {
+                query.where('parent_job_id', parentId);
+            }
         };
-        const sorts = options.sort || [{ field: 'created_at', direction: 'desc' }];
+        const sorts = sort || [{ field: 'created_at', direction: 'desc' }];
 
         // Get the total count for that query
         const countQuery = knex.count('id').from(tableName);
@@ -99,8 +117,8 @@ const collection = async (
         const jobsQuery = knex.select().from(tableName);
         sorts.forEach((sort) => jobsQuery.orderBy(sort.field, sort.direction));
         addWhere(jobsQuery);
-        if (options.pageSize > 0) {
-            jobsQuery.limit(options.pageSize).offset(options.pageIndex * options.pageSize);
+        if (pageSize > 0) {
+            jobsQuery.limit(pageSize).offset(pageIndex * pageSize);
         }
         const response = await jobsQuery;
         return { jobs: response.map(attributesParser), totalCount };
@@ -202,7 +220,7 @@ const update = async (
     }
 };
 
-const deleteRecord = async (id: number) => {
+const deleteRecord = async (id: number): Promise<number> => {
     try {
         await knex(tableName).where('id', id).del();
         return id;

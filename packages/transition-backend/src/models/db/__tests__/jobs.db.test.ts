@@ -354,3 +354,92 @@ describe(`${objectName}`, () => {
     });
 
 });
+
+describe(`${objectName} with parents`, () => {
+
+    beforeEach(async () => {
+        jest.setTimeout(10000);
+        await dbQueries.truncate();
+    });
+
+    test('Create and get jobs with a parent', async() => {
+        // Create a parent job
+        const parentJobId = await dbQueries.create(newObjectAttributes);
+        expect(await dbQueries.exists(parentJobId)).toBe(true);
+
+        // Create a child job
+        const childJobAttributes = Object.assign({}, newObjectAttributes, { parentJobId: parentJobId });
+        const childJobId = await dbQueries.create(childJobAttributes);
+        expect(await dbQueries.exists(childJobId)).toBe(true);
+
+        // Make sure the collection returns all jobs by default
+        const { totalCount, jobs } = await dbQueries.collection();
+        expect(totalCount).toEqual(2)
+        expect(jobs.length).toBe(2);
+
+        const parentJob = jobs.find(j => j.id === parentJobId);
+        const childJob = jobs.find(j => j.id === childJobId);
+
+        expect(parentJob).toBeDefined();
+        expect(childJob).toBeDefined();
+        expect(childJob!.parentJobId).toEqual(parentJob!.id);
+        expect(new ObjectClass(parentJob!).attributes).toEqual(expect.objectContaining(new ObjectClass(Object.assign({ id: parentJobId as number }, newObjectAttributes)).attributes)); // Test that we have the expected attributes
+        expect(new ObjectClass(childJob!).attributes).toEqual(expect.objectContaining(new ObjectClass(Object.assign({ id: childJobId as number }, childJobAttributes)).attributes)); // Test that we have the expected attributes
+        
+        // Make sure the collection all jobs when parentId === undefined (default)
+        const { totalCount: allCount, jobs: allJobs } = await dbQueries.collection({ parentId: undefined });
+        expect(allCount).toEqual(2)
+        expect(allJobs.length).toBe(2);
+        // It's the same as the empty param, so not doing more expect for this case
+
+        // Test filter for only returning parent jobs (parentId === null)
+        const { totalCount: parentOnlyTotalCount, jobs: parentOnlyJobs } = await dbQueries.collection({ parentId: null });
+        expect(parentOnlyTotalCount).toEqual(1);
+        expect(parentOnlyJobs.length).toBe(1);
+        expect(parentOnlyJobs[0].id).toBe(parentJobId);
+        expect(new ObjectClass(parentOnlyJobs[0]).attributes).toEqual(expect.objectContaining(new ObjectClass(Object.assign({ id: parentJobId as number }, newObjectAttributes)).attributes)); // Test that we have the expected attributes
+        
+        // Make sure we can get the child job when specifying the parent ID
+        const { totalCount: childTotalCount, jobs: childJobs } = await dbQueries.collection({ parentId: parentJobId });
+        expect(childTotalCount).toEqual(1)
+        expect(childJobs.length).toBe(1);
+        expect(childJobs[0].id).toBe(childJobId);
+        expect(new ObjectClass(childJobs[0]).attributes).toEqual(expect.objectContaining(new ObjectClass(Object.assign({ id: childJobId as number }, childJobAttributes)).attributes)); // Test that we have the expected attributes
+    });
+
+    test('Delete child job only', async() => {
+        // Create a parent job
+        const parentJobId = await dbQueries.create(newObjectAttributes);
+        expect(await dbQueries.exists(parentJobId)).toBe(true);
+
+        // Create a child job
+        const childJobAttributes = Object.assign({}, newObjectAttributes, { parentJobId: parentJobId });
+        const childJobId = await dbQueries.create(childJobAttributes);
+        expect(await dbQueries.exists(childJobId)).toBe(true);
+
+        const deletedId = await dbQueries.delete(childJobId);
+        expect(deletedId).toEqual(childJobId);
+
+        // Make sure the child job does not exist anymore, but the parent does
+        expect(await dbQueries.exists(parentJobId)).toBe(true);
+        expect(await dbQueries.exists(childJobId)).toBe(false);
+    });
+
+    test('Delete parent job with child should fail', async() => {
+        // Create a parent job
+        const parentJobId = await dbQueries.create(newObjectAttributes);
+        expect(await dbQueries.exists(parentJobId)).toBe(true);
+
+        // Create a child job
+        const childJobAttributes = Object.assign({}, newObjectAttributes, { parentJobId: parentJobId });
+        const childJobId = await dbQueries.create(childJobAttributes);
+        expect(await dbQueries.exists(childJobId)).toBe(true);
+
+        await expect(dbQueries.delete(parentJobId)).rejects.toThrow();
+        
+        // Both should still exist
+        expect(await dbQueries.exists(parentJobId)).toBe(true);
+        expect(await dbQueries.exists(childJobId)).toBe(true);
+    });
+
+});

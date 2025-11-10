@@ -61,7 +61,8 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         pageIndex: number;
         pageSize: number;
         sort?: { field: keyof JobAttributes<JobDataType>; direction: 'asc' | 'desc' }[];
-    }): Promise<Promise<{ jobs: ExecutableJob<JobDataType>[]; totalCount: number }>> {
+        parentId?: number;
+    }): Promise<{ jobs: ExecutableJob<JobDataType>[]; totalCount: number }> {
         const { jobs, totalCount } = await jobsDbQueries.collection(options);
         return { jobs: jobs.map((attribs) => new ExecutableJob<JobDataType>(attribs)), totalCount };
     }
@@ -123,6 +124,12 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
 
     protected constructor(attributes: JobAttributes<TData>) {
         super(attributes);
+    }
+    /**
+     * Get the list of child jobs
+     */
+    async getChildren(): Promise<{ jobs: ExecutableJob<JobDataType>[]; totalCount: number }> {
+        return ExecutableJob.collection({ pageSize: 0, pageIndex: 0, parentId: this.attributes.id });
     }
 
     /**
@@ -411,13 +418,18 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
     async delete(jobListener?: EventEmitter): Promise<number> {
         const jobProgressEmitter =
             jobListener !== undefined ? jobListener : clientEventManager.getUserEventEmitter(this.attributes.user_id);
+        // First delete all child jobs
+        const children = await this.getChildren();
+        await Promise.all(children.jobs.map((child) => child.delete(jobProgressEmitter)));
+
         // Delete resources used by this task
         const fileDirectory = this.getJobFileDirectory();
         if (directoryManager.directoryExistsAbsolute(fileDirectory)) {
             directoryManager.deleteDirectoryAbsolute(fileDirectory);
         }
         const id = await jobsDbQueries.delete(this.attributes.id);
-        jobProgressEmitter.emit('executableJob.updated', { id, name: this.attributes.name });
+
+        jobProgressEmitter.emit('executableJob.updated', { id: this.attributes.id, name: this.attributes.name });
         return id;
     }
 }

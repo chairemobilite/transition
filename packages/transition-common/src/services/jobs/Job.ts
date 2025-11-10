@@ -92,6 +92,7 @@ export interface JobAttributes<TData extends JobDataType> {
     resources?: {
         files: { [Property in keyof TData[fileKey]]?: string };
     };
+    parentJobId?: number;
     created_at?: string;
     updated_at?: string;
 }
