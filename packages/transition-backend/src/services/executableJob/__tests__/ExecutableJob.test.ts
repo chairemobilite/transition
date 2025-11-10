@@ -33,6 +33,10 @@ type TestJobType = {
     }
 }
 
+type TestChildJobType = Omit<TestJobType, 'name'> & {
+    name: 'testChild';
+}
+
 const newJobAttributes: Omit<JobAttributes<TestJobType>, 'id' | 'status' | 'internal_data'> = {
     name: 'test' as const,
     user_id: 3,
@@ -41,11 +45,30 @@ const newJobAttributes: Omit<JobAttributes<TestJobType>, 'id' | 'status' | 'inte
 } as JobAttributes<TestJobType>;
 
 const jobAttributes: JobAttributes<TestJobType> = {
+    ...newJobAttributes,
     id: 2,
     status: 'pending',
-    internal_data: {},
-    ...newJobAttributes
+    internal_data: {}
 };
+
+const jobAttributesChild1: JobAttributes<TestChildJobType> = {
+    ...newJobAttributes,
+    name: 'testChild' as const,
+    id: 3,
+    status: 'pending',
+    parentJobId: 2,
+    internal_data: {}
+};
+
+const jobAttributesChild2: JobAttributes<TestChildJobType> = {
+    ...newJobAttributes,
+    name: 'testChild' as const,
+    id: 4,
+    status: 'pending',
+    parentJobId: 2,
+    internal_data: {}
+};
+
 
 // Mock db queries
 jest.mock('../../../models/db/jobs.db.queries', () => {
@@ -273,8 +296,10 @@ test('Test save', async () => {
     expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
 });
 
-test('Test delete', async () => {
+test('Test delete no child', async () => {
     const jobObj = await ExecutableJob.loadTask(jobAttributes.id);
+    mockedJobCollection.mockResolvedValueOnce({ jobs: [], totalCount: 0 })
+
     // Delete the object
     await jobObj.delete();
     expect(mockedJobDelete).toHaveBeenCalledTimes(1);
@@ -284,9 +309,39 @@ test('Test delete', async () => {
     const listener = new EventEmitter();
     const jobUpdatedListener = jest.fn();
     listener.on('executableJob.updated', jobUpdatedListener);
+    mockedJobCollection.mockResolvedValueOnce({ jobs: [], totalCount: 0 })
+
     await jobObj.delete(listener);
     expect(jobUpdatedListener).toHaveBeenCalledTimes(1);
     expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
+});
+
+test('Test delete with children', async () => {
+    const jobObj = await ExecutableJob.loadTask(jobAttributes.id);
+    mockedJobCollection.mockResolvedValueOnce({ jobs: [jobAttributesChild1, jobAttributesChild2], totalCount: 2 });
+    mockedJobCollection.mockResolvedValueOnce({ jobs: [], totalCount: 0 })
+    mockedJobCollection.mockResolvedValueOnce({ jobs: [], totalCount: 0 })
+
+    // Delete the object
+    await jobObj.delete();
+    expect(mockedJobDelete).toHaveBeenCalledTimes(3);
+    expect(mockedJobDelete).toHaveBeenCalledWith(jobObj.attributes.id);
+    expect(mockedJobDelete).toHaveBeenCalledWith(jobAttributesChild1.id);
+    expect(mockedJobDelete).toHaveBeenCalledWith(jobAttributesChild2.id);
+
+    // Delete with listener
+    const listener = new EventEmitter();
+    const jobUpdatedListener = jest.fn();
+    listener.on('executableJob.updated', jobUpdatedListener);
+    mockedJobCollection.mockResolvedValueOnce({ jobs: [jobAttributesChild1, jobAttributesChild2], totalCount: 2 });
+    mockedJobCollection.mockResolvedValueOnce({ jobs: [], totalCount: 0 })
+    mockedJobCollection.mockResolvedValueOnce({ jobs: [], totalCount: 0 })
+    await jobObj.delete(listener);
+    expect(jobUpdatedListener).toHaveBeenCalledTimes(3);
+    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
+    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobAttributesChild1.id, name: jobAttributesChild1.name });
+    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobAttributesChild2.id, name: jobAttributesChild2.name });
+
 });
 
 describe('Test status change', () => {
