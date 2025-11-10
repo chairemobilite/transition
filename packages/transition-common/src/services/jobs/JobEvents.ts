@@ -17,6 +17,21 @@
  * Communication from worker thread to main thread is through the workerpool.workerEmit function.
  * The main thread cannot directly send events to the worker thread, so workers must poll
  * the database to detect changes like cancellation or deletion.
+ *
+ * @example
+ * ```typescript
+ * // Emit a progress event from a worker thread
+ * import { JobEventNames, createWorkerEventPayload } from './JobEvents';
+ * workerpool.workerEmit(createWorkerEventPayload(JobEventNames.PROGRESS, {
+ *   name: 'myTask',
+ *   progress: 0.5
+ * }));
+ *
+ * // Listen to job events in the main thread
+ * eventEmitter.on(JobEventNames.JOB_COMPLETED, (data: JobCompletedEventData) => {
+ *   console.log(`Job ${data.id} completed`);
+ * });
+ * ```
  */
 
 /**
