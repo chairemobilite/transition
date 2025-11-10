@@ -346,11 +346,81 @@ describe(`${objectName}`, () => {
     test('should delete objects from database', async() => {
         
         const id = await dbQueries.delete(currentIdForObject1 as number)
-        expect(id).toBe(currentIdForObject1);
+        expect(id).toBe([currentIdForObject1]);
 
         const id2 = await dbQueries.delete(currentIdForObject2 as number)
-        expect(id2).toBe(currentIdForObject2);
+        expect(id2).toBe([currentIdForObject2]);
 
+    });
+
+});
+
+describe(`${objectName} with parents`, () => {
+
+    beforeEach(async () => {
+        jest.setTimeout(10000);
+        await dbQueries.truncate();
+    });
+
+    test('Create and get jobs with a parent', async() => {
+        // Create a parent job
+        const parentJobId = await dbQueries.create(newObjectAttributes);
+        expect(await dbQueries.exists(parentJobId)).toBe(true);
+
+        // Create a child job
+        const childJobAttributes = Object.assign({}, newObjectAttributes, { parentJobId: parentJobId });
+        const childJobId = await dbQueries.create(childJobAttributes);
+        expect(await dbQueries.exists(childJobId)).toBe(true);
+
+        // Make sure the collection only returns parent jobs
+        const { totalCount, jobs } = await dbQueries.collection();
+        expect(totalCount).toEqual(1)
+        expect(jobs.length).toBe(1);
+        expect(jobs[0].id).toBe(parentJobId);
+        expect(new ObjectClass(jobs[0]).attributes).toEqual(expect.objectContaining(new ObjectClass(Object.assign({ id: parentJobId as number }, newObjectAttributes)).attributes));
+        
+        // Make sure we can get the child job when specifying the parent ID
+        const { totalCount: childTotalCount, jobs: childJobs } = await dbQueries.collection({ parentId: parentJobId });
+        expect(childTotalCount).toEqual(1)
+        expect(childJobs.length).toBe(1);
+        expect(childJobs[0].id).toBe(childJobId);
+        expect(new ObjectClass(childJobs[0]).attributes).toEqual(expect.objectContaining(new ObjectClass(Object.assign({ id: childJobId as number }, childJobAttributes)).attributes));
+    });
+
+    test('Delete child job only', async() => {
+        // Create a parent job
+        const parentJobId = await dbQueries.create(newObjectAttributes);
+        expect(await dbQueries.exists(parentJobId)).toBe(true);
+
+        // Create a child job
+        const childJobAttributes = Object.assign({}, newObjectAttributes, { parentJobId: parentJobId });
+        const childJobId = await dbQueries.create(childJobAttributes);
+        expect(await dbQueries.exists(childJobId)).toBe(true);
+
+        const deletedId = await dbQueries.delete(childJobId);
+        expect(deletedId).toEqual([childJobId]);
+
+        // Make sure the child job does not exist anymore, but the parent does
+        expect(await dbQueries.exists(parentJobId)).toBe(true);
+        expect(await dbQueries.exists(childJobId)).toBe(false);
+    });
+
+    test('Delete parent job, with child', async() => {
+        // Create a parent job
+        const parentJobId = await dbQueries.create(newObjectAttributes);
+        expect(await dbQueries.exists(parentJobId)).toBe(true);
+
+        // Create a child job
+        const childJobAttributes = Object.assign({}, newObjectAttributes, { parentJobId: parentJobId });
+        const childJobId = await dbQueries.create(childJobAttributes);
+        expect(await dbQueries.exists(childJobId)).toBe(true);
+
+        const deletedId = await dbQueries.delete(parentJobId);
+        expect(deletedId).toEqual([parentJobId, childJobId]);
+
+        // Make sure both jobs have been deleted
+        expect(await dbQueries.exists(parentJobId)).toBe(false);
+        expect(await dbQueries.exists(childJobId)).toBe(false);
     });
 
 });

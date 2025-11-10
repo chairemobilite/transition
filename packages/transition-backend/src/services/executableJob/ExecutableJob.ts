@@ -354,8 +354,17 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         if (directoryManager.directoryExistsAbsolute(fileDirectory)) {
             directoryManager.deleteDirectoryAbsolute(fileDirectory);
         }
-        const id = await jobsDbQueries.delete(this.attributes.id);
-        jobProgressEmitter.emit('executableJob.updated', { id, name: this.attributes.name });
-        return id;
+        const deleteJobIds = await jobsDbQueries.delete(this.attributes.id);
+        // FIXME Delete resources used by the child jobs too (and remove the console log which is there to remind us of this). Fix #1506 first though as the file handling may change
+        const deletedChildJobsIds = deleteJobIds.filter((id) => id !== this.attributes.id);
+        if (deletedChildJobsIds.length > 0) {
+            console.warn(
+                `Child jobs of job ${this.attributes.id} were deleted but their resources were not cleaned up. Child job IDs: ${deletedChildJobsIds.join(
+                    ', '
+                )}`
+            );
+        }
+        jobProgressEmitter.emit('executableJob.updated', { id: this.attributes.id, name: this.attributes.name });
+        return this.attributes.id;
     }
 }
