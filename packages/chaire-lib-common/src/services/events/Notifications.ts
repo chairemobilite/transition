@@ -48,14 +48,16 @@ class NotificationServiceImpl implements NotificationService {
     }
 
     registerEventsOnEmitter = (eventEmitter: EventEmitter) => {
-        // TODO: Extract those event names to some API file
+        // Event names are defined in JobEvents.ts (transition-common package)
+        // Using string literals here for compatibility with chaire-lib-common
         eventEmitter.on('progress', this.progressNotification);
         eventEmitter.on('progressCount', this.progressCountNotification);
         eventEmitter.on('error', this.errorNotification);
     };
 
     deregisterEventsOnEmitter = (eventEmitter: EventEmitter) => {
-        // TODO: Extract those event names to some API file
+        // Event names are defined in JobEvents.ts (transition-common package)
+        // Using string literals here for compatibility with chaire-lib-common
         eventEmitter.off('progress', this.progressNotification);
         eventEmitter.off('progressCount', this.progressCountNotification);
         eventEmitter.off('error', this.errorNotification);

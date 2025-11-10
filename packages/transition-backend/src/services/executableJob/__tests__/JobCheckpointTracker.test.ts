@@ -7,10 +7,11 @@
 import { EventEmitter } from 'events';
 
 import { CheckpointTracker } from '../JobCheckpointTracker';
+import { JobEventNames } from 'transition-common/lib/services/jobs/JobEvents';
 
 const mockProgressEmitter = new EventEmitter();
 const mockCheckpoint = jest.fn();
-mockProgressEmitter.on('checkpoint', mockCheckpoint);
+mockProgressEmitter.on(JobEventNames.CHECKPOINT, mockCheckpoint);
 
 beforeEach(() => {
     mockCheckpoint.mockClear();
@@ -31,8 +32,8 @@ test('Test in order step completion', () => {
         tracker.handled(i);
     }
     expect(mockCheckpoint).toHaveBeenCalledTimes(2);
-    expect(mockCheckpoint).toHaveBeenCalledWith(chunkSize);
-    expect(mockCheckpoint).toHaveBeenCalledWith(2 * chunkSize);
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: chunkSize });
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: 2 * chunkSize });
 });
 
 test('Test out of order step completion', () => {
@@ -49,7 +50,7 @@ test('Test out of order step completion', () => {
     // handle 5th, the checkpoint should have been called now
     tracker.handled(4);
     expect(mockCheckpoint).toHaveBeenCalledTimes(1);
-    expect(mockCheckpoint).toHaveBeenCalledWith(5);
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: 5 });
 });
 
 test('Finish second chunk before first', () => {
@@ -68,7 +69,7 @@ test('Finish second chunk before first', () => {
     // handle 5th, the checkpoint should have been called now, with number 10
     tracker.handled(4);
     expect(mockCheckpoint).toHaveBeenCalledTimes(1);
-    expect(mockCheckpoint).toHaveBeenCalledWith(2 * chunkSize);
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: 2 * chunkSize });
 });
 
 test('Test the completed method', () => {
@@ -81,13 +82,13 @@ test('Test the completed method', () => {
     }
     // Expect the 2 checkpoints to have been called
     expect(mockCheckpoint).toHaveBeenCalledTimes(2);
-    expect(mockCheckpoint).toHaveBeenCalledWith(chunkSize);
-    expect(mockCheckpoint).toHaveBeenCalledWith(2 * chunkSize);
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: chunkSize });
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: 2 * chunkSize });
 
     // Call the completed method, expect a third checkpoint call
     tracker.completed();
     expect(mockCheckpoint).toHaveBeenCalledTimes(3);
-    expect(mockCheckpoint).toHaveBeenCalledWith(2 * chunkSize + extraItems);
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: 2 * chunkSize + extraItems });
 });
 
 test('Resume from checkpoint, multiple of chunk size', () => {
@@ -100,8 +101,8 @@ test('Resume from checkpoint, multiple of chunk size', () => {
     }
     // Expect the 2 checkpoints to have been called
     expect(mockCheckpoint).toHaveBeenCalledTimes(2);
-    expect(mockCheckpoint).toHaveBeenCalledWith(3 * chunkSize);
-    expect(mockCheckpoint).toHaveBeenCalledWith(4 * chunkSize);
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: 3 * chunkSize });
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: 4 * chunkSize });
 });
 
 test('Resume from checkpoint, with extra elements', () => {
@@ -114,8 +115,8 @@ test('Resume from checkpoint, with extra elements', () => {
     }
     // Expect the 2 checkpoints to have been called
     expect(mockCheckpoint).toHaveBeenCalledTimes(2);
-    expect(mockCheckpoint).toHaveBeenCalledWith(3 * chunkSize);
-    expect(mockCheckpoint).toHaveBeenCalledWith(4 * chunkSize);
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: 3 * chunkSize });
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: 4 * chunkSize });
 });
 
 test('Resume from checkpoint, smaller than chunk size', () => {
@@ -128,6 +129,6 @@ test('Resume from checkpoint, smaller than chunk size', () => {
     }
     // Expect the 2 checkpoints to have been called
     expect(mockCheckpoint).toHaveBeenCalledTimes(2);
-    expect(mockCheckpoint).toHaveBeenCalledWith(chunkSize);
-    expect(mockCheckpoint).toHaveBeenCalledWith(2 * chunkSize);
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: chunkSize });
+    expect(mockCheckpoint).toHaveBeenCalledWith({ checkpoint: 2 * chunkSize });
 });

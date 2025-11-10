@@ -5,12 +5,16 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import EventEmitter from 'events';
+import { ConsumerJobEvents, JobEventName } from 'transition-common/lib/services/jobs/JobEvents';
 
-const globalEvents = ['progress', 'progressCount', 'executableJob.updated'] as const;
-
-/** An enumeration of events that all clients registered for a given user will
- * be notified of, if using this event emitter */
-export type GlobalEvents = (typeof globalEvents)[number];
+/**
+ * An enumeration of events that all clients registered for a given user will
+ * be notified of, if using this event emitter.
+ * 
+ * This uses the ConsumerJobEvents from JobEvents.ts which includes all
+ * events that are relevant to job consumers (UI, other jobs).
+ */
+export type GlobalEvents = JobEventName;
 
 class ClientEventManager {
     private _socketsByUser: {
@@ -31,9 +35,12 @@ class ClientEventManager {
      * client sockets for this user. This can replace the socketEventManager for
      * events that may live through many client sessions, for example, events
      * regarding the progress and update of long-running jobs.
+     * 
+     * The event emitter listens to all consumer-facing job events defined in
+     * JobEvents.ts and forwards them to all connected client sockets for the user.
      *
-     * @param userId
-     * @returns
+     * @param userId - The ID of the user
+     * @returns An EventEmitter configured to forward events to all user's sockets
      */
     getUserEventEmitter = (userId: number) => {
         const eventEmitter = this._eventEmitterByUser[userId];
@@ -41,7 +48,8 @@ class ClientEventManager {
             return eventEmitter;
         }
         const newEventEmitter = new EventEmitter();
-        globalEvents.forEach((event) => {
+        // Listen to all consumer-facing job events
+        ConsumerJobEvents.forEach((event) => {
             newEventEmitter.on(event, (payload) => {
                 const sockets = this._socketsByUser[userId] || [];
                 sockets.forEach((socket) => socket.emit(event, payload));

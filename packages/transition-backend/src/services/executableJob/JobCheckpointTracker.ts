@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { EventEmitter } from 'events';
+import { JobEventNames } from 'transition-common/lib/services/jobs/JobEvents';
 
 /**
  * Class that allows to keep track of task execution progress. Ideal for jobs
@@ -13,7 +14,7 @@ import { EventEmitter } from 'events';
  *
  * Using this class is suggested for asynchronous steps, where steps can be
  * completed out of order, to keep track of each individual step. Listeners can
- * listen to the 'checkpoint' event.
+ * listen to the 'checkpoint' event defined in JobEventNames.CHECKPOINT.
  */
 export class CheckpointTracker {
     private indexes: number[] = [];
@@ -75,7 +76,9 @@ export class CheckpointTracker {
                 indexToNotify++;
             }
             console.log('Emitting checkpoint at index ', chkIndex);
-            this.progressEmitter.emit('checkpoint', (indexToNotify + 1) * this.chunkSize);
+            this.progressEmitter.emit(JobEventNames.CHECKPOINT, {
+                checkpoint: (indexToNotify + 1) * this.chunkSize
+            });
             this.lastCheckpointIdx = indexToNotify;
         }
     }
@@ -88,7 +91,9 @@ export class CheckpointTracker {
         const lastChunkIndex = this.lastCheckpointIdx + 1;
         const lastChunkSize = this.indexes[lastChunkIndex];
         if (lastChunkSize !== undefined && lastChunkSize > 0) {
-            this.progressEmitter.emit('checkpoint', lastChunkIndex * this.chunkSize + lastChunkSize);
+            this.progressEmitter.emit(JobEventNames.CHECKPOINT, {
+                checkpoint: lastChunkIndex * this.chunkSize + lastChunkSize
+            });
         }
     };
 }

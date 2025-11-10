@@ -18,37 +18,61 @@ import { BatchAccessMapJobType } from '../services/transitRouting/BatchAccessibi
 import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
+import {
+    JobEventNames,
+    ProgressEventData,
+    CheckpointEventData,
+    JobUpdatedEventData,
+    createWorkerEventPayload
+} from 'transition-common/lib/services/jobs/JobEvents';
 
+/**
+ * Create an event emitter for task progress and checkpoint events.
+ * This emitter is used by tasks to notify of progress updates, which are
+ * forwarded to the main thread, and checkpoint events, which are handled
+ * internally to save task state.
+ * 
+ * @param task - The ExecutableJob being executed
+ * @returns EventEmitter configured to handle progress and checkpoint events
+ */
 function newProgressEmitter(task: ExecutableJob<JobDataType>) {
     const eventEmitter = new EventEmitter();
-    eventEmitter.on('progress', (progressData: { name: string; customText?: string; progress: number }) => {
-        workerpool.workerEmit({
-            event: 'progress',
-            data: progressData
-        });
+    
+    // Forward progress events to main thread
+    eventEmitter.on(JobEventNames.PROGRESS, (progressData: ProgressEventData) => {
+        workerpool.workerEmit(createWorkerEventPayload(JobEventNames.PROGRESS, progressData));
     });
-    eventEmitter.on('checkpoint', (checkpoint: number) => {
-        console.log('Task received checkpoint ', checkpoint);
+    
+    // Handle checkpoint events internally to save task state
+    eventEmitter.on(JobEventNames.CHECKPOINT, (data: CheckpointEventData) => {
+        console.log('Task received checkpoint ', data.checkpoint);
         // Refresh the task before saving the checkpoint
         task.refresh()
             .then(() => {
                 // Add checkpoint, then save the task
-                task.attributes.internal_data.checkpoint = checkpoint;
+                task.attributes.internal_data.checkpoint = data.checkpoint;
                 task.save().catch(() => console.error('Error saving task after checkpoint'));
             })
             .catch(() => console.error('Error refreshing task before saving checkpoint')); // This will catch deleted jobs
     });
+    
     return eventEmitter;
 }
 
+/**
+ * Create an event emitter for job lifecycle events.
+ * This emitter forwards job update events from the worker thread to the main thread.
+ * 
+ * @returns EventEmitter configured to handle job update events
+ */
 function taskUpdateListener() {
     const eventEmitter = new EventEmitter();
-    eventEmitter.on('executableJob.updated', (data: unknown) => {
-        workerpool.workerEmit({
-            event: 'executableJob.updated',
-            data
-        });
+    
+    // Forward job update events to main thread
+    eventEmitter.on(JobEventNames.JOB_UPDATED, (data: JobUpdatedEventData) => {
+        workerpool.workerEmit(createWorkerEventPayload(JobEventNames.JOB_UPDATED, data));
     });
+    
     return eventEmitter;
 }
 

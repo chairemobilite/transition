@@ -16,6 +16,7 @@ import Users from 'chaire-lib-backend/lib/services/users/users';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import clientEventManager from '../../utils/ClientEventManager';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { JobEventNames, WorkerEventPayload, JobEventName } from 'transition-common/lib/services/jobs/JobEvents';
 
 export type InitialJobData<TData extends JobDataType> = {
     inputFiles?: {
@@ -113,7 +114,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         }
 
         const id = await jobsDbQueries.create({ status: 'pending', internal_data: {}, ...attributes });
-        jobProgressEmitter.emit('executableJob.updated', { id, name: attributes.name });
+        jobProgressEmitter.emit(JobEventNames.JOB_CREATED, { id, name: attributes.name, userId: attributes.user_id });
         const job = new ExecutableJob<TData>({ id, status: 'pending', internal_data: {}, ...attributes });
         toCopy.forEach(({ filePath, jobFileName }) =>
             fileManager.copyFileAbsolute(filePath, `${job.getJobFileDirectory()}/${jobFileName}`, true)
@@ -144,7 +145,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
                 : clientEventManager.getUserEventEmitter(this.attributes.user_id);
         await this.save();
         execJob('task', [this.attributes.id], {
-            on: function (payload) {
+            on: function (payload: WorkerEventPayload<JobEventName>) {
                 jobProgressEmitter.emit(payload.event, payload.data);
             }
         });
@@ -274,7 +275,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             statusMessages
         });
         console.log('Updated job with checkpoint', internal_data.checkpoint);
-        jobProgressEmitter.emit('executableJob.updated', { id: updatedId, name: this.attributes.name });
+        jobProgressEmitter.emit(JobEventNames.JOB_UPDATED, { id: updatedId, name: this.attributes.name });
         return updatedId;
     }
 
@@ -287,7 +288,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             directoryManager.deleteDirectoryAbsolute(fileDirectory);
         }
         const id = await jobsDbQueries.delete(this.attributes.id);
-        jobProgressEmitter.emit('executableJob.updated', { id, name: this.attributes.name });
+        jobProgressEmitter.emit(JobEventNames.JOB_DELETED, { id, name: this.attributes.name });
         return id;
     }
 }

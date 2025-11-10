@@ -99,12 +99,12 @@ test('Test create job', async () => {
 
     // Create with listener
     const listener = new EventEmitter();
-    const jobUpdatedListener = jest.fn();
-    listener.on('executableJob.updated', jobUpdatedListener);
+    const jobCreatedListener = jest.fn();
+    listener.on('executableJob.created', jobCreatedListener);
     mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
     await ExecutableJob.createJob(newJobAttributes, listener);
-    expect(jobUpdatedListener).toHaveBeenCalledTimes(1);
-    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
+    expect(jobCreatedListener).toHaveBeenCalledTimes(1);
+    expect(jobCreatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name, userId: newJobAttributes.user_id });
 });
 
 test('Test create job with input files', async () => {
@@ -282,11 +282,11 @@ test('Test delete', async () => {
 
     // Delete with listener
     const listener = new EventEmitter();
-    const jobUpdatedListener = jest.fn();
-    listener.on('executableJob.updated', jobUpdatedListener);
+    const jobDeletedListener = jest.fn();
+    listener.on('executableJob.deleted', jobDeletedListener);
     await jobObj.delete(listener);
-    expect(jobUpdatedListener).toHaveBeenCalledTimes(1);
-    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
+    expect(jobDeletedListener).toHaveBeenCalledTimes(1);
+    expect(jobDeletedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
 });
 
 describe('Test status change', () => {
