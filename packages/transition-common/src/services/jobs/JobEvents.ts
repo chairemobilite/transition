@@ -9,11 +9,11 @@
  * This file defines the API for communication between worker and main threads
  * in the ExecutableJob/workerpool architecture. It provides typed events for
  * job lifecycle management, progress tracking, and checkpoint handling.
- * 
+ *
  * Events are categorized into:
  * - Internal events: Used only by the job execution framework (e.g., checkpoints)
  * - Consumer events: Events that job consumers (UI, other jobs) should listen to
- * 
+ *
  * Communication from worker thread to main thread is through the workerpool.workerEmit function.
  * The main thread cannot directly send events to the worker thread, so workers must poll
  * the database to detect changes like cancellation or deletion.
@@ -129,11 +129,11 @@ export const JobEventNames = {
     PROGRESS: 'progress',
     /** Progress update from task execution (count-based) */
     PROGRESS_COUNT: 'progressCount',
-    
+
     // Internal events (framework-only)
     /** Checkpoint saved for task resumption */
     CHECKPOINT: 'checkpoint',
-    
+
     // Job lifecycle events (consumer-facing)
     /** Job was created */
     JOB_CREATED: 'executableJob.created',
@@ -149,7 +149,7 @@ export const JobEventNames = {
     JOB_FAILED: 'executableJob.failed',
     /** Job was deleted */
     JOB_DELETED: 'executableJob.deleted',
-    
+
     // Error events
     /** Error occurred during execution */
     ERROR: 'error'
@@ -214,12 +214,12 @@ export interface JobEventEmitter {
         event: K,
         payload: JobEventPayloadMap[K]
     ): boolean;
-    
+
     on<K extends JobEventName>(
         event: K,
         listener: (payload: JobEventPayloadMap[K]) => void
     ): this;
-    
+
     off<K extends JobEventName>(
         event: K,
         listener: (payload: JobEventPayloadMap[K]) => void
@@ -240,7 +240,7 @@ export type WorkerEventPayload<K extends JobEventName> = {
 /**
  * Helper function to create a worker event payload for workerpool.workerEmit.
  * This ensures type safety when emitting events from worker threads.
- * 
+ *
  * @example
  * ```typescript
  * workerpool.workerEmit(createWorkerEventPayload(JobEventNames.PROGRESS, {

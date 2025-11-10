@@ -31,18 +31,18 @@ import {
  * This emitter is used by tasks to notify of progress updates, which are
  * forwarded to the main thread, and checkpoint events, which are handled
  * internally to save task state.
- * 
+ *
  * @param task - The ExecutableJob being executed
  * @returns EventEmitter configured to handle progress and checkpoint events
  */
 function newProgressEmitter(task: ExecutableJob<JobDataType>) {
     const eventEmitter = new EventEmitter();
-    
+
     // Forward progress events to main thread
     eventEmitter.on(JobEventNames.PROGRESS, (progressData: ProgressEventData) => {
         workerpool.workerEmit(createWorkerEventPayload(JobEventNames.PROGRESS, progressData));
     });
-    
+
     // Handle checkpoint events internally to save task state
     eventEmitter.on(JobEventNames.CHECKPOINT, (data: CheckpointEventData) => {
         console.log('Task received checkpoint ', data.checkpoint);
@@ -55,24 +55,24 @@ function newProgressEmitter(task: ExecutableJob<JobDataType>) {
             })
             .catch(() => console.error('Error refreshing task before saving checkpoint')); // This will catch deleted jobs
     });
-    
+
     return eventEmitter;
 }
 
 /**
  * Create an event emitter for job lifecycle events.
  * This emitter forwards job update events from the worker thread to the main thread.
- * 
+ *
  * @returns EventEmitter configured to handle job update events
  */
 function taskUpdateListener() {
     const eventEmitter = new EventEmitter();
-    
+
     // Forward job update events to main thread
     eventEmitter.on(JobEventNames.JOB_UPDATED, (data: JobUpdatedEventData) => {
         workerpool.workerEmit(createWorkerEventPayload(JobEventNames.JOB_UPDATED, data));
     });
-    
+
     return eventEmitter;
 }
 

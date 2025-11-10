@@ -10,7 +10,7 @@ import { ConsumerJobEvents, JobEventName } from 'transition-common/lib/services/
 /**
  * An enumeration of events that all clients registered for a given user will
  * be notified of, if using this event emitter.
- * 
+ *
  * This uses the ConsumerJobEvents from JobEvents.ts which includes all
  * events that are relevant to job consumers (UI, other jobs).
  */
@@ -35,7 +35,7 @@ class ClientEventManager {
      * client sockets for this user. This can replace the socketEventManager for
      * events that may live through many client sessions, for example, events
      * regarding the progress and update of long-running jobs.
-     * 
+     *
      * The event emitter listens to all consumer-facing job events defined in
      * JobEvents.ts and forwards them to all connected client sockets for the user.
      *
