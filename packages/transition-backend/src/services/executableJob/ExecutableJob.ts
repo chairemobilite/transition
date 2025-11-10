@@ -121,6 +121,26 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         return job;
     }
 
+    /**
+     * Create a new job as a child of an existing job
+     * @param jobData The new child job's data
+     * @param parentJob The parent job, to provide user and parent id
+     * @param jobListener A listener to listen to a job's progress
+     * @returns The new ExecutableJob object
+     */
+    static async createChildJob<TData extends JobDataType>(
+        jobData: Omit<JobAttributes<TData>, 'id' | 'status' | 'internal_data' | 'parentJobId' | 'userId'> & InitialJobData<TData>,
+        parentJob: ExecutableJob<JobDataType>,
+        jobListener?: EventEmitter
+    ): Promise<ExecutableJob<TData>> {
+        // FIXME If files are shared between parent and child, we may want to handle that here instead of the job's creator?
+        return this.createJob({
+            ...jobData,
+            user_id: parentJob.attributes.user_id,
+            parentJobId: parentJob.attributes.id
+        }, jobListener);
+    }
+
     protected constructor(attributes: JobAttributes<TData>) {
         super(attributes);
     }
