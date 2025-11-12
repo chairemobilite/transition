@@ -7,7 +7,7 @@
 import { EventEmitter } from 'events';
 
 import { SimulationAlgorithm } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
-import { EvolutionAlgorithmOptions } from 'transition-common/lib/services/evolutionaryAlgorithm';
+import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/simulation/algorithm/EvolutionaryAlgorithm';
 import { SimulationAlgorithmFactory } from '../simulation/SimulationExecution';
 import Agency from 'transition-common/lib/services/agency/Agency';
 import SimulationRun from '../simulation/SimulationRun';
@@ -28,8 +28,8 @@ import Service from 'transition-common/lib/services/service/Service';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Generation from './generation/Generation';
 
-export const evolutionaryAlgorithmFactory: SimulationAlgorithmFactory<EvolutionAlgorithmOptions> = (
-    options: EvolutionAlgorithmOptions,
+export const evolutionaryAlgorithmFactory: SimulationAlgorithmFactory<EvolutionaryAlgorithmOptions> = (
+    options: EvolutionaryAlgorithmOptions,
     simulationRun: SimulationRun
 ): EvolutionaryAlgorithm => new EvolutionaryAlgorithm(options, simulationRun);
 
@@ -37,7 +37,7 @@ export class EvolutionaryAlgorithm implements SimulationAlgorithm {
     private currentIteration = 1;
 
     constructor(
-        private options: EvolutionAlgorithmOptions,
+        private options: EvolutionaryAlgorithmOptions,
         private simulationRun: SimulationRun
     ) {
         // Nothing to do

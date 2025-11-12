@@ -18,13 +18,26 @@ import SimulationRun, {
     SimulationRunDataAttributes,
     SimulationRuntimeOptions
 } from 'transition-common/lib/services/simulation/SimulationRun';
+import {
+    SimulationMethodType,
+    SimulationMethodRegistry
+} from 'transition-common/lib/services/simulation/simulationMethod';
 import { SimulationMethodFactory } from './methods/SimulationMethod';
+import { OdTripSimulationFactory } from './methods/OdTripSimulation';
+import { AccessibilityMapSimulationFactory } from './methods/AccessibilityMapSimulation';
 import simulationRunsDbQueries from '../../models/db/simulationRuns.db.queries';
+
+// Predefined algorithm factories
+const METHODS_FACTORY: {
+    [K in SimulationMethodType]: SimulationMethodFactory<SimulationMethodRegistry[K]>;
+} = {
+    OdTripSimulation: new OdTripSimulationFactory(),
+    AccessibilityMapSimulation: new AccessibilityMapSimulationFactory()
+};
 
 export default class SimulationRunBackend extends SimulationRun {
     private poolOfTrRoutingPorts: number[] = [];
     private promiseQueue: pQueue | undefined;
-    private static METHODS: { [key: string]: SimulationMethodFactory<any> } = {};
 
     static createFromSimulation(
         simulation: Simulation,
@@ -44,12 +57,10 @@ export default class SimulationRunBackend extends SimulationRun {
         return new SimulationRunBackend(runAttributes, true);
     }
 
-    static registerSimulationMethod(name: string, methodFactory: SimulationMethodFactory<any>): void {
-        SimulationRunBackend.METHODS[name] = methodFactory;
-    }
-
-    static getSimulationMethods(): { [key: string]: SimulationMethodFactory<any> } {
-        return SimulationRunBackend.METHODS;
+    static getSimulationMethods(): {
+        [K in SimulationMethodType]: SimulationMethodFactory<SimulationMethodRegistry[K]>;
+        } {
+        return METHODS_FACTORY;
     }
 
     constructor(attributes: Partial<SimulationRunAttributes>, isNew: boolean) {
@@ -93,8 +104,8 @@ export default class SimulationRunBackend extends SimulationRun {
         const methods = Object.keys(runtimeOptions.functions);
         const allResults: { [key: string]: { fitness: number; results: unknown } } = {};
         for (let i = 0; i < methods.length; i++) {
-            const method = methods[i];
-            const factory = SimulationRunBackend.METHODS[method];
+            const method = methods[i] as SimulationMethodType;
+            const factory = METHODS_FACTORY[method];
             if (factory === undefined) {
                 throw new TrError(`Unknown simulation method: ${method}`, 'SIOMSCEN004');
             }
@@ -108,7 +119,8 @@ export default class SimulationRunBackend extends SimulationRun {
                         );
                     }
                     try {
-                        const simOptions = runtimeOptions.functions[method];
+                        // FIXME Type properly when the methods are typed better (see issues #1533, #1560 and #1553)
+                        const simOptions = runtimeOptions.functions[method] as any;
                         const simulationMethod = factory.create(simOptions, this.attributes.data);
                         const results = await simulationMethod.simulate(scenario.getId(), {
                             trRoutingPort,

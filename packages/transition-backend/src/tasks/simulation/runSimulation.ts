@@ -14,22 +14,10 @@ import { GenericTask } from 'chaire-lib-backend/lib/tasks/genericTask';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Simulation from 'transition-common/lib/services/simulation/Simulation';
 import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
-import { EvolutionAlgorithmDescriptor } from 'transition-common/lib/services/evolutionaryAlgorithm';
 import { runSimulation } from '../../services/simulation/SimulationExecution';
 import { editAlgorithmConfiguration, getRuntimeConfiguration } from './AlgorithmEdition';
 import SimulationRunBackend from '../../services/simulation/SimulationRun';
-import { registerAlgorithmFactory } from '../../services/simulation/SimulationExecution';
-import { evolutionaryAlgorithmFactory } from '../../services/evolutionaryAlgorithm';
-import { OdTripSimulationTitle, OdTripSimulationFactory } from '../../services/simulation/methods/OdTripSimulation';
-import {
-    AccessMapSimulationTitle,
-    AccessibilityMapSimulationFactory
-} from '../../services/simulation/methods/AccessibilityMapSimulation';
-
-Simulation.registerAlgorithm('evolutionaryAlgorithm', new EvolutionAlgorithmDescriptor());
-registerAlgorithmFactory('evolutionaryAlgorithm', evolutionaryAlgorithmFactory);
-SimulationRunBackend.registerSimulationMethod(OdTripSimulationTitle, new OdTripSimulationFactory());
-SimulationRunBackend.registerSimulationMethod(AccessMapSimulationTitle, new AccessibilityMapSimulationFactory());
+import { getAlgorithmDescriptor } from 'transition-common/lib/services/simulation/algorithm';
 
 export default class RunSimulation implements GenericTask {
     private t: TFunction;
@@ -55,7 +43,7 @@ export default class RunSimulation implements GenericTask {
                 const name = simulation.attributes.shortname;
                 const algorithmType = simulation.attributes.data.algorithmConfiguration?.type;
                 const algorithmDescriptor =
-                    algorithmType === undefined ? undefined : Simulation.getAlgorithms()[algorithmType];
+                    algorithmType !== undefined ? getAlgorithmDescriptor(algorithmType) : undefined;
                 const algorithmName =
                     algorithmDescriptor === undefined ? undefined : algorithmDescriptor.getTranslatableName();
                 return {

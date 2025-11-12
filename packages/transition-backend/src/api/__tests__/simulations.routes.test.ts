@@ -61,7 +61,8 @@ const simulationAttributes1 = {
             nbOfVehicles: 9
         },
         algorithmConfiguration: {
-            type: 'test',
+            // Using 'test' as mock algorithm type, cast to any for test to work
+            type: 'test' as any,
             config: {}
         }
     },

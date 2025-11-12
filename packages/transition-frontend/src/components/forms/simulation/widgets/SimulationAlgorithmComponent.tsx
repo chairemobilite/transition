@@ -13,7 +13,12 @@ import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
-import Simulation, { AlgorithmConfiguration } from 'transition-common/lib/services/simulation/Simulation';
+import Simulation from 'transition-common/lib/services/simulation/Simulation';
+import {
+    AlgorithmConfiguration,
+    getAlgorithmDescriptor,
+    getAllAlgorithmTypes
+} from 'transition-common/lib/services/simulation/algorithm';
 import {
     SimulationAlgorithmDescriptor,
     SimulationAlgorithmOptionDescriptor
@@ -146,14 +151,14 @@ const SimulationAlgorithmOptionsComponent = withTranslation(['transit', 'main'])
 const SimulationAlgorithmComponent: React.FunctionComponent<SimulationAlgorithmComponentProps> = (
     props: SimulationAlgorithmComponentProps
 ) => {
-    const algoDescriptors = Simulation.getAlgorithms();
+    const algorithmTypes = getAllAlgorithmTypes();
 
-    const algorithmChoices = Object.keys(algoDescriptors).map((algoId) => ({
+    const algorithmChoices = algorithmTypes.map((algoId) => ({
         value: algoId,
-        label: props.t(algoDescriptors[algoId].getTranslatableName())
+        label: props.t(getAlgorithmDescriptor(algoId).getTranslatableName())
     }));
 
-    const algoDescriptor = props.algorithmConfig?.type ? algoDescriptors[props.algorithmConfig.type] : undefined;
+    const algoDescriptor = props.algorithmConfig?.type ? getAlgorithmDescriptor(props.algorithmConfig.type) : undefined;
 
     return (
         <React.Fragment>

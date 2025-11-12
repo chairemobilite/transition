@@ -13,7 +13,16 @@ import { SimulationRunDataAttributes } from 'transition-common/lib/services/simu
 import Simulation, { SimulationAttributes } from 'transition-common/lib/services/simulation/Simulation';
 import { SimulationAlgorithmDescriptorStub } from './SimulationAlgorithmDescriptorStub';
 
-Simulation.registerAlgorithm('test', new SimulationAlgorithmDescriptorStub());
+// Mock the algorithm registry
+jest.mock('transition-common/lib/services/simulation/algorithm', () => ({
+    getAlgorithmDescriptor: jest.fn((algorithmType: string) => {
+        if (algorithmType === 'mockAlgorithm') {
+            return new SimulationAlgorithmDescriptorStub();
+        }
+        return undefined;
+    }),
+    getAllAlgorithmTypes: jest.fn(() => ['mockAlgorithm'])
+}));
 
 const simulationAttributes: SimulationAttributes = {
     id: uuidV4(),
@@ -37,7 +46,7 @@ const simulationAttributes: SimulationAttributes = {
                 stringOption: 'foo',
                 booleanOption: false
             }
-        }
+        } as any
     },
     isEnabled: true
 };

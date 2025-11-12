@@ -75,7 +75,7 @@ const simulationRun = new SimulationRun({
             numberOfLinesMax: 4
         },
         algorithmConfiguration: {
-            type: 'evoluationaryAlgorithm',
+            type: 'evolutionaryAlgorithm',
             config: {
                 populationSizeMin: 3,
                 populationSizeMax: 4,

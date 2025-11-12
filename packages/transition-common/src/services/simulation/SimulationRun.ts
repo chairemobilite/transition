@@ -11,7 +11,7 @@ import { EventEmitter } from 'events';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { GenericAttributes, GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-import { AlgorithmConfiguration } from './Simulation';
+import { AlgorithmConfiguration } from './algorithm';
 import { SimulationParameters } from './SimulationParameters';
 import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
@@ -20,6 +20,10 @@ export type SimulationRuntimeOptions = {
     fitnessSorter: string;
     trRoutingStartingPort: number;
     cachePathDirectory?: string; // the cache directory used to save cache for this simulation run
+    // FIXME type this better (and rename? function is not clear). Also use an
+    // array instead of map, as a same method could be used with different
+    // weight and data (for example, 2 sets of odTrips from which to sample).
+    // Also don't put the weight at the same level as the other parameters
     functions: {
         [key: string]: {
             weight: number;
@@ -52,6 +56,8 @@ export interface SimulationRunAttributes extends GenericAttributes {
  * Class to track individual simulation runs. This class is not meant to be
  * modified directly, but rather use workflow methods in its API to execute the
  * various steps of the algorithm execution.
+ *
+ * TODO Deprecate in favor of ExecutableJob objects with configuration stored in data
  */
 class SimulationRun extends GenericObject<SimulationRunAttributes> implements Saveable {
     protected static displayName = 'SimulationRun';

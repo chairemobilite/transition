@@ -4,9 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { SimulationAlgorithmDescriptor } from '../simulation/SimulationAlgorithm';
 
-export interface EvolutionAlgorithmOptions {
+import { SimulationAlgorithmDescriptor } from '../SimulationAlgorithm';
+
+// Define evolutionary algorithm options
+export type EvolutionaryAlgorithmOptions = {
     populationSizeMin: number;
     populationSizeMax: number;
     numberOfElites: number;
@@ -20,9 +22,14 @@ export interface EvolutionAlgorithmOptions {
     shuffleGenes: boolean;
     keepGenerations: number;
     keepCandidates: number;
-}
+};
 
-export class EvolutionAlgorithmDescriptor implements SimulationAlgorithmDescriptor<EvolutionAlgorithmOptions> {
+/**
+ * Descriptor class for the evolutionary algorithm options. It documents the
+ * options, types, validation and default values. It also validates the whole
+ * options object.
+ */
+export class EvolutionaryAlgorithmDescriptor implements SimulationAlgorithmDescriptor<EvolutionaryAlgorithmOptions> {
     getTranslatableName = (): string => 'transit:simulation:simulationClasses:LineAndNumberOfVehiclesGASimulation';
 
     // TODO Add help texts
@@ -106,7 +113,7 @@ export class EvolutionAlgorithmDescriptor implements SimulationAlgorithmDescript
         }
     });
 
-    validateOptions = (options: EvolutionAlgorithmOptions): { valid: boolean; errors: string[] } => {
+    validateOptions = (options: Partial<EvolutionaryAlgorithmOptions>): { valid: boolean; errors: string[] } => {
         let valid = true;
         const errors: string[] = [];
 

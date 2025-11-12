@@ -67,13 +67,13 @@ export type SimulationAlgorithmOptionDescriptor = SimulationAlgorithmOptionBase 
  * @interface SimulationAlgorithmDescriptor
  * @template T The type of options
  */
-export interface SimulationAlgorithmDescriptor<T> {
+export interface SimulationAlgorithmDescriptor<T extends Record<string, unknown>> {
     /** Get the name string of the algorithm that can be translated */
     getTranslatableName: () => string;
     /** Get the options and their types */
-    getOptions: () => { [key in keyof T]: SimulationAlgorithmOptionDescriptor };
+    getOptions: () => { [K in keyof T]: SimulationAlgorithmOptionDescriptor };
     /** Validate an options object. This function is in addition to the
      * options's individual validator and allows to validate the whole object,
      * not just individual values. */
-    validateOptions: (options: T) => { valid: boolean; errors: string[] };
+    validateOptions: (options: Partial<T>) => { valid: boolean; errors: string[] };
 }

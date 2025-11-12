@@ -9,7 +9,18 @@ import { v4 as uuidV4 } from 'uuid';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import Simulation, { SimulationAttributes } from '../Simulation';
-import { SimulationAlgorithmDescriptorStub } from './SimulationAlgorithmStub';
+import { SimulationAlgorithmDescriptorStub, AlgorithmStubOptions } from './SimulationAlgorithmStub';
+
+// Mock the algorithm registry
+jest.mock('../algorithm', () => ({
+    getAlgorithmDescriptor: jest.fn((algorithmType: string) => {
+        if (algorithmType === 'mockAlgorithm') {
+            return new SimulationAlgorithmDescriptorStub();
+        }
+        return undefined;
+    }),
+    getAllAlgorithmTypes: jest.fn(() => ['mockAlgorithm'])
+}));
 
 const simulationAttributes1: SimulationAttributes = {
     id: uuidV4(),
@@ -125,46 +136,27 @@ test('static methods should work', function() {
     expect(simulation.getDisplayName()).toBe('Simulation');
 });
 
-test('Register algorithm', function() {
-    let algorithms = Simulation.getAlgorithms();
-    expect(Object.keys(algorithms).length).toEqual(0);
-
-    // Add an algorithm descriptor
-    Simulation.registerAlgorithm('test', stubAlgorithm);
-    algorithms = Simulation.getAlgorithms();
-    expect(Object.keys(algorithms).length).toEqual(1);
-    expect(algorithms['test']).toEqual(stubAlgorithm);
-
-    // Add another algorithm descriptor
-    const stubAlgorithm2 = new SimulationAlgorithmDescriptorStub();
-    Simulation.registerAlgorithm('test2', stubAlgorithm2);
-    algorithms = Simulation.getAlgorithms();
-    expect(Object.keys(algorithms).length).toEqual(2);
-    expect(algorithms['test2']).toEqual(stubAlgorithm2);
-
-});
-
 test('Validate algorithm parameters', function() {
     const simulation = new Simulation(simulationAttributes1, true);
 
     // Set an undefined algorithm
-    const algorithmConfiguration = { type: 'algoSim', config: { stringOption: 'test' } as any };
-    simulation.attributes.data.algorithmConfiguration = algorithmConfiguration;
+    const algorithmConfiguration = { type: 'undefinedAlgorithm' as any, config: { stringOption: 'test' } };
+    simulation.attributes.data.algorithmConfiguration = algorithmConfiguration as any;
     expect(simulation.validate()).toEqual(false);
 
-    // Add the undefined algorithm
-    Simulation.registerAlgorithm('algoSim', stubAlgorithm);
+    // Set a valid mock algorithm
+    algorithmConfiguration.type = 'mockAlgorithm' as any;
     expect(simulation.validate()).toEqual(true);
    
     // Negative value for numeric option, option's own validate should fail
-    algorithmConfiguration.config.numericOption = -3;
+    (algorithmConfiguration.config as AlgorithmStubOptions).numericOption = -3;
     expect(simulation.validate()).toEqual(false);
 
-    algorithmConfiguration.config.numericOption = 4;
+    (algorithmConfiguration.config as AlgorithmStubOptions).numericOption = 4;
     expect(simulation.validate()).toEqual(true);
 
     // Undefined string option, the descriptor's validate method should fail
-    algorithmConfiguration.config.stringOption = undefined;
+    (algorithmConfiguration.config as AlgorithmStubOptions).stringOption = undefined as any;
     expect(simulation.validate()).toEqual(false);
 
 });
@@ -173,7 +165,8 @@ test('should construct new simulations and set default algorithm values', functi
 
     const attributes = _cloneDeep(simulationAttributes1);
     attributes.data.algorithmConfiguration = {
-        type: 'algoSim',
+        // Using 'mockAlgorithm' as mock algorithm type, cast to any for test to compile
+        type: 'mockAlgorithm' as any,
         config: {}
     }
     const simulation1 = new Simulation(attributes, true);

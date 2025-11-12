@@ -8,67 +8,30 @@ import random from 'random';
 import { EventEmitter } from 'events';
 import { point as turfPoint } from '@turf/turf';
 
-import { SimulationAlgorithmDescriptor } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
 import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
 import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
-import dataSourceDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import placesDbQueries from '../../../models/db/places.db.queries';
 import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
 import { TransitAccessibilityMapCalculator } from '../../accessibilityMap/TransitAccessibilityMapCalculator';
 import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
+import {
+    AccessibilityMapSimulationDescriptor,
+    AccessibilityMapSimulationOptions
+} from 'transition-common/lib/services/simulation/simulationMethod/AccessibilityMapSimulationMethod';
 
-export const AccessMapSimulationTitle = 'AccessMapSimulation';
-export interface AccessMapSimulationOptions {
-    // TODO Support multiple data sources
-    dataSourceId: string;
-    sampleRatio: number;
-}
+export const AccessibilityMapSimulationTitle = 'AccessibilityMapSimulation';
 
-type AccessMapSimulationResults = {
+type AccessibilityMapSimulationResults = {
     // TODO Array of costs for 5 places, if we keep each place, it's too much data, or is it?
     placesCost: number[];
 };
 
-export class AccessibilityMapSimulationFactory implements SimulationMethodFactory<AccessMapSimulationOptions> {
-    getDescriptor = () => new AccessMapSimulationDescriptor();
-    create = (options: AccessMapSimulationOptions, simulationDataAttributes: SimulationRunDataAttributes) =>
+export class AccessibilityMapSimulationFactory implements SimulationMethodFactory<AccessibilityMapSimulationOptions> {
+    getDescriptor = () => new AccessibilityMapSimulationDescriptor();
+    create = (options: AccessibilityMapSimulationOptions, simulationDataAttributes: SimulationRunDataAttributes) =>
         new AccessibilityMapSimulation(options, simulationDataAttributes);
-}
-
-export class AccessMapSimulationDescriptor implements SimulationAlgorithmDescriptor<AccessMapSimulationOptions> {
-    getTranslatableName = (): string => 'transit:simulation:simulationMethods:AccessibilityMap';
-
-    // TODO Add help texts
-    getOptions = () => ({
-        dataSourceId: {
-            i18nName: 'transit:simulation:simulationMethods:AccessMapDataSources',
-            type: 'select' as const,
-            choices: async () => {
-                const dataSources = await dataSourceDbQueries.collection({ type: 'places' });
-                return dataSources.map((ds) => ({
-                    value: ds.id,
-                    label: ds.shortname
-                }));
-            }
-        },
-        sampleRatio: {
-            i18nName: 'transit:simulation:simulationMethods:AccessMapMaxSampleRatio',
-            type: 'number' as const,
-            validate: (value: number) => value > 0 && value <= 1,
-            default: 1
-        }
-    });
-
-    validateOptions = (_options: AccessMapSimulationOptions): { valid: boolean; errors: string[] } => {
-        const valid = true;
-        const errors: string[] = [];
-
-        // TODO Actually validate something
-
-        return { valid, errors };
-    };
 }
 
 // Simulation time range, between 8 and 9, in seconds.
@@ -80,12 +43,12 @@ const SIMULATION_TIME_RANGE = [8 * 60 * 60, 9 * 60 * 60];
  */
 export default class AccessibilityMapSimulation implements SimulationMethod {
     private static NODE_COLLECTION: NodeCollection | undefined = undefined;
-    private static PLACES_WEIGHT: { [placeId: number]: number };
+    private static PLACES_WEIGHT: { [placeId: number]: number } | undefined = undefined;
     private static loadingEvent: EventEmitter | false = false;
     private static placesLoadingEvent: EventEmitter | false = false;
 
     constructor(
-        private options: AccessMapSimulationOptions,
+        private options: AccessibilityMapSimulationOptions,
         private simulationDataAttributes: SimulationRunDataAttributes
     ) {
         // Nothing to do
@@ -151,7 +114,7 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
     async simulate(
         scenarioId: string,
         options: { trRoutingPort: number; transitRoutingParameters: TransitRoutingBaseAttributes }
-    ): Promise<{ fitness: number; results: AccessMapSimulationResults }> {
+    ): Promise<{ fitness: number; results: AccessibilityMapSimulationResults }> {
         const nodeCollection = await this.getNodeCollection();
 
         const countByDs = await placesDbQueries.countForDataSources([this.options.dataSourceId]);
