@@ -13,7 +13,16 @@ import SimulationRun, { SimulationRunDataAttributes } from '../SimulationRun';
 import { SimulationAlgorithmDescriptorStub } from './SimulationAlgorithmStub';
 import Simulation, { SimulationAttributes } from '../Simulation';
 
-Simulation.registerAlgorithm('test', new SimulationAlgorithmDescriptorStub());
+// Mock the algorithm registry
+jest.mock('../algorithm', () => ({
+    getAlgorithmDescriptor: jest.fn((algorithmType: string) => {
+        if (algorithmType === 'mockAlgorithm') {
+            return new SimulationAlgorithmDescriptorStub();
+        }
+        return undefined;
+    }),
+    getAllAlgorithmTypes: jest.fn(() => ['mockAlgorithm'])
+}));
 
 const simulationAttributes: SimulationAttributes = {
     id: uuidV4(),
@@ -31,13 +40,14 @@ const simulationAttributes: SimulationAttributes = {
             simulatedAgencies: ['arbitrary']
         },
         algorithmConfiguration: {
-            type: 'test',
+            // Using 'mockAlgorithm' as mock algorithm type, cast to any for test to compile
+            type: 'mockAlgorithm',
             config: {
                 numericOption: 3,
                 stringOption: 'foo',
                 booleanOption: false
             }
-        }
+        } as any
     },
     isEnabled: true
 };

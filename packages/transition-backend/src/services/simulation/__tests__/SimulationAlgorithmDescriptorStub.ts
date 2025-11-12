@@ -6,7 +6,7 @@
  */
 import { SimulationAlgorithm, SimulationAlgorithmDescriptor } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
 
-interface AlgorithmStubOptions {
+type AlgorithmStubOptions = {
     numericOption: number;
     stringOption: string;
     booleanOption?: boolean;
@@ -35,7 +35,7 @@ export class SimulationAlgorithmDescriptorStub implements SimulationAlgorithmDes
         booleanOption: { i18nName: 'boolOption', type: 'boolean' as const } 
     });
 
-    validateOptions = (options: AlgorithmStubOptions) => {
+    validateOptions = (options: Partial<AlgorithmStubOptions>) => {
         let valid = true;
         let errors: string[] = [];
         if (options.stringOption === undefined) {

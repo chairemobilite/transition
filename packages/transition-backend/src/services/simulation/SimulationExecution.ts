@@ -13,10 +13,12 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 
 import { SimulationAlgorithm } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
+import { evolutionaryAlgorithmFactory } from '../evolutionaryAlgorithm';
 import SimulationRun from './SimulationRun';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import config from 'chaire-lib-backend/lib/config/server.config';
+import { AlgorithmType } from 'transition-common/lib/services/simulation/algorithm';
 
 /**
  * A factory to create a simulation algorithm object with the given parameters.
@@ -26,9 +28,13 @@ import config from 'chaire-lib-backend/lib/config/server.config';
  */
 export type SimulationAlgorithmFactory<T> = (options: T, simulationRun: SimulationRun) => SimulationAlgorithm;
 
-const ALGORITHMS_FACTORY: { [key: string]: SimulationAlgorithmFactory<any> } = {};
-export const registerAlgorithmFactory = (name: string, algorithmFactory: SimulationAlgorithmFactory<any>): void => {
-    ALGORITHMS_FACTORY[name] = algorithmFactory;
+// Predefined algorithm factories
+const ALGORITHMS_FACTORY: { [K in AlgorithmType]: SimulationAlgorithmFactory<any> } = {
+    evolutionaryAlgorithm: evolutionaryAlgorithmFactory
+};
+
+export const getAlgorithmFactory = <T extends AlgorithmType>(algorithmType: T): SimulationAlgorithmFactory<any> => {
+    return ALGORITHMS_FACTORY[algorithmType];
 };
 
 const loadServerData = async (
@@ -128,12 +134,10 @@ export const runSimulation = async (simulationRun: SimulationRun, socket: EventE
     simulationRun.attributes.status = 'pending';
     await simulationRun.save(socket);
 
-    const factory = ALGORITHMS_FACTORY[simulationRun.attributes.data.algorithmConfiguration.type];
+    const algorithmType = simulationRun.attributes.data.algorithmConfiguration.type;
+    const factory = ALGORITHMS_FACTORY[algorithmType];
     if (factory === undefined) {
-        throw new TrError(
-            `Factory for algorithm ${simulationRun.attributes.data.algorithmConfiguration.type} is not defined`,
-            'SIMRUN002'
-        );
+        throw new TrError(`Factory for algorithm ${algorithmType} is not defined`, 'SIMRUN002');
     }
 
     const { agencies, lines, services } = await loadServerData(socket);

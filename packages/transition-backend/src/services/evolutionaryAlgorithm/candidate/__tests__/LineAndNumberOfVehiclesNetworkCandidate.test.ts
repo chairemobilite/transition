@@ -65,7 +65,7 @@ const simulationRun = new SimulationRun({
             simulatedAgencies: ['arbitrary']
         },
         algorithmConfiguration: {
-            type: 'evoluationaryAlgorithm',
+            type: 'evolutionaryAlgorithm',
             config: {
                 populationSizeMin: 3,
                 populationSizeMax: 4,

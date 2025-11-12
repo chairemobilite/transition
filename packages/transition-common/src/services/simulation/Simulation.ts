@@ -18,16 +18,12 @@ import { validateTrBaseAttributes } from '../transitRouting/TransitRoutingQueryA
 import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import { SimulationParameters, validateSimulationParameters } from './SimulationParameters';
 import { SimulationAlgorithmDescriptor } from './SimulationAlgorithm';
+import { AlgorithmConfiguration, getAlgorithmDescriptor, getAllAlgorithmTypes } from './algorithm';
 
 /**
  * Algorithm implementation should provide their own type, with a fixed value
  * for type, which allows them to type the options.
  */
-export interface AlgorithmConfiguration {
-    type: string;
-    config: { [key: string]: number | string | boolean | undefined };
-}
-
 export interface SimulationDataAttributes {
     simulationParameters: SimulationParameters;
     routingAttributes: TransitRoutingBaseAttributes;
@@ -47,17 +43,8 @@ export interface SimulationAttributes extends GenericAttributes {
 // possible algorithms.
 class Simulation extends ObjectWithHistory<SimulationAttributes> implements Saveable {
     protected static displayName = 'Simulation';
-    private static ALGORITHMS: { [key: string]: SimulationAlgorithmDescriptor<any> } = {};
 
     private _collectionManager?: CollectionManager;
-
-    static registerAlgorithm(name: string, algorithmDescriptor: SimulationAlgorithmDescriptor<any>): void {
-        Simulation.ALGORITHMS[name] = algorithmDescriptor;
-    }
-
-    static getAlgorithms(): { [key: string]: SimulationAlgorithmDescriptor<any> } {
-        return Simulation.ALGORITHMS;
-    }
 
     constructor(attributes: Partial<SimulationAttributes>, isNew: boolean, collectionManager?: CollectionManager) {
         super(attributes, isNew);
@@ -80,13 +67,16 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
                 newAttributes.data.routingAttributes = {};
             }
         }
-        // Add undefined configuration options for algorithm
+        // Add undefined configuration options for algorithm to make sure all keys are defined
         const algoConfig = newAttributes.data.algorithmConfiguration;
         if (algoConfig && algoConfig.type) {
-            const descriptor = Simulation.ALGORITHMS[algoConfig.type];
+            const descriptor = getAlgorithmDescriptor(algoConfig.type);
             if (descriptor !== undefined) {
-                Object.keys(descriptor.getOptions()).forEach((key) => {
-                    algoConfig.config[key] = algoConfig.config[key] !== undefined ? algoConfig.config[key] : undefined;
+                const options = descriptor.getOptions();
+                Object.keys(options).forEach((key) => {
+                    if (algoConfig.config[key] === undefined) {
+                        algoConfig.config[key] = undefined;
+                    }
                 });
             } else {
                 console.log('Simulation: The algorithm if of unknown type: ', algoConfig.type);
@@ -121,31 +111,34 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
         const algorithmId = algoConfig ? algoConfig.type : undefined;
         if (algoConfig !== undefined && algorithmId !== undefined) {
             // Make sure the algorithm is defined
-            if (!Object.keys(Simulation.ALGORITHMS).includes(algorithmId as string)) {
+            const availableAlgorithms = getAllAlgorithmTypes();
+            if (!availableAlgorithms.includes(algorithmId)) {
                 this._isValid = false;
                 this._errors.push('transit:simulation:errors:UnknownAlgorithm');
             } else {
-                const algorithmDescriptor = Simulation.ALGORITHMS[algorithmId as string];
-                // TODO Add a method to set the type of the algorithm and initialize the data
-                const options = algorithmDescriptor.getOptions();
-                if (algoConfig.config === undefined) {
-                    algoConfig.config = {};
+                const algorithmDescriptor = getAlgorithmDescriptor(algorithmId);
+                if (algorithmDescriptor) {
+                    // TODO Add a method to set the type of the algorithm and initialize the data
+                    const options = algorithmDescriptor.getOptions();
+                    if (algoConfig.config === undefined) {
+                        algoConfig.config = {};
+                    }
+                    const erroneousFields = Object.keys(options).filter(
+                        (option) =>
+                            algoConfig.config[option] !== undefined &&
+                            (options[option] as any).validate !== undefined &&
+                            !(options[option] as any).validate(algoConfig.config[option])
+                    );
+                    if (erroneousFields.length > 0) {
+                        this._isValid = false;
+                        this._errors.push('main:InvalidFormFields');
+                    }
+                    const { valid: algoValid, errors: algoErrors } = algorithmDescriptor.validateOptions(
+                        algoConfig.config
+                    );
+                    this._isValid = this._isValid && algoValid;
+                    this._errors.push(...algoErrors);
                 }
-                const erroneousFields = Object.keys(options).filter(
-                    (option) =>
-                        this.attributes.data.algorithmConfiguration?.config[option] !== undefined &&
-                        (options[option] as any).validate !== undefined &&
-                        !(options[option] as any).validate(this.attributes.data.algorithmConfiguration?.config[option])
-                );
-                if (erroneousFields.length > 0) {
-                    this._isValid = false;
-                    this._errors.push('main:InvalidFormFields');
-                }
-                const { valid: algoValid, errors: algoErrors } = algorithmDescriptor.validateOptions(
-                    this.attributes.data.algorithmConfiguration?.config
-                );
-                this._isValid = this._isValid && algoValid;
-                this._errors.push(...algoErrors);
             }
         }
 
@@ -179,7 +172,7 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
 
     getAlgorithmDescriptor(): SimulationAlgorithmDescriptor<any> | undefined {
         const algoType = this.attributes.data.algorithmConfiguration?.type;
-        return algoType !== undefined ? Simulation.ALGORITHMS[algoType] : undefined;
+        return algoType !== undefined ? getAlgorithmDescriptor(algoType) : undefined;
     }
 
     async delete(socket): Promise<Status.Status<{ id: string | undefined }>> {

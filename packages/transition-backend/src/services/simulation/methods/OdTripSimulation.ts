@@ -4,23 +4,19 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { SimulationAlgorithmDescriptor } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
 import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
 import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
-import dataSourceDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { TrRoutingError } from 'chaire-lib-common/lib/api/TrRouting';
 import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
+import {
+    OdTripSimulationDescriptor,
+    OdTripSimulationOptions
+} from 'transition-common/lib/services/simulation/simulationMethod/OdTripSimulationMethod';
 
 export const OdTripSimulationTitle = 'OdTripSimulation';
-export interface OdTripSimulationOptions {
-    dataSourceId: string;
-    sampleRatio: number;
-    odTripFitnessFunction: string;
-    fitnessFunction: string;
-}
 
 type OdTripSimulationResults = {
     transfersCount: number;
@@ -47,72 +43,6 @@ export class OdTripSimulationFactory implements SimulationMethodFactory<OdTripSi
     getDescriptor = () => new OdTripSimulationDescriptor();
     create = (options: OdTripSimulationOptions, simulationDataAttributes: SimulationRunDataAttributes) =>
         new OdTripSimulation(options, simulationDataAttributes);
-}
-
-export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor<OdTripSimulationOptions> {
-    getTranslatableName = (): string => 'transit:simulation:simulationMethods:OdTrips';
-
-    // TODO Add help texts
-    getOptions = () => ({
-        dataSourceId: {
-            i18nName: 'transit:simulation:simulationMethods:OdTripsDataSource',
-            type: 'select' as const,
-            choices: async () => {
-                const dataSources = await dataSourceDbQueries.collection({ type: 'odTrips' });
-                return dataSources.map((ds) => ({
-                    value: ds.id,
-                    label: ds.shortname
-                }));
-            }
-        },
-        sampleRatio: {
-            i18nName: 'transit:simulation:simulationMethods:OdTripsSampleRatio',
-            type: 'number' as const,
-            validate: (value: number) => value > 0 && value <= 1,
-            default: 1 // right now, it sets the value to NaN if no value are entered... TODO: fix that
-        },
-        odTripFitnessFunction: {
-            i18nName: 'transit:simulation:fitness:odTripFitnessFunction',
-            type: 'select' as const,
-            choices: async () => [
-                {
-                    label: 'transit:simulation:fitness:travelTimeCost',
-                    value: 'travelTimeCost'
-                },
-                {
-                    label: 'transit:simulation:fitness:travelTimeWithTransferPenalty',
-                    value: 'travelTimeWithTransferPenalty'
-                }
-            ]
-        },
-        fitnessFunction: {
-            i18nName: 'transit:simulation:fitness:fitnessFunction',
-            type: 'select' as const,
-            choices: async () => [
-                {
-                    label: 'transit:simulation:fitness:hourlyUserPlusOperatingCosts',
-                    value: 'hourlyUserPlusOperatingCosts'
-                },
-                {
-                    label: 'transit:simulation:fitness:hourlyUserCosts',
-                    value: 'hourlyUserCosts'
-                },
-                {
-                    label: 'transit:simulation:fitness:hourlyOperatingCosts',
-                    value: 'hourlyOperatingCosts'
-                }
-            ]
-        }
-    });
-
-    validateOptions = (_options: OdTripSimulationOptions): { valid: boolean; errors: string[] } => {
-        const valid = true;
-        const errors: string[] = [];
-
-        // TODO Actually validate something
-
-        return { valid, errors };
-    };
 }
 
 /**

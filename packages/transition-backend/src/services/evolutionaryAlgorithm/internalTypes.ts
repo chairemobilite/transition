@@ -11,7 +11,7 @@ import ServiceCollection from 'transition-common/lib/services/service/ServiceCol
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import Service from 'transition-common/lib/services/service/Service';
 import SimulationRun from '../simulation/SimulationRun';
-import { EvolutionAlgorithmOptions } from 'transition-common/lib/services/evolutionaryAlgorithm';
+import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/simulation/algorithm/EvolutionaryAlgorithm';
 
 export type LineLevelOfService = {
     numberOfVehicles: number;
@@ -61,7 +61,7 @@ export interface RuntimeAlgorithmData {
      */
     nonSimulatedServices: string[];
     populationSize: number;
-    options: EvolutionAlgorithmOptions;
+    options: EvolutionaryAlgorithmOptions;
 }
 
 export interface CandidateChromosome {

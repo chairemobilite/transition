@@ -17,8 +17,6 @@ import Toolbar from './TransitionToolbar';
 import FullSizePanel from './TransitionFullSizePanel';
 import RightPanel from './TransitionRightPanel';
 import SimulationsPanel from '../forms/simulation/SimulationPanel';
-import Simulation from 'transition-common/lib/services/simulation/Simulation';
-import { EvolutionAlgorithmDescriptor } from 'transition-common/lib/services/evolutionaryAlgorithm';
 
 /**
  * Dashboard contribution for the 'supply management' module of Transition: this
@@ -56,9 +54,6 @@ export class SupplyManagementDashboardContribution extends DashboardContribution
         }
     ];
 }
-
-// FIXME: This is not the right place to do so... maybe get from server? to have one single place to manage algorithm, but then the descriptor will have to be serialized.
-Simulation.registerAlgorithm('evolutionaryAlgorithm', new EvolutionAlgorithmDescriptor());
 
 /**
  * Dashboard contribution for the 'demand management' module of Transition:
