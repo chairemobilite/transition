@@ -82,7 +82,6 @@ export class TransitBatchRoutingValidator {
                 agenciesAttributePrefix: attributes.agenciesAttributePrefix as string,
                 linesAttributePrefix: attributes.linesAttributePrefix as string,
                 tripDateAttribute: attributes.tripDateAttribute as string,
-                saveToDb: attributes.saveToDb || false,
                 csvFile:
                     attributes.csvFile === undefined
                         ? { location: 'upload', filename: 'batchValidation.csv' }

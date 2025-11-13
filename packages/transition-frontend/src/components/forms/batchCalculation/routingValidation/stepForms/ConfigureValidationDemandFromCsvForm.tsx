@@ -40,7 +40,7 @@ const ConfigureValidationDemandFromCsvForm: React.FunctionComponent<ConfigureVal
     const [demand] = React.useState(
         props.currentDemand?.demand ||
             new TransitValidationDemandFromCsv(
-                Object.assign(_cloneDeep(Preferences.get('transit.validation.batch', {})), { saveToDb: false }),
+                _cloneDeep(Preferences.get('transit.validation.batch', {})),
                 false
             )
     );

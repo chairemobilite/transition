@@ -425,7 +425,6 @@ export default function (socket: EventEmitter, userId?: number) {
                         throw 'InputFileUnavailable';
                     }
                     const demand = new TransitOdDemandFromCsv(attributes.demandAttributes.configuration);
-                    demand.attributes.saveToDb = false;
                     const csvFileStream = fs.createReadStream(filePath);
                     const csvFields = await demand.setCsvFile(csvFileStream, { location: 'server', fromJob: jobId });
                     callback(
