@@ -6,9 +6,9 @@
  */
 import { EventEmitter } from 'events';
 
-import { SimulationAlgorithm } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
+import { TransitNetworkDesignAlgorithm } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
-import { SimulationAlgorithmFactory } from '../simulation/SimulationExecution';
+import { TransitNetworkDesignAlgorithmFactory } from '../simulation/SimulationExecution';
 import Agency from 'transition-common/lib/services/agency/Agency';
 import SimulationRun from '../simulation/SimulationRun';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
@@ -28,12 +28,12 @@ import Service from 'transition-common/lib/services/service/Service';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Generation from './generation/Generation';
 
-export const evolutionaryAlgorithmFactory: SimulationAlgorithmFactory<EvolutionaryAlgorithmOptions> = (
+export const evolutionaryAlgorithmFactory: TransitNetworkDesignAlgorithmFactory<EvolutionaryAlgorithmOptions> = (
     options: EvolutionaryAlgorithmOptions,
     simulationRun: SimulationRun
 ): EvolutionaryAlgorithm => new EvolutionaryAlgorithm(options, simulationRun);
 
-export class EvolutionaryAlgorithm implements SimulationAlgorithm {
+export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
     private currentIteration = 1;
 
     constructor(

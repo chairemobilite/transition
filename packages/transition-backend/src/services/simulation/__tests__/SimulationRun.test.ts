@@ -11,7 +11,7 @@ import _cloneDeep from 'lodash/cloneDeep';
 import SimulationRun from '../SimulationRun';
 import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
 import Simulation, { SimulationAttributes } from 'transition-common/lib/services/simulation/Simulation';
-import { SimulationAlgorithmDescriptorStub } from './SimulationAlgorithmDescriptorStub';
+import { SimulationAlgorithmDescriptorStub } from './TransitNetworkDesignAlgorithmDescriptorStub';
 
 // Mock the algorithm registry
 jest.mock('transition-common/lib/services/networkDesign/transit/algorithm', () => ({

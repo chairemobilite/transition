@@ -12,7 +12,7 @@ import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 
-import { SimulationAlgorithm } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
+import { TransitNetworkDesignAlgorithm } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import { evolutionaryAlgorithmFactory } from '../evolutionaryAlgorithm';
 import SimulationRun from './SimulationRun';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
@@ -24,16 +24,21 @@ import { AlgorithmType } from 'transition-common/lib/services/networkDesign/tran
  * A factory to create a simulation algorithm object with the given parameters.
  *
  * @export
- * @interface SimulationAlgorithm
+ * @interface TransitNetworkDesignAlgorithm
  */
-export type SimulationAlgorithmFactory<T> = (options: T, simulationRun: SimulationRun) => SimulationAlgorithm;
+export type TransitNetworkDesignAlgorithmFactory<T> = (
+    options: T,
+    simulationRun: SimulationRun
+) => TransitNetworkDesignAlgorithm;
 
 // Predefined algorithm factories
-const ALGORITHMS_FACTORY: { [K in AlgorithmType]: SimulationAlgorithmFactory<any> } = {
+const ALGORITHMS_FACTORY: { [K in AlgorithmType]: TransitNetworkDesignAlgorithmFactory<any> } = {
     evolutionaryAlgorithm: evolutionaryAlgorithmFactory
 };
 
-export const getAlgorithmFactory = <T extends AlgorithmType>(algorithmType: T): SimulationAlgorithmFactory<any> => {
+export const getAlgorithmFactory = <T extends AlgorithmType>(
+    algorithmType: T
+): TransitNetworkDesignAlgorithmFactory<any> => {
     return ALGORITHMS_FACTORY[algorithmType];
 };
 

@@ -20,7 +20,7 @@ import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
 import TransitNetworkDesignParametersComponent from './widgets/TransitNetworkDesignParametersComponent';
-import AlgorithmComponent from './widgets/SimulationAlgorithmComponent';
+import AlgorithmComponent from './widgets/TransitNetworkDesignAlgorithmComponent';
 import SimulationRunList from './widgets/SimulationRunList';
 
 interface SimulationFormProps extends WithTranslation {

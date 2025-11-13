@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import type { SimulationAlgorithmDescriptor } from '../../../simulation/SimulationAlgorithm';
+import type { SimulationAlgorithmDescriptor } from '../TransitNetworkDesignAlgorithm';
 import {
     AccessibilityMapSimulationDescriptor,
     type AccessibilityMapSimulationOptions

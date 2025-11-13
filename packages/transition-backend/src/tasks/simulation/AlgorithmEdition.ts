@@ -10,7 +10,7 @@ import { TFunction } from 'i18next';
 
 import Simulation, { SimulationDataAttributes } from 'transition-common/lib/services/simulation/Simulation';
 import { SimulationRuntimeOptions } from 'transition-common/lib/services/simulation/SimulationRun';
-import { SimulationAlgorithmOptionDescriptor } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
+import { SimulationAlgorithmOptionDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import SimulationRunBackend from '../../services/simulation/SimulationRun';
 
 const getPromptForDescriptor = async (

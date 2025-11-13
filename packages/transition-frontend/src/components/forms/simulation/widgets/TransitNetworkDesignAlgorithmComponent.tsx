@@ -22,7 +22,7 @@ import {
 import {
     SimulationAlgorithmDescriptor,
     SimulationAlgorithmOptionDescriptor
-} from 'transition-common/lib/services/simulation/SimulationAlgorithm';
+} from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 

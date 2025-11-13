@@ -4,15 +4,15 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { SimulationAlgorithm, SimulationAlgorithmDescriptor } from '../SimulationAlgorithm';
+import { TransitNetworkDesignAlgorithm, SimulationAlgorithmDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 
-export type AlgorithmStubOptions = {
+type AlgorithmStubOptions = {
     numericOption: number;
     stringOption: string;
     booleanOption?: boolean;
 }
 
-export class SimulationAlgorithmStub implements SimulationAlgorithm {
+export class SimulationAlgorithmStub implements TransitNetworkDesignAlgorithm {
 
     constructor(private options: AlgorithmStubOptions) {
 
