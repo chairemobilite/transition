@@ -5,19 +5,19 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { EventEmitter } from 'events';
-import AgencyCollection from '../agency/AgencyCollection';
-import LineCollection from '../line/LineCollection';
-import ServiceCollection from '../service/ServiceCollection';
+import AgencyCollection from '../../agency/AgencyCollection';
+import LineCollection from '../../line/LineCollection';
+import ServiceCollection from '../../service/ServiceCollection';
 
 /**
  * Simulation algorithm class. This will actually run the algorithm
  *
  * @export
- * @interface SimulationAlgorithm
+ * @interface TransitNetworkDesignAlgorithm
  */
 // This interface used to have a type variable <T> that was documented as "The type of options".
 // This was completely unused so it was removed, but a comment is left here in case we ever want to implement it again.
-export interface SimulationAlgorithm {
+export interface TransitNetworkDesignAlgorithm {
     run: (
         socket: EventEmitter,
         collections: { lines: LineCollection; agencies: AgencyCollection; services: ServiceCollection }
@@ -32,8 +32,13 @@ export type SimulationAlgorithmOptionBase = {
 /**
  * Type of this option
  *
- * @type {('integer' | 'number' | 'string' | 'boolean')} integer is an
- * integer number while number also supports float
+ * FIXME Rename the options and descriptors to something more generic than
+ * "SimulationAlgorithm" since they are used in other contexts now and move to
+ * appropriate place (see
+ * https://github.com/chairemobilite/transition/issues/1580)
+ *
+ * @type {('integer' | 'number' | 'string' | 'boolean')} integer is an integer
+ * number while number also supports float
  * @memberof SimulationAlgorithmOptionDescriptor
  */
 export type SimulationAlgorithmOptionByType =
@@ -62,6 +67,11 @@ export type SimulationAlgorithmOptionDescriptor = SimulationAlgorithmOptionBase 
 /**
  * Simulation algorithm descriptor. This class describes the name and options
  * required by the algorithm.
+ *
+ * FIXME Rename the options and descriptors to something more generic than
+ * "SimulationAlgorithm" since they are used in other contexts now and move to
+ * appropriate place (see
+ * https://github.com/chairemobilite/transition/issues/1580)
  *
  * @export
  * @interface SimulationAlgorithmDescriptor

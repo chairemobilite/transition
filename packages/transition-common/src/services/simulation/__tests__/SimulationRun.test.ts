@@ -10,7 +10,7 @@ import { EventEmitter } from 'events';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import SimulationRun, { SimulationRunDataAttributes } from '../SimulationRun';
-import { SimulationAlgorithmDescriptorStub } from './SimulationAlgorithmStub';
+import { SimulationAlgorithmDescriptorStub } from './TransitNetworkDesignAlgorithmStub';
 import Simulation, { SimulationAttributes } from '../Simulation';
 
 // Mock the algorithm registry

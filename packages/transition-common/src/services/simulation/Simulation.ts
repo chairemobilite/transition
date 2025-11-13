@@ -20,7 +20,7 @@ import {
     TransitNetworkDesignParameters,
     validateTransitNetworkDesignParameters
 } from '../networkDesign/transit/TransitNetworkDesignParameters';
-import { SimulationAlgorithmDescriptor } from './SimulationAlgorithm';
+import { SimulationAlgorithmDescriptor } from '../networkDesign/transit/TransitNetworkDesignAlgorithm';
 import {
     AlgorithmConfiguration,
     getAlgorithmDescriptor,

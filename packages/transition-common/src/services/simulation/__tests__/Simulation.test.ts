@@ -9,7 +9,7 @@ import { v4 as uuidV4 } from 'uuid';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import Simulation, { SimulationAttributes } from '../Simulation';
-import { SimulationAlgorithmDescriptorStub, AlgorithmStubOptions } from './SimulationAlgorithmStub';
+import { SimulationAlgorithmDescriptorStub, AlgorithmStubOptions } from './TransitNetworkDesignAlgorithmStub';
 
 // Mock the algorithm registry
 jest.mock('../../networkDesign/transit/algorithm', () => ({
