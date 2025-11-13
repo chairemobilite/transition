@@ -18,7 +18,7 @@ import {
     AlgorithmConfiguration,
     getAlgorithmDescriptor,
     getAllAlgorithmTypes
-} from 'transition-common/lib/services/simulation/algorithm';
+} from 'transition-common/lib/services/networkDesign/transit/algorithm';
 import {
     SimulationAlgorithmDescriptor,
     SimulationAlgorithmOptionDescriptor

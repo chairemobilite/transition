@@ -24,7 +24,7 @@ const newObjectAttributes = {
         routingAttributes: {
             maxTotalTravelTimeSeconds: 1000
         },
-        simulationParameters: {
+        transitNetworkDesignParameters: {
             maxTimeBetweenPassages: 15,
             nbOfVehicles: 9
         }

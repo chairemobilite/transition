@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-export interface SimulationParameters {
+export type TransitNetworkDesignParameters = {
     /** Maximum number of minutes between passages */
     maxTimeBetweenPassages?: number;
     /** Minimum number of minutes between passages */
@@ -25,13 +25,13 @@ export interface SimulationParameters {
     simulatedAgencies?: string[];
     /** Lines to keep for all scenarios */
     linesToKeep?: string[];
-}
+};
 
 const MAX_TIME_BETWEEN_PASSAGES = 60;
 const MIN_TIME_BETWEEN_PASSAGES = 3;
 
-export const validateSimulationParameters = (
-    parameters: SimulationParameters
+export const validateTransitNetworkDesignParameters = (
+    parameters: TransitNetworkDesignParameters
 ): { valid: boolean; errors: string[] } => {
     let valid = true;
     const errors: string[] = [];

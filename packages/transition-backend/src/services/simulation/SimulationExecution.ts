@@ -18,7 +18,7 @@ import SimulationRun from './SimulationRun';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import config from 'chaire-lib-backend/lib/config/server.config';
-import { AlgorithmType } from 'transition-common/lib/services/simulation/algorithm';
+import { AlgorithmType } from 'transition-common/lib/services/networkDesign/transit/algorithm';
 
 /**
  * A factory to create a simulation algorithm object with the given parameters.

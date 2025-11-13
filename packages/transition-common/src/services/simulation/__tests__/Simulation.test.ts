@@ -12,7 +12,7 @@ import Simulation, { SimulationAttributes } from '../Simulation';
 import { SimulationAlgorithmDescriptorStub, AlgorithmStubOptions } from './SimulationAlgorithmStub';
 
 // Mock the algorithm registry
-jest.mock('../algorithm', () => ({
+jest.mock('../../networkDesign/transit/algorithm', () => ({
     getAlgorithmDescriptor: jest.fn((algorithmType: string) => {
         if (algorithmType === 'mockAlgorithm') {
             return new SimulationAlgorithmDescriptorStub();
@@ -32,7 +32,7 @@ const simulationAttributes1: SimulationAttributes = {
         routingAttributes: {
             maxTotalTravelTimeSeconds: 1000
         },
-        simulationParameters: {
+        transitNetworkDesignParameters: {
             maxTimeBetweenPassages: 15,
             nbOfVehicles: 9,
             simulatedAgencies: ['arbitrary']
@@ -74,7 +74,7 @@ test('should construct new simulations', function() {
     expect(simulation2.isNew()).toBe(false);
     expect(simulation2.attributes.isEnabled).toBe(true);
     expect(simulation2.attributes.data.routingAttributes).toBeDefined();
-    expect(simulation2.attributes.data.simulationParameters).toBeDefined();
+    expect(simulation2.attributes.data.transitNetworkDesignParameters).toBeDefined();
 });
 
 test('should validate', function() {
@@ -85,13 +85,13 @@ test('should validate', function() {
     const simulation2 = new Simulation(simulationAttributes2, true);
     // No agencies to simulate, the parameters should be initialized, so we can set it and it validates
     expect(simulation2.validate()).toBe(false);
-    simulation2.attributes.data.simulationParameters.simulatedAgencies = ['arbitrary'];
+    simulation2.attributes.data.transitNetworkDesignParameters.simulatedAgencies = ['arbitrary'];
     expect(simulation2.validate()).toBe(true);
     simulation2.attributes.name = undefined;
     expect(simulation2.validate()).toBe(false);
     simulation2.attributes.name = 'test';
     expect(simulation2.validate()).toBe(true);
-    simulation2.attributes.data.simulationParameters.nbOfVehicles = -3; // Negative, should not validate
+    simulation2.attributes.data.transitNetworkDesignParameters.nbOfVehicles = -3; // Negative, should not validate
     expect(simulation2.validate()).toBe(false);
 });
 

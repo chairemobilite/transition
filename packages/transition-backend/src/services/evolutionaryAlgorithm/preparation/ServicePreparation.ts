@@ -37,10 +37,10 @@ const prepareServicesForLines = async (
     simulationRun: SimulationRun
 ): Promise<AlgoTypes.LineLevelOfService[]> => {
     const minTime =
-        (simulationRun.attributes.data.simulationParameters.minTimeBetweenPassages ||
+        (simulationRun.attributes.data.transitNetworkDesignParameters.minTimeBetweenPassages ||
             DEFAULT_MIN_TIME_BETWEEN_PASSAGES) * 60;
     const maxTime =
-        (simulationRun.attributes.data.simulationParameters.maxTimeBetweenPassages ||
+        (simulationRun.attributes.data.transitNetworkDesignParameters.maxTimeBetweenPassages ||
             DEFAULT_MAX_TIME_BETWEEN_PASSAGES) * 60;
     const lineServices: AlgoTypes.LineLevelOfService[] = [];
 
@@ -66,7 +66,7 @@ const prepareServicesForLines = async (
     let lastTimeBetweenPassages = timeBetweenPassages;
     while (
         timeBetweenPassages > minTime &&
-        nbVehicles < (simulationRun.attributes.data.simulationParameters.nbOfVehicles || Number.MAX_VALUE)
+        nbVehicles < (simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles || Number.MAX_VALUE)
     ) {
         const existingService = services.find(
             (service) => service.attributes.name === `simulation_${line.toString()}_${nbVehicles}`

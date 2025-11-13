@@ -19,7 +19,7 @@ import BaseSimulationComponent from './widgets/BaseSimulationComponent';
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
-import SimulationParametersComponent from './widgets/SimulationParametersComponent';
+import TransitNetworkDesignParametersComponent from './widgets/TransitNetworkDesignParametersComponent';
 import AlgorithmComponent from './widgets/SimulationAlgorithmComponent';
 import SimulationRunList from './widgets/SimulationRunList';
 
@@ -91,15 +91,15 @@ class SimulationEdit extends SaveableObjectForm<Simulation, SimulationFormProps,
                             onValueChange={this.onValueChange}
                         />
                     </div>
-                    <h4>{this.props.t('transit:simulation:simulationParameters')}</h4>
+                    <h4>{this.props.t('transit:simulation:transitNetworkDesignParameters')}</h4>
                     <div className="tr__form-section">
-                        <SimulationParametersComponent
+                        <TransitNetworkDesignParametersComponent
                             key={`simulation${this.state.resetChangesCount}`}
                             disabled={isFrozen}
                             onValueChange={(path, value) =>
-                                this.onValueChange(`data.simulationParameters.${path}`, value)
+                                this.onValueChange(`data.transitNetworkDesignParameters.${path}`, value)
                             }
-                            attributes={simulation.attributes.data.simulationParameters}
+                            attributes={simulation.attributes.data.transitNetworkDesignParameters}
                         />
                     </div>
                     <h4>{this.props.t('transit:simulation:algorithmParameters')}</h4>

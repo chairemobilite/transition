@@ -26,12 +26,12 @@ const simulationAttributes = {
         routingAttributes: {
             maxTotalTravelTimeSeconds: 1000
         },
-        simulationParameters: {
+        transitNetworkDesignParameters: {
             maxTimeBetweenPassages: 15,
             nbOfVehicles: 9
         },
         algorithmConfiguration: {
-            type: 'test',
+            type: 'test' as any,
             config: {}
         }
     },

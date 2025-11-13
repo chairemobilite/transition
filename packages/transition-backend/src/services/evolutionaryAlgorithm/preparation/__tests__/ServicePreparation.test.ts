@@ -190,7 +190,7 @@ describe('Test with a single line', () => {
             routingAttributes: {
                 maxTotalTravelTimeSeconds: 1000
             },
-            simulationParameters: {
+            transitNetworkDesignParameters: {
                 maxTimeBetweenPassages,
                 nbOfVehicles: 9,
                 simulatedAgencies: ['arbitrary']

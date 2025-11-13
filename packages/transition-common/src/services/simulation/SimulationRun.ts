@@ -11,8 +11,8 @@ import { EventEmitter } from 'events';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { GenericAttributes, GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-import { AlgorithmConfiguration } from './algorithm';
-import { SimulationParameters } from './SimulationParameters';
+import { AlgorithmConfiguration } from '../networkDesign/transit/algorithm';
+import { TransitNetworkDesignParameters } from '../networkDesign/transit/TransitNetworkDesignParameters';
 import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
 export type SimulationRuntimeOptions = {
@@ -35,7 +35,7 @@ export type SimulationRuntimeOptions = {
 
 /** Same as SimulationDataAttributes, but with mandatory algorithm configuration */
 export interface SimulationRunDataAttributes {
-    simulationParameters: SimulationParameters;
+    transitNetworkDesignParameters: TransitNetworkDesignParameters;
     routingAttributes: TransitRoutingBaseAttributes;
     algorithmConfiguration: AlgorithmConfiguration;
     [key: string]: unknown;

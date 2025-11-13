@@ -91,10 +91,10 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
 
     private assignServices(candidateLines: Line[], attempt = 0): string[] {
         try {
-            if (this.options.simulationRun.attributes.data.simulationParameters.nbOfVehicles !== undefined) {
+            if (this.options.simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles !== undefined) {
                 return this.assignNumberOfVehicles(
                     candidateLines,
-                    this.options.simulationRun.attributes.data.simulationParameters.nbOfVehicles
+                    this.options.simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles
                 );
             }
         } catch (error) {
@@ -117,7 +117,8 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         const lines = this.prepareNetwork();
         const services = this.assignServices(lines);
         services.push(...this.options.nonSimulatedServices);
-        const maxNumberOfVehicles = this.options.simulationRun.attributes.data.simulationParameters.nbOfVehicles;
+        const maxNumberOfVehicles =
+            this.options.simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles;
         const scenario = new Scenario(
             {
                 name: `SimRun_${maxNumberOfVehicles}veh${lines.length}lines_${this.options.simulationRun
@@ -181,7 +182,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
             lines: {},
             numberOfLines: 0,
             numberOfVehicles: 0,
-            maxNumberOfVehicles: this.options.simulationRun.attributes.data.simulationParameters.nbOfVehicles,
+            maxNumberOfVehicles: this.options.simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles,
             result
         };
         let totalNumberOfVehicles = 0;

@@ -21,7 +21,7 @@ import SimulationRun, {
 import {
     SimulationMethodType,
     SimulationMethodRegistry
-} from 'transition-common/lib/services/simulation/simulationMethod';
+} from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 import { SimulationMethodFactory } from './methods/SimulationMethod';
 import { OdTripSimulationFactory } from './methods/OdTripSimulation';
 import { AccessibilityMapSimulationFactory } from './methods/AccessibilityMapSimulation';

@@ -19,7 +19,7 @@ import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection'
 import {
     AccessibilityMapSimulationDescriptor,
     AccessibilityMapSimulationOptions
-} from 'transition-common/lib/services/simulation/simulationMethod/AccessibilityMapSimulationMethod';
+} from 'transition-common/lib/services/networkDesign/transit/simulationMethod/AccessibilityMapSimulationMethod';
 
 export const AccessibilityMapSimulationTitle = 'AccessibilityMapSimulation';
 

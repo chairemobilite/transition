@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import { SimulationAlgorithmDescriptor } from '../SimulationAlgorithm';
+import { SimulationAlgorithmDescriptor } from '../../../simulation/SimulationAlgorithm';
 import { EvolutionaryAlgorithmDescriptor, EvolutionaryAlgorithmOptions } from './EvolutionaryAlgorithm';
 
 /**

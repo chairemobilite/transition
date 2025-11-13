@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import { SimulationAlgorithmDescriptor } from '../SimulationAlgorithm';
+import { SimulationAlgorithmDescriptor } from '../../../simulation/SimulationAlgorithm';
 
 // Define accessibility map simulation options
 export type AccessibilityMapSimulationOptions = {

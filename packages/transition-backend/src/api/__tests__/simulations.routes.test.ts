@@ -56,7 +56,7 @@ const simulationAttributes1 = {
         routingAttributes: {
             maxTotalTravelTimeSeconds: 1000
         },
-        simulationParameters: {
+        transitNetworkDesignParameters: {
             maxTimeBetweenPassages: 15,
             nbOfVehicles: 9
         },
@@ -77,7 +77,7 @@ const simulationAttributes2= {
     is_frozen: true,
     data: {
         routingAttributes: {},
-        simulationParameters: {}
+        transitNetworkDesignParameters: {}
     },
     isEnabled: false
 };

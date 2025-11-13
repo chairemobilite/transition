@@ -879,7 +879,7 @@
         "SaveSimulationToCache": "Archiver la simulation",
         "LoadSimulationFromCache": "Importer l'archive de la simulation",
         "routingParameters": "Paramètres des calculs de chemin",
-        "simulationParameters": "Paramètres de la simulation",
+        "transitNetworkDesignParameters": "Paramètres de la conception de réseau de TC",
         "NonSimulatedServices": "Services non simulés à utiliser",
         "algorithmParameters": "Configuration de l'algorithme",
         "SimulationRuns": "Exécutions de la simulation",

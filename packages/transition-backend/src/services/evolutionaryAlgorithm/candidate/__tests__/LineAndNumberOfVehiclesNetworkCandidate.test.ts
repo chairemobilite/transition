@@ -59,7 +59,7 @@ const simulationRun = new SimulationRun({
         routingAttributes: {
             maxTotalTravelTimeSeconds: 1000
         },
-        simulationParameters: {
+        transitNetworkDesignParameters: {
             maxTimeBetweenPassages: 30,
             nbOfVehicles: 7,
             simulatedAgencies: ['arbitrary']
@@ -154,7 +154,7 @@ describe('Test candidate preparation', () => {
     test('Test with correct number of vehicles', async () => {
         mockedRandomFloat.mockReturnValueOnce(0.1);
         // 7 vehicles, lvl 1 for line 1, lvl 0 for line 3
-        simulationRun.attributes.data.simulationParameters.nbOfVehicles = 7;
+        simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles = 7;
         const networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, options);
         await networkCandidate.prepareScenario(socketMock);
         const scenario = networkCandidate.getScenario();
@@ -167,7 +167,7 @@ describe('Test candidate preparation', () => {
 
     test('Test with too few vehicles', async () => {
         // 5 vehicles: startup service should have at least 6
-        simulationRun.attributes.data.simulationParameters.nbOfVehicles = 5;
+        simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles = 5;
         const networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, options);
         await expect(networkCandidate.prepareScenario(socketMock))
             .rejects
@@ -183,7 +183,7 @@ describe('Test candidate preparation', () => {
         mockedRandomFloat.mockReturnValueOnce(0.1);
         mockedRandomFloat.mockReturnValueOnce(0.1);
         mockedRandomFloat.mockReturnValueOnce(0.6);
-        simulationRun.attributes.data.simulationParameters.nbOfVehicles = 12;
+        simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles = 12;
         const networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, options);
         await networkCandidate.prepareScenario(socketMock);
         const scenario = networkCandidate.getScenario();
@@ -211,7 +211,7 @@ describe('Simulate scenario and serialize result', () => {
         mockSimulateScenario.mockClear();
         // 7 vehicles, lvl 1 for line 1, lvl 0 for line 2
         mockedRandomFloat.mockReturnValue(0.1);
-        simulationRun.attributes.data.simulationParameters.nbOfVehicles = 7;
+        simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles = 7;
         networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, options);
         await networkCandidate.prepareScenario(socketMock);
     })
