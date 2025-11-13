@@ -7,7 +7,7 @@
 import { EventEmitter } from 'events';
 
 import { SimulationAlgorithm } from 'transition-common/lib/services/simulation/SimulationAlgorithm';
-import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/simulation/algorithm/EvolutionaryAlgorithm';
+import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
 import { SimulationAlgorithmFactory } from '../simulation/SimulationExecution';
 import Agency from 'transition-common/lib/services/agency/Agency';
 import SimulationRun from '../simulation/SimulationRun';
@@ -74,7 +74,7 @@ export class EvolutionaryAlgorithm implements SimulationAlgorithm {
             nonSimulatedServices,
             simulatedAgencies,
             linesToKeep: linesToKeepParam
-        } = this.simulationRun.attributes.data.simulationParameters;
+        } = this.simulationRun.attributes.data.transitNetworkDesignParameters;
         const linesToKeep = linesToKeepParam || [];
 
         const agencies = simulatedAgencies?.map((agencyId) => collections.agencies.getById(agencyId)) || [];

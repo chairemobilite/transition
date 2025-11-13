@@ -10,7 +10,7 @@ import _toString from 'lodash/toString';
 
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
-import { SimulationParameters } from 'transition-common/lib/services/simulation/SimulationParameters';
+import { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Service from 'transition-common/lib/services/service/Service';
@@ -18,14 +18,14 @@ import InputMultiselect from 'chaire-lib-frontend/lib/components/input/InputMult
 import Agency from 'transition-common/lib/services/agency/Agency';
 import Line from 'transition-common/lib/services/line/Line';
 
-export interface SimulationParametersComponentProps extends WithTranslation {
-    attributes: SimulationParameters;
+export interface TransitNetworkDesignParametersComponentProps extends WithTranslation {
+    attributes: TransitNetworkDesignParameters;
     disabled: boolean;
-    onValueChange: (path: keyof SimulationParameters, newValue: { value: any; valid?: boolean }) => void;
+    onValueChange: (path: keyof TransitNetworkDesignParameters, newValue: { value: any; valid?: boolean }) => void;
 }
 
-const SimulationParametersComponent: React.FunctionComponent<SimulationParametersComponentProps> = (
-    props: SimulationParametersComponentProps
+const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNetworkDesignParametersComponentProps> = (
+    props: TransitNetworkDesignParametersComponentProps
 ) => {
     const agencyCollection = serviceLocator.collectionManager.get('agencies');
     const serviceCollection = serviceLocator.collectionManager.get('services');
@@ -52,7 +52,7 @@ const SimulationParametersComponent: React.FunctionComponent<SimulationParameter
         <React.Fragment>
             <InputWrapper smallInput={true} label={props.t('transit:simulation:NumberOfLinesMin')}>
                 <InputStringFormatted
-                    id={'formFieldSimulationParametersNbOfLinesMin'}
+                    id={'formFieldTransitNetworkDesignParametersNbOfLinesMin'}
                     disabled={props.disabled}
                     value={props.attributes.numberOfLinesMin}
                     onValueUpdated={(value) => props.onValueChange('numberOfLinesMin', value)}
@@ -63,7 +63,7 @@ const SimulationParametersComponent: React.FunctionComponent<SimulationParameter
             </InputWrapper>
             <InputWrapper smallInput={true} label={props.t('transit:simulation:NumberOfLinesMax')}>
                 <InputStringFormatted
-                    id={'formFieldSimulationParametersNbOfLinesMax'}
+                    id={'formFieldTransitNetworkDesignParametersNbOfLinesMax'}
                     disabled={props.disabled}
                     value={props.attributes.numberOfLinesMax}
                     onValueUpdated={(value) => props.onValueChange('numberOfLinesMax', value)}
@@ -74,7 +74,7 @@ const SimulationParametersComponent: React.FunctionComponent<SimulationParameter
             </InputWrapper>
             <InputWrapper smallInput={true} label={props.t('transit:simulation:MaxIntervalMinutes')}>
                 <InputStringFormatted
-                    id={'formFieldSimulationParametersMaxTimeBetweenPassages'}
+                    id={'formFieldTransitNetworkDesignParametersMaxTimeBetweenPassages'}
                     disabled={props.disabled}
                     value={props.attributes.maxTimeBetweenPassages}
                     onValueUpdated={(value) => props.onValueChange('maxTimeBetweenPassages', value)}
@@ -85,7 +85,7 @@ const SimulationParametersComponent: React.FunctionComponent<SimulationParameter
             </InputWrapper>
             <InputWrapper smallInput={true} label={props.t('transit:simulation:MinIntervalMinutes')}>
                 <InputStringFormatted
-                    id={'formFieldSimulationParametersMinTimeBetweenPassages'}
+                    id={'formFieldTransitNetworkDesignParametersMinTimeBetweenPassages'}
                     disabled={props.disabled}
                     value={props.attributes.minTimeBetweenPassages}
                     onValueUpdated={(value) => props.onValueChange('minTimeBetweenPassages', value)}
@@ -96,7 +96,7 @@ const SimulationParametersComponent: React.FunctionComponent<SimulationParameter
             </InputWrapper>
             <InputWrapper smallInput={true} label={props.t('transit:simulation:VehiclesCount')}>
                 <InputStringFormatted
-                    id={'formFieldSimulationParametersNbOfVehicles'}
+                    id={'formFieldTransitNetworkDesignParametersNbOfVehicles'}
                     disabled={props.disabled}
                     value={props.attributes.nbOfVehicles}
                     onValueUpdated={(value) => props.onValueChange('nbOfVehicles', value)}
@@ -107,7 +107,7 @@ const SimulationParametersComponent: React.FunctionComponent<SimulationParameter
             </InputWrapper>
             <InputWrapper twoColumns={false} label={props.t('transit:simulation:LineSetAgencies')}>
                 <InputMultiselect
-                    id={'formFieldSimulationParametersSimulatedAgencies'}
+                    id={'formFieldTransitNetworkDesignParametersSimulatedAgencies'}
                     disabled={props.disabled}
                     value={props.attributes.simulatedAgencies}
                     onValueChange={(e) => props.onValueChange('simulatedAgencies', { value: e.target.value })}
@@ -117,7 +117,7 @@ const SimulationParametersComponent: React.FunctionComponent<SimulationParameter
             </InputWrapper>
             <InputWrapper twoColumns={false} label={props.t('transit:simulation:KeepLines')}>
                 <InputMultiselect
-                    id={'formFieldSimulationParametersKeepLines'}
+                    id={'formFieldTransitNetworkDesignParametersKeepLines'}
                     disabled={props.disabled}
                     value={props.attributes.linesToKeep}
                     onValueChange={(e) => props.onValueChange('linesToKeep', { value: e.target.value })}
@@ -127,7 +127,7 @@ const SimulationParametersComponent: React.FunctionComponent<SimulationParameter
             </InputWrapper>
             <InputWrapper twoColumns={false} label={props.t('transit:simulation:NonSimulatedServices')}>
                 <InputMultiselect
-                    id={'formFieldSimulationParametersNonSimulatedServices'}
+                    id={'formFieldTransitNetworkDesignParametersNonSimulatedServices'}
                     disabled={props.disabled}
                     value={props.attributes.nonSimulatedServices}
                     onValueChange={(e) => props.onValueChange('nonSimulatedServices', { value: e.target.value })}
@@ -139,4 +139,4 @@ const SimulationParametersComponent: React.FunctionComponent<SimulationParameter
     );
 };
 
-export default withTranslation('transit')(SimulationParametersComponent);
+export default withTranslation('transit')(TransitNetworkDesignParametersComponent);

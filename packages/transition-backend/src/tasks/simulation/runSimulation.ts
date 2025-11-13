@@ -17,7 +17,7 @@ import SimulationCollection from 'transition-common/lib/services/simulation/Simu
 import { runSimulation } from '../../services/simulation/SimulationExecution';
 import { editAlgorithmConfiguration, getRuntimeConfiguration } from './AlgorithmEdition';
 import SimulationRunBackend from '../../services/simulation/SimulationRun';
-import { getAlgorithmDescriptor } from 'transition-common/lib/services/simulation/algorithm';
+import { getAlgorithmDescriptor } from 'transition-common/lib/services/networkDesign/transit/algorithm';
 
 export default class RunSimulation implements GenericTask {
     private t: TFunction;

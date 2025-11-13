@@ -11,7 +11,7 @@ import ServiceCollection from 'transition-common/lib/services/service/ServiceCol
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import Service from 'transition-common/lib/services/service/Service';
 import SimulationRun from '../simulation/SimulationRun';
-import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/simulation/algorithm/EvolutionaryAlgorithm';
+import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
 
 export type LineLevelOfService = {
     numberOfVehicles: number;

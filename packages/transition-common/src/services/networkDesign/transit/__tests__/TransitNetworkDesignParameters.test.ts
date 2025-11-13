@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { validateSimulationParameters } from '../SimulationParameters';
+import { validateTransitNetworkDesignParameters } from '../TransitNetworkDesignParameters';
 import each from 'jest-each';
 
 let msgErrors = {
@@ -183,7 +183,7 @@ describe('Validate function for query attributes', () => {
         ['Minimum time between passages equal max', minMaxTimeEqual]
     ]).test('%s', (_nameTest, objTest) => {
         const allAttributes = Object.assign({}, objTest.attributes);
-        const { valid, errors } = validateSimulationParameters(allAttributes);
+        const { valid, errors } = validateTransitNetworkDesignParameters(allAttributes);
 
         expect(errors).toEqual(objTest.errors);
         expect(valid).toEqual(objTest.isValid);

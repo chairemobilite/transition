@@ -14,7 +14,7 @@ import Simulation, { SimulationAttributes } from 'transition-common/lib/services
 import { SimulationAlgorithmDescriptorStub } from './SimulationAlgorithmDescriptorStub';
 
 // Mock the algorithm registry
-jest.mock('transition-common/lib/services/simulation/algorithm', () => ({
+jest.mock('transition-common/lib/services/networkDesign/transit/algorithm', () => ({
     getAlgorithmDescriptor: jest.fn((algorithmType: string) => {
         if (algorithmType === 'mockAlgorithm') {
             return new SimulationAlgorithmDescriptorStub();
@@ -34,7 +34,7 @@ const simulationAttributes: SimulationAttributes = {
         routingAttributes: {
             maxTotalTravelTimeSeconds: 1000
         },
-        simulationParameters: {
+        transitNetworkDesignParameters: {
             maxTimeBetweenPassages: 15,
             nbOfVehicles: 9,
             simulatedAgencies: ['arbitrary']

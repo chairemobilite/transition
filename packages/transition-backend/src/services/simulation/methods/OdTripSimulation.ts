@@ -14,7 +14,7 @@ import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
 import {
     OdTripSimulationDescriptor,
     OdTripSimulationOptions
-} from 'transition-common/lib/services/simulation/simulationMethod/OdTripSimulationMethod';
+} from 'transition-common/lib/services/networkDesign/transit/simulationMethod/OdTripSimulationMethod';
 
 export const OdTripSimulationTitle = 'OdTripSimulation';
 
@@ -147,10 +147,11 @@ export default class OdTripSimulation implements SimulationMethod {
         // todo: update this for other modes:
         // TODO: Get the actual number of vehicles for this scenario, may not be exactly the same as nbOfVehicles
         /*const operatingHourlyCost = Math.max(
-            (this.simulationDataAttributes.simulationParameters.nbOfVehicles || 1) * 120,
+            (this.simulationDataAttributes.transitNetworkDesignParameters.nbOfVehicles || 1) * 120,
             this.getTotalNumberOfVehicles() * 120
         ); */
-        const operatingHourlyCost = (this.simulationDataAttributes.simulationParameters.nbOfVehicles || 1) * 120;
+        const operatingHourlyCost =
+            (this.simulationDataAttributes.transitNetworkDesignParameters.nbOfVehicles || 1) * 120;
 
         return {
             transfersCount: Math.ceil(transfersCount),

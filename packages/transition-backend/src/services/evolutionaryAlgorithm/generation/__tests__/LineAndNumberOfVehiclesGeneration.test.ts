@@ -67,7 +67,7 @@ const simulationRun = new SimulationRun({
         routingAttributes: {
             maxTotalTravelTimeSeconds: 1000
         },
-        simulationParameters: {
+        transitNetworkDesignParameters: {
             maxTimeBetweenPassages: 30,
             nbOfVehicles: 7,
             simulatedAgencies: ['arbitrary'],

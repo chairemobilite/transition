@@ -70,9 +70,11 @@ export const generateFirstCandidates = (options: AlgoTypes.RuntimeAlgorithmData)
     for (let i = 0; i < options.populationSize; i++) {
         const linesChromosome = generateRandomCandidate(
             {
-                numberOfLinesMin: options.simulationRun.attributes.data.simulationParameters.numberOfLinesMin || 1,
+                numberOfLinesMin:
+                    options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMin || 1,
                 numberOfLinesMax:
-                    options.simulationRun.attributes.data.simulationParameters.numberOfLinesMax || randomLinesCount,
+                    options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMax ||
+                    randomLinesCount,
                 numberOfGenesToGenerate: randomLinesCount,
                 numberOfKeptLines: linesToKeepSize,
                 randomGenerator: options.randomGenerator
@@ -128,11 +130,11 @@ export const reproduceCandidates = (
     const time = Date.now();
     const candidates: NetworkCandidate[] = [];
     const minLineNb =
-        options.simulationRun.attributes.data.simulationParameters.numberOfLinesMin ||
-        options.simulationRun.attributes.data.simulationParameters.numberOfLinesMax;
+        options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMin ||
+        options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMax;
     const maxLineNb =
-        options.simulationRun.attributes.data.simulationParameters.numberOfLinesMax ||
-        options.simulationRun.attributes.data.simulationParameters.numberOfLinesMin;
+        options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMax ||
+        options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMin;
 
     const linesChromosomes: boolean[][] = [];
     const shuffledGeneOrder = shuffleCandidatesInPlace(previousGenSorted, options);
@@ -170,9 +172,11 @@ export const reproduceCandidates = (
     for (let i = elitesToKeep; i < elitesToKeep + randomToCreate; i++) {
         const linesChromosome = generateRandomCandidate(
             {
-                numberOfLinesMin: options.simulationRun.attributes.data.simulationParameters.numberOfLinesMin || 1,
+                numberOfLinesMin:
+                    options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMin || 1,
                 numberOfLinesMax:
-                    options.simulationRun.attributes.data.simulationParameters.numberOfLinesMax || randomLinesCount,
+                    options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMax ||
+                    randomLinesCount,
                 numberOfGenesToGenerate: randomLinesCount,
                 numberOfKeptLines: linesToKeepSize,
                 randomGenerator: options.randomGenerator

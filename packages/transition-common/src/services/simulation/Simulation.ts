@@ -16,16 +16,23 @@ import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericOb
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { validateTrBaseAttributes } from '../transitRouting/TransitRoutingQueryAttributes';
 import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
-import { SimulationParameters, validateSimulationParameters } from './SimulationParameters';
+import {
+    TransitNetworkDesignParameters,
+    validateTransitNetworkDesignParameters
+} from '../networkDesign/transit/TransitNetworkDesignParameters';
 import { SimulationAlgorithmDescriptor } from './SimulationAlgorithm';
-import { AlgorithmConfiguration, getAlgorithmDescriptor, getAllAlgorithmTypes } from './algorithm';
+import {
+    AlgorithmConfiguration,
+    getAlgorithmDescriptor,
+    getAllAlgorithmTypes
+} from '../networkDesign/transit/algorithm';
 
 /**
  * Algorithm implementation should provide their own type, with a fixed value
  * for type, which allows them to type the options.
  */
 export interface SimulationDataAttributes {
-    simulationParameters: SimulationParameters;
+    transitNetworkDesignParameters: TransitNetworkDesignParameters;
     routingAttributes: TransitRoutingBaseAttributes;
     algorithmConfiguration?: AlgorithmConfiguration;
     [key: string]: unknown;
@@ -56,12 +63,12 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
         newAttributes.isEnabled = attributes.isEnabled !== undefined ? attributes.isEnabled : true;
         if (!newAttributes.data) {
             newAttributes.data = {
-                simulationParameters: {},
+                transitNetworkDesignParameters: {},
                 routingAttributes: {}
             };
         } else {
-            if (!newAttributes.data.simulationParameters) {
-                newAttributes.data.simulationParameters = {};
+            if (!newAttributes.data.transitNetworkDesignParameters) {
+                newAttributes.data.transitNetworkDesignParameters = {};
             }
             if (!newAttributes.data.routingAttributes) {
                 newAttributes.data.routingAttributes = {};
@@ -100,8 +107,8 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
         this._errors.push(...routingErrors);
 
         // Validate simulation parameters
-        const { valid: paramValid, errors: paramErrors } = validateSimulationParameters(
-            this.attributes.data.simulationParameters
+        const { valid: paramValid, errors: paramErrors } = validateTransitNetworkDesignParameters(
+            this.attributes.data.transitNetworkDesignParameters
         );
         this._isValid = this._isValid && paramValid;
         this._errors.push(...paramErrors);

@@ -51,16 +51,32 @@ const attributesParser = ({
     color,
     description,
     is_enabled,
+    data,
     ...rest
-}: SimulationDbAttributes): Partial<SimulationAttributes> => ({
-    internal_id: internal_id || undefined,
-    shortname: shortname || undefined,
-    name: name || undefined,
-    color: color || undefined,
-    description: description || undefined,
-    isEnabled: is_enabled !== null ? is_enabled : true,
-    ...rest
-});
+}: SimulationDbAttributes): Partial<SimulationAttributes> => {
+    // Handle the simulationParameters => transitNetworkDesignParameters rename
+    // FIXME Maybe the whole simulation will be dropped later on, see https://github.com/chairemobilite/transition/issues/1578
+    const { simulationParameters, transitNetworkDesignParameters, ...restOfData } = data || {};
+
+    return {
+        internal_id: internal_id || undefined,
+        shortname: shortname || undefined,
+        name: name || undefined,
+        color: color || undefined,
+        description: description || undefined,
+        isEnabled: is_enabled !== null ? is_enabled : true,
+        data: {
+            ...restOfData,
+            transitNetworkDesignParameters:
+                transitNetworkDesignParameters === undefined &&
+                simulationParameters !== undefined &&
+                simulationParameters !== null
+                    ? simulationParameters
+                    : transitNetworkDesignParameters
+        },
+        ...rest
+    };
+};
 
 const collection = async (): Promise<SimulationAttributes[]> => {
     try {

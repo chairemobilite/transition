@@ -879,7 +879,7 @@
         "SaveSimulationToCache": "Archive simulation",
         "LoadSimulationFromCache": "Load simulation archive",
         "routingParameters": "Routing parameters",
-        "simulationParameters": "Simulation parameters",
+        "transitNetworkDesignParameters": "Transit network design parameters",
         "NonSimulatedServices": "Non simulated services to use",
         "algorithmParameters": "Algorithm configuration",
         "SimulationRuns": "Simulation runs",
