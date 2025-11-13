@@ -17,6 +17,7 @@ import servicesDbQueries from '../transitServices.db.queries';
 import agencyDbQueries from '../transitAgencies.db.queries'
 import GeojsonCollection from 'transition-common/lib/services/path/PathCollection';
 import ObjectClass from 'transition-common/lib/services/path/Path';
+import { cleanScenarioData, insertDataForScenarios } from './transitDataByScenario.db.data';
 
 const objectName = 'path';
 const agencyId = uuidV4();
@@ -113,7 +114,15 @@ beforeAll(async () => {
     } as any);
     await scenariosDbQueries.create({
         id: scenarioId,
-        services: [serviceId]
+        services: [serviceId],
+        only_agencies: [],
+        except_agencies: [],
+        only_lines: [],
+        except_lines: [],
+        only_nodes: [],
+        except_nodes: [],
+        only_modes: [],
+        except_modes: [],
     } as any);
 });
 
@@ -400,6 +409,101 @@ describe('Paths, with transactions', () => {
         const object1 = collection.find((obj) => obj.id === newObjectAttributes.id);
         expect(object1).toBeDefined();
         expect(object1).toEqual(expect.objectContaining(new ObjectClass(newObjectAttributes, true).attributes));
+    });
+
+});
+
+describe('Lines, filtered by scenarios', () => {
+
+    let scenarioDbData: any;
+    beforeAll(async () => {
+        scenarioDbData = await insertDataForScenarios();
+    });
+
+    afterAll(async () => {
+        await cleanScenarioData();
+    });
+
+    test('Get paths for a specific scenario, all paths expected', async() => {
+        const expectedIds = scenarioDbData.pathIds;
+        const paths = await dbQueries.geojsonCollection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServices });
+
+        expect(paths.features.length).toEqual(expectedIds.length);
+        for (const path of paths.features) {
+            expect(expectedIds).toContain((path as any).properties.id);
+        }
+    });
+
+    test('Get paths for a specific scenario, filtered paths expected', async () => {
+        // No path for service 2
+        const expectedIds = [];
+        const paths = await dbQueries.geojsonCollection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithService2 });
+
+        expect(paths.features.length).toEqual(expectedIds.length);
+    });
+
+    test('Get paths for a specific scenario, with only agencies', async() => {
+        const expectedIds = [scenarioDbData.pathIds[0]];
+        const paths = await dbQueries.geojsonCollection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServicesOnlyAgency1 });
+
+        expect(paths.features.length).toEqual(expectedIds.length);
+        for (const path of paths.features) {
+            expect(expectedIds).toContain((path as any).properties.id);
+        }
+    });
+
+    test('Get paths for a specific scenario, with exclude agencies', async() => {
+        const expectedIds = [scenarioDbData.pathIds[1]];
+        const paths = await dbQueries.geojsonCollection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServicesWithoutAgency1 });
+
+        expect(paths.features.length).toEqual(expectedIds.length);
+        for (const path of paths.features) {
+            expect(expectedIds).toContain((path as any).properties.id);
+        }
+    });
+
+    test('Get paths for a specific scenario, with only lines', async() => {
+        const expectedIds = [scenarioDbData.pathIds[0]];
+        const paths = await dbQueries.geojsonCollection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServicesOnlyLine1 });
+
+        expect(paths.features.length).toEqual(expectedIds.length);
+        for (const path of paths.features) {
+            expect(expectedIds).toContain((path as any).properties.id);
+        }
+    });
+
+    test('Get paths for a specific scenario, with excluded lines', async() => {
+        const expectedIds = [scenarioDbData.pathIds[1]];
+        const paths = await dbQueries.geojsonCollection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithBothServicesWithoutLine1 });
+
+        expect(paths.features.length).toEqual(expectedIds.length);
+        for (const path of paths.features) {
+            expect(expectedIds).toContain((path as any).properties.id);
+        }
+    });
+
+    test('Get paths for a specific scenario, 2 lines exluded, should be empty', async() => {
+        const expectedIds = [];
+        const paths = await dbQueries.geojsonCollection({ scenarioId: scenarioDbData.scenarios.scenarioIdWith2LinesExcluded });
+
+        expect(paths.features.length).toEqual(expectedIds.length);
+    });
+
+    test('Get paths for a specific scenario, with include multiple lines, should have all lines', async() => {
+            const expectedIds = [scenarioDbData.pathIds[0], scenarioDbData.pathIds[1]];
+            const paths = await dbQueries.geojsonCollection({ scenarioId: scenarioDbData.scenarios.scenarioIdWith2LinesIncluded });
+    
+            expect(paths.features.length).toEqual(expectedIds.length);
+        for (const path of paths.features) {
+            expect(expectedIds).toContain((path as any).properties.id);
+        }
+        });
+
+    test('Get paths for a specific scenario, empty scenario', async() => {
+        const expectedIds = [];
+        const paths = await dbQueries.geojsonCollection({ scenarioId: scenarioDbData.scenarios.scenarioIdWithEmptyServices });
+
+        expect(paths.features.length).toEqual(expectedIds.length);
     });
 
 });

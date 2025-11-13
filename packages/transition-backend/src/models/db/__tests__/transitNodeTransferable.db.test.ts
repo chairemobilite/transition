@@ -9,6 +9,9 @@ import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import dbQueries from '../transitNodeTransferable.db.queries';
 import nodesDbQueries from '../transitNodes.db.queries';
+import pathDbQueries from '../transitPaths.db.queries';
+import linesDbQueries from '../transitLines.db.queries';
+import agencyDbQueries from '../transitAgencies.db.queries'
 
 const objectName = 'transferable node';
 
@@ -42,6 +45,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
     await dbQueries.truncate();
+    await agencyDbQueries.truncate();
     await nodesDbQueries.truncate();
     await knex.destroy();
 });
@@ -187,4 +191,170 @@ describe(`${objectName}`, () => {
         expect(transferableNodes).toEqual([]);
     });
     
+});
+
+describe('getTransferableNodePairs', () => {
+    // Make another line of nodes
+    const otherNodeAttributes = [0, 1, 2, 3, 4, 5].map(idx => ({
+        id: uuidV4(),
+        code: `000${idx + 10}`,
+        name: `NewNode ${idx + 10}`,
+        internal_id: `Test${idx + 10}`,
+        integer_id: idx + 10,
+        geography: {
+            type: "Point" as const,
+            coordinates: [-72.995 - 0.001 * idx, 45 + 0.001 * idx]
+        },
+        color: '#ffff00',
+        is_enabled: true,
+        is_frozen: false,
+        description: `New node description ${idx}`,
+        default_dwell_time_seconds: 25,
+        routing_radius_meters: 50,
+        data: {
+            foo: 'bar'
+        }
+    }));
+    const agencyId = uuidV4();
+    const lineIds = [uuidV4(), uuidV4()];
+    const pathIds = [uuidV4(), uuidV4(), uuidV4(), uuidV4()];
+    const pathNodes = [
+        // Path stops at each node
+        nodeAttributes.map(node => node.id),
+        // Path stops at nodes with even indexes
+        nodeAttributes.filter((node, idx) => idx % 2 === 0).map(node => node.id),
+        // Path stops at each other node node
+        otherNodeAttributes.map(node => node.id),
+        // Path stops at other nodes with even indexes
+        otherNodeAttributes.filter((node, idx) => idx % 2 === 0).map(node => node.id)
+    ]
+    beforeAll(async () => {
+        await dbQueries.truncate();
+        // This should delete also lines and paths
+        await agencyDbQueries.truncate();
+        await nodesDbQueries.truncate();
+        await nodesDbQueries.createMultiple([...nodeAttributes, ...otherNodeAttributes]);
+        // Create an agency, 2 lines and 4 paths
+        await agencyDbQueries.create({
+            id: agencyId,
+            name: 'test',
+            acronym: 'test'
+        } as any);
+        await linesDbQueries.createMultiple([{
+            id: lineIds[0],
+            shortname: 'test1',
+            agency_id: agencyId,
+            color: '#ffffff',
+        }, {
+            id: lineIds[1],
+            shortname: 'test2',
+            agency_id: agencyId,
+            color: '#ffffff',
+        }] as any);
+        await pathDbQueries.createMultiple([{
+            id: pathIds[0],// Path stops at each other node node
+            line_id: lineIds[0],
+            nodes: pathNodes[0],
+        }, {
+            id: pathIds[1],
+            line_id: lineIds[0],
+            nodes: pathNodes[1],
+        }, {
+            id: pathIds[2],
+            line_id: lineIds[1],
+            nodes: pathNodes[2],
+        }, {
+            id: pathIds[3],
+            line_id: lineIds[1],
+            nodes: pathNodes[3],
+        }] as any);
+
+        // For each node in nodeAttributes and otherNodeAttributes, fake some
+        // transferable nodes data, the real number does not matter,
+        // even-indexed nodes from the 2 series are not tranferrable
+        for (let i = 0; i < nodeAttributes.length; i++) {
+            const node = nodeAttributes[i];
+            // Ignore the node itself from the array, and add transfers from the other series, ignoring even if the current index is even
+            const transferableNodeIds = [...nodeAttributes.filter((n, idx) => idx !== i).map(n => n.id), ...otherNodeAttributes.filter((n, idx) => i % 2 !== 0 || idx % 2 !== 0).map(n => n.id)];
+            await dbQueries.saveForNode(node.id, {
+                nodesIds: transferableNodeIds,
+                walkingTravelTimesSeconds: transferableNodeIds.map((id, idx) => (100 + i) * idx),
+                walkingDistancesMeters: transferableNodeIds.map((id, idx) => (150 + i) * idx),
+            });
+        }
+        for (let i = 0; i < otherNodeAttributes.length; i++) {
+            const node = otherNodeAttributes[i];
+            // Ignore the node itself from the array, and add transfers from the other series, ignoring even if the current index is even
+            const transferableNodeIds = [...otherNodeAttributes.filter((n, idx) => idx !== i).map(n => n.id), ...nodeAttributes.filter((n, idx) => i % 2 !== 0 || idx % 2 !== 0).map(n => n.id)];
+            await dbQueries.saveForNode(node.id, {
+                nodesIds: transferableNodeIds,
+                walkingTravelTimesSeconds: transferableNodeIds.map((id, idx) => (120 + i) * idx),
+                walkingDistancesMeters: transferableNodeIds.map((id, idx) => (180 + i) * idx),
+            });
+        }
+    });
+
+    afterAll(async () => {
+        await dbQueries.truncate();
+        // This should delete also lines and paths
+        await agencyDbQueries.truncate();
+        await nodesDbQueries.truncate();
+    });
+
+    test('From/to paths no in database', async () => {
+        expect(await dbQueries.getTransferableNodePairs({
+            pathsFrom: [uuidV4(), uuidV4()],
+            pathsTo: [uuidV4()]
+        })).toEqual([]);
+    });
+
+    test('No transferable nodes between paths', async () => {
+        expect(await dbQueries.getTransferableNodePairs({
+            pathsFrom: [pathIds[1]],
+            pathsTo: [pathIds[3]]
+        })).toEqual([]);
+    });
+
+    test('Transferable nodes between paths', async () => {
+        const transferrableNodes = await dbQueries.getTransferableNodePairs({
+            pathsFrom: [pathIds[0]],
+            pathsTo: [pathIds[2]]
+        });
+        // There should be one transferable node per node of the path
+        expect(transferrableNodes.length).toEqual(pathNodes[0].length);
+
+        // Make sure there are no duplicate entries for 2 paths and a node
+        const noDuplicates1 = new Set(transferrableNodes.map(pair => `${pair.from.pathId}-${pair.from.nodeId}-${pair.to.pathId}`));
+        expect(noDuplicates1.size).toBe(transferrableNodes.length);
+        
+        // pathIds[1] has less node, so there should be less transferable nodes
+        const transferrableNodesLess = await dbQueries.getTransferableNodePairs({
+            pathsFrom: [pathIds[1]],
+            pathsTo: [pathIds[2]]
+        })
+        expect(transferrableNodesLess.length).toEqual(pathNodes[1].length);
+
+        const noDuplicates2 = new Set(transferrableNodes.map(pair => `${pair.from.pathId}-${pair.from.nodeId}-${pair.to.pathId}`));
+        expect(noDuplicates2.size).toBe(transferrableNodes.length);
+    });
+
+    test('Transferable nodes between multiple paths', async () => {
+        const transferrableNodes = await dbQueries.getTransferableNodePairs({
+            pathsFrom: [pathIds[0], pathIds[1]],
+            pathsTo: [pathIds[2], pathIds[3]]
+        });
+        // pathIds[1] and pathIds[3] have no transferable nodes, and some nodes of pathIds[0] don't transfer with some nodes of pathIds[3]
+        expect(transferrableNodes.length).toEqual(pathNodes[0].length + pathNodes[1].length + pathNodes[3].length);
+
+        // Make sure there are no duplicate entries for 2 paths and a node
+        const noDuplicates1 = new Set(transferrableNodes.map(pair => `${pair.from.pathId}-${pair.from.nodeId}-${pair.to.pathId}`));
+        expect(noDuplicates1.size).toBe(transferrableNodes.length);
+    });
+
+    test('Invalid path ids', async () => {
+        await expect(dbQueries.getTransferableNodePairs({
+            pathsFrom: ['not a uuid'],
+            pathsTo: ['not a uuid again']
+        })).rejects.toThrow(expect.anything());
+    });
 });

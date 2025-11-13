@@ -33,6 +33,20 @@ class AgencyCollection extends GenericObjectCollection<Agency> implements Progre
             this._eventManager.emitProgress(`${AgencyCollection.displayName}${progressEventName}`, completeRatio);
     }
 
+    /**
+     * Finds an agency by its acronym. It first looks for an exact match, then
+     * looks for a case-insensitive match.
+     * @param acronym the acronym of the agency to find
+     * @returns The acronym or undefined if not found
+     */
+    findByAcronym(acronym: string): Agency | undefined {
+        // Since agency acronyms are unique, but case sensitive, we first look for an exact match, then with case insensitivity
+        const acronymMatchCase = this.features.find((feature) => feature.attributes.acronym === acronym);
+        return acronymMatchCase
+            ? acronymMatchCase
+            : this.features.find((feature) => feature.attributes.acronym.toLowerCase() === acronym.toLowerCase());
+    }
+
     forCsv() {
         return this._features.map((agency) => {
             const attributes = agency.attributes;

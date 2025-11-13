@@ -95,8 +95,12 @@ export const recreateCache = async (
         const lines = lineCollection.getFeatures();
         while (lines.length > 0) {
             const linesToSave = lines.splice(0, 100);
+            console.time('cache: Getting collection with schedules');
             await linesDbQueries.collectionWithSchedules(linesToSave);
+            console.timeEnd('cache: Getting collection with schedules');
+            console.time('cache: Saving lines to cache');
             await lineObjectsToCache(linesToSave, options.cachePathDirectory);
+            console.timeEnd('cache: Saving lines to cache');
         }
         console.log('saved individual lines with schedules to cache');
     }

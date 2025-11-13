@@ -11,7 +11,7 @@ import ScenarioCollection from 'transition-common/lib/services/scenario/Scenario
 import { secondsToMinutes } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import { TransitDemandFromCsvFile } from '../../../../services/transitDemand/frontendTypes';
+import { TransitDemandFromCsvFile } from '../../../../../services/transitDemand/frontendTypes';
 
 export interface ConfirmCalculationFormProps {
     currentDemand: TransitDemandFromCsvFile;
