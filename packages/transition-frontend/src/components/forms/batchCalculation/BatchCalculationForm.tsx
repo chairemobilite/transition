@@ -32,7 +32,7 @@ export interface BatchCalculationFormProps {
     onEnd: () => void;
 }
 
-const stepCount = 4;
+const stepCount = 3;
 /**
  * Scenario Analysis form, to configure what to analyse:
  *
@@ -89,7 +89,7 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
     };
 
     const incrementStep = () => {
-        if (currentStep === stepCount - 2) {
+        if (currentStep === stepCount - 1) {
             if (demand !== undefined) {
                 // TODO Don't just return, wait for the return value to make sure the calculation is running
                 TransitBatchRoutingCalculator.calculate(demand.demand, routingParameters);
@@ -169,13 +169,13 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
                         <Button key="next" color="green" label={props.t('main:Previous')} onClick={decrementStep} />
                     </span>
                 )}
-                {currentStep < stepCount - 1 && (
+                {currentStep < stepCount && (
                     <span title={props.t('main:Next')}>
                         <Button
                             disabled={!nextEnabled}
                             key="next"
                             color="green"
-                            label={props.t(`main:${currentStep === stepCount - 2 ? 'Calculate' : 'Next'}`)}
+                            label={props.t(`main:${currentStep === stepCount - 1 ? 'Calculate' : 'Next'}`)}
                             onClick={incrementStep}
                         />
                     </span>
