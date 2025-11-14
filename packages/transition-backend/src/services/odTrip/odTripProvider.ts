@@ -9,7 +9,9 @@ import proj4 from 'proj4';
 import { EventEmitter } from 'events';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
+import { parseCsvFile as parseCsvFileFromStream } from 'chaire-lib-common/lib/utils/files/CsvFile';
+import fs from 'fs';
+
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import {
     timeStrToSecondsSinceMidnight,
@@ -139,20 +141,17 @@ const addError = (errors: ErrorMessage[], error: unknown, nbErrors: number, rowN
         errors.push('transit:transitRouting:errors:BatchRouteMoreErrors');
     }
 };
-
 /**
- * Parses a csv file containing OD trips
+ * Internal function that parses OD trips from a CSV stream
+ * This contains the shared logic used by both path-based and stream-based functions
  *
- * @param {string} csvFilePath The absolute path of the csv file containing the
- * OD trips
- * @param {OdTripOptions} options The attributes mapping the
- * csv fields to the corresponding od trip fields.
- * @param {EventEmitter} [progressEmitter] Optional event emitter to send
- * progress to
- * @return {*} An array of OD trips contained in the file
+ * @param {NodeJS.ReadableStream} csvStream The stream to parse
+ * @param {OdTripOptions} options The attributes mapping the csv fields to the corresponding od trip fields
+ * @param {EventEmitter} [progressEmitter] Optional event emitter to send progress to
+ * @return {*} An array of OD trips contained in the stream
  */
-export const parseOdTripsFromCsv = async (
-    csvFilePath: string,
+const parseOdTripsFromCsvInternal = async (
+    csvStream: NodeJS.ReadableStream,
     options: OdTripOptions,
     progressEmitter?: EventEmitter
 ): Promise<{ odTrips: BaseOdTrip[]; errors: ErrorMessage[] }> => {
@@ -171,18 +170,18 @@ export const parseOdTripsFromCsv = async (
         );
     }
 
-    const status = await parseCsvFile(
-        csvFilePath,
+    await parseCsvFileFromStream(
+        csvStream,
         (line, rowNumber) => {
             try {
                 const odTrip = extractOdTrip(line, options, projection);
 
                 if (options.debug) {
                     console.log(
-                        `line ${rowNumber} new odTrip ${odTrip.attributes.id} ${
-                            odTrip.attributes.timeType === 'departure' ? 'dts=' : 'ats='
-                        }${odTrip.attributes.timeOfTrip}
-                            `
+                        `line ${rowNumber} new odTrip ${odTrip.attributes.id}` +
+                            `${odTrip.attributes.timeType === 'departure' ? 'dts=' : 'ats='}${odTrip.attributes.timeOfTrip}` +
+                            `orig: ${odTrip.attributes.origin_geography.coordinates[0]},${odTrip.attributes.origin_geography.coordinates[1]}` +
+                            `dest: ${odTrip.attributes.destination_geography.coordinates[0]},${odTrip.attributes.destination_geography.coordinates[1]}`
                     );
                 }
 
@@ -205,9 +204,55 @@ export const parseOdTripsFromCsv = async (
         },
         { header: true }
     );
-    if (status === 'notfound') {
+
+    return { odTrips, errors };
+};
+
+/**
+ * Parses a csv file containing OD trips
+ *
+ * @param {string} csvFilePath The absolute path of the csv file containing the OD trips
+ * @param {OdTripOptions} options The attributes mapping the csv fields to the corresponding od trip fields
+ * @param {EventEmitter} [progressEmitter] Optional event emitter to send progress to
+ * @return {*} An array of OD trips contained in the file
+ */
+export const parseOdTripsFromCsv = async (
+    csvFilePath: string,
+    options: OdTripOptions,
+    progressEmitter?: EventEmitter
+): Promise<{ odTrips: BaseOdTrip[]; errors: ErrorMessage[] }> => {
+    console.log(`parsing csv file ${csvFilePath}...`);
+
+    // Check if file exists
+    if (!fs.existsSync(csvFilePath)) {
         throw 'CSV file does not exist';
     }
 
-    return { odTrips, errors };
+    // Create stream and use internal parser
+    const csvStream = fs.createReadStream(csvFilePath);
+
+    try {
+        const result = await parseOdTripsFromCsvInternal(csvStream, options, progressEmitter);
+        console.log(`CSV file ${csvFilePath} parsed`);
+        return result;
+    } catch (error) {
+        csvStream.destroy();
+        throw error;
+    }
+};
+
+/**
+ * Parses a csv file stream containing OD trips
+ *
+ * @param {fs.ReadStream} csvFileStream The read stream of the csv file containing the OD trips
+ * @param {OdTripOptions} options The attributes mapping the csv fields to the corresponding od trip fields
+ * @param {EventEmitter} [progressEmitter] Optional event emitter to send progress to
+ * @return {*} An array of OD trips contained in the stream
+ */
+export const parseOdTripsFromCsvStream = async (
+    csvFileStream: NodeJS.ReadableStream,
+    options: OdTripOptions,
+    progressEmitter?: EventEmitter
+): Promise<{ odTrips: BaseOdTrip[]; errors: ErrorMessage[] }> => {
+    return parseOdTripsFromCsvInternal(csvFileStream, options, progressEmitter);
 };
