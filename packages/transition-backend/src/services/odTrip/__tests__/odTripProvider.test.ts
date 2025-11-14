@@ -4,25 +4,35 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { parseOdTripsFromCsv } from '../odTripProvider';
+import { parseOdTripsFromCsv, parseOdTripsFromCsvStream } from '../odTripProvider';
+import fs from 'fs';
+import { Readable } from 'stream';
 
-let currentData: any = [];
+// Mock fs.existsSync
+jest.mock('fs', () => ({
+    ...jest.requireActual('fs'),
+    existsSync: jest.fn().mockReturnValue(true),
+    createReadStream: jest.fn().mockReturnValue({destroy: jest.fn()} as any)
+}));
 
-jest.mock('chaire-lib-backend/lib/services/files/CsvFile', () => {
-    return {
-        parseCsvFile: jest.fn().mockImplementation(async (filePath, rowCallback, _options) => {
-            const data = currentData;
-            if (data && data.length > 0) {
-                for (let i = 0; i < data.length; i++) {
-                    rowCallback(data[i], i);
-                }
-            }
-        })
-    }
-});
+// Helper function to create a readable stream from CSV string
+const createCsvStream = (csvContent: string): Readable => {
+    const stream = new Readable();
+    stream.push(csvContent);
+    stream.push(null); // Signal end of stream
+    return stream;
+};
+
+// Helper function to convert data array to CSV string
+const dataToCsv = (data: any[], headers: string[]): string => {
+    const headerLine = headers.join(',');
+    const dataLines = data.map(row => headers.map(h => row[h] ?? '').join(','));
+    return headerLine + '\n' + dataLines.join('\n') + '\n';
+};
 
 beforeEach(() => {
-
+    // Reset mocks
+    jest.clearAllMocks();
 });
 
 test('Parse a csv file, 4326 projection, departure time, HMM times', async () => {
@@ -56,7 +66,10 @@ test('Parse a csv file, 4326 projection, departure time, HMM times', async () =>
             unused: '0500'
         }
     ];
-    currentData = data;
+
+    // Mock a CSV file stream based on the above test values
+    (fs.createReadStream as jest.Mock).mockReturnValueOnce(createCsvStream(dataToCsv(data, ['id','originX','originY','destinationX','destinationY','time','unused'])));
+
     const options = {
         projection: '4326',
         idAttribute: 'id',
@@ -125,7 +138,10 @@ test('Parse a csv file, 2950 projection, arrival time, HH:MM times', async () =>
             unused: '0500'
         }
     ];
-    currentData = data;
+
+    // Mock a CSV file stream based on the above test values
+    (fs.createReadStream as jest.Mock).mockReturnValueOnce(createCsvStream(dataToCsv(data, ['id','originX','originY','destinationX','destinationY','time','unused'])));
+
     const options = {
         projection: '2950',
         idAttribute: 'id',
@@ -213,7 +229,10 @@ test('Parse a csv file, faulty lines and time in seconds', async () => {
             unused: '0500'
         }
     ];
-    currentData = data;
+
+    // Mock a CSV file stream based on the above test values
+    (fs.createReadStream as jest.Mock).mockReturnValueOnce(createCsvStream(dataToCsv(data, ['id','originX','originY','destinationX','destinationY','time','unused'])));
+
     const options = {
         projection: '4326',
         idAttribute: 'id',
@@ -228,7 +247,7 @@ test('Parse a csv file, faulty lines and time in seconds', async () => {
 
     const { odTrips, errors } = await parseOdTripsFromCsv('path/to/file.csv', options);
     expect(odTrips.length).toEqual(2);
-    expect(errors.length).toBeGreaterThan(currentData.length - 2);
+    expect(errors.length).toBeGreaterThan(data.length - 2);
     expect(odTrips[0].attributes).toEqual(expect.objectContaining({
         internal_id: data[3].id,
         origin_geography: { type: 'Point' as const, coordinates: [data[3].originX, data[3].originY]},
@@ -278,7 +297,10 @@ test('Parse a csv file, wrong coordinates format', async () => {
             unused: '0500'
         },
     ];
-    currentData = data;
+
+    // Mock a CSV file stream based on the above test values
+    (fs.createReadStream as jest.Mock).mockReturnValueOnce(createCsvStream(dataToCsv(data, ['id','originX','originY','destinationX','destinationY','time','unused'])));
+
     const options = {
         projection: '4326',
         idAttribute: 'id',
@@ -298,25 +320,27 @@ test('Parse a csv file, wrong coordinates format', async () => {
     expect(errors).toEqual([
         {
             text: 'transit:transitRouting:errors:BatchRouteErrorOnLine',
-            params: { n: '1' }
+            params: { n: '2' } // Start at 2 since the CSV header line is 1
         },
         'transit:transitRouting:errors:InvalidOriginCoordinates',
         {
             text: 'transit:transitRouting:errors:BatchRouteErrorOnLine',
-            params: { n: '2' }
+            params: { n: '3' }
         },
         'transit:transitRouting:errors:InvalidDestinationCoordinates',
         {
             text: 'transit:transitRouting:errors:BatchRouteErrorOnLine',
-            params: { n: '3' }
+            params: { n: '4' }
         },
         'transit:transitRouting:errors:InvalidOriginDestinationCoordinates'
     ])
 });
 
 test('Parse a csv file, too many faulty lines', async () => {
-    const data = Array(20).fill({ foo: 'bar', unused: 'data' });
-    currentData = data;
+    const csvString = Array(20).fill("bar,data").join("\n");
+
+    (fs.createReadStream as jest.Mock).mockReturnValueOnce(createCsvStream(csvString));
+
     const options = {
         projection: '4326',
         idAttribute: 'id',
@@ -337,4 +361,119 @@ test('Parse a csv file, too many faulty lines', async () => {
     }
     expect(Array.isArray(exception)).toBeTruthy();
     expect((exception as any)[0]).toEqual('transit:transitRouting:errors:TooManyErrorsParsingFile');
+});
+
+describe('parseOdTripsFromCsvStream', () => {
+    test('Parse a stream, 4326 projection, departure time, HMM times', async () => {
+        const csvContent = 'id,originX,originY,destinationX,destinationY,time,unused\n' +
+              'id1,-34,45,-34.23,45.45,0800,0500\n' +
+              'id2,30,40,-30.5,40.234,1032,0500';
+
+        const options = {
+            projection: '4326',
+            idAttribute: 'id',
+            originXAttribute: 'originX',
+            originYAttribute: 'originY',
+            destinationXAttribute: 'destinationX',
+            destinationYAttribute: 'destinationY',
+            timeAttributeDepartureOrArrival: 'departure' as const,
+            timeFormat: 'HMM',
+            timeAttribute: 'time',
+        };
+
+        const stream = createCsvStream(csvContent);
+        const { odTrips, errors } = await parseOdTripsFromCsvStream(stream, options);
+
+        expect(odTrips.length).toEqual(2);
+        expect(errors.length).toEqual(0);
+        expect(odTrips[0].attributes).toEqual(expect.objectContaining({
+            internal_id: 'id1',
+            origin_geography: { type: 'Point' as const, coordinates: [-34, 45]},
+            destination_geography: { type: 'Point' as const, coordinates: [-34.23, 45.45]},
+            timeType: 'departure',
+            timeOfTrip: 8 * 60 * 60
+        }));
+        expect(odTrips[1].attributes).toEqual(expect.objectContaining({
+            internal_id: 'id2',
+            origin_geography: { type: 'Point' as const, coordinates: [30, 40]},
+            destination_geography: { type: 'Point' as const, coordinates: [-30.5, 40.234]},
+            timeType: 'departure',
+            timeOfTrip: 10 * 60 * 60 + 32 * 60
+        }));
+    });
+
+    test('Parse a stream with errors', async () => {
+        const csvContent = `id,originX,originY,destinationX,destinationY,time,unused
+id1,invalid,invalid,-34.23,45.45,0800,0500`;
+
+        const options = {
+            projection: '4326',
+            idAttribute: 'id',
+            originXAttribute: 'originX',
+            originYAttribute: 'originY',
+            destinationXAttribute: 'destinationX',
+            destinationYAttribute: 'destinationY',
+            timeAttributeDepartureOrArrival: 'departure' as const,
+            timeFormat: 'HMM',
+            timeAttribute: 'time',
+        };
+
+        const stream = createCsvStream(csvContent);
+        const { odTrips, errors } = await parseOdTripsFromCsvStream(stream, options);
+
+        expect(odTrips.length).toEqual(0);
+        expect(errors.length).toBeGreaterThan(0);
+    });
+
+    test('Parse a stream with arrival time and seconds format', async () => {
+        const csvContent = `id,originX,originY,destinationX,destinationY,time,unused
+id1,-34,45,-34.23,45.45,28800,0500
+id2,30,40,-30.5,40.234,37920,0500`;
+
+        const options = {
+            projection: '4326',
+            idAttribute: 'id',
+            originXAttribute: 'originX',
+            originYAttribute: 'originY',
+            destinationXAttribute: 'destinationX',
+            destinationYAttribute: 'destinationY',
+            timeAttributeDepartureOrArrival: 'arrival' as const,
+            timeFormat: 'secondsSinceMidnight',
+            timeAttribute: 'time',
+        };
+
+        const stream = createCsvStream(csvContent);
+        const { odTrips, errors } = await parseOdTripsFromCsvStream(stream, options);
+
+        expect(odTrips.length).toEqual(2);
+        expect(errors.length).toEqual(0);
+        expect(odTrips[0].attributes).toEqual(expect.objectContaining({
+            timeType: 'arrival',
+            timeOfTrip: 28800
+        }));
+        expect(odTrips[1].attributes).toEqual(expect.objectContaining({
+            timeType: 'arrival',
+            timeOfTrip: 37920
+        }));
+    });
+});
+
+describe('File existence check', () => {
+    test('Throws error when file does not exist', async () => {
+        (fs.existsSync as jest.Mock).mockReturnValue(false);
+
+        const options = {
+            projection: '4326',
+            idAttribute: 'id',
+            originXAttribute: 'originX',
+            originYAttribute: 'originY',
+            destinationXAttribute: 'destinationX',
+            destinationYAttribute: 'destinationY',
+            timeAttributeDepartureOrArrival: 'departure' as const,
+            timeFormat: 'HMM',
+            timeAttribute: 'time',
+        };
+
+        await expect(parseOdTripsFromCsv('nonexistent.csv', options)).rejects.toEqual('CSV file does not exist');
+    });
 });
