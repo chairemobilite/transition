@@ -7,9 +7,14 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 import { AlgorithmConfiguration } from 'transition-common/lib/services/networkDesign/transit/algorithm';
 import { SimulationMethodConfiguration } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
+import ConfigureNetworkDesignParametersForm from './stepForms/ConfigureNetworkDesignParametersForm';
+import ConfigureAlgorithmParametersForm from './stepForms/ConfigureAlgorithmParametersForm';
+import ConfigureSimulationMethodForm from './stepForms/ConfigureSimulationMethodForm';
+import ConfirmNetworkDesignForm from './stepForms/ConfirmNetworkDesignForm';
 
 export interface TransitNetworkDesignFormProps {
     initialValues?: {
@@ -22,10 +27,80 @@ export interface TransitNetworkDesignFormProps {
     onJobConfigurationCompleted: () => void;
 }
 
+interface JobParameters {
+    transitNetworkDesignParameters: TransitNetworkDesignParameters;
+    algorithmConfiguration: AlgorithmConfiguration;
+    simulationMethod: SimulationMethodConfiguration;
+}
+
+const stepCount = 4;
+
+/**
+ * Transit network design form, to configure what the transit network design
+ * operation:
+ *
+ * step 1: Configure the transit network design parameters
+ *
+ * step 2: Configure the algorithm parameters
+ * 
+ * step 3: Configure the simulation method
+ *
+ * step 4: Confirm and run network design operation
+ *
+ * @param {(TransitNetworkDesignFormProps)} props
+ * @return {*}
+ */
 const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignFormProps> = (
-    _props: TransitNetworkDesignFormProps
+    props: TransitNetworkDesignFormProps
 ) => {
-    const { t } = useTranslation();
+    const { t } = useTranslation(['transit', 'main']);
+    const [currentStep, setCurrentStep] = React.useState(0);
+    const [nextEnabled, setNextEnabled] = React.useState(false);
+    const [jobParameters, setJobParameters] = React.useState<JobParameters>(
+        props.initialValues !== undefined
+            ? props.initialValues.parameters
+            : {
+                transitNetworkDesignParameters: {},
+                algorithmConfiguration: { type: 'evolutionaryAlgorithm', config: {} },
+                simulationMethod: { type: 'OdTripSimulation', config: {} }
+            }
+    );
+
+    const onNetworkParametersUpdate = (parameters: TransitNetworkDesignParameters, isValid: boolean) => {
+        setJobParameters((prev) => ({ ...prev, transitNetworkDesignParameters: parameters }));
+        setNextEnabled(isValid);
+    };
+
+    const onAlgorithmParametersUpdate = (algorithmConfig: AlgorithmConfiguration, isValid: boolean) => {
+        setJobParameters((prev) => ({ ...prev, algorithmConfiguration: algorithmConfig }));
+        setNextEnabled(isValid);
+    };
+
+    const onSimulationMethodUpdate = (simulationMethod: SimulationMethodConfiguration, isValid: boolean) => {
+        setJobParameters((prev) => ({ ...prev, simulationMethod }));
+        setNextEnabled(isValid);
+    };
+
+    const incrementStep = () => {
+        if (currentStep === stepCount - 1) {
+            // TODO: Submit the job
+            console.log('Submitting network design job with parameters:', jobParameters);
+            return props.onJobConfigurationCompleted();
+        } 
+        setCurrentStep(currentStep + 1);
+    };
+
+    const decrementStep = () => {
+        setCurrentStep(currentStep - 1);
+        setNextEnabled(true);
+    };
+
+    React.useEffect(() => {
+        // Enable next by default for the first step
+        if (currentStep === 0) {
+            setNextEnabled(true);
+        }
+    }, [currentStep]);
 
     return (
         <form id={'tr__form-transit-network-design-new'} className="apptr__form">
@@ -37,7 +112,70 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
                 />{' '}
                 {t('transit:networkDesign:New')}
             </h3>
-            To be implemented
+
+            {currentStep === 0 && (
+                <React.Fragment>
+                    <h4>{t('transit:networkDesign:ConfigureNetworkParameters')}</h4>
+                    <ConfigureNetworkDesignParametersForm
+                        parameters={jobParameters.transitNetworkDesignParameters}
+                        onUpdate={onNetworkParametersUpdate}
+                    />
+                </React.Fragment>
+            )}
+
+            {currentStep === 1 && (
+                <React.Fragment>
+                    <h4>{t('transit:networkDesign:ConfigureAlgorithm')}</h4>
+                    <ConfigureAlgorithmParametersForm
+                        algorithmConfig={jobParameters.algorithmConfiguration}
+                        onUpdate={onAlgorithmParametersUpdate}
+                    />
+                </React.Fragment>
+            )}
+
+            {currentStep === 2 && (
+                <React.Fragment>
+                    <h4>{t('transit:networkDesign:ConfigureSimulationMethod')}</h4>
+                    <ConfigureSimulationMethodForm
+                        simulationMethod={jobParameters.simulationMethod}
+                        onUpdate={onSimulationMethodUpdate}
+                    />
+                </React.Fragment>
+            )}
+
+            {currentStep === 3 && (
+                <React.Fragment>
+                    <h4>{t('transit:networkDesign:ConfirmJob')}</h4>
+                    <ConfirmNetworkDesignForm parameters={jobParameters} />
+                </React.Fragment>
+            )}
+
+            <div className="tr__form-buttons-container">
+                <span title={t('main:Cancel')}>
+                    <Button
+                        key="cancel"
+                        color="grey"
+                        label={t('main:Cancel')}
+                        onClick={props.onJobConfigurationCompleted}
+                    />
+                </span>
+                {currentStep > 0 && (
+                    <span title={t('main:Previous')}>
+                        <Button key="previous" color="green" label={t('main:Previous')} onClick={decrementStep} />
+                    </span>
+                )}
+                {currentStep < stepCount && (
+                    <span title={t('main:Next')}>
+                        <Button
+                            disabled={!nextEnabled}
+                            key="next"
+                            color="green"
+                            label={t(`main:${currentStep === stepCount - 1 ? 'Submit' : 'Next'}`)}
+                            onClick={incrementStep}
+                        />
+                    </span>
+                )}
+            </div>
         </form>
     );
 };

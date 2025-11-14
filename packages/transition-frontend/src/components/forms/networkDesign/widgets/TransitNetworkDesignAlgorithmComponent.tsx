@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
@@ -26,14 +26,14 @@ import {
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 
-interface SimulationAlgorithmOptionsComponentProps extends WithTranslation {
+interface SimulationAlgorithmOptionsComponentProps {
     algorithmDescriptor: SimulationAlgorithmDescriptor<any>;
     algorithmConfig?: AlgorithmConfiguration;
     disabled: boolean;
     onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
 }
 
-interface AlgorithmOptionComponentProps extends WithTranslation {
+interface AlgorithmOptionComponentProps {
     option: SimulationAlgorithmOptionDescriptor;
     value: unknown;
     optionKey: string;
@@ -41,23 +41,24 @@ interface AlgorithmOptionComponentProps extends WithTranslation {
     onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
 }
 
-export interface SimulationAlgorithmComponentProps extends WithTranslation {
+export interface SimulationAlgorithmComponentProps {
     algorithmConfig?: AlgorithmConfiguration;
-    simulation: Simulation;
     disabled: boolean;
     onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
 }
 
-const AlgorithmOptionComponentBase: React.FunctionComponent<AlgorithmOptionComponentProps> = (
+const AlgorithmOptionComponent: React.FunctionComponent<AlgorithmOptionComponentProps> = (
     props: AlgorithmOptionComponentProps
 ) => {
+    const { t } = useTranslation(['transit', 'main']);
     const option = props.option;
     if (option.type === 'string') {
+        const value = typeof props.value === 'string' ? props.value : option.default;
         return (
             <InputString
                 id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
                 disabled={props.disabled}
-                value={props.value as string}
+                value={value}
                 onValueUpdated={({ value, valid }) =>
                     props.onValueChange(props.optionKey, {
                         value,
@@ -68,21 +69,23 @@ const AlgorithmOptionComponentBase: React.FunctionComponent<AlgorithmOptionCompo
         );
     }
     if (option.type === 'boolean') {
+        const value = typeof props.value === 'boolean' ? props.value : option.default;
         return (
             <InputCheckboxBoolean
                 id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
                 disabled={props.disabled}
-                isChecked={props.value as boolean}
+                isChecked={value}
                 onValueChange={(e) => props.onValueChange(props.optionKey, { value: e.target.value })}
             />
         );
     }
     if (option.type === 'integer') {
+        const value = typeof props.value === 'number' ? props.value : option.default;
         return (
             <InputStringFormatted
                 id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
                 disabled={props.disabled}
-                value={props.value as number}
+                value={value}
                 onValueUpdated={({ value, valid }) =>
                     props.onValueChange(props.optionKey, {
                         value,
@@ -96,11 +99,12 @@ const AlgorithmOptionComponentBase: React.FunctionComponent<AlgorithmOptionCompo
         );
     }
     if (option.type === 'number') {
+        const value = typeof props.value === 'number' ? props.value : option.default;
         return (
             <InputStringFormatted
                 id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
                 disabled={props.disabled}
-                value={props.value as number}
+                value={value}
                 onValueUpdated={({ value, valid }) =>
                     props.onValueChange(props.optionKey, {
                         value,
@@ -115,11 +119,10 @@ const AlgorithmOptionComponentBase: React.FunctionComponent<AlgorithmOptionCompo
     return null;
 };
 
-const AlgorithmOptionComponent = withTranslation(['transit', 'main'])(AlgorithmOptionComponentBase);
-
-const SimulationAlgorithmOptionsComponentBase: React.FunctionComponent<SimulationAlgorithmOptionsComponentProps> = (
+const SimulationAlgorithmOptionsComponent: React.FunctionComponent<SimulationAlgorithmOptionsComponentProps> = (
     props: SimulationAlgorithmOptionsComponentProps
 ) => {
+    const { t } = useTranslation(['transit', 'main']);
     const options = props.algorithmDescriptor.getOptions();
     const optionWidgets = Object.keys(options).map((optionName) => {
         const option = options[optionName];
@@ -127,8 +130,8 @@ const SimulationAlgorithmOptionsComponentBase: React.FunctionComponent<Simulatio
             <InputWrapper
                 key={`algoOption${optionName}`}
                 smallInput={true}
-                label={props.t(option.i18nName)}
-                help={option.i18nHelp ? props.t(option.i18nHelp) : undefined}
+                label={t(option.i18nName)}
+                help={option.i18nHelp ? t(option.i18nHelp) : undefined}
             >
                 <AlgorithmOptionComponent
                     optionKey={optionName}
@@ -144,25 +147,22 @@ const SimulationAlgorithmOptionsComponentBase: React.FunctionComponent<Simulatio
     return <React.Fragment>{optionWidgets}</React.Fragment>;
 };
 
-const SimulationAlgorithmOptionsComponent = withTranslation(['transit', 'main'])(
-    SimulationAlgorithmOptionsComponentBase
-);
-
 const SimulationAlgorithmComponent: React.FunctionComponent<SimulationAlgorithmComponentProps> = (
     props: SimulationAlgorithmComponentProps
 ) => {
     const algorithmTypes = getAllAlgorithmTypes();
+    const { t } = useTranslation(['transit', 'main']);
 
     const algorithmChoices = algorithmTypes.map((algoId) => ({
         value: algoId,
-        label: props.t(getAlgorithmDescriptor(algoId).getTranslatableName())
+        label: t(getAlgorithmDescriptor(algoId).getTranslatableName())
     }));
 
     const algoDescriptor = props.algorithmConfig?.type ? getAlgorithmDescriptor(props.algorithmConfig.type) : undefined;
 
     return (
         <React.Fragment>
-            <InputWrapper smallInput={true} label={props.t('transit:simulation:Algorithm')}>
+            <InputWrapper smallInput={true} label={t('transit:simulation:Algorithm')}>
                 <InputSelect
                     id={'formFieldSimulationAlgorithmType'}
                     disabled={props.disabled}
@@ -183,4 +183,4 @@ const SimulationAlgorithmComponent: React.FunctionComponent<SimulationAlgorithmC
     );
 };
 
-export default withTranslation(['transit', 'main'])(SimulationAlgorithmComponent);
+export default SimulationAlgorithmComponent;

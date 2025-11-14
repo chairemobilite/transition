@@ -1,0 +1,85 @@
+/*
+ * Copyright 2025, Polytechnique Montreal and contributors
+ *
+ * This file is licensed under the MIT License.
+ * License text available at https://opensource.org/licenses/MIT
+ */
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+
+import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
+import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
+import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
+import {
+    SimulationMethodConfiguration,
+    getAllSimulationMethodTypes,
+    getSimulationMethodDescriptor
+} from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
+
+export interface ConfigureSimulationMethodFormProps {
+    simulationMethod: SimulationMethodConfiguration;
+    onUpdate: (simulationMethod: SimulationMethodConfiguration, isValid: boolean) => void;
+}
+
+const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulationMethodFormProps> = (
+    props: ConfigureSimulationMethodFormProps
+) => {
+    const { t } = useTranslation(['transit', 'main']);
+    const [updateCnt, setUpdateCnt] = React.useState(0);
+    const [errors, setErrors] = React.useState<string[]>([]);
+
+    React.useEffect(() => {
+        // Validate on first load
+        props.onUpdate(props.simulationMethod, true);
+    }, []);
+
+    const onValueChange = (path: string, newValue: { value: any; valid?: boolean }): void => {
+        const pathParts = path.split('.');
+        let updatedMethod = { ...props.simulationMethod };
+
+        if (pathParts[0] === 'type') {
+            // Reset config when changing type
+            updatedMethod = { type: newValue.value, config: {} } as SimulationMethodConfiguration;
+        } else if (pathParts[0] === 'config') {
+            // FIXME implement and remove as any
+            updatedMethod = {
+                ...updatedMethod,
+                config: { ...updatedMethod.config, [pathParts[1]]: newValue.value }
+            } as any;
+        }
+
+        props.onUpdate(updatedMethod, newValue.valid !== false);
+        setUpdateCnt(updateCnt + 1);
+    };
+
+    const methodTypes = getAllSimulationMethodTypes();
+    const methodChoices = methodTypes.map((methodId) => ({
+        value: methodId,
+        label: t(getSimulationMethodDescriptor(methodId).getTranslatableName())
+    }));
+
+    const methodDescriptor = getSimulationMethodDescriptor(props.simulationMethod.type);
+    const methodOptions = methodDescriptor.getOptions();
+
+    return (
+        <div className="tr__form-section">
+            <InputWrapper smallInput={true} label={t('transit:networkDesign:SimulationMethod')}>
+                <InputSelect
+                    id={'formFieldSimulationMethodType'}
+                    disabled={false}
+                    value={props.simulationMethod.type}
+                    choices={methodChoices}
+                    onValueChange={(e) => onValueChange('type', { value: e.target.value })}
+                />
+            </InputWrapper>
+
+            {/* TODO: Render method-specific options based on methodOptions
+                This would be similar to how TransitNetworkDesignAlgorithmComponent
+                renders algorithm options */}
+
+            {errors.length > 0 && <FormErrors errors={errors} />}
+        </div>
+    );
+};
+
+export default ConfigureSimulationMethodForm;

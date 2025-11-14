@@ -842,7 +842,10 @@
         "ConfigureNetworkParameters": "Configurer les paramètres du réseau à concevoir",
         "ConfigureAlgorithm": "Configurer l'algorithme de conception de réseau",
         "ConfigureSimulationMethod": "Configurer la méthode de simulation",
-        "ConfirmJob": "Exécuter la conception de réseau"
+        "ConfirmJob": "Exécuter la conception de réseau",
+        "AlgorithmConfiguration": "Configuration de l'algorithme",
+        "Algorithm": "Algorithme sélectionné",
+        "NetworkDesignParameters": "Paramètres du réseau à concevoir"
     },
     "simulation": {
         "Simulation": "Simulation",

@@ -5,8 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
+import { useTranslation } from 'react-i18next';
 
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
@@ -18,7 +18,8 @@ import InputMultiselect from 'chaire-lib-frontend/lib/components/input/InputMult
 import Agency from 'transition-common/lib/services/agency/Agency';
 import Line from 'transition-common/lib/services/line/Line';
 
-export interface TransitNetworkDesignParametersComponentProps extends WithTranslation {
+
+export interface TransitNetworkDesignParametersComponentProps {
     attributes: TransitNetworkDesignParameters;
     disabled: boolean;
     onValueChange: (path: keyof TransitNetworkDesignParameters, newValue: { value: any; valid?: boolean }) => void;
@@ -29,6 +30,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
 ) => {
     const agencyCollection = serviceLocator.collectionManager.get('agencies');
     const serviceCollection = serviceLocator.collectionManager.get('services');
+    const { t } = useTranslation(['transit', 'main']);
 
     const serviceChoices = serviceCollection.getFeatures().map((service: Service) => ({
         value: service.getId(),
@@ -50,7 +52,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
 
     return (
         <React.Fragment>
-            <InputWrapper smallInput={true} label={props.t('transit:simulation:NumberOfLinesMin')}>
+            <InputWrapper smallInput={true} label={t('transit:simulation:NumberOfLinesMin')}>
                 <InputStringFormatted
                     id={'formFieldTransitNetworkDesignParametersNbOfLinesMin'}
                     disabled={props.disabled}
@@ -61,7 +63,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     type={'number'}
                 />
             </InputWrapper>
-            <InputWrapper smallInput={true} label={props.t('transit:simulation:NumberOfLinesMax')}>
+            <InputWrapper smallInput={true} label={t('transit:simulation:NumberOfLinesMax')}>
                 <InputStringFormatted
                     id={'formFieldTransitNetworkDesignParametersNbOfLinesMax'}
                     disabled={props.disabled}
@@ -72,7 +74,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     type={'number'}
                 />
             </InputWrapper>
-            <InputWrapper smallInput={true} label={props.t('transit:simulation:MaxIntervalMinutes')}>
+            <InputWrapper smallInput={true} label={t('transit:simulation:MaxIntervalMinutes')}>
                 <InputStringFormatted
                     id={'formFieldTransitNetworkDesignParametersMaxTimeBetweenPassages'}
                     disabled={props.disabled}
@@ -83,7 +85,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     type={'number'}
                 />
             </InputWrapper>
-            <InputWrapper smallInput={true} label={props.t('transit:simulation:MinIntervalMinutes')}>
+            <InputWrapper smallInput={true} label={t('transit:simulation:MinIntervalMinutes')}>
                 <InputStringFormatted
                     id={'formFieldTransitNetworkDesignParametersMinTimeBetweenPassages'}
                     disabled={props.disabled}
@@ -94,7 +96,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     type={'number'}
                 />
             </InputWrapper>
-            <InputWrapper smallInput={true} label={props.t('transit:simulation:VehiclesCount')}>
+            <InputWrapper smallInput={true} label={t('transit:simulation:VehiclesCount')}>
                 <InputStringFormatted
                     id={'formFieldTransitNetworkDesignParametersNbOfVehicles'}
                     disabled={props.disabled}
@@ -105,7 +107,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     type={'number'}
                 />
             </InputWrapper>
-            <InputWrapper twoColumns={false} label={props.t('transit:simulation:LineSetAgencies')}>
+            <InputWrapper twoColumns={false} label={t('transit:simulation:LineSetAgencies')}>
                 <InputMultiselect
                     id={'formFieldTransitNetworkDesignParametersSimulatedAgencies'}
                     disabled={props.disabled}
@@ -115,7 +117,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     t={props.t}
                 />
             </InputWrapper>
-            <InputWrapper twoColumns={false} label={props.t('transit:simulation:KeepLines')}>
+            <InputWrapper twoColumns={false} label={t('transit:simulation:KeepLines')}>
                 <InputMultiselect
                     id={'formFieldTransitNetworkDesignParametersKeepLines'}
                     disabled={props.disabled}
@@ -125,7 +127,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     t={props.t}
                 />
             </InputWrapper>
-            <InputWrapper twoColumns={false} label={props.t('transit:simulation:NonSimulatedServices')}>
+            <InputWrapper twoColumns={false} label={t('transit:simulation:NonSimulatedServices')}>
                 <InputMultiselect
                     id={'formFieldTransitNetworkDesignParametersNonSimulatedServices'}
                     disabled={props.disabled}
@@ -139,4 +141,4 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
     );
 };
 
-export default withTranslation('transit')(TransitNetworkDesignParametersComponent);
+export default TransitNetworkDesignParametersComponent;

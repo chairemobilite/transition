@@ -842,7 +842,10 @@
         "ConfigureNetworkParameters": "Configure parameters for network to design",
         "ConfigureAlgorithm": "Configure network design algorithm",
         "ConfigureSimulationMethod": "Configure simulation method",
-        "ConfirmJob": "Execute network design"
+        "ConfirmJob": "Execute network design",
+        "AlgorithmConfiguration": "Network design algorithm configuration",
+        "Algorithm": "Selected algorithm",
+        "NetworkDesignParameters": "Network to design parameters"
     },
     "simulation": {
         "Simulation": "Simulation",
