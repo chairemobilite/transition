@@ -29,6 +29,13 @@ export type SimulationAlgorithmOptionBase = {
     i18nHelp?: string;
 };
 
+type DescriptorFactory<T extends Record<string, unknown>> = () => SimulationAlgorithmDescriptor<T>;
+
+interface NestedOptionDescriptor<T extends Record<string, unknown>> {
+    type: 'nested';
+    descriptor: DescriptorFactory<T>;
+}
+
 /**
  * Type of this option
  *
@@ -37,8 +44,10 @@ export type SimulationAlgorithmOptionBase = {
  * appropriate place (see
  * https://github.com/chairemobilite/transition/issues/1580)
  *
- * @type {('integer' | 'number' | 'string' | 'boolean')} integer is an integer
- * number while number also supports float
+ * @type {('integer' | 'number' | 'string' | 'boolean' | 'nested' | 'custom')}
+ * integer is an integer number while number also supports float, nested is a
+ * nested object with its own descriptor. 'custom' is a custom type that will
+ * not be validated nor have a proper UI generated form for it.
  * @memberof SimulationAlgorithmOptionDescriptor
  */
 export type SimulationAlgorithmOptionByType =
@@ -60,9 +69,13 @@ export type SimulationAlgorithmOptionByType =
           type: 'select';
           choices: () => Promise<{ value: string; label?: string }[]>;
           default?: string;
+      }
+    | {
+          type: 'custom';
       };
 
-export type SimulationAlgorithmOptionDescriptor = SimulationAlgorithmOptionBase & SimulationAlgorithmOptionByType;
+export type SimulationAlgorithmOptionDescriptor = SimulationAlgorithmOptionBase &
+    (SimulationAlgorithmOptionByType | NestedOptionDescriptor<any>);
 
 /**
  * Simulation algorithm descriptor. This class describes the name and options
