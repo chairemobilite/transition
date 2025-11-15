@@ -10,6 +10,8 @@ import { Column } from 'react-table';
 import moment from 'moment';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faStopCircle } from '@fortawesome/free-solid-svg-icons/faStopCircle';
+import { faPauseCircle } from '@fortawesome/free-solid-svg-icons/faPauseCircle';
+import { faPlayCircle } from '@fortawesome/free-solid-svg-icons/faPlayCircle';
 
 import ExecutableJobList, { ReturnedJobAttributes } from './ExecutableJobList';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
@@ -50,20 +52,28 @@ const fetchFromSocket = (parameters: {
     });
 };
 
-const deleteJobFromServer = (id: number): Promise<Status.Status<boolean>> => {
+const updateJobStatusOnServer = (id: number, socketRoute: string): Promise<Status.Status<boolean>> => {
     return new Promise((resolve) => {
-        serviceLocator.socketEventManager.emit(JobsConstants.DELETE_JOB, id, (response: Status.Status<boolean>) => {
+        serviceLocator.socketEventManager.emit(socketRoute, id, (response: Status.Status<boolean>) => {
             resolve(response);
         });
     });
 };
 
+const deleteJobFromServer = (id: number): Promise<Status.Status<boolean>> => {
+    return updateJobStatusOnServer(id, JobsConstants.DELETE_JOB);
+};
+
 const cancelJobFromServer = (id: number): Promise<Status.Status<boolean>> => {
-    return new Promise((resolve) => {
-        serviceLocator.socketEventManager.emit(JobsConstants.CANCEL_JOB, id, (response: Status.Status<boolean>) => {
-            resolve(response);
-        });
-    });
+    return updateJobStatusOnServer(id, JobsConstants.CANCEL_JOB);
+};
+
+const pauseJobFromServer = (id: number): Promise<Status.Status<boolean>> => {
+    return updateJobStatusOnServer(id, JobsConstants.PAUSE_JOB);
+};
+
+const resumeJobFromServer = (id: number): Promise<Status.Status<boolean>> => {
+    return updateJobStatusOnServer(id, JobsConstants.RESUME_JOB);
 };
 
 const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProps> = (
@@ -125,6 +135,24 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
             Status.unwrap(status);
         } catch (error) {
             console.error(`Error cancelling job from server: ${error}`);
+        }
+    }, []);
+
+    const pauseJob = React.useCallback(async (id) => {
+        try {
+            const status = await pauseJobFromServer(id);
+            Status.unwrap(status);
+        } catch (error) {
+            console.error(`Error pausing job on server: ${error}`);
+        }
+    }, []);
+
+    const resumeJob = React.useCallback(async (id) => {
+        try {
+            const status = await resumeJobFromServer(id);
+            Status.unwrap(status);
+        } catch (error) {
+            console.error(`Error resuming job on server: ${error}`);
         }
     }, []);
 
@@ -207,15 +235,35 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
                         >
                             {(cellProps.row.original.status === 'pending' ||
                                 cellProps.row.original.status === 'inProgress') && (
-                                <ButtonCellWithConfirm
+                                <React.Fragment>
+                                    <ButtonCellWithConfirm
+                                        alignment="flush"
+                                        onClick={() => cancelJob(cellProps.value)}
+                                        title={t('transit:jobs:Cancel')}
+                                        message={t('transit:jobs:ConfirmCancel')}
+                                        confirmButtonText={t('transit:jobs:Cancel')}
+                                    >
+                                        <FontAwesomeIcon icon={faStopCircle} />
+                                    </ButtonCellWithConfirm>
+                                    <ButtonCellWithConfirm
+                                        alignment="flush"
+                                        onClick={() => pauseJob(cellProps.value)}
+                                        title={t('transit:jobs:Pause')}
+                                        message={t('transit:jobs:ConfirmPause')}
+                                        confirmButtonText={t('transit:jobs:Pause')}
+                                    >
+                                        <FontAwesomeIcon icon={faPauseCircle} />
+                                    </ButtonCellWithConfirm>
+                                </React.Fragment>
+                            )}
+                            {cellProps.row.original.status === 'paused' && (
+                                <ButtonCell
                                     alignment="flush"
-                                    onClick={() => cancelJob(cellProps.value)}
-                                    title={t('transit:jobs:Cancel')}
-                                    message={t('transit:jobs:ConfirmCancel')}
-                                    confirmButtonText={t('transit:jobs:Cancel')}
+                                    onClick={() => resumeJob(cellProps.value)}
+                                    title={t('transit:jobs:Resume')}
                                 >
-                                    <FontAwesomeIcon icon={faStopCircle} />
-                                </ButtonCellWithConfirm>
+                                    <FontAwesomeIcon icon={faPlayCircle} />
+                                </ButtonCell>
                             )}
                             {componentProps.customActions !== undefined &&
                                 componentProps.customActions.length > 0 &&

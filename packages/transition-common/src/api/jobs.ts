@@ -27,6 +27,20 @@ export class JobsConstants {
      */
     static readonly CANCEL_JOB = 'executableJobs.cancel';
     /**
+     * Socket route name to pause an individual job: expected parameter: id of the job
+     *
+     * @static
+     * @memberof JobsConstants
+     */
+    static readonly PAUSE_JOB = 'executableJobs.pause';
+    /**
+     * Socket route name to resume an individual job: expected parameter: id of the job
+     *
+     * @static
+     * @memberof JobsConstants
+     */
+    static readonly RESUME_JOB = 'executableJobs.resume';
+    /**
      * Socket route name to get the files for an individual job: expected parameter: id of the job
      *
      * @static
