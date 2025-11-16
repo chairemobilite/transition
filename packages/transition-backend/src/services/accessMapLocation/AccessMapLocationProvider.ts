@@ -9,7 +9,9 @@ import proj4 from 'proj4';
 import { EventEmitter } from 'events';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
+import { parseCsvFile as parseCsvFileFromStream } from 'chaire-lib-common/lib/utils/files/CsvFile';
+import fs from 'fs';
+
 import { AccessibilityMapLocation } from 'transition-common/lib/services/accessibilityMap/AccessibiltyMapLocation';
 import {
     timeStrToSecondsSinceMidnight,
@@ -75,7 +77,8 @@ const extractLocation = (
         geography: location,
         timeOfTrip: time as number,
         timeType: options.timeAttributeDepartureOrArrival === 'arrival' ? 'arrival' : 'departure',
-        data: line
+        data: {} //TODO This used to contains the whole line, but we should instead have a mechanism to let
+        // people tell us explicitily that they want to merge data in the result file.
     };
 };
 
@@ -102,18 +105,16 @@ const addError = (errors: ErrorMessage[], error: unknown, nbErrors: number, rowN
 };
 
 /**
- * Parses a csv file containing accessibility map locations and times
+ * Internal function that parses accessibility map locations from a CSV stream
+ * This contains the shared logic used by both path-based and stream-based functions
  *
- * @param {string} csvFilePath The absolute path of the csv file containing the
- * OD trips
- * @param {accessMapLocationOptions} options The attributes mapping the csv
- * fields to the corresponding location fields.
- * @param {EventEmitter} [progressEmitter] Optional event emitter to send
- * progress to
- * @return {*} An array of accessibility map locations contained in the file
+ * @param {NodeJS.ReadableStream} csvStream The stream to parse
+ * @param {accessMapLocationOptions} options The attributes mapping the csv fields to the corresponding location fields
+ * @param {EventEmitter} [progressEmitter] Optional event emitter to send progress to
+ * @return {*} An array of accessibility map locations contained in the stream
  */
-export const parseLocationsFromCsv = async (
-    csvFilePath: string,
+const parseLocationsFromCsvInternal = async (
+    csvStream: NodeJS.ReadableStream,
     options: accessMapLocationOptions,
     progressEmitter?: EventEmitter
 ): Promise<{ locations: AccessibilityMapLocation[]; errors: ErrorMessage[] }> => {
@@ -132,8 +133,8 @@ export const parseLocationsFromCsv = async (
         );
     }
 
-    const status = await parseCsvFile(
-        csvFilePath,
+    await parseCsvFileFromStream(
+        csvStream,
         (line, rowNumber) => {
             try {
                 const location = extractLocation(line, options, projection);
@@ -166,9 +167,55 @@ export const parseLocationsFromCsv = async (
         },
         { header: true }
     );
-    if (status === 'notfound') {
+
+    return { locations, errors };
+};
+
+/**
+ * Parses a csv file containing accessibility map locations and times
+ *
+ * @param {string} csvFilePath The absolute path of the csv file containing the locations
+ * @param {accessMapLocationOptions} options The attributes mapping the csv fields to the corresponding location fields
+ * @param {EventEmitter} [progressEmitter] Optional event emitter to send progress to
+ * @return {*} An array of accessibility map locations contained in the file
+ */
+export const parseLocationsFromCsv = async (
+    csvFilePath: string,
+    options: accessMapLocationOptions,
+    progressEmitter?: EventEmitter
+): Promise<{ locations: AccessibilityMapLocation[]; errors: ErrorMessage[] }> => {
+    console.log(`parsing csv file ${csvFilePath}...`);
+
+    // Check if file exists
+    if (!fs.existsSync(csvFilePath)) {
         throw 'CSV file does not exist';
     }
 
-    return { locations, errors };
+    // Create stream and use internal parser
+    const csvStream = fs.createReadStream(csvFilePath);
+
+    try {
+        const result = await parseLocationsFromCsvInternal(csvStream, options, progressEmitter);
+        console.log(`CSV file ${csvFilePath} parsed`);
+        return result;
+    } catch (error) {
+        csvStream.destroy();
+        throw error;
+    }
+};
+
+/**
+ * Parses a csv file stream containing accessibility map locations and times
+ *
+ * @param {fs.ReadStream} csvFileStream The read stream of the csv file containing the locations
+ * @param {accessMapLocationOptions} options The attributes mapping the csv fields to the corresponding location fields
+ * @param {EventEmitter} [progressEmitter] Optional event emitter to send progress to
+ * @return {*} An array of accessibility map locations contained in the stream
+ */
+export const parseLocationsFromCsvStream = async (
+    csvFileStream: NodeJS.ReadableStream,
+    options: accessMapLocationOptions,
+    progressEmitter?: EventEmitter
+): Promise<{ locations: AccessibilityMapLocation[]; errors: ErrorMessage[] }> => {
+    return parseLocationsFromCsvInternal(csvFileStream, options, progressEmitter);
 };
