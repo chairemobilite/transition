@@ -11,7 +11,7 @@ import { EventEmitter } from 'events';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import serverConfig from 'chaire-lib-backend/lib/config/server.config';
 import routeOdTrip from './TrRoutingOdTrip';
-import { parseOdTripsFromCsv } from '../odTrip/odTripProvider';
+import { parseOdTripsFromCsvStream } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 
@@ -272,14 +272,12 @@ class TrRoutingBatch {
         console.log(`importing od trips from CSV file ${this.job.getInputFileName()}`);
         console.log('reading data from csv file...');
 
-        const { odTrips, errors } = await parseOdTripsFromCsv(
-            this.job.getInputFilePath(),
+        const csvStream = this.job.getReadStream('input');
+        const { odTrips, errors } = await parseOdTripsFromCsvStream(
+            csvStream,
             this.job.attributes.data.parameters.demandAttributes.configuration
         );
 
-        const odTripsCount = odTrips.length;
-        //TODO Move this log inside parseOdTripsFromCsv
-        console.log(odTripsCount + ' OdTrips parsed');
         this.options.progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
         return { odTrips, errors };
     };

@@ -7,7 +7,6 @@
 import fs from 'fs';
 import _omit from 'lodash/omit';
 import _cloneDeep from 'lodash/cloneDeep';
-import { join } from 'path';
 
 import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
@@ -62,17 +61,22 @@ class BatchRoutingResultProcessorFile implements BatchRoutingResultProcessor {
     private initResultFiles = () => {
         const csvAttributes = getDefaultCsvAttributes(this.batchParameters.routingModes || []);
 
-        //TODO Should we load the file key name in the job and then use getFilePath(key) instead ?
-        this.csvStream = fs.createWriteStream(join(this.job.getJobFileDirectory(), CSV_FILE_NAME));
+        // Register CSV output file
+        this.job.registerOutputFile('csv', CSV_FILE_NAME);
+        this.csvStream = this.job.getWriteStream('csv');
         this.csvStream.on('error', console.error);
         this.csvStream.write(Object.keys(csvAttributes).join(',') + '\n');
+
         if (this.batchParameters.detailed) {
-            this.csvDetailedStream = fs.createWriteStream(join(this.job.getJobFileDirectory(), DETAILED_CSV_FILE_NAME));
+            this.job.registerOutputFile('detailedCsv', DETAILED_CSV_FILE_NAME);
+            this.csvDetailedStream = this.job.getWriteStream('detailedCsv');
             this.csvDetailedStream.on('error', console.error);
             this.csvDetailedStream.write(Object.keys(getDefaultStepsAttributes()).join(',') + '\n');
         }
+
         if (this.batchParameters.withGeometries) {
-            this.geometryStream = fs.createWriteStream(join(this.job.getJobFileDirectory(), GEOMETRY_FILE_NAME));
+            this.job.registerOutputFile('geojson', GEOMETRY_FILE_NAME);
+            this.geometryStream = this.job.getWriteStream('geojson');
             this.geometryStream.on('error', console.error);
             this.geometryStream.write('{ "type": "FeatureCollection", "features": [');
         }
