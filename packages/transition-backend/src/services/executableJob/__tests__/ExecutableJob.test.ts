@@ -463,3 +463,33 @@ describe('Test stream methods', () => {
         });
     });
 });
+
+describe('registerOutputFile', () => {
+    test('should register output file', async () => {
+        const job = await ExecutableJob.loadTask(jobAttributes.id);
+
+        job.registerOutputFile('testFile', 'output.csv');
+        
+        expect(job.attributes.resources?.files?.testFile).toEqual('output.csv');
+        expect(job.getFileName('testFile')).toEqual('output.csv');
+    });
+    
+    test('should handle multiple registrations with same filename', async () => {
+        const job = await ExecutableJob.loadTask(jobAttributes.id);
+        
+        job.registerOutputFile('testFile', 'output.csv');
+        job.registerOutputFile('testFile', 'output.csv'); // Should not throw
+        
+        expect(job.getFileName('testFile')).toEqual('output.csv');
+    });
+    
+    test('should throw if registering same key with different filename', async () => {
+        const job = await ExecutableJob.loadTask(jobAttributes.id);
+        
+        job.registerOutputFile('testFile', 'output.csv');
+        
+        expect(() => {
+            job.registerOutputFile('testFile', 'different.csv');
+        }).toThrow();
+    });
+});
