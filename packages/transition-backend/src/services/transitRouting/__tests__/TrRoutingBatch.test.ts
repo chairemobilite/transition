@@ -49,10 +49,10 @@ let odTrips = [
     })
 ];
 
-const mockParseOdTripsFromCsv = jest.fn().mockImplementation(() => ({ odTrips, errors: [] }));
+const mockParseOdTripsFromCsvStream = jest.fn().mockImplementation(() => ({ odTrips, errors: [] }));
 jest.mock('../../odTrip/odTripProvider', () => {
     return {
-        parseOdTripsFromCsv: jest.fn().mockImplementation(() => (mockParseOdTripsFromCsv()))
+        parseOdTripsFromCsvStream: jest.fn().mockImplementation(() => (mockParseOdTripsFromCsvStream()))
     }
 });
 
@@ -178,6 +178,7 @@ beforeEach(async () => {
     mockJobsDbQueries.read.mockResolvedValue(mockJobAttributes);
     job = await ExecutableJob.loadTask(1);
     jest.spyOn(job, 'getFilePath').mockImplementation(() => './batchRouting.csv');
+    jest.spyOn(job, 'getReadStream').mockImplementation(() => Readable.from('mock,csv,data\n1,2,3') as any);
 });
 
 test('Batch route to csv', async () => {
@@ -214,7 +215,7 @@ test('Batch route to csv', async () => {
 
 test('Batch route with some errors', async () => {
     const errors = [ 'error1', 'error2' ];
-    mockParseOdTripsFromCsv.mockResolvedValueOnce({ odTrips, errors });
+    mockParseOdTripsFromCsvStream.mockResolvedValueOnce({ odTrips, errors });
 
     const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
@@ -248,7 +249,7 @@ test('Batch route with some errors', async () => {
 
 test('Batch route with too many errors', async () => {
     const errors = [ 'error1', 'error2' ];
-    mockParseOdTripsFromCsv.mockRejectedValueOnce(errors);
+    mockParseOdTripsFromCsvStream.mockRejectedValueOnce(errors);
 
     const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
     expect(routeOdTripMock).toHaveBeenCalledTimes(0);
@@ -322,7 +323,7 @@ describe('Batch route from checkpoint', () => {
         const checkpointListenerMock = jest.fn();
         socketMock.on('checkpoint', checkpointListenerMock);
         const largeOdTripsArray = Array(756).fill(odTrips[0]);
-        mockParseOdTripsFromCsv.mockResolvedValueOnce({ odTrips: largeOdTripsArray, errors: [] });
+        mockParseOdTripsFromCsvStream.mockResolvedValueOnce({ odTrips: largeOdTripsArray, errors: [] });
         const currentCheckpoint = 0;
         job.attributes.internal_data.checkpoint = currentCheckpoint;
         await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
@@ -337,7 +338,7 @@ describe('Batch route from checkpoint', () => {
         const checkpointListenerMock = jest.fn();
         socketMock.on('checkpoint', checkpointListenerMock);
         const largeOdTripsArray = Array(756).fill(odTrips[0]);
-        mockParseOdTripsFromCsv.mockResolvedValueOnce({ odTrips: largeOdTripsArray, errors: [] });
+        mockParseOdTripsFromCsvStream.mockResolvedValueOnce({ odTrips: largeOdTripsArray, errors: [] });
         const currentCheckpoint = 500;
         job.attributes.internal_data.checkpoint = currentCheckpoint;
         await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
