@@ -149,6 +149,32 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             }
         });
     }
+    /**
+     * Register an output file that will be created by this job
+     * This must be called before getWriteStream() or getFileName() for that file key
+     *
+     * @param fileKey - The key for this file (must be in the job type's files definition)
+     * @param filename - The filename to use (just the name, not a path)
+     * @throws If the file key is already registered with a different filename
+     */
+    registerOutputFile(fileKey: keyof TData['files'], filename: string): void {
+        // Ensure resources exists with proper structure
+        if (!this.attributes.resources) {
+            this.attributes.resources = { files: {} };
+        }
+
+        // Check if already registered with different name
+        const existing = this.attributes.resources.files[fileKey];
+        if (existing !== undefined && existing !== filename) {
+            throw new TrError(
+                `File key '${String(fileKey)}' already registered with filename '${existing}'`,
+                'TREJB0005'
+            );
+        }
+
+        // Register the filename
+        this.attributes.resources.files[fileKey] = filename;
+    }
 
     /**
      * Does the job have a file attribute of the specified key
