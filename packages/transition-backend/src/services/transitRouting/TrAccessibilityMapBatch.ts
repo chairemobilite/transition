@@ -9,7 +9,7 @@ import pQueue from 'p-queue';
 import { EventEmitter } from 'events';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
+import { TrRoutingBatchManager } from './TrRoutingBatchManager';
 import { parseLocationsFromCsv } from '../accessMapLocation/AccessMapLocationProvider';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import nodeDbQueries from '../../models/db/transitNodes.db.queries';
@@ -44,6 +44,9 @@ export const batchAccessibilityMap = async (
     const parameters = job.attributes.data.parameters.batchAccessMapAttributes;
     console.log(`importing access map locations from CSV file ${job.getInputFileName()}`);
 
+    // Create the batch manager for TrRouting lifecycle
+    const batchManager = new TrRoutingBatchManager(progressEmitter);
+
     try {
         const { locations, errors } = await parseLocationsFromCsv(job.getInputFilePath(), parameters);
 
@@ -51,22 +54,15 @@ export const batchAccessibilityMap = async (
         console.log(locationsCount + ' locations parsed');
         progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
 
-        // Divide odTripCount by 3 for the minimum number of calculation, to avoid creating too many processes if trip count is small
-        const trRoutingInstancesCount = Math.max(1, Math.min(Math.ceil(locationsCount / 3), parameters.cpuCount));
-
-        // Start trRouting instances
-        progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 0.0 });
-        // Because of cancellation, we need to make sure processes are stopped before restarting
-        // TODO trRouting should be multi-threaded, this will be useless then.
-        await TrRoutingProcessManager.stopBatch();
-        const startStatus = await TrRoutingProcessManager.startBatch(trRoutingInstancesCount);
-        progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 1.0 });
+        const { threadCount: trRoutingThreadsCount, port: trRoutingPort } = await batchManager.startBatch(
+            locationsCount
+            // TODO add options with cachePath
+        );
 
         // Assert the job is not cancelled, otherwise reject
         if (isCancelled()) {
             throw 'Cancelled';
         }
-        console.log('trRouting multiple startStatus', startStatus);
 
         // Prepare the result processor
         const resultProcessor = createAccessMapFileResultProcessor(
@@ -95,7 +91,7 @@ export const batchAccessibilityMap = async (
 
         let completedRoutingsCount = 0;
 
-        const promiseQueue = new pQueue({ concurrency: trRoutingInstancesCount });
+        const promiseQueue = new pQueue({ concurrency: trRoutingThreadsCount });
 
         // Log progress at most for each 1% progress
         const logInterval = Math.max(1, Math.ceil(locationsCount / 100));
@@ -106,11 +102,7 @@ export const batchAccessibilityMap = async (
             location: AccessibilityMapLocation;
             locationIndex: number;
         }) => {
-            const trRoutingPort = startStatus.port;
             try {
-                if (trRoutingPort === undefined) {
-                    throw 'TrRoutingBatch: No available routing port. This should not happen';
-                }
                 if ((locationIndex + 1) % logInterval === 0) {
                     console.log(`Calculating accessibility map ${locationIndex + 1}/${locationsCount}`);
                 }
@@ -183,11 +175,6 @@ export const batchAccessibilityMap = async (
 
         await promiseQueue.onIdle();
 
-        progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
-        const stopStatus = await TrRoutingProcessManager.stopBatch();
-        progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 1.0 });
-        console.log('trRouting multiple stopStatus', stopStatus);
-
         resultProcessor.end();
 
         Object.assign(files, resultProcessor.getFiles());
@@ -215,6 +202,9 @@ export const batchAccessibilityMap = async (
             throw error;
         }
     } finally {
+        // Stop TrRouting instance
+        await batchManager.stopBatch();
+
         progressEmitter.emit('progress', { name: 'BatchAccessMap', progress: 1.0 });
     }
 };

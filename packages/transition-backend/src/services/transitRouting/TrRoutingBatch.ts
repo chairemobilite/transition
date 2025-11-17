@@ -8,8 +8,7 @@ import { performance } from 'perf_hooks';
 import pQueue from 'p-queue';
 import { EventEmitter } from 'events';
 
-import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
-import serverConfig from 'chaire-lib-backend/lib/config/server.config';
+import { TrRoutingBatchManager } from './TrRoutingBatchManager';
 import routeOdTrip from './TrRoutingOdTrip';
 import { parseOdTripsFromCsvStream } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
@@ -58,6 +57,7 @@ export const batchRoute = async (
 class TrRoutingBatch {
     private odTrips: BaseOdTrip[] = [];
     private errors: ErrorMessage[] = [];
+    private batchManager: TrRoutingBatchManager;
 
     constructor(
         private job: ExecutableJob<BatchRouteJobType>,
@@ -66,7 +66,7 @@ class TrRoutingBatch {
             isCancelled: () => boolean;
         }
     ) {
-        // Nothing else to do
+        this.batchManager = new TrRoutingBatchManager(options.progressEmitter);
     }
 
     run = async (): Promise<
@@ -90,8 +90,11 @@ class TrRoutingBatch {
             // Delete any previous result for this job after checkpoint
             await resultsDbQueries.deleteForJob(this.job.id, this.job.attributes.internal_data.checkpoint);
 
-            // Start the trRouting instances for the odTrips
-            const [trRoutingInstancesCount, trRoutingPort] = await this.startTrRoutingInstances(odTripsCount);
+            // Start the trRouting instance for the odTrips
+            const { threadCount: trRoutingThreadsCount, port: trRoutingPort } = await this.batchManager.startBatch(
+                odTripsCount
+                // TODO add options with cachePath
+            );
 
             // Prepare indexes for calculations and progress report
             const startIndex = this.job.attributes.internal_data.checkpoint || 0;
@@ -104,7 +107,7 @@ class TrRoutingBatch {
                 progress: completedRoutingsCount / odTripsCount
             });
 
-            const promiseQueue = new pQueue({ concurrency: trRoutingInstancesCount });
+            const promiseQueue = new pQueue({ concurrency: trRoutingThreadsCount });
 
             const benchmarkStart = performance.now();
             let lastLogTime = performance.now();
@@ -217,12 +220,7 @@ class TrRoutingBatch {
             }
         } finally {
             // Make sure to stop the trRouting processes, even if an error occurred
-            this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 0.0 });
-
-            const stopStatus = await TrRoutingProcessManager.stopBatch();
-
-            this.options.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServers', progress: 1.0 });
-            console.log('trRouting multiple stopStatus', stopStatus);
+            await this.batchManager.stopBatch();
         }
     };
 
@@ -280,41 +278,6 @@ class TrRoutingBatch {
 
         this.options.progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
         return { odTrips, errors };
-    };
-
-    // Get the number of parallel calculations to run, it makes sure to not exceed the server's maximum value
-    private getParallelCalculationCount = (): number => {
-        if (typeof this.job.attributes.data.parameters.transitRoutingAttributes.parallelCalculations === 'number') {
-            return Math.min(
-                serverConfig.maxParallelCalculators,
-                this.job.attributes.data.parameters.transitRoutingAttributes.parallelCalculations
-            );
-        } else {
-            return serverConfig.maxParallelCalculators;
-        }
-    };
-
-    private startTrRoutingInstances = async (odTripsCount: number): Promise<[number, number]> => {
-        // Divide odTripCount by 3 for the minimum number of calculation, to avoid creating too many processes if trip count is small
-        const trRoutingInstancesCount = Math.max(
-            1,
-            Math.min(Math.ceil(odTripsCount / 3), this.getParallelCalculationCount())
-        );
-        try {
-            this.options.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 0.0 });
-
-            // Because of cancellation, we need to make sure processes are stopped before restarting
-            await TrRoutingProcessManager.stopBatch();
-            // TODO Instead of handling port number everywhere, this (or a wrapper), should return
-            // and instance which represent the TrRouting instance, like the OSRMMode for OSRM
-            const startStatus = await TrRoutingProcessManager.startBatch(trRoutingInstancesCount);
-            const trRoutingPort = startStatus.port;
-            console.log('trRouting multiple startStatus', startStatus);
-            // We can return in here directly since we don't have a catch part
-            return [trRoutingInstancesCount, trRoutingPort];
-        } finally {
-            this.options.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServers', progress: 1.0 });
-        }
     };
 
     private odTripTask = async (
