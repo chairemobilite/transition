@@ -9,15 +9,17 @@ import { TransitNetworkDesignParameters } from 'transition-common/lib/services/n
 import { AlgorithmConfigurationByType } from 'transition-common/lib/services/networkDesign/transit/algorithm';
 import { SimulationMethodConfiguration } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 
+export type EvolutionaryTransitNetworkDesignJobParameters = {
+    transitNetworkDesignParameters: TransitNetworkDesignParameters;
+    algorithmConfiguration: AlgorithmConfigurationByType<'evolutionaryAlgorithm'>;
+    // FIXME Should we support more than one simulation method here, with weight for each as previously?
+    simulationMethod: SimulationMethodConfiguration;
+};
+
 export type EvolutionaryTransitNetworkDesignJobType = {
     name: 'evolutionaryTransitNetworkDesign';
     data: {
-        parameters: {
-            transitNetworkDesignParameters: TransitNetworkDesignParameters;
-            algorithmConfiguration: AlgorithmConfigurationByType<'evolutionaryAlgorithm'>;
-            // FIXME Should we support more than one simulation method here, with weight for each as previously?
-            simulationMethod: SimulationMethodConfiguration;
-        };
+        parameters: EvolutionaryTransitNetworkDesignJobParameters;
         // TODO Type the results when actual implementation is done
         results?: never;
     };

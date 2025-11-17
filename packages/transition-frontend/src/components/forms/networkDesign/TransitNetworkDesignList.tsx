@@ -16,14 +16,13 @@ import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 import { AlgorithmConfiguration } from 'transition-common/lib/services/networkDesign/transit/algorithm';
 import { SimulationMethodConfiguration } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
+import NetworkDesignFrontendExecutor from '../../../services/networkDesign/NetworkDesignFrontendExecutor';
 
 interface TransitNetworkDesignListProps {
     onNewJob: (parameters?: {
-        parameters: {
-            transitNetworkDesignParameters: TransitNetworkDesignParameters;
-            algorithmConfiguration: AlgorithmConfiguration;
-            simulationMethod: SimulationMethodConfiguration;
-        };
+        transitNetworkDesignParameters: TransitNetworkDesignParameters;
+        algorithmConfiguration: AlgorithmConfiguration;
+        simulationMethod: SimulationMethodConfiguration;
     }) => void;
 }
 
@@ -35,10 +34,11 @@ const TransitNetworkDesignList: React.FunctionComponent<TransitNetworkDesignList
 
     const replayJob = async (jobId: number) => {
         try {
-            // TODO: Implement getting job parameters for replay
             // This would be similar to TransitBatchRoutingCalculator.getCalculationParametersForJob
             // but for network design jobs
             console.log('Replay job', jobId);
+            const parameters = await NetworkDesignFrontendExecutor.getCalculationParametersForJob(jobId);
+            props.onNewJob(parameters);
             // const parameters = await TransitNetworkDesignCalculator.getJobParametersForReplay(jobId);
             // props.onNewJob(parameters);
         } catch (error) {

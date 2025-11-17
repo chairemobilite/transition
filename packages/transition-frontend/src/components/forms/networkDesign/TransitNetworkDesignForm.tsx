@@ -15,22 +15,12 @@ import ConfigureNetworkDesignParametersForm from './stepForms/ConfigureNetworkDe
 import ConfigureAlgorithmParametersForm from './stepForms/ConfigureAlgorithmParametersForm';
 import ConfigureSimulationMethodForm from './stepForms/ConfigureSimulationMethodForm';
 import ConfirmNetworkDesignForm from './stepForms/ConfirmNetworkDesignForm';
+import NetworkDesignFrontendExecutor from '../../../services/networkDesign/NetworkDesignFrontendExecutor';
+import { TransitNetworkJobConfigurationType } from 'transition-common/lib/services/networkDesign/transit/types';
 
 export interface TransitNetworkDesignFormProps {
-    initialValues?: {
-        parameters: {
-            transitNetworkDesignParameters: TransitNetworkDesignParameters;
-            algorithmConfiguration: AlgorithmConfiguration;
-            simulationMethod: SimulationMethodConfiguration;
-        };
-    };
+    initialValues?: TransitNetworkJobConfigurationType;
     onJobConfigurationCompleted: () => void;
-}
-
-interface JobParameters {
-    transitNetworkDesignParameters: TransitNetworkDesignParameters;
-    algorithmConfiguration: AlgorithmConfiguration;
-    simulationMethod: SimulationMethodConfiguration;
 }
 
 const stepCount = 4;
@@ -42,7 +32,7 @@ const stepCount = 4;
  * step 1: Configure the transit network design parameters
  *
  * step 2: Configure the algorithm parameters
- * 
+ *
  * step 3: Configure the simulation method
  *
  * step 4: Confirm and run network design operation
@@ -56,9 +46,9 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
     const { t } = useTranslation(['transit', 'main']);
     const [currentStep, setCurrentStep] = React.useState(0);
     const [nextEnabled, setNextEnabled] = React.useState(false);
-    const [jobParameters, setJobParameters] = React.useState<JobParameters>(
+    const [jobParameters, setJobParameters] = React.useState<TransitNetworkJobConfigurationType>(
         props.initialValues !== undefined
-            ? props.initialValues.parameters
+            ? props.initialValues
             : {
                 transitNetworkDesignParameters: {},
                 algorithmConfiguration: { type: 'evolutionaryAlgorithm', config: {} },
@@ -83,10 +73,10 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
 
     const incrementStep = () => {
         if (currentStep === stepCount - 1) {
-            // TODO: Submit the job
             console.log('Submitting network design job with parameters:', jobParameters);
+            NetworkDesignFrontendExecutor.execute(jobParameters);
             return props.onJobConfigurationCompleted();
-        } 
+        }
         setCurrentStep(currentStep + 1);
     };
 

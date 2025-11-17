@@ -8,7 +8,6 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 
-import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 import {
     AlgorithmConfiguration,

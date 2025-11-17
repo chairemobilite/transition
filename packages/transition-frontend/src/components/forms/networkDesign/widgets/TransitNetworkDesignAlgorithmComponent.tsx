@@ -13,7 +13,6 @@ import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
-import Simulation from 'transition-common/lib/services/simulation/Simulation';
 import {
     AlgorithmConfiguration,
     getAlgorithmDescriptor,
@@ -50,7 +49,6 @@ export interface SimulationAlgorithmComponentProps {
 const AlgorithmOptionComponent: React.FunctionComponent<AlgorithmOptionComponentProps> = (
     props: AlgorithmOptionComponentProps
 ) => {
-    const { t } = useTranslation(['transit', 'main']);
     const option = props.option;
     if (option.type === 'string') {
         const value = typeof props.value === 'string' ? props.value : option.default;

@@ -26,7 +26,8 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
 ) => {
     const { t } = useTranslation(['transit', 'main']);
     const [updateCnt, setUpdateCnt] = React.useState(0);
-    const [errors, setErrors] = React.useState<string[]>([]);
+    // FIXME Properly handle errors
+    const [errors] = React.useState<string[]>([]);
 
     React.useEffect(() => {
         // Validate on first load
@@ -60,6 +61,7 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
 
     const methodDescriptor = getSimulationMethodDescriptor(props.simulationMethod.type);
     const methodOptions = methodDescriptor.getOptions();
+    console.log('should display method options', methodOptions);
 
     return (
         <div className="tr__form-section">

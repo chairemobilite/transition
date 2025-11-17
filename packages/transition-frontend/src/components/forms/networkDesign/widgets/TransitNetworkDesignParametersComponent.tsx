@@ -17,7 +17,9 @@ import Service from 'transition-common/lib/services/service/Service';
 import InputMultiselect from 'chaire-lib-frontend/lib/components/input/InputMultiselect';
 import Agency from 'transition-common/lib/services/agency/Agency';
 import Line from 'transition-common/lib/services/line/Line';
-
+import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
+import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import { LoadingPage } from 'chaire-lib-frontend/lib/components/pages';
 
 export interface TransitNetworkDesignParametersComponentProps {
     attributes: TransitNetworkDesignParameters;
@@ -28,27 +30,63 @@ export interface TransitNetworkDesignParametersComponentProps {
 const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNetworkDesignParametersComponentProps> = (
     props: TransitNetworkDesignParametersComponentProps
 ) => {
-    const agencyCollection = serviceLocator.collectionManager.get('agencies');
-    const serviceCollection = serviceLocator.collectionManager.get('services');
     const { t } = useTranslation(['transit', 'main']);
 
-    const serviceChoices = serviceCollection.getFeatures().map((service: Service) => ({
-        value: service.getId(),
-        label: service.attributes.name || service.getId()
-    }));
-    const agencyChoices = agencyCollection.getFeatures().map((agency: Agency) => ({
-        value: agency.getId(),
-        label: agency.toString()
-    }));
+    const [agencyCollection, setAgencyCollection] = React.useState<AgencyCollection | undefined>(
+        serviceLocator.collectionManager.get('agencies')
+    );
+    const [serviceCollection, setServiceCollection] = React.useState<ServiceCollection | undefined>(
+        serviceLocator.collectionManager.get('services')
+    );
+
+    const onServiceCollectionUpdate = () => {
+        setServiceCollection(serviceLocator.collectionManager.get('services'));
+    };
+    const onAgencyCollectionUpdate = () => {
+        setAgencyCollection(serviceLocator.collectionManager.get('agencies'));
+    };
+
+    React.useEffect(() => {
+        serviceLocator.eventManager.on('collection.update.services', onServiceCollectionUpdate);
+        serviceLocator.eventManager.on('collection.update.agencies', onAgencyCollectionUpdate);
+        return () => {
+            serviceLocator.eventManager.off('collection.update.scenarios', onServiceCollectionUpdate);
+            serviceLocator.eventManager.on('collection.update.agencies', onAgencyCollectionUpdate);
+        };
+    }, []);
+
+    const serviceChoices = React.useMemo(
+        () =>
+            serviceCollection?.getFeatures().map((service: Service) => ({
+                value: service.getId(),
+                label: service.attributes.name || service.getId()
+            })) || [],
+        [serviceCollection]
+    );
+    const agencyChoices = React.useMemo(
+        () =>
+            agencyCollection?.getFeatures().map((agency: Agency) => ({
+                value: agency.getId(),
+                label: agency.toString()
+            })) || [],
+        [agencyCollection]
+    );
     const simulatedAgencies = props.attributes.simulatedAgencies || [];
     const lineChoices = simulatedAgencies.flatMap((agencyId: string) => {
-        const agency: Agency = agencyCollection.getById(agencyId);
+        const agency: Agency | undefined = agencyCollection?.getById(agencyId);
+        if (!agency) {
+            return [];
+        }
         const lines = agency.getLines();
         return lines.map((line: Line) => ({
             value: line.getId(),
             label: line.toString()
         }));
     });
+
+    if (!agencyCollection || !serviceCollection) {
+        return <LoadingPage />;
+    }
 
     return (
         <React.Fragment>
@@ -114,7 +152,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     value={props.attributes.simulatedAgencies}
                     onValueChange={(e) => props.onValueChange('simulatedAgencies', { value: e.target.value })}
                     choices={agencyChoices}
-                    t={props.t}
+                    t={t}
                 />
             </InputWrapper>
             <InputWrapper twoColumns={false} label={t('transit:simulation:KeepLines')}>
@@ -124,7 +162,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     value={props.attributes.linesToKeep}
                     onValueChange={(e) => props.onValueChange('linesToKeep', { value: e.target.value })}
                     choices={lineChoices}
-                    t={props.t}
+                    t={t}
                 />
             </InputWrapper>
             <InputWrapper twoColumns={false} label={t('transit:simulation:NonSimulatedServices')}>
@@ -134,7 +172,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     value={props.attributes.nonSimulatedServices}
                     onValueChange={(e) => props.onValueChange('nonSimulatedServices', { value: e.target.value })}
                     choices={serviceChoices}
-                    t={props.t}
+                    t={t}
                 />
             </InputWrapper>
         </React.Fragment>

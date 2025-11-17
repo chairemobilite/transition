@@ -18,9 +18,9 @@ export interface ConfigureNetworkDesignParametersFormProps {
     onUpdate: (parameters: TransitNetworkDesignParameters, isValid: boolean) => void;
 }
 
-const ConfigureNetworkDesignParametersForm: React.FunctionComponent<
-    ConfigureNetworkDesignParametersFormProps
-> = (props: ConfigureNetworkDesignParametersFormProps) => {
+const ConfigureNetworkDesignParametersForm: React.FunctionComponent<ConfigureNetworkDesignParametersFormProps> = (
+    props: ConfigureNetworkDesignParametersFormProps
+) => {
     const [errors, setErrors] = React.useState<string[]>([]);
 
     React.useEffect(() => {
@@ -44,7 +44,7 @@ const ConfigureNetworkDesignParametersForm: React.FunctionComponent<
     return (
         <div className="tr__form-section">
             <TransitNetworkDesignParametersComponent
-                key={`transitNetworkDesignParams`}
+                key={'transitNetworkDesignParams'}
                 attributes={props.parameters}
                 disabled={false}
                 onValueChange={onValueChange}

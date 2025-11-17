@@ -15,11 +15,12 @@ export interface ConfigureAlgorithmParametersFormProps {
     onUpdate: (algorithmConfig: AlgorithmConfiguration, isValid: boolean) => void;
 }
 
-const ConfigureAlgorithmParametersForm: React.FunctionComponent<
-    ConfigureAlgorithmParametersFormProps
-> = (props: ConfigureAlgorithmParametersFormProps) => {
+const ConfigureAlgorithmParametersForm: React.FunctionComponent<ConfigureAlgorithmParametersFormProps> = (
+    props: ConfigureAlgorithmParametersFormProps
+) => {
     const [updateCnt, setUpdateCnt] = React.useState(0);
-    const [errors, setErrors] = React.useState<string[]>([]);
+    // FIXME Properly handle errors
+    const [errors] = React.useState<string[]>([]);
 
     React.useEffect(() => {
         // Validate on first load - algorithm component handles validation
