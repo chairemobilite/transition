@@ -8,6 +8,7 @@ import { EventEmitter } from 'events';
 import AgencyCollection from '../../agency/AgencyCollection';
 import LineCollection from '../../line/LineCollection';
 import ServiceCollection from '../../service/ServiceCollection';
+import { CsvFieldMappingDescriptor } from '../../csv';
 
 /**
  * Simulation algorithm class. This will actually run the algorithm
@@ -69,6 +70,11 @@ export type SimulationAlgorithmOptionByType =
           type: 'select';
           choices: () => Promise<{ value: string; label?: string }[]>;
           default?: string;
+      }
+    | {
+          type: 'csvFile';
+          mappingDescriptors: CsvFieldMappingDescriptor[];
+          importFileName: string;
       }
     | {
           type: 'custom';

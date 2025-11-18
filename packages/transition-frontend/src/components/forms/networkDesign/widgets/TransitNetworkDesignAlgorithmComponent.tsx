@@ -6,144 +6,22 @@
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import _toString from 'lodash/toString';
 
-import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
-import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
-import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import {
     AlgorithmConfiguration,
     getAlgorithmDescriptor,
     getAllAlgorithmTypes
 } from 'transition-common/lib/services/networkDesign/transit/algorithm';
-import {
-    SimulationAlgorithmDescriptor,
-    SimulationAlgorithmOptionDescriptor
-} from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
-
-interface SimulationAlgorithmOptionsComponentProps {
-    algorithmDescriptor: SimulationAlgorithmDescriptor<any>;
-    algorithmConfig?: AlgorithmConfiguration;
-    disabled: boolean;
-    onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
-}
-
-interface AlgorithmOptionComponentProps {
-    option: SimulationAlgorithmOptionDescriptor;
-    value: unknown;
-    optionKey: string;
-    disabled: boolean;
-    onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
-}
+import OptionsEditComponent from './OptionsDescriptorWidgets';
 
 export interface SimulationAlgorithmComponentProps {
     algorithmConfig?: AlgorithmConfiguration;
     disabled: boolean;
     onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
 }
-
-const AlgorithmOptionComponent: React.FunctionComponent<AlgorithmOptionComponentProps> = (
-    props: AlgorithmOptionComponentProps
-) => {
-    const option = props.option;
-    if (option.type === 'string') {
-        const value = typeof props.value === 'string' ? props.value : option.default;
-        return (
-            <InputString
-                id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
-                disabled={props.disabled}
-                value={value}
-                onValueUpdated={({ value, valid }) =>
-                    props.onValueChange(props.optionKey, {
-                        value,
-                        valid: valid && (option.validate ? option.validate(value) : true)
-                    })
-                }
-            />
-        );
-    }
-    if (option.type === 'boolean') {
-        const value = typeof props.value === 'boolean' ? props.value : option.default;
-        return (
-            <InputCheckboxBoolean
-                id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
-                disabled={props.disabled}
-                isChecked={value}
-                onValueChange={(e) => props.onValueChange(props.optionKey, { value: e.target.value })}
-            />
-        );
-    }
-    if (option.type === 'integer') {
-        const value = typeof props.value === 'number' ? props.value : option.default;
-        return (
-            <InputStringFormatted
-                id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
-                disabled={props.disabled}
-                value={value}
-                onValueUpdated={({ value, valid }) =>
-                    props.onValueChange(props.optionKey, {
-                        value,
-                        valid: valid && (option.validate ? option.validate(value) : true)
-                    })
-                }
-                stringToValue={_toInteger}
-                valueToString={_toString}
-                type={'number'}
-            />
-        );
-    }
-    if (option.type === 'number') {
-        const value = typeof props.value === 'number' ? props.value : option.default;
-        return (
-            <InputStringFormatted
-                id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
-                disabled={props.disabled}
-                value={value}
-                onValueUpdated={({ value, valid }) =>
-                    props.onValueChange(props.optionKey, {
-                        value,
-                        valid: valid && (option.validate ? option.validate(value) : true)
-                    })
-                }
-                stringToValue={parseFloatOrNull}
-                valueToString={(val) => _toString(parseFloatOrNull(val))}
-            />
-        );
-    }
-    return null;
-};
-
-const SimulationAlgorithmOptionsComponent: React.FunctionComponent<SimulationAlgorithmOptionsComponentProps> = (
-    props: SimulationAlgorithmOptionsComponentProps
-) => {
-    const { t } = useTranslation(['transit', 'main']);
-    const options = props.algorithmDescriptor.getOptions();
-    const optionWidgets = Object.keys(options).map((optionName) => {
-        const option = options[optionName];
-        return (
-            <InputWrapper
-                key={`algoOption${optionName}`}
-                smallInput={true}
-                label={t(option.i18nName)}
-                help={option.i18nHelp ? t(option.i18nHelp) : undefined}
-            >
-                <AlgorithmOptionComponent
-                    optionKey={optionName}
-                    value={props.algorithmConfig ? props.algorithmConfig.config[optionName] : undefined}
-                    disabled={props.disabled}
-                    option={option}
-                    onValueChange={props.onValueChange}
-                />
-            </InputWrapper>
-        );
-    });
-
-    return <React.Fragment>{optionWidgets}</React.Fragment>;
-};
 
 const SimulationAlgorithmComponent: React.FunctionComponent<SimulationAlgorithmComponentProps> = (
     props: SimulationAlgorithmComponentProps
@@ -170,9 +48,9 @@ const SimulationAlgorithmComponent: React.FunctionComponent<SimulationAlgorithmC
                 />
             </InputWrapper>
             {algoDescriptor && (
-                <SimulationAlgorithmOptionsComponent
-                    algorithmConfig={props.algorithmConfig}
-                    algorithmDescriptor={algoDescriptor}
+                <OptionsEditComponent
+                    value={props.algorithmConfig?.config}
+                    optionsDescriptor={algoDescriptor}
                     disabled={props.disabled}
                     onValueChange={(path, value) => props.onValueChange(`config.${path}`, value)}
                 />

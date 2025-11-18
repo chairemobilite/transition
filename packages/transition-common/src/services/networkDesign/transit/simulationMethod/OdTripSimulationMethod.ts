@@ -7,10 +7,12 @@
 
 import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { TransitBatchRoutingDemandAttributes } from '../../../transitDemand/types';
 import { SimulationAlgorithmDescriptor } from '../TransitNetworkDesignAlgorithm';
+import { CsvFieldMappingDescriptor, CsvFileAndMapping } from '../../../csv';
 
 type OdTripEvaluationOptions = {
+    // The percentage of the OD trip in the demand to use for the simulation
+    sampleRatio: number;
     /**
      * Name fo the fitness function to use for a single trip
      *
@@ -31,17 +33,10 @@ type OdTripEvaluationOptions = {
     fitnessFunction: string;
 };
 
-type OdTripSimulationDemandOptions = TransitBatchRoutingDemandAttributes & {
-    // The percentage of the OD trip in the demand to use for the simulation
-    sampleRatio: number;
-    // The OD trip attribute to use as a weight for the trip (e.g., number of trips represented by the record, expansion factor, etc.)
-    tripWeightAttribute?: string;
-};
-
 // Define OD trip simulation options
 export type OdTripSimulationOptions = {
     // Describe where to get the OD trip data for the simulation
-    demandAttributes: OdTripSimulationDemandOptions;
+    demandAttributes: CsvFileAndMapping;
     // Transit routing parameters to use for the simulation
     transitRoutingAttributes: TransitRoutingBaseAttributes;
     evaluationOptions: OdTripEvaluationOptions;
@@ -160,6 +155,28 @@ class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTri
     };
 }
 
+const DEMAND_FIELD_DESCRIPTORS: CsvFieldMappingDescriptor[] = [
+    { key: 'idAttribute', i18nLabel: 'transit:transitRouting:idAttribute', type: 'single', required: true },
+    {
+        key: 'origin',
+        i18nLabel: 'transit:transitRouting:origin',
+        type: 'latLon',
+        required: true
+    },
+    {
+        key: 'destination',
+        i18nLabel: 'transit:transitRouting:destination',
+        type: 'latLon',
+        required: true
+    },
+    { key: 'timeAttribute', i18nLabel: 'transit:transitRouting:timeAttribute', type: 'time' },
+    {
+        key: 'expansionFactor',
+        i18nLabel: 'transit:networkDesign:expansionFactorAttribute',
+        type: 'single',
+        required: false
+    }
+];
 /**
  * Descriptor class for the OD trip simulation method options. It documents the
  * options, types, validation and default values. It also validates the whole
@@ -175,7 +192,9 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
     getOptions = () => ({
         demandAttributes: {
             i18nName: 'transit:simulation:simulationMethods:demandAttributes',
-            type: 'custom' as const
+            type: 'csvFile' as const,
+            mappingDescriptors: DEMAND_FIELD_DESCRIPTORS,
+            importFileName: 'transit_od_trips.csv'
         },
         transitRoutingAttributes: {
             i18nName: 'transit:simulation:simulationMethods:transitRoutingAttributes',

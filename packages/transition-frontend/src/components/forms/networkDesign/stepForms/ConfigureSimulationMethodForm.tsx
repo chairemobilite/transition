@@ -15,6 +15,7 @@ import {
     getAllSimulationMethodTypes,
     getSimulationMethodDescriptor
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
+import OptionsEditComponent from '../widgets/OptionsDescriptorWidgets';
 
 export interface ConfigureSimulationMethodFormProps {
     simulationMethod: SimulationMethodConfiguration;
@@ -50,7 +51,6 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
         }
 
         props.onUpdate(updatedMethod, newValue.valid !== false);
-        setUpdateCnt(updateCnt + 1);
     };
 
     const methodTypes = getAllSimulationMethodTypes();
@@ -59,9 +59,10 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
         label: t(getSimulationMethodDescriptor(methodId).getTranslatableName())
     }));
 
-    const methodDescriptor = getSimulationMethodDescriptor(props.simulationMethod.type);
-    const methodOptions = methodDescriptor.getOptions();
-    console.log('should display method options', methodOptions);
+    const methodDescriptor =
+        props.simulationMethod.type !== undefined
+            ? getSimulationMethodDescriptor(props.simulationMethod.type)
+            : undefined;
 
     return (
         <div className="tr__form-section">
@@ -75,9 +76,14 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
                 />
             </InputWrapper>
 
-            {/* TODO: Render method-specific options based on methodOptions
-                This would be similar to how TransitNetworkDesignAlgorithmComponent
-                renders algorithm options */}
+            {methodDescriptor && (
+                <OptionsEditComponent
+                    value={props.simulationMethod.config}
+                    optionsDescriptor={methodDescriptor}
+                    disabled={false}
+                    onValueChange={(path, value) => onValueChange(`config.${path}`, value)}
+                />
+            )}
 
             {errors.length > 0 && <FormErrors errors={errors} />}
         </div>

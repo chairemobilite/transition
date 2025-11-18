@@ -21,7 +21,7 @@ import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 import GenericCsvImportAndMappingForm from '../../csv/GenericCsvImportAndMappingForm';
 import { CsvFileAndMapping } from 'transition-common/lib/services/csv';
-import Loader from 'react-spinners/BeatLoader'
+import Loader from 'react-spinners/BeatLoader';
 
 type OptionsEditComponentProps<T extends Record<string, unknown>> = {
     optionsDescriptor: SimulationAlgorithmDescriptor<T>;
@@ -66,7 +66,11 @@ const SelectOptionComponent: React.FunctionComponent<OptionComponentProps> = (pr
     const value = typeof props.value === 'string' ? props.value : option.default;
 
     if (loading) {
-        return <div><Loader size={8} color={'#aaaaaa'} loading={true} /></div>;
+        return (
+            <div>
+                <Loader size={8} color={'#aaaaaa'} loading={true} />
+            </div>
+        );
     }
 
     return (

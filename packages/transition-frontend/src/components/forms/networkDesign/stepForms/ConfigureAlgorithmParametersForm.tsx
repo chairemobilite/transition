@@ -42,7 +42,6 @@ const ConfigureAlgorithmParametersForm: React.FunctionComponent<ConfigureAlgorit
 
         // The algorithm component handles validation internally
         props.onUpdate(updatedConfig, newValue.valid !== false);
-        setUpdateCnt(updateCnt + 1);
     };
 
     return (
