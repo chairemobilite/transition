@@ -40,8 +40,10 @@ import {
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { TransitNetworkJobConfigurationType } from 'transition-common/lib/services/networkDesign/transit/types';
 import { TransitApi } from 'transition-common/lib/api/transit';
-import { createAndEnqueueTransitNetworkDesignJob } from '../services/networkDesign/transitNetworkDesign/TransitNetworkJobController';
-import { EvolutionaryTransitNetworkDesignJobType } from '../services/networkDesign/transitNetworkDesign/evolutionary/types';
+import {
+    createAndEnqueueTransitNetworkDesignJob,
+    getParametersFromTransitNetworkDesignJob
+} from '../services/networkDesign/transitNetworkDesign/TransitNetworkJobController';
 
 // TODO The socket routes should validate parameters as even typescript cannot guarantee the types over the network
 // TODO Add more unit tests as the called methods are cleaned up
@@ -365,23 +367,8 @@ export default function (socket: EventEmitter, userId?: number) {
             TransitApi.TRANSIT_NETWORK_DESIGN_REPLAY,
             async (jobId: number, callback: (status: Status.Status<TransitNetworkJobConfigurationType>) => void) => {
                 try {
-                    const job = await ExecutableJob.loadTask(jobId);
-                    // TODO We only have one job type for transit network design for now, but update when we have more
-                    if (job.attributes.name !== 'evolutionaryTransitNetworkDesign') {
-                        throw 'Requested job is not an evolutionaryTransitNetworkDesign job';
-                    }
-                    const transitNetworkJob = job as ExecutableJob<EvolutionaryTransitNetworkDesignJobType>;
-                    const attributes = transitNetworkJob.attributes.data.parameters;
-                    // FIXME Return the csv fiels as well for the file
-                    //const filePath = transitNetworkJob.getInputFilePath();
-                    //const csvFileStream = fs.createReadStream(filePath);
-                    const csvFields = []; //await demand.setCsvFile(csvFileStream, { location: 'server', fromJob: jobId });
-                    callback(
-                        Status.createOk({
-                            ...attributes,
-                            csvFields
-                        })
-                    );
+                    const attributes = await getParametersFromTransitNetworkDesignJob(jobId, userId);
+                    callback(Status.createOk(attributes));
                 } catch (error) {
                     console.error(error);
                     callback(Status.createError(TrError.isTrError(error) ? error.message : error));

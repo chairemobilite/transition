@@ -23,7 +23,7 @@ export type EvolutionaryTransitNetworkDesignJobType = {
         // TODO Type the results when actual implementation is done
         results?: never;
     };
-    files: { input: true; csv: true; detailedCsv: true; geojson: true };
+    files: { transitDemand: true; nodeWeight: true };
 };
 
 export interface EvolutionaryTransitNetworkDesignJobResult {
