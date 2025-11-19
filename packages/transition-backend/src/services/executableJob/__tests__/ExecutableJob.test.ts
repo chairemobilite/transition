@@ -33,10 +33,6 @@ type TestJobType = {
     }
 }
 
-type TestChildJobType = Omit<TestJobType, 'name'> & {
-    name: 'testChild';
-}
-
 const newJobAttributes: Omit<JobAttributes<TestJobType>, 'id' | 'status' | 'internal_data'> = {
     name: 'test' as const,
     user_id: 3,
@@ -51,23 +47,10 @@ const jobAttributes: JobAttributes<TestJobType> = {
     internal_data: {}
 };
 
-const jobAttributesChild1: JobAttributes<TestChildJobType> = {
-    ...newJobAttributes,
-    name: 'testChild' as const,
-    id: 3,
-    status: 'pending',
-    parentJobId: 2,
-    internal_data: {}
-};
+type TestChildJobType = Omit<TestJobType, 'name'> & {
+    name: 'testChild';
+}
 
-const jobAttributesChild2: JobAttributes<TestChildJobType> = {
-    ...newJobAttributes,
-    name: 'testChild' as const,
-    id: 4,
-    status: 'pending',
-    parentJobId: 2,
-    internal_data: {}
-};
 
 
 // Mock db queries
@@ -112,46 +95,90 @@ beforeEach(() => {
     mockedCopyFile.mockClear();
 });
 
-test('Test create job', async () => {
-    mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
-    const jobObj = await ExecutableJob.createJob(newJobAttributes);
-    expect(mockedJobCreate).toHaveBeenCalledTimes(1);
-    expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', internal_data: {}, ...newJobAttributes });
-    expect(jobObj.attributes).toEqual({ id: jobAttributes.id, internal_data: {}, ...newJobAttributes });
-    expect(jobObj.status).toEqual('pending');
+describe('Test jobs creation', () => {
+    test('Test create job', async () => {
+        mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
+        const jobObj = await ExecutableJob.createJob(newJobAttributes);
+        expect(mockedJobCreate).toHaveBeenCalledTimes(1);
+        expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', internal_data: {}, ...newJobAttributes });
+        expect(jobObj.attributes).toEqual({ id: jobAttributes.id, internal_data: {}, ...newJobAttributes });
+        expect(jobObj.status).toEqual('pending');
 
-    // Create with listener
-    const listener = new EventEmitter();
-    const jobUpdatedListener = jest.fn();
-    listener.on('executableJob.updated', jobUpdatedListener);
-    mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
-    await ExecutableJob.createJob(newJobAttributes, listener);
-    expect(jobUpdatedListener).toHaveBeenCalledTimes(1);
-    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
+        // Create with listener
+        const listener = new EventEmitter();
+        const jobUpdatedListener = jest.fn();
+        listener.on('executableJob.updated', jobUpdatedListener);
+        mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
+        await ExecutableJob.createJob(newJobAttributes, listener);
+        expect(jobUpdatedListener).toHaveBeenCalledTimes(1);
+        expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
+    });
+
+    test('Test create job with input files', async () => {
+        const filename = 'blabla.csv';
+        const absoluteFilePath = `/path/to/file/${filename}`;
+        const renameTo = 'myCoolFile.csv';
+        const attributes = _cloneDeep(newJobAttributes) as any;
+        attributes.inputFiles = { testFile: absoluteFilePath, testFile2: { filepath: absoluteFilePath, renameTo } };
+
+        mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
+        const jobObj = await ExecutableJob.createJob(attributes);
+        expect(mockedJobCreate).toHaveBeenCalledTimes(1);
+        expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', internal_data: {}, ...newJobAttributes, resources: { files: { testFile: filename, testFile2: renameTo } } });
+        expect(jobObj.attributes).toEqual(expect.objectContaining({ id: jobAttributes.id, internal_data: {}, ...newJobAttributes, resources: { files: { testFile: filename, testFile2: renameTo } } }));
+        expect(jobObj.status).toEqual('pending');
+
+        expect(mockedFileExists).toHaveBeenCalledTimes(2);
+        expect(mockedFileExists).toHaveBeenNthCalledWith(1, absoluteFilePath);
+        expect(mockedFileExists).toHaveBeenNthCalledWith(2, absoluteFilePath);
+        expect(mockedCopyFile).toHaveBeenCalledTimes(2);
+        expect(mockedCopyFile).toHaveBeenNthCalledWith(1, absoluteFilePath, `${jobObj.getJobFileDirectory()}/${filename}`, true);
+        expect(mockedCopyFile).toHaveBeenNthCalledWith(2, absoluteFilePath, `${jobObj.getJobFileDirectory()}/${renameTo}`, true);
+    });
+
+    test('Test create child job', async () => {
+        // Create a child with the same type
+        const jobObj = await ExecutableJob.loadTask(jobAttributes.id);
+
+        const childJobId = 3;
+        mockedJobCreate.mockResolvedValueOnce(childJobId);
+        const childObj = await jobObj.createChildJob(newJobAttributes);
+
+        expect(mockedJobCreate).toHaveBeenCalledTimes(1);
+        expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', internal_data: {}, parentJobId: jobAttributes.id, ...newJobAttributes });
+        expect(childObj.attributes).toEqual({ id: childJobId, parentJobId: jobAttributes.id, internal_data: {}, ...newJobAttributes });
+        expect(childObj.status).toEqual('pending');
+    });
+
+    test('Test create child job different type', async () => {
+        const newChildJobAttributes: Omit<JobAttributes<TestChildJobType>, 'id' | 'status' | 'internal_data'> = {
+            name: 'testChild' as const,
+            user_id: 3,
+            data: { parameters: { foo: 'bar' } },
+            resources: { files: { testFile: 'path/to/file' } }
+        } as JobAttributes<TestChildJobType>;
+
+        const jobObj = await ExecutableJob.loadTask(jobAttributes.id);
+
+        // Create a child with a different type
+        const childJobId = 4;
+        mockedJobCreate.mockResolvedValueOnce(childJobId);
+        const childObj = await jobObj.createChildJob(newChildJobAttributes);
+
+        expect(mockedJobCreate).toHaveBeenCalledTimes(1);
+        expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', internal_data: {}, parentJobId: jobAttributes.id, ...newChildJobAttributes });
+        expect(childObj.attributes).toEqual({ id: childJobId, parentJobId: jobAttributes.id, internal_data: {}, ...newChildJobAttributes });
+        expect(childObj.status).toEqual('pending');
+    });
+
+    test('Test create job with parent job id return an error', async () => {
+        mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
+
+        await expect(ExecutableJob.createJob({parentJobId:2, ...newJobAttributes} as any))
+            .rejects.toThrow('createJob should not be called with a parentJobId');
+        expect(mockedJobCreate).toHaveBeenCalledTimes(0);
+    });
 });
-
-test('Test create job with input files', async () => {
-    const filename = 'blabla.csv';
-    const absoluteFilePath = `/path/to/file/${filename}`;
-    const renameTo = 'myCoolFile.csv';
-    const attributes = _cloneDeep(newJobAttributes) as any;
-    attributes.inputFiles = { testFile: absoluteFilePath, testFile2: { filepath: absoluteFilePath, renameTo } };
-
-    mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
-    const jobObj = await ExecutableJob.createJob(attributes);
-    expect(mockedJobCreate).toHaveBeenCalledTimes(1);
-    expect(mockedJobCreate).toHaveBeenCalledWith({ status: 'pending', internal_data: {}, ...newJobAttributes, resources: { files: { testFile: filename, testFile2: renameTo } } });
-    expect(jobObj.attributes).toEqual(expect.objectContaining({ id: jobAttributes.id, internal_data: {}, ...newJobAttributes, resources: { files: { testFile: filename, testFile2: renameTo } } }));
-    expect(jobObj.status).toEqual('pending');
-
-    expect(mockedFileExists).toHaveBeenCalledTimes(2);
-    expect(mockedFileExists).toHaveBeenNthCalledWith(1, absoluteFilePath);
-    expect(mockedFileExists).toHaveBeenNthCalledWith(2, absoluteFilePath);
-    expect(mockedCopyFile).toHaveBeenCalledTimes(2);
-    expect(mockedCopyFile).toHaveBeenNthCalledWith(1, absoluteFilePath, `${jobObj.getJobFileDirectory()}/${filename}`, true);
-    expect(mockedCopyFile).toHaveBeenNthCalledWith(2, absoluteFilePath, `${jobObj.getJobFileDirectory()}/${renameTo}`, true);
-});
-
 
 test('Test load job', async () => {
     const jobObj = await ExecutableJob.loadTask(jobAttributes.id);
@@ -317,6 +344,24 @@ test('Test delete no child', async () => {
 });
 
 test('Test delete with children', async () => {
+    const jobAttributesChild1: JobAttributes<TestChildJobType> = {
+        ...newJobAttributes,
+        name: 'testChild' as const,
+        id: 3,
+        status: 'pending',
+        parentJobId: 2,
+        internal_data: {}
+    };
+
+    const jobAttributesChild2: JobAttributes<TestChildJobType> = {
+        ...newJobAttributes,
+        name: 'testChild' as const,
+        id: 4,
+        status: 'pending',
+        parentJobId: 2,
+        internal_data: {}
+    };
+
     const jobObj = await ExecutableJob.loadTask(jobAttributes.id);
     mockedJobCollection.mockResolvedValueOnce({ jobs: [jobAttributesChild1, jobAttributesChild2], totalCount: 2 });
     mockedJobCollection.mockResolvedValueOnce({ jobs: [], totalCount: 0 })
