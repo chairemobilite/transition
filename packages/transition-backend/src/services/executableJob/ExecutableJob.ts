@@ -67,7 +67,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         return { jobs: jobs.map((attribs) => new ExecutableJob<JobDataType>(attribs)), totalCount };
     }
 
-    static async createJob<TData extends JobDataType>(
+    protected static async createJobInternal<TData extends JobDataType>(
         {
             inputFiles,
             hasOutputFiles,
@@ -120,6 +120,40 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             fileManager.copyFileAbsolute(filePath, `${job.getJobFileDirectory()}/${jobFileName}`, true)
         );
         return job;
+    }
+
+    static async createJob<TData extends JobDataType>(
+        // TODO We should split the JobAttributes type and have one that exclude the "internal" field like those omitted here
+        jobData: Omit<JobAttributes<TData>, 'id' | 'status' | 'internal_data' | 'parentJobId'> & InitialJobData<TData>,
+        jobListener?: EventEmitter
+    ): Promise<ExecutableJob<TData>> {
+        if ('parentJobId' in jobData) {
+            throw new Error('createJob should not be called with a parentJobId. Use createChildJob instead.');
+        }
+        return ExecutableJob.createJobInternal(jobData, jobListener);
+    }
+
+    /**
+     * Create a new job as a child of an existing job
+     * @param jobData The new child job's data
+     * @param jobListener A listener to listen to a job's progress
+     * @returns The new ExecutableJob object
+     */
+    async createChildJob<TData extends JobDataType>(
+        // TODO We should split the JobAttributes type and have one that exclude the "internal" field like those omitted here
+        jobData: Omit<JobAttributes<TData>, 'id' | 'status' | 'internal_data' | 'parentJobId' | 'user_id'> &
+            InitialJobData<TData>,
+        jobListener?: EventEmitter
+    ): Promise<ExecutableJob<TData>> {
+        // FIXME If files are shared between parent and child, we may want to handle that here instead of the job's creator?
+        return ExecutableJob.createJobInternal(
+            {
+                ...jobData,
+                user_id: this.attributes.user_id,
+                parentJobId: this.attributes.id
+            },
+            jobListener
+        );
     }
 
     protected constructor(attributes: JobAttributes<TData>) {
@@ -421,6 +455,11 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         // First delete all child jobs
         const children = await this.getChildren();
         await Promise.all(children.jobs.map((child) => child.delete(jobProgressEmitter)));
+        // TODO We have a race here, if a different thread call createChildJob when we are at this point, a new child
+        // could be added. With the ON DELETE RESTRICT, that would be make the delete call bellow to fail.
+        // Node does not have good synchronisation mecanism to solve this. One thing that could be done
+        // is setting a new status 'deleting' on the job at the begginning and prohibit child creation if we are in this
+        // status.
 
         // Delete resources used by this task
         const fileDirectory = this.getJobFileDirectory();
