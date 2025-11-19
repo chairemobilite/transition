@@ -64,7 +64,7 @@ transition-fork/
 - **Framework**: React with React Router
 - **State Management**: Redux with Redux Thunk
 - **Styling**: SCSS/SASS
-- **Maps**: Mapbox GL JS (custom fork: `chairemobilite/mapbox-gl-js`) (will be changed to maplibre/deck.gl)
+- **Maps**: MapLibre GL JS with deck.gl for animations (uses OpenStreetMap tiles by default)
 - **Build Tool**: Webpack
 - **UI Libraries**: React components (tabs, datepicker, modals, etc.)
 - **Internationalization**: i18next (react-i18next)
@@ -248,12 +248,16 @@ Required environment variables:
 - `PG_CONNECTION_STRING_PREFIX`: PostgreSQL connection string (e.g., `postgres://postgres:password@localhost:5432/`)
 - `EXPRESS_SESSION_SECRET_KEY`: Random string for session encryption
 - `PROJECT_CONFIG`: Path to project config.js file
-- `MAPBOX_ACCESS_TOKEN`: Mapbox API token (for map display)
-- `MAPBOX_USER_ID`: Optional Mapbox style user ID
-- `MAPBOX_STYLE_ID`: Optional Mapbox style ID
 - `NODE_ENV`: `production`, `development`, or `test`
 - `STARTUP_RECREATE_CACHE`: Boolean - recreate cache on startup
 - `STARTUP_RESTART_JOBS`: Boolean - restart pending jobs on startup
+
+Optional environment variables for custom tiles:
+- `CUSTOM_RASTER_TILES_XYZ_URL`: URL template for custom raster tiles (e.g., aerial imagery)
+- `CUSTOM_RASTER_TILES_MIN_ZOOM`: Minimum zoom level for custom tiles
+- `CUSTOM_RASTER_TILES_MAX_ZOOM`: Maximum zoom level for custom tiles
+
+Note: The map uses OpenStreetMap tiles by default (no API key required). Custom tiles can be switched on/off using the layer switcher in the application.
 
 ### Project Configuration (config.js)
 Example: `examples/config.js`
@@ -548,7 +552,8 @@ Allows Python scripts to:
 - `react`, `react-dom` - React framework
 - `react-redux`, `redux` - State management
 - `react-router` - Routing
-- `mapbox-gl` - Map rendering
+- `maplibre-gl` - Map rendering (OpenStreetMap tiles by default)
+- `@deck.gl/core`, `@deck.gl/layers`, `@deck.gl/mapbox` - WebGL-powered visualization layers
 - `i18next`, `react-i18next` - Internationalization
 
 ### External Services Required

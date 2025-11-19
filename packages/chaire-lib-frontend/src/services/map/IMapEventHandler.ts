@@ -4,20 +4,17 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 
-// TODO: Make this independent of mapbox eventually. For now, we use mapbox
-// types, as they are already defined, when we have more implementations, we can
-// review this
-type MapEventHandler = (e: MapboxGL.MapMouseEvent) => void;
-type MapLayerEventHandler = (e: MapboxGL.MapLayerMouseEvent & MapboxGL.EventData) => void;
+type MapEventHandler = (e: maplibregl.MapMouseEvent) => void;
+type MapLayerEventHandler = (e: maplibregl.MapLayerMouseEvent) => void;
 
 export type MapEventHandlerDescription =
     | {
           /** Type for handler that require selected features */
           type: 'layer';
           layerName: string;
-          eventName: keyof MapboxGL.MapLayerEventType;
+          eventName: keyof maplibregl.MapLayerEventType;
           /**
            * Condition function for which this handler applies. It will be checked
            * before actually calling the handler, so the handler can assume this is
@@ -36,7 +33,7 @@ export type MapEventHandlerDescription =
     | {
           /** Type for handlers that only require the layer to be active */
           type: 'map';
-          eventName: keyof MapboxGL.MapEventType;
+          eventName: keyof maplibregl.MapEventType;
           /**
            * Condition function for which this handler applies. It will be checked
            * before actually calling the handler, so the handler can assume this is
