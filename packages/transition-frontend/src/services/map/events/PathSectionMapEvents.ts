@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -16,7 +16,7 @@ import { unhoverPath } from './PathLayerMapEvents';
 
 const isAgenciesActiveSection = (activeSection: string) => activeSection === 'agencies';
 
-const onPathWaypointMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
+const onPathWaypointMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
     // start drag:
     const removingWaypoint = serviceLocator.keyboardManager.keyIsPressed('alt');
     if (e.features && e.features[0] && !removingWaypoint) {
@@ -28,7 +28,7 @@ const onPathWaypointMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
     }
 };
 
-const onPathWaypointMouseUp = (e: MapboxGL.MapMouseEvent) => {
+const onPathWaypointMouseUp = (e: maplibregl.MapMouseEvent) => {
     const map = e.target as any;
     // stop drag if on edit node:
     if (map._currentDraggingFeature === 'waypoint') {
@@ -59,7 +59,7 @@ const onPathWaypointMouseUp = (e: MapboxGL.MapMouseEvent) => {
     }
 };
 
-const onPathWaypointMouseMove = (e: MapboxGL.MapMouseEvent) => {
+const onPathWaypointMouseMove = (e: maplibregl.MapMouseEvent) => {
     const map = e.target as any;
     if (map._currentDraggingFeature === 'waypoint') {
         serviceLocator.eventManager.emit('waypoint.drag', e.lngLat.toArray());
@@ -106,7 +106,7 @@ const hoverPath = (pathGeojson, map: any) => {
 // TODO Original code in click.events.js had a _draggingEventsOrder check. Is
 // it still needed? If we have problems, there should be an event handler of
 // higher priority to check it before running any other
-const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
+const onPathSectionMapClick = async (e: maplibregl.MapMouseEvent) => {
     const features = e.target.queryRenderedFeatures([
         [e.point.x - 1, e.point.y - 1],
         [e.point.x + 1, e.point.y + 1]

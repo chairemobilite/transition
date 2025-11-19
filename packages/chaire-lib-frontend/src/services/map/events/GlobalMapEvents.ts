@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import _debounce from 'lodash/debounce';
 import { lineString, bboxPolygon, bbox } from '@turf/turf';
 
@@ -22,12 +22,12 @@ let applyAestheticChangesNonce: object = new Object();
 
 /* This file encapsulates global map events, that do not require a specific context */
 
-const onMouseOut = (_e: MapboxGL.MapMouseEvent) => {
+const onMouseOut = (_e: maplibregl.MapMouseEvent) => {
     serviceLocator.eventManager.emit('map.updateMouseCoordinates', null);
 };
 
-const onZoomEnd = (_e: MapboxGL.MapMouseEvent) => {
-    _debounce((e: MapboxGL.MapMouseEvent) => {
+const onZoomEnd = (_e: maplibregl.MapMouseEvent) => {
+    _debounce((e: maplibregl.MapMouseEvent) => {
         Preferences.update(
             {
                 'map.zoom': e.target.getZoom()
@@ -39,7 +39,7 @@ const onZoomEnd = (_e: MapboxGL.MapMouseEvent) => {
     applyAestheticChanges(boundsGL, _e.target.getZoom());
 };
 
-const onDragEnd = (e: MapboxGL.MapMouseEvent) => {
+const onDragEnd = (e: maplibregl.MapMouseEvent) => {
     const map = e.target as any;
     // TODO _draggingEventsOrder is a custom addition to the map, not typed or anything. Find a better way to do this
     if (map._draggingEventsOrder && map._draggingEventsOrder.length > 0) {
@@ -63,12 +63,12 @@ const onDragEnd = (e: MapboxGL.MapMouseEvent) => {
     applyAestheticChanges(boundsGL, e.target.getZoom());
 };
 
-const onDragStart = (e: MapboxGL.MapMouseEvent) => {
+const onDragStart = (e: maplibregl.MapMouseEvent) => {
     const map = e.target as any;
     map._draggingEventsOrder = ['dragstart'];
 };
 
-const onMouseMove = (e: MapboxGL.MapMouseEvent) => {
+const onMouseMove = (e: maplibregl.MapMouseEvent) => {
     serviceLocator.eventManager.emit('map.updateMouseCoordinates', e.lngLat.toArray());
 };
 
@@ -80,7 +80,7 @@ const globalEventDescriptors: MapEventHandlerDescription[] = [
     { type: 'map', eventName: 'mousemove', handler: onMouseMove }
 ];
 
-const applyAestheticChanges = async (boundsGL: MapboxGL.LngLatBounds, zoom: number): Promise<void> => {
+const applyAestheticChanges = async (boundsGL: maplibregl.LngLatBounds, zoom: number): Promise<void> => {
     if (!Preferences.get('features.map.prettyDisplay', false)) {
         return;
     }

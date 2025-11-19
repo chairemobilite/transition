@@ -114,20 +114,11 @@ module.exports = {
 };
 ```
 
-### 4. Get a mapbox access token
-
-* Go to [Mapbox](http://mapbox.com) and sign up
-* Go to your account dashboard, then generate a new access token
-
-Keep this access token for the next step.
-
-
-### 5. Prepare the .env file
+### 4. Prepare the .env file
 
 The .env file is required to contain some environment variables that are not yet available through the configuration.
 
-Create a `.env` file in the `transition` directory. The variables starting with `MAPBOX` should be filled with the mapbox token and data you created at the preceding step.
-
+Create a `.env` file in the `transition` directory. The default map uses OpenStreetMap tiles which don't require any API keys.
 
 ```
 HOST=http://localhost:8080
@@ -136,11 +127,9 @@ PG_DATABASE_PRODUCTION=tr
 PG_DATABASE_TEST=tr_test
 PG_CONNECTION_STRING_PREFIX=postgres://postgres:@localhost:5432/
 EXPRESS_SESSION_SECRET_KEY=DefaultDockerSessionKey
-# Required for the mapbox map
-MAPBOX_ACCESS_TOKEN=MYMAPBOXACCESSTOKEN
-MAPBOX_USER_ID=mapbox
-MAPBOX_STYLE_ID=dark-v10
 
+# Optional: Custom raster tiles for aerial imagery or other base maps
+# If configured, users can switch between OSM and custom tiles using the layer switcher
 #CUSTOM_RASTER_TILES_XYZ_URL=https://exampltest/{z}/{x}/{y}
 #CUSTOM_RASTER_TILES_MIN_ZOOM=8
 #CUSTOM_RASTER_TILES_MAX_ZOOM=22
@@ -171,13 +160,13 @@ MAIL_FROM_ADDRESS=example@example.com
 
 ```
 
-### 6. Prepare the polygon for you region
+### 5. Prepare the polygon for your region
 
 In order to have routing data to calculate the routes, the data must be fetched from OpenStreetMap for a given polygon. If you have a geojson file containing the geojson polygon to fetch, add this file to the `transition` directory. There is [an example file](../examples/polygon_rtl_area.geojson) in this repo.
 
 It is not required, but if not set, routing won't be able to follow the road network.
 
-### 7. Run the application
+### 6. Run the application
 
 Using a terminal, navigate to the directory where the `docker-compose.yml` and the `transition` directory are located. Then run `docker-compose up`.
 
@@ -187,7 +176,7 @@ In the Docker for desktop application, you should see 2 new containers running, 
 
 The application should now be available from a browser at `http://localhost:8080`
 
-### 7.1 Run for the first time
+### 6.1 Run for the first time
 
 Some initialization scripts need to be run on the very first run of Transition, to set up the database and download the road network. In the Docker Desktop containers list, select the one prefixed with `testtransitiondocker_transition-www` and go to the `Terminal` tab. Run the following commands:
 

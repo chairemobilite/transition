@@ -467,7 +467,8 @@ const layersConfig = {
         //"shaders": [transitPathsSelectedFragmentShader, transitPathsSelectedVertexShader],
         layout: {
             'line-join': 'miter',
-            'line-cap': 'butt'
+            'line-cap': 'butt',
+            visibility: 'none' // Hidden by default - deck.gl renders selected paths with animations
         },
         'custom-shader': 'lineArrow',
         paint: {
@@ -909,7 +910,7 @@ const layersConfig = {
                 type: 'identity'
             },
             'circle-opacity': 1.0,
-            'circle-stroke-width': ['interpolate', ['exponential', 2], ['zoom'], 0, 0, 10, 0.5, 15, 5, 20, 8],
+            'circle-stroke-width': ['interpolate', ['exponential', 2], ['zoom'], 0, 0, 10, 0.5, 15, 2, 20, 3],
             'circle-stroke-opacity': 1.0,
             'circle-stroke-color': 'rgba(255,255,255,1.0)'
         }
