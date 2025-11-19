@@ -127,13 +127,12 @@ mkdir runtime
 * Change `EXPRESS_SESSION_SECRET_KEY` to a random string with no space
 * Change `PROJECT_CONFIG` to point to your project's configuration file. The default is an example configuration file that can be copied and configured for your own need.
 
+The default map uses OpenStreetMap tiles which don't require any API keys. If you want to add custom raster tiles (such as aerial imagery), you can optionally configure:
+* `CUSTOM_RASTER_TILES_XYZ_URL=https://your-tile-server/{z}/{x}/{y}` - URL template for your custom tile server
+* `CUSTOM_RASTER_TILES_MIN_ZOOM=10` - Minimum zoom level at which custom tiles are available (default: 0)
+* `CUSTOM_RASTER_TILES_MAX_ZOOM=18` - Maximum zoom level at which custom tiles are available (default: 22)
 
-### Get a Mapbox access token
-* Go to [Mapbox](http://mapbox.com) and sign up
-* Go to your account dashboard, then generate a new access token
-* Open the `.env` file
-* Copy this access token to `.env` file: `MAPBOX_ACCESS_TOKEN=YOUR_TOKEN`
-* `MAPBOX_USER_ID=mapbox` and `MAPBOX_STYLE_ID=dark-v11`
+Users can switch between OSM and custom tiles using the layer switcher button in the application. The custom tiles option will only be enabled when the current zoom level is within the configured min/max range.
 
 
 ### Setup project
