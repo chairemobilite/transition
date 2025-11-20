@@ -15,8 +15,7 @@ import { UserAttributes } from '../../../services/users/user';
 
 const testEmail = 'test@test.org';
 
-const user = {
-    id: 1,
+const user: Partial<UserAttributes> = {
     uuid: uuidV4(),
     username: 'test',
     email: testEmail.toLowerCase(),
@@ -24,8 +23,7 @@ const user = {
     first_name: 'Toto'
 };
 
-const user2 = {
-    id: 2,
+const user2: Partial<UserAttributes> = {
     uuid: uuidV4(),
     username: 'test2',
     email: 'test@example.org',
@@ -34,8 +32,7 @@ const user2 = {
     password_reset_token: 'sometokenforpasswordreset'
 };
 
-const userCaps = {
-    id: 3,
+const userCaps: Partial<UserAttributes> = {
     uuid: uuidV4(),
     username: 'testCaps',
     email: testEmail.toUpperCase(),
@@ -43,7 +40,7 @@ const userCaps = {
     first_name: 'Toto'
 };
 
-const userToInsert = {
+const userToInsert: Partial<UserAttributes> = {
     username: 'newUser',
     preferences: { lang: 'fr' },
     first_name: 'Foo',
@@ -53,8 +50,11 @@ const userToInsert = {
 beforeAll(async () => {
     jest.setTimeout(10000);
     await truncate(knex, 'users');
-    await knex('users').insert(user);
-    await knex('users').insert(user2);
+    // Insert 2 users at the beginning of the test and assign their IDs
+    const userId1 = await knex('users').insert(user).returning('id');
+    user.id = userId1[0].id;
+    const userId2 = await knex('users').insert(user2).returning('id');
+    user2.id = userId2[0].id;
 });
 
 afterAll(async() => {
@@ -71,7 +71,7 @@ each([
     [{ usernameOrEmail: user2.username }, user2],
     [{ password_reset_token: user2.password_reset_token }, user2],
     [{ username: user2.username, email: 'arbitrary' }, undefined],
-    [{ usernameOrEmail: user2.email.toUpperCase() }, user2],
+    [{ usernameOrEmail: user2.email!.toUpperCase() }, user2],
     [{ usernameOrEmail: userCaps.email }, user],
 ]).test('Find user by %s', async(data, expected) => {
     // find uses WhereILike which ignores case
@@ -95,17 +95,16 @@ test('Find user with orWhere', async() => {
     expect(foundUser3).toBeUndefined;
 });
 
-each([
-    [user.id, user],
-    [user2.id, user2],
-    [50, undefined]
-]).test('Get user by %s', async(id, expected) => {
-    const user = await dbQueries.getById(id);
-    if (expected === undefined) {
+describe('Get user by ID', () => {
+    test('existing', async() => {
+        const user = await dbQueries.getById(user2.id!);
+        expect(user).toEqual(expect.objectContaining(user2));
+    });
+
+    test('unexisting', async() => {
+        const user = await dbQueries.getById(user2.id! + 1000);
         expect(user).toBeUndefined();
-    } else {
-        expect(user).toEqual(expect.objectContaining(expected));
-    }
+    });
 });
 
 each([
@@ -132,34 +131,35 @@ test('Create new user', async () => {
 test('Create new user with duplicate key', async () => {
     await expect(dbQueries.create(userToInsert))
         .rejects
-        .toThrowError(expect.anything());
+        .toThrow('Cannot insert user newUser in table users database (knex error: error: insert into \"users\" (\"first_name\", \"is_admin\", \"preferences\", \"username\") values ($1, $2, $3, $4) returning \"id\" - duplicate key value violates unique constraint \"users_username_unique\")');
 });
 
 test('Create user with duplicate email, but in caps', async () => {
     await expect(dbQueries.create(userCaps))
         .rejects
-        .toThrowError(expect.anything());
+        .toThrow('Cannot insert user testCaps in table users database (knex error: error: insert into \"users\" (\"email\", \"first_name\", \"preferences\", \"username\", \"uuid\") values ($1, $2, $3, $4, $5) returning \"id\" - duplicate key value violates unique constraint \"users_email_unique\")');
 });
 
 test('Update user', async () => {
     const newName = 'Newname';
-    const { id, uuid, username, ...origUser } = await dbQueries.getById(user.id) as UserAttributes;
+    const { id, uuid, username, ...origUser } = await dbQueries.getById(user.id!) as UserAttributes;
     const updatedAttributes = _cloneDeep(origUser);
     updatedAttributes.is_admin = true;
     updatedAttributes.first_name = newName;
-    await dbQueries.update(user.id, updatedAttributes);
-    const updatedUser = await dbQueries.getById(user.id) as UserAttributes;
+    await dbQueries.update(user.id!, updatedAttributes);
+    const updatedUser = await dbQueries.getById(user.id!) as UserAttributes;
     expect(updatedUser.is_admin).toEqual(true);
     expect(updatedUser.first_name).toEqual(newName);
 });
 
 test('Update converts new emails to lowercase', async () => {
     const newEmail = 'EMAIL@EMAIL.ORG';
-    const { id, uuid, username, ...origUser } = await dbQueries.getById(user.id) as UserAttributes;
+    const { id, uuid, username, ...origUser } = await dbQueries.getById(user.id!) as UserAttributes;
+
     const updatedAttributes = _cloneDeep(origUser);
     updatedAttributes.email = newEmail;
-    await dbQueries.update(user.id, updatedAttributes);
-    const updatedUser = await dbQueries.getById(user.id) as UserAttributes;
+    await dbQueries.update(user.id!, updatedAttributes);
+    const updatedUser = await dbQueries.getById(user.id!) as UserAttributes;
     expect(updatedUser.email).toEqual(newEmail.toLowerCase());
 });
 
@@ -173,13 +173,13 @@ test('Collection', async () => {
 
 test('set last login', async () => {
     // Make sure last login is null at the beginning
-    const { last_login_at } = await dbQueries.getById(user.id) as UserAttributes;
+    const { last_login_at } = await dbQueries.getById(user.id!) as UserAttributes;
     expect(last_login_at).toEqual(null);
     const now = new Date();
 
     // Set last login and see if the time is between now and after the query setting it
-    await dbQueries.setLastLogin(user.id);
-    const { last_login_at: lastLoginAfterSet } = await dbQueries.getById(user.id) as UserAttributes;
+    await dbQueries.setLastLogin(user.id!);
+    const { last_login_at: lastLoginAfterSet } = await dbQueries.getById(user.id!) as UserAttributes;
     expect(lastLoginAfterSet).not.toEqual(null);
     const after = new Date();
     const lastLoginDate = new Date(lastLoginAfterSet as string);
@@ -188,8 +188,8 @@ test('set last login', async () => {
 
     // Set last login again, after 1 second wait, and make sure it is now later than previous time
     await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for one second
-    await dbQueries.setLastLogin(user.id);
-    const { last_login_at: lastLoginAfterSetTwice } = await dbQueries.getById(user.id) as UserAttributes;
+    await dbQueries.setLastLogin(user.id!);
+    const { last_login_at: lastLoginAfterSetTwice } = await dbQueries.getById(user.id!) as UserAttributes;
     expect(lastLoginAfterSetTwice).not.toEqual(null);
     const afterTwice = new Date();
     const lastLoginDateSecond = new Date(lastLoginAfterSetTwice as string);
@@ -371,7 +371,7 @@ describe('list users', () => {
             sort: [ { field: 'email', order: 'desc; select * from users' as any } ]
         }))
             .rejects
-            .toThrowError('Cannot get users list in table users (knex error: Invalid sort order for interview query: desc; select * from users (DBINTO0001))');
+            .toThrow('Cannot get users list in table users (knex error: Invalid sort order for interview query: desc; select * from users (DBINTO0001))');
 
         // Inject bad where value, should be escaped and return 0
         const { users: page, totalCount: totalCount } = await dbQueries.getList({ filters: { email: 'test\'; delete from users;' }, pageIndex: 0, pageSize: -1 });
