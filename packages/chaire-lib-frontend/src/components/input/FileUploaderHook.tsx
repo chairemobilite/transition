@@ -87,5 +87,12 @@ export const useFileUploader = (autoImport = true, progressName = 'UploadingFile
         }
     };
 
-    return { upload, uploadStatus };
+    /**
+     * Reset the file upload status to not uploaded, if the file changes
+     */
+    const resetFileUpload = () => {
+        setUploadStatus({ status: 'notUploaded' });
+    };
+
+    return { upload, uploadStatus, resetFileUpload };
 };
