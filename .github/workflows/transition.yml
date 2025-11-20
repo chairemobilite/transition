@@ -84,3 +84,45 @@ jobs:
       working-directory: ./services/json2capnp
     - run: cargo test
       working-directory: ./services/json2capnp
+
+  test-sequential:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+    strategy:
+      matrix:
+        node-version: [24.x]
+    env:
+      PG_CONNECTION_STRING_PREFIX: postgres://testuser:testpassword@localhost:5432/
+      PG_DATABASE_TEST: testdb
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - name: copy env file
+      run: cp .env.example .env
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Install
+      run: yarn
+    - name: Compile
+      run: yarn compile
+    - name: Create Test DB
+      run: yarn setup-test && yarn migrate-test
+    - name: Run DB test
+      # Only run the DB tests
+      run: yarn test:sequential db
