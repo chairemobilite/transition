@@ -134,7 +134,13 @@
         "Exception": "Exception",
         "RoutingModeNotEnabled": "Mode de calcul '{{mode}}' n'est pas activé",
         "InvalidFormFields": "Certains champs sont invalides",
-        "ErrorCalculatingAccessibilityMap": "Erreur lors du calcul de la carte d'accessibilité. Essayez de réduire le temps de parcours maximal."
+        "ErrorCalculatingAccessibilityMap": "Erreur lors du calcul de la carte d'accessibilité. Essayez de réduire le temps de parcours maximal.",
+        "csv": {
+            "MissingRequiredCsvFieldMapping": "Association du champ CSV requise manquante: {{field}}",
+            "FieldNotInCsvFile": "Champ '{{field}}' introuvable dans le fichier CSV",
+            "NoFileSelected": "Aucun fichier CSV sélectionné",
+            "ProjectionIsMissing": "La projection est requise"
+        }
     },
     "places": {
         "categories": {
