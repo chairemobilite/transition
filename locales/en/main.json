@@ -134,7 +134,11 @@
         "Exception": "Exception",
         "RoutingModeNotEnabled": "Routing mode '{{mode}}' is not enabled",
         "InvalidFormFields": "Some fields are invalid",
-        "ErrorCalculatingAccessibilityMap": "Error calculating accessibility map. Try to reduce the maximum total travel time."
+        "ErrorCalculatingAccessibilityMap": "Error calculating accessibility map. Try to reduce the maximum total travel time.",
+        "csv": {
+            "MissingRequiredCsvFieldMapping": "Missing required CSV field mapping: {{field}}",
+            "FieldNotInCsvFile": "Field '{{field}}' not found in CSV file"
+        }
     },
     "places": {
         "categories": {

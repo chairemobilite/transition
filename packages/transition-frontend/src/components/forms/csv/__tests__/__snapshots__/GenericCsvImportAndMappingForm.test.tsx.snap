@@ -1,0 +1,351 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GenericCsvImportAndMappingForm rendering Default props 1`] = `
+<div>
+  <div
+    class="tr__form-section"
+  >
+    <div
+      class="apptr__form-input-container _two-columns"
+    >
+      <label>
+        main:CsvFile
+      </label>
+      <input
+        accept=".csv"
+        autocomplete="none"
+        class="tr__form-input-file apptr__input _input-file"
+        id="formFieldCsvFile"
+        name="formFieldCsvFile"
+        type="file"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`GenericCsvImportAndMappingForm rendering With current file and mapping 1`] = `
+<div>
+  <div
+    class="tr__form-section"
+  >
+    <div
+      class="apptr__form-input-container _two-columns"
+    >
+      <label>
+        main:CsvFile
+      </label>
+      <input
+        accept=".csv"
+        autocomplete="none"
+        class="tr__form-input-file apptr__input _input-file"
+        id="formFieldCsvFile"
+        name="formFieldCsvFile"
+        type="file"
+      />
+    </div>
+    <div
+      class="apptr__form-input-container _two-columns _small-inputs"
+    >
+      <label>
+        Name
+      </label>
+      <select
+        autocomplete="none"
+        class="tr__form-input-select apptr__input _input-select"
+        id="formFieldMappingSelectionname"
+        name="formFieldMappingSelectionname"
+        style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+      >
+        <option
+          value=""
+        />
+        <option
+          value="name_column"
+        >
+          name_column
+        </option>
+        <option
+          value="email_column"
+        >
+          email_column
+        </option>
+        <option
+          value="age_column"
+        >
+          age_column
+        </option>
+      </select>
+    </div>
+    <div
+      class="apptr__form-input-container _two-columns _small-inputs"
+    >
+      <label>
+        Email
+      </label>
+      <select
+        autocomplete="none"
+        class="tr__form-input-select apptr__input _input-select"
+        id="formFieldMappingSelectionemail"
+        name="formFieldMappingSelectionemail"
+        style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+      >
+        <option
+          value=""
+        />
+        <option
+          value="name_column"
+        >
+          name_column
+        </option>
+        <option
+          value="email_column"
+        >
+          email_column
+        </option>
+        <option
+          value="age_column"
+        >
+          age_column
+        </option>
+      </select>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`GenericCsvImportAndMappingForm rendering With latLon mapping descriptor 1`] = `
+<div>
+  <div
+    class="tr__form-section"
+  >
+    <div
+      class="apptr__form-input-container _two-columns"
+    >
+      <label>
+        main:CsvFile
+      </label>
+      <input
+        accept=".csv"
+        autocomplete="none"
+        class="tr__form-input-file apptr__input _input-file"
+        id="formFieldCsvFile"
+        name="formFieldCsvFile"
+        type="file"
+      />
+    </div>
+    <div
+      class="apptr__form-input-container _two-columns _small-inputs"
+    >
+      <label>
+        main:Projection
+      </label>
+      <select
+        autocomplete="none"
+        class="tr__form-input-select apptr__input _input-select"
+        id="formFieldMappingProjection"
+        name="formFieldMappingProjection"
+        style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+      >
+        <option
+          value=""
+        />
+        <option
+          value="2950"
+        >
+          MTM Zone 8 NAD83 EPSG:2950
+        </option>
+        <option
+          value="4326"
+        >
+          WGS84 EPSG:4326 (latitude/longitude)
+        </option>
+      </select>
+    </div>
+    <div
+      class="apptr__form-input-container _two-columns _small-inputs"
+    >
+      <label>
+        geographyLabelLat
+      </label>
+      <select
+        autocomplete="none"
+        class="tr__form-input-select apptr__input _input-select"
+        id="formFieldMappingSelectiongeographyLat"
+        name="formFieldMappingSelectiongeographyLat"
+        style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+      >
+        <option
+          value=""
+        />
+        <option
+          value="name_column"
+        >
+          name_column
+        </option>
+        <option
+          value="email_column"
+        >
+          email_column
+        </option>
+        <option
+          value="age_column"
+        >
+          age_column
+        </option>
+      </select>
+    </div>
+    <div
+      class="apptr__form-input-container _two-columns _small-inputs"
+    >
+      <label>
+        geographyLabelLon
+      </label>
+      <select
+        autocomplete="none"
+        class="tr__form-input-select apptr__input _input-select"
+        id="formFieldMappingSelectiongeographyLon"
+        name="formFieldMappingSelectiongeographyLon"
+        style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+      >
+        <option
+          value=""
+        />
+        <option
+          value="name_column"
+        >
+          name_column
+        </option>
+        <option
+          value="email_column"
+        >
+          email_column
+        </option>
+        <option
+          value="age_column"
+        >
+          age_column
+        </option>
+      </select>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`GenericCsvImportAndMappingForm rendering With time mapping descriptor 1`] = `
+<div>
+  <div
+    class="tr__form-section"
+  >
+    <div
+      class="apptr__form-input-container _two-columns"
+    >
+      <label>
+        main:CsvFile
+      </label>
+      <input
+        accept=".csv"
+        autocomplete="none"
+        class="tr__form-input-file apptr__input _input-file"
+        id="formFieldCsvFile"
+        name="formFieldCsvFile"
+        type="file"
+      />
+    </div>
+    <div
+      class="apptr__form-input-container _two-columns _small-inputs"
+    >
+      <label>
+        timeAttribute
+      </label>
+      <select
+        autocomplete="none"
+        class="tr__form-input-select apptr__input _input-select"
+        id="formFieldMappingSelectionTimetimeAttribute"
+        name="formFieldMappingSelectionTimetimeAttribute"
+        style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+      >
+        <option
+          value=""
+        />
+        <option
+          value="name_column"
+        >
+          name_column
+        </option>
+        <option
+          value="email_column"
+        >
+          email_column
+        </option>
+        <option
+          value="age_column"
+        >
+          age_column
+        </option>
+      </select>
+    </div>
+    <div
+      class="apptr__form-input-container _two-columns _small-inputs"
+    >
+      <label>
+        timeAttributeType
+      </label>
+      <select
+        autocomplete="none"
+        class="tr__form-input-select apptr__input _input-select"
+        id="formFieldMappingSelectionTimeDepartureOrArrivaltimeAttribute"
+        name="formFieldMappingSelectionTimeDepartureOrArrivaltimeAttribute"
+        style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+      >
+        <option
+          value=""
+        />
+        <option
+          value="departure"
+        >
+          transit:transitRouting:departureTime
+        </option>
+        <option
+          value="arrival"
+        >
+          transit:transitRouting:arrivalTime
+        </option>
+      </select>
+    </div>
+    <div
+      class="apptr__form-input-container _two-columns _small-inputs"
+    >
+      <label>
+        timeAttributeFormat
+      </label>
+      <select
+        autocomplete="none"
+        class="tr__form-input-select apptr__input _input-select"
+        id="formFieldMappingTimeFormattimeAttribute"
+        name="formFieldMappingTimeFormattimeAttribute"
+        style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis;"
+      >
+        <option
+          value=""
+        />
+        <option
+          value="HH:MM"
+        >
+          transit:transitRouting:HH_MM__HH_MM_SS
+        </option>
+        <option
+          value="HMM"
+        >
+          transit:transitRouting:HMM
+        </option>
+        <option
+          value="secondsSinceMidnight"
+        >
+          transit:transitRouting:SecondsSinceMidnight
+        </option>
+      </select>
+    </div>
+  </div>
+</div>
+`;
