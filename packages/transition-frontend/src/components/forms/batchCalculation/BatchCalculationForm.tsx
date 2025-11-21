@@ -11,20 +11,19 @@ import _cloneDeep from 'lodash/cloneDeep';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import ConfigureDemandFromCsvForm from './stepForms/ConfigureDemandFromCsvForm';
-import { TransitDemandFromCsvFile } from '../../../services/transitDemand/frontendTypes';
 import ConfigureBatchCalculationForm from './stepForms/ConfigureBatchCalculationForm';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import ConfirmCalculationForm from './stepForms/ConfirmCalculationForm';
 import TransitBatchRoutingCalculator from 'transition-common/lib/services/transitRouting/TransitBatchRoutingCalculator';
-import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { CsvFileAndMapping } from 'transition-common/lib/services/csv';
 import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
+import GenericCsvImportAndMappingForm from '../csv/GenericCsvImportAndMappingForm';
 
 export interface BatchCalculationFormProps {
     initialValues?: {
         parameters: BatchCalculationParameters;
-        demand: TransitBatchRoutingDemandAttributes;
+        demand: CsvFileAndMapping;
 
         csvFields: string[];
     };
@@ -53,14 +52,8 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
     );
     const [currentStep, setCurrentStep] = React.useState(0);
     const [nextEnabled, setNextEnabled] = React.useState(false);
-    const [demand, setDemand] = React.useState<TransitDemandFromCsvFile | undefined>(
-        props.initialValues !== undefined
-            ? {
-                type: 'csv' as const,
-                csvFields: props.initialValues.csvFields,
-                demand: new TransitOdDemandFromCsv(props.initialValues.demand.configuration)
-            }
-            : undefined
+    const [demand, setDemand] = React.useState<TransitOdDemandFromCsv>(
+        new TransitOdDemandFromCsv(props.initialValues !== undefined ? props.initialValues.demand : undefined)
     );
     const [routingParameters, setRoutingParameters] = React.useState<BatchCalculationParameters>(
         props.initialValues !== undefined
@@ -72,9 +65,11 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
         setScenarioCollection(serviceLocator.collectionManager.get('scenarios'));
     };
 
-    const onDemandStepComplete = (demandData: TransitDemandFromCsvFile) => {
-        setDemand(demandData);
-        if (demandData.demand.validate()) {
+    const onDemandStepComplete = (demand: TransitOdDemandFromCsv, isValid: boolean) => {
+        setDemand(demand);
+        // Enable next only if both demand and parameters are valid, the demand
+        // may be valid but the file not uploaded yet
+        if (demand.isValid() && isValid) {
             setNextEnabled(true);
         }
     };
@@ -92,7 +87,7 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
         if (currentStep === stepCount - 1) {
             if (demand !== undefined) {
                 // TODO Don't just return, wait for the return value to make sure the calculation is running
-                TransitBatchRoutingCalculator.calculate(demand.demand, routingParameters);
+                TransitBatchRoutingCalculator.calculate(demand, routingParameters);
                 props.onEnd();
             }
         }
@@ -128,10 +123,10 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
             {currentStep === 0 && (
                 <React.Fragment>
                     <h4>{props.t('transit:batchCalculation:ConfigureDemand')}</h4>
-                    <ConfigureDemandFromCsvForm
-                        currentDemand={demand}
-                        onComplete={onDemandStepComplete}
-                        onFileReset={onFileReset}
+                    <GenericCsvImportAndMappingForm
+                        csvFileMapper={demand}
+                        onUpdate={onDemandStepComplete}
+                        importFileName="batchRouting.csv"
                     />
                 </React.Fragment>
             )}
@@ -150,7 +145,7 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
                 <React.Fragment>
                     <h4>{props.t('transit:batchCalculation:AnalysisSummary')}</h4>
                     <ConfirmCalculationForm
-                        currentDemand={demand as TransitDemandFromCsvFile}
+                        currentDemand={demand}
                         routingParameters={routingParameters}
                         onUpdate={onParametersUpdate}
                         scenarioCollection={scenarioCollection}

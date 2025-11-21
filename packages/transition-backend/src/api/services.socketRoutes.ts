@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import fs from 'fs';
 import { EventEmitter } from 'events';
 import osrm from 'osrm';
 
@@ -16,10 +15,7 @@ import osrmService from 'chaire-lib-backend/lib/utils/osrm/OSRMService';
 import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
 import { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import {
-    TransitBatchRoutingDemandAttributes,
-    TransitDemandFromCsvAccessMapAttributes
-} from 'transition-common/lib/services/transitDemand/types';
+import { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/transitDemand/types';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -27,7 +23,6 @@ import { ExecutableJob } from '../services/executableJob/ExecutableJob';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 import { fileKey } from 'transition-common/lib/services/jobs/Job';
 import {
     TransitMapCalculationOptions,
@@ -44,6 +39,7 @@ import {
     createAndEnqueueTransitNetworkDesignJob,
     getParametersFromTransitNetworkDesignJob
 } from '../services/networkDesign/transitNetworkDesign/TransitNetworkJobController';
+import { CsvFileAndMapping } from 'transition-common/lib/services/csv';
 
 // TODO The socket routes should validate parameters as even typescript cannot guarantee the types over the network
 // TODO Add more unit tests as the called methods are cleaned up
@@ -200,11 +196,7 @@ export default function (socket: EventEmitter, userId?: number) {
     if (userId !== undefined) {
         socket.on(
             TrRoutingConstants.BATCH_ROUTE,
-            async (
-                parameters: TransitBatchRoutingDemandAttributes,
-                transitRoutingAttributes: BatchCalculationParameters,
-                callback
-            ) => {
+            async (parameters: CsvFileAndMapping, transitRoutingAttributes: BatchCalculationParameters, callback) => {
                 try {
                     socket.emit('progress', { name: 'BatchRouting', progress: null });
                     const inputFiles: {
@@ -212,23 +204,11 @@ export default function (socket: EventEmitter, userId?: number) {
                             | string
                             | { filepath: string; renameTo: string };
                     } = {};
-                    if (parameters.configuration.csvFile.location === 'upload') {
-                        inputFiles.input = {
-                            filepath: `${directoryManager.userDataDirectory}/${userId}/imports/batchRouting.csv`,
-                            renameTo: parameters.configuration.csvFile.filename
-                        };
-                    } else {
-                        const batchRouteJob = await ExecutableJob.loadTask<BatchRouteJobType>(
-                            parameters.configuration.csvFile.fromJob
-                        );
-                        if (batchRouteJob.attributes.name !== 'batchRoute') {
-                            throw 'Requested job is not a batchRoute job';
-                        }
-                        if (batchRouteJob.attributes.user_id !== userId) {
-                            throw 'Not allowed to get the input file from job';
-                        }
-                        inputFiles.input = batchRouteJob.getInputFilePath();
-                    }
+                    inputFiles.input = await ExecutableJob.handleJobFile(
+                        parameters.fileAndMapping.csvFile,
+                        userId,
+                        'batchRouting.csv'
+                    );
 
                     // Force add walking when selecting transit mode, so we can check if walking is better
                     // TODO Consider doing that in the frontend, as a forceful suggestion to the user instead
@@ -274,8 +254,7 @@ export default function (socket: EventEmitter, userId?: number) {
                 callback: (
                     status: Status.Status<{
                         parameters: BatchCalculationParameters;
-                        demand: TransitBatchRoutingDemandAttributes;
-                        csvFields: string[];
+                        demand: CsvFileAndMapping;
                     }>
                 ) => void
             ) => {
@@ -286,21 +265,20 @@ export default function (socket: EventEmitter, userId?: number) {
                     }
                     const batchRouteJob = job as ExecutableJob<BatchRouteJobType>;
                     const attributes = batchRouteJob.attributes.data.parameters;
-                    const filePath = batchRouteJob.getInputFilePath();
-                    const demand = new TransitOdDemandFromCsv(attributes.demandAttributes.configuration);
-                    const csvFileStream = fs.createReadStream(filePath);
-                    const csvFields = await demand.setCsvFile(csvFileStream, { location: 'server', fromJob: jobId });
+                    if (attributes.demandAttributes.type === undefined) {
+                        // Demand attribute format has changed, jobs using the old format cannot be re-run automatically.
+                        // FIXME Consider a conversion path later if necessary
+                        throw 'Demand attributes have changed, this job cannot be re-run';
+                    }
+                    attributes.demandAttributes.fileAndMapping.csvFile = {
+                        location: 'job',
+                        jobId,
+                        fileKey: 'input'
+                    };
                     callback(
                         Status.createOk({
                             parameters: attributes.transitRoutingAttributes,
-                            demand: {
-                                type: attributes.demandAttributes.type,
-                                configuration: {
-                                    ...attributes.demandAttributes.configuration,
-                                    csvFile: { location: 'server', fromJob: jobId }
-                                }
-                            },
-                            csvFields
+                            demand: attributes.demandAttributes
                         })
                     );
                 } catch (error) {

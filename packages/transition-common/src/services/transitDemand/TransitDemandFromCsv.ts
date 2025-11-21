@@ -76,7 +76,7 @@ export abstract class TransitDemandFromCsv<T extends DemandCsvAttributes> extend
 
     setCsvFile = async (
         file: string | File | NodeJS.ReadableStream,
-        fileLocation: { location: 'upload' } | { location: 'server'; fromJob: number }
+        fileLocation: { location: 'upload' } | { location: 'job'; jobId: number; fileKey: string; }
     ) => {
         let csvFileAttributes: string[] = [];
         this.attributes.csvFile =
