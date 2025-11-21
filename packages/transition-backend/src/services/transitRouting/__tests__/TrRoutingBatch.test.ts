@@ -133,12 +133,21 @@ const mockJobAttributes = {
         parameters: {
             demandAttributes: {
                 type: 'csv' as const,
-                configuration: {
-                    calculationName: 'test',
+                fileAndMapping: {
+                    fieldMappings: {
+                        projection: '4326',
+                        id: 'id',
+                        originLon: 'originX',
+                        originLat: 'originY',
+                        destinationLon: 'destinationX',
+                        destinationLat: 'destinationY',
+                        timeType: 'departure' as const,
+                        timeFormat: 'secondsSinceMidnight',
+                        time: 'time',
+                    },
                     csvFile: { location: 'upload', filename: inputFileName },
-                    originAttributes: ['lat', 'lon'],
-                    destinationAttributes: ['lat', 'lon']
-                }
+                },
+                csvFields: ['originX', 'originY', 'destinationX', 'destinationY', 'time', 'id']
             },
             transitRoutingAttributes: {
                 routingModes: ['transit'],
@@ -189,7 +198,7 @@ test('Batch route to csv', async () => {
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-        calculationName: 'test',
+        calculationName: 'not set',
         detailed: false,
         completed: true,
         errors: [],
@@ -257,7 +266,7 @@ test('Batch route with custom cachePath parameter', async () => {
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-        calculationName: 'test',
+        calculationName: 'not set',
         detailed: false,
         completed: true,
         errors: [],
@@ -274,7 +283,7 @@ test('Batch route with some errors', async () => {
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-        calculationName: 'test',
+        calculationName: 'not set',
         detailed: false,
         completed: true,
         errors: [],
@@ -308,7 +317,7 @@ test('Batch route with too many errors', async () => {
     expect(routeOdTripMock).toHaveBeenCalledTimes(0);
     expect(mockCreateStream).toHaveBeenCalledTimes(0);
     expect(result).toEqual({
-        calculationName: 'test',
+        calculationName: 'not set',
         detailed: false,
         completed: false,
         errors,
@@ -332,7 +341,7 @@ describe('Batch route from checkpoint', () => {
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length - currentCheckpoint);
         expect(mockCreateStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
-            calculationName: 'test',
+            calculationName: 'not set',
             detailed: false,
             completed: true,
             errors: [],
@@ -356,7 +365,7 @@ describe('Batch route from checkpoint', () => {
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length - currentCheckpoint);
         expect(mockCreateStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
-            calculationName: 'test',
+            calculationName: 'not set',
             detailed: false,
             completed: true,
             errors: [],

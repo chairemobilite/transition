@@ -1,3 +1,5 @@
+import { CsvFileAndMapping } from '../csv';
+
 /*
  * Copyright 2023, Polytechnique Montreal and contributors
  *
@@ -11,19 +13,7 @@ export type TransitDemandFromCsvAttributes = {
     timeAttributeDepartureOrArrival: 'arrival' | 'departure';
     timeFormat: string;
     timeAttribute: string;
-    csvFile: { location: 'upload'; filename: string } | { location: 'server'; fromJob: number };
-};
-
-export type TransitDemandFromCsvRoutingAttributes = TransitDemandFromCsvAttributes & {
-    originXAttribute: string;
-    originYAttribute: string;
-    destinationXAttribute: string;
-    destinationYAttribute: string;
-};
-
-export type TransitBatchRoutingDemandAttributes = {
-    type: 'csv';
-    configuration: TransitDemandFromCsvRoutingAttributes;
+    csvFile: { location: 'upload'; filename: string } | { location: 'job'; jobId: number };
 };
 
 export type TransitDemandFromCsvAccessMapAttributes = TransitDemandFromCsvAttributes & {
@@ -37,3 +27,17 @@ export type TransitDemandFromCsvAccessMapAttributes = TransitDemandFromCsvAttrib
     cpuCount: number;
     maxCpuCount?: number;
 };
+
+export type TransitDemandFromCsvRoutingAttributes = {
+    projection: string;
+    id: string;
+    originLat: string;
+    originLon: string;
+    destinationLat: string;
+    destinationLon: string;
+    timeType: 'arrival' | 'departure';
+    timeFormat: string;
+    time: string;
+};
+
+export type BatchRoutingOdDemandFromCsvAttributes = CsvFileAndMapping<TransitDemandFromCsvRoutingAttributes>;
