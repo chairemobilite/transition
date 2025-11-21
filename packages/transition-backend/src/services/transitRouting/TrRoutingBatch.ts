@@ -74,8 +74,8 @@ class TrRoutingBatch {
             files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
         }
     > => {
-        const parameters = this.job.attributes.data.parameters.demandAttributes.configuration;
-        console.log('TrRoutingService batchRoute Parameters', parameters);
+        const demandConfiguration = this.job.attributes.data.parameters.demandAttributes;
+        console.log('TrRoutingService batchRoute Parameters', demandConfiguration);
 
         try {
             // Get the odTrips to calculate
@@ -194,7 +194,8 @@ class TrRoutingBatch {
             this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 1.0 });
 
             const routingResult = {
-                calculationName: parameters.calculationName,
+                // FIXME The calculation name is never set anyway, maybe remove? or define?
+                calculationName: 'not set',
                 detailed: this.job.attributes.data.parameters.transitRoutingAttributes.detailed,
                 completed: true,
                 errors: [],
@@ -207,7 +208,8 @@ class TrRoutingBatch {
             if (Array.isArray(error)) {
                 console.log('Multiple errors in batch route calculations for job %d', this.job.id);
                 return {
-                    calculationName: parameters.calculationName,
+                    // FIXME The calculation name is never set anyway, maybe remove? or define?
+                    calculationName: 'not set',
                     detailed: false,
                     completed: false,
                     errors: error,
@@ -271,9 +273,10 @@ class TrRoutingBatch {
         console.log('reading data from csv file...');
 
         const csvStream = this.job.getReadStream('input');
+        // Cast mapping to OdTripCsvMapping, as the demand has been validated and should match
         const { odTrips, errors } = await parseOdTripsFromCsvStream(
             csvStream,
-            this.job.attributes.data.parameters.demandAttributes.configuration
+            this.job.attributes.data.parameters.demandAttributes
         );
 
         this.options.progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });

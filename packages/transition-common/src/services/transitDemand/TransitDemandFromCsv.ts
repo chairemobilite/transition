@@ -21,6 +21,8 @@ export interface DemandCsvAttributes extends GenericAttributes, Partial<TransitD
     /* Nothing else to add */
 }
 
+// TODO This class still exists for the accessibility map, but it should be
+// replaced with the new CSV demand importer structure
 export abstract class TransitDemandFromCsv<T extends DemandCsvAttributes> extends ObjectWithHistory<T> {
     private _preferencesPath: string;
 
@@ -37,19 +39,19 @@ export abstract class TransitDemandFromCsv<T extends DemandCsvAttributes> extend
         if (attributes.csvFile) {
             if (_isBlank(attributes.idAttribute)) {
                 this._isValid = false;
-                this.errors.push('transit:transitRouting:errors:IdAttributeIsMissing');
+                this.errors.push('transit:transitRouting:errors:IdFieldIsMissing');
             }
             if (_isBlank(attributes.timeAttributeDepartureOrArrival)) {
                 this._isValid = false;
-                this.errors.push('transit:transitRouting:errors:TimeAttributeDepartureOrArrivalIsMissing');
+                this.errors.push('transit:transitRouting:errors:TimeFieldDepartureOrArrivalIsMissingType');
             }
             if (_isBlank(attributes.timeFormat)) {
                 this._isValid = false;
-                this.errors.push('transit:transitRouting:errors:TimeFormatIsMissing');
+                this.errors.push('transit:transitRouting:errors:TimeFieldDepartureOrArrivalIsMissingFormat');
             }
             if (_isBlank(attributes.timeAttribute)) {
                 this._isValid = false;
-                this.errors.push('transit:transitRouting:errors:TimeAttributeIsMissing');
+                this.errors.push('transit:transitRouting:errors:TimeFieldDepartureOrArrivalIsMissing');
             }
         }
 
@@ -76,7 +78,7 @@ export abstract class TransitDemandFromCsv<T extends DemandCsvAttributes> extend
 
     setCsvFile = async (
         file: string | File | NodeJS.ReadableStream,
-        fileLocation: { location: 'upload' } | { location: 'server'; fromJob: number }
+        fileLocation: { location: 'upload' } | { location: 'job'; jobId: number; fileKey: string }
     ) => {
         let csvFileAttributes: string[] = [];
         this.attributes.csvFile =
