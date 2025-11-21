@@ -7,15 +7,15 @@
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
-import { TransitBatchRoutingDemandAttributes } from '../transitDemand/types';
 import { TransitBatchCalculationResult } from '../batchCalculation/types';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TransitOdDemandFromCsv from '../transitDemand/TransitOdDemandFromCsv';
 import { BatchCalculationParameters, isBatchParametersValid } from '../batchCalculation/types';
+import { CsvFileAndMapping } from '../csv';
 
 export class TransitBatchRoutingCalculator {
     private static async _calculate(
-        params: TransitBatchRoutingDemandAttributes,
+        params: CsvFileAndMapping,
         queryAttributes: BatchCalculationParameters
     ): Promise<any> {
         return new Promise((resolve, reject) => {
@@ -46,7 +46,7 @@ export class TransitBatchRoutingCalculator {
         transitDemand: TransitOdDemandFromCsv,
         queryAttributes: BatchCalculationParameters
     ): Promise<TransitBatchCalculationResult> {
-        if (!transitDemand.validate()) {
+        if (!transitDemand.isValid()) {
             const trError = new TrError(
                 'cannot calculate transit batch route: the CSV file data is invalid',
                 'TRBROUTING0001',
@@ -65,26 +65,7 @@ export class TransitBatchRoutingCalculator {
             throw trError;
         }
 
-        const attributes = transitDemand.attributes;
-        const parameters: TransitBatchRoutingDemandAttributes = {
-            type: 'csv',
-            configuration: {
-                calculationName: attributes.calculationName as string,
-                projection: attributes.projection as string,
-                idAttribute: attributes.idAttribute as string,
-                originXAttribute: attributes.originXAttribute as string,
-                originYAttribute: attributes.originYAttribute as string,
-                destinationXAttribute: attributes.destinationXAttribute as string,
-                destinationYAttribute: attributes.destinationYAttribute as string,
-                timeAttributeDepartureOrArrival: attributes.timeAttributeDepartureOrArrival || 'departure',
-                timeFormat: attributes.timeFormat as string,
-                timeAttribute: attributes.timeAttribute as string,
-                csvFile:
-                    attributes.csvFile === undefined
-                        ? { location: 'upload', filename: 'batchRouting.csv' }
-                        : attributes.csvFile
-            }
-        };
+        const parameters = transitDemand.getCurrentFileAndMapping()!;
 
         try {
             const batchResult = await TransitBatchRoutingCalculator._calculate(parameters, queryAttributes);
@@ -108,7 +89,7 @@ export class TransitBatchRoutingCalculator {
 
     static async getCalculationParametersForJob(jobId: number): Promise<{
         parameters: BatchCalculationParameters;
-        demand: TransitBatchRoutingDemandAttributes;
+        demand: CsvFileAndMapping;
         csvFields: string[];
     }> {
         return new Promise((resolve, reject) => {
@@ -118,7 +99,7 @@ export class TransitBatchRoutingCalculator {
                 (
                     routingStatus: Status.Status<{
                         parameters: BatchCalculationParameters;
-                        demand: TransitBatchRoutingDemandAttributes;
+                        demand: CsvFileAndMapping;
                         csvFields: string[];
                     }>
                 ) => {
