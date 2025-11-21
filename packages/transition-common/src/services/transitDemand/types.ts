@@ -11,19 +11,7 @@ export type TransitDemandFromCsvAttributes = {
     timeAttributeDepartureOrArrival: 'arrival' | 'departure';
     timeFormat: string;
     timeAttribute: string;
-    csvFile: { location: 'upload'; filename: string } | { location: 'server'; fromJob: number };
-};
-
-export type TransitDemandFromCsvRoutingAttributes = TransitDemandFromCsvAttributes & {
-    originXAttribute: string;
-    originYAttribute: string;
-    destinationXAttribute: string;
-    destinationYAttribute: string;
-};
-
-export type TransitBatchRoutingDemandAttributes = {
-    type: 'csv';
-    configuration: TransitDemandFromCsvRoutingAttributes;
+    csvFile: { location: 'upload'; filename: string } | { location: 'job'; jobId: number };
 };
 
 export type TransitDemandFromCsvAccessMapAttributes = TransitDemandFromCsvAttributes & {

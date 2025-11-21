@@ -11,10 +11,10 @@ import ScenarioCollection from 'transition-common/lib/services/scenario/Scenario
 import { secondsToMinutes } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import { TransitDemandFromCsvFile } from '../../../../services/transitDemand/frontendTypes';
+import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 
 export interface ConfirmCalculationFormProps {
-    currentDemand: TransitDemandFromCsvFile;
+    currentDemand: TransitOdDemandFromCsv;
     routingParameters: BatchCalculationParameters;
     scenarioCollection: ScenarioCollection;
     onUpdate: (routingParameters: BatchCalculationParameters, isValid: boolean) => void;
@@ -28,7 +28,7 @@ export interface ConfirmCalculationFormProps {
 const ConfirmCalculationForm: React.FunctionComponent<ConfirmCalculationFormProps & WithTranslation> = (
     props: ConfirmCalculationFormProps & WithTranslation
 ) => {
-    const demandAttributes = props.currentDemand.demand.attributes;
+    const demandAttributes = props.currentDemand.getCurrentFileAndMapping()!;
     return (
         <div className="tr__form-section">
             <table className="_statistics" key="confirmScenarioAnalysisProperties">
@@ -42,7 +42,7 @@ const ConfirmCalculationForm: React.FunctionComponent<ConfirmCalculationFormProp
                         <th>{props.t('main:CsvFile')}</th>
                         <td>
                             {props.t(
-                                demandAttributes.csvFile?.location === 'upload'
+                                demandAttributes.fileAndMapping.csvFile.location === 'upload'
                                     ? 'transit:batchCalculation:UploadedFile'
                                     : 'transit:batchCalculation:FromPreviousJob'
                             )}
