@@ -20,7 +20,7 @@ import {
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 import GenericCsvImportAndMappingForm from '../../csv/GenericCsvImportAndMappingForm';
-import { CsvFileAndMapping } from 'transition-common/lib/services/csv';
+import { CsvFileAndMapping, CsvFileMapper } from 'transition-common/lib/services/csv';
 import Loader from 'react-spinners/BeatLoader';
 
 type OptionsEditComponentProps<T extends Record<string, unknown>> = {
@@ -83,6 +83,27 @@ const SelectOptionComponent: React.FunctionComponent<OptionComponentProps> = (pr
                     value: e.target.value
                 })
             }
+        />
+    );
+};
+
+const CsvFileOptionComponent: React.FunctionComponent<OptionComponentProps> = (props: OptionComponentProps) => {
+    const option = props.option;
+    if (option.type !== 'csvFile') {
+        throw 'CsvFileOptionComponent can only be used with csvFile options';
+    }
+    const currentMapping = React.useMemo(
+        () => new CsvFileMapper(option.mappingDescriptors, props.value as CsvFileAndMapping),
+        [props.value]
+    );
+
+    return (
+        <GenericCsvImportAndMappingForm
+            csvFileMapper={currentMapping}
+            onUpdate={(csvFileMapper: CsvFileMapper, isValidAndReady: boolean): void => {
+                props.onValueChange(props.optionKey, { value: csvFileMapper.getCurrentFileAndMapping(), valid: isValidAndReady });
+            }}
+            importFileName={option.importFileName}
         />
     );
 };
@@ -172,16 +193,7 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
         );
     }
     if (option.type === 'csvFile') {
-        return (
-            <GenericCsvImportAndMappingForm
-                mappingDescriptor={option.mappingDescriptors}
-                onUpdate={function (csvFileMapping: CsvFileAndMapping, isValid): void {
-                    props.onValueChange(props.optionKey, { value: csvFileMapping, valid: isValid });
-                }}
-                importFileName={option.importFileName}
-                currentFileAndMapping={props.value as CsvFileAndMapping}
-            />
-        );
+        return <CsvFileOptionComponent {...props} />;
     }
     if (option.type === 'select') {
         return <SelectOptionComponent {...props} />;

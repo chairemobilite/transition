@@ -11,32 +11,6 @@ import type { EvolutionaryTransitNetworkDesignJobType } from './evolutionary/typ
 import { TransitNetworkJobConfigurationType } from 'transition-common/lib/services/networkDesign/transit/types';
 import { fileKey } from 'transition-common/lib/services/jobs/Job';
 import { EvolutionaryTransitNetworkDesignJobParameters } from './evolutionary/types';
-import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
-import { CsvFileAndMapping } from 'transition-common/lib/services/csv';
-
-const handleJobFile = async (
-    fileData: CsvFileAndMapping | undefined,
-    userId: number
-): Promise<string | { filepath: string; renameTo: string }> => {
-    if (!fileData) {
-        throw 'No file data provided for the job file';
-    }
-    if (fileData.fileAndMapping.csvFile.location === 'upload') {
-        return {
-            filepath: `${directoryManager.userDataDirectory}/${userId}/imports/batchRouting.csv`,
-            renameTo: fileData.fileAndMapping.csvFile.filename
-        };
-    } else {
-        const fromJob = await ExecutableJob.loadTask(fileData.fileAndMapping.csvFile.fromJob);
-        if (fromJob.attributes.name !== 'evolutionaryTransitNetworkDesign') {
-            throw 'Requested job is not an evolutionaryTransitNetworkDesign job';
-        }
-        if (fromJob.attributes.user_id !== userId) {
-            throw 'Not allowed to get the input file from job';
-        }
-        return fromJob.getFilePath('transitDemand');
-    }
-};
 
 const createAndEnqueueEvolutionaryTransitNetworkDesignJob = async (
     jobParameters: EvolutionaryTransitNetworkDesignJobParameters,
@@ -51,7 +25,11 @@ const createAndEnqueueEvolutionaryTransitNetworkDesignJob = async (
 
     // Handle the csv files for the job, either from upload and/or from another job
     if (jobParameters.simulationMethod.type === 'OdTripSimulation') {
-        inputFiles.transitDemand = await handleJobFile(jobParameters.simulationMethod.config.demandAttributes, userId);
+        inputFiles.transitDemand = await ExecutableJob.handleJobFile(
+            jobParameters.simulationMethod.config.demandAttributes?.fileAndMapping.csvFile,
+            userId,
+            'batchRouting.csv'
+        );
     }
     // TODO Handle node weight file when supported
     // TODO Handle accessibility map simulation when supported
@@ -99,8 +77,9 @@ export const getParametersFromTransitNetworkDesignJob = async (jobId: number, us
         parameters.simulationMethod.config.demandAttributes
     ) {
         parameters.simulationMethod.config.demandAttributes.fileAndMapping.csvFile = {
-            location: 'server',
-            fromJob: jobId
+            location: 'job',
+            jobId,
+            fileKey: 'transitDemand'
         };
     }
     return parameters;
