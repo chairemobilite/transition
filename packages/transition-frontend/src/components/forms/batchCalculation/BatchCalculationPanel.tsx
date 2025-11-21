@@ -10,7 +10,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import BatchCalculationList from './BatchCalculationList';
 import BatchCalculationForm from './BatchCalculationForm';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { CsvFileAndMapping } from 'transition-common/lib/services/csv';
 
 export interface CalculationPanelPanelProps {
     availableRoutingModes?: string[];
@@ -26,7 +26,7 @@ const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps> = (p
     const [initialValues, setInitialValues] = React.useState<
         | {
               parameters: BatchCalculationParameters;
-              demand: TransitBatchRoutingDemandAttributes;
+              demand: CsvFileAndMapping;
               csvFields: string[];
           }
         | undefined
@@ -38,7 +38,7 @@ const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps> = (p
 
     const onNewAnalysis = (parameters?: {
         parameters: BatchCalculationParameters;
-        demand: TransitBatchRoutingDemandAttributes;
+        demand: CsvFileAndMapping;
         csvFields: string[];
     }) => {
         setInitialValues(parameters);
