@@ -16,6 +16,7 @@ import Users from 'chaire-lib-backend/lib/services/users/users';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import clientEventManager from '../../utils/ClientEventManager';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { FileConfig } from 'transition-common/lib/services/csv';
 
 export type InitialJobData<TData extends JobDataType> = {
     inputFiles?: {
@@ -49,6 +50,40 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             return false;
         }
     }
+
+    /**
+     * Prepare the input file for a job based on the requested file location.
+     * The result of this function can be passed to the `createJob` function as
+     * an input file.
+     *
+     * @param fileLocation The file location configuration, either in the upload
+     * directory or from another job
+     * @param userId The user ID requesting the File
+     * @param importFileName The name of the file to use if the file is from an
+     * upload FIXME this should probably be in the file config already
+     * @returns
+     */
+    static handleJobFile = async (
+        fileLocation: FileConfig | undefined,
+        userId: number,
+        importFileName: string
+    ): Promise<string | { filepath: string; renameTo: string }> => {
+        if (!fileLocation) {
+            throw 'No file data provided for the job file';
+        }
+        if (fileLocation.location === 'upload') {
+            return {
+                filepath: `${directoryManager.userDataDirectory}/${userId}/imports/${importFileName}`,
+                renameTo: fileLocation.filename
+            };
+        } else {
+            const fromJob = await ExecutableJob.loadTask(fileLocation.jobId);
+            if (fromJob.attributes.user_id !== userId) {
+                throw 'Not allowed to get the input file from job';
+            }
+            return fromJob.getFilePath(fileLocation.fileKey);
+        }
+    };
 
     static async loadTask<TData extends JobDataType>(id: number): Promise<ExecutableJob<TData>> {
         const jobAttributes = await jobsDbQueries.read(id);
