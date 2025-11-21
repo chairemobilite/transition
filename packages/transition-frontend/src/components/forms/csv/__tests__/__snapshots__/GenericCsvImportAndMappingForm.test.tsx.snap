@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`GenericCsvImportAndMappingForm rendering Default props 1`] = `
+exports[`GenericCsvImportAndMappingForm rendering No file data 1`] = `
 <div>
   <div
     class="tr__form-section"

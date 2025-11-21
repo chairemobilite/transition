@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { CsvFileMapping } from '../CsvFileMapping';
+import { CsvFileMapper } from '../CsvFileMapper';
 import { CsvFieldMappingDescriptor, CsvFileAndMapping } from '../types';
 import { CsvFileAttributes, parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
 
@@ -12,7 +12,7 @@ import { CsvFileAttributes, parseCsvFile } from 'chaire-lib-common/lib/utils/fil
 jest.mock('chaire-lib-common/lib/utils/files/CsvFile');
 const mockParseCsvFile = parseCsvFile as jest.MockedFunction<typeof parseCsvFile>;
 
-describe('CsvFileMapping', () => {
+describe('CsvFileMapper', () => {
     const mockDescriptors: CsvFieldMappingDescriptor[] = [
         {
             key: 'name',
@@ -73,7 +73,7 @@ describe('CsvFileMapping', () => {
 
     describe('constructor', () => {
         it('should initialize with empty state when no existing mapping provided', () => {
-            const mapping = new CsvFileMapping(mockDescriptors);
+            const mapping = new CsvFileMapper(mockDescriptors);
 
             expect(mapping.getCsvFields()).toEqual([]);
             expect(mapping.getFieldMapping('name')).toBeUndefined();
@@ -81,7 +81,7 @@ describe('CsvFileMapping', () => {
         });
 
         it('should initialize with existing mapping when provided', () => {
-            const mapping = new CsvFileMapping(mockDescriptors, mockExistingMapping);
+            const mapping = new CsvFileMapper(mockDescriptors, mockExistingMapping);
 
             expect(mapping.getCsvFields()).toEqual(mockCsvFields);
             expect(mapping.getFieldMapping('name')).toBe('name_col');
@@ -92,7 +92,7 @@ describe('CsvFileMapping', () => {
 
     describe('setCsvFile', () => {
         it('should set CSV file with upload location', async () => {
-            const mapping = new CsvFileMapping(mockDescriptors);
+            const mapping = new CsvFileMapper(mockDescriptors);
             const mockFile = 'test.csv';
             // Set the csvObjects to simulate CSV file content
             csvObjects = { name_col: 'value', email_col: 'value' };
@@ -109,21 +109,22 @@ describe('CsvFileMapping', () => {
         });
 
         it('should set CSV file with server location', async () => {
-            const mapping = new CsvFileMapping(mockDescriptors);
+            const mapping = new CsvFileMapper(mockDescriptors);
             const mockFile = 'test.csv';
             const jobId = 123;
 
-            const result = await mapping.setCsvFile(mockFile, { location: 'server', fromJob: jobId });
+            const result = await mapping.setCsvFile(mockFile, { location: 'job', jobId, fileKey: 'input' });
 
             expect(result).toEqual(['name_col', 'email_col']);
             expect(mapping.getCurrentFileAndMapping()?.fileAndMapping.csvFile).toEqual({
-                location: 'server',
-                fromJob: jobId
+                location: 'job',
+                jobId,
+                fileKey: 'input'
             });
         });
 
         it('should preserve valid existing mappings and remove invalid ones', async () => {
-            const mapping = new CsvFileMapping(mockDescriptors, mockExistingMapping);
+            const mapping = new CsvFileMapper(mockDescriptors, mockExistingMapping);
             const mockFile = 'new.csv';
             // Set the csvObjects with new columns and some missing from original
             const newCsvContent = { name_col: 'value', time_col: 'value' };
@@ -150,7 +151,7 @@ describe('CsvFileMapping', () => {
                 csvFields: ['name_col', 'time_col']
             };
 
-            const mapping = new CsvFileMapping(mockDescriptors, existingValidMapping);
+            const mapping = new CsvFileMapper(mockDescriptors, existingValidMapping);
             
             // First, trigger validation with no file
             expect(mapping.isValid()).toBe(true);
@@ -168,7 +169,7 @@ describe('CsvFileMapping', () => {
 
     describe('updateFieldMapping', () => {
         it('should update field mapping', () => {
-            const mapping = new CsvFileMapping(mockDescriptors, mockExistingMapping);
+            const mapping = new CsvFileMapper(mockDescriptors, mockExistingMapping);
             expect(mapping.getFieldMapping('name')).toBe('name_col');
             
             mapping.updateFieldMapping('name', 'time_col');
@@ -177,7 +178,7 @@ describe('CsvFileMapping', () => {
         });
 
         it('should reset validation state when updating mapping', () => {
-            const mapping = new CsvFileMapping(mockDescriptors, mockExistingMapping);
+            const mapping = new CsvFileMapper(mockDescriptors, mockExistingMapping);
             
             // Trigger validation
             expect(mapping.isValid()).toBe(false);
@@ -191,13 +192,13 @@ describe('CsvFileMapping', () => {
 
     describe('getFieldMapping', () => {
         it('should return undefined for unmapped field', () => {
-            const mapping = new CsvFileMapping(mockDescriptors);
+            const mapping = new CsvFileMapper(mockDescriptors);
             
             expect(mapping.getFieldMapping('name')).toBeUndefined();
         });
 
         it('should return mapped field', () => {
-            const mapping = new CsvFileMapping(mockDescriptors, mockExistingMapping);
+            const mapping = new CsvFileMapper(mockDescriptors, mockExistingMapping);
             
             expect(mapping.getFieldMapping('name')).toBe('name_col');
         });
@@ -205,14 +206,14 @@ describe('CsvFileMapping', () => {
 
     describe('validation', () => {
         it('should be invalid when no CSV file is set', () => {
-            const mapping = new CsvFileMapping(mockDescriptors);
+            const mapping = new CsvFileMapper(mockDescriptors);
             
             expect(mapping.isValid()).toBe(false);
             expect(mapping.getErrors()).toEqual(['csv:errors:NoFileSelected']);
         });
 
         it('should be invalid when required fields are not mapped', async () => {
-            const mapping = new CsvFileMapping(mockDescriptors);
+            const mapping = new CsvFileMapper(mockDescriptors);
 
             await mapping.setCsvFile('test.csv', { location: 'upload' });
 
@@ -227,7 +228,7 @@ describe('CsvFileMapping', () => {
         });
 
         it('should be invalid when mapped field is not in CSV file', async () => {
-            const mapping = new CsvFileMapping(mockDescriptors);
+            const mapping = new CsvFileMapper(mockDescriptors);
 
             await mapping.setCsvFile('test.csv', { location: 'upload' });
             mapping.updateFieldMapping('name', 'missing_col'); // map to non-existent field
@@ -241,7 +242,7 @@ describe('CsvFileMapping', () => {
         });
 
         it('should be valid when all required fields are properly mapped', async () => {
-            const mapping = new CsvFileMapping(mockDescriptors);
+            const mapping = new CsvFileMapper(mockDescriptors);
             // Set the csvObjects with new columns and some missing from original
             const newCsvContent = { name_col: 'value', time_col: 'value', email_col: 'value' };
             csvObjects = newCsvContent;
@@ -255,7 +256,7 @@ describe('CsvFileMapping', () => {
         });
 
         it('should cache validation results', async () => {
-            const mapping = new CsvFileMapping(mockDescriptors);
+            const mapping = new CsvFileMapper(mockDescriptors);
             // Set the csvObjects with new columns and some missing from original
             const newCsvContent = { name_col: 'value', time_col: 'value', email_col: 'value' };
             csvObjects = newCsvContent;
@@ -279,7 +280,7 @@ describe('CsvFileMapping', () => {
 
     describe('getMappingDescriptors', () => {
         it('should return the mapping descriptors', () => {
-            const mapping = new CsvFileMapping(mockDescriptors);
+            const mapping = new CsvFileMapper(mockDescriptors);
             
             expect(mapping.getMappingDescriptors()).toEqual(mockDescriptors);
         });
@@ -287,13 +288,13 @@ describe('CsvFileMapping', () => {
 
     describe('getCurrentFileAndMapping', () => {
         it('should return undefined when no file is set', () => {
-            const mapping = new CsvFileMapping(mockDescriptors);
+            const mapping = new CsvFileMapper(mockDescriptors);
             
             expect(mapping.getCurrentFileAndMapping()).toBeUndefined();
         });
 
         it('should return current file and mapping when file is set', async () => {
-            const mapping = new CsvFileMapping(mockDescriptors);
+            const mapping = new CsvFileMapper(mockDescriptors);
             const expectedFields = ['name_col', 'email_col'];
 
             await mapping.setCsvFile('test.csv', { location: 'upload' });
@@ -327,7 +328,7 @@ describe('CsvFileMapping', () => {
             const newCsvContent = { name_col: 'value', time_col: 'value', email_col: 'value' };
             csvObjects = newCsvContent;
 
-            const mapping = new CsvFileMapping(mockDescriptorWithMandatoryTime);
+            const mapping = new CsvFileMapper(mockDescriptorWithMandatoryTime);
 
             await mapping.setCsvFile('test.csv', { location: 'upload' });
             expect(mapping.isValid()).toBe(false); // not mapped yet
@@ -376,7 +377,7 @@ describe('CsvFileMapping', () => {
             const newCsvContent = { lat_col: 'value', lon_col: 'value', other_col: 'value' };
             csvObjects = newCsvContent;
 
-            const mapping = new CsvFileMapping(mockDescriptorWithMandatoryGeography);
+            const mapping = new CsvFileMapper(mockDescriptorWithMandatoryGeography);
 
             await mapping.setCsvFile('test.csv', { location: 'upload' });
             expect(mapping.isValid()).toBe(false); // not mapped yet
@@ -443,7 +444,7 @@ describe('CsvFileMapping', () => {
             const newCsvContent = { time_col: 'value', other_col: 'value' };
             csvObjects = newCsvContent;
 
-            const mapping = new CsvFileMapping(mockDescriptorWithTime, mockExistingMapping);
+            const mapping = new CsvFileMapper(mockDescriptorWithTime, mockExistingMapping);
 
             await mapping.setCsvFile('test.csv', { location: 'upload' });
             
@@ -487,7 +488,7 @@ describe('CsvFileMapping', () => {
             const newCsvContent = { lat_col: 'value', lon_col: 'value', other_col: 'value' };
             csvObjects = newCsvContent;
 
-            const mapping = new CsvFileMapping(mockDescriptorWithMandatoryGeography, mockExistingMapping);
+            const mapping = new CsvFileMapper(mockDescriptorWithMandatoryGeography, mockExistingMapping);
 
             await mapping.setCsvFile('test.csv', { location: 'upload' });
             // Mapping should be the same as previous

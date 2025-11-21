@@ -7,15 +7,15 @@
 import _cloneDeep from 'lodash/cloneDeep';
 
 import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
-import { CsvFieldMappingDescriptor, CsvFileAndMapping, CsvFileConfig } from './types';
+import { CsvFieldMappingDescriptor, CsvFileAndMapping, FileConfig } from './types';
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 
-export class CsvFileMapping {
-    protected _csvFields: string[] = [];
-    protected _fieldMappings: { [key: string]: string } = {};
-    protected _csvFile?: CsvFileConfig;
-    protected _isValid: boolean | undefined = undefined;
-    protected _errors: ErrorMessage[] = [];
+export class CsvFileMapper {
+    private _csvFields: string[] = [];
+    private _fieldMappings: { [key: string]: string } = {};
+    private _csvFile?: FileConfig;
+    private _isValid: boolean | undefined = undefined;
+    private _errors: ErrorMessage[] = [];
 
     constructor(
         private mappingDescriptors: CsvFieldMappingDescriptor[],
@@ -140,7 +140,7 @@ export class CsvFileMapping {
 
     async setCsvFile(
         file: string | File | NodeJS.ReadableStream,
-        fileLocation: { location: 'upload' } | { location: 'server'; fromJob: number }
+        fileLocation: FileConfig | { location: 'upload' }
     ): Promise<string[]> {
         // Get the attributes from the file
         let csvFileAttributes: string[] = [];
@@ -157,7 +157,7 @@ export class CsvFileMapping {
             }
         });
 
-        const newFileConfig: CsvFileConfig =
+        const newFileConfig: FileConfig =
             fileLocation.location === 'upload'
                 ? { location: 'upload', filename: typeof file === 'string' ? file : (file as File).name }
                 : fileLocation;
@@ -232,5 +232,9 @@ export class CsvFileMapping {
             },
             csvFields: this._csvFields
         };
+    }
+
+    getFileLocation(): FileConfig | undefined {
+        return this._csvFile;
     }
 }

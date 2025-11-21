@@ -40,15 +40,18 @@ export type CsvFieldMappingDescriptor = {
  * Type for csv file location configuration. `upload` means the file was just
  * uploaded to the server and tasks using it can copy it from there, `filename`
  * is the name of the file uploaded. `server` location means the file is already
- * on the server and belongs to a specific job, identified by `fromJob`.
+ * on the server and belongs to a specific job, identified by `fromJob` and the
+ * `fileKey` to identify the file in the job.
  */
-export type CsvFileConfig = { location: 'upload'; filename: string } | { location: 'server'; fromJob: number };
+export type FileConfig =
+    | { location: 'upload'; filename: string }
+    | { location: 'job'; jobId: number; fileKey: string };
 
 /** Type for csv file and field mapping attributes. This tells the CSV file
  * consumer where to find the file and how to map field to each desired key */
 export type FileAndMappingAttributes = {
     /** The CSV file location and name */
-    csvFile: CsvFileConfig;
+    csvFile: FileConfig;
     /** The key to CSV field mapping */
     fieldMappings: { [key: string]: string };
 };

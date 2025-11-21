@@ -5,4 +5,4 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 export * from './types';
-export * from './CsvFileMapping';
+export * from './CsvFileMapper';

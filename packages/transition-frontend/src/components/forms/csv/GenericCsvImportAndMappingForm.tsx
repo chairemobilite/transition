@@ -14,13 +14,12 @@ import InputFile from 'chaire-lib-frontend/lib/components/input/InputFile';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
-import { CsvFieldMappingDescriptor, CsvFileAndMapping, CsvFileMapping } from 'transition-common/lib/services/csv';
+import { CsvFileMapper } from 'transition-common/lib/services/csv';
 import FieldMappingsSelection from './widgets/FieldMappingsSelection';
 
 interface GenericCsvImportAndMappingFormProps {
-    currentFileAndMapping?: CsvFileAndMapping;
-    mappingDescriptor: CsvFieldMappingDescriptor[];
-    onUpdate: (csvFileMapping: CsvFileAndMapping, isValid: boolean) => void;
+    csvFileMapper: CsvFileMapper;
+    onUpdate: (csvFileMapper: CsvFileMapper, isReadyAndValid: boolean) => void;
     importFileName: string;
 }
 /**
@@ -33,9 +32,6 @@ interface GenericCsvImportAndMappingFormProps {
 const GenericCsvImportAndMappingForm: React.FunctionComponent<GenericCsvImportAndMappingFormProps> = (
     props: GenericCsvImportAndMappingFormProps
 ): any => {
-    const currentCsvFileMapping = React.useRef(
-        new CsvFileMapping(props.mappingDescriptor, props.currentFileAndMapping)
-    );
     const [loading, setLoading] = React.useState(false);
     const [updateCnt, setUpdateCnt] = React.useState(0);
     const [readyToUpload, setReadyToUpload] = React.useState(false);
@@ -43,16 +39,14 @@ const GenericCsvImportAndMappingForm: React.FunctionComponent<GenericCsvImportAn
     const { t } = useTranslation(['transit', 'main']);
     const fileImportRef = React.useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>;
 
-    const isMappingValid = (): boolean => {
+    const isMappingValidAndReady = (): boolean => {
         // current mapping needs to be valid
-        if (!currentCsvFileMapping.current.isValid()) {
+        if (!props.csvFileMapper.isValid()) {
             return false;
         }
+        const fileLocation = props.csvFileMapper.getFileLocation();
         // If the file is not from server, the file needs to be uploaded
-        if (
-            currentCsvFileMapping.current.getCurrentFileAndMapping()?.fileAndMapping.csvFile.location !== 'server' &&
-            uploadStatus.status !== 'completed'
-        ) {
+        if (fileLocation && fileLocation.location !== 'job' && uploadStatus.status !== 'completed') {
             return false;
         }
         return true;
@@ -61,19 +55,22 @@ const GenericCsvImportAndMappingForm: React.FunctionComponent<GenericCsvImportAn
     const onCsvFileChange = async (file: File) => {
         setLoading(true);
         try {
-            await currentCsvFileMapping.current.setCsvFile(file, { location: 'upload' });
+            await props.csvFileMapper.setCsvFile(file, { location: 'upload' });
             resetFileUpload();
-            setReadyToUpload(currentCsvFileMapping.current.isValid());
-            props.onUpdate(currentCsvFileMapping.current.getCurrentFileAndMapping()!, isMappingValid());
+            setReadyToUpload(props.csvFileMapper.isValid());
+            props.onUpdate(props.csvFileMapper!, isMappingValidAndReady());
         } finally {
             setLoading(false);
         }
     };
 
     const onValueChange = (path: string, newValue: { value: unknown; valid?: boolean }): void => {
-        currentCsvFileMapping.current.updateFieldMapping(path, newValue.value as string);
-        setReadyToUpload(currentCsvFileMapping.current.isValid());
-        props.onUpdate(currentCsvFileMapping.current.getCurrentFileAndMapping()!, isMappingValid());
+        props.csvFileMapper.updateFieldMapping(path, newValue.value as string);
+        const fileLocation = props.csvFileMapper.getFileLocation();
+        setReadyToUpload(
+            props.csvFileMapper.isValid() && fileLocation !== undefined && fileLocation.location !== 'job'
+        );
+        props.onUpdate(props.csvFileMapper!, isMappingValidAndReady());
         setUpdateCnt(updateCnt + 1);
     };
 
@@ -92,18 +89,18 @@ const GenericCsvImportAndMappingForm: React.FunctionComponent<GenericCsvImportAn
 
     React.useEffect(() => {
         // Validate on mount
-        props.onUpdate(currentCsvFileMapping.current.getCurrentFileAndMapping()!, isMappingValid());
+        props.onUpdate(props.csvFileMapper, isMappingValidAndReady());
     }, []);
 
     React.useEffect(() => {
-        props.onUpdate(currentCsvFileMapping.current.getCurrentFileAndMapping()!, isMappingValid());
+        props.onUpdate(props.csvFileMapper, isMappingValidAndReady());
         if (uploadStatus.status === 'completed') {
             // Just uploaded, no need to upload it again
             setReadyToUpload(false);
         }
     }, [uploadStatus.status]);
 
-    const csvFileFields = currentCsvFileMapping.current.getCsvFields();
+    const csvFileFields = props.csvFileMapper.getCsvFields();
 
     return (
         <div className="tr__form-section">
@@ -122,16 +119,16 @@ const GenericCsvImportAndMappingForm: React.FunctionComponent<GenericCsvImportAn
             {!loading && csvFileFields.length !== 0 && (
                 <FieldMappingsSelection
                     onValueChange={onValueChange}
-                    mappingDescriptors={props.mappingDescriptor}
+                    mappingDescriptors={props.csvFileMapper.getMappingDescriptors()}
                     currentMappings={
-                        currentCsvFileMapping.current.getCurrentFileAndMapping()?.fileAndMapping.fieldMappings || {}
+                        props.csvFileMapper.getCurrentFileAndMapping()?.fileAndMapping.fieldMappings || {}
                     }
                     csvFields={csvFileFields}
                 />
             )}
             {csvFileFields.length !== 0 && (
                 <React.Fragment>
-                    <FormErrors errors={currentCsvFileMapping.current.getErrors()} />
+                    <FormErrors errors={props.csvFileMapper.getErrors()} />
                     {readyToUpload && (
                         <div className="tr__form-buttons-container">
                             <span title={t('transit:batchCalculation:UploadFile')}>

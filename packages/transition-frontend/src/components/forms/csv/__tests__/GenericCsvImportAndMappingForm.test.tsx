@@ -7,7 +7,7 @@
 import * as React from 'react';
 import { render } from '@testing-library/react';
 import GenericCsvImportAndMappingForm from '../GenericCsvImportAndMappingForm';
-import { CsvFieldMappingDescriptor, CsvFileAndMapping } from 'transition-common/lib/services/csv';
+import { CsvFieldMappingDescriptor, CsvFileAndMapping, CsvFileMapper } from 'transition-common/lib/services/csv';
 
 // Mock the dependencies
 jest.mock('chaire-lib-frontend/lib/components/input/FileUploaderHook', () => ({
@@ -61,10 +61,11 @@ describe('GenericCsvImportAndMappingForm rendering', () => {
         mockOnFileReset.mockClear();
     });
 
-    test('Default props', () => {
+    test('No file data', () => {
+        const fileMapping = new CsvFileMapper(mockMappingDescriptor);
         const { container } = render(
             <GenericCsvImportAndMappingForm
-                mappingDescriptor={mockMappingDescriptor}
+                csvFileMapper={fileMapping}
                 onUpdate={mockOnComplete}
                 importFileName="test_import.csv"
             />
@@ -73,10 +74,10 @@ describe('GenericCsvImportAndMappingForm rendering', () => {
     });
 
     test('With current file and mapping', () => {
+        const fileMapping = new CsvFileMapper(mockMappingDescriptor, mockCsvFileAndMapping);
         const { container } = render(
             <GenericCsvImportAndMappingForm
-                currentFileAndMapping={mockCsvFileAndMapping}
-                mappingDescriptor={mockMappingDescriptor}
+                csvFileMapper={fileMapping}
                 onUpdate={mockOnComplete}
                 importFileName="test_import.csv"
             />
@@ -93,11 +94,11 @@ describe('GenericCsvImportAndMappingForm rendering', () => {
                 type: 'latLon'
             },
         ];
+        const fileMapping = new CsvFileMapper(descriptorWithGeography, mockCsvFileAndMapping);
 
         const { container } = render(
             <GenericCsvImportAndMappingForm
-                currentFileAndMapping={mockCsvFileAndMapping}
-                mappingDescriptor={descriptorWithGeography}
+                csvFileMapper={fileMapping}
                 onUpdate={mockOnComplete}
                 importFileName="test_import.csv"
             />
@@ -114,11 +115,11 @@ describe('GenericCsvImportAndMappingForm rendering', () => {
                 type: 'time'
             },
         ];
+        const fileMapping = new CsvFileMapper(descriptorWithTime, mockCsvFileAndMapping);
 
         const { container } = render(
             <GenericCsvImportAndMappingForm
-                currentFileAndMapping={mockCsvFileAndMapping}
-                mappingDescriptor={descriptorWithTime}
+                csvFileMapper={fileMapping}
                 onUpdate={mockOnComplete}
                 importFileName="test_import.csv"
             />
