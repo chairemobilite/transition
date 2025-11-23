@@ -327,10 +327,10 @@ describe('Batch route from checkpoint', () => {
         const currentCheckpoint = 0;
         job.attributes.internal_data.checkpoint = currentCheckpoint;
         await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
-        expect(checkpointListenerMock).toHaveBeenCalledWith(250);
-        expect(checkpointListenerMock).toHaveBeenCalledWith(500);
-        expect(checkpointListenerMock).toHaveBeenCalledWith(750);
-        expect(checkpointListenerMock).toHaveBeenCalledWith(756);
+        expect(checkpointListenerMock).toHaveBeenCalledWith({ checkpoint: 250 });
+        expect(checkpointListenerMock).toHaveBeenCalledWith({ checkpoint: 500 });
+        expect(checkpointListenerMock).toHaveBeenCalledWith({ checkpoint: 750 });
+        expect(checkpointListenerMock).toHaveBeenCalledWith({ checkpoint: 756 });
     });
 
     test('Checkpoint callback is called after resuming', async () => {
@@ -342,8 +342,8 @@ describe('Batch route from checkpoint', () => {
         const currentCheckpoint = 500;
         job.attributes.internal_data.checkpoint = currentCheckpoint;
         await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
-        expect(checkpointListenerMock).toHaveBeenCalledWith(750);
-        expect(checkpointListenerMock).toHaveBeenCalledWith(756);
+        expect(checkpointListenerMock).toHaveBeenCalledWith({ checkpoint: 750 });
+        expect(checkpointListenerMock).toHaveBeenCalledWith({ checkpoint: 756 });
     });
 
 });
