@@ -17,6 +17,7 @@ import Toolbar from './TransitionToolbar';
 import FullSizePanel from './TransitionFullSizePanel';
 import RightPanel from './TransitionRightPanel';
 import SimulationsPanel from '../forms/simulation/SimulationPanel';
+import TransitNetworkDesignPanel from '../forms/networkDesign/TransitNetworkDesignPanel';
 
 /**
  * Dashboard contribution for the 'supply management' module of Transition: this
@@ -66,6 +67,12 @@ export class DemandManagementDashboardContribution extends DashboardContribution
             placement: 'primarySidebar',
             section: 'simulations',
             create: (props) => <SimulationsPanel {...props}></SimulationsPanel>
+        },
+        {
+            id: 'networkDesignRightPanel',
+            placement: 'primarySidebar',
+            section: 'networkDesign',
+            create: (props) => <TransitNetworkDesignPanel {...props}></TransitNetworkDesignPanel>
         }
     ];
 }
