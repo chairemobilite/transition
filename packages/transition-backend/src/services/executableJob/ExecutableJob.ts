@@ -183,11 +183,18 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
                 ? progressEmitter
                 : clientEventManager.getUserEventEmitter(this.attributes.user_id);
         await this.save();
-        execJob('task', [this.attributes.id], {
-            on: function (payload) {
-                jobProgressEmitter.emit(payload.event, payload.data);
-            }
-        });
+        //TODO TEMPORARY SKIP ENQUEUE CHILD JOB (ONES WITH DEFINED PARENT ID)
+        //WE HAVE NOT YET IMPLEMENT A SYNCHRONISATION/NOTIFICATION MECANISM BETWEEN CHILD AND PARENT
+        //SO FOR NOW THE PARENT WOULD NEED TO RUN THE JOB MANUALLY
+        if (this.attributes.parentJobId === null || this.attributes.parentJobId === undefined) {
+            execJob('task', [this.attributes.id], {
+                on: function (payload) {
+                    jobProgressEmitter.emit(payload.event, payload.data);
+                }
+            });
+        } else {
+            console.warn(`NOT IMPLEMENTED: SKIPPING ENQUEUING CHILD JOB ${this.attributes.id}`);
+        }
     }
     /**
      * Register an output file that will be created by this job
