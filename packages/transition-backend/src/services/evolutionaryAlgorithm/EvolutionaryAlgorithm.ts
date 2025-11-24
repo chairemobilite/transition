@@ -27,19 +27,20 @@ import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollec
 import Service from 'transition-common/lib/services/service/Service';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Generation from './generation/Generation';
+import { EvolutionaryTransitNetworkDesignJobType } from '../networkDesign/transitNetworkDesign/evolutionary/types';
+import { ExecutableJob } from '../executableJob/ExecutableJob';
 
-export const evolutionaryAlgorithmFactory: TransitNetworkDesignAlgorithmFactory<EvolutionaryAlgorithmOptions> = (
-    options: EvolutionaryAlgorithmOptions,
-    simulationRun: SimulationRun
-): EvolutionaryAlgorithm => new EvolutionaryAlgorithm(options, simulationRun);
+export const evolutionaryAlgorithmFactory: TransitNetworkDesignAlgorithmFactory<
+    EvolutionaryTransitNetworkDesignJobType
+> = (executableJob: ExecutableJob<EvolutionaryTransitNetworkDesignJobType>): EvolutionaryAlgorithm =>
+    new EvolutionaryAlgorithm(executableJob);
 
 export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
     private currentIteration = 1;
+    private options: EvolutionaryAlgorithmOptions;
 
-    constructor(
-        private options: EvolutionaryAlgorithmOptions,
-        private simulationRun: SimulationRun
-    ) {
+    constructor(private executableJob: ExecutableJob<EvolutionaryTransitNetworkDesignJobType>) {
+        this.options = this.executableJob.attributes.data.parameters.algorithmConfiguration.config;
         // Nothing to do
     }
 
@@ -74,7 +75,7 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
             nonSimulatedServices,
             simulatedAgencies,
             linesToKeep: linesToKeepParam
-        } = this.simulationRun.attributes.data.transitNetworkDesignParameters;
+        } = this.executableJob.attributes.data.parameters.transitNetworkDesignParameters;
         const linesToKeep = linesToKeepParam || [];
 
         const agencies = simulatedAgencies?.map((agencyId) => collections.agencies.getById(agencyId)) || [];
@@ -98,11 +99,11 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
         const { lineServices, services } = await prepareServices(
             lineCollection,
             collections.services,
-            this.simulationRun
+            this.executableJob
         );
 
-        const cacheDirectoryPath = this.simulationRun.getCacheDirectoryPath();
-        const projectRelativeCacheDirectoryPath = this.simulationRun.getProjectRelativeCacheDirectoryPath();
+        const cacheDirectoryPath = this.executableJob.getCacheDirectoryPath();
+        const projectRelativeCacheDirectoryPath = this.executableJob.getProjectRelativeCacheDirectoryPath();
 
         await serviceCollectionToCache(services, cacheDirectoryPath);
         console.log(`Saved service cache file in ${projectRelativeCacheDirectoryPath}.`);
@@ -133,7 +134,7 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
         socket: EventEmitter,
         collections: { lines: LineCollection; agencies: AgencyCollection; services: ServiceCollection }
     ): Promise<boolean> => {
-        const randomGenerator = this.simulationRun.getRandomGenerator();
+        const randomGenerator = this.executableJob.getRandomGenerator();
         // Get the agencies data
         const { agencies, lineCollection, linesToKeep, lineServices, services, nonSimulatedServices } =
             await this.prepareData(collections);
@@ -142,15 +143,15 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
             [this.options.populationSizeMin, this.options.populationSizeMax],
             randomGenerator
         );
-        this.simulationRun.attributes.options = {
-            ...this.simulationRun.attributes.options,
+        this.executableJob.attributes.options = {
+            ...this.executableJob.attributes.options,
             populationSize: populationSize
         };
         const generationResults: { generations: unknown[] } = { generations: [] };
-        this.simulationRun.attributes.results = generationResults;
+        this.executableJob.attributes.results = generationResults;
 
-        this.simulationRun.setStarted();
-        await this.simulationRun.save(socket);
+        this.executableJob.setStarted();
+        await this.executableJob.save(socket);
 
         const runtimeData = {
             agencies,
@@ -159,7 +160,7 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
             lineCollection,
             services,
             nonSimulatedServices,
-            simulationRun: this.simulationRun,
+            simulationRun: this.executableJob,
             linesToKeep,
             populationSize,
             options: this.options
@@ -168,7 +169,7 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
         let previousGeneration: Generation | undefined = undefined;
         try {
             // Start trRouting instances
-            await this.simulationRun.restartTrRoutingInstances();
+            await this.executableJob.restartTrRoutingInstances();
             while (!this.isFinished()) {
                 candidates =
                     this.currentIteration === 1
@@ -181,16 +182,16 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
                 );
                 await previousGeneration.prepareCandidates(socket);
                 // Reload trRouting cache data
-                await this.simulationRun.reloadTrRoutingData(['scenarios']);
+                await this.executableJob.reloadTrRoutingData(['scenarios']);
                 await previousGeneration.simulate();
                 // TODO For now, we keep the best of each generation, but we should
                 // be smarter about it, knowing that the end of the simulation can
                 // follow various rules, like a number of generation or convergence
                 // of results
                 generationResults.generations.push(previousGeneration.serializeBestResult());
-                this.simulationRun.attributes.results = generationResults;
+                this.executableJob.attributes.results = generationResults;
                 // Await saving simulation to avoid race condition if next generation is very fast
-                await this.simulationRun.save(socket);
+                await this.executableJob.save(socket);
                 this.currentIteration++;
 
                 // Save best scenarios if necessary
@@ -202,18 +203,18 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
                     const scenarioIds = (await Promise.all(scenarioSavePromises)).filter(
                         (scenarioId) => scenarioId !== undefined
                     ) as string[];
-                    await this.simulationRun.saveSimulationScenarios(scenarioIds);
+                    await this.executableJob.saveSimulationScenarios(scenarioIds);
                 }
             }
         } finally {
-            this.simulationRun.stopTrRoutingInstances();
+            this.executableJob.stopTrRoutingInstances();
         }
         if (!previousGeneration) {
             throw new TrError('Evolutionary Algorithm: no generation was done!', 'ALGOGEN001');
         }
 
-        this.simulationRun.setCompleted();
-        await this.simulationRun.save(socket);
+        this.executableJob.setCompleted();
+        await this.executableJob.save(socket);
 
         return true;
     };

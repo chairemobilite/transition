@@ -51,7 +51,10 @@ class EvolutionaryTransitNetworkDesignJobExecutor {
         try {
             // Prepare the data: copy the main cache
 
-            // const algorithm = evolutionaryAlgorithmFactory(this.job.attributes.data.parameters.algorithmConfiguration.config, this.job);
+            const algorithm = evolutionaryAlgorithmFactory(
+                this.job.attributes.data.parameters.algorithmConfiguration.config,
+                this.job
+            );
             return {
                 status: 'success',
                 warnings: [],
