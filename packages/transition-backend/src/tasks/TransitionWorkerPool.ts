@@ -18,6 +18,8 @@ import { BatchAccessMapJobType } from '../services/transitRouting/BatchAccessibi
 import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { EvolutionaryTransitNetworkDesignJob } from '../services/networkDesign/transitNetworkDesign/evolutionary/types';
+import { runEvolutionaryTransitNetworkDesignJob } from '../services/networkDesign/transitNetworkDesign/evolutionary/EvolutionaryTransitNetworkDesignJob';
 
 function newProgressEmitter(task: ExecutableJob<JobDataType>) {
     const eventEmitter = new EventEmitter();
@@ -120,6 +122,22 @@ const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>): P
     return result.completed;
 };
 
+const wrapEvolutionaryTransitNetworkDesign = async (task: EvolutionaryTransitNetworkDesignJob): Promise<boolean> => {
+    // TODO Validate input files like other tasks
+    const { errors, warnings, status } = await runEvolutionaryTransitNetworkDesignJob(task, {
+        progressEmitter: newProgressEmitter(task),
+        isCancelled: getTaskCancelledFct(task)
+    });
+    // TODO Handle results here
+    if (errors.length > 0 || warnings.length > 0) {
+        task.attributes.statusMessages = {
+            errors: errors,
+            warnings: warnings
+        };
+    }
+    return status === 'success';
+};
+
 // Exported for unit tests
 export const wrapTaskExecution = async (id: number) => {
     // Load task from database and execute only if it is pending, or resume tasks in progress
@@ -152,6 +170,11 @@ export const wrapTaskExecution = async (id: number) => {
             break;
         case 'batchAccessMap':
             taskResultStatus = await wrapBatchAccessMap(task as ExecutableJob<BatchAccessMapJobType>);
+            break;
+        case 'evolutionaryTransitNetworkDesign':
+            taskResultStatus = await wrapEvolutionaryTransitNetworkDesign(
+                    task as EvolutionaryTransitNetworkDesignJob
+            );
             break;
         default:
             console.log(`Unknown task ${task.attributes.name}`);
