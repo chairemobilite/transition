@@ -19,6 +19,9 @@ import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection'
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import config from 'chaire-lib-backend/lib/config/server.config';
 import { AlgorithmType } from 'transition-common/lib/services/networkDesign/transit/algorithm';
+import { EvolutionaryTransitNetworkDesignJobType } from '../networkDesign/transitNetworkDesign/evolutionary/types';
+import { ExecutableJob } from '../executableJob/ExecutableJob';
+import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 
 /**
  * A factory to create a simulation algorithm object with the given parameters.
@@ -26,9 +29,8 @@ import { AlgorithmType } from 'transition-common/lib/services/networkDesign/tran
  * @export
  * @interface TransitNetworkDesignAlgorithm
  */
-export type TransitNetworkDesignAlgorithmFactory<T> = (
-    options: T,
-    simulationRun: SimulationRun
+export type TransitNetworkDesignAlgorithmFactory<T extends JobDataType> = (
+    simulationRun: ExecutableJob<T>
 ) => TransitNetworkDesignAlgorithm;
 
 // Predefined algorithm factories
@@ -146,7 +148,7 @@ export const runSimulation = async (simulationRun: SimulationRun, socket: EventE
     }
 
     const { agencies, lines, services } = await loadServerData(socket);
-    const algorithm = factory(simulationRun.attributes.data.algorithmConfiguration.config, simulationRun);
+    /*const algorithm = factory(simulationRun.attributes.data.algorithmConfiguration.config, simulationRun);
     try {
         prepareCacheDirectory(simulationRun);
         await algorithm.run(socket, { agencies, lines, services });
@@ -158,7 +160,7 @@ export const runSimulation = async (simulationRun: SimulationRun, socket: EventE
     } finally {
         // Cleanup cache data
         await cleanupCacheData(simulationRun);
-    }
+    }*/
 
     return true;
 };

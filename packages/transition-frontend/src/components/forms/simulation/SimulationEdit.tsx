@@ -19,8 +19,8 @@ import BaseSimulationComponent from './widgets/BaseSimulationComponent';
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
-import TransitNetworkDesignParametersComponent from './widgets/TransitNetworkDesignParametersComponent';
-import AlgorithmComponent from './widgets/TransitNetworkDesignAlgorithmComponent';
+import TransitNetworkDesignParametersComponent from '../networkDesign/widgets/TransitNetworkDesignParametersComponent';
+import AlgorithmComponent from '../networkDesign/widgets/TransitNetworkDesignAlgorithmComponent';
 import SimulationRunList from './widgets/SimulationRunList';
 
 interface SimulationFormProps extends WithTranslation {
@@ -111,7 +111,6 @@ class SimulationEdit extends SaveableObjectForm<Simulation, SimulationFormProps,
                                 this.onValueChange(`data.algorithmConfiguration.${path}`, value)
                             }
                             algorithmConfig={simulation.attributes.data.algorithmConfiguration}
-                            simulation={simulation}
                         />
                     </div>
                     <h4>{this.props.t('transit:simulation:routingParameters')}</h4>

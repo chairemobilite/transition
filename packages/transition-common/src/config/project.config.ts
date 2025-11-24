@@ -55,6 +55,11 @@ const defaultSectionsConfig = {
         iconWhite: '/dist/images/icons/interface/od_routing_white.svg',
         iconBlack: '/dist/images/icons/interface/od_routing_black.svg'
     },
+    networkDesign: {
+        localizedTitle: 'transit:networkDesign:NetworkDesign',
+        icon: '/dist/images/icons/interface/networkDesign_white.svg',
+        enabled: false // Disabled by default until everything is well documented and functional
+    },
     simulations: {
         localizedTitle: 'transit:simulation:Simulations',
         iconWhite: '/dist/images/icons/interface/simulation_white.svg',
