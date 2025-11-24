@@ -673,7 +673,7 @@
             "DataError": "Les données en cache pour la calculateur de chemin sont invalides. Essayez de sauvegarder les données à nouveau. Si le problème persiste, contactez les administrateurs.",
             "ErrorForMode": "Le calcul de chemin pour le mode '{{mode}}' a échoué. Aucun résultat n'a été retourné.",
             "TransitBatchRouteCannotBeCalculatedBecauseError": "Une erreur s'est produite lors des calculs multiples. Veuillez vérifier le fichier d'entrée et les paramètres et ré-essayer. Si le problème persiste, contactez les administrateurs.",
-            "InvalidDepartureOrArrivalTime": "Le temps de départ ou d'arrivée est invalide", 
+            "InvalidDepartureOrArrivalTime": "Le temps de départ ou d'arrivée est invalide",
             "InvalidOriginDestinationCoordinates": "Les coordonnées d'origine et de destination sont invalides",
             "InvalidOriginCoordinates": "Les coordonnées de l'origine sont invalides",
             "InvalidDestinationCoordinates": "Les coordonnées de la destination sont invalides",
@@ -836,6 +836,20 @@
             "ErrorImportingServices": "Une erreur s'est produite lors de l'import des services à partir du GTFS. Les services n'ont peut-être pas tous été importés.",
             "ErrorExportingGtfs": "Une erreur s'est produite lors de la génération de l'archive GTFS."
         }
+    },
+    "networkDesign": {
+        "NetworkDesign": "Conception de réseau",
+        "SimulationMethod": "Méthode de simulation",
+        "List": "Conception de réseau de transport collectif",
+        "New": "Nouvelle conception de réseau",
+        "ReplayJob": "Nouvelle conception de réseau à partir de celle-ci",
+        "ConfigureNetworkParameters": "Configurer les paramètres du réseau à concevoir",
+        "ConfigureAlgorithm": "Configurer l'algorithme de conception de réseau",
+        "ConfigureSimulationMethod": "Configurer la méthode de simulation",
+        "ConfirmJob": "Exécuter la conception de réseau",
+        "AlgorithmConfiguration": "Configuration de l'algorithme",
+        "Algorithm": "Algorithme sélectionné",
+        "NetworkDesignParameters": "Paramètres du réseau à concevoir"
     },
     "simulation": {
         "Simulation": "Simulation",
