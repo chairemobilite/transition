@@ -842,6 +842,20 @@
             "ErrorExportingGtfs": "An error occurred while generating the GTFS file."
         }
     },
+    "networkDesign": {
+        "NetworkDesign": "Network design",
+        "SimulationMethod": "Simulation method",
+        "List": "Transit Network Design",
+        "New": "New Network Design",
+        "ReplayJob": "New network design from this one",
+        "ConfigureNetworkParameters": "Configure parameters for network to design",
+        "ConfigureAlgorithm": "Configure network design algorithm",
+        "ConfigureSimulationMethod": "Configure simulation method",
+        "ConfirmJob": "Execute network design",
+        "AlgorithmConfiguration": "Network design algorithm configuration",
+        "Algorithm": "Selected algorithm",
+        "NetworkDesignParameters": "Network to design parameters"
+    },
     "simulation": {
         "Simulation": "Simulation",
         "Simulations": "Simulations",
