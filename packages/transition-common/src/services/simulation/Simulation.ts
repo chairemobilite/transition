@@ -128,7 +128,9 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
                     // TODO Add a method to set the type of the algorithm and initialize the data
                     const options = algorithmDescriptor.getOptions();
                     if (algoConfig.config === undefined) {
-                        algoConfig.config = {};
+                        // FIXME: Temporary any to avoid typing issues, but this
+                        // whole class will be replaced by an ExecutableJob
+                        algoConfig.config = {} as any;
                     }
                     const erroneousFields = Object.keys(options).filter(
                         (option) =>
