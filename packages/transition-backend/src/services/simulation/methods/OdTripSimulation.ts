@@ -6,10 +6,7 @@
  */
 import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
 import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
-import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { TrRoutingError } from 'chaire-lib-common/lib/api/TrRouting';
 import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
 import {
     OdTripSimulationDescriptor,
@@ -58,33 +55,15 @@ export default class OdTripSimulation implements SimulationMethod {
         private simulationDataAttributes: SimulationRunDataAttributes
     ) {
         this.fitnessFunction =
-            Preferences.current.simulations.geneticAlgorithms.fitnessFunctions[options.fitnessFunction];
+            Preferences.current.simulations.geneticAlgorithms.fitnessFunctions[
+                options.evaluationOptions.fitnessFunction
+            ];
         this.odTripFitnessFunction =
-            Preferences.current.simulations.geneticAlgorithms.odTripFitnessFunctions[options.odTripFitnessFunction];
+            Preferences.current.simulations.geneticAlgorithms.odTripFitnessFunctions[
+                options.evaluationOptions.odTripFitnessFunction
+            ];
         this.nonRoutableOdTripFitnessFunction =
             Preferences.current.simulations.geneticAlgorithms.nonRoutableOdTripFitnessFunctions['taxi'];
-    }
-
-    private generateQuery(transitRoutingParameters: TransitRoutingBaseAttributes): string[] {
-        // TODO The route function should receive an object instead of a query string
-        const trRoutingQueryArray = [
-            'od_trips=1',
-            `min_waiting_time_seconds=${transitRoutingParameters.minWaitingTimeSeconds || 180}`,
-            `max_access_travel_time_seconds=${transitRoutingParameters.maxAccessEgressTravelTimeSeconds || 900}`,
-            `max_egress_travel_time_seconds=${transitRoutingParameters.maxAccessEgressTravelTimeSeconds || 900}`,
-            `max_transfer_travel_time_seconds=${transitRoutingParameters.maxTransferTravelTimeSeconds || 900}`,
-            `max_travel_time_seconds=${transitRoutingParameters.maxTotalTravelTimeSeconds || 10800}`,
-            `od_trips_periods=${8 * 60 * 60},${9 * 60 * 60}`,
-            `data_source_uuid=${this.options.dataSourceId}`,
-            'debug=0'
-        ];
-
-        const sampleRatio = this.options.sampleRatio;
-        if (sampleRatio > 0.0 && sampleRatio <= 1.0) {
-            trRoutingQueryArray.push(`od_trips_sample_ratio=${sampleRatio}`);
-        }
-
-        return trRoutingQueryArray;
     }
 
     private async processResults(results: any): Promise<OdTripSimulationResults> {
@@ -176,9 +155,34 @@ export default class OdTripSimulation implements SimulationMethod {
     }
 
     async simulate(
-        scenarioId: string,
-        options: { trRoutingPort: number; transitRoutingParameters: TransitRoutingBaseAttributes }
+        _scenarioId: string,
+        _options: { trRoutingPort: number; transitRoutingParameters: TransitRoutingBaseAttributes }
     ): Promise<{ fitness: number; results: OdTripSimulationResults }> {
+        // FIXME Temporarily disable this simulation method. We will create a
+        // Job of type `batchRoute` with the demand file (in issue
+        // https://github.com/chairemobilite/transition/issues/1533). But we
+        // need a way to wait for it.  Need to fix:
+        // https://github.com/chairemobilite/transition/issues/1542,
+        // https://github.com/chairemobilite/transition/issues/1545,
+        // https://github.com/chairemobilite/transition/issues/1541 and probably
+        // start work on
+        // https://github.com/chairemobilite/transition/issues/1397 first.
+        const fitness = 0;
+        const results = await this.processResults({ totalTravelTimeSeconds: 0, odTrips: [] });
+
+        // Step 1: Create the input file for the batch routing job as a random sample of the original demand file (from the currently running job)
+
+        // Step 2: Prepare the parameters for the job
+
+        // Step 3: Create and enqueue the batchRoute job
+
+        // Step 4: Need to return context to parent job so it can wait for the batch job to finish and get the results
+
+        // ...
+
+        // Step 5: Process the results when the batch job is finished
+
+        /*
         const queryArray = this.generateQuery(options.transitRoutingParameters);
         queryArray.push(`scenario_uuid=${scenarioId}`);
 
@@ -197,7 +201,7 @@ export default class OdTripSimulation implements SimulationMethod {
         const stats = await this.processResults(result);
 
         const fitness = this.fitnessFunction(stats);
-
-        return { fitness, results: stats };
+        */
+        return { fitness, results };
     }
 }
