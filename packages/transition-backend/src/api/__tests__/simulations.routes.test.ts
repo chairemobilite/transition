@@ -63,7 +63,8 @@ const simulationAttributes1 = {
         algorithmConfiguration: {
             // Using 'test' as mock algorithm type, cast to any for test to work
             type: 'test' as any,
-            config: {}
+            // Casting as any to avoid having to provide all options for the test algorithm, which are not relevant for these tests, these routes will be removed with the new evolutionary algorithm architecture
+            config: {} as any
         }
     },
     isEnabled: true

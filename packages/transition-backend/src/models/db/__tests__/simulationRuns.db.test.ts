@@ -27,12 +27,18 @@ const simulationAttributes = {
             maxTotalTravelTimeSeconds: 1000
         },
         transitNetworkDesignParameters: {
-            maxTimeBetweenPassages: 15,
-            nbOfVehicles: 9
+            maxTimeBetweenPassages: 30,
+            nbOfVehicles: 7,
+            simulatedAgencies: ['arbitrary'],
+            numberOfLinesMin: 3,
+            numberOfLinesMax: 4,
+            minTimeBetweenPassages: 10,
+            nonSimulatedServices: [],
+            linesToKeep: []
         },
         algorithmConfiguration: {
             type: 'test' as any,
-            config: {}
+            config: {} as any
         }
     },
     isEnabled: true

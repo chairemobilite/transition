@@ -209,7 +209,11 @@ describe('Test with a single line', () => {
                     crossoverProbability: 0.3,
                     mutationProbability: 0.5,
                     tournamentSize: 2,
-                    tournamentProbability: 0.6
+                    tournamentProbability: 0.6,
+                    numberOfGenerations: 3,
+                    shuffleGenes: true,
+                    keepGenerations: 1,
+                    keepCandidates: 1
                 }
             }
         },
