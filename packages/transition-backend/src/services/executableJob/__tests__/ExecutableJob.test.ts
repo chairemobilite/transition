@@ -258,9 +258,20 @@ test('Test enqueue', async () => {
     // FIXME The type of execJob may be wrong, the return value now does not matter now, but may eventually. This should not be typed to any.
     mockedPool.mockResolvedValueOnce(5 as any);
     await jobObj.enqueue(progressEmitter);
-    
+
     expect(mockedPool).toHaveBeenCalledTimes(1);
     expect(mockedPool).toHaveBeenCalledWith('task', [jobAttributes.id], expect.anything());
+});
+
+test('Test enqueue child job TEMPORARY DO NOTHING ', async () => {
+    //TODO THIS TEST SHOULD BE REMOVED ONCE WE CAN ENQUEUE CHILD
+    mockedJobRead.mockResolvedValueOnce(Object.assign({}, jobAttributes, { parentJobId:2 }));
+    const jobObj = await ExecutableJob.loadTask(jobAttributes.id);
+    // FIXME The type of execJob may be wrong, the return value now does not matter now, but may eventually. This should not be typed to any.
+    mockedPool.mockResolvedValueOnce(5 as any);
+    await jobObj.enqueue(progressEmitter);
+
+    expect(mockedPool).toHaveBeenCalledTimes(0);
 });
 
 test('Test refresh', async () => {
