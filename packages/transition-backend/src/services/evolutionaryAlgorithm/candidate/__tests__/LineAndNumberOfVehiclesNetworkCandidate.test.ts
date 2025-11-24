@@ -76,7 +76,10 @@ const simulationRun = new SimulationRun({
                 mutationProbability: 0.5,
                 tournamentSize: 2,
                 tournamentProbability: 0.6,
-                shuffleGenes: false
+                numberOfGenerations: 3,
+                shuffleGenes: false,
+                keepGenerations: 1,
+                keepCandidates: 1
             }
         }
     },

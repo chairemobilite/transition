@@ -97,7 +97,7 @@ beforeAll(async () => {
     await simulationDbQueries.create({
         id: simulationId,
         data: {
-            transitNetworkDesignParameters: {},
+            transitNetworkDesignParameters: {} as any, // Casting as `any` to avoid having to define all parameters, simulations will be removed shortly anyway
             routingAttributes: {}
         }
     });

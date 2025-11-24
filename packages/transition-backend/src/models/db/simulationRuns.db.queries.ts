@@ -26,6 +26,7 @@ import {
     SimulationRuntimeOptions
 } from 'transition-common/lib/services/simulation/SimulationRun';
 import scenarioDbQueries from './transitScenarios.db.queries';
+import { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 
 const tableName = 'tr_simulation_runs';
 const runToScenarioTableName = 'tr_simulation_run_scenario';
@@ -77,8 +78,8 @@ const attributesParser = ({
                 transitNetworkDesignParameters === undefined &&
                 simulationParameters !== undefined &&
                 simulationParameters !== null
-                    ? simulationParameters
-                    : transitNetworkDesignParameters
+                    ? (simulationParameters as TransitNetworkDesignParameters)
+                    : (transitNetworkDesignParameters as TransitNetworkDesignParameters)
         },
         ...rest
     };
