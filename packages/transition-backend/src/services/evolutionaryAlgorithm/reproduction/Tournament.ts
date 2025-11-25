@@ -4,10 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import random from 'random';
 import { sampleSizeWithOptionalSeed } from 'chaire-lib-common/lib/utils/RandomUtils';
 import NetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
 import { sequentialArray } from 'chaire-lib-common/lib/utils/MathUtils';
-import * as AlgoTypes from '../internalTypes';
+import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
 
 /**
  * Implementation of the tournament selection algorithm for genetic algorithm:
@@ -15,7 +16,7 @@ import * as AlgoTypes from '../internalTypes';
  */
 class Tournament {
     constructor(
-        private options: AlgoTypes.RuntimeAlgorithmData,
+        private options: EvolutionaryAlgorithmOptions,
         private candidates: NetworkCandidate[]
     ) {
         // Nothing to do
@@ -30,8 +31,7 @@ class Tournament {
         // Candidates are already sorted by fitness, we just get indexes and re-sort by fitness
         const tournamentCandidates = sampleSizeWithOptionalSeed(
             validCandidateIdx,
-            this.options.options.tournamentSize,
-            this.options.randomGenerator
+            this.options.tournamentSize
         );
 
         // Sort selected candidates by index, as those with lower index have the best fitness
@@ -45,14 +45,14 @@ class Tournament {
          * choose the third best individual with probability p*((1-p)^2)
          * and so on
          */
-        const probability = this.options.options.tournamentProbability;
+        const probability = this.options.tournamentProbability;
 
         let currentProbability = probability;
-        let random = this.options.randomGenerator.float(0, 1);
+        let randomValue = random.float(0, 1);
         let i = 0;
-        while (random >= currentProbability) {
-            i = (i + 1) % this.options.options.tournamentSize;
-            random = this.options.randomGenerator.float(0, 1);
+        while (randomValue >= currentProbability) {
+            i = (i + 1) % this.options.tournamentSize;
+            randomValue = random.float(0, 1);
             currentProbability = probability * Math.pow(1 - probability, i);
         }
         return tournamentCandidates[i];
