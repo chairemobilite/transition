@@ -30,7 +30,7 @@ jest.mock('chaire-lib-backend/lib/utils/osrm/OSRMService', () => {
         tableFrom: jest.fn(),
         tableTo: jest.fn(),
         match: jest.fn()
-    }
+    };
 });
 const mockedRoute = osrmService.route as jest.MockedFunction<typeof osrmService.route>;
 const mockedTableFrom = osrmService.tableFrom as jest.MockedFunction<typeof osrmService.tableFrom>;
@@ -44,7 +44,7 @@ jest.mock('chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager'
         stop: jest.fn(),
         restart: jest.fn(),
         status: jest.fn()
-    }
+    };
 });
 const mockedStop = trRoutingProcessManager.stop as jest.MockedFunction<typeof trRoutingProcessManager.stop>;
 const mockedRestart = trRoutingProcessManager.restart as jest.MockedFunction<typeof trRoutingProcessManager.restart>;
@@ -53,7 +53,7 @@ const mockedStatus = trRoutingProcessManager.status as jest.MockedFunction<typeo
 jest.mock('../../models/db/jobs.db.queries', () => {
     return {
         create: jest.fn().mockResolvedValue(1)
-    }
+    };
 });
 const mockedJobCreate = jobsDbQueries.create as jest.MockedFunction<typeof jobsDbQueries.create>;
 
@@ -61,7 +61,7 @@ jest.mock('../../services/accessibilityMap/TransitAccessibilityMapCalculator', (
     TransitAccessibilityMapCalculator: {
         calculateWithPolygons: jest.fn()
     }
-}))
+}));
 const mockedCalculateMapWithPolygon = TransitAccessibilityMapCalculator.calculateWithPolygons as jest.MockedFunction<typeof TransitAccessibilityMapCalculator.calculateWithPolygons>;
 
 const mockedEnqueue = ExecutableJob.prototype.enqueue = jest.fn().mockResolvedValue(true);
@@ -97,7 +97,7 @@ describe('osrm service routes', () => {
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
         mockedRoute.mockRejectedValueOnce(error);
-        socketStub.emit('service.osrmRouting.route', routeParameters, function (status) {
+        socketStub.emit('service.osrmRouting.route', routeParameters, (status) => {
             expect(mockedRoute).toHaveBeenCalledWith(routeParameters);
             expect(!Status.isStatusOk(status)).toBe(true);
             expect(Status.isStatusError(status)).toBe(true);
@@ -125,7 +125,7 @@ describe('osrm service routes', () => {
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
         mockedMatch.mockRejectedValueOnce(error);
-        socketStub.emit('service.osrmRouting.match', routeParameters, function (status) {
+        socketStub.emit('service.osrmRouting.match', routeParameters, (status) => {
             expect(mockedMatch).toHaveBeenCalledWith(routeParameters);
             expect(!Status.isStatusOk(status)).toBe(true);
             expect(Status.isStatusError(status)).toBe(true);
@@ -157,7 +157,7 @@ describe('trRouting process manager routes', () => {
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
         mockedStop.mockRejectedValueOnce(error);
-        socketStub.emit('service.trRouting.stop', trRoutingParameters, function (status) {
+        socketStub.emit('service.trRouting.stop', trRoutingParameters, (status) => {
             expect(mockedStop).toHaveBeenCalledWith(trRoutingParameters);
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual(message);
@@ -181,7 +181,7 @@ describe('trRouting process manager routes', () => {
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
         mockedRestart.mockRejectedValueOnce(error);
-        socketStub.emit('service.trRouting.restart', trRoutingParameters, function (status) {
+        socketStub.emit('service.trRouting.restart', trRoutingParameters, (status) => {
             expect(mockedRestart).toHaveBeenCalledWith(trRoutingParameters);
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual(message);
@@ -209,7 +209,7 @@ describe('trRouting process manager routes', () => {
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
         mockedStatus.mockRejectedValueOnce(error);
-        socketStub.emit('service.trRouting.status', trRoutingParameters, function (status) {
+        socketStub.emit('service.trRouting.status', trRoutingParameters, (status) => {
             expect(mockedStatus).toHaveBeenCalledWith(trRoutingParameters);
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual(message);
@@ -260,7 +260,7 @@ describe('trRouting routes', () => {
                 }
             }));
             expect(mockedEnqueue).toHaveBeenCalledTimes(1);
-            expect(mockedRefresh).toHaveBeenCalledTimes(1);  
+            expect(mockedRefresh).toHaveBeenCalledTimes(1);
             done();
         });
     });
@@ -305,7 +305,7 @@ describe('trRouting routes', () => {
         const error = new TrError(message, code, localizedMessage);
         mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: 100 });
         mockedEnqueue.mockRejectedValueOnce(error);
-        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, function (status) {
+        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, (status) => {
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual(message);
             expect(mockedJobCreate).toHaveBeenCalledTimes(1);
@@ -326,7 +326,7 @@ describe('trRouting routes', () => {
 
     test('Batch route, not enough space on disk', (done) => {
         mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: 0 });
-        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, function (status) {
+        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, (status) => {
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual('UserDiskQuotaReached');
             expect(mockedJobCreate).not.toHaveBeenCalled();
@@ -365,7 +365,7 @@ describe('trRouting routes', () => {
         const error = new TrError(message, code, localizedMessage);
         mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: 100 });
         mockedEnqueue.mockRejectedValueOnce(error);
-        socketStub.emit(TrRoutingConstants.BATCH_ACCESS_MAP, batchAccessMapParameters, transitAttributes, function (status) {
+        socketStub.emit(TrRoutingConstants.BATCH_ACCESS_MAP, batchAccessMapParameters, transitAttributes, (status) => {
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual(message);
             expect(mockedJobCreate).toHaveBeenCalledTimes(1);
@@ -386,7 +386,7 @@ describe('trRouting routes', () => {
 
     test('Batch route, not enough space on disk', (done) => {
         mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: 0 });
-        socketStub.emit(TrRoutingConstants.BATCH_ACCESS_MAP, batchAccessMapParameters, transitAttributes, function (status) {
+        socketStub.emit(TrRoutingConstants.BATCH_ACCESS_MAP, batchAccessMapParameters, transitAttributes, (status) => {
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual('UserDiskQuotaReached');
             expect(mockedJobCreate).not.toHaveBeenCalled();
@@ -416,7 +416,7 @@ describe('accessibility map calculation routes', () => {
     const options = {
         port: 4000,
         additionalProperties: { foo: 'bar' }
-    }
+    };
 
     test('Accessibility map correct', (done) => {
         const results = {
@@ -439,7 +439,7 @@ describe('accessibility map calculation routes', () => {
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
         mockedCalculateMapWithPolygon.mockRejectedValueOnce(error);
-        socketStub.emit('accessibiliyMap.calculateWithPolygons', accessibilytMapCalculationAttributes, options, function (status) {
+        socketStub.emit('accessibiliyMap.calculateWithPolygons', accessibilytMapCalculationAttributes, options, (status) => {
             expect(mockedCalculateMapWithPolygon).toHaveBeenCalledWith(accessibilytMapCalculationAttributes, options);
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual(message);

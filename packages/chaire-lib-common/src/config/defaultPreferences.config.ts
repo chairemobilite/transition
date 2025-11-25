@@ -397,6 +397,20 @@ const defaultPreferences: PreferencesModel = {
             }
         }
     },
+    // maxAccessibilityWeightsBirdDistancesMeters should be >= maxAccessibilityWeightsNetworkDistancesMeters
+    // because it is used as a first step to filter out POIs that are too far away.
+    maxAccessibilityWeightsBirdDistancesMeters: {
+        walking: 2500 // ~30 minutes at 5 km/h
+        // more modes could be added later on.
+    },
+    maxAccessibilityWeightsNetworkDistancesMeters: {
+        walking: 2500 // Maximum network distance in meters for node weight calculations
+        // more modes could be added later on.
+    },
+    maxAccessibilityWeightsTravelTimeSeconds: {
+        walking: 1800 // ~30 minutes maximum travel time for node weight calculations
+        // more modes could be added later on.
+    },
     proj4Projections: {
         [String(constants.geographicCoordinateSystem.srid)]: constants.geographicCoordinateSystem,
         '2950': {
