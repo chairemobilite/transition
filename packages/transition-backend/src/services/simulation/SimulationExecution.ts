@@ -22,6 +22,8 @@ import { AlgorithmType } from 'transition-common/lib/services/networkDesign/tran
 import { EvolutionaryTransitNetworkDesignJobType } from '../networkDesign/transitNetworkDesign/evolutionary/types';
 import { ExecutableJob } from '../executableJob/ExecutableJob';
 import { JobDataType } from 'transition-common/lib/services/jobs/Job';
+import { TransitNetworkDesignJobWrapper } from '../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import { TransitNetworkDesignJobType } from '../networkDesign/transitNetworkDesign/types';
 
 /**
  * A factory to create a simulation algorithm object with the given parameters.
@@ -29,8 +31,8 @@ import { JobDataType } from 'transition-common/lib/services/jobs/Job';
  * @export
  * @interface TransitNetworkDesignAlgorithm
  */
-export type TransitNetworkDesignAlgorithmFactory<T extends JobDataType> = (
-    simulationRun: ExecutableJob<T>
+export type TransitNetworkDesignAlgorithmFactory<T extends TransitNetworkDesignJobType> = (
+    jobWrapper: TransitNetworkDesignJobWrapper<T>
 ) => TransitNetworkDesignAlgorithm;
 
 // Predefined algorithm factories
@@ -42,87 +44,6 @@ export const getAlgorithmFactory = <T extends AlgorithmType>(
     algorithmType: T
 ): TransitNetworkDesignAlgorithmFactory<any> => {
     return ALGORITHMS_FACTORY[algorithmType];
-};
-
-const loadServerData = async (
-    socket: EventEmitter
-): Promise<{ lines: LineCollection; agencies: AgencyCollection; services: ServiceCollection }> => {
-    const collectionManager = new CollectionManager(undefined);
-    const lines = new LineCollection([], {});
-    const agencies = new AgencyCollection([], {});
-    const services = new ServiceCollection([], {});
-    const paths = new PathCollection([], {});
-    const nodes = new NodeCollection([], {});
-    await paths.loadFromServer(socket);
-    collectionManager.add('paths', paths);
-    await nodes.loadFromServer(socket);
-    collectionManager.add('nodes', nodes);
-    await lines.loadFromServer(socket, collectionManager);
-    collectionManager.add('lines', lines);
-    await agencies.loadFromServer(socket, collectionManager);
-    collectionManager.add('agencies', agencies);
-    await services.loadFromServer(socket, collectionManager);
-    collectionManager.add('services', services);
-    return { lines, agencies, services };
-};
-
-const prepareCacheDirectory = function (simulationRun: SimulationRun) {
-    const projectRelativeCacheDirectoryPath = simulationRun.getProjectRelativeCacheDirectoryPath();
-
-    // TODO: make sure we copy every files, even new files like stations and stops.
-
-    console.log('Preparing and copying cache files...');
-    fileManager.directoryManager.copyDirectory(
-        `cache/${config.projectShortname}/dataSources`,
-        `${projectRelativeCacheDirectoryPath}/datasources`,
-        true
-    );
-    fileManager.directoryManager.copyDirectory(
-        `cache/${config.projectShortname}/nodes`,
-        `${projectRelativeCacheDirectoryPath}/nodes`,
-        true
-    );
-    fileManager.directoryManager.copyDirectory(
-        `cache/${config.projectShortname}/lines`,
-        `${projectRelativeCacheDirectoryPath}/lines`,
-        true
-    );
-    fileManager.copyFile(
-        `cache/${config.projectShortname}/dataSources.capnpbin`,
-        `${projectRelativeCacheDirectoryPath}/dataSources.capnpbin`,
-        true
-    );
-    fileManager.copyFile(
-        `cache/${config.projectShortname}/agencies.capnpbin`,
-        `${projectRelativeCacheDirectoryPath}/agencies.capnpbin`,
-        true
-    );
-    fileManager.copyFile(
-        `cache/${config.projectShortname}/lines.capnpbin`,
-        `${projectRelativeCacheDirectoryPath}/lines.capnpbin`,
-        true
-    );
-    fileManager.copyFile(
-        `cache/${config.projectShortname}/paths.capnpbin`,
-        `${projectRelativeCacheDirectoryPath}/paths.capnpbin`,
-        true
-    );
-    fileManager.copyFile(
-        `cache/${config.projectShortname}/nodes.capnpbin`,
-        `${projectRelativeCacheDirectoryPath}/nodes.capnpbin`,
-        true
-    );
-    fileManager.copyFile(
-        `cache/${config.projectShortname}/scenarios.capnpbin`,
-        `${projectRelativeCacheDirectoryPath}/scenarios.capnpbin`,
-        true
-    );
-    fileManager.copyFile(
-        `cache/${config.projectShortname}/services.capnpbin`,
-        `${projectRelativeCacheDirectoryPath}/services.capnpbin`,
-        true
-    );
-    console.log(`Prepared cache directory files to ${projectRelativeCacheDirectoryPath}`);
 };
 
 const cleanupCacheData = async (simulationRun: SimulationRun) => {
@@ -147,7 +68,7 @@ export const runSimulation = async (simulationRun: SimulationRun, socket: EventE
         throw new TrError(`Factory for algorithm ${algorithmType} is not defined`, 'SIMRUN002');
     }
 
-    const { agencies, lines, services } = await loadServerData(socket);
+    //const { agencies, lines, services } = await loadServerData(socket);
     /*const algorithm = factory(simulationRun.attributes.data.algorithmConfiguration.config, simulationRun);
     try {
         prepareCacheDirectory(simulationRun);
