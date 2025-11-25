@@ -15,6 +15,7 @@ import {
     getSimulationMethodDescriptor
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 import OptionsEditComponent from '../widgets/OptionsDescriptorWidgets';
+import { getDefaultOptionsFromDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import { PartialSimulationMethodConfiguration } from '../types';
 
 export interface ConfigureSimulationMethodFormProps {
@@ -31,6 +32,14 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
     const [errors] = React.useState<string[]>([]);
 
     React.useEffect(() => {
+        // FIXME Should validate properly
+        const algoDescriptor = props.simulationMethod?.type ? getSimulationMethodDescriptor(props.simulationMethod.type) : undefined;
+        // FIXME This part of setting the defaults should be done by the options component
+        if (algoDescriptor) {
+            const updatedConfig = getDefaultOptionsFromDescriptor(props.simulationMethod.config || {}, algoDescriptor)
+            props.onUpdate({ ...props.simulationMethod, config: updatedConfig }, true);
+            return;
+        }
         // Validate on first load
         props.onUpdate(props.simulationMethod, true);
     }, []);
