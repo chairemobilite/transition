@@ -21,8 +21,7 @@ import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 // This was completely unused so it was removed, but a comment is left here in case we ever want to implement it again.
 export interface TransitNetworkDesignAlgorithm {
     run: (
-        socket: EventEmitter,
-        collections: { lines: LineCollection; agencies: AgencyCollection; services: ServiceCollection }
+        socket: EventEmitter
     ) => Promise<boolean>;
 }
 
