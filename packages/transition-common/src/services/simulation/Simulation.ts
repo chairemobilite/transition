@@ -63,12 +63,12 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
         newAttributes.isEnabled = attributes.isEnabled !== undefined ? attributes.isEnabled : true;
         if (!newAttributes.data) {
             newAttributes.data = {
-                transitNetworkDesignParameters: {},
+                transitNetworkDesignParameters: {} as any,
                 routingAttributes: {}
             };
         } else {
             if (!newAttributes.data.transitNetworkDesignParameters) {
-                newAttributes.data.transitNetworkDesignParameters = {};
+                newAttributes.data.transitNetworkDesignParameters = {} as any;
             }
             if (!newAttributes.data.routingAttributes) {
                 newAttributes.data.routingAttributes = {};
