@@ -6,6 +6,7 @@ on:
       - "main"
       - "deck-gl-poc"
       - "validationTrajets"
+      - "evolutionaryTransitNetworkDesign"
   workflow_dispatch:
   schedule:
     # Do a daily rebuild at 2:00 AM UTC
