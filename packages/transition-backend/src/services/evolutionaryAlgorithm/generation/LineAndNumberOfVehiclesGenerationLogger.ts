@@ -13,7 +13,8 @@ class LineAndNumberOfVehiclesGenerationLogger extends GenerationLogger {
     Get a simulation generation and log results to a file
     */
     doLog(generation: Generation): void {
-        const generationNumber = generation.getGenerationNumber();
+        // FIXME Implement or drop? Was commented when changed SimulationRun for Job
+        /*const generationNumber = generation.getGenerationNumber();
         const bestCandidate = generation.getCandidates()[0];
         // TODO, use keepCandidates simulation parameter to log the required number of best candidates.
         const bestCandidateAsString = bestCandidate.toString();
@@ -60,7 +61,7 @@ class LineAndNumberOfVehiclesGenerationLogger extends GenerationLogger {
                 fitnesses: methods.map((method) => bestResults[method].fitness),
                 lineDetails: bestCandidateLinesWithNbVehiclesStrings
             });
-        }
+        } */
         // TODO: implement json logger
     }
 }
