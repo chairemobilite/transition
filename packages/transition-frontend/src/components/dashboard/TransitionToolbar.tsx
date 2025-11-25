@@ -142,7 +142,6 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
             pathCollection: serviceLocator.collectionManager.get('paths'),
             nodeCollection: serviceLocator.collectionManager.get('nodes'),
             placeCollection: serviceLocator.collectionManager.get('places'),
-            simulationCollection: serviceLocator.collectionManager.get('simulations'),
             dataSourceCollection: serviceLocator.collectionManager.get('dataSources')
         });
         this.setState({ dataNeedsUpdate: false });
