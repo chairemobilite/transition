@@ -21,6 +21,7 @@ import { LineServices } from "../../evolutionaryAlgorithm/internalTypes";
 import { TransitNetworkDesignAlgorithm } from "transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm";
 import { AlgorithmType } from "transition-common/lib/services/networkDesign/transit/algorithm";
 import { evolutionaryAlgorithmFactory } from "../../evolutionaryAlgorithm";
+import { ErrorMessage } from "chaire-lib-common/lib/utils/TrError";
 
 /**
  * A factory to create a simulation algorithm object with the given parameters.
@@ -58,7 +59,9 @@ type ExtractParameters<TJobType extends JobDataType> = TJobType extends { data: 
  */
 export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesignJobType = TransitNetworkDesignJobType> {
     
+    
     private _lineCollection: LineCollection | undefined = undefined;
+    private _simulatedLineCollection: LineCollection | undefined = undefined;
     private _agencyCollection: AgencyCollection | undefined = undefined;
     private _serviceCollection: ServiceCollection | undefined = undefined;
     private _lineServices: LineServices | undefined = undefined;
@@ -75,7 +78,7 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         return this.wrappedJob;
     }
 
-    get lineCollection(): LineCollection {
+    get allLineCollection(): LineCollection {
         if (this._lineCollection === undefined) {
             throw new Error('Line collection not loaded yet');
         }
@@ -89,6 +92,16 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         return this._agencyCollection;
     }
 
+    get simulatedLineCollection(): LineCollection {
+        if (this._simulatedLineCollection === undefined) {
+            throw new Error('Line collection not set yet');
+        }
+        return this._simulatedLineCollection;
+    }
+
+    set simulatedLineCollection(lineCollection: LineCollection)  {
+        this._simulatedLineCollection = lineCollection;
+    }
 
     get serviceCollection(): ServiceCollection {
         if (this._serviceCollection === undefined) {
@@ -200,4 +213,23 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         );
         console.log(`Prepared cache directory files to ${absoluteCacheDirectory}`);
     };
+
+    async addMessages(messages: { warnings: ErrorMessage[]; errors: ErrorMessage[]; }): Promise<void> {
+        // Quick return if no message to set
+        if (messages.warnings.length === 0 && messages.errors.length === 0) {
+            return;
+        }
+        await this.wrappedJob.refresh();
+        const currentMessages = this.wrappedJob.attributes.statusMessages || {};
+        const existingErrors = currentMessages.errors || [];
+        const existingWarnings = currentMessages.warnings || [];
+        const existingInfos = currentMessages.infos || [];
+        
+        this.wrappedJob.attributes.statusMessages = {
+            errors: [...existingErrors, ...messages.errors],
+            warnings: [...existingWarnings, ...messages.warnings],
+            infos: existingInfos // Keep existing infos unchanged
+        };
+        await this.wrappedJob.save();
+    }
 }

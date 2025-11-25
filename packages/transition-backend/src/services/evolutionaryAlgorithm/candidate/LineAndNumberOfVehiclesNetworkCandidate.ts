@@ -34,7 +34,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     }
 
     private prepareNetwork(): Line[] {
-        const lines = this.wrappedJob.lineCollection.getFeatures();
+        const lines = this.wrappedJob.simulatedLineCollection.getFeatures();
         const candidateLines: Line[] = [];
         this.chromosome.lines.forEach((lineIsActive, lineIndex) => {
             if (lineIsActive) {
@@ -47,11 +47,12 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     private assignNumberOfVehicles(candidateLines: Line[], nbVehicles: number): string[] {
         // For each candidateLine, start by assigning the minimum number of vehicles
         const currentLvlIndexes = candidateLines.map((_line) => 0);
+
         let usedVehicles = candidateLines
             .map((line) => this.wrappedJob.lineServices[line.getId()][0].numberOfVehicles)
             .reduce((cntVeh, sum) => sum + cntVeh, 0);
         if (usedVehicles > nbVehicles) {
-            throw new TrError('Impossible to assign minimal level of service for this combination', 'GALNCND001');
+            throw new TrError(`Impossible to assign minimal level of service for this combination. Woud require ${usedVehicles} vehicles`, 'GALNCND001');
         }
 
         // Add line weights to have more probability of increased service for largest lines
@@ -104,16 +105,19 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
                 );
             }
         } catch (error) {
-            if (TrError.isTrError(error) && error.getCode() === 'GALNCND001') {
-                throw error;
-            }
             if (attempt > 3) {
                 throw new TrError(
                     'After 3 attempts, it was not possible to assign levels of services to this line combination',
                     'GALNCND002'
                 );
             }
-            return this.assignServices(candidateLines, attempt + 1);
+            if (TrError.isTrError(error)) {
+                if (error.getCode() === 'GALNCND001') {
+                    throw error;
+                }
+                return this.assignServices(candidateLines, attempt + 1);
+            }
+            throw error; 
         }
         throw 'Not implemented yet, should assign random level of services';
     }
@@ -123,7 +127,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
 
         const lines = this.prepareNetwork();
         const services = this.assignServices(lines);
-        services.push(...this.wrappedJob.parameters.transitNetworkDesignParameters.nonSimulatedServices);
+        services.push(...(this.wrappedJob.parameters.transitNetworkDesignParameters.nonSimulatedServices || []));
         const maxNumberOfVehicles =
         this.wrappedJob.parameters.transitNetworkDesignParameters.nbOfVehicles !== undefined;
         const scenario = new Scenario(
@@ -190,7 +194,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     toString(showChromosome = false) {
         // showChromosome = true will show activated lines shortnames
         const serializedResults = this.serialize();
-        const allLines = this.wrappedJob.lineCollection.getFeatures();
+        const allLines = this.wrappedJob.simulatedLineCollection.getFeatures();
         return `candidate_${serializedResults.numberOfVehicles}veh${
             serializedResults.numberOfLines
         }lines_scenario_${this.scenario?.getId()}${
@@ -210,7 +214,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     serialize(): ResultSerialization {
         const result = this.getResult();
         const serviceIds = (this.getScenario() as Scenario).attributes.services;
-        const allLines = this.wrappedJob.lineCollection.getFeatures();
+        const allLines = this.wrappedJob.simulatedLineCollection.getFeatures();
         const details = {
             lines: {},
             numberOfLines: 0,
