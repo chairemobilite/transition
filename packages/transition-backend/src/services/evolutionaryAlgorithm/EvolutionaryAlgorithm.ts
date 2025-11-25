@@ -9,7 +9,6 @@ import random from 'random';
 
 import { TransitNetworkDesignAlgorithm } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
-import { TransitNetworkDesignAlgorithmFactory } from '../simulation/SimulationExecution';
 import Agency from 'transition-common/lib/services/agency/Agency';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import { collectionToCache as serviceCollectionToCache } from '../../models/capnpCache/transitServices.cache.queries';
@@ -29,7 +28,7 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Generation from './generation/Generation';
 import { EvolutionaryTransitNetworkDesignJobType } from '../networkDesign/transitNetworkDesign/evolutionary/types';
 import { ResultSerialization } from './candidate/Candidate';
-import { TransitNetworkDesignJobWrapper } from '../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import { TransitNetworkDesignAlgorithmFactory, TransitNetworkDesignJobWrapper } from '../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 
 export const evolutionaryAlgorithmFactory: TransitNetworkDesignAlgorithmFactory<
     EvolutionaryTransitNetworkDesignJobType

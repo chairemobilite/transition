@@ -18,6 +18,30 @@ import { ExecutableJob } from "../../executableJob/ExecutableJob";
 import { JobDataType } from "transition-common/lib/services/jobs/Job";
 import { TransitNetworkDesignJobType } from "./types";
 import { LineServices } from "../../evolutionaryAlgorithm/internalTypes";
+import { TransitNetworkDesignAlgorithm } from "transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm";
+import { AlgorithmType } from "transition-common/lib/services/networkDesign/transit/algorithm";
+import { evolutionaryAlgorithmFactory } from "../../evolutionaryAlgorithm";
+
+/**
+ * A factory to create a simulation algorithm object with the given parameters.
+ *
+ * @export
+ * @interface TransitNetworkDesignAlgorithm
+ */
+export type TransitNetworkDesignAlgorithmFactory<T extends TransitNetworkDesignJobType> = (
+    jobWrapper: TransitNetworkDesignJobWrapper<T>
+) => TransitNetworkDesignAlgorithm;
+
+// Predefined algorithm factories
+const ALGORITHMS_FACTORY: { [K in AlgorithmType]: TransitNetworkDesignAlgorithmFactory<any> } = {
+    evolutionaryAlgorithm: evolutionaryAlgorithmFactory
+};
+
+export const getAlgorithmFactory = <T extends AlgorithmType>(
+    algorithmType: T
+): TransitNetworkDesignAlgorithmFactory<any> => {
+    return ALGORITHMS_FACTORY[algorithmType];
+};
 
 // Type to extract parameters from a job data type
 type ExtractParameters<TJobType extends JobDataType> = TJobType extends { data: { parameters: infer P } } ? P : never;
