@@ -48,17 +48,17 @@ const SelectOptionComponent: React.FunctionComponent<OptionComponentProps> = (pr
     }
 
     React.useEffect(() => {
-        let isMounted = true;
+        setLoading(true);
         const fetchChoices = async () => {
-            setLoading(true);
-            const fetchedChoices = await option.choices();
-            if (isMounted) {
+            try {
+                const fetchedChoices = await option.choices();
+                setChoices(fetchedChoices);
+            } finally {
+                setLoading(false);
             }
+            
         };
         fetchChoices();
-        return () => {
-            isMounted = false;
-        };
     }, [props.option]);
 
     const value = typeof props.value === 'string' ? props.value : option.default;
