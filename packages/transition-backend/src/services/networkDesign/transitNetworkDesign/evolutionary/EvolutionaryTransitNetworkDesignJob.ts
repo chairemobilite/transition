@@ -7,6 +7,7 @@
 import { EventEmitter } from 'events';
 
 import type { EvolutionaryTransitNetworkDesignJobType, EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobResult } from './types';
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { evolutionaryAlgorithmFactory } from '../../../evolutionaryAlgorithm';
 import { TransitNetworkDesignJobWrapper } from '../TransitNetworkDesignJobWrapper';
 
@@ -52,13 +53,20 @@ class EvolutionaryTransitNetworkDesignJobExecutor {
         try {
             
             // Prepare the data: copy the main cache
-            const serverData = await this.jobWrapper.loadServerData(this.options.progressEmitter);
+            const jobId = this.jobWrapper.job.id;
+            console.time(`Preparing data for evolutionary transit network design job ${jobId}`);
+            await this.jobWrapper.loadServerData(serviceLocator.socketEventManager);
+            console.timeEnd(`Preparing data for evolutionary transit network design job ${jobId}`);
+            console.time(`Preparing cache directory for job ${jobId}`);
             this.jobWrapper.prepareCacheDirectory();
+            console.timeEnd(`Preparing cache directory for job ${jobId}`);
 
             const algorithm = evolutionaryAlgorithmFactory(
                 this.jobWrapper
             );
-            const result = await algorithm.run(this.options.progressEmitter)
+            console.time(`Running evolutionary transit network design algorithm for job ${jobId}`);
+            const result = await algorithm.run(this.options.progressEmitter);
+            console.timeEnd(`Running evolutionary transit network design algorithm for job ${jobId}`);
             return {
                 status: 'success',
                 warnings: [],
@@ -69,7 +77,7 @@ class EvolutionaryTransitNetworkDesignJobExecutor {
             return {
                 status: 'failed',
                 warnings: [],
-                errors: []
+                errors: [error instanceof Error ? error.message : String(error)]
             };
         } finally {
             // Do not cleanup all cache for now, as we may come back to this job

@@ -28,6 +28,7 @@ abstract class Generation {
         protected logger: GenerationLogger
     ) {
         // Now jobWrapper.parameters is automatically typed as EvolutionaryTransitNetworkDesignJobParameters
+        console.log('fitness', jobWrapper.parameters.simulationMethod.config);
         this.fitnessSorter =
             Preferences.current.simulations.geneticAlgorithms.fitnessSorters[
                 (jobWrapper.parameters.simulationMethod.config as OdTripSimulationOptions).evaluationOptions.fitnessFunction
