@@ -67,7 +67,7 @@ export const generateFirstCandidates = (jobWrapper: TransitNetworkDesignJobWrapp
 
     const linesChromosomes: boolean[][] = [];
 
-    const linesToKeepSize = jobWrapper.parameters.transitNetworkDesignParameters.linesToKeep.length;
+    const linesToKeepSize = (jobWrapper.parameters.transitNetworkDesignParameters.linesToKeep || []).length;
     const randomLinesCount = jobWrapper.lineCollection.getFeatures().length - linesToKeepSize;
     for (let i = 0; i < jobWrapper.job.attributes.internal_data.populationSize!; i++) {
         const linesChromosome = generateRandomCandidate(
@@ -136,7 +136,7 @@ export const reproduceCandidates = (
     const minLineNb =
     jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMin;
     const maxLineNb =jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMax;
-    const linesToKeepSize = jobWrapper.parameters.transitNetworkDesignParameters.linesToKeep.length;
+    const linesToKeepSize = (jobWrapper.parameters.transitNetworkDesignParameters.linesToKeep || []).length;
 
     const linesChromosomes: boolean[][] = [];
     const shuffledGeneOrder = shuffleCandidatesInPlace(previousGenSorted, jobWrapper);
