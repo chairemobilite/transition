@@ -106,3 +106,33 @@ export interface SimulationAlgorithmDescriptor<T extends Record<string, unknown>
      * not just individual values. */
     validateOptions: (options: Partial<T>) => { valid: boolean; errors: ErrorMessage[] };
 }
+
+/**
+ * Creates an options object with default values applied from the descriptor
+ * 
+ * @param initialOptions Partial options object with some values already set
+ * @param descriptor The algorithm descriptor containing option definitions
+ * @returns Options object with default values applied where not already provided
+ */
+export function getDefaultOptionsFromDescriptor<T extends Record<string, unknown>>(
+    initialOptions: Partial<T>,
+    descriptor: SimulationAlgorithmDescriptor<T>
+): Partial<T> {
+    const options = { ...initialOptions };
+    const optionDefinitions = descriptor.getOptions();
+    
+    for (const [key, optionDef] of Object.entries(optionDefinitions)) {
+        if (optionDef.type === 'nested') {
+            // Handle nested options recursively
+            const nestedDescriptor = optionDef.descriptor();
+            const existingNestedValue = options[key as keyof T] as Record<string, unknown> | undefined;
+            const nestedDefaults = getDefaultOptionsFromDescriptor(existingNestedValue || {}, nestedDescriptor);
+            (options as any)[key] = nestedDefaults;
+        } else if (options[key as keyof T] === undefined && 'default' in optionDef && optionDef.default !== undefined) {
+            (options as any)[key] = optionDef.default;
+        }
+    }
+    
+    return options;
+}
+
