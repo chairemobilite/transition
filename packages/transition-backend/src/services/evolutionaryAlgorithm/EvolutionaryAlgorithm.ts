@@ -59,15 +59,22 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
      * services for each line and `nonSimulatedServices` are the service IDs to
      * use in the simulation, but not associated with simulated lines.
      */
-    prepareData = async (collections: {
+    private prepareData = async (collections: {
         lines: LineCollection;
         agencies: AgencyCollection;
         services: ServiceCollection;
     }): Promise<{
         agencies: Agency[];
-        lineCollection: LineCollection;
+        /**
+         * The collection of lines to simulate. The lines to keep are at the
+         * beginning of the features array, the rest are in an arbitrary order
+         */
+        simulatedLineCollection: LineCollection;
         linesToKeep: string[];
-        services: ServiceCollection;
+        /**
+         * Contain the services for simulated lines, as well as those to keep
+         */
+        simulatedServices: ServiceCollection;
         lineServices: AlgoTypes.LineServices;
         nonSimulatedServices: string[];
     }> => {
@@ -92,12 +99,12 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
                         ? 1
                         : 0
         );
-        const lineCollection = new LineCollection(lines, {});
+        const simulatedLineCollection = new LineCollection(lines, {});
 
         // Prepare various services for lines
         console.log('Preparing services...');
         const { lineServices, services } = await prepareServices(
-            lineCollection,
+            simulatedLineCollection,
             collections.services,
             this.jobWrapper
         );
@@ -107,7 +114,7 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
 
         await serviceCollectionToCache(services, cacheDirectoryPath);
         console.log(`Saved service cache file in ${cacheDirectoryPath}.`);
-        await linesToCache(lineCollection.getFeatures(), cacheDirectoryPath);
+        await linesToCache(simulatedLineCollection.getFeatures(), cacheDirectoryPath);
         console.log(`Saved lines cache files in ${cacheDirectoryPath}.`);
 
         const existingServices =
@@ -119,9 +126,9 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
         return {
             agencies: collections.agencies.getFeatures(),
             linesToKeep: linesToKeep || [],
-            services,
+            simulatedServices: services,
             lineServices,
-            lineCollection,
+            simulatedLineCollection,
             nonSimulatedServices: nonSimulatedServices || []
         };
     };
@@ -136,9 +143,10 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
         // FIXME Use a seed from the job data?
         const randomGenerator = random;
         // Get the agencies data
-        const { agencies, lineCollection, linesToKeep, lineServices, services, nonSimulatedServices } =
-            await this.prepareData({ agencies: this.jobWrapper.agencyCollection, lines: this.jobWrapper.lineCollection, services: this.jobWrapper.serviceCollection });
+        const { agencies, simulatedLineCollection, linesToKeep, lineServices, simulatedServices, nonSimulatedServices } =
+            await this.prepareData({ agencies: this.jobWrapper.agencyCollection, lines: this.jobWrapper.allLineCollection, services: this.jobWrapper.serviceCollection });
         this.jobWrapper.setLineServices(lineServices);
+        this.jobWrapper.simulatedLineCollection = simulatedLineCollection;
 
         const populationSize = randomInRange(
             [this.options.populationSizeMin, this.options.populationSizeMax],
@@ -150,6 +158,7 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
 
         let candidates: NetworkCandidate[] = [];
         let previousGeneration: Generation | undefined = undefined;
+        // TODO Add a checkpoint here and cancellation check
         try {
             while (!this.isFinished()) {
                 candidates =
@@ -161,7 +170,8 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
                     this.jobWrapper,
                     this.currentIteration
                 );
-                await previousGeneration.prepareCandidates(socket);
+                const messages = await previousGeneration.prepareCandidates(socket);
+                await this.jobWrapper.addMessages(messages);
                 await previousGeneration.simulate();
                 // TODO For now, we keep the best of each generation, but we should
                 // be smarter about it, knowing that the end of the simulation can
