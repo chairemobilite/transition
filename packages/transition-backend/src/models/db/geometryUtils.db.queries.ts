@@ -10,6 +10,9 @@
 
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import { randomUUID } from 'crypto';
+import GeoJSON from 'geojson';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { Knex } from 'knex';
 
 export async function clipPolygon(circles: Array<{ center: [number, number]; radiusKm: number }>): Promise<any> {
     if (circles.length === 0) {
@@ -126,5 +129,363 @@ export async function clipPolygon(circles: Array<{ center: [number, number]; rad
     } catch (error) {
         console.error('Error in PostGIS polygon generation:', error);
         throw error;
+    }
+}
+
+/**
+ * Create and populate temporary POIs table
+ * Prepares POI data and creates a temporary table with spatial index
+ * @param trx Knex transaction object
+ * @param uniqueId Unique identifier for table naming
+ * @param poisFeatureCollection GeoJSON FeatureCollection of POI Point features
+ * @param errorCodePrefix Error code prefix for error handling
+ * @param idColumnName Name of the ID column (defaults to 'poi_id')
+ * @returns Temporary POIs table name
+ */
+async function createAndPopulatePOIsTable(
+    trx: Knex.Transaction,
+    uniqueId: string,
+    poisFeatureCollection: GeoJSON.FeatureCollection<GeoJSON.Point, { weight?: number }>,
+    errorCodePrefix: string,
+    idColumnName: string = 'poi_id'
+): Promise<string> {
+    const tempPoisTableName = `temp_pois_${uniqueId}`;
+    const poisIndexName = `idx_pois_${uniqueId}`;
+
+    // Prepare POI data for bulk insert
+    const poiValuePlaceholders: string[] = [];
+    const poiBindings: (string | number)[] = [];
+
+    poisFeatureCollection.features.forEach((poi) => {
+        // POI id must be a number (required by database schema)
+        const poiId = typeof poi.id === 'number' ? poi.id : poi.id !== undefined ? Number(poi.id) : null;
+        if (poiId === null || isNaN(poiId)) {
+            throw new TrError(
+                `POI feature must have a numeric id, got: ${poi.id}`,
+                `${errorCodePrefix}0002`,
+                'CannotGetPOIsInBirdDistanceBecauseInvalidPOIId'
+            );
+        }
+        const poiWeight = poi.properties?.weight ?? 0;
+        poiValuePlaceholders.push('(?, ST_GeomFromGeoJSON(?)::geography, ?)');
+        poiBindings.push(poiId, JSON.stringify(poi.geometry), poiWeight);
+    });
+
+    // Create temporary table with POIs
+    await trx.raw(
+        `
+        CREATE TEMPORARY TABLE ?? (
+            ?? INTEGER,
+            geography GEOGRAPHY(POINT, 4326),
+            weight NUMERIC
+        ) ON COMMIT DROP
+        `,
+        [tempPoisTableName, idColumnName]
+    );
+
+    // Insert POIs into temporary table
+    await trx.raw(
+        `
+        INSERT INTO ?? (??, geography, weight)
+        VALUES ${poiValuePlaceholders.join(', ')}
+        `,
+        [tempPoisTableName, idColumnName, ...poiBindings]
+    );
+
+    // Create spatial index on POIs temporary table
+    await trx.raw('CREATE INDEX ?? ON ?? USING GIST (geography)', [poisIndexName, tempPoisTableName]);
+
+    // Update statistics for optimal query planning
+    await trx.raw('ANALYZE ??', [tempPoisTableName]);
+
+    return tempPoisTableName;
+}
+
+type QueryResultRow = {
+    poi_id: number;
+    weight: number | null;
+    distance: number;
+    geography: GeoJSON.Point;
+    [key: string]: string | number | null | GeoJSON.Point | undefined;
+};
+
+/**
+ * Group query results by entity ID (place_id or node_id)
+ * @param rows Query result rows
+ * @param idColumnName Name of the ID column in the query results
+ * @returns Grouped results dictionary
+ */
+function groupResultsByEntityId(
+    rows: QueryResultRow[],
+    idColumnName: string
+): { [entityId: string]: Array<{ id: number; weight: number; distance: number; geography: GeoJSON.Point }> } {
+    const results: {
+        [entityId: string]: Array<{ id: number; weight: number; distance: number; geography: GeoJSON.Point }>;
+    } = {};
+
+    rows.forEach((row) => {
+        const entityId = String(row[idColumnName]);
+        if (!results[entityId]) {
+            results[entityId] = [];
+        }
+        results[entityId].push({
+            id: Number(row.poi_id),
+            weight: row.weight !== null ? Number(row.weight) : 0,
+            distance: Number(row.distance),
+            geography: row.geography as GeoJSON.Point
+        });
+    });
+
+    return results;
+}
+
+/**
+ * Get all POIs within a given bird distance from multiple places
+ * Uses a single temporary PostGIS table for all places and POIs
+ * Here a place could be any location, including a POI, a stop node, a home, etc.
+ * However, a POI is a place where an activity can be done (trip destination).
+ * POIs should also have an intrinsic weight, which could be equivalent to the
+ * amount of trips generated to reach this POI.
+ *
+ * @param placesFeatureCollection GeoJSON FeatureCollection of Point features with place id as the feature id
+ * @param distanceMeters The maximum bird distance in meters
+ * @param poisFeatureCollection GeoJSON FeatureCollection of POI Point features with weight in properties and id as feature id
+ * @returns A map/dictionary where keys are place IDs and values are arrays of POIs with id, weight, bird distance, and geography
+ */
+export async function getPOIsWithinBirdDistanceFromPlaces(
+    placesFeatureCollection: GeoJSON.FeatureCollection<GeoJSON.Point>,
+    distanceMeters: number,
+    poisFeatureCollection: GeoJSON.FeatureCollection<GeoJSON.Point, { weight?: number }>
+): Promise<{ [placeId: string]: Array<{ id: number; weight: number; distance: number; geography: GeoJSON.Point }> }> {
+    try {
+        return await knex.transaction(async (trx) => {
+            // Generate unique table names to prevent conflicts in parallel execution
+            const uniqueId = randomUUID().replace(/-/g, '_').substring(0, 16);
+            const tempPlacesTableName = `temp_places_${uniqueId}`;
+            const placesIndexName = `idx_places_${uniqueId}`;
+
+            if (placesFeatureCollection.features.length === 0 || poisFeatureCollection.features.length === 0) {
+                return {};
+            }
+
+            // Prepare values for bulk insert into temporary places table
+            const placeValuePlaceholders: string[] = [];
+            const placeBindings: (string | number)[] = [];
+
+            placesFeatureCollection.features.forEach((place) => {
+                const placeId = typeof place.id === 'string' ? place.id : String(place.id);
+                placeValuePlaceholders.push('(?, ST_GeomFromGeoJSON(?)::geography)');
+                placeBindings.push(placeId, JSON.stringify(place.geometry));
+            });
+
+            // Create and populate POIs table using common helper
+            const tempPoisTableName = await createAndPopulatePOIsTable(
+                trx,
+                uniqueId,
+                poisFeatureCollection,
+                'DBQPOIBDP'
+            );
+
+            // Create temporary table with places
+            await trx.raw(
+                `
+                CREATE TEMPORARY TABLE ?? (
+                    place_id TEXT,
+                    geography GEOGRAPHY(POINT, 4326)
+                ) ON COMMIT DROP
+                `,
+                [tempPlacesTableName]
+            );
+
+            // Insert places into temporary table
+            await trx.raw(
+                `
+                INSERT INTO ?? (place_id, geography)
+                VALUES ${placeValuePlaceholders.join(', ')}
+                `,
+                [tempPlacesTableName, ...placeBindings]
+            );
+
+            // Create spatial index on places table
+            await trx.raw('CREATE INDEX ?? ON ?? USING GIST (geography)', [placesIndexName, tempPlacesTableName]);
+
+            // Update statistics for optimal query planning
+            await trx.raw('ANALYZE ??', [tempPlacesTableName]);
+
+            // Query POIs within bird distance for all places in a single query
+            const queryResult = await trx.raw(
+                `
+                SELECT
+                    pl.place_id,
+                    p.poi_id,
+                    p.weight,
+                    ST_Distance(pl.geography, p.geography) as distance,
+                    ST_AsGeoJSON(p.geography)::jsonb as geography
+                FROM ?? pl
+                CROSS JOIN ?? p
+                WHERE ST_DWithin(pl.geography, p.geography, ?)
+                ORDER BY pl.place_id, distance
+                `,
+                [tempPlacesTableName, tempPoisTableName, distanceMeters]
+            );
+
+            // Group results by place_id using common helper
+            return groupResultsByEntityId(queryResult.rows, 'place_id');
+        });
+    } catch (error) {
+        if (error instanceof TrError) {
+            throw error;
+        }
+        throw new TrError(
+            `Cannot get POIs in bird distance of ${distanceMeters} meters from places (knex error: ${error})`,
+            'DBQPOIBDP0001',
+            'CannotGetPOIsInBirdDistanceFromPlacesBecauseDatabaseError'
+        );
+    }
+}
+
+/**
+ * Get all POIs within a given bird distance from multiple transit nodes
+ * Uses the existing tr_transit_nodes table and creates only a temporary POIs table
+ *
+ * @param distanceMeters The maximum bird distance in meters
+ * @param poisFeatureCollection GeoJSON FeatureCollection of POI Point features with weight in properties and id as feature id
+ * @param nodeIds Optional array of transit node UUIDs. If undefined, calculates for all enabled nodes. If an empty array, returns empty result immediately without database query.
+ * @returns A map/dictionary where keys are node UUIDs and values are arrays of POIs with id, weight, bird distance, and geography
+ */
+export async function getPOIsWithinBirdDistanceFromNodes(
+    distanceMeters: number,
+    poisFeatureCollection: GeoJSON.FeatureCollection<GeoJSON.Point, { weight?: number }>,
+    nodeIds?: string[]
+): Promise<{ [nodeId: string]: Array<{ id: number; weight: number; distance: number; geography: GeoJSON.Point }> }> {
+    // Explicit empty array means "no nodes" - return empty result immediately
+    if (Array.isArray(nodeIds) && nodeIds.length === 0) {
+        return {};
+    }
+
+    try {
+        return await knex.transaction(async (trx) => {
+            // Generate unique table name to prevent conflicts in parallel execution
+            const uniqueId = randomUUID().replace(/-/g, '_').substring(0, 16);
+
+            if (poisFeatureCollection.features.length === 0) {
+                return {};
+            }
+
+            // Create and populate POIs table using common helper
+            const tempPoisTableName = await createAndPopulatePOIsTable(
+                trx,
+                uniqueId,
+                poisFeatureCollection,
+                'DBQPOIBDN'
+            );
+
+            // Query POIs within bird distance for all nodes in a single query
+            // Join with existing tr_transit_nodes table
+            // If nodeIds is provided and non-empty, filter by those IDs; otherwise, query all enabled nodes
+            const query = trx('tr_transit_nodes as n')
+                .joinRaw('CROSS JOIN ?? as p', [tempPoisTableName])
+                .select(
+                    'n.id as node_id',
+                    'p.poi_id',
+                    'p.weight',
+                    trx.raw('ST_Distance(n.geography, p.geography) as distance'),
+                    trx.raw('ST_AsGeoJSON(p.geography)::jsonb as geography')
+                )
+                .where('n.is_enabled', true)
+                .whereRaw('ST_DWithin(n.geography, p.geography, ?)', [distanceMeters])
+                .orderBy('n.id')
+                .orderBy('distance');
+
+            // Add optional filter for specific node IDs
+            if (nodeIds !== undefined && nodeIds.length > 0) {
+                query.whereIn('n.id', nodeIds);
+            }
+
+            const queryResult = await query;
+
+            // Group results by node_id using common helper
+            return groupResultsByEntityId(queryResult, 'node_id');
+        });
+    } catch (error) {
+        if (error instanceof TrError) {
+            throw error;
+        }
+        throw new TrError(
+            `Cannot get POIs in bird distance of ${distanceMeters} meters from transit nodes (knex error: ${error})`,
+            'DBQPOIBDN0001',
+            'CannotGetPOIsInBirdDistanceFromNodesBecauseDatabaseError'
+        );
+    }
+}
+
+/**
+ * Get all POIs within a given bird distance from a point
+ * Uses a temporary PostGIS table created from the provided POIs
+ *
+ * @param point The reference point (GeoJSON.Point)
+ * @param distanceMeters The maximum bird distance in meters
+ * @param pois Array of POIs (GeoJSON points with optional weights)
+ * @returns An array of POI id, weight, bird distance, and geography
+ */
+export async function getPOIsWithinBirdDistanceFromPoint(
+    point: GeoJSON.Point,
+    distanceMeters: number,
+    poisFeatureCollection: GeoJSON.FeatureCollection<GeoJSON.Point, { weight?: number }>
+): Promise<{ id: number; weight: number; distance: number; geography: GeoJSON.Point }[]> {
+    try {
+        return await knex.transaction(async (trx) => {
+            // TODO: Set higher work memory for better performance if needed.
+            // For now, let's keep the default at 4MB (see above)
+
+            // Generate unique table name using timestamp to prevent conflicts in parallel execution
+            const uniqueId = randomUUID().replace(/-/g, '_').substring(0, 16);
+
+            if (poisFeatureCollection.features.length === 0) {
+                return [];
+            }
+
+            // Create and populate POIs table using common helper (using 'id' column name)
+            const tempTableName = await createAndPopulatePOIsTable(
+                trx,
+                uniqueId,
+                poisFeatureCollection,
+                'DBQPOIBD',
+                'id'
+            );
+
+            // Query POIs within bird distance from the temporary table
+            const pointGeometryStr = JSON.stringify(point);
+            const queryResult = await trx.raw(
+                `
+                SELECT
+                    id,
+                    weight,
+                    ST_Distance(geography, ST_GeomFromGeoJSON(?)::geography) as distance,
+                    ST_AsGeoJSON(geography)::jsonb as geography
+                FROM ??
+                WHERE ST_DWithin(geography, ST_GeomFromGeoJSON(?)::geography, ?)
+                ORDER BY distance
+                `,
+                [pointGeometryStr, tempTableName, pointGeometryStr, distanceMeters]
+            );
+
+            const results = queryResult.rows;
+            return results.map((row) => ({
+                id: Number(row.id),
+                weight: row.weight !== null ? Number(row.weight) : 0,
+                distance: Number(row.distance),
+                geography: row.geography as GeoJSON.Point
+            }));
+        });
+    } catch (error) {
+        if (TrError.isTrError(error)) {
+            throw error;
+        }
+        throw new TrError(
+            `Cannot get POIs in bird distance of ${distanceMeters} meters from point ${JSON.stringify(point)} (knex error: ${error})`,
+            'DBQPOIBD0001',
+            'CannotGetPOIsInBirdDistanceFromPointBecauseDatabaseError'
+        );
     }
 }

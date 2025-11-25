@@ -5,6 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
+import GeoJSON from 'geojson';
+
 /** Full documentation on the weighting methodology is available in the docs/weighting directory. */
 
 /**
@@ -13,9 +15,36 @@
 export type DecayFunctionType = 'power' | 'exponential' | 'gamma' | 'combined' | 'logistic';
 
 /**
- * Type of input value (distance or time)
+ * Type of input value (distance or time) for decay function calculations
  */
 export type DecayInputValueType = 'distance' | 'time';
+
+/**
+ * Type of input value for place weight calculations
+ * - birdDistance: Use bird distance (Euclidean distance) from PostGIS, no routing needed
+ * - networkDistance: Use network distance from routing engine
+ * - travelTime: Use travel time from routing engine
+ */
+export type WeightDecayInputType = 'birdDistance' | 'networkDistance' | 'travelTime';
+
+/**
+ * Routing mode for place weight calculations
+ * TODO: Add more modes (cycling, driving) when supported in preferences and use cases
+ */
+export type WeightingRoutingMode = 'walking';
+
+/**
+ * POI input type: GeoJSON Point feature with id as feature id and weight in properties
+ * Used for place weight calculations
+ */
+export type POIInput = GeoJSON.Feature<GeoJSON.Point, { weight?: number }> & { id: number };
+
+/**
+ * Place weights dictionary: maps place IDs to their calculated weights
+ * Format: { "id1": weight1, "id2": weight2, ... }
+ * Note: Numeric POI IDs are converted to strings for object keys
+ */
+export type AccessibilityWeights = Record<string, number>;
 
 /**
  * Value object containing both distance and time values for decay function calculations.

@@ -1,12 +1,28 @@
-# Weighting POIs, Homes, Destinations, and Transit Nodes Attractiveness
+# Intrinsic and Accessibility Weights: Weighting POIs, Homes, Destinations, and Transit Nodes Attractiveness
 
-**Weighting in transport modeling** assigns relative attractiveness values to destinations, points of interest (POIs), homes, and transit nodes/facilities based on their capacity to generate or attract trips. A downtown skyscraper with 5,000 jobs and thousands of customers carries far more weight than a suburban office with a small number of employees and few shops; a major shopping mall with a residential tower attracts more trips than a corner store in a suburb with only detached single-household homes. This differential weighting, combined with distance/travel time decay functions recognizing people travel shorter distances more willingly, forms the mathematical foundation of spatial interaction models predicting how travel demand distributes across networks.
+**Weighting in transport modeling** assigns relative values to destinations, points of interest (POIs), homes, and transit nodes/facilities based on their capacity to generate or attract trips and their position in the network.
 
-These models matter profoundly for transportation planning, especially transit planning. A bus stop surrounded by 10,000 residents within 400 meters has fundamentally different ridership potential than an isolated stop serving 500 people. Gravity-based accessibility measures quantify this by summing weighted opportunities ($\sum W_j / \text{distance}^\beta$) within catchment areas. Distance can always be replaced by walking/cycling/transit or driving travel time for more accurate modeling in congested or multi-modal contexts.
+Two distinct concepts are essential to distinguish:
+
+1.  **Intrinsic Weight** ($W_j$): The property of the location itself—what it generates or contains (employees, residents, measured ridership, floor area, etc.).
+2.  **Accessibility Weight** ($A_i$): A measure derived from the environment—what a location can "reach" or "capture" based on its location relative to intrinsic weights, calculated via a gravity model.
+
+A downtown skyscraper with 5,000 jobs (high **intrinsic weight**) carries far more potential than a suburban office with few employees. However, the **accessibility weight** of a place (e.g. a transit stop, a home, or a POI) depends on how many of these high-intrinsic-weight locations are within reach.
+
+This distinction forms the mathematical foundation of spatial interaction models predicting how travel demand distributes across networks.
+
+These models matter profoundly for transportation planning, especially transit planning. For example, a bus stop surrounded by 10,000 residents within 400 meters has fundamentally different ridership potential than an isolated stop serving 500 people. Gravity-based **accessibility weights** quantify this by summing opportunities weighted by distance ($\sum W_{intrinsic,j} / \text{distance}^\beta$) within catchment areas. Distance can always be replaced by walking/cycling/transit or driving travel time for more accurate modeling in congested or multi-modal contexts.
 
 ## Foundational concepts in gravity modeling
 
-Hansen's seminal 1959 work established accessibility as "potential for opportunities for interaction", introducing the gravity-based formulation: $A_i = \sum_j (W_j \times f(d_{ij}))$. The **gravity model** for trip distribution writes $T_{ij} = k \times (P_i^\lambda \times P_j^\alpha) / d_{ij}^\beta$, where $T_{ij}$ represents trips from origin $i$ to destination $j$, $P_i$ and $P_j$ are respective populations or attractiveness measures, $d_{ij}$ is separation distance (or travel time), and $\beta$ is the critical distance-decay parameter. Wilson's doubly-constrained gravity model (1967) ensures trip origins and destinations sum to known totals, making it the workhorse of four-step travel demand models worldwide.
+Hansen's seminal 1959 work established accessibility as "potential for opportunities for interaction", introducing the gravity-based formulation: $A_i = \sum_j (W_j \times f(d_{ij}))$.
+
+In our terminology:
+*   $A_i$ is the **Accessibility Weight** of location $i$
+*   $W_j$ is the **Intrinsic Weight** of destination $j$
+*   $f(d_{ij})$ is the decay function based on distance or time
+
+The **gravity model** for trip distribution writes $T_{ij} = k \times (P_i^\lambda \times P_j^\alpha) / d_{ij}^\beta$, where $T_{ij}$ represents trips from origin $i$ to destination $j$, $P_i$ and $P_j$ are respective populations or **intrinsic weights**, $d_{ij}$ is separation distance (or travel time), and $\beta$ is the critical distance-decay parameter. Wilson's doubly-constrained gravity model (1967) ensures trip origins and destinations sum to known totals, making it the workhorse of four-step travel demand models worldwide.
 
 ### Distance and travel time decay functions
 
@@ -144,11 +160,11 @@ Standard planning practice specifies catchment areas based on typical walking ti
 
 Note: Catchment analysis is not yet implemented in Transition
 
-## POI weighting methodologies by activity type
+## Intrinsic Weight methodologies by activity type
 
-Points of Interest require differential weighting reflecting their trip generation/attraction capacity:
+Points of Interest require differential **intrinsic weighting** reflecting their trip generation/attraction capacity:
 
-| Weight Type | Methodology | Typical Values/Conversions | Data Source | Application |
+| Intrinsic Weight Type | Methodology | Typical Values/Conversions | Data Source | Application |
 |-------------|-------------|---------------------------|-------------|-------------|
 | **Employment** | Weight = Jobs | Sector-specific refinement | LEHD LODES | Work travel modeling (gold standard) |
 | **Floor area** | $\text{Weight} = \text{Area} \times \text{Trip rate}$ | Retail: 35-45 trips/1000ft²<br>Office: 10-15 trips/1000ft²<br>Residential: 8-10 trips/unit | ITE Trip Generation Manual | When employment unavailable |
@@ -175,31 +191,37 @@ The Institute of Transportation Engineers Trip Generation Manual provides empiri
 - Internal capture for mixed-use: Use NCHRP Report 684 methodology
 - Using OD trips from travel surveys are very useful to adjust and calibrate trip generation rates by type of POI or home, but more research is needed to get meaningful results.
 
-## Gravity-based transit stop attractiveness formulas
+### Aggregation Example: Shopping Mall
 
-Transit stop attractiveness combines service quality with surrounding land use through gravity-weighted accessibility measures.
+When assigning intrinsic weights to complex venues like a shopping mall, two approaches are possible:
+1.  **Disaggregated**: Treat each shop as a distinct POI with its own intrinsic weight (e.g., specific floor area or employment), mapping each to its specific entrance inside the mall.
+2.  **Aggregated**: Sum the intrinsic weights of all individual shops to get a single, cumulative intrinsic weight to the mall as a whole and assign it to the main entrance.
+
+## Gravity-based accessibility weight formulas
+
+**Accessibility weight** is a measure that can be calculated for any location (Home, POI, Transit Node). When applied to transit stops, it often combines service quality with surrounding land use through gravity-weighted accessibility measures.
 
 ### Basic formulas
 
 | Measure | Formula | Application | Reference |
 |---------|---------|-------------|-----------|
-| **Basic accessibility** | $A_{\text{stop}} = \sum (\text{Weight POI} / \text{distance}^\beta)$ | POI-weighted catchment | Hansen (1959) |
-| **Service-weighted** | $A_{\text{stop}} = \text{Frequency} \times \sum (\text{Weight POI} / \text{distance}^\beta)$ | Combines service & land use | Standard four-step modeling |
+| **Basic accessibility** | $A_i = \sum (\text{Intrinsic Weight}_ j / \text{distance}^\beta)$ | POI-weighted catchment for any place $i$ | Hansen (1959) |
+| **Service-weighted** | $A_{\text{stop}} = \text{Frequency} \times \sum (\text{Intrinsic Weight}_ j / \text{distance}^\beta)$ | Combines service & land use for stops | Standard four-step modeling |
 | **Population-weighted** | $\text{Pop weighted} = \sum (\text{Pop}_ i \times \exp(-\beta \times \text{distance}_ i))$ | Trip generation potential | Bartzokas-Tsiompras (2019) |
 | **Employment accessibility** | $\text{Jobs access} = \sum (\text{Jobs}_ j \times \exp(-\beta \times \text{transit time}_ {ij}))$ | Job access equity metric | Geurs & van Wee (2004) |
 | **Combined index** | $I_{\text{stop}} = \sum w_i \times \text{Component}_ i$ | Multi-factor integration | Calibrated via regression |
 
 **Combined index components:** frequency, population-weighted, employment-weighted, retail-weighted, network centrality
 
-### Travel time-based transit accessibility
+### Travel time-based accessibility
 
-**Hansen accessibility with travel time:**
+**Hansen accessibility weight with travel time:**
 
 $$A_i = \sum_j (O_j \times \exp(-\beta \times t_{ij}))$$
 
 **Where:**
-- $A_i$ = accessibility index for location $i$
-- $O_j$ = opportunities at destination $j$ (jobs, services, POIs). Could also include homes. Each of the opportunities can be weighted for its own attractivity as explained previously (would become $W_j$).
+- $A_i$ = **accessibility weight** / index for location $i$ (e.g. a home, a POI or a transit stop)
+- $O_j$ = **intrinsic weight** / opportunities at destination $j$ (jobs, services, POIs). Could also include homes. Each of the opportunities can be weighted for its own attractivity as explained previously (would become $W_j$).
 - $t_{ij}$ = travel time from $i$ to $j$ (minutes)
 - $\beta$ = time decay parameter (0.08-0.12 for employment)
 
@@ -209,7 +231,7 @@ $$A_{\text{stop}} = f_{\text{stop}} \times \sum_j (W_j \times \exp(-\beta_{\text
 
 **Where:**
 - $f_{\text{stop}}$ = service frequency (departures/hour)
-- $W_j$ = weight of POI/destination $j$
+- $W_j$ = **intrinsic weight** of POI/destination $j$
 - $t_{\text{walk},ij}$ = walking time from stop to POI $j$ (minutes)
 - $\beta_{\text{walk}}$ = walking time decay parameter (typically 0.20-0.30)
 
@@ -217,14 +239,14 @@ $$A_{\text{stop}} = f_{\text{stop}} \times \sum_j (W_j \times \exp(-\beta_{\text
 
 $$A_{i,\text{transit}} = \sum_{\text{stops}} \sum_{\text{jobs}} (\text{Jobs}_ j \times \exp(-\beta_{\text{walk}} \times t_{\text{walk}} - \beta_{\text{wait}} \times t_{\text{wait}} - \beta_{\text{IVT}} \times t_{\text{IVT}}))$$
 
-**Example calculation:** Transit stop job accessibility with 6 departures/hour:
+**Example calculation:** Transit stop job accessibility (accessibility weight) with 6 departures/hour:
 
 $$A_{\text{stop}} = 6 \times \sum(\text{Jobs}_ j \times \exp(-0.25 \times \text{walking time in minutes}_ j))$$
 
 For jobs within 10-minute walk:
-- 1000 jobs at 3 min walk: $1000 \times \exp(-0.75) = 472$ effective jobs
-- 2000 jobs at 7 min walk: $2000 \times \exp(-1.75) = 347$ effective jobs
-- Total accessibility: $6 \times (472 + 347) = 4914$ job-departures/hour
+- 1000 jobs (**intrinsic**) at 3 min walk: $1000 \times \exp(-0.75) = 472$ effective jobs
+- 2000 jobs (**intrinsic**) at 7 min walk: $2000 \times \exp(-1.75) = 347$ effective jobs
+- Total **accessibility weight**: $6 \times (472 + 347) = 4914$ job-departures/hour
 
 ### Example illustration
 
@@ -239,11 +261,11 @@ This image illustrates a simple pedestrian network connecting points of interest
 
 For instance, if we set a maximum access/egress walking time of 6 min, we can see that some stops can be reached by more than one set of POIs/green dots. This overlap is normal because each POI has a choice of accessible nodes nearby, allowing for multiple paths and node options in accessibility calculations.
 
-### Example Weight Calculation
+### Example Accessibility Weight Calculation
 
-Using a simple gravity model with impedance function $f(t) = 1 / t^2$ (power of 2), assuming each POI (green dots) has a weight of 1:
+Using a simple gravity model with impedance function $f(t) = 1 / t^2$ (power of 2), assuming each POI (green dots) has an **intrinsic weight** of 1:
 
-| Transit Node | Connected POIs with access time | Weight calculation $\sum(1/t^2)$ | Total Node Weight |
+| Transit Node | Connected POIs with access time | Accessibility Weight calculation $\sum(1/t^2)$ | Total Accessibility Weight |
 |--------------|-------------------------------|---------------------------|--------------|
 | A | 3 POIs at 3 min, 2 POIs at 2 min | $3 / 3^2 + 2 / 2^2$ | 0.833 |
 | B | 1 POI at 3 min, 2 POIs at 1 min, 1 POI at 4 min, 3 POIs at 6 min| $1 / 3^2 + 2 / 1^2 + 1 / 4^2 + 3 / 6^2$ | 2.257 |
@@ -254,8 +276,8 @@ Using a simple gravity model with impedance function $f(t) = 1 / t^2$ (power of 
 Travel surveys provide observed destination choice patterns that validate and calibrate theoretical accessibility models. Survey respondents' actual destinations reveal how people make spatial choices.
 
 **Key considerations:**
-- **Survey weights application**: Use trip weights for total trips estimation: $\text{Trips annual} = \sum(\text{trip weight}_ i \times \text{trips}_ i)$; use person weights for destination choice probabilities
-- **Destination choice modeling**: Multinomial logit where POI weight (employment, floor area, composite) appears in utility function: $P_{ij} = \exp(V_{ij}) / \sum_k \exp(V_{ik})$ where $V_{ij} = \alpha \times \ln(\text{Size}_ j) - \beta \times \text{TravelCost}_ {ij} + \gamma \times \text{Attributes}_ j$
+- **Survey weights application**: Use trip weights for total trips estimation: $\text{Trips annual} = \sum(\text{trip weight}_ i \times \text{trips}_ i)$; use person weights for destination choice probabilities. Note that survey weights are distinct from intrinsic/accessibility weights.
+- **Destination choice modeling**: Multinomial logit where **intrinsic weight** (employment, floor area, composite) appears in utility function: $P_{ij} = \exp(V_{ij}) / \sum_k \exp(V_{ik})$ where $V_{ij} = \alpha \times \ln(\text{Intrinsic Weight}_ j) - \beta \times \text{TravelCost}_ {ij} + \gamma \times \text{Attributes}_ j$
 - **Model validation**: Compare predicted vs. observed trip distributions (target $R^2 > 0.85$); match trip length distributions
 
 For a summarized survey weighting description, see [companion document on travel survey weighting](travelSurveyWeighting.md).
@@ -298,7 +320,7 @@ Bertolini's node-place model (1999) provides an elegant framework for evaluating
 **Results:**
 - Distance-based: $f(d) = \exp(-0.10 \times 5) = 0.607$
 - Time-based (auto): $f(t) = \exp(-0.08 \times 15) = 0.301$
-- Time-based (walk): $f(t) = \exp(-0.25 \times 60) = 1.5 \times 10^{-7}$
+- Time-based (walk): $f(t) = \exp(-0.25 \times 60) = 3.06 \times 10^{-7}$
 
 **Conclusion:** Time-based functions better capture mode-specific accessibility differences, especially in multi-modal and congested contexts.
 

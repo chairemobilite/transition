@@ -24,7 +24,7 @@ const newObjectAttributes = {
     internal_id: 'Test1',
     integer_id: 1,
     geography: {
-        type: "Point" as const,
+        type: 'Point' as const,
         coordinates: [-73.0, 45.0]
     },
     color: '#ffff00',
@@ -50,7 +50,7 @@ const newObjectAttributes2 = {
     internal_id: 'Test2',
     integer_id: 2,
     geography: {
-        type: "Point" as const,
+        type: 'Point' as const,
         coordinates: [-73.2, 45.4]
     },
     color: '#00ff00',
@@ -73,7 +73,7 @@ const newObjectAttributes3 = {
     internal_id: 'Test3',
     integer_id: 3,
     geography: {
-        type: "Point" as const,
+        type: 'Point' as const,
         coordinates: [-73.3, 45.3]
     },
     color: '#00ffff',
@@ -143,7 +143,7 @@ describe(`${objectName}`, () => {
 
     test('exists should return false if object is not in database', async () => {
 
-        const exists = await dbQueries.exists(uuidV4())
+        const exists = await dbQueries.exists(uuidV4());
         expect(exists).toBe(false);
 
     });
@@ -151,7 +151,7 @@ describe(`${objectName}`, () => {
     test('should create a new object in database', async () => {
 
         const newObject = new ObjectClass(newObjectAttributes, true);
-        const id = await dbQueries.create(newObject.attributes)
+        const id = await dbQueries.create(newObject.attributes);
         expect(id).toBe(newObjectAttributes.id);
 
     });
@@ -186,7 +186,7 @@ describe(`${objectName}`, () => {
     test('should create a second new object in database, with array returning', async () => {
 
         const newObject = new ObjectClass(newObjectAttributes2, true);
-        const { id, integer_id } = await dbQueries.create(newObject.attributes, { returning: ['id', 'integer_id'] }) as {[key: string]: unknown}
+        const { id, integer_id } = await dbQueries.create(newObject.attributes, { returning: ['id', 'integer_id'] }) as {[key: string]: unknown};
         expect(id).toBe(newObjectAttributes2.id);
         expect(integer_id).toBeDefined();
 
@@ -242,29 +242,110 @@ describe(`${objectName}`, () => {
 
     });
 
+    test('should read collection from database', async () => {
+
+        const collection = await dbQueries.collection();
+        expect(collection.length).toBe(2);
+        const _newObjectAttributes = _cloneDeep(newObjectAttributes) as any;
+        const _newObjectAttributes2 = _cloneDeep(newObjectAttributes2) as any;
+        const _updatedAttributes = _cloneDeep(updatedAttributes);
+        for (const attribute in _updatedAttributes) {
+            _newObjectAttributes[attribute] = _updatedAttributes[attribute];
+        }
+        delete _newObjectAttributes.data.transferableNodes;
+        delete _newObjectAttributes2.data.transferableNodes;
+
+        const node1 = collection.find((node) => node.id === _newObjectAttributes.id);
+        const node2 = collection.find((node) => node.id === _newObjectAttributes2.id);
+        expect(node1).toBeDefined();
+        expect(node2).toBeDefined();
+        delete node1.created_at;
+        delete node1.updated_at;
+        delete node2.created_at;
+        delete node2.updated_at;
+        expect(node1).toMatchObject(_newObjectAttributes);
+        expect(node2).toMatchObject(_newObjectAttributes2);
+
+    });
+
+    test('should read a subset collection from database with nodeIds parameter', async () => {
+
+        const collection = await dbQueries.collection({ nodeIds: [newObjectAttributes.id] });
+        expect(collection.length).toBe(1);
+        const _newObjectAttributes = _cloneDeep(newObjectAttributes) as any;
+        const _updatedAttributes = _cloneDeep(updatedAttributes);
+        for (const attribute in _updatedAttributes) {
+            _newObjectAttributes[attribute] = _updatedAttributes[attribute];
+        }
+        delete _newObjectAttributes.data.transferableNodes;
+
+        const node1 = collection.find((node) => node.id === _newObjectAttributes.id);
+        expect(node1).toBeDefined();
+        delete node1.created_at;
+        delete node1.updated_at;
+        expect(node1).toMatchObject(_newObjectAttributes);
+
+    });
+
+    test('should read multiple nodes from collection with nodeIds parameter', async () => {
+
+        // Create third node if not already created
+        if (!(await dbQueries.exists(newObjectAttributes3.id))) {
+            const newObject = new ObjectClass(newObjectAttributes3, true);
+            await dbQueries.create(newObject.attributes);
+        }
+
+        const collection = await dbQueries.collection({
+            nodeIds: [newObjectAttributes.id, newObjectAttributes2.id]
+        });
+        expect(collection.length).toBe(2);
+        const nodeIds = collection.map((node) => node.id);
+        expect(nodeIds).toContain(newObjectAttributes.id);
+        expect(nodeIds).toContain(newObjectAttributes2.id);
+        expect(nodeIds).not.toContain(newObjectAttributes3.id);
+
+    });
+
+    test('should return empty collection when nodeIds parameter contains non-existent IDs', async () => {
+
+        const nonExistentId = uuidV4();
+        const collection = await dbQueries.collection({ nodeIds: [nonExistentId] });
+        expect(collection.length).toBe(0);
+
+    });
+
+    test('should return empty collection when nodeIds parameter is empty array', async () => {
+
+        const collection = await dbQueries.collection({ nodeIds: [] });
+        expect(collection.length).toBe(0);
+
+    });
 
     test('should get nodes associated path ids from database', async () => {
 
-        // At this point, newObjectAttributes and newObjectAttributes2 are in the database
         await pathsDbQueries.createMultiple([
             new Path(newPathWithTwoAssociatedNodesAttributes, false).attributes,
             new Path(newPathWithOneAssociatedNodeAttributes, true).attributes,
         ]);
 
         await expect(async () => {
-            await dbQueries.getAssociatedPathIds([])
-        }).rejects.toThrowError("Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: Node ids array is empty (You must provide at least one node id) (DBQNGAP0002))");
+            await dbQueries.getAssociatedPathIds([]);
+        }).rejects.toThrow('Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: Node ids array is empty (You must provide at least one node id) (DBQNGAP0002))');
         await expect(async () => {
-            await dbQueries.getAssociatedPathIds(['foo'])
-        }).rejects.toThrowError("Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: At least one node id is not a valid uuid (DBQNGAP0001))");
+            await dbQueries.getAssociatedPathIds(['foo']);
+        }).rejects.toThrow('Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: At least one node id is not a valid uuid (DBQNGAP0001))');
         await expect(async () => {
-            await dbQueries.getAssociatedPathIds([newObjectAttributes.id, 'foo'])
-        }).rejects.toThrowError("Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: At least one node id is not a valid uuid (DBQNGAP0001))");
+            await dbQueries.getAssociatedPathIds([newObjectAttributes.id, 'foo']);
+        }).rejects.toThrow('Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: At least one node id is not a valid uuid (DBQNGAP0001))');
         expect(await dbQueries.getAssociatedPathIds([newObjectAttributes.id, newObjectAttributes3.id])).toEqual({
-            [newObjectAttributes.id]: [newPathWithTwoAssociatedNodesAttributes.id]
+            [newObjectAttributes.id]: [newPathWithTwoAssociatedNodesAttributes.id],
+            [newObjectAttributes3.id]: []
         });
 
         // Add a third node, not associated with a path
+        if (await dbQueries.exists(newObjectAttributes3.id)) {
+            await dbQueries.delete(newObjectAttributes3.id);
+        }
         const newObject = new ObjectClass(newObjectAttributes3, true);
         await dbQueries.create(newObject.attributes);
 
@@ -291,14 +372,13 @@ describe(`${objectName}`, () => {
 
     test('should get nodes within bird radius', async () => {
 
-        const _collection = await dbQueries.geojsonCollection();
         // Should be empty for the 1000 meters
         const nodesWithinBirdRadius = await dbQueries.getNodesInBirdDistance(newObjectAttributes.id, 1000);
         expect(nodesWithinBirdRadius).toEqual([]);
 
         // With higher distance, there should be more nodes
-        const distanceToN2 = turfDistance(newObjectAttributes.geography.coordinates, newObjectAttributes2.geography.coordinates, { units: 'meters'});
-        const distanceToN3 = turfDistance(newObjectAttributes.geography.coordinates, newObjectAttributes3.geography.coordinates, { units: 'meters'});
+        const distanceToN2 = turfDistance(newObjectAttributes.geography.coordinates, newObjectAttributes2.geography.coordinates, { units: 'meters' });
+        const distanceToN3 = turfDistance(newObjectAttributes.geography.coordinates, newObjectAttributes3.geography.coordinates, { units: 'meters' });
         const sortedExpectedNodes: [any, any][] = distanceToN2 < distanceToN3 ? [[newObjectAttributes2, distanceToN2], [newObjectAttributes3, distanceToN3]] : [[newObjectAttributes3, distanceToN3], [newObjectAttributes2, distanceToN2]];
         const nodesWithinBirdRadius100000 = await dbQueries.getNodesInBirdDistance(newObjectAttributes.id, 100000);
         expect(nodesWithinBirdRadius100000).toEqual([
@@ -325,8 +405,8 @@ describe(`${objectName}`, () => {
         ]);
 
         // With higher distance, there should be more nodes
-        const distanceToN2 = turfDistance(newObjectAttributes.geography.coordinates, newObjectAttributes2.geography.coordinates, { units: 'meters'});
-        const distanceToN3 = turfDistance(newObjectAttributes.geography.coordinates, newObjectAttributes3.geography.coordinates, { units: 'meters'});
+        const distanceToN2 = turfDistance(newObjectAttributes.geography.coordinates, newObjectAttributes2.geography.coordinates, { units: 'meters' });
+        const distanceToN3 = turfDistance(newObjectAttributes.geography.coordinates, newObjectAttributes3.geography.coordinates, { units: 'meters' });
         const sortedExpectedNodes: [any, any][] = distanceToN2 < distanceToN3 ? [[newObjectAttributes, 0], [newObjectAttributes2, distanceToN2], [newObjectAttributes3, distanceToN3]] : [[newObjectAttributes, 0], [newObjectAttributes3, distanceToN3], [newObjectAttributes2, distanceToN2]];
         const nodesWithinBirdRadius100000 = await dbQueries.getNodesInBirdDistanceFromPoint(point, 100000);
         expect(nodesWithinBirdRadius100000).toEqual([
@@ -360,8 +440,10 @@ describe(`${objectName}`, () => {
 
     test('should not delete all nodes nodes from database if paths exist', async () => {
         // Add a new node, not associated with a path
-        const newObject = new ObjectClass(newObjectAttributes3, true);
-        await dbQueries.create(newObject.attributes);
+        if (!(await dbQueries.exists(newObjectAttributes3.id))) {
+            const newObject = new ObjectClass(newObjectAttributes3, true);
+            await dbQueries.create(newObject.attributes);
+        }
         expect(await dbQueries.exists(newObjectAttributes3.id)).toBe(true);
 
         // Delete all unused nodes
@@ -414,12 +496,12 @@ describe('Nodes, with transactions', () => {
         // Make sure the new object is there and the old has been updated
         const collection = await dbQueries.collection();
         expect(collection.length).toEqual(2);
-        const { name, ...currentObject } = new ObjectClass(testObjectAttributes, true).attributes;
+        const currentObject = new ObjectClass(testObjectAttributes, true).attributes;
         const object1 = collection.find((obj) => obj.id === testObjectAttributes.id);
         expect(object1).toBeDefined();
         expect(object1).toEqual(expect.objectContaining({
-            name: newName,
-            ...currentObject
+            ...currentObject,
+            name: newName
         }));
 
         const object2 = collection.find((obj) => obj.id === testObjectAttributes2.id);
@@ -474,4 +556,3 @@ describe('Nodes, with transactions', () => {
     });
 
 });
-newObjectAttributes
