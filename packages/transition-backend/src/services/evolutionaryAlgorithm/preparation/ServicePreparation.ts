@@ -18,6 +18,8 @@ import Schedule from 'transition-common/lib/services/schedules/Schedule';
 import moment from 'moment';
 import * as AlgoTypes from '../internalTypes';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
+import { EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 
 const PERIOD_GROUP_SHORTNAME = 'complete_day';
 
@@ -34,13 +36,14 @@ const prepareServicesForLines = async (
         custom_start_at_str: string;
         custom_end_at_str: string;
     },
-    simulationRun: SimulationRun
+    job: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
 ): Promise<AlgoTypes.LineLevelOfService[]> => {
+    const transitNetworkParameters = job.parameters.transitNetworkDesignParameters;
     const minTime =
-        (simulationRun.attributes.data.transitNetworkDesignParameters.minTimeBetweenPassages ||
+        (transitNetworkParameters.minTimeBetweenPassages ||
             DEFAULT_MIN_TIME_BETWEEN_PASSAGES) * 60;
     const maxTime =
-        (simulationRun.attributes.data.transitNetworkDesignParameters.maxTimeBetweenPassages ||
+        (transitNetworkParameters.maxTimeBetweenPassages ||
             DEFAULT_MAX_TIME_BETWEEN_PASSAGES) * 60;
     const lineServices: AlgoTypes.LineLevelOfService[] = [];
 
@@ -66,7 +69,7 @@ const prepareServicesForLines = async (
     let lastTimeBetweenPassages = timeBetweenPassages;
     while (
         timeBetweenPassages > minTime &&
-        nbVehicles < (simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles || Number.MAX_VALUE)
+        nbVehicles < (transitNetworkParameters.nbOfVehicles || Number.MAX_VALUE)
     ) {
         const existingService = services.find(
             (service) => service.attributes.name === `simulation_${line.toString()}_${nbVehicles}`
@@ -80,7 +83,7 @@ const prepareServicesForLines = async (
                     monday: true,
                     start_date: moment().format('YYYY-MM-DD'),
                     end_date: moment().format('YYYY-MM-DD'),
-                    simulation_id: simulationRun.attributes.simulation_id
+                    data: { forJob: job.job.id }
                 },
                 true
             );
@@ -152,12 +155,12 @@ const getLongestPath = (lineCollection: LineCollection) =>
 export const prepareServices = async (
     lineCollection: LineCollection,
     services: ServiceCollection,
-    simulationRun: SimulationRun
+    jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
 ): Promise<{ lineServices: AlgoTypes.LineServices; services: ServiceCollection }> => {
     const lineServices: AlgoTypes.LineServices = {};
-    const simulationServices = services
-        .getFeatures()
-        .filter((service) => service.attributes.simulation_id === simulationRun.attributes.simulation_id);
+    // FIXME Previously, when run with simulation, we could re-use services created
+    // for the simulation. Now with jobs, each is independent
+    const simulationServices = [];
 
     const periodGroups = Preferences.current.transit.periods[PERIOD_GROUP_SHORTNAME];
     if (!periodGroups || (periodGroups.periods || []).length === 0) {
@@ -180,7 +183,7 @@ export const prepareServices = async (
             line,
             simulationServices,
             defaultPeriodAttributes,
-            simulationRun
+            jobWrapper
         );
         Object.values(servicesForLine).forEach((lvlOfService) =>
             services.getById(lvlOfService.service.getId()) !== undefined
@@ -203,11 +206,11 @@ export const prepareServices = async (
 export const saveSimulationScenario = async (
     socket: EventEmitter,
     scenario: Scenario,
-    options: AlgoTypes.RuntimeAlgorithmData
+    jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
 ): Promise<string | undefined> => {
     // Find all simulated services to merge as one
     const simulatedServiceIds = scenario.attributes.services.filter(
-        (serviceId) => !options.nonSimulatedServices.includes(serviceId)
+        (serviceId) => !(jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || []).includes(serviceId)
     );
     if (simulatedServiceIds.length === 0) {
         return undefined;
@@ -216,7 +219,7 @@ export const saveSimulationScenario = async (
     // Create a new service for this scenario and save to DB
     const service = new Service(
         {
-            name: `simulation_${scenario.attributes.name}`,
+            name: `networkDesign_${scenario.attributes.name}`,
             monday: true,
             tuesday: true,
             wednesday: true,
@@ -226,7 +229,7 @@ export const saveSimulationScenario = async (
             sunday: true,
             start_date: moment().format('YYYY-MM-DD'),
             end_date: moment().format('YYYY-MM-DD'),
-            simulation_id: options.simulationRun.attributes.simulation_id
+            data: { forJob: jobWrapper.job.id }
         },
         true
     );
@@ -234,7 +237,7 @@ export const saveSimulationScenario = async (
 
     // For each service to merge and save, find the lines that has them
     for (let i = 0; i < simulatedServiceIds.length; i++) {
-        const servicedLines = options.lineCollection
+        const servicedLines = jobWrapper.lineCollection
             .getFeatures()
             .filter((line) => line.attributes.scheduleByServiceId[simulatedServiceIds[i]] !== undefined);
         // Copy the schedules for those services, add the service to the line, then save to the database
@@ -256,8 +259,8 @@ export const saveSimulationScenario = async (
     const newScenario = new Scenario(
         {
             name: scenario.attributes.name,
-            services: [service.getId(), ...options.nonSimulatedServices],
-            simulation_id: options.simulationRun.attributes.simulation_id
+            services: [service.getId(), ...jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || []],
+            data: { forJob: jobWrapper.job.id }
         },
         true
     );
