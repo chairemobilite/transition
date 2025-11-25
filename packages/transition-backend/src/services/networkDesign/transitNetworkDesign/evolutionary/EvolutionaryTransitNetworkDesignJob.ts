@@ -6,8 +6,9 @@
  */
 import { EventEmitter } from 'events';
 
-import type { EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobResult } from './types';
+import type { EvolutionaryTransitNetworkDesignJobType, EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobResult } from './types';
 import { evolutionaryAlgorithmFactory } from '../../../evolutionaryAlgorithm';
+import { TransitNetworkDesignJobWrapper } from '../TransitNetworkDesignJobWrapper';
 
 /**
  * Do batch calculation on a csv file input
@@ -32,12 +33,12 @@ export const runEvolutionaryTransitNetworkDesignJob = async (
         isCancelled: () => boolean;
     }
 ): Promise<EvolutionaryTransitNetworkDesignJobResult> => {
-    return new EvolutionaryTransitNetworkDesignJobExecutor(job, options).run();
+    return new EvolutionaryTransitNetworkDesignJobExecutor(new TransitNetworkDesignJobWrapper(job), options).run();
 };
 
 class EvolutionaryTransitNetworkDesignJobExecutor {
     constructor(
-        private job: EvolutionaryTransitNetworkDesignJob,
+        private jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>,
         private options: {
             progressEmitter: EventEmitter;
             isCancelled: () => boolean;
@@ -49,12 +50,15 @@ class EvolutionaryTransitNetworkDesignJobExecutor {
     run = async (): Promise<EvolutionaryTransitNetworkDesignJobResult> => {
         // TODO Actually implement!! See ../simulation/SimulationExecution.ts file, the runSimulation function
         try {
+            
             // Prepare the data: copy the main cache
+            const serverData = await this.jobWrapper.loadServerData(this.options.progressEmitter);
+            this.jobWrapper.prepareCacheDirectory();
 
             const algorithm = evolutionaryAlgorithmFactory(
-                this.job.attributes.data.parameters.algorithmConfiguration.config,
-                this.job
+                this.jobWrapper
             );
+            const result = await algorithm.run(this.options.progressEmitter)
             return {
                 status: 'success',
                 warnings: [],

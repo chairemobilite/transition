@@ -122,10 +122,7 @@ export default class SimulationRunBackend extends SimulationRun {
                         // FIXME Type properly when the methods are typed better (see issues #1533, #1560 and #1553)
                         const simOptions = runtimeOptions.functions[method] as any;
                         const simulationMethod = factory.create(simOptions, this.attributes.data);
-                        const results = await simulationMethod.simulate(scenario.getId(), {
-                            trRoutingPort,
-                            transitRoutingParameters: this.attributes.data.routingAttributes
-                        });
+                        const results = await simulationMethod.simulate(scenario.getId());
                         resolve(results);
                     } catch (error) {
                         reject(error);
