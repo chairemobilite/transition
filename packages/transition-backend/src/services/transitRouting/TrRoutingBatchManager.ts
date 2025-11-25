@@ -7,6 +7,7 @@
 import { EventEmitter } from 'events';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
+import serverConfig from 'chaire-lib-backend/lib/config/server.config';
 
 /**
  * Result of starting TrRouting batch instance
@@ -95,13 +96,14 @@ export class TrRoutingBatchManager {
      * Calculate the optimal number of TrRouting thread to start.
      * Divides workload by 3 for minimum calculation count to avoid creating
      * too many processes if workload is small.
-     * Max parallel thread is enforced by TrRoutingProcessManager based on
-     * server configuration.
+     * Max parallel thread is based on server configuration.
      *
      * @param workloadSize - Number of items to process
      * @returns Optimal number of threads to start (at least 1)
      */
     private calculateThreadCount(workloadSize: number): number {
-        return Math.max(1, Math.ceil(workloadSize / 3));
+        // TODO Investigate if it still make sense to divide by 3, since we manage thread and
+        // not processes nowaday.
+        return Math.min(Math.max(1, Math.ceil(workloadSize / 3)), serverConfig.maxParallelCalculators);
     }
 }
