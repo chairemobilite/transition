@@ -49,7 +49,7 @@ const defaultSectionsConfig = {
     networkDesign: {
         localizedTitle: 'transit:networkDesign:NetworkDesign',
         icon: '/dist/images/icons/interface/networkDesign_white.svg',
-        enabled: false // Disabled by default until everything is well documented and functional
+        enabled: true // TODO Do not enable yet in main branche!! Until everything is well documented and functional
     },
     simulations: {
         localizedTitle: 'transit:simulation:Simulations',
