@@ -18,8 +18,9 @@ import { BatchAccessMapJobType } from '../services/transitRouting/BatchAccessibi
 import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { EvolutionaryTransitNetworkDesignJob } from '../services/networkDesign/transitNetworkDesign/evolutionary/types';
+import { EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobType } from '../services/networkDesign/transitNetworkDesign/evolutionary/types';
 import { runEvolutionaryTransitNetworkDesignJob } from '../services/networkDesign/transitNetworkDesign/evolutionary/EvolutionaryTransitNetworkDesignJob';
+
 
 function newProgressEmitter(task: ExecutableJob<JobDataType>) {
     const eventEmitter = new EventEmitter();
