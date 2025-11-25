@@ -6,7 +6,8 @@
  */
 import React from 'react';
 
-import { AlgorithmConfiguration } from 'transition-common/lib/services/networkDesign/transit/algorithm';
+import { AlgorithmConfiguration, getAlgorithmDescriptor } from 'transition-common/lib/services/networkDesign/transit/algorithm';
+import { getDefaultOptionsFromDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import TransitNetworkDesignAlgorithmComponent from '../widgets/TransitNetworkDesignAlgorithmComponent';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { PartialAlgorithmConfiguration } from '../types';
@@ -24,6 +25,14 @@ const ConfigureAlgorithmParametersForm: React.FunctionComponent<ConfigureAlgorit
     const [errors] = React.useState<string[]>([]);
 
     React.useEffect(() => {
+        // FIXME Should validate properly
+        const algoDescriptor = props.algorithmConfig?.type ? getAlgorithmDescriptor(props.algorithmConfig.type) : undefined;
+        // FIXME This part of setting the defaults should be done by the options component
+        if (algoDescriptor) {
+            const updatedAlgoConfig = getDefaultOptionsFromDescriptor(props.algorithmConfig.config || {}, algoDescriptor)
+            props.onUpdate({ ...props.algorithmConfig, config: updatedAlgoConfig }, true);
+            return;
+        }
         // Validate on first load - algorithm component handles validation
         props.onUpdate(props.algorithmConfig, true);
     }, []);
