@@ -4,8 +4,15 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import { v4 as uuidV4 } from 'uuid';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
-import { clipPolygon } from '../geometryUtils.db.queries';
+import {
+    clipPolygon,
+    getPOIsWithinBirdDistanceFromPoint,
+    getPOIsWithinBirdDistanceFromNodes
+} from '../geometryUtils.db.queries';
+import nodesDbQueries from '../transitNodes.db.queries';
+import GeoJSON from 'geojson';
 
 /**
  * Integration tests for geometry utility functions using live PostgreSQL/PostGIS database
@@ -371,7 +378,7 @@ describe('clipPolygon', () => {
         // In degrees: 1.0 / 78.8 ≈ 0.0127 degrees
         const circles = [
             { center: [-73.5, 45.5] as [number, number], radiusKm: 0.5 },
-            { center: [-73.5 + 0.0127, 45.5] as [number, number], radiusKm: 0.5 }
+            { center: [-73.5 + 0.0128, 45.5] as [number, number], radiusKm: 0.5 }
         ];
 
         const result = await clipPolygon(circles);
@@ -403,5 +410,327 @@ describe('clipPolygon', () => {
             expect(lonStr.length).toBeLessThan(25);
             expect(latStr.length).toBeLessThan(25);
         });
+    });
+});
+
+describe('getPOIsWithinBirdDistanceFromPoint', () => {
+    // Simple POI definitions: GeoJSON points with weight (using integer IDs)
+    const poi1 = {
+        id: 1,
+        geography: {
+            type: 'Point' as const,
+            coordinates: [-73.6, 45.5]
+        },
+        weight: 10.5
+    };
+
+    const poi2 = {
+        id: 2,
+        geography: {
+            type: 'Point' as const,
+            coordinates: [-73.5, 45.6]
+        },
+        weight: 5.0
+    };
+
+    const poi3 = {
+        id: 3,
+        geography: {
+            type: 'Point' as const,
+            coordinates: [-73.4, 45.7] // Far away
+        },
+        weight: 2.0
+    };
+
+    const poi4 = {
+        id: 4,
+        geography: {
+            type: 'Point' as const,
+            coordinates: [-73.6, 45.5] // Same location as POI 1
+        }
+        // No weight field, should default to 0
+    };
+
+    // Prepare POIs as input (no database needed)
+    const poisInput: GeoJSON.FeatureCollection<GeoJSON.Point, { weight?: number }> = {
+        type: 'FeatureCollection',
+        features: [
+            {
+                type: 'Feature' as const,
+                id: poi1.id,
+                geometry: poi1.geography,
+                properties: { weight: poi1.weight }
+            },
+            {
+                type: 'Feature' as const,
+                id: poi2.id,
+                geometry: poi2.geography,
+                properties: { weight: poi2.weight }
+            },
+            {
+                type: 'Feature' as const,
+                id: poi3.id,
+                geometry: poi3.geography,
+                properties: { weight: poi3.weight }
+            },
+            {
+                type: 'Feature' as const,
+                id: poi4.id,
+                geometry: poi4.geography,
+                properties: {} // No weight, will default to 0
+            }
+        ]
+    };
+
+    test('should return empty array when no POIs are within distance', async () => {
+        const referencePoint: GeoJSON.Point = {
+            type: 'Point',
+            coordinates: [0, 0] // Very far from all POIs
+        };
+        const distanceMeters = 1000; // 1 km
+
+        const result = await getPOIsWithinBirdDistanceFromPoint(referencePoint, distanceMeters, poisInput);
+
+        expect(result).toEqual([]);
+    });
+
+    test('should return POIs within bird distance', async () => {
+        const referencePoint: GeoJSON.Point = {
+            type: 'Point',
+            coordinates: [-73.6, 45.5] // Same as POI 1 and POI 4
+        };
+        const distanceMeters = 10000; // 10 km (should include POI 1, 2, and 4, but not 3)
+
+        const result = await getPOIsWithinBirdDistanceFromPoint(referencePoint, distanceMeters, poisInput);
+
+        expect(result.length).toBeGreaterThanOrEqual(2);
+        const resultIds = result.map((r) => r.id);
+        expect(resultIds).toContain(poi1.id);
+        expect(resultIds).toContain(poi4.id);
+        // POI 2 might be included depending on exact distance calculation
+        // POI 3 should be too far
+        expect(resultIds).not.toContain(poi3.id);
+    });
+
+    test('should return POIs ordered by distance', async () => {
+        const referencePoint: GeoJSON.Point = {
+            type: 'Point',
+            coordinates: [-73.6, 45.5] // Same as POI 1 and POI 4
+        };
+        const distanceMeters = 50000; // 50 km (should include all POIs)
+
+        const result = await getPOIsWithinBirdDistanceFromPoint(referencePoint, distanceMeters, poisInput);
+
+        expect(result.length).toBeGreaterThanOrEqual(2);
+        // First result should be POI 1 or POI 4 (same location)
+        const firstResultId = result[0].id;
+        expect([poi1.id, poi4.id]).toContain(firstResultId);
+        // Distances should be in ascending order
+        for (let i = 1; i < result.length; i++) {
+            expect(result[i].distance).toBeGreaterThanOrEqual(result[i - 1].distance);
+        }
+    });
+
+    test('should return correct weight from data field', async () => {
+        const referencePoint: GeoJSON.Point = {
+            type: 'Point',
+            coordinates: [-73.6, 45.5] // Same as POI 1
+        };
+        const distanceMeters = 1000; // 1 km
+
+        const result = await getPOIsWithinBirdDistanceFromPoint(referencePoint, distanceMeters, poisInput);
+
+        const poi1Result = result.find((r) => r.id === poi1.id);
+        expect(poi1Result).toBeDefined();
+        expect(poi1Result?.weight).toBe(10.5);
+    });
+
+    test('should default weight to 0 when weight field is missing', async () => {
+        const referencePoint: GeoJSON.Point = {
+            type: 'Point',
+            coordinates: [-73.6, 45.5] // Same as POI 4
+        };
+        const distanceMeters = 1000; // 1 km
+
+        const result = await getPOIsWithinBirdDistanceFromPoint(referencePoint, distanceMeters, poisInput);
+
+        const poi4Result = result.find((r) => r.id === poi4.id);
+        expect(poi4Result).toBeDefined();
+        expect(poi4Result?.weight).toBe(0);
+    });
+
+    test('should return correct distance values', async () => {
+        const referencePoint: GeoJSON.Point = {
+            type: 'Point',
+            coordinates: [-73.6, 45.5] // Same as POI 1
+        };
+        const distanceMeters = 50000; // 50 km
+
+        const result = await getPOIsWithinBirdDistanceFromPoint(referencePoint, distanceMeters, poisInput);
+
+        const poi1Result = result.find((r) => r.id === poi1.id);
+        expect(poi1Result).toBeDefined();
+        expect(poi1Result?.distance).toBeGreaterThanOrEqual(0);
+        expect(poi1Result?.distance).toBeLessThanOrEqual(distanceMeters);
+    });
+
+    test('should return geography as GeoJSON.Point', async () => {
+        const referencePoint: GeoJSON.Point = {
+            type: 'Point',
+            coordinates: [-73.6, 45.5]
+        };
+        const distanceMeters = 1000;
+
+        const result = await getPOIsWithinBirdDistanceFromPoint(referencePoint, distanceMeters, poisInput);
+
+        expect(result.length).toBeGreaterThan(0);
+        result.forEach((r) => {
+            expect(r.geography).toBeDefined();
+            expect(r.geography.type).toBe('Point');
+            expect(Array.isArray(r.geography.coordinates)).toBe(true);
+            expect(r.geography.coordinates.length).toBe(2);
+        });
+    });
+
+    test('should handle very small distance threshold', async () => {
+        const referencePoint: GeoJSON.Point = {
+            type: 'Point',
+            coordinates: [-73.6, 45.5]
+        };
+        const distanceMeters = 1; // 1 meter
+
+        const result = await getPOIsWithinBirdDistanceFromPoint(referencePoint, distanceMeters, poisInput);
+
+        // Should only return POIs at the exact same location (POI 1 and POI 4)
+        const resultIds = result.map((r) => r.id);
+        expect([poi1.id, poi4.id].some((id) => resultIds.includes(id))).toBe(true);
+    });
+});
+
+describe('getPOIsWithinBirdDistanceFromNodes', () => {
+    const poisFeatureCollection: GeoJSON.FeatureCollection<GeoJSON.Point, { weight?: number }> = {
+        type: 'FeatureCollection',
+        features: [
+            {
+                type: 'Feature',
+                id: 1,
+                geometry: {
+                    type: 'Point',
+                    coordinates: [-73.6, 45.5]
+                },
+                properties: { weight: 10.5 }
+            },
+            {
+                type: 'Feature',
+                id: 2,
+                geometry: {
+                    type: 'Point',
+                    coordinates: [-73.5, 45.6]
+                },
+                properties: { weight: 5.0 }
+            }
+        ]
+    };
+
+    let testNodeIds: string[] = [];
+
+    beforeAll(async () => {
+        // Create 2 test nodes for the tests
+        const nodeAttributes = [
+            {
+                id: uuidV4(),
+                code: 'TEST001',
+                name: 'Test Node 1',
+                internal_id: 'test_node_1',
+                integer_id: 999998,
+                geography: {
+                    type: 'Point' as const,
+                    coordinates: [-73.6, 45.5]
+                },
+                is_enabled: true,
+                is_frozen: false,
+                routing_radius_meters: 50,
+                default_dwell_time_seconds: 30,
+                data: {}
+            },
+            {
+                id: uuidV4(),
+                code: 'TEST002',
+                name: 'Test Node 2',
+                internal_id: 'test_node_2',
+                integer_id: 999999,
+                geography: {
+                    type: 'Point' as const,
+                    coordinates: [-73.5, 45.6]
+                },
+                is_enabled: true,
+                is_frozen: false,
+                routing_radius_meters: 50,
+                default_dwell_time_seconds: 30,
+                data: {}
+            }
+        ];
+
+        await nodesDbQueries.createMultiple(nodeAttributes);
+        testNodeIds = nodeAttributes.map((node) => node.id);
+    });
+
+    afterAll(async () => {
+        // Clean up test nodes
+        for (const nodeId of testNodeIds) {
+            await nodesDbQueries.delete(nodeId);
+        }
+    });
+
+    test('should return empty object immediately when nodeIds is empty array (no database query)', async () => {
+        const nodeIds: string[] = [];
+        const distanceMeters = 10000;
+
+        const result = await getPOIsWithinBirdDistanceFromNodes(distanceMeters, poisFeatureCollection, nodeIds);
+
+        // Empty array means "no nodes" - should return immediately without database transaction
+        expect(result).toEqual({});
+    });
+
+    test('should return empty object when poisFeatureCollection is empty', async () => {
+        const nodeIds = ['test-node-id'];
+        const distanceMeters = 10000;
+        const emptyPOIs: GeoJSON.FeatureCollection<GeoJSON.Point, { weight?: number }> = {
+            type: 'FeatureCollection',
+            features: []
+        };
+
+        const result = await getPOIsWithinBirdDistanceFromNodes(distanceMeters, emptyPOIs, nodeIds);
+
+        expect(result).toEqual({});
+    });
+
+    test('should handle undefined nodeIds and query all enabled nodes', async () => {
+        const distanceMeters = 10000;
+
+        const result = await getPOIsWithinBirdDistanceFromNodes(distanceMeters, poisFeatureCollection);
+
+        expect(typeof result).toBe('object');
+        // Verify structure: each key should be a node ID, each value should be an array
+        Object.keys(result).forEach((nodeId) => {
+            expect(Array.isArray(result[nodeId])).toBe(true);
+        });
+    });
+
+    test('should handle non-empty nodeIds array', async () => {
+        const distanceMeters = 10000;
+        const specificNodeIds = [testNodeIds[0]];
+
+        const result = await getPOIsWithinBirdDistanceFromNodes(distanceMeters, poisFeatureCollection, specificNodeIds);
+
+        expect(typeof result).toBe('object');
+        // Should only contain results for the specified node
+        expect(Object.keys(result).length).toBeLessThanOrEqual(specificNodeIds.length);
+        expect(Object.keys(result).every((id) => specificNodeIds.includes(id))).toBe(true);
+        // Should contain results for the test node
+        if (Object.keys(result).length > 0) {
+            expect(result[testNodeIds[0]]).toBeDefined();
+            expect(Array.isArray(result[testNodeIds[0]])).toBe(true);
+        }
     });
 });

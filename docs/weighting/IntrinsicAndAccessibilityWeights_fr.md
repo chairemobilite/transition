@@ -1,12 +1,28 @@
 # Pondération des points d'intérêt, domiciles, destinations et attractivité des nœuds de transport collectif
 
-**La pondération en modélisation des transports** attribue des valeurs d'attractivité relatives aux destinations, points d'intérêt (POI), domiciles et nœuds/stations de transport collectif en fonction de leur capacité à générer ou attirer des déplacements. Un édifice du centre-ville avec 5000 emplois et des milliers de clients a un poids bien plus important qu'un bureau de banlieue avec un petit nombre d'employés et quelques commerces; un grand centre commercial avec une tour résidentielle attire plus de déplacements qu'un dépanneur dans une banlieue composée uniquement de maisons unifamiliales détachées. Cette pondération différentielle, combinée à des fonctions de décroissance en fonction de la distance ou du temps de déplacement reconnaissant que les gens voyagent plus volontiers sur de courtes distances, constitue le fondement mathématique des modèles d'interaction spatiale qui prédisent comment la demande de déplacement se distribue sur les réseaux.
+**La pondération en modélisation des transports** attribue des valeurs relatives aux destinations, points d'intérêt (POI), domiciles et nœuds/stations de transport collectif en fonction de leur capacité à générer ou attirer des déplacements.
 
-Ces modèles sont d'une importance capitale pour la planification du transport, en particulier la planification du transport collectif. Un arrêt de bus entouré de 10 000 résidents dans un rayon de 400 mètres a un potentiel d'achalandage fondamentalement différent d'un arrêt isolé desservant 500 personnes. Les mesures d'accessibilité basées sur la gravité quantifient cela en additionnant les opportunités pondérées ($\sum W_j / \text{distance}^\beta$) dans les zones de desserte. La distance peut être remplacée par le temps de déplacement à pied/à vélo/en transport collectif ou en voiture pour une modélisation plus précise dans des contextes de congestion ou multimodaux.
+Deux concepts distincts sont essentiels à distinguer :
+
+1.  **Poids propre** (*Intrinsic Weight*, $W_j$) : La propriété intrinsèque du lieu lui-même — ce qu'il génère ou contient (employés, résidents, achalandage mesuré, surface de plancher, etc.).
+2.  **Poids d'accessibilité** (*Accessibility Weight*, $A_i$) : Une mesure dérivée de l'environnement — ce que le lieu peut "capter" ou "atteindre" selon sa localisation par rapport aux poids propres, calculée via un modèle gravitaire.
+
+Un édifice du centre-ville avec 5000 emplois (haut **poids propre**) a un potentiel bien plus important qu'un bureau de banlieue. Cependant, le **poids d'accessibilité** d'un lieu (ex: un arrêt de transport, un domicile ou un POI) dépend de combien de ces lieux à haut poids propre sont à sa portée.
+
+Cette distinction constitue le fondement mathématique des modèles d'interaction spatiale qui prédisent comment la demande de déplacement se distribue sur les réseaux.
+
+Ces modèles sont d'une importance capitale pour la planification du transport, en particulier la planification du transport collectif. Par exemple, un arrêt de bus entouré de 10 000 résidents dans un rayon de 400 mètres a un potentiel d'achalandage fondamentalement différent d'un arrêt isolé desservant 500 personnes. Les **poids d'accessibilité** basés sur la gravité quantifient cela en additionnant les opportunités pondérées ($\sum W_{propre,j} / \text{distance}^\beta$) dans les zones de desserte. La distance peut être remplacée par le temps de déplacement à pied/à vélo/en transport collectif ou en voiture pour une modélisation plus précise dans des contextes de congestion ou multimodaux.
 
 ## Concepts fondamentaux de la modélisation gravitaire
 
-Les travaux de Hansen en 1959 ont établi l'accessibilité comme un "potentiel d'opportunités d'interaction", introduisant la formulation basée sur la gravité: $A_i = \sum_j (W_j \times f(d_{ij}))$. Le **modèle gravitaire** pour la distribution des déplacements s'écrit $T_{ij} = k \times (P_i^\lambda \times P_j^\alpha) / d_{ij}^\beta$, où $T_{ij}$ représente les déplacements de l'origine $i$ vers la destination $j$, $P_i$ et $P_j$ sont les populations respectives ou les mesures d'attractivité, $d_{ij}$ est la distance de séparation (ou le temps de déplacement), et $\beta$ est le paramètre critique de décroissance en fonction de la distance. Le modèle gravitaire doublement contraint de Wilson (1967) assure que les origines et destinations des déplacements totalisent des valeurs connues, ce qui en fait le pilier des modèles de demande de transport en quatre étapes dans le monde entier.
+Les travaux de Hansen en 1959 ont établi l'accessibilité comme un "potentiel d'opportunités d'interaction", introduisant la formulation basée sur la gravité: $A_i = \sum_j (W_j \times f(d_{ij}))$.
+
+Dans notre terminologie :
+*   $A_i$ est le **Poids d'accessibilité** du lieu $i$
+*   $W_j$ est le **Poids propre** de la destination $j$
+*   $f(d_{ij})$ est la fonction de décroissance selon la distance ou le temps
+
+Le **modèle gravitaire** pour la distribution des déplacements s'écrit $T_{ij} = k \times (P_i^\lambda \times P_j^\alpha) / d_{ij}^\beta$, où $T_{ij}$ représente les déplacements de l'origine $i$ vers la destination $j$, $P_i$ et $P_j$ sont les populations respectives ou les **poids propres** (mesures d'attractivité), $d_{ij}$ est la distance de séparation (ou le temps de déplacement), et $\beta$ est le paramètre critique de décroissance en fonction de la distance. Le modèle gravitaire doublement contraint de Wilson (1967) assure que les origines et destinations des déplacements totalisent des valeurs connues, ce qui en fait le pilier des modèles de demande de transport en quatre étapes dans le monde entier.
 
 ### Fonctions de décroissance en fonction de la distance et du temps de déplacement
 
@@ -102,7 +118,7 @@ Les études empiriques montrent que les valeurs de $\beta$ varient considérable
 4. Zones de desserte du transport collectif avec des vitesses de marche variées
 5. Modélisation de la demande de transport en quatre étapes (norme NCHRP 716)
 
-Transition utilise les résultats de temps de parcours retournés par les engins de calcul de chemin intégrés pour la marche, le vélo, le transport collectif et la voiture, mais peut également utiliser la distance réseau ou la distance Euclidienne/à vol d'oiseau lorsque les engins de calcul de chemins ne sont pas disponibles ou pour compléter des tests.
+Transition utilise les résultats de temps de parcours retournés par les engins de calcul de chemin intégrés pour la marche, le vélo, le transport collectif et la voiture, mais peut également utiliser la distance réseau ou la distance euclidienne/à vol d'oiseau lorsque les engins de calcul de chemins ne sont pas disponibles ou pour compléter des tests.
 
 **Facteurs de conversion typiques:**
 
@@ -135,7 +151,7 @@ La pratique de planification standard spécifie des zones de desserte basées su
 | Station SRB | 600 m | 7.5 min | 0.7× | 0.9× additionnel | ~380 m | ITDP (2017); Deng & Nelson (2011) |
 
 **Approches de calcul:**
-- **Circulaire (Euclidienne)**: Simple mais surestime de 20 à 40%
+- **Circulaire (euclidienne)**: Simple mais surestime de 20 à 40%
 - **Distance réseau**: Utilise les chemins piétons réels, plus précis
 - **Basée sur l'énergie**: Tient compte de la topographie—un gain d'élévation de 30m ajoute 20% de temps, 35% d'énergie (Bartzokas-Tsiompras & Photis, 2019)
 - **Basée sur le temps de déplacement**: Plus précis pour les contextes multimodaux et congestionnés
@@ -144,11 +160,11 @@ La pratique de planification standard spécifie des zones de desserte basées su
 
 Note: Les zones de desserte/attractivité des arrêts ne sont pas encore prises en compte dans Transition.
 
-## Méthodologies de pondération des POI par type d'activité
+## Méthodologies de pondération des POI (Poids propre) par type d'activité
 
-Les points d'intérêt nécessitent une pondération différentielle reflétant leur capacité de génération/attraction de déplacements:
+Les points d'intérêt nécessitent une **pondération intrinsèque (poids propre)** différentielle reflétant leur capacité de génération/attraction de déplacements:
 
-| Type de poids | Méthodologie | Valeurs/conversions typiques | Source de données | Application |
+| Type de poids propre | Méthodologie | Valeurs/conversions typiques | Source de données | Application |
 |---------------|--------------|------------------------------|-------------------|-------------|
 | **Emploi** | Poids = Emplois | Raffinement spécifique au secteur | LEHD LODES | Modélisation des déplacements domicile-travail (étalon-or) |
 | **Surface de plancher** | $\text{Poids} = \text{Surface} \times \text{Taux de déplacement}$ | Commerce: 35-45 dép./1000pi²<br>Bureau: 10-15 dép./1000pi²<br>Résidentiel: 8-10 dép./unité | Manuel de génération de déplacements ITE | Quand l'emploi n'est pas disponible |
@@ -175,31 +191,37 @@ Le manuel de génération de déplacements de l'Institute of Transportation Engi
 - Capture interne pour usage mixte: Utiliser la méthodologie du rapport NCHRP 684
 - L'utilisation de déplacements OD à partir d'enquêtes de mobilité est très utile pour ajuster et calibrer les taux de génération par type de lieu ou domicile, mais davantage de travaux de recherche sont requis pour obtenir des résultats probants.
 
-## Formules d'attractivité des arrêts de transport collectif basées sur la gravité
+### Exemple d'agrégation : Centre commercial
 
-L'attractivité des arrêts de transport collectif combine la qualité du service avec l'usage du sol environnant à travers des mesures d'accessibilité pondérées par gravité.
+Lors de l'attribution de poids propres à des lieux complexes comme un centre commercial, deux approches sont possibles :
+1.  **Désagrégée** : Traiter chaque commerce comme un POI distinct avec son propre poids propre (ex : surface de plancher ou emploi spécifique), en cartographiant chacun à son entrée spécifique dans le centre.
+2.  **Agrégée** : Somme des poids propres de tous les commerces individuels pour obtenir un poids propre unique et cumulatif à l'ensemble du centre commercial, assigné ensuite à la porte principale.
+
+## Formules de poids d'accessibilité basées sur la gravité
+
+Le **poids d'accessibilité** est une mesure qui peut être calculée pour n'importe quel lieu (Domicile, POI, Nœud de transport). Lorsqu'appliqué aux arrêts de transport collectif, il combine souvent la qualité du service avec l'usage du sol environnant à travers des mesures d'accessibilité pondérées par gravité.
 
 ### Formules de base
 
 | Mesure | Formule | Application | Référence |
 |--------|---------|-------------|-----------|
-| **Accessibilité de base** | $A_{\text{arrêt}} = \sum (\text{Poids POI} / \text{distance}^\beta)$ | Zone de desserte pondérée par POI | Hansen (1959) |
-| **Pondérée par le service** | $A_{\text{arrêt}} = \text{Fréquence} \times \sum (\text{Poids POI} / \text{distance}^\beta)$ | Combine le service et l'usage du sol | Modélisation standard en quatre étapes |
+| **Accessibilité de base** | $A_i = \sum (\text{Poids propre POI} / \text{distance}^\beta)$ | Zone de desserte pondérée pour tout lieu $i$ | Hansen (1959) |
+| **Pondérée par le service** | $A_{\text{arrêt}} = \text{Fréquence} \times \sum (\text{Poids propre POI} / \text{distance}^\beta)$ | Combine le service et l'usage du sol pour les arrêts | Modélisation standard en quatre étapes |
 | **Pondérée par la population** | $\text{Pop pondérée} = \sum (\text{Pop}_ i \times \exp(-\beta \times \text{distance}_ i))$ | Potentiel de génération de déplacements | Bartzokas-Tsiompras (2019) |
 | **Accessibilité à l'emploi** | $\text{Accès emplois} = \sum (\text{Emplois}_ j \times \exp(-\beta \times \text{temps TC},ij))$ | Métrique d'équité d'accès aux emplois | Geurs & van Wee (2004) |
 | **Indice combiné** | $I_{\text{arrêt}} = \sum w_i \times \text{Composante}_ i$ | Intégration multi-facteurs | Calibré via régression |
 
 **Composantes de l'indice combiné:** fréquence, pondérée par la population, pondérée par l'emploi, pondérée par le commerce de détail, centralité du réseau
 
-### Accessibilité du transport collectif basée sur le temps de déplacement
+### Accessibilité basée sur le temps de déplacement
 
-**Accessibilité de Hansen avec temps de déplacement:**
+**Poids d'accessibilité de Hansen avec temps de déplacement:**
 
 $$A_i = \sum_j (O_j \times \exp(-\beta \times t_{ij}))$$
 
 **Où:**
-- $A_i$ = indice d'accessibilité pour l'emplacement $i$
-- $O_j$ = opportunités à la destination $j$ (emplois, services, POI). Peut également inclure les domiciles. Chacune des opportunités peut être pondérée pour sa propre attractivité comme expliqué précédemment (deviendrait $W_j$).
+- $A_i$ = **poids d'accessibilité** / indice d'accessibilité pour l'emplacement $i$ (ex: un domicile, un POI ou un arrêt de transport)
+- $O_j$ = **poids propre** / opportunités à la destination $j$ (emplois, services, POI). Peut également inclure les domiciles. Chacune des opportunités peut être pondérée pour sa propre attractivité comme expliqué précédemment (deviendrait $W_j$).
 - $t_{ij}$ = temps de déplacement de $i$ à $j$ (minutes)
 - $\beta$ = paramètre de décroissance temporelle (0.08-0.12 pour l'emploi)
 
@@ -209,7 +231,7 @@ $$A_{\text{arrêt}} = f_{\text{arrêt}} \times \sum_j (W_j \times \exp(-\beta_{\
 
 **Où:**
 - $f_{\text{arrêt}}$ = fréquence de service (départs/heure)
-- $W_j$ = poids du POI/destination $j$
+- $W_j$ = **poids propre** du POI/destination $j$
 - $t_{\text{marche},ij}$ = temps de marche de l'arrêt au POI $j$ (minutes)
 - $\beta_{\text{marche}}$ = paramètre de décroissance du temps de marche (typiquement 0.20-0.30)
 
@@ -217,14 +239,14 @@ $$A_{\text{arrêt}} = f_{\text{arrêt}} \times \sum_j (W_j \times \exp(-\beta_{\
 
 $$A_{i,\text{TC}} = \sum_{\text{arrêts}} \sum_{\text{emplois}} (\text{Emplois}_ j \times \exp(-\beta_{\text{marche}} \times t_{\text{marche}} - \beta_{\text{attente}} \times t_{\text{attente}} - \beta_{\text{IVT}} \times t_{\text{IVT}}))$$
 
-**Exemple de calcul:** Accessibilité aux emplois d'un arrêt de transport collectif avec 6 départs/heure:
+**Exemple de calcul:** Accessibilité aux emplois (poids d'accessibilité) d'un arrêt de transport collectif avec 6 départs/heure:
 
 $$A_{\text{arrêt}} = 6 \times \sum(\text{Emplois}_ j \times \exp(-0.25 \times \text{temps de marche en minutes}_ j))$$
 
 Pour les emplois dans un rayon de 10 minutes de marche:
-- 1000 emplois à 3 min de marche: $1000 \times \exp(-0.75) = 472$ emplois effectifs
-- 2000 emplois à 7 min de marche: $2000 \times \exp(-1.75) = 347$ emplois effectifs
-- Accessibilité totale: $6 \times (472 + 347) = 4\,914$ emplois-départs/heure
+- 1000 emplois (**poids propre**) à 3 min de marche: $1000 \times \exp(-0.75) = 472$ emplois effectifs
+- 2000 emplois (**poids propre**) à 7 min de marche: $2000 \times \exp(-1.75) = 347$ emplois effectifs
+- **Poids d'accessibilité** total: $6 \times (472 + 347) = 4\,914$ emplois-départs/heure
 
 ### Illustration d'exemple
 
@@ -239,11 +261,11 @@ Cette image illustre un réseau piéton simple reliant des points d'intérêt (P
 
 Si nous fixons par exemple un temps de marche d'accès maximum de 6 min, nous pouvons voir que certains nœuds peuvent être atteints par plus d'un ensemble de POI/points verts. Ce chevauchement est normal car chaque POI a le choix de nœuds accessibles à proximité, permettant de multiples chemins et options de nœuds dans les calculs d'accessibilité.
 
-### Exemple de Calcul de Poids
+### Exemple de Calcul de Poids d'Accessibilité
 
-En utilisant un modèle gravitaire simple avec fonction d'impédance $f(t) = 1 / t^2$ (puissance de 2) et en supposant des poids de 1 pour chaque POI (points verts):
+En utilisant un modèle gravitaire simple avec fonction d'impédance $f(t) = 1 / t^2$ (puissance de 2) et en supposant des **poids propres** de 1 pour chaque POI (points verts):
 
-| Nœud d'arrêt | POI connectés avec temps d'accès | Calcul du poids $\sum(1/t^2)$ | Poids total du nœud |
+| Nœud d'arrêt | POI connectés avec temps d'accès | Calcul du poids d'accessibilité $\sum(1/t^2)$ | Poids d'accessibilité total du nœud |
 |--------------|-------------------------------|---------------------------|--------------|
 | A | 3 POIs à 3 min, 2 POIs à 2 min | $3 / 3^2 + 2 / 2^2$ | 0.833 |
 | B | 1 POI à 3 min, 2 POIs à 1 min, 1 POI à 4 min, 3 POIs à 6 min| $1 / 3^2 + 2 / 1^2 + 1 / 4^2 + 3 / 6^2$ | 2.257 |
@@ -254,8 +276,8 @@ En utilisant un modèle gravitaire simple avec fonction d'impédance $f(t) = 1 /
 Les enquêtes de déplacements fournissent des modèles de choix de destination observés qui valident et calibrent les modèles d'accessibilité théoriques. Les destinations réelles des répondants aux enquêtes révèlent comment les gens font des choix spatiaux.
 
 **Considérations clés:**
-- **Application des poids d'enquête**: Utiliser les poids de déplacement pour l'estimation des déplacements totaux : $\text{Déplacements annuels} = \sum(\text{poids déplacement}_ i \times \text{déplacements}_ i)$; utiliser les poids de personne pour les probabilités de choix de destination
-- **Modélisation du choix de destination**: Logit multinomial où le poids du POI (emploi, surface de plancher, composite) apparaît dans la fonction d'utilité: $P_{ij} = \exp(V_{ij}) / \sum_k \exp(V_{ik})$ où $V_{ij} = \alpha \times \ln(\text{Taille}_ j) - \beta \times \text{Coût déplacement}_ {ij} + \gamma \times \text{Attributs}_ j$
+- **Application des poids d'enquête**: Utiliser les poids de déplacement pour l'estimation des déplacements totaux : $\text{Déplacements annuels} = \sum(\text{poids déplacement}_ i \times \text{déplacements}_ i)$; utiliser les poids de personne pour les probabilités de choix de destination. Noter que les poids d'enquête sont distincts des poids propres/d'accessibilité.
+- **Modélisation du choix de destination**: Logit multinomial où le **poids propre** du POI (emploi, surface de plancher, composite) apparaît dans la fonction d'utilité: $P_{ij} = \exp(V_{ij}) / \sum_k \exp(V_{ik})$ où $V_{ij} = \alpha \times \ln(\text{Poids Propre}_ j) - \beta \times \text{Coût déplacement}_ {ij} + \gamma \times \text{Attributs}_ j$
 - **Validation du modèle**: Comparer les distributions de déplacements prédites vs observées (cible $R^2 > 0.85$); faire correspondre les distributions de longueur de déplacement
 
 Pour la méthodologie détaillée de pondération des enquêtes, voir le [document complémentaire sur la pondération des enquêtes de déplacements](travelSurveyWeighting_fr.md).
