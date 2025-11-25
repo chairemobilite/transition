@@ -16,6 +16,15 @@ Calibration completes the process by adjusting weighted sample distributions to 
 
 Travel surveys inherently collect nested data: households contain persons who make trips. This structure requires possibly three related but distinct sets of weights, each building on the previous level while adding appropriate adjustments. Some surveys weight only households,  some weight both the households and persons, and some others weight households, persons and trips separately.
 
+## Connection to Intrinsic Weights
+
+The final weights calculated through this process (design weights adjusted by calibration) attached to a trip destination, a person, or a household effectively become its **Intrinsic Weight** ($W_j$) in gravity models and accessibility calculations.
+
+For example:
+- If a surveyed trip to a shopping mall has a final weight of 50, that destination contributes 50 units of "attraction" (**intrinsic weight**) to the accessibility calculation of nearby transit nodes.
+- If a household has a weight of 20, it represents 20 households at that location, contributing to the **intrinsic weight** of that origin point for trip generation.
+- To weight a residential building, we usually use the sum of the **intrinsic weights** of all households or persons living in the whole building, depending if we want a household weight or a person weight.
+
 ## Key references
 
 [UK Department for Transport (2024). National Travel Survey Weighting Review.](https://www.gov.uk/government/publications/future-developments-for-the-nts/)
