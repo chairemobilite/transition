@@ -237,7 +237,7 @@ export const saveSimulationScenario = async (
 
     // For each service to merge and save, find the lines that has them
     for (let i = 0; i < simulatedServiceIds.length; i++) {
-        const servicedLines = jobWrapper.lineCollection
+        const servicedLines = jobWrapper.simulatedLineCollection
             .getFeatures()
             .filter((line) => line.attributes.scheduleByServiceId[simulatedServiceIds[i]] !== undefined);
         // Copy the schedules for those services, add the service to the line, then save to the database
@@ -259,7 +259,7 @@ export const saveSimulationScenario = async (
     const newScenario = new Scenario(
         {
             name: scenario.attributes.name,
-            services: [service.getId(), ...jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || []],
+            services: [service.getId(), ...(jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || [])],
             data: { forJob: jobWrapper.job.id }
         },
         true
