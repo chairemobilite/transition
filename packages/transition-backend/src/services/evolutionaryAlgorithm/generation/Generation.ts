@@ -17,6 +17,7 @@ import GenerationLogger from './GenerationLogger';
 import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import { OdTripSimulationOptions } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
+import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 
 abstract class Generation {
     protected fitnessSorter: (fitnessA: number, fitnessB: number) => number;
@@ -28,7 +29,6 @@ abstract class Generation {
         protected logger: GenerationLogger
     ) {
         // Now jobWrapper.parameters is automatically typed as EvolutionaryTransitNetworkDesignJobParameters
-        console.log('fitness', jobWrapper.parameters.simulationMethod.config);
         this.fitnessSorter =
             Preferences.current.simulations.geneticAlgorithms.fitnessSorters[
                 (jobWrapper.parameters.simulationMethod.config as OdTripSimulationOptions).evaluationOptions.fitnessFunction
@@ -52,8 +52,11 @@ abstract class Generation {
         return this.generationNumber;
     }
 
-    async prepareCandidates(socket: EventEmitter) {
-        const time = Date.now();
+    async prepareCandidates(socket: EventEmitter): Promise<{warnings: ErrorMessage[];
+        errors: ErrorMessage[];}> {
+            const errors: ErrorMessage[] = [];
+            const warnings: ErrorMessage[] = [];
+        console.time(`Prepared candidates for generation ${this.generationNumber}`);
 
         // TODO Cleanup old data?
 
@@ -63,31 +66,29 @@ abstract class Generation {
 
         const candidatePreparationPromises = this.candidates.map(
             async (candidate, candidateIdx) =>
-                await promiseQueue.add(async () => {
-                    try {
-                        return await candidate.prepareScenario(socket);
-                    } catch (err) {
-                        console.error(
-                            `Error preparing scenario for candidate ${candidateIdx} of ${this.generationNumber}th generation: ${err}`
-                        );
-                    }
-                })
+                await promiseQueue.add(async () => await candidate.prepareScenario(socket))
         );
 
-        try {
-            const scenarios = await Promise.all(candidatePreparationPromises);
-            const scenarioCollection = new ScenarioCollection(scenarios, {});
-            const cachePath = this.jobWrapper.job.getJobFileDirectory() + '/cache';
-            // FIXME Job type should provide the cache path if we need it
-            await collectionToCache(scenarioCollection, cachePath);
-            console.log(
-                `  generation ${this.generationNumber}: preparation completed in ${
-                    (Date.now() - time) / 1000
-                } sec. and saved in ${cachePath}`
-            );
-        } catch {
-            console.log('Some candidates could not be prepared');
-        }
+        const results = await Promise.allSettled(candidatePreparationPromises);
+    
+        // Handle fulfilled and rejected promises separately
+        const scenarios: Scenario[] = [];
+        results.forEach((result, candidateIdx) => {
+            if (result.status === 'fulfilled') {
+                scenarios.push(result.value!);
+            } else {
+                // Handle failed simulation
+                const warning = `Error preparing scenario for candidate ${candidateIdx} of ${this.generationNumber}th generation: ${result.reason}`;
+                warnings.push(warning);
+                console.warn(warning);
+            }
+        });
+        const scenarioCollection = new ScenarioCollection(scenarios, {});
+        const cachePath = this.jobWrapper.job.getJobFileDirectory() + '/cache';
+        // FIXME Job type should provide the cache path if we need it
+        await collectionToCache(scenarioCollection, cachePath);
+        console.timeEnd(`Prepared candidates for generation ${this.generationNumber}`);
+        return { errors, warnings };
     }
 
     /**
