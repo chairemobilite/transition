@@ -4,7 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
 import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
@@ -12,6 +11,11 @@ import {
     OdTripSimulationDescriptor,
     OdTripSimulationOptions
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod/OdTripSimulationMethod';
+import { EvolutionaryTransitNetworkDesignJob } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import { ExecutableJob } from '../../executableJob/ExecutableJob';
+import { JobDataType } from 'transition-common/lib/services/jobs/Job';
+import { TransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/types';
+import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 
 export const OdTripSimulationTitle = 'OdTripSimulation';
 
@@ -38,8 +42,8 @@ type OdTripSimulationResults = {
 
 export class OdTripSimulationFactory implements SimulationMethodFactory<OdTripSimulationOptions> {
     getDescriptor = () => new OdTripSimulationDescriptor();
-    create = (options: OdTripSimulationOptions, simulationDataAttributes: SimulationRunDataAttributes) =>
-        new OdTripSimulation(options, simulationDataAttributes);
+    create = (options: OdTripSimulationOptions, jobWrapper: TransitNetworkDesignJobWrapper) =>
+        new OdTripSimulation(options, jobWrapper);
 }
 
 /**
@@ -52,7 +56,7 @@ export default class OdTripSimulation implements SimulationMethod {
 
     constructor(
         private options: OdTripSimulationOptions,
-        private simulationDataAttributes: SimulationRunDataAttributes
+        private jobWrapper: TransitNetworkDesignJobWrapper
     ) {
         this.fitnessFunction =
             Preferences.current.simulations.geneticAlgorithms.fitnessFunctions[
@@ -130,7 +134,7 @@ export default class OdTripSimulation implements SimulationMethod {
             this.getTotalNumberOfVehicles() * 120
         ); */
         const operatingHourlyCost =
-            (this.simulationDataAttributes.transitNetworkDesignParameters.nbOfVehicles || 1) * 120;
+            (this.jobWrapper.parameters.transitNetworkDesignParameters.nbOfVehicles || 1) * 120;
 
         return {
             transfersCount: Math.ceil(transfersCount),
@@ -155,8 +159,7 @@ export default class OdTripSimulation implements SimulationMethod {
     }
 
     async simulate(
-        _scenarioId: string,
-        _options: { trRoutingPort: number; transitRoutingParameters: TransitRoutingBaseAttributes }
+        _scenarioId: string
     ): Promise<{ fitness: number; results: OdTripSimulationResults }> {
         // FIXME Temporarily disable this simulation method. We will create a
         // Job of type `batchRoute` with the demand file (in issue
