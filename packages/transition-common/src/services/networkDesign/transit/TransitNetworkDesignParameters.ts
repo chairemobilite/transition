@@ -6,32 +6,32 @@
  */
 export type TransitNetworkDesignParameters = {
     /** Maximum number of minutes between passages */
-    maxTimeBetweenPassages?: number;
+    maxTimeBetweenPassages: number;
     /** Minimum number of minutes between passages */
-    minTimeBetweenPassages?: number;
+    minTimeBetweenPassages: number;
     /** Number of vehicles on the line */
-    nbOfVehicles?: number;
+    nbOfVehicles: number;
     /** Minimum number of lines for the network */
-    numberOfLinesMin?: number;
+    numberOfLinesMin: number;
     /** Maximum number of lines for the network */
-    numberOfLinesMax?: number;
+    numberOfLinesMax: number;
     /** List of services to add to the simulated scenario, these will not be modified */
-    nonSimulatedServices?: string[];
+    nonSimulatedServices: string[];
     // TODO: The following fields are for a simulation where all lines are
     // pre-generated. When more approaches are supported like auto-generation of
     // lines, re-think these parameters. Should they be algorithm parameters
     // instead?
     /** Agencies containing the lines to simulate */
-    simulatedAgencies?: string[];
+    simulatedAgencies: string[];
     /** Lines to keep for all scenarios */
-    linesToKeep?: string[];
+    linesToKeep: string[];
 };
 
 export const MIN_TIME_BETWEEN_PASSAGES = 3;
 export const MAX_TIME_BETWEEN_PASSAGES = 60;
 
 export const validateTransitNetworkDesignParameters = (
-    parameters: TransitNetworkDesignParameters
+    parameters: Partial<TransitNetworkDesignParameters>
 ): { valid: boolean; errors: string[] } => {
     let valid = true;
     const errors: string[] = [];
@@ -42,7 +42,7 @@ export const validateTransitNetworkDesignParameters = (
             valid = false;
             errors.push('transit:simulation:errors:NumberOfLinesMinNoNegative');
         }
-    }
+    } 
     const numberOfLinesMax = parameters.numberOfLinesMax;
     if (numberOfLinesMax !== undefined) {
         if (numberOfLinesMax < 0) {

@@ -13,21 +13,24 @@ import * as AlgoTypes from '../internalTypes';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
-import SimulationRunBackend from '../../simulation/SimulationRun';
 import GenerationLogger from './GenerationLogger';
+import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import { OdTripSimulationOptions } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 
 abstract class Generation {
     protected fitnessSorter: (fitnessA: number, fitnessB: number) => number;
 
     constructor(
         protected candidates: NetworkCandidate[],
-        protected options: AlgoTypes.RuntimeAlgorithmData,
+        protected jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>,
         protected generationNumber = 1,
         protected logger: GenerationLogger
     ) {
+        // Now jobWrapper.parameters is automatically typed as EvolutionaryTransitNetworkDesignJobParameters
         this.fitnessSorter =
             Preferences.current.simulations.geneticAlgorithms.fitnessSorters[
-                options.simulationRun.attributes.options?.fitnessSorter as string
+                (jobWrapper.parameters.simulationMethod.config as OdTripSimulationOptions).evaluationOptions.fitnessFunction
             ];
         this.logger =
             logger ||
@@ -42,10 +45,6 @@ abstract class Generation {
 
     getSize(): number {
         return this.getCandidates().length;
-    }
-
-    getSimulationRun(): SimulationRunBackend {
-        return this.options.simulationRun;
     }
 
     getGenerationNumber(): number {
@@ -77,11 +76,13 @@ abstract class Generation {
         try {
             const scenarios = await Promise.all(candidatePreparationPromises);
             const scenarioCollection = new ScenarioCollection(scenarios, {});
-            await collectionToCache(scenarioCollection, this.options.simulationRun.getCacheDirectoryPath());
+            const cachePath = this.jobWrapper.job.getJobFileDirectory() + '/cache';
+            // FIXME Job type should provide the cache path if we need it
+            await collectionToCache(scenarioCollection, cachePath);
             console.log(
                 `  generation ${this.generationNumber}: preparation completed in ${
                     (Date.now() - time) / 1000
-                } sec. and saved in ${this.options.simulationRun.getProjectRelativeCacheDirectoryPath()}`
+                } sec. and saved in ${cachePath}`
             );
         } catch {
             console.log('Some candidates could not be prepared');

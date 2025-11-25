@@ -7,6 +7,8 @@
 import * as AlgoTypes from '../internalTypes';
 import { EventEmitter } from 'events';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
+import { EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 
 export type Result = {
     /**
@@ -43,7 +45,7 @@ abstract class Candidate {
 
     constructor(
         protected chromosome: AlgoTypes.CandidateChromosome,
-        protected options: AlgoTypes.RuntimeAlgorithmData
+        protected wrappedJob: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>,
     ) {
         // Nothing to do
     }

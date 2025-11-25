@@ -9,6 +9,7 @@ import { TransitNetworkDesignParameters } from 'transition-common/lib/services/n
 import { AlgorithmConfigurationByType } from 'transition-common/lib/services/networkDesign/transit/algorithm';
 import { SimulationMethodConfiguration } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 import { ExecutableJob } from '../../../executableJob/ExecutableJob';
+import { ResultSerialization } from '../../../evolutionaryAlgorithm/candidate/Candidate';
 
 export type EvolutionaryTransitNetworkDesignJobParameters = {
     transitNetworkDesignParameters: TransitNetworkDesignParameters;
@@ -21,10 +22,15 @@ export type EvolutionaryTransitNetworkDesignJobType = {
     name: 'evolutionaryTransitNetworkDesign';
     data: {
         parameters: EvolutionaryTransitNetworkDesignJobParameters;
-        // TODO Type the results when actual implementation is done
-        results?: never;
+        results?: {
+            generations: ResultSerialization[];
+            scenarioIds: string[];
+        };
     };
     files: { transitDemand: true; nodeWeight: true };
+    internal_data: {
+        populationSize?: number;
+    };
 };
 
 export type EvolutionaryTransitNetworkDesignJob = ExecutableJob<EvolutionaryTransitNetworkDesignJobType>;

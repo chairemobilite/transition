@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { EventEmitter } from 'events';
+import random from 'random';
 
 import Candidate, { Result, ResultSerialization } from './Candidate';
 import Line from 'transition-common/lib/services/line/Line';
@@ -13,6 +14,11 @@ import * as AlgoTypes from '../internalTypes';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { randomFromDistribution } from 'chaire-lib-common/lib/utils/RandomUtils';
 import { getLineWeight } from 'transition-common/lib/services/line/LineUtils';
+import { EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import LineCollection from 'transition-common/lib/services/line/LineCollection';
+import { SimulationMethodType } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
+import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import { SIMULATION_METHODS_FACTORY } from '../../simulation/methods/SimulationMethod';
 
 // Proportion between the number of vehicles used and the available number under which this candidate is considered invalid
 const USED_VEHICLES_THRESHOLD = 0.75;
@@ -21,14 +27,14 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     private scenario: Scenario | undefined;
 
     constructor(
-        protected chromosome: AlgoTypes.CandidateChromosome,
-        protected options: AlgoTypes.RuntimeAlgorithmData
+        chromosome: AlgoTypes.CandidateChromosome,
+        wrappedJob: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
     ) {
-        super(chromosome, options);
+        super(chromosome, wrappedJob);
     }
 
     private prepareNetwork(): Line[] {
-        const lines = this.options.lineCollection.getFeatures();
+        const lines = this.wrappedJob.lineCollection.getFeatures();
         const candidateLines: Line[] = [];
         this.chromosome.lines.forEach((lineIsActive, lineIndex) => {
             if (lineIsActive) {
@@ -42,7 +48,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         // For each candidateLine, start by assigning the minimum number of vehicles
         const currentLvlIndexes = candidateLines.map((_line) => 0);
         let usedVehicles = candidateLines
-            .map((line) => this.options.lineServices[line.getId()][0].numberOfVehicles)
+            .map((line) => this.wrappedJob.lineServices[line.getId()][0].numberOfVehicles)
             .reduce((cntVeh, sum) => sum + cntVeh, 0);
         if (usedVehicles > nbVehicles) {
             throw new TrError('Impossible to assign minimal level of service for this combination', 'GALNCND001');
@@ -59,18 +65,18 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
             // Try increasing the level of service for a random line
             const increaseLevelForLineIdx = randomFromDistribution(
                 lineWeights,
-                this.options.randomGenerator.float(0.0, 1.0),
+                random.float(0.0, 1.0),
                 totalWeight
             );
             const nextLevel = currentLvlIndexes[increaseLevelForLineIdx] + 1;
-            const nextLineLevel = this.options.lineServices[candidateLines[increaseLevelForLineIdx].getId()][nextLevel];
+            const nextLineLevel = this.wrappedJob.lineServices[candidateLines[increaseLevelForLineIdx].getId()][nextLevel];
             if (nextLineLevel === undefined) {
                 failedAttempts++;
                 continue;
             }
             const addedVehicles =
                 nextLineLevel.numberOfVehicles -
-                this.options.lineServices[candidateLines[increaseLevelForLineIdx].getId()][nextLevel - 1]
+                this.wrappedJob.lineServices[candidateLines[increaseLevelForLineIdx].getId()][nextLevel - 1]
                     .numberOfVehicles;
             if (usedVehicles + addedVehicles > nbVehicles) {
                 failedAttempts++;
@@ -85,16 +91,16 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         }
 
         return currentLvlIndexes.map((currentLvlIndex, index) =>
-            this.options.lineServices[candidateLines[index].getId()][currentLvlIndex].service.getId()
+            this.wrappedJob.lineServices[candidateLines[index].getId()][currentLvlIndex].service.getId()
         );
     }
 
     private assignServices(candidateLines: Line[], attempt = 0): string[] {
         try {
-            if (this.options.simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles !== undefined) {
+            if (this.wrappedJob.parameters.transitNetworkDesignParameters.nbOfVehicles !== undefined) {
                 return this.assignNumberOfVehicles(
                     candidateLines,
-                    this.options.simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles
+                    this.wrappedJob.parameters.transitNetworkDesignParameters.nbOfVehicles
                 );
             }
         } catch (error) {
@@ -114,18 +120,17 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
 
     //TODO: Add functionality to the _socket argument, or remove it.
     async prepareScenario(_socket: EventEmitter): Promise<Scenario> {
+
         const lines = this.prepareNetwork();
         const services = this.assignServices(lines);
-        services.push(...this.options.nonSimulatedServices);
+        services.push(...this.wrappedJob.parameters.transitNetworkDesignParameters.nonSimulatedServices);
         const maxNumberOfVehicles =
-            this.options.simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles;
+        this.wrappedJob.parameters.transitNetworkDesignParameters.nbOfVehicles !== undefined;
         const scenario = new Scenario(
             {
-                name: `SimRun_${maxNumberOfVehicles}veh${lines.length}lines_${this.options.simulationRun
-                    .getId()
-                    .substring(0, 8)}_${this.chromosome.name}`,
+                name: `SimRun_${maxNumberOfVehicles}veh${lines.length}lines_${this.wrappedJob.job.id}_${this.chromosome.name}`,
                 services,
-                simulation_id: this.options.simulationRun.attributes.simulation_id
+                data: { forJob: this.wrappedJob.job.id }
             },
             true
         );
@@ -140,6 +145,34 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         return this.scenario;
     }
 
+    // FIXME Was in SimulationRun before, it does not belong to a specific Candidate of a specific algorithm
+    private simulateScenario = async (
+        scenario: Scenario
+    ): Promise<{ results: { [key: string]: { fitness: number; results: unknown } } }> => {
+        
+        const simulationMethodType = this.wrappedJob.parameters.simulationMethod.type;
+        const methodOptions = this.wrappedJob.parameters.simulationMethod.config;
+        const allResults: { [key: string]: { fitness: number; results: unknown } } = {};
+
+        const factory = SIMULATION_METHODS_FACTORY[simulationMethodType];
+        if (factory === undefined) {
+            throw new TrError(`Unknown simulation method: ${simulationMethodType}`, 'SIOMSCEN004');
+        }
+        try {
+            // FIXME Type properly when the methods are typed better (see issues #1533, #1560 and #1553)
+            const simulationMethod = factory.create(methodOptions as any, this.wrappedJob);
+            const results = await simulationMethod.simulate(scenario.getId());
+            allResults[simulationMethodType] = results;
+        
+            // TODO This return value used to return a totalFitness field, but different methods have different result fitness ranges, we need to figure out how to put them together
+            return {
+                results: allResults
+            };
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async simulate(): Promise<Result> {
         const scenario = this.scenario;
         if (scenario === undefined) {
@@ -148,7 +181,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         const result = {
             /** total fitness is still undefined */
             totalFitness: Number.NaN,
-            results: (await this.options.simulationRun.simulateScenario(scenario)).results
+            results: (await this.simulateScenario(scenario)).results
         };
         this.result = result;
         return result;
@@ -157,7 +190,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     toString(showChromosome = false) {
         // showChromosome = true will show activated lines shortnames
         const serializedResults = this.serialize();
-        const allLines = this.options.lineCollection.getFeatures();
+        const allLines = this.wrappedJob.lineCollection.getFeatures();
         return `candidate_${serializedResults.numberOfVehicles}veh${
             serializedResults.numberOfLines
         }lines_scenario_${this.scenario?.getId()}${
@@ -177,12 +210,12 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     serialize(): ResultSerialization {
         const result = this.getResult();
         const serviceIds = (this.getScenario() as Scenario).attributes.services;
-        const allLines = this.options.lineCollection.getFeatures();
+        const allLines = this.wrappedJob.lineCollection.getFeatures();
         const details = {
             lines: {},
             numberOfLines: 0,
             numberOfVehicles: 0,
-            maxNumberOfVehicles: this.options.simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles,
+            maxNumberOfVehicles: this.wrappedJob.parameters.transitNetworkDesignParameters.nbOfVehicles,
             result
         };
         let totalNumberOfVehicles = 0;
@@ -208,7 +241,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
                 );
             }
 
-            const lineLvlOfService = this.options.lineServices[line.getId()].find(
+            const lineLvlOfService = this.wrappedJob.lineServices[line.getId()].find(
                 (lineLvlOfService) => lineLvlOfService.service.getId() === lineServices[0].service_id
             );
 
