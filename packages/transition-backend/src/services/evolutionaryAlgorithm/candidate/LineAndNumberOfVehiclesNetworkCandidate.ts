@@ -106,6 +106,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
             }
         } catch (error) {
             if (attempt > 3) {
+                console.log(`Done retrying service assignment after error: ${error}`);
                 throw new TrError(
                     'After 3 attempts, it was not possible to assign levels of services to this line combination',
                     'GALNCND002'
@@ -115,6 +116,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
                 if (error.getCode() === 'GALNCND001') {
                     throw error;
                 }
+                console.log(`Retrying service assignment after error: ${error.message}`);
                 return this.assignServices(candidateLines, attempt + 1);
             }
             throw error; 
