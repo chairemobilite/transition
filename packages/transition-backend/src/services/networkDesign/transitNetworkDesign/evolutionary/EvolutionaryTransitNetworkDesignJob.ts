@@ -5,11 +5,28 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { EventEmitter } from 'events';
+import random from 'random';
 
 import type { EvolutionaryTransitNetworkDesignJobType, EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobResult } from './types';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { evolutionaryAlgorithmFactory } from '../../../evolutionaryAlgorithm';
 import { TransitNetworkDesignJobWrapper } from '../TransitNetworkDesignJobWrapper';
+import { ExecutableJob } from '../../../executableJob/ExecutableJob';
+import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
+import LineCollection from 'transition-common/lib/services/line/LineCollection';
+import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
+import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import Agency from 'transition-common/lib/services/agency/Agency';
+import Service from 'transition-common/lib/services/service/Service';
+import { randomInRange } from 'chaire-lib-common/lib/utils/RandomUtils';
+import { ResultSerialization } from '../../../evolutionaryAlgorithm/candidate/Candidate';
+import NetworkCandidate from '../../../evolutionaryAlgorithm/candidate/LineAndNumberOfVehiclesNetworkCandidate';
+import Generation from '../../../evolutionaryAlgorithm/generation/Generation';
+import * as AlgoTypes from '../../../evolutionaryAlgorithm/internalTypes';
+import LineAndNumberOfVehiclesGeneration, { generateFirstCandidates, reproduceCandidates } from '../../../evolutionaryAlgorithm/generation/LineAndNumberOfVehiclesGeneration';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { collectionToCache as serviceCollectionToCache } from '../../../../models/capnpCache/transitServices.cache.queries';
+import { objectsToCache as linesToCache } from '../../../../models/capnpCache/transitLines.cache.queries';
+import { prepareServices, saveSimulationScenario } from '../../../evolutionaryAlgorithm/preparation/ServicePreparation';
 
 /**
  * Do batch calculation on a csv file input
@@ -34,43 +51,212 @@ export const runEvolutionaryTransitNetworkDesignJob = async (
         isCancelled: () => boolean;
     }
 ): Promise<EvolutionaryTransitNetworkDesignJobResult> => {
-    return new EvolutionaryTransitNetworkDesignJobExecutor(new TransitNetworkDesignJobWrapper(job), options).run();
+    return new EvolutionaryTransitNetworkDesignJobExecutor(job, options).run();
 };
 
-class EvolutionaryTransitNetworkDesignJobExecutor {
-    constructor(
-        private jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>,
-        private options: {
-            progressEmitter: EventEmitter;
-            isCancelled: () => boolean;
-        }
-    ) {
-        // Nothing else to do
+class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType> {
+    private currentIteration = 1;
+    private options: EvolutionaryAlgorithmOptions;
+
+    constructor(wrappedJob: EvolutionaryTransitNetworkDesignJob, executorOptions: {
+        progressEmitter: EventEmitter;
+        isCancelled: () => boolean;
+    }) {
+        super(wrappedJob, executorOptions);
+        // Nothing to do
+        this.options = this.parameters.algorithmConfiguration.config;
     }
 
+    /**
+     * Prepare the data for the current simulation: Create services for the
+     * lines to simulate and prepare collections containing only the required
+     * data.
+     *
+     * @param collections Object collections containing the existing objects
+     * @returns Data for simulation: `agencies` is an array of all agencies,
+     * `lineCollection` contains only the lines that will be simulated, the
+     * first ones are the linesToKeep, then the order is arbitrary.
+     * `linesToKeep` contains the ID of the lines to keep for all candidates.
+     * `services` is the collection of services created for each line, as well
+     * as those used by the simulation. `lineServices` are different level of
+     * services for each line and `nonSimulatedServices` are the service IDs to
+     * use in the simulation, but not associated with simulated lines.
+     */
+    private prepareData = async (collections: {
+        lines: LineCollection;
+        agencies: AgencyCollection;
+        services: ServiceCollection;
+    }): Promise<{
+        agencies: Agency[];
+        /**
+         * The collection of lines to simulate. The lines to keep are at the
+         * beginning of the features array, the rest are in an arbitrary order
+         */
+        simulatedLineCollection: LineCollection;
+        linesToKeep: string[];
+        /**
+         * Contain the services for simulated lines, as well as those to keep
+         */
+        simulatedServices: ServiceCollection;
+        lineServices: AlgoTypes.LineServices;
+        nonSimulatedServices: string[];
+    }> => {
+        const {
+            nonSimulatedServices,
+            simulatedAgencies,
+            linesToKeep: linesToKeepParam
+        } = this.parameters.transitNetworkDesignParameters;
+        const linesToKeep = linesToKeepParam || [];
+
+        const agencies = simulatedAgencies?.map((agencyId) => collections.agencies.getById(agencyId)) || [];
+        const lines = agencies.flatMap((agency) => (agency ? agency.getLines() : []));
+
+        // Sort lines so lines to keep are at the beginning
+        console.log('Sorting lines...');
+        lines.sort((lineA, lineB) =>
+            linesToKeep.includes(lineA.getId()) && linesToKeep.includes(lineB.getId())
+                ? 0
+                : linesToKeep.includes(lineA.getId())
+                    ? -1
+                    : linesToKeep.includes(lineB.getId())
+                        ? 1
+                        : 0
+        );
+        const simulatedLineCollection = new LineCollection(lines, {});
+
+        // Prepare various services for lines
+        console.log('Preparing services...');
+        const { lineServices, services } = await prepareServices(
+            simulatedLineCollection,
+            collections.services,
+            this
+        );
+
+        // FIXME Better handle cache directory
+        const cacheDirectoryPath = this.getCacheDirectory();
+
+        await serviceCollectionToCache(services, cacheDirectoryPath);
+        console.log(`Saved service cache file in ${cacheDirectoryPath}.`);
+        await linesToCache(simulatedLineCollection.getFeatures(), cacheDirectoryPath);
+        console.log(`Saved lines cache files in ${cacheDirectoryPath}.`);
+
+        const existingServices =
+            nonSimulatedServices
+                ?.map((serviceId) => collections.services.getById(serviceId))
+                .filter((service) => service !== undefined) || [];
+        existingServices.forEach((service) => services.add(service as Service));
+
+        return {
+            agencies: collections.agencies.getFeatures(),
+            linesToKeep: linesToKeep || [],
+            simulatedServices: services,
+            lineServices,
+            simulatedLineCollection,
+            nonSimulatedServices: nonSimulatedServices || []
+        };
+    };
+
+    isFinished = (): boolean => {
+        return this.currentIteration > (this.options.numberOfGenerations || 0);
+    };
+
+    private _run = async (
+
+    ): Promise<boolean> => {
+
+         // Load the necessary data from the server
+         const jobId = this.job.id;
+         console.time(`Preparing data for evolutionary transit network design job ${jobId}`);
+         await this.loadServerData(serviceLocator.socketEventManager);
+         console.timeEnd(`Preparing data for evolutionary transit network design job ${jobId}`);
+
+         // Prepare the cache data for this job
+         // FIXME Add checkpoint here
+         console.time(`Preparing cache directory for job ${jobId}`);
+         this.prepareCacheDirectory();
+         console.timeEnd(`Preparing cache directory for job ${jobId}`);
+
+        
+         console.time(`Running evolutionary transit network design algorithm for job ${jobId}`);
+         console.timeEnd(`Running evolutionary transit network design algorithm for job ${jobId}`);
+
+        // FIXME Use a seed from the job data?
+        const randomGenerator = random;
+        // Get the agencies data
+
+        const { agencies, simulatedLineCollection, linesToKeep, lineServices, simulatedServices, nonSimulatedServices } =
+            await this.prepareData({ agencies: this.agencyCollection, lines: this.allLineCollection, services: this.serviceCollection });
+        this.setLineServices(lineServices);
+        this.simulatedLineCollection = simulatedLineCollection;
+
+        const populationSize = randomInRange(
+            [this.options.populationSizeMin, this.options.populationSizeMax],
+            randomGenerator
+        );
+        this.job.attributes.internal_data.populationSize = populationSize;
+        const algorithmResults: { generations: ResultSerialization[], scenarioIds: string[] } = { generations: [], scenarioIds: [] };
+        this.job.attributes.data.results = algorithmResults;
+
+        let candidates: NetworkCandidate[] = [];
+        let previousGeneration: Generation | undefined = undefined;
+        // TODO Add a checkpoint here and cancellation check
+        try {
+            while (!this.isFinished()) {
+                candidates =
+                    this.currentIteration === 1
+                        ? generateFirstCandidates(this)
+                        : reproduceCandidates(this, candidates, this.currentIteration);
+                previousGeneration = new LineAndNumberOfVehiclesGeneration(
+                    candidates,
+                    this,
+                    this.currentIteration
+                );
+                const messages = await previousGeneration.prepareCandidates(this.executorOptions.progressEmitter);
+                await this.addMessages(messages);
+                await previousGeneration.simulate();
+                // TODO For now, we keep the best of each generation, but we should
+                // be smarter about it, knowing that the end of the simulation can
+                // follow various rules, like a number of generation or convergence
+                // of results
+                algorithmResults.generations.push(previousGeneration.serializeBestResult());
+                this.job.attributes.data.results = algorithmResults;
+                // Await saving simulation to avoid race condition if next generation is very fast
+                await this.job.save(this.executorOptions.progressEmitter);
+                this.currentIteration++;
+
+                // Save best scenarios if necessary
+                if (this.options.numberOfGenerations - this.currentIteration < this.options.keepGenerations) {
+                    const bestScenarios = previousGeneration.getBestScenarios(this.options.keepCandidates);
+                    const scenarioSavePromises = bestScenarios?.map((scenario) =>
+                        saveSimulationScenario(this.executorOptions.progressEmitter, scenario, this)
+                    );
+                    const scenarioIds = (await Promise.all(scenarioSavePromises)).filter(
+                        (scenarioId) => scenarioId !== undefined
+                    ) as string[];
+                    algorithmResults.scenarioIds.push(...scenarioIds);
+                    this.job.attributes.data.results = algorithmResults;
+                    await this.job.save(this.executorOptions.progressEmitter);
+                }
+            }
+        } finally {
+            
+        }
+        if (!previousGeneration) {
+            throw new TrError('Evolutionary Algorithm: no generation was done!', 'ALGOGEN001');
+        }
+
+        this.job.setCompleted();
+        await this.job.save(this.executorOptions.progressEmitter);
+
+        return true;
+    };
+    
     run = async (): Promise<EvolutionaryTransitNetworkDesignJobResult> => {
         // TODO Actually implement!! See ../simulation/SimulationExecution.ts file, the runSimulation function
         try {
             
-            // Load the necessary data from the server
-            const jobId = this.jobWrapper.job.id;
-            console.time(`Preparing data for evolutionary transit network design job ${jobId}`);
-            await this.jobWrapper.loadServerData(serviceLocator.socketEventManager);
-            console.timeEnd(`Preparing data for evolutionary transit network design job ${jobId}`);
-
-            // Prepare the cache data for this job
-            // FIXME Add checkpoint here
-            console.time(`Preparing cache directory for job ${jobId}`);
-            this.jobWrapper.prepareCacheDirectory();
-            console.timeEnd(`Preparing cache directory for job ${jobId}`);
-
-            // Run the specific evolutionary algorithm for this job
-            const algorithm = evolutionaryAlgorithmFactory(
-                this.jobWrapper
-            );
-            console.time(`Running evolutionary transit network design algorithm for job ${jobId}`);
-            const result = await algorithm.run(this.options.progressEmitter);
-            console.timeEnd(`Running evolutionary transit network design algorithm for job ${jobId}`);
+            const result = await this._run();
+           
             return {
                 status: 'success',
                 warnings: [],
