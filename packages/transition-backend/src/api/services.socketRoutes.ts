@@ -213,6 +213,7 @@ export default function (socket: EventEmitter, userId?: number) {
                             | string
                             | { filepath: string; renameTo: string };
                     } = {};
+                    // TODO This is a bad security flaw, we let the front end decide whatever to do with backend files
                     inputFiles.input = await ExecutableJobUtils.prepareJobFiles(
                         parameters.fileAndMapping.csvFile,
                         userId

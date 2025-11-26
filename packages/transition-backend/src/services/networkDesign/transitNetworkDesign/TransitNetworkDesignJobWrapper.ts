@@ -61,6 +61,11 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         return this.wrappedJob;
     }
 
+    // TODO temp to pass it in OdTripSimulation, check if it's the right way...
+    get privexecutorOptions() {
+        return this.executorOptions;
+    }
+
     get allLineCollection(): LineCollection {
         if (this._lineCollection === undefined) {
             throw new Error('Line collection not loaded yet');
