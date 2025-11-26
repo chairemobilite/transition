@@ -92,8 +92,10 @@ class TrRoutingBatch {
 
             // Start the trRouting instance for the odTrips
             const { threadCount: trRoutingThreadsCount, port: trRoutingPort } = await this.batchManager.startBatch(
-                odTripsCount
-                // TODO add options with cachePath
+                odTripsCount,
+                {
+                    cacheDirectoryPath: this.job.attributes.data.parameters.trRoutingJobParameters?.cacheDirectoryPath    
+                }
             );
 
             // Prepare indexes for calculations and progress report
