@@ -143,6 +143,7 @@ export class EvolutionaryAlgorithm implements TransitNetworkDesignAlgorithm {
         // FIXME Use a seed from the job data?
         const randomGenerator = random;
         // Get the agencies data
+        
         const { agencies, simulatedLineCollection, linesToKeep, lineServices, simulatedServices, nonSimulatedServices } =
             await this.prepareData({ agencies: this.jobWrapper.agencyCollection, lines: this.jobWrapper.allLineCollection, services: this.jobWrapper.serviceCollection });
         this.jobWrapper.setLineServices(lineServices);
