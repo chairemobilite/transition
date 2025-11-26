@@ -249,7 +249,7 @@ class LineAndNumberOfVehiclesGeneration extends Generation {
     // TODO Sorting candidates and calculating totalFitness maybe should not be
     // part of the evolutionary algorithm code, but we may need to extract some
     // result types. For now, it's the only algorithm we have, so keep it here
-    async sortCandidates(): Promise<void> {
+    sortCandidates() {
         const candidates = this.getCandidates();
 
         const simulationFunctions = this.jobWrapper.parameters.simulationMethod;
