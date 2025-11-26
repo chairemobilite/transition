@@ -243,7 +243,7 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                 if (this.options.numberOfGenerations - this.currentIteration < this.options.keepGenerations) {
                     const bestScenarios = previousGeneration.getBestScenarios(this.options.keepCandidates);
                     const scenarioSavePromises = bestScenarios?.map((scenario) =>
-                        saveSimulationScenario(this.executorOptions.progressEmitter, scenario, this)
+                        saveSimulationScenario(scenario, this)
                     );
                     const scenarioIds = (await Promise.all(scenarioSavePromises)).filter(
                         (scenarioId) => scenarioId !== undefined
@@ -253,6 +253,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                     await this.job.save(this.executorOptions.progressEmitter);
                 }
             }
+        } catch(error) {
+            console.log('error during evolutionary algorithm generations', error);
+            throw error;
         } finally {
             
         }

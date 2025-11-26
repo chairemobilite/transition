@@ -84,7 +84,7 @@ export const generateFirstCandidates = (jobWrapper: TransitNetworkDesignJobWrapp
         );
 
         linesChromosomes.push(linesChromosome);
-        candidates.push(new NetworkCandidate({ lines: linesChromosome, name: `GALN_GEN0_C${i}` }, jobWrapper));
+        candidates.push(new NetworkCandidate({ lines: linesChromosome, name: `GEN0_C${i}` }, jobWrapper));
     }
     return candidates;
 };
@@ -165,7 +165,7 @@ export const reproduceCandidates = (
         const linesChromosome = _cloneDeep(previousGenSorted[i].getChromosome().lines);
         linesChromosomes.push(linesChromosome);
         candidates.push(
-            new NetworkCandidate({ lines: linesChromosome, name: `GALN_GEN${currentGeneration}_C${i}` }, jobWrapper)
+            new NetworkCandidate({ lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` }, jobWrapper)
         );
     }
 
@@ -187,7 +187,7 @@ export const reproduceCandidates = (
 
         linesChromosomes.push(linesChromosome);
         candidates.push(
-            new NetworkCandidate({ lines: linesChromosome, name: `GALN_GEN${currentGeneration}_C${i}` }, jobWrapper)
+            new NetworkCandidate({ lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` }, jobWrapper)
         );
     }
 
@@ -216,7 +216,7 @@ export const reproduceCandidates = (
 
         linesChromosomes.push(linesChromosome);
         candidates.push(
-            new NetworkCandidate({ lines: linesChromosome, name: `GALN_GEN${currentGeneration}_C${i}` }, jobWrapper)
+            new NetworkCandidate({ lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` }, jobWrapper)
         );
     }
     if (shuffledGeneOrder !== undefined) {
