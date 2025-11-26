@@ -74,9 +74,6 @@ class TrRoutingBatch {
             files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
         }
     > => {
-        const demandConfiguration = this.job.attributes.data.parameters.demandAttributes;
-        console.log('TrRoutingService batchRoute Parameters', demandConfiguration);
-
         try {
             // Get the odTrips to calculate
             const odTripData = await this.getOdTrips();
