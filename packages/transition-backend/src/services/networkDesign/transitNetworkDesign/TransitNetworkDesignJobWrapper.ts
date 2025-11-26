@@ -5,6 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import EventEmitter from "events";
+import fs from 'fs';
+import path from 'path';
 
 import config from 'chaire-lib-backend/lib/config/server.config';
 import CollectionManager from "chaire-lib-common/lib/utils/objects/CollectionManager";
@@ -55,6 +57,7 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
     }
 
     get job(): ExecutableJob<TJobType> {
+        // FIXME Make sure the 5 seconds polling from the TransitionWorkerPool updates this job object, otherwise, it needs to be refreshed from time to time
         return this.wrappedJob;
     }
 
@@ -103,7 +106,7 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
     }
 
     getCacheDirectory = (): string => {
-        return this.wrappedJob.getJobFileDirectory() + '/cache/';
+        return this.wrappedJob.getJobFileDirectory() + 'cache';
     }
 
     loadServerData = async (
@@ -143,55 +146,83 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         console.log('Preparing and copying cache files...');
         fileManager.directoryManager.copyDirectoryAbsolute(
             `${mainCacheDirectory}/dataSources`,
-            `${absoluteCacheDirectory}/datasources`,
+            `${absoluteCacheDirectory}/dataSources`,
             true
         );
-        fileManager.directoryManager.copyDirectory(
+        fileManager.directoryManager.copyDirectoryAbsolute(
             `${mainCacheDirectory}/nodes`,
             `${absoluteCacheDirectory}/nodes`,
             true
         );
-        fileManager.directoryManager.copyDirectory(
+        fileManager.directoryManager.copyDirectoryAbsolute(
             `${mainCacheDirectory}/lines`,
             `${absoluteCacheDirectory}/lines`,
             true
         );
-        fileManager.copyFile(
+        fileManager.copyFileAbsolute(
             `${mainCacheDirectory}/dataSources.capnpbin`,
             `${absoluteCacheDirectory}/dataSources.capnpbin`,
             true
         );
-        fileManager.copyFile(
+        fileManager.copyFileAbsolute(
             `${mainCacheDirectory}/agencies.capnpbin`,
             `${absoluteCacheDirectory}/agencies.capnpbin`,
             true
         );
-        fileManager.copyFile(
+        fileManager.copyFileAbsolute(
             `${mainCacheDirectory}/lines.capnpbin`,
             `${absoluteCacheDirectory}/lines.capnpbin`,
             true
         );
-        fileManager.copyFile(
+        fileManager.copyFileAbsolute(
             `${mainCacheDirectory}/paths.capnpbin`,
             `${absoluteCacheDirectory}/paths.capnpbin`,
             true
         );
-        fileManager.copyFile(
+        fileManager.copyFileAbsolute(
             `${mainCacheDirectory}/nodes.capnpbin`,
             `${absoluteCacheDirectory}/nodes.capnpbin`,
             true
         );
-        fileManager.copyFile(
+        fileManager.copyFileAbsolute(
             `${mainCacheDirectory}/scenarios.capnpbin`,
             `${absoluteCacheDirectory}/scenarios.capnpbin`,
             true
         );
-        fileManager.copyFile(
+        fileManager.copyFileAbsolute(
             `${mainCacheDirectory}/services.capnpbin`,
             `${absoluteCacheDirectory}/services.capnpbin`,
             true
         );
-        console.log(`Prepared cache directory files to ${absoluteCacheDirectory}`);
+        // FIXME HACK Add a symlink from mainCacheDirectory to the job cache
+        // directory because the path in the json to capnp server is relative to
+        // main cache path Create symbolic link pointing to the job cache
+        // directory Add a symbolic link such that mainCacheDirectory + all
+        // directory hierarchy points to the job cache directory
+        try {
+            // Create the full path structure inside mainCacheDirectory
+            const symlinkPath = path.join(mainCacheDirectory, absoluteCacheDirectory);
+            
+            // Ensure the parent directory exists
+            const symlinkParentDir = path.dirname(symlinkPath);
+            if (!fs.existsSync(symlinkParentDir)) {
+                fs.mkdirSync(symlinkParentDir, { recursive: true });
+            }
+            
+            // Remove existing symlink if it exists
+            if (fs.existsSync(symlinkPath)) {
+                fs.unlinkSync(symlinkPath);
+            }
+            
+            // Create symbolic link pointing to the job cache directory
+            fs.symlinkSync(absoluteCacheDirectory, symlinkPath, 'dir');
+            
+            console.log(`Created symbolic link: ${symlinkPath} -> ${absoluteCacheDirectory}`);
+        } catch (error) {
+            console.warn(`Failed to create symbolic link: ${error}`);
+        }
+        
+        console.log(`Prepared cache directory files to ${absoluteCacheDirectory} from ${mainCacheDirectory}`);
     };
 
     async addMessages(messages: { warnings?: ErrorMessage[]; errors?: ErrorMessage[]; }): Promise<void> {
