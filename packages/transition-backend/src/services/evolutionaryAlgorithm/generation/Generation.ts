@@ -17,7 +17,7 @@ import GenerationLogger from './GenerationLogger';
 import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import { OdTripSimulationOptions } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 
 abstract class Generation {
     protected fitnessSorter: (fitnessA: number, fitnessB: number) => number;
@@ -103,13 +103,19 @@ abstract class Generation {
         console.log(`  generation ${this.generationNumber}: simulating candidates`);
 
         const candidatesCount = this.getSize();
-        const candidates = this.getCandidates();
+        const validCandidates = this.getCandidates().filter(candidate => candidate.getScenario() !== undefined);
+        if (validCandidates.length < this.jobWrapper.parameters.algorithmConfiguration.config.populationSizeMin) {
+            throw new TrError('Not enough valid candidates to continue the evolutionary algorithm at generation', 'GALGEN001', { text: 'transit:networkDesign:evolutionaryAlgorithm:errors:NotEnoughValidCandidates', params: { generationNumber: String(this.generationNumber) } });
+        }
         // Run the simulation for each candidate
         const promises: Promise<{
             results: { [key: string]: { fitness: number; results: unknown } };
         }>[] = [];
         for (let i = 0; i < candidatesCount; i++) {
-            promises.push(candidates[i].simulate());
+            // Ignore undefined scenarios
+            if (validCandidates[i].getScenario() !== undefined) {
+                promises.push(validCandidates[i].simulate());
+            }
         }
 
         await Promise.all(promises);

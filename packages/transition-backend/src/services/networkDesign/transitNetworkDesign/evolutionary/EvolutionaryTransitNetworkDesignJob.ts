@@ -52,15 +52,19 @@ class EvolutionaryTransitNetworkDesignJobExecutor {
         // TODO Actually implement!! See ../simulation/SimulationExecution.ts file, the runSimulation function
         try {
             
-            // Prepare the data: copy the main cache
+            // Load the necessary data from the server
             const jobId = this.jobWrapper.job.id;
             console.time(`Preparing data for evolutionary transit network design job ${jobId}`);
             await this.jobWrapper.loadServerData(serviceLocator.socketEventManager);
             console.timeEnd(`Preparing data for evolutionary transit network design job ${jobId}`);
+
+            // Prepare the cache data for this job
+            // FIXME Add checkpoint here
             console.time(`Preparing cache directory for job ${jobId}`);
             this.jobWrapper.prepareCacheDirectory();
             console.timeEnd(`Preparing cache directory for job ${jobId}`);
 
+            // Run the specific evolutionary algorithm for this job
             const algorithm = evolutionaryAlgorithmFactory(
                 this.jobWrapper
             );
