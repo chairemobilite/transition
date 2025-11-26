@@ -98,7 +98,7 @@ const shuffleCandidatesInPlace = (
     if (algorithmOptions.shuffleGenes !== true) {
         return undefined;
     }
-    const shuffleStartAt = job.parameters.transitNetworkDesignParameters.linesToKeep.length;
+    const shuffleStartAt = (job.parameters.transitNetworkDesignParameters.linesToKeep || []).length;
     // Do not shuffle the first elements, that are the kept lines
     const originalOrder = sequentialArray(
         job.simulatedLineCollection.size() - shuffleStartAt,
@@ -130,8 +130,9 @@ export const reproduceCandidates = (
     previousGenSorted: NetworkCandidate[],
     currentGeneration: number
 ): NetworkCandidate[] => {
+    console.time(` generation ${currentGeneration}: reproduced candidates`);
+
     const evolutionaryAlgorithmConfig = jobWrapper.parameters.algorithmConfiguration.config;
-    const time = Date.now();
     const candidates: NetworkCandidate[] = [];
     const minLineNb =
     jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMin;
@@ -221,7 +222,7 @@ export const reproduceCandidates = (
     if (shuffledGeneOrder !== undefined) {
         deshuffleCandidates(candidates, shuffledGeneOrder);
     }
-    console.log(`  generation ${currentGeneration}: candidates reproduced in ${(Date.now() - time) / 1000} sec.`);
+    console.timeEnd(` generation ${currentGeneration}: reproduced candidates`);
     return candidates;
 };
 
