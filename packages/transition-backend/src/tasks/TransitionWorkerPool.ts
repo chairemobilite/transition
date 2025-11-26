@@ -125,18 +125,12 @@ const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>): P
 
 const wrapEvolutionaryTransitNetworkDesign = async (task: EvolutionaryTransitNetworkDesignJob): Promise<boolean> => {
     // TODO Validate input files like other tasks
-    const { errors, warnings, status } = await runEvolutionaryTransitNetworkDesignJob(task, {
+    const { status } = await runEvolutionaryTransitNetworkDesignJob(task, {
         progressEmitter: newProgressEmitter(task),
         isCancelled: getTaskCancelledFct(task)
     });
     console.log('Evolutionary transit network design job completed with status ', status);
     // TODO Handle results here
-    if (errors.length > 0 || warnings.length > 0) {
-        task.attributes.statusMessages = {
-            errors: errors,
-            warnings: warnings
-        };
-    }
     return status === 'success';
 };
 
