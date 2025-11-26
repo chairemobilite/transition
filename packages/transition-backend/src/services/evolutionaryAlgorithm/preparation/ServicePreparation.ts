@@ -70,17 +70,18 @@ const prepareServicesForLines = async (
     let lastTimeBetweenPassages = timeBetweenPassages;
     while (
         timeBetweenPassages > minTime &&
-        nbVehicles < (transitNetworkParameters.nbOfVehicles || Number.MAX_VALUE)
+        nbVehicles < transitNetworkParameters.nbOfVehicles
     ) {
+        const serviceName = `networkDesign_${line.toString()}_${nbVehicles}`;
         const existingService = services.find(
-            (service) => service.attributes.name === `simulation_${line.toString()}_${nbVehicles}`
+            (service) => service.attributes.name === serviceName
         );
         // Create a service to store this schedule
         const service = existingService
             ? existingService
             : new Service(
                 {
-                    name: `simulation_${line.toString()}_${nbVehicles}`,
+                    name: serviceName,
                     monday: true,
                     start_date: moment().format('YYYY-MM-DD'),
                     end_date: moment().format('YYYY-MM-DD'),
@@ -116,11 +117,11 @@ const prepareServicesForLines = async (
                 data: {}
             })
         );
-        const { trips } = await schedule.generateForPeriod(PERIOD_GROUP_SHORTNAME);
+        const { trips } = schedule.generateForPeriod(PERIOD_GROUP_SHORTNAME);
         const outboundTrips = trips.filter((trip) => trip.path_id === outboundPathId);
         // We expect more than one trip, otherwise, throw an error, something happened
         if (outboundTrips.length < 2) {
-            throw `Too few trips were generator for line ${line.toString()} and number of vehicles ${nbVehicles}. Simulation will not run properly`;
+            throw `Too few trips were generated for line ${line.toString()} and number of vehicles ${nbVehicles}. Simulation will not run properly`;
         }
         timeBetweenPassages = outboundTrips[1].departure_time_seconds - outboundTrips[0].departure_time_seconds;
 
@@ -142,6 +143,11 @@ const prepareServicesForLines = async (
     return lineServices;
 };
 
+/**
+ * Get the longest path operating time in seconds from a line collection
+ * @param lineCollection 
+ * @returns 
+ */
 const getLongestPath = (lineCollection: LineCollection) =>
     lineCollection
         .getFeatures()
@@ -153,8 +159,21 @@ const getLongestPath = (lineCollection: LineCollection) =>
         )
         .reduce((maxPathTime, currentMax) => Math.max(maxPathTime, currentMax), 0);
 
+/**
+ * Prepares the services for all lines in the line collection, given the
+ * algorithm parameters. It creates schedules for a short period of time around
+ * 8AM and 9AM and creates different levels of services by adding a vehicle at a
+ * time for each line. Those services and schedules are not stored in the
+ * database
+ * @param simulatedLineCollection The collection containing all simulated lines
+ * @param services The current service collection, with all services already
+ * loaded
+ * @param jobWrapper The job wrapper containing the job and its parameters
+ * @returns The various levels of services for each line, the updated service
+ * collection, and any error encountered during preparation
+ */
 export const prepareServices = async (
-    lineCollection: LineCollection,
+    simulatedLineCollection: LineCollection,
     services: ServiceCollection,
     jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
 ): Promise<{ lineServices: AlgoTypes.LineServices; services: ServiceCollection; errors: ErrorMessage[] }> => {
@@ -168,7 +187,8 @@ export const prepareServices = async (
     if (!periodGroups || (periodGroups.periods || []).length === 0) {
         throw `Undefined or empty period for ${PERIOD_GROUP_SHORTNAME}`;
     }
-    const longestPath = getLongestPath(lineCollection);
+    const longestPath = getLongestPath(simulatedLineCollection);
+    // We don't need to create schedules for all day, just enough to cover the longest path round trip before 8AM et after 9AM.
     const defaultPeriodAttributes = {
         period_shortname: PERIOD_GROUP_SHORTNAME,
         start_at_hour: periodGroups.periods[0].startAtHour,
@@ -178,7 +198,7 @@ export const prepareServices = async (
         trips: []
     };
 
-    const lines = lineCollection.getFeatures();
+    const lines = simulatedLineCollection.getFeatures();
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         try {
@@ -188,7 +208,8 @@ export const prepareServices = async (
                 defaultPeriodAttributes,
                 jobWrapper
             );
-            Object.values(servicesForLine).forEach((lvlOfService) =>
+            // Add or update the service to the service collection 
+            servicesForLine.forEach((lvlOfService) =>
                 services.getById(lvlOfService.service.getId()) !== undefined
                     ? services.updateById(lvlOfService.service.getId(), lvlOfService.service)
                     : services.add(lvlOfService.service)
@@ -203,12 +224,15 @@ export const prepareServices = async (
 };
 
 /**
- * Save a simulation scenario to the database
+ * Save a simulation scenario to the database. It will create a single service
+ * for the scenario that will contain the schedules for each simulated line
+ * service.
  *
  * @param socket Socket to use to save the data
  * @param scenario Scenario to copy and save to the database
  * @param options Simulation run options
- * @returns The ID of the new scenario created or undefined if no scenario could be saved
+ * @returns The ID of the new scenario created or undefined if no scenario could
+ * be saved
  */
 export const saveSimulationScenario = async (
     socket: EventEmitter,
