@@ -28,11 +28,10 @@ abstract class Generation {
         protected generationNumber = 1,
         protected logger: GenerationLogger
     ) {
-        // Now jobWrapper.parameters is automatically typed as EvolutionaryTransitNetworkDesignJobParameters
-        this.fitnessSorter =
-            Preferences.current.simulations.geneticAlgorithms.fitnessSorters[
-                (jobWrapper.parameters.simulationMethod.config as OdTripSimulationOptions).evaluationOptions.fitnessFunction
-            ];
+        // Use the minimize sorter if method type is OdTripSimulation, maximize otherwise
+        // FIXME This should be a parameter of something, it goes with the simulation method or set of methods
+        this.fitnessSorter = (jobWrapper.parameters.simulationMethod.type === 'OdTripSimulation') ? Preferences.current.simulations.geneticAlgorithms.fitnessSorters['minimize'] : Preferences.current.simulations.geneticAlgorithms.fitnessSorters['maximize'];
+            
         this.logger =
             logger ||
             new GenerationLogger({
@@ -84,7 +83,7 @@ abstract class Generation {
             }
         });
         const scenarioCollection = new ScenarioCollection(scenarios, {});
-        const cachePath = this.jobWrapper.job.getJobFileDirectory() + '/cache';
+        const cachePath = this.jobWrapper.getCacheDirectory();
         // FIXME Job type should provide the cache path if we need it
         await collectionToCache(scenarioCollection, cachePath);
         console.timeEnd(`Prepared candidates for generation ${this.generationNumber}`);
@@ -152,7 +151,7 @@ abstract class Generation {
         return bestScenarios;
     }
 
-    abstract sortCandidates(): Promise<void>;
+    abstract sortCandidates(): void;
 }
 
 export default Generation;
