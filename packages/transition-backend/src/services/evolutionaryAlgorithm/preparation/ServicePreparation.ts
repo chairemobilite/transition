@@ -7,6 +7,7 @@
 import { v4 as uuidV4 } from 'uuid';
 import { EventEmitter } from 'events';
 
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import Line from 'transition-common/lib/services/line/Line';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
@@ -228,74 +229,80 @@ export const prepareServices = async (
  * for the scenario that will contain the schedules for each simulated line
  * service.
  *
- * @param socket Socket to use to save the data
  * @param scenario Scenario to copy and save to the database
  * @param options Simulation run options
  * @returns The ID of the new scenario created or undefined if no scenario could
  * be saved
  */
 export const saveSimulationScenario = async (
-    socket: EventEmitter,
     scenario: Scenario,
     jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
 ): Promise<string | undefined> => {
-    // Find all simulated services to merge as one
-    const simulatedServiceIds = scenario.attributes.services.filter(
-        (serviceId) => !(jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || []).includes(serviceId)
-    );
-    if (simulatedServiceIds.length === 0) {
+    try {
+        console.log('saving simulation scenario');
+        // Find all simulated services to merge as one
+        const simulatedServiceIds = scenario.attributes.services.filter(
+            (serviceId) => !(jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || []).includes(serviceId)
+        );
+        if (simulatedServiceIds.length === 0) {
+            console.log('no simulated services to save for scenario', scenario.attributes.name);
+            return undefined;
+        }
+
+        // Create a new service for this scenario and save to DB
+        const service = new Service(
+            {
+                name: `GALND_${scenario.attributes.name}`,
+                monday: true,
+                tuesday: true,
+                wednesday: true,
+                thursday: true,
+                friday: true,
+                saturday: true,
+                sunday: true,
+                start_date: moment().format('YYYY-MM-DD'),
+                end_date: moment().format('YYYY-MM-DD'),
+                data: { forJob: jobWrapper.job.id }
+            },
+            true
+        );
+        await service.save(serviceLocator.socketEventManager);
+
+        // For each service to merge and save, find the lines that has them
+        for (let i = 0; i < simulatedServiceIds.length; i++) {
+            const servicedLines = jobWrapper.simulatedLineCollection
+                .getFeatures()
+                .filter((line) => line.attributes.scheduleByServiceId[simulatedServiceIds[i]] !== undefined);
+            // Copy the schedules for those services, add the service to the line, then save to the database
+            for (let lineIdx = 0; lineIdx < servicedLines.length; lineIdx++) {
+                const currentSchedule = new Schedule(
+                    servicedLines[lineIdx].attributes.scheduleByServiceId[simulatedServiceIds[i]],
+                    true
+                );
+                const scheduleAttributes = currentSchedule.getClonedAttributes(true);
+                scheduleAttributes.service_id = service.getId();
+                const schedule = new Schedule(scheduleAttributes, true);
+                servicedLines[lineIdx].addSchedule(schedule);
+                // Save the schedules to DB
+                await schedule.save(serviceLocator.socketEventManager);
+            }
+        }
+
+        // Create a new scenario, using the new service, as well as non-simulated services and save to DB
+        const newScenario = new Scenario(
+            {
+                name: scenario.attributes.name,
+                services: [service.getId(), ...(jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || [])],
+                data: { forJob: jobWrapper.job.id }
+            },
+            true
+        );
+        await newScenario.save(serviceLocator.socketEventManager);
+
+        return newScenario.getId();
+    } catch(error) {
+        console.error('Error saving simulation scenario:', error);
         return undefined;
     }
-
-    // Create a new service for this scenario and save to DB
-    const service = new Service(
-        {
-            name: `networkDesign_${scenario.attributes.name}`,
-            monday: true,
-            tuesday: true,
-            wednesday: true,
-            thursday: true,
-            friday: true,
-            saturday: true,
-            sunday: true,
-            start_date: moment().format('YYYY-MM-DD'),
-            end_date: moment().format('YYYY-MM-DD'),
-            data: { forJob: jobWrapper.job.id }
-        },
-        true
-    );
-    await service.save(socket);
-
-    // For each service to merge and save, find the lines that has them
-    for (let i = 0; i < simulatedServiceIds.length; i++) {
-        const servicedLines = jobWrapper.simulatedLineCollection
-            .getFeatures()
-            .filter((line) => line.attributes.scheduleByServiceId[simulatedServiceIds[i]] !== undefined);
-        // Copy the schedules for those services, add the service to the line, then save to the database
-        for (let lineIdx = 0; lineIdx < servicedLines.length; lineIdx++) {
-            const currentSchedule = new Schedule(
-                servicedLines[lineIdx].attributes.scheduleByServiceId[simulatedServiceIds[i]],
-                true
-            );
-            const scheduleAttributes = currentSchedule.getClonedAttributes(true);
-            scheduleAttributes.service_id = service.getId();
-            const schedule = new Schedule(scheduleAttributes, true);
-            servicedLines[lineIdx].addSchedule(schedule);
-            // Save the schedules to DB
-            await schedule.save(socket);
-        }
-    }
-
-    // Create a new scenario, using the new service, as well as non-simulated services and save to DB
-    const newScenario = new Scenario(
-        {
-            name: scenario.attributes.name,
-            services: [service.getId(), ...(jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || [])],
-            data: { forJob: jobWrapper.job.id }
-        },
-        true
-    );
-    await newScenario.save(socket);
-
-    return newScenario.getId();
+   
 };
