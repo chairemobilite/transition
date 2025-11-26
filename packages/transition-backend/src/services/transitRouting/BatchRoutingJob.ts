@@ -8,6 +8,7 @@ import { CsvFileAndMapping } from 'transition-common/lib/services/csv';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { OdTripRouteResult } from './types';
+import { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
 
 export type BatchRouteJobType = {
     name: 'batchRoute';
@@ -15,6 +16,7 @@ export type BatchRouteJobType = {
         parameters: {
             demandAttributes: CsvFileAndMapping;
             transitRoutingAttributes: BatchCalculationParameters;
+            trRoutingJobParameters?: TrRoutingBatchJobParameters;
         };
         results?: Omit<TransitBatchCalculationResult, 'errors' | 'warnings'>;
     };
