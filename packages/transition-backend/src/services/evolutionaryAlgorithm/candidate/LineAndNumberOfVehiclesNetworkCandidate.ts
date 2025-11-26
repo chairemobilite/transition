@@ -130,11 +130,10 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         const lines = this.prepareNetwork();
         const services = this.assignServices(lines);
         services.push(...(this.wrappedJob.parameters.transitNetworkDesignParameters.nonSimulatedServices || []));
-        const maxNumberOfVehicles =
-        this.wrappedJob.parameters.transitNetworkDesignParameters.nbOfVehicles !== undefined;
+        const maxNumberOfVehicles = this.wrappedJob.parameters.transitNetworkDesignParameters.nbOfVehicles;
         const scenario = new Scenario(
             {
-                name: `SimRun_${maxNumberOfVehicles}veh${lines.length}lines_${this.wrappedJob.job.id}_${this.chromosome.name}`,
+                name: `GALND_${this.wrappedJob.job.id}_${maxNumberOfVehicles}veh${lines.length}lines_${this.chromosome.name}`,
                 services,
                 data: { forJob: this.wrappedJob.job.id }
             },
