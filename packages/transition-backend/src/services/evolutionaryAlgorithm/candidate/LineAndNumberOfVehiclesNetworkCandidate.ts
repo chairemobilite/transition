@@ -154,11 +154,11 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     // FIXME Was in SimulationRun before, it does not belong to a specific Candidate of a specific algorithm
     private simulateScenario = async (
         scenario: Scenario
-    ): Promise<{ results: { [key: string]: { fitness: number; results: unknown } } }> => {
+    ): Promise<{ results: { [methodType: string]: { fitness: number; results: unknown } } }> => {
         
         const simulationMethodType = this.wrappedJob.parameters.simulationMethod.type;
         const methodOptions = this.wrappedJob.parameters.simulationMethod.config;
-        const allResults: { [key: string]: { fitness: number; results: unknown } } = {};
+        const allResults: { [methodType: string]: { fitness: number; results: unknown } } = {};
 
         const factory = SIMULATION_METHODS_FACTORY[simulationMethodType];
         if (factory === undefined) {
@@ -180,6 +180,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     }
 
     async simulate(): Promise<Result> {
+        console.log('start simulating candidate');
         const scenario = this.scenario;
         if (scenario === undefined) {
             throw new TrError('Undefined scenario!', 'GALNCND003');
@@ -190,6 +191,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
             results: (await this.simulateScenario(scenario)).results
         };
         this.result = result;
+        console.log('done simulating candidate');
         return result;
     }
 
