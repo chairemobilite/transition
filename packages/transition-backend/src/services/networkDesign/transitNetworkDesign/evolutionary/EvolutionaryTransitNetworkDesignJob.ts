@@ -260,6 +260,7 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             throw new TrError('Evolutionary Algorithm: no generation was done!', 'ALGOGEN001');
         }
 
+        console.log('Evolutionary transit network design job completed.');
         this.job.setCompleted();
         await this.job.save(this.executorOptions.progressEmitter);
 
