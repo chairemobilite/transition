@@ -126,11 +126,15 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
 
         // Prepare various services for lines
         console.log('Preparing services...');
-        const { lineServices, services } = await prepareServices(
+        const { lineServices, services, errors } = await prepareServices(
             simulatedLineCollection,
             collections.services,
             this
         );
+        if (errors.length > 0) {
+            await this.addMessages({ errors });
+            throw new TrError('Errors while preparing services for evolutionary algorithm', 'ALGOPREP001');
+        }
 
         // FIXME Better handle cache directory
         const cacheDirectoryPath = this.getCacheDirectory();
@@ -264,6 +268,7 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             };
         } catch (error) {
             console.log('error running evolutionary transit network design job', error);
+            await this.addMessages({errors: [error instanceof Error ? error.message : String(error)]});
             return {
                 status: 'failed',
                 warnings: [],

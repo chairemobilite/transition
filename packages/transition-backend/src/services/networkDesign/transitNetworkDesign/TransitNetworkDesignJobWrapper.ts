@@ -194,9 +194,9 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         console.log(`Prepared cache directory files to ${absoluteCacheDirectory}`);
     };
 
-    async addMessages(messages: { warnings: ErrorMessage[]; errors: ErrorMessage[]; }): Promise<void> {
+    async addMessages(messages: { warnings?: ErrorMessage[]; errors?: ErrorMessage[]; }): Promise<void> {
         // Quick return if no message to set
-        if (messages.warnings.length === 0 && messages.errors.length === 0) {
+        if ((messages.warnings === undefined || messages.warnings.length === 0) && (messages.errors === undefined || messages.errors.length === 0)) {
             return;
         }
         await this.wrappedJob.refresh();
@@ -206,8 +206,8 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         const existingInfos = currentMessages.infos || [];
         
         this.wrappedJob.attributes.statusMessages = {
-            errors: [...existingErrors, ...messages.errors],
-            warnings: [...existingWarnings, ...messages.warnings],
+            errors: [...existingErrors, ...(messages.errors || [])],
+            warnings: [...existingWarnings, ...(messages.warnings || [])],
             infos: existingInfos // Keep existing infos unchanged
         };
         await this.wrappedJob.save();
