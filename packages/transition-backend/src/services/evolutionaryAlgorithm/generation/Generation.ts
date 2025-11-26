@@ -55,7 +55,7 @@ abstract class Generation {
         errors: ErrorMessage[];}> {
             const errors: ErrorMessage[] = [];
             const warnings: ErrorMessage[] = [];
-        console.time(`Prepared candidates for generation ${this.generationNumber}`);
+        console.time(` generation ${this.generationNumber}: prepared candidates`);
 
         // TODO Cleanup old data?
 
@@ -86,7 +86,7 @@ abstract class Generation {
         const cachePath = this.jobWrapper.getCacheDirectory();
         // FIXME Job type should provide the cache path if we need it
         await collectionToCache(scenarioCollection, cachePath);
-        console.timeEnd(`Prepared candidates for generation ${this.generationNumber}`);
+        console.timeEnd(` generation ${this.generationNumber}: prepared candidates`);
         return { errors, warnings };
     }
 
@@ -97,8 +97,8 @@ abstract class Generation {
      * @returns `true` if the simulation was completed successfully.
      */
     async simulate(): Promise<boolean> {
-        const time = Date.now();
 
+        console.time(` generation ${this.generationNumber}: simulated candidates`);
         console.log(`  generation ${this.generationNumber}: simulating candidates`);
 
         const candidatesCount = this.getSize();
@@ -107,22 +107,21 @@ abstract class Generation {
             throw new TrError('Not enough valid candidates to continue the evolutionary algorithm at generation', 'GALGEN001', { text: 'transit:networkDesign:evolutionaryAlgorithm:errors:NotEnoughValidCandidates', params: { generationNumber: String(this.generationNumber) } });
         }
         // Run the simulation for each candidate
-        const promises: Promise<{
-            results: { [key: string]: { fitness: number; results: unknown } };
-        }>[] = [];
+        // Create p-queue with concurrency of 1
+        const promiseQueue = new pQueue({ concurrency: 1 });
+
         for (let i = 0; i < candidatesCount; i++) {
             // Ignore undefined scenarios
             if (validCandidates[i].getScenario() !== undefined) {
-                promises.push(validCandidates[i].simulate());
+                promiseQueue.add(async () => validCandidates[i].simulate());
             }
         }
 
-        await Promise.all(promises);
+        await promiseQueue.onIdle();
+        console.log('done with promises');
         this.sortCandidates();
 
-        console.log(
-            `  generation ${this.generationNumber}: simulation completed in ${(Date.now() - time) / 1000} sec.`
-        );
+        console.timeEnd(` generation ${this.generationNumber}: simulated candidates`);
 
         this.logger.doLog(this);
 
