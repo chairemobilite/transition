@@ -20,6 +20,7 @@ import * as AlgoTypes from '../internalTypes';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import { EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 
 const PERIOD_GROUP_SHORTNAME = 'complete_day';
 
@@ -156,8 +157,9 @@ export const prepareServices = async (
     lineCollection: LineCollection,
     services: ServiceCollection,
     jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
-): Promise<{ lineServices: AlgoTypes.LineServices; services: ServiceCollection }> => {
+): Promise<{ lineServices: AlgoTypes.LineServices; services: ServiceCollection; errors: ErrorMessage[] }> => {
     const lineServices: AlgoTypes.LineServices = {};
+    const errors: ErrorMessage[] = [];
     // FIXME Previously, when run with simulation, we could re-use services created
     // for the simulation. Now with jobs, each is independent
     const simulationServices = [];
@@ -179,20 +181,25 @@ export const prepareServices = async (
     const lines = lineCollection.getFeatures();
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        const servicesForLine = await prepareServicesForLines(
-            line,
-            simulationServices,
-            defaultPeriodAttributes,
-            jobWrapper
-        );
-        Object.values(servicesForLine).forEach((lvlOfService) =>
-            services.getById(lvlOfService.service.getId()) !== undefined
-                ? services.updateById(lvlOfService.service.getId(), lvlOfService.service)
-                : services.add(lvlOfService.service)
-        );
-        lineServices[line.getId()] = servicesForLine;
+        try {
+            const servicesForLine = await prepareServicesForLines(
+                line,
+                simulationServices,
+                defaultPeriodAttributes,
+                jobWrapper
+            );
+            Object.values(servicesForLine).forEach((lvlOfService) =>
+                services.getById(lvlOfService.service.getId()) !== undefined
+                    ? services.updateById(lvlOfService.service.getId(), lvlOfService.service)
+                    : services.add(lvlOfService.service)
+            );
+            lineServices[line.getId()] = servicesForLine;
+        } catch (error) {
+            // FIXME Add a handler to return localized message from TrError is available and do something else otherwise
+            errors.push(error instanceof Error ? error.message : String(error));
+        }
     }
-    return { lineServices, services };
+    return { lineServices, services, errors };
 };
 
 /**
