@@ -13,9 +13,17 @@ import {
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod/OdTripSimulationMethod';
 import { EvolutionaryTransitNetworkDesignJob } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { ExecutableJob } from '../../executableJob/ExecutableJob';
+import { ExecutableJobUtils } from '../../executableJob/ExecutableJobUtils';
+
 import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 import { TransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import { batchRoute } from '../../transitRouting/TrRoutingBatch';
+import resultsDbQueries from '../../../models/db/batchRouteResults.db.queries';
+import { OdTripRouteResult } from '../../transitRouting/types';
+import { BatchRouteJobType } from '../../transitRouting/BatchRoutingJob';
+import { fileKey } from 'transition-common/lib/services/jobs/Job';
+import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 
 export const OdTripSimulationTitle = 'OdTripSimulation';
 
@@ -58,6 +66,7 @@ export default class OdTripSimulation implements SimulationMethod {
         private options: OdTripSimulationOptions,
         private jobWrapper: TransitNetworkDesignJobWrapper
     ) {
+        //TODO THESE NEED TO MOVE OUT OF THE PREFERENCE!!! and go into the job parameter (the choice of function, not the function itself)
         this.fitnessFunction =
             Preferences.current.simulations.geneticAlgorithms.fitnessFunctions[
                 options.evaluationOptions.fitnessFunction
@@ -70,8 +79,8 @@ export default class OdTripSimulation implements SimulationMethod {
             Preferences.current.simulations.geneticAlgorithms.nonRoutableOdTripFitnessFunctions['taxi'];
     }
 
-    private async processResults(results: any): Promise<OdTripSimulationResults> {
-        const totalTravelTimeSecondsFromTrRouting = results['totalTravelTimeSeconds'] || null;
+    private async processResults(jobid: number): Promise<OdTripSimulationResults> {
+        const totalTravelTimeSecondsFromTrRouting = 0; // TODO Is that used
         // TODO Simulation is done between 8 and 9 hardcoded. Maybe not hardcode this?
         const durationHours = 1;
 
@@ -88,11 +97,27 @@ export default class OdTripSimulation implements SimulationMethod {
         let totalTravelTimeMinutes = 0;
         const countByNumberOfTransfers = new Array(6).fill(0); // max 4, last is 5+
 
-        results.odTrips.forEach((odTrip) => {
-            if (!odTrip.expansionFactor) {
-                odTrip.expansionFactor = 1.0;
-            }
-            if (odTrip.status === 'success' && odTrip.travelTimeSeconds > 0) {
+        const resultStream = resultsDbQueries.streamResults(jobid);
+
+        for await (const row of resultStream) {
+            
+            const result = resultsDbQueries.resultParser(row);
+            const odTripResult: OdTripRouteResult = result.data;
+            const transitResult = odTripResult.results?.transit;
+            if (transitResult) {
+                const route = transitResult.paths[0];
+                const odTrip = {...route, expansionFactor: 1.0};
+
+                // TODO Let's ignore handling the expansion factor for now
+                if (!odTrip.expansionFactor) {
+                    odTrip.expansionFactor = 1.0;
+                }
+                if (odTrip.totalTravelTime == 0) {
+                    // TODO should be a error case which would be able by the nonRoutablecase
+                    // for now just warn and skip
+                    console.warn("odTrip.travelTimeSeconds == 0");
+                    continue;
+                }
                 const userCost = odTrip.expansionFactor * this.odTripFitnessFunction(odTrip);
                 usersCost += userCost;
                 transfersCount += odTrip.expansionFactor * odTrip.numberOfTransfers;
@@ -101,12 +126,12 @@ export default class OdTripSimulation implements SimulationMethod {
                 totalCount += odTrip.expansionFactor;
                 totalWalkingTimeMinutes +=
                     (odTrip.expansionFactor *
-                        (odTrip.accessTravelTimeSeconds +
-                            odTrip.egressTravelTimeSeconds +
-                            odTrip.transferTravelTimeSeconds)) /
+                        (odTrip.accessTravelTime +
+                            odTrip.egressTravelTime +
+                            odTrip.transferWalkingTime)) /
                     60;
-                totalWaitingTimeMinutes += (odTrip.expansionFactor * odTrip.waitingTimeSeconds) / 60;
-                totalTravelTimeMinutes += (odTrip.expansionFactor * odTrip.travelTimeSeconds) / 60;
+                totalWaitingTimeMinutes += (odTrip.expansionFactor * odTrip.totalWaitingTime) / 60;
+                totalTravelTimeMinutes += (odTrip.expansionFactor * odTrip.totalTravelTime) / 60;
                 totalRoutableUsersCost += userCost;
 
                 if (odTrip.numberOfTransfers >= 5) {
@@ -115,13 +140,18 @@ export default class OdTripSimulation implements SimulationMethod {
                     countByNumberOfTransfers[odTrip.numberOfTransfers] += odTrip.expansionFactor;
                 }
             } else {
-                const userCost = odTrip.expansionFactor * this.nonRoutableOdTripFitnessFunction(odTrip);
-                totalCount += odTrip.expansionFactor;
-                nonRoutedCount += odTrip.expansionFactor;
+              
+                const expansionFactor = 1.0; //TODO Do something
+                //const userCost = expansionFactor * this.nonRoutableOdTripFitnessFunction(odTrip);
+                // TODO HANDLE THIS PROPERLY
+                console.warn("No Transit found, should call nonRoutableOdTripFitnessFunction, but using constant");
+                const userCost = 100;
+                totalCount += expansionFactor;
+                nonRoutedCount += expansionFactor;
                 usersCost += userCost;
                 totalNonRoutableUsersCost += userCost;
             }
-        });
+        }
 
         for (let i = 0; i < countByNumberOfTransfers.length; i++) {
             countByNumberOfTransfers[i] = Math.round(countByNumberOfTransfers[i]);
@@ -170,9 +200,74 @@ export default class OdTripSimulation implements SimulationMethod {
         // https://github.com/chairemobilite/transition/issues/1541 and probably
         // start work on
         // https://github.com/chairemobilite/transition/issues/1397 first.
-        const fitness = 0;
-        const results = await this.processResults({ totalTravelTimeSeconds: 0, odTrips: [] });
 
+        // COPIED From services.socketRoute.ts (socket.on(TrRoutingConstants.BATCH_ROUTE)
+        // TODO We could do something like that and just copy the file to the new job
+        // TODO DO SAMPLING
+        //this.wrappedJob.job.getReadStream('input')..
+        const inputFiles: {
+            [Property in keyof BatchRouteJobType[fileKey]]?:
+                | string
+                | { filepath: string; renameTo: string };
+        } = {};
+        inputFiles.input = await ExecutableJobUtils.prepareJobFiles({location:'job', jobId:this.jobWrapper.job.id, fileKey:'transitDemand'},
+            this.jobWrapper.job.attributes.user_id
+        );
+
+
+
+        
+        // Need to build a BatchCalculationParameters for the BatchRouteJobType
+        // It's composed TransitRoutingQueryAttributes plus the withGeometries, detailed flag
+        // The TransitRoutingQueryAttributes is a RoutingQueryAttributes + TransitQueryAttributes
+        // The TransitQueryAttributes is a TransitRoutingBaseAttributes (coming from options.transitRoutingAttributes)
+        // and a scenarioId. The RoutingQueryAttributes is the routingModes and the withAlternatives flag.
+        const batchParams: BatchCalculationParameters = {
+            ...this.options.transitRoutingAttributes,
+            routingModes: ['transit', 'walking', 'driving'], //We need walking and driving for the fallback calculation
+            withAlternatives: false,
+            withGeometries: false,
+            detailed: false,
+            scenarioId: _scenarioId
+        };
+
+        const routingJob: ExecutableJob<BatchRouteJobType> = await this.jobWrapper.job.createChildJob({
+            name: 'batchRoute', //TODO Is this important, can I rename it do something else ???
+            data: {
+                parameters: {
+                    demandAttributes: this.options.demandAttributes,
+                    transitRoutingAttributes: batchParams,
+                    trRoutingJobParameters: {cacheDirectoryPath: this.jobWrapper.getCacheDirectory()}                        
+                }
+            },
+            inputFiles,
+            hasOutputFiles: false //TODO Manage the result
+        });
+
+        //TODO Normally we would yeild the execution here. To let the child run. For now run it directly.
+        // I would normally do routingJob.run() here, but it was not implemented like that :P
+
+        // This is copied from wrapBatchRoute
+        const { files, errors, warnings, ...result } = await batchRoute(routingJob,
+                                                                        this.jobWrapper.privexecutorOptions
+                                                                       );
+        routingJob.attributes.data.results = result;
+        routingJob.attributes.resources = { files };
+
+        // TODO Get job results somehow
+        // TODO Guessing we could transform the processResults here in some kind of result visitor and figure out a way to pass it
+        // to the TrRoutingBatch job.
+
+        
+        
+        
+        const results = await this.processResults(routingJob.id);
+
+        const fitness = this.fitnessFunction(results);
+        
+        routingJob.delete();
+        
+        
         // Step 1: Create the input file for the batch routing job as a random sample of the original demand file (from the currently running job)
 
         // Step 2: Prepare the parameters for the job
@@ -205,6 +300,10 @@ export default class OdTripSimulation implements SimulationMethod {
 
         const fitness = this.fitnessFunction(stats);
         */
+
+        
+
+        
         return { fitness, results };
     }
 }
