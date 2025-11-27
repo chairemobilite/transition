@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import random from 'random';
+import _cloneDeep from 'lodash/cloneDeep';
 import { EventEmitter } from 'events';
 import { v4 as uuidV4 } from 'uuid';
 
@@ -14,12 +15,16 @@ import Line from 'transition-common/lib/services/line/Line';
 import Service from 'transition-common/lib/services/service/Service';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import SimulationRun from '../../../simulation/SimulationRun';
+
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
+import { TransitNetworkDesignJobWrapper } from '../../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import { EvolutionaryTransitNetworkDesignJobParameters, EvolutionaryTransitNetworkDesignJobType } from '../../../networkDesign/transitNetworkDesign/evolutionary/types';
+import { ExecutableJob } from '../../../executableJob/ExecutableJob';
+import jobsDbQueries from '../../../../models/db/jobs.db.queries';
 
 const socketMock = new EventEmitter();
 const mockSimulateScenario = jest.fn();
-SimulationRun.prototype.simulateScenario = mockSimulateScenario;
+
 // Mock random, cloning with seed does not seem to work for those tests
 jest.mock('random', () => ({
     float: jest.fn()
@@ -53,48 +58,95 @@ const line3 = new Line(Object.assign({}, line1.attributes, { id: uuidV4() }), fa
 // One one service is required, the content is not important for this test.
 const service = new Service({ id: uuidV4() }, false);
 
-const simulationRun = new SimulationRun({
-    seed: '235132',
-    data: {
-        routingAttributes: {
-            maxTotalTravelTimeSeconds: 1000
-        },
-        transitNetworkDesignParameters: {
-            maxTimeBetweenPassages: 30,
-            nbOfVehicles: 7,
-            simulatedAgencies: ['arbitrary']
-        },
-        algorithmConfiguration: {
-            type: 'evolutionaryAlgorithm',
-            config: {
-                populationSizeMin: 3,
-                populationSizeMax: 4,
-                numberOfElites: 1,
-                numberOfRandoms: 0,
-                crossoverNumberOfCuts: 1,
-                crossoverProbability: 0.3,
-                mutationProbability: 0.5,
-                tournamentSize: 2,
-                tournamentProbability: 0.6,
-                shuffleGenes: false
-            }
+const defaultJobParameters: EvolutionaryTransitNetworkDesignJobParameters = {
+    transitNetworkDesignParameters: {
+        maxTimeBetweenPassages: 30,
+        minTimeBetweenPassages: 0,
+        nbOfVehicles: 7,
+        numberOfLinesMin: 0,
+        numberOfLinesMax: 0,
+        nonSimulatedServices: [],
+        simulatedAgencies: ['arbitrary'],
+        linesToKeep: []
+    },
+    algorithmConfiguration: {
+        type: 'evolutionaryAlgorithm',
+        config: {
+            populationSizeMin: 3,
+            populationSizeMax: 4,
+            numberOfElites: 1,
+            numberOfRandoms: 0,
+            crossoverNumberOfCuts: 1,
+            crossoverProbability: 0.3,
+            mutationProbability: 0.5,
+            tournamentSize: 2,
+            tournamentProbability: 0.6,
+            shuffleGenes: false,
+            keepGenerations: 0,
+            keepCandidates: 0,
+            numberOfGenerations: 5
         }
     },
-    status: 'pending' as const,
-    simulation_id: uuidV4(),
-    results: {},
-    options: {
-        numberOfThreads: 1,
-        fitnessSorter: 'maximize',
-        functions: {},
-        trRoutingStartingPort: 14000
+    simulationMethod: {
+        type: 'OdTripSimulation',
+        config: {
+            demandAttributes: {
+                type: 'csv',
+                fileAndMapping: {
+                    csvFile: {
+                        location: 'upload',
+                        filename: '',
+                        uploadFilename: ''
+                    },
+                    fieldMappings: {}
+                },
+                csvFields: []
+            },
+            transitRoutingAttributes: {
+                minWaitingTimeSeconds: undefined,
+                maxTransferTravelTimeSeconds: undefined,
+                maxAccessEgressTravelTimeSeconds: undefined,
+                maxWalkingOnlyTravelTimeSeconds: undefined,
+                maxFirstWaitingTimeSeconds: undefined,
+                maxTotalTravelTimeSeconds: undefined,
+                walkingSpeedMps: undefined,
+                walkingSpeedFactor: undefined
+            },
+            evaluationOptions: {
+                sampleRatio: 0,
+                odTripFitnessFunction: '',
+                fitnessFunction: ''
+            }
+        }
     }
-}, true);
+};
+
+// Mock the job loader
+jest.mock('../../../models/db/jobs.db.queries');
+const mockJobsDbQueries = jobsDbQueries as jest.Mocked<typeof jobsDbQueries>;
+const jobId = 1;
+const mockJobAttributes = {
+    id: jobId,
+    name: 'evolutionaryTransitNetworkDesign' as const,
+    user_id: 123,
+    status: 'pending' as const,
+    internal_data: {},
+    data: {
+        parameters: {
+            
+        } as Partial<EvolutionaryTransitNetworkDesignJobParameters>
+    },
+    resources: {
+        files: {
+            input: 'something.csv'
+        }
+    }
+};
+let job: ExecutableJob<EvolutionaryTransitNetworkDesignJobType>;
 
 const options: AlgoTypes.RuntimeAlgorithmData = {
     agencies: [],
     randomGenerator: random,
-    simulationRun: simulationRun,
     lineCollection: new LineCollection([line1, line2, line3], {}),
     linesToKeep: [],
     services: new ServiceCollection([service], {}),
@@ -149,13 +201,24 @@ const options: AlgoTypes.RuntimeAlgorithmData = {
     }
 }
 
+const getJobExecutor = async (parameters: Partial<EvolutionaryTransitNetworkDesignJobParameters>) => {
+    const testJobParameters = _cloneDeep(mockJobAttributes);
+    testJobParameters.data.parameters = parameters;
+    mockJobsDbQueries.read.mockResolvedValueOnce(testJobParameters);
+    job = await ExecutableJob.loadTask(1);
+    return new TransitNetworkDesignJobWrapper(job as ExecutableJob<EvolutionaryTransitNetworkDesignJobType>, { progressEmitter: new EventEmitter(), isCancelled: () => false });
+}
+
 describe('Test candidate preparation', () => {
 
     test('Test with correct number of vehicles', async () => {
         mockedRandomFloat.mockReturnValueOnce(0.1);
         // 7 vehicles, lvl 1 for line 1, lvl 0 for line 3
-        simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles = 7;
-        const networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, options);
+        const testParameters = _cloneDeep(defaultJobParameters);
+        testParameters.transitNetworkDesignParameters.nbOfVehicles = 7;
+        const jobExecutor = await getJobExecutor(testParameters);
+
+        const networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, jobExecutor);
         await networkCandidate.prepareScenario(socketMock);
         const scenario = networkCandidate.getScenario();
         expect(scenario).toBeDefined();
