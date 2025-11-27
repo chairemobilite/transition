@@ -234,6 +234,7 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                 // follow various rules, like a number of generation or convergence
                 // of results
                 algorithmResults.generations.push(previousGeneration.serializeBestResult());
+                await this.addMessages({ infos: [`Completed generation ${this.currentIteration} with best results: ${JSON.stringify(previousGeneration.serializeBestResult())}.`] });
                 this.job.attributes.data.results = algorithmResults;
                 // Await saving simulation to avoid race condition if next generation is very fast
                 await this.job.save(this.executorOptions.progressEmitter);
