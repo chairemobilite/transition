@@ -8,8 +8,7 @@ import { listTasks } from '../listTasks';
 import { listTasks as listLibTasks } from 'chaire-lib-backend/lib/scripts/listTasks';
 
 const tasks = [
-    'cache/recreateCache.task.ts',
-    'simulations/simulation.task.ts'
+    'cache/recreateCache.task.ts'
 ];
 
 const libTasks = listLibTasks();
