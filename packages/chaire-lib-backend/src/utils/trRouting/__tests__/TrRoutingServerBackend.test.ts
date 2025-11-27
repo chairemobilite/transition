@@ -298,4 +298,17 @@ describe('Retry and timeout behavior', () => {
         expect(result).toEqual({ status: 'success' });
     });
 
+    test('Should not retry on 400 Bad Request error', async () => {
+        const errorResponse = new Response(JSON.stringify({ error: 'Bad request' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+        });
+        // Mock fetch to return a 400 error
+        mockedFetch.mockResolvedValueOnce(errorResponse);
+        const result = await TrRoutingServiceBackend.route(defaultParameters);
+
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        expect(result).toEqual({ error: 'Bad request' });
+    });
+
 });
