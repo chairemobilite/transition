@@ -30,7 +30,8 @@ class TrRoutingServiceBackend {
         for (let i = 0; i < maxAttempts; i++) {
             try {
                 const response = await fetch(trRoutingRequest, { method: 'GET' });
-                if (!response.ok) {
+                // 200 and 400 are both valid response from TrRouting and are handled by the parsers
+                if (![200, 400].includes(response.status)) {
                     throw new Error(`TrRouting request failed with status ${response.status}`);
                 }
                 return await response.json();
