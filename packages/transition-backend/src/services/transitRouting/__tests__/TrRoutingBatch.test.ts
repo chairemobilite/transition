@@ -28,6 +28,7 @@ TrRoutingProcessManager.startBatch = jest.fn().mockResolvedValue({
     service: 'trRoutingBatch',
     port: 14000
 });
+const mockStartBatch = TrRoutingProcessManager.startBatch as jest.MockedFunction<typeof TrRoutingProcessManager.startBatch>;
 
 const socketMock = new EventEmitter();
 const isCancelledMock = jest.fn().mockReturnValue(false);
@@ -163,6 +164,7 @@ beforeEach(async () => {
     mockResultCollection.mockClear();
     mockResultDeleteForJob.mockClear();
     mockStreamResults.mockClear();
+    mockStartBatch.mockClear();
     mockedResultStream = new Readable({
         objectMode: true,
         read: function(size) {
@@ -199,6 +201,14 @@ test('Batch route to csv', async () => {
     const csvStream = fileStreams[csvFileName as string];
     expect(csvStream.data.length).toEqual(odTrips.length + 1);
 
+    // Verify TrRoutingProcessManager.startBatch was called with no custom cachePath
+    expect(mockStartBatch).toHaveBeenCalledWith(
+        expect.any(Number),
+        expect.objectContaining({
+            cacheDirectoryPath: undefined
+        })
+    );
+
     // Validate the result database calls
     expect(mockResultCreate).toHaveBeenCalledTimes(odTrips.length);
     for (let i = 0; i < odTrips.length; i++) {
@@ -211,6 +221,49 @@ test('Batch route to csv', async () => {
     expect(mockStreamResults).toHaveBeenCalledWith(jobId);
     expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
     expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId, undefined);
+});
+
+test('Batch route with custom cachePath parameter', async () => {
+    const customCachePath = '/custom/cache/path';
+
+    // Create a new job attributes object with trRoutingJobParameters
+    const jobAttributesWithCache = {
+        ...mockJobAttributes,
+        data: {
+            ...mockJobAttributes.data,
+            parameters: {
+                ...mockJobAttributes.data.parameters,
+                trRoutingJobParameters: {
+                    cacheDirectoryPath: customCachePath
+                }
+            }
+        }
+    };
+    mockJobsDbQueries.read.mockResolvedValueOnce(jobAttributesWithCache);
+    job = await ExecutableJob.loadTask(1);
+    jest.spyOn(job, 'getFilePath').mockImplementation(() => './batchRouting.csv');
+    jest.spyOn(job, 'getReadStream').mockImplementation(() => Readable.from('mock,csv,data\n1,2,3') as any);
+
+    const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
+
+    // Verify TrRoutingProcessManager.startBatch was called with the custom cachePath
+    expect(mockStartBatch).toHaveBeenCalledWith(
+        expect.any(Number),
+        expect.objectContaining({
+            cacheDirectoryPath: customCachePath
+        })
+    );
+
+    expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
+    expect(mockCreateStream).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({
+        calculationName: 'test',
+        detailed: false,
+        completed: true,
+        errors: [],
+        warnings: [],
+        files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
+    });
 });
 
 test('Batch route with some errors', async () => {
