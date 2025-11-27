@@ -34,6 +34,7 @@ export const sendEmail = async (
     const commonTranslateKeys = {
         ...translateKeys,
         name: userNotification.toUser.displayName,
+        host: process.env.HOST || 'http://localhost:8080',
         interpolation: { escapeValue: false }
     };
 
