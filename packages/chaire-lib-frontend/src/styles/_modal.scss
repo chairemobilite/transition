@@ -1,27 +1,31 @@
 .react-modal {
   position: absolute;
-  top: 50%;
+  inset: 5vh auto;
   left: 50%;
-  right: auto;
-  bottom: auto;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   background-color: rgba(0,0,0,0.9);
   padding: $s-size;
   border: 5px solid rgba(255,255,255,0.5);
   border-radius: 2rem;
   line-height: 1.1;
   z-index: 1000;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   @media only screen and (max-width: $desktop-breakpoint) and (min-width: $modal-breakpoint) {
     width: 80%;
     left: 10%;
-    transform: translate(0, -50%);
+    transform: translateX(0);
     min-width: 320px;
+    inset: 5vh 10% auto;
   }
   @media only screen and (max-width: $modal-breakpoint) {
     width: 100%;
     left: 0;
-    transform: translate(0, -50%);
+    transform: translateX(0);
     min-width: 320px;
+    inset: 5vh 0 auto;
   }
 
   p {
@@ -54,6 +58,21 @@
 
   &:focus {
     outline: none;
+  }
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .confirm-popup,
+  .confirm-popup-content {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
   }
 
 }
