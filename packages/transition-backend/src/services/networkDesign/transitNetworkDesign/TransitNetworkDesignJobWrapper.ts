@@ -20,7 +20,7 @@ import { ExecutableJob } from "../../executableJob/ExecutableJob";
 import { JobDataType } from "transition-common/lib/services/jobs/Job";
 import { TransitNetworkDesignJobType } from "./types";
 import { LineServices } from "../../evolutionaryAlgorithm/internalTypes";
-import { ErrorMessage } from "chaire-lib-common/lib/utils/TrError";
+import { TranslatableMessage } from "chaire-lib-common/lib/utils/TranslatableMessage";
 
 
 // Type to extract parameters from a job data type
@@ -230,7 +230,7 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         console.log(`Prepared cache directory files to ${absoluteCacheDirectory} from ${mainCacheDirectory}`);
     };
 
-    async addMessages(messages: { warnings?: ErrorMessage[]; errors?: ErrorMessage[]; }): Promise<void> {
+    async addMessages(messages: { warnings?: TranslatableMessage[]; errors?: TranslatableMessage[]; }): Promise<void> {
         // Quick return if no message to set
         if ((messages.warnings === undefined || messages.warnings.length === 0) && (messages.errors === undefined || messages.errors.length === 0)) {
             return;
