@@ -7,6 +7,7 @@
 import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
 import { OdTripRouteResult } from './types';
 
 export type BatchRouteJobType = {
@@ -15,6 +16,7 @@ export type BatchRouteJobType = {
         parameters: {
             demandAttributes: TransitBatchRoutingDemandAttributes;
             transitRoutingAttributes: BatchCalculationParameters;
+            trRoutingJobParameters?: TrRoutingBatchJobParameters; // Parameters to adjust trRouting startup
         };
         results?: Omit<TransitBatchCalculationResult, 'errors' | 'warnings'>;
     };
