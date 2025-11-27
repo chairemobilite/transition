@@ -88,7 +88,8 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         }
 
         if (usedVehicles / nbVehicles < USED_VEHICLES_THRESHOLD) {
-            throw new TrError(`Too few vehicles (${usedVehicles}) were assigned for this combination`, 'GALNCND004');
+            console.warn(`Too few vehicles (${usedVehicles}) were assigned for this combination, but still using`);
+            //throw new TrError(`Too few vehicles (${usedVehicles}) were assigned for this combination`, 'GALNCND004');
         }
 
         return currentLvlIndexes.map((currentLvlIndex, index) =>
