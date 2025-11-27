@@ -21,7 +21,8 @@ import * as AlgoTypes from '../internalTypes';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import { EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
-import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 const PERIOD_GROUP_SHORTNAME = 'complete_day';
 
@@ -38,9 +39,9 @@ const prepareServicesForLines = async (
         custom_start_at_str: string;
         custom_end_at_str: string;
     },
-    job: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
+    jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
 ): Promise<AlgoTypes.LineLevelOfService[]> => {
-    const transitNetworkParameters = job.parameters.transitNetworkDesignParameters;
+    const transitNetworkParameters = jobWrapper.parameters.transitNetworkDesignParameters;
     const minTime =
         (transitNetworkParameters.minTimeBetweenPassages ||
             DEFAULT_MIN_TIME_BETWEEN_PASSAGES) * 60;
@@ -86,7 +87,7 @@ const prepareServicesForLines = async (
                     monday: true,
                     start_date: moment().format('YYYY-MM-DD'),
                     end_date: moment().format('YYYY-MM-DD'),
-                    data: { forJob: job.job.id }
+                    data: { forJob: jobWrapper.job.id }
                 },
                 true
             );
@@ -177,12 +178,14 @@ export const prepareServices = async (
     simulatedLineCollection: LineCollection,
     services: ServiceCollection,
     jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
-): Promise<{ lineServices: AlgoTypes.LineServices; services: ServiceCollection; errors: ErrorMessage[] }> => {
+): Promise<{ lineServices: AlgoTypes.LineServices; services: ServiceCollection; errors: TranslatableMessage[] }> => {
     const lineServices: AlgoTypes.LineServices = {};
-    const errors: ErrorMessage[] = [];
+    const errors: TranslatableMessage[] = [];
     // FIXME Previously, when run with simulation, we could re-use services created
-    // for the simulation. Now with jobs, each is independent
-    const simulationServices = [];
+    // for the simulation. Now with jobs, each is independent, but we can recover services from previous run job (if incomplete)
+    const simulationServices = services
+        .getFeatures()
+        .filter((service) => service.attributes.data.forJob === jobWrapper.job.id);
 
     const periodGroups = Preferences.current.transit.periods[PERIOD_GROUP_SHORTNAME];
     if (!periodGroups || (periodGroups.periods || []).length === 0) {
