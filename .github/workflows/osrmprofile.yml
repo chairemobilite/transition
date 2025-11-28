@@ -11,6 +11,7 @@ on:
     # But only runs on PR that touches lua files
     paths:
       - '**/*.lua'
+      - '**/workflows/osrmprofile.yml'
 
 jobs:
   compile-lua:
@@ -22,8 +23,8 @@ jobs:
 
     - name: Setup Lua
       run: |
-        sudo apt-get update
-        sudo apt-get install -y lua5.3  # Install Lua version 5.3
+        sudo apt update
+        sudo apt install -y lua5.3  # Install Lua version 5.3
 
     - name: Compile Lua script
       run: luac5.3 -p packages/chaire-lib-backend/src/utils/processManagers/osrmProfiles/*.lua  # Compile all Lua OSRM profiles
