@@ -7,9 +7,10 @@ on:
     # Runs on all push to main, to make sure there's no other side effet
   pull_request:
     branches: [ main ]
-    # But only runs on PR that touches tex files
+    # But only runs on PR that touches tex files and this workflow
     paths:
       - '**/*.tex'
+      - '**/workflows/latex.yml'
 
 jobs:
   latex-compile:
@@ -17,7 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install latex packages
-        run: sudo apt install texlive-latex-base texlive-latex-extra
+        run: |
+          sudo apt update
+          sudo apt install -y texlive-latex-base texlive-latex-extra
       - name: Builds latex files
         working-directory: packages/transition-backend/file/definitions
         run: |
