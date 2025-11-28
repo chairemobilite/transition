@@ -65,6 +65,9 @@ const ExpandableMessage: React.FunctionComponent<React.PropsWithChildren<Expanda
                     {props.messages.warnings && props.messages.warnings.length > 0 && (
                         <FormErrors errors={props.messages.warnings} errorType="Warning" />
                     )}
+                    {props.messages.infos && props.messages.infos.length > 0 && (
+                        <FormErrors errors={props.messages.infos} errorType="Warning" />
+                    )}
                 </div>
                 <div className={'tr__form-buttons-container _center'}>
                     <div className="center">

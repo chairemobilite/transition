@@ -13,14 +13,14 @@ import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import ExecutableJobComponent from '../../parts/executableJob/ExecutableJobComponent';
 import TransitBatchRoutingCalculator from 'transition-common/lib/services/transitRouting/TransitBatchRoutingCalculator';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { CsvFileAndMapping } from 'transition-common/lib/services/csv';
 
 interface BatchCalculationListProps extends WithTranslation {
     onNewAnalysis: (parameters?: {
         parameters: BatchCalculationParameters;
-        demand: TransitBatchRoutingDemandAttributes;
+        demand: CsvFileAndMapping;
         csvFields: string[];
     }) => void;
 }

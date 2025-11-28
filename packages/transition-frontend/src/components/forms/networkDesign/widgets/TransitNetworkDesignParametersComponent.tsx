@@ -5,8 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
+import { useTranslation } from 'react-i18next';
 
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
@@ -17,8 +17,11 @@ import Service from 'transition-common/lib/services/service/Service';
 import InputMultiselect from 'chaire-lib-frontend/lib/components/input/InputMultiselect';
 import Agency from 'transition-common/lib/services/agency/Agency';
 import Line from 'transition-common/lib/services/line/Line';
+import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
+import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import { LoadingPage } from 'chaire-lib-frontend/lib/components/pages';
 
-export interface TransitNetworkDesignParametersComponentProps extends WithTranslation {
+export interface TransitNetworkDesignParametersComponentProps {
     attributes: TransitNetworkDesignParameters;
     disabled: boolean;
     onValueChange: (path: keyof TransitNetworkDesignParameters, newValue: { value: any; valid?: boolean }) => void;
@@ -27,20 +30,53 @@ export interface TransitNetworkDesignParametersComponentProps extends WithTransl
 const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNetworkDesignParametersComponentProps> = (
     props: TransitNetworkDesignParametersComponentProps
 ) => {
-    const agencyCollection = serviceLocator.collectionManager.get('agencies');
-    const serviceCollection = serviceLocator.collectionManager.get('services');
+    const { t } = useTranslation(['transit', 'main']);
 
-    const serviceChoices = serviceCollection.getFeatures().map((service: Service) => ({
-        value: service.getId(),
-        label: service.attributes.name || service.getId()
-    }));
-    const agencyChoices = agencyCollection.getFeatures().map((agency: Agency) => ({
-        value: agency.getId(),
-        label: agency.toString()
-    }));
+    const [agencyCollection, setAgencyCollection] = React.useState<AgencyCollection | undefined>(
+        serviceLocator.collectionManager.get('agencies')
+    );
+    const [serviceCollection, setServiceCollection] = React.useState<ServiceCollection | undefined>(
+        serviceLocator.collectionManager.get('services')
+    );
+
+    const onServiceCollectionUpdate = () => {
+        setServiceCollection(serviceLocator.collectionManager.get('services'));
+    };
+    const onAgencyCollectionUpdate = () => {
+        setAgencyCollection(serviceLocator.collectionManager.get('agencies'));
+    };
+
+    React.useEffect(() => {
+        serviceLocator.eventManager.on('collection.update.services', onServiceCollectionUpdate);
+        serviceLocator.eventManager.on('collection.update.agencies', onAgencyCollectionUpdate);
+        return () => {
+            serviceLocator.eventManager.off('collection.update.scenarios', onServiceCollectionUpdate);
+            serviceLocator.eventManager.on('collection.update.agencies', onAgencyCollectionUpdate);
+        };
+    }, []);
+
+    const serviceChoices = React.useMemo(
+        () =>
+            serviceCollection?.getFeatures().map((service: Service) => ({
+                value: service.getId(),
+                label: service.attributes.name || service.getId()
+            })) || [],
+        [serviceCollection]
+    );
+    const agencyChoices = React.useMemo(
+        () =>
+            agencyCollection?.getFeatures().map((agency: Agency) => ({
+                value: agency.getId(),
+                label: agency.toString()
+            })) || [],
+        [agencyCollection]
+    );
     const simulatedAgencies = props.attributes.simulatedAgencies || [];
     const lineChoices = simulatedAgencies.flatMap((agencyId: string) => {
-        const agency: Agency = agencyCollection.getById(agencyId);
+        const agency: Agency | undefined = agencyCollection?.getById(agencyId);
+        if (!agency) {
+            return [];
+        }
         const lines = agency.getLines();
         return lines.map((line: Line) => ({
             value: line.getId(),
@@ -48,9 +84,13 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
         }));
     });
 
+    if (!agencyCollection || !serviceCollection) {
+        return <LoadingPage />;
+    }
+
     return (
         <React.Fragment>
-            <InputWrapper smallInput={true} label={props.t('transit:simulation:NumberOfLinesMin')}>
+            <InputWrapper smallInput={true} label={t('transit:simulation:NumberOfLinesMin')}>
                 <InputStringFormatted
                     id={'formFieldTransitNetworkDesignParametersNbOfLinesMin'}
                     disabled={props.disabled}
@@ -61,7 +101,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     type={'number'}
                 />
             </InputWrapper>
-            <InputWrapper smallInput={true} label={props.t('transit:simulation:NumberOfLinesMax')}>
+            <InputWrapper smallInput={true} label={t('transit:simulation:NumberOfLinesMax')}>
                 <InputStringFormatted
                     id={'formFieldTransitNetworkDesignParametersNbOfLinesMax'}
                     disabled={props.disabled}
@@ -72,7 +112,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     type={'number'}
                 />
             </InputWrapper>
-            <InputWrapper smallInput={true} label={props.t('transit:simulation:MaxIntervalMinutes')}>
+            <InputWrapper smallInput={true} label={t('transit:simulation:MaxIntervalMinutes')}>
                 <InputStringFormatted
                     id={'formFieldTransitNetworkDesignParametersMaxTimeBetweenPassages'}
                     disabled={props.disabled}
@@ -83,7 +123,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     type={'number'}
                 />
             </InputWrapper>
-            <InputWrapper smallInput={true} label={props.t('transit:simulation:MinIntervalMinutes')}>
+            <InputWrapper smallInput={true} label={t('transit:simulation:MinIntervalMinutes')}>
                 <InputStringFormatted
                     id={'formFieldTransitNetworkDesignParametersMinTimeBetweenPassages'}
                     disabled={props.disabled}
@@ -94,7 +134,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     type={'number'}
                 />
             </InputWrapper>
-            <InputWrapper smallInput={true} label={props.t('transit:simulation:VehiclesCount')}>
+            <InputWrapper smallInput={true} label={t('transit:simulation:VehiclesCount')}>
                 <InputStringFormatted
                     id={'formFieldTransitNetworkDesignParametersNbOfVehicles'}
                     disabled={props.disabled}
@@ -105,38 +145,38 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     type={'number'}
                 />
             </InputWrapper>
-            <InputWrapper twoColumns={false} label={props.t('transit:simulation:LineSetAgencies')}>
+            <InputWrapper twoColumns={false} label={t('transit:simulation:LineSetAgencies')}>
                 <InputMultiselect
                     id={'formFieldTransitNetworkDesignParametersSimulatedAgencies'}
                     disabled={props.disabled}
                     value={props.attributes.simulatedAgencies}
                     onValueChange={(e) => props.onValueChange('simulatedAgencies', { value: e.target.value })}
                     choices={agencyChoices}
-                    t={props.t}
+                    t={t}
                 />
             </InputWrapper>
-            <InputWrapper twoColumns={false} label={props.t('transit:simulation:KeepLines')}>
+            <InputWrapper twoColumns={false} label={t('transit:simulation:KeepLines')}>
                 <InputMultiselect
                     id={'formFieldTransitNetworkDesignParametersKeepLines'}
                     disabled={props.disabled}
                     value={props.attributes.linesToKeep}
                     onValueChange={(e) => props.onValueChange('linesToKeep', { value: e.target.value })}
                     choices={lineChoices}
-                    t={props.t}
+                    t={t}
                 />
             </InputWrapper>
-            <InputWrapper twoColumns={false} label={props.t('transit:simulation:NonSimulatedServices')}>
+            <InputWrapper twoColumns={false} label={t('transit:simulation:NonSimulatedServices')}>
                 <InputMultiselect
                     id={'formFieldTransitNetworkDesignParametersNonSimulatedServices'}
                     disabled={props.disabled}
                     value={props.attributes.nonSimulatedServices}
                     onValueChange={(e) => props.onValueChange('nonSimulatedServices', { value: e.target.value })}
                     choices={serviceChoices}
-                    t={props.t}
+                    t={t}
                 />
             </InputWrapper>
         </React.Fragment>
     );
 };
 
-export default withTranslation('transit')(TransitNetworkDesignParametersComponent);
+export default TransitNetworkDesignParametersComponent;
