@@ -30,6 +30,8 @@ export type EvolutionaryTransitNetworkDesignJobType = {
     files: { transitDemand: true; nodeWeight: true };
     internal_data: {
         populationSize?: number;
+        dataPrepared?: boolean;
+        lineServices?: { [lineId: string]: { serviceId: string; numberOfVehicles: number; }[] };
     };
 };
 
