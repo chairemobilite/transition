@@ -297,7 +297,11 @@
     "map": {
         "controls": {
             "title": "Contrôles de la carte",
-            "resetView": "Réinitialiser la vue au centre/zoom par défaut"
+            "resetView": "Réinitialiser la vue au centre/zoom par défaut",
+            "layerSelect": "Sélectionner la couche de carte",
+            "background": "Arrière-plan",
+            "osm": "Carte de base",
+            "aerial": "Imagerie aérienne"
         }
     }
 }

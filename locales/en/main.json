@@ -297,7 +297,11 @@
     "map": {
         "controls": {
             "title": "Map Controls",
-            "resetView": "Reset map view to default center/zoom"
+            "resetView": "Reset map view to default center/zoom",
+            "layerSelect": "Select map layer",
+            "background": "Background",
+            "osm": "Base Map",
+            "aerial": "Aerial Imagery"
         }
     }
 }

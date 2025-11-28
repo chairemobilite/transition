@@ -5,15 +5,14 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 /** This file encapsulates map events that apply to the nodes layer, in any section */
-import MapboxGL from 'mapbox-gl';
-import { Popup } from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Node from 'transition-common/lib/services/nodes/Node';
 
 const hoverNode = (node: Node, nodeTitle = node.toString(false)) => {
-    const popup = new Popup({
+    const popup = new maplibregl.Popup({
         offset: 10,
         anchor: 'bottom'
     });
@@ -39,7 +38,7 @@ const unhoverNode = (nodeId: string) => {
     }
 };
 
-const onNodeMouseEnter = (e: MapboxGL.MapLayerMouseEvent) => {
+const onNodeMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
     // TODO Adding a custom field to the map. Legal, but not clean... figure out how to do this, implementation-independent
     const map = e.target as any;
     if (e.features && e.features[0]) {
@@ -72,7 +71,7 @@ const onNodeMouseEnter = (e: MapboxGL.MapLayerMouseEvent) => {
     }
 };
 
-const onNodeMouseLeave = (e: MapboxGL.MapLayerMouseEvent) => {
+const onNodeMouseLeave = (e: maplibregl.MapLayerMouseEvent) => {
     const map = e.target as any;
     e.target.getCanvas().style.cursor = '';
 

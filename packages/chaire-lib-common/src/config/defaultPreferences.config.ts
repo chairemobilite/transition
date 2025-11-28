@@ -42,7 +42,8 @@ const defaultPreferences: PreferencesModel = {
     dateTimeFormat: 'YYYY-MM-DD HH:mm',
     map: {
         center: [config.mapDefaultCenter.lon, config.mapDefaultCenter.lat],
-        zoom: 10
+        zoom: 10,
+        preferredBaseLayer: 'osm' as 'osm' | 'aerial' // User's preferred base map layer
     },
     showAggregatedOdTripsLayer: true,
     socketUploadChunkSize: 10240000,
