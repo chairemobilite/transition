@@ -15,21 +15,28 @@ import Line from 'transition-common/lib/services/line/Line';
 import Service from 'transition-common/lib/services/service/Service';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-
+import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
-import { TransitNetworkDesignJobWrapper } from '../../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import { EvolutionaryTransitNetworkDesignJobParameters, EvolutionaryTransitNetworkDesignJobType } from '../../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { ExecutableJob } from '../../../executableJob/ExecutableJob';
 import jobsDbQueries from '../../../../models/db/jobs.db.queries';
+import { createMockJobExecutor } from '../../../networkDesign/transitNetworkDesign/__tests__/MockTransitNetworkDesignJobWrapper';
+import OdTripSimulation from '../../../simulation/methods/OdTripSimulation';
 
 const socketMock = new EventEmitter();
-const mockSimulateScenario = jest.fn();
+// Mock the od trip simulation method
+const mockSimulateScenario = jest.fn() as jest.MockedFunction<OdTripSimulation['simulate']>;
+OdTripSimulation.prototype.simulate = mockSimulateScenario;
 
 // Mock random, cloning with seed does not seem to work for those tests
 jest.mock('random', () => ({
     float: jest.fn()
 }));
 const mockedRandomFloat = random.float as jest.MockedFunction<typeof random.float>;
+
+// Mock the job loader
+jest.mock('../../../../models/db/jobs.db.queries');
+const mockJobsDbQueries = jobsDbQueries as jest.Mocked<typeof jobsDbQueries>;
 
 const line1 = new Line({
     id: uuidV4(),
@@ -121,9 +128,6 @@ const defaultJobParameters: EvolutionaryTransitNetworkDesignJobParameters = {
     }
 };
 
-// Mock the job loader
-jest.mock('../../../models/db/jobs.db.queries');
-const mockJobsDbQueries = jobsDbQueries as jest.Mocked<typeof jobsDbQueries>;
 const jobId = 1;
 const mockJobAttributes = {
     id: jobId,
@@ -132,25 +136,27 @@ const mockJobAttributes = {
     status: 'pending' as const,
     internal_data: {},
     data: {
-        parameters: {
-            
-        } as Partial<EvolutionaryTransitNetworkDesignJobParameters>
+        parameters: defaultJobParameters
     },
     resources: {
         files: {
-            input: 'something.csv'
+            transitDemand: 'demand.csv',
+            nodeWeight: 'weights.csv'
         }
     }
 };
-let job: ExecutableJob<EvolutionaryTransitNetworkDesignJobType>;
 
-const options: AlgoTypes.RuntimeAlgorithmData = {
-    agencies: [],
-    randomGenerator: random,
-    lineCollection: new LineCollection([line1, line2, line3], {}),
-    linesToKeep: [],
-    services: new ServiceCollection([service], {}),
-    lineServices: {
+const createMockJobExecutorForTest = async (parameters: Partial<EvolutionaryTransitNetworkDesignJobParameters> = {}) => {
+    const testJobParameters = _cloneDeep(mockJobAttributes);
+    testJobParameters.data.parameters = { ...defaultJobParameters, ...parameters };
+    mockJobsDbQueries.read.mockResolvedValueOnce(testJobParameters);
+    const job = await ExecutableJob.loadTask(1);
+    
+    const lineCollection = new LineCollection([line1, line2, line3], {});
+    const agencyCollection = new AgencyCollection([], {});
+    const serviceCollection = new ServiceCollection([service], {});
+    
+    const lineServices: AlgoTypes.LineServices = {
         [line1.getId()]: [
             {
                 numberOfVehicles: 4,
@@ -181,33 +187,16 @@ const options: AlgoTypes.RuntimeAlgorithmData = {
                 service: new Service({ id: uuidV4() }, false)
             }
         ]
-    },
-    nonSimulatedServices: [],
-    populationSize: 0,
-    options: {
-        populationSizeMin: 2,
-        populationSizeMax: 2,
-        numberOfElites: 0,
-        numberOfRandoms: 0,
-        crossoverNumberOfCuts: 1,
-        crossoverProbability: 1,
-        mutationProbability: 0,
-        tournamentSize: 2,
-        tournamentProbability: 1,
-        numberOfGenerations: 3,
-        shuffleGenes: false,
-        keepCandidates: 1,
-        keepGenerations: 1
-    }
-}
+    };
 
-const getJobExecutor = async (parameters: Partial<EvolutionaryTransitNetworkDesignJobParameters>) => {
-    const testJobParameters = _cloneDeep(mockJobAttributes);
-    testJobParameters.data.parameters = parameters;
-    mockJobsDbQueries.read.mockResolvedValueOnce(testJobParameters);
-    job = await ExecutableJob.loadTask(1);
-    return new TransitNetworkDesignJobWrapper(job as ExecutableJob<EvolutionaryTransitNetworkDesignJobType>, { progressEmitter: new EventEmitter(), isCancelled: () => false });
-}
+    return createMockJobExecutor(job as ExecutableJob<EvolutionaryTransitNetworkDesignJobType>, {
+        lineCollection,
+        agencyCollection,
+        serviceCollection,
+        simulatedLineCollection: lineCollection,
+        lineServices
+    });
+};
 
 describe('Test candidate preparation', () => {
 
@@ -216,22 +205,25 @@ describe('Test candidate preparation', () => {
         // 7 vehicles, lvl 1 for line 1, lvl 0 for line 3
         const testParameters = _cloneDeep(defaultJobParameters);
         testParameters.transitNetworkDesignParameters.nbOfVehicles = 7;
-        const jobExecutor = await getJobExecutor(testParameters);
+        const jobExecutor = await createMockJobExecutorForTest(testParameters);
 
         const networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, jobExecutor);
         await networkCandidate.prepareScenario(socketMock);
         const scenario = networkCandidate.getScenario();
         expect(scenario).toBeDefined();
         expect((scenario as Scenario).attributes.services).toEqual([
-            (options.lineServices[line1.getId()] as any)[1].service.getId(),
-            (options.lineServices[line3.getId()] as any)[0].service.getId()
+            jobExecutor.lineServices[line1.getId()][1].service.getId(),
+            jobExecutor.lineServices[line3.getId()][0].service.getId()
         ]);
     });
 
     test('Test with too few vehicles', async () => {
         // 5 vehicles: startup service should have at least 6
-        simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles = 5;
-        const networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, options);
+        const testParameters = _cloneDeep(defaultJobParameters);
+        testParameters.transitNetworkDesignParameters.nbOfVehicles = 5;
+        const jobExecutor = await createMockJobExecutorForTest(testParameters);
+        
+        const networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, jobExecutor);
         await expect(networkCandidate.prepareScenario(socketMock))
             .rejects
             .toThrow('Impossible to assign minimal level of service for this combination');
@@ -246,14 +238,18 @@ describe('Test candidate preparation', () => {
         mockedRandomFloat.mockReturnValueOnce(0.1);
         mockedRandomFloat.mockReturnValueOnce(0.1);
         mockedRandomFloat.mockReturnValueOnce(0.6);
-        simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles = 12;
-        const networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, options);
+        
+        const testParameters = _cloneDeep(defaultJobParameters);
+        testParameters.transitNetworkDesignParameters.nbOfVehicles = 12;
+        const jobExecutor = await createMockJobExecutorForTest(testParameters);
+        
+        const networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, jobExecutor);
         await networkCandidate.prepareScenario(socketMock);
         const scenario = networkCandidate.getScenario();
         expect(scenario).toBeDefined();
         expect((scenario as Scenario).attributes.services).toEqual([
-            (options.lineServices[line1.getId()] as any)[1].service.getId(),
-            (options.lineServices[line3.getId()] as any)[1].service.getId()
+            jobExecutor.lineServices[line1.getId()][1].service.getId(),
+            jobExecutor.lineServices[line3.getId()][1].service.getId()
         ]);
     });
 
@@ -262,34 +258,49 @@ describe('Test candidate preparation', () => {
 describe('Simulate scenario and serialize result', () => {
 
     let networkCandidate: NetworkCandidate;
-    // Set the lines' schedules by services, which is supposed to exist when simulating candidates
-    options.lineCollection.getFeatures().forEach(line => {
-        options.lineServices[line.getId()]
-            .forEach(lineService => line.attributes.scheduleByServiceId[lineService.service.getId()] = {
-                service_id: lineService.service.getId()
-            } as any);
-    })
+    let jobExecutor: any;
 
     beforeEach(async () => {
         mockSimulateScenario.mockClear();
-        // 7 vehicles, lvl 1 for line 1, lvl 0 for line 2
-        mockedRandomFloat.mockReturnValue(0.1);
-        simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles = 7;
-        networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, options);
-        await networkCandidate.prepareScenario(socketMock);
+        
     })
 
     test('Test successful simulation and serialization', async () => {
+        // 7 vehicles, lvl 1 for line 1, lvl 0 for line 3
+        mockedRandomFloat.mockReturnValue(0.1);
+
+        // Prepare job and candidates
+        const testParameters = _cloneDeep(defaultJobParameters);
+        testParameters.transitNetworkDesignParameters.nbOfVehicles = 7;
+        jobExecutor = await createMockJobExecutorForTest(testParameters);
+        
+        // Set the lines' schedules by services, which is supposed to exist when simulating candidates
+        jobExecutor.simulatedLineCollection.getFeatures().forEach((line: Line) => {
+            jobExecutor.lineServices[line.getId()]
+                .forEach((lineService: AlgoTypes.LineLevelOfService) => {
+                    line.attributes.scheduleByServiceId[lineService.service.getId()] = {
+                        service_id: lineService.service.getId()
+                    } as any;
+                });
+        });
+        networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, jobExecutor);
+        await networkCandidate.prepareScenario(socketMock);
+
         // Mock result
-        const result = {
-            totalFitness: Number.NaN,
-            results: {}
+        const odSimulationResult = {
+            fitness: 123.45,
+            results: {} as any // FIXME Put some data if needed
         };
-        mockSimulateScenario.mockResolvedValueOnce(result);
+        mockSimulateScenario.mockResolvedValueOnce(odSimulationResult);
         await networkCandidate.simulate();
 
         expect(mockSimulateScenario).toHaveBeenCalledTimes(1);
-        expect(networkCandidate.getResult()).toEqual(result);
+        expect(networkCandidate.getResult()).toEqual({
+            totalFitness: NaN,
+            results: {
+                OdTripSimulation: odSimulationResult
+            }
+        });
 
         expect(networkCandidate.serialize()).toEqual({
             maxNumberOfVehicles: 7,
@@ -298,14 +309,19 @@ describe('Simulate scenario and serialize result', () => {
             lines: {
                 [line1.getId()]: {
                     shortname: line1.attributes.shortname,
-                    nbVehicles: (options.lineServices[line1.getId()])[1].numberOfVehicles
+                    nbVehicles: jobExecutor.lineServices[line1.getId()][1].numberOfVehicles
                 },
                 [line3.getId()]: {
                     shortname: line3.attributes.shortname,
-                    nbVehicles: (options.lineServices[line3.getId()])[0].numberOfVehicles
+                    nbVehicles: jobExecutor.lineServices[line3.getId()][0].numberOfVehicles
                 }
             },
-            result
+            result: {
+                totalFitness: NaN,
+                results: {
+                    OdTripSimulation: odSimulationResult
+                }
+            }
         })
     });
 
