@@ -16,6 +16,15 @@ La calibration complète le processus en ajustant les distributions d'échantill
 
 Les enquêtes de déplacement collectent intrinsèquement des données imbriquées: les ménages contiennent des personnes qui effectuent des déplacements. Cette structure nécessite potentiellement trois ensembles de poids distincts mais liés, chacun s'appuyant sur le niveau précédent tout en ajoutant des ajustements appropriés. Certaines enquêtes pondèrent uniquement les ménages, d'autres pondèrent à la fois les ménages et les personnes, et d'autres encore pondèrent séparément les ménages, les personnes et les déplacements.
 
+## Lien avec les Poids Propres
+
+Les poids finaux calculés par ce processus (poids de conception ajustés par calibration) attachés à une destination de déplacement, une personne ou un ménage deviennent effectivement son **Poids Propre** ($W_j$) dans les modèles gravitaires et les calculs d'accessibilité.
+
+Par exemple :
+- Si un déplacement enquêté vers un centre commercial a un poids final de 50, cette destination contribue pour 50 unités d'« attraction » (**poids propre**) au calcul de l'accessibilité des nœuds de transport à proximité.
+- Si un ménage a un poids de 20, il représente 20 ménages à cet endroit, contribuant au **poids propre** de ce point d'origine pour la génération de déplacements.
+- Pour pondérer un immeuble résidentiel, on utilise généralement la somme des **poids propres** de tous les ménages ou personnes résidant dans l'immeuble entier (selon si on veut un poids ménage ou un poids personnes).
+
 ## Références clés
 
 [UK Department for Transport (2024). National Travel Survey Weighting Review.](https://www.gov.uk/government/publications/future-developments-for-the-nts/)

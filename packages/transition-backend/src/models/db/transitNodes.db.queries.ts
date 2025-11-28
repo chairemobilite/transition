@@ -45,23 +45,35 @@ const attributesCleaner = function (attributes: Partial<NodeAttributes>): { [key
     return _attributes;
 };
 
-const collection = async () => {
+const collection = async (params: { nodeIds?: string[] } = {}) => {
     try {
-        const response = await knex.raw(`
-      SELECT
-        *,
-        COALESCE(color, '${Preferences.current.transit.nodes.defaultColor}') as color,
-        CASE geography WHEN NULL THEN NULL ELSE ST_AsGeoJSON(geography)::jsonb END as geography
-      FROM ${tableName}
-      WHERE is_enabled IS TRUE
-      ORDER BY integer_id;
-    `);
-        const collection = response.rows;
+        const { nodeIds } = params;
+
+        // Early return if nodeIds is explicitly an empty array (avoids unnecessary DB call)
+        if (nodeIds && nodeIds.length === 0) {
+            return [];
+        }
+
+        const query = knex(tableName)
+            .select(
+                '*',
+                knex.raw('COALESCE(color, ?) as color', [Preferences.current.transit.nodes.defaultColor]),
+                knex.raw('CASE WHEN geography IS NULL THEN NULL ELSE ST_AsGeoJSON(geography)::jsonb END as geography')
+            )
+            .where('is_enabled', true);
+
+        if (nodeIds && nodeIds.length > 0) {
+            query.whereIn('id', nodeIds);
+        }
+
+        query.orderBy('integer_id');
+
+        const collection = await query;
         if (collection) {
             return collection;
         }
         throw new TrError(
-            'cannot fetch transit nodes collection because database did not return a valid geojson',
+            'cannot fetch transit nodes collection because database did not return a valid result',
             'TNQC0001',
             'TransitNodesCollectionCouldNotBeFetchedBecauseDatabaseError'
         );
@@ -158,7 +170,7 @@ const read = async (id: string) => {
       SELECT
         *,
         COALESCE(color, '${Preferences.current.transit.nodes.defaultColor}') as color,
-        CASE geography WHEN NULL THEN NULL ELSE ST_AsGeoJSON(geography)::jsonb END as geography
+        CASE WHEN geography IS NULL THEN NULL ELSE ST_AsGeoJSON(geography)::jsonb END as geography
       FROM ${tableName}
       WHERE id = '${id}' AND is_enabled IS TRUE
       ORDER BY integer_id;
