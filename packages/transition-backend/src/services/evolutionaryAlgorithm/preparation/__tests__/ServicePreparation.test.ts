@@ -21,7 +21,7 @@ import ServiceCollection from 'transition-common/lib/services/service/ServiceCol
 import { EvolutionaryTransitNetworkDesignJobParameters, EvolutionaryTransitNetworkDesignJobType } from '../../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { ExecutableJob } from '../../../executableJob/ExecutableJob';
 import jobsDbQueries from '../../../../models/db/jobs.db.queries';
-import { TransitNetworkDesignJobWrapper } from '../../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import { createMockJobExecutor } from '../../../networkDesign/transitNetworkDesign/__tests__/MockTransitNetworkDesignJobWrapper';
 
 const mockedScheduleGeneration = jest.fn();
 Schedule.prototype.generateForPeriod = mockedScheduleGeneration;
@@ -207,7 +207,9 @@ const getJobExecutor = async (parameters: Partial<EvolutionaryTransitNetworkDesi
     testJobParameters.data.parameters = parameters;
     mockJobsDbQueries.read.mockResolvedValueOnce(testJobParameters);
     const job = await ExecutableJob.loadTask(1);
-    return new TransitNetworkDesignJobWrapper(job as ExecutableJob<EvolutionaryTransitNetworkDesignJobType>, { progressEmitter: new EventEmitter(), isCancelled: () => false });
+    
+    // Use the mock executor instead of the real one
+    return createMockJobExecutor(job as ExecutableJob<EvolutionaryTransitNetworkDesignJobType>);
 }
 
 beforeEach(() => {
