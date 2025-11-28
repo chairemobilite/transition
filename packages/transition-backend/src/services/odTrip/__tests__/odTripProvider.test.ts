@@ -72,14 +72,14 @@ test('Parse a csv file, 4326 projection, departure time, HMM times', async () =>
 
     const options = {
         projection: '4326',
-        idAttribute: 'id',
-        originXAttribute: 'originX',
-        originYAttribute: 'originY',
-        destinationXAttribute: 'destinationX',
-        destinationYAttribute: 'destinationY',
-        timeAttributeDepartureOrArrival: 'departure' as const,
+        id: 'id',
+        originLon: 'originX',
+        originLat: 'originY',
+        destinationLon: 'destinationX',
+        destinationLat: 'destinationY',
+        timeType: 'departure' as const,
         timeFormat: 'HMM',
-        timeAttribute: 'time',
+        time: 'time',
     };
 
     const { odTrips, errors } = await parseOdTripsFromCsv('path/to/file.csv', options);
@@ -144,14 +144,14 @@ test('Parse a csv file, 2950 projection, arrival time, HH:MM times', async () =>
 
     const options = {
         projection: '2950',
-        idAttribute: 'id',
-        originXAttribute: 'originX',
-        originYAttribute: 'originY',
-        destinationXAttribute: 'destinationX',
-        destinationYAttribute: 'destinationY',
-        timeAttributeDepartureOrArrival: 'arrival' as const,
+        id: 'id',
+        originLon: 'originX',
+        originLat: 'originY',
+        destinationLon: 'destinationX',
+        destinationLat: 'destinationY',
+        timeType: 'arrival' as const,
         timeFormat: 'HH:MM',
-        timeAttribute: 'time'
+        time: 'time'
     };
 
     const { odTrips, errors } = await parseOdTripsFromCsv('path/to/file.csv', options);
@@ -235,14 +235,14 @@ test('Parse a csv file, faulty lines and time in seconds', async () => {
 
     const options = {
         projection: '4326',
-        idAttribute: 'id',
-        originXAttribute: 'originX',
-        originYAttribute: 'originY',
-        destinationXAttribute: 'destinationX',
-        destinationYAttribute: 'destinationY',
-        timeAttributeDepartureOrArrival: 'departure' as const,
+        id: 'id',
+        originLon: 'originX',
+        originLat: 'originY',
+        destinationLon: 'destinationX',
+        destinationLat: 'destinationY',
+        timeType: 'departure' as const,
         timeFormat: 'secondsSinceMidnight',
-        timeAttribute: 'time',
+        time: 'time',
     };
 
     const { odTrips, errors } = await parseOdTripsFromCsv('path/to/file.csv', options);
@@ -303,14 +303,14 @@ test('Parse a csv file, wrong coordinates format', async () => {
 
     const options = {
         projection: '4326',
-        idAttribute: 'id',
-        originXAttribute: 'originX',
-        originYAttribute: 'originY',
-        destinationXAttribute: 'destinationX',
-        destinationYAttribute: 'destinationY',
-        timeAttributeDepartureOrArrival: 'departure' as const,
+        id: 'id',
+        originLon: 'originX',
+        originLat: 'originY',
+        destinationLon: 'destinationX',
+        destinationLat: 'destinationY',
+        timeType: 'departure' as const,
         timeFormat: 'secondsSinceMidnight',
-        timeAttribute: 'time',
+        time: 'time',
     };
 
     const { odTrips, errors } = await parseOdTripsFromCsv('path/to/file.csv', options);
@@ -343,14 +343,14 @@ test('Parse a csv file, too many faulty lines', async () => {
 
     const options = {
         projection: '4326',
-        idAttribute: 'id',
-        originXAttribute: 'originX',
-        originYAttribute: 'originY',
-        destinationXAttribute: 'destinationX',
-        destinationYAttribute: 'destinationY',
-        timeAttributeDepartureOrArrival: 'departure' as const,
+        id: 'id',
+        originLon: 'originX',
+        originLat: 'originY',
+        destinationLon: 'destinationX',
+        destinationLat: 'destinationY',
+        timeType: 'departure' as const,
         timeFormat: 'HMM',
-        timeAttribute: 'time',
+        time: 'time',
     };
 
     let exception: unknown = undefined;
@@ -371,14 +371,14 @@ describe('parseOdTripsFromCsvStream', () => {
 
         const options = {
             projection: '4326',
-            idAttribute: 'id',
-            originXAttribute: 'originX',
-            originYAttribute: 'originY',
-            destinationXAttribute: 'destinationX',
-            destinationYAttribute: 'destinationY',
-            timeAttributeDepartureOrArrival: 'departure' as const,
+            id: 'id',
+            originLon: 'originX',
+            originLat: 'originY',
+            destinationLon: 'destinationX',
+            destinationLat: 'destinationY',
+            timeType: 'departure' as const,
             timeFormat: 'HMM',
-            timeAttribute: 'time',
+            time: 'time',
         };
 
         const stream = createCsvStream(csvContent);
@@ -408,14 +408,14 @@ id1,invalid,invalid,-34.23,45.45,0800,0500`;
 
         const options = {
             projection: '4326',
-            idAttribute: 'id',
-            originXAttribute: 'originX',
-            originYAttribute: 'originY',
-            destinationXAttribute: 'destinationX',
-            destinationYAttribute: 'destinationY',
-            timeAttributeDepartureOrArrival: 'departure' as const,
+            id: 'id',
+            originLon: 'originX',
+            originLat: 'originY',
+            destinationLon: 'destinationX',
+            destinationLat: 'destinationY',
+            timeType: 'departure' as const,
             timeFormat: 'HMM',
-            timeAttribute: 'time',
+            time: 'time',
         };
 
         const stream = createCsvStream(csvContent);
@@ -432,14 +432,14 @@ id2,30,40,-30.5,40.234,37920,0500`;
 
         const options = {
             projection: '4326',
-            idAttribute: 'id',
-            originXAttribute: 'originX',
-            originYAttribute: 'originY',
-            destinationXAttribute: 'destinationX',
-            destinationYAttribute: 'destinationY',
-            timeAttributeDepartureOrArrival: 'arrival' as const,
+            id: 'id',
+            originLon: 'originX',
+            originLat: 'originY',
+            destinationLon: 'destinationX',
+            destinationLat: 'destinationY',
+            timeType: 'arrival' as const,
             timeFormat: 'secondsSinceMidnight',
-            timeAttribute: 'time',
+            time: 'time',
         };
 
         const stream = createCsvStream(csvContent);
@@ -464,14 +464,14 @@ describe('File existence check', () => {
 
         const options = {
             projection: '4326',
-            idAttribute: 'id',
-            originXAttribute: 'originX',
-            originYAttribute: 'originY',
-            destinationXAttribute: 'destinationX',
-            destinationYAttribute: 'destinationY',
-            timeAttributeDepartureOrArrival: 'departure' as const,
+            id: 'id',
+            originLon: 'originX',
+            originLat: 'originY',
+            destinationLon: 'destinationX',
+            destinationLat: 'destinationY',
+            timeType: 'departure' as const,
             timeFormat: 'HMM',
-            timeAttribute: 'time',
+            time: 'time',
         };
 
         await expect(parseOdTripsFromCsv('nonexistent.csv', options)).rejects.toEqual('CSV file does not exist');

@@ -21,32 +21,32 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import constants from 'chaire-lib-common/lib/config/constants';
 
-export interface OdTripOptions {
+export type OdTripCsvMapping = {
     projection: string;
-    idAttribute: string;
-    originXAttribute: string;
-    originYAttribute: string;
-    destinationXAttribute: string;
-    destinationYAttribute: string;
-    timeAttributeDepartureOrArrival: 'arrival' | 'departure';
+    id: string;
+    originLat: string;
+    originLon: string;
+    destinationLat: string;
+    destinationLon: string;
+    timeType: 'arrival' | 'departure';
     timeFormat: string;
-    timeAttribute: string;
+    time: string;
     debug?: boolean;
-}
+};
 
 const extractOdTrip = (
     line: {
         [key: string]: any;
     },
-    options: OdTripOptions,
+    mappings: OdTripCsvMapping,
     projection: { srid: number; value: string }
 ): BaseOdTrip => {
-    const internalId = line[options.idAttribute];
+    const internalId = line[mappings.id];
     const [originLat, originLon, destinationLat, destinationLon] = [
-        parseFloat(line[options.originYAttribute]),
-        parseFloat(line[options.originXAttribute]),
-        parseFloat(line[options.destinationYAttribute]),
-        parseFloat(line[options.destinationXAttribute])
+        parseFloat(line[mappings.originLat]),
+        parseFloat(line[mappings.originLon]),
+        parseFloat(line[mappings.destinationLat]),
+        parseFloat(line[mappings.destinationLon])
     ];
     if ((isNaN(originLat) || isNaN(originLon)) && (isNaN(destinationLat) || isNaN(destinationLon))) {
         throw new TrError(
@@ -84,22 +84,22 @@ const extractOdTrip = (
     let arrivalTime: number | null | undefined = undefined;
     let departureTime: number | null | undefined = undefined;
     // set departure or arrival time:
-    if (options.timeAttributeDepartureOrArrival === 'arrival') {
-        if (options.timeFormat === 'HH:MM') {
-            arrivalTime = timeStrToSecondsSinceMidnight(line[options.timeAttribute]);
-        } else if (options.timeFormat === 'HMM') {
-            arrivalTime = intTimeToSecondsSinceMidnight(line[options.timeAttribute]);
+    if (mappings.timeType === 'arrival') {
+        if (mappings.timeFormat === 'HH:MM') {
+            arrivalTime = timeStrToSecondsSinceMidnight(line[mappings.time]);
+        } else if (mappings.timeFormat === 'HMM') {
+            arrivalTime = intTimeToSecondsSinceMidnight(line[mappings.time]);
         } else {
-            arrivalTime = parseInt(line[options.timeAttribute]);
+            arrivalTime = parseInt(line[mappings.time]);
             arrivalTime = Number.isNaN(arrivalTime) ? undefined : arrivalTime;
         }
     } else {
-        if (options.timeFormat === 'HH:MM') {
-            departureTime = timeStrToSecondsSinceMidnight(line[options.timeAttribute]);
-        } else if (options.timeFormat === 'HMM') {
-            departureTime = intTimeToSecondsSinceMidnight(line[options.timeAttribute]);
+        if (mappings.timeFormat === 'HH:MM') {
+            departureTime = timeStrToSecondsSinceMidnight(line[mappings.time]);
+        } else if (mappings.timeFormat === 'HMM') {
+            departureTime = intTimeToSecondsSinceMidnight(line[mappings.time]);
         } else {
-            departureTime = parseInt(line[options.timeAttribute]);
+            departureTime = parseInt(line[mappings.time]);
             departureTime = Number.isNaN(departureTime) ? undefined : departureTime;
         }
     }
@@ -152,7 +152,7 @@ const addError = (errors: ErrorMessage[], error: unknown, nbErrors: number, rowN
  */
 const parseOdTripsFromCsvInternal = async (
     csvStream: NodeJS.ReadableStream,
-    options: OdTripOptions,
+    options: OdTripCsvMapping,
     progressEmitter?: EventEmitter
 ): Promise<{ odTrips: BaseOdTrip[]; errors: ErrorMessage[] }> => {
     const odTrips: BaseOdTrip[] = [];
@@ -218,7 +218,7 @@ const parseOdTripsFromCsvInternal = async (
  */
 export const parseOdTripsFromCsv = async (
     csvFilePath: string,
-    options: OdTripOptions,
+    options: OdTripCsvMapping,
     progressEmitter?: EventEmitter
 ): Promise<{ odTrips: BaseOdTrip[]; errors: ErrorMessage[] }> => {
     console.log(`parsing csv file ${csvFilePath}...`);
@@ -251,7 +251,7 @@ export const parseOdTripsFromCsv = async (
  */
 export const parseOdTripsFromCsvStream = async (
     csvFileStream: NodeJS.ReadableStream,
-    options: OdTripOptions,
+    options: OdTripCsvMapping,
     progressEmitter?: EventEmitter
 ): Promise<{ odTrips: BaseOdTrip[]; errors: ErrorMessage[] }> => {
     return parseOdTripsFromCsvInternal(csvFileStream, options, progressEmitter);

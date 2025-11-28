@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TransitBatchRoutingDemandAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { CsvFileAndMapping } from 'transition-common/lib/services/csv';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
@@ -14,7 +14,7 @@ export type BatchRouteJobType = {
     name: 'batchRoute';
     data: {
         parameters: {
-            demandAttributes: TransitBatchRoutingDemandAttributes;
+            demandAttributes: CsvFileAndMapping;
             transitRoutingAttributes: BatchCalculationParameters;
             trRoutingJobParameters?: TrRoutingBatchJobParameters; // Parameters to adjust trRouting startup
         };
