@@ -309,7 +309,6 @@ pub fn read_object(
                                 "total_capacity": minus_one_i64_to_null(trip.get_total_capacity() as i64),
                                 "seated_capacity": minus_one_i64_to_null(trip.get_seated_capacity() as i64),
                                 "is_frozen": i8_to_json_boolean(period.get_is_frozen()),
-                                "schedule_id": empty_str_to_json_null(schedule.get_uuid()?),
                                 "schedule_period_id": empty_str_to_json_null(period.get_uuid()?)
                             });
 

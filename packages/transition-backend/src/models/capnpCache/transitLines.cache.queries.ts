@@ -70,11 +70,12 @@ const importParser = function (cacheObject: CacheObjectClass) {
         };
 
         const periodsCache = scheduleCache.getPeriods();
-        const periods: Partial<SchedulePeriod>[] = [];
+        const periods: SchedulePeriod[] = [];
 
         periodsCache.forEach((periodCache) => {
             const periodShortname = periodCache.getPeriodShortname();
-            const period: Partial<SchedulePeriod> = {
+            const period: SchedulePeriod = {
+                id: periodCache.getUuid(),
                 period_shortname: periodShortname,
                 schedule_id: schedule.integer_id,
                 outbound_path_id: periodCache.getOutboundPathUuid(),
@@ -91,16 +92,17 @@ const importParser = function (cacheObject: CacheObjectClass) {
                 end_at_hour: periodCache.getEndAtSeconds() / 3600,
                 interval_seconds: minusOneToUndefined(periodCache.getIntervalSeconds()),
                 number_of_units: minusOneToUndefined(periodCache.getNumberOfUnits()),
-                is_frozen: int8ToBool(periodCache.getIsFrozen())
+                is_frozen: int8ToBool(periodCache.getIsFrozen()),
+                data: {},
+                trips: []
             };
 
             const tripsCache = periodCache.getTrips();
-            const trips: Partial<SchedulePeriodTrip>[] = [];
+            const trips: SchedulePeriodTrip[] = [];
 
             tripsCache.forEach((tripCache) => {
                 const trip = {
                     id: tripCache.getUuid(),
-                    schedule_id: schedule.id,
                     path_id: tripCache.getPathUuid(),
                     departure_time_seconds: tripCache.getDepartureTimeSeconds(),
                     arrival_time_seconds: tripCache.getArrivalTimeSeconds(),
@@ -119,7 +121,8 @@ const importParser = function (cacheObject: CacheObjectClass) {
                     block_id: _emptyStringToNull(tripCache.getBlockUuid()),
                     total_capacity: minusOneToUndefined(tripCache.getTotalCapacity()),
                     seated_capacity: minusOneToUndefined(tripCache.getSeatedCapacity()),
-                    is_frozen: int8ToBool(tripCache.getIsFrozen())
+                    is_frozen: int8ToBool(tripCache.getIsFrozen()),
+                    data: {}
                 };
 
                 trips.push(trip);

@@ -79,7 +79,6 @@ mod tests {
                                     "trips": [
                                         {
                                             "id": "6650ebc1-75c8-4ae6-abef-ce4dbc1c3a5f",
-                                            "schedule_id": "d36f377c-6691-4f70-8c0f-3f35d6958314",
                                             "schedule_period_id": "bddc12af-6c9f-4048-a800-a79ee187aaaa",
                                             "path_id": "cb01fe06-e450-4e6d-991c-a6e843cf30db",
                                             "departure_time_seconds": 14400,
@@ -94,7 +93,6 @@ mod tests {
                                         },
                                         {
                                             "id": "dd1eec4b-4b88-4d75-82b0-2005707fc0bf",
-                                            "schedule_id": "d36f377c-6691-4f70-8c0f-3f35d6958314",
                                             "schedule_period_id": "bddc12af-6c9f-4048-a800-a79ee187aaaa",
                                             "path_id": "e39e0b59-9af4-4cc0-ae7e-84f01e293f0b",
                                             "departure_time_seconds": 14413,
@@ -123,7 +121,6 @@ mod tests {
                                     "trips": [
                                         {
                                             "id":"a1f5fbc9-f692-49f3-a00f-430e5075c25f",
-                                            "schedule_id": "d36f377c-6691-4f70-8c0f-3f35d6958314",
                                             "schedule_period_id": "bddc12af-6c9f-4048-a800-a79ee18bbbbb",
                                             "path_id":"cb01fe06-e450-4e6d-991c-a6e843cf30db",
                                             "departure_time_seconds": 21600,
@@ -216,7 +213,6 @@ mod tests {
                                     "trips": [
                                         {
                                             "id": "6650ebc1-75c8-4ae6-abef-ce4dbc1c3a5f",
-                                            "schedule_id": "d36f377c-6691-4f70-8c0f-3f35d6958314",
                                             "schedule_period_id": "bddc12af-6c9f-4048-a800-a79ee187aaaa",
                                             "path_id": "cb01fe06-e450-4e6d-991c-a6e843cf30db",
                                             "departure_time_seconds": 14400,
@@ -232,7 +228,6 @@ mod tests {
                                         },
                                         {
                                             "id": "dd1eec4b-4b88-4d75-82b0-2005707fc0bf",
-                                            "schedule_id": "d36f377c-6691-4f70-8c0f-3f35d6958314",
                                             "schedule_period_id": "bddc12af-6c9f-4048-a800-a79ee187aaaa",
                                             "path_id": "e39e0b59-9af4-4cc0-ae7e-84f01e293f0b",
                                             "departure_time_seconds": 14413,
@@ -264,7 +259,6 @@ mod tests {
                                     "trips": [
                                         {
                                             "id":"a1f5fbc9-f692-49f3-a00f-430e5075c25f",
-                                            "schedule_id": "d36f377c-6691-4f70-8c0f-3f35d6958314",
                                             "schedule_period_id": "bddc12af-6c9f-4048-a800-a79ee18bbbbb",
                                             "path_id":"cb01fe06-e450-4e6d-991c-a6e843cf30db",
                                             "departure_time_seconds": 21600,
