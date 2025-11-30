@@ -7,7 +7,8 @@
         "packages/chaire-lib-frontend",
         "packages/transition-common",
         "packages/transition-backend",
-        "packages/transition-frontend"
+        "packages/transition-frontend",
+        "packages/transition-rust-backend"
     ],
     "scripts": {
         "setup": "yarn workspace chaire-lib-backend run setup",
