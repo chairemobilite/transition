@@ -28,9 +28,11 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
 
     constructor(
         chromosome: AlgoTypes.CandidateChromosome,
-        wrappedJob: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
+        wrappedJob: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>,
+        scenario?: Scenario
     ) {
         super(chromosome, wrappedJob);
+        this.scenario = scenario;
     }
 
     private prepareNetwork(): Line[] {
