@@ -21,6 +21,9 @@ import LineAndNumberOfVehiclesGenerationLogger from './LineAndNumberOfVehiclesGe
 import { EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
+import Candidate from '../candidate/Candidate';
+import LineAndNumberOfVehiclesNetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
 
 const chromosomeExists = (chrom: boolean[], linesChromosomes: boolean[][]) =>
     linesChromosomes.findIndex((chromosome) => _isEqual(chromosome, chrom)) !== -1;
@@ -226,6 +229,20 @@ export const reproduceCandidates = (
     return candidates;
 };
 
+export const resumeCandidatesFromChromosomes = (
+    jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>,
+    currentGeneration: Exclude<EvolutionaryTransitNetworkDesignJobType['internal_data']['currentGeneration'], undefined>,
+    scenarioCollection: ScenarioCollection
+): NetworkCandidate[] => {
+    return currentGeneration.candidates.map((candidateData) => 
+        new NetworkCandidate(
+            candidateData.chromosome,
+            jobWrapper,
+            scenarioCollection.getById(candidateData.scenarioId!)
+        )
+    );
+};
+
 /**
  * Represents the current generation of the simulation
  */
@@ -245,6 +262,10 @@ class LineAndNumberOfVehiclesGeneration extends Generation {
                     formats: ['csv', 'json', 'log']
                 })
         );
+    }
+
+    getCandidates(): LineAndNumberOfVehiclesNetworkCandidate[] {
+        return this.candidates as LineAndNumberOfVehiclesNetworkCandidate[];
     }
 
     // TODO Sorting candidates and calculating totalFitness maybe should not be
