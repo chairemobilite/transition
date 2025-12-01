@@ -137,16 +137,45 @@ describe('CsvFieldMapper', () => {
     });
 
     describe('getFieldMappings', () => {
-        it('should return copy of all field mappings', () => {
-            const mapping = new CsvFieldMapper(mockDescriptors, mockCsvFields, mockExistingMapping);
+        it('should return copy of all field mappings, with valid fields', () => {
+            // use a field mapping where all mandatory fields are set
+            const validMapping = {
+                name: 'name_col',
+                time: 'time_col'
+            };
+            const mapping = new CsvFieldMapper(mockDescriptors, mockCsvFields, validMapping);
             
             const mappings = mapping.getFieldMappings();
+            expect(mappings).toEqual(validMapping);
+            
+            // Should be a copy, not reference
+            mappings.name = 'modified';
+            expect(mapping.getFieldMapping('name')).toBe('name_col');
+        });
+
+        it('should throw an error when getting field mapping for invalid mapping', () => {
+            // Use an invalid mapping where name is not set
+            const invalidMapping = {
+                time: 'time_col'
+            };
+            const mapping = new CsvFieldMapper(mockDescriptors, mockCsvFields, invalidMapping);
+            
+            expect(() => mapping.getFieldMappings()).toThrow();
+        });
+    });
+
+    describe('getPartialFieldMapping', () => {
+        it('should return copy of all field mappings, even if invalid', () => {
+            const mapping = new CsvFieldMapper(mockDescriptors, mockCsvFields, mockExistingMapping);
+            
+            const mappings = mapping.getPartialFieldMappings();
             expect(mappings).toEqual(mockExistingMapping);
             
             // Should be a copy, not reference
             mappings.name = 'modified';
             expect(mapping.getFieldMapping('name')).toBe('name_col');
         });
+
     });
 
     describe('validation', () => {
@@ -357,7 +386,7 @@ describe('CsvFileAndFieldMapper', () => {
             expect(mapping.getCurrentFileAndMapping()).toBeUndefined();
         });
 
-        it('should initialize with existing mapping when provided', () => {
+        it('should initialize with existing valid mapping when provided', () => {
             const mapping = new CsvFileAndFieldMapper(mockDescriptors, mockExistingMapping);
 
             expect(mapping.getCsvFields()).toEqual(mockCsvFields);
@@ -395,12 +424,12 @@ describe('CsvFileAndFieldMapper', () => {
 
             expect(result).toEqual(['name_col', 'email_col']);
             expect(mapping.getCsvFields()).toEqual(['name_col', 'email_col']);
-            expect(mapping.getCurrentFileAndMapping()?.fileAndMapping.csvFile).toEqual({
+            expect(mapping.getFileLocation()).toEqual({
                 location: 'upload',
                 filename: 'test.csv',
                 uploadFilename
             });
-            expect(mapping.getCurrentFileAndMapping()?.fileAndMapping.fieldMappings).toEqual({});
+            expect(mapping.getPartialFieldMappings()).toEqual({});
         });
 
         it('should preserve valid existing mappings and remove invalid ones', async () => {
@@ -460,7 +489,7 @@ describe('CsvFileAndFieldMapper', () => {
             const result = await mapping.setCsvFileFromStream(mockFile, { location: 'job', jobId, fileKey: 'input' });
 
             expect(result).toEqual(['name_col', 'email_col']);
-            expect(mapping.getCurrentFileAndMapping()?.fileAndMapping.csvFile).toEqual({
+            expect(mapping.getFileLocation()).toEqual({
                 location: 'job',
                 jobId,
                 fileKey: 'input'
@@ -475,12 +504,16 @@ describe('CsvFileAndFieldMapper', () => {
             expect(mapping.getCurrentFileAndMapping()).toBeUndefined();
         });
 
-        it('should return current file and mapping when file is set', async () => {
+        it('should return current file and mapping when file is set and mapping valid', async () => {
+            csvObjects = { name_col: 'value', email_col: 'value', time_col: 'value' };
             const mapping = new CsvFileAndFieldMapper(mockDescriptors);
-            const expectedFields = ['name_col', 'email_col'];
+            const expectedFields = ['name_col', 'email_col', 'time_col'];
 
             await mapping.setCsvFileFromUpload('test.csv', uploadFilename);
             mapping.updateFieldMapping('name', 'name_col');
+            mapping.updateFieldMapping('time', 'time_col');
+            mapping.updateFieldMapping('timeType', 'departure');
+            mapping.updateFieldMapping('timeFormat', 'HMM');
 
             const result = mapping.getCurrentFileAndMapping();
 
@@ -488,10 +521,19 @@ describe('CsvFileAndFieldMapper', () => {
                 type: 'csv',
                 fileAndMapping: {
                     csvFile: { location: 'upload', filename: 'test.csv', uploadFilename },
-                    fieldMappings: { name: 'name_col' }
+                    fieldMappings: { name: 'name_col', time: 'time_col', 'timeType': 'departure', 'timeFormat': 'HMM' }
                 },
                 csvFields: expectedFields
             });
+        });
+
+        it('should return undefined when file is set, but mapping invalid', async () => {
+            const mapping = new CsvFileAndFieldMapper(mockDescriptors);
+
+            await mapping.setCsvFileFromUpload('test.csv', uploadFilename);
+            mapping.updateFieldMapping('name', 'name_col');
+
+            expect(mapping.getCurrentFileAndMapping()).toEqual(undefined);
         });
     });
 });
