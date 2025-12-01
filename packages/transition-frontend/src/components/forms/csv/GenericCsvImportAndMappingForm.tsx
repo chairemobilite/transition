@@ -118,7 +118,7 @@ const GenericCsvImportAndMappingForm: React.FunctionComponent<GenericCsvImportAn
             // Just uploaded, no need to upload it again
             setReadyToUpload(false);
         }
-    }, [uploadStatus.status, props.csvFieldMapper]);
+    }, [uploadStatus.status]); // csvFieldMapper should not be a dependency, even if used in the function, otherwise it loops. This effect just listens to the upload status update
 
     const csvFileFields = props.csvFieldMapper.getCsvFields();
 
