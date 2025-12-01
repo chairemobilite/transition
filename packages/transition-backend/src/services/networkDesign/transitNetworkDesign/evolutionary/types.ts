@@ -10,6 +10,7 @@ import { AlgorithmConfigurationByType } from 'transition-common/lib/services/net
 import { SimulationMethodConfiguration } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 import { ExecutableJob } from '../../../executableJob/ExecutableJob';
 import { ResultSerialization } from '../../../evolutionaryAlgorithm/candidate/Candidate';
+import { CandidateChromosome } from '../../../evolutionaryAlgorithm/internalTypes';
 
 export type EvolutionaryTransitNetworkDesignJobParameters = {
     transitNetworkDesignParameters: TransitNetworkDesignParameters;
@@ -32,6 +33,13 @@ export type EvolutionaryTransitNetworkDesignJobType = {
         populationSize?: number;
         dataPrepared?: boolean;
         lineServices?: { [lineId: string]: { serviceId: string; numberOfVehicles: number; }[] };
+        currentGeneration?: {
+            candidates: {
+                chromosome: CandidateChromosome;
+                scenarioId?: string;
+                fitness?: number;
+            }[]
+        }
     };
 };
 
