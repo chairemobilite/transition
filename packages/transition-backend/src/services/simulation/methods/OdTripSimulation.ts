@@ -24,6 +24,7 @@ import { OdTripRouteResult } from '../../transitRouting/types';
 import { BatchRouteJobType } from '../../transitRouting/BatchRoutingJob';
 import { fileKey } from 'transition-common/lib/services/jobs/Job';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import { EventEmitter } from 'events';
 
 export const OdTripSimulationTitle = 'OdTripSimulation';
 
@@ -249,8 +250,11 @@ export default class OdTripSimulation implements SimulationMethod {
 
         // This is copied from wrapBatchRoute
         const { files, errors, warnings, ...result } = await batchRoute(routingJob,
-                                                                        this.jobWrapper.privexecutorOptions
-                                                                       );
+            {
+                // Child job needs its own progress emitter to avoid conflicts with the parent's 
+                progressEmitter: new EventEmitter(),
+                isCancelled: this.jobWrapper.privexecutorOptions.isCancelled
+            });
         routingJob.attributes.data.results = result;
         routingJob.attributes.resources = { files };
 
