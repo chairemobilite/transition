@@ -203,7 +203,7 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
     props: OptionsEditComponentProps<any>
 ) => {
     const { t } = useTranslation(['transit', 'main']);
-    const options = props.optionsDescriptor.getOptions();
+    const options = React.useMemo(() => props.optionsDescriptor.getOptions(), [props.optionsDescriptor]);
     const optionWidgets = Object.keys(options).map((optionName) => {
         const option = options[optionName];
         return (
