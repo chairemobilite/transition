@@ -17,12 +17,12 @@ import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper'
 import { CsvFileAndFieldMapper } from 'transition-common/lib/services/csv';
 import FieldMappingsSelection from './widgets/FieldMappingsSelection';
 
-type GenericCsvImportAndMappingFormProps = {
+type GenericCsvImportAndMappingFormProps<T extends Record<string, string> = Record<string, string>> = {
     /**
      * The CsvFieldMapper instance to use for mapping and file management. It
      * contains the descriptors for the mappings.
      */
-    csvFieldMapper: CsvFileAndFieldMapper;
+    csvFieldMapper: CsvFileAndFieldMapper<T>;
     /**
      * Callback when the mapping is updated or the file is uploaded
      * @param csvFieldMapper The csv field mapper with current mapping and file
@@ -30,7 +30,7 @@ type GenericCsvImportAndMappingFormProps = {
      * @param isReadyAndValid Will be true if the mapping is valid and the file
      * is ready to be used (uploaded or already on server)
      */
-    onUpdate: (csvFieldMapper: CsvFileAndFieldMapper, isReadyAndValid: boolean) => void;
+    onUpdate: (csvFieldMapper: CsvFileAndFieldMapper<T>, isReadyAndValid: boolean) => void;
     /**
      * The name to use when uploading the file to the server.
      *
@@ -49,8 +49,8 @@ type GenericCsvImportAndMappingFormProps = {
  *
  * @param {(GenericCsvImportAndMappingFormProps)} props
  */
-const GenericCsvImportAndMappingForm: React.FunctionComponent<GenericCsvImportAndMappingFormProps> = (
-    props: GenericCsvImportAndMappingFormProps
+const GenericCsvImportAndMappingForm = <T extends Record<string, string> = Record<string, string>>(
+    props: GenericCsvImportAndMappingFormProps<T>
 ) => {
     const [loading, setLoading] = React.useState(false);
     const [updateCnt, setUpdateCnt] = React.useState(0);
@@ -140,9 +140,7 @@ const GenericCsvImportAndMappingForm: React.FunctionComponent<GenericCsvImportAn
                 <FieldMappingsSelection
                     onValueChange={onValueChange}
                     mappingDescriptors={props.csvFieldMapper.getMappingDescriptors()}
-                    currentMappings={
-                        props.csvFieldMapper.getCurrentFileAndMapping()?.fileAndMapping.fieldMappings || {}
-                    }
+                    currentMappings={props.csvFieldMapper.getPartialFieldMappings()}
                     csvFields={csvFileFields}
                 />
             )}

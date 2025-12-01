@@ -14,16 +14,16 @@ import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
  * A class to manage CSV field mapping from CSV fields to application fields
  * described by descriptors.
  */
-export class CsvFieldMapper {
+export class CsvFieldMapper<T extends Record<string, string> = Record<string, string>> {
     protected _csvFields: string[] = [];
-    protected _fieldMappings: { [key: string]: string } = {};
+    protected _fieldMappings: Partial<T> = {};
     private _isValid: boolean | undefined = undefined;
     private _errors: ErrorMessage[] = [];
 
     constructor(
         protected mappingDescriptors: CsvFieldMappingDescriptor[],
         csvFields?: string[],
-        fieldMappings?: { [key: string]: string }
+        fieldMappings?: Partial<T>
     ) {
         if (csvFields) {
             this._csvFields = _cloneDeep(csvFields);
@@ -177,7 +177,7 @@ export class CsvFieldMapper {
      * @param csvField The CSV field to map to the fieldKey
      */
     updateFieldMapping(fieldKey: string, csvField: string): void {
-        this._fieldMappings[fieldKey] = csvField;
+        (this._fieldMappings as Record<string, string>)[fieldKey] = csvField;
         this._resetValidation();
     }
 
@@ -191,11 +191,24 @@ export class CsvFieldMapper {
     }
 
     /**
-     * Get all field mappings
+     * Get the current field mappings, with partial mapping allowed.
      * @returns A copy of the current field mappings
      */
-    getFieldMappings(): { [key: string]: string } {
+    getPartialFieldMappings(): Partial<T> {
         return _cloneDeep(this._fieldMappings);
+    }
+
+    /**
+     * Get all field mappings. This will return a complete mapping only if the
+     * object is valid, otherwise an error is thrown if the object is still
+     * being filled.
+     * @returns A copy of the current field mappings
+     */
+    getFieldMappings(): T {
+        if (this.isValid() === true) {
+            return _cloneDeep(this._fieldMappings) as T;
+        }
+        throw new Error('Cannot get field mappings: the mapping is not valid');
     }
 
     /**
@@ -247,10 +260,12 @@ export class CsvFieldMapper {
 /**
  * A class to manage both CSV field mapping and file operations.
  */
-export class CsvFileAndFieldMapper extends CsvFieldMapper {
+export class CsvFileAndFieldMapper<
+    T extends Record<string, string> = Record<string, string>
+> extends CsvFieldMapper<T> {
     private _csvFile?: FileConfig;
 
-    constructor(mappingDescriptors: CsvFieldMappingDescriptor[], csvFileAndMapping?: CsvFileAndMapping | undefined) {
+    constructor(mappingDescriptors: CsvFieldMappingDescriptor[], csvFileAndMapping?: CsvFileAndMapping<T> | undefined) {
         super(mappingDescriptors, csvFileAndMapping?.csvFields, csvFileAndMapping?.fileAndMapping.fieldMappings);
         if (csvFileAndMapping) {
             this._csvFile = csvFileAndMapping.fileAndMapping.csvFile;
@@ -317,11 +332,14 @@ export class CsvFileAndFieldMapper extends CsvFieldMapper {
     }
 
     /**
-     * Get the current CSV file and mapping
-     * @returns {CsvFileAndMapping | undefined} The current CSV file and mapping,
+     * Get the current CSV file and mapping. This function will only return a
+     * value when called on valid objects. During the process of filling the
+     * mapping, this function may return undefined.
+     * @returns {CsvFileAndMapping | undefined} The current CSV file and
+     * mapping,
      */
-    getCurrentFileAndMapping(): CsvFileAndMapping | undefined {
-        if (!this._csvFile) {
+    getCurrentFileAndMapping(): CsvFileAndMapping<T> | undefined {
+        if (!this._csvFile || this.isValid() === false) {
             return undefined;
         }
         return {

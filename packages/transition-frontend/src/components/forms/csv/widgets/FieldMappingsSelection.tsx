@@ -12,7 +12,7 @@ import { CsvFieldMappingDescriptor, FileAndMappingAttributes } from 'transition-
 
 export type SingleFieldMappingComponentProps = {
     mappingDescriptor: CsvFieldMappingDescriptor;
-    currentMappings: FileAndMappingAttributes['fieldMappings'];
+    currentMappings: Partial<FileAndMappingAttributes['fieldMappings']>;
     csvFieldChoices: choiceType[];
     onValueChange: (fieldName: string, value: { value: string }) => void;
 };
@@ -61,7 +61,7 @@ const SingleFieldMappingComponent: React.FunctionComponent<SingleFieldMappingCom
 
 export type FieldMappingsSelectionComponentProps = {
     mappingDescriptors: CsvFieldMappingDescriptor[];
-    currentMappings: FileAndMappingAttributes['fieldMappings'];
+    currentMappings: Partial<FileAndMappingAttributes['fieldMappings']>;
     csvFields: string[];
     onValueChange: (fieldName: string, value: { value: string }) => void;
 };
