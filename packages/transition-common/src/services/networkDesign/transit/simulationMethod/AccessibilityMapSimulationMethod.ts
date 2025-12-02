@@ -31,7 +31,7 @@ implements SimulationAlgorithmDescriptor<AccessibilityMapSimulationOptions> {
         dataSourceId: {
             i18nName: 'transit:simulation:simulationMethods:AccessMapDataSources',
             type: 'select' as const,
-            choices: async () => {
+            choices: () => {
                 // FIXME Still using data source queries. When this code was in the
                 // backend, it used the query to fetch the data source, now let's just
                 // use an empty array (this won't work, but it already doesn't work)
