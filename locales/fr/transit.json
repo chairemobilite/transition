@@ -849,7 +849,19 @@
         "ConfirmJob": "Exécuter la conception de réseau",
         "AlgorithmConfiguration": "Configuration de l'algorithme",
         "Algorithm": "Algorithme sélectionné",
-        "NetworkDesignParameters": "Paramètres du réseau à concevoir"
+        "NetworkDesignParameters": "Paramètres du réseau à concevoir",
+        "parameters": {
+            "NumberOfLinesMin": "Nombre minimal de lignes",
+            "NumberOfLinesMax": "Nombre maximal de lignes",
+            "VehiclesCount": "Nombre de véhicules (flotte)",
+            "MaxIntervalMinutes": "Intervalle maximal (minutes)",
+            "MaxIntervalMinutesHelp": "Le temps maximum entre les départs sur une ligne. Pour un service optimal, il est suggéré de le garder en-dessous de 15 minutes. Des temps jusqu'à 60 minutes sont acceptés.",
+            "MinIntervalMinutes": "Intervalle minimal (minutes)",
+            "MinIntervalMinutesHelp": "Le temps minimal entre les départs sur une ligne. La valeur minimale devrait être supérieure à 3. Moins que ça n'aurait pas d'effet sur les calculs.",
+            "NonSimulatedServices": "Services non simulés à utiliser",
+            "LineSetAgencies": "Agences de l'ensemble de lignes",
+            "KeepLines": "Toujours conserver ces lignes"
+        }
     },
     "simulation": {
         "Simulation": "Simulation",
