@@ -121,7 +121,7 @@ class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTri
         odTripFitnessFunction: {
             i18nName: 'transit:simulation:fitness:odTripFitnessFunction',
             type: 'select' as const,
-            choices: async () => [
+            choices: () => [
                 {
                     label: 'transit:simulation:fitness:travelTimeCost',
                     value: 'travelTimeCost'
@@ -135,7 +135,7 @@ class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTri
         fitnessFunction: {
             i18nName: 'transit:simulation:fitness:fitnessFunction',
             type: 'select' as const,
-            choices: async () => [
+            choices: () => [
                 {
                     label: 'transit:simulation:fitness:hourlyUserPlusOperatingCosts',
                     value: 'hourlyUserPlusOperatingCosts'
@@ -159,7 +159,9 @@ class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTri
 
 // Add expansion factor to the demand field descriptors, and time is not required
 const demandFieldsWithoutTime = demandFieldDescriptors.filter((descriptor) => descriptor.key !== 'time');
-const timeFieldDescriptor: CsvFieldMappingDescriptor = demandFieldDescriptors.find((descriptor) => descriptor.key === 'time')!;
+const timeFieldDescriptor: CsvFieldMappingDescriptor = demandFieldDescriptors.find(
+    (descriptor) => descriptor.key === 'time'
+)!;
 const odDemandFieldDescriptors: CsvFieldMappingDescriptor[] = [
     ...demandFieldsWithoutTime,
     {
@@ -220,7 +222,6 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
                 errors.push(...demandFieldMappers.getErrors());
             }
         }
-        
 
         return { valid, errors };
     };
