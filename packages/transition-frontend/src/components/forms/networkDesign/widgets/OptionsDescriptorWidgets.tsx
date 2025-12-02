@@ -21,7 +21,7 @@ import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 import GenericCsvImportAndMappingForm from '../../csv/GenericCsvImportAndMappingForm';
 import { CsvFileAndMapping, CsvFileAndFieldMapper } from 'transition-common/lib/services/csv';
-import Loader from 'react-spinners/BeatLoader';
+import { InputMultiselect } from 'chaire-lib-frontend/lib/components/input/InputMultiselect';
 
 type OptionsEditComponentProps<T extends Record<string, unknown>> = {
     optionsDescriptor: SimulationAlgorithmDescriptor<T>;
@@ -34,45 +34,46 @@ type OptionComponentProps = {
     option: SimulationAlgorithmOptionDescriptor;
     value?: unknown;
     optionKey: string;
+    completeObject: Record<string, unknown>;
     disabled?: boolean;
     onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
 };
-
 const SelectOptionComponent: React.FunctionComponent<OptionComponentProps> = (props) => {
-    const [choices, setChoices] = React.useState<choiceType[]>([]);
-    const [loading, setLoading] = React.useState(true);
-
     const option = props.option;
     if (option.type !== 'select') {
         throw 'SelectOptionComponent can only be used with select options';
     }
 
-    React.useEffect(() => {
-        setLoading(true);
-        const fetchChoices = async () => {
-            try {
-                const fetchedChoices = await option.choices();
-                setChoices(fetchedChoices);
-            } finally {
-                setLoading(false);
-            }
-            
-        };
-        fetchChoices();
-    }, [props.option]);
+    const choices = option.choices(props.completeObject);
 
     const value = typeof props.value === 'string' ? props.value : option.default;
 
-    if (loading) {
-        return (
-            <div>
-                <Loader size={8} color={'#aaaaaa'} loading={true} />
-            </div>
-        );
-    }
-
     return (
         <InputSelect
+            id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
+            value={value}
+            choices={choices}
+            onValueChange={(e) =>
+                props.onValueChange(props.optionKey, {
+                    value: e.target.value
+                })
+            }
+        />
+    );
+};
+
+const MultiSelectOptionComponent: React.FunctionComponent<OptionComponentProps> = (props) => {
+    const option = props.option;
+    if (option.type !== 'multiselect') {
+        throw 'MultiSelectOptionComponent can only be used with multiselect options';
+    }
+
+    const choices = option.choices(props.completeObject);
+
+    const value = Array.isArray(props.value) ? props.value : option.default;
+
+    return (
+        <InputMultiselect
             id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
             value={value}
             choices={choices}
@@ -99,7 +100,10 @@ const CsvFileOptionComponent: React.FunctionComponent<OptionComponentProps> = (p
         <GenericCsvImportAndMappingForm
             csvFieldMapper={currentMapping}
             onUpdate={(csvFieldMapper: CsvFileAndFieldMapper, isValidAndReady: boolean): void => {
-                props.onValueChange(props.optionKey, { value: csvFieldMapper.getCurrentFileAndMapping(), valid: isValidAndReady });
+                props.onValueChange(props.optionKey, {
+                    value: csvFieldMapper.getCurrentFileAndMapping(),
+                    valid: isValidAndReady
+                });
             }}
             importFileName={option.importFileName}
         />
@@ -196,6 +200,9 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
     if (option.type === 'select') {
         return <SelectOptionComponent {...props} />;
     }
+    if (option.type === 'multiselect') {
+        return <MultiSelectOptionComponent {...props} />;
+    }
     return null;
 };
 
@@ -212,10 +219,12 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
                 smallInput={true}
                 label={t(option.i18nName)}
                 help={option.i18nHelp ? t(option.i18nHelp) : undefined}
+                twoColumns={option.type === 'multiselect' ? false : true}
             >
                 <OptionComponent
                     optionKey={optionName}
                     value={props.value[optionName]}
+                    completeObject={props.value}
                     disabled={props.disabled}
                     option={option}
                     onValueChange={props.onValueChange}
