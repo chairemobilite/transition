@@ -8,10 +8,11 @@ import React from 'react';
 
 import {
     TransitNetworkDesignParameters,
-    validateTransitNetworkDesignParameters
+    validateTransitNetworkDesignParameters,
+    transitNetworkDesignDescriptor
 } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
-import TransitNetworkDesignParametersComponent from '../widgets/TransitNetworkDesignParametersComponent';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
+import OptionsEditComponent from '../widgets/OptionsDescriptorWidgets';
 
 export interface ConfigureNetworkDesignParametersFormProps {
     parameters: Partial<TransitNetworkDesignParameters>;
@@ -31,7 +32,7 @@ const ConfigureNetworkDesignParametersForm: React.FunctionComponent<ConfigureNet
     }, []);
 
     const onValueChange = (
-        path: keyof TransitNetworkDesignParameters,
+        path: string,
         newValue: { value: any; valid?: boolean }
     ): void => {
         const updatedParameters = { ...props.parameters, [path]: newValue.value };
@@ -43,9 +44,9 @@ const ConfigureNetworkDesignParametersForm: React.FunctionComponent<ConfigureNet
 
     return (
         <div className="tr__form-section">
-            <TransitNetworkDesignParametersComponent
-                key={'transitNetworkDesignParams'}
-                attributes={props.parameters as TransitNetworkDesignParameters}
+            <OptionsEditComponent
+                value={props.parameters}
+                optionsDescriptor={transitNetworkDesignDescriptor}
                 disabled={false}
                 onValueChange={onValueChange}
             />
