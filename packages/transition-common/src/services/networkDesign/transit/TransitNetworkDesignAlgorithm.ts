@@ -33,7 +33,7 @@ type DescriptorFactory<T extends Record<string, unknown>> = () => SimulationAlgo
 
 interface NestedOptionDescriptor<T extends Record<string, unknown>> {
     type: 'nested';
-    descriptor: DescriptorFactory<T>;
+    descriptor: SimulationAlgorithmDescriptor<T>;
 }
 
 /**
@@ -144,7 +144,7 @@ export function getDefaultOptionsFromDescriptor<T extends Record<string, unknown
     for (const [key, optionDef] of Object.entries(optionDefinitions)) {
         if (optionDef.type === 'nested') {
             // Handle nested options recursively
-            const nestedDescriptor = optionDef.descriptor();
+            const nestedDescriptor = optionDef.descriptor;
             const existingNestedValue = options[key as keyof T] as Record<string, unknown> | undefined;
             const nestedDefaults = getDefaultOptionsFromDescriptor(existingNestedValue || {}, nestedDescriptor);
             (options as any)[key] = nestedDefaults;
@@ -183,7 +183,7 @@ export function validateOptionsWithDescriptor<T extends Record<string, unknown>>
         }
         if (optionDef.type === 'nested') {
             // Handle nested options recursively
-            const nestedDescriptor = optionDef.descriptor();
+            const nestedDescriptor = optionDef.descriptor;
             const nestedValidation = validateOptionsWithDescriptor(
                 (value as Record<string, unknown>) || {},
                 nestedDescriptor
