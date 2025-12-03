@@ -52,15 +52,12 @@ function taskUpdateListener() {
     return eventEmitter;
 }
 
-const assertDiskUsage = (task: ExecutableJob<JobDataType>) => {
+const isDiskSpaceSufficient = (task: ExecutableJob<JobDataType>) => {
     const diskUsage = Users.getUserDiskUsage(task.attributes.user_id);
     if (diskUsage.remaining !== undefined && diskUsage.remaining <= 0) {
-        throw new TrError(
-            'Maximum allowed disk space reached',
-            'TRJOB0001',
-            'transit:transitRouting:errors:UserDiskQuotaReached'
-        );
+        return false;
     }
+    return true;
 };
 
 const getTaskCancelledFct = (task: ExecutableJob<JobDataType>) => {
@@ -131,12 +128,23 @@ export const wrapTaskExecution = async (id: number) => {
         return;
     }
     const taskListener = taskUpdateListener();
-    // Set the status to in progress
-    task.setInProgress();
-    await task.save(taskListener);
     // Execute the right function for this task
     try {
-        assertDiskUsage(task);
+        if (!isDiskSpaceSufficient(task)) {
+            console.log(
+                `Pausing job ${task.attributes.id} (${task.attributes.name}) because user disk quota is reached`
+            );
+            // Disk space is insufficient, pause the job so the user can clean up and resume
+            task.setPaused();
+            task.attributes.statusMessages = {
+                errors: ['transit:transitRouting:errors:UserDiskQuotaReached']
+            };
+            await task.save(taskListener);
+            return;
+        }
+        // Set the status to in progress
+        task.setInProgress();
+        await task.save(taskListener);
         let taskResultStatus = true;
         switch (task.attributes.name) {
         case 'batchRoute':
