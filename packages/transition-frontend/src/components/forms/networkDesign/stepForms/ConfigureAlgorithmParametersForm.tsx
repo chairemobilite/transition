@@ -37,16 +37,15 @@ const ConfigureAlgorithmParametersForm: React.FunctionComponent<ConfigureAlgorit
         props.onUpdate(props.algorithmConfig, true);
     }, []);
 
-    const onValueChange = (path: string, newValue: { value: any; valid?: boolean }): void => {
-        const pathParts = path.split('.');
+    const onValueChange = (path: 'type' | 'config', newValue: { value: any; valid?: boolean }): void => {
         let updatedConfig = { ...props.algorithmConfig };
 
-        if (pathParts[0] === 'type') {
+        if (path === 'type') {
             updatedConfig = { ...updatedConfig, type: newValue.value };
-        } else if (pathParts[0] === 'config') {
+        } else if (path === 'config') {
             updatedConfig = {
                 ...updatedConfig,
-                config: { ...updatedConfig.config, [pathParts[1]]: newValue.value }
+                config: newValue.value
             };
         }
 
