@@ -23,6 +23,10 @@ export interface TransitNetworkDesignAlgorithm {
 export type SimulationAlgorithmOptionBase = {
     i18nName: string;
     i18nHelp?: string;
+    /** Whether this field is required. If `true`, the field must be provided.
+     * Otherwise, at validation, an error message labeled with the i18nName
+     * appended with `Required` will be shown. */
+    required?: boolean;
 };
 
 type DescriptorFactory<T extends Record<string, unknown>> = () => SimulationAlgorithmDescriptor<T>;
@@ -52,12 +56,12 @@ export type SimulationAlgorithmOptionByType =
     | {
           type: 'integer' | 'number';
           default?: number;
-          validate?: (value: number) => boolean;
+          validate?: (value: number) => boolean | ErrorMessage;
       }
     | {
           type: 'string';
           default?: string;
-          validate?: (value: string) => boolean;
+          validate?: (value: string) => boolean | ErrorMessage;
       }
     | {
           type: 'boolean';
@@ -115,9 +119,11 @@ export interface SimulationAlgorithmDescriptor<T extends Record<string, unknown>
     getTranslatableName: () => string;
     /** Get the options and their types */
     getOptions: () => { [K in keyof T]: SimulationAlgorithmOptionDescriptor };
-    /** Validate an options object. This function is in addition to the
+    /** 
+     * Validate an options object. This function is in addition to the
      * options's individual validator and allows to validate the whole object,
-     * not just individual values. */
+     * not just individual values. 
+     * */
     validateOptions: (options: Partial<T>) => { valid: boolean; errors: ErrorMessage[] };
 }
 
@@ -148,4 +154,70 @@ export function getDefaultOptionsFromDescriptor<T extends Record<string, unknown
     }
 
     return options;
+}
+
+/**
+ * Validate an options object against a descriptor. This will make sure that all
+ * required options are present and that individual option validators are
+ * called. It will also call the overall options validator if all individual
+ * values are valid.
+ * 
+ * @param options The options to validate
+ * @param descriptor The descriptor to validate against
+ * @returns Validation result with validity and error messages
+ */
+export function validateOptionsWithDescriptor<T extends Record<string, unknown>>(
+    options: Partial<T>,
+    descriptor: SimulationAlgorithmDescriptor<T>
+): { valid: boolean; errors: ErrorMessage[] } {
+    let valid = true;
+    const errors: ErrorMessage[] = [];
+    const optionDefinitions = descriptor.getOptions();
+
+    for (const [key, optionDef] of Object.entries(optionDefinitions)) {
+        const value = options[key as keyof T];
+        if (optionDef.required && (value === undefined || value === null || value === '')) {
+            valid = false;
+            errors.push(optionDef.i18nName + 'Required');
+            continue;
+        }
+        if (optionDef.type === 'nested') {
+            // Handle nested options recursively
+            const nestedDescriptor = optionDef.descriptor();
+            const nestedValidation = validateOptionsWithDescriptor(
+                (value as Record<string, unknown>) || {},
+                nestedDescriptor
+            );
+            if (!nestedValidation.valid) {
+                valid = false;
+                errors.push(...nestedValidation.errors);
+            }
+        } else {
+            if (value !== undefined) {
+                if ('validate' in optionDef && optionDef.validate) {
+                    let isValid: ErrorMessage | boolean = true;
+                    if (optionDef.type === 'integer' || optionDef.type === 'number') {
+                        isValid = optionDef.validate(value as number);
+                    } else if (optionDef.type === 'string') {
+                        isValid = optionDef.validate(value as string);
+                    }
+                    if (isValid !== true) {
+                        valid = false;
+                        // If the return value is a string, it is a custom error message
+                        errors.push(typeof isValid === 'boolean' ? optionDef.i18nName + 'Invalid' : isValid);
+                    }
+                }
+            }
+        }
+    }
+    if (valid) {
+        // All individual options are valid, validate overall options
+        const overallValidation = descriptor.validateOptions(options);
+        if (!overallValidation.valid) {
+            valid = false;
+            errors.push(...overallValidation.errors);
+        }
+    }
+
+    return { valid, errors };
 }
