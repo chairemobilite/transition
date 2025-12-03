@@ -112,7 +112,6 @@ const mockJobAttributes = {
         parameters: {
             batchAccessMapAttributes: {
                 type: 'csv' as const,
-                calculationName: 'test',
                 projection: 'test',
                 idAttribute: 'id',
                 xAttribute: 'origX',
@@ -163,7 +162,6 @@ test('3 locations, all successful', async() => {
     mockedParseLocations.mockResolvedValue({ locations, errors: [] });
     const result = await batchAccessibilityMap(mockedJob, progressEmitter, isCancelledMock);
     expect(result).toEqual({
-        calculationName: mockJobAttributes.data.parameters.batchAccessMapAttributes.calculationName,
         detailed: mockJobAttributes.data.parameters.batchAccessMapAttributes.detailed,
         completed: true,
         errors: [],
@@ -188,7 +186,6 @@ test('3 locations, error on first', async() => {
     mockedCalculateWithPolygon.mockRejectedValueOnce('Some error occurred');
     const result = await batchAccessibilityMap(mockedJob, progressEmitter, isCancelledMock);
     expect(result).toEqual(expect.objectContaining({
-        calculationName: mockJobAttributes.data.parameters.batchAccessMapAttributes.calculationName,
         detailed: mockJobAttributes.data.parameters.batchAccessMapAttributes.detailed,
         completed: true,
         errors: []

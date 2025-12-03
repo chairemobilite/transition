@@ -198,7 +198,6 @@ test('Batch route to csv', async () => {
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-        calculationName: 'not set',
         detailed: false,
         completed: true,
         errors: [],
@@ -266,7 +265,6 @@ test('Batch route with custom cachePath parameter', async () => {
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-        calculationName: 'not set',
         detailed: false,
         completed: true,
         errors: [],
@@ -283,7 +281,6 @@ test('Batch route with some errors', async () => {
     expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
     expect(mockCreateStream).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-        calculationName: 'not set',
         detailed: false,
         completed: true,
         errors: [],
@@ -317,7 +314,6 @@ test('Batch route with too many errors', async () => {
     expect(routeOdTripMock).toHaveBeenCalledTimes(0);
     expect(mockCreateStream).toHaveBeenCalledTimes(0);
     expect(result).toEqual({
-        calculationName: 'not set',
         detailed: false,
         completed: false,
         errors,
@@ -341,7 +337,6 @@ describe('Batch route from checkpoint', () => {
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length - currentCheckpoint);
         expect(mockCreateStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
-            calculationName: 'not set',
             detailed: false,
             completed: true,
             errors: [],
@@ -365,7 +360,6 @@ describe('Batch route from checkpoint', () => {
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length - currentCheckpoint);
         expect(mockCreateStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
-            calculationName: 'not set',
             detailed: false,
             completed: true,
             errors: [],
