@@ -15,7 +15,6 @@ import {
     getSimulationMethodDescriptor
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 import OptionsEditComponent from '../widgets/OptionsDescriptorWidgets';
-import { getDefaultOptionsFromDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import { PartialSimulationMethodConfiguration } from '../types';
 
 export interface ConfigureSimulationMethodFormProps {
@@ -30,19 +29,6 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
     const [updateCnt, setUpdateCnt] = React.useState(0);
     // FIXME Properly handle errors
     const [errors] = React.useState<string[]>([]);
-
-    React.useEffect(() => {
-        // FIXME Should validate properly
-        const algoDescriptor = props.simulationMethod?.type ? getSimulationMethodDescriptor(props.simulationMethod.type) : undefined;
-        // FIXME This part of setting the defaults should be done by the options component
-        if (algoDescriptor) {
-            const updatedConfig = getDefaultOptionsFromDescriptor(props.simulationMethod.config || {}, algoDescriptor)
-            props.onUpdate({ ...props.simulationMethod, config: updatedConfig }, true);
-            return;
-        }
-        // Validate on first load
-        props.onUpdate(props.simulationMethod, true);
-    }, []);
 
     const onValueChange = (path: 'type' | 'config', newValue: { value: any; valid?: boolean }): void => {
         let updatedMethod = { ...props.simulationMethod };
@@ -66,10 +52,9 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
         label: t(getSimulationMethodDescriptor(methodId).getTranslatableName())
     }));
 
-    const methodDescriptor =
-        props.simulationMethod.type !== undefined
-            ? getSimulationMethodDescriptor(props.simulationMethod.type)
-            : undefined;
+    const methodDescriptor = props.simulationMethod.type !== undefined
+        ? getSimulationMethodDescriptor(props.simulationMethod.type)
+        : undefined;
 
     return (
         <div className="tr__form-section">
@@ -85,6 +70,7 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
 
             {methodDescriptor && (
                 <OptionsEditComponent
+                    key={`methodConfigOptions${props.simulationMethod?.type}`}
                     value={props.simulationMethod.config}
                     optionsDescriptor={methodDescriptor}
                     disabled={false}
