@@ -49,6 +49,7 @@ const SimulationAlgorithmComponent: React.FunctionComponent<SimulationAlgorithmC
             </InputWrapper>
             {algoDescriptor && (
                 <OptionsEditComponent
+                    key={`algorithmConfigOptions${_toInteger(props.algorithmConfig?.type)}`}
                     value={props.algorithmConfig?.config}
                     optionsDescriptor={algoDescriptor}
                     disabled={props.disabled}
