@@ -14,8 +14,10 @@ import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/Input
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import {
+    getDefaultOptionsFromDescriptor,
     SimulationAlgorithmDescriptor,
-    SimulationAlgorithmOptionDescriptor, validateOptionsWithDescriptor
+    SimulationAlgorithmOptionDescriptor,
+    validateOptionsWithDescriptor
 } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
@@ -179,12 +181,11 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
         );
     }
     if (option.type === 'nested') {
-        const descriptor = option.descriptor();
         const value = typeof props.value === 'object' && props.value !== null ? props.value : {};
         return (
             <OptionsEditComponent
                 value={value}
-                optionsDescriptor={descriptor}
+                optionsDescriptor={option.descriptor}
                 disabled={false}
                 onUpdate={(parameters: Partial<any>, isValid: boolean): void => {
                     props.onValueChange(props.optionKey, {
@@ -216,10 +217,11 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
     const [errors, setErrors] = React.useState<ErrorMessage[]>([]);
     
     React.useEffect(() => {
-        // Validate on first load
-        const { valid } = validateOptionsWithDescriptor(props.value, props.optionsDescriptor);
-        props.onUpdate(props.value, valid);
-    }, []);
+        // Set defaults and validate on first load
+        const defaultedOptions = getDefaultOptionsFromDescriptor(props.value, props.optionsDescriptor);
+        const { valid } = validateOptionsWithDescriptor(defaultedOptions, props.optionsDescriptor);
+        props.onUpdate(defaultedOptions, valid);
+    }, [props.optionsDescriptor]);
 
     const onValueChange = (
         path: string,
