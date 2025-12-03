@@ -8,11 +8,10 @@ import React from 'react';
 
 import {
     TransitNetworkDesignParameters,
-    validateTransitNetworkDesignParameters,
     transitNetworkDesignDescriptor
 } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
-import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import OptionsEditComponent from '../widgets/OptionsDescriptorWidgets';
+import { getDefaultOptionsFromDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 
 export interface ConfigureNetworkDesignParametersFormProps {
     parameters: Partial<TransitNetworkDesignParameters>;
@@ -22,25 +21,6 @@ export interface ConfigureNetworkDesignParametersFormProps {
 const ConfigureNetworkDesignParametersForm: React.FunctionComponent<ConfigureNetworkDesignParametersFormProps> = (
     props: ConfigureNetworkDesignParametersFormProps
 ) => {
-    const [errors, setErrors] = React.useState<string[]>([]);
-
-    React.useEffect(() => {
-        // Validate on first load
-        const { valid, errors } = validateTransitNetworkDesignParameters(props.parameters);
-        props.onUpdate(props.parameters, valid);
-        setErrors(errors);
-    }, []);
-
-    const onValueChange = (
-        path: string,
-        newValue: { value: any; valid?: boolean }
-    ): void => {
-        const updatedParameters = { ...props.parameters, [path]: newValue.value };
-        const { valid, errors } = validateTransitNetworkDesignParameters(updatedParameters);
-
-        props.onUpdate(updatedParameters, valid);
-        setErrors(errors);
-    };
 
     return (
         <div className="tr__form-section">
@@ -48,9 +28,8 @@ const ConfigureNetworkDesignParametersForm: React.FunctionComponent<ConfigureNet
                 value={props.parameters}
                 optionsDescriptor={transitNetworkDesignDescriptor}
                 disabled={false}
-                onValueChange={onValueChange}
+                onUpdate={props.onUpdate}
             />
-            {errors.length > 0 && <FormErrors errors={errors} />}
         </div>
     );
 };

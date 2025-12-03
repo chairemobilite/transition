@@ -20,7 +20,7 @@ import OptionsEditComponent from './OptionsDescriptorWidgets';
 export interface SimulationAlgorithmComponentProps {
     algorithmConfig?: AlgorithmConfiguration;
     disabled: boolean;
-    onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
+    onValueChange: (path: 'type' | 'config', newValue: { value: any; valid?: boolean }) => void;
 }
 
 const SimulationAlgorithmComponent: React.FunctionComponent<SimulationAlgorithmComponentProps> = (
@@ -52,7 +52,7 @@ const SimulationAlgorithmComponent: React.FunctionComponent<SimulationAlgorithmC
                     value={props.algorithmConfig?.config}
                     optionsDescriptor={algoDescriptor}
                     disabled={props.disabled}
-                    onValueChange={(path, value) => props.onValueChange(`config.${path}`, value)}
+                    onUpdate={(parameters, isValid) => props.onValueChange('config', { value: parameters, valid: isValid })}
                 />
             )}
         </React.Fragment>

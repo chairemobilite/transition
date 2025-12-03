@@ -121,6 +121,7 @@ class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTri
         odTripFitnessFunction: {
             i18nName: 'transit:simulation:fitness:odTripFitnessFunction',
             type: 'select' as const,
+            required: true,
             choices: () => [
                 {
                     label: 'transit:simulation:fitness:travelTimeCost',
@@ -135,6 +136,7 @@ class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTri
         fitnessFunction: {
             i18nName: 'transit:simulation:fitness:fitnessFunction',
             type: 'select' as const,
+            required: true,
             choices: () => [
                 {
                     label: 'transit:simulation:fitness:hourlyUserPlusOperatingCosts',
@@ -152,7 +154,7 @@ class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTri
         }
     });
 
-    validateOptions = (_options: Partial<OdTripEvaluationOptions>): { valid: boolean; errors: string[] } => {
+    validateOptions = (_options: Partial<OdTripEvaluationOptions>): { valid: boolean; errors: ErrorMessage[] } => {
         return { valid: true, errors: [] };
     };
 }
@@ -192,7 +194,8 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
             i18nName: 'transit:simulation:simulationMethods:demandAttributes',
             type: 'csvFile' as const,
             mappingDescriptors: odDemandFieldDescriptors,
-            importFileName: 'transit_od_trips.csv'
+            importFileName: 'transit_od_trips.csv',
+            required: true
         },
         transitRoutingAttributes: {
             i18nName: 'transit:simulation:simulationMethods:transitRoutingAttributes',
@@ -210,7 +213,6 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
         let valid = true;
         const errors: ErrorMessage[] = [];
 
-        // TODO Actually validate something
         // Validate the demand attributes
         if (options.demandAttributes !== undefined) {
             const demandFieldMappers = new CsvFileAndFieldMapper(
