@@ -8,9 +8,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
-import { AlgorithmConfiguration } from 'transition-common/lib/services/networkDesign/transit/algorithm';
-import { SimulationMethodConfiguration } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
+import { transitNetworkDesignDescriptor, TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 import ConfigureNetworkDesignParametersForm from './stepForms/ConfigureNetworkDesignParametersForm';
 import ConfigureAlgorithmParametersForm from './stepForms/ConfigureAlgorithmParametersForm';
 import ConfigureSimulationMethodForm from './stepForms/ConfigureSimulationMethodForm';
@@ -22,6 +20,7 @@ import {
     PartialAlgorithmConfiguration,
     PartialSimulationMethodConfiguration
 } from './types';
+import { getDefaultOptionsFromDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 
 export interface TransitNetworkDesignFormProps {
     initialValues?: FormInitialValues;
@@ -52,7 +51,7 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
     const [currentStep, setCurrentStep] = React.useState(0);
     const [nextEnabled, setNextEnabled] = React.useState(false);
     const [jobParameters, setJobParameters] = React.useState<FormInitialValues>({
-        transitNetworkDesignParameters: props.initialValues?.transitNetworkDesignParameters || {},
+        transitNetworkDesignParameters: getDefaultOptionsFromDescriptor(props.initialValues?.transitNetworkDesignParameters || {}, transitNetworkDesignDescriptor),
         algorithmConfiguration: props.initialValues?.algorithmConfiguration || { type: 'evolutionaryAlgorithm', config: {} },
         simulationMethod: props.initialValues?.simulationMethod || { type: 'OdTripSimulation', config: {} }
     });
@@ -74,7 +73,6 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
 
     const incrementStep = () => {
         if (currentStep === stepCount - 1) {
-            console.log('Submitting network design job with parameters:', jobParameters);
             NetworkDesignFrontendExecutor.execute(jobParameters as TransitNetworkJobConfigurationType);
             return props.onJobConfigurationCompleted();
         }
@@ -85,13 +83,6 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
         setCurrentStep(currentStep - 1);
         setNextEnabled(true);
     };
-
-    React.useEffect(() => {
-        // Enable next by default for the first step
-        if (currentStep === 0) {
-            setNextEnabled(true);
-        }
-    }, [currentStep]);
 
     return (
         <form id={'tr__form-transit-network-design-new'} className="apptr__form">

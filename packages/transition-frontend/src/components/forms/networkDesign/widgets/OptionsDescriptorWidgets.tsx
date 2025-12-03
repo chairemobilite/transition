@@ -11,23 +11,25 @@ import _toString from 'lodash/toString';
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
-import InputSelect, { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
+import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import {
     SimulationAlgorithmDescriptor,
-    SimulationAlgorithmOptionDescriptor
+    SimulationAlgorithmOptionDescriptor, validateOptionsWithDescriptor
 } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 import GenericCsvImportAndMappingForm from '../../csv/GenericCsvImportAndMappingForm';
 import { CsvFileAndMapping, CsvFileAndFieldMapper } from 'transition-common/lib/services/csv';
 import { InputMultiselect } from 'chaire-lib-frontend/lib/components/input/InputMultiselect';
+import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 
 type OptionsEditComponentProps<T extends Record<string, unknown>> = {
     optionsDescriptor: SimulationAlgorithmDescriptor<T>;
     value: T;
     disabled?: boolean;
-    onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
+    onUpdate: (parameters: Partial<T>, isValid: boolean) => void;
 };
 
 type OptionComponentProps = {
@@ -122,7 +124,7 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
                 onValueUpdated={({ value, valid }) =>
                     props.onValueChange(props.optionKey, {
                         value,
-                        valid: valid && (option.validate ? option.validate(value) : true)
+                        valid: valid && (option.validate ? option.validate(value) === true : true)
                     })
                 }
             />
@@ -149,7 +151,7 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
                 onValueUpdated={({ value, valid }) =>
                     props.onValueChange(props.optionKey, {
                         value,
-                        valid: valid && (option.validate ? option.validate(value) : true)
+                        valid: valid && (option.validate ? option.validate(value) === true : true)
                     })
                 }
                 stringToValue={_toInteger}
@@ -168,7 +170,7 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
                 onValueUpdated={({ value, valid }) =>
                     props.onValueChange(props.optionKey, {
                         value,
-                        valid: valid && (option.validate ? option.validate(value) : true)
+                        valid: valid && (option.validate ? option.validate(value) === true : true)
                     })
                 }
                 stringToValue={parseFloatOrNull}
@@ -184,11 +186,10 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
                 value={value}
                 optionsDescriptor={descriptor}
                 disabled={false}
-                onValueChange={(path: string, newValue: { value: any; valid?: boolean }): void => {
-                    const updatedObject = { ...value, [path]: newValue.value };
+                onUpdate={(parameters: Partial<any>, isValid: boolean): void => {
                     props.onValueChange(props.optionKey, {
-                        value: updatedObject,
-                        valid: newValue.valid !== false
+                        value: parameters,
+                        valid: isValid
                     });
                 }}
             />
@@ -211,6 +212,26 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
 ) => {
     const { t } = useTranslation(['transit', 'main']);
     const options = React.useMemo(() => props.optionsDescriptor.getOptions(), [props.optionsDescriptor]);
+
+    const [errors, setErrors] = React.useState<ErrorMessage[]>([]);
+    
+    React.useEffect(() => {
+        // Validate on first load
+        const { valid } = validateOptionsWithDescriptor(props.value, props.optionsDescriptor);
+        props.onUpdate(props.value, valid);
+    }, []);
+
+    const onValueChange = (
+        path: string,
+        newValue: { value: any; valid?: boolean }
+    ): void => {
+        const updatedParameters = { ...props.value, [path]: newValue.value };
+        const { valid, errors } = validateOptionsWithDescriptor(updatedParameters, props.optionsDescriptor);
+
+        props.onUpdate(updatedParameters, valid);
+        setErrors(errors);
+    };
+
     const optionWidgets = Object.keys(options).map((optionName) => {
         const option = options[optionName];
         return (
@@ -227,13 +248,16 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
                     completeObject={props.value}
                     disabled={props.disabled}
                     option={option}
-                    onValueChange={props.onValueChange}
+                    onValueChange={onValueChange}
                 />
             </InputWrapper>
         );
     });
 
-    return <React.Fragment>{optionWidgets}</React.Fragment>;
+    return <React.Fragment>
+        {optionWidgets}
+        {errors.length > 0 && <FormErrors errors={errors} />}    
+    </React.Fragment>;
 };
 
 export default OptionsEditComponent;

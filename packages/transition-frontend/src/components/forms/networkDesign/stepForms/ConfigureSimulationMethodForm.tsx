@@ -44,17 +44,16 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
         props.onUpdate(props.simulationMethod, true);
     }, []);
 
-    const onValueChange = (path: string, newValue: { value: any; valid?: boolean }): void => {
-        const pathParts = path.split('.');
+    const onValueChange = (path: 'type' | 'config', newValue: { value: any; valid?: boolean }): void => {
         let updatedMethod = { ...props.simulationMethod };
 
-        if (pathParts[0] === 'type') {
+        if (path === 'type') {
             // Reset config when changing type
             updatedMethod = { type: newValue.value, config: {} } as PartialSimulationMethodConfiguration;
-        } else if (pathParts[0] === 'config') {
+        } else if (path === 'config') {
             updatedMethod = {
                 ...updatedMethod,
-                config: { ...updatedMethod.config, [pathParts[1]]: newValue.value }
+                config: newValue.value
             };
         }
 
@@ -89,7 +88,7 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
                     value={props.simulationMethod.config}
                     optionsDescriptor={methodDescriptor}
                     disabled={false}
-                    onValueChange={(path, value) => onValueChange(`config.${path}`, value)}
+                    onUpdate={(parameters, isValid) => onValueChange('config', { value: parameters, valid: isValid })}
                 />
             )}
 
