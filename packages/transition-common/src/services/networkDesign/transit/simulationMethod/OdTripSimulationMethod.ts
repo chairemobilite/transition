@@ -177,6 +177,10 @@ const odDemandFieldDescriptors: CsvFieldMappingDescriptor[] = [
         required: false
     }
 ];
+
+const transitRoutingAttributesDescriptor = new TransitRoutingAttributesDescriptor();
+const simulationOptionsDescriptor = new SimulationOptionsDescriptor();
+
 /**
  * Descriptor class for the OD trip simulation method options. It documents the
  * options, types, validation and default values. It also validates the whole
@@ -200,12 +204,12 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
         transitRoutingAttributes: {
             i18nName: 'transit:simulation:simulationMethods:transitRoutingAttributes',
             type: 'nested' as const,
-            descriptor: () => new TransitRoutingAttributesDescriptor()
+            descriptor: transitRoutingAttributesDescriptor
         },
         evaluationOptions: {
             i18nName: 'transit:simulation:simulationMethods:simulationOptions',
             type: 'nested' as const,
-            descriptor: () => new SimulationOptionsDescriptor()
+            descriptor: simulationOptionsDescriptor
         }
     });
 
