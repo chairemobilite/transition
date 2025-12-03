@@ -194,8 +194,6 @@ class TrRoutingBatch {
             this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 1.0 });
 
             const routingResult = {
-                // FIXME The calculation name is never set anyway, maybe remove? or define?
-                calculationName: 'not set',
                 detailed: this.job.attributes.data.parameters.transitRoutingAttributes.detailed,
                 completed: true,
                 errors: [],
@@ -208,8 +206,6 @@ class TrRoutingBatch {
             if (Array.isArray(error)) {
                 console.log('Multiple errors in batch route calculations for job %d', this.job.id);
                 return {
-                    // FIXME The calculation name is never set anyway, maybe remove? or define?
-                    calculationName: 'not set',
                     detailed: false,
                     completed: false,
                     errors: error,
