@@ -226,24 +226,25 @@ describe('batch route execution', () => {
         expect(updatableTask.save).toHaveBeenCalledTimes(2); // One for in progress, one for completed
     });
 
-    test('wrapTaskExecution should not execute pending batch routing if disk quota is reached, and update task', async () => {
+    test.each(['pending', 'inProgress'])('wrapTaskExecution should pause %s batch routing if disk quota is reached, and update task', async (status) => {
         // Prepare test data
         mockDiskUsage.mockReturnValueOnce({ used: 1000, remaining: 0 }); // Simulate no disk space left
         const mockedTask = {
             // Instance methods
             setInProgress: jest.fn(),
             setCompleted: jest.fn(),
+            setPaused: jest.fn(),
             setFailed: jest.fn(),
             save: jest.fn().mockResolvedValue(true),
             refresh: jest.fn().mockResolvedValue(true),
             getJobFileDirectory: jest.fn().mockReturnValue(userDir),
             hasInputFile: jest.fn().mockReturnValue(true),
-            status: 'pending',
+            status: status,
             attributes: {
                 id: 34,
                 user_id: 1,
                 name: 'batchRoute',
-                status: 'pending',
+                status: status,
                 data: {
                     parameters: {
                         demandAttributes: { type: 'csv' } as any,
@@ -270,6 +271,7 @@ describe('batch route execution', () => {
         expect(mockDiskUsage).toHaveBeenCalledWith(mockedTask.attributes.user_id);
 
         // Verify task parameter and results update after the task
+        expect(updatableTask.setPaused).toHaveBeenCalled();
         expect(updatableTask.attributes.data.parameters).toEqual(mockedTask.attributes.data.parameters);
         expect(updatableTask.attributes.data.results).toBeUndefined();
         expect(updatableTask.attributes.resources).toEqual(mockedTask.attributes.resources);
@@ -277,10 +279,10 @@ describe('batch route execution', () => {
         
         // Verify task life cycle functions
         expect(updatableTask.setCompleted).not.toHaveBeenCalled();
-        expect(updatableTask.setFailed).toHaveBeenCalled();
-        expect(updatableTask.setInProgress).toHaveBeenCalled();
-        expect(updatableTask.save).toHaveBeenCalledTimes(2); // One for in progress, one for completed
-
+        expect(updatableTask.setFailed).not.toHaveBeenCalled();
+        // Quota reached, so task should not be set to in progress
+        expect(updatableTask.setInProgress).not.toHaveBeenCalled();
+        expect(updatableTask.save).toHaveBeenCalledTimes(1); // One for paused
     });
 
     test('wrapTaskExecution should execute an in progress batch routing task, and update task at the end', async () => {
@@ -341,8 +343,8 @@ describe('batch route execution', () => {
         });
         expect(updatableTask.attributes.resources).toEqual({ files: batchRouteResult.files });
         expect(updatableTask.attributes.statusMessages).toBeUndefined();
-        
-         // Verify batchRoute was called with correct parameters
+
+        // Verify batchRoute was called with correct parameters
         expect(mockBatchRoute).toHaveBeenCalledTimes(1);
         expect(capturedJob).toEqual(mockedTask);
         const [calledJob, calledOptions] = mockBatchRoute.mock.calls[0];
@@ -355,7 +357,7 @@ describe('batch route execution', () => {
         // Verify function calls
         expect(mockLoadTask).toHaveBeenCalledWith(mockedTask.attributes.id);
         expect(mockDiskUsage).toHaveBeenCalledWith(mockedTask.attributes.user_id);
-        
+
         // Verify task life cycle functions
         expect(updatableTask.setCompleted).toHaveBeenCalled();
         expect(updatableTask.setFailed).not.toHaveBeenCalled();
