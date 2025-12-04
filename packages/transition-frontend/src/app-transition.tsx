@@ -9,6 +9,7 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
 import { BrowserRouter } from 'react-router';
+import Modal from 'react-modal';
 
 import i18n from 'chaire-lib-frontend/lib/config/i18n.config';
 import TransitionRouter from './components/routers/TransitionRouter';
@@ -59,6 +60,13 @@ const jsx = (
 );
 
 const root = createRoot(document.getElementById('app') as HTMLElement);
+
+// Set the app element for react-modal accessibility (once at startup)
+if (!process.env.IS_TESTING) {
+    const appElement = document.getElementById('app') || document.body;
+    Modal.setAppElement(appElement);
+}
+
 root.render(<LoadingPage />);
 
 let hasRendered = false;
