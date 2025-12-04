@@ -252,13 +252,11 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         const fileName = this.getFileName(file);
         const files = directoryManager.getFilesAbsolute(this.getJobFileDirectory());
         if (fileName === undefined || files === null || !files.includes(fileName)) {
-            //TODO Define an TrError to throw
-            throw 'File not available';
+            throw new TrError('File not available: ' + String(file), 'TREJB0006', 'transit:transitRouting:errors:FileUnavailable');
         }
         const filePath = path.join(this.getJobFileDirectory(), fileName);
         if (!fs.existsSync(filePath)) {
-            //TODO Define an TrError to throw
-            throw 'File does not exist';
+            throw new TrError('File does not exist: ' + String(file), 'TREJB0007', 'transit:transitRouting:errors:FileDoesNotExist');
         }
         return filePath;
     };
