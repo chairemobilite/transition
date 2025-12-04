@@ -3,7 +3,7 @@
     "confirmByAdminSubject": "Transition: New User Confirmation",
     "confirmByUserText": "Hi {{name}},\n\nYou have requested access to Transition.\n\nTo confirm your access, please click on the link below, or copy-paste the following URL {{userConfirmationUrl}}.\n\nThank you",
     "confirmByUserSubject": "Transition: New User Confirmation",
-    "pendingConfirmByAdminSubject": "Transition: account creation confirmation pending on {{host}}",
+    "pendingConfirmByAdminSubject": "Transition: account creation confirmation pending",
     "pendingConfirmByAdminText": "Hi {{name}},\n\nyour access request to Transition ({{host}}) will be reviewed by an administrator shortly.\n\nThank you",
     "confirmedByAdminEmailSubject": "Transition: account confirmed",
     "confirmedByAdminEmailText": "Hi {{name}},\n\nyour access request to Transition ({{host}}) has been confirmed. You can now use your account.",
