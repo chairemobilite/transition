@@ -4,29 +4,32 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import random from 'random';
+import _cloneDeep from 'lodash/cloneDeep';
+import { unparse } from 'papaparse';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
 import {
     OdTripSimulationDescriptor,
     OdTripSimulationOptions
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod/OdTripSimulationMethod';
-import { EvolutionaryTransitNetworkDesignJob } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { ExecutableJob } from '../../executableJob/ExecutableJob';
-import { ExecutableJobUtils } from '../../executableJob/ExecutableJobUtils';
 
-import { JobDataType } from 'transition-common/lib/services/jobs/Job';
-import { TransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/types';
+import { parseCsvFile as parseCsvFileFromStream } from 'chaire-lib-common/lib/utils/files/CsvFile';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import { batchRoute } from '../../transitRouting/TrRoutingBatch';
 import resultsDbQueries from '../../../models/db/batchRouteResults.db.queries';
 import { OdTripRouteResult } from '../../transitRouting/types';
 import { BatchRouteJobType } from '../../transitRouting/BatchRoutingJob';
-import { fileKey } from 'transition-common/lib/services/jobs/Job';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { EventEmitter } from 'events';
+import { ReadStream, WriteStream } from 'fs';
 
 export const OdTripSimulationTitle = 'OdTripSimulation';
+const timeCsvColumnHeader = 'time';
+// Simulate trips between 8am and 9am, we do not need full day simulation for OD trip based simulation
+const simulationTimeRangeStartSeconds = 8 * 3600; // 8am
+const simulationTimeRangeEndSeconds = 9 * 3600; // 9am
 
 type OdTripSimulationResults = {
     transfersCount: number;
@@ -189,34 +192,69 @@ export default class OdTripSimulation implements SimulationMethod {
         };
     }
 
+    private async sampleOdTripFile(csvStream: ReadStream, writeStream: WriteStream): Promise<string> {
+        let needWriteHeader = true;
+        return parseCsvFileFromStream(
+            csvStream,
+            (line) => {
+                // FIXME Since this is random, there is no guarantee that
+                // the sampled file will be exactly the sample ratio. Since
+                // the file can be large, we cannot load it in memory. We
+                // could count the number of lines at the beginning of the
+                // job, put it in the checkpoints, then use a reservoir
+                // sampling algorithm to get exactly the desired number of
+                // lines for each simulation.
+                //
+                // Sample this line if the random number is below the sample
+                // ratio, to sample only this ratio
+                if (random.float() <= this.options.evaluationOptions.sampleRatio) {
+                    // Give a random trip time in the time range, in seconds since midnight
+                    line[timeCsvColumnHeader] = random.integer(simulationTimeRangeStartSeconds, simulationTimeRangeEndSeconds);
+                    // Need to manually add the trailing newline since papaparse
+                    // unparse does not add it automatically
+                    writeStream.write(unparse([line], { header: needWriteHeader, newline: '\n', }) + '\n');
+                    needWriteHeader = false;
+                }
+            },
+            { header: true }
+        )
+    }
+
+    private async sampleOdTripFileForJob(routingJob: ExecutableJob<BatchRouteJobType>): Promise<void> {
+
+        return new Promise<void>((resolve, reject) => {
+            // Complete input file from the parent job
+            const csvStream = this.jobWrapper.job.getReadStream('transitDemand');
+
+            // Prepare the sampled file for the child job
+            const writeStream = routingJob.getWriteStream('input');
+
+            this.sampleOdTripFile(csvStream, writeStream).then(() => {
+                writeStream.end(() => {
+                    resolve();
+                });
+            }).catch((error) => {
+                reject(error);
+            });
+        });
+    }
+
+    private getBatchRouteDemandAttributes() {
+        // Clone the demand attributes to not modify the original
+        const demandAttributes = _cloneDeep(this.options.demandAttributes);
+        // Add the time, time type and format to the demand attributes, as they are not defined or even required in the main job
+        demandAttributes.fileAndMapping.fieldMappings.time = timeCsvColumnHeader;
+        demandAttributes.fileAndMapping.fieldMappings.timeFormat = 'secondsSinceMidnight';
+        demandAttributes.fileAndMapping.fieldMappings.timeType = 'departure';
+        if (!demandAttributes.csvFields.includes(timeCsvColumnHeader)){
+            demandAttributes.csvFields.push(timeCsvColumnHeader);
+        }
+        return demandAttributes;
+    }
+
     async simulate(
-        _scenarioId: string
+        scenarioId: string
     ): Promise<{ fitness: number; results: OdTripSimulationResults }> {
-        // FIXME Temporarily disable this simulation method. We will create a
-        // Job of type `batchRoute` with the demand file (in issue
-        // https://github.com/chairemobilite/transition/issues/1533). But we
-        // need a way to wait for it.  Need to fix:
-        // https://github.com/chairemobilite/transition/issues/1542,
-        // https://github.com/chairemobilite/transition/issues/1545,
-        // https://github.com/chairemobilite/transition/issues/1541 and probably
-        // start work on
-        // https://github.com/chairemobilite/transition/issues/1397 first.
-
-        // COPIED From services.socketRoute.ts (socket.on(TrRoutingConstants.BATCH_ROUTE)
-        // TODO We could do something like that and just copy the file to the new job
-        // TODO DO SAMPLING
-        //this.wrappedJob.job.getReadStream('input')..
-        const inputFiles: {
-            [Property in keyof BatchRouteJobType[fileKey]]?:
-                | string
-                | { filepath: string; renameTo: string };
-        } = {};
-        inputFiles.input = await ExecutableJobUtils.prepareJobFiles({location:'job', jobId:this.jobWrapper.job.id, fileKey:'transitDemand'},
-            this.jobWrapper.job.attributes.user_id
-        );
-
-
-
         
         // Need to build a BatchCalculationParameters for the BatchRouteJobType
         // It's composed TransitRoutingQueryAttributes plus the withGeometries, detailed flag
@@ -229,26 +267,33 @@ export default class OdTripSimulation implements SimulationMethod {
             withAlternatives: false,
             withGeometries: false,
             detailed: false,
-            scenarioId: _scenarioId
+            scenarioId: scenarioId
         };
 
+        // Create the batch routing job as a child of the current job
         const routingJob: ExecutableJob<BatchRouteJobType> = await this.jobWrapper.job.createChildJob({
             name: 'batchRoute', //TODO Is this important, can I rename it do something else ???
             data: {
                 parameters: {
-                    demandAttributes: this.options.demandAttributes,
+                    demandAttributes: this.getBatchRouteDemandAttributes(),
                     transitRoutingAttributes: batchParams,
-                    trRoutingJobParameters: {cacheDirectoryPath: this.jobWrapper.getCacheDirectory()}                        
+                    trRoutingJobParameters: { cacheDirectoryPath: this.jobWrapper.getCacheDirectory() }                        
                 }
             },
-            inputFiles,
+            resources: {
+                // Input file will be prepared later
+                files: { input: `sampled_transit_demand_${scenarioId}.csv` }
+            },
             hasOutputFiles: false //TODO Manage the result
         });
 
+        // Create the input file for the batch routing job as a random sample of the original demand file (from the currently running job)
+        await this.sampleOdTripFileForJob(routingJob);
+        
         //TODO Normally we would yeild the execution here. To let the child run. For now run it directly.
         // I would normally do routingJob.run() here, but it was not implemented like that :P
 
-        // This is copied from wrapBatchRoute
+        // This is copied from wrapBatchRoute in `TransitionWorkerPool.ts`
         const { files, errors, warnings, ...result } = await batchRoute(routingJob,
             {
                 // Child job needs its own progress emitter to avoid conflicts with the parent's 
@@ -261,52 +306,12 @@ export default class OdTripSimulation implements SimulationMethod {
         // TODO Get job results somehow
         // TODO Guessing we could transform the processResults here in some kind of result visitor and figure out a way to pass it
         // to the TrRoutingBatch job.
-
-        
-        
-        
+ 
         const results = await this.processResults(routingJob.id);
 
         const fitness = this.fitnessFunction(results);
         
         routingJob.delete();
-        
-        
-        // Step 1: Create the input file for the batch routing job as a random sample of the original demand file (from the currently running job)
-
-        // Step 2: Prepare the parameters for the job
-
-        // Step 3: Create and enqueue the batchRoute job
-
-        // Step 4: Need to return context to parent job so it can wait for the batch job to finish and get the results
-
-        // ...
-
-        // Step 5: Process the results when the batch job is finished
-
-        /*
-        const queryArray = this.generateQuery(options.transitRoutingParameters);
-        queryArray.push(`scenario_uuid=${scenarioId}`);
-
-        const result = await trRoutingService.v1TransitCall(
-            queryArray.join('&'),
-            'http://localhost',
-            options.trRoutingPort.toString()
-        );
-        if (result.status !== 'success') {
-            if ((result as TrRoutingError).error) {
-                console.error((result as TrRoutingError).error);
-            }
-            throw new TrError(`Error returned for trRouting odTrips: ${result.status}`, 'SIMOD001');
-        }
-
-        const stats = await this.processResults(result);
-
-        const fitness = this.fitnessFunction(stats);
-        */
-
-        
-
         
         return { fitness, results };
     }
