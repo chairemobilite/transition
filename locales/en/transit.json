@@ -924,6 +924,40 @@
                 "CandidatesToKeepGreaterThanPopulation": "Number of candidates to keep is greater than population",
                 "GenerationsToKeepGreaterThanGenerations": "Number of generations to keep is greater than number of generations"
             }
+        },
+        "simulationMethods": {
+            "SelectSimulationFunctions": "Select functions to use for simulation",
+            "odTrips": {
+                "Title": "OD trips",
+                "demandAttributes": "Demand data to use",
+                "transitRoutingAttributes": "Transit routing parameters for calculation",
+                "simulationOptions": "Simulation options",
+                "expansionFactorAttribute": "Column for expansion factor",
+                "MaxWalkingOnlyTravelTimeSeconds": "Maximum walking only travel time (seconds)",
+                "WalkingSpeedMps": "Walking speed (m/s)",
+                "WalkingSpeedFactor": "Walking speed factor",
+                "WalkingSpeedFactorHelp": "Factor to multiply the walking speed. For example, a value of 0.8 will reduce walking speed by 20%, while a value of 1.2 will increase it by 20%.",
+                "OdTripsSampleRatio": "Percentage of OD trips to include",
+                "OdTripsSampleRatioInvalid": "Invalid percentage of OD trips to include. Must be between 0 and 1.",
+                "fitness": {
+                    "odTripFitnessFunction": "Cost function for OD trip result",
+                    "travelTimeCost": "Travel time",
+                    "travelTimeWithTransferPenalty": "Travel time + 10 min penalty for transfers",
+                    "fitnessFunction": "Cost function for the scenario",
+                    "hourlyUserPlusOperatingCosts": "User + operating costs (hourly)",
+                    "hourlyUserCosts": "User cost (hourly)",
+                    "hourlyOperatingCosts": "Operating cost (hourly)",
+                    "help": {
+                        "odTripFitnessFunction": "Select the cost function to evaluate each OD trip. The 'travel time + transfer penalty' function penalizes trips with transfers to favor direct trips.",
+                        "fitnessFunction": "Select the cost function to evaluate the scenario, from od trip fitnesses. The 'user + operating costs' function balances user experience with operational efficiency."
+                    }
+                }
+            },
+            "accessibilityMap": {
+                "Title": "Using accessibility maps",
+                "AccessMapDataSources": "Data sources for places",
+                "AccessMapMaxSampleRatio": "Maximum sample ratio to test (between 0 and 1)"
+            }
         }
     },
     "simulation": {
@@ -936,7 +970,6 @@
         "InternalId": "Internal ID",
         "Algorithm": "Simulation algorithm",
         "NumberOfThreads": "Number of threads",
-        "OdTripsSampleRatio": "Percentage of OD trips to include",
         "Color": "Color",
         "Edit": "Simulation",
         "Delete": "Delete simulation",
@@ -962,30 +995,6 @@
         "Results": "Results",
         "Parameters": "Parameters",
         "RuntimeOptions": "Runtime Configuration",
-        "simulationMethods": {
-            "SelectSimulationFunctions": "Select functions to use for simulation",
-            "OdTrips": "OD trips",
-            "OdTripsDataSource": "Data source for OD",
-            "OdTripsSampleRatio": "Sample ratio (between 0 and 1)",
-            "AccessibilityMap": "Using accessibility maps",
-            "AccessMapDataSources": "Data sources for places",
-            "AccessMapMaxSampleRatio": "Maximum sample ratio to test (between 0 and 1)",
-            "MethodWeight": "Weight of the cost for simulation function \"{{method}}\"",
-            "MethodWeightError": "Invalid weight. Must be between 0 and {{maxWeight}}.",
-            "MustSelectOneFunction": "You must select at least one simulation function"
-        },
-        "fitness": {
-            "fitnessSorter": "Sorting direction of cost results",
-            "maximize": "Maximize (higher value is better)",
-            "minimize": "Minimize (lower value is better)",
-            "odTripFitnessFunction": "Cost function for OD trip result",
-            "travelTimeCost": "Travel time",
-            "travelTimeWithTransferPenalty": "Travel time + 10 min penalty for transfers",
-            "fitnessFunction": "Cost function for the scenario",
-            "hourlyUserPlusOperatingCosts": "User + operating costs (hourly)",
-            "hourlyUserCosts": "User cost (hourly)",
-            "hourlyOperatingCosts": "Operating cost (hourly)"
-        },
         "DuplicateSimulation": "Duplicate simulation",
         "Copy": "Copy",
         "KeepLinesSchedules": "Keep existing schedules for these lines",
