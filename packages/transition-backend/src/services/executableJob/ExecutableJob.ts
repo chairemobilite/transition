@@ -12,7 +12,6 @@ import Job, { JobAttributes, JobDataType, fileKey } from 'transition-common/lib/
 import jobsDbQueries from '../../models/db/jobs.db.queries';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { execJob } from '../../tasks/serverWorkerPool';
-import Users from 'chaire-lib-backend/lib/services/users/users';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import clientEventManager from '../../utils/ClientEventManager';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -21,7 +20,6 @@ export type InitialJobData<TData extends JobDataType> = {
     inputFiles?: {
         [Property in keyof TData[fileKey]]?: string | { filepath: string; renameTo: string };
     };
-    hasOutputFiles?: boolean;
 };
 
 export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
@@ -70,20 +68,12 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
     protected static async createJobInternal<TData extends JobDataType>(
         {
             inputFiles,
-            hasOutputFiles,
             ...attributes
         }: Omit<JobAttributes<TData>, 'id' | 'status' | 'internal_data'> & InitialJobData<TData>,
         jobListener?: EventEmitter
     ): Promise<ExecutableJob<TData>> {
         const jobProgressEmitter =
             jobListener !== undefined ? jobListener : clientEventManager.getUserEventEmitter(attributes.user_id);
-        // Check the disk usage if the job has output files
-        if (hasOutputFiles) {
-            const diskUsage = Users.getUserDiskUsage(attributes.user_id);
-            if (diskUsage.remaining !== undefined && diskUsage.remaining <= 0) {
-                throw 'UserDiskQuotaReached';
-            }
-        }
 
         // Initialize the job's input files
         const toCopy: {
