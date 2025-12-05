@@ -1,3 +1,5 @@
+@use "~chaire-lib-frontend/lib/styles/settings";
+
 .table {
     border-spacing: 0;
     font-size: 1.6rem;
@@ -23,38 +25,38 @@
     }
 
     .status_pending {
-        background-color: $button-grey;
-        color: $input-background;
+        background-color: settings.$button-grey;
+        color: settings.$input-background;
         font-weight: 500;
     }
 
     .status_completed {
-        background-color: $button-green;
-        color: $input-background;
+        background-color: settings.$button-green;
+        color: settings.$input-background;
         font-weight: 500;
     }
 
     .status_inProgress {
-        background-color: $button-blue;
-        color: $input-background;
+        background-color: settings.$button-blue;
+        color: settings.$input-background;
         font-weight: 500;
     }
 
     .status_failed {
-        background-color: $button-red;
-        color: $input-background;
+        background-color: settings.$button-red;
+        color: settings.$input-background;
         font-weight: 500;
     }
 
     .status_cancelled {
-        background-color: $button-grey;
-        color: $input-background;
+        background-color: settings.$button-grey;
+        color: settings.$input-background;
         font-weight: 500;
     }
 
     .status_paused {
-        background-color: $button-grey;
-        color: $input-background;
+        background-color: settings.$button-grey;
+        color: settings.$input-background;
         font-weight: 500;
     }
 
@@ -76,7 +78,7 @@
 }
 
 .expandable-messages__trigger {
-    font-size: $font-size-small;
+    font-size: settings.$font-size-small;
     opacity: 0.5;
     font-weight: 500;
     line-height: 1;
@@ -86,12 +88,12 @@
     background: none;
     display: inline-block;
     border: none;
-    color: $text-default-color;
+    color: settings.$text-default-color;
 
     &:hover,
     &:active,
     &:focus {
-        color: $text-active-color;
+        color: settings.$text-active-color;
     }
 }
 

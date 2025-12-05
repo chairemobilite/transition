@@ -1,3 +1,5 @@
+@use "settings";
+
 .react-tabs {
 
     &__tab-list {
@@ -10,8 +12,8 @@
         padding: 0.6rem 1.2rem;
 
         &--selected {
-            background: $blue-very-transparent;
-            color: $text-active-color;
+            background: settings.$blue-very-transparent;
+            color: settings.$text-active-color;
             font-weight: bold;
             border-radius: 0;
             border: none;
@@ -23,21 +25,21 @@
                 left: 0;
                 right: 0;
                 bottom: -0.2rem;
-                background: $blue;
+                background: settings.$blue;
             }
         }
 
         &--disabled {
             opacity: 0.5;
-            color: $text-default-color;
+            color: settings.$text-default-color;
         }
 
         &:focus {
             box-shadow: none;
             border-color: none;
             outline: none;
-            background: $blue-very-transparent;
-            color: $text-active-color;
+            background: settings.$blue-very-transparent;
+            color: settings.$text-active-color;
             font-weight: bold;
             border-radius: 0;
             border: none;
@@ -48,7 +50,7 @@
                 left: 0;
                 right: 0;
                 bottom: -0.2rem;
-                background: $blue;
+                background: settings.$blue;
             }
         }
     }

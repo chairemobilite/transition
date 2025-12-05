@@ -1,11 +1,13 @@
+@use "settings";
+
 footer {
   display: flex;
   width: 100%;
   align-self: flex-end;
-  background: $overlay-white;
-  border-top: 1px solid $border-white;
-  font-size: $font-size-xsmall;
-  padding: $xxs-size;
+  background: settings.$overlay-white;
+  border-top: 1px solid settings.$border-white;
+  font-size: settings.$font-size-xsmall;
+  padding: settings.$xxs-size;
 
   ul {
     width: 100%;

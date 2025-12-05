@@ -1,61 +1,63 @@
+@use "settings";
+
 @keyframes pulse_gradient_green {
     0% {
-        background: $button-green-gradient-top;
+        background: settings.$button-green-gradient-top;
     }
 
     50% {
-        background: $button-green-gradient-bottom;
+        background: settings.$button-green-gradient-bottom;
     }
 
     100% {
-        background: $button-green-gradient-top;
+        background: settings.$button-green-gradient-top;
     }
 }
 
 @keyframes pulse_gradient_red {
     0% {
-        background: $button-red-gradient-top;
+        background: settings.$button-red-gradient-top;
     }
 
     50% {
-        background: $button-red-gradient-bottom;
+        background: settings.$button-red-gradient-bottom;
     }
 
     100% {
-        background: $button-red-gradient-top;
+        background: settings.$button-red-gradient-top;
     }
 }
 
 @keyframes pulse_gradient_blue {
     0% {
-        background: $button-blue-gradient-top;
+        background: settings.$button-blue-gradient-top;
     }
 
     50% {
-        background: $button-blue-gradient-bottom;
+        background: settings.$button-blue-gradient-bottom;
     }
 
     100% {
-        background: $button-blue-gradient-top;
+        background: settings.$button-blue-gradient-top;
     }
 }
 
 @keyframes pulse_gradient_grey {
     0% {
-        background: $button-grey-gradient-top;
+        background: settings.$button-grey-gradient-top;
     }
 
     50% {
-        background: $button-grey-gradient-bottom;
+        background: settings.$button-grey-gradient-bottom;
     }
 
     100% {
-        background: $button-grey-gradient-top;
+        background: settings.$button-grey-gradient-top;
     }
 }
 
 .menu-button {
-    font-size: $font-size-small;
+    font-size: settings.$font-size-small;
     opacity: 0.5;
     font-weight: 500;
     line-height: 1;
@@ -65,18 +67,18 @@
     background: none;
     display: inline-block;
     border: none;
-    color: $text-default-color;
+    color: settings.$text-default-color;
 
     &:hover,
     &:active,
     &:focus {
-        color: $text-active-color;
+        color: settings.$text-active-color;
     }
 }
 
 
 .simple-button {
-    font-size: $font-size-large;
+    font-size: settings.$font-size-large;
     opacity: 1.0;
     font-weight: 700;
     line-height: 1;
@@ -94,10 +96,10 @@
     cursor: pointer;
     text-decoration: none;
     font-weight: 400;
-    background: $button-green;
+    background: settings.$button-green;
 
     &.disabled {
-        background: $button-green-gradient-top;
+        background: settings.$button-green-gradient-top;
         opacity: 0.5;
     }
 
@@ -112,14 +114,14 @@
     align-items: center;
     align-content: center;
     justify-content: flex-start;
-    font-size: $font-size-medium;
+    font-size: settings.$font-size-medium;
     line-height: 1.1;
     min-height: 3rem;
     padding: 0.3rem 1.0rem;
     margin: 0 0.25rem;
 
     &.small {
-        font-size: $font-size-small;
+        font-size: settings.$font-size-small;
         padding: 0.3rem 1.0rem;
         border-radius: 0.2rem;
     }
@@ -132,10 +134,10 @@
     }
 
     &.red {
-        background: $button-red;
+        background: settings.$button-red;
 
         &.disabled {
-            background: $button-red-gradient-top
+            background: settings.$button-red-gradient-top;
         }
     }
 
@@ -147,10 +149,10 @@
     }
 
     &.blue {
-        background: $button-blue;
+        background: settings.$button-blue;
 
         &.disabled {
-            background: $button-blue-gradient-top
+            background: settings.$button-blue-gradient-top;
         }
     }
 
@@ -162,10 +164,10 @@
     }
 
     &.grey {
-        background: $button-grey;
+        background: settings.$button-grey;
 
         &.disabled {
-            background: $button-grey-gradient-top
+            background: settings.$button-grey-gradient-top;
         }
     }
 
@@ -183,7 +185,7 @@ label .button,
 .apptr__form__label-standalone .button {
     min-height: 1rem;
     padding: 0.1rem 0.5rem;
-    font-size: $font-size-small;
+    font-size: settings.$font-size-small;
 }
 
 .button--link {
@@ -206,10 +208,10 @@ label .button,
 }
 
 ._list-container {
-    font-size: $font-size-small;
+    font-size: settings.$font-size-small;
     list-style: none;
     margin: 0;
-    padding: $xs-size;
+    padding: settings.$xs-size;
     width: 100%;
 
     ._list {
@@ -286,11 +288,11 @@ label .button,
 
 ._path-node-list-container {
 
-    font-size: $font-size-small;
+    font-size: settings.$font-size-small;
     list-style: none;
     height: 20rem;
     margin: 0;
-    padding: $xs-size;
+    padding: settings.$xs-size;
     display: flex;
     align-items: center;
     flex-direction: row;
@@ -373,7 +375,7 @@ label .button,
             align-items: stretch;
             padding-left: 0.7rem;
             width: 100%;
-            font-size: $font-size-xxsmall;
+            font-size: settings.$font-size-xxsmall;
             max-height: 3rem;
             overflow: hidden;
 
@@ -396,7 +398,7 @@ label .button,
 
 
 .tr__list-transit-lines {
-    margin-top: -$xs-size;
+    margin-top: -(settings.$xs-size);
 }
 
 .tr__toggleable-help {
