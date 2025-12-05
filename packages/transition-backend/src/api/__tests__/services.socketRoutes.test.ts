@@ -36,7 +36,6 @@ const mockedRoute = osrmService.route as jest.MockedFunction<typeof osrmService.
 const mockedTableFrom = osrmService.tableFrom as jest.MockedFunction<typeof osrmService.tableFrom>;
 const mockedTableTo = osrmService.tableTo as jest.MockedFunction<typeof osrmService.tableTo>;
 const mockedMatch = osrmService.match as jest.MockedFunction<typeof osrmService.match>;
-const mockedGetDiskUsage = Users.getUserDiskUsage = jest.fn() as jest.MockedFunction<typeof Users.getUserDiskUsage>;
 
 // mocks for trRouting process manager
 jest.mock('chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager', () => {
@@ -243,7 +242,6 @@ describe('trRouting routes', () => {
     };
 
     test('Batch route correctly', (done) => {
-        mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: undefined });
         mockedEnqueue.mockResolvedValueOnce(true);
         mockedRefresh.mockResolvedValueOnce(true);
         socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, (status) => {
@@ -272,7 +270,6 @@ describe('trRouting routes', () => {
             routingModes: ['transit']
         };
 
-        mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: undefined });
         mockedEnqueue.mockResolvedValueOnce(true);
         mockedRefresh.mockResolvedValueOnce(true);
         socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributesOnlyTransit, (status) => {
@@ -303,7 +300,6 @@ describe('trRouting routes', () => {
         const code = 'CODE';
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
-        mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: 100 });
         mockedEnqueue.mockRejectedValueOnce(error);
         socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, function (status) {
             expect(Status.isStatusError(status)).toBe(true);
@@ -324,19 +320,7 @@ describe('trRouting routes', () => {
         });
     });
 
-    test('Batch route, not enough space on disk', (done) => {
-        mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: 0 });
-        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, function (status) {
-            expect(Status.isStatusError(status)).toBe(true);
-            expect((status as any).error).toEqual('UserDiskQuotaReached');
-            expect(mockedJobCreate).not.toHaveBeenCalled();
-            expect(mockedEnqueue).not.toHaveBeenCalled();
-            done();
-        });
-    });
-
     test('Batch access map correctly', (done) => {
-        mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: undefined });
         mockedEnqueue.mockResolvedValueOnce(true);
         mockedRefresh.mockResolvedValueOnce(true);
         socketStub.emit(TrRoutingConstants.BATCH_ACCESS_MAP, batchAccessMapParameters, transitAttributes, (status) => {
@@ -363,7 +347,6 @@ describe('trRouting routes', () => {
         const code = 'CODE';
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
-        mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: 100 });
         mockedEnqueue.mockRejectedValueOnce(error);
         socketStub.emit(TrRoutingConstants.BATCH_ACCESS_MAP, batchAccessMapParameters, transitAttributes, function (status) {
             expect(Status.isStatusError(status)).toBe(true);
@@ -380,17 +363,6 @@ describe('trRouting routes', () => {
                 }
             }));
             expect(mockedEnqueue).toHaveBeenCalledTimes(1);
-            done();
-        });
-    });
-
-    test('Batch route, not enough space on disk', (done) => {
-        mockedGetDiskUsage.mockReturnValueOnce({ used: 100000, remaining: 0 });
-        socketStub.emit(TrRoutingConstants.BATCH_ACCESS_MAP, batchAccessMapParameters, transitAttributes, function (status) {
-            expect(Status.isStatusError(status)).toBe(true);
-            expect((status as any).error).toEqual('UserDiskQuotaReached');
-            expect(mockedJobCreate).not.toHaveBeenCalled();
-            expect(mockedEnqueue).not.toHaveBeenCalled();
             done();
         });
     });

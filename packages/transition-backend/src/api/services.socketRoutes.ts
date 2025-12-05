@@ -247,8 +247,7 @@ export default function (socket: EventEmitter, userId?: number) {
                                 }
                             }
                         },
-                        inputFiles,
-                        hasOutputFiles: true
+                        inputFiles
                     });
                     await job.enqueue();
                     await job.refresh();
@@ -325,8 +324,7 @@ export default function (socket: EventEmitter, userId?: number) {
                         },
                         inputFiles: {
                             input: `${directoryManager.userDataDirectory}/${userId}/imports/batchAccessMap.csv`
-                        },
-                        hasOutputFiles: true
+                        }
                     });
                     await job.enqueue();
                     await job.refresh();
