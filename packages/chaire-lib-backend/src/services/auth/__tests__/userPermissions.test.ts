@@ -400,7 +400,7 @@ describe('home page for user', () => {
     });
 
     test('Add home page for undefined role', () => {
-        expect(() => addRoleHomePage('testGroup3', 'page')).toThrowError('Setting home page for undefined role testGroup3');
+        expect(() => addRoleHomePage('testGroup3', 'page')).toThrow('Setting home page for undefined role testGroup3');
     })
 
 });

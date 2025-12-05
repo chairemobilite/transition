@@ -89,7 +89,7 @@ describe(`${objectName}`, () => {
                 walkingDistancesMeters: [0, 150]
             }))
             .rejects
-            .toThrowError(expect.anything());
+            .toThrow(expect.anything());
         expect(await dbQueries.getFromNode(nodeAttributes[0].id)).toEqual(transferableNodesForUpdate);
     });
 
@@ -101,7 +101,7 @@ describe(`${objectName}`, () => {
                 walkingDistancesMeters: [0, 150]
             }))
             .rejects
-            .toThrowError(expect.anything());
+            .toThrow(expect.anything());
         expect(await dbQueries.getFromNode(nodeAttributes[0].id)).toEqual(transferableNodesForUpdate);
 
         // Invalid number for travel time
@@ -111,7 +111,7 @@ describe(`${objectName}`, () => {
                 walkingDistancesMeters: [0, 150]
             }))
             .rejects
-            .toThrowError(expect.anything());
+            .toThrow(expect.anything());
         expect(await dbQueries.getFromNode(nodeAttributes[0].id)).toEqual(transferableNodesForUpdate);
 
         // Invalid number for distance
@@ -121,7 +121,7 @@ describe(`${objectName}`, () => {
                 walkingDistancesMeters: [0, 'NaN' as any]
             }))
             .rejects
-            .toThrowError(expect.anything());
+            .toThrow(expect.anything());
         expect(await dbQueries.getFromNode(nodeAttributes[0].id)).toEqual(transferableNodesForUpdate);
     });
 

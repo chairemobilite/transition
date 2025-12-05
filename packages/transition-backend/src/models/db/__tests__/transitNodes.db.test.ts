@@ -253,13 +253,13 @@ describe(`${objectName}`, () => {
 
         await expect(async () => {
             await dbQueries.getAssociatedPathIds([])
-        }).rejects.toThrowError("Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: Node ids array is empty (You must provide at least one node id) (DBQNGAP0002))");
+        }).rejects.toThrow("Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: Node ids array is empty (You must provide at least one node id) (DBQNGAP0002))");
         await expect(async () => {
             await dbQueries.getAssociatedPathIds(['foo'])
-        }).rejects.toThrowError("Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: At least one node id is not a valid uuid (DBQNGAP0001))");
+        }).rejects.toThrow("Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: At least one node id is not a valid uuid (DBQNGAP0001))");
         await expect(async () => {
             await dbQueries.getAssociatedPathIds([newObjectAttributes.id, 'foo'])
-        }).rejects.toThrowError("Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: At least one node id is not a valid uuid (DBQNGAP0001))");
+        }).rejects.toThrow("Cannot get nodes associated path ids from tables tr_transit_nodes and tr_transit_paths (error: At least one node id is not a valid uuid (DBQNGAP0001))");
         expect(await dbQueries.getAssociatedPathIds([newObjectAttributes.id, newObjectAttributes3.id])).toEqual({
             [newObjectAttributes.id]: [newPathWithTwoAssociatedNodesAttributes.id]
         });

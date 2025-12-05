@@ -1,3 +1,5 @@
+@use "settings";
+
 .tr__left-menu-container {
   width: 100%;
   margin: 0;
@@ -10,9 +12,9 @@
     list-style: none;
     z-index: 20;
     button {
-      color: $text-active-color;
+      color: settings.$text-active-color;
       font-weight: 700;
-      font-size: $font-size-medium;
+      font-size: settings.$font-size-medium;
       border: none;
       background: none;
       display: flex;
@@ -48,16 +50,16 @@
       }
 
       &:hover {
-        background: $overlay-dark;
+        background: settings.$overlay-dark;
         max-width: inherit;
         width: inherit;
       }
       &.active {
-        background: $overlay-active;
+        background: settings.$overlay-active;
       }
       &:focus {
         border: none;
-        background: $overlay-active;
+        background: settings.$overlay-active;
         outline: none;
       }
     }

@@ -53,7 +53,7 @@ test('Read non-existing user preferences', async () => {
 
     await expect(dbQueries.read(3))
         .rejects
-        .toThrowError('Cannot find user with id 3 in database');
+        .toThrow('Cannot find user with id 3 in database');
 
 });
 
@@ -88,6 +88,6 @@ test('Update non-existing user preferences', async () => {
 
     await expect(dbQueries.update(3, { test: 'foo' }))
         .rejects
-        .toThrowError('Cannot find user with id 3 in database');
+        .toThrow('Cannot find user with id 3 in database');
 
 });

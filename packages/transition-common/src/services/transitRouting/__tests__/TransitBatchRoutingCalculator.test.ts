@@ -85,7 +85,7 @@ describe('Test Calculate', () => {
         batchRouteSocketMock.mockImplementationOnce((_parameters, _transitRoutingAttributes, callback) => callback(Status.createError('arbitrary error')))
         await expect(async () => await TransitBatchRoutingCalculator.calculate(defaultDemand, defaultQueryParams))
             .rejects
-            .toThrowError('cannot calculate transit batch route with trRouting: arbitrary error');
+            .toThrow('cannot calculate transit batch route with trRouting: arbitrary error');
 
         expect(batchRouteSocketMock).toHaveBeenCalledTimes(1);
         expect(batchRouteSocketMock).toHaveBeenCalledWith( expectedDemand, defaultQueryParams, expect.anything())
@@ -96,7 +96,7 @@ describe('Test Calculate', () => {
         const invalidDemand = new TransitOdDemandFromCsv({ csvFile: { location: 'upload' as const, filename: 'input.csv' }});
         await expect(async () => await TransitBatchRoutingCalculator.calculate(invalidDemand, defaultQueryParams))
             .rejects
-            .toThrowError('cannot calculate transit batch route: the CSV file data is invalid');
+            .toThrow('cannot calculate transit batch route: the CSV file data is invalid');
 
         expect(batchRouteSocketMock).not.toHaveBeenCalled();
     });
@@ -108,7 +108,7 @@ describe('Test Calculate', () => {
         }
         await expect(async () => await TransitBatchRoutingCalculator.calculate(defaultDemand, invalidQueryParams as any))
             .rejects
-            .toThrowError('cannot calculate transit batch route: the routing parameters are invalid');
+            .toThrow('cannot calculate transit batch route: the routing parameters are invalid');
 
         expect(batchRouteSocketMock).not.toHaveBeenCalled();
     });

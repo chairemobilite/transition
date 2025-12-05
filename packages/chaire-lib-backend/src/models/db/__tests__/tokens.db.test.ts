@@ -148,18 +148,18 @@ describe(`Tokens Database: Token exists in Tokens table`, () => {
 
     test('Should return an error when user not in database', async() => {
         
-        await expect(tokensDbQueries.getOrCreate(badUser.email as string)).rejects.toThrowError(TrError);
+        await expect(tokensDbQueries.getOrCreate(badUser.email as string)).rejects.toThrow(TrError);
 
     });
 
     test('Should return an error when api_token not in database', async() => {
 
-        await expect(tokensDbQueries.getUserByToken(badToken.api_token as string)).rejects.toThrowError(TrError);
+        await expect(tokensDbQueries.getUserByToken(badToken.api_token as string)).rejects.toThrow(TrError);
 
     });
 
     test('Should return an error when user_id not in database', async() => {
-        await expect(tokensDbQueries.getById(badUser.id as number)).rejects.toThrowError(TrError);
+        await expect(tokensDbQueries.getById(badUser.id as number)).rejects.toThrow(TrError);
 
     });
 
@@ -216,7 +216,7 @@ describe(`Tokens Database: Expiry`, () => {
     });
 
     test('Should throw when trying to get user by id if token is expired', async() => {
-        await expect(tokensDbQueries.getUserByToken(expiredToken.api_token as string)).rejects.toThrowError (TrError)
+        await expect(tokensDbQueries.getUserByToken(expiredToken.api_token as string)).rejects.toThrow (TrError)
     });
 });
 describe(`Tokens Database: Cleanup`, () => {

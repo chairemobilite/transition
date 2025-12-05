@@ -552,7 +552,7 @@ describe('Schedules, single queries with transaction errors', () => {
         updatedSchedule.periods_group_shortname = 'New_period_name';
         updatedSchedule.periods[1].custom_start_at_str = ["13:45"] as any;
         delete updatedSchedule.periods[0];
-        await expect(dbQueries.save(updatedSchedule as any)).rejects.toThrowError(TrError);
+        await expect(dbQueries.save(updatedSchedule as any)).rejects.toThrow(TrError);
 
         // Read the object from DB and make sure it has not changed
         const dataAfterFail = await dbQueries.read(newId);
