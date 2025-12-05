@@ -358,7 +358,7 @@ describe('Scenarios, single queries with transaction errors', () => {
         const newScenario = _cloneDeep(newObjectAttributes);
         // Add services that are not in the database, should throw error
         newScenario.services = [uuidV4(), uuidV4()];
-        await expect(dbQueries.create(newScenario)).rejects.toThrowError(TrError);
+        await expect(dbQueries.create(newScenario)).rejects.toThrow(TrError);
         const collection = await dbQueries.collection();
         expect(collection.length).toEqual(0);
     });
@@ -368,7 +368,7 @@ describe('Scenarios, single queries with transaction errors', () => {
         const newScenario2 = newObjectAttributes2;
         // Add services that are not in the database for one of the scenarios, should throw error
         newScenario.services = [uuidV4(), uuidV4()];
-        await expect(dbQueries.createMultiple([newScenario, newScenario2])).rejects.toThrowError(TrError);
+        await expect(dbQueries.createMultiple([newScenario, newScenario2])).rejects.toThrow(TrError);
         const collection = await dbQueries.collection();
         expect(collection.length).toEqual(0);
     });
@@ -380,7 +380,7 @@ describe('Scenarios, single queries with transaction errors', () => {
         await dbQueries.create(newScenario);
 
         // Update the object, with invalid services
-        await expect(dbQueries.update(newScenario.id, { services: [uuidV4(), uuidV4()], name: updatedName })).rejects.toThrowError(TrError);
+        await expect(dbQueries.update(newScenario.id, { services: [uuidV4(), uuidV4()], name: updatedName })).rejects.toThrow(TrError);
         const collection = await dbQueries.collection();
         expect(collection.length).toEqual(1);
         expect(collection[0]).toEqual(expect.objectContaining(newObjectAttributes));
@@ -399,7 +399,7 @@ describe('Scenarios, single queries with transaction errors', () => {
         await expect(dbQueries.updateMultiple([
             { name: updatedName, id: newScenario.id },
             { services: [uuidV4(), uuidV4()], name: `${updatedName}2`, id: newScenario2.id }
-        ])).rejects.toThrowError(TrError);
+        ])).rejects.toThrow(TrError);
         const collection = await dbQueries.collection();
         expect(collection.length).toEqual(2);
         expect(collection[0]).toEqual(expect.objectContaining(newObjectAttributes));
