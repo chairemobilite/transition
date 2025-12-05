@@ -45,7 +45,7 @@ export type OdTripSimulationOptions = {
 };
 
 class TransitRoutingAttributesDescriptor implements SimulationAlgorithmDescriptor<TransitRoutingBaseAttributes> {
-    getTranslatableName = (): string => 'transit:simulation:simulationMethods:transitRoutingAttributes';
+    getTranslatableName = (): string => 'transit:networkDesign.simulationMethods.transitRoutingAttributes';
 
     getOptions = () => {
         const transitRoutingAttributesDefaultsFromPref = Preferences.get(
@@ -53,49 +53,53 @@ class TransitRoutingAttributesDescriptor implements SimulationAlgorithmDescripto
         ) as TransitRoutingBaseAttributes;
         return {
             minWaitingTimeSeconds: {
-                i18nName: 'transit:simulation:minWaitingTimeSeconds',
+                i18nName: 'transit:transitRouting.MinimumWaitingTimeMinutes',
+                i18nHelp: 'transit:transitRouting.MinimumWaitingTimeMinutesHelp',
                 type: 'integer' as const,
                 validate: (value: number) => value >= 0,
                 default: transitRoutingAttributesDefaultsFromPref.minWaitingTimeSeconds
             },
             maxTransferTravelTimeSeconds: {
-                i18nName: 'transit:simulation:maxTransferTravelTimeSeconds',
+                i18nName: 'transit:transitRouting.MaximumTransferTravelTimeMinutes',
+                i18nHelp: 'transit:transitRouting.MaximumTransferTravelTimeMinutesHelp',
                 type: 'integer' as const,
                 validate: (value: number) => value >= 0,
                 default: transitRoutingAttributesDefaultsFromPref.maxTransferTravelTimeSeconds
             },
             maxAccessEgressTravelTimeSeconds: {
-                i18nName: 'transit:simulation:maxAccessEgressTravelTimeSeconds',
+                i18nName: 'transit:transitRouting.MaximumAccessEgressTravelTimeMinutes',
+                i18nHelp: 'transit:transitRouting.MaximumAccessEgressTravelTimeMinutesHelp',
                 type: 'integer' as const,
                 validate: (value: number) => value >= 0,
                 default: transitRoutingAttributesDefaultsFromPref.maxAccessEgressTravelTimeSeconds
             },
             maxWalkingOnlyTravelTimeSeconds: {
-                i18nName: 'transit:simulation:maxWalkingOnlyTravelTimeSeconds',
+                i18nName: 'transit:networkDesign.simulationMethods.odTrips.MaxWalkingOnlyTravelTimeSeconds',
                 type: 'integer' as const,
                 validate: (value: number) => value >= 0,
                 default: transitRoutingAttributesDefaultsFromPref.maxWalkingOnlyTravelTimeSeconds
             },
             maxFirstWaitingTimeSeconds: {
-                i18nName: 'transit:simulation:maxFirstWaitingTimeSeconds',
+                i18nName: 'transit:transitRouting.MaximumFirstWaitingTimeMinutes',
                 type: 'integer' as const,
                 validate: (value: number) => value >= 0,
                 default: transitRoutingAttributesDefaultsFromPref.maxFirstWaitingTimeSeconds
             },
             maxTotalTravelTimeSeconds: {
-                i18nName: 'transit:simulation:maxTotalTravelTimeSeconds',
+                i18nName: 'transit:transitRouting.MaximumTotalTravelTimeMinutes',
                 type: 'integer' as const,
                 validate: (value: number) => value >= 0,
                 default: transitRoutingAttributesDefaultsFromPref.maxTotalTravelTimeSeconds
             },
             walkingSpeedMps: {
-                i18nName: 'transit:simulation:walkingSpeedMps',
+                i18nName: 'transit:networkDesign.simulationMethods.odTrips.WalkingSpeedMps',
                 type: 'number' as const,
                 validate: (value: number) => value > 0,
                 default: transitRoutingAttributesDefaultsFromPref.walkingSpeedMps
             },
             walkingSpeedFactor: {
-                i18nName: 'transit:simulation:walkingSpeedFactor',
+                i18nName: 'transit:networkDesign.simulationMethods.odTrips.WalkingSpeedFactor',
+                i18nHelp: 'transit:networkDesign.simulationMethods.odTrips.WalkingSpeedFactorHelp',
                 type: 'number' as const,
                 validate: (value: number) => value > 0,
                 default: transitRoutingAttributesDefaultsFromPref.walkingSpeedFactor
@@ -109,45 +113,47 @@ class TransitRoutingAttributesDescriptor implements SimulationAlgorithmDescripto
 }
 
 class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTripEvaluationOptions> {
-    getTranslatableName = (): string => 'transit:simulation:simulationMethods:simulationOptions';
+    getTranslatableName = (): string => 'transit:networkDesign.simulationMethods.odTrips.simulationOptions';
 
     getOptions = () => ({
         sampleRatio: {
-            i18nName: 'transit:simulation:simulationMethods:OdTripsSampleRatio',
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.OdTripsSampleRatio',
             type: 'number' as const,
             validate: (value: number) => value > 0 && value <= 1,
             default: 1
         },
         odTripFitnessFunction: {
-            i18nName: 'transit:simulation:fitness:odTripFitnessFunction',
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.fitness.odTripFitnessFunction',
+            i18nHelp: 'transit:networkDesign.simulationMethods.odTrips.fitness.help.odTripFitnessFunction',
             type: 'select' as const,
             required: true,
             choices: () => [
                 {
-                    label: 'transit:simulation:fitness:travelTimeCost',
+                    label: 'transit:networkDesign.simulationMethods.odTrips.fitness.travelTimeCost',
                     value: 'travelTimeCost'
                 },
                 {
-                    label: 'transit:simulation:fitness:travelTimeWithTransferPenalty',
+                    label: 'transit:networkDesign.simulationMethods.odTrips.fitness.travelTimeWithTransferPenalty',
                     value: 'travelTimeWithTransferPenalty'
                 }
             ]
         },
         fitnessFunction: {
-            i18nName: 'transit:simulation:fitness:fitnessFunction',
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.fitness.fitnessFunction',
+            i18nHelp: 'transit:networkDesign.simulationMethods.odTrips.fitness.help.fitnessFunction',
             type: 'select' as const,
             required: true,
             choices: () => [
                 {
-                    label: 'transit:simulation:fitness:hourlyUserPlusOperatingCosts',
+                    label: 'transit:networkDesign.simulationMethods.odTrips.fitness.hourlyUserPlusOperatingCosts',
                     value: 'hourlyUserPlusOperatingCosts'
                 },
                 {
-                    label: 'transit:simulation:fitness:hourlyUserCosts',
+                    label: 'transit:networkDesign.simulationMethods.odTrips.fitness.hourlyUserCosts',
                     value: 'hourlyUserCosts'
                 },
                 {
-                    label: 'transit:simulation:fitness:hourlyOperatingCosts',
+                    label: 'transit:networkDesign.simulationMethods.odTrips.fitness.hourlyOperatingCosts',
                     value: 'hourlyOperatingCosts'
                 }
             ]
@@ -161,18 +167,11 @@ class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTri
 
 // Add expansion factor to the demand field descriptors, and time is not required
 const demandFieldsWithoutTime = demandFieldDescriptors.filter((descriptor) => descriptor.key !== 'time');
-const timeFieldDescriptor: CsvFieldMappingDescriptor = demandFieldDescriptors.find(
-    (descriptor) => descriptor.key === 'time'
-)!;
 const odDemandFieldDescriptors: CsvFieldMappingDescriptor[] = [
     ...demandFieldsWithoutTime,
     {
-        ...timeFieldDescriptor,
-        required: false
-    },
-    {
         key: 'expansionFactor',
-        i18nLabel: 'transit:networkDesign:expansionFactorAttribute',
+        i18nLabel: 'transit:networkDesign.simulationMethods.odTrips.expansionFactorAttribute',
         type: 'single',
         required: false
     }
@@ -190,24 +189,24 @@ const simulationOptionsDescriptor = new SimulationOptionsDescriptor();
  * trip routing results.
  */
 export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor<OdTripSimulationOptions> {
-    getTranslatableName = (): string => 'transit:simulation:simulationMethods:OdTrips';
+    getTranslatableName = (): string => 'transit:networkDesign.simulationMethods.odTrips.Title';
 
     // TODO Add help texts
     getOptions = () => ({
         demandAttributes: {
-            i18nName: 'transit:simulation:simulationMethods:demandAttributes',
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.demandAttributes',
             type: 'csvFile' as const,
             mappingDescriptors: odDemandFieldDescriptors,
             importFileName: 'transit_od_trips.csv',
             required: true
         },
         transitRoutingAttributes: {
-            i18nName: 'transit:simulation:simulationMethods:transitRoutingAttributes',
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.transitRoutingAttributes',
             type: 'nested' as const,
             descriptor: transitRoutingAttributesDescriptor
         },
         evaluationOptions: {
-            i18nName: 'transit:simulation:simulationMethods:simulationOptions',
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.simulationOptions',
             type: 'nested' as const,
             descriptor: simulationOptionsDescriptor
         }
