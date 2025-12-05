@@ -106,45 +106,48 @@ export const validateTransitNetworkDesignParameters = (
 export class TransitNetworkDesignDescriptor implements SimulationAlgorithmDescriptor<TransitNetworkDesignParameters> {
     
     getTranslatableName(): string {
-        return 'transit:networkDesign:TransitNetworkDesignParameters';
+        return 'transit:networkDesign.TransitNetworkDesignParameters';
     }
 
     getOptions() {
         return {
             numberOfLinesMin: {
-                i18nName: 'transit:networkDesign:parameters:NumberOfLinesMin',
+                i18nName: 'transit:networkDesign.parameters.NumberOfLinesMin',
                 type: 'integer' as const,
                 validate: (value: number) => value >= 1,
                 required: true
             },
             numberOfLinesMax: {
-                i18nName: 'transit:networkDesign:parameters:NumberOfLinesMax',
+                i18nName: 'transit:networkDesign.parameters.NumberOfLinesMax',
                 type: 'integer' as const,
                 validate: (value: number) => value >= 1,
                 required: true
             },
             maxTimeBetweenPassages: {
-                i18nName: 'transit:networkDesign:parameters:MaxIntervalMinutes',
+                i18nName: 'transit:networkDesign.parameters.MaxIntervalMinutes',
+                i18nHelp: 'transit:networkDesign.parameters.help.MaxIntervalMinutes',
                 type: 'integer' as const,
                 validate: (value: number) => value >= MIN_TIME_BETWEEN_PASSAGES,
                 default: 30,
                 required: true
             },
             minTimeBetweenPassages: {
-                i18nName: 'transit:networkDesign:parameters:MinIntervalMinutes',
+                i18nName: 'transit:networkDesign.parameters.MinIntervalMinutes',
+                i18nHelp: 'transit:networkDesign.parameters.help.MinIntervalMinutes',
                 type: 'integer' as const,
                 validate: (value: number) => value >= MIN_TIME_BETWEEN_PASSAGES,
                 default: 5,
                 required: true
             },
             nbOfVehicles: {
-                i18nName: 'transit:networkDesign:parameters:VehiclesCount',
+                i18nName: 'transit:networkDesign.parameters.VehiclesCount',
                 type: 'integer' as const,
                 validate: (value: number) => value >= 1,
                 required: true
             },
             simulatedAgencies: {
-                i18nName: 'transit:networkDesign:parameters:LineSetAgencies',
+                i18nName: 'transit:networkDesign.parameters.LineSetAgencies',
+                i18nHelp: 'transit:networkDesign.parameters.help.LineSetAgencies',
                 type: 'multiselect' as const,
                 required: true,
                 choices: () => 
@@ -154,7 +157,8 @@ export class TransitNetworkDesignDescriptor implements SimulationAlgorithmDescri
                     })) || []
             },
             nonSimulatedServices: {
-                i18nName: 'transit:networkDesign:parameters:NonSimulatedServices',
+                i18nName: 'transit:networkDesign.parameters.NonSimulatedServices',
+                i18nHelp: 'transit:networkDesign.parameters.help.NonSimulatedServices',
                 type: 'multiselect' as const,
                 choices: () => 
                     serviceLocator.collectionManager.get('services')?.getFeatures().map((service: Service) => ({
@@ -164,7 +168,8 @@ export class TransitNetworkDesignDescriptor implements SimulationAlgorithmDescri
                 
             },
             linesToKeep: {
-                i18nName: 'transit:networkDesign:parameters:KeepLines',
+                i18nName: 'transit:networkDesign.parameters.KeepLines',
+                i18nHelp: 'transit:networkDesign.parameters.help.KeepLines',
                 type: 'multiselect' as const,
                 choices: (object: Record<string, unknown>) => {
                     const agencyCollection = serviceLocator.collectionManager.get('agencies')
