@@ -42,12 +42,14 @@ interface NestedOptionDescriptor<T extends Record<string, unknown>> {
  * appropriate place (see
  * https://github.com/chairemobilite/transition/issues/1580)
  *
- * @type {('integer' | 'number' | 'string' | 'boolean' | 'nested' | 'select' |
- * 'multiselect' | 'csvFile' | 'custom')} integer is an integer number while
- * number also supports float, nested is a nested object with its own
- * descriptor. 'select' and 'multiselect' are for options where the user must
- * select one or multiple values from a list of choices. 'custom' is a custom
- * type that will not be validated nor have a proper UI generated form for it.
+ * @type {('integer' | 'number' | 'seconds' | 'string' | 'boolean' | 'nested' |
+ * 'select' | 'multiselect' | 'csvFile' | 'custom')} integer is an integer
+ * number while number also supports float, nested is a nested object with its
+ * own descriptor. 'seconds' means the data's unit is in seconds, but the
+ * `askAs` property can be used to indicate to ask the value in minutes or
+ * hours. 'select' and 'multiselect' are for options where the user must select
+ * one or multiple values from a list of choices. 'custom' is a custom type that
+ * will not be validated nor have a proper UI generated form for it.
  * @memberof SimulationAlgorithmOptionDescriptor
  */
 export type SimulationAlgorithmOptionByType =
@@ -55,6 +57,12 @@ export type SimulationAlgorithmOptionByType =
           type: 'integer' | 'number';
           default?: number;
           validate?: (value: number) => boolean | ErrorMessage;
+      }
+    | {
+          type: 'seconds';
+          default?: number;
+          validate?: (value: number) => boolean | ErrorMessage;
+          askAs?: 'minutes' | 'hours';
       }
     | {
           type: 'string';
@@ -194,7 +202,7 @@ export function validateOptionsWithDescriptor<T extends Record<string, unknown>>
             if (value !== undefined) {
                 if ('validate' in optionDef && optionDef.validate) {
                     let isValid: ErrorMessage | boolean = true;
-                    if (optionDef.type === 'integer' || optionDef.type === 'number') {
+                    if (optionDef.type === 'integer' || optionDef.type === 'number' || optionDef.type === 'seconds') {
                         isValid = optionDef.validate(value as number);
                     } else if (optionDef.type === 'string') {
                         isValid = optionDef.validate(value as string);
