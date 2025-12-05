@@ -277,12 +277,12 @@ const layersConfig = {
 
     transitPaths: {
         type: 'line',
-        minzoom: 9,
+        minzoom: 5,
         defaultFilter: [
             'any',
             ['all', ['==', ['string', ['get', 'mode']], 'bus'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'rail'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'highSpeedRail'], ['>=', ['zoom'], 9]],
+            ['all', ['==', ['string', ['get', 'mode']], 'rail'], ['>=', ['zoom'], 5]],
+            ['all', ['==', ['string', ['get', 'mode']], 'highSpeedRail'], ['>=', ['zoom'], 5]],
             ['all', ['==', ['string', ['get', 'mode']], 'metro'], ['>=', ['zoom'], 9]],
             ['all', ['==', ['string', ['get', 'mode']], 'monorail'], ['>=', ['zoom'], 10]],
             ['all', ['==', ['string', ['get', 'mode']], 'tram'], ['>=', ['zoom'], 10]],
@@ -589,12 +589,12 @@ const layersConfig = {
 
     transitPathsForServices: {
         type: 'line',
-        minzoom: 9,
+        minzoom: 5,
         defaultFilter: [
             'any',
             ['all', ['==', ['string', ['get', 'mode']], 'bus'], ['>=', ['zoom'], 11]],
-            ['all', ['==', ['string', ['get', 'mode']], 'rail'], ['>=', ['zoom'], 9]],
-            ['all', ['==', ['string', ['get', 'mode']], 'highSpeedRail'], ['>=', ['zoom'], 9]],
+            ['all', ['==', ['string', ['get', 'mode']], 'rail'], ['>=', ['zoom'], 5]],
+            ['all', ['==', ['string', ['get', 'mode']], 'highSpeedRail'], ['>=', ['zoom'], 5]],
             ['all', ['==', ['string', ['get', 'mode']], 'metro'], ['>=', ['zoom'], 9]],
             ['all', ['==', ['string', ['get', 'mode']], 'monorail'], ['>=', ['zoom'], 10]],
             ['all', ['==', ['string', ['get', 'mode']], 'tram'], ['>=', ['zoom'], 10]],
