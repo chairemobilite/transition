@@ -55,39 +55,45 @@ class TransitRoutingAttributesDescriptor implements SimulationAlgorithmDescripto
             minWaitingTimeSeconds: {
                 i18nName: 'transit:transitRouting.MinimumWaitingTimeMinutes',
                 i18nHelp: 'transit:transitRouting.MinimumWaitingTimeMinutesHelp',
-                type: 'integer' as const,
+                type: 'seconds' as const,
+                askAs: 'minutes' as const,
                 validate: (value: number) => value >= 0,
                 default: transitRoutingAttributesDefaultsFromPref.minWaitingTimeSeconds
             },
             maxTransferTravelTimeSeconds: {
                 i18nName: 'transit:transitRouting.MaximumTransferTravelTimeMinutes',
                 i18nHelp: 'transit:transitRouting.MaximumTransferTravelTimeMinutesHelp',
-                type: 'integer' as const,
+                type: 'seconds' as const,
+                askAs: 'minutes' as const,
                 validate: (value: number) => value >= 0,
                 default: transitRoutingAttributesDefaultsFromPref.maxTransferTravelTimeSeconds
             },
             maxAccessEgressTravelTimeSeconds: {
                 i18nName: 'transit:transitRouting.MaximumAccessEgressTravelTimeMinutes',
                 i18nHelp: 'transit:transitRouting.MaximumAccessEgressTravelTimeMinutesHelp',
-                type: 'integer' as const,
+                type: 'seconds' as const,
+                askAs: 'minutes' as const,
                 validate: (value: number) => value >= 0,
                 default: transitRoutingAttributesDefaultsFromPref.maxAccessEgressTravelTimeSeconds
             },
             maxWalkingOnlyTravelTimeSeconds: {
-                i18nName: 'transit:networkDesign.simulationMethods.odTrips.MaxWalkingOnlyTravelTimeSeconds',
-                type: 'integer' as const,
+                i18nName: 'transit:networkDesign.simulationMethods.odTrips.MaxWalkingOnlyTravelTimeMinutes',
+                type: 'seconds' as const,
+                askAs: 'minutes' as const,
                 validate: (value: number) => value >= 0,
                 default: transitRoutingAttributesDefaultsFromPref.maxWalkingOnlyTravelTimeSeconds
             },
             maxFirstWaitingTimeSeconds: {
                 i18nName: 'transit:transitRouting.MaximumFirstWaitingTimeMinutes',
-                type: 'integer' as const,
+                type: 'seconds' as const,
+                askAs: 'minutes' as const,
                 validate: (value: number) => value >= 0,
                 default: transitRoutingAttributesDefaultsFromPref.maxFirstWaitingTimeSeconds
             },
             maxTotalTravelTimeSeconds: {
                 i18nName: 'transit:transitRouting.MaximumTotalTravelTimeMinutes',
-                type: 'integer' as const,
+                type: 'seconds' as const,
+                askAs: 'minutes' as const,
                 validate: (value: number) => value >= 0,
                 default: transitRoutingAttributesDefaultsFromPref.maxTotalTravelTimeSeconds
             },
