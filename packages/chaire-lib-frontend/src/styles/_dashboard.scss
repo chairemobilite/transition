@@ -1,3 +1,5 @@
+@use "settings";
+
 #app {
     height: 100%;
     width: 100%;
@@ -34,7 +36,7 @@
             display: flex;
             align-items: stretch;
             justify-content: flex-end;
-            border-bottom: 1px solid $border-white;
+            border-bottom: 1px solid settings.$border-white;
 
             ._icon {
                 height: 2.5rem;
@@ -52,12 +54,12 @@
                 border: none;
 
                 .left {
-                    border-right: 1px $border-white solid;
+                    border-right: 1px solid settings.$border-white;
                     border-radius: 0;
                 }
 
                 .right {
-                    border-left: 1px $border-white solid;
+                    border-left: 1px solid settings.$border-white;
                     border-radius: 0;
                 }
 
@@ -74,11 +76,11 @@
                     }
 
                     &.rc-menu-item-selected {
-                        background: $overlay-dark;
+                        background: settings.$overlay-dark;
                     }
 
                     &.rc-menu-item-active {
-                        background: $overlay-active;
+                        background: settings.$overlay-active;
                     }
 
                     &.rc-menu-item-disabled {
@@ -92,17 +94,17 @@
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            font-size: $font-size-small;
+            font-size: settings.$font-size-small;
             opacity: 0.7;
             min-height: 2rem;
             overflow-x: hidden;
             overflow-y: hidden;
-            border-bottom: 1px solid $border-white;
+            border-bottom: 1px solid settings.$border-white;
 
             .tr__flash-message-container {
                 display: flex;
                 align-items: center;
-                padding: $xxxs-size;
+                padding: settings.$xxxs-size;
                 margin: 0 0.5rem 0 0;
 
                 p {
@@ -150,7 +152,7 @@
 
 
     #tr__bottom-panel {
-        border-top: 1px solid $border-white;
+        border-top: 1px solid settings.$border-white;
         min-height: 3rem;
         overflow-x: auto;
         overflow-y: hidden;
@@ -172,8 +174,8 @@
     }
 
     h3 {
-        font-size: $font-size-small;
-        padding: $xxs-size;
+        font-size: settings.$font-size-small;
+        padding: settings.$xxs-size;
         text-transform: uppercase;
         letter-spacing: 0.2rem;
         font-weight: 100;
@@ -197,8 +199,8 @@
     }
 
     h4 {
-        font-size: $font-size-small;
-        padding: $xxxs-size $xxs-size;
+        font-size: settings.$font-size-small;
+        padding: settings.$xxxs-size settings.$xxs-size;
         font-weight: 100;
         margin: 0;
 
@@ -217,7 +219,7 @@
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    border-left: 1px solid $border-white;
+    border-left: 1px solid settings.$border-white;
 }
 
 .tr__resizable-split-view-left-panel {
@@ -240,7 +242,7 @@
 
 .tr__resizable-split-view-divider {
     height: 100%;
-    border-left: 2px solid $border-white;
+    border-left: 2px solid settings.$border-white;
 }
 
 // Make the divider bar white when we hover on the hitbox rather than the line itself.

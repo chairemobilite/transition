@@ -1,5 +1,5 @@
-@import '~chaire-lib-frontend/lib/styles/settings';
-@import './jobTables';
+@use "~chaire-lib-frontend/lib/styles/settings";
+@use "jobTables";
 
 // Map controls dropdown menu
 .tr__map-controls {

@@ -1,3 +1,5 @@
+@use "settings";
+
 .apptr__separator-small {
   height: 0.5rem;
 }
@@ -14,8 +16,8 @@
   z-index:1000;
   position: absolute;
   background-color: rgba(0,0,0,0.7);
-  border: 1px solid $border-white;
-  font-size: $font-size-small;
+  border: 1px solid settings.$border-white;
+  font-size: settings.$font-size-small;
   padding: 0.5rem;
   display: none;
   margin: 0;
