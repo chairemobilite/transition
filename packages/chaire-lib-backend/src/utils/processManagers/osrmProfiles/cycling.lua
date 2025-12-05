@@ -32,6 +32,7 @@ function setup()
     default_speed             = default_speed,
     walking_speed             = walking_speed,
     oneway_handling           = true,
+    side_road_multiplier      = 1.0, -- Needs to be defined for way_handlers.penalties
     turn_penalty              = 5,
     turn_bias                 = 1.4,
     use_public_transport      = false,
