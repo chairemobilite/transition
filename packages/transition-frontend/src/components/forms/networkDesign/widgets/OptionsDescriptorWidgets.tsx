@@ -43,12 +43,16 @@ type OptionComponentProps = {
     onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
 };
 const SelectOptionComponent: React.FunctionComponent<OptionComponentProps> = (props) => {
+    const { t } = useTranslation();
     const option = props.option;
     if (option.type !== 'select') {
         throw 'SelectOptionComponent can only be used with select options';
     }
 
-    const choices = option.choices(props.completeObject);
+    const choices = option.choices(props.completeObject).map((choice) => ({
+        value: choice.value,
+        label: choice.label ? t(choice.label) : t(choice.value)
+    }));
 
     const value = typeof props.value === 'string' ? props.value : option.default;
 
@@ -215,7 +219,7 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
     const options = React.useMemo(() => props.optionsDescriptor.getOptions(), [props.optionsDescriptor]);
 
     const [errors, setErrors] = React.useState<ErrorMessage[]>([]);
-    
+
     React.useEffect(() => {
         // Set defaults and validate on first load
         const defaultedOptions = getDefaultOptionsFromDescriptor(props.value, props.optionsDescriptor);
@@ -223,10 +227,7 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
         props.onUpdate(defaultedOptions, valid);
     }, [props.optionsDescriptor]);
 
-    const onValueChange = (
-        path: string,
-        newValue: { value: any; valid?: boolean }
-    ): void => {
+    const onValueChange = (path: string, newValue: { value: any; valid?: boolean }): void => {
         const updatedParameters = { ...props.value, [path]: newValue.value };
         const { valid, errors } = validateOptionsWithDescriptor(updatedParameters, props.optionsDescriptor);
 
@@ -236,6 +237,24 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
 
     const optionWidgets = Object.keys(options).map((optionName) => {
         const option = options[optionName];
+        const component = (
+            <OptionComponent
+                optionKey={optionName}
+                value={props.value[optionName]}
+                completeObject={props.value}
+                disabled={props.disabled}
+                option={option}
+                onValueChange={onValueChange}
+            />
+        );
+        if (option.type === 'nested' || option.type === 'csvFile') {
+            return (
+                <React.Fragment key={`option${optionName}`}>
+                    <h4>{t(option.i18nName)}</h4>
+                    {component}
+                </React.Fragment>
+            );
+        }
         return (
             <InputWrapper
                 key={`option${optionName}`}
@@ -244,22 +263,17 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
                 help={option.i18nHelp ? t(option.i18nHelp) : undefined}
                 twoColumns={option.type === 'multiselect' ? false : true}
             >
-                <OptionComponent
-                    optionKey={optionName}
-                    value={props.value[optionName]}
-                    completeObject={props.value}
-                    disabled={props.disabled}
-                    option={option}
-                    onValueChange={onValueChange}
-                />
+                {component}
             </InputWrapper>
         );
     });
 
-    return <React.Fragment>
-        {optionWidgets}
-        {errors.length > 0 && <FormErrors errors={errors} />}    
-    </React.Fragment>;
+    return (
+        <React.Fragment>
+            {optionWidgets}
+            {errors.length > 0 && <FormErrors errors={errors} />}
+        </React.Fragment>
+    );
 };
 
 export default OptionsEditComponent;
