@@ -13,6 +13,7 @@ import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper'
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
+import { secondsToMinutes, minutesToSeconds, hoursToSeconds, secondsToHours } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import {
     getDefaultOptionsFromDescriptor,
     SimulationAlgorithmDescriptor,
@@ -147,7 +148,8 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
             />
         );
     }
-    if (option.type === 'integer') {
+    // Handle integer and seconds (asked as integer number of seconds)
+    if (option.type === 'integer' || (option.type === 'seconds' && option.askAs === undefined)) {
         const value = typeof props.value === 'number' ? props.value : option.default;
         return (
             <InputStringFormatted
@@ -181,6 +183,26 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
                 }
                 stringToValue={parseFloatOrNull}
                 valueToString={(val) => _toString(parseFloatOrNull(val))}
+            />
+        );
+    }
+    if (option.type === 'seconds' && option.askAs !== undefined) {
+        const value = typeof props.value === 'number' ? props.value : option.default;
+        const strToValFct = option.askAs === 'minutes' ? minutesToSeconds : hoursToSeconds;
+        const valToStrFct = option.askAs === 'minutes' ? secondsToMinutes : secondsToHours;
+        return (<InputStringFormatted
+                id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
+                disabled={props.disabled}
+                value={value}
+                onValueUpdated={({ value, valid }) =>
+                    props.onValueChange(props.optionKey, {
+                        value,
+                        valid: valid && (option.validate ? option.validate(value) === true : true)
+                    })
+                }
+                stringToValue={strToValFct}
+                valueToString={(val) => _toString(valToStrFct(val))}
+                type={'number'}
             />
         );
     }
