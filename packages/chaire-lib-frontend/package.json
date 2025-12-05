@@ -72,7 +72,7 @@
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
     "copyfiles": "^2.4.1",
-    "cross-env": "^7.0.3",
+    "cross-env": "^10.1.0",
     "eslint": "^8.57.1",
     "eslint-plugin-n": "^15.7.0",
     "eslint-plugin-react": "^7.37.2",
