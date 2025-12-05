@@ -1,9 +1,11 @@
+@use "settings";
+
 label, .apptr__form__label-standalone {
-  padding: $xxxxs-size $xs-size;
-  font-size: $font-size-small;
+  padding: settings.$xxxxs-size settings.$xs-size;
+  font-size: settings.$font-size-small;
   font-weight: 500;
   //width: 100%;
-  color: $label;
+  color: settings.$label;
 
   &._flex {
     display: flex;
@@ -12,12 +14,12 @@ label, .apptr__form__label-standalone {
 }
 
 input, ._input {
-  background: $input-background;
-  font-size: $font-size-small;
-  border: 1px solid $border-white;
-  color: $input;
+  background: settings.$input-background;
+  font-size: settings.$font-size-small;
+  border: 1px solid settings.$border-white;
+  color: settings.$input;
   font-weight: 700;
-  padding: $xxxxs-size $xs-size;
+  padding: settings.$xxxxs-size settings.$xs-size;
   width: 100%;
   border-radius: 1.2rem;
 
@@ -30,49 +32,49 @@ input, ._input {
 
 input:disabled, textarea:disabled {
   font-style: oblique;
-  color: $input-disabled;
+  color: settings.$input-disabled;
   border-style: dashed;
 }
 
 select:disabled {
   font-style: oblique;
-  color: $input-disabled;
+  color: settings.$input-disabled;
   opacity: 0.5;
 }
 
 input:focus, textarea:focus {
   border-radius: 1.2rem;
   outline: none;
-  border-color: $blue;
-  box-shadow: 0 0 0.5rem $blue;
+  border-color: settings.$blue;
+  box-shadow: 0 0 0.5rem settings.$blue;
 }
 
 textarea, ._input-textarea {
   width: 100%;
   font-weight: 700;
-  color: $input;
-  padding: $xs-size $xs-size;
-  font-size: $font-size-small;
+  color: settings.$input;
+  padding: settings.$xs-size settings.$xs-size;
+  font-size: settings.$font-size-small;
   resize: vertical;
   border-radius: 1.2rem;
   min-height: 2rem;
 
   &._black {
-    background: $input-background;
-    border: 1px solid $border-white;
+    background: settings.$input-background;
+    border: 1px solid settings.$border-white;
   }
 }
 
 select {
-  font-size: $font-size-small;
-  background-color: $input-background;
-  color: $input;
+  font-size: settings.$font-size-small;
+  background-color: settings.$input-background;
+  color: settings.$input;
   font-weight: 700;
   text-overflow: ellipsis;
-  border: 1px solid $border-white;
-  padding-top: $xxxxs-size;
-  padding-bottom: $xxxxs-size; 
-  padding-left: $xs-size;
+  border: 1px solid settings.$border-white;
+  padding-top: settings.$xxxxs-size;
+  padding-bottom: settings.$xxxxs-size;
+  padding-left: settings.$xs-size;
   border-radius: 1.2rem;
 
   // Unfortunately we can't change the color of the chevron on the select input.
@@ -85,9 +87,9 @@ select {
 }
 
 ._input-multiselect {
-  font-size: $sm-size;
-  background: $input-background;
-  color: $input;
+  font-size: settings.$sm-size;
+  background: settings.$input-background;
+  color: settings.$input;
   font-weight: 700;
   /*.react-select__control {
     min-height: 2rem !important;
@@ -103,13 +105,13 @@ select {
 }
 
 .react-select__single-value, .react-select__input {
-    color: $input !important;
+    color: settings.$input !important;
 }
 
 
 .apptr__form-auth {
   max-width: 40rem;
-  min-width: $min-width;
+  min-width: settings.$min-width;
   margin: 0 auto;
   text-align: center;
 }
@@ -123,12 +125,12 @@ select {
 }
 
 .tr__form__input-string {
-  font-size: $font-size-medium;
+  font-size: settings.$font-size-medium;
   background-color: rgba(0,0,0,1.0);
   color: rgba(255,255,255,0.6);
   font-weight: 700;
   border: 1px solid rgba(255,255,255,0.2);
-  padding: $xxxs-size;
+  padding: settings.$xxxs-size;
   width: 100%;
 }
 
@@ -137,14 +139,14 @@ select {
 }
 
 .tr__form__parent-errors-container {
-  color: $error;
+  color: settings.$error;
   font-style: oblique;
 }
 
 .tr__form-section {
-  padding:   $xs-size;
-  font-size: $font-size-medium;
-  
+  padding:   settings.$xs-size;
+  font-size: settings.$font-size-medium;
+
   &._flex-column {
     width: 10rem;
   }
@@ -179,7 +181,7 @@ select {
   flex-direction: column;
   justify-content: center;
   align-items: stretch;
-  margin-bottom: $xxs-size;
+  margin-bottom: settings.$xxs-size;
   flex-wrap: wrap;
 
   &._two-columns {
@@ -195,7 +197,7 @@ select {
 
     label, .apptr__form__label-standalone, ._label-proxy {
       flex: 1;
-      padding: $xxxxs-size $xs-size;
+      padding: settings.$xxxxs-size settings.$xs-size;
       text-align: right;
     }
 
@@ -256,7 +258,7 @@ select {
     &.checked {
       background: rgba(255,255,255,0.15);
       label, .apptr__form__label-standalone {
-        color: $input;
+        color: settings.$input;
       }
     }
   }
@@ -268,8 +270,8 @@ select {
   align-items: center;
   justify-content: flex-end;
   text-align: right;
-  margin: $xs-size 0;
-  padding: 0 $xs-size;
+  margin: settings.$xs-size 0;
+  padding: 0 settings.$xs-size;
   
   &._left {
     justify-content: flex-start;
@@ -286,7 +288,7 @@ select {
   top: 0;
   background-color: rgba(29, 31, 33, 0.8);
   z-index: 1;
-  border-bottom: 1px solid $border-white;
+  border-bottom: 1px solid settings.$border-white;
   justify-content: space-between;
 
   h3 {
@@ -313,19 +315,19 @@ select {
 }
 
 .apptr__form-errors-container {
-  padding: $xs-size;
-  color: $red;
+  padding: settings.$xs-size;
+  color: settings.$red;
   p {
     margin-bottom: 0.2rem;
   }
 }
 
 .apptr__form-warning-message {
-  color: $orange;
+  color: settings.$orange;
 }
 
 table._statistics {
-  font-size: $font-size-small;
+  font-size: settings.$font-size-small;
   th._header {
     padding-top: 1rem;
     padding-left: 0;
@@ -341,13 +343,13 @@ table._statistics {
   td {
     text-align: left;
     font-weight: 300;
-    color: $text-active-color;
+    color: settings.$text-active-color;
   }
 }
 
 table._schedule {
   width: 100%;
-  font-size: $font-size-small;
+  font-size: settings.$font-size-small;
   th {
     text-align: right;
     font-weight: 700;
@@ -356,17 +358,17 @@ table._schedule {
   td {
     text-align: right;
     font-weight: 300;
-    color: $text-active-color;
+    color: settings.$text-active-color;
   }
 }
 
 .tr__form-filter-box {
-  background-color: $overlay-white;
-  border-color: $overlay-dark;
+  background-color: settings.$overlay-white;
+  border-color: settings.$overlay-dark;
   padding: 1rem;
 
   ._link {
-    color: $link-default-color;
+    color: settings.$link-default-color;
     text-align: left !important;
     margin: 0 0 0 0.5rem !important;
     font-weight: 700 !important;

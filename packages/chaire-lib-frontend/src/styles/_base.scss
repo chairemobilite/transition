@@ -1,3 +1,5 @@
+@use "settings";
+
 * {
   box-sizing: border-box;
 }
@@ -11,10 +13,10 @@ html {
 
 body {
   position: relative;
-  color: $text-default-color;
-  background: $background-color;
+  color: settings.$text-default-color;
+  background: settings.$background-color;
   font-family: "Lato", Helvetica, Arial, sans-serif;
-  font-size: $font-size-medium-large;
+  font-size: settings.$font-size-medium-large;
   font-weight: 300;
   line-height: 1.1;
   padding: 0;
@@ -25,11 +27,11 @@ body {
 }
 
 a {
-  color: $link-default-color;
+  color: settings.$link-default-color;
   font-weight: 400;
   text-decoration: none;
   &:hover, &:active, &:focus {
-    color: $link-active-color;
+    color: settings.$link-active-color;
   }
 }
 
@@ -122,15 +124,15 @@ strong, .strong, ._strong {
 }
 
 ._red, ._error {
-  color: $red;
+  color: settings.$red;
 }
 
 ._green {
-  color: $green;
+  color: settings.$green;
 }
 
 ._orange {
-  color: $orange;
+  color: settings.$orange;
 }
 
 ._pale {
@@ -146,39 +148,39 @@ strong, .strong, ._strong {
 }
 
 ._dark-red {
-  color: $dark-red;
+  color: settings.$dark-red;
 }
 
 ._blue {
-  color: $blue;
+  color: settings.$blue;
 }
 
 ._dark-blue {
-  color: $dark-blue;
+  color: settings.$dark-blue;
 }
 
 ._dark-green {
-  color: $dark-green;
+  color: settings.$dark-green;
 }
 
 ._xlarge {
-  font-size: $font-size-xlarge;
+  font-size: settings.$font-size-xlarge;
 }
 
 ._large {
-  font-size: $font-size-large;
+  font-size: settings.$font-size-large;
 }
 
 ._medium-large {
-  font-size: $font-size-medium-large;
+  font-size: settings.$font-size-medium-large;
 }
 
 ._medium {
-  font-size: $font-size-medium;
+  font-size: settings.$font-size-medium;
 }
 
 ._small {
-  font-size: $font-size-small;
+  font-size: settings.$font-size-small;
 }
 
 .no-bottom-margin {
