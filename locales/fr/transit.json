@@ -925,6 +925,40 @@
                 "CandidatesToKeepGreaterThanPopulation": "Le nombre de candidats à conserver est supérieur à la population",
                 "GenerationsToKeepGreaterThanGenerations": "Le nombre générations à conserver est supérieur au nombre de génération"
             }
+        },
+        "simulationMethods": {
+            "SelectSimulationFunctions": "Sélectionner les fonctions à utiliser pour la simulation",
+            "odTrips": {
+                "Title": "Chargement OD",
+                "demandAttributes": "Données de demande à utiliser",
+                "transitRoutingAttributes": "Paramètres de routage du transit pour le calcul",
+                "simulationOptions": "Options de simulation",
+                "expansionFactorAttribute": "Colonne pour le facteur d'expansion",
+                "MaxWalkingOnlyTravelTimeSeconds": "Temps de déplacement maximal uniquement à pied (secondes)",
+                "WalkingSpeedMps": "Vitesse de marche (m/s)",
+                "WalkingSpeedFactor": "Facteur de vitesse de marche",
+                "WalkingSpeedFactorHelp": "Facteur à multiplier par la vitesse de marche. Par exemple, une valeur de 0,8 réduira la vitesse de marche de 20 %, tandis qu'une valeur de 1,2 l'augmentera de 20 %.",
+                "OdTripsSampleRatio": "Pourcentage des trajets OD à inclure",
+                "OdTripsSampleRatioInvalid": "Pourcentage invalide des trajets OD à inclure. Doit être compris entre 0 et 1.",
+                "fitness": {
+                    "odTripFitnessFunction": "Fonction de coût d'un résultat OD",
+                    "travelTimeCost": "Temps de parcours",
+                    "travelTimeWithTransferPenalty": "Temps de parcours + 10 min pénalité par transfert",
+                    "fitnessFunction": "Fonction de coût du scénario",
+                    "hourlyUserPlusOperatingCosts": "Coût usager + opération (horaire)",
+                    "hourlyUserCosts": "Coût usager (horaire)",
+                    "hourlyOperatingCosts": "Coût d'opération (horaire)",
+                    "help": {
+                        "odTripFitnessFunction": "Sélectionnez la fonction de coût pour évaluer chaque trajet OD. La fonction 'temps de parcours + pénalité de transfert' pénalise les trajets avec des correspondances pour favoriser les trajets directs.",
+                        "fitnessFunction": "Sélectionnez la fonction de coût pour évaluer le scénario, à partir des coûts des trajets OD. La fonction 'coût usager + opération' équilibre l'expérience utilisateur avec l'efficacité opérationnelle."
+                    }
+                }
+            },
+            "accessibilityMap": {
+                "Title": "Par carte d'accessibilité",
+                "AccessMapDataSources": "Sources de données pour les lieux",
+                "AccessMapMaxSampleRatio": "Ratio d'échantillonnage maximal à tester (entre 0 et 1)"
+            }
         }
     },
     "simulation": {
@@ -971,30 +1005,6 @@
         "Results": "Résultats",
         "Parameters": "Paramètres",
         "RuntimeOptions": "Configuration de l'exécution",
-        "simulationMethods": {
-            "SelectSimulationFunctions": "Sélectionner les fonctions à utiliser pour la simulation",
-            "OdTrips": "Chargement OD",
-            "OdTripsDataSource": "Source de données du chargement OD",
-            "OdTripsSampleRatio": "Ratio d'échantillonnage (entre 0 et 1)",
-            "AccessibilityMap": "Par carte d'accessibilité",
-            "AccessMapDataSources": "Sources de données des points d'intérêt",
-            "AccessMapMaxSampleRatio": "Ratio d'échantillonnage maximal (entre 0 et 1)",
-            "MethodWeight": "Poids du coût pour la fonction de simulation \"{{method}}\"",
-            "MethodWeightError": "Poids invalide. La valeur doit être entre 0 et {{maxWeight}}.",
-            "MustSelectOneFunction": "Vous devez sélectionner au moins une fonction de simulation"
-        },
-        "fitness": {
-            "fitnessSorter": "Sens du tri de la mesure de coût",
-            "maximize": "Maximiser (valeur plus élevée est mieux)",
-            "minimize": "Minimiser (valeur plus faible est mieux)",
-            "odTripFitnessFunction": "Fonction de coût d'un résultat OD",
-            "travelTimeCost": "Temps de parcours",
-            "travelTimeWithTransferPenalty": "Temps de parcours + 10 min pénalité par transfert",
-            "fitnessFunction": "Fonction de coût du scénario",
-            "hourlyUserPlusOperatingCosts": "Coût usager + opération (horaire)",
-            "hourlyUserCosts": "Coût usager (horaire)",
-            "hourlyOperatingCosts": "Coût d'opération (horaire)"
-        },
         "DuplicateSimulation": "Dupliquer la simulation",
         "Copy": "Copie",
         "LineSetAgencies": "Agences de l'ensemble de lignes",
