@@ -24,12 +24,12 @@ export type AccessibilityMapSimulationOptions = {
  */
 export class AccessibilityMapSimulationDescriptor
 implements SimulationAlgorithmDescriptor<AccessibilityMapSimulationOptions> {
-    getTranslatableName = (): string => 'transit:simulation:simulationMethods:AccessibilityMap';
+    getTranslatableName = (): string => 'transit:networkDesign.simulationMethods.accessibilityMap.Title';
 
     // TODO Add help texts
     getOptions = () => ({
         dataSourceId: {
-            i18nName: 'transit:simulation:simulationMethods:AccessMapDataSources',
+            i18nName: 'transit:networkDesign.simulationMethods.accessibilityMap.AccessMapDataSources',
             type: 'select' as const,
             choices: () => {
                 // FIXME Still using data source queries. When this code was in the
@@ -43,7 +43,7 @@ implements SimulationAlgorithmDescriptor<AccessibilityMapSimulationOptions> {
             }
         },
         sampleRatio: {
-            i18nName: 'transit:simulation:simulationMethods:AccessMapMaxSampleRatio',
+            i18nName: 'transit:networkDesign.simulationMethods.accessibilityMap.AccessMapMaxSampleRatio',
             type: 'number' as const,
             validate: (value: number) => value > 0 && value <= 1,
             default: 1
