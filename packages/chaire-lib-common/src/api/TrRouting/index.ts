@@ -29,9 +29,9 @@ export class TrRoutingConstants {
      */
     static readonly ROUTE = 'service.trRouting.route';
     /**
-     * Socket route name to call a batch routing calculation. It takes
-     * parameter of type {@link TransitBatchRoutingDemandAttributes}. It returns a
-     * {@link Status}, with a {@link TransitBatchCalculationResult} on success
+     * Socket route name to call a batch routing calculation. It takes parameter
+     * of type {@link CsvFileAndMapping}. It returns a {@link Status}, with a
+     * {@link TransitBatchCalculationResult} on success
      *
      * @static
      * @memberof TrRoutingConstants

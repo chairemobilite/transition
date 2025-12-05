@@ -7,10 +7,9 @@
 import _cloneDeep from 'lodash/cloneDeep';
 import { TransitOdDemandFromCsv } from '../TransitOdDemandFromCsv';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
-import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import DataSource from 'chaire-lib-common/lib/services/dataSource/DataSource';
 import { CsvFileAttributes, parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
+import { CsvFileAndMapping } from '../../csv';
 
 jest.mock('chaire-lib-common/lib/utils/files/CsvFile', () => ({
     parseCsvFile: jest.fn()
@@ -24,116 +23,158 @@ beforeEach(() => {
     parseCsvFileMock.mockClear();
 });
 
-describe('setCsvFile', () => {
-    // csvObject to send to the row callback for the test.
-    let csvObjects = {};
-    parseCsvFileMock.mockImplementation((_input: string | NodeJS.ReadableStream | any,
-        rowCallback: (object: { [key: string]: any }, rowNumber: number) => void,
-        _options: Partial<CsvFileAttributes>) => {
-            return new Promise((resolve, reject) => {
-                rowCallback(csvObjects, 1);
-                resolve('completed');
-            });
-    });
+const defaultCsvFileAndMapping: CsvFileAndMapping = {
+    type: 'csv',
+    fileAndMapping: {
+        csvFile: { location: 'upload' as const, filename: 'trips.csv', uploadFilename: 'uploadedTrips.csv' },
+        fieldMappings: {
 
-    test('Test with no prior field mapping', async () => {
-        // Set test data
-        csvObjects = { id: 1, field1: 'just data', field2: -73, field3: 45, field4: 'arbitrary' };
-
-        const batchRouting = new TransitOdDemandFromCsv({}, false);
-        const expectedUndefined = ['idAttribute', 'timeAttributeDepartureOrArrival', 'timeFormat', 'timeAttribute',
-            'withGeometries', 'detailed', 'projection', 'originXAttribute', 'originYAttribute', 
-            'destinationXAttribute', 'destinationYAttribute'];
-        const file = 'justAFile.csv';
-
-        const csvFields = await batchRouting.setCsvFile(file, { location: 'upload' });
-
-        // Validte calls and return values
-        expect(csvFields).toEqual(Object.keys(csvObjects));
-        expect(parseCsvFileMock).toHaveBeenCalledTimes(1);
-        expect(parseCsvFileMock).toHaveBeenCalledWith(file, expect.anything(), { header: true, nbRows: 1});
-        expect(batchRouting.attributes).toEqual(expect.objectContaining({
-            csvFile: { location: 'upload', filename: file },
-        }));
-        
-        expect(expectedUndefined.find((name) => batchRouting.attributes[name] !== undefined)).toBeUndefined();
-    });
-
-    test('Test with prior still valid field mapping', async () => {
-        // Set test data
-        csvObjects = { id: 1, field1: 'id', field2: -73, field3: 45, field4: '01:00', field5: -73, field6: 45, };
-
-        const batchRoutingAttributes = {
-            calculationName: 'calculationName',
-            csvFile: { location: 'upload' as const, filename: 'input.csv' },
-            idAttribute: 'field1',
-            timeAttributeDepartureOrArrival: 'arrival' as const,
-            timeFormat: 'timeFormat',
-            timeAttribute: 'field4',
-            withGeometries: true,
-            detailed: false,
-            projection: 'projection',
-            originXAttribute: 'field2',
-            originYAttribute: 'field3',
-            destinationXAttribute: 'field5',
-            destinationYAttribute: 'field6',
-        };
-        const batchRouting = new TransitOdDemandFromCsv(_cloneDeep(batchRoutingAttributes), false);
-        const file = 'justAFile.csv';
+        }
+    },
+    csvFields: ['trip_id', 'origin_latitude', 'origin_longitude', 'dest_latitude', 'dest_longitude', 'trip_time']
     
-        const csvFields = await batchRouting.setCsvFile(file, { location: 'upload' });
+};
 
-        // Validte calls and return values
-        expect(csvFields).toEqual(Object.keys(csvObjects));
-        expect(parseCsvFileMock).toHaveBeenCalledTimes(1);
-        expect(parseCsvFileMock).toHaveBeenCalledWith(file, expect.anything(), { header: true, nbRows: 1});
+// TransitOdDemandFromCsv.test.ts
+describe('TransitOdDemandFromCsv', () => {
+    
+    describe('Constructor', () => {
+        test('should create instance without parameters', () => {
+            const demand = new TransitOdDemandFromCsv();
+            expect(demand).toBeInstanceOf(TransitOdDemandFromCsv);
+            expect(demand.getMappingDescriptors()).toEqual([
+                { key: 'id', i18nLabel: 'transit:transitRouting:IdField', i18nErrorLabel: 'transit:transitRouting:errors:IdFieldIsMissing', type: 'single', required: true },
+                {
+                    key: 'origin',
+                    type: 'latLon',
+                    i18nLabel: 'transit:transitRouting:OriginFieldMapping',
+                    i18nErrorLabel: 'transit:transitRouting:errors:OriginIsMissing',
+                    required: true
+                },
+                {
+                    key: 'destination',
+                    type: 'latLon',
+                    i18nLabel: 'transit:transitRouting:DestinationFieldMapping',
+                    i18nErrorLabel: 'transit:transitRouting:errors:DestinationIsMissing',
+                    required: true
+                },
+                { key: 'time', type: 'routingTime', i18nLabel: 'transit:transitRouting:TimeFieldMapping', i18nErrorLabel: 'transit:transitRouting:errors:TimeFieldDepartureOrArrivalIsMissing', required: true }
+            ]);
+        });
         
-        expect(batchRouting.attributes).toEqual(expect.objectContaining({
-            ...batchRoutingAttributes,
-            csvFile: { location: 'upload', filename: file }
-        }));
+        test('should create instance with csvFileAndMapping parameter', () => {
+            const demand = new TransitOdDemandFromCsv(defaultCsvFileAndMapping);
+            expect(demand).toBeInstanceOf(TransitOdDemandFromCsv);
+            expect(demand.getCurrentFileAndMapping()).toEqual(defaultCsvFileAndMapping);
+        });
     });
-
-    test('Test with prior field mapping to reset', async () => {
-        // Set test data
-        csvObjects = { id: 1, field1: 'just data', field2: -73, field3: 45, field4: 'arbitrary' };
-
-        const batchRoutingAttributes = {
-            calculationName: 'calculationName',
-            csvFile: { location: 'upload' as const, filename: 'input.csv' },
-            idAttribute: 'idAttribute',
-            timeAttributeDepartureOrArrival: 'arrival' as const,
-            timeFormat: 'timeFormat',
-            timeAttribute: 'timeAttribute',
-            withGeometries: true,
-            detailed: false,
-            projection: 'projection',
-            originXAttribute: 'originXAttribute',
-            originYAttribute: 'originYAttribute',
-            destinationXAttribute: 'destinationXAttribute',
-            destinationYAttribute: 'destinationYAttribute',
-        };
-        const batchRouting = new TransitOdDemandFromCsv(_cloneDeep(batchRoutingAttributes), false);
-        const expectedUndefined = ['idAttribute', 'timeAttribute', 'originXAttribute', 'originYAttribute', 
-            'destinationXAttribute', 'destinationYAttribute'];
-        const file = 'justAFile.csv';
+    
+    describe('Transit-Specific Validation', () => {
+        let demand: TransitOdDemandFromCsv;
         
-        const csvFields = await batchRouting.setCsvFile(file, { location: 'upload' });
-
-        // Validte calls and return values
-        expect(csvFields).toEqual(Object.keys(csvObjects));
-        expect(parseCsvFileMock).toHaveBeenCalledTimes(1);
-        expect(parseCsvFileMock).toHaveBeenCalledWith(file, expect.anything(), { header: true, nbRows: 1});
-        expect(batchRouting.attributes).toEqual(expect.objectContaining({
-            csvFile: { location: 'upload', filename: file },
-            calculationName: batchRoutingAttributes.calculationName,
-            timeAttributeDepartureOrArrival: batchRoutingAttributes.timeAttributeDepartureOrArrival,
-            timeFormat: batchRoutingAttributes.timeFormat,
-            withGeometries: true,
-            detailed: false,
-            projection: 'projection'
-        }));
+        beforeEach(() => {
+            demand = new TransitOdDemandFromCsv(_cloneDeep(defaultCsvFileAndMapping));
+        });
         
-        expect(expectedUndefined.find((name) => batchRouting.attributes[name] !== undefined)).toBeUndefined();
-    })
-})
+        test('should validate complete transit demand mapping', () => {
+            demand.updateFieldMapping('id', 'trip_id');
+            demand.updateFieldMapping('projection', '4326')
+            demand.updateFieldMapping('originLat', 'origin_latitude');
+            demand.updateFieldMapping('originLon', 'origin_longitude');
+            demand.updateFieldMapping('destinationLat', 'dest_latitude');
+            demand.updateFieldMapping('destinationLon', 'dest_longitude');
+            demand.updateFieldMapping('time', 'trip_time');
+            demand.updateFieldMapping('timeType', 'departure');
+            demand.updateFieldMapping('timeFormat', 'HH:MM');
+            
+            expect(demand.getErrors()).toEqual([]);
+            expect(demand.isValid()).toBe(true);
+            expect(demand.getCurrentFileAndMapping()?.fileAndMapping.fieldMappings).toEqual({
+                id: 'trip_id',
+                projection: '4326',
+                originLat: 'origin_latitude',
+                originLon: 'origin_longitude',
+                destinationLat: 'dest_latitude',
+                destinationLon: 'dest_longitude',
+                time: 'trip_time',
+                timeType: 'departure',
+                timeFormat: 'HH:MM'
+            });
+        });
+        
+        test('should fail validation when origin coordinates are missing', () => {
+            demand.updateFieldMapping('id', 'trip_id');
+            demand.updateFieldMapping('projection', '4326')
+            demand.updateFieldMapping('destinationLat', 'dest_latitude');
+            demand.updateFieldMapping('destinationLon', 'dest_longitude');
+            demand.updateFieldMapping('time', 'trip_time');
+            demand.updateFieldMapping('timeType', 'departure');
+            demand.updateFieldMapping('timeFormat', 'HH:MM');
+            
+            expect(demand.isValid()).toBe(false);
+            const errors = demand.getErrors();
+            expect(errors).toContain('transit:transitRouting:errors:OriginIsMissingLat');
+            expect(errors).toContain('transit:transitRouting:errors:OriginIsMissingLon');
+            expect(errors.length).toEqual(2);
+            expect(demand.getCurrentFileAndMapping()?.fileAndMapping.fieldMappings).toEqual({
+                id: 'trip_id',
+                projection: '4326',
+                destinationLat: 'dest_latitude',
+                destinationLon: 'dest_longitude',
+                time: 'trip_time',
+                timeType: 'departure',
+                timeFormat: 'HH:MM'
+            });
+        });
+        
+        test('should fail validation when destination coordinates are missing', () => {
+            demand.updateFieldMapping('id', 'trip_id');
+            demand.updateFieldMapping('projection', '4326')
+            demand.updateFieldMapping('originLat', 'origin_latitude');
+            demand.updateFieldMapping('originLon', 'origin_longitude');
+            demand.updateFieldMapping('time', 'trip_time');
+            demand.updateFieldMapping('timeType', 'departure');
+            demand.updateFieldMapping('timeFormat', 'HH:MM');
+            
+            expect(demand.isValid()).toBe(false);
+            const errors = demand.getErrors();
+            expect(errors).toContain('transit:transitRouting:errors:DestinationIsMissingLat');
+            expect(errors).toContain('transit:transitRouting:errors:DestinationIsMissingLon');
+            expect(errors.length).toEqual(2);
+            expect(demand.getCurrentFileAndMapping()?.fileAndMapping.fieldMappings).toEqual({
+                id: 'trip_id',
+                projection: '4326',
+                originLat: 'origin_latitude',
+                originLon: 'origin_longitude',
+                time: 'trip_time',
+                timeType: 'departure',
+                timeFormat: 'HH:MM'
+            });
+        });
+        
+        test('should fail validation when time attribute is missing', () => {
+            demand.updateFieldMapping('id', 'trip_id');
+            demand.updateFieldMapping('projection', '4326')
+            demand.updateFieldMapping('originLat', 'origin_latitude');
+            demand.updateFieldMapping('originLon', 'origin_longitude');
+            demand.updateFieldMapping('destinationLat', 'dest_latitude');
+            demand.updateFieldMapping('destinationLon', 'dest_longitude');
+            
+            expect(demand.isValid()).toBe(false);
+            const errors = demand.getErrors();
+            expect(errors).toContain('transit:transitRouting:errors:TimeFieldDepartureOrArrivalIsMissing');
+            expect(errors).toContain('transit:transitRouting:errors:TimeFieldDepartureOrArrivalIsMissingType');
+            expect(errors).toContain('transit:transitRouting:errors:TimeFieldDepartureOrArrivalIsMissingFormat');
+            expect(errors.length).toEqual(3);
+            expect(demand.getCurrentFileAndMapping()?.fileAndMapping.fieldMappings).toEqual({
+                id: 'trip_id',
+                projection: '4326',
+                originLat: 'origin_latitude',
+                originLon: 'origin_longitude',
+                destinationLat: 'dest_latitude',
+                destinationLon: 'dest_longitude',
+            });
+        });
+    });
+    
+});
