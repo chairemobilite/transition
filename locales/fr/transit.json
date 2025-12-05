@@ -933,7 +933,7 @@
                 "transitRoutingAttributes": "Paramètres de routage du transit pour le calcul",
                 "simulationOptions": "Options de simulation",
                 "expansionFactorAttribute": "Colonne pour le facteur d'expansion",
-                "MaxWalkingOnlyTravelTimeSeconds": "Temps de déplacement maximal uniquement à pied (secondes)",
+                "MaxWalkingOnlyTravelTimeMinutes": "Temps de déplacement maximal uniquement à pied (minutes)",
                 "WalkingSpeedMps": "Vitesse de marche (m/s)",
                 "WalkingSpeedFactor": "Facteur de vitesse de marche",
                 "WalkingSpeedFactorHelp": "Facteur à multiplier par la vitesse de marche. Par exemple, une valeur de 0,8 réduira la vitesse de marche de 20 %, tandis qu'une valeur de 1,2 l'augmentera de 20 %.",
