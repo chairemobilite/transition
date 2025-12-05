@@ -78,7 +78,7 @@ describe('Geojson zone file error', () => {
 
         await expect(importZonesTask.run(parameters))
             .rejects
-            .toThrowError(`The requested file ${file} does not exist`); 
+            .toThrow(`The requested file ${file} does not exist`); 
     });
 
     test('File object is not a string', async () => {
@@ -86,7 +86,7 @@ describe('Geojson zone file error', () => {
 
         await expect(importZonesTask.run({ ['zones-file']: 3 }))
             .rejects
-            .toThrowError('File is undefined');
+            .toThrow('File is undefined');
     });
 
     test('Not a geojson', async () => {
@@ -95,7 +95,7 @@ describe('Geojson zone file error', () => {
 
         await expect(importZonesTask.run(parameters))
             .rejects
-            .toThrowError(`The file content is not geojson ${file}`);
+            .toThrow(`The file content is not geojson ${file}`);
     });
 
     test('Not a feature collection', async () => {
@@ -104,7 +104,7 @@ describe('Geojson zone file error', () => {
 
         await expect(importZonesTask.run(parameters))
             .rejects
-            .toThrowError(`The file content is not a feature collection: ${file}`);
+            .toThrow(`The file content is not a feature collection: ${file}`);
     });
 
     test('Empty feature collection', async () => {
@@ -113,7 +113,7 @@ describe('Geojson zone file error', () => {
 
         await expect(importZonesTask.run(parameters))
             .rejects
-            .toThrowError(`The feature collection is empty: ${file}`);
+            .toThrow(`The feature collection is empty: ${file}`);
     });
 
     test('One feature not a polygon', async () => {
@@ -134,7 +134,7 @@ describe('Geojson zone file error', () => {
 
         await expect(importZonesTask.run(parameters))
             .rejects
-            .toThrowError(`Feature at index 1 is not a Polygon or MultiPolygon`);
+            .toThrow(`Feature at index 1 is not a Polygon or MultiPolygon`);
     });
 });
 

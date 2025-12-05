@@ -75,7 +75,7 @@ describe('Test Calculate', () => {
         batchRouteSocketMock.mockImplementationOnce((_parameters, _transitRoutingAttributes, callback) => callback(Status.createError('arbitrary error')))
         await expect(async () => await TransitBatchRoutingCalculator.calculate(defaultDemand, defaultQueryParams))
             .rejects
-            .toThrowError('cannot calculate transit batch route with trRouting: arbitrary error');
+            .toThrow('cannot calculate transit batch route with trRouting: arbitrary error');
 
         expect(batchRouteSocketMock).toHaveBeenCalledTimes(1);
         expect(batchRouteSocketMock).toHaveBeenCalledWith( defaultDemandAttributes, defaultQueryParams, expect.anything())
@@ -106,7 +106,7 @@ describe('Test Calculate', () => {
         }
         await expect(async () => await TransitBatchRoutingCalculator.calculate(defaultDemand, invalidQueryParams as any))
             .rejects
-            .toThrowError('cannot calculate transit batch route: the routing parameters are invalid');
+            .toThrow('cannot calculate transit batch route: the routing parameters are invalid');
 
         expect(batchRouteSocketMock).not.toHaveBeenCalled();
     });

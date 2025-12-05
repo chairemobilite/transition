@@ -100,7 +100,7 @@ describe('get data sources', () => {
         mockedDbCollection.mockResolvedValueOnce([ dataSourceAttribs1, dataSourceAttribs2 ]);
         await expect(getDataSource({ isNew: true, type: 'odTrips', dataSourceName: dataSourceAttribs1.shortname }))
             .rejects
-            .toThrowError(new TrError(`Cannot create data source ${dataSourceAttribs1.shortname}. A data source with that name already exists`, 'DSERR01'));
+            .toThrow(new TrError(`Cannot create data source ${dataSourceAttribs1.shortname}. A data source with that name already exists`, 'DSERR01'));
         expect(mockedDbCollection).toHaveBeenCalledTimes(1);
         expect(mockedDbCollection).toHaveBeenCalledWith({ type: 'odTrips', userId: undefined });
         expect(mockedDbCreate).toHaveBeenCalledTimes(0);
@@ -117,7 +117,7 @@ describe('get data sources', () => {
     test('Get existing data source, unexisting', async () => {
         await expect(getDataSource({ isNew: false, dataSourceId: uuidV4()}))
             .rejects
-            .toThrowError(new TrError('Not found', 'CODE1'));
+            .toThrow(new TrError('Not found', 'CODE1'));
         expect(mockedDbRead).toHaveBeenCalledTimes(1);
     }); 
 

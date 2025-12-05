@@ -112,10 +112,10 @@ test('should generate permutations with repetitions', function() {
 
 test('should get sequential array', function() {
     expect(MathUtils.sequentialArray(0)).toEqual([]);
-    expect(() => MathUtils.sequentialArray(-1)).toThrowError('sequentialArray: Size of the array must be a positive integer');
-    expect(() => MathUtils.sequentialArray(-1.5)).toThrowError('sequentialArray: Size of the array must be a positive integer');
-    expect(() => MathUtils.sequentialArray(1.5)).toThrowError('sequentialArray: Size of the array must be a positive integer');
-    expect(() => MathUtils.sequentialArray(Infinity)).toThrowError('sequentialArray: Size of the array must be a positive integer');
+    expect(() => MathUtils.sequentialArray(-1)).toThrow('sequentialArray: Size of the array must be a positive integer');
+    expect(() => MathUtils.sequentialArray(-1.5)).toThrow('sequentialArray: Size of the array must be a positive integer');
+    expect(() => MathUtils.sequentialArray(1.5)).toThrow('sequentialArray: Size of the array must be a positive integer');
+    expect(() => MathUtils.sequentialArray(Infinity)).toThrow('sequentialArray: Size of the array must be a positive integer');
     expect(MathUtils.sequentialArray(1)).toEqual([0]);
     expect(MathUtils.sequentialArray(1, 345)).toEqual([345]);
     expect(MathUtils.sequentialArray(4)).toEqual([0,1,2,3]);

@@ -69,9 +69,9 @@ test('should get random bool array', function() {
     const seed            = seedrandom('test'); // seed so we can get the same results each time
     const randomGenerator = random.clone(seed);
     expect(RandomUtils.randomBoolArray(0, undefined, randomGenerator)).toEqual([]);
-    expect(() => RandomUtils.randomBoolArray(-1, undefined, randomGenerator)).toThrowError('randomBoolArray: Array size must be a positive integer');
-    expect(() => RandomUtils.randomBoolArray(-1.5, undefined, randomGenerator)).toThrowError('randomBoolArray: Array size must be a positive integer');
-    expect(() => RandomUtils.randomBoolArray(2.5, undefined, randomGenerator)).toThrowError('randomBoolArray: Array size must be a positive integer');
+    expect(() => RandomUtils.randomBoolArray(-1, undefined, randomGenerator)).toThrow('randomBoolArray: Array size must be a positive integer');
+    expect(() => RandomUtils.randomBoolArray(-1.5, undefined, randomGenerator)).toThrow('randomBoolArray: Array size must be a positive integer');
+    expect(() => RandomUtils.randomBoolArray(2.5, undefined, randomGenerator)).toThrow('randomBoolArray: Array size must be a positive integer');
     expect(RandomUtils.randomBoolArray(1, 1, randomGenerator)).toEqual([true]);
     expect(RandomUtils.randomBoolArray(2, 2, randomGenerator)).toEqual([true, true]);
     expect(RandomUtils.randomBoolArray(2, 0, randomGenerator)).toEqual([false, false]);
