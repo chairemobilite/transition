@@ -29,8 +29,6 @@ export type SimulationAlgorithmOptionBase = {
     required?: boolean;
 };
 
-type DescriptorFactory<T extends Record<string, unknown>> = () => SimulationAlgorithmDescriptor<T>;
-
 interface NestedOptionDescriptor<T extends Record<string, unknown>> {
     type: 'nested';
     descriptor: SimulationAlgorithmDescriptor<T>;
