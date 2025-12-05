@@ -939,7 +939,7 @@
                 "transitRoutingAttributes": "Transit routing parameters for calculation",
                 "simulationOptions": "Simulation options",
                 "expansionFactorAttribute": "Column for expansion factor",
-                "MaxWalkingOnlyTravelTimeSeconds": "Maximum walking only travel time (seconds)",
+                "MaxWalkingOnlyTravelTimeMinutes": "Maximum walking only travel time (minutes)",
                 "WalkingSpeedMps": "Walking speed (m/s)",
                 "WalkingSpeedFactor": "Walking speed factor",
                 "WalkingSpeedFactorHelp": "Factor to multiply the walking speed. For example, a value of 0.8 will reduce walking speed by 20%, while a value of 1.2 will increase it by 20%.",
