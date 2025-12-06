@@ -31,18 +31,24 @@ beforeEach(() => {
 describe('Test Calculate', () => {
 
     const defaultDemandAttributes = {
-        calculationName: 'test',
-        projection: 'projection',
-        csvFile: { location: 'upload' as const, filename: 'input.csv' },
-        timeAttributeDepartureOrArrival: 'arrival' as const,
-        timeFormat: 'HH:MM',
-        timeAttribute: 'time',
-        idAttribute: 'id',
-        originXAttribute: 'xorig',
-        originYAttribute: 'yorig',
-        destinationXAttribute: 'xdest',
-        destinationYAttribute: 'ydest'
+        type: 'csv' as const,
+        fileAndMapping: {
+            csvFile: { location: 'upload' as const, filename: 'trips.csv', uploadFilename: 'uploadedTrips.csv' },
+            fieldMappings: {
+                projection: 'projection',
+                timeType: 'arrival' as const,
+                timeFormat: 'HH:MM',
+                time: 'time',
+                id: 'id',
+                originLon: 'xorig',
+                originLat: 'yorig',
+                destinationLon: 'xdest',
+                destinationLat: 'ydest'
+            }
+        },
+        csvFields: ['id', 'xorig', 'yorig', 'xdest', 'ydest', 'time']
     };
+   
     const defaultDemand = new TransitOdDemandFromCsv(defaultDemandAttributes);
     const defaultQueryParams = {
         routingModes: [ 'walking' as const ],
@@ -56,29 +62,13 @@ describe('Test Calculate', () => {
         cpuCount: 1,
         maxCpuCount: 2,
     };
-    const expectedDemand = {
-        type: 'csv',
-        configuration: {
-            calculationName: defaultDemandAttributes.calculationName,
-            projection: defaultDemandAttributes.projection,
-            idAttribute: defaultDemandAttributes.idAttribute,
-            originXAttribute: defaultDemandAttributes.originXAttribute,
-            originYAttribute: defaultDemandAttributes.originYAttribute,
-            destinationXAttribute: defaultDemandAttributes.destinationXAttribute,
-            destinationYAttribute: defaultDemandAttributes.destinationYAttribute,
-            timeAttributeDepartureOrArrival: defaultDemandAttributes.timeAttributeDepartureOrArrival,
-            timeFormat: defaultDemandAttributes.timeFormat,
-            timeAttribute: defaultDemandAttributes.timeAttribute,
-            csvFile: { location: 'upload', filename: 'input.csv' }
-        }
-    }
 
     test('Calculate with valid values', async () => {
         const result = await TransitBatchRoutingCalculator.calculate(defaultDemand, defaultQueryParams);
         expect(result).toEqual(defaultResponse);
 
         expect(batchRouteSocketMock).toHaveBeenCalledTimes(1);
-        expect(batchRouteSocketMock).toHaveBeenCalledWith( expectedDemand, defaultQueryParams, expect.anything())
+        expect(batchRouteSocketMock).toHaveBeenCalledWith( defaultDemandAttributes, defaultQueryParams, expect.anything())
     });
 
     test('Calculate with valid values, but server error', async () => {
@@ -88,15 +78,23 @@ describe('Test Calculate', () => {
             .toThrowError('cannot calculate transit batch route with trRouting: arbitrary error');
 
         expect(batchRouteSocketMock).toHaveBeenCalledTimes(1);
-        expect(batchRouteSocketMock).toHaveBeenCalledWith( expectedDemand, defaultQueryParams, expect.anything())
+        expect(batchRouteSocketMock).toHaveBeenCalledWith( defaultDemandAttributes, defaultQueryParams, expect.anything())
     });
 
     test('Calculate with invalid demand parameters', async () => {
         // File set but no other attribute
-        const invalidDemand = new TransitOdDemandFromCsv({ csvFile: { location: 'upload' as const, filename: 'input.csv' }});
+        const invalidDemandConfiguration = {
+            type: 'csv' as const,
+            fileAndMapping: {
+                csvFile: { location: 'upload' as const, filename: 'trips.csv', uploadFilename: 'uploadedTrips.csv' },
+                fieldMappings: { }
+            },
+            csvFields: []
+        }
+        const invalidDemand = new TransitOdDemandFromCsv(invalidDemandConfiguration as any);
         await expect(async () => await TransitBatchRoutingCalculator.calculate(invalidDemand, defaultQueryParams))
             .rejects
-            .toThrowError('cannot calculate transit batch route: the CSV file data is invalid');
+            .toThrow('cannot calculate transit batch route: the CSV file data is invalid');
 
         expect(batchRouteSocketMock).not.toHaveBeenCalled();
     });

@@ -29,8 +29,8 @@ export class TrRoutingConstants {
      */
     static readonly ROUTE = 'service.trRouting.route';
     /**
-     * Socket route name to call a batch routing calculation. It takes
-     * parameter of type {@link TransitBatchRoutingDemandAttributes}. It returns a
+     * Socket route name to call a batch routing calculation. It takes parameter
+     * of type {@link BatchRoutingOdDemandFromCsvAttributes}. It returns a
      * {@link Status}, with a {@link TransitBatchCalculationResult} on success
      *
      * @static
@@ -42,7 +42,7 @@ export class TrRoutingConstants {
      * saved task. It takes the ID of the batch routing job to replay. It
      * returns a {@link Status}, with a object containing a field named
      * 'parameters' of type {@link BatchCalculationParameters}, a 'demand' field
-     * of type {@link TransitOdDemandFromCsvAttributes} and a 'csvFields' field
+     * of type {@link BatchRoutingOdDemandFromCsvAttributes} and a 'csvFields' field
      * containing the string headers of the fields of the csv file on success
      *
      * TODO Move batch route related services and constants to transition-backend

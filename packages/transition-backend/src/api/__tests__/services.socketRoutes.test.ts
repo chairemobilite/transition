@@ -19,6 +19,7 @@ import jobsDbQueries from '../../models/db/jobs.db.queries';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import { TransitAccessibilityMapCalculator } from '../../services/accessibilityMap/TransitAccessibilityMapCalculator';
 import { TripRoutingQueryAttributes } from 'chaire-lib-common/src/services/routing/types';
+import { CsvFileAndMapping } from 'transition-common/lib/services/csv';
 
 const socketStub = new EventEmitter();
 routes(socketStub, 1);
@@ -220,13 +221,20 @@ describe('trRouting process manager routes', () => {
 describe('trRouting routes', () => {
 
     // It's a stub call, parameters don't have to be complete
-    const demandParameters = {
+    const demandParameters: CsvFileAndMapping = {
         type: 'csv',
-        configuration: {
-            calculationName: 'test',
-            csvFile: { location: 'upload', filename: 'myCoolFile.csv' },
-            cpuCount: 1
-        }
+        fileAndMapping: {
+            csvFile: { location: 'upload', filename: 'myCoolFile.csv', uploadFilename: 'batchRoute.csv' },
+            fieldMappings: {
+                id: 'trip_id',
+                projection: '4326',
+                originLat: 'origin_latitude',
+                originLon: 'origin_longitude',
+                destinationLat: 'dest_latitude',
+                destinationLon: 'dest_longitude'
+            }
+        },
+        csvFields: ['trip_id', 'origin_latitude', 'origin_longitude', 'dest_latitude', 'dest_longitude']
     };
 
     // It's a stub call, parameters don't have to be complete
@@ -252,7 +260,7 @@ describe('trRouting routes', () => {
                 user_id: 1,
                 data: {
                     parameters: {
-                        demandAttributes: demandParameters,
+                        demandAttributes: demandParameters.fileAndMapping.fieldMappings,
                         transitRoutingAttributes: transitAttributes
                     }
                 }
@@ -280,7 +288,7 @@ describe('trRouting routes', () => {
                 user_id: 1,
                 data: {
                     parameters: {
-                        demandAttributes: demandParameters,
+                        demandAttributes: demandParameters.fileAndMapping.fieldMappings,
                         transitRoutingAttributes: {
                             minWaitingTimeSeconds: 180,
                             scenarioId: 'arbitrary',
@@ -310,7 +318,7 @@ describe('trRouting routes', () => {
                 user_id: 1,
                 data: {
                     parameters: {
-                        demandAttributes: demandParameters,
+                        demandAttributes: demandParameters.fileAndMapping.fieldMappings,
                         transitRoutingAttributes: transitAttributes
                     }
                 }

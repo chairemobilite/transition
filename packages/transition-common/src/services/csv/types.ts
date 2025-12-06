@@ -55,11 +55,11 @@ export type FileConfig =
 
 /** Type for csv file and field mapping attributes. This tells the CSV file
  * consumer where to find the file and how to map field to each desired key */
-export type FileAndMappingAttributes = {
+export type FileAndMappingAttributes<T extends Record<string, string> = Record<string, string>> = {
     /** The CSV file location and name */
     csvFile: FileConfig;
     /** The key to CSV field mapping */
-    fieldMappings: { [key: string]: string };
+    fieldMappings: T;
 };
 
 /**
@@ -67,10 +67,10 @@ export type FileAndMappingAttributes = {
  * This type can be used where a CSV file is required along with its mapping and
  * the list of fields present in the file.
  */
-export type CsvFileAndMapping = {
+export type CsvFileAndMapping<T extends Record<string, string> = Record<string, string>> = {
     type: 'csv';
     /** CSV file location and field mapping */
-    fileAndMapping: FileAndMappingAttributes;
+    fileAndMapping: FileAndMappingAttributes<T>;
     /** List of csv fields in the file. The file can be anywhere, so consumers
      * don't necessarily have access to it. To avoid having to read the file to
      * display the fields, the list of available fields in the file will be
