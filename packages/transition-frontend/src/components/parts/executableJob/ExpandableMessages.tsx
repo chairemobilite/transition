@@ -14,18 +14,16 @@ export interface ExpandableMessagesProps {
     messages: Exclude<JobAttributes<JobDataType>['statusMessages'], undefined>;
 }
 
+// Make sure Modal knows what DOM element is the app container. Available examples in the package documentation all put this line outside the component.
+if (!process.env.IS_TESTING) {
+    Modal.setAppElement('#app');
+}
+
 const ExpandableMessage: React.FunctionComponent<React.PropsWithChildren<ExpandableMessagesProps>> = (
     props: React.PropsWithChildren<ExpandableMessagesProps>
 ) => {
     const [expanded, setExpanded] = React.useState(false);
     const { t } = useTranslation('transit');
-
-    // Make sure Modal knows what DOM element is the app container
-    React.useEffect(() => {
-        if (!process.env.IS_TESTING) {
-            Modal.setAppElement('#app');
-        }
-    }, []);
 
     const closeModal = () => {
         setExpanded(false);
