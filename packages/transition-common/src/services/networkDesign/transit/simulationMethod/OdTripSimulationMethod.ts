@@ -35,10 +35,22 @@ type OdTripEvaluationOptions = {
     fitnessFunction: string;
 };
 
+export type OdTripSimulationFromCsvAttributes = {
+    projection: string;
+    id: string;
+    originLat: string;
+    originLon: string;
+    destinationLat: string;
+    destinationLon: string;
+    expansionFactor?: string;
+};
+
+export type OdTripSimulationDemandFromCsvAttributes = CsvFileAndMapping<OdTripSimulationFromCsvAttributes>;
+
 // Define OD trip simulation options
 export type OdTripSimulationOptions = {
     // Describe where to get the OD trip data for the simulation
-    demandAttributes: CsvFileAndMapping;
+    demandAttributes: OdTripSimulationDemandFromCsvAttributes;
     // Transit routing parameters to use for the simulation
     transitRoutingAttributes: TransitRoutingBaseAttributes;
     evaluationOptions: OdTripEvaluationOptions;
@@ -183,6 +195,15 @@ const odDemandFieldDescriptors: CsvFieldMappingDescriptor[] = [
     }
 ];
 
+/**
+ * Describe a CSV file field mapping for a transition origin/destination pair file
+ */
+export class TransitOdTripSimulationDemandFromCsv extends CsvFileAndFieldMapper<OdTripSimulationFromCsvAttributes> {
+    constructor(csvFileAndMapping?: OdTripSimulationDemandFromCsvAttributes | undefined) {
+        super(odDemandFieldDescriptors, csvFileAndMapping);
+    }
+}
+
 const transitRoutingAttributesDescriptor = new TransitRoutingAttributesDescriptor();
 const simulationOptionsDescriptor = new SimulationOptionsDescriptor();
 
@@ -224,9 +245,8 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
 
         // Validate the demand attributes
         if (options.demandAttributes !== undefined) {
-            const demandFieldMappers = new CsvFileAndFieldMapper(
-                odDemandFieldDescriptors,
-                options.demandAttributes as CsvFileAndMapping
+            const demandFieldMappers = new TransitOdTripSimulationDemandFromCsv(
+                options.demandAttributes as OdTripSimulationDemandFromCsvAttributes
             );
             if (!demandFieldMappers.isValid()) {
                 valid = false;
