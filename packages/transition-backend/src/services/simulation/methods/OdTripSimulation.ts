@@ -18,10 +18,9 @@ import { ExecutableJob } from '../../executableJob/ExecutableJob';
 
 import { parseCsvFile as parseCsvFileFromStream } from 'chaire-lib-common/lib/utils/files/CsvFile';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
-import { batchRoute } from '../../transitRouting/TrRoutingBatch';
-import resultsDbQueries from '../../../models/db/batchRouteResults.db.queries';
+import { TrRoutingBatchExecutor } from '../../transitRouting/TrRoutingBatch';
 import { OdTripRouteResult } from '../../transitRouting/types';
-import { BatchRouteJobType } from '../../transitRouting/BatchRoutingJob';
+import { BatchRouteJobType, BatchRouteResultVisitor } from '../../transitRouting/BatchRoutingJob';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { EventEmitter } from 'events';
 import { ReadStream, WriteStream } from 'fs';
@@ -60,6 +59,118 @@ export class OdTripSimulationFactory implements SimulationMethodFactory<OdTripSi
         new OdTripSimulation(options, jobWrapper);
 }
 
+// Od trip fitness visitor to calculate simulation results
+// TODO Consider moving to its own file if it gets more complex
+export class OdTripFitnessVisitor implements BatchRouteResultVisitor<OdTripSimulationResults> {
+    private usersCost = 0;
+    private totalRoutableUsersCost = 0;
+    private totalNonRoutableUsersCost = 0;
+    private transfersCount = 0;
+    private totalCount = 0;
+    private routedCount = 0;
+    private nonRoutedCount = 0;
+    private noTransferCount = 0;
+    private totalWalkingTimeMinutes = 0;
+    private totalWaitingTimeMinutes = 0;
+    private totalTravelTimeMinutes = 0;
+    private countByNumberOfTransfers = new Array(6).fill(0); // max 4, last is 5+
+
+    constructor(
+        private job: ExecutableJob<BatchRouteJobType>,
+        private odTripFitnessFunction: (odTrip: any) => number,
+        private nonRoutableOdTripFitnessFunction: (odTrip: any) => number
+    ) {
+        // Nothing to do
+    }
+
+    visitTripResult = async (odTripResult: OdTripRouteResult) => {
+        const transitResult = odTripResult.results?.transit;
+        if (transitResult && transitResult.error === undefined) {
+            const route = transitResult.paths[0];
+            const odTrip = { ...route, expansionFactor: 1.0 };
+
+            // TODO Let's ignore handling the expansion factor for now
+            if (!odTrip.expansionFactor) {
+                odTrip.expansionFactor = 1.0;
+            }
+            if (odTrip.totalTravelTime === 0) {
+                // TODO should be a error case which would be able by the nonRoutablecase
+                // for now just warn and skip
+                console.warn('odTrip.travelTimeSeconds == 0');
+                return;
+            }
+            const userCost = odTrip.expansionFactor * this.odTripFitnessFunction(odTrip);
+            this.usersCost += userCost;
+            this.transfersCount += odTrip.expansionFactor * odTrip.numberOfTransfers;
+            this.noTransferCount += odTrip.numberOfTransfers === 0 ? odTrip.expansionFactor : 0;
+            this.routedCount += odTrip.expansionFactor;
+            this.totalCount += odTrip.expansionFactor;
+            this.totalWalkingTimeMinutes +=
+                (odTrip.expansionFactor *
+                    (odTrip.accessTravelTime + odTrip.egressTravelTime + odTrip.transferWalkingTime)) /
+                60;
+            this.totalWaitingTimeMinutes += (odTrip.expansionFactor * odTrip.totalWaitingTime) / 60;
+            this.totalTravelTimeMinutes += (odTrip.expansionFactor * odTrip.totalTravelTime) / 60;
+            this.totalRoutableUsersCost += userCost;
+
+            if (odTrip.numberOfTransfers >= 5) {
+                this.countByNumberOfTransfers[5] += odTrip.expansionFactor;
+            } else {
+                this.countByNumberOfTransfers[odTrip.numberOfTransfers] += odTrip.expansionFactor;
+            }
+        } else {
+            const expansionFactor = 1.0; //TODO Do something
+            //const userCost = expansionFactor * this.nonRoutableOdTripFitnessFunction(odTrip);
+            // TODO HANDLE THIS PROPERLY
+            console.log('No Transit found, should call nonRoutableOdTripFitnessFunction, but using constant');
+            const userCost = 100;
+            this.totalCount += expansionFactor;
+            this.nonRoutedCount += expansionFactor;
+            this.usersCost += userCost;
+            this.totalNonRoutableUsersCost += userCost;
+        }
+    };
+
+    end = () => {
+        // Nothing to finalize
+    };
+
+    getResult(): OdTripSimulationResults {
+        // TODO Simulation is done between 8 and 9 hardcoded. Maybe not hardcode this?
+        const durationHours = 1;
+
+        for (let i = 0; i < this.countByNumberOfTransfers.length; i++) {
+            this.countByNumberOfTransfers[i] = Math.round(this.countByNumberOfTransfers[i]);
+        }
+
+        // todo: update this for other modes:
+        // TODO: Get the actual number of vehicles for this scenario, may not be exactly the same as nbOfVehicles
+        const operatingHourlyCost =
+            ((this.job.attributes.data.parameters.transitRoutingAttributes as any).nbOfVehicles || 1) * 120;
+
+        return {
+            transfersCount: Math.ceil(this.transfersCount),
+            totalCount: Math.round(this.totalCount),
+            routedCount: Math.round(this.routedCount),
+            nonRoutedCount: Math.round(this.nonRoutedCount),
+            totalWalkingTimeMinutes: Math.ceil(this.totalWalkingTimeMinutes),
+            totalWaitingTimeMinutes: Math.ceil(this.totalWaitingTimeMinutes),
+            totalTravelTimeMinutes: Math.ceil(this.totalTravelTimeMinutes),
+            avgWalkingTimeMinutes: Math.round((this.totalWalkingTimeMinutes / this.routedCount) * 100) / 100,
+            avgWaitingTimeMinutes: Math.round((this.totalWaitingTimeMinutes / this.routedCount) * 100) / 100,
+            avgTravelTimeMinutes: Math.round((this.totalTravelTimeMinutes / this.routedCount) * 100) / 100,
+            avgNumberOfTransfers: Math.round((this.transfersCount / this.routedCount) * 100) / 100,
+            noTransferCount: Math.round(this.noTransferCount),
+            operatingHourlyCost: Math.round(operatingHourlyCost),
+            usersHourlyCost: Math.round(this.usersCost / durationHours),
+            routableHourlyCost: Math.round(this.totalRoutableUsersCost / durationHours),
+            nonRoutableHourlyCost: Math.round(this.totalNonRoutableUsersCost / durationHours),
+            totalTravelTimeSecondsFromTrRouting: 0, // TODO Is that used
+            countByNumberOfTransfers: this.countByNumberOfTransfers
+        };
+    }
+}
+
 /**
  * Simulate a scenario using od trips
  */
@@ -83,110 +194,6 @@ export default class OdTripSimulation implements SimulationMethod {
             ];
         this.nonRoutableOdTripFitnessFunction =
             Preferences.current.simulations.geneticAlgorithms.nonRoutableOdTripFitnessFunctions['taxi'];
-    }
-
-    private async processResults(jobid: number): Promise<OdTripSimulationResults> {
-        const totalTravelTimeSecondsFromTrRouting = 0; // TODO Is that used
-        // TODO Simulation is done between 8 and 9 hardcoded. Maybe not hardcode this?
-        const durationHours = 1;
-
-        let usersCost = 0;
-        let totalRoutableUsersCost = 0;
-        let totalNonRoutableUsersCost = 0;
-        let transfersCount = 0;
-        let totalCount = 0;
-        let routedCount = 0;
-        let nonRoutedCount = 0;
-        let noTransferCount = 0;
-        let totalWalkingTimeMinutes = 0;
-        let totalWaitingTimeMinutes = 0;
-        let totalTravelTimeMinutes = 0;
-        const countByNumberOfTransfers = new Array(6).fill(0); // max 4, last is 5+
-
-        const resultStream = resultsDbQueries.streamResults(jobid);
-
-        for await (const row of resultStream) {
-            const result = resultsDbQueries.resultParser(row);
-            const odTripResult: OdTripRouteResult = result.data;
-            const transitResult = odTripResult.results?.transit;
-            if (transitResult) {
-                const route = transitResult.paths[0];
-                const odTrip = { ...route, expansionFactor: 1.0 };
-
-                // TODO Let's ignore handling the expansion factor for now
-                if (!odTrip.expansionFactor) {
-                    odTrip.expansionFactor = 1.0;
-                }
-                if (odTrip.totalTravelTime === 0) {
-                    // TODO should be a error case which would be able by the nonRoutablecase
-                    // for now just warn and skip
-                    console.warn('odTrip.travelTimeSeconds == 0');
-                    continue;
-                }
-                const userCost = odTrip.expansionFactor * this.odTripFitnessFunction(odTrip);
-                usersCost += userCost;
-                transfersCount += odTrip.expansionFactor * odTrip.numberOfTransfers;
-                noTransferCount += odTrip.numberOfTransfers === 0 ? odTrip.expansionFactor : 0;
-                routedCount += odTrip.expansionFactor;
-                totalCount += odTrip.expansionFactor;
-                totalWalkingTimeMinutes +=
-                    (odTrip.expansionFactor *
-                        (odTrip.accessTravelTime + odTrip.egressTravelTime + odTrip.transferWalkingTime)) /
-                    60;
-                totalWaitingTimeMinutes += (odTrip.expansionFactor * odTrip.totalWaitingTime) / 60;
-                totalTravelTimeMinutes += (odTrip.expansionFactor * odTrip.totalTravelTime) / 60;
-                totalRoutableUsersCost += userCost;
-
-                if (odTrip.numberOfTransfers >= 5) {
-                    countByNumberOfTransfers[5] += odTrip.expansionFactor;
-                } else {
-                    countByNumberOfTransfers[odTrip.numberOfTransfers] += odTrip.expansionFactor;
-                }
-            } else {
-                const expansionFactor = 1.0; //TODO Do something
-                //const userCost = expansionFactor * this.nonRoutableOdTripFitnessFunction(odTrip);
-                // TODO HANDLE THIS PROPERLY
-                console.warn('No Transit found, should call nonRoutableOdTripFitnessFunction, but using constant');
-                const userCost = 100;
-                totalCount += expansionFactor;
-                nonRoutedCount += expansionFactor;
-                usersCost += userCost;
-                totalNonRoutableUsersCost += userCost;
-            }
-        }
-
-        for (let i = 0; i < countByNumberOfTransfers.length; i++) {
-            countByNumberOfTransfers[i] = Math.round(countByNumberOfTransfers[i]);
-        }
-
-        // todo: update this for other modes:
-        // TODO: Get the actual number of vehicles for this scenario, may not be exactly the same as nbOfVehicles
-        /*const operatingHourlyCost = Math.max(
-            (this.simulationDataAttributes.transitNetworkDesignParameters.nbOfVehicles || 1) * 120,
-            this.getTotalNumberOfVehicles() * 120
-        ); */
-        const operatingHourlyCost = (this.jobWrapper.parameters.transitNetworkDesignParameters.nbOfVehicles || 1) * 120;
-
-        return {
-            transfersCount: Math.ceil(transfersCount),
-            totalCount: Math.round(totalCount),
-            routedCount: Math.round(routedCount),
-            nonRoutedCount: Math.round(nonRoutedCount),
-            totalWalkingTimeMinutes: Math.ceil(totalWalkingTimeMinutes),
-            totalWaitingTimeMinutes: Math.ceil(totalWaitingTimeMinutes),
-            totalTravelTimeMinutes: Math.ceil(totalTravelTimeMinutes),
-            avgWalkingTimeMinutes: Math.round((totalWalkingTimeMinutes / routedCount) * 100) / 100,
-            avgWaitingTimeMinutes: Math.round((totalWaitingTimeMinutes / routedCount) * 100) / 100,
-            avgTravelTimeMinutes: Math.round((totalTravelTimeMinutes / routedCount) * 100) / 100,
-            avgNumberOfTransfers: Math.round((transfersCount / routedCount) * 100) / 100,
-            noTransferCount: Math.round(noTransferCount),
-            operatingHourlyCost: Math.round(operatingHourlyCost),
-            usersHourlyCost: Math.round(usersCost / durationHours),
-            routableHourlyCost: Math.round(totalRoutableUsersCost / durationHours),
-            nonRoutableHourlyCost: Math.round(totalNonRoutableUsersCost / durationHours),
-            totalTravelTimeSecondsFromTrRouting: totalTravelTimeSecondsFromTrRouting,
-            countByNumberOfTransfers
-        };
     }
 
     private async sampleOdTripFile(csvStream: ReadStream, writeStream: WriteStream): Promise<string> {
@@ -283,32 +290,37 @@ export default class OdTripSimulation implements SimulationMethod {
             }
         });
 
-        // Create the input file for the batch routing job as a random sample of the original demand file (from the currently running job)
-        await this.sampleOdTripFileForJob(routingJob);
+        try {
+            // Create the input file for the batch routing job as a random sample of the original demand file (from the currently running job)
+            await this.sampleOdTripFileForJob(routingJob);
 
-        //TODO Normally we would yeild the execution here. To let the child run. For now run it directly.
-        // I would normally do routingJob.run() here, but it was not implemented like that :P
+            //TODO Normally we would yeild the execution here. To let the child run. For now run it directly.
+            // I would normally do routingJob.run() here, but it was not implemented like that :P
 
-        // This is copied from wrapBatchRoute in `TransitionWorkerPool.ts`
-        const batchResult = await batchRoute(routingJob, {
-            // Child job needs its own progress emitter to avoid conflicts with the parent's
-            progressEmitter: new EventEmitter(),
-            isCancelled: this.jobWrapper.privexecutorOptions.isCancelled
-        });
-        const { files, ...result } = batchResult;
-        routingJob.attributes.data.results = result;
-        routingJob.attributes.resources = { files };
+            // This is copied from wrapBatchRoute in `TransitionWorkerPool.ts`
+            const batchJobExecutor = new TrRoutingBatchExecutor(routingJob, {
+                // Child job needs its own progress emitter to avoid conflicts with the parent's
+                progressEmitter: new EventEmitter(),
+                isCancelled: this.jobWrapper.privexecutorOptions.isCancelled
+            });
+            const execResults = await batchJobExecutor.run();
+            if (execResults.completed === true) {
+                // Handle results using the visitor pattern
+                const fitnessVisitor = new OdTripFitnessVisitor(
+                    routingJob,
+                    this.odTripFitnessFunction,
+                    this.nonRoutableOdTripFitnessFunction
+                );
+                const results = await batchJobExecutor.handleResults(fitnessVisitor);
+                const fitness = this.fitnessFunction(results);
 
-        // TODO Get job results somehow
-        // TODO Guessing we could transform the processResults here in some kind of result visitor and figure out a way to pass it
-        // to the TrRoutingBatch job.
-
-        const results = await this.processResults(routingJob.id);
-
-        const fitness = this.fitnessFunction(results);
-
-        routingJob.delete();
-
-        return { fitness, results };
+                return { fitness, results };
+            } else {
+                throw new Error('Batch routing job did not complete successfully');
+            }
+        } finally {
+            // Delete the child job to avoid clutter, no need to await
+            routingJob.delete();
+        }
     }
 }
