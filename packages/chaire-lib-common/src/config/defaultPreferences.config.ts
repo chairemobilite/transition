@@ -135,6 +135,9 @@ const defaultPreferences: PreferencesModel = {
         defaultColor: '#0086FF',
         classes: ['LineAndNumberOfVehiclesGASimulation'],
         geneticAlgorithms: {
+            // DEPRECATED: These functions have been moved to transition-backend's OdTripSimulationFitnessFunctions.ts
+            // They are kept here for backward compatibility but should not be used directly
+            // Use the getter functions from OdTripSimulationFitnessFunctions instead
             fitnessSorters: {
                 maximize: function (fitnessA: number, fitnessB: number) {
                     return fitnessB - fitnessA; // descendant (more chance to select candidates with high fitness)
