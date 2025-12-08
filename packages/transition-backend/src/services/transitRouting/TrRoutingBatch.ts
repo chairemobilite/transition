@@ -73,9 +73,8 @@ export const batchRoute = async (
         return {
             ...execResults,
             files: { input: job.getInputFileName() }
-        }
+        };
     }
-    
 };
 
 /**
@@ -96,9 +95,7 @@ export class TrRoutingBatchExecutor {
         this.batchManager = new TrRoutingBatchManager(options.progressEmitter);
     }
 
-    run = async (): Promise<
-        TransitBatchCalculationResult
-    > => {
+    run = async (): Promise<TransitBatchCalculationResult> => {
         try {
             // Get the odTrips to calculate
             const odTripData = await this.getOdTrips();
@@ -204,7 +201,7 @@ export class TrRoutingBatchExecutor {
                 completed: true,
                 detailed: false,
                 errors: [],
-                warnings: this.errors,
+                warnings: this.errors
             };
         } catch (error) {
             if (Array.isArray(error)) {
@@ -213,7 +210,7 @@ export class TrRoutingBatchExecutor {
                     detailed: false,
                     completed: false,
                     errors: error,
-                    warnings: [],
+                    warnings: []
                 };
             } else {
                 console.error(`Error in batch routing calculation job ${this.job.id}: ${error}`);
@@ -225,9 +222,7 @@ export class TrRoutingBatchExecutor {
         }
     };
 
-    handleResults = async <TReturnType>(
-        resultVisitor: BatchRouteResultVisitor<TReturnType>
-    ): Promise<TReturnType> => {
+    handleResults = async <TReturnType>(resultVisitor: BatchRouteResultVisitor<TReturnType>): Promise<TReturnType> => {
         // Generate the output files
         this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
 
