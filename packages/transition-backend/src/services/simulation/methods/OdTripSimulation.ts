@@ -10,6 +10,7 @@ import { unparse } from 'papaparse';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
 import {
+    OdTripSimulationDemandFromCsvAttributes,
     OdTripSimulationDescriptor,
     OdTripSimulationOptions
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod/OdTripSimulationMethod';
@@ -24,6 +25,7 @@ import { BatchRouteJobType } from '../../transitRouting/BatchRoutingJob';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { EventEmitter } from 'events';
 import { ReadStream, WriteStream } from 'fs';
+import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
 
 export const OdTripSimulationTitle = 'OdTripSimulation';
 const timeCsvColumnHeader = 'time';
@@ -239,17 +241,15 @@ export default class OdTripSimulation implements SimulationMethod {
         });
     }
 
-    private getBatchRouteDemandAttributes() {
+    private getBatchRouteDemandAttributes(): TransitDemandFromCsvRoutingAttributes {
         // Clone the demand attributes to not modify the original
-        const demandAttributes = _cloneDeep(this.options.demandAttributes);
+        const demandAttributes = _cloneDeep(this.options.demandAttributes) as OdTripSimulationDemandFromCsvAttributes;
+        const demandFieldMapping = demandAttributes.fileAndMapping.fieldMappings as TransitDemandFromCsvRoutingAttributes;
         // Add the time, time type and format to the demand attributes, as they are not defined or even required in the main job
-        demandAttributes.fileAndMapping.fieldMappings.time = timeCsvColumnHeader;
-        demandAttributes.fileAndMapping.fieldMappings.timeFormat = 'secondsSinceMidnight';
-        demandAttributes.fileAndMapping.fieldMappings.timeType = 'departure';
-        if (!demandAttributes.csvFields.includes(timeCsvColumnHeader)){
-            demandAttributes.csvFields.push(timeCsvColumnHeader);
-        }
-        return demandAttributes;
+        demandFieldMapping.time = timeCsvColumnHeader;
+        demandFieldMapping.timeFormat = 'secondsSinceMidnight';
+        demandFieldMapping.timeType = 'departure';
+        return demandFieldMapping;
     }
 
     async simulate(
@@ -283,8 +283,7 @@ export default class OdTripSimulation implements SimulationMethod {
             resources: {
                 // Input file will be prepared later
                 files: { input: `sampled_transit_demand_${scenarioId}.csv` }
-            },
-            hasOutputFiles: false //TODO Manage the result
+            }
         });
 
         // Create the input file for the batch routing job as a random sample of the original demand file (from the currently running job)

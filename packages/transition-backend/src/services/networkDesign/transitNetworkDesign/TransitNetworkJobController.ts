@@ -34,14 +34,19 @@ const createAndEnqueueEvolutionaryTransitNetworkDesignJob = async (
     // TODO Handle node weight file when supported
     // TODO Handle accessibility map simulation when supported
 
+    // FIXME For OdTripSimulation, we need to ensure the demand file is properly
+    // set in the job parameters and go from
+    // OdTripSimulationDemandFromCsvAttributes in the UI/frontend to simply
+    // OdTripSimulationFromCsvAttributes in the backend, but we need different
+    // types for the method configuration in backend and frontend to do so
+    // correctly.
     const job: EvolutionaryTransitNetworkDesignJob = await ExecutableJob.createJob({
         user_id: userId,
         name: 'evolutionaryTransitNetworkDesign',
         data: {
             parameters: jobParameters
         },
-        inputFiles,
-        hasOutputFiles: true
+        inputFiles
     });
     await job.enqueue(eventEmitter);
     await job.refresh();
