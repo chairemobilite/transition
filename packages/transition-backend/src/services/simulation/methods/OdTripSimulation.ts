@@ -7,7 +7,6 @@
 import random from 'random';
 import _cloneDeep from 'lodash/cloneDeep';
 import { unparse } from 'papaparse';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
 import {
     OdTripSimulationDemandFromCsvAttributes,
@@ -24,6 +23,15 @@ import { BatchRouteJobType, BatchRouteResultVisitor } from '../../transitRouting
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { EventEmitter } from 'events';
 import { ReadStream, WriteStream } from 'fs';
+import {
+    FitnessFunction,
+    OdTripFitnessFunction,
+    getFitnessFunction,
+    getOdTripFitnessFunction,
+    getNonRoutableOdTripFitnessFunction,
+    SimulationStats,
+    NonRoutableTripFitnessFunction
+} from './OdTripSimulationFitnessFunctions';
 import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
 
 export const OdTripSimulationTitle = 'OdTripSimulation';
@@ -31,27 +39,6 @@ const timeCsvColumnHeader = 'time';
 // Simulate trips between 8am and 9am, we do not need full day simulation for OD trip based simulation
 const simulationTimeRangeStartSeconds = 8 * 3600; // 8am
 const simulationTimeRangeEndSeconds = 9 * 3600; // 9am
-
-type OdTripSimulationResults = {
-    transfersCount: number;
-    totalCount: number;
-    routedCount: number;
-    nonRoutedCount: number;
-    totalWalkingTimeMinutes: number;
-    totalWaitingTimeMinutes: number;
-    totalTravelTimeMinutes: number;
-    avgWalkingTimeMinutes: number;
-    avgWaitingTimeMinutes: number;
-    avgTravelTimeMinutes: number;
-    avgNumberOfTransfers: number;
-    noTransferCount: number;
-    operatingHourlyCost: number;
-    usersHourlyCost: number;
-    routableHourlyCost: number;
-    nonRoutableHourlyCost: number;
-    totalTravelTimeSecondsFromTrRouting: number;
-    countByNumberOfTransfers: { [key: number]: number };
-};
 
 export class OdTripSimulationFactory implements SimulationMethodFactory<OdTripSimulationOptions> {
     getDescriptor = () => new OdTripSimulationDescriptor();
@@ -61,7 +48,7 @@ export class OdTripSimulationFactory implements SimulationMethodFactory<OdTripSi
 
 // Od trip fitness visitor to calculate simulation results
 // TODO Consider moving to its own file if it gets more complex
-export class OdTripFitnessVisitor implements BatchRouteResultVisitor<OdTripSimulationResults> {
+export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationStats> {
     private usersCost = 0;
     private totalRoutableUsersCost = 0;
     private totalNonRoutableUsersCost = 0;
@@ -77,8 +64,8 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<OdTripSimul
 
     constructor(
         private job: ExecutableJob<BatchRouteJobType>,
-        private odTripFitnessFunction: (odTrip: any) => number,
-        private nonRoutableOdTripFitnessFunction: (odTrip: any) => number
+        private odTripFitnessFunction: OdTripFitnessFunction,
+        private nonRoutableOdTripFitnessFunction: NonRoutableTripFitnessFunction
     ) {
         // Nothing to do
     }
@@ -86,44 +73,36 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<OdTripSimul
     visitTripResult = async (odTripResult: OdTripRouteResult) => {
         const transitResult = odTripResult.results?.transit;
         if (transitResult && transitResult.error === undefined) {
-            const route = transitResult.paths[0];
-            const odTrip = { ...route, expansionFactor: 1.0 };
-
             // TODO Let's ignore handling the expansion factor for now
-            if (!odTrip.expansionFactor) {
-                odTrip.expansionFactor = 1.0;
-            }
-            if (odTrip.totalTravelTime === 0) {
+            const expansionFactor = 1.0; //TODO Do something
+            const route = transitResult.paths[0];
+
+            if (route.totalTravelTime === 0) {
                 // TODO should be a error case which would be able by the nonRoutablecase
                 // for now just warn and skip
                 console.warn('odTrip.travelTimeSeconds == 0');
                 return;
             }
-            const userCost = odTrip.expansionFactor * this.odTripFitnessFunction(odTrip);
+            const userCost = expansionFactor * this.odTripFitnessFunction(route);
             this.usersCost += userCost;
-            this.transfersCount += odTrip.expansionFactor * odTrip.numberOfTransfers;
-            this.noTransferCount += odTrip.numberOfTransfers === 0 ? odTrip.expansionFactor : 0;
-            this.routedCount += odTrip.expansionFactor;
-            this.totalCount += odTrip.expansionFactor;
+            this.transfersCount += expansionFactor * route.numberOfTransfers;
+            this.noTransferCount += route.numberOfTransfers === 0 ? expansionFactor : 0;
+            this.routedCount += expansionFactor;
+            this.totalCount += expansionFactor;
             this.totalWalkingTimeMinutes +=
-                (odTrip.expansionFactor *
-                    (odTrip.accessTravelTime + odTrip.egressTravelTime + odTrip.transferWalkingTime)) /
-                60;
-            this.totalWaitingTimeMinutes += (odTrip.expansionFactor * odTrip.totalWaitingTime) / 60;
-            this.totalTravelTimeMinutes += (odTrip.expansionFactor * odTrip.totalTravelTime) / 60;
+                (expansionFactor * (route.accessTravelTime + route.egressTravelTime + route.transferWalkingTime)) / 60;
+            this.totalWaitingTimeMinutes += (expansionFactor * route.totalWaitingTime) / 60;
+            this.totalTravelTimeMinutes += (expansionFactor * route.totalTravelTime) / 60;
             this.totalRoutableUsersCost += userCost;
 
-            if (odTrip.numberOfTransfers >= 5) {
-                this.countByNumberOfTransfers[5] += odTrip.expansionFactor;
+            if (route.numberOfTransfers >= 5) {
+                this.countByNumberOfTransfers[5] += expansionFactor;
             } else {
-                this.countByNumberOfTransfers[odTrip.numberOfTransfers] += odTrip.expansionFactor;
+                this.countByNumberOfTransfers[route.numberOfTransfers] += expansionFactor;
             }
         } else {
             const expansionFactor = 1.0; //TODO Do something
-            //const userCost = expansionFactor * this.nonRoutableOdTripFitnessFunction(odTrip);
-            // TODO HANDLE THIS PROPERLY
-            console.log('No Transit found, should call nonRoutableOdTripFitnessFunction, but using constant');
-            const userCost = 100;
+            const userCost = this.nonRoutableOdTripFitnessFunction(odTripResult.results || {}) * expansionFactor;
             this.totalCount += expansionFactor;
             this.nonRoutedCount += expansionFactor;
             this.usersCost += userCost;
@@ -135,7 +114,7 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<OdTripSimul
         // Nothing to finalize
     };
 
-    getResult(): OdTripSimulationResults {
+    getResult(): SimulationStats {
         // TODO Simulation is done between 8 and 9 hardcoded. Maybe not hardcode this?
         const durationHours = 1;
 
@@ -175,25 +154,18 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<OdTripSimul
  * Simulate a scenario using od trips
  */
 export default class OdTripSimulation implements SimulationMethod {
-    private fitnessFunction: (stats: any) => number;
-    private odTripFitnessFunction: (odTrip: any) => number;
-    private nonRoutableOdTripFitnessFunction: (odTrip: any) => number;
+    private fitnessFunction: FitnessFunction;
+    private odTripFitnessFunction: OdTripFitnessFunction;
+    private nonRoutableOdTripFitnessFunction: NonRoutableTripFitnessFunction;
 
     constructor(
         private options: OdTripSimulationOptions,
         private jobWrapper: TransitNetworkDesignJobWrapper
     ) {
-        //TODO THESE NEED TO MOVE OUT OF THE PREFERENCE!!! and go into the job parameter (the choice of function, not the function itself)
-        this.fitnessFunction =
-            Preferences.current.simulations.geneticAlgorithms.fitnessFunctions[
-                options.evaluationOptions.fitnessFunction
-            ];
-        this.odTripFitnessFunction =
-            Preferences.current.simulations.geneticAlgorithms.odTripFitnessFunctions[
-                options.evaluationOptions.odTripFitnessFunction
-            ];
-        this.nonRoutableOdTripFitnessFunction =
-            Preferences.current.simulations.geneticAlgorithms.nonRoutableOdTripFitnessFunctions['taxi'];
+        // Get the fitness functions by name from the centralized module
+        this.fitnessFunction = getFitnessFunction(options.evaluationOptions.fitnessFunction);
+        this.odTripFitnessFunction = getOdTripFitnessFunction(options.evaluationOptions.odTripFitnessFunction);
+        this.nonRoutableOdTripFitnessFunction = getNonRoutableOdTripFitnessFunction('taxi');
     }
 
     private async sampleOdTripFile(csvStream: ReadStream, writeStream: WriteStream): Promise<string> {
@@ -259,7 +231,7 @@ export default class OdTripSimulation implements SimulationMethod {
         return demandFieldMapping;
     }
 
-    async simulate(scenarioId: string): Promise<{ fitness: number; results: OdTripSimulationResults }> {
+    async simulate(scenarioId: string): Promise<{ fitness: number; results: SimulationStats }> {
         // Need to build a BatchCalculationParameters for the BatchRouteJobType
         // It's composed TransitRoutingQueryAttributes plus the withGeometries, detailed flag
         // The TransitRoutingQueryAttributes is a RoutingQueryAttributes + TransitQueryAttributes
