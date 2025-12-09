@@ -28,6 +28,12 @@ export interface PreferencesModel {
             [key: string]: SectionDescription;
         };
     };
+    map?: {
+        center: [number, number];
+        zoom: number;
+        /** User's preferred base map layer */
+        preferredBaseLayer?: 'osm' | 'aerial';
+    };
     colorPicker: {
         /** Hexadecimal strings of the various colors that should be available */
         colors: string[];
@@ -42,7 +48,8 @@ const defaultPreferences: PreferencesModel = {
     dateTimeFormat: 'YYYY-MM-DD HH:mm',
     map: {
         center: [config.mapDefaultCenter.lon, config.mapDefaultCenter.lat],
-        zoom: 10
+        zoom: 10,
+        preferredBaseLayer: 'osm'
     },
     showAggregatedOdTripsLayer: true,
     socketUploadChunkSize: 10240000,
