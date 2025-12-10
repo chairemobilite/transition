@@ -77,6 +77,11 @@ accessibilityMapRequest:
       type: number
       description: Assumed walking speed, in meters per second
       example: 1.3888888888
+    calculatePois:
+      type: boolean
+      description: Whether to calculate the POIs located in the polygon and include the count in the result. Defaults to false.
+      example: true
+
 
 accessibilityMapResponseSuccess:
   type: object
@@ -224,6 +229,18 @@ accessibilityMapResultResponsePolygons:
                 type: number
                 description: The total area of the polygon, in square meters
                 example: 2309327.161000439
+              accessiblePlacesCountByCategory:
+                type: object
+                additionalProperties:
+                  type: integer
+                description: The number of POIs within the accessibility polygon (if any), separated by categories. The keys are the names of the categories defined in the PlaceCategory type, and the values are integers.
+                example: {'service': 10, 'restaurant': 5}
+              accessiblePlacesCountByDetailedCategory:
+                type: object
+                additionalProperties:
+                  type: integer
+                description: The number of POIs within the accessibility polygon (if any), separated by detailed categories. The keys are the names of the detailed categories defined in the PlaceDetailedCategory type, and the values are integers.
+                example: {'service_bank': 8, 'service_other': 2, 'restaurant_restaurant': 5}
 
 accessibilityMapResponseBadRequest:
   type: string
