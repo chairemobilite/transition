@@ -9,6 +9,10 @@ import APIResponseBase from './APIResponseBase';
 import { AccessibilityMapCalculationResult } from '../../services/routingCalculation/RoutingCalculator';
 import { Feature, MultiPolygon, Point } from 'geojson';
 import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
+import {
+    PlaceCategory,
+    PlaceDetailedCategory
+} from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
 
 type AccessibilityMapAPIQueryResponse = {
     locationGeojson: {
@@ -27,6 +31,7 @@ type AccessibilityMapAPIQueryResponse = {
     maxAccessEgressTravelTimeSeconds: number;
     maxTransferTravelTimeSeconds: number;
     walkingSpeedMps: number;
+    calculatePois: boolean;
 };
 
 type AccessibilityMapAPIResultResponse = {
@@ -39,6 +44,8 @@ type AccessibilityMapAPIResultResponse = {
             properties: {
                 durationSeconds: number;
                 areaSqM: number;
+                accessiblePlacesCountByCategory?: { [key in PlaceCategory]: number };
+                accessiblePlacesCountByDetailedCategory?: { [key in PlaceDetailedCategory]: number };
             };
         }>;
     };
@@ -80,7 +87,8 @@ export default class AccessibilityMapAPIResponse extends APIResponseBase<
             minWaitingTimeSeconds: queryParams.minWaitingTimeSeconds!,
             maxAccessEgressTravelTimeSeconds: queryParams.maxAccessEgressTravelTimeSeconds!,
             maxTransferTravelTimeSeconds: queryParams.maxTransferTravelTimeSeconds!,
-            walkingSpeedMps: queryParams.walkingSpeedMps!
+            walkingSpeedMps: queryParams.walkingSpeedMps!,
+            calculatePois: queryParams.calculatePois!
         };
     }
 
@@ -96,7 +104,10 @@ export default class AccessibilityMapAPIResponse extends APIResponseBase<
                             geometry: feature.geometry,
                             properties: {
                                 durationSeconds: feature.properties!.durationSeconds,
-                                areaSqM: feature.properties!.areaSqM
+                                areaSqM: feature.properties!.areaSqM,
+                                accessiblePlacesCountByCategory: feature.properties!.accessiblePlacesCountByCategory,
+                                accessiblePlacesCountByDetailedCategory:
+                                      feature.properties!.accessiblePlacesCountByDetailedCategory
                             }
                         }))
                     }

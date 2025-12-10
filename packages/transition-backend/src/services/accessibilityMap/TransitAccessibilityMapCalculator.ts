@@ -101,7 +101,7 @@ export const getAttributesOrDefault = (attributes: Partial<AccessibilityMapAttri
         locationColor: attributes.locationColor,
         color: attributes.color,
         placeName: attributes.placeName,
-        calculatePois: attributes.calculatePois
+        calculatePois: attributes.calculatePois || false
     };
 };
 

@@ -9,6 +9,7 @@ import express, { RequestHandler } from 'express';
 import publicRoutes from '../public.routes';
 import passport from 'passport'
 import request from 'supertest';
+import each from 'jest-each';
 import transitObjectDataHandlers from '../../services/transitObjects/TransitObjectsDataHandler';
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import tokensDbQueries from 'chaire-lib-backend/lib/models/db/tokens.db.queries';
@@ -611,6 +612,7 @@ describe('Testing API endpoints', () => {
                     maxTransferTravelTimeSeconds: 900,
                     walkingSpeedMps: 5.0 / 3.6,
                     scenarioId,
+                    calculatePois: false
                 }
             };
 
@@ -631,7 +633,10 @@ describe('Testing API endpoints', () => {
             expect(TransitAccessibilityMapRouting).toHaveBeenCalled();
         });
 
-        test('POST /api/v1/accessibility, with geojson', async () => {
+        each([
+            [true],
+            [false]
+        ]).test('POST /api/v1/accessibility, with geojson and calculatePois = %s', async (calculatePois) => {
             const calculationResult = {
                 resultByNode,
                 polygons: {
@@ -642,7 +647,9 @@ describe('Testing API endpoints', () => {
                         properties: {
                             durationSeconds: 900,
                             areaSqM: 1000,
-                            otherProperty: 'foo'
+                            otherProperty: 'foo',
+                            accessiblePlacesCountByCategory: calculatePois ? { 'service': 10 } : undefined,
+                            accessiblePlacesCountByDetailedCategory: calculatePois ? { 'service_other': 4, 'service_bank': 6 } : undefined
                         }
                     }]
                 },
@@ -653,7 +660,8 @@ describe('Testing API endpoints', () => {
             const scenarioId = 'sc1';
             const attributes = {
                 locationGeojson: { type:'Feature',geometry:{ type:'Point', coordinates: _cloneDeep(location) } },
-                scenarioId
+                scenarioId,
+                calculatePois
             };
 
             const expectedOutput = {
@@ -664,7 +672,12 @@ describe('Testing API endpoints', () => {
                         features: [{
                             type: 'Feature',
                             geometry: _cloneDeep(calculationResult.polygons.features[0].geometry),
-                            properties: {
+                            properties: calculatePois ? {
+                                durationSeconds: 900,
+                                areaSqM: 1000,
+                                accessiblePlacesCountByCategory: { 'service': 10 },
+                                accessiblePlacesCountByDetailedCategory: { 'service_other': 4, 'service_bank': 6 }
+                            } : {
                                 durationSeconds: 900,
                                 areaSqM: 1000
                             }
@@ -683,6 +696,7 @@ describe('Testing API endpoints', () => {
                     maxTransferTravelTimeSeconds: 900,
                     walkingSpeedMps: 5.0 / 3.6,
                     scenarioId,
+                    calculatePois
                 }
             };
 
