@@ -83,7 +83,7 @@ describe('getGeojsonsFromRawData', () => {
             { type: 'node' as const, id: '1234', lon: -73, lat: 45 },
             { type: 'node' as const, id: '2345', lon: -73.1, lat: 45.1, tags: { test: ['foo'], abc: ['foo', 'bar'] } }
         ]
-        expect(osmGeojsonService.getGeojsonsFromRawData(geojsonData, rawData, { generateNodesIfNotFound: true, continueOnMissingGeojson: false })).toEqual([
+        expect(osmGeojsonService.getGeojsonsFromRawData(geojsonData, rawData, { generateNodesIfNotFound: true, continueOnGeojsonError: false })).toEqual([
             {
                 geojson:
                 {

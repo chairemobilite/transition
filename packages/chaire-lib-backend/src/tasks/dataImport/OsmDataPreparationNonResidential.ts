@@ -114,11 +114,18 @@ export default class OsmDataPreparationNonResidential {
     private _geojsonOutputter: GeojsonOutputter;
     private _osmRawData: DataOsmRaw;
     private _osmGeojsonData: DataGeojson;
+    private _continueOnGeojsonError: boolean;
 
-    constructor(osmRawData: DataOsmRaw, osmGeojsonData: DataGeojson, geojsonOutputter: GeojsonOutputter) {
+    constructor(
+        osmRawData: DataOsmRaw,
+        osmGeojsonData: DataGeojson,
+        geojsonOutputter: GeojsonOutputter,
+        continueOnGeojsonError: boolean
+    ) {
         this._geojsonOutputter = geojsonOutputter;
         this._osmRawData = osmRawData;
         this._osmGeojsonData = osmGeojsonData;
+        this._continueOnGeojsonError = continueOnGeojsonError;
     }
 
     /**
@@ -156,14 +163,14 @@ export default class OsmDataPreparationNonResidential {
         const allPoIBuildings: PoiBuilding[] = osmGeojsonService.getGeojsonsFromRawData(
             this._osmGeojsonData,
             allOsmBuildings,
-            { generateNodesIfNotFound: true, continueOnMissingGeojson: true }
+            { generateNodesIfNotFound: true, continueOnGeojsonError: this._continueOnGeojsonError }
         );
 
         const allBuildingPartsRaw = this._osmRawData.queryOr(queryBuildingPartsFromOsm);
         const allBuildingParts: SingleGeoFeature[] = osmGeojsonService
             .getGeojsonsFromRawData(this._osmGeojsonData, allBuildingPartsRaw, {
                 generateNodesIfNotFound: true,
-                continueOnMissingGeojson: true
+                continueOnGeojsonError: this._continueOnGeojsonError
             })
             .map((part) => part.geojson);
 
@@ -173,7 +180,8 @@ export default class OsmDataPreparationNonResidential {
         allPoIBuildings.forEach((building, i) => {
             const entrances = getEntrancesForBuilding(building.geojson, building.raw, this._osmRawData, {
                 entranceTypes: ['main', 'shop'],
-                includeInside: true
+                includeInside: true,
+                continueOnInsideNodesUndefinedError: this._continueOnGeojsonError
             });
             building.entrances =
                 entrances.length === 0
@@ -181,7 +189,7 @@ export default class OsmDataPreparationNonResidential {
                     : osmGeojsonService
                         .getGeojsonsFromRawData(this._osmGeojsonData, entrances, {
                             generateNodesIfNotFound: true,
-                            continueOnMissingGeojson: true
+                            continueOnGeojsonError: this._continueOnGeojsonError
                         })
                         .map((entrance) => entrance.geojson as GeoJSON.Feature<GeoJSON.Point>);
             // Get building parts
@@ -204,7 +212,7 @@ export default class OsmDataPreparationNonResidential {
         const allOsmPoisGeojson = osmGeojsonService
             .getGeojsonsFromRawData(this._osmGeojsonData, allOsmPoisFeatures, {
                 generateNodesIfNotFound: true,
-                continueOnMissingGeojson: true
+                continueOnGeojsonError: this._continueOnGeojsonError
             })
             .map((poi) => poi.geojson);
 
@@ -274,7 +282,8 @@ export default class OsmDataPreparationNonResidential {
         const entrances = this.findEntranceOnFeature(poi, {
             entranceTypes: ['main'],
             includeInside: false,
-            findRoutingEntrance: false
+            findRoutingEntrance: false,
+            continueOnInsideNodesUndefinedError: this._continueOnGeojsonError
         });
         if (entrances.length > 0) {
             if (entrances.length > 1) {
@@ -287,7 +296,7 @@ export default class OsmDataPreparationNonResidential {
             return toPoi(
                 osmGeojsonService.getGeojsonsFromRawData(this._osmGeojsonData, [entrances[0]], {
                     generateNodesIfNotFound: true,
-                    continueOnMissingGeojson: false
+                    continueOnGeojsonError: this._continueOnGeojsonError
                 })[0].geojson.geometry as GeoJSON.Point,
                 poi,
                 {
@@ -361,7 +370,8 @@ export default class OsmDataPreparationNonResidential {
         const entrances = this.findEntranceOnFeature(poi, {
             entranceTypes: ['main'],
             includeInside: false,
-            findRoutingEntrance: true
+            findRoutingEntrance: true,
+            continueOnInsideNodesUndefinedError: this._continueOnGeojsonError
         });
         if (entrances.length > 0) {
             if (entrances.length > 1) {
@@ -374,7 +384,7 @@ export default class OsmDataPreparationNonResidential {
             return toPoi(
                 osmGeojsonService.getGeojsonsFromRawData(this._osmGeojsonData, [entrances[0]], {
                     generateNodesIfNotFound: true,
-                    continueOnMissingGeojson: false
+                    continueOnGeojsonError: this._continueOnGeojsonError
                 })[0].geojson.geometry as GeoJSON.Point,
                 poi,
                 {
@@ -597,7 +607,9 @@ export default class OsmDataPreparationNonResidential {
         entrances: GeoJSON.Feature<GeoJSON.Point, GeoJSON.GeoJsonProperties>[]
     ): PointOfInterest[] {
         // Find a routing entrance on the point of interest
-        const routingEntrances = this.findEntranceOnFeature(poiTag);
+        const routingEntrances = this.findEntranceOnFeature(poiTag, {
+            continueOnInsideNodesUndefinedError: this._continueOnGeojsonError
+        });
         if (routingEntrances.length > 0) {
             return toPoi({ type: 'Point', coordinates: [routingEntrances[0].lon, routingEntrances[0].lat] }, poiTag, {
                 entrance_type: 'routingEntrance'

@@ -54,6 +54,7 @@ const fileManager = new TestFileManager();
 
 class prepareOsmDataStub extends prepareOsmData {
     promptOverwriteIfExists = (absoluteFilePath, message) => new Promise<boolean>((resolve) => {resolve(true)});
+    continueOnGeojsonErrorPrompt = () => new Promise<boolean>((resolve) => {resolve(true)});
 }
 
 const task = new prepareOsmDataStub(fileManager);

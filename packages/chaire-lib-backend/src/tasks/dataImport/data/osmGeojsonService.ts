@@ -278,9 +278,9 @@ const unsplitTags = (tags: { [key: string]: string[] | undefined }): { [key: str
 const getGeojsonsFromRawData = (
     geojsonData: DataGeojson,
     features: OsmRawDataType[],
-    options: { generateNodesIfNotFound: boolean; continueOnMissingGeojson: boolean } = {
+    options: { generateNodesIfNotFound: boolean; continueOnGeojsonError: boolean } = {
         generateNodesIfNotFound: false,
-        continueOnMissingGeojson: false
+        continueOnGeojsonError: false
     }
 ): { geojson: SingleGeoFeature; raw: OsmRawDataType }[] => {
     const geojsonFeatures: { geojson: SingleGeoFeature; raw: OsmRawDataType }[] = [];
@@ -301,7 +301,7 @@ const getGeojsonsFromRawData = (
                     features[i].type,
                     features[i].id
                 );
-                if (options.continueOnMissingGeojson) {
+                if (options.continueOnGeojsonError) {
                     continue;
                 } else {
                     throw 'Missing OSM geojson';

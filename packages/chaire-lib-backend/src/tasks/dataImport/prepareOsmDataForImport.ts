@@ -9,8 +9,17 @@ import { DataStreamOsmRaw } from './data/dataOsmRaw';
 import { DataStreamGeojson } from './data/dataGeojson';
 import OsmDataPreparationResidential from './OsmDataPreparationResidential';
 import OsmDataPreparationNonResidential from './OsmDataPreparationNonResidential';
+import { confirm } from '@inquirer/prompts';
 
 export default class PrepareOsmDataForImport extends GenericDataImportTask {
+    protected async continueOnGeojsonErrorPrompt(): Promise<boolean> {
+        const continueOnGeojsonError = await confirm({
+            message: 'Skip POIs with missing or invalid GeoJSON instead of throwing an error?',
+            default: false
+        });
+        return continueOnGeojsonError;
+    }
+
     private assertDataDownloaded(dataSourceDirectory: string): void {
         if (
             !(
@@ -46,6 +55,9 @@ export default class PrepareOsmDataForImport extends GenericDataImportTask {
         const absoluteDsDir = this._importDir + dataSourceDirectory + '/';
         this.assertDataDownloaded(absoluteDsDir);
 
+        // TODO: Change this to a command line parameter instead of a prompt.
+        const continueOnGeojsonError = await this.continueOnGeojsonErrorPrompt();
+
         const osmRawData = await DataStreamOsmRaw.create(absoluteDsDir + GenericDataImportTask.OSM_RAW_DATA_FILE);
         const osmGeojsonData = await DataStreamGeojson.create(absoluteDsDir + GenericDataImportTask.OSM_GEOJSON_FILE);
 
@@ -61,7 +73,10 @@ export default class PrepareOsmDataForImport extends GenericDataImportTask {
             'Residential zones file'
         );
         if (overwriteIfExistsResEntrances || overwriteIfExistsResZones) {
-            const residentialDataPreparation = new OsmDataPreparationResidential(this._geojsonOutputter);
+            const residentialDataPreparation = new OsmDataPreparationResidential(
+                this._geojsonOutputter,
+                continueOnGeojsonError
+            );
             const { residentialEntrances, zonesWithResidences } = await residentialDataPreparation.run(
                 osmRawData,
                 osmGeojsonData
@@ -91,7 +106,8 @@ export default class PrepareOsmDataForImport extends GenericDataImportTask {
             const pointsOfInterestPreparation = new OsmDataPreparationNonResidential(
                 osmRawData,
                 osmGeojsonData,
-                this._geojsonOutputter
+                this._geojsonOutputter,
+                continueOnGeojsonError
             );
             const { pointsOfInterest } = await pointsOfInterestPreparation.run();
             this.fileManager.writeFileAbsolute(
