@@ -12,6 +12,8 @@ export type FeatureEntrancesOptions = {
     entranceTypes?: string[];
     includeInside?: boolean;
     findRoutingEntrance?: boolean;
+    // If we get a "Cannot read properties of undefined" error while in the getNodesInside() function, continue to the next node instead of throwing the error.
+    continueOnInsideNodesUndefinedError?: boolean;
 };
 
 export function getEntrancesForBuilding(
@@ -45,11 +47,26 @@ export function getEntrancesForBuilding(
 
     // Get the nodes inside this building, from osm raw data (shops can have entrances inside the building (example: shopping mall with indoor corridors)
     if (includeInside) {
-        const insideNodes = getNodesInside(buildingPolygon, osmRawData, {
-            ignoreBoundary: true,
-            onlyNodesWithEntranceTags: true,
-            onlyNodesWithTags: true
-        });
+        let insideNodes: OsmRawDataTypeNode[] = [];
+        try {
+            insideNodes = getNodesInside(buildingPolygon, osmRawData, {
+                ignoreBoundary: true,
+                onlyNodesWithEntranceTags: true,
+                onlyNodesWithTags: true
+            });
+        } catch (error) {
+            // TODO: Find the cause of the "TypeError: Cannot read properties of undefined (reading '0')". See issue https://github.com/chairemobilite/transition/issues/1646
+            const isExpectedError =
+                error instanceof TypeError && (error as Error).message.includes('Cannot read properties of undefined');
+            if (!isExpectedError || !options.continueOnInsideNodesUndefinedError) {
+                throw error;
+            }
+            console.warn(
+                'Error getting the inside nodes for building %s/%s. Check if you have the right files or verify the OSM data.',
+                building.type,
+                building.id
+            );
+        }
         nodes = boundaryNodes.concat(insideNodes);
     }
 

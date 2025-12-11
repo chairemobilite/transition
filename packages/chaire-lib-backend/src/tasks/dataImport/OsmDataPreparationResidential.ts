@@ -37,9 +37,11 @@ const queryResidentialBuildingsFromOsm = [
 export default class OsmDataPreparationResidential {
     private _hasError = false;
     private _geojsonOutputter: GeojsonOutputter;
+    private _continueOnGeojsonError: boolean;
 
-    constructor(geojsonOutputter: GeojsonOutputter) {
+    constructor(geojsonOutputter: GeojsonOutputter, continueOnGeojsonError: boolean) {
         this._geojsonOutputter = geojsonOutputter;
+        this._continueOnGeojsonError = continueOnGeojsonError;
     }
 
     private parseNumberOfFlats(building: SingleGeoFeature) {
@@ -77,7 +79,7 @@ export default class OsmDataPreparationResidential {
         const residentialBuildings = osmGeojsonService.getGeojsonsFromRawData(
             osmGeojsonData,
             allOsmResidentialBuildings,
-            { generateNodesIfNotFound: false, continueOnMissingGeojson: true }
+            { generateNodesIfNotFound: false, continueOnGeojsonError: this._continueOnGeojsonError }
         );
 
         // For each building, get its entrances
@@ -156,7 +158,8 @@ export default class OsmDataPreparationResidential {
 
         // Do we have a home or main entrance
         const entrances = getEntrancesForBuilding(building, homeObject, osmRawData, {
-            entranceTypes: ['main', 'home']
+            entranceTypes: ['main', 'home'],
+            continueOnInsideNodesUndefinedError: this._continueOnGeojsonError
         });
         if (entrances.length) {
             let flatsAssigned = 0;

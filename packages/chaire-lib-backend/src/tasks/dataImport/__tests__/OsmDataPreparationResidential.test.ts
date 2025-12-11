@@ -45,7 +45,7 @@ each([
 ]).test('Test Residential Area: %s', async (testDir) => {
     const { osmRawData, osmGeojsonData } = getData(testDir);
 
-    const residentialDataPreparation = new OsmDataPreparationResidential(new GeojsonOutputter());
+    const residentialDataPreparation = new OsmDataPreparationResidential(new GeojsonOutputter(), true);
     const { residentialEntrances, zonesWithResidences } = await residentialDataPreparation.run(
         osmRawData,
         osmGeojsonData
