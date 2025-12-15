@@ -633,6 +633,54 @@ describe('Testing API endpoints', () => {
             expect(TransitAccessibilityMapRouting).toHaveBeenCalled();
         });
 
+        test('POST /api/v1/accessibility, without geojson, with no results', async () => {
+            // Undefined results by node
+            const calculationResult = { resultByNode: undefined };
+
+            const location = [-73.567, 45.501];
+            const scenarioId = 'sc1';
+            const attributes = {
+                locationGeojson: { type:'Feature',geometry:{type:'Point',coordinates: location } },
+                scenarioId
+            };
+
+            const expectedOutput = {
+                result: {
+                    nodes: []
+                },
+                query: {
+                    // Default values for most of the query
+                    maxTotalTravelTimeSeconds: 900,
+                    numberOfPolygons: 1,
+                    deltaSeconds: 0,
+                    deltaIntervalSeconds: 60,
+                    locationGeojson: { type: 'Feature', geometry: { type: 'Point', coordinates: _cloneDeep(location) }, properties: {} },
+                    minWaitingTimeSeconds: 180,
+                    maxAccessEgressTravelTimeSeconds: 900,
+                    maxTransferTravelTimeSeconds: 900,
+                    walkingSpeedMps: 5.0 / 3.6,
+                    scenarioId,
+                    calculatePois: false
+                }
+            };
+
+            const mockTransitAccessibilityMapRouting = {
+                validate: () => true
+            };
+
+            mockedCalculateAccessibilityMap.mockResolvedValue(calculationResult);
+            (TransitAccessibilityMapRouting as any).mockImplementation(() => mockTransitAccessibilityMapRouting);
+
+            const response = await request(app)
+                .post('/api/v1/accessibility?withGeojson=false')
+                .send(attributes);
+
+            expect(response.status).toStrictEqual(200);
+            expect(response.body).toStrictEqual(expectedOutput);
+            expect(calculateAccessibilityMap).toHaveBeenCalledWith(mockTransitAccessibilityMapRouting, false);
+            expect(TransitAccessibilityMapRouting).toHaveBeenCalled();
+        });
+
         each([
             [true],
             [false]
