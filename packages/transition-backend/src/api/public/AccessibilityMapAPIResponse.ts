@@ -94,7 +94,7 @@ export default class AccessibilityMapAPIResponse extends APIResponseBase<
 
     private createResultResponse(resultParams: AccessibilityMapCalculationResult): AccessibilityMapAPIResultResponse {
         return {
-            nodes: resultParams.resultByNode!.nodes,
+            nodes: resultParams.resultByNode?.nodes ?? [],
             polygons:
                 'polygons' in resultParams
                     ? {
