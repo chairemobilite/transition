@@ -25,7 +25,7 @@ collectionManager.add('services', mockServiceCollection);
 collectionManager.add('lines', mockLineCollection);
 serviceLocator.addService('collectionManager', collectionManager);
 
-let msgErrors = {
+const msgErrors = {
     nbLinesMinNoNegative: 'transit:simulation:errors:NumberOfLinesMinNoNegative',
     nbLinesMaxNoNegative: 'transit:simulation:errors:NumberOfLinesMaxNoNegative',
     nbLinesMinHigherMax: 'transit:simulation:errors:NumberOfLinesMinHigherThanMax',
@@ -190,7 +190,7 @@ describe('Validate function for query attributes', () => {
         },
         isValid: false,
         errors: [msgErrors.maxTimeBetweenPassagesTooHigh]
-    }
+    };
 
     each([
         ['No values', empty],
@@ -215,20 +215,20 @@ describe('Validate function for query attributes', () => {
 
         expect(errors).toEqual(objTest.errors);
         expect(valid).toEqual(objTest.isValid);
-    })
+    });
 });
 
 describe('TransitNetworkDesignDescriptor', () => {
     describe('getTranslatableName', () => {
         test('should return correct i18n key', () => {
-            expect(transitNetworkDesignDescriptor.getTranslatableName()).toBe('transit:networkDesign:TransitNetworkDesignParameters');
+            expect(transitNetworkDesignDescriptor.getTranslatableName()).toBe('transit:networkDesign.TransitNetworkDesignParameters');
         });
     });
 
     describe('getOptions', () => {
         test('should return all required options', () => {
             const options = transitNetworkDesignDescriptor.getOptions();
-            
+
             expect(options).toHaveProperty('numberOfLinesMin');
             expect(options).toHaveProperty('numberOfLinesMax');
             expect(options).toHaveProperty('maxTimeBetweenPassages');
@@ -242,8 +242,8 @@ describe('TransitNetworkDesignDescriptor', () => {
         test('numberOfLinesMin should have correct configuration', () => {
             const options = transitNetworkDesignDescriptor.getOptions();
             const numberOfLinesMin = options.numberOfLinesMin;
-            
-            expect(numberOfLinesMin.i18nName).toBe('transit:networkDesign:parameters:NumberOfLinesMin');
+
+            expect(numberOfLinesMin.i18nName).toBe('transit:networkDesign.parameters.NumberOfLinesMin');
             expect(numberOfLinesMin.type).toBe('integer');
             expect(numberOfLinesMin.required).toBe(true);
             expect(numberOfLinesMin.validate).toBeDefined();
@@ -254,8 +254,8 @@ describe('TransitNetworkDesignDescriptor', () => {
         test('numberOfLinesMax should have correct configuration', () => {
             const options = transitNetworkDesignDescriptor.getOptions();
             const numberOfLinesMax = options.numberOfLinesMax;
-            
-            expect(numberOfLinesMax.i18nName).toBe('transit:networkDesign:parameters:NumberOfLinesMax');
+
+            expect(numberOfLinesMax.i18nName).toBe('transit:networkDesign.parameters.NumberOfLinesMax');
             expect(numberOfLinesMax.type).toBe('integer');
             expect(numberOfLinesMax.required).toBe(true);
             expect(numberOfLinesMax.validate).toBeDefined();
@@ -266,8 +266,8 @@ describe('TransitNetworkDesignDescriptor', () => {
         test('maxTimeBetweenPassages should have correct configuration', () => {
             const options = transitNetworkDesignDescriptor.getOptions();
             const maxTimeBetweenPassages = options.maxTimeBetweenPassages;
-            
-            expect(maxTimeBetweenPassages.i18nName).toBe('transit:networkDesign:parameters:MaxIntervalMinutes');
+
+            expect(maxTimeBetweenPassages.i18nName).toBe('transit:networkDesign.parameters.MaxIntervalMinutes');
             expect(maxTimeBetweenPassages.type).toBe('integer');
             expect(maxTimeBetweenPassages.required).toBe(true);
             expect(maxTimeBetweenPassages.default).toBe(30);
@@ -279,8 +279,8 @@ describe('TransitNetworkDesignDescriptor', () => {
         test('minTimeBetweenPassages should have correct configuration', () => {
             const options = transitNetworkDesignDescriptor.getOptions();
             const minTimeBetweenPassages = options.minTimeBetweenPassages;
-            
-            expect(minTimeBetweenPassages.i18nName).toBe('transit:networkDesign:parameters:MinIntervalMinutes');
+
+            expect(minTimeBetweenPassages.i18nName).toBe('transit:networkDesign.parameters.MinIntervalMinutes');
             expect(minTimeBetweenPassages.type).toBe('integer');
             expect(minTimeBetweenPassages.required).toBe(true);
             expect(minTimeBetweenPassages.default).toBe(5);
@@ -292,8 +292,8 @@ describe('TransitNetworkDesignDescriptor', () => {
         test('nbOfVehicles should have correct configuration', () => {
             const options = transitNetworkDesignDescriptor.getOptions();
             const nbOfVehicles = options.nbOfVehicles;
-            
-            expect(nbOfVehicles.i18nName).toBe('transit:networkDesign:parameters:VehiclesCount');
+
+            expect(nbOfVehicles.i18nName).toBe('transit:networkDesign.parameters.VehiclesCount');
             expect(nbOfVehicles.type).toBe('integer');
             expect(nbOfVehicles.required).toBe(true);
             expect(nbOfVehicles.validate).toBeDefined();
@@ -304,8 +304,8 @@ describe('TransitNetworkDesignDescriptor', () => {
         test('simulatedAgencies should have correct configuration', () => {
             const options = transitNetworkDesignDescriptor.getOptions();
             const simulatedAgencies = options.simulatedAgencies;
-            
-            expect(simulatedAgencies.i18nName).toBe('transit:networkDesign:parameters:LineSetAgencies');
+
+            expect(simulatedAgencies.i18nName).toBe('transit:networkDesign.parameters.LineSetAgencies');
             expect(simulatedAgencies.type).toBe('multiselect');
             expect(simulatedAgencies.required).toBe(true);
             expect(simulatedAgencies.choices).toBeDefined();
@@ -315,8 +315,8 @@ describe('TransitNetworkDesignDescriptor', () => {
         test('nonSimulatedServices should have correct configuration', () => {
             const options = transitNetworkDesignDescriptor.getOptions();
             const nonSimulatedServices = options.nonSimulatedServices;
-            
-            expect(nonSimulatedServices.i18nName).toBe('transit:networkDesign:parameters:NonSimulatedServices');
+
+            expect(nonSimulatedServices.i18nName).toBe('transit:networkDesign.parameters.NonSimulatedServices');
             expect(nonSimulatedServices.type).toBe('multiselect');
             expect((nonSimulatedServices as any).required).toBeUndefined();
             expect(nonSimulatedServices.choices).toBeDefined();
@@ -326,8 +326,8 @@ describe('TransitNetworkDesignDescriptor', () => {
         test('linesToKeep should have correct configuration', () => {
             const options = transitNetworkDesignDescriptor.getOptions();
             const linesToKeep = options.linesToKeep;
-            
-            expect(linesToKeep.i18nName).toBe('transit:networkDesign:parameters:KeepLines');
+
+            expect(linesToKeep.i18nName).toBe('transit:networkDesign.parameters.KeepLines');
             expect(linesToKeep.type).toBe('multiselect');
             expect((linesToKeep as any).required).toBeUndefined();
             expect(linesToKeep.choices).toBeDefined();
@@ -419,7 +419,7 @@ describe('TransitNetworkDesignDescriptor', () => {
             const mockLine1 = new Line({ id: 'line1', shortname: 'T1', name: 'Test line 1', agencyId: 'agency1' }, false);
             const mockLine2 = new Line({ id: 'line2', shortname: 'T2', name: 'Test line 2', agencyId: 'agency1' }, false);
             jest.spyOn(mockAgency1, 'getLines').mockReturnValue([mockLine1, mockLine2]);
-            
+
             const agencyCollection = new AgencyCollection([mockAgency1, mockAgency2], {});
             collectionManager.add('agencies', agencyCollection);
 
@@ -439,10 +439,10 @@ describe('TransitNetworkDesignDescriptor', () => {
             const mockLine1 = new Line({ id: 'line1', shortname: 'T1', name: 'Test line 1', agencyId: 'agency1' }, false);
             const mockLine2 = new Line({ id: 'line2', shortname: 'T2', name: 'Test line 2', agencyId: 'agency1' }, false);
             const mockLine3 = new Line({ id: 'line3', shortname: 'T3', name: 'Test line 3', agencyId: 'agency2' }, false);
-            
+
             jest.spyOn(mockAgency1, 'getLines').mockReturnValue([mockLine1, mockLine2]);
             jest.spyOn(mockAgency2, 'getLines').mockReturnValue([mockLine3]);
-            
+
             const agencyCollection = new AgencyCollection([mockAgency1, mockAgency2], {});
             collectionManager.add('agencies', agencyCollection);
 
@@ -478,7 +478,7 @@ describe('TransitNetworkDesignDescriptor', () => {
                 nonSimulatedServices: [],
                 linesToKeep: []
             };
-            
+
             const result = transitNetworkDesignDescriptor.validateOptions(validParams);
             expect(result.valid).toBe(true);
             expect(result.errors).toEqual([]);
@@ -495,7 +495,7 @@ describe('TransitNetworkDesignDescriptor', () => {
                 nonSimulatedServices: [],
                 linesToKeep: []
             };
-            
+
             const result = transitNetworkDesignDescriptor.validateOptions(invalidParams);
             expect(result.valid).toBe(false);
             expect(result.errors).toContain('transit:simulation:errors:NumberOfLinesMinNoNegative');
@@ -512,7 +512,7 @@ describe('TransitNetworkDesignDescriptor', () => {
                 nonSimulatedServices: [],
                 linesToKeep: []
             };
-            
+
             const result = transitNetworkDesignDescriptor.validateOptions(params);
             expect(result.valid).toBe(false);
             expect(result.errors).toContain('transit:simulation:errors:SimulatedAgenciesIsEmpty');

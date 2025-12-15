@@ -31,7 +31,7 @@ const collectionManager = new CollectionManager(undefined, {});
 const lineId = uuidV4();
 const loopLineId = uuidV4();
 
-const outboundPath = new Path({  
+const outboundPath = new Path({
     id          : uuidV4(),
     internal_id : 'InternalId test 1',
     is_frozen   : false,
@@ -55,12 +55,12 @@ const outboundPath = new Path({
         bar: 'foo',
         operatingTimeWithLayoverTimeSeconds: 50 * 60,
         nodeTypes: [
-            "engine",
-            "engine",
-            "engine",
-            "engine",
-            "engine",
-            "engine"
+            'engine',
+            'engine',
+            'engine',
+            'engine',
+            'engine',
+            'engine'
         ]
     }
 }, false);
@@ -73,7 +73,7 @@ const inboundPath = new Path({
     line_id     : lineId,
     name        : 'North',
     direction   : 'inbound',
-    description : "Description path 2",
+    description : 'Description path 2',
     integer_id  : 2,
     geography   : turfLineString([[-73.5, 45.4], [-73.6, 45.5], [-73.7, 45.3]]).geometry,
     nodes       : [uuidV4(), uuidV4(), uuidV4(), uuidV4(), uuidV4()],
@@ -89,16 +89,16 @@ const inboundPath = new Path({
         bar2: 'foo2',
         operatingTimeWithLayoverTimeSeconds: 55 * 60,
         nodeTypes: [
-        "manual",
-        "engine",
-        "manual",
-        "engine",
-        "manual"
+            'manual',
+            'engine',
+            'manual',
+            'engine',
+            'manual'
         ]
     }
 }, false);
 
-const loopPath = new Path({  
+const loopPath = new Path({
     id          : uuidV4(),
     internal_id : 'InternalId test 1',
     is_frozen   : false,
@@ -122,18 +122,18 @@ const loopPath = new Path({
         bar: 'foo',
         operatingTimeWithLayoverTimeSeconds: 50 * 60,
         nodeTypes: [
-            "engine",
-            "engine",
-            "engine",
-            "engine",
-            "engine",
-            "engine"
+            'engine',
+            'engine',
+            'engine',
+            'engine',
+            'engine',
+            'engine'
         ]
     }
 }, false);
 
 collectionManager.add('paths', new PathCollection([inboundPath.toGeojson(), outboundPath.toGeojson(), loopPath.toGeojson()], {}));
-const line = new Line({  
+const line = new Line({
     id                       : lineId,
     internal_id              : 'InternalId test 1',
     is_frozen                : false,
@@ -150,12 +150,12 @@ const line = new Line({
     is_autonomous            : false,
     scheduleByServiceId      : { },
     data                     : {
-      foo: 'bar',
-      bar: 'foo'
+        foo: 'bar',
+        bar: 'foo'
     }
 }, false, collectionManager);
 
-const loopLine = new Line({  
+const loopLine = new Line({
     id                       : loopLineId,
     internal_id              : 'InternalId test 1',
     is_frozen                : false,
@@ -172,12 +172,12 @@ const loopLine = new Line({
     is_autonomous            : false,
     scheduleByServiceId      : { },
     data                     : {
-      foo: 'bar',
-      bar: 'foo'
+        foo: 'bar',
+        bar: 'foo'
     }
 }, false, collectionManager);
 
-const existingService = new Service({name: 'existingService' }, false);
+const existingService = new Service({ name: 'existingService' }, false);
 const serviceCollection = new ServiceCollection([existingService], {});
 
 // Mock the job loader
@@ -192,7 +192,7 @@ const mockJobAttributes = {
     internal_data: {},
     data: {
         parameters: {
-            
+
         } as Partial<EvolutionaryTransitNetworkDesignJobParameters>
     },
     resources: {
@@ -207,14 +207,14 @@ const getJobExecutor = async (parameters: Partial<EvolutionaryTransitNetworkDesi
     testJobParameters.data.parameters = parameters;
     mockJobsDbQueries.read.mockResolvedValueOnce(testJobParameters);
     const job = await ExecutableJob.loadTask(1);
-    
+
     // Use the mock executor instead of the real one
     return createMockJobExecutor(job as ExecutableJob<EvolutionaryTransitNetworkDesignJobType>);
-}
+};
 
 beforeEach(() => {
     mockedScheduleGeneration.mockClear();
-})
+});
 
 describe('Test with a single line', () => {
 
@@ -259,7 +259,14 @@ describe('Test with a single line', () => {
                             filename: '',
                             uploadFilename: ''
                         },
-                        fieldMappings: {}
+                        fieldMappings: {
+                            id: '',
+                            originLat: '',
+                            originLon: '',
+                            destinationLat: '',
+                            destinationLon: '',
+                            projection: ''
+                        }
                     },
                     csvFields: []
                 },
@@ -281,7 +288,7 @@ describe('Test with a single line', () => {
             }
         }
     };
-    
+
     const defaultTripAttributes = {
         schedule_id: uuidV4(),
         schedule_period_id: uuidV4(),
@@ -369,7 +376,7 @@ describe('Test with a single line', () => {
 
     test('Generate services for one line, inbound, outbound, service already exists', async() => {
         const lineCollection = new LineCollection([line], {});
-        const existingService = new Service({name: `networkDesign_${line.toString()}_2`, data: { forJob: jobId } }, false);
+        const existingService = new Service({ name: `networkDesign_${line.toString()}_2`, data: { forJob: jobId } }, false);
         const serviceCollection = new ServiceCollection([existingService], {});
 
         // time between trips too high, inbound/outbound trips
@@ -483,7 +490,7 @@ describe('Test with a single line', () => {
         expect(mockedScheduleGeneration).toHaveBeenCalledTimes(3);
         // One existing service + 1 new
         expect(services.getFeatures().length).toEqual(2);
-        
+
         expect(lineServices[loopLine.getId()]).toBeDefined();
         expect(Object.keys(lineServices).length).toEqual(1);
 

@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { ErrorMessage } from "chaire-lib-common/lib/utils/TrError";
-import { SimulationAlgorithmDescriptor } from "./TransitNetworkDesignAlgorithm";
+import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { SimulationAlgorithmDescriptor } from './TransitNetworkDesignAlgorithm';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Agency from "../../agency/Agency";
-import Service from "../../service/Service";
-import Line from "../../line/Line";
+import Agency from '../../agency/Agency';
+import Service from '../../service/Service';
+import Line from '../../line/Line';
 
 export type TransitNetworkDesignParameters = {
     /** Maximum number of minutes between passages */
@@ -49,7 +49,7 @@ export const validateTransitNetworkDesignParameters = (
             valid = false;
             errors.push('transit:simulation:errors:NumberOfLinesMinNoNegative');
         }
-    } 
+    }
     const numberOfLinesMax = parameters.numberOfLinesMax;
     if (numberOfLinesMax !== undefined) {
         if (numberOfLinesMax < 0) {
@@ -104,7 +104,6 @@ export const validateTransitNetworkDesignParameters = (
 };
 
 export class TransitNetworkDesignDescriptor implements SimulationAlgorithmDescriptor<TransitNetworkDesignParameters> {
-    
     getTranslatableName(): string {
         return 'transit:networkDesign.TransitNetworkDesignParameters';
     }
@@ -150,33 +149,38 @@ export class TransitNetworkDesignDescriptor implements SimulationAlgorithmDescri
                 i18nHelp: 'transit:networkDesign.parameters.help.LineSetAgencies',
                 type: 'multiselect' as const,
                 required: true,
-                choices: () => 
-                    serviceLocator.collectionManager.get('agencies')?.getFeatures().map((agency: Agency) => ({
-                        value: agency.getId(),
-                        label: agency.toString()
-                    })) || []
+                choices: () =>
+                    serviceLocator.collectionManager
+                        .get('agencies')
+                        ?.getFeatures()
+                        .map((agency: Agency) => ({
+                            value: agency.getId(),
+                            label: agency.toString()
+                        })) || []
             },
             nonSimulatedServices: {
                 i18nName: 'transit:networkDesign.parameters.NonSimulatedServices',
                 i18nHelp: 'transit:networkDesign.parameters.help.NonSimulatedServices',
                 type: 'multiselect' as const,
-                choices: () => 
-                    serviceLocator.collectionManager.get('services')?.getFeatures().map((service: Service) => ({
-                        value: service.getId(),
-                        label: service.attributes.name || service.getId()
-                    })) || []
-                
+                choices: () =>
+                    serviceLocator.collectionManager
+                        .get('services')
+                        ?.getFeatures()
+                        .map((service: Service) => ({
+                            value: service.getId(),
+                            label: service.attributes.name || service.getId()
+                        })) || []
             },
             linesToKeep: {
                 i18nName: 'transit:networkDesign.parameters.KeepLines',
                 i18nHelp: 'transit:networkDesign.parameters.help.KeepLines',
                 type: 'multiselect' as const,
                 choices: (object: Record<string, unknown>) => {
-                    const agencyCollection = serviceLocator.collectionManager.get('agencies')
+                    const agencyCollection = serviceLocator.collectionManager.get('agencies');
                     if (!agencyCollection) {
                         return [];
                     }
-                    const simulatedAgencies: string[] = object.simulatedAgencies as string[] || [];
+                    const simulatedAgencies: string[] = (object.simulatedAgencies as string[]) || [];
                     return simulatedAgencies.flatMap((agencyId: string) => {
                         const agency: Agency | undefined = agencyCollection?.getById(agencyId);
                         if (!agency) {
