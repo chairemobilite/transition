@@ -4,10 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import type { MapLayerMouseEvent, MapMouseEvent } from 'maplibre-gl';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import { MapWithCustomEventsState } from 'chaire-lib-frontend/lib/services/map/MapWithCustomEventsState';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import { setDraggingCursor, resetDraggingCursor } from '../MapCursorHelper';
 
 /* This file encapsulates map events specific for the 'routing' section */
 
@@ -16,12 +18,12 @@ const isRoutingActiveSection = (activeSection: string) => {
     return activeSection === 'routing' || activeSection === 'comparison';
 };
 
-const onRoutingSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
+const onRoutingSectionMapClick = (e: MapMouseEvent) => {
     serviceLocator.eventManager.emit('routing.transit.clickedOnMap', e.lngLat.toArray());
     e.originalEvent.stopPropagation();
 };
 
-const onRoutingPointMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
+const onRoutingPointMouseDown = (e: MapLayerMouseEvent) => {
     const features = e.features;
     if (!features || features.length === 0) {
         return;
@@ -29,18 +31,19 @@ const onRoutingPointMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
     // start drag:
     if (e.features && e.features[0]) {
         const feature = e.features[0];
-        const map = e.target as any;
+        const map = e.target as MapWithCustomEventsState;
         const location = feature.properties?.location;
         if (location) {
             // TODO Do not hardcode those strings
             map._currentDraggingFeature = location === 'origin' ? 'routingOrigin' : 'routingDestination';
             serviceLocator.eventManager.emit('map.disableDragPan');
+            setDraggingCursor();
         }
     }
 };
 
-const onRoutingPointMouseUp = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
+const onRoutingPointMouseUp = (e: MapMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
     if (map._currentDraggingFeature === 'routingOrigin' || map._currentDraggingFeature === 'routingDestination') {
         serviceLocator.eventManager.emit(
             map._currentDraggingFeature === 'routingOrigin'
@@ -49,12 +52,13 @@ const onRoutingPointMouseUp = (e: MapboxGL.MapMouseEvent) => {
             e.lngLat.toArray()
         );
         map._currentDraggingFeature = null;
+        resetDraggingCursor();
         serviceLocator.eventManager.emit('map.enableDragPan');
     }
 };
 
-const onRoutingPointMouseMove = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
+const onRoutingPointMouseMove = (e: MapMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
     if (map._currentDraggingFeature === 'routingOrigin') {
         serviceLocator.eventManager.emit('routing.transit.dragOrigin', e.lngLat.toArray());
         e.originalEvent.stopPropagation();
@@ -64,7 +68,7 @@ const onRoutingPointMouseMove = (e: MapboxGL.MapMouseEvent) => {
     }
 };
 
-const onRoutingSectionContextMenu = (e: MapboxGL.MapMouseEvent) => {
+const onRoutingSectionContextMenu = (e: MapMouseEvent) => {
     serviceLocator.eventManager.emit('map.showContextMenu', e, [
         {
             title: 'transit:transitRouting:contextMenu:SetAsOrigin',

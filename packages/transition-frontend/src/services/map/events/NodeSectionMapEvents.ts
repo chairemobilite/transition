@@ -4,14 +4,19 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import type { MapMouseEvent, MapLayerMouseEvent } from 'maplibre-gl';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import { MapWithCustomEventsState } from 'chaire-lib-frontend/lib/services/map/MapWithCustomEventsState';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitNode from 'transition-common/lib/services/nodes/Node';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import { setDraggingCursor, resetDraggingCursor } from '../MapCursorHelper';
 
 /* This file encapsulates map events specific for the 'nodes' section */
+
+// Click tolerance in pixels for node detection
+const CLICK_TOLERANCE = 5;
 
 const isNodeActiveSection = (activeSection: string) => activeSection === 'nodes';
 
@@ -20,16 +25,21 @@ const isNodeActiveSection = (activeSection: string) => activeSection === 'nodes'
 // TODO Original code in click.events.js had a _draggingEventsOrder check. Is
 // it still needed? If we have problems, there should be an event handler of
 // higher priority to check it before running any other
-const onNodeSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
+const onNodeSectionMapClick = (e: MapMouseEvent) => {
     const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
     const selectedNode = serviceLocator.selectedObjectsManager.getSingleSelection('node');
+    const isDrawPolygon = serviceLocator.selectedObjectsManager.getSelection('isDrawPolygon');
+
     // Ignore the event if there is a multiple selection
     if (selectedNodes && selectedNodes.length > 0) return;
 
+    // Ignore the event if we are in polygon drawing mode
+    if (isDrawPolygon && isDrawPolygon.length > 0 && isDrawPolygon[0] === true) return;
+
     const features = e.target.queryRenderedFeatures(
         [
-            [e.point.x - 1, e.point.y - 1],
-            [e.point.x + 1, e.point.y + 1]
+            [e.point.x - CLICK_TOLERANCE, e.point.y - CLICK_TOLERANCE],
+            [e.point.x + CLICK_TOLERANCE, e.point.y + CLICK_TOLERANCE]
         ],
         { layers: ['transitNodes'] }
     );
@@ -81,7 +91,7 @@ const onNodeSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
     e.originalEvent.stopPropagation();
 };
 
-const onSelectedNodeMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
+const onSelectedNodeMouseDown = (e: MapLayerMouseEvent) => {
     const features = e.features;
     if (!features || features.length === 0) {
         return;
@@ -93,32 +103,34 @@ const onSelectedNodeMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
         e.features[0].properties?.id === selectedNode.get('id') &&
         selectedNode.get('is_frozen') !== true
     ) {
-        // TODO Adding a custom field to the map. Legal, but not clean... figure out how to do this, implementation-independent
-        const map = e.target as any;
+        const map = e.target as MapWithCustomEventsState;
         serviceLocator.eventManager.emit('map.disableDragPan');
         map._currentDraggingFeature = 'node';
+        setDraggingCursor();
     }
 };
 
-const onSelectedNodeMouseUp = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
+const onSelectedNodeMouseUp = (e: MapMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
     // stop drag if on edit node:
     if (map._currentDraggingFeature === 'node') {
         serviceLocator.eventManager.emit('selected.dragEnd.node', e.lngLat.toArray());
         map._currentDraggingFeature = null;
+        serviceLocator.eventManager.emit('map.enableDragPan');
+        resetDraggingCursor();
         e.originalEvent.stopPropagation();
     }
 };
 
-const onSelectedNodeMouseMove = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
+const onSelectedNodeMouseMove = (e: MapMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
     if (map._currentDraggingFeature === 'node') {
         serviceLocator.eventManager.emit('selected.drag.node', e.lngLat.toArray());
         e.originalEvent.stopPropagation();
     }
 };
 
-const onNodeSectionContextMenu = (e: MapboxGL.MapMouseEvent) => {
+const onNodeSectionContextMenu = (e: MapMouseEvent) => {
     const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
     const menu: { title: string; onClick: () => void }[] = [];
 

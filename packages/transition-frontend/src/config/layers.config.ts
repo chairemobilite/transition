@@ -5,6 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
+/** Minimum zoom level for waypoint visibility and operations */
+export const WAYPOINT_MIN_ZOOM = 14;
+
 // Define which layers should be visible for each section
 export const sectionLayers = {
     simulations: ['aggregatedOD', 'odTripsProfile', 'transitStations', 'transitNodes'],
@@ -15,11 +18,11 @@ export const sectionLayers = {
         'transitStationsSelected',
         'transitPaths',
         'transitPathsSelected',
-        'transitPathWaypoints',
-        'transitPathWaypointsSelected',
         'transitNodes',
         'transitNodesSelected',
         'transitNodesSelectedErrors',
+        'transitPathWaypoints',
+        'transitPathWaypointsSelected',
         'transitPathWaypointsErrors'
     ],
     nodes: [
@@ -66,10 +69,10 @@ export const sectionLayers = {
         'transitStationsSelected',
         'transitPaths',
         'transitPathsSelected',
-        'transitPathWaypoints',
-        'transitPathWaypointsSelected',
         'transitNodes',
-        'transitNodesSelected'
+        'transitNodesSelected',
+        'transitPathWaypoints',
+        'transitPathWaypointsSelected'
     ],
     gtfsExport: [
         'aggregatedOD',
@@ -78,10 +81,10 @@ export const sectionLayers = {
         'transitStationsSelected',
         'transitPaths',
         'transitPathsSelected',
-        'transitPathWaypoints',
-        'transitPathWaypointsSelected',
         'transitNodes',
-        'transitNodesSelected'
+        'transitNodesSelected',
+        'transitPathWaypoints',
+        'transitPathWaypointsSelected'
     ]
 };
 
@@ -191,11 +194,12 @@ const layersConfig = {
     },
 
     routingPaths: {
-        repaint: true,
         type: 'line',
         layout: {
             'line-join': 'round',
             'line-cap': 'round'
+            // Note: Layer has near-zero opacity so it can receive mouse events and be queried
+            // by queryRenderedFeatures for click detection. deck.gl renders the visible animation.
         },
         'custom-shader': 'lineArrow',
         paint: {
@@ -203,7 +207,8 @@ const layersConfig = {
                 property: 'color',
                 type: 'identity'
             },
-            'line-opacity': 1.0,
+            // Near-zero opacity to receive mouse events while deck.gl handles visual rendering
+            'line-opacity': 0.01,
             'line-width': {
                 base: 3,
                 stops: [
@@ -240,11 +245,12 @@ const layersConfig = {
     // Identical to the routingPaths layers
     // Used to display 2 paths at once on the map
     routingPathsAlternate: {
-        repaint: true,
         type: 'line',
         layout: {
             'line-join': 'round',
             'line-cap': 'round'
+            // Note: Layer has near-zero opacity so it can receive mouse events and be queried
+            // by queryRenderedFeatures for click detection. deck.gl renders the visible animation.
         },
         'custom-shader': 'lineArrow',
         paint: {
@@ -252,7 +258,8 @@ const layersConfig = {
                 property: 'color',
                 type: 'identity'
             },
-            'line-opacity': 1.0,
+            // Near-zero opacity to receive mouse events while deck.gl handles visual rendering
+            'line-opacity': 0.01,
             'line-width': {
                 base: 3,
                 stops: [
@@ -314,16 +321,7 @@ const layersConfig = {
                 property: 'color',
                 type: 'identity'
             },
-            'line-opacity': 0.8 /*{ // not working???
-        'base': 0,
-        'stops': [
-          [0, 0.0],
-          [7, 0.05],
-          [10, 0.2],
-          [15, 0.5],
-          [20, 0.8]
-        ]
-      }*/,
+            'line-opacity': 0.8,
             'line-width': ['case', ['boolean', ['feature-state', 'hover'], false], 6, 2]
         }
     },
@@ -433,7 +431,6 @@ const layersConfig = {
 
     transitPathsHoverStroke: {
         type: 'line',
-        repaint: true,
         layout: {
             'line-join': 'miter',
             'line-cap': 'butt'
@@ -463,15 +460,15 @@ const layersConfig = {
 
     transitPathsSelected: {
         type: 'line',
-        repaint: true,
         //"shaders": [transitPathsSelectedFragmentShader, transitPathsSelectedVertexShader],
         layout: {
             'line-join': 'miter',
             'line-cap': 'butt'
+            // Note: Layer has near-zero opacity so it can receive mouse events and be queried
+            // by queryRenderedFeatures for click detection. deck.gl renders the visible animation.
         },
         'custom-shader': 'lineArrow',
         paint: {
-            //"line-arrow": true,
             'line-offset': {
                 base: 1,
                 stops: [
@@ -480,38 +477,33 @@ const layersConfig = {
                     [20, 20]
                 ]
             },
-            //"line-color": "rgba(0,0,255,1.0)",
             'line-color': {
                 property: 'color',
                 type: 'identity'
             },
-            'line-opacity': 1.0,
+            // Near-zero opacity to receive mouse events while deck.gl handles visual rendering
+            // Must be non-zero for MapLibre to fire mouseenter/mouseleave events
+            'line-opacity': 0.01,
+            // Width is larger than the deck.gl animated layer (12px) to make hover detection easier
             'line-width': {
                 base: 1,
                 stops: [
-                    [6, 5],
-                    [12, 7],
-                    [13, 9]
+                    [6, 16],
+                    [12, 24],
+                    [13, 28]
                 ]
-            } //,
-            //'line-gradient': [
-            //  'interpolate',
-            //  ['linear'],
-            //  ['line-progress'],
-            //  0, "blue",
-            //  1.0, "red"
-            //]
+            }
         }
     },
 
     transitPathWaypoints: {
         type: 'circle',
+        minzoom: WAYPOINT_MIN_ZOOM,
         paint: {
             'circle-radius': {
                 base: 1,
                 stops: [
-                    [5, 1],
-                    [10, 2],
+                    [12, 2],
                     [15, 5]
                 ]
             },
@@ -520,8 +512,6 @@ const layersConfig = {
             'circle-stroke-width': {
                 base: 1,
                 stops: [
-                    [5, 1],
-                    [11, 1],
                     [12, 2],
                     [14, 2],
                     [15, 3]
@@ -534,12 +524,12 @@ const layersConfig = {
 
     transitPathWaypointsSelected: {
         type: 'circle',
+        minzoom: WAYPOINT_MIN_ZOOM,
         paint: {
             'circle-radius': {
                 base: 1,
                 stops: [
-                    [5, 1],
-                    [10, 3],
+                    [12, 3],
                     [15, 6]
                 ]
             },
@@ -548,8 +538,6 @@ const layersConfig = {
             'circle-stroke-width': {
                 base: 1,
                 stops: [
-                    [5, 1],
-                    [11, 1],
                     [12, 2],
                     [14, 2],
                     [15, 3]
@@ -562,12 +550,12 @@ const layersConfig = {
 
     transitPathWaypointsErrors: {
         type: 'circle',
+        minzoom: WAYPOINT_MIN_ZOOM,
         paint: {
             'circle-radius': {
                 base: 1,
                 stops: [
-                    [5, 1],
-                    [10, 2],
+                    [12, 2],
                     [15, 5]
                 ]
             },
@@ -575,8 +563,6 @@ const layersConfig = {
             'circle-stroke-width': {
                 base: 1,
                 stops: [
-                    [5, 2],
-                    [11, 2],
                     [12, 4],
                     [14, 4],
                     [15, 6]
@@ -777,11 +763,11 @@ const layersConfig = {
                 0,
                 ['*', ['number', ['feature-state', 'size'], 1], 0],
                 10,
-                ['*', ['number', ['feature-state', 'size'], 1], 1.5],
+                ['*', ['number', ['feature-state', 'size'], 1], 1],
                 15,
-                ['*', ['number', ['feature-state', 'size'], 1], 8],
+                ['*', ['number', ['feature-state', 'size'], 1], 5],
                 20,
-                ['*', ['number', ['feature-state', 'size'], 1], 15]
+                ['*', ['number', ['feature-state', 'size'], 1], 10]
             ],
             'circle-color': {
                 property: 'color',
@@ -805,11 +791,11 @@ const layersConfig = {
                 0,
                 ['*', ['number', ['feature-state', 'size'], 1], 0],
                 10,
-                ['*', ['number', ['feature-state', 'size'], 1], 0.2],
+                ['*', ['number', ['feature-state', 'size'], 1], 0.15],
                 15,
-                ['*', ['number', ['feature-state', 'size'], 1], 3],
+                ['*', ['number', ['feature-state', 'size'], 1], 2],
                 20,
-                ['*', ['number', ['feature-state', 'size'], 1], 5]
+                ['*', ['number', ['feature-state', 'size'], 1], 3]
             ],
             'circle-stroke-opacity': [
                 'interpolate',
@@ -901,15 +887,14 @@ const layersConfig = {
     transitNodesSelected: {
         type: 'circle',
         'custom-shader': 'circleSpinner',
-        repaint: true,
         paint: {
-            'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 0, 0, 10, 2, 15, 12, 20, 23],
+            'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 0, 0, 10, 1.5, 15, 6, 20, 12],
             'circle-color': {
                 property: 'color',
                 type: 'identity'
             },
             'circle-opacity': 1.0,
-            'circle-stroke-width': ['interpolate', ['exponential', 2], ['zoom'], 0, 0, 10, 0.5, 15, 5, 20, 8],
+            'circle-stroke-width': ['interpolate', ['exponential', 2], ['zoom'], 0, 0, 10, 0.5, 15, 2, 20, 3],
             'circle-stroke-opacity': 1.0,
             'circle-stroke-color': 'rgba(255,255,255,1.0)'
         }
@@ -990,6 +975,27 @@ const layersConfig = {
                 type: 'identity'
             }
         }
+    }
+};
+
+/**
+ * GeoJSON source for the semi-transparent black overlay that improves visibility
+ * of transit layers over the base map.
+ */
+export const overlaySource: GeoJSON.Feature<GeoJSON.Polygon> = {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+        type: 'Polygon',
+        coordinates: [
+            [
+                [-180, -90],
+                [180, -90],
+                [180, 90],
+                [-180, 90],
+                [-180, -90]
+            ]
+        ]
     }
 };
 

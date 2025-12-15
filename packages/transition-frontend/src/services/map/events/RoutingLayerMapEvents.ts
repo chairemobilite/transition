@@ -5,18 +5,19 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 /** This file encapsulates map events that apply to the routingPoints layer, in any section */
-import MapboxGL from 'mapbox-gl';
+import type { MapLayerMouseEvent } from 'maplibre-gl';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import { setPointerCursor, resetCursor } from '../MapCursorHelper';
 
-const onRoutingPointMouseEnter = (e: MapboxGL.MapLayerMouseEvent) => {
+const onRoutingPointMouseEnter = (e: MapLayerMouseEvent) => {
     if (e.features && e.features[0]) {
-        e.target.getCanvas().style.cursor = 'pointer';
+        setPointerCursor();
     }
 };
 
-const onRoutingPointMouseLeave = (e: MapboxGL.MapLayerMouseEvent) => {
-    e.target.getCanvas().style.cursor = '';
+const onRoutingPointMouseLeave = (_e: MapLayerMouseEvent) => {
+    resetCursor();
 };
 
 const nodeLayerEventDescriptors: MapEventHandlerDescription[] = [

@@ -1,12 +1,25 @@
 @use "~chaire-lib-frontend/lib/styles/settings";
 @use "jobTables";
 
+// Map cursor overrides - use !important to override Deck.gl's getCursor
+// Classes are managed by MapCursorHelper.ts
+#tr__main-map {
+    &.cursor-pointer .maplibregl-canvas {
+        cursor: pointer !important;
+    }
+
+    &.cursor-grabbing .maplibregl-canvas {
+        cursor: grabbing !important;
+    }
+}
+
 // Map controls dropdown menu
 .tr__map-controls {
     position: relative;
 }
-  
-.tr__map-controls-button {
+
+.tr__map-controls-button,
+.maplibregl-control-container button {
     background: #fff;
     border: 0;
     cursor: pointer;
@@ -15,40 +28,63 @@
     justify-content: center;
     width: 1.875rem;
     height: 1.875rem;
-    padding: 0;
-}
-  
-.tr__map-controls-button .fa-cog {
     font-size: 2rem;
+    padding: 0.2rem;
+    color: rgba(0, 0, 0, 0.7);
 }
-  
+
+.maplibregl-control-container button.active:hover,
+.maplibregl-control-container button.active {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
 .tr__map-controls-dropdown {
     position: absolute;
-    padding: 0.5rem;
     top: 3.2rem;
     right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     background: #fff;
     border-radius: 0.25rem;
-    box-shadow: 0 0 0.625rem rgba(0,0,0,0.1);
+    box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.1);
     z-index: 1;
     overflow: hidden;
+    width: min(20rem, 95vw);
+
+    p {
+        margin: 0;
+    }
 }
-  
+
+.tr__map-controls-dropdown-group-title {
+    padding: 1.2rem 0.4rem 0.2rem 0.4rem;
+    font-style: italic;
+    color: rgba(0, 0, 0, 0.5);
+    user-select: none;
+    pointer-events: none;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
 .tr__map-controls-dropdown-item {
-    background: none;
-    padding: 0;
+    background: transparent;
+    padding: 0.2rem 0.4rem;
     border: none;
-    text-align: right;
     cursor: pointer;
     color: #333;
-    border-bottom: 1px solid #eee;
-    width: max-content !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+    &._active {
+        font-weight: bold;
+        background-color: rgb(184, 214, 255);
+    }
 }
-  
-.tr__map-controls-dropdown-item:hover {
-    background-color: #f5f5f5;
-}
-  
+
 .tr__map-controls-dropdown-item:last-child {
     border-bottom: none;
+}
+
+.tr__map-controls-dropdown-item:hover,
+.tr__map-controls-dropdown-item:focus-visible {
+    background-color: rgba(0, 0, 0, 0.3);
 }
