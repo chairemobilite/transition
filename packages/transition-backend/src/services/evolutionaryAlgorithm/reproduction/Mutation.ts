@@ -7,7 +7,6 @@
 import _cloneDeep from 'lodash/cloneDeep';
 import random from 'random';
 
-import * as AlgoTypes from '../internalTypes';
 import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
 
 const mutate = (oldGene: boolean) => !oldGene;
