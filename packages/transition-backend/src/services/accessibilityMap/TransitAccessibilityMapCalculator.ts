@@ -192,7 +192,7 @@ export class TransitAccessibilityMapCalculator {
             const routingResults = promiseResults
                 .map((promiseResult, index) => {
                     if (promiseResult.status === 'rejected') {
-                        // TODO Return something for no routing found?
+                        // TODO Return something for no routing found? See https://github.com/chairemobilite/transition/issues/1681
                         return undefined;
                     }
                     const routingResult = promiseResult.value;
