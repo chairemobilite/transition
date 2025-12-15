@@ -21,7 +21,6 @@ export interface ConfigureNetworkDesignParametersFormProps {
 const ConfigureNetworkDesignParametersForm: React.FunctionComponent<ConfigureNetworkDesignParametersFormProps> = (
     props: ConfigureNetworkDesignParametersFormProps
 ) => {
-
     return (
         <div className="tr__form-section">
             <OptionsEditComponent

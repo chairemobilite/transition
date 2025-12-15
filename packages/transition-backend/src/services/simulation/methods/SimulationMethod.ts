@@ -6,7 +6,10 @@
  */
 import { SimulationAlgorithmDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
-import { SimulationMethodRegistry, SimulationMethodType } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
+import {
+    SimulationMethodRegistry,
+    SimulationMethodType
+} from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 import { OdTripSimulationFactory } from './OdTripSimulation';
 import { AccessibilityMapSimulationFactory } from './AccessibilityMapSimulation';
 
@@ -19,9 +22,7 @@ import { AccessibilityMapSimulationFactory } from './AccessibilityMapSimulation'
  * generic
  */
 export interface SimulationMethod {
-    simulate: (
-        scenarioId: string
-    ) => Promise<{ fitness: number; results: unknown }>;
+    simulate: (scenarioId: string) => Promise<{ fitness: number; results: unknown }>;
 }
 
 /**
