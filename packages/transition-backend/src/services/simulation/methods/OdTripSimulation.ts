@@ -117,7 +117,7 @@ export default class OdTripSimulation implements SimulationMethod {
                 if (!odTrip.expansionFactor) {
                     odTrip.expansionFactor = 1.0;
                 }
-                if (odTrip.totalTravelTime == 0) {
+                if (odTrip.totalTravelTime === 0) {
                     // TODO should be a error case which would be able by the nonRoutablecase
                     // for now just warn and skip
                     console.warn('odTrip.travelTimeSeconds == 0');
@@ -290,11 +290,12 @@ export default class OdTripSimulation implements SimulationMethod {
         // I would normally do routingJob.run() here, but it was not implemented like that :P
 
         // This is copied from wrapBatchRoute in `TransitionWorkerPool.ts`
-        const { files, errors, warnings, ...result } = await batchRoute(routingJob, {
+        const batchResult = await batchRoute(routingJob, {
             // Child job needs its own progress emitter to avoid conflicts with the parent's
             progressEmitter: new EventEmitter(),
             isCancelled: this.jobWrapper.privexecutorOptions.isCancelled
         });
+        const { files, ...result } = batchResult;
         routingJob.attributes.data.results = result;
         routingJob.attributes.resources = { files };
 
