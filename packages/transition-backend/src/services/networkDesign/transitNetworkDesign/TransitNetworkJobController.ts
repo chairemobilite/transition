@@ -15,6 +15,7 @@ import { TransitNetworkJobConfigurationType } from 'transition-common/lib/servic
 import { fileKey } from 'transition-common/lib/services/jobs/Job';
 import { EvolutionaryTransitNetworkDesignJobParameters } from './evolutionary/types';
 import { ExecutableJobUtils } from '../../executableJob/ExecutableJobUtils';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const createAndEnqueueEvolutionaryTransitNetworkDesignJob = async (
     jobParameters: EvolutionaryTransitNetworkDesignJobParameters,
@@ -32,6 +33,12 @@ const createAndEnqueueEvolutionaryTransitNetworkDesignJob = async (
         const csvFile = jobParameters.simulationMethod.config.demandAttributes?.fileAndMapping.csvFile;
         if (csvFile) {
             inputFiles.transitDemand = await ExecutableJobUtils.prepareJobFiles(csvFile, userId);
+        } else {
+            throw new TrError(
+                'Missing demand csv file',
+                'TRJOBC0001',
+                'transit:networkDesign.errors.MissingDemandCsvFile'
+            );
         }
     }
     // TODO Handle node weight file when supported
