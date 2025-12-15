@@ -105,7 +105,14 @@ const defaultJobParameters: EvolutionaryTransitNetworkDesignJobParameters = {
                         filename: '',
                         uploadFilename: ''
                     },
-                    fieldMappings: {}
+                    fieldMappings: {
+                        id: '',
+                        originLat: '',
+                        originLon: '',
+                        destinationLat: '',
+                        destinationLon: '',
+                        projection: ''
+                    }
                 },
                 csvFields: []
             },
@@ -151,11 +158,11 @@ const createMockJobExecutorForTest = async (parameters: Partial<EvolutionaryTran
     testJobParameters.data.parameters = { ...defaultJobParameters, ...parameters };
     mockJobsDbQueries.read.mockResolvedValueOnce(testJobParameters);
     const job = await ExecutableJob.loadTask(1);
-    
+
     const lineCollection = new LineCollection([line1, line2, line3], {});
     const agencyCollection = new AgencyCollection([], {});
     const serviceCollection = new ServiceCollection([service], {});
-    
+
     const lineServices: AlgoTypes.LineServices = {
         [line1.getId()]: [
             {
@@ -222,7 +229,7 @@ describe('Test candidate preparation', () => {
         const testParameters = _cloneDeep(defaultJobParameters);
         testParameters.transitNetworkDesignParameters.nbOfVehicles = 5;
         const jobExecutor = await createMockJobExecutorForTest(testParameters);
-        
+
         const networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, jobExecutor);
         await expect(networkCandidate.prepareScenario(socketMock))
             .rejects
@@ -238,11 +245,11 @@ describe('Test candidate preparation', () => {
         mockedRandomFloat.mockReturnValueOnce(0.1);
         mockedRandomFloat.mockReturnValueOnce(0.1);
         mockedRandomFloat.mockReturnValueOnce(0.6);
-        
+
         const testParameters = _cloneDeep(defaultJobParameters);
         testParameters.transitNetworkDesignParameters.nbOfVehicles = 12;
         const jobExecutor = await createMockJobExecutorForTest(testParameters);
-        
+
         const networkCandidate = new NetworkCandidate({ lines: [true, false, true], name: 'test' }, jobExecutor);
         await networkCandidate.prepareScenario(socketMock);
         const scenario = networkCandidate.getScenario();
@@ -262,8 +269,8 @@ describe('Simulate scenario and serialize result', () => {
 
     beforeEach(async () => {
         mockSimulateScenario.mockClear();
-        
-    })
+
+    });
 
     test('Test successful simulation and serialization', async () => {
         // 7 vehicles, lvl 1 for line 1, lvl 0 for line 3
@@ -273,7 +280,7 @@ describe('Simulate scenario and serialize result', () => {
         const testParameters = _cloneDeep(defaultJobParameters);
         testParameters.transitNetworkDesignParameters.nbOfVehicles = 7;
         jobExecutor = await createMockJobExecutorForTest(testParameters);
-        
+
         // Set the lines' schedules by services, which is supposed to exist when simulating candidates
         jobExecutor.simulatedLineCollection.getFeatures().forEach((line: Line) => {
             jobExecutor.lineServices[line.getId()]
@@ -322,7 +329,7 @@ describe('Simulate scenario and serialize result', () => {
                     OdTripSimulation: odSimulationResult
                 }
             }
-        })
+        });
     });
 
 });
