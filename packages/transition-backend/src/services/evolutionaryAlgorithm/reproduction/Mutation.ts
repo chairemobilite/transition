@@ -13,7 +13,10 @@ import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/net
 const mutate = (oldGene: boolean) => !oldGene;
 
 class Mutation {
-    constructor(private options: EvolutionaryAlgorithmOptions, private linesToKeepCount = 0) {
+    constructor(
+        private options: EvolutionaryAlgorithmOptions,
+        private linesToKeepCount = 0
+    ) {
         // Nothing to do
     }
 
@@ -30,10 +33,7 @@ class Mutation {
             return inputChromosome;
         }
         const clonedInputChromosome = _cloneDeep(inputChromosome);
-        const mutatedGeneIndex = random.int(
-            this.linesToKeepCount,
-            inputChromosome.length - 1
-        );
+        const mutatedGeneIndex = random.int(this.linesToKeepCount, inputChromosome.length - 1);
         clonedInputChromosome[mutatedGeneIndex] = mutate(clonedInputChromosome[mutatedGeneIndex]);
         return clonedInputChromosome;
     }
