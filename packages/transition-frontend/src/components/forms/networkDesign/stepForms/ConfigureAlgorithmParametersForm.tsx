@@ -6,7 +6,10 @@
  */
 import React from 'react';
 
-import { AlgorithmConfiguration, getAlgorithmDescriptor } from 'transition-common/lib/services/networkDesign/transit/algorithm';
+import {
+    AlgorithmConfiguration,
+    getAlgorithmDescriptor
+} from 'transition-common/lib/services/networkDesign/transit/algorithm';
 import TransitNetworkDesignAlgorithmComponent from '../widgets/TransitNetworkDesignAlgorithmComponent';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { PartialAlgorithmConfiguration } from '../types';

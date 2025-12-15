@@ -21,7 +21,7 @@ class GenerationLogger {
     */
     doLog(generation: Generation): void {
         // FIXME Implement or drop? Was commented when changed SimulationRun for Job
-       /* const generationNumber = generation.getGenerationNumber();
+        /* const generationNumber = generation.getGenerationNumber();
         const bestCandidate = generation.getCandidates()[0];
         // TODO, use keepCandidates simulation parameter to log the required number of best candidates.
         const bestCandidateAsString = bestCandidate.toString();

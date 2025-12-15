@@ -13,4 +13,3 @@ export type TransitNetworkDesignJobType = JobDataType & {
         parameters: TransitNetworkJobConfigurationType;
     };
 };
-

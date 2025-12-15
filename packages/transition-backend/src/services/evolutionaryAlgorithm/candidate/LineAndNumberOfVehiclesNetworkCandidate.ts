@@ -14,7 +14,10 @@ import * as AlgoTypes from '../internalTypes';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { randomFromDistribution } from 'chaire-lib-common/lib/utils/RandomUtils';
 import { getLineWeight } from 'transition-common/lib/services/line/LineUtils';
-import { EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import {
+    EvolutionaryTransitNetworkDesignJob,
+    EvolutionaryTransitNetworkDesignJobType
+} from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import { SimulationMethodType } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
@@ -54,7 +57,10 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
             .map((line) => this.wrappedJob.lineServices[line.getId()][0].numberOfVehicles)
             .reduce((cntVeh, sum) => sum + cntVeh, 0);
         if (usedVehicles > nbVehicles) {
-            throw new TrError(`Impossible to assign minimal level of service for this combination. Woud require ${usedVehicles} vehicles`, 'GALNCND001');
+            throw new TrError(
+                `Impossible to assign minimal level of service for this combination. Woud require ${usedVehicles} vehicles`,
+                'GALNCND001'
+            );
         }
 
         // Add line weights to have more probability of increased service for largest lines
@@ -66,13 +72,10 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         const maxFailedAttemps = candidateLines.length * 2;
         while (usedVehicles < nbVehicles && failedAttempts < maxFailedAttemps) {
             // Try increasing the level of service for a random line
-            const increaseLevelForLineIdx = randomFromDistribution(
-                lineWeights,
-                random.float(0.0, 1.0),
-                totalWeight
-            );
+            const increaseLevelForLineIdx = randomFromDistribution(lineWeights, random.float(0.0, 1.0), totalWeight);
             const nextLevel = currentLvlIndexes[increaseLevelForLineIdx] + 1;
-            const nextLineLevel = this.wrappedJob.lineServices[candidateLines[increaseLevelForLineIdx].getId()][nextLevel];
+            const nextLineLevel =
+                this.wrappedJob.lineServices[candidateLines[increaseLevelForLineIdx].getId()][nextLevel];
             if (nextLineLevel === undefined) {
                 failedAttempts++;
                 continue;
@@ -122,14 +125,13 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
                 console.log(`Retrying service assignment after error: ${error.message}`);
                 return this.assignServices(candidateLines, attempt + 1);
             }
-            throw error; 
+            throw error;
         }
         throw 'Not implemented yet, should assign random level of services';
     }
 
     //TODO: Add functionality to the _socket argument, or remove it.
     async prepareScenario(_socket: EventEmitter): Promise<Scenario> {
-
         const lines = this.prepareNetwork();
         const services = this.assignServices(lines);
         services.push(...(this.wrappedJob.parameters.transitNetworkDesignParameters.nonSimulatedServices || []));
@@ -157,7 +159,6 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     private simulateScenario = async (
         scenario: Scenario
     ): Promise<{ results: { [methodType: string]: { fitness: number; results: unknown } } }> => {
-        
         const simulationMethodType = this.wrappedJob.parameters.simulationMethod.type;
         const methodOptions = this.wrappedJob.parameters.simulationMethod.config;
         const allResults: { [methodType: string]: { fitness: number; results: unknown } } = {};
@@ -171,7 +172,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
             const simulationMethod = factory.create(methodOptions as any, this.wrappedJob);
             const results = await simulationMethod.simulate(scenario.getId());
             allResults[simulationMethodType] = results;
-        
+
             // TODO This return value used to return a totalFitness field, but different methods have different result fitness ranges, we need to figure out how to put them together
             return {
                 results: allResults
@@ -179,7 +180,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         } catch (error) {
             throw error;
         }
-    }
+    };
 
     async simulate(): Promise<Result> {
         console.log('start simulating candidate');

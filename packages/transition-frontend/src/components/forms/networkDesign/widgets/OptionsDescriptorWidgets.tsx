@@ -13,7 +13,12 @@ import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper'
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
-import { secondsToMinutes, minutesToSeconds, hoursToSeconds, secondsToHours } from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import {
+    secondsToMinutes,
+    minutesToSeconds,
+    hoursToSeconds,
+    secondsToHours
+} from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import {
     getDefaultOptionsFromDescriptor,
     SimulationAlgorithmDescriptor,
@@ -190,7 +195,8 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
         const value = typeof props.value === 'number' ? props.value : option.default;
         const strToValFct = option.askAs === 'minutes' ? minutesToSeconds : hoursToSeconds;
         const valToStrFct = option.askAs === 'minutes' ? secondsToMinutes : secondsToHours;
-        return (<InputStringFormatted
+        return (
+            <InputStringFormatted
                 id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
                 disabled={props.disabled}
                 value={value}

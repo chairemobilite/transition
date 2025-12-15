@@ -8,18 +8,17 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { transitNetworkDesignDescriptor, TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
+import {
+    transitNetworkDesignDescriptor,
+    TransitNetworkDesignParameters
+} from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 import ConfigureNetworkDesignParametersForm from './stepForms/ConfigureNetworkDesignParametersForm';
 import ConfigureAlgorithmParametersForm from './stepForms/ConfigureAlgorithmParametersForm';
 import ConfigureSimulationMethodForm from './stepForms/ConfigureSimulationMethodForm';
 import ConfirmNetworkDesignForm from './stepForms/ConfirmNetworkDesignForm';
 import NetworkDesignFrontendExecutor from '../../../services/networkDesign/NetworkDesignFrontendExecutor';
 import { TransitNetworkJobConfigurationType } from 'transition-common/lib/services/networkDesign/transit/types';
-import {
-    FormInitialValues,
-    PartialAlgorithmConfiguration,
-    PartialSimulationMethodConfiguration
-} from './types';
+import { FormInitialValues, PartialAlgorithmConfiguration, PartialSimulationMethodConfiguration } from './types';
 import { getDefaultOptionsFromDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 
 export interface TransitNetworkDesignFormProps {
@@ -51,8 +50,14 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
     const [currentStep, setCurrentStep] = React.useState(0);
     const [nextEnabled, setNextEnabled] = React.useState(false);
     const [jobParameters, setJobParameters] = React.useState<FormInitialValues>({
-        transitNetworkDesignParameters: getDefaultOptionsFromDescriptor(props.initialValues?.transitNetworkDesignParameters || {}, transitNetworkDesignDescriptor),
-        algorithmConfiguration: props.initialValues?.algorithmConfiguration || { type: 'evolutionaryAlgorithm', config: {} },
+        transitNetworkDesignParameters: getDefaultOptionsFromDescriptor(
+            props.initialValues?.transitNetworkDesignParameters || {},
+            transitNetworkDesignDescriptor
+        ),
+        algorithmConfiguration: props.initialValues?.algorithmConfiguration || {
+            type: 'evolutionaryAlgorithm',
+            config: {}
+        },
         simulationMethod: props.initialValues?.simulationMethod || { type: 'OdTripSimulation', config: {} }
     });
 

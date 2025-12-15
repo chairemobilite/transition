@@ -32,14 +32,14 @@ export type EvolutionaryTransitNetworkDesignJobType = {
     internal_data: {
         populationSize?: number;
         dataPrepared?: boolean;
-        lineServices?: { [lineId: string]: { serviceId: string; numberOfVehicles: number; }[] };
+        lineServices?: { [lineId: string]: { serviceId: string; numberOfVehicles: number }[] };
         currentGeneration?: {
             candidates: {
                 chromosome: CandidateChromosome;
                 scenarioId?: string;
                 fitness?: number;
-            }[]
-        }
+            }[];
+        };
     };
 };
 

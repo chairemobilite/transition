@@ -41,7 +41,7 @@ const mockedRandomInt = random.integer as jest.MockedFunction<typeof random.inte
 jest.mock('../../../../models/db/jobs.db.queries');
 const mockJobsDbQueries = jobsDbQueries as jest.Mocked<typeof jobsDbQueries>;
 
-const line1 = new Line({  
+const line1 = new Line({
     id                       : uuidV4(),
     internal_id              : 'InternalId test 1',
     is_frozen                : false,
@@ -58,8 +58,8 @@ const line1 = new Line({
     is_autonomous            : false,
     scheduleByServiceId      : { },
     data                     : {
-      foo: 'bar',
-      bar: 'foo'
+        foo: 'bar',
+        bar: 'foo'
     }
 }, false);
 const line2 = new Line(Object.assign({}, line1.attributes, { id: uuidV4() }), false);
@@ -69,7 +69,7 @@ const line5 = new Line(Object.assign({}, line1.attributes, { id: uuidV4() }), fa
 const line6 = new Line(Object.assign({}, line1.attributes, { id: uuidV4() }), false);
 
 // One one service is required, the content is not important for this test.
-const service = new Service({ id: uuidV4()}, false);
+const service = new Service({ id: uuidV4() }, false);
 
 const createMockJobExecutorForTest = async (parameters: Partial<EvolutionaryTransitNetworkDesignJobParameters>) => {
     const mockJobAttributes = {
@@ -118,70 +118,70 @@ const createMockJobExecutorForTest = async (parameters: Partial<EvolutionaryTran
 
     mockJobsDbQueries.read.mockResolvedValueOnce(mockJobAttributes);
     const job = await ExecutableJob.loadTask(1);
-    
+
     const lineCollection = new LineCollection([line1, line2, line3, line4, line5, line6], {});
     const agencyCollection = new AgencyCollection([], {});
     const serviceCollection = new ServiceCollection([service], {});
-    
+
     const lineServices: AlgoTypes.LineServices = {
         [line1.getId()]: [
             {
                 numberOfVehicles: 4,
-                service: new Service({ id: uuidV4()}, false)
+                service: new Service({ id: uuidV4() }, false)
             },
             {
                 numberOfVehicles: 5,
-                service: new Service({ id: uuidV4()}, false)
+                service: new Service({ id: uuidV4() }, false)
             }
         ],
         [line2.getId()]: [
             {
                 numberOfVehicles: 1,
-                service: new Service({ id: uuidV4()}, false)
+                service: new Service({ id: uuidV4() }, false)
             },
             {
                 numberOfVehicles: 3,
-                service: new Service({ id: uuidV4()}, false)
+                service: new Service({ id: uuidV4() }, false)
             }
         ],
         [line3.getId()]: [
             {
                 numberOfVehicles: 2,
-                service: new Service({ id: uuidV4()}, false)
+                service: new Service({ id: uuidV4() }, false)
             },
             {
                 numberOfVehicles: 5,
-                service: new Service({ id: uuidV4()}, false)
+                service: new Service({ id: uuidV4() }, false)
             }
         ],
         [line4.getId()]: [
             {
                 numberOfVehicles: 2,
-                service: new Service({ id: uuidV4()}, false)
+                service: new Service({ id: uuidV4() }, false)
             },
             {
                 numberOfVehicles: 5,
-                service: new Service({ id: uuidV4()}, false)
+                service: new Service({ id: uuidV4() }, false)
             }
         ],
         [line5.getId()]: [
             {
                 numberOfVehicles: 2,
-                service: new Service({ id: uuidV4()}, false)
+                service: new Service({ id: uuidV4() }, false)
             },
             {
                 numberOfVehicles: 5,
-                service: new Service({ id: uuidV4()}, false)
+                service: new Service({ id: uuidV4() }, false)
             }
         ],
         [line6.getId()]: [
             {
                 numberOfVehicles: 2,
-                service: new Service({ id: uuidV4()}, false)
+                service: new Service({ id: uuidV4() }, false)
             },
             {
                 numberOfVehicles: 5,
-                service: new Service({ id: uuidV4()}, false)
+                service: new Service({ id: uuidV4() }, false)
             }
         ]
     };
@@ -201,24 +201,24 @@ describe('Test generation of first candidates', () => {
         mockedRandomInt.mockReturnValueOnce(3);
         mockedRandomInt.mockReturnValueOnce(4);
         mockedRandomFloat.mockReturnValue(0.5);
-        
+
         const jobExecutor = await createMockJobExecutorForTest({});
         // Set the population size, which should have randomly been set already
         jobExecutor.job.attributes.internal_data.populationSize = 2;
 
         const candidates = generateFirstCandidates(jobExecutor);
         expect(candidates.length).toEqual(2);
-        const nbLinesFirstCandidate = candidates[0].getChromosome().lines.filter(active => active === true).length;
+        const nbLinesFirstCandidate = candidates[0].getChromosome().lines.filter((active) => active === true).length;
         expect(nbLinesFirstCandidate).toEqual(3);
-        const nbLinesSecondCandidate = candidates[1].getChromosome().lines.filter(active => active === true).length;
+        const nbLinesSecondCandidate = candidates[1].getChromosome().lines.filter((active) => active === true).length;
         expect(nbLinesSecondCandidate).toEqual(4);
     });
-    
+
 });
 
 describe('Test simulation and results', () => {
 
-    
+
     beforeEach(() => {
         mockSimulate.mockClear();
     });
@@ -235,8 +235,8 @@ describe('Test simulation and results', () => {
         mockedRandomInt.mockReturnValueOnce(3);
         mockedRandomInt.mockReturnValueOnce(4);
         mockedRandomFloat.mockReturnValue(0.5);
-        
-        const jobExecutor = await createMockJobExecutorForTest({simulationMethod: simultionMethodAccessibility});
+
+        const jobExecutor = await createMockJobExecutorForTest({ simulationMethod: simultionMethodAccessibility });
         // Set the population size, which should have randomly been set already
         jobExecutor.job.attributes.internal_data.populationSize = 2;
 
@@ -256,7 +256,7 @@ describe('Test simulation and results', () => {
                     results: {}
                 }
             });
-        })
+        });
         const generation = new Generation(candidates, jobExecutor, 1);
         await generation.simulate();
         expect(mockSimulate).toHaveBeenCalledTimes(candidates.length);
@@ -277,13 +277,14 @@ describe('Test simulation and results', () => {
                 demandAttributes: {
                     type: 'csv' as const,
                     fileAndMapping: {
-                        csvFile: { location: 'upload' as const, filename: 'demand.csv', uploadFilename: 'demand.csv'},
+                        csvFile: { location: 'upload' as const, filename: 'demand.csv', uploadFilename: 'demand.csv' },
                         fieldMappings: {
                             id: 'id',
                             originLat: 'origin_lat',
                             originLon: 'origin_lon',
                             destinationLat: 'destination_lat',
                             destinationLon: 'destination_lon',
+                            projection: 'EPSG:4326'
                         }
                     },
                     csvFields: []
@@ -309,8 +310,8 @@ describe('Test simulation and results', () => {
         mockedRandomInt.mockReturnValueOnce(3);
         mockedRandomInt.mockReturnValueOnce(4);
         mockedRandomFloat.mockReturnValue(0.5);
-        
-        const jobExecutor = await createMockJobExecutorForTest({simulationMethod: simulationMethodConfigurationOdTrip});
+
+        const jobExecutor = await createMockJobExecutorForTest({ simulationMethod: simulationMethodConfigurationOdTrip });
         // Set the population size, which should have randomly been set already
         jobExecutor.job.attributes.internal_data.populationSize = 2;
 
@@ -330,7 +331,7 @@ describe('Test simulation and results', () => {
                     results: {}
                 }
             });
-        })
+        });
         const generation = new Generation(candidates, jobExecutor, 1);
         await generation.simulate();
         expect(mockSimulate).toHaveBeenCalledTimes(candidates.length);
@@ -343,7 +344,7 @@ describe('Test simulation and results', () => {
             }
         });
     });
-    
+
 });
 
 describe('Test sort candidates after results', () => {
@@ -355,13 +356,14 @@ describe('Test sort candidates after results', () => {
                 demandAttributes: {
                     type: 'csv' as const,
                     fileAndMapping: {
-                        csvFile: { location: 'upload' as const, filename: 'demand.csv', uploadFilename: 'demand.csv'},
+                        csvFile: { location: 'upload' as const, filename: 'demand.csv', uploadFilename: 'demand.csv' },
                         fieldMappings: {
                             id: 'id',
                             originLat: 'origin_lat',
                             originLon: 'origin_lon',
                             destinationLat: 'destination_lat',
                             destinationLon: 'destination_lon',
+                            projection: 'EPSG:4326'
                         }
                     },
                     csvFields: []
@@ -384,14 +386,14 @@ describe('Test sort candidates after results', () => {
             }
         };
 
-        const simMethodId = 'OdTripSimulation'
+        const simMethodId = 'OdTripSimulation';
         const jobExecutor = await createMockJobExecutorForTest({ simulationMethod });
         // Create candidates, chromosomes does not matter here, we'll just need the results
         const candidates = [
-            new CandidateClass({ lines: [true, false], name: 'test1'}, jobExecutor),
-            new CandidateClass({ lines: [true, false], name: 'test2'}, jobExecutor),
-            new CandidateClass({ lines: [true, false], name: 'test3'}, jobExecutor),
-            new CandidateClass({ lines: [true, false], name: 'test4'}, jobExecutor),
+            new CandidateClass({ lines: [true, false], name: 'test1' }, jobExecutor),
+            new CandidateClass({ lines: [true, false], name: 'test2' }, jobExecutor),
+            new CandidateClass({ lines: [true, false], name: 'test3' }, jobExecutor),
+            new CandidateClass({ lines: [true, false], name: 'test4' }, jobExecutor),
         ];
         const originalCandidates = _cloneDeep(candidates);
         // With fitness modifier, even candidates have higher fitness than even, so index 3 should be first, then 1, then 0, then 2
@@ -406,14 +408,14 @@ describe('Test sort candidates after results', () => {
         });
         const generation = new Generation(candidates, jobExecutor);
         generation.sortCandidates();
-        const actualCandidates = candidates.map(candidate => candidate.getChromosome().name);
+        const actualCandidates = candidates.map((candidate) => candidate.getChromosome().name);
         expect(actualCandidates).toEqual([
-            originalCandidates[3].getChromosome().name, 
-            originalCandidates[1].getChromosome().name, 
-            originalCandidates[0].getChromosome().name, 
+            originalCandidates[3].getChromosome().name,
+            originalCandidates[1].getChromosome().name,
+            originalCandidates[0].getChromosome().name,
             originalCandidates[2].getChromosome().name
         ]);
-        const actualCandidateFitnesses = candidates.map(candidate => candidate.getResult().totalFitness);
+        const actualCandidateFitnesses = candidates.map((candidate) => candidate.getResult().totalFitness);
         expect(actualCandidateFitnesses).toEqual([1, 2, 3, 4]);
     });
 

@@ -7,7 +7,10 @@
 import { EventEmitter } from 'events';
 
 import { ExecutableJob } from '../../executableJob/ExecutableJob';
-import type { EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobType } from './evolutionary/types';
+import type {
+    EvolutionaryTransitNetworkDesignJob,
+    EvolutionaryTransitNetworkDesignJobType
+} from './evolutionary/types';
 import { TransitNetworkJobConfigurationType } from 'transition-common/lib/services/networkDesign/transit/types';
 import { fileKey } from 'transition-common/lib/services/jobs/Job';
 import { EvolutionaryTransitNetworkDesignJobParameters } from './evolutionary/types';
