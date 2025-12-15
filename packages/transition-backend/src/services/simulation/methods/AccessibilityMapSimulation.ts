@@ -4,24 +4,16 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import random from 'random';
 import { EventEmitter } from 'events';
-import { point as turfPoint } from '@turf/turf';
 
-import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
-import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
 import placesDbQueries from '../../../models/db/places.db.queries';
 import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
-import { TransitAccessibilityMapCalculator } from '../../accessibilityMap/TransitAccessibilityMapCalculator';
-import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import {
     AccessibilityMapSimulationDescriptor,
     AccessibilityMapSimulationOptions
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod/AccessibilityMapSimulationMethod';
-import { ExecutableJob } from '../../executableJob/ExecutableJob';
-import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 
 export const AccessibilityMapSimulationTitle = 'AccessibilityMapSimulation';
@@ -38,7 +30,8 @@ export class AccessibilityMapSimulationFactory implements SimulationMethodFactor
 }
 
 // Simulation time range, between 8 and 9, in seconds.
-const SIMULATION_TIME_RANGE = [8 * 60 * 60, 9 * 60 * 60];
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _SIMULATION_TIME_RANGE = [8 * 60 * 60, 9 * 60 * 60];
 
 /**
  * Simulate a scenario using accessibility maps from various random places in
@@ -114,7 +107,7 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
         });
     }
 
-    async simulate(scenarioId: string): Promise<{ fitness: number; results: AccessibilityMapSimulationResults }> {
+    async simulate(_scenarioId: string): Promise<{ fitness: number; results: AccessibilityMapSimulationResults }> {
         // FIXME Re-implement the accessibility map simulation
         /*const nodeCollection = await this.getNodeCollection();
 

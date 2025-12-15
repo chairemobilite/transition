@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import { EventEmitter } from 'events';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
@@ -13,18 +12,14 @@ import Line from 'transition-common/lib/services/line/Line';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import Service from 'transition-common/lib/services/service/Service';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import SimulationRun from 'transition-common/lib/services/simulation/SimulationRun';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import Schedule from 'transition-common/lib/services/schedules/Schedule';
 import moment from 'moment';
 import * as AlgoTypes from '../internalTypes';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
-import {
-    EvolutionaryTransitNetworkDesignJob,
-    EvolutionaryTransitNetworkDesignJobType
-} from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
-import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 
 const PERIOD_GROUP_SHORTNAME = 'complete_day';
 

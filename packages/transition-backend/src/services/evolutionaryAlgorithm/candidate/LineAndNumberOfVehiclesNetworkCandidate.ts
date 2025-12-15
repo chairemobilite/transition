@@ -14,12 +14,7 @@ import * as AlgoTypes from '../internalTypes';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { randomFromDistribution } from 'chaire-lib-common/lib/utils/RandomUtils';
 import { getLineWeight } from 'transition-common/lib/services/line/LineUtils';
-import {
-    EvolutionaryTransitNetworkDesignJob,
-    EvolutionaryTransitNetworkDesignJobType
-} from '../../networkDesign/transitNetworkDesign/evolutionary/types';
-import LineCollection from 'transition-common/lib/services/line/LineCollection';
-import { SimulationMethodType } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
+import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import { SIMULATION_METHODS_FACTORY } from '../../simulation/methods/SimulationMethod';
 
@@ -167,19 +162,16 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         if (factory === undefined) {
             throw new TrError(`Unknown simulation method: ${simulationMethodType}`, 'SIOMSCEN004');
         }
-        try {
-            // FIXME Type properly when the methods are typed better (see issues #1533, #1560 and #1553)
-            const simulationMethod = factory.create(methodOptions as any, this.wrappedJob);
-            const results = await simulationMethod.simulate(scenario.getId());
-            allResults[simulationMethodType] = results;
+        // FIXME Type properly when the methods are typed better (see issues #1533, #1560 and #1553)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const simulationMethod = factory.create(methodOptions as any, this.wrappedJob);
+        const results = await simulationMethod.simulate(scenario.getId());
+        allResults[simulationMethodType] = results;
 
-            // TODO This return value used to return a totalFitness field, but different methods have different result fitness ranges, we need to figure out how to put them together
-            return {
-                results: allResults
-            };
-        } catch (error) {
-            throw error;
-        }
+        // TODO This return value used to return a totalFitness field, but different methods have different result fitness ranges, we need to figure out how to put them together
+        return {
+            results: allResults
+        };
     };
 
     async simulate(): Promise<Result> {
