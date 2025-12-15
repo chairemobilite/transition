@@ -34,7 +34,7 @@ type AccessibilityMapSimulationResults = {
 export class AccessibilityMapSimulationFactory implements SimulationMethodFactory<AccessibilityMapSimulationOptions> {
     getDescriptor = () => new AccessibilityMapSimulationDescriptor();
     create = (options: AccessibilityMapSimulationOptions, jobWrapper: TransitNetworkDesignJobWrapper) =>
-            new AccessibilityMapSimulation(options, jobWrapper);
+        new AccessibilityMapSimulation(options, jobWrapper);
 }
 
 // Simulation time range, between 8 and 9, in seconds.
@@ -52,7 +52,7 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
 
     constructor(
         private options: AccessibilityMapSimulationOptions,
-        private jobWrapper:TransitNetworkDesignJobWrapper
+        private jobWrapper: TransitNetworkDesignJobWrapper
     ) {
         // Nothing to do
     }
@@ -114,9 +114,7 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
         });
     }
 
-    async simulate(
-        scenarioId: string
-    ): Promise<{ fitness: number; results: AccessibilityMapSimulationResults }> {
+    async simulate(scenarioId: string): Promise<{ fitness: number; results: AccessibilityMapSimulationResults }> {
         // FIXME Re-implement the accessibility map simulation
         /*const nodeCollection = await this.getNodeCollection();
 
@@ -204,6 +202,6 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
             currentTotalAverage = totalAverage;
         }
         return { fitness: currentTotalAverage, results: { placesCost: placesAvgCosts } }; */
-        return { fitness: 0, results: { placesCost: []}};
+        return { fitness: 0, results: { placesCost: [] } };
     }
 }

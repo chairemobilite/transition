@@ -30,7 +30,8 @@ export type EvolutionaryAlgorithmOptions = {
  * options object.
  */
 export class EvolutionaryAlgorithmDescriptor implements SimulationAlgorithmDescriptor<EvolutionaryAlgorithmOptions> {
-    getTranslatableName = (): string => 'transit:networkDesign.evolutionaryAlgorithm.LineAndNumberOfVehiclesGASimulation';
+    getTranslatableName = (): string =>
+        'transit:networkDesign.evolutionaryAlgorithm.LineAndNumberOfVehiclesGASimulation';
 
     // TODO Add help texts
     getOptions = () => ({
