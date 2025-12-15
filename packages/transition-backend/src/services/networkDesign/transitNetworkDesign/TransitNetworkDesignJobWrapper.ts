@@ -4,24 +4,23 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import EventEmitter from "events";
+import EventEmitter from 'events';
 import fs from 'fs';
 import path from 'path';
 
 import config from 'chaire-lib-backend/lib/config/server.config';
-import CollectionManager from "chaire-lib-common/lib/utils/objects/CollectionManager";
-import AgencyCollection from "transition-common/lib/services/agency/AgencyCollection";
-import LineCollection from "transition-common/lib/services/line/LineCollection";
-import NodeCollection from "transition-common/lib/services/nodes/NodeCollection";
-import PathCollection from "transition-common/lib/services/path/PathCollection";
-import ServiceCollection from "transition-common/lib/services/service/ServiceCollection";
+import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
+import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
+import LineCollection from 'transition-common/lib/services/line/LineCollection';
+import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
+import PathCollection from 'transition-common/lib/services/path/PathCollection';
+import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
-import { ExecutableJob } from "../../executableJob/ExecutableJob";
-import { JobDataType } from "transition-common/lib/services/jobs/Job";
-import { TransitNetworkDesignJobType } from "./types";
-import { LineServices } from "../../evolutionaryAlgorithm/internalTypes";
+import { ExecutableJob } from '../../executableJob/ExecutableJob';
+import { JobDataType } from 'transition-common/lib/services/jobs/Job';
+import { TransitNetworkDesignJobType } from './types';
+import { LineServices } from '../../evolutionaryAlgorithm/internalTypes';
 import { TranslatableMessage } from "chaire-lib-common/lib/utils/TranslatableMessage";
-
 
 // Type to extract parameters from a job data type
 type ExtractParameters<TJobType extends JobDataType> = TJobType extends { data: { parameters: infer P } } ? P : never;
@@ -36,19 +35,22 @@ type ExtractParameters<TJobType extends JobDataType> = TJobType extends { data: 
  * (results, internal data, files), so instead, we have a wrapper around the
  * job and use specific types when necessary. See if it's the best way.
  */
-export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesignJobType = TransitNetworkDesignJobType> {
-    
-    
+export class TransitNetworkDesignJobWrapper<
+    TJobType extends TransitNetworkDesignJobType = TransitNetworkDesignJobType
+> {
     private _lineCollection: LineCollection | undefined = undefined;
     private _simulatedLineCollection: LineCollection | undefined = undefined;
     private _agencyCollection: AgencyCollection | undefined = undefined;
     private _serviceCollection: ServiceCollection | undefined = undefined;
     private _lineServices: LineServices | undefined = undefined;
 
-    constructor(private wrappedJob: ExecutableJob<TJobType>, protected executorOptions: {
+    constructor(
+        private wrappedJob: ExecutableJob<TJobType>,
+        protected executorOptions: {
             progressEmitter: EventEmitter;
             isCancelled: () => boolean;
-        }) {
+        }
+    ) {
         // Nothing to do
     }
 
@@ -87,7 +89,7 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         return this._simulatedLineCollection;
     }
 
-    set simulatedLineCollection(lineCollection: LineCollection)  {
+    set simulatedLineCollection(lineCollection: LineCollection) {
         this._simulatedLineCollection = lineCollection;
     }
 
@@ -97,7 +99,6 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         }
         return this._serviceCollection;
     }
-
 
     get lineServices(): LineServices {
         if (this._lineServices === undefined) {
@@ -112,11 +113,9 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
 
     getCacheDirectory = (): string => {
         return this.wrappedJob.getJobFileDirectory() + 'cache';
-    }
+    };
 
-    loadServerData = async (
-        socket: EventEmitter
-    ): Promise<void> => {
+    loadServerData = async (socket: EventEmitter): Promise<void> => {
         const collectionManager = new CollectionManager(undefined);
         const lines = new LineCollection([], {});
         const agencies = new AgencyCollection([], {});
@@ -133,21 +132,21 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         collectionManager.add('agencies', agencies);
         await services.loadFromServer(socket, collectionManager);
         collectionManager.add('services', services);
-        this._lineCollection   = lines;
+        this._lineCollection = lines;
         this._agencyCollection = agencies;
         this._serviceCollection = services;
     };
-    
+
     /**
      * Copy the current cache to the job's cache directory
-     * @param job 
+     * @param job
      */
     prepareCacheDirectory = () => {
         const absoluteCacheDirectory = this.getCacheDirectory();
         const mainCacheDirectory = `${fileManager.directoryManager.cacheDirectory}/${config.projectShortname}`;
-    
+
         // TODO: make sure we copy every files, even new files like stations and stops.
-    
+
         console.log('Preparing and copying cache files...');
         fileManager.directoryManager.copyDirectoryAbsolute(
             `${mainCacheDirectory}/dataSources`,
@@ -207,34 +206,40 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         try {
             // Create the full path structure inside mainCacheDirectory
             const symlinkPath = path.join(mainCacheDirectory, absoluteCacheDirectory);
-            
+
             // Ensure the parent directory exists
             const symlinkParentDir = path.dirname(symlinkPath);
             if (!fs.existsSync(symlinkParentDir)) {
                 fs.mkdirSync(symlinkParentDir, { recursive: true });
             }
-            
+
             // Remove existing symlink if it exists
             if (fs.existsSync(symlinkPath)) {
                 fs.unlinkSync(symlinkPath);
             }
-            
+
             // Create symbolic link pointing to the job cache directory
             fs.symlinkSync(absoluteCacheDirectory, symlinkPath, 'dir');
-            
+
             console.log(`Created symbolic link: ${symlinkPath} -> ${absoluteCacheDirectory}`);
         } catch (error) {
             console.warn(`Failed to create symbolic link: ${error}`);
         }
-        
+
         console.log(`Prepared cache directory files to ${absoluteCacheDirectory} from ${mainCacheDirectory}`);
     };
 
-    async addMessages(messages: { warnings?: TranslatableMessage[]; errors?: TranslatableMessage[]; infos?: TranslatableMessage[]; }): Promise<void> {
+    async addMessages(messages: {
+        warnings?: TranslatableMessage[];
+        errors?: TranslatableMessage[];
+        infos?: TranslatableMessage[];
+    }): Promise<void> {
         // Quick return if no message to set
-        if ((messages.warnings === undefined || messages.warnings.length === 0) && 
-            (messages.errors === undefined || messages.errors.length === 0) && 
-            (messages.infos === undefined || messages.infos.length === 0)) {
+        if (
+            (messages.warnings === undefined || messages.warnings.length === 0) &&
+            (messages.errors === undefined || messages.errors.length === 0) &&
+            (messages.infos === undefined || messages.infos.length === 0)
+        ) {
             return;
         }
         await this.wrappedJob.refresh();
@@ -242,7 +247,7 @@ export class TransitNetworkDesignJobWrapper<TJobType extends TransitNetworkDesig
         const existingErrors = currentMessages.errors || [];
         const existingWarnings = currentMessages.warnings || [];
         const existingInfos = currentMessages.infos || [];
-        
+
         this.wrappedJob.attributes.statusMessages = {
             errors: [...existingErrors, ...(messages.errors || [])],
             warnings: [...existingWarnings, ...(messages.warnings || [])],

@@ -30,8 +30,11 @@ abstract class Generation {
     ) {
         // Use the minimize sorter if method type is OdTripSimulation, maximize otherwise
         // FIXME This should be a parameter of something, it goes with the simulation method or set of methods
-        this.fitnessSorter = (jobWrapper.parameters.simulationMethod.type === 'OdTripSimulation') ? Preferences.current.simulations.geneticAlgorithms.fitnessSorters['minimize'] : Preferences.current.simulations.geneticAlgorithms.fitnessSorters['maximize'];
-            
+        this.fitnessSorter =
+            jobWrapper.parameters.simulationMethod.type === 'OdTripSimulation'
+                ? Preferences.current.simulations.geneticAlgorithms.fitnessSorters['minimize']
+                : Preferences.current.simulations.geneticAlgorithms.fitnessSorters['maximize'];
+
         this.logger =
             logger ||
             new GenerationLogger({
@@ -51,10 +54,9 @@ abstract class Generation {
         return this.generationNumber;
     }
 
-    async prepareCandidates(socket: EventEmitter): Promise<{warnings: ErrorMessage[];
-        errors: ErrorMessage[];}> {
-            const errors: ErrorMessage[] = [];
-            const warnings: ErrorMessage[] = [];
+    async prepareCandidates(socket: EventEmitter): Promise<{ warnings: ErrorMessage[]; errors: ErrorMessage[] }> {
+        const errors: ErrorMessage[] = [];
+        const warnings: ErrorMessage[] = [];
         console.time(` generation ${this.generationNumber}: prepared candidates`);
 
         // TODO Cleanup old data?
@@ -69,7 +71,7 @@ abstract class Generation {
         );
 
         const results = await Promise.allSettled(candidatePreparationPromises);
-    
+
         // Handle fulfilled and rejected promises separately
         const scenarios: Scenario[] = [];
         results.forEach((result, candidateIdx) => {
@@ -97,14 +99,20 @@ abstract class Generation {
      * @returns `true` if the simulation was completed successfully.
      */
     async simulate(): Promise<boolean> {
-
         console.time(` generation ${this.generationNumber}: simulated candidates`);
         console.log(`  generation ${this.generationNumber}: simulating candidates`);
 
         const candidatesCount = this.getSize();
-        const validCandidates = this.getCandidates().filter(candidate => candidate.getScenario() !== undefined);
+        const validCandidates = this.getCandidates().filter((candidate) => candidate.getScenario() !== undefined);
         if (validCandidates.length < this.jobWrapper.parameters.algorithmConfiguration.config.populationSizeMin) {
-            throw new TrError('Not enough valid candidates to continue the evolutionary algorithm at generation', 'GALGEN001', { text: 'transit:networkDesign:evolutionaryAlgorithm:errors:NotEnoughValidCandidates', params: { generationNumber: String(this.generationNumber) } });
+            throw new TrError(
+                'Not enough valid candidates to continue the evolutionary algorithm at generation',
+                'GALGEN001',
+                {
+                    text: 'transit:networkDesign:evolutionaryAlgorithm:errors:NotEnoughValidCandidates',
+                    params: { generationNumber: String(this.generationNumber) }
+                }
+            );
         }
         // Run the simulation for each candidate
         // Create p-queue with concurrency of 1
