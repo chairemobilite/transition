@@ -9,14 +9,12 @@ import { EventEmitter } from 'events';
 
 import NetworkCandidate, { ResultSerialization } from '../candidate/Candidate';
 import { collectionToCache } from '../../../models/capnpCache/transitScenarios.cache.queries';
-import * as AlgoTypes from '../internalTypes';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import GenerationLogger from './GenerationLogger';
 import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
-import { OdTripSimulationOptions } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 
 abstract class Generation {
@@ -66,7 +64,7 @@ abstract class Generation {
         const promiseQueue = new pQueue({ concurrency: 1 });
 
         const candidatePreparationPromises = this.candidates.map(
-            async (candidate, candidateIdx) =>
+            async (candidate, _candidateIdx) =>
                 await promiseQueue.add(async () => await candidate.prepareScenario(socket))
         );
 

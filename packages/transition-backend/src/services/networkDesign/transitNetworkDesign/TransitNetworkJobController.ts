@@ -29,10 +29,10 @@ const createAndEnqueueEvolutionaryTransitNetworkDesignJob = async (
 
     // Handle the csv files for the job, either from upload and/or from another job
     if (jobParameters.simulationMethod.type === 'OdTripSimulation') {
-        inputFiles.transitDemand = await ExecutableJobUtils.prepareJobFiles(
-            jobParameters.simulationMethod.config.demandAttributes?.fileAndMapping.csvFile!,
-            userId
-        );
+        const csvFile = jobParameters.simulationMethod.config.demandAttributes?.fileAndMapping.csvFile;
+        if (csvFile) {
+            inputFiles.transitDemand = await ExecutableJobUtils.prepareJobFiles(csvFile, userId);
+        }
     }
     // TODO Handle node weight file when supported
     // TODO Handle accessibility map simulation when supported
