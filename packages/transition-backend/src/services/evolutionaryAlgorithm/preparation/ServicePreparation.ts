@@ -19,7 +19,10 @@ import Schedule from 'transition-common/lib/services/schedules/Schedule';
 import moment from 'moment';
 import * as AlgoTypes from '../internalTypes';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
-import { EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import {
+    EvolutionaryTransitNetworkDesignJob,
+    EvolutionaryTransitNetworkDesignJobType
+} from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 
@@ -41,12 +44,8 @@ const prepareServicesForLines = async (
     jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
 ): Promise<AlgoTypes.LineLevelOfService[]> => {
     const transitNetworkParameters = jobWrapper.parameters.transitNetworkDesignParameters;
-    const minTime =
-        (transitNetworkParameters.minTimeBetweenPassages ||
-            DEFAULT_MIN_TIME_BETWEEN_PASSAGES) * 60;
-    const maxTime =
-        (transitNetworkParameters.maxTimeBetweenPassages ||
-            DEFAULT_MAX_TIME_BETWEEN_PASSAGES) * 60;
+    const minTime = (transitNetworkParameters.minTimeBetweenPassages || DEFAULT_MIN_TIME_BETWEEN_PASSAGES) * 60;
+    const maxTime = (transitNetworkParameters.maxTimeBetweenPassages || DEFAULT_MAX_TIME_BETWEEN_PASSAGES) * 60;
     const lineServices: AlgoTypes.LineLevelOfService[] = [];
 
     const inboundPaths = line.getInboundPaths();
@@ -69,14 +68,9 @@ const prepareServicesForLines = async (
     let timeBetweenPassages = Number.MAX_VALUE;
     let nbVehicles = 1;
     let lastTimeBetweenPassages = timeBetweenPassages;
-    while (
-        timeBetweenPassages > minTime &&
-        nbVehicles < transitNetworkParameters.nbOfVehicles
-    ) {
+    while (timeBetweenPassages > minTime && nbVehicles < transitNetworkParameters.nbOfVehicles) {
         const serviceName = `networkDesign_${line.toString()}_${nbVehicles}`;
-        const existingService = services.find(
-            (service) => service.attributes.name === serviceName
-        );
+        const existingService = services.find((service) => service.attributes.name === serviceName);
         // Create a service to store this schedule
         const service = existingService
             ? existingService
@@ -146,8 +140,8 @@ const prepareServicesForLines = async (
 
 /**
  * Get the longest path operating time in seconds from a line collection
- * @param lineCollection 
- * @returns 
+ * @param lineCollection
+ * @returns
  */
 const getLongestPath = (lineCollection: LineCollection) =>
     lineCollection
@@ -211,7 +205,7 @@ export const prepareServices = async (
                 defaultPeriodAttributes,
                 jobWrapper
             );
-            // Add or update the service to the service collection 
+            // Add or update the service to the service collection
             servicesForLine.forEach((lvlOfService) =>
                 services.getById(lvlOfService.service.getId()) !== undefined
                     ? services.updateById(lvlOfService.service.getId(), lvlOfService.service)
@@ -244,7 +238,8 @@ export const saveSimulationScenario = async (
         console.log('saving simulation scenario');
         // Find all simulated services to merge as one
         const simulatedServiceIds = scenario.attributes.services.filter(
-            (serviceId) => !(jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || []).includes(serviceId)
+            (serviceId) =>
+                !(jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || []).includes(serviceId)
         );
         if (simulatedServiceIds.length === 0) {
             console.log('no simulated services to save for scenario', scenario.attributes.name);
@@ -294,7 +289,10 @@ export const saveSimulationScenario = async (
         const newScenario = new Scenario(
             {
                 name: scenario.attributes.name,
-                services: [service.getId(), ...(jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || [])],
+                services: [
+                    service.getId(),
+                    ...(jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || [])
+                ],
                 data: { forJob: jobWrapper.job.id }
             },
             true
@@ -302,9 +300,8 @@ export const saveSimulationScenario = async (
         await newScenario.save(serviceLocator.socketEventManager);
 
         return newScenario.getId();
-    } catch(error) {
+    } catch (error) {
         console.error('Error saving simulation scenario:', error);
         return undefined;
     }
-   
 };

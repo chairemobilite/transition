@@ -52,9 +52,10 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
         label: t(getSimulationMethodDescriptor(methodId).getTranslatableName())
     }));
 
-    const methodDescriptor = props.simulationMethod.type !== undefined
-        ? getSimulationMethodDescriptor(props.simulationMethod.type)
-        : undefined;
+    const methodDescriptor =
+        props.simulationMethod.type !== undefined
+            ? getSimulationMethodDescriptor(props.simulationMethod.type)
+            : undefined;
 
     return (
         <div className="tr__form-section">
