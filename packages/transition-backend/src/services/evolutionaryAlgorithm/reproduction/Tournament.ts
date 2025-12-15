@@ -29,10 +29,7 @@ class Tournament {
             return !exceptCandidateIdx.includes(candidateIdx);
         });
         // Candidates are already sorted by fitness, we just get indexes and re-sort by fitness
-        const tournamentCandidates = sampleSizeWithOptionalSeed(
-            validCandidateIdx,
-            this.options.tournamentSize
-        );
+        const tournamentCandidates = sampleSizeWithOptionalSeed(validCandidateIdx, this.options.tournamentSize);
 
         // Sort selected candidates by index, as those with lower index have the best fitness
         tournamentCandidates.sort((idxA, idxB) => idxA - idxB);
