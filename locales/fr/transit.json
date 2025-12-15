@@ -878,6 +878,9 @@
                 "KeepLines": "Lignes des agences du réseau à concevoir qui seront conservées dans tous les scénarios. Ces lignes sont incluses dans le nombre de lignes du réseau à concevoir."
             }
         },
+        "errors": {
+            "MissingDemandCsvFile": "Le fichier CSV de demande est manquant"
+        },
         "evolutionaryAlgorithm": {
             "LineAndNumberOfVehiclesGASimulation": "Algorithme génétique avec lignes et nombre de véhicules",
             "PopulationSizeMin": "Taille minimale de la population",
