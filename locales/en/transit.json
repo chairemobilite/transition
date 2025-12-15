@@ -879,6 +879,9 @@
                 "KeepLinesHelp": "Lines from the network design agencies that will be kept in all scenarios. These lines are included in the number of lines in the network to design."
             }
         },
+        "errors": {
+            "MissingDemandCsvFile": "Missing demand csv file"
+        },
         "evolutionaryAlgorithm": {
             "LineAndNumberOfVehiclesGASimulation": "Genetic algorithm with lines and number of vehicles",
             "PopulationSizeMin": "Minimum population size",
