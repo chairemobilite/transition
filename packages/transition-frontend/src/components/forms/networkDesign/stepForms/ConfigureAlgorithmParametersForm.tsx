@@ -6,10 +6,7 @@
  */
 import React from 'react';
 
-import {
-    AlgorithmConfiguration,
-    getAlgorithmDescriptor
-} from 'transition-common/lib/services/networkDesign/transit/algorithm';
+import { AlgorithmConfiguration } from 'transition-common/lib/services/networkDesign/transit/algorithm';
 import TransitNetworkDesignAlgorithmComponent from '../widgets/TransitNetworkDesignAlgorithmComponent';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { PartialAlgorithmConfiguration } from '../types';
@@ -22,7 +19,6 @@ export interface ConfigureAlgorithmParametersFormProps {
 const ConfigureAlgorithmParametersForm: React.FunctionComponent<ConfigureAlgorithmParametersFormProps> = (
     props: ConfigureAlgorithmParametersFormProps
 ) => {
-    const [updateCnt, setUpdateCnt] = React.useState(0);
     // FIXME Properly handle errors
     const [errors] = React.useState<string[]>([]);
 
@@ -45,7 +41,7 @@ const ConfigureAlgorithmParametersForm: React.FunctionComponent<ConfigureAlgorit
     return (
         <div className="tr__form-section">
             <TransitNetworkDesignAlgorithmComponent
-                key={`algorithm${updateCnt}`}
+                key={`algorithm-${props.algorithmConfig.type}`}
                 algorithmConfig={props.algorithmConfig as AlgorithmConfiguration}
                 disabled={false}
                 onValueChange={onValueChange}

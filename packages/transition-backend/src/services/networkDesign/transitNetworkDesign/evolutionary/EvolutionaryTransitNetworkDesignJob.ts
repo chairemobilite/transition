@@ -8,23 +8,19 @@ import { EventEmitter } from 'events';
 import random from 'random';
 
 import type {
-    EvolutionaryTransitNetworkDesignJobType,
     EvolutionaryTransitNetworkDesignJob,
+    EvolutionaryTransitNetworkDesignJobType,
     EvolutionaryTransitNetworkDesignJobResult
 } from './types';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { TransitNetworkDesignJobWrapper } from '../TransitNetworkDesignJobWrapper';
-import { ExecutableJob } from '../../../executableJob/ExecutableJob';
 import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import Agency from 'transition-common/lib/services/agency/Agency';
 import Service from 'transition-common/lib/services/service/Service';
 import { randomInRange } from 'chaire-lib-common/lib/utils/RandomUtils';
 import { ResultSerialization } from '../../../evolutionaryAlgorithm/candidate/Candidate';
-import NetworkCandidate from '../../../evolutionaryAlgorithm/candidate/LineAndNumberOfVehiclesNetworkCandidate';
-import Generation from '../../../evolutionaryAlgorithm/generation/Generation';
 import * as AlgoTypes from '../../../evolutionaryAlgorithm/internalTypes';
 import LineAndNumberOfVehiclesGeneration, {
     generateFirstCandidates,
@@ -45,7 +41,6 @@ import {
 } from '../../../../models/capnpCache/transitLines.cache.queries';
 import { prepareServices, saveSimulationScenario } from '../../../evolutionaryAlgorithm/preparation/ServicePreparation';
 import Line from 'transition-common/lib/services/line/Line';
-import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 
 /**
  * Do batch calculation on a csv file input
@@ -94,11 +89,7 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         agencies: AgencyCollection;
         services: ServiceCollection;
     }): LineCollection => {
-        const {
-            nonSimulatedServices,
-            simulatedAgencies,
-            linesToKeep: linesToKeepParam
-        } = this.parameters.transitNetworkDesignParameters;
+        const { simulatedAgencies, linesToKeep: linesToKeepParam } = this.parameters.transitNetworkDesignParameters;
         const linesToKeep = linesToKeepParam || [];
 
         const agencies = simulatedAgencies?.map((agencyId) => collections.agencies.getById(agencyId)) || [];
@@ -382,7 +373,6 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         } catch (error) {
             console.log('error during evolutionary algorithm generations', error);
             throw error;
-        } finally {
         }
         if (!previousGeneration) {
             throw new TrError('Evolutionary Algorithm: no generation was done!', 'ALGOGEN001');
@@ -394,7 +384,7 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
     run = async (): Promise<EvolutionaryTransitNetworkDesignJobResult> => {
         // TODO Actually implement!! See ../simulation/SimulationExecution.ts file, the runSimulation function
         try {
-            const result = await this._run();
+            await this._run();
 
             if (this.executorOptions.isCancelled()) {
                 console.log('Evolutionary transit network design job cancelled.');

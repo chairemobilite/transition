@@ -11,21 +11,15 @@ import random from 'random';
 import Generation from './Generation';
 import NetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
 import { randomBoolArray, shuffle } from 'chaire-lib-common/lib/utils/RandomUtils';
-import * as AlgoTypes from '../internalTypes';
 import KPointCrossover from '../reproduction/KPointCrossover';
 import Tournament from '../reproduction/Tournament';
 import Mutation from '../reproduction/Mutation';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { sequentialArray } from 'chaire-lib-common/lib/utils/MathUtils';
 import LineAndNumberOfVehiclesGenerationLogger from './LineAndNumberOfVehiclesGenerationLogger';
-import {
-    EvolutionaryTransitNetworkDesignJob,
-    EvolutionaryTransitNetworkDesignJobType
-} from '../../networkDesign/transitNetworkDesign/evolutionary/types';
-import LineCollection from 'transition-common/lib/services/line/LineCollection';
+import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
-import Candidate from '../candidate/Candidate';
 import LineAndNumberOfVehiclesNetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
 
 const chromosomeExists = (chrom: boolean[], linesChromosomes: boolean[][]) =>

@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import Generation from './Generation';
-import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 
 type LogFormats = 'csv' | 'log' | 'json';
 
@@ -19,7 +18,7 @@ class GenerationLogger {
     /*
     Get a simulation generation and log results to a file
     */
-    doLog(generation: Generation): void {
+    doLog(_generation: Generation): void {
         // FIXME Implement or drop? Was commented when changed SimulationRun for Job
         /* const generationNumber = generation.getGenerationNumber();
         const bestCandidate = generation.getCandidates()[0];

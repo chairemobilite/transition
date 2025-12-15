@@ -11,7 +11,6 @@ import {
     transitNetworkDesignDescriptor
 } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 import OptionsEditComponent from '../widgets/OptionsDescriptorWidgets';
-import { getDefaultOptionsFromDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 
 export interface ConfigureNetworkDesignParametersFormProps {
     parameters: Partial<TransitNetworkDesignParameters>;

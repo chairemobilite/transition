@@ -26,7 +26,6 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
     props: ConfigureSimulationMethodFormProps
 ) => {
     const { t } = useTranslation(['transit', 'main']);
-    const [updateCnt, setUpdateCnt] = React.useState(0);
     // FIXME Properly handle errors
     const [errors] = React.useState<string[]>([]);
 
