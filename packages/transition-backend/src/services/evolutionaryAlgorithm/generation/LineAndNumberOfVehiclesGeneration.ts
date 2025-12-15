@@ -18,7 +18,10 @@ import Mutation from '../reproduction/Mutation';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { sequentialArray } from 'chaire-lib-common/lib/utils/MathUtils';
 import LineAndNumberOfVehiclesGenerationLogger from './LineAndNumberOfVehiclesGenerationLogger';
-import { EvolutionaryTransitNetworkDesignJob, EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import {
+    EvolutionaryTransitNetworkDesignJob,
+    EvolutionaryTransitNetworkDesignJobType
+} from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
@@ -45,8 +48,7 @@ const generateRandomCandidate = (
     currentChromosomes: boolean[][]
 ): boolean[] => {
     let linesChromosome: boolean[] = [];
-    const nbLines =
-        random.integer(options.numberOfLinesMin, options.numberOfLinesMax) - options.numberOfKeptLines;
+    const nbLines = random.integer(options.numberOfLinesMin, options.numberOfLinesMax) - options.numberOfKeptLines;
 
     let tentative = 0;
     do {
@@ -65,7 +67,9 @@ const generateRandomCandidate = (
     return linesChromosome;
 };
 
-export const generateFirstCandidates = (jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>): NetworkCandidate[] => {
+export const generateFirstCandidates = (
+    jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
+): NetworkCandidate[] => {
     const candidates: NetworkCandidate[] = [];
 
     const linesChromosomes: boolean[][] = [];
@@ -75,11 +79,9 @@ export const generateFirstCandidates = (jobWrapper: TransitNetworkDesignJobWrapp
     for (let i = 0; i < jobWrapper.job.attributes.internal_data.populationSize!; i++) {
         const linesChromosome = generateRandomCandidate(
             {
-                numberOfLinesMin:
-                    jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMin || 1,
+                numberOfLinesMin: jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMin || 1,
                 numberOfLinesMax:
-                    jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMax ||
-                    randomLinesCount,
+                    jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMax || randomLinesCount,
                 numberOfGenesToGenerate: randomLinesCount,
                 numberOfKeptLines: linesToKeepSize
             },
@@ -103,13 +105,8 @@ const shuffleCandidatesInPlace = (
     }
     const shuffleStartAt = (job.parameters.transitNetworkDesignParameters.linesToKeep || []).length;
     // Do not shuffle the first elements, that are the kept lines
-    const originalOrder = sequentialArray(
-        job.simulatedLineCollection.size() - shuffleStartAt,
-        shuffleStartAt
-    );
-    const shuffledOrder = sequentialArray(shuffleStartAt).concat(
-        shuffle(originalOrder)
-    );
+    const originalOrder = sequentialArray(job.simulatedLineCollection.size() - shuffleStartAt, shuffleStartAt);
+    const shuffledOrder = sequentialArray(shuffleStartAt).concat(shuffle(originalOrder));
     candidates.forEach((candidate) => {
         const originalLines = _cloneDeep(candidate.getChromosome().lines);
         const lines = candidate.getChromosome().lines;
@@ -137,9 +134,8 @@ export const reproduceCandidates = (
 
     const evolutionaryAlgorithmConfig = jobWrapper.parameters.algorithmConfiguration.config;
     const candidates: NetworkCandidate[] = [];
-    const minLineNb =
-    jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMin;
-    const maxLineNb =jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMax;
+    const minLineNb = jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMin;
+    const maxLineNb = jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMax;
     const linesToKeepSize = (jobWrapper.parameters.transitNetworkDesignParameters.linesToKeep || []).length;
 
     const linesChromosomes: boolean[][] = [];
@@ -177,11 +173,9 @@ export const reproduceCandidates = (
     for (let i = elitesToKeep; i < elitesToKeep + randomToCreate; i++) {
         const linesChromosome = generateRandomCandidate(
             {
-                numberOfLinesMin:
-                    jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMin || 1,
+                numberOfLinesMin: jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMin || 1,
                 numberOfLinesMax:
-                    jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMax ||
-                    randomLinesCount,
+                    jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMax || randomLinesCount,
                 numberOfGenesToGenerate: randomLinesCount,
                 numberOfKeptLines: linesToKeepSize
             },
@@ -208,7 +202,11 @@ export const reproduceCandidates = (
                 const secondParentIdx = selection.selectCandidateIdx([firstParentIndex]);
                 const secondParent = previousGenSorted[secondParentIdx];
 
-                const crossover = new CrossoverClass([firstParent, secondParent], evolutionaryAlgorithmConfig, linesToKeepSize);
+                const crossover = new CrossoverClass(
+                    [firstParent, secondParent],
+                    evolutionaryAlgorithmConfig,
+                    linesToKeepSize
+                );
                 linesChromosome = crossover.getChildChromosomes();
             }
 
@@ -231,15 +229,19 @@ export const reproduceCandidates = (
 
 export const resumeCandidatesFromChromosomes = (
     jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>,
-    currentGeneration: Exclude<EvolutionaryTransitNetworkDesignJobType['internal_data']['currentGeneration'], undefined>,
+    currentGeneration: Exclude<
+        EvolutionaryTransitNetworkDesignJobType['internal_data']['currentGeneration'],
+        undefined
+    >,
     scenarioCollection: ScenarioCollection
 ): NetworkCandidate[] => {
-    return currentGeneration.candidates.map((candidateData) => 
-        new NetworkCandidate(
-            candidateData.chromosome,
-            jobWrapper,
-            scenarioCollection.getById(candidateData.scenarioId!)
-        )
+    return currentGeneration.candidates.map(
+        (candidateData) =>
+            new NetworkCandidate(
+                candidateData.chromosome,
+                jobWrapper,
+                scenarioCollection.getById(candidateData.scenarioId!)
+            )
     );
 };
 

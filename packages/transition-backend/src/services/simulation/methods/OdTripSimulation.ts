@@ -106,13 +106,12 @@ export default class OdTripSimulation implements SimulationMethod {
         const resultStream = resultsDbQueries.streamResults(jobid);
 
         for await (const row of resultStream) {
-            
             const result = resultsDbQueries.resultParser(row);
             const odTripResult: OdTripRouteResult = result.data;
             const transitResult = odTripResult.results?.transit;
             if (transitResult) {
                 const route = transitResult.paths[0];
-                const odTrip = {...route, expansionFactor: 1.0};
+                const odTrip = { ...route, expansionFactor: 1.0 };
 
                 // TODO Let's ignore handling the expansion factor for now
                 if (!odTrip.expansionFactor) {
@@ -121,7 +120,7 @@ export default class OdTripSimulation implements SimulationMethod {
                 if (odTrip.totalTravelTime == 0) {
                     // TODO should be a error case which would be able by the nonRoutablecase
                     // for now just warn and skip
-                    console.warn("odTrip.travelTimeSeconds == 0");
+                    console.warn('odTrip.travelTimeSeconds == 0');
                     continue;
                 }
                 const userCost = odTrip.expansionFactor * this.odTripFitnessFunction(odTrip);
@@ -132,9 +131,7 @@ export default class OdTripSimulation implements SimulationMethod {
                 totalCount += odTrip.expansionFactor;
                 totalWalkingTimeMinutes +=
                     (odTrip.expansionFactor *
-                        (odTrip.accessTravelTime +
-                            odTrip.egressTravelTime +
-                            odTrip.transferWalkingTime)) /
+                        (odTrip.accessTravelTime + odTrip.egressTravelTime + odTrip.transferWalkingTime)) /
                     60;
                 totalWaitingTimeMinutes += (odTrip.expansionFactor * odTrip.totalWaitingTime) / 60;
                 totalTravelTimeMinutes += (odTrip.expansionFactor * odTrip.totalTravelTime) / 60;
@@ -146,11 +143,10 @@ export default class OdTripSimulation implements SimulationMethod {
                     countByNumberOfTransfers[odTrip.numberOfTransfers] += odTrip.expansionFactor;
                 }
             } else {
-              
                 const expansionFactor = 1.0; //TODO Do something
                 //const userCost = expansionFactor * this.nonRoutableOdTripFitnessFunction(odTrip);
                 // TODO HANDLE THIS PROPERLY
-                console.warn("No Transit found, should call nonRoutableOdTripFitnessFunction, but using constant");
+                console.warn('No Transit found, should call nonRoutableOdTripFitnessFunction, but using constant');
                 const userCost = 100;
                 totalCount += expansionFactor;
                 nonRoutedCount += expansionFactor;
@@ -169,8 +165,7 @@ export default class OdTripSimulation implements SimulationMethod {
             (this.simulationDataAttributes.transitNetworkDesignParameters.nbOfVehicles || 1) * 120,
             this.getTotalNumberOfVehicles() * 120
         ); */
-        const operatingHourlyCost =
-            (this.jobWrapper.parameters.transitNetworkDesignParameters.nbOfVehicles || 1) * 120;
+        const operatingHourlyCost = (this.jobWrapper.parameters.transitNetworkDesignParameters.nbOfVehicles || 1) * 120;
 
         return {
             transfersCount: Math.ceil(transfersCount),
@@ -211,19 +206,21 @@ export default class OdTripSimulation implements SimulationMethod {
                 // ratio, to sample only this ratio
                 if (random.float() <= this.options.evaluationOptions.sampleRatio) {
                     // Give a random trip time in the time range, in seconds since midnight
-                    line[timeCsvColumnHeader] = random.integer(simulationTimeRangeStartSeconds, simulationTimeRangeEndSeconds);
+                    line[timeCsvColumnHeader] = random.integer(
+                        simulationTimeRangeStartSeconds,
+                        simulationTimeRangeEndSeconds
+                    );
                     // Need to manually add the trailing newline since papaparse
                     // unparse does not add it automatically
-                    writeStream.write(unparse([line], { header: needWriteHeader, newline: '\n', }) + '\n');
+                    writeStream.write(unparse([line], { header: needWriteHeader, newline: '\n' }) + '\n');
                     needWriteHeader = false;
                 }
             },
             { header: true }
-        )
+        );
     }
 
     private async sampleOdTripFileForJob(routingJob: ExecutableJob<BatchRouteJobType>): Promise<void> {
-
         return new Promise<void>((resolve, reject) => {
             // Complete input file from the parent job
             const csvStream = this.jobWrapper.job.getReadStream('transitDemand');
@@ -231,20 +228,23 @@ export default class OdTripSimulation implements SimulationMethod {
             // Prepare the sampled file for the child job
             const writeStream = routingJob.getWriteStream('input');
 
-            this.sampleOdTripFile(csvStream, writeStream).then(() => {
-                writeStream.end(() => {
-                    resolve();
+            this.sampleOdTripFile(csvStream, writeStream)
+                .then(() => {
+                    writeStream.end(() => {
+                        resolve();
+                    });
+                })
+                .catch((error) => {
+                    reject(error);
                 });
-            }).catch((error) => {
-                reject(error);
-            });
         });
     }
 
     private getBatchRouteDemandAttributes(): TransitDemandFromCsvRoutingAttributes {
         // Clone the demand attributes to not modify the original
         const demandAttributes = _cloneDeep(this.options.demandAttributes) as OdTripSimulationDemandFromCsvAttributes;
-        const demandFieldMapping = demandAttributes.fileAndMapping.fieldMappings as TransitDemandFromCsvRoutingAttributes;
+        const demandFieldMapping = demandAttributes.fileAndMapping
+            .fieldMappings as TransitDemandFromCsvRoutingAttributes;
         // Add the time, time type and format to the demand attributes, as they are not defined or even required in the main job
         demandFieldMapping.time = timeCsvColumnHeader;
         demandFieldMapping.timeFormat = 'secondsSinceMidnight';
@@ -252,10 +252,7 @@ export default class OdTripSimulation implements SimulationMethod {
         return demandFieldMapping;
     }
 
-    async simulate(
-        scenarioId: string
-    ): Promise<{ fitness: number; results: OdTripSimulationResults }> {
-        
+    async simulate(scenarioId: string): Promise<{ fitness: number; results: OdTripSimulationResults }> {
         // Need to build a BatchCalculationParameters for the BatchRouteJobType
         // It's composed TransitRoutingQueryAttributes plus the withGeometries, detailed flag
         // The TransitRoutingQueryAttributes is a RoutingQueryAttributes + TransitQueryAttributes
@@ -277,7 +274,7 @@ export default class OdTripSimulation implements SimulationMethod {
                 parameters: {
                     demandAttributes: this.getBatchRouteDemandAttributes(),
                     transitRoutingAttributes: batchParams,
-                    trRoutingJobParameters: { cacheDirectoryPath: this.jobWrapper.getCacheDirectory() }                        
+                    trRoutingJobParameters: { cacheDirectoryPath: this.jobWrapper.getCacheDirectory() }
                 }
             },
             resources: {
@@ -288,30 +285,29 @@ export default class OdTripSimulation implements SimulationMethod {
 
         // Create the input file for the batch routing job as a random sample of the original demand file (from the currently running job)
         await this.sampleOdTripFileForJob(routingJob);
-        
+
         //TODO Normally we would yeild the execution here. To let the child run. For now run it directly.
         // I would normally do routingJob.run() here, but it was not implemented like that :P
 
         // This is copied from wrapBatchRoute in `TransitionWorkerPool.ts`
-        const { files, errors, warnings, ...result } = await batchRoute(routingJob,
-            {
-                // Child job needs its own progress emitter to avoid conflicts with the parent's 
-                progressEmitter: new EventEmitter(),
-                isCancelled: this.jobWrapper.privexecutorOptions.isCancelled
-            });
+        const { files, errors, warnings, ...result } = await batchRoute(routingJob, {
+            // Child job needs its own progress emitter to avoid conflicts with the parent's
+            progressEmitter: new EventEmitter(),
+            isCancelled: this.jobWrapper.privexecutorOptions.isCancelled
+        });
         routingJob.attributes.data.results = result;
         routingJob.attributes.resources = { files };
 
         // TODO Get job results somehow
         // TODO Guessing we could transform the processResults here in some kind of result visitor and figure out a way to pass it
         // to the TrRoutingBatch job.
- 
+
         const results = await this.processResults(routingJob.id);
 
         const fitness = this.fitnessFunction(results);
-        
+
         routingJob.delete();
-        
+
         return { fitness, results };
     }
 }
