@@ -125,10 +125,10 @@ export interface SimulationAlgorithmDescriptor<T extends Record<string, unknown>
     getTranslatableName: () => string;
     /** Get the options and their types */
     getOptions: () => { [K in keyof T]: SimulationAlgorithmOptionDescriptor };
-    /** 
+    /**
      * Validate an options object. This function is in addition to the
      * options's individual validator and allows to validate the whole object,
-     * not just individual values. 
+     * not just individual values.
      * */
     validateOptions: (options: Partial<T>) => { valid: boolean; errors: ErrorMessage[] };
 }
@@ -167,7 +167,7 @@ export function getDefaultOptionsFromDescriptor<T extends Record<string, unknown
  * required options are present and that individual option validators are
  * called. It will also call the overall options validator if all individual
  * values are valid.
- * 
+ *
  * @param options The options to validate
  * @param descriptor The descriptor to validate against
  * @returns Validation result with validity and error messages

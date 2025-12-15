@@ -53,7 +53,9 @@ const SimulationAlgorithmComponent: React.FunctionComponent<SimulationAlgorithmC
                     value={props.algorithmConfig?.config}
                     optionsDescriptor={algoDescriptor}
                     disabled={props.disabled}
-                    onUpdate={(parameters, isValid) => props.onValueChange('config', { value: parameters, valid: isValid })}
+                    onUpdate={(parameters, isValid) =>
+                        props.onValueChange('config', { value: parameters, valid: isValid })
+                    }
                 />
             )}
         </React.Fragment>
