@@ -25,7 +25,14 @@ const setupSocketServerApp = async function (server, sessionMiddleware) {
     const io = new SocketIOServer(server, {
         pingTimeout: 60000,
         transports: ['websocket'],
-        maxHttpBufferSize: 1e8 // 100MB
+        maxHttpBufferSize: 1e8, // 100MB
+        // Explicitly configure CORS using HOST env variable for security
+        // Socket.io v4 disables CORS by default; this ensures cross-origin requests work only from the configured host
+        cors: {
+            origin: process.env.HOST || 'http://localhost:8080',
+            methods: ['GET', 'POST'],
+            credentials: true
+        }
     });
 
     io.use(
