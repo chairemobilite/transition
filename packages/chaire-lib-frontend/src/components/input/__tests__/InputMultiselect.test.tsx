@@ -6,9 +6,7 @@
  */
 
 // TODO: This does not seem to work, We should find a way to add the testing-library's custom matchers in the file to test the rest.
-test('Default', () => {
-    expect(true).toBeTruthy();
-});
+test.todo('InputMultiselect tests to be fixed and re-enabled');
 /*
 import { create } from 'react-test-renderer';
 import InputMultiselect from '../InputMultiselect';
