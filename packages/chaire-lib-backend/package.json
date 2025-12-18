@@ -85,7 +85,7 @@
         "@types/node": "^24.10.4",
         "@types/nodemailer": "^7.0.4",
         "@types/passport": "^1.0.17",
-        "@types/passport-http-bearer": "^1.0.41",
+        "@types/passport-http-bearer": "^1.0.42",
         "@types/passport-local": "^1.0.38",
         "@types/stream-chain": "^2.1.0",
         "@types/stream-json": "^1.7.8",
