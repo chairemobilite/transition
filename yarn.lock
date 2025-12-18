@@ -10587,10 +10587,10 @@ optionator@^0.9.3:
     type-check "^0.4.0"
     word-wrap "^1.2.5"
 
-osm2geojson-lite@^1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/osm2geojson-lite/-/osm2geojson-lite-1.1.2.tgz#5c16b98e882b97041d3a5604f06bf5cfb619f286"
-  integrity sha512-6s1uW548fdyLTJ4Cp/hQTKvdgCl/E8nUvBMEzUXnAJPHAFHoIhwMqZ3KGdph2A1g48rsCeA6gVnkPruWGiwupw==
+osm2geojson-lite@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/osm2geojson-lite/-/osm2geojson-lite-1.2.0.tgz#bc2ab8c2491c3da7ce8c0e36234d488134376f1e"
+  integrity sha512-NheOlfQqtCqTshSTRc5e0XX6sgEca7/iIDng4tF649vcMiCJMUi0lqRzHWVQWGrkPh52Z4rDax8NqaXngdo96A==
   optionalDependencies:
     "@types/geojson" "^7946.0.16"
 
