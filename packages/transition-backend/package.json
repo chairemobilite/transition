@@ -55,7 +55,7 @@
         "morgan": "^1.10.1",
         "node-stream-zip": "^1.15.0",
         "p-queue": "^6.6.2",
-        "papaparse": "^5.5.2",
+        "papaparse": "^5.5.3",
         "passport": "^0.7.0",
         "pbf": "^3.3.0",
         "proj4": "^2.15.0",
