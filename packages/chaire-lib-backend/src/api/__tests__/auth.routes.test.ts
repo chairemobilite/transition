@@ -251,6 +251,7 @@ test('Reset password, post without password', async () => {
     const res = await request(app)
         .post(`/reset/${token}`)
         .set('Accept', 'application/json')
+        .send({ })
         .expect('Content-Type', /json/)
         .expect(200);
     expect(res.body.status).toEqual('Confirmed');
@@ -266,6 +267,7 @@ test('Reset password, post without password with exception', async () => {
     const res = await request(app)
         .post(`/reset/${token}`)
         .set('Accept', 'application/json')
+        .send({ })
         .expect('Content-Type', /json/)
         .expect(500);
     expect(res.body.status).toEqual('Error');

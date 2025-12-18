@@ -95,21 +95,21 @@ export const setupServer = (app: Express) => {
     app.set('trust proxy', true); // allow nginx or other proxy server to send request ip address
 
     // send js and css compressed (gzip) to save bandwidth:
-    app.get('*.js', (req, res, next) => {
+    app.get(/.*\.js$/, (req, res, next) => {
         req.url = req.url + '.gz';
         res.set('Content-Encoding', 'gzip');
         res.set('Content-Type', 'text/javascript');
         next();
     });
 
-    app.get('*.css', (req, res, next) => {
+    app.get(/.*\.css$/, (req, res, next) => {
         req.url = req.url + '.gz';
         res.set('Content-Encoding', 'gzip');
         res.set('Content-Type', 'text/css');
         next();
     });
 
-    app.get('*.json', (req: Request, res: Response, next) => {
+    app.get(/.*\.json$/, (req: Request, res: Response, next) => {
         res.set('Content-Type', 'application/json');
         next();
     });
@@ -145,7 +145,7 @@ export const setupServer = (app: Express) => {
     app.use('/dist/', publicPath); // this needs to be after gzip middlewares.
     app.use('/locales/', localePath); // this needs to be after gzip middlewares.
 
-    app.get('*', (req: Request, res: Response): void => {
+    app.get(/.*/, (req: Request, res: Response): void => {
         res.sendFile(indexPath);
     });
     return { app, session };
