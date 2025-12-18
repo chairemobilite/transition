@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import fs from 'fs-extra';
+import fs from 'fs';
 import path from 'path';
 
 import { fileManager } from '../fileManager';
@@ -30,14 +30,14 @@ const absoluteNonExistingPath = path.normalize(`${projectDirectoryPath}/i/dont/e
 
 beforeAll((done) => {
     if (fs.existsSync(absoluteTestDirectory)) {
-        fs.removeSync(absoluteTestDirectory);
+        fs.rmSync(absoluteTestDirectory, { recursive: true });
     }
     done();
 });
 
 afterAll((done) => {
     if (fs.existsSync(absoluteTestDirectory)) {
-        fs.removeSync(absoluteTestDirectory);
+        fs.rmSync(absoluteTestDirectory, { recursive: true });
     }
     done();
 });

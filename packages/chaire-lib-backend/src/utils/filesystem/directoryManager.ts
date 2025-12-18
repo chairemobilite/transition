@@ -6,7 +6,7 @@
  */
 import path from 'path';
 import * as glob from 'glob';
-import fs from 'fs-extra';
+import fs from 'fs';
 
 import '../../config/dotenv.config';
 import config from '../../config/server.config';
@@ -221,7 +221,7 @@ export class DirectoryManager {
     deleteDirectoryAbsolute(absoluteDirectoryPath: string) {
         if (fs.existsSync(absoluteDirectoryPath)) {
             try {
-                fs.removeSync(absoluteDirectoryPath);
+                fs.rmSync(absoluteDirectoryPath, { recursive: true, force: true });
             } catch (error) {
                 console.error('could not delete directory', absoluteDirectoryPath, error);
             }
