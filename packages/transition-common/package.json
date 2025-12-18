@@ -19,7 +19,7 @@
     "format": "prettier-eslint \"./src/**/*.{ts,tsx}\" --write"
   },
   "dependencies": {
-    "@turf/turf": "^7.1.0",
+    "@turf/turf": "^7.3.1",
     "chaire-lib-common": "^0.2.2",
     "geojson": "^0.5.0",
     "geokdbush": "^1.1.0",

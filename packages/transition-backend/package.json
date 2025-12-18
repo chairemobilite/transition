@@ -28,7 +28,7 @@
         "format": "prettier-eslint \"./src/**/*.{ts,tsx}\" --write"
     },
     "dependencies": {
-        "@turf/turf": "^7.1.0",
+        "@turf/turf": "^7.3.1",
         "@unified-latex/unified-latex-util-align": "^1.8.1",
         "@unified-latex/unified-latex-util-parse": "^1.8.1",
         "@unified-latex/unified-latex-util-to-string": "^1.8.1",

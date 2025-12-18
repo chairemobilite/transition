@@ -26,7 +26,7 @@
     "@fortawesome/react-fontawesome": "^3.1.1",
     "@mapbox/mapbox-gl-draw": "^1.4.3",
     "@pitininja/cap-react-widget": "^1.1.1",
-    "@turf/turf": "^7.1.0",
+    "@turf/turf": "^7.3.1",
     "chaire-lib-common": "^0.2.2",
     "date-fns": "^2.30.0",
     "font-awesome": "^4.7.0",
