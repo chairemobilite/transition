@@ -30,7 +30,7 @@
     "lodash": "^4.17.21",
     "papaparse": "^5.5.3",
     "pbf": "^3.3.0",
-    "random": "^5.4.0",
+    "random": "^5.4.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

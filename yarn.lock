@@ -10412,10 +10412,10 @@ random-bytes@~1.0.0:
   resolved "https://registry.yarnpkg.com/random-bytes/-/random-bytes-1.0.0.tgz#4f68a1dc0ae58bd3fb95848c30324db75d64360b"
   integrity sha1-T2ih3Arli9P7lYSMMDJNt11kNgs=
 
-random@^5.4.0:
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/random/-/random-5.4.0.tgz#918163426c03dd1a1eed377c4682faebae725a4f"
-  integrity sha512-Y147ufdzRqcQuBpKkoW7N3+B/SW4X6pF3ZfsNy+bF1r3i/I+j2zobnCp+9vN1nIJDjObI/174PCySTa3FECynQ==
+random@^5.4.1:
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/random/-/random-5.4.1.tgz#4a36248cec341ea3eeb7410a0f81f3839bc5becb"
+  integrity sha512-HtccRkYkAXCbj9bqsyGKGlicyeZ5AsQgs49fEuUO/BvrJ7WOQqXPjdg1CZrFjBkoT75ozrWlQXJ7TcXXLv2ISQ==
 
 randombytes@^2.1.0:
   version "2.1.0"
