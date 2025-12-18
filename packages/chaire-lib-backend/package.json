@@ -101,7 +101,7 @@
         "jest-each": "^30.2.0",
         "mock-spawn": "^0.2.6",
         "mockdate": "^3.0.5",
-        "nodemailer-mock": "^2.0.6",
+        "nodemailer-mock": "^2.0.9",
         "prettier-eslint-cli": "^8.0.1",
         "supertest": "^7.0.0",
         "supertest-session": "^5.0.1",
