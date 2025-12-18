@@ -9865,10 +9865,10 @@ passport-local@^1.0.0:
   dependencies:
     passport-strategy "1.x.x"
 
-passport-magic-login@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/passport-magic-login/-/passport-magic-login-1.2.2.tgz#5d2f8726f3fb426d6a57fa90999d212fc03ee1b4"
-  integrity sha512-KBzxei/qvt2UDkS1qXz2VR2XajbWB5808W+oDpeMsfGqMgBKicaDX7HOrgAVpvw2q+fWOuh21LWe+kYyZPogDA==
+passport-magic-login@^1.2.4:
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/passport-magic-login/-/passport-magic-login-1.2.4.tgz#169bf377601c55b1af265d5f75ddc0a3f9e1e870"
+  integrity sha512-uxsLmUIOBYkCmBDlQtuFA57Wq8UwVHEDNaN1QQn3QiVxp3dsNIt3bD326uiPEn0PwyjqdpK/YQ3GytRXCGwecQ==
   dependencies:
     "@types/node" "^14.14.20"
     jsonwebtoken "^9.0.0"
