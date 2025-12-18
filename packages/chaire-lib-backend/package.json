@@ -45,7 +45,6 @@
         "chaire-lib-common": "^0.2.2",
         "dotenv": "^17.2.3",
         "express": "^4.21.2",
-        "fs-extra": "^11.2.0",
         "geojson": "^0.5.0",
         "glob": "^11.1.0",
         "i18next": "^24.0.5",
@@ -80,7 +79,6 @@
     "devDependencies": {
         "@types/bcryptjs": "^2.4.6",
         "@types/express": "^4.17.21",
-        "@types/fs-extra": "^11.0.4",
         "@types/geojson": "^7946.0.16",
         "@types/jest": "^30.0.0",
         "@types/lodash": "^4.17.21",
