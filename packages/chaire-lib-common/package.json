@@ -21,7 +21,7 @@
   "dependencies": {
     "@casl/ability": "^6.7.3",
     "@mapbox/polyline": "^1.2.1",
-    "@turf/turf": "^7.1.0",
+    "@turf/turf": "^7.3.1",
     "geobuf": "^3.0.2",
     "geojson": "^0.5.0",
     "geojson-validation": "^1.0.2",

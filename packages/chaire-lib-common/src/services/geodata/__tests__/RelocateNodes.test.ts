@@ -117,8 +117,16 @@ test('Check that the offset nodes are at the expected middle point', async () =>
     const nodesTest = _cloneDeep(transitNodes);
     await manageRelocatingNodes(nodesTest, _cloneDeep(transitPaths));
 
-    expect(nodesTest.features[0].geometry.coordinates).toEqual([2,2]);
-    expect(nodesTest.features[1].geometry.coordinates).toEqual([1,2]);
-    expect(nodesTest.features[2].geometry.coordinates).toEqual([4,1]);
+    // Expected new coordinates are:
+    // Node 0: [2,2]
+    // Node 1: [1,2]
+    // Node 2: [4,1]
+    // But allow for some small floating point differences
+    expect(nodesTest.features[0].geometry.coordinates[0]).toBeCloseTo(2, 4);
+    expect(nodesTest.features[0].geometry.coordinates[1]).toBeCloseTo(2, 4);
+    expect(nodesTest.features[1].geometry.coordinates[0]).toBeCloseTo(1, 4);
+    expect(nodesTest.features[1].geometry.coordinates[1]).toBeCloseTo(2, 4);
+    expect(nodesTest.features[2].geometry.coordinates[0]).toBeCloseTo(4, 4);
+    expect(nodesTest.features[2].geometry.coordinates[1]).toBeCloseTo(1, 4);
 
 });
