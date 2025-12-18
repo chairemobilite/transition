@@ -66,7 +66,7 @@
         "passport-google-oauth": "^2.0.0",
         "passport-http-bearer": "^1.0.1",
         "passport-local": "^1.0.0",
-        "passport-magic-login": "^1.2.2",
+        "passport-magic-login": "^1.2.4",
         "pg": "^8.13.1",
         "pg-query-stream": "^4.7.1",
         "socket.io": "^4.8.1",
