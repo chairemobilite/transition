@@ -59,7 +59,7 @@
         "moment": "^2.30.1",
         "nodemailer": "^7.0.11",
         "opentelemetry-instrumentation-socket.io": "^0.34.0",
-        "osm2geojson-lite": "^1.1.2",
+        "osm2geojson-lite": "^1.2.0",
         "p-queue": "^6.6.2",
         "passport": "^0.7.0",
         "passport-facebook": "^3.0.0",
