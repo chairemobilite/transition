@@ -10,7 +10,11 @@ import _toString from 'lodash/toString';
 
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
-import { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
+import {
+    TransitNetworkDesignParameters,
+    MAX_TIME_BETWEEN_PASSAGES,
+    MIN_TIME_BETWEEN_PASSAGES
+} from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Service from 'transition-common/lib/services/service/Service';
@@ -59,6 +63,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     stringToValue={_toInteger}
                     valueToString={_toString}
                     type={'number'}
+                    min={0}
                 />
             </InputWrapper>
             <InputWrapper smallInput={true} label={props.t('transit:simulation:NumberOfLinesMax')}>
@@ -70,6 +75,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     stringToValue={_toInteger}
                     valueToString={_toString}
                     type={'number'}
+                    min={0}
                 />
             </InputWrapper>
             <InputWrapper smallInput={true} label={props.t('transit:simulation:MaxIntervalMinutes')}>
@@ -81,6 +87,8 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     stringToValue={_toInteger}
                     valueToString={_toString}
                     type={'number'}
+                    min={MIN_TIME_BETWEEN_PASSAGES}
+                    max={MAX_TIME_BETWEEN_PASSAGES}
                 />
             </InputWrapper>
             <InputWrapper smallInput={true} label={props.t('transit:simulation:MinIntervalMinutes')}>
@@ -92,6 +100,8 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     stringToValue={_toInteger}
                     valueToString={_toString}
                     type={'number'}
+                    min={MIN_TIME_BETWEEN_PASSAGES}
+                    max={MAX_TIME_BETWEEN_PASSAGES}
                 />
             </InputWrapper>
             <InputWrapper smallInput={true} label={props.t('transit:simulation:VehiclesCount')}>
@@ -103,6 +113,7 @@ const TransitNetworkDesignParametersComponent: React.FunctionComponent<TransitNe
                     stringToValue={_toInteger}
                     valueToString={_toString}
                     type={'number'}
+                    min={0}
                 />
             </InputWrapper>
             <InputWrapper twoColumns={false} label={props.t('transit:simulation:LineSetAgencies')}>

@@ -12,6 +12,7 @@ import _toString from 'lodash/toString';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
+import { MIN_DEFAULT_WALKING_SPEED_KPH, MAX_DEFAULT_WALKING_SPEED_KPH } from 'chaire-lib-common/lib/config/Preferences';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
@@ -94,6 +95,8 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
                             _toString(!isNaN(parseFloat(value)) ? roundToDecimals(mpsToKph(value), 1) : '')
                         }
                         type="number"
+                        min={MIN_DEFAULT_WALKING_SPEED_KPH}
+                        max={MAX_DEFAULT_WALKING_SPEED_KPH}
                     />
                     <PreferencesResetToDefaultButton
                         resetPrefToDefault={props.resetPrefToDefault}
