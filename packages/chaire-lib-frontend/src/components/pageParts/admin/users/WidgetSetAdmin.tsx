@@ -74,7 +74,7 @@ const WidgetSetAdmin: React.FunctionComponent<WidgetSetAdminProps> = (props: Wid
     };
 
     // Do not allow a user to set or unset admin for himself
-    const disabled = user && user.id === props.userId;
+    const disabled = user !== undefined && user !== null && user.id === props.userId;
 
     return (
         <>

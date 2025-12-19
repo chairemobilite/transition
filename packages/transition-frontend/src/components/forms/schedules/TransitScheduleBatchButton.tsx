@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import Line from 'transition-common/lib/services/line/Line';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
@@ -19,9 +19,10 @@ interface ScheduleBatchButtonProps {
     onLineSelectedUpdate: (line: Line, value: boolean) => void;
 }
 
-const TransitScheduleBatchButton: React.FunctionComponent<ScheduleBatchButtonProps & WithTranslation> = (
-    props: ScheduleBatchButtonProps & WithTranslation
+const TransitScheduleBatchButton: React.FunctionComponent<ScheduleBatchButtonProps> = (
+    props: ScheduleBatchButtonProps
 ) => {
+    const { t } = useTranslation(['transit', 'main', 'notifications']);
     const lineIsSelected =
         (props.selectedLines && props.selectedLines.getById(props.line.getId()) !== undefined) || false;
     const lineId = props.line.getId();
@@ -65,7 +66,7 @@ const TransitScheduleBatchButton: React.FunctionComponent<ScheduleBatchButtonPro
                     <img
                         className="_icon-alone"
                         src={'/dist/images/icons/interface/lock_white.svg'}
-                        alt={props.t('main:Locked')}
+                        alt={t('main:Locked')}
                     />
                 </ButtonCell>
             )}
@@ -75,8 +76,8 @@ const TransitScheduleBatchButton: React.FunctionComponent<ScheduleBatchButtonPro
                 <img
                     className="_list-element _icon-alone"
                     src={`/dist/images/icons/transit/modes/${props.line.attributes.mode}_white.svg`}
-                    alt={props.t(`transit:transitLine:modes:${props.line.attributes.mode}`)}
-                    title={props.t(`transit:transitLine:modes:${props.line.attributes.mode}`)}
+                    alt={t(`transit:transitLine:modes:${props.line.attributes.mode}`)}
+                    title={t(`transit:transitLine:modes:${props.line.attributes.mode}`)}
                 />
             </ButtonCell>
 
@@ -84,13 +85,13 @@ const TransitScheduleBatchButton: React.FunctionComponent<ScheduleBatchButtonPro
             <ButtonCell alignment="left">{props.line.attributes.longname}</ButtonCell>
             <ButtonCell alignment="flush">
                 {pathsCount > 1
-                    ? props.t('transit:transitLine:nPaths', { n: pathsCount })
-                    : props.t('transit:transitLine:nPath', { n: pathsCount })}{' '}
+                    ? t('transit:transitLine:nPaths', { n: pathsCount })
+                    : t('transit:transitLine:nPath', { n: pathsCount })}{' '}
                 {scheduledServicesCount > 0 && (
                     <span className="_list-element">
                         {scheduledServicesCount > 1
-                            ? props.t('transit:transitLine:nServices', { n: scheduledServicesCount })
-                            : props.t('transit:transitLine:nService', { n: scheduledServicesCount })}
+                            ? t('transit:transitLine:nServices', { n: scheduledServicesCount })
+                            : t('transit:transitLine:nService', { n: scheduledServicesCount })}
                     </span>
                 )}
             </ButtonCell>
@@ -98,4 +99,4 @@ const TransitScheduleBatchButton: React.FunctionComponent<ScheduleBatchButtonPro
     );
 };
 
-export default withTranslation(['transit', 'main', 'notifications'])(TransitScheduleBatchButton);
+export default TransitScheduleBatchButton;

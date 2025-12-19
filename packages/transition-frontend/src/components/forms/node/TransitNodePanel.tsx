@@ -179,7 +179,7 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
                 (state.selectedNodes.length > 0 && !importerSelected)) &&
                 state.selectedNodes[0] !== 'draw_polygon' && (
                 <TransitNodeCollectionEdit
-                    nodes={state.selectedNodes}
+                    nodes={state.selectedNodes as Node[]} // string[] is for draw_polygon only, so here we have Node[]
                     onBack={() => {
                         setLastOptionIsSelectedNodes(false);
                         setState((state) =>
