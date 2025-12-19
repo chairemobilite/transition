@@ -58,7 +58,8 @@ jobs:
       with:
         node-version: 24.x
     - name: Install
-      run: yarn install --frozen-lockfile
+      # We do not use --frozen-lockfile to check if we forgot to commit the yarn.lock
+      run: yarn install  
     - name: Yarn format
       run: yarn format
     - name: Check git status
