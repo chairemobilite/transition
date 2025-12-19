@@ -26,8 +26,8 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
     const selectedRoutingModesCount = selectedRoutingModes.length;
 
     // prepare routing mode results tabs:
-    const routingModesResultsTabs: Tab[] = [];
-    const routingModesResultsTabPanels: TabPanel[] = [];
+    const routingModesResultsTabs: React.ReactElement[] = [];
+    const routingModesResultsTabPanels: React.ReactElement[] = [];
     for (let i = 0; i < selectedRoutingModesCount; i++) {
         const result = props.results[selectedRoutingModes[i]];
         if (!result) {
