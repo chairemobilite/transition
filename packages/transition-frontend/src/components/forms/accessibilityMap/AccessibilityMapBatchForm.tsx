@@ -289,6 +289,7 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
                                 stringToValue={_toInteger}
                                 valueToString={_toString}
                                 type={'number'}
+                                min={1}
                             />
                         </InputWrapper>
                     }

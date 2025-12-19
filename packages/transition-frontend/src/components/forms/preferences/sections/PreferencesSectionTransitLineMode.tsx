@@ -182,6 +182,7 @@ const PreferencesSectionTransitLineMode: React.FunctionComponent<PreferencesSect
                         stringToValue={parseFloatOrNull}
                         valueToString={(val) => _toString(parseFloatOrNull(val))}
                         type="number"
+                        min={0}
                     />
                     <PreferencesResetToDefaultButton
                         resetPrefToDefault={props.resetPrefToDefault}
