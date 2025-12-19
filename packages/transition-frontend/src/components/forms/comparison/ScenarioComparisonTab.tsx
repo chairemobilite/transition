@@ -44,7 +44,7 @@ const ScenarioComparisonTab: React.FunctionComponent<ScenarioComparisonTabProps>
         hasAlternativeWalkPath2 = true;
     }
 
-    const routingModesResultsTabs: Tab[] = [];
+    const routingModesResultsTabs: React.ReactElement[] = [];
     routingModesResultsTabs.push(<Tab key={'transit'}>{t('transit:transitPath:routingModes:transit')}</Tab>);
 
     return (
