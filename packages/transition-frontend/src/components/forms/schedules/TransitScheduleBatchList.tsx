@@ -37,11 +37,12 @@ const TransitScheduleBatchList: React.FunctionComponent = () => {
         selectedNewSchedules: []
     });
     const agencyCollection = serviceLocator.collectionManager.get('agencies').getFeatures();
-    const lines = serviceLocator.collectionManager.get('lines').getFeatures();
+    const lineCollection = serviceLocator.collectionManager.get('lines') as LineCollection;
+    const lines = lineCollection.getFeatures();
     // Only the lines with one inbound and one outbound path are displayed
-    const filteredlines = lines.filter(
-        (line) => line.getOutboundPaths().length > 0 && line.getInboundPaths().length > 0
-    );
+    const filteredlinesIds = lines
+        .filter((line) => line.getOutboundPaths().length > 0 && line.getInboundPaths().length > 0)
+        .map((line) => line.id);
     const transitServices = serviceLocator.collectionManager.get('services');
     const onLineSelectedUpdate = (selectedLine: Line, isSelected: boolean) => {
         if (isSelected === true && !state.batchSelectedLines.getById(selectedLine.getId())) {
@@ -104,7 +105,7 @@ const TransitScheduleBatchList: React.FunctionComponent = () => {
     agencyCollection.forEach((agency) => {
         const agencyLinesButtons: any[] = [];
         agency.getLines().forEach((line) => {
-            if (filteredlines.includes(line))
+            if (filteredlinesIds.includes(line.getId()))
                 agencyLinesButtons.push(
                     <TransitScheduleBatchButton
                         key={line.getId()}
@@ -148,11 +149,14 @@ const TransitScheduleBatchList: React.FunctionComponent = () => {
             {state.isSelectionConfirmed === false && (
                 <div className="tr__form-buttons-container _left">
                     <Button
-                        disabled={state.batchSelectedLines.length === filteredlines.length}
+                        disabled={state.batchSelectedLines.length === filteredlinesIds.length}
                         color="blue"
                         label={t('main:SelectAll')}
                         onClick={function () {
-                            state.batchSelectedLines.setFeatures(filteredlines);
+                            const selectedLines = filteredlinesIds
+                                .map((id) => lineCollection.getById(id))
+                                .filter((line): line is Line => line !== undefined);
+                            state.batchSelectedLines.setFeatures(selectedLines);
                             setState({
                                 batchSelectedLines: state.batchSelectedLines,
                                 isSelectionConfirmed: false,
@@ -177,7 +181,7 @@ const TransitScheduleBatchList: React.FunctionComponent = () => {
                 </div>
             )}
 
-            {lines.length > filteredlines.length && (
+            {lines.length > filteredlinesIds.length && (
                 <FormErrors errors={['transit:transitSchedule:batchMinTwoPathWarning']} errorType="Warning" />
             )}
             {state.isSelectionConfirmed === false && <ButtonList>{linesButtons}</ButtonList>}
@@ -207,25 +211,22 @@ const TransitScheduleBatchList: React.FunctionComponent = () => {
                     </span>
                 )}
             </div>
-            {!state.batchSelectedLines && (
-                <Button
-                    color="grey"
-                    icon={faWindowClose}
-                    iconClass="_icon"
-                    label={t('transit:transitSchedule:CloseSchedulesWindow')}
-                    onClick={function () {
-                        serviceLocator.selectedObjectsManager.deselect('schedule');
-                        serviceLocator.selectedObjectsManager.deselect('line');
-                        serviceLocator.eventManager.emit('fullSizePanel.hide');
-                    }}
-                />
-            )}
 
             {state.isSelectionConfirmed && (
                 <TransitScheduleBatchEdit
                     lines={state.batchSelectedLines}
                     schedules={state.selectedNewSchedules!}
                     availableServices={serviceChoices}
+                    onClose={(resetSelection) => {
+                        if (resetSelection) {
+                            state.batchSelectedLines.clear();
+                        }
+                        setState({
+                            batchSelectedLines: state.batchSelectedLines,
+                            isSelectionConfirmed: false,
+                            selectedNewSchedules: []
+                        });
+                    }}
                 />
             )}
         </div>
