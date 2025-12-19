@@ -30,6 +30,7 @@ interface ScheduleBatchFormProps {
     lines: LineCollection;
     schedules: Schedule[];
     availableServices: choiceType[];
+    onClose: (resetSelection: boolean) => void;
 }
 
 interface ScheduleBatchFormState extends SaveableObjectState<Schedule> {
@@ -170,6 +171,7 @@ class TransitScheduleBatchEdit extends SaveableObjectForm<
                     }
                 });
                 await serviceLocator.collectionManager.get('lines').loadFromServer(serviceLocator.socketEventManager);
+                this.props.onClose(true);
             } finally {
                 serviceLocator.eventManager.emit('progress', { name: 'SavingSchedule', progress: 1.0 });
             }
@@ -300,7 +302,7 @@ class TransitScheduleBatchEdit extends SaveableObjectForm<
                     <ConfirmModal
                         isOpen={true}
                         title={this.props.t('main:ConfirmBackModal')}
-                        confirmAction={this.onBack}
+                        confirmAction={() => this.props.onClose(false)}
                         confirmButtonColor="blue"
                         confirmButtonLabel={this.props.t('main:DiscardChanges')}
                         cancelButtonLabel={this.props.t('main:Cancel')}
@@ -319,7 +321,9 @@ class TransitScheduleBatchEdit extends SaveableObjectForm<
                             icon={faArrowLeft}
                             iconClass="_icon-alone"
                             label=""
-                            onClick={schedules[0].hasChanged() ? this.openBackConfirmModal : this.onBack}
+                            onClick={
+                                schedules[0].hasChanged() ? this.openBackConfirmModal : () => this.props.onClose(false)
+                            }
                         />
                     </span>
                     {
