@@ -60,9 +60,8 @@ describe('TransitLineButton', () => {
             <TransitLineButton
                 line={mockLine}
                 lineIsHidden={false}
-            >
-                test
-            </TransitLineButton>
+            />
+
         );
 
         expect(container).toMatchSnapshot();
@@ -77,9 +76,7 @@ describe('TransitLineButton', () => {
                 selectedLine={mockLine}
                 lineIsHidden={false}
                 onObjectSelected={mockOnObjectSelected}
-            >
-                test
-            </TransitLineButton>
+            />
         );
 
         expect(container).toMatchSnapshot();
@@ -97,9 +94,7 @@ describe('TransitLineButton', () => {
                 selectedLine={mockLine}
                 lineIsHidden={false}
                 onObjectSelected={mockOnObjectSelected}
-            >
-                test
-            </TransitLineButton>
+            />
         );
 
         jest.spyOn(mockLine, 'refreshSchedules').mockResolvedValue(undefined);

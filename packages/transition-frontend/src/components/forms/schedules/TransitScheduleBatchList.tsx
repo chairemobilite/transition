@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { faWindowClose } from '@fortawesome/free-solid-svg-icons/faWindowClose';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
@@ -21,7 +21,7 @@ import { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 
-interface BatchListProps {
+interface BatchListState {
     batchSelectedLines: LineCollection;
     isSelectionConfirmed?: boolean;
     selectedNewSchedules?: Schedule[];
@@ -29,20 +29,20 @@ interface BatchListProps {
 
 // The batch schedule modification is only available on the lines that have at least
 // one inbound and one outbound path. See the filteredLinesCollection below
-const TransitScheduleBatchList: React.FunctionComponent<BatchListProps & WithTranslation> = (
-    props: BatchListProps & WithTranslation
-) => {
-    const [state, setState] = React.useState<BatchListProps>({
+const TransitScheduleBatchList: React.FunctionComponent = () => {
+    const { t } = useTranslation('transit');
+    const [state, setState] = React.useState<BatchListState>({
         batchSelectedLines: new LineCollection([], undefined),
         isSelectionConfirmed: false,
         selectedNewSchedules: []
     });
     const agencyCollection = serviceLocator.collectionManager.get('agencies').getFeatures();
-    const lines = serviceLocator.collectionManager.get('lines').getFeatures();
+    const lineCollection = serviceLocator.collectionManager.get('lines') as LineCollection;
+    const lines = lineCollection.getFeatures();
     // Only the lines with one inbound and one outbound path are displayed
-    const filteredlines = lines.filter(
-        (line) => line.getOutboundPaths().length > 0 && line.getInboundPaths().length > 0
-    );
+    const filteredlinesIds = lines
+        .filter((line) => line.getOutboundPaths().length > 0 && line.getInboundPaths().length > 0)
+        .map((line) => line.id);
     const transitServices = serviceLocator.collectionManager.get('services');
     const onLineSelectedUpdate = (selectedLine: Line, isSelected: boolean) => {
         if (isSelected === true && !state.batchSelectedLines.getById(selectedLine.getId())) {
@@ -105,10 +105,9 @@ const TransitScheduleBatchList: React.FunctionComponent<BatchListProps & WithTra
     agencyCollection.forEach((agency) => {
         const agencyLinesButtons: any[] = [];
         agency.getLines().forEach((line) => {
-            if (filteredlines.includes(line))
+            if (filteredlinesIds.includes(line.getId()))
                 agencyLinesButtons.push(
                     <TransitScheduleBatchButton
-                        disabled={state.isSelectionConfirmed === true}
                         key={line.getId()}
                         line={line}
                         selectedLines={state.batchSelectedLines}
@@ -127,9 +126,9 @@ const TransitScheduleBatchList: React.FunctionComponent<BatchListProps & WithTra
                 <img
                     src={'/dist/images/icons/transit/schedule_white.svg'}
                     className="_icon"
-                    alt={props.t('transit:transitSchedule:BatchSchedules')}
+                    alt={t('transit:transitSchedule:BatchSchedules')}
                 />{' '}
-                {props.t('transit:transitSchedule:BatchSchedules')}
+                {t('transit:transitSchedule:BatchSchedules')}
             </h3>
 
             {state.isSelectionConfirmed === false && (
@@ -138,7 +137,7 @@ const TransitScheduleBatchList: React.FunctionComponent<BatchListProps & WithTra
                         color="grey"
                         icon={faWindowClose}
                         iconClass="_icon"
-                        label={props.t('transit:transitSchedule:CloseSchedulesWindow')}
+                        label={t('transit:transitSchedule:CloseSchedulesWindow')}
                         onClick={function () {
                             serviceLocator.selectedObjectsManager.deselect('schedule');
                             serviceLocator.selectedObjectsManager.deselect('line');
@@ -150,11 +149,14 @@ const TransitScheduleBatchList: React.FunctionComponent<BatchListProps & WithTra
             {state.isSelectionConfirmed === false && (
                 <div className="tr__form-buttons-container _left">
                     <Button
-                        disabled={state.batchSelectedLines.length === filteredlines.length}
+                        disabled={state.batchSelectedLines.length === filteredlinesIds.length}
                         color="blue"
-                        label={props.t('main:SelectAll')}
+                        label={t('main:SelectAll')}
                         onClick={function () {
-                            state.batchSelectedLines.setFeatures(filteredlines);
+                            const selectedLines = filteredlinesIds
+                                .map((id) => lineCollection.getById(id))
+                                .filter((line): line is Line => line !== undefined);
+                            state.batchSelectedLines.setFeatures(selectedLines);
                             setState({
                                 batchSelectedLines: state.batchSelectedLines,
                                 isSelectionConfirmed: false,
@@ -166,7 +168,7 @@ const TransitScheduleBatchList: React.FunctionComponent<BatchListProps & WithTra
                     <Button
                         disabled={state.batchSelectedLines.length === 0}
                         color="blue"
-                        label={props.t('main:UnselectAll')}
+                        label={t('main:UnselectAll')}
                         onClick={function () {
                             state.batchSelectedLines.clear();
                             setState({
@@ -179,7 +181,7 @@ const TransitScheduleBatchList: React.FunctionComponent<BatchListProps & WithTra
                 </div>
             )}
 
-            {lines.length > filteredlines.length && (
+            {lines.length > filteredlinesIds.length && (
                 <FormErrors errors={['transit:transitSchedule:batchMinTwoPathWarning']} errorType="Warning" />
             )}
             {state.isSelectionConfirmed === false && <ButtonList>{linesButtons}</ButtonList>}
@@ -191,47 +193,44 @@ const TransitScheduleBatchList: React.FunctionComponent<BatchListProps & WithTra
                             color="blue"
                             icon={faArrowLeft}
                             iconClass="_icon"
-                            label={props.t('transit:transitSchedule:ReturnBatchLineSelection')}
+                            label={t('transit:transitSchedule:ReturnBatchLineSelection')}
                             onClick={onUndoConfirmation}
                         />
                     </span>
                 )}
 
                 {state.isSelectionConfirmed === false && (
-                    <span title={props.t('transit:transitSchedule:ConfirmBatchLineSelection')}>
+                    <span title={t('transit:transitSchedule:ConfirmBatchLineSelection')}>
                         <Button
                             disabled={state.batchSelectedLines.length < 1 || state.isSelectionConfirmed}
                             icon={faCheckCircle}
                             iconClass="_icon"
-                            label={props.t('transit:transitSchedule:ConfirmBatchLineSelection')}
+                            label={t('transit:transitSchedule:ConfirmBatchLineSelection')}
                             onClick={onConfirmation}
                         />
                     </span>
                 )}
             </div>
-            {!props.batchSelectedLines && (
-                <Button
-                    color="grey"
-                    icon={faWindowClose}
-                    iconClass="_icon"
-                    label={props.t('transit:transitSchedule:CloseSchedulesWindow')}
-                    onClick={function () {
-                        serviceLocator.selectedObjectsManager.deselect('schedule');
-                        serviceLocator.selectedObjectsManager.deselect('line');
-                        serviceLocator.eventManager.emit('fullSizePanel.hide');
-                    }}
-                />
-            )}
 
             {state.isSelectionConfirmed && (
                 <TransitScheduleBatchEdit
                     lines={state.batchSelectedLines}
-                    schedules={state.selectedNewSchedules}
+                    schedules={state.selectedNewSchedules!}
                     availableServices={serviceChoices}
+                    onClose={(resetSelection) => {
+                        if (resetSelection) {
+                            state.batchSelectedLines.clear();
+                        }
+                        setState({
+                            batchSelectedLines: state.batchSelectedLines,
+                            isSelectionConfirmed: false,
+                            selectedNewSchedules: []
+                        });
+                    }}
                 />
             )}
         </div>
     );
 };
 
-export default withTranslation('transit')(TransitScheduleBatchList);
+export default TransitScheduleBatchList;
