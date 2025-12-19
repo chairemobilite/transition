@@ -34,6 +34,7 @@ const TransitRoutingBaseComponent: React.FunctionComponent<TransitRoutingBaseCom
                     stringToValue={minutesToSeconds}
                     valueToString={(val) => _toString(secondsToMinutes(val))}
                     type={'number'}
+                    min={0}
                 />
             </InputWrapper>
             <InputWrapper
@@ -49,6 +50,7 @@ const TransitRoutingBaseComponent: React.FunctionComponent<TransitRoutingBaseCom
                     stringToValue={minutesToSeconds}
                     valueToString={(val) => _toString(secondsToMinutes(val))}
                     type={'number'}
+                    min={0}
                 />
             </InputWrapper>
             <InputWrapper
@@ -64,6 +66,7 @@ const TransitRoutingBaseComponent: React.FunctionComponent<TransitRoutingBaseCom
                     stringToValue={minutesToSeconds}
                     valueToString={(val) => _toString(secondsToMinutes(val))}
                     type={'number'}
+                    min={0}
                 />
             </InputWrapper>
             <InputWrapper
@@ -79,6 +82,7 @@ const TransitRoutingBaseComponent: React.FunctionComponent<TransitRoutingBaseCom
                     stringToValue={minutesToSeconds}
                     valueToString={(val) => _toString(secondsToMinutes(val))}
                     type={'number'}
+                    min={0}
                 />
             </InputWrapper>
             <InputWrapper
@@ -94,6 +98,7 @@ const TransitRoutingBaseComponent: React.FunctionComponent<TransitRoutingBaseCom
                     stringToValue={minutesToSeconds}
                     valueToString={(val) => _toString(secondsToMinutes(val))}
                     type={'number'}
+                    min={0}
                 />
             </InputWrapper>
         </React.Fragment>

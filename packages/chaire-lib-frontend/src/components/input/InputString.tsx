@@ -33,6 +33,8 @@ export type InputStringProps = {
     autocompleteChoices?: ({ label: string; value: string } | string)[];
     type?: 'text' | 'email' | 'number';
     pattern?: string;
+    min?: number;
+    max?: number;
 };
 
 type defaultInputType = {
@@ -43,6 +45,8 @@ type defaultInputType = {
     onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
     disabled?: boolean;
     pattern?: string;
+    min?: number;
+    max?: number;
 };
 
 const InputString: React.FunctionComponent<InputStringProps> = ({
@@ -56,7 +60,9 @@ const InputString: React.FunctionComponent<InputStringProps> = ({
     disabled = false,
     autocompleteChoices = [],
     type = 'text',
-    pattern = undefined
+    pattern = undefined,
+    min = undefined,
+    max = undefined
 }: InputStringProps) => {
     const actualValue = value === undefined || value === null ? '' : value;
     const defaultAttributes: defaultInputType = {
@@ -77,6 +83,14 @@ const InputString: React.FunctionComponent<InputStringProps> = ({
 
     if (pattern) {
         defaultAttributes.pattern = pattern;
+    }
+
+    if (type === 'number' && min !== undefined) {
+        defaultAttributes.min = min;
+    }
+
+    if (type === 'number' && max !== undefined) {
+        defaultAttributes.max = max;
     }
 
     if (autocompleteChoices && autocompleteChoices.length > 0) {

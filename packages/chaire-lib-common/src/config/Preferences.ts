@@ -19,6 +19,16 @@ import config from './shared/project.config';
 import { _isBlank } from '../utils/LodashExtensions';
 import { lineModesArray } from './lineModesDefaultValues';
 
+// Boundaries for the default values of various path parameters. Changing these does not affect the bounds of the parameters themselves, only those of the default param you can configure in the preferences.
+export const MIN_DEFAULT_WALKING_SPEED_KPH = 2.0;
+export const MAX_DEFAULT_WALKING_SPEED_KPH = 7.0;
+const MAX_DEFAULT_RUNNING_SPEED_KMH = 500;
+const MAX_DEFAULT_DWELL_TIME_SECONDS = 600;
+const MIN_DEFAULT_ACCELERATION = 0.3;
+const MAX_DEFAULT_ACCELERATION = 1.5;
+const MIN_DEFAULT_DECELERATION = 0.3;
+const MAX_DEFAULT_DECELERATION = 1.5;
+
 interface PreferencesModelWithIdAndData extends PreferencesModel {
     id: string;
     data: { [key: string]: any };
@@ -79,10 +89,10 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
     public validate() {
         this._isValid = true;
         this._errors = [];
-        if (this.attributes.defaultWalkingSpeedMetersPerSeconds < 2.0 / 3.6) {
+        if (this.attributes.defaultWalkingSpeedMetersPerSeconds < MIN_DEFAULT_WALKING_SPEED_KPH / 3.6) {
             this._isValid = false;
             this._errors.push('main:preferences:errors:DefaultWalkingSpeedMustBeAtLeast2kph');
-        } else if (this.attributes.defaultWalkingSpeedMetersPerSeconds > 7.0 / 3.6) {
+        } else if (this.attributes.defaultWalkingSpeedMetersPerSeconds > MAX_DEFAULT_WALKING_SPEED_KPH / 3.6) {
             this._isValid = false;
             this._errors.push('main:preferences:errors:DefaultWalkingSpeedMustBeAtMost7kph');
         }
@@ -95,11 +105,17 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
             const defaultDwellTimeSeconds =
                 this.attributes.transit.lines.lineModesDefaultValues[mode].defaultDwellTimeSeconds;
             const maxRunningSpeedKmH = this.attributes.transit.lines.lineModesDefaultValues[mode].maxRunningSpeedKmH;
-            if (_isNumber(defaultRunningSpeedKmH) && (defaultRunningSpeedKmH <= 0 || defaultRunningSpeedKmH > 500)) {
+            if (
+                _isNumber(defaultRunningSpeedKmH) &&
+                (defaultRunningSpeedKmH <= 0 || defaultRunningSpeedKmH > MAX_DEFAULT_RUNNING_SPEED_KMH)
+            ) {
                 this.errors.push('transit:transitPath:errors:DefaultRunningSpeedIsInvalid');
                 this._isValid = false;
             }
-            if (_isNumber(defaultDwellTimeSeconds) && (defaultDwellTimeSeconds <= 0 || defaultDwellTimeSeconds > 600)) {
+            if (
+                _isNumber(defaultDwellTimeSeconds) &&
+                (defaultDwellTimeSeconds <= 0 || defaultDwellTimeSeconds > MAX_DEFAULT_DWELL_TIME_SECONDS)
+            ) {
                 if (mode !== 'transferable' || (mode === 'transferable' && defaultDwellTimeSeconds < 0)) {
                     this.errors.push('transit:transitPath:errors:DefaultDwellTimeIsInvalid');
                     this._isValid = false;
@@ -112,10 +128,10 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
                 if (defaultAcceleration < 0) {
                     this.errors.push('transit:transitPath:errors:DefaultAccelerationIsInvalid');
                     this._isValid = false;
-                } else if (defaultAcceleration <= 0.3) {
+                } else if (defaultAcceleration <= MIN_DEFAULT_ACCELERATION) {
                     this.errors.push('transit:transitPath:errors:DefaultAccelerationIsTooLow');
                     this._isValid = false;
-                } else if (defaultAcceleration > 1.5 && mode !== 'transferable') {
+                } else if (defaultAcceleration > MAX_DEFAULT_ACCELERATION && mode !== 'transferable') {
                     this.errors.push('transit:transitPath:errors:DefaultAccelerationIsTooHigh');
                     this._isValid = false;
                 }
@@ -127,10 +143,10 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
                 if (defaultDeceleration < 0) {
                     this.errors.push('transit:transitPath:errors:DefaultDecelerationIsInvalid');
                     this._isValid = false;
-                } else if (defaultDeceleration <= 0.3) {
+                } else if (defaultDeceleration <= MIN_DEFAULT_DECELERATION) {
                     this.errors.push('transit:transitPath:errors:DefaultDecelerationIsTooLow');
                     this._isValid = false;
-                } else if (defaultDeceleration > 1.5 && mode !== 'transferable') {
+                } else if (defaultDeceleration > MAX_DEFAULT_DECELERATION && mode !== 'transferable') {
                     this.errors.push('transit:transitPath:errors:DefaultDecelerationIsTooHigh');
                     this._isValid = false;
                 }

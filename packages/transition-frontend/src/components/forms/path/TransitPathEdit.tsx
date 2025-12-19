@@ -491,6 +491,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                             stringToValue={parseIntOrNull}
                                             valueToString={(val) => _toString(parseIntOrNull(val))}
                                             type="number"
+                                            min={0}
                                         />
                                     </InputWrapper>
                                 </div>
@@ -574,6 +575,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                         stringToValue={parseIntOrNull}
                                         valueToString={(val) => _toString(parseIntOrNull(val))}
                                         type="number"
+                                        min={0}
                                     />
                                 </div>
                             )}
@@ -662,6 +664,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     stringToValue={parseIntOrNull}
                                     valueToString={(val) => _toString(parseIntOrNull(val))}
                                     type="number"
+                                    min={0}
                                 />
                             </InputWrapper>
                         </div>

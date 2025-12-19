@@ -148,6 +148,8 @@ const ConfigureCalculationParametersForm: React.FunctionComponent<
                             stringToValue={_toInteger}
                             valueToString={_toString}
                             type={'number'}
+                            min={1}
+                            // We do not want a max bound for the CPU count as the max CPU count may change between infrastructures and we do not want an valid job to become invalid later.
                         />
                     </InputWrapper>
                 </React.Fragment>

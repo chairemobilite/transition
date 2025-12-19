@@ -16,6 +16,13 @@ import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { validateTrQueryAttributes } from '../transitRouting/TransitRoutingQueryAttributes';
 import { TransitQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
+export const MAX_DELTA_MINUTES = 30;
+export const MAX_DELTA_INTERVAL_MINUTES = 30;
+export const MIN_WALKING_SPEED_KPH = 2.0;
+export const MAX_WALKING_SPEED_KPH = 10.0;
+const MIN_MAX_ACCESS_EGRESS_TRAVEL_TIME_MINUTES = 1;
+const MAX_MAX_ACCESS_EGRESS_TRAVEL_TIME_MINUTES = 20;
+
 export interface AccessibilityMapCalculationAttributes extends GenericAttributes {
     departureTimeSecondsSinceMidnight?: number;
     arrivalTimeSecondsSinceMidnight?: number;
@@ -92,7 +99,7 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
         } else if (isNaN(deltaSeconds) || deltaSeconds < 0) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:DeltaIsInvalid');
-        } else if (deltaSeconds > 1800) {
+        } else if (deltaSeconds > MAX_DELTA_MINUTES * 60) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:DeltaIsTooLarge');
         }
@@ -104,7 +111,7 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
         } else if (isNaN(deltaIntervalSeconds) || deltaIntervalSeconds < 0) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:DeltaIntervalIsInvalid');
-        } else if (deltaIntervalSeconds > 1800) {
+        } else if (deltaIntervalSeconds > MAX_DELTA_INTERVAL_MINUTES * 60) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:DeltaIntervalIsTooLarge');
         }
@@ -121,10 +128,13 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
         if (!maxAccessEgressTravelTimeSeconds) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:MaxAccessEgressTravelTimeSecondsIsMissing');
-        } else if (isNaN(maxAccessEgressTravelTimeSeconds) || maxAccessEgressTravelTimeSeconds < 60) {
+        } else if (
+            isNaN(maxAccessEgressTravelTimeSeconds) ||
+            maxAccessEgressTravelTimeSeconds < MIN_MAX_ACCESS_EGRESS_TRAVEL_TIME_MINUTES * 60
+        ) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:MaxAccessEgressTravelTimeSecondsIsInvalid');
-        } else if (this._isValid && maxAccessEgressTravelTimeSeconds > 1200) {
+        } else if (this._isValid && maxAccessEgressTravelTimeSeconds > MAX_MAX_ACCESS_EGRESS_TRAVEL_TIME_MINUTES * 60) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:AccessEgressTravelTimeSecondsTooLarge');
         }
@@ -137,10 +147,10 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
         } else if (isNaN(walkingSpeedMps) || walkingSpeedMps < 0) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:WalkingSpeedMpsIsInvalid');
-        } else if (this._isValid && walkingSpeedMps > 10.0 / 3.6) {
+        } else if (this._isValid && walkingSpeedMps > MAX_WALKING_SPEED_KPH / 3.6) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:WalkingSpeedMpsIsTooLarge');
-        } else if (this._isValid && walkingSpeedMps < 2.0 / 3.6) {
+        } else if (this._isValid && walkingSpeedMps < MIN_WALKING_SPEED_KPH / 3.6) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:WalkingSpeedMpsIsTooLow');
         }
