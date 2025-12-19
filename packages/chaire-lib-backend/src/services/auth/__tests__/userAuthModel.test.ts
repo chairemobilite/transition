@@ -106,7 +106,21 @@ describe('Password verification', () => {
             password: userAuthModel.encryptPassword(password),
         });
         expect(await user.verifyPassword(password)).toBeTruthy();
-        expect(await user.verifyPassword('')).toBeFalsy;
+        expect(await user.verifyPassword('')).toBeFalsy();
+        expect(await user.verifyPassword('Other password')).toBeFalsy();
+    });
+
+    test('Test bcrypt update from 2a to 2b, verification with string password', async () => {
+        const password = "Test1234";
+        // Hash generated with bcryptjs v2.4.3
+        const v2aHashValue = "$2a$10$u84oUOS.Ar0ftCesDH.3o.sDMIKxlYYwkJFhqYk0LZL5QQuxEG5MC";
+        const user = new User({
+            id: defaultUserId,
+            uuid: 'arbitrary',
+            password: v2aHashValue,
+        });
+        expect(await user.verifyPassword(password)).toBeTruthy();
+        expect(await user.verifyPassword('')).toBeFalsy();
         expect(await user.verifyPassword('Other password')).toBeFalsy();
     });
     
@@ -116,7 +130,7 @@ describe('Password verification', () => {
             uuid: 'arbitrary',
             password: null,
         });
-        expect(await user.verifyPassword('')).toBeFalsy;
+        expect(await user.verifyPassword('')).toBeFalsy();
         expect(await user.verifyPassword('Other password')).toBeFalsy();
     })
     
@@ -125,7 +139,7 @@ describe('Password verification', () => {
             id: defaultUserId,
             uuid: 'arbitrary'
         });
-        expect(await user.verifyPassword('')).toBeFalsy;
+        expect(await user.verifyPassword('')).toBeFalsy();
         expect(await user.verifyPassword('Other password')).toBeFalsy();
     })
 });
@@ -159,7 +173,7 @@ describe('User creation', () => {
             google_id: null,
             facebook_id: null,
             generated_password: null,
-            password: expect.stringContaining('$2a$10$'),
+            password: expect.stringContaining('$2b$10$'),
             first_name: '',
             last_name: '',
             is_valid: true,
