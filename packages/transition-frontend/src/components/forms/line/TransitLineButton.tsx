@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Line from 'transition-common/lib/services/line/Line';
@@ -15,7 +15,7 @@ import { duplicateLine } from 'transition-common/lib/services/line/LineDuplicato
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
-interface LineButtonProps extends WithTranslation {
+interface LineButtonProps {
     line: Line;
     selectedLine?: Line;
     lineIsHidden: boolean;
@@ -23,6 +23,7 @@ interface LineButtonProps extends WithTranslation {
 }
 
 const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: LineButtonProps) => {
+    const { t } = useTranslation(['transit', 'main', 'notifications']);
     const [lineIsHidden, setLineIsHidden] = React.useState(props.lineIsHidden);
     const lineIsSelected = (props.selectedLine && props.selectedLine.getId() === props.line.getId()) || false;
 
@@ -78,8 +79,8 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
             socket: serviceLocator.socketEventManager,
             duplicateSchedules: true,
             duplicateServices: true,
-            newLongname: `${props.line.get('longname')} (${props.t('main:Copy')})`,
-            newServiceSuffix: props.t('main:Copy')
+            newLongname: `${props.line.get('longname')} (${t('main:Copy')})`,
+            newServiceSuffix: t('main:Copy')
         });
 
         serviceLocator.collectionManager.refresh('paths');
@@ -125,13 +126,13 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
             isSelected={lineIsSelected}
             flushActionButtons={false}
             onSelect={{ handler: onSelect }}
-            onDuplicate={{ handler: onDuplicate, altText: props.t('transit:transitLine:DuplicateLine') }}
+            onDuplicate={{ handler: onDuplicate, altText: t('transit:transitLine:DuplicateLine') }}
             onDelete={
                 !isFrozen && !lineIsSelected
                     ? {
                         handler: onDelete,
-                        message: props.t('transit:transitLine:ConfirmDelete'),
-                        altText: props.t('transit:transitLine:Delete')
+                        message: t('transit:transitLine:ConfirmDelete'),
+                        altText: t('transit:transitLine:Delete')
                     }
                     : undefined
             }
@@ -139,30 +140,30 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
             <ButtonCell alignment="left">
                 <span className="_circle-button" style={{ backgroundColor: props.line.attributes.color }}></span>
                 {lineIsHidden === true && (
-                    <span className="_list-element" onClick={showOnMap} title={props.t('main:Show')}>
+                    <span className="_list-element" onClick={showOnMap} title={t('main:Show')}>
                         <img
                             className="_list-element _icon-alone"
                             src={'/dist/images/icons/interface/hidden_white.svg'}
-                            alt={props.t('main:Show')}
-                            title={props.t('main:Show')}
+                            alt={t('main:Show')}
+                            title={t('main:Show')}
                         />
                     </span>
                 )}
                 {lineIsHidden === false && (
-                    <span className="_list-element" onClick={hideOnMap} title={props.t('main:Hide')}>
+                    <span className="_list-element" onClick={hideOnMap} title={t('main:Hide')}>
                         <img
                             className="_list-element _icon-alone"
                             src={'/dist/images/icons/interface/visible_white.svg'}
-                            alt={props.t('main:Hide')}
-                            title={props.t('main:Hide')}
+                            alt={t('main:Hide')}
+                            title={t('main:Hide')}
                         />
                     </span>
                 )}
                 <img
                     className="_list-element _icon-alone"
                     src={`/dist/images/icons/transit/modes/${props.line.attributes.mode}_white.svg`}
-                    alt={props.t(`transit:transitLine:modes:${props.line.attributes.mode}`)}
-                    title={props.t(`transit:transitLine:modes:${props.line.attributes.mode}`)}
+                    alt={t(`transit:transitLine:modes:${props.line.attributes.mode}`)}
+                    title={t(`transit:transitLine:modes:${props.line.attributes.mode}`)}
                 />
             </ButtonCell>
             {isFrozen && (
@@ -170,7 +171,7 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
                     <img
                         className="_icon-alone"
                         src={'/dist/images/icons/interface/lock_white.svg'}
-                        alt={props.t('main:Locked')}
+                        alt={t('main:Locked')}
                     />
                 </ButtonCell>
             )}
@@ -178,13 +179,13 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
             <ButtonCell alignment="left">{props.line.attributes.longname}</ButtonCell>
             <ButtonCell alignment="flush">
                 {pathsCount > 1
-                    ? props.t('transit:transitLine:nPaths', { n: pathsCount })
-                    : props.t('transit:transitLine:nPath', { n: pathsCount })}{' '}
+                    ? t('transit:transitLine:nPaths', { n: pathsCount })
+                    : t('transit:transitLine:nPath', { n: pathsCount })}{' '}
                 {scheduledServicesCount > 0 && (
                     <span className="_list-element">
                         {scheduledServicesCount > 1
-                            ? props.t('transit:transitLine:nServices', { n: scheduledServicesCount })
-                            : props.t('transit:transitLine:nService', { n: scheduledServicesCount })}
+                            ? t('transit:transitLine:nServices', { n: scheduledServicesCount })
+                            : t('transit:transitLine:nService', { n: scheduledServicesCount })}
                     </span>
                 )}
             </ButtonCell>
@@ -192,4 +193,4 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
     );
 };
 
-export default withTranslation(['transit', 'main', 'notifications'])(TransitLineButton);
+export default TransitLineButton;
