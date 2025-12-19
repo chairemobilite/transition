@@ -27,8 +27,8 @@ export type TransitNetworkDesignParameters = {
     linesToKeep?: string[];
 };
 
-const MAX_TIME_BETWEEN_PASSAGES = 60;
-const MIN_TIME_BETWEEN_PASSAGES = 3;
+export const MIN_TIME_BETWEEN_PASSAGES = 3;
+export const MAX_TIME_BETWEEN_PASSAGES = 60;
 
 export const validateTransitNetworkDesignParameters = (
     parameters: TransitNetworkDesignParameters

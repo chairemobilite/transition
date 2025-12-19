@@ -148,6 +148,7 @@ const ConfigureCalculationParametersForm: React.FunctionComponent<
                             stringToValue={_toInteger}
                             valueToString={_toString}
                             type={'number'}
+                            min={1}
                         />
                     </InputWrapper>
                 </React.Fragment>
