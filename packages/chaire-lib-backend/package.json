@@ -39,7 +39,7 @@
         "@opentelemetry/sdk-trace-node": "^1.29.0",
         "@turf/turf": "^7.3.1",
         "fetch-retry": "^6.0.0",
-        "bcryptjs": "^2.4.3",
+        "bcryptjs": "^3.0.3",
         "bytes": "^3.1.2",
         "capnp-ts": "^0.4.0",
         "chaire-lib-common": "^0.2.2",
@@ -77,7 +77,6 @@
         "yargs": "^17.7.2"
     },
     "devDependencies": {
-        "@types/bcryptjs": "^2.4.6",
         "@types/express": "^5.0.6",
         "@types/geojson": "^7946.0.16",
         "@types/jest": "^30.0.0",
