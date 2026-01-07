@@ -128,8 +128,8 @@ const defaultJobParameters: EvolutionaryTransitNetworkDesignJobParameters = {
             },
             evaluationOptions: {
                 sampleRatio: 0,
-                odTripFitnessFunction: '',
-                fitnessFunction: ''
+                odTripFitnessFunction: 'travelTimeCost',
+                fitnessFunction: 'hourlyUserCosts'
             }
         }
     }
