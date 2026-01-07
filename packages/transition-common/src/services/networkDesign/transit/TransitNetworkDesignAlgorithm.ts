@@ -42,10 +42,12 @@ interface NestedOptionDescriptor<T extends Record<string, unknown>> {
  * appropriate place (see
  * https://github.com/chairemobilite/transition/issues/1580)
  *
- * @type {('integer' | 'number' | 'seconds' | 'string' | 'boolean' | 'nested' |
- * 'select' | 'multiselect' | 'csvFile' | 'custom')} integer is an integer
- * number while number also supports float, nested is a nested object with its
- * own descriptor. 'seconds' means the data's unit is in seconds, but the
+ * @type {('integer' | 'number' | 'seconds' | 'percentage' | 'string' |
+ * 'boolean' | 'nested' | 'select' | 'multiselect' | 'csvFile' | 'custom')}
+ * integer is an integer number while number also supports float, nested is a
+ * nested object with its own descriptor. 'percentage' is a value stored as a
+ * decimal number where 1 means 100%, but asked to the user as a percentage
+ * (between 0 and 100). 'seconds' means the data's unit is in seconds, but the
  * `askAs` property can be used to indicate to ask the value in minutes or
  * hours. 'select' and 'multiselect' are for options where the user must select
  * one or multiple values from a list of choices. 'custom' is a custom type that
@@ -63,6 +65,15 @@ export type SimulationAlgorithmOptionByType =
           default?: number;
           validate?: (value: number) => boolean | ErrorMessage;
           askAs?: 'minutes' | 'hours';
+      }
+    | {
+          type: 'percentage';
+          default?: number;
+          /**
+           * Descriptor specific validation function. By default, percentage is
+           * expected to be between 0 and 1, but options can override this.
+           */
+          validate?: (value: number) => boolean | ErrorMessage;
       }
     | {
           type: 'string';
@@ -202,7 +213,12 @@ export function validateOptionsWithDescriptor<T extends Record<string, unknown>>
             if (value !== undefined) {
                 if ('validate' in optionDef && optionDef.validate) {
                     let isValid: ErrorMessage | boolean = true;
-                    if (optionDef.type === 'integer' || optionDef.type === 'number' || optionDef.type === 'seconds') {
+                    if (
+                        optionDef.type === 'integer' ||
+                        optionDef.type === 'number' ||
+                        optionDef.type === 'seconds' ||
+                        optionDef.type === 'percentage'
+                    ) {
                         isValid = optionDef.validate(value as number);
                     } else if (optionDef.type === 'string') {
                         isValid = optionDef.validate(value as string);
@@ -211,6 +227,13 @@ export function validateOptionsWithDescriptor<T extends Record<string, unknown>>
                         valid = false;
                         // If the return value is a string, it is a custom error message
                         errors.push(typeof isValid === 'boolean' ? optionDef.i18nName + 'Invalid' : isValid);
+                    }
+                } else if (optionDef.type === 'percentage') {
+                    // By default, if there is no validate function, percentage type must be between 0 and 1
+                    const numberValue = value as number;
+                    if (numberValue < 0 || numberValue > 1) {
+                        valid = false;
+                        errors.push(optionDef.i18nName + 'Invalid');
                     }
                 }
             }
