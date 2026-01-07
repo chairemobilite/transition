@@ -7,6 +7,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
+import _isFinite from 'lodash/isFinite';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
@@ -124,6 +125,16 @@ const CsvFileOptionComponent: React.FunctionComponent<OptionComponentProps> = (p
     );
 };
 
+// FIXME See if we need to put those functions somewhere else to be reused or not
+const parsePercentage = function (value: string | number = ''): number | null {
+    const numValue = typeof value === 'number' ? value : parseFloat(value);
+    if (_isFinite(numValue)) {
+        return numValue / 100;
+    }
+    return null;
+};
+const toPercentageString = (value: number | null): string => (value === null ? '' : _toString(value * 100));
+
 const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: OptionComponentProps) => {
     const option = props.option;
     if (option.type === 'string') {
@@ -188,6 +199,24 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
                 }
                 stringToValue={parseFloatOrNull}
                 valueToString={(val) => _toString(parseFloatOrNull(val))}
+            />
+        );
+    }
+    if (option.type === 'percentage') {
+        const value = typeof props.value === 'number' ? props.value : option.default;
+        return (
+            <InputStringFormatted
+                id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
+                disabled={props.disabled}
+                value={value}
+                onValueUpdated={({ value, valid }) =>
+                    props.onValueChange(props.optionKey, {
+                        value,
+                        valid: valid && (option.validate ? option.validate(value) === true : true)
+                    })
+                }
+                stringToValue={parsePercentage}
+                valueToString={toPercentageString}
             />
         );
     }
