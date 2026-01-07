@@ -941,8 +941,8 @@
                 "WalkingSpeedMps": "Vitesse de marche (m/s)",
                 "WalkingSpeedFactor": "Facteur de vitesse de marche",
                 "WalkingSpeedFactorHelp": "Facteur à multiplier par la vitesse de marche. Par exemple, une valeur de 0,8 réduira la vitesse de marche de 20 %, tandis qu'une valeur de 1,2 l'augmentera de 20 %.",
-                "OdTripsSampleRatio": "Pourcentage des trajets OD à inclure",
-                "OdTripsSampleRatioInvalid": "Pourcentage invalide des trajets OD à inclure. Doit être compris entre 0 et 1.",
+                "OdTripsSampleRatio": "Pourcentage des trajets OD à inclure (entre 0 et 100)",
+                "OdTripsSampleRatioInvalid": "Pourcentage invalide des trajets OD à inclure. Doit être compris entre 0 et 100.",
                 "fitness": {
                     "odTripFitnessFunction": "Fonction de coût d'un résultat OD",
                     "travelTimeCost": "Temps de parcours",
