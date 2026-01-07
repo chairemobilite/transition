@@ -136,7 +136,7 @@ class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTri
     getOptions = () => ({
         sampleRatio: {
             i18nName: 'transit:networkDesign.simulationMethods.odTrips.OdTripsSampleRatio',
-            type: 'number' as const,
+            type: 'percentage' as const,
             validate: (value: number) => value > 0 && value <= 1,
             default: 1
         },

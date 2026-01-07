@@ -398,7 +398,7 @@ describe('OdTripSimulationDescriptor', () => {
             const option = simulationOptions.sampleRatio;
 
             expect(option.i18nName).toBe('transit:networkDesign.simulationMethods.odTrips.OdTripsSampleRatio');
-            expect(option.type).toBe('number');
+            expect(option.type).toBe('percentage');
             expect(option.validate).toBeInstanceOf(Function);
             expect(option.default).toBe(1);
         });
