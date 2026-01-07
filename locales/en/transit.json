@@ -940,8 +940,8 @@
                 "WalkingSpeedMps": "Walking speed (m/s)",
                 "WalkingSpeedFactor": "Walking speed factor",
                 "WalkingSpeedFactorHelp": "Factor to multiply the walking speed. For example, a value of 0.8 will reduce walking speed by 20%, while a value of 1.2 will increase it by 20%.",
-                "OdTripsSampleRatio": "Percentage of OD trips to include",
-                "OdTripsSampleRatioInvalid": "Invalid percentage of OD trips to include. Must be between 0 and 1.",
+                "OdTripsSampleRatio": "Percentage of OD trips to include (between 0 and 100)",
+                "OdTripsSampleRatioInvalid": "Invalid percentage of OD trips to include. Must be between 0 and 100.",
                 "fitness": {
                     "odTripFitnessFunction": "Cost function for OD trip result",
                     "travelTimeCost": "Travel time",
