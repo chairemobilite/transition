@@ -28,7 +28,12 @@ import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
-import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import TransitAccessibilityMapRouting, {
+    MAX_DELTA_MINUTES,
+    MAX_DELTA_INTERVAL_MINUTES,
+    MIN_WALKING_SPEED_KPH,
+    MAX_WALKING_SPEED_KPH
+} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import { calculateAccessibilityMap, calculateAccessibilityMapComparison } from '../../../services/routing/RoutingUtils';
 import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
@@ -582,6 +587,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                     stringToValue={_toInteger}
                                     valueToString={_toString}
                                     type="number"
+                                    min={1}
                                 />
                             </InputWrapper>
                             <InputWrapper
@@ -597,6 +603,8 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                     stringToValue={minutesToSeconds}
                                     valueToString={(val) => _toString(secondsToMinutes(val))}
                                     type="number"
+                                    min={1}
+                                    max={MAX_DELTA_MINUTES}
                                 />
                             </InputWrapper>
                             <InputWrapper
@@ -613,6 +621,8 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                     stringToValue={minutesToSeconds}
                                     valueToString={(val) => _toString(secondsToMinutes(val))}
                                     type="number"
+                                    min={1}
+                                    max={MAX_DELTA_INTERVAL_MINUTES}
                                 />
                             </InputWrapper>
                             {/* TODO: If we add a new mode, separate the changing sections into different subcomponents to be cleaner. */}
@@ -742,6 +752,8 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                         _toString(!isNaN(parseFloat(value)) ? roundToDecimals(mpsToKph(value), 1) : '')
                                     }
                                     type="number"
+                                    min={MIN_WALKING_SPEED_KPH}
+                                    max={MAX_WALKING_SPEED_KPH}
                                 />
                             </InputWrapper>
                             <InputWrapper

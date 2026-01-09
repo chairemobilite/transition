@@ -26,7 +26,12 @@ import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
-import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import TransitAccessibilityMapRouting, {
+    MAX_DELTA_MINUTES,
+    MAX_DELTA_INTERVAL_MINUTES,
+    MIN_WALKING_SPEED_KPH,
+    MAX_WALKING_SPEED_KPH
+} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import { calculateAccessibilityMap } from '../../../services/routing/RoutingUtils';
 import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
@@ -269,6 +274,7 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                                     stringToValue={_toInteger}
                                     valueToString={_toString}
                                     type="number"
+                                    min={1}
                                 />
                             </InputWrapper>
                             <InputWrapper
@@ -282,6 +288,8 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                                     stringToValue={minutesToSeconds}
                                     valueToString={(val) => _toString(secondsToMinutes(val))}
                                     type="number"
+                                    min={1}
+                                    max={MAX_DELTA_MINUTES}
                                 />
                             </InputWrapper>
                             <InputWrapper
@@ -296,6 +304,8 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                                     stringToValue={minutesToSeconds}
                                     valueToString={(val) => _toString(secondsToMinutes(val))}
                                     type="number"
+                                    min={1}
+                                    max={MAX_DELTA_INTERVAL_MINUTES}
                                 />
                             </InputWrapper>
                             <InputWrapper label={this.props.t('transit:transitRouting:Scenario')}>
@@ -339,6 +349,8 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                                         _toString(!isNaN(parseFloat(value)) ? roundToDecimals(mpsToKph(value), 1) : '')
                                     }
                                     type="number"
+                                    min={MIN_WALKING_SPEED_KPH}
+                                    max={MAX_WALKING_SPEED_KPH}
                                 />
                             </InputWrapper>
                             <InputWrapper

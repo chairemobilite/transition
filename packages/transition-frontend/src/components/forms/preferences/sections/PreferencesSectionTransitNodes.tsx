@@ -51,6 +51,7 @@ const PreferencesSectionTransitNodes: React.FunctionComponent<PreferencesSection
                         stringToValue={parseFloatOrNull}
                         valueToString={(val) => _toString(parseFloatOrNull(val))}
                         type="number"
+                        min={0}
                     />
                     <PreferencesResetToDefaultButton
                         resetPrefToDefault={props.resetPrefToDefault}
