@@ -94,7 +94,8 @@ export default class AccessibilityMapAPIResponse extends APIResponseBase<
 
     private createResultResponse(resultParams: AccessibilityMapCalculationResult): AccessibilityMapAPIResultResponse {
         return {
-            nodes: resultParams.resultByNode!.nodes,
+            // FIXME The resultByNode should probably not be undefined, but contain an empty array in case where there is no routing. See https://github.com/chairemobilite/transition/issues/1681
+            nodes: resultParams.resultByNode?.nodes ?? [],
             polygons:
                 'polygons' in resultParams
                     ? {
