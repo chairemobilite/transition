@@ -46,6 +46,11 @@ const defaultSectionsConfig = {
         localizedTitle: 'main:BatchCalculation',
         icon: '/dist/images/icons/interface/od_routing_white.svg'
     },
+    networkDesign: {
+        localizedTitle: 'transit:networkDesign:NetworkDesign',
+        icon: '/dist/images/icons/interface/networkDesign_white.svg',
+        enabled: true // TODO Do not enable yet in main branche!! Until everything is well documented and functional
+    },
     simulations: {
         localizedTitle: 'transit:simulation:Simulations',
         icon: '/dist/images/icons/interface/simulation_white.svg',
