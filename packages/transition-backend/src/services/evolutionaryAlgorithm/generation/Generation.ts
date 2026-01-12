@@ -7,7 +7,7 @@
 import pQueue from 'p-queue';
 import { EventEmitter } from 'events';
 
-import NetworkCandidate, { ResultSerialization } from '../candidate/Candidate';
+import NetworkCandidate from '../candidate/Candidate';
 import { collectionToCache } from '../../../models/capnpCache/transitScenarios.cache.queries';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
@@ -16,6 +16,7 @@ import GenerationLogger from './GenerationLogger';
 import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { ResultSerialization } from '../candidate/types';
 
 abstract class Generation {
     protected fitnessSorter: (fitnessA: number, fitnessB: number) => number;
