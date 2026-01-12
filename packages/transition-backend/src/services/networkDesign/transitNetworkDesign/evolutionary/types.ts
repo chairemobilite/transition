@@ -28,7 +28,7 @@ export type EvolutionaryTransitNetworkDesignJobType = {
             scenarioIds: string[];
         };
     };
-    files: { transitDemand: true; nodeWeight: true };
+    files: { transitDemand: true; nodeWeight: true; linesResult: true; simulationResults: true };
     internal_data: {
         populationSize?: number;
         dataPrepared?: boolean;

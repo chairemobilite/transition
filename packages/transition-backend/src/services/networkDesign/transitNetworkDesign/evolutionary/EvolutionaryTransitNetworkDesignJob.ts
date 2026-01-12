@@ -6,6 +6,7 @@
  */
 import { EventEmitter } from 'events';
 import random from 'random';
+import { unparse } from 'papaparse';
 
 import type {
     EvolutionaryTransitNetworkDesignJob,
@@ -41,6 +42,10 @@ import {
 } from '../../../../models/capnpCache/transitLines.cache.queries';
 import { prepareServices, saveSimulationScenario } from '../../../evolutionaryAlgorithm/preparation/ServicePreparation';
 import Line from 'transition-common/lib/services/line/Line';
+import resultsDbQueries from '../../../../models/db/networkDesignResults.db.queries';
+
+const CANDIDATE_LINES_RESULTS_CSV_FILE_PREFIX = 'ndCandidateLinesResults';
+const CANDIDATE_SIMULATION_RESULTS_CSV_FILE_PREFIX = 'ndCandidateSimulationResults';
 
 /**
  * Do batch calculation on a csv file input
@@ -301,6 +306,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             console.log(
                 `Resumed generation ${this.currentIteration} with ${candidates.length} candidates from checkpoint.`
             );
+            // Reset the results in the database for this generation
+            await resultsDbQueries.deleteForJob(this.job.id, this.currentIteration);
+
             return new LineAndNumberOfVehiclesGeneration(candidates, this, this.currentIteration);
         }
         // Generate or reproduce candidates
@@ -341,10 +349,13 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                 // FIXME Handle checkpointing with simulations that can be long
                 // Simulate the generation
                 await previousGeneration.simulate();
-                // TODO For now, we keep the best of each generation, but we should
-                // be smarter about it, knowing that the end of the simulation can
-                // follow various rules, like a number of generation or convergence
-                // of results
+
+                // TODO For now, we keep the best of each generation, but we
+                // should be smarter about it, knowing that the end of the
+                // simulation can follow various rules, like a number of
+                // generation or convergence of results. edit: Now that we save
+                // results to db at each generation, we may not even need this.
+                // See if runtime messages are useful or not.
                 algorithmResults.generations.push(previousGeneration.serializeBestResult());
                 await this.addMessages({
                     infos: [
@@ -354,9 +365,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                 this.job.attributes.data.results = algorithmResults;
                 // Await saving simulation to avoid race condition if next generation is very fast
                 await this.job.save(this.executorOptions.progressEmitter);
-                this.currentIteration++;
 
                 // Save best scenarios if necessary
+                // FIXME Refactor this so we can map a candidate with the scenario it generated and save it in the result's data for output in files
                 if (this.options.numberOfGenerations - this.currentIteration < this.options.keepGenerations) {
                     const bestScenarios = previousGeneration.getBestScenarios(this.options.keepCandidates);
                     const scenarioSavePromises = bestScenarios?.map((scenario) =>
@@ -369,6 +380,28 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                     this.job.attributes.data.results = algorithmResults;
                     await this.job.save(this.executorOptions.progressEmitter);
                 }
+
+                // Save the results of this generation to the database
+
+                // FIXME Consider doing it somewhere else, and maybe in multiple
+                // steps (save candidate at the beginning and simulation results
+                // at the end), to help with checkpoint recovery. It could avoid
+                // saving the big blog of current generation in the job's
+                // checkpointing, as well as re-run already completed candidate
+                // simulations.
+                const candidateResultsPromises = previousGeneration.getCandidates().map((candidate, index) =>
+                    resultsDbQueries.create({
+                        jobId: this.job.id,
+                        generationIndex: this.currentIteration,
+                        candidateIndex: index,
+                        scenarioName: candidate.getScenario()?.attributes.name || '',
+                        resultData: candidate.serialize()
+                    })
+                );
+                await Promise.all(candidateResultsPromises);
+
+                // Increment generation number
+                this.currentIteration++;
             } while (!this.isFinished() && !this.executorOptions.isCancelled());
         } catch (error) {
             console.log('error during evolutionary algorithm generations', error);
@@ -395,6 +428,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                 };
             }
 
+            // Create the results output files, if any
+            await this.saveResultFiles();
+
             console.log('Evolutionary transit network design job completed.');
             this.job.setCompleted();
             await this.job.save(this.executorOptions.progressEmitter);
@@ -416,5 +452,92 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             // Do not cleanup all cache for now, as we may come back to this job
             // later, after children have completed
         }
+    };
+
+    private saveResultFiles = async (): Promise<void> => {
+        console.time(`Saving results to files for evolutionary algorithm for job ${this.job.id}`);
+
+        // TODO See if we need to put this in a class, leaving it here as is for the prototyping phase
+
+        const linesResulsCsvAttributes = {
+            generationIndex: undefined,
+            candidateIndex: undefined,
+            totalFitness: undefined,
+            lineId: '',
+            shortname: '',
+            longname: '',
+            numberOfVehicles: undefined,
+            intervalSeconds: undefined,
+            outboundPathId: '',
+            inboundPathId: '',
+            outboundTimeWithoutLayerSeconds: undefined,
+            inboundTimeWithoutLayerSeconds: undefined
+        };
+
+        const simulationResultsCsvAttributes = {
+            generationIndex: undefined,
+            candidateIndex: undefined,
+            totalFitness: undefined,
+            scenarioName: '',
+            simulationMethod: '',
+            fitnessScore: undefined,
+            routedCount: undefined,
+            nonRoutedCount: undefined
+        };
+
+        // Register the output files and create streams
+        this.job.registerOutputFile('linesResult', `${CANDIDATE_LINES_RESULTS_CSV_FILE_PREFIX}_${this.job.id}.csv`);
+        const linesCsvStream = this.job.getWriteStream('linesResult');
+        linesCsvStream.on('error', console.error);
+        linesCsvStream.write(Object.keys(linesResulsCsvAttributes).join(',') + '\n');
+
+        this.job.registerOutputFile(
+            'simulationResults',
+            `${CANDIDATE_SIMULATION_RESULTS_CSV_FILE_PREFIX}_${this.job.id}.csv`
+        );
+        const simulationsCsvStream = this.job.getWriteStream('simulationResults');
+        simulationsCsvStream.on('error', console.error);
+        simulationsCsvStream.write(Object.keys(simulationResultsCsvAttributes).join(',') + '\n');
+
+        // Save the candidate lines file
+        const resultStream = resultsDbQueries.streamCandidatesLinesData(this.job.id);
+
+        for await (const row of resultStream) {
+            const csvAttributes = {
+                generationIndex: row.generation_index,
+                candidateIndex: row.candidate_index,
+                totalFitness: parseFloat(row.total_fitness),
+                lineId: row.line_id,
+                shortname: row.shortname,
+                longname: row.longname,
+                numberOfVehicles: parseInt(row.number_of_vehicles),
+                intervalSeconds: row.time_between_passages,
+                outboundPathId: row.outbound_path_id,
+                inboundPathId: row.inbound_path_id,
+                outboundTimeWithoutLayerSeconds: row.outbound_path_data?.operatingTimeWithoutLayoverTimeSeconds,
+                inboundTimeWithoutLayerSeconds: row.inbound_path_data?.operatingTimeWithoutLayoverTimeSeconds
+            };
+            linesCsvStream.write(unparse([csvAttributes], { header: false }) + '\n');
+        }
+        linesCsvStream.end();
+
+        // Save the candidate simulation results file
+        const simulationResultStream = resultsDbQueries.streamSimulationResults(this.job.id);
+        for await (const row of simulationResultStream) {
+            const csvAttributes = {
+                generationIndex: row.generation_index,
+                candidateIndex: row.candidate_index,
+                totalFitness: parseFloat(row.total_fitness),
+                scenarioName: row.candidate_data?.scenarioName || '',
+                simulationMethod: row.simulation_method,
+                fitnessScore: parseFloat(row.fitness_score),
+                routedCount: typeof row.data?.routedCount === 'number' ? row.data.routedCount : undefined,
+                nonRoutedCount: typeof row.data?.nonRoutedCount === 'number' ? row.data.nonRoutedCount : undefined
+            };
+            simulationsCsvStream.write(unparse([csvAttributes], { header: false }) + '\n');
+        }
+        simulationsCsvStream.end();
+
+        console.timeEnd(`Saving results to files for evolutionary algorithm for job ${this.job.id}`);
     };
 }
