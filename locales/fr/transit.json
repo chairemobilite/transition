@@ -1095,6 +1095,13 @@
                 "csv": "CSV",
                 "geojson": "GeoJSON"
             }
+        },
+        "evolutionaryTransitNetworkDesign": {
+            "files": {
+                "transitDemand": "Fichier de demande: {{filename}}",
+                "simulationResults": "Résultats de simulation par candidats",
+                "linesResult": "Lignes candidates"
+            }
         }
     },
     "batchCalculation": {
