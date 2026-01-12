@@ -123,6 +123,9 @@ const prepareServicesForLines = async (
             // Keep this schedule and service if the time between passages is within range
             lineServices.push({
                 numberOfVehicles: nbVehicles,
+                timeBetweenPassages,
+                inboundPathId,
+                outboundPathId,
                 service
             });
             line.addSchedule(schedule);

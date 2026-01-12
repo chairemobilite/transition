@@ -9,6 +9,9 @@ import Service from 'transition-common/lib/services/service/Service';
 export type LineLevelOfService = {
     numberOfVehicles: number;
     service: Service;
+    timeBetweenPassages: number;
+    outboundPathId: string;
+    inboundPathId?: string;
 };
 
 /** Maps line ids with an object where the key is the number of vehicle and the
