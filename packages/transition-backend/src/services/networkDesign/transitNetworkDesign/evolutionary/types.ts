@@ -9,8 +9,8 @@ import { TransitNetworkDesignParameters } from 'transition-common/lib/services/n
 import { AlgorithmConfigurationByType } from 'transition-common/lib/services/networkDesign/transit/algorithm';
 import { SimulationMethodConfiguration } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 import { ExecutableJob } from '../../../executableJob/ExecutableJob';
-import { ResultSerialization } from '../../../evolutionaryAlgorithm/candidate/Candidate';
-import { CandidateChromosome } from '../../../evolutionaryAlgorithm/internalTypes';
+import { ResultSerialization } from '../../../evolutionaryAlgorithm/candidate/types';
+import { CandidateChromosome, LineLevelOfService } from '../../../evolutionaryAlgorithm/internalTypes';
 
 export type EvolutionaryTransitNetworkDesignJobParameters = {
     transitNetworkDesignParameters: TransitNetworkDesignParameters;
@@ -32,7 +32,7 @@ export type EvolutionaryTransitNetworkDesignJobType = {
     internal_data: {
         populationSize?: number;
         dataPrepared?: boolean;
-        lineServices?: { [lineId: string]: { serviceId: string; numberOfVehicles: number }[] };
+        lineServices?: { [lineId: string]: (Omit<LineLevelOfService, 'service'> & { serviceId: string })[] };
         currentGeneration?: {
             candidates: {
                 chromosome: CandidateChromosome;
