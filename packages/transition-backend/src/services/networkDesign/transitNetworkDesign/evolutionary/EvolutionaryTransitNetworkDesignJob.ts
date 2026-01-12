@@ -20,7 +20,7 @@ import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollec
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import Service from 'transition-common/lib/services/service/Service';
 import { randomInRange } from 'chaire-lib-common/lib/utils/RandomUtils';
-import { ResultSerialization } from '../../../evolutionaryAlgorithm/candidate/Candidate';
+import { ResultSerialization } from '../../../evolutionaryAlgorithm/candidate/types';
 import * as AlgoTypes from '../../../evolutionaryAlgorithm/internalTypes';
 import LineAndNumberOfVehiclesGeneration, {
     generateFirstCandidates,
@@ -226,9 +226,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         this.job.attributes.internal_data.populationSize = populationSize;
         this.job.attributes.internal_data.dataPrepared = true;
         this.job.attributes.internal_data.lineServices = Object.keys(lineServices).reduce((acc, lineId) => {
-            acc[lineId] = lineServices[lineId].map((lvlOfService) => ({
-                serviceId: lvlOfService.service.getId(),
-                numberOfVehicles: lvlOfService.numberOfVehicles
+            acc[lineId] = lineServices[lineId].map(({ service, ...lvlOfService }) => ({
+                serviceId: service.getId(),
+                ...lvlOfService
             }));
             return acc;
         }, {});
@@ -266,15 +266,15 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         // Recreate the line level of services
         const lineServicesSerialized = this.job.attributes.internal_data.lineServices || {};
         const lineServices: AlgoTypes.LineServices = Object.keys(lineServicesSerialized).reduce((acc, lineId) => {
-            acc[lineId] = lineServicesSerialized[lineId].map((lvlOfService) => {
-                const service = serviceCollection.getById(lvlOfService.serviceId);
+            acc[lineId] = lineServicesSerialized[lineId].map(({ serviceId, ...lvlOfService }) => {
+                const service = serviceCollection.getById(serviceId);
                 if (!service) {
                     throw new TrError(
                         'Service not found in cache while preparing evolutionary transit network design job',
                         'ALGOCACHE001'
                     );
                 }
-                return { service, numberOfVehicles: lvlOfService.numberOfVehicles };
+                return { service, ...lvlOfService };
             });
             return acc;
         }, {});
