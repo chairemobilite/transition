@@ -7,7 +7,7 @@
 import { EventEmitter } from 'events';
 import random from 'random';
 
-import Candidate, { Result, ResultSerialization } from './Candidate';
+import Candidate from './Candidate';
 import Line from 'transition-common/lib/services/line/Line';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import * as AlgoTypes from '../internalTypes';
@@ -17,6 +17,7 @@ import { getLineWeight } from 'transition-common/lib/services/line/LineUtils';
 import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import { SIMULATION_METHODS_FACTORY } from '../../simulation/methods/SimulationMethod';
+import { CandidateResult, ResultSerialization } from './types';
 
 // Proportion between the number of vehicles used and the available number under which this candidate is considered invalid
 const USED_VEHICLES_THRESHOLD = 0.75;
@@ -174,7 +175,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         };
     };
 
-    async simulate(): Promise<Result> {
+    async simulate(): Promise<CandidateResult> {
         console.log('start simulating candidate');
         const scenario = this.scenario;
         if (scenario === undefined) {
@@ -252,7 +253,10 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
                 lineLvlOfService && !isNaN(lineLvlOfService.numberOfVehicles) ? lineLvlOfService.numberOfVehicles : 0;
             details.lines[line.getId()] = {
                 shortname: line.attributes.shortname,
-                nbVehicles: lineLvlOfService?.numberOfVehicles
+                nbVehicles: lineLvlOfService?.numberOfVehicles,
+                timeBetweenPassages: lineLvlOfService?.timeBetweenPassages,
+                outboundPathId: lineLvlOfService?.outboundPathId,
+                inboundPathId: lineLvlOfService?.inboundPathId
             };
         }
         details.numberOfVehicles = totalNumberOfVehicles;
