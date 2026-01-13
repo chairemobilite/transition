@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { useEffect, useRef } from 'react';
-import { CapWidget, CapWidgetElement } from '@pitininja/cap-react-widget';
+import { CapWidget, type CapWidgetElement } from '@pitininja/cap-react-widget';
 import { useTranslation } from 'react-i18next';
 import { CaptchaProps } from './CaptchaProps';
 
@@ -19,7 +19,8 @@ const CapJsCaptcha = ({ onCaptchaValid, reloadKey }: CaptchaProps) => {
 
     useEffect(() => {
         // Reset the widget if the reloadKey changes
-        widgetRef.current?.dispatchEvent('reset');
+        // FIXME The 'reset' event is not in the type definitions and causes a TS error. Version 1.1.1 of the library did not require this cast. See if it is fixed again in later versions.
+        widgetRef.current?.dispatchEvent('reset' as any);
     }, [reloadKey]);
 
     return (

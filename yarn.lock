@@ -776,18 +776,15 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@cap.js/server@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@cap.js/server/-/server-2.0.0.tgz#51746c5f5f85fb9051868446783e21df6fae44ea"
-  integrity sha512-CaETNf+u/+vgkzQJu3Fq3UWrd8egUFYBFLYo5Rf5j2muIVY1syqUJbwvwxLbgE5mlMmND/RUo15D/G0iKCOIYA==
-  dependencies:
-    "@types/node" "^22.14.1"
-    typescript "^5.8.3"
+"@cap.js/server@^4.0.5":
+  version "4.0.5"
+  resolved "https://registry.yarnpkg.com/@cap.js/server/-/server-4.0.5.tgz#e1766b197cec9852c79f02b2ab3dc9ca8024907d"
+  integrity sha512-S902YIyGyiriNaexfqTzMy5ixxSb3/jYSJwr2gAY9d7XXoYftcifgij/11pjuiU72Ogm6XKZOggDB2DtjRMyww==
 
-"@cap.js/widget@^0.1.25":
-  version "0.1.25"
-  resolved "https://registry.yarnpkg.com/@cap.js/widget/-/widget-0.1.25.tgz#a8400d56cdfc74b28e5f492d13b34a9db302745b"
-  integrity sha512-OVKt1rOAzqgxuSk0j18K6KtLBwAarTn6g7kAsGXcW+DAYO++Xr32LY6sj8KS3C3gqZXkhozf50kVwmgQs7CzxA==
+"@cap.js/widget@^0.1.32":
+  version "0.1.33"
+  resolved "https://registry.yarnpkg.com/@cap.js/widget/-/widget-0.1.33.tgz#3f62446d1b3dbc6b885368d358b48de98694a72a"
+  integrity sha512-opQqn8sWIe4tIFSkQ06pAiGzlljCIqQ7QWEqLt2sV6MlQLrmQT8EUNWAgfrB1hTFoYygutnVViWEaaJr3Vb44A==
 
 "@casl/ability@^6.7.3":
   version "6.7.3"
@@ -2024,12 +2021,12 @@
     "@parcel/watcher-win32-ia32" "2.5.1"
     "@parcel/watcher-win32-x64" "2.5.1"
 
-"@pitininja/cap-react-widget@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@pitininja/cap-react-widget/-/cap-react-widget-1.1.1.tgz#2d557c5745613d2defcf271dd1dddc7ad2ebb750"
-  integrity sha512-VvuW0OimPaQBRKFDbDHXUm4r8k23fg5EQlpPUHEWPUg8NW2i/+1kgPdN43Mcbxdp9DXTUcmXMP3wLwrtVmqv6A==
+"@pitininja/cap-react-widget@^1.3.3":
+  version "1.3.3"
+  resolved "https://registry.yarnpkg.com/@pitininja/cap-react-widget/-/cap-react-widget-1.3.3.tgz#f20a16dcfad72d2f46d07b005262fa656c7c8a5f"
+  integrity sha512-7hqm2n9wFuVsMuOIeH6bJeB0XtO/RcoNRQsbXOcA6fkoSy/8Hkun+G10F4DQ68PHlQmRFhne80v3ubJq7xWaIw==
   dependencies:
-    "@cap.js/widget" "^0.1.25"
+    "@cap.js/widget" "^0.1.32"
 
 "@pkgjs/parseargs@^0.11.0":
   version "0.11.0"
@@ -4435,13 +4432,6 @@
   version "14.18.63"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.18.63.tgz#1788fa8da838dbb5f9ea994b834278205db6ca2b"
   integrity sha512-fAtCfv4jJg+ExtXhvCkCqUKZ+4ok/JQk01qDKhL5BDDoS3AxKXhV5/MAVUZyQnSEd2GT92fkgZl0pz0Q0AzcIQ==
-
-"@types/node@^22.14.1":
-  version "22.18.6"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.18.6.tgz#38172ef0b65e09d1a4fc715eb09a7d5decfdc748"
-  integrity sha512-r8uszLPpeIWbNKtvWRt/DbVi5zbqZyj1PTmhRMqBMvDnaz1QpmSKujUtJLrqGZeoM8v72MfYggDceY4K1itzWQ==
-  dependencies:
-    undici-types "~6.21.0"
 
 "@types/nodemailer@^7.0.4":
   version "7.0.4"
@@ -13034,7 +13024,7 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^5.2.2, typescript@^5.8.3, typescript@^5.9.3:
+typescript@^5.2.2, typescript@^5.9.3:
   version "5.9.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.9.3.tgz#5b4f59e15310ab17a216f5d6cf53ee476ede670f"
   integrity sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==
@@ -13065,11 +13055,6 @@ unbox-primitive@^1.0.2:
     has-bigints "^1.0.2"
     has-symbols "^1.0.3"
     which-boxed-primitive "^1.0.2"
-
-undici-types@~6.21.0:
-  version "6.21.0"
-  resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-6.21.0.tgz#691d00af3909be93a7faa13be61b3a5b50ef12cb"
-  integrity sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==
 
 undici-types@~7.16.0:
   version "7.16.0"
