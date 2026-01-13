@@ -7,8 +7,8 @@
 import React from 'react';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import moment from 'moment';
-import fr from 'date-fns/locale/fr';
-import en from 'date-fns/locale/en-CA';
+import { fr } from 'date-fns/locale/fr';
+import { enCA } from 'date-fns/locale/en-CA';
 
 //import config from 'chaire-lib-common/lib/config/shared/project.config';
 
@@ -61,7 +61,7 @@ export default class Calendar extends React.Component<InputCalendarProps, InputC
         this.handleDateChange = this.handleDateChange.bind(this);
 
         registerLocale('fr', fr); // TODO, make this more generic, when loading locales from date-fns, when need to make conditional import, which is hard to do with webpack in production. Still thinking about a better solution.
-        registerLocale('en', en);
+        registerLocale('en', enCA);
     }
 
     componentDidUpdate(prevProps: InputCalendarProps, _prevState: InputCalendarState): void {

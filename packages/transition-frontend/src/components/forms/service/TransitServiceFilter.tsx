@@ -10,8 +10,8 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 
 import DayRange from 'chaire-lib-frontend/lib/components/input/DayRange';
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
-import fr from 'date-fns/locale/fr';
-import en from 'date-fns/locale/en-CA';
+import { fr } from 'date-fns/locale/fr';
+import { enCA } from 'date-fns/locale/en-CA';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 
 export interface TransitServiceFilterFields {
@@ -33,8 +33,8 @@ const TransitServiceFilter: React.FunctionComponent<TransitServiceFilterProps> =
     // TODO, make this more generic, when loading locales from date-fns, when need to make conditional import, which is hard to do with webpack in production. Still thinking about a better solution.
     useEffect(() => {
         registerLocale('fr', fr);
-        registerLocale('en', en);
-    });
+        registerLocale('en', enCA);
+    }, []);
 
     if (!display) {
         return (
