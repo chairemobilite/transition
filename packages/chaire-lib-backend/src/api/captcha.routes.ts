@@ -58,8 +58,15 @@ export default (router: express.Router) => {
                 });
 
                 // Set up routes
-                router.post('/captcha/challenge', (req, res) => {
-                    res.json(cap.createChallenge());
+                router.post('/captcha/challenge', async (req, res) => {
+                    // Prevent caching of captcha challenges
+                    res.set({
+                        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                        Pragma: 'no-cache',
+                        Expires: '0',
+                        'Surrogate-Control': 'no-store'
+                    });
+                    res.json(await cap.createChallenge());
                 });
 
                 router.post('/captcha/redeem', async (req, res) => {
