@@ -103,9 +103,9 @@ export const ConfirmModal: React.FC<PropsWithChildren<ConfirmModalProps>> = (pro
                     props.containsHtml ? (
                         <div dangerouslySetInnerHTML={{ __html: props.text }} />
                     ) : (
-                        <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]} className="confirm-popup">
-                            {props.text}
-                        </Markdown>
+                        <div className="confirm-popup">
+                            <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>{props.text}</Markdown>
+                        </div>
                     )
                 ) : null}
 
