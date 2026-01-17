@@ -53,6 +53,7 @@ class TransitNodeCollectionEdit extends React.Component<
 > {
     constructor(props: TransitNodeCollectionEditProps) {
         super(props);
+        console.log('nodes TransitNodeCollectionEditProps', this.props.nodes);
 
         // TODO Values should be blank if they are not exactly the same for all nodes, otherwise, they take the common value
         // TODO How to handle frozen nodes in the selection, the user should be warned there are frozen nodes and if the is_frozen is not explicitly changed, those nodes should not be affected
@@ -80,10 +81,6 @@ class TransitNodeCollectionEdit extends React.Component<
             transitNodes1000mRadius: turfFeatureCollection([]),
             transitNodesRoutingRadius: turfFeatureCollection([])
         });
-    }
-
-    componentWillUnmount() {
-        serviceLocator.selectedObjectsManager.deselect('nodes');
     }
 
     private openDeleteConfirmModal = (e: React.MouseEvent) => {

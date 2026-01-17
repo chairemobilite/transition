@@ -35,6 +35,14 @@ if (!process.env.IS_TESTING) {
 export const ConfirmModal: React.FC<PropsWithChildren<ConfirmModalProps>> = (props) => {
     const { t } = useTranslation(['main']);
 
+    // Set the app element for accessibility
+    React.useEffect(() => {
+        if (!process.env.IS_TESTING) {
+            const appElement = document.getElementById('app') || document.body;
+            Modal.setAppElement(appElement);
+        }
+    }, []);
+
     const confirm = (e: React.MouseEvent) => {
         // TODO This should always be a function, test before removing, old code may not know
         if (typeof props.confirmAction === 'function') {

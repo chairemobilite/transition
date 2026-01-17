@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 import _uniq from 'lodash/uniq';
 
@@ -13,20 +13,20 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 const defaultGeojson = turfFeatureCollection([]);
 
 /**
- * Layer manager for Mapbox-gl maps
+ * Layer manager for MapLibre GL maps
  *
  * TODO See how filters are used and type them properly, make them map implementation independant ideally
  *
  * TODO: If we want to support multiple map implementation, this layer management will have to be updated
  */
-class MapboxLayerManager {
-    private _map: MapboxGL.Map | undefined;
+class MaplibreLayerManager {
+    private _map: maplibregl.Map | undefined;
     private _layersByName: { [key: string]: any } = {};
     private _enabledLayers: string[] = [];
     private _defaultFilterByLayer = {};
     private _filtersByLayer = {};
 
-    constructor(layersConfig: any, map = undefined) {
+    constructor(layersConfig: any, map: maplibregl.Map | undefined = undefined) {
         this._map = map;
 
         for (const layerName in layersConfig) {
@@ -59,7 +59,7 @@ class MapboxLayerManager {
     }
 
     // TODO Consider deprecating and adding the map on the constructor only
-    setMap(map: MapboxGL.Map) {
+    setMap(map: maplibregl.Map) {
         this._map = map;
     }
 
@@ -99,9 +99,25 @@ class MapboxLayerManager {
         enabledLayers = _uniq(enabledLayers); // make sure we do not have the same layer twice (can happen with user prefs not replaced correctly after updates)
         const previousEnabledLayers: string[] = this._enabledLayers || [];
         previousEnabledLayers.forEach((previousEnabledLayer) => {
-            this._map?.removeLayer(previousEnabledLayer); // we need to remove all layers so we can keep the right z-index: TODO: make this more efficient by recalculating z-index in mapbox order instead of reloading everything.
+            // Try to remove layer if it exists (it might have been removed by style change)
+            try {
+                if (this._map?.getLayer(previousEnabledLayer)) {
+                    this._map?.removeLayer(previousEnabledLayer);
+                }
+            } catch (e) {
+                console.error('Layer not found, removing it', e);
+                // Layer doesn't exist, which is fine
+            }
             if (!enabledLayers.includes(previousEnabledLayer)) {
-                this._map?.removeSource(previousEnabledLayer);
+                // Try to remove source if it exists
+                try {
+                    if (this._map?.getSource(previousEnabledLayer)) {
+                        this._map?.removeSource(previousEnabledLayer);
+                    }
+                } catch (e) {
+                    console.error('Source not found, removing it', e);
+                    // Source doesn't exist, which is fine
+                }
             }
         });
         const enabledAndActiveLayers: string[] = [];
@@ -110,10 +126,27 @@ class MapboxLayerManager {
                 // Layer not defined
                 return;
             }
-            if (!previousEnabledLayers.includes(enabledLayer)) {
+            // Check if source exists on the map (it might have been removed by style change)
+            // If it doesn't exist, add it
+            try {
+                if (!this._map?.getSource(enabledLayer)) {
+                    this._map?.addSource(enabledLayer, this._layersByName[enabledLayer].source);
+                }
+            } catch (e) {
+                console.error('Source not found, adding it', e);
+                // Source doesn't exist, add it
                 this._map?.addSource(enabledLayer, this._layersByName[enabledLayer].source);
             }
-            this._map?.addLayer(this._layersByName[enabledLayer].layer);
+            // Check if layer exists before adding
+            try {
+                if (!this._map?.getLayer(enabledLayer)) {
+                    this._map?.addLayer(this._layersByName[enabledLayer].layer);
+                }
+            } catch (e) {
+                console.error('Layer not found, adding it', e);
+                // Layer doesn't exist, add it
+                this._map?.addLayer(this._layersByName[enabledLayer].layer);
+            }
             this._map?.setFilter(enabledLayer, this._filtersByLayer[enabledLayer]);
             enabledAndActiveLayers.push(enabledLayer);
         });
@@ -175,7 +208,7 @@ class MapboxLayerManager {
     }
 
     getNextLayerName(layerName: string) {
-        // to be able to add a layer before another (see mapbox map.addLayer attribute beforeId)
+        // to be able to add a layer before another (see maplibre map.addLayer attribute beforeId)
         const enabledLayers = this._enabledLayers || [];
         const enabledLayersCount = enabledLayers.length;
         for (let i = 0; i < enabledLayersCount - 1; i++) {
@@ -218,7 +251,7 @@ class MapboxLayerManager {
         this._layersByName[layerName].source.data = newGeojson;
 
         if (this._map && this.layerIsEnabled(layerName)) {
-            (this._map.getSource(layerName) as MapboxGL.GeoJSONSource).setData(
+            (this._map.getSource(layerName) as maplibregl.GeoJSONSource).setData(
                 this._layersByName[layerName].source.data
             );
             if (this._layersByName[layerName].layer.repaint === true) {
@@ -240,7 +273,7 @@ class MapboxLayerManager {
                         : defaultGeojson;
             this._layersByName[layerName].source.data = newGeojson;
             if (this._map && this.layerIsEnabled(layerName)) {
-                (this._map.getSource(layerName) as MapboxGL.GeoJSONSource).setData(
+                (this._map.getSource(layerName) as maplibregl.GeoJSONSource).setData(
                     this._layersByName[layerName].source.data
                 );
                 if (this._layersByName[layerName].layer.repaint === true) {
@@ -277,4 +310,4 @@ class MapboxLayerManager {
     }
 }
 
-export default MapboxLayerManager;
+export default MaplibreLayerManager;

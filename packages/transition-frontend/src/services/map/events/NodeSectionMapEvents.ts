@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -20,11 +20,16 @@ const isNodeActiveSection = (activeSection: string) => activeSection === 'nodes'
 // TODO Original code in click.events.js had a _draggingEventsOrder check. Is
 // it still needed? If we have problems, there should be an event handler of
 // higher priority to check it before running any other
-const onNodeSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
+const onNodeSectionMapClick = (e: maplibregl.MapMouseEvent) => {
     const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
     const selectedNode = serviceLocator.selectedObjectsManager.getSingleSelection('node');
+    const isDrawPolygon = serviceLocator.selectedObjectsManager.getSelection('isDrawPolygon');
+
     // Ignore the event if there is a multiple selection
     if (selectedNodes && selectedNodes.length > 0) return;
+
+    // Ignore the event if we are in polygon drawing mode
+    if (isDrawPolygon && isDrawPolygon.length > 0 && isDrawPolygon[0] === true) return;
 
     const features = e.target.queryRenderedFeatures(
         [
@@ -81,7 +86,7 @@ const onNodeSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
     e.originalEvent.stopPropagation();
 };
 
-const onSelectedNodeMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
+const onSelectedNodeMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
     const features = e.features;
     if (!features || features.length === 0) {
         return;
@@ -100,7 +105,7 @@ const onSelectedNodeMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
     }
 };
 
-const onSelectedNodeMouseUp = (e: MapboxGL.MapMouseEvent) => {
+const onSelectedNodeMouseUp = (e: maplibregl.MapMouseEvent) => {
     const map = e.target as any;
     // stop drag if on edit node:
     if (map._currentDraggingFeature === 'node') {
@@ -110,7 +115,7 @@ const onSelectedNodeMouseUp = (e: MapboxGL.MapMouseEvent) => {
     }
 };
 
-const onSelectedNodeMouseMove = (e: MapboxGL.MapMouseEvent) => {
+const onSelectedNodeMouseMove = (e: maplibregl.MapMouseEvent) => {
     const map = e.target as any;
     if (map._currentDraggingFeature === 'node') {
         serviceLocator.eventManager.emit('selected.drag.node', e.lngLat.toArray());
@@ -118,7 +123,7 @@ const onSelectedNodeMouseMove = (e: MapboxGL.MapMouseEvent) => {
     }
 };
 
-const onNodeSectionContextMenu = (e: MapboxGL.MapMouseEvent) => {
+const onNodeSectionContextMenu = (e: maplibregl.MapMouseEvent) => {
     const selectedNodes = serviceLocator.selectedObjectsManager.getSelection('nodes');
     const menu: { title: string; onClick: () => void }[] = [];
 

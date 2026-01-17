@@ -1,0 +1,176 @@
+.hidden-map {
+    overflow: hidden;
+    height: 0;
+    width: 0;
+    position: fixed;
+}
+
+.maplibregl-popup {
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-size: 11px;
+    display: -webkit-flex;
+    display: flex;
+    will-change: transform;
+    pointer-events: none;
+    color: rgba(255, 255, 255, 0.75);
+    width: 200px;
+    text-align: center;
+    line-height: 1.0;
+}
+
+.maplibregl-popup .pale {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+
+.maplibregl-popup-anchor-top,
+.maplibregl-popup-anchor-top-left,
+.maplibregl-popup-anchor-top-right {
+    -webkit-flex-direction: column;
+    flex-direction: column;
+}
+
+.maplibregl-popup-anchor-bottom,
+.maplibregl-popup-anchor-bottom-left,
+.maplibregl-popup-anchor-bottom-right {
+    -webkit-flex-direction: column-reverse;
+    flex-direction: column-reverse;
+}
+
+.maplibregl-popup-anchor-left {
+    -webkit-flex-direction: row;
+    flex-direction: row;
+}
+
+.maplibregl-popup-anchor-right {
+    -webkit-flex-direction: row-reverse;
+    flex-direction: row-reverse;
+}
+
+.maplibregl-popup-tip {
+    width: 0;
+    height: 0;
+    border: 7px solid transparent;
+    z-index: 1;
+}
+
+.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+    -webkit-align-self: center;
+    align-self: center;
+    border-top: none;
+    border-bottom-color: rgba(0, 0, 0, 0.5);
+}
+
+.maplibregl-popup-anchor-top-left .maplibregl-popup-tip {
+    -webkit-align-self: flex-start;
+    align-self: flex-start;
+    border-top: none;
+    border-left: none;
+    border-bottom-color: rgba(0, 0, 0, 0.5);
+}
+
+.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+    -webkit-align-self: flex-end;
+    align-self: flex-end;
+    border-top: none;
+    border-right: none;
+    border-bottom-color: rgba(0, 0, 0, 0.5);
+}
+
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+    -webkit-align-self: center;
+    align-self: center;
+    border-bottom: none;
+    border-top-color: rgba(0, 0, 0, 0.5);
+}
+
+.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip {
+    -webkit-align-self: flex-start;
+    align-self: flex-start;
+    border-bottom: none;
+    border-left: none;
+    border-top-color: rgba(0, 0, 0, 0.5);
+}
+
+.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+    -webkit-align-self: flex-end;
+    align-self: flex-end;
+    border-bottom: none;
+    border-right: none;
+    border-top-color: rgba(0, 0, 0, 0.5);
+}
+
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+    -webkit-align-self: center;
+    align-self: center;
+    border-left: none;
+    border-right-color: rgba(0, 0, 0, 0.5);
+}
+
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+    -webkit-align-self: center;
+    align-self: center;
+    border-right: none;
+    border-left-color: rgba(0, 0, 0, 0.5);
+}
+
+.maplibregl-popup-close-button {
+    position: absolute;
+    display: none;
+    right: 0;
+    top: 0;
+    border: none;
+    border-radius: 0 3px 0 0;
+    cursor: pointer;
+    background-color: transparent;
+}
+
+.maplibregl-popup-close-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.maplibregl-popup-content {
+    position: relative;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 0;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+    padding: 2px 5px 3px 5px;
+    pointer-events: auto;
+}
+
+.maplibregl-popup-anchor-top-left .maplibregl-popup-content {
+    border-top-left-radius: 0;
+}
+
+.maplibregl-popup-anchor-top-right .maplibregl-popup-content {
+    border-top-right-radius: 0;
+}
+
+.maplibregl-popup-anchor-bottom-left .maplibregl-popup-content {
+    border-bottom-left-radius: 0;
+}
+
+.maplibregl-popup-anchor-bottom-right .maplibregl-popup-content {
+    border-bottom-right-radius: 0;
+}
+
+/* Make the trash button only show when there's a polygon drawn */
+.terra-draw_trash {
+    display: none;
+}
+
+.terra-draw_trash.active {
+    display: block;
+}
+
+.terra-draw_polygon {
+    color: #000;
+    background-image: url('data:image/svg+xml;utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="20" height="20">%3Cpath d="m15 12.3v-4.6c.6-.3 1-1 1-1.7 0-1.1-.9-2-2-2-.7 0-1.4.4-1.7 1h-4.6c-.3-.6-1-1-1.7-1-1.1 0-2 .9-2 2 0 .7.4 1.4 1 1.7v4.6c-.6.3-1 1-1 1.7 0 1.1.9 2 2 2 .7 0 1.4-.4 1.7-1h4.6c.3.6 1 1 1.7 1 1.1 0 2-.9 2-2 0-.7-.4-1.4-1-1.7zm-8-.3v-4l1-1h4l1 1v4l-1 1h-4z"/>%3C/svg>');
+}
+
+.terra-draw_trash {
+    color: #000;
+    background-image: url('data:image/svg+xml;utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="20" height="20">%3Cpath d="M10,3.4 c-0.8,0-1.5,0.5-1.8,1.2H5l-1,1v1h12v-1l-1-1h-3.2C11.5,3.9,10.8,3.4,10,3.4z M5,8v7c0,1,1,2,2,2h6c1,0,2-1,2-2V8h-2v5.5h-1.5V8h-3 v5.5H7V8H5z"/>%3C/svg>');
+}
