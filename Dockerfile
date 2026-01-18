@@ -5,10 +5,11 @@
 # since node does not provide a buster image.
 # Added benefit of splitting the image
 # We copy the executable later
-FROM debian:bookworm AS json2capnpbuild
+# TODO: change rust image to debian:trixie (don't forget to also update the node image to trixie)
+FROM rust:slim-bookworm AS json2capnpbuild
 WORKDIR /app/services/json2capnp
 COPY services/json2capnp ./
-RUN apt-get update && apt-get -y --no-install-recommends install cargo ca-certificates
+RUN apt-get update && apt-get -y --no-install-recommends install ca-certificates
 RUN cargo build
 
 
