@@ -33,6 +33,7 @@ export interface AccessibilityMapCalculationAttributes extends GenericAttributes
     locationColor?: string;
     placeName?: string;
     calculatePois?: boolean;
+    calculatePopulation?: boolean;
 }
 
 export type AccessibilityMapAttributes = AccessibilityMapCalculationAttributes & TransitQueryAttributes;

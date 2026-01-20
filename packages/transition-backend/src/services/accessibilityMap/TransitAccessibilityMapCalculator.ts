@@ -49,6 +49,7 @@ import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection'
 import nodeDbQueries from '../../models/db/transitNodes.db.queries';
 import placesDbQueries from '../../models/db/places.db.queries';
 import { clipPolygon as clipPolygonWithPostGIS } from '../../models/db/geometryUtils.db.queries';
+import censusDbQueries from '../../models/db/census.db.queries';
 
 const getDurations = (maxDuration: number, numberOfPolygons: number): number[] => {
     const durations = [maxDuration];
@@ -101,7 +102,8 @@ export const getAttributesOrDefault = (attributes: Partial<AccessibilityMapAttri
         locationColor: attributes.locationColor,
         color: attributes.color,
         placeName: attributes.placeName,
-        calculatePois: attributes.calculatePois || false
+        calculatePois: attributes.calculatePois || false,
+        calculatePopulation: attributes.calculatePopulation || false
     };
 };
 
@@ -398,6 +400,7 @@ export class TransitAccessibilityMapCalculator {
             locationColor?: string;
             color?: string;
             calculatePois?: boolean;
+            calculatePopulation?: boolean;
             [key: string]: any;
         },
         result: TransitAccessibilityMapResultByNode,
@@ -507,6 +510,11 @@ export class TransitAccessibilityMapCalculator {
                     await placesDbQueries.getPOIsCategoriesCountInPolygon(polygon.geometry));
             }
 
+            let population: number | null = null;
+            if (attributes.calculatePopulation) {
+                population = await censusDbQueries.getPopulationInPolygon(polygon.geometry);
+            }
+
             polygon.properties = {
                 durationSeconds: Math.round(duration),
                 durationMinutes: Math.round(duration / 60),
@@ -516,6 +524,7 @@ export class TransitAccessibilityMapCalculator {
                 color: attributes.color,
                 accessiblePlacesCountByCategory,
                 accessiblePlacesCountByDetailedCategory,
+                population,
                 ...attributes,
                 ...(options.additionalProperties || {})
             };

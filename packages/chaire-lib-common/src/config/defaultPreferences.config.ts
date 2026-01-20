@@ -393,7 +393,8 @@ const defaultPreferences: PreferencesModel = {
                 maxTotalTravelTimeSeconds: 1800,
                 locationColor: 'rgba(47, 138, 243, 1.0)',
                 polygonColor: 'rgba(47, 138, 243, 0.4)',
-                calculatePois: false
+                calculatePois: false,
+                calculatePopulation: false
             },
             transitOdTrips: {
                 minWaitingTimeSeconds: 180,

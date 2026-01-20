@@ -758,6 +758,35 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                             </InputWrapper>
                             <InputWrapper
                                 smallInput={true}
+                                label={this.props.t('transit:transitRouting:CalculatePopulation')}
+                            >
+                                <InputRadio
+                                    id={`formFieldTransitAccessibilityMapCalculatePopulation${routingId}`}
+                                    value={routing.attributes.calculatePopulation}
+                                    sameLine={true}
+                                    disabled={false}
+                                    choices={[
+                                        {
+                                            value: true
+                                        },
+                                        {
+                                            value: false
+                                        }
+                                    ]}
+                                    localePrefix="transit:transitRouting"
+                                    t={this.props.t}
+                                    isBoolean={true}
+                                    onValueChange={(e) =>
+                                        this.updateBothRoutingEngines(
+                                            'calculatePopulation',
+                                            { value: _toBool(e.target.value) },
+                                            alternateRouting
+                                        )
+                                    }
+                                />
+                            </InputWrapper>
+                            <InputWrapper
+                                smallInput={true}
                                 label={this.props.t('transit:transitRouting:CalculatePois')}
                             >
                                 <InputRadio
