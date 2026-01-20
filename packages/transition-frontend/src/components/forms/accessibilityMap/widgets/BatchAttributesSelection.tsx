@@ -77,6 +77,11 @@ const BatchAttributesSelectionComponent: React.FunctionComponent<BatchAttributes
                 attributes={props.attributes}
             />
             <BatchAttributeSelectionWidgets.BooleanAttributeSelectionWidget
+                currentAttribute="calculatePopulation"
+                onValueChange={props.onValueChange}
+                attributes={props.attributes}
+            />
+            <BatchAttributeSelectionWidgets.BooleanAttributeSelectionWidget
                 currentAttribute="calculatePois"
                 onValueChange={props.onValueChange}
                 attributes={props.attributes}

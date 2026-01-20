@@ -22,6 +22,7 @@ export type TransitDemandFromCsvAccessMapAttributes = TransitDemandFromCsvAttrib
     // TODO For batch routing, these parameters were moved to batch calculation. They should too for batch access map, when we refactor this calculation a similar way
     withGeometries: boolean;
     calculatePois: boolean;
+    calculatePopulation?: boolean;
     detailed: boolean;
     // TODO Remove these from this object once trRouting is parallel
     cpuCount: number;

@@ -81,6 +81,10 @@ accessibilityMapRequest:
       type: boolean
       description: Whether to calculate the POIs located in the polygon and include the count in the result. Defaults to false.
       example: true
+    calculatePopulation:
+      type: boolean
+      description: Whether to calculate the population of the polygon and include the count in the result. Defaults to false.
+      example: true
 
 
 accessibilityMapResponseSuccess:
@@ -241,6 +245,11 @@ accessibilityMapResultResponsePolygons:
                   type: integer
                 description: The number of POIs within the accessibility polygon (if any), separated by detailed categories. The keys are the names of the detailed categories defined in the PlaceDetailedCategory type, and the values are integers.
                 example: {'service_bank': 8, 'service_other': 2, 'restaurant_restaurant': 5}
+              population:
+                type: number
+                nullable: true
+                description: The population inside the result polygon. Is null if calculatePopulation was set to false or the polygon does not cover any of the zones in the census db table.
+                example: 102457
 
 accessibilityMapResponseBadRequest:
   type: string

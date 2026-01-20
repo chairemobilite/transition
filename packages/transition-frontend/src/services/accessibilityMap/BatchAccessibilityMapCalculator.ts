@@ -85,6 +85,7 @@ export class BatchAccessibilityMapCalculator {
             timeAttribute: attributes.timeAttribute as string,
             withGeometries: attributes.withGeometries || false,
             calculatePois: attributes.calculatePois || false,
+            calculatePopulation: attributes.calculatePopulation || false,
             cpuCount: attributes.cpuCount || 1,
             csvFile: attributes.csvFile || { location: 'upload', filename: 'batchAccessMap.csv' }
         };
