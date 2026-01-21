@@ -505,22 +505,12 @@ describe('TrRouting Process Manager: startBatch', () => {
             service: 'trRoutingBatch',
             port: 14000
         });
-        expect(startProcessMock).toHaveBeenCalledTimes(2);
-        expect(startProcessMock).toHaveBeenNthCalledWith(1,{
-            serviceName: 'memcached',
-            tagName: 'memcached',
-            command: 'memcached',
-            commandArgs: ['--port=11212', '--user=nobody', '-vv'],
-            waitString: '',
-            useShell: false,
-            cwd: undefined,
-            attemptRestart: false
-        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
         expect(startProcessMock).toHaveBeenLastCalledWith({
             serviceName: 'trRouting14000',
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--useMemcached=localhost:11212'],
+            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
@@ -538,12 +528,12 @@ describe('TrRouting Process Manager: startBatch', () => {
             service: 'trRoutingBatch',
             port: 14000
         });
-        expect(startProcessMock).toHaveBeenCalledTimes(2);
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
         expect(startProcessMock).toHaveBeenLastCalledWith({
             serviceName: 'trRouting14000',
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--useMemcached=localhost:11212'],
+            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
@@ -565,12 +555,12 @@ describe('TrRouting Process Manager: startBatch', () => {
             service: 'trRoutingBatch',
             port: 14000
         });
-        expect(startProcessMock).toHaveBeenCalledTimes(2);
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
         expect(startProcessMock).toHaveBeenLastCalledWith({
             serviceName: 'trRouting14000',
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2', '--useMemcached=localhost:11212'],
+            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
@@ -588,12 +578,12 @@ describe('TrRouting Process Manager: startBatch', () => {
             service: 'trRoutingBatch',
             port: 12345
         });
-        expect(startProcessMock).toHaveBeenCalledTimes(2);
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
         expect(startProcessMock).toHaveBeenLastCalledWith({
             serviceName: 'trRouting12345',
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: ['--port=12345', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--useMemcached=localhost:11212'],
+            commandArgs: ['--port=12345', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
@@ -614,12 +604,12 @@ describe('TrRouting Process Manager: startBatch', () => {
             service: 'trRoutingBatch',
             port
         });
-        expect(startProcessMock).toHaveBeenCalledTimes(2);
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
         expect(startProcessMock).toHaveBeenLastCalledWith({
             serviceName: `trRouting${port}`,
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--cacheAllConnectionSets=true', '--useMemcached=localhost:11212'],
+            commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--cacheAllConnectionSets=true'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
@@ -635,13 +625,14 @@ describe('TrRouting Process Manager: startBatch', () => {
         const port = 12345;
         const debug = true;
         const cacheDirectoryPath = '/tmp/cache';
-        const status = await TrRoutingProcessManager.startBatch(4, { port, debug, cacheDirectoryPath });
+        const memcachedServer = 'localhost:11212';
+        const status = await TrRoutingProcessManager.startBatch(4, { port, debug, cacheDirectoryPath, memcachedServer });
         expect(status).toEqual({
             status: 'started',
             service: 'trRoutingBatch',
             port: 12345
         });
-        expect(startProcessMock).toHaveBeenCalledTimes(2);
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
         expect(startProcessMock).toHaveBeenLastCalledWith({
             serviceName: 'trRouting12345',
             tagName: 'trRouting',
@@ -657,6 +648,32 @@ describe('TrRouting Process Manager: startBatch', () => {
             }
         });
     });
+
+    test('start batch process with just memcached parameters set', async () => {
+        const memcachedServer = 'localhost:11212';
+        const status = await TrRoutingProcessManager.startBatch(4, { memcachedServer: memcachedServer });
+        expect(status).toEqual({
+            status: 'started',
+            service: 'trRoutingBatch',
+            port: 14000
+        });
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
+        expect(startProcessMock).toHaveBeenLastCalledWith({
+            serviceName: 'trRouting14000',
+            tagName: 'trRouting',
+            command: 'trRouting',
+            commandArgs: [`--port=14000`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--useMemcached=localhost:11212'],
+            waitString: 'ready.',
+            useShell: false,
+            cwd: undefined,
+            attemptRestart: false,
+            logFiles: {
+                nbLogFiles: 3,
+                maxFileSizeKB: 5120
+            }
+        });
+    });
+
     test('With debug and logFiles in the config', async () => {
         const logFiles = { maxFileSizeKB: 1500, nbFiles: 5 };
         setProjectConfiguration({ routing: { transit: { engines: { trRouting: { batch: { debug: true, logs: logFiles } } as any } } as any } });
@@ -666,12 +683,12 @@ describe('TrRouting Process Manager: startBatch', () => {
             service: 'trRoutingBatch',
             port: 14000
         });
-        expect(startProcessMock).toHaveBeenCalledTimes(2);
+        expect(startProcessMock).toHaveBeenCalledTimes(1);
         expect(startProcessMock).toHaveBeenLastCalledWith({
             serviceName: 'trRouting14000',
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--useMemcached=localhost:11212'],
+            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,

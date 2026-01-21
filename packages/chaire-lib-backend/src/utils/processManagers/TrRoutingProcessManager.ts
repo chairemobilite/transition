@@ -21,6 +21,10 @@ type TrRoutingStartParameters = {
     cacheDirectoryPath?: string;
 };
 
+type TrRoutingBatchStartParameters = TrRoutingStartParameters & {
+    memcachedServer?: string;
+};
+
 const getServiceName = function (port: number) {
     return `trRouting${port}`;
 };
@@ -38,7 +42,7 @@ const startTrRoutingProcess = async (
     }: {
         debug?: boolean;
         cacheDirectoryPath?: string;
-        cacheAllScenarios?: boolean; // Flag to enable the trRouting connection cache for all scenario`
+        cacheAllScenarios?: boolean; // Flag to enable the trRouting connection cache for all scenario
         logFiles: TrRoutingConfig['logs'];
         memcachedServer?: string; // If defined, enable use of memcached and use the value as the server URL
     }
@@ -64,7 +68,7 @@ const startTrRoutingProcess = async (
         commandArgs.push(`--cachePath=${directoryManager.projectDirectory}/cache/${config.projectShortname}`);
     }
 
-    // Set the threads argment if we have a threadCount param and it's higher than one
+    // Set the threads argument if we have a threadCount param and it's higher than one
     if (threadCount && threadCount > 1) {
         commandArgs.push(`--threads=${threadCount}`);
     }
@@ -189,8 +193,9 @@ const startBatch = async function (
     {
         port = serverConfig.getTrRoutingConfig('batch').port,
         cacheDirectoryPath = undefined,
-        debug = undefined
-    }: TrRoutingStartParameters = {}
+        debug = undefined,
+        memcachedServer = undefined
+    }: TrRoutingBatchStartParameters = {}
 ) {
     // Ensure we don't use more CPU than configured
     const maxThreadCount = config.maxParallelCalculators;
@@ -205,35 +210,6 @@ const startBatch = async function (
     const batchTrRoutingConfig = serverConfig.getTrRoutingConfig('batch');
     const cacheAllScenarios = batchTrRoutingConfig.cacheAllScenarios;
     const debugFromParamOrConfig = debug !== undefined ? debug : batchTrRoutingConfig.debug;
-
-    // Start Memcached
-    // TODO This is a placeholder variable to be used when we implement config options to control the use of memcached
-    // We could add options to enable/disable and to set a specific host/port
-    const startMemcached = true;
-    let memcachedServer;
-    if (startMemcached) {
-        const memcachedPort = 11212; // 11211 is the default memcached port, we use +1 to not clash
-        const memcachedProcessStatus = await ProcessManager.startProcess({
-            serviceName: 'memcached',
-            tagName: 'memcached',
-            command: 'memcached',
-            commandArgs: [
-                `--port=${memcachedPort}`,
-                '--user=nobody', // Memcached does not want to run as root, let's drop to nobody
-                '-vv'
-            ], // Enable detailled output for logging
-            waitString: '',
-            useShell: false,
-            attemptRestart: false
-        });
-        if (memcachedProcessStatus.status === 'error' && memcachedProcessStatus.error.code === 'ENOENT') {
-            console.error('memcached executable does not exist in path');
-        } else if (memcachedProcessStatus.status === 'started') {
-            memcachedServer = 'localhost:11212';
-        } else {
-            console.error('cannot start memcached:', memcachedProcessStatus);
-        }
-    }
 
     const params = {
         cacheDirectoryPath: cacheDirectoryPath,
@@ -254,10 +230,6 @@ const startBatch = async function (
 
 const stopBatch = async function (port: number = serverConfig.getTrRoutingConfig('batch').port) {
     await stop({ port: port });
-
-    // TODO Consider keeping memcached around, to speed up later calculation that might use
-    // the same data
-    await ProcessManager.stopProcess('memcached', 'memcached');
 
     return {
         status: 'stopped',
