@@ -19,4 +19,17 @@ export type TrRoutingBatchJobParameters = {
      * Example: '/path/to/custom/cache/directory'
      */
     cacheDirectoryPath?: string;
+
+    /**
+     * Memcached server URL (e.g., 'localhost:11212').
+     * If provided, TrRouting will use this existing memcached instance instead
+     * of starting a new one. This is useful for parent jobs that spawn multiple
+     * TrRouting batch jobs that can benefit from sharing the same cache.
+     *
+     * When not provided, a new memcached instance will be started and stopped
+     * with the batch job.
+     *
+     * Example: 'localhost:11212'
+     */
+    memcachedServer?: string;
 };

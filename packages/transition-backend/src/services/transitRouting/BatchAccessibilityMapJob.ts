@@ -7,6 +7,7 @@
 import { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
 
 export type BatchAccessMapJobType = {
     name: 'batchAccessMap';
@@ -14,6 +15,7 @@ export type BatchAccessMapJobType = {
         parameters: {
             batchAccessMapAttributes: TransitDemandFromCsvAccessMapAttributes;
             accessMapAttributes: AccessibilityMapAttributes;
+            trRoutingJobParameters?: TrRoutingBatchJobParameters;
         };
         results?: Omit<TransitBatchCalculationResult, 'errors' | 'warnings'>;
     };

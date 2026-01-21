@@ -18,6 +18,7 @@ import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/direct
 import { ExecutableJob } from '../../executableJob/ExecutableJob';
 import { BatchAccessMapJobType } from '../BatchAccessibilityMapJob';
 import jobsDbQueries from '../../../models/db/jobs.db.queries';
+import MemcachedProcessManager from 'chaire-lib-backend/lib/utils/processManagers/MemcachedProcessManager';
 
 const absoluteDir = `${directoryManager.userDataDirectory}/1/exports`;
 
@@ -46,6 +47,16 @@ jest.mock('chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager'
 }));
 const mockedStartBatch = TrRoutingProcessManager.startBatch as jest.MockedFunction<typeof TrRoutingProcessManager.startBatch>;
 const mockedStopBatch = TrRoutingProcessManager.stopBatch as jest.MockedFunction<typeof TrRoutingProcessManager.stopBatch>;
+
+jest.mock('chaire-lib-backend/lib/utils/processManagers/MemcachedProcessManager', () => ({
+    start: jest.fn().mockResolvedValue({
+        getServer: () => 'localhost:11212',
+        status: jest.fn().mockResolvedValue('running'),
+        stop: jest.fn().mockResolvedValue({ status: 'stopped' })
+    })
+}));
+const mockMemcachedStart = MemcachedProcessManager.start as jest.MockedFunction<typeof MemcachedProcessManager.start>;
+
 
 jest.mock('../TrAccessibilityMapBatchResult', () => ({
     createAccessMapFileResultProcessor: jest.fn()
@@ -147,6 +158,7 @@ beforeEach(async () => {
     mockedParseLocations.mockClear();
     mockedStartBatch.mockClear();
     mockedStopBatch.mockClear();
+    mockMemcachedStart.mockClear();
     mockedCreateResult.mockClear();
     mockedCalculateWithPolygon.mockClear();
     mockResultProcessor.processResult.mockClear();
@@ -178,7 +190,15 @@ test('3 locations, all successful', async() => {
     expect(mockResultProcessor.processResult).toHaveBeenCalledTimes(3);
     expect(mockResultProcessor.end).toHaveBeenCalledTimes(1);
     expect(mockedStartBatch).toHaveBeenCalledTimes(1);
+    expect(mockedStartBatch).toHaveBeenCalledWith(
+        expect.any(Number),
+        expect.objectContaining({
+            cacheDirectoryPath: undefined,
+            memcachedServer: 'localhost:11212'
+        })
+    );
     expect(mockedStopBatch).toHaveBeenCalledTimes(2);
+    
 });
 
 test('3 locations, error on first', async() => {
