@@ -5,16 +5,15 @@
 # since node does not provide a buster image.
 # Added benefit of splitting the image
 # We copy the executable later
-# TODO: change rust image to debian:trixie (don't forget to also update the node image to trixie)
-FROM rust:slim-bookworm AS json2capnpbuild
+FROM debian:trixie-slim AS json2capnpbuild
 WORKDIR /app/services/json2capnp
 COPY services/json2capnp ./
-RUN apt-get update && apt-get -y --no-install-recommends install ca-certificates
+RUN apt-get update && apt-get -y --no-install-recommends install cargo ca-certificates
 RUN cargo build
 
 
 # Build Node app
-FROM node:24-bookworm
+FROM node:24-trixie
 WORKDIR /app
 # Install all the json package dependencies in an intermediary image. To do so, we copy each package.json files
 # and run yarn install which will download all the listed packages in the image.
@@ -40,14 +39,12 @@ COPY --from=json2capnpbuild /app/services/json2capnp/target/debug/json2capnp ser
 
 # Copy in trRouting and osrm binaries
 # For trRouting
-RUN apt-get update && apt-get -y --no-install-recommends install capnproto libboost-regex1.74.0 libboost-filesystem1.74.0 libboost-iostreams1.74.0 libboost-thread1.74.0 libboost-date-time1.74.0 libboost-serialization1.74.0 libboost-program-options1.74.0 libspdlog1.10 libmemcached11 libmemcachedutil2
+RUN apt-get update && apt-get -y --no-install-recommends install capnproto libboost-regex1.83.0 libboost-filesystem1.83.0 libboost-iostreams1.83.0 libboost-thread1.83.0 libboost-date-time1.83.0 libboost-serialization1.83.0 libboost-program-options1.83.0 libspdlog1.15 libmemcached11 libmemcachedutil2
 
 # For OSRM
-# libtbb12 us only available in bookworm or later copy it from the osrm image
-COPY --from=greenscientist/osrm-backend:bullseye /usr/local/lib/libtbb* /usr/local/lib/
-RUN apt-get -y --no-install-recommends install libboost-chrono1.74.0 liblua5.4-0
+RUN apt-get -y --no-install-recommends install libboost-chrono1.83.0 liblua5.4-0 libtbb12
 COPY --from=chairemobilite/trrouting:latest /usr/local/bin/trRouting /usr/local/bin/
-COPY --from=greenscientist/osrm-backend:bullseye /usr/local/bin/osrm-* /usr/local/bin/
+COPY --from=greenscientist/osrm-backend:trixie /usr/local/bin/osrm-* /usr/local/bin/
 
 #From OSRM dockerfile, make sure tools work
 RUN /usr/local/bin/osrm-extract --help && \
