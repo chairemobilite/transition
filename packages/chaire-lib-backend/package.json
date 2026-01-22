@@ -54,7 +54,7 @@
         "JSONStream": "^1.3.5",
         "knex": "^3.1.0",
         "knex-postgis": "^0.14.3",
-        "lodash": "^4.17.21",
+        "lodash": "^4.17.23",
         "moment": "^2.30.1",
         "nodemailer": "^7.0.11",
         "opentelemetry-instrumentation-socket.io": "^0.34.0",
