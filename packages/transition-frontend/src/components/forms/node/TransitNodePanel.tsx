@@ -136,13 +136,12 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
             });
         } catch (error) {
             // TODO Log errors
-            console.log('Error deleting unused nodes', error);
+            console.error('Error deleting unused nodes', error);
         } finally {
             serviceLocator.eventManager.emit('progress', { name: 'DeletingNodes', progress: 1.0 });
         }
     };
 
-    // TODO Review the conditions to define which part is opened. This is a bit complicated wrt the state. Can there really be both selectedNode and selectedNodes?
     return (
         <div id="tr__form-transit-nodes-panel" className="tr__form-transit-nodes-panel tr__panel">
             {!state.selectedNode && state.selectedNodes.length === 0 && !state.selectedStation && !importerSelected && (
@@ -175,10 +174,21 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
                     showCancelButton={false}
                 />
             )}
+            {state.selectedNodes && state.selectedNodes.length > 0 && (
+                <p>Selected nodes: {state.selectedNodes.length}</p>
+            )}
             {((state.selectedNodes.length > 0 && lastOptionIsSelectedNodes) ||
                 (state.selectedNodes.length > 0 && !importerSelected)) &&
                 state.selectedNodes[0] !== 'draw_polygon' && (
                 <TransitNodeCollectionEdit
+                    key={(state.selectedNodes as Node[])
+                        .map((n) =>
+                            typeof n.getId === 'function'
+                                ? n.getId()
+                                : (n as any).id || (n as any).uuid || Math.random().toString()
+                        )
+                        .sort()
+                        .join('-')}
                     nodes={state.selectedNodes as Node[]} // string[] is for draw_polygon only, so here we have Node[]
                     onBack={() => {
                         setLastOptionIsSelectedNodes(false);

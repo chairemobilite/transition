@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 
 /**
  * Class that keeps track of the popups currently displaying on the map (there
@@ -18,20 +18,20 @@ import MapboxGL from 'mapbox-gl';
  * @class MapPopupManager
  */
 class MapPopupManager {
-    private map: MapboxGL.Map | undefined;
-    private _popupsByName: { [key: string]: MapboxGL.Popup } = {};
+    private map: maplibregl.Map | undefined;
+    private _popupsByName: { [key: string]: maplibregl.Popup } = {};
 
     // TODO Make map mandatory
-    constructor(map?: MapboxGL.Map | undefined) {
+    constructor(map?: maplibregl.Map | undefined) {
         this.map = map;
         this._popupsByName = {};
     }
 
-    setMap(map: MapboxGL.Map) {
+    setMap(map: maplibregl.Map) {
         this.map = map;
     }
 
-    addPopup(popupName: string, popup: MapboxGL.Popup) {
+    addPopup(popupName: string, popup: maplibregl.Popup) {
         if (!this._popupsByName[popupName] && this.map) {
             popup.addTo(this.map);
         }

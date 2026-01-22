@@ -33,7 +33,7 @@
     "@types/geojson": "^7946.0.16",
     "@types/geokdbush": "^1.1.5",
     "@types/jest": "^30.0.0",
-    "@types/lodash": "^4.17.21",
+    "@types/lodash": "^4.17.23",
     "@types/node": "^24.10.4",
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
