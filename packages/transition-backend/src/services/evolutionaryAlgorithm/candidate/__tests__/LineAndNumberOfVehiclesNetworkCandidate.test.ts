@@ -167,31 +167,43 @@ const createMockJobExecutorForTest = async (parameters: Partial<EvolutionaryTran
         [line1.getId()]: [
             {
                 numberOfVehicles: 4,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             },
             {
                 numberOfVehicles: 5,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             }
         ],
         [line2.getId()]: [
             {
                 numberOfVehicles: 1,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             },
             {
                 numberOfVehicles: 3,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             }
         ],
         [line3.getId()]: [
             {
                 numberOfVehicles: 2,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             },
             {
                 numberOfVehicles: 5,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             }
         ]
     };
@@ -316,11 +328,15 @@ describe('Simulate scenario and serialize result', () => {
             lines: {
                 [line1.getId()]: {
                     shortname: line1.attributes.shortname,
-                    nbVehicles: jobExecutor.lineServices[line1.getId()][1].numberOfVehicles
+                    nbVehicles: jobExecutor.lineServices[line1.getId()][1].numberOfVehicles,
+                    timeBetweenPassages: jobExecutor.lineServices[line1.getId()][1].timeBetweenPassages,
+                    outboundPathId: jobExecutor.lineServices[line1.getId()][1].outboundPathId
                 },
                 [line3.getId()]: {
                     shortname: line3.attributes.shortname,
-                    nbVehicles: jobExecutor.lineServices[line3.getId()][0].numberOfVehicles
+                    nbVehicles: jobExecutor.lineServices[line3.getId()][0].numberOfVehicles,
+                    timeBetweenPassages: jobExecutor.lineServices[line3.getId()][0].timeBetweenPassages,
+                    outboundPathId: jobExecutor.lineServices[line3.getId()][0].outboundPathId
                 }
             },
             result: {
