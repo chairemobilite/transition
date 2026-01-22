@@ -4,9 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons/faAngleRight';
 import { faAngleLeft } from '@fortawesome/free-solid-svg-icons/faAngleLeft';
+import { bbox as turfBbox, featureCollection as turfFeatureCollection } from '@turf/turf';
 
 import ScenarioComparisonResults from './ScenarioComparisonResults';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
@@ -41,7 +42,11 @@ export interface AlternativesSelectOneScenarioProps {
     useAlternateLayerAndColor: boolean;
 }
 
-const showCurrentAlternative = async (result, alternativeIndex, useAlternateLayer) => {
+const showCurrentAlternative = async (
+    result: RoutingResult,
+    alternativeIndex: number,
+    useAlternateLayer: boolean
+): Promise<GeoJSON.FeatureCollection | undefined> => {
     const pathCollection = serviceLocator.collectionManager.get('paths');
     const segmentToGeojson = new SegmentToGeoJSONFromPaths(pathCollection);
     const options = { completeData: false, segmentToGeojson: segmentToGeojson.segmentToGeoJSONFromPaths };
@@ -61,6 +66,7 @@ const showCurrentAlternative = async (result, alternativeIndex, useAlternateLaye
             routingPathsStrokes: pathGeojson
         });
     }
+    return pathGeojson;
 };
 
 const AlternativesSelect: React.FunctionComponent<AlternativesSelectProps> = (props: AlternativesSelectProps) => {
@@ -68,9 +74,46 @@ const AlternativesSelect: React.FunctionComponent<AlternativesSelectProps> = (pr
 
     const [alternativeIndex1, setAlternativeIndex1] = useState(0);
     const [alternativeIndex2, setAlternativeIndex2] = useState(0);
+    // Track if this is the first render to fit bounds only on initial display
+    const isInitialRenderRef = useRef(true);
 
     const result1 = props.result1;
     const result2 = props.result2;
+
+    // Fit bounds to both paths on initial render
+    useEffect(() => {
+        if (!isInitialRenderRef.current) return;
+        isInitialRenderRef.current = false;
+
+        const fitBoundsToResults = async () => {
+            try {
+                const pathGeojson1 = await showCurrentAlternative(result1, alternativeIndex1, false);
+                const pathGeojson2 = await showCurrentAlternative(result2, alternativeIndex2, true);
+
+                // Combine both paths and fit bounds to the combined extent
+                const allFeatures: GeoJSON.Feature[] = [];
+                if (pathGeojson1?.features) allFeatures.push(...pathGeojson1.features);
+                if (pathGeojson2?.features) allFeatures.push(...pathGeojson2.features);
+
+                if (allFeatures.length > 0) {
+                    const combined = turfFeatureCollection(allFeatures);
+                    const bounds = turfBbox(combined);
+                    serviceLocator.eventManager.emit('map.fitBounds', [
+                        [bounds[0], bounds[1]], // southwest
+                        [bounds[2], bounds[3]] // northeast
+                    ]);
+                }
+            } catch (error) {
+                console.error(
+                    'Failed to fit bounds to comparison results',
+                    { alternativeIndex1, alternativeIndex2 },
+                    error
+                );
+            }
+        };
+
+        fitBoundsToResults();
+    }, [result1, result2]);
 
     const error1 = result1.getError();
     const error2 = result2.getError();
@@ -160,6 +203,8 @@ const AlternativesSelectOneScenario: React.FunctionComponent<AlternativesSelectO
     props: AlternativesSelectOneScenarioProps
 ) => {
     const alternativesCount = props.result.getAlternativesCount();
+    // Skip the first render since the parent handles that with fitBounds
+    const isFirstRenderRef = useRef(true);
 
     const onLeftButtonClick = () => {
         props.setAlternativeIndex(props.alternativeIndex > 0 ? props.alternativeIndex - 1 : alternativesCount - 1);
@@ -169,7 +214,14 @@ const AlternativesSelectOneScenario: React.FunctionComponent<AlternativesSelectO
         props.setAlternativeIndex(alternativesCount > props.alternativeIndex + 1 ? props.alternativeIndex + 1 : 0);
     };
 
-    showCurrentAlternative(props.result, props.alternativeIndex, props.useAlternateLayerAndColor);
+    // Update map when alternative index changes (skip first render, handled by parent)
+    useEffect(() => {
+        if (isFirstRenderRef.current) {
+            isFirstRenderRef.current = false;
+            return;
+        }
+        showCurrentAlternative(props.result, props.alternativeIndex, props.useAlternateLayerAndColor);
+    }, [props.result, props.alternativeIndex, props.useAlternateLayerAndColor]);
 
     return (
         <React.Fragment>

@@ -59,6 +59,7 @@ const jsx = (
 );
 
 const root = createRoot(document.getElementById('app') as HTMLElement);
+
 root.render(<LoadingPage />);
 
 let hasRendered = false;

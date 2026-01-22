@@ -478,7 +478,7 @@ export const deleteForDataSourceId = async (
 /**
  * Empties a database table
  *
- * FIXME Shoud we keep this method only for sequential tests purposes? It should
+ * FIXME Should we keep this method only for sequential tests purposes? It should
  * not be used in production. See
  * https://github.com/chairemobilite/transition/issues/938
  *

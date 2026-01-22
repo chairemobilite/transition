@@ -4,9 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons/faAngleRight';
 import { faAngleLeft } from '@fortawesome/free-solid-svg-icons/faAngleLeft';
+import { bbox as turfBbox } from '@turf/turf';
 
 import TransitRoutingResults from './TransitRoutingResultComponent';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
@@ -29,7 +30,11 @@ export interface TransitRoutingResultsProps {
     request: TransitRoutingAttributes;
 }
 
-const showCurrentAlternative = async (result, alternativeIndex) => {
+const showCurrentAlternative = async (
+    result: RoutingResult,
+    alternativeIndex: number,
+    fitBounds: boolean = false
+): Promise<void> => {
     const pathCollection = serviceLocator.collectionManager.get('paths');
     const segmentToGeojson = new SegmentToGeoJSONFromPaths(pathCollection);
     const options = { completeData: false, segmentToGeojson: segmentToGeojson.segmentToGeoJSONFromPaths };
@@ -42,23 +47,43 @@ const showCurrentAlternative = async (result, alternativeIndex) => {
         routingPaths: pathGeojson,
         routingPathsStrokes: pathGeojson
     });
+
+    // Fit map bounds to the routing path
+    if (fitBounds && pathGeojson && pathGeojson.features && pathGeojson.features.length > 0) {
+        const bounds = turfBbox(pathGeojson);
+        // bounds is [minX, minY, maxX, maxY] = [west, south, east, north]
+        serviceLocator.eventManager.emit('map.fitBounds', [
+            [bounds[0], bounds[1]], // southwest
+            [bounds[2], bounds[3]] // northeast
+        ]);
+    }
 };
 
 const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (props: TransitRoutingResultsProps) => {
     const [alternativeIndex, setAlternativeIndex] = useState(0);
+    // Track if this is the first render to fit bounds only on initial display
+    const isInitialRenderRef = useRef(true);
 
     const result = props.result;
-
     const error = result.getError();
+
+    // Use effect to show the current alternative and fit bounds on initial render
+    // Must be placed before any early returns to ensure hooks are called in the same order
+    useEffect(() => {
+        if (error) {
+            return; // Skip showing alternative if there's an error
+        }
+        const shouldFitBounds = isInitialRenderRef.current;
+        showCurrentAlternative(result, alternativeIndex, shouldFitBounds);
+        isInitialRenderRef.current = false;
+    }, [result, alternativeIndex, error]);
+
     if (error) {
         return <FormErrors errors={[error.export().localizedMessage]} />;
     }
 
     const alternativesCount = result.getAlternativesCount();
     const path = result.getPath(alternativeIndex);
-
-    // TODO This may be racy (it already was) if the user switches alternative rapidly. Make it cancellable.
-    showCurrentAlternative(result, alternativeIndex);
 
     const onLeftButtonClick = () => {
         setAlternativeIndex(alternativeIndex > 0 ? alternativeIndex - 1 : alternativesCount - 1);

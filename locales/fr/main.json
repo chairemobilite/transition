@@ -136,7 +136,7 @@
         "InvalidFormFields": "Certains champs sont invalides",
         "ErrorCalculatingAccessibilityMap": "Erreur lors du calcul de la carte d'accessibilité. Essayez de réduire le temps de parcours maximal.",
         "csv": {
-            "MissingRequiredCsvFieldMapping": "Association du champ CSV requise manquante: {{field}}",
+            "MissingRequiredCsvFieldMapping": "Association du champ CSV requis manquante: {{field}}",
             "FieldNotInCsvFile": "Champ '{{field}}' introuvable dans le fichier CSV",
             "NoFileSelected": "Aucun fichier CSV sélectionné",
             "ProjectionIsMissing": "La projection est requise"
@@ -297,7 +297,15 @@
     "map": {
         "controls": {
             "title": "Contrôles de la carte",
-            "resetView": "Réinitialiser la vue au centre/zoom par défaut"
-        }
+            "resetView": "Réinitialiser la vue au centre/zoom par défaut",
+            "layerSelect": "Sélectionner la couche de carte",
+            "background": "Arrière-plan",
+            "osm": "Carte de base",
+            "aerial": "Imagerie aérienne",
+            "minZoom": "(zoom min: {{zoom}})",
+            "maxZoom": "(zoom max: {{zoom}})"
+        },
+        "osmAttribution": "© Contributeurs OpenStreetMap",
+        "aerialAttribution": "Imagerie aérienne"
     }
 }

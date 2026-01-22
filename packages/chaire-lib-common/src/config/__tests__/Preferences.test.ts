@@ -102,7 +102,7 @@ describe('Updating preferences', () => {
 
     test('Update from socket routes, with error', async () => {
         mockStubUpdatePreferences.mockImplementationOnce((data, callback) => callback(Status.createError('Error from socket')));
-        
+
         await Preferences.update(myNewPrefs, stubEmitter);
         expect(mockStubUpdatePreferences).toHaveBeenLastCalledWith(myNewPrefs, expect.anything());
         // No changes to preferences should happen
@@ -134,6 +134,22 @@ describe('Updating preferences', () => {
         // No changes to preferences should happen
         expect(Preferences.get('prefTitle.test.mySection')).toBeUndefined();
     });
+
+    test.each([
+        { input: { 'map.baseLayer': 'aerial' as const }, expected: 'aerial' },
+        { input: { 'map.baseLayer': 'osm' as const }, expected: 'osm' }
+    ])('Update map.baseLayer preference with input $input, expected $expected', async ({ input, expected }) => {
+        fetchMock.mockOnce(JSON.stringify(Status.createOk('ok')));
+
+        await Preferences.update(input);
+
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(fetchMock).toHaveBeenCalledWith('/update_user_preferences', expect.objectContaining({
+            method: 'POST',
+            body: JSON.stringify({ valuesByPath: input })
+        }));
+        expect(Preferences.get('map.baseLayer')).toBe(expected);
+    });
 });
 
 test('Test reset to default', () => {
@@ -145,6 +161,29 @@ test('Test reset to default', () => {
     expect(Preferences.get('map.zoom')).toBe(15);
     Preferences.resetPathToDefault('map.zoom');
     expect(Preferences.get('map.zoom')).toBe(10); // map.zoom is no set in project config, but is 10 in default config
+});
+
+describe('map.baseLayer preference', () => {
+    test('has osm as default value', () => {
+        expect(Preferences.get('map.baseLayer')).toBe('osm');
+    });
+
+    test('can be set to aerial', () => {
+        Preferences.set('map.baseLayer', 'aerial');
+        expect(Preferences.get('map.baseLayer')).toBe('aerial');
+    });
+
+    test('resets to osm default', () => {
+        Preferences.set('map.baseLayer', 'aerial');
+        Preferences.resetPathToDefault('map.baseLayer');
+        expect(Preferences.get('map.baseLayer')).toBe('osm');
+    });
+
+    test('persists as part of map preferences object', () => {
+        Preferences.set('map.baseLayer', 'aerial');
+        const mapPrefs = Preferences.get('map');
+        expect(mapPrefs).toHaveProperty('baseLayer', 'aerial');
+    });
 });
 
 test('Test get from default or project default', () => {

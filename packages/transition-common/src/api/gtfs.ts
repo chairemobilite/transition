@@ -25,7 +25,7 @@ export type GtfsImportStatus =
     | { status: 'failed'; errors: ErrorMessage[] };
 
 /**
- * Upon success, the gtfsExporterId shoud match the gtfsExporterId of the export
+ * Upon success, the gtfsExporterId should match the gtfsExporterId of the export
  * parameter. The zipFilePath is the actual file to download from server.
  * */
 
