@@ -66,6 +66,11 @@ interface DashboardState {
     mainMapLayerGroups: string[];
     unsavedChangesModalIsOpen: boolean;
     availableRoutingModes: string[];
+    // Modal for confirming path switch with unsaved changes
+    pathSwitchConfirmModal: {
+        isOpen: boolean;
+        onConfirm: (() => void) | null;
+    };
 }
 
 /**
@@ -100,7 +105,8 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
             infoPanelPosition: 'right',
             mainMapLayerGroups,
             unsavedChangesModalIsOpen: false,
-            availableRoutingModes: []
+            availableRoutingModes: [],
+            pathSwitchConfirmModal: { isOpen: false, onConfirm: null }
         };
 
         serviceLocator.addService('eventManager', new EventManager(new EventEmitter()));
@@ -129,6 +135,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         serviceLocator.eventManager.on('fullSizePanel.show', this.onShowFullSizePanel);
         serviceLocator.eventManager.on('fullSizePanel.hide', this.onHideFullSizePanel);
         serviceLocator.eventManager.on('section.change', this.onChangeSection);
+        serviceLocator.eventManager.on('map.showPathSwitchConfirmModal', this.showPathSwitchConfirmModal);
 
         document.addEventListener('keydown', this.handleKeyDown, false);
         document.addEventListener('keyup', this.handleKeyUp, false);
@@ -149,6 +156,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         serviceLocator.eventManager.off('fullSizePanel.show', this.onShowFullSizePanel);
         serviceLocator.eventManager.off('fullSizePanel.hide', this.onHideFullSizePanel);
         serviceLocator.eventManager.off('section.change', this.onChangeSection);
+        serviceLocator.eventManager.off('map.showPathSwitchConfirmModal', this.showPathSwitchConfirmModal);
 
         document.removeEventListener('keydown', this.handleKeyDown, false);
         document.removeEventListener('keyup', this.handleKeyUp, false);
@@ -291,6 +299,29 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         });
     };
 
+    showPathSwitchConfirmModal = (onConfirm: () => void) => {
+        this.setState({
+            pathSwitchConfirmModal: { isOpen: true, onConfirm }
+        });
+    };
+
+    closePathSwitchConfirmModal = (e?: React.MouseEvent) => {
+        if (e && typeof e.stopPropagation === 'function') {
+            e.stopPropagation();
+        }
+        this.setState({
+            pathSwitchConfirmModal: { isOpen: false, onConfirm: null }
+        });
+    };
+
+    onConfirmPathSwitch = (e: React.MouseEvent) => {
+        const { onConfirm } = this.state.pathSwitchConfirmModal;
+        if (onConfirm) {
+            onConfirm();
+        }
+        this.closePathSwitchConfirmModal(e);
+    };
+
     render() {
         if (!this.state.preferencesLoaded || (!this.state.socketConnected && !this.state.socketWasConnected)) {
             return <LoadingPage />;
@@ -353,6 +384,17 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
                                 confirmButtonColor="grey"
                                 confirmButtonLabel={this.props.t('main:OK')}
                                 showCancelButton={false}
+                            />
+                        )}
+                        {this.state.pathSwitchConfirmModal.isOpen && (
+                            <ConfirmModal
+                                isOpen={true}
+                                title={this.props.t('main:ConfirmPathSwitchModal')}
+                                confirmAction={this.onConfirmPathSwitch}
+                                confirmButtonColor="red"
+                                confirmButtonLabel={this.props.t('main:DiscardChangesAndSelectNewPath')}
+                                cancelButtonLabel={this.props.t('main:CancelAndKeepCurrentPathSelected')}
+                                closeModal={this.closePathSwitchConfirmModal}
                             />
                         )}
                     </div>

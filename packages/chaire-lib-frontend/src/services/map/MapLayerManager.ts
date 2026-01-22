@@ -4,7 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import { Map as MapLibreMap, FilterSpecification, LayerSpecification, GeoJSONSourceSpecification } from 'maplibre-gl';
+import type { GeoJSONSource } from 'maplibre-gl';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 import _uniq from 'lodash/uniq';
 
@@ -13,39 +14,68 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 const defaultGeojson = turfFeatureCollection([]);
 
 /**
- * Layer manager for Mapbox-gl maps
+ * Input configuration for a layer, before processing by the constructor.
+ * Uses Record types to accept plain object literals without strict type checking.
+ * MapLibre validates these at runtime. Callers must narrow `unknown` values before use.
+ */
+export type LayerInputConfig = Record<string, unknown> & {
+    type: string;
+    /** Default filter for the layer; accepts loose array types (validated by MapLibre at runtime) */
+    defaultFilter?: FilterSpecification | readonly unknown[];
+};
+
+/**
+ * Processed layer entry stored in _layersByName, containing the
+ * MapLibre layer specification and its associated GeoJSON source.
+ */
+type LayerEntry = {
+    layer: LayerSpecification;
+    source: GeoJSONSourceSpecification & {
+        /** Override data type to be FeatureCollection for runtime access */
+        data: GeoJSON.FeatureCollection;
+    };
+};
+
+/** MapLibre filter type */
+type LayerFilter = FilterSpecification | null | undefined;
+
+/**
+ * Layer manager for MapLibre GL maps
  *
  * TODO See how filters are used and type them properly, make them map implementation independant ideally
  *
  * TODO: If we want to support multiple map implementation, this layer management will have to be updated
  */
-class MapboxLayerManager {
-    private _map: MapboxGL.Map | undefined;
-    private _layersByName: { [key: string]: any } = {};
+class MapLibreLayerManager {
+    private _map: MapLibreMap | undefined;
+    private _layersByName: Record<string, LayerEntry> = {};
     private _enabledLayers: string[] = [];
-    private _defaultFilterByLayer = {};
-    private _filtersByLayer = {};
+    private _defaultFilterByLayer: Record<string, LayerFilter> = {};
+    private _filtersByLayer: Record<string, LayerFilter> = {};
 
-    constructor(layersConfig: any, map = undefined) {
+    constructor(layersConfig: Record<string, LayerInputConfig>, map: MapLibreMap | undefined = undefined) {
         this._map = map;
 
         for (const layerName in layersConfig) {
-            const source = {
+            const source: LayerEntry['source'] = {
                 type: 'geojson',
                 data: defaultGeojson
             };
 
-            const layer = layersConfig[layerName];
-            layer.id = layerName;
-            layer.source = layerName;
+            const inputConfig = layersConfig[layerName];
+            const { defaultFilter, ...layerProps } = inputConfig;
 
-            if (layersConfig[layerName].layout) {
-                layer.layout = layersConfig[layerName].layout;
-            }
-            if (layersConfig[layerName].defaultFilter) {
-                layer.filter = layersConfig[layerName].defaultFilter;
-                this._defaultFilterByLayer[layerName] = layersConfig[layerName].defaultFilter;
-                this._filtersByLayer[layerName] = layersConfig[layerName].defaultFilter;
+            // Build the layer specification with required id and source
+            const layer = {
+                ...layerProps,
+                id: layerName,
+                source: layerName,
+                ...(defaultFilter ? { filter: defaultFilter } : {})
+            } as LayerSpecification;
+
+            if (defaultFilter) {
+                this._defaultFilterByLayer[layerName] = defaultFilter as FilterSpecification;
+                this._filtersByLayer[layerName] = defaultFilter as FilterSpecification;
             } else {
                 this._filtersByLayer[layerName] = undefined;
                 this._defaultFilterByLayer[layerName] = undefined;
@@ -59,7 +89,7 @@ class MapboxLayerManager {
     }
 
     // TODO Consider deprecating and adding the map on the constructor only
-    setMap(map: MapboxGL.Map) {
+    setMap(map: MapLibreMap) {
         this._map = map;
     }
 
@@ -75,20 +105,28 @@ class MapboxLayerManager {
         return this._filtersByLayer[layerName] || null;
     }
 
-    updateFilter(layerName: string, filter: boolean | any[] | null | undefined) {
-        if (this._defaultFilterByLayer[layerName]) {
-            filter = ['all', this._defaultFilterByLayer[layerName], filter];
+    updateFilter(layerName: string, filter: LayerFilter) {
+        const defaultFilter = this._defaultFilterByLayer[layerName];
+        if (defaultFilter && filter) {
+            // Combine with default filter using 'all' expression
+            filter = ['all', defaultFilter, filter] as FilterSpecification;
+        } else if (defaultFilter) {
+            filter = defaultFilter;
         }
         this._filtersByLayer[layerName] = filter;
         if (this.layerIsEnabled(layerName)) {
-            this._map?.setFilter(layerName, this._filtersByLayer[layerName]);
+            // Use nullish coalescing to pass null instead of undefined to MapLibre
+            this._map?.setFilter(layerName, (this._filtersByLayer[layerName] ?? null) as FilterSpecification | null);
         }
     }
 
     clearFilter(layerName: string) {
         this._filtersByLayer[layerName] = this._defaultFilterByLayer[layerName];
         if (this.layerIsEnabled(layerName)) {
-            this._map?.setFilter(layerName, this._defaultFilterByLayer[layerName]);
+            this._map?.setFilter(
+                layerName,
+                (this._defaultFilterByLayer[layerName] ?? null) as FilterSpecification | null
+            );
         }
     }
 
@@ -99,9 +137,25 @@ class MapboxLayerManager {
         enabledLayers = _uniq(enabledLayers); // make sure we do not have the same layer twice (can happen with user prefs not replaced correctly after updates)
         const previousEnabledLayers: string[] = this._enabledLayers || [];
         previousEnabledLayers.forEach((previousEnabledLayer) => {
-            this._map?.removeLayer(previousEnabledLayer); // we need to remove all layers so we can keep the right z-index: TODO: make this more efficient by recalculating z-index in mapbox order instead of reloading everything.
+            // Try to remove layer if it exists (it might have been removed by style change)
+            try {
+                if (this._map?.getLayer(previousEnabledLayer)) {
+                    this._map?.removeLayer(previousEnabledLayer);
+                }
+            } catch (e) {
+                console.error('Layer not found, ignoring it', e);
+                // Layer doesn't exist, which is fine
+            }
             if (!enabledLayers.includes(previousEnabledLayer)) {
-                this._map?.removeSource(previousEnabledLayer);
+                // Try to remove source if it exists
+                try {
+                    if (this._map?.getSource(previousEnabledLayer)) {
+                        this._map?.removeSource(previousEnabledLayer);
+                    }
+                } catch (e) {
+                    console.error('Source not found, ignoring it', e);
+                    // Source doesn't exist, which is fine
+                }
             }
         });
         const enabledAndActiveLayers: string[] = [];
@@ -110,43 +164,31 @@ class MapboxLayerManager {
                 // Layer not defined
                 return;
             }
-            if (!previousEnabledLayers.includes(enabledLayer)) {
+            // Check if source exists on the map (it might have been removed by style change)
+            // If it doesn't exist, add it
+            if (!this._map?.getSource(enabledLayer)) {
                 this._map?.addSource(enabledLayer, this._layersByName[enabledLayer].source);
             }
-            this._map?.addLayer(this._layersByName[enabledLayer].layer);
-            this._map?.setFilter(enabledLayer, this._filtersByLayer[enabledLayer]);
+            // Check if layer exists before adding
+            if (!this._map?.getLayer(enabledLayer)) {
+                this._map?.addLayer(this._layersByName[enabledLayer].layer);
+            }
+            this._map?.setFilter(
+                enabledLayer,
+                (this._filtersByLayer[enabledLayer] ?? null) as FilterSpecification | null
+            );
             enabledAndActiveLayers.push(enabledLayer);
         });
         this._enabledLayers = enabledAndActiveLayers;
+        // Note: map.repaint is now managed by DeckGLControl component
         serviceLocator.eventManager.emit('map.updatedEnabledLayers', enabledLayers);
     }
 
-    showLayerObjectByAttribute(layerName: string, attribute: string, value: any) {
+    showLayerObjectByAttribute(layerName: string, attribute: string, value: string | number) {
         const existingFilter = this.getFilter(layerName);
-        let values: any[] = [];
-        if (
-            existingFilter &&
-            existingFilter[0] === 'match' &&
-            existingFilter[1] &&
-            existingFilter[1][0] === 'get' &&
-            existingFilter[1][1] === attribute
-        ) {
-            if (existingFilter[2] && !existingFilter[2].includes(value)) {
-                values = existingFilter[2];
-                values.push(value);
-            } else {
-                values = [value];
-            }
-            existingFilter[2] = values;
-            this._map?.setFilter(layerName, existingFilter);
-        } else {
-            this._map?.setFilter(layerName, ['match', ['get', attribute], values, true, false]);
-        }
-    }
+        let values: (string | number)[] = [];
+        let newFilter: FilterSpecification;
 
-    hideLayerObjectByAttribute(layerName, attribute, value) {
-        const existingFilter = this.getFilter(layerName);
-        let values: any[] = [];
         if (
             existingFilter &&
             existingFilter[0] === 'match' &&
@@ -154,20 +196,60 @@ class MapboxLayerManager {
             existingFilter[1][0] === 'get' &&
             existingFilter[1][1] === attribute
         ) {
-            if (existingFilter[2]) {
-                values = existingFilter[2];
-                const valueIndex = values.indexOf(value);
-                if (valueIndex < 0) {
+            const filterValues = existingFilter[2];
+            if (filterValues && Array.isArray(filterValues)) {
+                if ((filterValues as (string | number)[]).includes(value)) {
+                    // Value already exists, preserve existing filter values (no change needed)
+                    return;
+                } else {
+                    // Clone existing values and add the new value
+                    values = [...(filterValues as (string | number)[])];
                     values.push(value);
                 }
             } else {
                 values = [value];
             }
-            existingFilter[2] = values;
-            this._map?.setFilter(layerName, existingFilter);
+            existingFilter[2] = values as string[] | number[];
+            newFilter = existingFilter as FilterSpecification;
         } else {
-            this._map?.setFilter(layerName, ['match', ['get', attribute], values, true, false]);
+            // Initialize with [value] so the filter matches the specified value
+            newFilter = ['match', ['get', attribute], [value], true, false] as FilterSpecification;
         }
+
+        // Update both map and internal cache
+        this._map?.setFilter(layerName, newFilter);
+        this._filtersByLayer[layerName] = newFilter;
+    }
+
+    hideLayerObjectByAttribute(layerName: string, attribute: string, value: string | number) {
+        const existingFilter = this.getFilter(layerName);
+        if (
+            existingFilter &&
+            existingFilter[0] === 'match' &&
+            existingFilter[1] &&
+            existingFilter[1][0] === 'get' &&
+            existingFilter[1][1] === attribute
+        ) {
+            if (existingFilter[2] && Array.isArray(existingFilter[2])) {
+                const values = existingFilter[2] as (string | number)[];
+                const valueIndex = values.indexOf(value);
+                if (valueIndex >= 0) {
+                    // Remove the value from the filter
+                    values.splice(valueIndex, 1);
+                    if (values.length === 0) {
+                        // No more values to match, clear the filter
+                        this._map?.setFilter(layerName, null);
+                        this._filtersByLayer[layerName] = null;
+                    } else {
+                        existingFilter[2] = values as string[] | number[];
+                        const newFilter = existingFilter as FilterSpecification;
+                        this._map?.setFilter(layerName, newFilter);
+                        this._filtersByLayer[layerName] = newFilter;
+                    }
+                }
+            }
+        }
+        // If no existing match filter for this attribute, nothing to hide
     }
 
     getLayer(layerName: string) {
@@ -175,7 +257,7 @@ class MapboxLayerManager {
     }
 
     getNextLayerName(layerName: string) {
-        // to be able to add a layer before another (see mapbox map.addLayer attribute beforeId)
+        // to be able to add a layer before another (see maplibre map.addLayer attribute beforeId)
         const enabledLayers = this._enabledLayers || [];
         const enabledLayersCount = enabledLayers.length;
         for (let i = 0; i < enabledLayersCount - 1; i++) {
@@ -186,23 +268,6 @@ class MapboxLayerManager {
             }
         }
         return undefined;
-    }
-
-    updateLayerShader(layerName, newShaderName, repaint = false) {
-        if (!layerName || !this._layersByName[layerName]) {
-            console.error('layerName is empty or does not exist');
-            return null;
-        }
-        if (!newShaderName) {
-            console.error('newShaderName is undefined or empty');
-            return null;
-        }
-        this._layersByName[layerName].layer['custom-shader'] = newShaderName;
-        this._map?.removeLayer(layerName);
-        if (this._map && repaint === true) {
-            this._map.repaint = true;
-        }
-        this._map?.addLayer(this._layersByName[layerName].layer, this.getNextLayerName(layerName));
     }
 
     updateLayer(
@@ -218,13 +283,7 @@ class MapboxLayerManager {
         this._layersByName[layerName].source.data = newGeojson;
 
         if (this._map && this.layerIsEnabled(layerName)) {
-            (this._map.getSource(layerName) as MapboxGL.GeoJSONSource).setData(
-                this._layersByName[layerName].source.data
-            );
-            if (this._layersByName[layerName].layer.repaint === true) {
-                // activate repaint for animated shaders:
-                this._map.repaint = newGeojson.features && newGeojson.features.length > 0;
-            }
+            (this._map.getSource(layerName) as GeoJSONSource).setData(this._layersByName[layerName].source.data);
         }
         serviceLocator.eventManager.emit('map.updatedLayer', layerName);
     }
@@ -240,13 +299,7 @@ class MapboxLayerManager {
                         : defaultGeojson;
             this._layersByName[layerName].source.data = newGeojson;
             if (this._map && this.layerIsEnabled(layerName)) {
-                (this._map.getSource(layerName) as MapboxGL.GeoJSONSource).setData(
-                    this._layersByName[layerName].source.data
-                );
-                if (this._layersByName[layerName].layer.repaint === true) {
-                    // activate repaint for animated shaders:
-                    this._map.repaint = newGeojson.features && newGeojson.features.length > 0;
-                }
+                (this._map.getSource(layerName) as GeoJSONSource).setData(this._layersByName[layerName].source.data);
             }
         }
         serviceLocator.eventManager.emit('map.updatedLayers', Object.keys(geojsonByLayerName));
@@ -277,4 +330,4 @@ class MapboxLayerManager {
     }
 }
 
-export default MapboxLayerManager;
+export default MapLibreLayerManager;

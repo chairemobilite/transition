@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import { MapMouseEvent, LngLatBounds } from 'maplibre-gl';
 import _debounce from 'lodash/debounce';
 import { lineString, bboxPolygon, bbox } from '@turf/turf';
 
@@ -15,33 +15,48 @@ import { getLinesInView, offsetOverlappingLines } from 'chaire-lib-common/lib/se
 import { getNodesInView, manageRelocatingNodes } from 'chaire-lib-common/lib/services/geodata/RelocateNodes';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from './MapEventsCallbacks';
+import { MapWithCustomEventsState } from '../MapWithCustomEventsState';
 
 // TODO: Make zoomLimit modifiable by user
 const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation
 let applyAestheticChangesNonce: object = new Object();
 
+// Store a reference to the last map used, for the debounced function to access current state
+let lastMapRef: MapWithCustomEventsState | null = null;
+
+/**
+ * Debounced function to update map preferences (zoom and center).
+ * Uses lastMapRef to get current values at execution time, ensuring
+ * rapid events coalesce into a single update with the latest values.
+ */
+const debouncedUpdateMapPreferences = _debounce(() => {
+    if (!lastMapRef) return;
+    const centerLatLng = lastMapRef.getCenter();
+    Preferences.update(
+        {
+            'map.zoom': lastMapRef.getZoom(),
+            'map.center': [centerLatLng.lng, centerLatLng.lat]
+        },
+        serviceLocator.socketEventManager
+    );
+}, 1000);
+
 /* This file encapsulates global map events, that do not require a specific context */
 
-const onMouseOut = (_e: MapboxGL.MapMouseEvent) => {
+const onMouseOut = (_e: MapMouseEvent) => {
     serviceLocator.eventManager.emit('map.updateMouseCoordinates', null);
 };
 
-const onZoomEnd = (_e: MapboxGL.MapMouseEvent) => {
-    _debounce((e: MapboxGL.MapMouseEvent) => {
-        Preferences.update(
-            {
-                'map.zoom': e.target.getZoom()
-            },
-            serviceLocator.socketEventManager
-        );
-    }, 1000);
-    const boundsGL = _e.target.getBounds();
-    applyAestheticChanges(boundsGL, _e.target.getZoom());
+const onZoomEnd = (_e: MapMouseEvent) => {
+    const map = _e.target;
+    lastMapRef = map;
+    debouncedUpdateMapPreferences();
+    const boundsGL = map.getBounds();
+    applyAestheticChanges(boundsGL, map.getZoom());
 };
 
-const onDragEnd = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
-    // TODO _draggingEventsOrder is a custom addition to the map, not typed or anything. Find a better way to do this
+const onDragEnd = (e: MapMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
     if (map._draggingEventsOrder && map._draggingEventsOrder.length > 0) {
         // this helps reduce false click when dragging/panning the map
         if (map._draggingEventsOrder[map._draggingEventsOrder.length - 1] === 'mouseup') {
@@ -50,25 +65,18 @@ const onDragEnd = (e: MapboxGL.MapMouseEvent) => {
             map._draggingEventsOrder.push('dragend');
         }
     }
-    _debounce(() => {
-        const centerLatLng = map.getCenter();
-        Preferences.update(
-            {
-                'map.center': [centerLatLng.lng, centerLatLng.lat]
-            },
-            serviceLocator.socketEventManager
-        );
-    }, 1000)();
+    lastMapRef = map;
+    debouncedUpdateMapPreferences();
     const boundsGL = e.target.getBounds();
     applyAestheticChanges(boundsGL, e.target.getZoom());
 };
 
-const onDragStart = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
+const onDragStart = (e: MapMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
     map._draggingEventsOrder = ['dragstart'];
 };
 
-const onMouseMove = (e: MapboxGL.MapMouseEvent) => {
+const onMouseMove = (e: MapMouseEvent) => {
     serviceLocator.eventManager.emit('map.updateMouseCoordinates', e.lngLat.toArray());
 };
 
@@ -80,7 +88,7 @@ const globalEventDescriptors: MapEventHandlerDescription[] = [
     { type: 'map', eventName: 'mousemove', handler: onMouseMove }
 ];
 
-const applyAestheticChanges = async (boundsGL: MapboxGL.LngLatBounds, zoom: number): Promise<void> => {
+const applyAestheticChanges = async (boundsGL: LngLatBounds, zoom: number): Promise<void> => {
     if (!Preferences.get('features.map.prettyDisplay', false)) {
         return;
     }
