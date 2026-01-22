@@ -127,61 +127,85 @@ const createMockJobExecutorForTest = async (parameters: Partial<EvolutionaryTran
         [line1.getId()]: [
             {
                 numberOfVehicles: 4,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             },
             {
                 numberOfVehicles: 5,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             }
         ],
         [line2.getId()]: [
             {
                 numberOfVehicles: 1,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             },
             {
                 numberOfVehicles: 3,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             }
         ],
         [line3.getId()]: [
             {
                 numberOfVehicles: 2,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             },
             {
                 numberOfVehicles: 5,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             }
         ],
         [line4.getId()]: [
             {
                 numberOfVehicles: 2,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             },
             {
                 numberOfVehicles: 5,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             }
         ],
         [line5.getId()]: [
             {
                 numberOfVehicles: 2,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             },
             {
                 numberOfVehicles: 5,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             }
         ],
         [line6.getId()]: [
             {
                 numberOfVehicles: 2,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             },
             {
                 numberOfVehicles: 5,
-                service: new Service({ id: uuidV4() }, false)
+                service: new Service({ id: uuidV4() }, false),
+                timeBetweenPassages: 10,
+                outboundPathId: uuidV4()
             }
         ]
     };
