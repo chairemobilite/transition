@@ -222,8 +222,11 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             transitPaths: serviceLocator.collectionManager.get('paths').toGeojson(),
             transitPathsSelected: turfFeatureCollection([]),
             transitNodesSelected: turfFeatureCollection([]),
+            transitNodesSelectedErrors: turfFeatureCollection([]),
             transitNodesRoutingRadius: turfFeatureCollection([]),
-            transitPathWaypoints: turfFeatureCollection([])
+            transitPathWaypoints: turfFeatureCollection([]),
+            transitPathWaypointsSelected: turfFeatureCollection([]),
+            transitPathWaypointsErrors: turfFeatureCollection([])
         });
         serviceLocator.eventManager.emit('map.enableBoxZoom');
     };

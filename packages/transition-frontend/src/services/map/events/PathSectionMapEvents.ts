@@ -4,34 +4,65 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import type { MapLayerMouseEvent, MapMouseEvent, MapGeoJSONFeature } from 'maplibre-gl';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import { MapWithCustomEventsState } from 'chaire-lib-frontend/lib/services/map/MapWithCustomEventsState';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitPath from 'transition-common/lib/services/path/Path';
 import TransitLine from 'transition-common/lib/services/line/Line';
 import { unhoverPath } from './PathLayerMapEvents';
+import { WAYPOINT_MIN_ZOOM } from '../../../config/layers.config';
+import { setPointerCursor, setDraggingCursor, resetDraggingCursor } from '../MapCursorHelper';
 
-/* This file encapsulates map events specific for the 'nodes' section */
+/* This file encapsulates map events specific for the paths */
 
 const isAgenciesActiveSection = (activeSection: string) => activeSection === 'agencies';
 
-const onPathWaypointMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
+// Flag to prevent concurrent path updates which would cause race conditions
+// when determining waypoint insertion position
+let isPathUpdateInProgress = false;
+
+const onPathWaypointMouseDown = (e: MapLayerMouseEvent) => {
     // start drag:
     const removingWaypoint = serviceLocator.keyboardManager.keyIsPressed('alt');
     if (e.features && e.features[0] && !removingWaypoint) {
-        const map = e.target as any;
+        const map = e.target as MapWithCustomEventsState;
+        const feature = e.features[0];
         serviceLocator.eventManager.emit('map.disableDragPan');
         map._currentDraggingFeature = 'waypoint';
-        serviceLocator.eventManager.emit('waypoint.startDrag', e.features[0]);
+        setDraggingCursor();
+        // Create a clean GeoJSON object with only the needed properties to avoid
+        // MapLibre serialization errors ("can't serialize object of unregistered class")
+        const cleanFeature: GeoJSON.Feature<GeoJSON.Point> = {
+            type: 'Feature',
+            geometry: feature.geometry as GeoJSON.Point,
+            properties: {
+                afterNodeIndex: feature.properties?.afterNodeIndex,
+                waypointIndex: feature.properties?.waypointIndex,
+                type: feature.properties?.type
+            }
+        };
+        serviceLocator.eventManager.emit('waypoint.startDrag', cleanFeature);
         e.originalEvent.stopPropagation();
     }
 };
 
-const onPathWaypointMouseUp = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
+const onPathWaypointMouseUp = (e: MapMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
     // stop drag if on edit node:
     if (map._currentDraggingFeature === 'waypoint') {
+        // Clear any node hover state from dragging
+        if (map._hoverNodeIntegerId && map._hoverNodeSource) {
+            e.target.setFeatureState(
+                { source: map._hoverNodeSource, id: map._hoverNodeIntegerId },
+                { size: 1, hover: false }
+            );
+            map._hoverNodeIntegerId = null;
+            map._hoverNodeId = null;
+            map._hoverNodeSource = null;
+        }
+
         const features = e.target.queryRenderedFeatures(e.point);
         const featureSources = features.map((feature) => feature.source);
         const hoverNodeIndex = featureSources.indexOf('transitNodes');
@@ -42,7 +73,6 @@ const onPathWaypointMouseUp = (e: MapboxGL.MapMouseEvent) => {
             const nodeIds = path.get('nodes');
             const hoveredNodeId = nodeGeojson.properties?.id;
             if (!nodeIds.includes(hoveredNodeId)) {
-                //path.replaceWaypointByNodeId(nodeGeojson.properties.id, null);
                 serviceLocator.eventManager.emit(
                     'waypoint.replaceByNodeId',
                     hoveredNodeId,
@@ -54,21 +84,60 @@ const onPathWaypointMouseUp = (e: MapboxGL.MapMouseEvent) => {
             serviceLocator.eventManager.emit('waypoint.update', e.lngLat.toArray());
         }
         map._currentDraggingFeature = null;
+        resetDraggingCursor();
         serviceLocator.eventManager.emit('map.enableDragPan');
         e.originalEvent.stopPropagation();
     }
 };
 
-const onPathWaypointMouseMove = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
+const onPathWaypointMouseMove = (e: MapMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
     if (map._currentDraggingFeature === 'waypoint') {
         serviceLocator.eventManager.emit('waypoint.drag', e.lngLat.toArray());
+
+        // Check if dragging over a node to provide visual feedback
+        // Here the user can insert a node at the waypoint pre-drag location:
+        const nodeFeatures = e.target.queryRenderedFeatures(e.point, { layers: ['transitNodes'] });
+        if (nodeFeatures.length > 0) {
+            const nodeGeojson = nodeFeatures[0];
+            const hoverNodeIntegerId = nodeGeojson.id;
+            const hoverNodeId = nodeGeojson.properties?.id;
+
+            // Only update if hovering a different node
+            if (map._hoverNodeIntegerId !== hoverNodeIntegerId) {
+                // Unhover previous node if any
+                if (map._hoverNodeIntegerId && map._hoverNodeSource && map._hoverNodeId) {
+                    e.target.setFeatureState(
+                        { source: map._hoverNodeSource, id: map._hoverNodeIntegerId },
+                        { size: 1, hover: false }
+                    );
+                }
+                // Hover the new node
+                e.target.setFeatureState(
+                    { source: nodeGeojson.source, id: hoverNodeIntegerId },
+                    { size: 1.5, hover: true }
+                );
+                map._hoverNodeIntegerId = hoverNodeIntegerId;
+                map._hoverNodeId = hoverNodeId;
+                map._hoverNodeSource = nodeGeojson.source;
+            }
+        } else if (map._hoverNodeIntegerId && map._hoverNodeSource) {
+            // No longer over a node, clear the hover state
+            e.target.setFeatureState(
+                { source: map._hoverNodeSource, id: map._hoverNodeIntegerId },
+                { size: 1, hover: false }
+            );
+            map._hoverNodeIntegerId = null;
+            map._hoverNodeId = null;
+            map._hoverNodeSource = null;
+        }
+
         e.originalEvent.stopPropagation();
     }
 };
 
-const selectPath = (pathGeojson) => {
-    const pathId = pathGeojson.properties.id;
+const selectPath = (pathGeojson: MapGeoJSONFeature) => {
+    const pathId = pathGeojson.properties?.id;
     serviceLocator.socketEventManager.emit('transitPath.read', pathId, null, (response) => {
         const transitPathEdit = new TransitPath({ ...response.path }, false, serviceLocator.collectionManager);
         const line = transitPathEdit.getLine();
@@ -87,8 +156,8 @@ const selectPath = (pathGeojson) => {
     });
 };
 
-const hoverPath = (pathGeojson, map: any) => {
-    if (map._hoverPathIntegerId) {
+const hoverPath = (pathGeojson: MapGeoJSONFeature, map: MapWithCustomEventsState) => {
+    if (map._hoverPathIntegerId && map._hoverPathId && map._hoverPathSource) {
         unhoverPath(map._hoverPathId);
         map.setFeatureState({ source: map._hoverPathSource, id: map._hoverPathIntegerId }, { size: 2, hover: false });
     }
@@ -97,7 +166,7 @@ const hoverPath = (pathGeojson, map: any) => {
 
     // See https://github.com/alex3165/react-mapbox-gl/issues/506
     map._hoverPathIntegerId = pathGeojson.id;
-    map._hoverPathId = pathGeojson.properties.id;
+    map._hoverPathId = pathGeojson.properties?.id;
     map._hoverPathSource = pathGeojson.source;
 };
 
@@ -106,10 +175,13 @@ const hoverPath = (pathGeojson, map: any) => {
 // TODO Original code in click.events.js had a _draggingEventsOrder check. Is
 // it still needed? If we have problems, there should be an event handler of
 // higher priority to check it before running any other
-const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
+// Click tolerance in pixels for path/node/waypoint detection
+const CLICK_TOLERANCE = 5;
+
+const onPathSectionMapClick = async (e: MapMouseEvent) => {
     const features = e.target.queryRenderedFeatures([
-        [e.point.x - 1, e.point.y - 1],
-        [e.point.x + 1, e.point.y + 1]
+        [e.point.x - CLICK_TOLERANCE, e.point.y - CLICK_TOLERANCE],
+        [e.point.x + CLICK_TOLERANCE, e.point.y + CLICK_TOLERANCE]
     ]);
 
     const map = e.target;
@@ -137,27 +209,48 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
             clickedNodeIndex < 0
             //&& serviceLocator.keyboardManager.keyIsPressed('alt')
         ) {
+            // Skip if another path update is in progress to prevent race conditions
+            if (isPathUpdateInProgress) {
+                return;
+            }
+            isPathUpdateInProgress = true;
             const attributes = features[clickedWaypointIndex].properties || {};
             const path = selectedPath as TransitPath;
-            path.removeWaypoint(attributes.afterNodeIndex, attributes.waypointIndex).then((_response) => {
+            try {
+                await path.removeWaypoint(attributes.afterNodeIndex, attributes.waypointIndex);
                 serviceLocator.selectedObjectsManager.setSelection('path', [path]);
                 serviceLocator.eventManager.emit('selected.updateLayers.path');
-            });
+            } finally {
+                isPathUpdateInProgress = false;
+            }
         } else if (
-            // insert waypoint in path at click
+            // insert waypoint in path at click on selected path
             clickedWaypointIndex < 0 &&
             clickedSelectedPathIndex >= 0 &&
             clickedNodeIndex < 0
         ) {
+            // Skip waypoint operations below minimum zoom level (waypoints are hidden below this zoom)
+            if (map.getZoom() < WAYPOINT_MIN_ZOOM) {
+                return;
+            }
+            // Skip if another path update is in progress to prevent race conditions
+            if (isPathUpdateInProgress) {
+                return;
+            }
+            isPathUpdateInProgress = true;
             const path = selectedPath;
             const waypointType = path.attributes.data.temporaryManualRouting
                 ? 'manual'
                 : path.getData('routingEngine', 'engine');
-            path.insertWaypoint(e.lngLat.toArray(), waypointType, null, null).then((_response) => {
+            // Clicking on the selected path - let insertWaypoint find the correct segment
+            try {
+                await path.insertWaypoint(e.lngLat.toArray() as [number, number], waypointType, undefined, undefined);
                 path.validate();
                 serviceLocator.selectedObjectsManager.setSelection('path', [path]);
                 serviceLocator.eventManager.emit('selected.updateLayers.path');
-            });
+            } finally {
+                isPathUpdateInProgress = false;
+            }
         } else if (
             // add or remove node or add waypoint to path
             clickedWaypointIndex < 0
@@ -181,19 +274,39 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
                 }
             } else {
                 // add waypoint
+                // Skip waypoint operations below minimum zoom level (waypoints are hidden below this zoom)
+                if (map.getZoom() < WAYPOINT_MIN_ZOOM) {
+                    return;
+                }
+                // Skip if another path update is in progress to prevent race conditions
+                if (isPathUpdateInProgress) {
+                    return;
+                }
                 const lastNodeIndex = path.attributes.nodes.length - 1;
                 if (lastNodeIndex < 0) {
                     return;
                 }
+                // Check if clicked on the same path that is selected (not just any path)
+                // If clicked on the selected path, insert waypoint at the nearest segment
+                // If clicked elsewhere (including on other paths), add waypoint to the end
+                let clickedOnSelectedPath = false;
+                if (clickedPathIndex >= 0) {
+                    const clickedPathId = features[clickedPathIndex].properties?.id;
+                    clickedOnSelectedPath = clickedPathId === path.getId();
+                }
+                // Set flag before starting async operation to prevent race conditions
+                isPathUpdateInProgress = true;
                 insertOrRemoveNodePromise = path.insertWaypoint(
                     e.lngLat.toArray() as [number, number],
                     waypointType,
-                    lastNodeIndex,
+                    clickedOnSelectedPath ? undefined : lastNodeIndex,
                     undefined
                 );
             }
 
             if (insertOrRemoveNodePromise) {
+                // Flag may already be set from waypoint insertion above; ensure it's set for node operations too
+                isPathUpdateInProgress = true;
                 try {
                     const response = await insertOrRemoveNodePromise;
                     if (response.path) {
@@ -204,6 +317,8 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
                     }
                 } catch (error) {
                     console.error('error', error); // todo: better error handling
+                } finally {
+                    isPathUpdateInProgress = false;
                 }
             }
         } else if (
@@ -212,7 +327,7 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
             clickedSelectedPathIndex >= 0
         ) {
             // TODO Can this be part of the previous if? And not use an emit, but call a path function?
-            map.getCanvas().style.cursor = 'pointer';
+            setPointerCursor();
             serviceLocator.eventManager.emit('waypoint.insert', e.lngLat.toArray());
         }
     } else if (
@@ -250,7 +365,7 @@ const onPathSectionMapClick = async (e: MapboxGL.MapMouseEvent) => {
     }
 };
 
-const nodeSectionEventDescriptors: MapEventHandlerDescription[] = [
+const pathSectionEventDescriptors: MapEventHandlerDescription[] = [
     { type: 'map', eventName: 'click', condition: isAgenciesActiveSection, handler: onPathSectionMapClick },
     {
         type: 'layer',
@@ -263,4 +378,4 @@ const nodeSectionEventDescriptors: MapEventHandlerDescription[] = [
     { type: 'map', eventName: 'mousemove', condition: isAgenciesActiveSection, handler: onPathWaypointMouseMove }
 ];
 
-export default nodeSectionEventDescriptors;
+export default pathSectionEventDescriptors;
