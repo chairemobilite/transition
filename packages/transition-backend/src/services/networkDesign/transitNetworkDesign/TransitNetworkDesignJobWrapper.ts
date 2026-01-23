@@ -43,6 +43,7 @@ export class TransitNetworkDesignJobWrapper<
     private _agencyCollection: AgencyCollection | undefined = undefined;
     private _serviceCollection: ServiceCollection | undefined = undefined;
     private _lineServices: LineServices | undefined = undefined;
+    private _collectionManager: CollectionManager | undefined = undefined;
 
     constructor(
         private wrappedJob: ExecutableJob<TJobType>,
@@ -107,6 +108,13 @@ export class TransitNetworkDesignJobWrapper<
         return this._lineServices;
     }
 
+    get collectionManager(): CollectionManager {
+        if (this._collectionManager === undefined) {
+            throw new Error('Collection manager not set yet');
+        }
+        return this._collectionManager;
+    }
+
     setLineServices(lineServices: LineServices) {
         this._lineServices = lineServices;
     }
@@ -135,6 +143,7 @@ export class TransitNetworkDesignJobWrapper<
         this._lineCollection = lines;
         this._agencyCollection = agencies;
         this._serviceCollection = services;
+        this._collectionManager = collectionManager;
     };
 
     /**
