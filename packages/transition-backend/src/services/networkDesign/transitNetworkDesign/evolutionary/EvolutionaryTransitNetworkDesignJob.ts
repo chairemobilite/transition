@@ -43,6 +43,11 @@ import {
 import { prepareServices, saveSimulationScenario } from '../../../evolutionaryAlgorithm/preparation/ServicePreparation';
 import Line from 'transition-common/lib/services/line/Line';
 import resultsDbQueries from '../../../../models/db/networkDesignResults.db.queries';
+import {
+    loadAndSaveLinesByIdsToCache,
+    loadAndSaveScenariosToCache,
+    loadAndSaveServicesToCache
+} from '../../../capnpCache/dbToCache';
 
 const CANDIDATE_LINES_RESULTS_CSV_FILE_PREFIX = 'ndCandidateLinesResults';
 const CANDIDATE_SIMULATION_RESULTS_CSV_FILE_PREFIX = 'ndCandidateSimulationResults';
@@ -251,7 +256,7 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         // Load the necessary data from the server
         const jobId = this.job.id;
         console.time(`Preparing data for evolutionary transit network design job from cache ${jobId}`);
-        // FIXME Do we even need this? Or can we just start recovery at serviceCollectionFromCache call and get only required data?
+        // FIXME We need to have the paths and lines loaded in a CollectionManager to save the scenarios and re-generate schedules at the end. But not the whole data
         await this.loadServerData(serviceLocator.socketEventManager);
 
         // Get the simulated lines from cache, to make sure the order is the same as before
@@ -368,17 +373,24 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
 
                 // Save best scenarios if necessary
                 // FIXME Refactor this so we can map a candidate with the scenario it generated and save it in the result's data for output in files
+                // FIXME2 Extract this block to a function when we clean up this class
                 if (this.options.numberOfGenerations - this.currentIteration < this.options.keepGenerations) {
                     const bestScenarios = previousGeneration.getBestScenarios(this.options.keepCandidates);
                     const scenarioSavePromises = bestScenarios?.map((scenario) =>
                         saveSimulationScenario(scenario, this)
                     );
-                    const scenarioIds = (await Promise.all(scenarioSavePromises)).filter(
-                        (scenarioId) => scenarioId !== undefined
-                    ) as string[];
-                    algorithmResults.scenarioIds.push(...scenarioIds);
+                    const scenarioSaveResults = (await Promise.all(scenarioSavePromises)).filter(
+                        (scenarioSaveResult) => scenarioSaveResult !== undefined
+                    );
+                    algorithmResults.scenarioIds.push(...scenarioSaveResults.map((result) => result!.scenarioId));
                     this.job.attributes.data.results = algorithmResults;
                     await this.job.save(this.executorOptions.progressEmitter);
+
+                    // Update the main cache with the saved scenarios to allow analyzing them from Transition UI
+                    await loadAndSaveScenariosToCache();
+                    await loadAndSaveServicesToCache();
+                    await loadAndSaveLinesByIdsToCache(scenarioSaveResults.flatMap((result) => result!.lineIds));
+                    // FIXME Should signal the main thread to restart trRouting. Or maybe it works directly?
                 }
 
                 // Save the results of this generation to the database
