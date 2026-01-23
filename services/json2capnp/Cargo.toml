@@ -11,5 +11,8 @@ rouille = "3.0"
 serde_json = "1.0"
 transition_capnp_data = { path = "transition_capnp_data" }
 
+[target.'cfg(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"))'.dependencies]
+tikv-jemallocator = "0.6"
+
 [dev-dependencies]
 pretty_assertions = "0.6"
