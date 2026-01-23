@@ -13,6 +13,12 @@ use std::io;
 use std::path::Path;
 use std::env;
 
+// Switch memory allocator to jemalloc on Linux x86_64
+// The default allocator was keeping too much memory around between requests.
+#[cfg(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"))]
+#[global_allocator]
+static GLOBAL: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
+
 #[macro_use]
 extern crate rouille;
 

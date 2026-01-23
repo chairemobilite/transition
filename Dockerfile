@@ -8,7 +8,8 @@
 FROM debian:trixie-slim AS json2capnpbuild
 WORKDIR /app/services/json2capnp
 COPY services/json2capnp ./
-RUN apt-get update && apt-get -y --no-install-recommends install cargo ca-certificates
+# Adding build-essential for jemalloc allocator
+RUN apt-get update && apt-get -y --no-install-recommends install build-essential cargo ca-certificates
 RUN cargo build
 
 
