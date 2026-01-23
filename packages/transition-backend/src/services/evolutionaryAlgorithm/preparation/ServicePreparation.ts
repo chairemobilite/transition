@@ -231,7 +231,7 @@ export const prepareServices = async (
 export const saveSimulationScenario = async (
     scenario: Scenario,
     jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
-): Promise<string | undefined> => {
+): Promise<{ scenarioId: string; lineIds: string[] } | undefined> => {
     try {
         console.log('saving simulation scenario');
         // Find all simulated services to merge as one
@@ -247,7 +247,7 @@ export const saveSimulationScenario = async (
         // Create a new service for this scenario and save to DB
         const service = new Service(
             {
-                name: `GALND_${scenario.attributes.name}`,
+                name: `ND_${scenario.attributes.name}`,
                 monday: true,
                 tuesday: true,
                 wednesday: true,
@@ -259,27 +259,47 @@ export const saveSimulationScenario = async (
                 end_date: moment().format('YYYY-MM-DD'),
                 data: { forJob: jobWrapper.job.id }
             },
-            true
+            true,
+            jobWrapper.collectionManager
         );
         await service.save(serviceLocator.socketEventManager);
 
         // For each service to merge and save, find the lines that has them
+        const modifiedLines = {};
         for (let i = 0; i < simulatedServiceIds.length; i++) {
             const servicedLines = jobWrapper.simulatedLineCollection
                 .getFeatures()
                 .filter((line) => line.attributes.scheduleByServiceId[simulatedServiceIds[i]] !== undefined);
-            // Copy the schedules for those services, add the service to the line, then save to the database
+            // Copy the schedules for those services, extend the schedule for
+            // the entire day, add the service to the line, then save to the
+            // database
             for (let lineIdx = 0; lineIdx < servicedLines.length; lineIdx++) {
+                const servicedLine = servicedLines[lineIdx];
                 const currentSchedule = new Schedule(
-                    servicedLines[lineIdx].attributes.scheduleByServiceId[simulatedServiceIds[i]],
+                    servicedLine.attributes.scheduleByServiceId[simulatedServiceIds[i]],
                     true
                 );
+                // Copy the schedule and extend to full day
                 const scheduleAttributes = currentSchedule.getClonedAttributes(true);
+                // Remove the constraints on custom start/end times to allow to extend to full day
+                (scheduleAttributes.periods || []).forEach((period) => {
+                    delete period.custom_start_at_str;
+                    delete period.custom_end_at_str;
+                    return period;
+                });
                 scheduleAttributes.service_id = service.getId();
-                const schedule = new Schedule(scheduleAttributes, true);
-                servicedLines[lineIdx].addSchedule(schedule);
+                const schedule = new Schedule(scheduleAttributes, true, jobWrapper.collectionManager);
+                // Recreate schedule for full day period, without time constraints
+                schedule.attributes.periods.forEach((period) => {
+                    if (period.period_shortname) {
+                        schedule.generateForPeriod(period.period_shortname);
+                    }
+                });
+                // Add the schedule to the line with the new service
+                servicedLine.addSchedule(schedule);
                 // Save the schedules to DB
                 await schedule.save(serviceLocator.socketEventManager);
+                modifiedLines[servicedLine.getId()] = servicedLine;
             }
         }
 
@@ -297,7 +317,10 @@ export const saveSimulationScenario = async (
         );
         await newScenario.save(serviceLocator.socketEventManager);
 
-        return newScenario.getId();
+        return {
+            scenarioId: newScenario.getId(),
+            lineIds: Object.keys(modifiedLines)
+        };
     } catch (error) {
         console.error('Error saving simulation scenario:', error);
         return undefined;
