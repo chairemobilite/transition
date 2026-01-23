@@ -9,7 +9,17 @@ import { lineString as turfLineString } from '@turf/helpers';
 
 import { saveAndUpdateAllNodes, saveAllNodesToCache } from '../../nodes/NodeCollectionUtils';
 
-import { recreateCache } from '../dbToCache';
+import { 
+    recreateCache,
+    loadAndSaveDataSourcesToCache,
+    loadAndSaveAgenciesToCache,
+    loadAndSaveServicesToCache,
+    loadAndSaveScenariosToCache,
+    loadAndSaveLinesToCache,
+    loadAndSaveLinesByIdsToCache,
+    loadAndSaveNodesToCache,
+    loadAndSavePathsToCache
+} from '../dbToCache';
 import { EventManagerMock } from 'chaire-lib-common/lib/test';
 import transitLinesDbQueries from '../../../models/db/transitLines.db.queries';
 import transitNodesDbQueries from '../../../models/db/transitNodes.db.queries';
@@ -19,6 +29,7 @@ import transitAgenciesDbQueries from '../../../models/db/transitAgencies.db.quer
 import transitServicesDbQueries from '../../../models/db/transitServices.db.queries';
 import dataSourcesDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import placesDbQueries from '../../../models/db/places.db.queries';
+import Line from 'transition-common/lib/services/line/Line';
 
 //serviceLocator.socketEventManager = new EventEmitter();
 
@@ -167,7 +178,6 @@ const lineAttributes = {
     category: 'C+' as const,
     allow_same_line_transfers: false,
     color: '#ffffff',
-    description: null,
     is_autonomous: false,
     scheduleByServiceId: { },
     data: {
@@ -300,6 +310,274 @@ jest.mock('../../../models/capnpCache/transitPaths.cache.queries', () => {
             return mockedPathToCache(collection, cachePath);
         })
     }
+});
+
+describe('loadAndSaveDataSourcesToCache', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test.each([
+        { cachePathDirectory: undefined, expectedPath: undefined },
+        { cachePathDirectory: '/custom/cache/path', expectedPath: '/custom/cache/path' }
+    ])('should load and save data sources to cache with cachePathDirectory=$cachePathDirectory', async ({ cachePathDirectory, expectedPath }) => {
+        await loadAndSaveDataSourcesToCache({ cachePathDirectory });
+        expect(mockedDataSourceDbCollection).toHaveBeenCalledTimes(1);
+        expect(mockedDsToCache).toHaveBeenCalledWith(expect.objectContaining({
+            _features: [expect.objectContaining({_attributes: expect.objectContaining(dataSourceAttributes)})]
+        }), expectedPath);
+        expect(mockedDsToCache).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('loadAndSaveAgenciesToCache', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test.each([
+        { cachePathDirectory: undefined, expectedPath: undefined },
+        { cachePathDirectory: '/custom/cache/path', expectedPath: '/custom/cache/path' }
+    ])('should load and save agencies to cache with cachePathDirectory=$cachePathDirectory', async ({ cachePathDirectory, expectedPath }) => {
+        await loadAndSaveAgenciesToCache(cachePathDirectory !== undefined ? { cachePathDirectory } : undefined);
+        expect(mockedAgencyDbCollection).toHaveBeenCalledTimes(1);
+        expect(mockedAgToCache).toHaveBeenCalledWith(expect.objectContaining({
+            _features: [expect.objectContaining({_attributes: expect.objectContaining(agencyAttributes)})]
+        }), expectedPath);
+        expect(mockedAgToCache).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('loadAndSaveServicesToCache', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test.each([
+        { cachePathDirectory: undefined, expectedPath: undefined },
+        { cachePathDirectory: '/custom/cache/path', expectedPath: '/custom/cache/path' }
+    ])('should load and save services to cache with cachePathDirectory=$cachePathDirectory', async ({ cachePathDirectory, expectedPath }) => {
+        await loadAndSaveServicesToCache(cachePathDirectory !== undefined ? { cachePathDirectory } : undefined);
+        expect(mockedServiceDbCollection).toHaveBeenCalledTimes(1);
+        expect(mockedServiceToCache).toHaveBeenCalledWith(expect.objectContaining({
+            _features: [expect.objectContaining({_attributes: expect.objectContaining(serviceAttributes)})]
+        }), expectedPath);
+        expect(mockedServiceToCache).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('loadAndSaveScenariosToCache', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test.each([
+        { cachePathDirectory: undefined, expectedPath: undefined },
+        { cachePathDirectory: '/custom/cache/path', expectedPath: '/custom/cache/path' }
+    ])('should load and save scenarios to cache with cachePathDirectory=$cachePathDirectory', async ({ cachePathDirectory, expectedPath }) => {
+        await loadAndSaveScenariosToCache(cachePathDirectory !== undefined ? { cachePathDirectory } : undefined);
+        expect(mockedScenarioDbCollection).toHaveBeenCalledTimes(1);
+        expect(mockedScenariosToCache).toHaveBeenCalledWith(expect.objectContaining({
+            _features: [expect.objectContaining({_attributes: expect.objectContaining(scenarioAttributes)})]
+        }), expectedPath);
+        expect(mockedScenariosToCache).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('loadAndSaveLinesToCache', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test.each([
+        { saveIndividualLines: false },
+        { saveIndividualLines: true }
+    ])('should load and save lines collection to cache with saveIndividualLines=$saveIndividualLines', async ({ saveIndividualLines }) => {
+        await loadAndSaveLinesToCache({ saveIndividualLines });
+        // collection should be called with empty parameters
+        expect(mockedLineDbCollection).toHaveBeenCalledWith();
+        expect(mockedLinesToCache).toHaveBeenCalledWith(expect.objectContaining({
+            _features: [expect.objectContaining({_attributes: expect.objectContaining(lineAttributes)})]
+        }), undefined);
+        expect(mockedLinesToCache).toHaveBeenCalledTimes(1);
+        if (!saveIndividualLines) {
+            expect(mockedLinesWithSchedules).not.toHaveBeenCalled();
+            expect(mockedObjectsToCache).not.toHaveBeenCalled();
+        } else {
+            expect(mockedLinesWithSchedules).toHaveBeenCalledWith([expect.objectContaining({_attributes: expect.objectContaining(lineAttributes)})]);
+            expect(mockedObjectsToCache).toHaveBeenCalledWith(
+                [expect.objectContaining({_attributes: expect.objectContaining(lineAttributes)})],
+                undefined
+            );
+        }
+    });
+
+    test.each([
+        { saveIndividualLines: false, cachePathDirectory: undefined, expectedPath: undefined },
+        { saveIndividualLines: true, cachePathDirectory: undefined, expectedPath: undefined },
+        { saveIndividualLines: true, cachePathDirectory: '/custom/cache/path', expectedPath: '/custom/cache/path' }
+    ])('should load and save lines with cachePathDirectory and saveIndividualLines=$saveIndividualLines', async ({ saveIndividualLines, cachePathDirectory, expectedPath }) => {
+        const params: any = { saveIndividualLines };
+        if (cachePathDirectory !== undefined) {
+            params.cachePathDirectory = cachePathDirectory;
+        }
+        await loadAndSaveLinesToCache(params);
+        // collection should be called with empty parameters
+        expect(mockedLineDbCollection).toHaveBeenCalledWith();
+        expect(mockedLinesToCache).toHaveBeenCalledWith(expect.objectContaining({
+            _features: [expect.objectContaining({_attributes: expect.objectContaining(lineAttributes)})]
+        }), expectedPath);
+        if (saveIndividualLines) {
+            expect(mockedObjectsToCache).toHaveBeenCalledWith(
+                [expect.objectContaining({_attributes: expect.objectContaining(lineAttributes)})],
+                expectedPath
+            );
+        } else {
+            expect(mockedObjectsToCache).not.toHaveBeenCalled();
+        }
+    });
+
+    test('should save lines in chunks when collection is large', async () => {
+        // Prepare test data with many lines
+        const lineIds = Array.from({ length: 250 }, () => uuidV4());
+        const linesAttributes = lineIds.map((lineId) => ({...lineAttributes, id: lineId}));
+        const lines = linesAttributes.map((attributes) => new Line(attributes, false));
+        mockedLineDbCollection.mockResolvedValueOnce(linesAttributes);
+
+        // Save with individual lines
+        await loadAndSaveLinesToCache({ saveIndividualLines: true });
+        expect(mockedLineDbCollection).toHaveBeenCalledWith();
+        // Should be called 3 times: 100 + 100 + 50
+        expect(mockedLinesWithSchedules).toHaveBeenCalledTimes(3);
+        // Verify the calls were made with correct chunks (100 + 100 + 50)
+        expect(mockedLinesWithSchedules).toHaveBeenNthCalledWith(1, lines.slice(0, 100));
+        expect(mockedLinesWithSchedules).toHaveBeenNthCalledWith(2, lines.slice(100, 200));
+        expect(mockedLinesWithSchedules).toHaveBeenNthCalledWith(3, lines.slice(200, 250));
+        expect(mockedObjectsToCache).toHaveBeenCalledTimes(3);
+    });
+});
+
+describe('loadAndSaveLinesByIdsToCache', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test.each([
+        { cachePathDirectory: undefined, expectedPath: undefined },
+        { cachePathDirectory: '/custom/cache/path', expectedPath: '/custom/cache/path' }
+    ])('should load and save specific lines by IDs to cache with cachePathDirectory=$cachePathDirectory', async ({ cachePathDirectory, expectedPath }) => {
+        const lineIds = [uuidV4(), uuidV4()];
+        const params: any = { lineIds };
+        if (cachePathDirectory !== undefined) {
+            params.cachePathDirectory = cachePathDirectory;
+        }
+        await loadAndSaveLinesByIdsToCache(params);
+        expect(mockedLineDbCollection).toHaveBeenCalledWith(lineIds);
+        expect(mockedLinesWithSchedules).toHaveBeenCalledWith([expect.objectContaining({_attributes: expect.objectContaining(lineAttributes)})]);
+        expect(mockedObjectsToCache).toHaveBeenCalledWith(
+            [expect.objectContaining({_attributes: expect.objectContaining(lineAttributes)})],
+            expectedPath
+        );
+    });
+
+    test('should not save anything when lineIds is empty', async () => {
+        await loadAndSaveLinesByIdsToCache({ lineIds: [], cachePathDirectory: undefined });
+        expect(mockedLineDbCollection).not.toHaveBeenCalled();
+        expect(mockedLinesWithSchedules).not.toHaveBeenCalled();
+        expect(mockedObjectsToCache).not.toHaveBeenCalled();
+    });
+
+    test('should save lines in chunks when many lineIds are provided', async () => {
+        // Prepare test data with many lines
+        const lineIds = Array.from({ length: 250 }, () => uuidV4());
+        const linesAttributes = lineIds.map((lineId) => ({...lineAttributes, id: lineId}));
+        const lines = linesAttributes.map((attributes) => new Line(attributes, false));
+        mockedLineDbCollection.mockResolvedValueOnce(linesAttributes);
+
+        await loadAndSaveLinesByIdsToCache({ lineIds, cachePathDirectory: undefined });
+        expect(mockedLineDbCollection).toHaveBeenCalledWith(lineIds);
+        // Should be called 3 times: 100 + 100 + 50
+        expect(mockedLinesWithSchedules).toHaveBeenCalledTimes(3);
+        // Verify the calls were made with correct chunks (100 + 100 + 50)
+        expect(mockedLinesWithSchedules).toHaveBeenNthCalledWith(1, lines.slice(0, 100));
+        expect(mockedLinesWithSchedules).toHaveBeenNthCalledWith(2, lines.slice(100, 200));
+        expect(mockedLinesWithSchedules).toHaveBeenNthCalledWith(3, lines.slice(200, 250));
+        expect(mockedObjectsToCache).toHaveBeenCalledTimes(3);
+    });
+});
+
+describe('loadAndSaveNodesToCache', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test.each([
+        { refreshTransferrableNodes: false, cachePathDirectory: undefined, expectedPath: undefined },
+        { refreshTransferrableNodes: true, cachePathDirectory: undefined, expectedPath: undefined },
+        { refreshTransferrableNodes: false, cachePathDirectory: '/custom/cache/path', expectedPath: '/custom/cache/path' }
+    ])('should load and save nodes to cache with refreshTransferrableNodes=$refreshTransferrableNodes and cachePathDirectory=$cachePathDirectory', async ({ refreshTransferrableNodes, cachePathDirectory, expectedPath }) => {
+        const params: any = { refreshTransferrableNodes };
+        if (cachePathDirectory !== undefined) {
+            params.cachePathDirectory = cachePathDirectory;
+        }
+        await loadAndSaveNodesToCache(params);
+        expect(mockedNodesToCache).toHaveBeenCalledWith(expect.objectContaining({
+            _features: [expect.objectContaining({
+                type: 'Feature' as const,
+                properties: nodeAttributes,
+                geometry: nodeGeography
+            })]
+        }), expectedPath);
+        if (refreshTransferrableNodes) {
+            expect(mockedSaveAndUpdateAllNodes).toHaveBeenCalledTimes(1);
+            expect(mockedSaveAllNodesToCache).not.toHaveBeenCalled();
+        } else {
+            expect(mockedSaveAndUpdateAllNodes).not.toHaveBeenCalled();
+            expect(mockedSaveAllNodesToCache).toHaveBeenLastCalledWith(
+                expect.anything(),
+                expect.anything(),
+                expectedPath
+            );
+        }
+    });
+
+    test('should load and save nodes to cache without parameters', async () => {
+        await loadAndSaveNodesToCache();
+        expect(mockedNodesToCache).toHaveBeenCalledWith(expect.objectContaining({
+            _features: [expect.objectContaining({
+                type: 'Feature' as const,
+                properties: nodeAttributes,
+                geometry: nodeGeography
+            })]
+        }), undefined);
+        expect(mockedSaveAllNodesToCache).toHaveBeenCalledTimes(1);
+        expect(mockedSaveAndUpdateAllNodes).not.toHaveBeenCalled();
+    });
+});
+
+describe('loadAndSavePathsToCache', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test.each([
+        { cachePathDirectory: undefined, expectedPath: undefined },
+        { cachePathDirectory: '/custom/cache/path', expectedPath: '/custom/cache/path' }
+    ])('should load and save paths to cache with cachePathDirectory=$cachePathDirectory', async ({ cachePathDirectory, expectedPath }) => {
+        const params: any = {};
+        if (cachePathDirectory !== undefined) {
+            params.cachePathDirectory = cachePathDirectory;
+        }
+        await loadAndSavePathsToCache(params);
+        expect(mockedPathToCache).toHaveBeenCalledWith(expect.objectContaining({
+            _features: [expect.objectContaining({
+                type: 'Feature' as const,
+                properties: pathAttributes,
+                geometry: pathGeography
+            })]
+        }), expectedPath);
+        expect(mockedPathToCache).toHaveBeenCalledTimes(1);
+    });
 });
 
 describe('Recreate cache', () => {
