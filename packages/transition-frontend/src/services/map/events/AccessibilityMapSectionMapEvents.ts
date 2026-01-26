@@ -4,10 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import MapboxGL from 'mapbox-gl';
+import type { MapMouseEvent, MapLayerMouseEvent } from 'maplibre-gl';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import { MapWithCustomEventsState } from 'chaire-lib-frontend/lib/services/map/MapWithCustomEventsState';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import { setDraggingCursor, resetDraggingCursor } from '../MapCursorHelper';
 
 /* This file encapsulates map events specific for the 'accessibilityMap' section */
 
@@ -16,7 +18,7 @@ const isAccessMapActiveSection = (activeSection: string) =>
 
 const isAccessMapComparisonActiveSection = (activeSection: string) => activeSection === 'accessibilityComparison';
 
-const onAccessMapSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
+const onAccessMapSectionMapClick = (e: MapMouseEvent) => {
     serviceLocator.eventManager.emit(
         'routing.transitAccessibilityMap.clickedOnMap',
         e.lngLat.toArray(),
@@ -25,20 +27,21 @@ const onAccessMapSectionMapClick = (e: MapboxGL.MapMouseEvent) => {
     e.originalEvent.stopPropagation();
 };
 
-const onAccessMapMouseDown = (e: MapboxGL.MapLayerMouseEvent) => {
+const onAccessMapMouseDown = (e: MapLayerMouseEvent) => {
     if (!e.features || e.features.length === 0) {
         return;
     }
     // start drag:
     const feature = e.features[0];
-    const map = e.target as any;
+    const map = e.target as MapWithCustomEventsState;
     serviceLocator.eventManager.emit('map.disableDragPan');
     map._currentDraggingFeature = feature.properties?.location;
+    setDraggingCursor();
     e.originalEvent.stopPropagation();
 };
 
-const onAccessMapMouseUp = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
+const onAccessMapMouseUp = (e: MapMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
     if (
         map._currentDraggingFeature === 'accessibilityMapLocation' ||
         map._currentDraggingFeature === 'accessibilityMapLocation2'
@@ -49,13 +52,14 @@ const onAccessMapMouseUp = (e: MapboxGL.MapMouseEvent) => {
             map._currentDraggingFeature
         );
         map._currentDraggingFeature = null;
+        resetDraggingCursor();
         serviceLocator.eventManager.emit('map.enableDragPan');
         e.originalEvent.stopPropagation();
     }
 };
 
-const onAccessMapMouseMove = (e: MapboxGL.MapMouseEvent) => {
-    const map = e.target as any;
+const onAccessMapMouseMove = (e: MapMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
     if (
         map._currentDraggingFeature === 'accessibilityMapLocation' ||
         map._currentDraggingFeature === 'accessibilityMapLocation2'
@@ -69,7 +73,7 @@ const onAccessMapMouseMove = (e: MapboxGL.MapMouseEvent) => {
     }
 };
 
-const onLocationComparisonContextMenu = (e: MapboxGL.MapMouseEvent) => {
+const onLocationComparisonContextMenu = (e: MapMouseEvent) => {
     serviceLocator.eventManager.emit('map.showMapComparisonContextMenu', e, [
         {
             title: 'transit:accessibilityComparison:contextMenu:SetAsLocation1',

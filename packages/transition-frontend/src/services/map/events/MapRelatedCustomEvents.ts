@@ -10,7 +10,7 @@
  * TODO: Other parts of the app should not be "map-aware", there should be more
  * generic events to which the map can register
  */
-import { Popup } from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { EventEmitter } from 'events';
@@ -19,7 +19,7 @@ import Node from 'transition-common/lib/services/nodes/Node';
 const events = function (eventManager: EventEmitter) {
     return {
         'path.hoverNode': function (node: Node, nodeTitle = node.toString(false)) {
-            const popup = new Popup({
+            const popup = new maplibregl.Popup({
                 offset: 10,
                 anchor: 'bottom'
             });

@@ -5,15 +5,17 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 /** This file encapsulates map events that apply to the nodes layer, in any section */
-import MapboxGL from 'mapbox-gl';
-import { Popup } from 'mapbox-gl';
+import { Popup as MapLibrePopup } from 'maplibre-gl';
+import type { MapLayerMouseEvent } from 'maplibre-gl';
 
 import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import { MapWithCustomEventsState } from 'chaire-lib-frontend/lib/services/map/MapWithCustomEventsState';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Node from 'transition-common/lib/services/nodes/Node';
+import { setPointerCursor, resetCursor } from '../MapCursorHelper';
 
 const hoverNode = (node: Node, nodeTitle = node.toString(false)) => {
-    const popup = new Popup({
+    const popup = new MapLibrePopup({
         offset: 10,
         anchor: 'bottom'
     });
@@ -39,11 +41,10 @@ const unhoverNode = (nodeId: string) => {
     }
 };
 
-const onNodeMouseEnter = (e: MapboxGL.MapLayerMouseEvent) => {
-    // TODO Adding a custom field to the map. Legal, but not clean... figure out how to do this, implementation-independent
-    const map = e.target as any;
+const onNodeMouseEnter = (e: MapLayerMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
     if (e.features && e.features[0]) {
-        e.target.getCanvas().style.cursor = 'pointer';
+        setPointerCursor();
         const nodeGeojson = e.features[0];
         const hoverNodeIntegerId = nodeGeojson.id;
         const hoverNodeId = nodeGeojson.properties?.id;
@@ -54,7 +55,7 @@ const onNodeMouseEnter = (e: MapboxGL.MapLayerMouseEvent) => {
         );
 
         // unhover previous node:
-        if (map._hoverNodeIntegerId) {
+        if (map._hoverNodeIntegerId && map._hoverNodeSource && map._hoverNodeId) {
             serviceLocator.eventManager.emit('node.unhover', map._hoverNodeId);
             e.target.setFeatureState(
                 { source: map._hoverNodeSource, id: map._hoverNodeIntegerId },
@@ -72,11 +73,11 @@ const onNodeMouseEnter = (e: MapboxGL.MapLayerMouseEvent) => {
     }
 };
 
-const onNodeMouseLeave = (e: MapboxGL.MapLayerMouseEvent) => {
-    const map = e.target as any;
-    e.target.getCanvas().style.cursor = '';
+const onNodeMouseLeave = (e: MapLayerMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
+    resetCursor();
 
-    if (map._hoverNodeIntegerId) {
+    if (map._hoverNodeIntegerId && map._hoverNodeSource && map._hoverNodeId) {
         unhoverNode(map._hoverNodeId);
         e.target.setFeatureState(
             { source: map._hoverNodeSource, id: map._hoverNodeIntegerId },
@@ -89,9 +90,21 @@ const onNodeMouseLeave = (e: MapboxGL.MapLayerMouseEvent) => {
     map._hoverNodeSource = null;
 };
 
+const onSelectedNodeMouseEnter = (e: MapLayerMouseEvent) => {
+    if (e.features && e.features[0]) {
+        setPointerCursor();
+    }
+};
+
+const onSelectedNodeMouseLeave = () => {
+    resetCursor();
+};
+
 const nodeLayerEventDescriptors: MapEventHandlerDescription[] = [
     { type: 'layer', layerName: 'transitNodes', eventName: 'mouseenter', handler: onNodeMouseEnter },
-    { type: 'layer', layerName: 'transitNodes', eventName: 'mouseleave', handler: onNodeMouseLeave }
+    { type: 'layer', layerName: 'transitNodes', eventName: 'mouseleave', handler: onNodeMouseLeave },
+    { type: 'layer', layerName: 'transitNodesSelected', eventName: 'mouseenter', handler: onSelectedNodeMouseEnter },
+    { type: 'layer', layerName: 'transitNodesSelected', eventName: 'mouseleave', handler: onSelectedNodeMouseLeave }
 ];
 
 export default nodeLayerEventDescriptors;
