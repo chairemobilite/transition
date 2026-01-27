@@ -276,7 +276,6 @@
         "true": "Oui",
         "false": "Non",
         "DuplicateLine": "Dupliquer la ligne",
-        "Category": "Priorité de passage",
         "IsAutonomous": "Véhicules autonomes (sans chauffeur)",
         "AllowSameLineTransfers": "Permettre les transferts sur la même ligne",
         "errors": {
@@ -285,21 +284,20 @@
             "ShortnameOrLongnameIsRequired": "Le numéro ou le nom de la ligne doit être spécifié, ou potentiellement les deux.",
             "ModeIsRequired": "Le mode de la ligne est requis."
         },
-        "categories": {
+        "ROWCategory": "Priorité de passage",
+        "ROWcategories": {
             "A": "Catégorie A",
             "B": "Catégorie B",
-            "C+": "Catégorie C améliorée",
-            "C": "Catégorie C",
-            "B_C": "Catégorie mixte (B et C)",
-            "non_applicable": "N/A"
+            "B-": "Catégorie B-",
+            "C+": "Catégorie C+",
+            "C": "Catégorie C"
         },
-        "categoriesDescription": {
+        "ROWcategoriesDescription": {
             "A": "En site propre entièrement contrôlé et exclusif, priorité en tout temps",
             "B": "En site propre avec séparation physique (barrière, mur, terre-plein ou dénivelé) et priorité à toutes les intersections partagées",
-            "C+": "Sur rue, sans séparation physique, avec voies réservées et/ou priorités aux intersections",
-            "C": "Sur rue, sans voies réservées et avec priorité limitée ou aucune priorité aux intersections",
-            "B_C": "Catégorie mixte B et C",
-            "non_applicable": "Non applicable"
+            "B-": "En site propre avec séparation physique au moins 50% de la distance, pas de voies de virages pour les véhicules non transport collectif, priorité partielle aux intersections partagées",
+            "C+": "Sur rue, sans séparation physique (ou moins de 50% de la distance), avec voies réservées et/ou priorités aux intersections",
+            "C": "Sur rue, sans voies réservées et avec priorité limitée ou aucune priorité aux intersections"
         },
         "nPath": "{{n}} parcours",
         "nPaths": "{{n}} parcours",

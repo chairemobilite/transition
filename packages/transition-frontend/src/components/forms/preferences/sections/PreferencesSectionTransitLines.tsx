@@ -11,7 +11,8 @@ import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton'
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputColor from 'chaire-lib-frontend/lib/components/input/InputColor';
 import PreferencesSectionProps from '../PreferencesSectionProps';
-import lineModesConfig, { lineModesArray } from 'transition-common/lib/config/lineModes';
+import lineModesConfig from 'transition-common/lib/config/lineModes';
+import { transitModes } from 'transition-common/lib/services/line/types';
 import PreferencesSectionTransitLineMode from './PreferencesSectionTransitLineMode';
 
 const lineModesConfigByMode = {};
@@ -25,7 +26,7 @@ const PreferencesSectionTransitLines: React.FunctionComponent<PreferencesSection
 ) => {
     const prefs = props.preferences.attributes;
 
-    const lineModesDefaultValuesPrefs = lineModesArray.map((mode) => {
+    const lineModesDefaultValuesPrefs = transitModes.map((mode) => {
         return (
             <PreferencesSectionTransitLineMode
                 key={mode}

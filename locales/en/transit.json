@@ -284,22 +284,20 @@
             "ShortnameOrLongnameIsRequired": "Either line number or name must be specified, potentially both.",
             "ModeIsRequired": "Line mode is required."
         },
-        "Category": "Right-of-way category (ROW)",
-        "categories": {
+        "ROWCategory": "Right-of-way category (ROW)",
+        "ROWcategories": {
             "A": "ROW A",
             "B": "ROW B",
-            "C+": "ROW C enhanced",
-            "C": "ROW C",
-            "B_C": "ROW B and C",
-            "non_applicable": "N/A"
+            "B-": "ROW B-",
+            "C+": "ROW C+",
+            "C": "ROW C"
         },
-        "categoriesDescription": {
+        "ROWcategoriesDescription": {
             "A": "Fully controlled separated track/lanes used exclusively by transit vehicles, priority at all time",
-            "B": "Separated track/lanes with physical barrier (fence, wall, median or step), priority at every shared intersection",
-            "C+": "On-street with mixed traffic, without physical barrier, with reserved lanes and/or priority at intersections",
-            "C": "On-street with mixed traffic, without reserved lanes and with limited or no priority at intersections",
-            "B_C": "Mix of ROW B and C",
-            "non_applicable": "Non applicable"
+            "B": "Separated track/lanes with physical barrier 100% of the distance (fence, wall, median or step), priority at every shared intersection",
+            "B-": "Separated track/lanes with physical barrier at least 50% of the distance, no non-transit turning lanes in transit ROW, some priority at shared intersections",
+            "C+": "On-street with mixed traffic, without physical barrier (or less than 50% of the distance), with reserved lanes and/or priority at intersections",
+            "C": "On-street with mixed traffic, without physical barrier (or less than 50% of the distance), without reserved lanes and with limited or no priority at intersections"
         },
         "nPath": "{{n}} path",
         "nPaths": "{{n}} paths",

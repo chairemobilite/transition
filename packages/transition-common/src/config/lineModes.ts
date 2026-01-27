@@ -6,31 +6,11 @@
  */
 // See https://developers.google.com/transit/gtfs/reference/extended-route-types
 
-export const lineModesArray = [
-    'bus',
-    'trolleybus',
-    'rail',
-    'highSpeedRail',
-    'metro',
-    'monorail',
-    'tram',
-    'tramTrain',
-    'water',
-    'gondola',
-    'funicular',
-    'taxi',
-    'cableCar',
-    'horse',
-    'other',
-    'transferable'
-] as const;
-
-/** An enumeration of line modes */
-export type LineMode = (typeof lineModesArray)[number];
+import type { TransitMode } from '../services/line/types';
 
 export default [
     {
-        value: 'bus',
+        value: 'bus' as TransitMode,
         extendedGtfsId: 700,
         gtfsId: 3,
         defaultValues: {
@@ -49,7 +29,7 @@ export default [
         compatibleRoutingModes: ['driving', 'driving_congestion', 'bus_suburb', 'bus_urban', 'bus_congestion']
     },
     {
-        value: 'trolleybus',
+        value: 'trolleybus' as TransitMode,
         extendedGtfsId: 800,
         gtfsId: 11,
         defaultValues: {
@@ -67,7 +47,7 @@ export default [
         compatibleRoutingModes: ['driving', 'driving_congestion', 'bus_suburb', 'bus_urban', 'bus_congestion']
     },
     {
-        value: 'rail',
+        value: 'rail' as TransitMode,
         extendedGtfsId: 100,
         gtfsId: 2,
         defaultValues: {
@@ -85,7 +65,7 @@ export default [
         compatibleRoutingModes: ['rail']
     },
     {
-        value: 'highSpeedRail',
+        value: 'highSpeedRail' as TransitMode,
         extendedGtfsId: 101,
         gtfsId: 2,
         defaultValues: {
@@ -103,7 +83,7 @@ export default [
         compatibleRoutingModes: ['rail', 'high_speed_rail']
     },
     {
-        value: 'metro',
+        value: 'metro' as TransitMode,
         extendedGtfsId: 400,
         gtfsId: 1,
         defaultValues: {
@@ -121,7 +101,7 @@ export default [
         compatibleRoutingModes: ['rail', 'metro']
     },
     {
-        value: 'monorail',
+        value: 'monorail' as TransitMode,
         extendedGtfsId: 405,
         gtfsId: 12,
         defaultValues: {
@@ -139,7 +119,7 @@ export default [
         compatibleRoutingModes: ['monorail']
     },
     {
-        value: 'tram',
+        value: 'tram' as TransitMode,
         extendedGtfsId: 900,
         gtfsId: 0,
         defaultValues: {
@@ -157,7 +137,7 @@ export default [
         compatibleRoutingModes: ['tram', 'tram_train', 'rail']
     },
     {
-        value: 'tramTrain',
+        value: 'tramTrain' as TransitMode,
         extendedGtfsId: 900,
         gtfsId: 0,
         defaultValues: {
@@ -175,7 +155,7 @@ export default [
         compatibleRoutingModes: ['tram', 'tram_train', 'rail']
     },
     {
-        value: 'water',
+        value: 'water' as TransitMode,
         extendedGtfsId: 1000,
         gtfsId: 4,
         defaultValues: {
@@ -193,7 +173,7 @@ export default [
         compatibleRoutingModes: []
     },
     {
-        value: 'gondola',
+        value: 'gondola' as TransitMode,
         extendedGtfsId: 1300,
         gtfsId: 6,
         defaultValues: {
@@ -212,7 +192,7 @@ export default [
         compatibleRoutingModes: []
     },
     {
-        value: 'funicular',
+        value: 'funicular' as TransitMode,
         extendedGtfsId: 1400,
         gtfsId: 7,
         defaultValues: {
@@ -231,7 +211,7 @@ export default [
         compatibleRoutingModes: []
     },
     {
-        value: 'taxi',
+        value: 'taxi' as TransitMode,
         extendedGtfsId: 1500,
         gtfsId: 3,
         defaultValues: {
@@ -249,7 +229,7 @@ export default [
         compatibleRoutingModes: ['driving', 'driving_congestion']
     },
     {
-        value: 'cableCar',
+        value: 'cableCar' as TransitMode,
         extendedGtfsId: 1701,
         gtfsId: 5,
         defaultValues: {
@@ -267,7 +247,7 @@ export default [
         compatibleRoutingModes: ['cable_car']
     },
     {
-        value: 'horse',
+        value: 'horse' as TransitMode,
         extendedGtfsId: 1702,
         gtfsId: 3,
         defaultValues: {
@@ -285,7 +265,7 @@ export default [
         compatibleRoutingModes: ['horse', 'walking']
     },
     {
-        value: 'other',
+        value: 'other' as TransitMode,
         extendedGtfsId: 1700,
         gtfsId: 3,
         defaultValues: {
@@ -303,7 +283,7 @@ export default [
         compatibleRoutingModes: ['walking', 'cycling', 'driving', 'driving_congestion']
     },
     {
-        value: 'transferable',
+        value: 'transferable' as TransitMode,
         defaultValues: {
             data: {
                 routingMode: null,

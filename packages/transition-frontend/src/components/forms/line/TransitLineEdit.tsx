@@ -18,7 +18,7 @@ import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/I
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { getAutocompleteListFromObjectCollection } from 'chaire-lib-frontend/lib/services/autoCompleteNextService';
 import lineModes from 'transition-common/lib/config/lineModes';
-import { lineCategoriesArray } from 'transition-common/lib/config/lineCategories';
+import { rightOfWayCategories } from 'transition-common/lib/services/line/types';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Path from 'transition-common/lib/services/path/Path';
 import Line from 'transition-common/lib/services/line/Line';
@@ -47,7 +47,7 @@ interface LineFormState extends SaveableObjectState<Line> {
     lineNumberAutocompleteChoices: string[];
 }
 
-const lineCategories = lineCategoriesArray.map((cat) => ({ value: cat }));
+const lineCategories = rightOfWayCategories.map((cat) => ({ value: cat }));
 
 class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormState> {
     constructor(props: LineFormProps) {
@@ -288,13 +288,13 @@ class TransitLineEdit extends SaveableObjectForm<Line, LineFormProps, LineFormSt
                             />
                         </div>
                         <div className="apptr__form-input-container _two-columns">
-                            <label>{this.props.t('transit:transitLine:Category')}</label>
+                            <label>{this.props.t('transit:transitLine:ROWCategory')}</label>
                             <InputSelect
                                 id={`formFieldTransitLineEditCategory${lineId}`}
                                 disabled={isFrozen}
                                 value={line.attributes.category || ''}
                                 choices={lineCategories}
-                                localePrefix="transit:transitLine:categories"
+                                localePrefix="transit:transitLine:ROWcategories"
                                 t={this.props.t}
                                 onValueChange={(e) => this.onValueChange('category', { value: e.target.value })}
                             />
