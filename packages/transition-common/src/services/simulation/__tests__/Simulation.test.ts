@@ -79,9 +79,7 @@ test('should construct new simulations', function() {
 
 test('should validate', function() {
     const simulation1 = new Simulation(simulationAttributes1, true);
-    expect(simulation1.validate()).toBe(true); // missing services
-    simulation1.attributes.data.routingAttributes.maxAccessEgressTravelTimeSeconds = 60*60 // Too high, should not validate
-    expect(simulation1.validate()).toBe(false);
+    expect(simulation1.validate()).toBe(true); // missing services, should validate
     const simulation2 = new Simulation(simulationAttributes2, true);
     // No agencies to simulate, the parameters should be initialized, so we can set it and it validates
     expect(simulation2.validate()).toBe(false);

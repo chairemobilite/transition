@@ -14,7 +14,6 @@ const MIN_MIN_WAITING_TIME = minutesToSeconds(1) as number;
 
 let msgErrors = {
     scenarioIsMissing: 'transit:transitRouting:errors:ScenarioIsMissing',
-    accessEgressTravelTimeSecondsTooLarge: 'transit:transitRouting:errors:AccessEgressTravelTimeSecondsTooLarge',
     maxAccessEgressNoNegative: 'transit:transitRouting:errors:AccessEgressTravelTimeSecondsNoNegative',
     transferTravelTimeSecondsTooLarge: 'transit:transitRouting:errors:TransferTravelTimeSecondsTooLarge',
     transferTravelTimeSecondsNoNegative: 'transit:transitRouting:errors:TransferTravelTimeSecondsNoNegative',
@@ -37,15 +36,6 @@ describe('Validate function for query attributes', () => {
         },
         isValid: false,
         errors: [msgErrors.maxAccessEgressNoNegative]
-    };
-
-    const objtestMaxAccessEgressTooLarge = {
-        attributes: {
-            maxAccessEgressTravelTimeSeconds: MAX_MAX_ACCESS_EGRESS + 1,
-            scenarioId: '0'
-        },
-        isValid: false,
-        errors: [msgErrors.accessEgressTravelTimeSecondsTooLarge]
     };
 
     const objtestMaxTransferTimeNoNegative = {
@@ -100,7 +90,6 @@ describe('Validate function for query attributes', () => {
     each([
         ['no scenario selected', objtestNoScenario],
         ['maxAccessEgress no negative', objtestMaxAccessEgressNoNegative],
-        ['maxAccessEgress too large', objtestMaxAccessEgressTooLarge],
         ['maxTransferTime no negative', objtestMaxTransferTimeNoNegative],
         ['maxTransferTime too large', objtestMaxTransferTimeTooLarge],
         ['minWaitingTime at least 1 minute', objtestMinWaitingTimeAtLeast1Minute],
@@ -132,14 +121,6 @@ describe('Validate function for base attributes', () => {
         },
         isValid: false,
         errors: [msgErrors.maxAccessEgressNoNegative]
-    };
-
-    const objtestMaxAccessEgressTooLarge = {
-        attributes: {
-            maxAccessEgressTravelTimeSeconds: MAX_MAX_ACCESS_EGRESS + 1,
-        },
-        isValid: false,
-        errors: [msgErrors.accessEgressTravelTimeSecondsTooLarge]
     };
 
     const objtestMaxTransferTimeNoNegative = {
@@ -189,7 +170,6 @@ describe('Validate function for base attributes', () => {
     each([
         ['empty object', objtestEmpty],
         ['maxAccessEgress no negative', objtestMaxAccessEgressNoNegative],
-        ['maxAccessEgress too large', objtestMaxAccessEgressTooLarge],
         ['maxTransferTime no negative', objtestMaxTransferTimeNoNegative],
         ['maxTransferTime too large', objtestMaxTransferTimeTooLarge],
         ['minWaitingTime at least 1 minute', objtestMinWaitingTimeAtLeast1Minute],

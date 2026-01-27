@@ -22,7 +22,6 @@ let msgErrors = {
     departureAndArrivalTimeAreBlank: 'transit:transitRouting:errors:DepartureAndArrivalTimeAreBlank',
     departureAndArrivalTimeAreBothNotBlank: 'transit:transitRouting:errors:DepartureAndArrivalTimeAreBothNotBlank',
     scenarioIsMissing: 'transit:transitRouting:errors:ScenarioIsMissing',
-    accessEgressTravelTimeSecondsTooLarge: 'transit:transitRouting:errors:AccessEgressTravelTimeSecondsTooLarge',
     maxAccessEgressNoNegative: 'transit:transitRouting:errors:AccessEgressTravelTimeSecondsNoNegative',
     transferTravelTimeSecondsTooLarge: 'transit:transitRouting:errors:TransferTravelTimeSecondsTooLarge',
     transferTravelTimeSecondsNoNegative: 'transit:transitRouting:errors:TransferTravelTimeSecondsNoNegative',
@@ -95,17 +94,6 @@ describe('Validate function', () => {
         },
         isValid: false,
         errors: [msgErrors.maxAccessEgressNoNegative]
-    };
-
-    const objtestMaxAccessEgressTooLarge = {
-        attributes: {
-            routingModes: ['transit'],
-            odTripUuid: '868d633f-34e0-4b61-a9cc-61f0512000c3',
-            scenarioId: '0',
-            maxAccessEgressTravelTimeSeconds: MAX_MAX_ACCESS_EGRESS + 1
-        },
-        isValid: false,
-        errors: [msgErrors.accessEgressTravelTimeSecondsTooLarge]
     };
 
     const objtestMaxTransferTimeNoNegative = {
@@ -191,7 +179,6 @@ describe('Validate function', () => {
         ['is blank', objtestIsBlank],
         ['is not blank', objtestIsNotBlank],
         ['maxAccessEgress no negative', objtestMaxAccessEgressNoNegative],
-        ['maxAccessEgress too large', objtestMaxAccessEgressTooLarge],
         ['maxTransferTime no negative', objtestMaxTransferTimeNoNegative],
         ['maxTransferTime too large', objtestMaxTransferTimeTooLarge],
         ['minWaitingTime at least 1 minute', objtestMinWaitingTimeAtLeast1Minute],

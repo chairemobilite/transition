@@ -21,7 +21,6 @@ export const MAX_DELTA_INTERVAL_MINUTES = 30;
 export const MIN_WALKING_SPEED_KPH = 2.0;
 export const MAX_WALKING_SPEED_KPH = 10.0;
 const MIN_MAX_ACCESS_EGRESS_TRAVEL_TIME_MINUTES = 1;
-const MAX_MAX_ACCESS_EGRESS_TRAVEL_TIME_MINUTES = 20;
 
 export interface AccessibilityMapCalculationAttributes extends GenericAttributes {
     departureTimeSecondsSinceMidnight?: number;
@@ -134,9 +133,6 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
         ) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:MaxAccessEgressTravelTimeSecondsIsInvalid');
-        } else if (this._isValid && maxAccessEgressTravelTimeSeconds > MAX_MAX_ACCESS_EGRESS_TRAVEL_TIME_MINUTES * 60) {
-            this._isValid = false;
-            this.errors.push('transit:transitRouting:errors:AccessEgressTravelTimeSecondsTooLarge');
         }
 
         // TODO Can we use the check from transit attributes instead of custom one?

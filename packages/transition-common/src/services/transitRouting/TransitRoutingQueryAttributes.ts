@@ -11,7 +11,6 @@ import {
     TransitRoutingQueryAttributes
 } from 'chaire-lib-common/lib/services/routing/types';
 
-const MAX_MAX_ACCESS_EGRESS = minutesToSeconds(40) as number;
 const MAX_MAX_TRANSFER_TIME = minutesToSeconds(20) as number;
 const MIN_MIN_WAITING_TIME = minutesToSeconds(1) as number;
 
@@ -23,10 +22,7 @@ export const validateTrBaseAttributes = (
 
     const maxAccessEgress = attributes.maxAccessEgressTravelTimeSeconds;
     if (maxAccessEgress !== undefined) {
-        if (maxAccessEgress > MAX_MAX_ACCESS_EGRESS) {
-            valid = false;
-            errors.push('transit:transitRouting:errors:AccessEgressTravelTimeSecondsTooLarge');
-        } else if (maxAccessEgress < 0) {
+        if (maxAccessEgress < 0) {
             valid = false;
             errors.push('transit:transitRouting:errors:AccessEgressTravelTimeSecondsNoNegative');
         }
