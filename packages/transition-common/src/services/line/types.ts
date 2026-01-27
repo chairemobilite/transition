@@ -48,6 +48,22 @@ export type TransitMode = (typeof transitModes)[number];
 export const verticalAlignments = ['underground', 'surface', 'aerial', 'unknown'] as const;
 export type VerticalAlignment = (typeof verticalAlignments)[number];
 
+/** LoadFactor / Comfort coefficients:
+ * 0.0: empty (all seats available, no users)
+ * 0.5: good comfort (most users should be seated)
+ * 1.0: low comfort (all seats occupied, all standees areas occupied)
+ * > 1.0: very low comfort (all seats and standees areas occupied with too many people, hard to move, board or alight)
+ * undefined: used if the value is not set/unknown for the line/path/segment.
+ */
+export type LoadFactor = number | undefined;
+
+/** Reliability ratio:
+ * Ratio of on-time arrivals/departures compared to planned schedules. On-time = between 0 and 3 minutes late.
+ * Value is between 0.0 and 1.0 (100%).
+ * undefined: used if the value is not set/unknown for the line/path.
+ */
+export type ReliabilityRatio = number | undefined;
+
 /** Support
  * rail: steel on steel
  * tires: rubber tires on pavement (car, bus, etc.)
