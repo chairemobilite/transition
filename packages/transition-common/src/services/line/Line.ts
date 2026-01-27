@@ -16,8 +16,8 @@ import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import lineModes, { LineMode } from '../../config/lineModes';
-import { LineCategory } from '../../config/lineCategories';
+import lineModes from '../../config/lineModes';
+import type { RightOfWayCategory, TransitMode } from './types';
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
@@ -34,13 +34,13 @@ for (let i = 0, countI = lineModes.length; i < countI; i++) {
 
 export interface LineAttributes extends GenericAttributes {
     agency_id: string;
-    mode: LineMode;
+    mode: TransitMode;
     path_ids: string[];
     /** Array of service IDs for which there are lines in the database. This
      * should be present in lines coming from a collection query, but the
      * schedulesByServiceId should be used for line objects */
     service_ids?: string[];
-    category: LineCategory;
+    category: RightOfWayCategory; // TODO: allow distinct paths and segments to have a different ROW category
     allow_same_line_transfers: boolean;
     is_autonomous: boolean;
     longname: string;

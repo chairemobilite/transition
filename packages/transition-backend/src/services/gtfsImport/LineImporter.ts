@@ -10,10 +10,10 @@ import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
 import Line, { LineAttributes } from 'transition-common/lib/services/line/Line';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
-import lineModes, { LineMode } from 'transition-common/lib/config/lineModes';
+import lineModes from 'transition-common/lib/config/lineModes';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { LineImportData, GtfsImportData, GtfsRoute } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
-import { LineCategory } from 'transition-common/lib/config/lineCategories';
+import type { RightOfWayCategory, TransitMode } from 'transition-common/lib/services/line/types';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 import AgencyImporter from './AgencyImporter';
@@ -95,17 +95,17 @@ export class LineImporter implements GtfsObjectImporter<LineImportData, Line> {
         gtfsObject: GtfsRoute,
         options: { agencyId: string; agencyColor?: string }
     ): Partial<LineAttributes> {
-        let mode: LineMode | undefined = undefined;
+        let mode: TransitMode | undefined = undefined;
         const categoryRouteType = Math.floor(gtfsObject.route_type / 100) * 100;
         for (let i = 0, count = lineModes.length; i < count; i++) {
             const modeGtfsId = lineModes[i].gtfsId;
             const modeExtendedGtfsId = lineModes[i].extendedGtfsId;
             if (gtfsObject.route_type === modeGtfsId || gtfsObject.route_type === modeExtendedGtfsId) {
-                mode = lineModes[i].value as LineMode;
+                mode = lineModes[i].value as TransitMode;
                 break;
             } else if (categoryRouteType === modeExtendedGtfsId) {
                 // Check if the route type without units correspond to the current mode (which would be a category), but don't stop the loop. See https://developers.google.com/transit/gtfs/reference/extended-route-types for route types
-                mode = lineModes[i].value as LineMode;
+                mode = lineModes[i].value as TransitMode;
             }
         }
         if (!mode) {
@@ -126,7 +126,7 @@ export class LineImporter implements GtfsObjectImporter<LineImportData, Line> {
             lineAttributes.internal_id = gtfsObject.tr_route_internal_id;
         }
         if (gtfsObject.tr_route_row_category) {
-            lineAttributes.category = gtfsObject.tr_route_row_category as LineCategory;
+            lineAttributes.category = gtfsObject.tr_route_row_category as RightOfWayCategory;
         }
         if (gtfsObject.tr_allow_same_route_transfers) {
             lineAttributes.allow_same_line_transfers =

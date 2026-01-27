@@ -9,14 +9,13 @@ import * as z from 'zod';
 import CollectionImporter, { genericAttributesSchema } from './CollectionImporter';
 import Line, { LineAttributes } from 'transition-common/lib/services/line/Line';
 import dbQueries from '../../models/db/transitLines.db.queries';
-import { lineModesArray } from 'transition-common/lib/config/lineModes';
-import { lineCategoriesArray } from 'transition-common/lib/config/lineCategories';
+import { rightOfWayCategories, transitModes } from 'transition-common/lib/services/line/types';
 import { objectsToCache } from '../../models/capnpCache/transitLines.cache.queries';
 
 const schema = genericAttributesSchema.extend({
     agency_id: z.string(),
-    mode: z.enum(lineModesArray),
-    category: z.union([z.enum(lineCategoriesArray), z.null()]).optional(),
+    mode: z.enum(transitModes),
+    category: z.union([z.enum(rightOfWayCategories), z.null()]).optional(),
     allow_same_line_transfers: z.union([z.boolean(), z.null()]).optional(),
     is_autonomous: z.union([z.boolean(), z.null()]).optional(),
     longname: z.union([z.string(), z.null()]).optional(),
