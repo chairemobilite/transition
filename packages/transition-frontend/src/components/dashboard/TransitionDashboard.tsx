@@ -6,7 +6,7 @@
  */
 import React, { PropsWithChildren } from 'react';
 import _get from 'lodash/get';
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import EventEmitter from 'events';
 import { sectionLayers } from '../../config/layers.config';
@@ -81,7 +81,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         fullSize: Contribution<PanelSectionProps>[];
         rightPanel: Contribution<PanelSectionProps>[];
     };
-    socket: any;
+    socket: Socket | undefined;
 
     constructor(props: DashboardProps) {
         super(props);
@@ -135,10 +135,9 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
 
         this.socket = io({
             transports: ['websocket'],
-            reconnectionAttempts: 100 //,
-            //timeout: 100000
+            // reconnection attempts, no limits, uses exponential backoff, starts at 1 second and eventually stops at every 2 minutes
+            reconnectionDelayMax: 120000
         }).connect();
-        this.socket.heartbeatTimeout = 120000;
 
         this.socket.on('connect', this.socketConnectHandler);
         this.socket.on('disconnect', this.socketDisconnectHandler);
@@ -153,8 +152,8 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         document.removeEventListener('keydown', this.handleKeyDown, false);
         document.removeEventListener('keyup', this.handleKeyUp, false);
 
-        this.socket.off('connect', this.socketConnectHandler);
-        this.socket.off('disconnect', this.socketDisconnectHandler);
+        this.socket?.off('connect', this.socketConnectHandler);
+        this.socket?.off('disconnect', this.socketDisconnectHandler);
     };
 
     handleKeyDown = (e: KeyboardEvent) => {
@@ -242,7 +241,8 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
     socketConnectHandler = () => {
         console.log('SOCKET: connected to socket');
         const socketWasConnected = this.state.socketWasConnected;
-        serviceLocator.addService('socketEventManager', new EventManager(this.socket));
+        // FIXME fix the any type, the Socket type is fine for the EventManager's usage, but it receives an EventEmitter and some functions are missing in the socket
+        serviceLocator.addService('socketEventManager', new EventManager(this.socket as any));
         serviceLocator.notificationService.registerEventsOnEmitter(serviceLocator.socketEventManager);
 
         if (socketWasConnected) {
