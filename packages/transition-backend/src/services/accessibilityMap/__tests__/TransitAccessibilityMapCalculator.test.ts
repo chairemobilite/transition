@@ -16,6 +16,7 @@ import {
 import { TransitAccessibilityMapCalculator } from '../TransitAccessibilityMapCalculator';
 import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
 import placesDbQueries from '../../../models/db/places.db.queries';
+import censusDbQueries from '../../../models/db/census.db.queries';
 import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import  { clipPolygon } from '../../../models/db/geometryUtils.db.queries';
 
@@ -49,6 +50,12 @@ jest.mock('../../../models/db/places.db.queries', () => ({
     getPOIsCategoriesCountInPolygon: jest.fn()
 }));
 const mockedPlacesPOIsCount = placesDbQueries.getPOIsCategoriesCountInPolygon as jest.MockedFunction<typeof placesDbQueries.getPOIsCategoriesCountInPolygon>;
+
+jest.mock('../../../models/db/census.db.queries', () => ({
+    getPopulationInPolygon: jest.fn()
+}));
+const mockedCensusPopulationCount = censusDbQueries.getPopulationInPolygon as jest.MockedFunction<typeof censusDbQueries.getPopulationInPolygon>;
+
 
 jest.mock('chaire-lib-backend/lib/services/transitRouting/TransitRoutingService', () => ({
     accessibleMap: jest.fn()
@@ -207,9 +214,11 @@ describe('Test accessibility map with results using PostGIS', () => {
             accessiblePlacesCountByCategory,
             accessiblePlacesCountByDetailedCategory
         });
+
+        mockedCensusPopulationCount.mockResolvedValue(500);
     });
 
-    test('Test one polygon, 2 nodes, with additional properties and POIs', async() => {
+    test('Test one polygon, 2 nodes, with additional properties, POIs, and population', async() => {
         const attributes = {
             ...defaultAttributes,
             maxTotalTravelTimeSeconds: 600,
@@ -217,7 +226,8 @@ describe('Test accessibility map with results using PostGIS', () => {
             maxAccessEgressTravelTimeSeconds: 180,
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1,
-            calculatePois: true
+            calculatePois: true,
+            calculatePopulation: true
         }
 
         mockedAccessibilityMap.mockResolvedValueOnce({
@@ -252,6 +262,7 @@ describe('Test accessibility map with results using PostGIS', () => {
         mockedGeometryUtilsDbClipPolygon.mockResolvedValue(mockPolygonCoordinates);
 
         const result: TransitAccessibilityMapWithPolygonResult = await TransitAccessibilityMapCalculator.calculateWithPolygons(attributes);
+        const features = result.polygons.features;
         // Verify that PostGIS transaction was called
         expect(mockedGeometryUtilsDbClipPolygon).toHaveBeenCalled();
 
@@ -259,9 +270,21 @@ describe('Test accessibility map with results using PostGIS', () => {
         expect(mockedNodesDbCollection).toHaveBeenCalledWith({
             nodeIds: [node1.properties.id, node2.properties.id]
         });
+
+        // Verify the POIs were calculated
+        expect(mockedPlacesPOIsCount).toHaveBeenCalled();
+        expect(mockedPlacesPOIsCount).toHaveBeenCalledWith(features[0].geometry);
+
+        // Verify the population was calculated
+        expect(mockedCensusPopulationCount).toHaveBeenCalled();
+        expect(mockedCensusPopulationCount).toHaveBeenCalledWith(features[0].geometry);
+
         // Verify the result structure
-        expect(result.polygons.features).toHaveLength(1);
-        expect(result.polygons.features[0].geometry.coordinates).toEqual(mockPolygonCoordinates);
+        expect(features).toHaveLength(1);
+        expect(features[0].geometry.coordinates).toEqual(mockPolygonCoordinates);
+        expect(features[0].properties?.accessiblePlacesCountByCategory).toEqual(accessiblePlacesCountByCategory);
+        expect(features[0].properties?.accessiblePlacesCountByDetailedCategory).toEqual(accessiblePlacesCountByDetailedCategory);
+        expect(features[0].properties?.population).toEqual(500);
     });
 
     test('Test multiple polygons with different durations using PostGIS', async() => {
@@ -273,7 +296,8 @@ describe('Test accessibility map with results using PostGIS', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1,
             numberOfPolygons: 2,  // Generate 2 polygons,
-            calculatePois: false
+            calculatePois: false,
+            calculatePopulation: false
         }
 
         mockedAccessibilityMap.mockResolvedValueOnce({
@@ -339,6 +363,10 @@ describe('Test accessibility map with results using PostGIS', () => {
         expect(polygonProperties.cat_education).toBeUndefined();
         expect(polygonProperties.catDet_school_secondary).toBeUndefined();
         expect(polygonProperties.catDet_school_university).toBeUndefined();
+
+        // Test that we get a null population when calculatePopulation is explicitly set to false in the attributes
+        expect(mockedCensusPopulationCount).toHaveBeenCalledTimes(0);
+        expect(polygonProperties.population).toBeNull();
     });
 
     test('Test polygon generation with delta using PostGIS', async() => {

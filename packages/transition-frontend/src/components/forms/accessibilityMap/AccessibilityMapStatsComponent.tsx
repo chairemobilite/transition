@@ -130,6 +130,12 @@ const AccessibilityMapStatsComponent: React.FunctionComponent<AccessibilityMapSt
                         <th>{t('transit:transitRouting:AccessibilityMapAreaSquarem')}</th>
                         <td>{Math.round(properties.areaSqM).toLocaleString(language)}</td>
                     </tr>
+                    {typeof properties.population === 'number' && (
+                        <tr>
+                            <th>{t('transit:transitRouting:AccessibilityMapPopulation')}</th>
+                            <td>{properties.population.toLocaleString(language)}</td>
+                        </tr>
+                    )}
                     {categoryTotal > 0 && (
                         <React.Fragment>
                             <tr>

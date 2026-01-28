@@ -612,7 +612,8 @@ describe('Testing API endpoints', () => {
                     maxTransferTravelTimeSeconds: 900,
                     walkingSpeedMps: 5.0 / 3.6,
                     scenarioId,
-                    calculatePois: false
+                    calculatePois: false,
+                    calculatePopulation: false
                 }
             };
 
@@ -660,7 +661,8 @@ describe('Testing API endpoints', () => {
                     maxTransferTravelTimeSeconds: 900,
                     walkingSpeedMps: 5.0 / 3.6,
                     scenarioId,
-                    calculatePois: false
+                    calculatePois: false,
+                    calculatePopulation: false
                 }
             };
 
@@ -684,7 +686,7 @@ describe('Testing API endpoints', () => {
         each([
             [true],
             [false]
-        ]).test('POST /api/v1/accessibility, with geojson and calculatePois = %s', async (calculatePois) => {
+        ]).test('POST /api/v1/accessibility, with geojson, and both calculatePois and calculatePopulation = %s', async (calculatePoisAndPopulation) => {
             const calculationResult = {
                 resultByNode,
                 polygons: {
@@ -696,8 +698,9 @@ describe('Testing API endpoints', () => {
                             durationSeconds: 900,
                             areaSqM: 1000,
                             otherProperty: 'foo',
-                            accessiblePlacesCountByCategory: calculatePois ? { 'service': 10 } : undefined,
-                            accessiblePlacesCountByDetailedCategory: calculatePois ? { 'service_other': 4, 'service_bank': 6 } : undefined
+                            accessiblePlacesCountByCategory: calculatePoisAndPopulation ? { 'service': 10 } : undefined,
+                            accessiblePlacesCountByDetailedCategory: calculatePoisAndPopulation ? { 'service_other': 4, 'service_bank': 6 } : undefined,
+                            population: calculatePoisAndPopulation ? 500 : null
                         }
                     }]
                 },
@@ -709,7 +712,8 @@ describe('Testing API endpoints', () => {
             const attributes = {
                 locationGeojson: { type:'Feature',geometry:{ type:'Point', coordinates: _cloneDeep(location) } },
                 scenarioId,
-                calculatePois
+                calculatePois: calculatePoisAndPopulation,
+                calculatePopulation: calculatePoisAndPopulation
             };
 
             const expectedOutput = {
@@ -720,14 +724,16 @@ describe('Testing API endpoints', () => {
                         features: [{
                             type: 'Feature',
                             geometry: _cloneDeep(calculationResult.polygons.features[0].geometry),
-                            properties: calculatePois ? {
+                            properties: calculatePoisAndPopulation ? {
                                 durationSeconds: 900,
                                 areaSqM: 1000,
                                 accessiblePlacesCountByCategory: { 'service': 10 },
-                                accessiblePlacesCountByDetailedCategory: { 'service_other': 4, 'service_bank': 6 }
+                                accessiblePlacesCountByDetailedCategory: { 'service_other': 4, 'service_bank': 6 },
+                                population: 500
                             } : {
                                 durationSeconds: 900,
-                                areaSqM: 1000
+                                areaSqM: 1000,
+                                population: null
                             }
                         }]
                     }
@@ -744,7 +750,8 @@ describe('Testing API endpoints', () => {
                     maxTransferTravelTimeSeconds: 900,
                     walkingSpeedMps: 5.0 / 3.6,
                     scenarioId,
-                    calculatePois
+                    calculatePois: calculatePoisAndPopulation,
+                    calculatePopulation: calculatePoisAndPopulation
                 }
             };
 

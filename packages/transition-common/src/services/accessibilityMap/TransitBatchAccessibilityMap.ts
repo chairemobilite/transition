@@ -16,6 +16,7 @@ export interface TransitDemandFromCsvAccessMapAttributes extends DemandCsvAttrib
     detailed?: boolean;
     withGeometries?: boolean;
     calculatePois?: boolean;
+    calculatePopulation?: boolean;
     cpuCount?: number;
     maxCpuCount?: number;
 }
