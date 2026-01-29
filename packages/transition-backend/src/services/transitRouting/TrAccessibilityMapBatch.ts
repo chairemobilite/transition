@@ -55,8 +55,8 @@ export const batchAccessibilityMap = async (
         progressEmitter.emit('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
 
         const { threadCount: trRoutingThreadsCount, port: trRoutingPort } = await batchManager.startBatch(
-            locationsCount
-            // TODO add options with cachePath
+            locationsCount,
+            job.attributes.data.parameters.trRoutingJobParameters
         );
 
         // Assert the job is not cancelled, otherwise reject

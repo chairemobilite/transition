@@ -6,6 +6,9 @@
  */
 import { EventEmitter } from 'events';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
+import MemcachedProcessManager, {
+    MemcachedInstance
+} from 'chaire-lib-backend/lib/utils/processManagers/MemcachedProcessManager';
 import { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
 import serverConfig from 'chaire-lib-backend/lib/config/server.config';
 
@@ -28,12 +31,33 @@ export type TrRoutingBatchStartResult = {
  * Handles starting and stopping TrRouting instance with proper
  * progress reporting and configuration.
  *
+ * Memcached handling:
+ * - If a memcachedServer is provided (via constructor or startBatch options),
+ *   uses that external server and does not manage its lifecycle.
+ * - If no memcachedServer is provided, starts a new memcached instance and
+ *   stops it when stopBatch is called.
+ *
  * TODO: Class name is a bit confusing, we should find something better, but it works for now.
  *       We should return an instance which represent the TrRouting instance, like the OSRMMode for OSRM,
  *       Instead of just returning a port number
  */
 export class TrRoutingBatchManager {
-    constructor(private progressEmitter: EventEmitter) {
+    private memcachedInstance?: MemcachedInstance;
+    private ownsMemcached = false;
+
+    /**
+     * Create a new TrRoutingBatchManager.
+     *
+     * @param progressEmitter - EventEmitter for progress reporting
+     * @param options - Optional configuration
+     * @param options.memcachedServer - External memcached server to use instead of starting one
+     */
+    constructor(
+        private progressEmitter: EventEmitter,
+        private options?: {
+            memcachedServer?: string;
+        }
+    ) {
         // Nothing else to do
     }
 
@@ -43,8 +67,13 @@ export class TrRoutingBatchManager {
      * Port, debug settings, and max parallel threads are determined by
      * TrRoutingProcessManager from server configuration.
      *
+     * Memcached is handled as follows:
+     * 1. If options.memcachedServer is provided, use it
+     * 2. Else if constructor options.memcachedServer was provided, use it
+     * 3. Else start a new memcached instance (will be stopped in stopBatch)
+     *
      * @param workloadSize - Number of items to process (OD trips or locations)
-     * @param options - Optional TrRouting configuration (e.g., cache directory)
+     * @param options - Optional TrRouting configuration (e.g., cache directory, memcached server)
      * @returns Promise with thread count and port information
      * @throws Error if TrRouting instance fail to start
      */
@@ -54,13 +83,27 @@ export class TrRoutingBatchManager {
         try {
             this.progressEmitter.emit('progress', { name: 'StartingRoutingParallelServer', progress: 0.0 });
 
-            // Make sure processes are stopped before restarting
+            // Make sure TrRouting is stopped before restarting
             await TrRoutingProcessManager.stopBatch();
+
+            // Determine memcached server: options param > constructor options > start new one
+            let memcachedServer = options?.memcachedServer ?? this.options?.memcachedServer;
+
+            if (!memcachedServer) {
+                // Start our own memcached instance
+                const instance = await MemcachedProcessManager.start();
+                if (instance) {
+                    this.memcachedInstance = instance;
+                    memcachedServer = instance.getServer();
+                    this.ownsMemcached = true;
+                }
+            }
 
             // Start the TrRouting instance
             // Port, debug, and thread count are determined by TrRoutingProcessManager from config
             const startStatus = await TrRoutingProcessManager.startBatch(threadCount, {
-                cacheDirectoryPath: options?.cacheDirectoryPath
+                cacheDirectoryPath: options?.cacheDirectoryPath,
+                memcachedServer
             });
 
             if (startStatus.status !== 'started') {
@@ -80,13 +123,22 @@ export class TrRoutingBatchManager {
 
     /**
      * Stop TrRouting batch instance.
+     * Also stops the memcached instance if it was started by this manager.
      * Port is determined by TrRoutingProcessManager from server configuration.
      */
     async stopBatch(): Promise<void> {
         try {
             this.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServer', progress: 0.0 });
+
             const stopStatus = await TrRoutingProcessManager.stopBatch();
             console.log('trRouting multiple stopStatus', stopStatus);
+
+            // Only stop memcached if we started it
+            if (this.ownsMemcached && this.memcachedInstance) {
+                await this.memcachedInstance.stop();
+                this.memcachedInstance = undefined;
+                this.ownsMemcached = false;
+            }
         } finally {
             this.progressEmitter.emit('progress', { name: 'StoppingRoutingParallelServer', progress: 1.0 });
         }
@@ -103,7 +155,7 @@ export class TrRoutingBatchManager {
      */
     private calculateThreadCount(workloadSize: number): number {
         // TODO Investigate if it still make sense to divide by 3, since we manage thread and
-        // not processes nowaday.
+        // not processes nowadays.
         return Math.min(Math.max(1, Math.ceil(workloadSize / 3)), serverConfig.maxParallelCalculators);
     }
 }
