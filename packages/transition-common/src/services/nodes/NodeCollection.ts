@@ -180,8 +180,8 @@ export class NodeCollection extends GenericPlaceCollection<NodeAttributes, Node>
         return this.pointsInWalkingTravelTimeRadiusSecondsAround(geometry, maxWalkingTravelTimeRadiusSeconds);
     }
 
-    saveCache(socket, customCollection) {
-        return CollectionCacheable.saveCache(this, socket, customCollection);
+    saveCache(socket) {
+        return CollectionCacheable.saveCache(this, socket);
     }
 
     loadCache(socket) {

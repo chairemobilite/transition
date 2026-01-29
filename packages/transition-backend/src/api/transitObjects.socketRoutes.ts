@@ -105,13 +105,10 @@ function setupObjectSocketRoutes(socket: EventEmitter) {
         }
 
         if (dataHandler.saveCollectionCache) {
-            socket.on(
-                `transit${dataHandler.classNamePlural}.saveCollectionCache`,
-                async (collection = null, customCachePath, callback) => {
-                    const response = await dataHandler.saveCollectionCache!(collection, customCachePath);
-                    callback(response);
-                }
-            );
+            socket.on(`transit${dataHandler.classNamePlural}.saveCollectionCache`, async (callback) => {
+                const response = await dataHandler.saveCollectionCache!();
+                callback(response);
+            });
         }
 
         // TODO Do we still need to load an entire collection from cache. Cache should be one-way?
