@@ -173,6 +173,18 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
                         })}
                     </td>
                 </tr>
+                {typeof properties1.population === 'number' && typeof properties2.population === 'number' && (
+                    <tr>
+                        <th>{t('transit:transitRouting:AccessibilityMapPopulation')}</th>
+                        <td>{properties1.population.toLocaleString(language)}</td>
+                        <td>{properties2.population.toLocaleString(language)}</td>
+                        <td>
+                            {(properties2.population - properties1.population).toLocaleString(language, {
+                                signDisplay: 'exceptZero'
+                            })}
+                        </td>
+                    </tr>
+                )}
                 {(categoryTotal1 > 0 || categoryTotal2 > 0) && (
                     <React.Fragment>
                         <tr>

@@ -203,11 +203,16 @@ const addZonesAndConvertedGeography = async (
             //The placeholder syntax allows us to repeat an operation on many rows of data with the same structure, each "(?, ?, ?)"" representing a row containing individual values from the three arrays we enter.
             const placeholders = data.map(() => '(?, ?, ?)').join(',');
             const bindings = data.flat();
+
             // The ST_Transform function will convert the zone boundary from one coordinate system to an other. The spatialReferenceId is the system used by the input, while 4326 is the id for WGS84, the system we want to convert to.
+
+            // Some zones throw "topologyexception: Ring edge missing" errors when used in the ST_INTERSECTS() function, either due to an SQL bug or the input zone being self-intersecting. Passing them through ST_MAKEVALID() when importing them fixes this.
+            // ST_INTERSECTS() is not used here, but in getPopulationInPolygon() of the tr_census table functions, which we use to calculate the population of an accessibility polygon.
+            // We could use ST_MAKEVALID in the population calculation function, but we choose to do it here in the import to increase the performance for the user at the cost of making the import slightly slower.
             const query = `
                 WITH input(id, spatialReferenceId, boundary) AS (VALUES ${placeholders})
                 UPDATE ${tableName} z
-                SET geography = ST_Transform(ST_GeomFromText(input.boundary, input.spatialReferenceId::integer), 4326)::geography
+                SET geography = ST_Transform(ST_MAKEVALID(ST_GeomFromText(input.boundary, input.spatialReferenceId::integer)), 4326)::geography
                 FROM input
                 WHERE z.id = input.id::uuid
             `;

@@ -62,8 +62,37 @@ const addPopulationBatch = async (inputArray: { internalId: string; population: 
     }
 };
 
+const getPopulationInPolygon = async (
+    accessibilityPolygon: GeoJSON.MultiPolygon | GeoJSON.Polygon
+): Promise<number | null> => {
+    try {
+        // Find all the zones that intersect the input polygon, and fetch their population, area, and the area of the intersection.
+        // We multiply the population of each zone by the ratio between the area  of its intersection with the input polygon and its total area, to estimate the true population of zones that aren't entirely contained within the input polygon.
+        // TO avoid division by zero in the edge case of a degenerate zone with no area, we use the NULLIF function.
+        const populationResponse = await knex.raw(
+            `
+                SELECT COUNT(*) as row_count,
+                ROUND(SUM(
+                    population * 
+                    ST_AREA(ST_INTERSECTION(ST_GeomFromGeoJSON(:polygon), geography::geometry)) / 
+                    NULLIF(ST_AREA(geography::geometry), 0)
+                )) as weighted_population
+                FROM ${tableName} c JOIN ${parentTable} z ON c.zone_id = z.id
+                WHERE ST_INTERSECTS(geography::geometry, ST_GeomFromGeoJSON(:polygon));
+            `,
+            { polygon: JSON.stringify(accessibilityPolygon) }
+        );
+
+        const result = populationResponse.rows[0];
+        return Number(result.row_count) === 0 ? null : Number(result.weighted_population);
+    } catch (error) {
+        throw new TrError(`Problem getting population (knex error: ${error})`, 'CSDB0003', 'ProblemGettingPopulation');
+    }
+};
+
 export default {
     collection,
     truncate: truncate.bind(null, knex, tableName),
-    addPopulationBatch
+    addPopulationBatch,
+    getPopulationInPolygon
 };
