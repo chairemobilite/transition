@@ -5,15 +5,20 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import { EventEmitter } from 'events';
 import { lineString as turfLineString } from '@turf/helpers';
 
-import serviceLocator   from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { saveAndUpdateAllNodes, saveAllNodesToCache } from '../../nodes/NodeCollectionUtils';
 
 import { recreateCache } from '../dbToCache';
-import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { EventManagerMock } from 'chaire-lib-common/lib/test';
+import transitLinesDbQueries from '../../../models/db/transitLines.db.queries';
+import transitNodesDbQueries from '../../../models/db/transitNodes.db.queries';
+import transitPathsDbQueries from '../../../models/db/transitPaths.db.queries';
+import transitScenariosDbQueries from '../../../models/db/transitScenarios.db.queries';
+import transitAgenciesDbQueries from '../../../models/db/transitAgencies.db.queries';
+import transitServicesDbQueries from '../../../models/db/transitServices.db.queries';
+import dataSourcesDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
+import placesDbQueries from '../../../models/db/places.db.queries';
 
 //serviceLocator.socketEventManager = new EventEmitter();
 
@@ -30,13 +35,10 @@ const dataSourceAttributes = {
       bar: 'foo'
     }
 };
-jest.mock('chaire-lib-backend/lib/models/db/dataSources.db.queries', () => {
-    return {
-        collection: jest.fn().mockImplementation(async () => {
-            return [dataSourceAttributes];
-        })
-    }
-});
+jest.mock('chaire-lib-backend/lib/models/db/dataSources.db.queries', () => ({
+    collection: jest.fn().mockImplementation(async () => [dataSourceAttributes])
+}));
+const mockedDataSourceDbCollection = dataSourcesDbQueries.collection as jest.MockedFunction<typeof dataSourcesDbQueries.collection>;
 const mockedDsToCache = jest.fn();
 jest.mock('../../../models/capnpCache/dataSources.cache.queries', () => {
     return {
@@ -62,13 +64,10 @@ const agencyAttributes = {
       bar: 'foo'
     }
 };
-jest.mock('../../../models/db/transitAgencies.db.queries', () => {
-    return {
-        collection: jest.fn().mockImplementation(async () => {
-            return [agencyAttributes];
-        })
-    }
-});
+jest.mock('../../../models/db/transitAgencies.db.queries', () => ({
+    collection: jest.fn().mockImplementation(async () => [agencyAttributes])
+}));
+const mockedAgencyDbCollection = transitAgenciesDbQueries.collection as jest.MockedFunction<typeof transitAgenciesDbQueries.collection>;
 const mockedAgToCache = jest.fn();
 jest.mock('../../../models/capnpCache/transitAgencies.cache.queries', () => {
     return {
@@ -106,13 +105,10 @@ const serviceAttributes = {
         variables: {}
     }
 };
-jest.mock('../../../models/db/transitServices.db.queries', () => {
-    return {
-        collection: jest.fn().mockImplementation(async () => {
-            return [serviceAttributes];
-        })
-    }
-});
+jest.mock('../../../models/db/transitServices.db.queries', () => ({
+    collection: jest.fn().mockImplementation(async () => [serviceAttributes])
+}));
+const mockedServiceDbCollection = transitServicesDbQueries.collection as jest.MockedFunction<typeof transitServicesDbQueries.collection>;
 const mockedServiceToCache = jest.fn();
 jest.mock('../../../models/capnpCache/transitServices.cache.queries', () => {
     return {
@@ -145,13 +141,10 @@ const scenarioAttributes = {
         bar: 'foo'
     }
 };
-jest.mock('../../../models/db/transitScenarios.db.queries', () => {
-    return {
-        collection: jest.fn().mockImplementation(async () => {
-            return [scenarioAttributes];
-        })
-    }
-});
+jest.mock('../../../models/db/transitScenarios.db.queries', () => ({
+    collection: jest.fn().mockImplementation(async () => [scenarioAttributes])
+}));
+const mockedScenarioDbCollection = transitScenariosDbQueries.collection as jest.MockedFunction<typeof transitScenariosDbQueries.collection>;
 const mockedScenariosToCache = jest.fn();
 jest.mock('../../../models/capnpCache/transitScenarios.cache.queries', () => {
     return {
@@ -182,18 +175,13 @@ const lineAttributes = {
         bar: 'foo'
     }
 };
-const mockedLinesWithSchedules = jest.fn();
-jest.mock('../../../models/db/transitLines.db.queries', () => {
-    return {
-        collection: jest.fn().mockImplementation(async () => {
-            return [lineAttributes];
-        }),
-        collectionWithSchedules: jest.fn().mockImplementation(async (lines) => {
-            // This method adds schedules to lines, we don't really need them here, just do nothing
-            mockedLinesWithSchedules(lines);
-        })
-    }
-});
+jest.mock('../../../models/db/transitLines.db.queries', () => ({
+    collection: jest.fn().mockImplementation(async () => [lineAttributes]),
+    // This method adds schedules to lines, we don't really need them here, just do nothing
+    collectionWithSchedules: jest.fn().mockResolvedValue(undefined)
+}));
+const mockedLineDbCollection = transitLinesDbQueries.collection as jest.MockedFunction<typeof transitLinesDbQueries.collection>;
+const mockedLinesWithSchedules = transitLinesDbQueries.collectionWithSchedules as jest.MockedFunction<typeof transitLinesDbQueries.collectionWithSchedules>;
 const mockedLinesToCache = jest.fn();
 const mockedObjectsToCache = jest.fn();
 jest.mock('../../../models/capnpCache/transitLines.cache.queries', () => {
@@ -230,22 +218,23 @@ const nodeAttributes = {
     }
 };
 const nodeGeography = { type: 'Point' as const, coordinates: [-73.6, 45.5] };
-jest.mock('../../../models/db/transitNodes.db.queries', () => {
-    return {
-        geojsonCollection: jest.fn().mockImplementation(async () => {
-            return {type: 'FeatureCollection' as const, features: [{
-                type: 'Feature' as const,
-                properties: nodeAttributes,
-                geometry: nodeGeography
-            }]};
-        })
-    }
-});
-jest.mock('../../../models/db/places.db.queries', () => {
-    return {
-        geojsonCollection: jest.fn().mockResolvedValue({ type: 'FeatureCollection', features: []})
-    }
-});
+const nodeGeojson = {
+    type: 'FeatureCollection' as const,
+    features: [{
+        type: 'Feature' as const,
+        properties: nodeAttributes,
+        geometry: nodeGeography
+    }]
+};
+jest.mock('../../../models/db/transitNodes.db.queries', () => ({
+    geojsonCollection: jest.fn().mockImplementation(async () => nodeGeojson)
+}));
+const mockedNodeDbGeojsonCollection = transitNodesDbQueries.geojsonCollection as jest.MockedFunction<typeof transitNodesDbQueries.geojsonCollection>;
+
+jest.mock('../../../models/db/places.db.queries', () => ({
+    geojsonCollection: jest.fn().mockResolvedValue({ type: 'FeatureCollection', features: []})
+}));
+const mockedPlaceDbGeojsonCollection = placesDbQueries.geojsonCollection as jest.MockedFunction<typeof placesDbQueries.geojsonCollection>;
 jest.mock('../../nodes/NodeCollectionUtils');
 const mockedSaveAndUpdateAllNodes = saveAndUpdateAllNodes as jest.MockedFunction<typeof saveAndUpdateAllNodes>;
 const mockedSaveAllNodesToCache = saveAllNodesToCache as jest.MockedFunction<typeof saveAllNodesToCache>;
@@ -292,17 +281,18 @@ const pathAttributes = {
     }
 };
 const pathGeography = turfLineString([[-73.6, 45.5], [-73.5, 45.6], [-73.5, 45.4]]).geometry;
-jest.mock('../../../models/db/transitPaths.db.queries', () => {
-    return {
-        geojsonCollection: jest.fn().mockImplementation(async () => {
-            return {type: 'FeatureCollection' as const, features: [{
-                type: 'Feature' as const,
-                properties: pathAttributes,
-                geometry: pathGeography
-            }]};
-        })
-    }
-});
+const pathGeojson = {
+    type: 'FeatureCollection' as const,
+    features: [{
+        type: 'Feature' as const,
+        properties: pathAttributes,
+        geometry: pathGeography
+    }]
+};
+jest.mock('../../../models/db/transitPaths.db.queries', () => ({
+    geojsonCollection: jest.fn().mockImplementation(async () => pathGeojson)
+}));
+const mockedPathDbGeojsonCollection = transitPathsDbQueries.geojsonCollection as jest.MockedFunction<typeof transitPathsDbQueries.geojsonCollection>;
 const mockedPathToCache = jest.fn();
 jest.mock('../../../models/capnpCache/transitPaths.cache.queries', () => {
     return {
@@ -319,18 +309,23 @@ describe('Recreate cache', () => {
 
     test('no refresh nodes, no schedules', async () => {
         await recreateCache({refreshTransferrableNodes: false, saveLines: false});
+        expect(mockedDataSourceDbCollection).toHaveBeenCalled();
         expect(mockedDsToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(dataSourceAttributes)})]
         }), undefined);
+        expect(mockedAgencyDbCollection).toHaveBeenCalled();
         expect(mockedAgToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(agencyAttributes)})]
         }), undefined);
+        expect(mockedServiceDbCollection).toHaveBeenCalled();
         expect(mockedServiceToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(serviceAttributes)})]
         }), undefined);
+        expect(mockedScenarioDbCollection).toHaveBeenCalled();
         expect(mockedScenariosToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(scenarioAttributes)})]
         }), undefined);
+        expect(mockedPathDbGeojsonCollection).toHaveBeenCalled();
         expect(mockedPathToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({
                 type: 'Feature' as const,
@@ -338,12 +333,14 @@ describe('Recreate cache', () => {
                 geometry: pathGeography
             })]
         }), undefined);
+        expect(mockedLineDbCollection).toHaveBeenCalled();
         expect(mockedLinesToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(lineAttributes)})]
         }), undefined);
         expect(mockedLinesWithSchedules).not.toHaveBeenCalled();
         expect(mockedObjectsToCache).not.toHaveBeenCalled();
 
+        expect(mockedNodeDbGeojsonCollection).toHaveBeenCalled();
         expect(mockedNodesToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({
                 type: 'Feature' as const,
@@ -363,18 +360,23 @@ describe('Recreate cache', () => {
 
     test('refresh nodes, no schedules', async () => {
         await recreateCache({refreshTransferrableNodes: true, saveLines: false});
+        expect(mockedDataSourceDbCollection).toHaveBeenCalled();
         expect(mockedDsToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(dataSourceAttributes)})]
         }), undefined);
+        expect(mockedAgencyDbCollection).toHaveBeenCalled();
         expect(mockedAgToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(agencyAttributes)})]
         }), undefined);
+        expect(mockedServiceDbCollection).toHaveBeenCalled();
         expect(mockedServiceToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(serviceAttributes)})]
         }), undefined);
+        expect(mockedScenarioDbCollection).toHaveBeenCalled();
         expect(mockedScenariosToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(scenarioAttributes)})]
         }), undefined);
+        expect(mockedPathDbGeojsonCollection).toHaveBeenCalled();
         expect(mockedPathToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({
                 type: 'Feature' as const,
@@ -382,12 +384,14 @@ describe('Recreate cache', () => {
                 geometry: pathGeography
             })]
         }), undefined);
+        expect(mockedLineDbCollection).toHaveBeenCalled();
         expect(mockedLinesToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(lineAttributes)})]
         }), undefined);
         expect(mockedLinesWithSchedules).not.toHaveBeenCalled();
         expect(mockedObjectsToCache).not.toHaveBeenCalled();
 
+        expect(mockedNodeDbGeojsonCollection).toHaveBeenCalled();
         expect(mockedNodesToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({
                 type: 'Feature' as const,
@@ -407,18 +411,23 @@ describe('Recreate cache', () => {
 
     test('no refresh nodes, refresh schedules', async () => {
         await recreateCache({refreshTransferrableNodes: false, saveLines: true});
+        expect(mockedDataSourceDbCollection).toHaveBeenCalled();
         expect(mockedDsToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(dataSourceAttributes)})]
         }), undefined);
+        expect(mockedAgencyDbCollection).toHaveBeenCalled();
         expect(mockedAgToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(agencyAttributes)})]
         }), undefined);
+        expect(mockedServiceDbCollection).toHaveBeenCalled();
         expect(mockedServiceToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(serviceAttributes)})]
         }), undefined);
+        expect(mockedScenarioDbCollection).toHaveBeenCalled();
         expect(mockedScenariosToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(scenarioAttributes)})]
         }), undefined);
+        expect(mockedPathDbGeojsonCollection).toHaveBeenCalled();
         expect(mockedPathToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({
                 type: 'Feature' as const,
@@ -426,7 +435,9 @@ describe('Recreate cache', () => {
                 geometry: pathGeography
             })]
         }), undefined);
+
         // The line collection was spliced by the method to test, so we can't check the value, but the important in this test is the rest
+        expect(mockedLineDbCollection).toHaveBeenCalled();
         expect(mockedLinesToCache).toHaveBeenCalledTimes(1);
         expect(mockedLinesWithSchedules).toHaveBeenCalledWith([expect.objectContaining({_attributes: expect.objectContaining(lineAttributes)})]);
         expect(mockedObjectsToCache).toHaveBeenCalledWith(
@@ -434,6 +445,7 @@ describe('Recreate cache', () => {
             undefined
         );
 
+        expect(mockedNodeDbGeojsonCollection).toHaveBeenCalled();
         expect(mockedNodesToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({
                 type: 'Feature' as const,
@@ -453,18 +465,23 @@ describe('Recreate cache', () => {
 
     test('refresh nodes and schedules', async () => {
         await recreateCache({refreshTransferrableNodes: true, saveLines: true});
+        expect(mockedDataSourceDbCollection).toHaveBeenCalled();
         expect(mockedDsToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(dataSourceAttributes)})]
         }), undefined);
+        expect(mockedAgencyDbCollection).toHaveBeenCalled();
         expect(mockedAgToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(agencyAttributes)})]
         }), undefined);
+        expect(mockedServiceDbCollection).toHaveBeenCalled();
         expect(mockedServiceToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(serviceAttributes)})]
         }), undefined);
+        expect(mockedScenarioDbCollection).toHaveBeenCalled();
         expect(mockedScenariosToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(scenarioAttributes)})]
         }), undefined);
+        expect(mockedPathDbGeojsonCollection).toHaveBeenCalled();
         expect(mockedPathToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({
                 type: 'Feature' as const,
@@ -472,7 +489,9 @@ describe('Recreate cache', () => {
                 geometry: pathGeography
             })]
         }), undefined);
+
         // The line collection was spliced by the method to test, so we can't check the value, but the important in this test is the rest
+        expect(mockedLineDbCollection).toHaveBeenCalled();
         expect(mockedLinesToCache).toHaveBeenCalledTimes(1);
         expect(mockedLinesWithSchedules).toHaveBeenCalledWith([expect.objectContaining({_attributes: expect.objectContaining(lineAttributes)})]);
         expect(mockedObjectsToCache).toHaveBeenCalledWith(
@@ -480,6 +499,7 @@ describe('Recreate cache', () => {
             undefined
         );
 
+        expect(mockedNodeDbGeojsonCollection).toHaveBeenCalled();
         expect(mockedNodesToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({
                 type: 'Feature' as const,
