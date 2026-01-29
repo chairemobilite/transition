@@ -12,7 +12,7 @@ import '../config/server.config';
 // eslint-disable-next-line n/no-unsupported-features/node-builtins
 import Inspector from 'inspector';
 import moment from 'moment';
-import yargs from 'yargs/yargs';
+import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { fileManager } from '../utils/filesystem/fileManager';
 
@@ -56,7 +56,7 @@ async function profilingWrapper(
 
 async function taskWrapper(task: GenericTask) {
     // TODO Add a way for tasks to advertise their required arguments and automatically warn the user if arguments are missing (or mispelled?)
-    const argv = yargs(hideBin(process.argv)).argv as { [key: string]: unknown; profile?: boolean; to?: string };
+    const argv = yargs(hideBin(process.argv)).parseSync();
 
     const doProfile = argv.profile;
     const profileFile = doProfile
