@@ -196,7 +196,6 @@ export class TrRoutingBatchExecutor {
 
             return {
                 completed: true,
-                detailed: false,
                 errors: [],
                 warnings: this.errors
             };
@@ -204,7 +203,6 @@ export class TrRoutingBatchExecutor {
             if (Array.isArray(error)) {
                 console.log('Multiple errors in batch route calculations for job %d', this.job.id);
                 return {
-                    detailed: false,
                     completed: false,
                     errors: error,
                     warnings: []
