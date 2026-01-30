@@ -180,7 +180,6 @@ export const batchAccessibilityMap = async (
         Object.assign(files, resultProcessor.getFiles());
 
         return {
-            detailed: parameters.detailed,
             completed: true,
             errors: [],
             warnings: errors,
@@ -189,7 +188,6 @@ export const batchAccessibilityMap = async (
     } catch (error) {
         if (Array.isArray(error)) {
             return {
-                detailed: false,
                 completed: false,
                 errors: error,
                 warnings: [],
