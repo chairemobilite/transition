@@ -4,6 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import winston from 'winston';
 import fs from 'fs';
 import path from 'path';
 import { spawn } from 'child_process';
@@ -11,24 +12,67 @@ import { spawn } from 'child_process';
 import { fileManager } from '../filesystem/fileManager';
 import { getOsrmDirectoryPathForMode, defaultDirectoryPrefix, getDirectoryPrefix } from './OSRMServicePath';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import { DEFAULT_LOG_FILE_COUNT, DEFAULT_LOG_FILE_SIZE_KB } from '../../config/server.config';
 
-//TODO set type for parameters instead of any
-//TODO set type for Promise return (in all the file)
-const extract = function (parameters: {
+const LOG_FILE_RELATIVE_PATH = 'logs/osrm_prep_logs';
+
+const createLogger = function (logFilePath: string): winston.Logger {
+    return winston.createLogger({
+        level: 'info',
+        format: winston.format.simple(),
+        transports: [
+            new winston.transports.File({
+                filename: logFilePath,
+                maxsize: DEFAULT_LOG_FILE_SIZE_KB * 1024,
+                maxFiles: DEFAULT_LOG_FILE_COUNT,
+                timestamp: true
+            } as any)
+        ]
+    });
+};
+
+type OSRMResult = {
+    status: 'extracted' | 'contracted' | 'prepared' | 'error';
+    service: 'osrm';
+    action: string;
+    mode?: RoutingMode;
+    logFile?: string;
+    error?: string | Error | unknown;
+};
+
+type OSRMPrepareResult = OSRMResult & {
+    modes?: RoutingMode[];
+};
+
+type OSRMExtractParameters = {
     osmFilePath: string;
     directoryPrefix?: string;
     mode?: RoutingMode;
-}): Promise<any> {
-    const osmFilePath = parameters.osmFilePath;
+};
+
+type OSRMContractParameters = {
+    mode?: RoutingMode;
+    directoryPrefix?: string;
+};
+
+const extract = function (params: OSRMExtractParameters): Promise<OSRMResult> {
+    fileManager.directoryManager.createDirectoryIfNotExists(LOG_FILE_RELATIVE_PATH);
+    const { osmFilePath, directoryPrefix, mode = 'walking' } = params;
+    const logFileName = `OSRM_EXTRACT_${mode}`;
+    const logFilePath = fileManager.directoryManager.getAbsolutePath(`${LOG_FILE_RELATIVE_PATH}/${logFileName}.log`);
+    const logger = createLogger(logFilePath);
+
     const fileExtension = path.extname(osmFilePath);
-    //console.log(osmFilePath, fileExtension);
-    const mode = parameters.mode || 'walking';
-    const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, parameters.directoryPrefix);
-    const osrmFileName = getDirectoryPrefix(parameters.directoryPrefix);
+    const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, directoryPrefix);
+    const osrmFileName = getDirectoryPrefix(directoryPrefix);
     const movedFilePath = `${osrmDirectoryPath}/${osrmFileName}${mode}${fileExtension}`;
     const profileFileName = `${mode}.lua`;
 
     fileManager.directoryManager.createDirectoryIfNotExistsAbsolute(osrmDirectoryPath);
+
+    logger.info(
+        `\n\n===== Starting osrm-extract for mode ${mode} from file ${osmFilePath} to ${movedFilePath} =====\n\n`
+    );
 
     return new Promise((resolve, _reject) => {
         console.log(`osrm: extracting osm data for mode ${mode} from file ${osmFilePath}`);
@@ -42,12 +86,13 @@ const extract = function (parameters: {
                 service: 'osrm',
                 action: 'extract',
                 mode,
+                logFile: logFilePath,
                 error
             });
         }
 
         console.log(`osrm-extract --profile="${__dirname}/osrmProfiles/${profileFileName}" "${movedFilePath}"`);
-        // TODO Allow to override the osrm profiles file from the application
+        // TODO: Allow to override the osrm profiles file from the application
         const osrmProcess = spawn(
             'osrm-extract',
             [`--profile="${__dirname}/osrmProfiles/${profileFileName}" `, `"${movedFilePath}"`],
@@ -58,12 +103,16 @@ const extract = function (parameters: {
         );
 
         osrmProcess.stdout.on('data', (data) => {
-            if (data.toString().includes('[info] To prepare the data for routing, run:')) {
+            const output = data.toString();
+            logger.info(output);
+
+            if (output.includes('[info] To prepare the data for routing, run:')) {
                 console.log(`osrm extracted data from osm file ${movedFilePath}`);
                 resolve({
                     status: 'extracted',
                     service: 'osrm',
                     action: 'extract',
+                    logFile: logFilePath,
                     mode
                 });
             }
@@ -71,6 +120,8 @@ const extract = function (parameters: {
 
         osrmProcess.stderr.on('data', (data) => {
             const error = data.toString();
+            logger.error(error);
+
             if (error.startsWith('[error]')) {
                 console.error(`stderr: ${error}`);
                 resolve({
@@ -78,6 +129,7 @@ const extract = function (parameters: {
                     service: 'osrm',
                     action: 'extract',
                     mode,
+                    logFile: logFilePath,
                     error
                 });
             }
@@ -86,13 +138,16 @@ const extract = function (parameters: {
         osrmProcess.on('exit', (code, signal) => {
             if (!(code === 0 && signal === null)) {
                 // failed
-                const error = `osrm contract for mode ${mode} exited with code ${code} and signal ${signal}`;
+                const error = `osrm extract for mode ${mode} exited with code ${code} and signal ${signal}`;
                 console.error(error);
+                logger.error(error);
+
                 resolve({
                     status: 'error',
                     service: 'osrm',
                     action: 'extract',
                     mode,
+                    logFile: logFilePath,
                     error
                 });
             }
@@ -100,21 +155,30 @@ const extract = function (parameters: {
 
         osrmProcess.on('error', (error) => {
             console.log(`osrm extract for mode ${mode} sent error: ${error}`);
+            logger.error(`osrm extract for mode ${mode} sent error: ${error}`);
+
             resolve({
                 status: 'error',
                 service: 'osrm',
                 action: 'extract',
                 mode,
+                logFile: logFilePath,
                 error
             });
         });
     });
 };
 
-//TODO set type for parameters instead of any
-const contract = function (parameters = {} as any): Promise<any> {
-    const mode = parameters.mode || 'walking';
-    const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, parameters.directoryPrefix);
+const contract = function (params: OSRMContractParameters): Promise<OSRMResult> {
+    fileManager.directoryManager.createDirectoryIfNotExists(LOG_FILE_RELATIVE_PATH);
+    const { mode = 'walking', directoryPrefix } = params;
+    const logFileName = `OSRM_CONTRACT_${mode}`;
+    const logFilePath = fileManager.directoryManager.getAbsolutePath(`${LOG_FILE_RELATIVE_PATH}/${logFileName}.log`);
+    const logger = createLogger(logFilePath);
+
+    const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, directoryPrefix);
+
+    logger.info(`\n\n===== Starting osrm-contract for mode ${mode} in directory ${osrmDirectoryPath} =====\n\n`);
 
     return new Promise((resolve, _reject) => {
         console.log(`osrm: contracting osrm data for mode ${mode} from directory ${osrmDirectoryPath}`);
@@ -129,12 +193,16 @@ const contract = function (parameters = {} as any): Promise<any> {
         });
 
         osrmProcess.stdout.on('data', (data) => {
-            if (data.toString().includes('[info] finished preprocessing')) {
+            const output = data.toString();
+            logger.info(output);
+
+            if (output.includes('[info] finished preprocessing')) {
                 //console.log(`osrm contracted data from osrm directory ${osrmDirectoryPath}`);
                 resolve({
                     status: 'contracted',
                     service: 'osrm',
                     action: 'contract',
+                    logFile: logFilePath,
                     mode
                 });
             }
@@ -142,6 +210,8 @@ const contract = function (parameters = {} as any): Promise<any> {
 
         osrmProcess.stderr.on('data', (data) => {
             const error = data.toString();
+            logger.error(error);
+
             if (error.startsWith('[error]')) {
                 console.error(error);
                 resolve({
@@ -149,6 +219,7 @@ const contract = function (parameters = {} as any): Promise<any> {
                     service: 'osrm',
                     action: 'contract',
                     mode,
+                    logFile: logFilePath,
                     error
                 });
             }
@@ -159,11 +230,14 @@ const contract = function (parameters = {} as any): Promise<any> {
                 // failed
                 const error = `osrm contract for mode ${mode} exited with code ${code} and signal ${signal}`;
                 console.error(error);
+                logger.error(error);
+
                 resolve({
                     status: 'error',
                     service: 'osrm',
                     action: 'contract',
                     mode,
+                    logFile: logFilePath,
                     error
                 });
             }
@@ -171,11 +245,14 @@ const contract = function (parameters = {} as any): Promise<any> {
 
         osrmProcess.on('error', (error) => {
             console.error(`osrm contract for mode ${mode} sent error: ${error}`);
+            logger.error(`osrm contract for mode ${mode} sent error: ${error}`);
+
             resolve({
                 status: 'error',
                 service: 'osrm',
                 action: 'contract',
                 mode,
+                logFile: logFilePath,
                 error
             });
         });
@@ -186,7 +263,7 @@ const prepare = async function (
     osmFilePath: string,
     modes: RoutingMode[] | RoutingMode = ['walking', 'cycling', 'driving', 'bus_urban', 'bus_suburb'],
     directoryPrefix = defaultDirectoryPrefix
-): Promise<any> {
+): Promise<OSRMPrepareResult> {
     if (!Array.isArray(modes)) {
         modes = [modes];
     }
@@ -196,31 +273,26 @@ const prepare = async function (
         const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, directoryPrefix);
         fileManager.directoryManager.createDirectoryIfNotExistsAbsolute(osrmDirectoryPath);
 
-        const extractResult = await extract({
-            mode,
-            osmFilePath,
-            directoryPrefix
-        });
+        const extractResult = await extract({ osmFilePath, mode, directoryPrefix });
         if (extractResult.status !== 'extracted') {
             return {
                 status: 'error',
                 service: 'osrm',
                 action: 'prepare.extract',
                 error: extractResult.error,
+                logFile: extractResult.logFile,
                 modes
             };
         }
 
-        const contractResult = await contract({
-            mode: mode,
-            directoryPrefix
-        });
+        const contractResult = await contract({ mode, directoryPrefix });
         if (contractResult.status !== 'contracted') {
             return {
                 status: 'error',
                 service: 'osrm',
                 action: 'prepare.contract',
                 error: contractResult.error,
+                logFile: contractResult.logFile,
                 modes
             };
         }
