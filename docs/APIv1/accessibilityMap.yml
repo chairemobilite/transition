@@ -47,35 +47,35 @@ accessibilityMapRequest:
       example: 61200
     numberOfPolygons: 
       type: number
-      description: "If the withGeojson query parameter is set to true, this determines the number of accessibility polygons that will be computed. For example, A maxTotalTravelTimeSeconds value of 60 minutes with a number of polygons of 3 implies that we will obtain three polygons: accessibility at 20 minutes, 40 minutes and 60 minutes."
+      description: "If the withGeojson query parameter is set to true, this determines the number of accessibility polygons that will be computed. For example, A maxTotalTravelTimeSeconds value of 60 minutes with a number of polygons of 3 implies that we will obtain three polygons: accessibility at 20 minutes, 40 minutes and 60 minutes. Defaults to 1."
       example: 3
     deltaSeconds: 
       type: number
-      description: If the withGeojson query parameter is set to true, this determines the time window before and after the specified departure/arrival time within which accessibility polygons will be averaged. For example, a deltaSeconds of 15 minutes with a deltaIntervalSeconds of 5 minutes implies that the polygon area will be averaged over polygons obtained 15 minutes before, 10 minutes before, 5 minutes before, at specified time, 5 minutes after, 10 minutes after and 15 minutes after the specified departure or arrival time.
+      description: If the withGeojson query parameter is set to true, this determines the time window before and after the specified departure/arrival time within which accessibility polygons will be averaged. For example, a deltaSeconds of 15 minutes with a deltaIntervalSeconds of 5 minutes implies that the polygon area will be averaged over polygons obtained 15 minutes before, 10 minutes before, 5 minutes before, at specified time, 5 minutes after, 10 minutes after and 15 minutes after the specified departure or arrival time. Defaults to 0 seconds, ie the accessibility will be at the exact time of request.
       example: 900
     deltaIntervalSeconds:
       type: number
-      description: If the withGeojson query parameter is set to true, this determines at which interval (within the time window specified in the deltaSeconds parameter) accessilibility polygons will be calculated and averaged. See description for the deltaSeconds parameter.
+      description: If the withGeojson query parameter is set to true, this determines at which interval (within the time window specified in the deltaSeconds parameter) accessibility polygons will be calculated and averaged. See description for the deltaSeconds parameter. Has no effect if deltaSeconds is not set, defaults to 60.
       example: 300
     maxTotalTravelTimeSeconds: 
       type: number
-      description: The maximum total travel time between origin and destination, including access, transfer and egress times
+      description: The maximum total travel time between origin and destination, including access, transfer and egress times. Defaults to 900 seconds (15 minutes).
       example: 900
     minWaitingTimeSeconds: 
       type: number
-      description: "The minimum time to wait at a stop/station, in seconds, to cope with uncertainties in the vehicle arrival times. Suggested value: 180"
+      description: "The minimum time to wait at a stop/station, in seconds, to cope with uncertainties in the vehicle arrival times. Suggested value: 180. Defaults to 180 seconds (3 minutes)."
       example: 180
     maxAccessEgressTravelTimeSeconds: 
       type: number
-      description:  Maximum time, in seconds, to reach the first stop/station in the trip, and to reach the destination from the last stop/station.
+      description: Maximum time, in seconds, to reach the first stop/station in the trip, and to reach the destination from the last stop/station. Defaults to 900 seconds (15 minutes).
       example: 900
     maxTransferTravelTimeSeconds: 
       type: number
-      description: Maximum time, in seconds, for each transfer between stop/station during the trip
+      description: Maximum time, in seconds, for each transfer between stop/station during the trip. Defaults to 900 seconds (15 minutes).
       example: 900
     walkingSpeedMps: 
       type: number
-      description: Assumed walking speed, in meters per second
+      description: Assumed walking speed, in meters per second. Defaults to 1.3888888888 m/s (5 km/h).
       example: 1.3888888888
     calculatePois:
       type: boolean
