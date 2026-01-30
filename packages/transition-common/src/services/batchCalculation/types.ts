@@ -57,7 +57,7 @@ export type BatchCalculationParameters = {
 } & TransitRoutingQueryAttributes;
 
 export interface TransitBatchCalculationResult {
-    detailed: boolean;
+    /** Whether the task is successfully completed or not */
     completed: boolean;
     warnings: TranslatableMessage[];
     errors: TranslatableMessage[];
