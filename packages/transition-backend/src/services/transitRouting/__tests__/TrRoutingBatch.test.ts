@@ -199,7 +199,6 @@ describe('batchRoute function', () => {
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
         expect(mockCreateFileStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
-            detailed: false,
             completed: true,
             errors: [],
             warnings: [],
@@ -266,7 +265,6 @@ describe('batchRoute function', () => {
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
         expect(mockCreateFileStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
-            detailed: false,
             completed: true,
             errors: [],
             warnings: [],
@@ -282,7 +280,6 @@ describe('batchRoute function', () => {
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
         expect(mockCreateFileStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
-            detailed: false,
             completed: true,
             errors: [],
             warnings: errors,
@@ -315,7 +312,6 @@ describe('batchRoute function', () => {
         expect(routeOdTripMock).toHaveBeenCalledTimes(0);
         expect(mockCreateFileStream).toHaveBeenCalledTimes(0);
         expect(result).toEqual({
-            detailed: false,
             completed: false,
             errors,
             warnings: [],
@@ -369,7 +365,6 @@ describe('TrRoutingBatchExecutor', () => {
         // Make sure result is successful
         expect(result).toEqual({
             completed: true,
-            detailed: false,
             errors: [],
             warnings: []
         });
@@ -423,7 +418,6 @@ describe('Batch route from checkpoint', () => {
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length - currentCheckpoint);
         expect(mockCreateFileStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
-            detailed: false,
             completed: true,
             errors: [],
             warnings: [],
@@ -446,7 +440,6 @@ describe('Batch route from checkpoint', () => {
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length - currentCheckpoint);
         expect(mockCreateFileStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
-            detailed: false,
             completed: true,
             errors: [],
             warnings: [],
