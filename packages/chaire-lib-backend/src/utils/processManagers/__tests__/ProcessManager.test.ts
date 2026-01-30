@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-var mockSpawn = require('mock-spawn');
+const mockSpawn = require('mock-spawn');
 
-var testSpawn = mockSpawn();
+let testSpawn = mockSpawn();
 
 import { DEFAULT_LOG_FILE_SIZE_KB } from '../../../config/server.config';
 //TODO maybe use just fs object calls
@@ -20,7 +20,7 @@ jest.mock('../ProcessUtils');
 const mockPidRunning = jest.fn();
 
 mockPidRunning.mockReturnValue(true);
-mockPidRunning.mockName("Mock_IsPidRunning");
+mockPidRunning.mockName('Mock_IsPidRunning');
 ProcessUtils.isPidRunning = mockPidRunning;
 
 // Mock winston logger to create a mock logger
@@ -39,53 +39,53 @@ const createLoggerMock = winston.createLogger as jest.MockedFunction<typeof wins
 // Mock process.kill to make sure we don't kill random processes
 // TODO, Maybe use jest.spyon() to restore it after each test
 const mockKill = jest.fn();
-mockKill.mockName("Mock Process.Kill()");
+mockKill.mockName('Mock Process.Kill()');
 mockKill.mockImplementation((pid, signal?) => {console.log(`Fake killing process ${pid}`); return true;});
 global.process.kill = mockKill;
 
-const testServiceName = "TestService1";
+const testServiceName = 'TestService1';
 jest.setTimeout(30000);
 
-describe('Process Manager testing', function() {
-    beforeEach(function () {
-        var verbose = true; // make it true to see additional verbose output
+describe('Process Manager testing', () => {
+    beforeEach(() => {
+        const verbose = true; // make it true to see additional verbose output
         testSpawn = mockSpawn(verbose);
         testSpawn.setStrategy(null);
         require('child_process').spawn = testSpawn;
-        
+
         //TODO Mock the logger in ProcessManager
 
-        fileManager.deleteFile("pids/TestService1.pid");
+        fileManager.deleteFile('pids/TestService1.pid');
 
     });
-    afterEach(function () {
+    afterEach(() => {
         jest.clearAllMocks();
     });
-    
-    test('Simple Start/Stop', async function() {
+
+    test('Simple Start/Stop', async () => {
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
 
 
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(false);
 
         // Start service
-        var result = await ProcessManager.startProcess({
+        const result = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "All Good",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: 'All Good',
             useShell: false
-        });      
+        });
         expect(result.status).toBe('started');
         expect(testSpawn.calls[0].command).toBe('ls');
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        expect(fileManager.readFile("pids/TestService1.pid")).toBe("1");
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+        expect(fileManager.readFile('pids/TestService1.pid')).toBe('1');
 
         // Test the logger creation
         expect(createLoggerMock).toHaveBeenCalled();
         expect(createLoggerMock).toHaveBeenCalledWith(expect.objectContaining({
-            level: "info",
+            level: 'info',
             transports: [
                 expect.anything()
             ]
@@ -96,49 +96,49 @@ describe('Process Manager testing', function() {
         expect(fileTransport.maxFiles).toEqual(3);
 
         // CHeck isServiceRunning
-        mockPidRunning.mockReturnValue(true)
-        var resultIsRunning = await ProcessManager.isServiceRunning(testServiceName);
+        mockPidRunning.mockReturnValue(true);
+        const resultIsRunning = await ProcessManager.isServiceRunning(testServiceName);
         expect(resultIsRunning).toBe(true);
         expect(mockPidRunning).toHaveBeenCalled();
 
         // Stop service
         mockPidRunning.mockReturnValueOnce(true).mockReturnValueOnce(false);
-        var resultStop = await ProcessManager.stopProcess(testServiceName, "TEST");
-        expect(resultStop.status).toBe("stopped");
+        const resultStop = await ProcessManager.stopProcess(testServiceName, 'TEST');
+        expect(resultStop.status).toBe('stopped');
         expect(mockKill).toHaveBeenCalled();
         expect(mockKill).toHaveBeenCalledWith(1);
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
-        
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(false);
+
     });
 
-    test('Simple Start/Restart/Stop', async function() {
+    test('Simple Start/Restart/Stop', async () => {
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
- 
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
-        
+
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(false);
+
         // Start service
-        var result = await ProcessManager.startProcess({
+        const result = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "All Good",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: 'All Good',
             useShell: false
-        });      
+        });
         expect(result.status).toBe('started');
         expect(testSpawn.calls[0].command).toBe('ls');
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        expect(fileManager.readFile("pids/TestService1.pid")).toBe("2");
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+        expect(fileManager.readFile('pids/TestService1.pid')).toBe('2');
 
         // Restart serivce
         mockPidRunning.mockReturnValueOnce(true).mockReturnValueOnce(true).mockReturnValueOnce(false);
-        var resultRestart = await ProcessManager.startProcess({
+        const resultRestart = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "All Good",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: 'All Good',
             useShell: false,
             attemptRestart: true
         });
@@ -147,29 +147,29 @@ describe('Process Manager testing', function() {
         expect(mockKill).toHaveBeenCalled();
         expect(mockKill).toHaveBeenCalledWith(2);
 
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        expect(fileManager.readFile("pids/TestService1.pid")).toBe("3");
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+        expect(fileManager.readFile('pids/TestService1.pid')).toBe('3');
 
         // Stop service
         mockPidRunning.mockReturnValueOnce(true).mockReturnValueOnce(false);
-        var resultStop = await ProcessManager.stopProcess(testServiceName, "TEST");
-        expect(resultStop.status).toBe("stopped");
+        const resultStop = await ProcessManager.stopProcess(testServiceName, 'TEST');
+        expect(resultStop.status).toBe('stopped');
         expect(mockKill).toHaveBeenCalled();
         expect(mockKill).toHaveBeenCalledWith(2);
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
-        
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(false);
+
     });
-    
-    test('Bad Start', async function() {
+
+    test('Bad Start', async () => {
         testSpawn.sequence.add(testSpawn.simple(0, 'All Not Good!'));
 
         // Start service
-        var result = await ProcessManager.startProcess({
+        const result = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "All Good",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: 'All Good',
             useShell: false
         });
         // TODO, the spawn mock simulate a process that exit immediatly, so this is not fully
@@ -177,258 +177,259 @@ describe('Process Manager testing', function() {
         // covering some of the code path
         expect(result.status).toBe('not_running');
         expect(testSpawn.calls[0].command).toBe('ls');
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(false);
 
     });
-    
-    test('Bad ReStart (no stop)', async function() {
+
+    test('Bad ReStart (no stop)', async () => {
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
 
         // Start service
-        var result = await ProcessManager.startProcess({
+        const result = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "All Good",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: 'All Good',
             useShell: false
         });
         expect(result.status).toBe('started');
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+
         // Restart service
         mockPidRunning.mockReturnValue(true);
-        var resultRestart = await ProcessManager.startProcess({
+        const resultRestart = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "All Good",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: 'All Good',
             useShell: false,
             attemptRestart: true
         });
         expect(resultRestart.status).toBe('could_not_restart');
         expect(mockPidRunning).toHaveBeenCalled();
         expect(mockKill).toHaveBeenCalled();
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
     });
-    
-    test('Clean up of stale PID file', async function() {
-        fileManager.writeFile("pids/TestService1.pid", "1234")
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        
-        // CHeck isServiceRunning
-        mockPidRunning.mockReturnValue(false)
-        var resultIsRunning = await ProcessManager.isServiceRunning(testServiceName);
-        expect(resultIsRunning).toBe(false);
-        expect(mockPidRunning).toHaveBeenCalled();
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);    
-        
-    });
-    
-    test('stale PID file, no clean up', async function() {
-        fileManager.writeFile("pids/TestService1.pid", "1234");
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        
-        // Check isServiceRunning
-        mockPidRunning.mockReturnValue(false)
-        var resultIsRunning = await ProcessManager.isServiceRunning(testServiceName, false);
-        expect(resultIsRunning).toBe(false);
-        expect(mockPidRunning).toHaveBeenCalled();
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);     
-        
-    });
-    
-    test('corrupted PID file', async function() {
-        fileManager.writeFile("pids/TestService1.pid", "abcdef");
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        
-        // Check isServiceRunning
-        mockPidRunning.mockReturnValue(false)
-        var resultIsRunning = await ProcessManager.isServiceRunning(testServiceName);
-        expect(resultIsRunning).toBe(false);    
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);    
 
-        fileManager.writeFile("pids/TestService1.pid", "");
-        fileManager.truncateFile("pids/TestService1.pid");
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        
+    test('Clean up of stale PID file', async () => {
+        fileManager.writeFile('pids/TestService1.pid', '1234');
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+
+        // CHeck isServiceRunning
+        mockPidRunning.mockReturnValue(false);
+        const resultIsRunning = await ProcessManager.isServiceRunning(testServiceName);
+        expect(resultIsRunning).toBe(false);
+        expect(mockPidRunning).toHaveBeenCalled();
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(false);
+
+    });
+
+    test('stale PID file, no clean up', async () => {
+        fileManager.writeFile('pids/TestService1.pid', '1234');
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+
         // Check isServiceRunning
         mockPidRunning.mockReturnValue(false);
-        var resultIsRunning = await ProcessManager.isServiceRunning(testServiceName);
-        expect(resultIsRunning).toBe(false);    
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);    
+        const resultIsRunning = await ProcessManager.isServiceRunning(testServiceName, false);
+        expect(resultIsRunning).toBe(false);
+        expect(mockPidRunning).toHaveBeenCalled();
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+
     });
-    
-    test('Start already running service', async function() {
-        testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));        
+
+    test('corrupted PID file', async () => {
+        fileManager.writeFile('pids/TestService1.pid', 'abcdef');
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+
+        // Check isServiceRunning
+        mockPidRunning.mockReturnValue(false);
+        const resultIsRunning = await ProcessManager.isServiceRunning(testServiceName);
+        expect(resultIsRunning).toBe(false);
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(false);
+
+        fileManager.writeFile('pids/TestService1.pid', '');
+        fileManager.truncateFile('pids/TestService1.pid');
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+
+        // Check isServiceRunning
+        mockPidRunning.mockReturnValue(false);
+        const resultIsRunning2 = await ProcessManager.isServiceRunning(testServiceName);
+        expect(resultIsRunning2).toBe(false);
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(false);
+    });
+
+    test('Start already running service', async () => {
+        testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
         mockPidRunning.mockReturnValue(true);
-        
+
         // Start service
-        var result = await ProcessManager.startProcess({
+        const result = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "All Good",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: 'All Good',
             useShell: false
         });
         expect(result.status).toBe('started');
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        expect(fileManager.readFile("pids/TestService1.pid")).toBe("6");
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+        expect(fileManager.readFile('pids/TestService1.pid')).toBe('6');
 
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
         // Start same service
-        var result = await ProcessManager.startProcess({
+        const result2 = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "All Good",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: 'All Good',
             useShell: false
         });
-        expect(result.status).toBe('already_running');
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        expect(fileManager.readFile("pids/TestService1.pid")).toBe("6");
+        expect(result2.status).toBe('already_running');
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+        expect(fileManager.readFile('pids/TestService1.pid')).toBe('6');
 
-        
-        
-        
+
+
+
     });
-    
-    test('Start multiple services', async function() {
-        // Make sure we are in a clean state
-        fileManager.deleteFile("pids/OtherService.pid");
 
-        
+    test('Start multiple services', async () => {
+        // Make sure we are in a clean state
+        fileManager.deleteFile('pids/OtherService.pid');
+
+
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
-        testSpawn.sequence.add(testSpawn.simple(0, 'Other Good'));      
+        testSpawn.sequence.add(testSpawn.simple(0, 'Other Good'));
         mockPidRunning.mockReturnValue(true);
-        
+
         // Start first service
-        var result = await ProcessManager.startProcess({
+        const result = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "All Good",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: 'All Good',
             useShell: false
         });
         expect(result.status).toBe('started');
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        expect(fileManager.readFile("pids/TestService1.pid")).toBe("7");
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+        expect(fileManager.readFile('pids/TestService1.pid')).toBe('7');
         // Start other service
-        
-        var resultOther = await ProcessManager.startProcess({
-            serviceName: "OtherService",
-            tagName: "TEST",
-            command: "cat",
-            commandArgs: ["-l"],
-            waitString: "Other Good",
+
+        const resultOther = await ProcessManager.startProcess({
+            serviceName: 'OtherService',
+            tagName: 'TEST',
+            command: 'cat',
+            commandArgs: ['-l'],
+            waitString: 'Other Good',
             useShell: false
         });
         expect(resultOther.status).toBe('started');
-        expect(fileManager.fileExists("pids/OtherService.pid")).toBe(true);
-        expect(fileManager.readFile("pids/OtherService.pid")).toBe("8");
+        expect(fileManager.fileExists('pids/OtherService.pid')).toBe(true);
+        expect(fileManager.readFile('pids/OtherService.pid')).toBe('8');
 
         // Clean up
-        fileManager.deleteFile("pids/OtherService.pid");
-        
+        fileManager.deleteFile('pids/OtherService.pid');
+
     });
-    
-    test('Start-[service is killed]-Stop', async function() {
+
+    test('Start-[service is killed]-Stop', async () => {
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
 
 
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(false);
 
         // Start service
-        var result = await ProcessManager.startProcess({
+        const result = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "All Good",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: 'All Good',
             useShell: false
         });
         expect(result.status).toBe('started');
         expect(testSpawn.calls[0].command).toBe('ls');
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        expect(fileManager.readFile("pids/TestService1.pid")).toBe("9");
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+        expect(fileManager.readFile('pids/TestService1.pid')).toBe('9');
 
         // Simulate dead process
         mockPidRunning.mockReturnValue(false);
-        
+
         // CHeck isServiceRunning
-        var resultIsRunning = await ProcessManager.isServiceRunning(testServiceName, false);
+        const resultIsRunning = await ProcessManager.isServiceRunning(testServiceName, false);
         expect(resultIsRunning).toBe(false);
         expect(mockPidRunning).toHaveBeenCalled();
 
         // Stop service
-        var resultStop = await ProcessManager.stopProcess(testServiceName, "TEST");
-        expect(resultStop.status).toBe("not_running");
+        const resultStop = await ProcessManager.stopProcess(testServiceName, 'TEST');
+        expect(resultStop.status).toBe('not_running');
         expect(mockKill).toHaveBeenCalledTimes(0);
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
-        
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(false);
+
     });
-    
-    test('Exception in process.kill', async function() {
+
+    test('Exception in process.kill', async () => {
         const mockKillThrow = jest.fn();
-        mockKillThrow.mockImplementation((pid, signal?) => {console.log(`Fake killing process ${pid} with exception`);
-                                                            throw Error("Invalid  process");
-                                                            return true;});
+        mockKillThrow.mockImplementation((pid, signal?) => {
+            console.log(`Fake killing process ${pid} with exception`);
+            throw Error('Invalid  process');
+        });
         global.process.kill = mockKillThrow;
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
 
-        
+
         // Start service
-        var result = await ProcessManager.startProcess({
+        const result = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "All Good",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: 'All Good',
             useShell: false
-        }); 
+        });
         expect(result.status).toBe('started');
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
 
         // Stop service
         mockPidRunning.mockReturnValueOnce(true).mockReturnValueOnce(false);
-        var resultStop = await ProcessManager.stopProcess(testServiceName, "TEST");
-        expect(resultStop.status).toBe("not_running");
+        const resultStop = await ProcessManager.stopProcess(testServiceName, 'TEST');
+        expect(resultStop.status).toBe('not_running');
         expect(mockKillThrow).toHaveBeenCalled();
         // TODO Should we clean up the file if we get the exception. (It might also be a permission issue)
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);     
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
 
         global.process.kill = mockKill;
     });
 
-    test('Start/Stop with log file configuration', async function() {
+    test('Start/Stop with log file configuration', async () => {
         testSpawn.sequence.add(testSpawn.simple(0, 'All Good'));
 
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(false);
 
         // Start service, with 3 logs files of 2 MB each
-        var result = await ProcessManager.startProcess({
+        const result = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "All Good",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: 'All Good',
             logFiles: {
                 maxFileSizeKB: 2048,
                 nbLogFiles: 5
             }
-        });      
+        });
         expect(result.status).toBe('started');
         expect(testSpawn.calls[0].command).toBe('ls');
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
 
         // Test the logger creation
         expect(createLoggerMock).toHaveBeenCalled();
         expect(createLoggerMock).toHaveBeenCalledWith(expect.objectContaining({
-            level: "info",
+            level: 'info',
             transports: [
                 expect.anything()
             ]
@@ -439,7 +440,7 @@ describe('Process Manager testing', function() {
         expect(fileTransport.maxFiles).toEqual(5);
     });
 
-    test('Start no wait string', async function() {
+    test('Start no wait string', async () => {
         testSpawn.sequence.add(function (this: any, cb) {
             // Create a mock process object
             const mockProcess = {
@@ -452,7 +453,7 @@ describe('Process Manager testing', function() {
             this.emit('spawn', mockProcess);
 
             // Then small delay to leave time for the event emit and then exit
-            setTimeout(function () {
+            setTimeout(() => {
                 return cb(0);
             }, 100);
 
@@ -460,21 +461,21 @@ describe('Process Manager testing', function() {
             return mockProcess;
         });
 
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(false);
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(false);
 
         // Start service
-        var result = await ProcessManager.startProcess({
+        const result = await ProcessManager.startProcess({
             serviceName: testServiceName,
-            tagName: "TEST",
-            command: "ls",
-            commandArgs: ["-l"],
-            waitString: "",
+            tagName: 'TEST',
+            command: 'ls',
+            commandArgs: ['-l'],
+            waitString: '',
             useShell: false
         });
         expect(result.status).toBe('started');
         expect(testSpawn.calls[0].command).toBe('ls');
-        expect(fileManager.fileExists("pids/TestService1.pid")).toBe(true);
-        expect(fileManager.readFile("pids/TestService1.pid")).toBe("12");
+        expect(fileManager.fileExists('pids/TestService1.pid')).toBe(true);
+        expect(fileManager.readFile('pids/TestService1.pid')).toBe('12');
     });
 });
 
