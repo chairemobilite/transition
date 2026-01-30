@@ -8,7 +8,7 @@ import _cloneDeep from 'lodash/cloneDeep';
 import { EventEmitter } from 'events';
 import { ObjectWritableMock } from 'stream-mock';
 
-import { batchRoute } from '../TrRoutingBatch';
+import { batchRoute, TrRoutingBatchExecutor } from '../TrRoutingBatch';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { TransitRoutingResult } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
@@ -19,7 +19,7 @@ import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/direct
 import routeOdTrip from '../TrRoutingOdTrip';
 import { Readable } from 'stream';
 import { ExecutableJob } from '../../executableJob/ExecutableJob';
-import { BatchRouteJobType } from '../BatchRoutingJob';
+import { BatchRouteJobType, BatchRouteResultVisitor } from '../BatchRoutingJob';
 import MemcachedProcessManager from 'chaire-lib-backend/lib/utils/processManagers/MemcachedProcessManager';
 
 const absoluteDir = `${directoryManager.userDataDirectory}/1/exports`;
@@ -29,7 +29,12 @@ TrRoutingProcessManager.startBatch = jest.fn().mockResolvedValue({
     service: 'trRoutingBatch',
     port: 14000
 });
+TrRoutingProcessManager.stopBatch = jest.fn().mockResolvedValue({
+    status: 'stopped',
+    service: 'trRoutingBatch'
+});
 const mockStartBatch = TrRoutingProcessManager.startBatch as jest.MockedFunction<typeof TrRoutingProcessManager.startBatch>;
+const mockStopBatch = TrRoutingProcessManager.stopBatch as jest.MockedFunction<typeof TrRoutingProcessManager.stopBatch>
 
 // Mock MemcachedProcessManager
 const mockMemcachedInstance = {
@@ -71,7 +76,7 @@ jest.mock('../../odTrip/odTripProvider', () => {
 });
 
 let fileStreams: {[key: string]: ObjectWritableMock } = {};
-const mockCreateStream = jest.fn().mockImplementation((filename: string) => {
+const mockCreateFileStream = jest.fn().mockImplementation((filename: string) => {
     fileStreams[filename] = new ObjectWritableMock();
     return fileStreams[filename];
 });
@@ -82,7 +87,7 @@ jest.mock('fs', () => {
 
     return {
         ...originalModule,
-        createWriteStream: (fileName: string) => mockCreateStream(fileName)
+        createWriteStream: (fileName: string) => mockCreateFileStream(fileName)
     };
 });
 
@@ -93,7 +98,7 @@ routeOdTripMock.mockImplementation(async (odTrip: BaseOdTrip) => ({
     internalId: odTrip.attributes.internal_id as string,
     origin: odTrip.attributes.origin_geography,
     destination: odTrip.attributes.destination_geography,
-    result: { 
+    result: {
         transit: new TransitRoutingResult({
             origin: { type: 'Feature' as const, geometry: odTrip.attributes.origin_geography, properties: {} },
             destination: { type: 'Feature' as const, geometry: odTrip.attributes.destination_geography, properties: {} },
@@ -103,7 +108,7 @@ routeOdTripMock.mockImplementation(async (odTrip: BaseOdTrip) => ({
 }));
 
 const resultsInDb: any[] = []
-let mockedResultStream = new Readable();
+let mockedResultsDbStream = new Readable();
 jest.mock('../../../models/db/batchRouteResults.db.queries', () => {
     // Require the original module to not be mocked for config file existence check...
     const originalModule =
@@ -120,14 +125,14 @@ jest.mock('../../../models/db/batchRouteResults.db.queries', () => {
         }),
         collection: jest.fn().mockImplementation((jobId, options) => ({ totalCount: resultsInDb.length, tripResults: resultsInDb })),
         deleteForJob: jest.fn(),
-        streamResults: jest.fn().mockImplementation((jobId) => mockedResultStream),
+        streamResults: jest.fn().mockImplementation((jobId) => mockedResultsDbStream),
         countResults: jest.fn().mockResolvedValue(0) // The result is used for logging, any value works
     };
 });
 const mockResultCreate = resultDbQueries.create as jest.MockedFunction<typeof resultDbQueries.create>;
 const mockResultCollection = resultDbQueries.collection as jest.MockedFunction<typeof resultDbQueries.collection>;
 const mockResultDeleteForJob = resultDbQueries.deleteForJob as jest.MockedFunction<typeof resultDbQueries.deleteForJob>;
-const mockStreamResults = resultDbQueries.streamResults as jest.MockedFunction<typeof resultDbQueries.streamResults>;
+const mockDbStreamResults = resultDbQueries.streamResults as jest.MockedFunction<typeof resultDbQueries.streamResults>;
 
 const inputFileName = 'batchRouting.csv';
 
@@ -180,15 +185,8 @@ let job: ExecutableJob<BatchRouteJobType>;
 beforeEach(async () => {
     resultsInDb.splice(0);
     resultsInDbCnt = 0;
-    routeOdTripMock.mockClear();
-    mockCreateStream.mockClear();
-    mockResultCreate.mockClear();
-    mockResultCollection.mockClear();
-    mockResultDeleteForJob.mockClear();
-    mockStreamResults.mockClear();
-    mockStartBatch.mockClear();
-    mockMemcachedStart.mockClear();
-    mockedResultStream = new Readable({
+    jest.clearAllMocks();
+    mockedResultsDbStream = new Readable({
         objectMode: true,
         read: function(size) {
             if (resultsInDbCnt < resultsInDb.length) {
@@ -206,141 +204,229 @@ beforeEach(async () => {
     jest.spyOn(job, 'getReadStream').mockImplementation(() => Readable.from('mock,csv,data\n1,2,3') as any);
 });
 
-test('Batch route to csv', async () => {
+describe('batchRoute function', () => {
 
-    const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
-    expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
-    expect(mockCreateStream).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({
-        detailed: false,
-        completed: true,
-        errors: [],
-        warnings: [],
-        files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
+    test('Batch route to csv', async () => {
+
+        const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
+        expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
+        expect(mockCreateFileStream).toHaveBeenCalledTimes(1);
+        expect(result).toEqual({
+            detailed: false,
+            completed: true,
+            errors: [],
+            warnings: [],
+            files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
+        });
+        const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith('batchRoutingResults.csv'));
+        expect(csvFileName).toBeDefined();
+        const csvStream = fileStreams[csvFileName as string];
+        expect(csvStream.data.length).toEqual(odTrips.length + 1);
+
+        // Verify TrRoutingProcessManager.startBatch was called with no custom cachePath
+        expect(mockStartBatch).toHaveBeenCalledWith(
+            expect.any(Number),
+            expect.objectContaining({
+                cacheDirectoryPath: undefined,
+                memcachedServer: 'localhost:11212'
+            })
+        );
+
+        // Validate the result database calls
+        expect(mockResultCreate).toHaveBeenCalledTimes(odTrips.length);
+        for (let i = 0; i < odTrips.length; i++) {
+            expect(mockResultCreate).toHaveBeenCalledWith(expect.objectContaining({
+                jobId,
+                tripIndex: i
+            }));
+        }
+        expect(mockDbStreamResults).toHaveBeenCalledTimes(1);
+        expect(mockDbStreamResults).toHaveBeenCalledWith(jobId);
+        expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
+        expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId, undefined);
     });
-    const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith('batchRoutingResults.csv'));
-    expect(csvFileName).toBeDefined();
-    const csvStream = fileStreams[csvFileName as string];
-    expect(csvStream.data.length).toEqual(odTrips.length + 1);
 
-    // Verify TrRoutingProcessManager.startBatch was called with no custom cachePath
-    expect(mockStartBatch).toHaveBeenCalledWith(
-        expect.any(Number),
-        expect.objectContaining({
-            cacheDirectoryPath: undefined,
-            memcachedServer: 'localhost:11212'
-        })
-    );
+    test('Batch route with custom cachePath parameter', async () => {
+        const customCachePath = '/custom/cache/path';
 
-    // Validate the result database calls
-    expect(mockResultCreate).toHaveBeenCalledTimes(odTrips.length);
-    for (let i = 0; i < odTrips.length; i++) {
-        expect(mockResultCreate).toHaveBeenCalledWith(expect.objectContaining({
-            jobId,
-            tripIndex: i
-        }));
-    }
-    expect(mockStreamResults).toHaveBeenCalledTimes(1);
-    expect(mockStreamResults).toHaveBeenCalledWith(jobId);
-    expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
-    expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId, undefined);
-});
-
-test('Batch route with custom cachePath parameter', async () => {
-    const customCachePath = '/custom/cache/path';
-
-    // Create a new job attributes object with trRoutingJobParameters
-    const jobAttributesWithCache = {
-        ...mockJobAttributes,
-        data: {
-            ...mockJobAttributes.data,
-            parameters: {
-                ...mockJobAttributes.data.parameters,
-                trRoutingJobParameters: {
-                    cacheDirectoryPath: customCachePath
+        // Create a new job attributes object with trRoutingJobParameters
+        const jobAttributesWithCache = {
+            ...mockJobAttributes,
+            data: {
+                ...mockJobAttributes.data,
+                parameters: {
+                    ...mockJobAttributes.data.parameters,
+                    trRoutingJobParameters: {
+                        cacheDirectoryPath: customCachePath,
+                        memcachedServer: 'localhost:11212'
+                    }
                 }
             }
+        };
+        mockJobsDbQueries.read.mockResolvedValueOnce(jobAttributesWithCache);
+        job = await ExecutableJob.loadTask(1);
+        jest.spyOn(job, 'getFilePath').mockImplementation(() => './batchRouting.csv');
+        jest.spyOn(job, 'getReadStream').mockImplementation(() => Readable.from('mock,csv,data\n1,2,3') as any);
+
+        const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
+
+        // Verify TrRoutingProcessManager.startBatch was called with the custom cachePath
+        expect(mockStartBatch).toHaveBeenCalledWith(
+            expect.any(Number),
+            expect.objectContaining({
+                cacheDirectoryPath: customCachePath,
+                memcachedServer: 'localhost:11212'
+            })
+        );
+
+        expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
+        expect(mockCreateFileStream).toHaveBeenCalledTimes(1);
+        expect(result).toEqual({
+            detailed: false,
+            completed: true,
+            errors: [],
+            warnings: [],
+            files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
+        });
+    });
+
+    test('Batch route with few errors, should be simple warnings', async () => {
+        const errors = [ 'error1', 'error2' ];
+        mockParseOdTripsFromCsvStream.mockResolvedValueOnce({ odTrips, errors });
+
+        const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
+        expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
+        expect(mockCreateFileStream).toHaveBeenCalledTimes(1);
+        expect(result).toEqual({
+            detailed: false,
+            completed: true,
+            errors: [],
+            warnings: errors,
+            files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
+        });
+        const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith('batchRoutingResults.csv'));
+        expect(csvFileName).toBeDefined();
+        const csvStream = fileStreams[csvFileName as string];
+        expect(csvStream.data.length).toEqual(odTrips.length + 1);
+
+        // Validate the result database calls
+        expect(mockResultCreate).toHaveBeenCalledTimes(odTrips.length);
+        for (let i = 0; i < odTrips.length; i++) {
+            expect(mockResultCreate).toHaveBeenCalledWith(expect.objectContaining({
+                jobId,
+                tripIndex: i
+            }));
         }
-    };
-    mockJobsDbQueries.read.mockResolvedValueOnce(jobAttributesWithCache);
-    job = await ExecutableJob.loadTask(1);
-    jest.spyOn(job, 'getFilePath').mockImplementation(() => './batchRouting.csv');
-    jest.spyOn(job, 'getReadStream').mockImplementation(() => Readable.from('mock,csv,data\n1,2,3') as any);
+        expect(mockDbStreamResults).toHaveBeenCalledTimes(1);
+        expect(mockDbStreamResults).toHaveBeenCalledWith(jobId);
+        expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
+        expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId, undefined);
+    });
 
-    const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
+    test('Batch route with too many errors, should return as error', async () => {
+        const errors = [ 'error1', 'error2' ];
+        mockParseOdTripsFromCsvStream.mockRejectedValueOnce(errors);
 
-    // Verify TrRoutingProcessManager.startBatch was called with the custom cachePath
-    expect(mockStartBatch).toHaveBeenCalledWith(
-        expect.any(Number),
-        expect.objectContaining({
-            cacheDirectoryPath: customCachePath,
-            memcachedServer: 'localhost:11212'
-        })
-    );
+        const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
+        expect(routeOdTripMock).toHaveBeenCalledTimes(0);
+        expect(mockCreateFileStream).toHaveBeenCalledTimes(0);
+        expect(result).toEqual({
+            detailed: false,
+            completed: false,
+            errors,
+            warnings: [],
+            files: { input: inputFileName }
+        });
 
-    expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
-    expect(mockCreateStream).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({
-        detailed: false,
-        completed: true,
-        errors: [],
-        warnings: [],
-        files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
+        // Validate the result database calls
+        expect(mockResultCreate).not.toHaveBeenCalled();
+        expect(mockResultCollection).not.toHaveBeenCalled();
+        expect(mockResultDeleteForJob).not.toHaveBeenCalled();
     });
 });
 
-test('Batch route with some errors', async () => {
-    const errors = [ 'error1', 'error2' ];
-    mockParseOdTripsFromCsvStream.mockResolvedValueOnce({ odTrips, errors });
+describe('TrRoutingBatchExecutor', () => {
+    let executor: TrRoutingBatchExecutor;
 
-    const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
-    expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length);
-    expect(mockCreateStream).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({
-        detailed: false,
-        completed: true,
-        errors: [],
-        warnings: errors,
-        files: { input: inputFileName, csv: 'batchRoutingResults.csv' }
-    });
-    const csvFileName = Object.keys(fileStreams).find(filename => filename.endsWith('batchRoutingResults.csv'));
-    expect(csvFileName).toBeDefined();
-    const csvStream = fileStreams[csvFileName as string];
-    expect(csvStream.data.length).toEqual(odTrips.length + 1);
-
-    // Validate the result database calls
-    expect(mockResultCreate).toHaveBeenCalledTimes(odTrips.length);
-    for (let i = 0; i < odTrips.length; i++) {
-        expect(mockResultCreate).toHaveBeenCalledWith(expect.objectContaining({
-            jobId,
-            tripIndex: i
-        }));
+    class StubResultVisitor implements BatchRouteResultVisitor<number> {
+        visitTripResult = jest.fn();
+        end = () => { /* nothing to do */ };
+        getResult = () => 100;
     }
-    expect(mockStreamResults).toHaveBeenCalledTimes(1);
-    expect(mockStreamResults).toHaveBeenCalledWith(jobId);
-    expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
-    expect(mockResultDeleteForJob).toHaveBeenCalledWith(jobId, undefined);
-});
 
-test('Batch route with too many errors', async () => {
-    const errors = [ 'error1', 'error2' ];
-    mockParseOdTripsFromCsvStream.mockRejectedValueOnce(errors);
-
-    const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
-    expect(routeOdTripMock).toHaveBeenCalledTimes(0);
-    expect(mockCreateStream).toHaveBeenCalledTimes(0);
-    expect(result).toEqual({
-        detailed: false,
-        completed: false,
-        errors,
-        warnings: [],
-        files: { input: inputFileName }
+    beforeEach(() => {
+        executor = new TrRoutingBatchExecutor(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
     });
 
-    // Validate the result database calls
-    expect(mockResultCreate).not.toHaveBeenCalled();
-    expect(mockResultCollection).not.toHaveBeenCalled();
-    expect(mockResultDeleteForJob).not.toHaveBeenCalled();
+    test('should delete previous results for the job', async () => {
+        await executor.run();
+        expect(mockResultDeleteForJob).toHaveBeenCalledWith(job.id, job.attributes.internal_data.checkpoint);
+    });
+
+    test('should emit progress updates', async () => {
+        const progressEmitterSpy = jest.spyOn(socketMock, 'emit');
+        await executor.run();
+        expect(progressEmitterSpy).toHaveBeenCalledWith('progressCount', { name: 'ParsingCsvWithLineNumber', progress: -1 });
+        expect(progressEmitterSpy).toHaveBeenCalledWith('progress', expect.any(Object));
+    });
+
+    test('should start and stop trRouting process for successful run, results should not be handled', async () => {
+        const result = await executor.run();
+
+        // Verify TrRoutingProcessManager.startBatch was called with no custom cachePath
+        expect(mockStartBatch).toHaveBeenCalledWith(
+            expect.any(Number),
+            expect.objectContaining({
+                cacheDirectoryPath: undefined
+            })
+        );
+        expect(mockStopBatch).toHaveBeenCalled();
+
+        // Make sure result is successful
+        expect(result).toEqual({
+            completed: true,
+            detailed: false,
+            errors: [],
+            warnings: []
+        });
+        expect(mockCreateFileStream).not.toHaveBeenCalled();
+    });
+
+    test('should start and stop trRouting process when calculation throws an error', async () => {
+        const errorMsg = 'Failed to start trRouting process';
+        mockStartBatch.mockRejectedValueOnce(new Error(errorMsg));
+        await expect(executor.run())
+            .rejects
+            .toThrow(errorMsg);
+
+        // Verify TrRoutingProcessManager.startBatch was called with no custom cachePath
+        expect(mockStartBatch).toHaveBeenCalledWith(
+            expect.any(Number),
+            expect.objectContaining({
+                cacheDirectoryPath: undefined
+            })
+        );
+        expect(mockStopBatch).toHaveBeenCalled();
+    });
+
+    test('should handle no results if there is no result in the database', async () => {
+        // Handle the results directly without running the task
+        const stubVisitor = new StubResultVisitor();
+        await executor.handleResults(stubVisitor);
+        expect(stubVisitor.visitTripResult).not.toHaveBeenCalled();
+        expect(stubVisitor.getResult()).toEqual(100);
+    });
+
+    test('should handle all results after a successful run', async () => {
+        // First run the task
+        await executor.run();
+
+        // Now handle the results
+        const stubVisitor = new StubResultVisitor();
+        await executor.handleResults(stubVisitor);
+        expect(stubVisitor.visitTripResult).toHaveBeenCalledTimes(odTrips.length);
+        expect(stubVisitor.getResult()).toEqual(100);
+    });
 });
 
 describe('Batch route from checkpoint', () => {
@@ -351,7 +437,7 @@ describe('Batch route from checkpoint', () => {
 
         const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length - currentCheckpoint);
-        expect(mockCreateStream).toHaveBeenCalledTimes(1);
+        expect(mockCreateFileStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
             detailed: false,
             completed: true,
@@ -374,7 +460,7 @@ describe('Batch route from checkpoint', () => {
 
         const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
         expect(routeOdTripMock).toHaveBeenCalledTimes(odTrips.length - currentCheckpoint);
-        expect(mockCreateStream).toHaveBeenCalledTimes(1);
+        expect(mockCreateFileStream).toHaveBeenCalledTimes(1);
         expect(result).toEqual({
             detailed: false,
             completed: true,
