@@ -17,7 +17,7 @@ import _toString from 'lodash/toString';
 import moment from 'moment';
 import Loader from 'react-spinners/BeatLoader';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
-import MapboxGL from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
@@ -363,7 +363,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
 
     // FIXME: We only want this menu to be available when the comparison mode is locations, so we include it here instead of AccessibilityMapSectionMapEvents.ts.
     // We should find a way to move this function to the events file once we migrate to Deck.gl.
-    private showContextMenu = (e: MapboxGL.MapMouseEvent, elements) => {
+    private showContextMenu = (e: maplibregl.MapMouseEvent, elements) => {
         if (this.state.formValues.selectedMode !== 'locations') {
             return;
         }

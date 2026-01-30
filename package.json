@@ -9,6 +9,9 @@
         "packages/transition-backend",
         "packages/transition-frontend"
     ],
+    "resolutions": {
+        "kdbush": "^3.0.0"
+    },
     "scripts": {
         "setup": "yarn workspace chaire-lib-backend run setup",
         "setup-test": "PROJECT_CONFIG=${PWD}/tests/config_test.js yarn workspace chaire-lib-backend run setup-test",

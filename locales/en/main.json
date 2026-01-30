@@ -29,6 +29,9 @@
     "Previous": "Previous",
     "DiscardChanges": "Discard Changes",
     "ConfirmBackModal": "There are unsaved changes. Discard current changes and leave this section?",
+    "ConfirmPathSwitchModal": "You are about to select a different path. The current path has unsaved changes. Do you want to discard these changes and select a different path?",
+    "DiscardChangesAndSelectNewPath": "Discard changes and select new path",
+    "CancelAndKeepCurrentPathSelected": "Keep changes and current path selected",
     "UnsavedChanges": "There are unsaved changes on the current objects. Please save them before leaving this section.",
     "connectionIsOffline": "You are offline, please verify your connection.",
     "Routing": "Routing",
@@ -297,7 +300,15 @@
     "map": {
         "controls": {
             "title": "Map Controls",
-            "resetView": "Reset map view to default center/zoom"
-        }
+            "resetView": "Reset map view to default center/zoom",
+            "layerSelect": "Select map layer",
+            "background": "Background",
+            "osm": "Base Map",
+            "aerial": "Aerial Imagery",
+            "minZoom": "(min zoom: {{zoom}})",
+            "maxZoom": "(max zoom: {{zoom}})"
+        },
+        "osmAttribution": "© OpenStreetMap contributors",
+        "aerialAttribution": "Aerial imagery"
     }
 }

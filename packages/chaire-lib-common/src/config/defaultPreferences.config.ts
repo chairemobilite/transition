@@ -28,6 +28,15 @@ export interface PreferencesModel {
             [key: string]: SectionDescription;
         };
     };
+    /** Map display preferences */
+    map: {
+        /** Initial map center as [longitude, latitude] tuple (GeoJSON order) */
+        center: [number, number];
+        /** Initial zoom level (typically 1-20, where higher values are more zoomed in) */
+        zoom: number;
+        /** Default base layer: 'osm' for OpenStreetMap tiles, 'aerial' for satellite imagery */
+        baseLayer: 'osm' | 'aerial';
+    };
     colorPicker: {
         /** Hexadecimal strings of the various colors that should be available */
         colors: string[];
@@ -42,7 +51,8 @@ const defaultPreferences: PreferencesModel = {
     dateTimeFormat: 'YYYY-MM-DD HH:mm',
     map: {
         center: [config.mapDefaultCenter.lon, config.mapDefaultCenter.lat],
-        zoom: 10
+        zoom: 10,
+        baseLayer: 'osm'
     },
     showAggregatedOdTripsLayer: true,
     socketUploadChunkSize: 10240000,
@@ -353,18 +363,18 @@ const defaultPreferences: PreferencesModel = {
                 walkingSpeedFactor: 1.0, // walking travel times are weighted using this factor: Example: > 1.0 means faster walking, < 1.0 means slower walking
                 originLocationColor: 'rgba(140, 212, 0, 1.0)',
                 destinationLocationColor: 'rgba(212, 35, 14, 1.0)',
-                walkingSegmentsColor: 'rgba(160,160,160,1.0)',
+                walkingSegmentsColor: 'rgba(160, 160, 160, 1.0)',
                 walking: {
-                    color: 'rgba(255, 238, 0,1.0)'
+                    color: 'rgba(255, 238, 0, 1.0)'
                 },
                 cycling: {
-                    color: 'rgba(0, 204, 51,1.0)'
+                    color: 'rgba(0, 204, 51, 1.0)'
                 },
                 driving: {
-                    color: 'rgba(229, 45, 0,1.0)'
+                    color: 'rgba(229, 45, 0, 1.0)'
                 },
                 default: {
-                    color: 'rgba(160,160,160,1.0)'
+                    color: 'rgba(160, 160, 160, 1.0)'
                 }
             },
             transitAccessibilityMap: {
