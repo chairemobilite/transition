@@ -83,8 +83,8 @@ class LineCollection extends GenericObjectCollection<Line> implements Progressab
         return new Line(attribs, isNew, collectionManager);
     }
 
-    saveCache(socket, customCollection) {
-        return CollectionCacheable.saveCache(this, socket, customCollection);
+    saveCache(socket) {
+        return CollectionCacheable.saveCache(this, socket);
     }
 
     loadCache(socket) {

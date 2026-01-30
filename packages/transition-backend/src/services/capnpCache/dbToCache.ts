@@ -43,68 +43,138 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 
 /**
- * Recreate the cache from the database
- *
- * @params Options to recreate the cache: refreshTransferrableNodes requires the
- * serviceLocator to be initialized. Only tasks can run this, the main process
- * does not have access to it. When the Node class has been refactor to not
- * depend on the socket, then we can enable this parameter in any case.
- * saveLines saves all the line objects, along with their schedules.
+ * Load data sources from database and save to cache
+ * @param options.cachePathDirectory - Optional cache directory path
  */
-export const recreateCache = async (
-    options: { refreshTransferrableNodes: boolean; saveLines: boolean; cachePathDirectory?: string } = {
-        refreshTransferrableNodes: false,
-        saveLines: true
-    }
-) => {
+export const loadAndSaveDataSourcesToCache = async ({
+    cachePathDirectory
+}: { cachePathDirectory?: string } = {}): Promise<void> => {
     const dataSourceCollection = new DataSourceCollection([], {});
-    const agencyCollection = new AgencyCollection([], {});
-    const serviceCollection = new ServiceCollection([], {});
-    const scenarioCollection = new ScenarioCollection([], {});
-    const lineCollection = new LineCollection([], {});
-    const nodeCollection = new NodeCollection([], {});
-    const placeCollection = new PlaceCollection([], {});
-    const pathCollection = new PathCollection([], {});
-
     const dataSources = await dataSourceDbQueries.collection();
     dataSourceCollection.loadFromCollection(dataSources);
-    await dataSourceCollectionToCache(dataSourceCollection, options.cachePathDirectory);
+    await dataSourceCollectionToCache(dataSourceCollection, cachePathDirectory);
     console.log('saved data sources collection to cache');
+};
 
+/**
+ * Load agencies from database and save to cache
+ * @param options.cachePathDirectory - Optional cache directory path
+ */
+export const loadAndSaveAgenciesToCache = async ({
+    cachePathDirectory
+}: { cachePathDirectory?: string } = {}): Promise<void> => {
+    const agencyCollection = new AgencyCollection([], {});
     const agencies = await agenciesDbQueries.collection();
     agencyCollection.loadFromCollection(agencies);
-    await agencyCollectionToCache(agencyCollection, options.cachePathDirectory);
+    await agencyCollectionToCache(agencyCollection, cachePathDirectory);
     console.log('saved agencies collection to cache');
+};
 
+/**
+ * Load services from database and save to cache
+ * @param options.cachePathDirectory - Optional cache directory path
+ */
+export const loadAndSaveServicesToCache = async ({
+    cachePathDirectory
+}: { cachePathDirectory?: string } = {}): Promise<void> => {
+    const serviceCollection = new ServiceCollection([], {});
     const services = await servicesDbQueries.collection();
     serviceCollection.loadFromCollection(services);
-    await serviceCollectionToCache(serviceCollection, options.cachePathDirectory);
+    await serviceCollectionToCache(serviceCollection, cachePathDirectory);
     console.log('saved services collection to cache');
+};
 
+/**
+ * Load scenarios from database and save to cache
+ * @param options.cachePathDirectory - Optional cache directory path
+ */
+export const loadAndSaveScenariosToCache = async ({
+    cachePathDirectory
+}: { cachePathDirectory?: string } = {}): Promise<void> => {
+    const scenarioCollection = new ScenarioCollection([], {});
     const scenarios = await scenariosDbQueries.collection();
     scenarioCollection.loadFromCollection(scenarios);
-    await scenarioCollectionToCache(scenarioCollection, options.cachePathDirectory);
+    await scenarioCollectionToCache(scenarioCollection, cachePathDirectory);
     console.log('saved scenarios collection to cache');
+};
 
+/**
+ * Load lines from database and save the collection to cache, as well as
+ * individual lines if requested
+ * @param options.saveIndividualLines - If true, save individual line objects
+ * with their schedules
+ * @param options.cachePathDirectory - Optional cache directory path
+ */
+export const loadAndSaveLinesToCache = async (
+    options: { saveIndividualLines?: boolean; cachePathDirectory?: string } = {}
+): Promise<void> => {
+    const lineCollection = new LineCollection([], {});
     const lines = await linesDbQueries.collection();
     lineCollection.loadFromCollection(lines);
     await lineCollectionToCache(lineCollection, options.cachePathDirectory);
     console.log('saved lines collection to cache');
-    if (options.saveLines) {
-        // Save line objects with their schedules to cache in chunks
-        const lines = lineCollection.getFeatures();
-        while (lines.length > 0) {
-            const linesToSave = lines.splice(0, 100);
-            await linesDbQueries.collectionWithSchedules(linesToSave);
-            await lineObjectsToCache(linesToSave, options.cachePathDirectory);
-        }
-        console.log('saved individual lines with schedules to cache');
+
+    if (options.saveIndividualLines) {
+        await saveLineObjectsToCache(lineCollection, options.cachePathDirectory);
     }
+};
+
+/**
+ * Load specific lines by IDs and save the individual lines with schedules to
+ * cache
+ * @param options.lineIds - Array of line IDs to load and save
+ * @param options.cachePathDirectory - Optional cache directory path
+ */
+export const loadAndSaveLinesByIdsToCache = async ({
+    lineIds,
+    cachePathDirectory
+}: {
+    lineIds: string[];
+    cachePathDirectory?: string;
+}): Promise<void> => {
+    if (lineIds.length === 0) {
+        return;
+    }
+
+    const lineCollection = new LineCollection([], {});
+    const lines = await linesDbQueries.collection(lineIds);
+    lineCollection.loadFromCollection(lines);
+
+    await saveLineObjectsToCache(lineCollection, cachePathDirectory);
+};
+
+// Save line objects with their schedules to cache, in chunks
+const chunkSize = 100;
+const saveLineObjectsToCache = async (lines: LineCollection, cachePathDirectory?: string): Promise<void> => {
+    const lineObjects = lines.getFeatures();
+    // Copy the array to chunk it
+    const linesToSave = [...lineObjects];
+    while (linesToSave.length > 0) {
+        // Save line objects with their schedules to cache in chunks
+        const chunk = linesToSave.splice(0, chunkSize);
+        // Load lines with schedules
+        await linesDbQueries.collectionWithSchedules(chunk);
+        await lineObjectsToCache(chunk, cachePathDirectory);
+    }
+    console.log(`saved ${lineObjects.length} individual line(s) with schedules to cache`);
+};
+
+/**
+ * Load nodes from database and save to cache
+ * @param options.refreshTransferrableNodes - If true, recalculate transferrable nodes (requires serviceLocator)
+ * @param options.cachePathDirectory - Optional cache directory path
+ */
+export const loadAndSaveNodesToCache = async (
+    options: { refreshTransferrableNodes?: boolean; cachePathDirectory?: string } = {}
+): Promise<void> => {
+    const nodeCollection = new NodeCollection([], {});
+    const placeCollection = new PlaceCollection([], {});
 
     const nodesGeojson = await nodesDbQueries.geojsonCollection();
     nodeCollection.loadFromCollection(nodesGeojson.features);
     await nodeCollectionToCache(nodeCollection, options.cachePathDirectory);
     console.log('saved nodes collection to cache');
+
     // TODO saveAndUpdateAll requires the serviceLocator to have a socketEventManager, which the main server process does not have. Only tasks can update them
     if (options.refreshTransferrableNodes) {
         console.log('refreshing transferrable nodes');
@@ -127,16 +197,53 @@ export const recreateCache = async (
         }
     } else {
         const nodeCollManager = new CollectionManager(undefined);
-        const placesGeojson = await placesDbQueries.geojsonCollection([]);
-        placeCollection.loadFromCollection(placesGeojson.features);
         nodeCollManager.add('nodes', nodeCollection);
         await saveAllNodesToCache(nodeCollection, nodeCollManager, options.cachePathDirectory);
         console.log('saved individual nodes with transferable nodes to cache (from DB)');
     }
+};
 
+/**
+ * Load paths from database and save to cache
+ * @param options.cachePathDirectory - Optional cache directory path
+ */
+export const loadAndSavePathsToCache = async ({
+    cachePathDirectory
+}: { cachePathDirectory?: string } = {}): Promise<void> => {
+    const pathCollection = new PathCollection([], {});
     const pathsGeojson = await pathsDbQueries.geojsonCollection({ noNullGeo: true });
     pathCollection.loadFromCollection(pathsGeojson.features);
-    await pathCollectionToCache(pathCollection, options.cachePathDirectory);
+    await pathCollectionToCache(pathCollection, cachePathDirectory);
     console.log('saved paths collection to cache');
+};
+
+/**
+ * Recreate the cache from the database
+ *
+ * @params Options to recreate the cache: refreshTransferrableNodes requires the
+ * serviceLocator to be initialized. Only tasks can run this, the main process
+ * does not have access to it. When the Node class has been refactor to not
+ * depend on the socket, then we can enable this parameter in any case.
+ * saveLines saves all the line objects, along with their schedules.
+ */
+export const recreateCache = async (
+    options: { refreshTransferrableNodes: boolean; saveLines: boolean; cachePathDirectory?: string } = {
+        refreshTransferrableNodes: false,
+        saveLines: true
+    }
+) => {
+    await loadAndSaveDataSourcesToCache({ cachePathDirectory: options.cachePathDirectory });
+    await loadAndSaveAgenciesToCache({ cachePathDirectory: options.cachePathDirectory });
+    await loadAndSaveServicesToCache({ cachePathDirectory: options.cachePathDirectory });
+    await loadAndSaveScenariosToCache({ cachePathDirectory: options.cachePathDirectory });
+    await loadAndSaveLinesToCache({
+        saveIndividualLines: options.saveLines,
+        cachePathDirectory: options.cachePathDirectory
+    });
+    await loadAndSaveNodesToCache({
+        refreshTransferrableNodes: options.refreshTransferrableNodes,
+        cachePathDirectory: options.cachePathDirectory
+    });
+    await loadAndSavePathsToCache({ cachePathDirectory: options.cachePathDirectory });
     console.log('all cache save complete');
 };

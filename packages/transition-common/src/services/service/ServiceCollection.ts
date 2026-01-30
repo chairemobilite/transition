@@ -71,8 +71,8 @@ class ServiceCollection extends GenericObjectCollection<Service> implements Prog
         return new Service(attribs, isNew, collectionManager);
     }
 
-    saveCache(socket, customCollection) {
-        return CollectionCacheable.saveCache(this, socket, customCollection);
+    saveCache(socket) {
+        return CollectionCacheable.saveCache(this, socket);
     }
 
     loadCache(socket) {

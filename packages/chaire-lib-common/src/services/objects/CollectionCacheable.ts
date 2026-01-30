@@ -19,32 +19,25 @@ export default {
      *
      * @param collection The collection to save
      * @param socket The socket
-     * @param customCollection A custom collection of objects. If not set, the
-     * entire collection will be saved to cache
      * @returns
      */
-    saveCache: async function (collection: GenericCollection<any>, socket, customCollection?) {
+    saveCache: async function (collection: GenericCollection<any>, socket) {
         const socketPrefix = collection.socketPrefix;
         return new Promise((resolve, reject) => {
-            socket.emit(
-                `${socketPrefix}.saveCollectionCache`,
-                customCollection,
-                _get(collection.attributes, 'data.customCachePath'),
-                (response) => {
-                    if (!response.error) {
-                        resolve(response);
-                    } else {
-                        console.error(response.error);
-                        reject(
-                            new TrError(
-                                `cannot save cache for ${socketPrefix}: ${response.error}`,
-                                'TSC0001',
-                                `${socketPrefix}CacheCouldNotBeSavedBecauseServerError`
-                            )
-                        );
-                    }
+            socket.emit(`${socketPrefix}.saveCollectionCache`, (response) => {
+                if (!response.error) {
+                    resolve(response);
+                } else {
+                    console.error(response.error);
+                    reject(
+                        new TrError(
+                            `cannot save cache for ${socketPrefix}: ${response.error}`,
+                            'TSC0001',
+                            `${socketPrefix}CacheCouldNotBeSavedBecauseServerError`
+                        )
+                    );
                 }
-            );
+            });
         });
     },
 

@@ -30,6 +30,8 @@ import * as pathsCacheQueries from '../../models/capnpCache/transitPaths.cache.q
 import * as scenariosCacheQueries from '../../models/capnpCache/transitScenarios.cache.queries';
 import * as servicesCacheQueries from '../../models/capnpCache/transitServices.cache.queries';
 
+import * as dbToCacheQueries from '../capnpCache/dbToCache';
+
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -53,7 +55,7 @@ export interface TransitObjectDataHandler {
     deleteCache?: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
     deleteMultipleCache?: (ids: string[], customCachePath: string) => Promise<Record<string, any>>;
     loadCache?: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
-    saveCollectionCache?: (collection, customCachePath) => Promise<Record<string, any>>;
+    saveCollectionCache?: () => Promise<Record<string, any>>;
     loadCollectionCache?: (customCachePath) => Promise<Record<string, any>>;
     updateBatch?: (socket: EventEmitter, attributes: GenericAttributes[]) => Promise<Record<string, any>>;
 }
@@ -65,7 +67,8 @@ const transitClassesConfig = {
         classNamePlural: 'Agencies',
         dbQueries: agenciesDbQueries,
         cacheQueries: agenciesCacheQueries,
-        collection: new AgencyCollection([], {})
+        collection: new AgencyCollection([], {}),
+        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveAgenciesToCache
     },
     lines: {
         lowerCaseName: 'line',
@@ -73,7 +76,8 @@ const transitClassesConfig = {
         classNamePlural: 'Lines',
         dbQueries: linesDbQueries,
         cacheQueries: linesCacheQueries,
-        collection: new LineCollection([], {})
+        collection: new LineCollection([], {}),
+        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveLinesToCache
     },
     nodes: {
         lowerCaseName: 'node',
@@ -82,7 +86,8 @@ const transitClassesConfig = {
         hasIntegerId: true,
         dbQueries: nodesDbQueries,
         cacheQueries: nodesCacheQueries,
-        collection: new NodeCollection([], {})
+        collection: new NodeCollection([], {}),
+        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveNodesToCache
     },
     paths: {
         lowerCaseName: 'path',
@@ -91,7 +96,8 @@ const transitClassesConfig = {
         hasIntegerId: true,
         dbQueries: pathsDbQueries,
         cacheQueries: pathsCacheQueries,
-        collection: new PathCollection([], {})
+        collection: new PathCollection([], {}),
+        saveCollectionToCacheFct: dbToCacheQueries.loadAndSavePathsToCache
     },
     scenarios: {
         lowerCaseName: 'scenario',
@@ -99,7 +105,8 @@ const transitClassesConfig = {
         classNamePlural: 'Scenarios',
         dbQueries: scenariosDbQueries,
         cacheQueries: scenariosCacheQueries,
-        collection: new ScenarioCollection([], {})
+        collection: new ScenarioCollection([], {}),
+        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveScenariosToCache
     },
     services: {
         lowerCaseName: 'service',
@@ -107,7 +114,8 @@ const transitClassesConfig = {
         classNamePlural: 'Services',
         dbQueries: servicesDbQueries,
         cacheQueries: servicesCacheQueries,
-        collection: new ServiceCollection([], {})
+        collection: new ServiceCollection([], {}),
+        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveServicesToCache
     },
     schedules: {
         lowerCaseName: 'schedule',
@@ -359,73 +367,20 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
             };
         }
 
-        if (transitClassConfig.cacheQueries.collectionToCache) {
-            dataHandler.saveCollectionCache = async (collection = null, customCachePath) => {
-                if (collection) {
-                    try {
-                        await transitClassConfig.cacheQueries.collectionToCache(collection, customCachePath);
-                        return {
-                            error: null
-                        };
-                    } catch (error) {
-                        throw new TrError(
-                            `cannot save cache collection file ${transitClassConfig.classNamePlural} because of an error: ${error}`,
-                            'SKTTRSGC0001',
-                            'CacheCouldNotBeSavedBecauseError'
-                        );
-                    }
-                } else if (transitClassConfig.dbQueries.geojsonCollection) {
-                    try {
-                        const collection = await transitClassConfig.dbQueries.geojsonCollection();
-                        transitClassConfig.collection.loadFromCollection(collection.features);
-                        try {
-                            await transitClassConfig.cacheQueries.collectionToCache(
-                                transitClassConfig.collection,
-                                customCachePath
-                            );
-                            return {
-                                error: null
-                            };
-                        } catch (error) {
-                            throw new TrError(
-                                `cannot save cache collection file ${transitClassConfig.classNamePlural} because of an error: ${error}`,
-                                'SKTTRSGC0002',
-                                'CacheCouldNotBeSavedBecauseError'
-                            );
-                        }
-                    } catch (error) {
-                        throw new TrError(
-                            `cannot save cache collection file ${transitClassConfig.classNamePlural} because of an error: ${error}`,
-                            'SKTTRSGC0003',
-                            'CacheCouldNotBeSavedBecauseError'
-                        );
-                    }
-                } else {
-                    try {
-                        const collection = await transitClassConfig.dbQueries.collection();
-                        transitClassConfig.collection.loadFromCollection(collection);
-                        try {
-                            await transitClassConfig.cacheQueries.collectionToCache(
-                                transitClassConfig.collection,
-                                customCachePath
-                            );
-                            return {
-                                error: null
-                            };
-                        } catch (error) {
-                            throw new TrError(
-                                `cannot save cache collection file ${transitClassConfig.classNamePlural} because of an error: ${error}`,
-                                'SKTTRSC0001',
-                                'CacheCouldNotBeSavedBecauseError'
-                            );
-                        }
-                    } catch (error) {
-                        throw new TrError(
-                            `cannot save cache collection file ${transitClassConfig.classNamePlural} because of an error: ${error}`,
-                            'SKTTRSC0002',
-                            'CacheCouldNotBeSavedBecauseError'
-                        );
-                    }
+        if (transitClassConfig.saveCollectionToCacheFct) {
+            dataHandler.saveCollectionCache = async () => {
+                try {
+                    await transitClassConfig.saveCollectionToCacheFct!();
+                    return {
+                        error: null
+                    };
+                } catch (error) {
+                    console.error(error);
+                    return new TrError(
+                        `cannot save cache collection file ${transitClassConfig.classNamePlural} because of an error: ${error}`,
+                        'SKTTRSGC0001',
+                        'CacheCouldNotBeSavedBecauseError'
+                    ).export();
                 }
             };
         }

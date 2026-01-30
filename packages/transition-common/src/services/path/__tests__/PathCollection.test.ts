@@ -146,11 +146,7 @@ test('Save path collection to cache', async () => {
     const collection = new PathCollection([], {}, eventManager);
     await collection.saveCache(eventManager);
     expect(eventManager.emit).toHaveBeenCalled();
-    expect(eventManager.emit).toHaveBeenCalledWith('transitPaths.saveCollectionCache', undefined, undefined, expect.anything());
-
-    await collection.saveCache(eventManager, [path1Geojson, path2Geojson]);
-    expect(eventManager.emit).toHaveBeenCalled();
-    expect(eventManager.emit).toHaveBeenCalledWith('transitPaths.saveCollectionCache', [path1Geojson, path2Geojson], undefined, expect.anything());
+    expect(eventManager.emit).toHaveBeenCalledWith('transitPaths.saveCollectionCache', expect.anything());
 });
 
 test('Load path collection from server', async () => {

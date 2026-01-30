@@ -42,21 +42,14 @@ const collectionCustomPath = new CollectionStub([obj1, obj2, obj3], {data: { cus
 
 test('Save cache', async function() {
 
-    socketMock.emit.mockImplementation((socketPath, coll, path, ret) => {
+    socketMock.emit.mockImplementation((socketPath, ret) => {
         ret({});
     })
 
     // Save simple collection
     socketMock.emit.mockClear();
     await CollectionCacheable.saveCache(collection, socketMock);
-    expect(socketMock.emit).toHaveBeenCalled();
-    expect(socketMock.emit).toHaveBeenCalledWith('collectionStub.saveCollectionCache', undefined, undefined, expect.anything());
-
-    // Save specific collection with custom path
-    socketMock.emit.mockClear();
-    const subColl = new CollectionStub([obj1, obj2]);
-    await CollectionCacheable.saveCache(collectionCustomPath, socketMock, subColl);
-    expect(socketMock.emit).toHaveBeenCalledWith('collectionStub.saveCollectionCache', subColl, customCachePath, expect.anything());
+    expect(socketMock.emit).toHaveBeenCalledWith('collectionStub.saveCollectionCache',expect.anything());
 });
 
 test('should load a progressable collection and emit progress', async function() {
@@ -68,7 +61,6 @@ test('should load a progressable collection and emit progress', async function()
     // Load simple collection
     socketMock.emit.mockClear();
     let loaded = await CollectionCacheable.loadCache(collection, socketMock);
-    expect(socketMock.emit).toHaveBeenCalled();
     expect(socketMock.emit).toHaveBeenCalledWith('collectionStub.loadCollectionCache', undefined, expect.anything());
     expect(loaded).toEqual(collection);
 

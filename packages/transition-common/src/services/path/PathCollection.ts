@@ -45,8 +45,8 @@ export class PathCollection
         );
     }
 
-    saveCache(socket, customCollection?: any) {
-        return CollectionCacheable.saveCache(this, socket, customCollection);
+    saveCache(socket) {
+        return CollectionCacheable.saveCache(this, socket);
     }
 
     loadCache(socket) {

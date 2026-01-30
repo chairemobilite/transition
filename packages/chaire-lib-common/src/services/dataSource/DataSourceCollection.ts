@@ -37,8 +37,8 @@ class DataSourceCollection extends GenericObjectCollection<DataSource> implement
         return new DataSource(attribs, isNew, collectionManager);
     }
 
-    saveCache(socket, customCollection) {
-        return CollectionCacheable.saveCache(this, socket, customCollection);
+    saveCache(socket) {
+        return CollectionCacheable.saveCache(this, socket);
     }
 
     loadCache(socket) {

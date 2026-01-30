@@ -58,8 +58,8 @@ class ScenarioCollection extends GenericObjectCollection<Scenario> implements Pr
         return new Scenario(attribs, isNew, collectionManager);
     }
 
-    saveCache(socket, customCollection) {
-        return CollectionCacheable.saveCache(this, socket, customCollection);
+    saveCache(socket) {
+        return CollectionCacheable.saveCache(this, socket);
     }
 
     loadCache(socket) {

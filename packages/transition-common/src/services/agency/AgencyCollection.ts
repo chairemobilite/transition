@@ -58,8 +58,8 @@ class AgencyCollection extends GenericObjectCollection<Agency> implements Progre
     }
 
     // TODO Have this collection and others implement some interface from which to get those methods
-    saveCache(socket, customCollection) {
-        return CollectionCacheable.saveCache(this, socket, customCollection);
+    saveCache(socket) {
+        return CollectionCacheable.saveCache(this, socket);
     }
 
     loadCache(socket) {
