@@ -34,8 +34,8 @@ startProcessMock.mockImplementation(async ({ tagName, serviceName }) => ({
     name: serviceName
 }));
 // Clone the original config to reset it after each test
-let originalTestConfig = _cloneDeep(config);
-beforeEach(function () {
+const originalTestConfig = _cloneDeep(config);
+beforeEach(() => {
     jest.clearAllMocks();
     // Reset the config to default
     setProjectConfiguration(originalTestConfig);
@@ -48,7 +48,7 @@ beforeEach(function () {
 
 describe('TrRouting Process Manager: start', () => {
 
-    beforeEach(function () {
+    beforeEach(() => {
         // Reset TR_ROUTING_PATH environment variable
         delete process.env.TR_ROUTING_PATH;
     });
@@ -105,7 +105,7 @@ describe('TrRouting Process Manager: start', () => {
     });
     test('start process with a specific port number', async () => {
         process.env.TR_ROUTING_PATH = __dirname;
-        const status = await TrRoutingProcessManager.start({port: 1234});
+        const status = await TrRoutingProcessManager.start({ port: 1234 });
         expect(status).toEqual({
             status: 'started',
             action: 'start',
@@ -130,7 +130,7 @@ describe('TrRouting Process Manager: start', () => {
     });
     test('start process with a custom cache directory', async () => {
         process.env.TR_ROUTING_PATH = __dirname;
-        const status = await TrRoutingProcessManager.start({cacheDirectoryPath:"/tmp/cache"});
+        const status = await TrRoutingProcessManager.start({ cacheDirectoryPath:'/tmp/cache' });
         expect(status).toEqual({
             status: 'started',
             action: 'start',
@@ -142,7 +142,7 @@ describe('TrRouting Process Manager: start', () => {
             serviceName: 'trRouting4000',
             tagName: 'trRouting',
             command: './trRouting',
-            commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=/tmp/cache`, '--threads=2'],
+            commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', '--cachePath=/tmp/cache', '--threads=2'],
             waitString: 'ready.',
             useShell: false,
             cwd: __dirname,
@@ -179,12 +179,12 @@ describe('TrRouting Process Manager: start', () => {
                 maxFileSizeKB: 5120
             }
         });
-        
+
     });
     test('start process with all parameters set', async () => {
         const port = 1234;
         const debug = true;
-        const cacheDirectoryPath = "/tmp/cache";
+        const cacheDirectoryPath = '/tmp/cache';
         const status = await TrRoutingProcessManager.start({ port, debug, cacheDirectoryPath });
         expect(status).toEqual({
             status: 'started',
@@ -264,7 +264,7 @@ describe('TrRouting Process Manager: start', () => {
 
 describe('TrRouting Process Manager: restart', () => {
 
-    beforeEach(function () {
+    beforeEach(() => {
         // Reset TR_ROUTING_PATH environment variable
         delete process.env.TR_ROUTING_PATH;
     });
@@ -321,7 +321,7 @@ describe('TrRouting Process Manager: restart', () => {
     });
     test('with a specific port number', async () => {
         process.env.TR_ROUTING_PATH = __dirname;
-        const status = await TrRoutingProcessManager.restart({port: 1234});
+        const status = await TrRoutingProcessManager.restart({ port: 1234 });
         expect(status).toEqual({
             status: 'started',
             action: 'start',
@@ -346,7 +346,7 @@ describe('TrRouting Process Manager: restart', () => {
     });
     test('with a custom cache directory', async () => {
         process.env.TR_ROUTING_PATH = __dirname;
-        const status = await TrRoutingProcessManager.restart({cacheDirectoryPath:"/tmp/cache"});
+        const status = await TrRoutingProcessManager.restart({ cacheDirectoryPath:'/tmp/cache' });
         expect(status).toEqual({
             status: 'started',
             action: 'start',
@@ -358,7 +358,7 @@ describe('TrRouting Process Manager: restart', () => {
             serviceName: 'trRouting4000',
             tagName: 'trRouting',
             command: './trRouting',
-            commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=/tmp/cache`, '--threads=2'],
+            commandArgs: ['--port=4000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', '--cachePath=/tmp/cache', '--threads=2'],
             waitString: 'ready.',
             useShell: false,
             cwd: __dirname,
@@ -395,14 +395,14 @@ describe('TrRouting Process Manager: restart', () => {
                 maxFileSizeKB: 5120
             }
         });
-        
+
     });
     test('with all parameters set', async () => {
         // Return service is running, it should not affect the outcome in this case
         isServiceRunningMock.mockResolvedValue(true);
         const port = 1234;
         const debug = true;
-        const cacheDirectoryPath = "/tmp/cache";
+        const cacheDirectoryPath = '/tmp/cache';
         const status = await TrRoutingProcessManager.restart({ port, debug, cacheDirectoryPath });
         expect(status).toEqual({
             status: 'started',
@@ -429,7 +429,7 @@ describe('TrRouting Process Manager: restart', () => {
     test('doNotStartIfStopped true, process not running', async () => {
         // Return that the process is not running, ti should not be started
         isServiceRunningMock.mockResolvedValue(false);
-        const status = await TrRoutingProcessManager.restart({ doNotStartIfStopped: true});
+        const status = await TrRoutingProcessManager.restart({ doNotStartIfStopped: true });
         expect(status).toEqual({
             status: 'no_restart_required',
             service: 'trRouting',
@@ -440,7 +440,7 @@ describe('TrRouting Process Manager: restart', () => {
     test('doNotStartIfStopped true, process running', async () => {
         // Return that the process is running, should attempt restart
         isServiceRunningMock.mockResolvedValueOnce(true);
-        const status = await TrRoutingProcessManager.restart({ doNotStartIfStopped: true});
+        const status = await TrRoutingProcessManager.restart({ doNotStartIfStopped: true });
         expect(status).toEqual({
             status: 'started',
             action: 'start',
@@ -493,7 +493,7 @@ describe('TrRouting Process Manager: restart', () => {
 
 describe('TrRouting Process Manager: startBatch', () => {
 
-    beforeEach(function () {
+    beforeEach(() => {
         // Reset TR_ROUTING_PATH environment variable
         delete process.env.TR_ROUTING_PATH;
     });
@@ -510,8 +510,8 @@ describe('TrRouting Process Manager: startBatch', () => {
             serviceName: 'memcached',
             tagName: 'memcached',
             command: 'memcached',
-            commandArgs: ['--port=11212', "--user=nobody", "-vv"],
-            waitString: "",
+            commandArgs: ['--port=11212', '--user=nobody', '-vv'],
+            waitString: '',
             useShell: false,
             cwd: undefined,
             attemptRestart: false
@@ -520,7 +520,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             serviceName: 'trRouting14000',
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, "--useMemcached=localhost:11212"],
+            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--useMemcached=localhost:11212'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
@@ -543,7 +543,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             serviceName: 'trRouting14000',
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', "--useMemcached=localhost:11212"],
+            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--useMemcached=localhost:11212'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
@@ -570,7 +570,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             serviceName: 'trRouting14000',
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2', "--useMemcached=localhost:11212"],
+            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=2', '--useMemcached=localhost:11212'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
@@ -593,7 +593,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             serviceName: 'trRouting12345',
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: ['--port=12345', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', "--useMemcached=localhost:11212"],
+            commandArgs: ['--port=12345', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--useMemcached=localhost:11212'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
@@ -619,7 +619,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             serviceName: `trRouting${port}`,
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--cacheAllConnectionSets=true', "--useMemcached=localhost:11212"],
+            commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=0', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--cacheAllConnectionSets=true', '--useMemcached=localhost:11212'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
@@ -634,7 +634,7 @@ describe('TrRouting Process Manager: startBatch', () => {
     test('start batch process with all parameters set', async () => {
         const port = 12345;
         const debug = true;
-        const cacheDirectoryPath = "/tmp/cache";
+        const cacheDirectoryPath = '/tmp/cache';
         const status = await TrRoutingProcessManager.startBatch(4, { port, debug, cacheDirectoryPath });
         expect(status).toEqual({
             status: 'started',
@@ -646,7 +646,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             serviceName: 'trRouting12345',
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${cacheDirectoryPath}`, '--threads=4', "--useMemcached=localhost:11212"],
+            commandArgs: [`--port=${port}`, `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${cacheDirectoryPath}`, '--threads=4', '--useMemcached=localhost:11212'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
@@ -671,7 +671,7 @@ describe('TrRouting Process Manager: startBatch', () => {
             serviceName: 'trRouting14000',
             tagName: 'trRouting',
             command: 'trRouting',
-            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', "--useMemcached=localhost:11212"],
+            commandArgs: ['--port=14000', `--osrmPort=${walkingOsrmMode.getHostPort().port}`, `--osrmHost=${walkingOsrmMode.getHostPort().host}`, '--debug=1', `--cachePath=${directoryManager.projectDirectory}/cache/test`, '--threads=4', '--useMemcached=localhost:11212'],
             waitString: 'ready.',
             useShell: false,
             cwd: undefined,
