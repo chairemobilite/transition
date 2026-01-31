@@ -40,6 +40,7 @@ export const sectionLayers = {
         'transitNodesSelected'
     ],
     scenarios: ['transitPathsForServices'],
+    services: ['transitPathsForServices'],
     routing: [
         'aggregatedOD' /*'transitPaths', 'transitNodes', 'transitStations', */,
         'routingPathsStrokes',
