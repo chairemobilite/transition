@@ -45,7 +45,7 @@ interface ServiceFormState extends SaveableObjectState<Service> {
 }
 
 class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, ServiceFormState> {
-    private isMounted = false;
+    private isComponentMounted = false;
     constructor(props: ServiceFormProps) {
         super(props);
         const service = this.props.service;
@@ -214,7 +214,7 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
             'transitPaths.getForServices',
             [serviceId],
             (status: Status.Status<GeoJSON.FeatureCollection<GeoJSON.LineString, PathAttributes>>) => {
-                if (!this.isMounted) {
+                if (!this.isComponentMounted) {
                     return;
                 }
                 try {
@@ -247,12 +247,12 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
     }
 
     componentDidMount() {
-        this.isMounted = true;
+        this.isComponentMounted = true;
         this.updateTransitPathLayer();
     }
 
     componentWillUnmount() {
-        this.isMounted = false;
+        this.isComponentMounted = false;
         this.clearTransitPathsLayer();
     }
 
