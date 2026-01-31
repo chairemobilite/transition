@@ -200,9 +200,14 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
         });
     };
 
+    /**
+     * Fetch paths for the current service and update the map layer.
+     * Has side effects: socket request + map layer update.
+     */
     private updateTransitPathLayer = () => {
         const serviceId = this.props.service.getId();
         if (!serviceId) {
+            this.clearTransitPathsLayer();
             return;
         }
         serviceLocator.socketEventManager.emit(
@@ -234,6 +239,13 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
         );
     };
 
+    private clearTransitPathsLayer() {
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitPathsForServices',
+            data: turfFeatureCollection([])
+        });
+    }
+
     componentDidMount() {
         this.isMounted = true;
         this.updateTransitPathLayer();
@@ -241,10 +253,7 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
 
     componentWillUnmount() {
         this.isMounted = false;
-        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-            layerName: 'transitPathsForServices',
-            data: turfFeatureCollection([])
-        });
+        this.clearTransitPathsLayer();
     }
 
     render() {
