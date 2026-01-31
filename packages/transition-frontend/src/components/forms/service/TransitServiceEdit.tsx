@@ -45,9 +45,9 @@ interface ServiceFormState extends SaveableObjectState<Service> {
 }
 
 class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, ServiceFormState> {
+    private isMounted = false;
     constructor(props: ServiceFormProps) {
         super(props);
-
         const service = this.props.service;
         this.state = {
             object: service,
@@ -209,6 +209,9 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
             'transitPaths.getForServices',
             [serviceId],
             (status: Status.Status<GeoJSON.FeatureCollection<GeoJSON.LineString, PathAttributes>>) => {
+                if (!this.isMounted) {
+                    return;
+                }
                 try {
                     const paths = Status.unwrap(status);
                     (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
@@ -232,10 +235,12 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
     };
 
     componentDidMount() {
+        this.isMounted = true;
         this.updateTransitPathLayer();
     }
 
     componentWillUnmount() {
+        this.isMounted = false;
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'transitPathsForServices',
             data: turfFeatureCollection([])
