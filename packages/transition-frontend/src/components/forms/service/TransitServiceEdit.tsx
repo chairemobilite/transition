@@ -8,6 +8,7 @@ import React from 'react';
 import Collapsible from 'react-collapsible';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import moment from 'moment';
+import { featureCollection as turfFeatureCollection } from '@turf/turf';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputText from 'chaire-lib-frontend/lib/components/input/InputText';
@@ -21,12 +22,16 @@ import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 import * as ServiceUtils from '../../../services/transitService/TransitServiceUtils';
 import Service, { serviceDays } from 'transition-common/lib/services/service/Service';
 import MathJax from 'react-mathjax';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import TransitServiceFilterableList from './TransitServiceFilterableList';
 import TransitServiceLinesDetail from '../service/TransitServiceLinesDetail';
+import { PathAttributes } from 'transition-common/lib/services/path/Path';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 
 interface ServiceFormProps extends WithTranslation {
     service: Service;
@@ -194,6 +199,48 @@ class TransitServiceEdit extends SaveableObjectForm<Service, ServiceFormProps, S
             confirmModalMergeIsOpen: false
         });
     };
+
+    private updateTransitPathLayer = () => {
+        const serviceId = this.props.service.getId();
+        if (!serviceId) {
+            return;
+        }
+        serviceLocator.socketEventManager.emit(
+            'transitPaths.getForServices',
+            [serviceId],
+            (status: Status.Status<GeoJSON.FeatureCollection<GeoJSON.LineString, PathAttributes>>) => {
+                try {
+                    const paths = Status.unwrap(status);
+                    (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
+                        'map.updateLayer',
+                        {
+                            layerName: 'transitPathsForServices',
+                            data: paths
+                        }
+                    );
+                } catch {
+                    (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
+                        'map.updateLayer',
+                        {
+                            layerName: 'transitPathsForServices',
+                            data: turfFeatureCollection([])
+                        }
+                    );
+                }
+            }
+        );
+    };
+
+    componentDidMount() {
+        this.updateTransitPathLayer();
+    }
+
+    componentWillUnmount() {
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitPathsForServices',
+            data: turfFeatureCollection([])
+        });
+    }
 
     render() {
         const service = this.props.service;
