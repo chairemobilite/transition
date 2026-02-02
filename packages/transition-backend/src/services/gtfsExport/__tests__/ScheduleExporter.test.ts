@@ -10,6 +10,7 @@ import { v4 as uuidV4 } from 'uuid';
 import { exportSchedule } from '../ScheduleExporter';
 import Path from 'transition-common/lib/services/path/Path';
 import { ScheduleAttributes } from 'transition-common/lib/services/schedules/Schedule';
+import schedulesDbQueries from '../../../models/db/transitSchedules.db.queries';
 
 jest.mock('fs', () => {
     // Require the original module to not be mocked...
@@ -24,15 +25,11 @@ jest.mock('fs', () => {
 
 const quoteFct = (val: unknown) => typeof val === 'string';
 const mockWriteTripStream = {
-    write: jest.fn().mockImplementation((chunk) => {
-      
-    }),
+    write: jest.fn().mockImplementation((chunk) => true),
     end: jest.fn()
 };
 const mockWriteStopTimeStream = {
-    write: jest.fn().mockImplementation((chunk) => {
-      
-    }),
+    write: jest.fn().mockImplementation((chunk) => true),
     end: jest.fn()
 };
 const mockCreateStream = createWriteStream as jest.MockedFunction<any>
@@ -232,14 +229,12 @@ const scheduleAttributes2: ScheduleAttributes = {
     periods_group_shortname: "all_day",
 };
 
-let schedulesToReturn: ScheduleAttributes[] = [];
 jest.mock('../../../models/db/transitSchedules.db.queries', () => {
     return {
-        readForLines: jest.fn().mockImplementation(async () => {
-            return schedulesToReturn;
-        })
+        readForLines: jest.fn()
     }
 });
+const mockReadForLines = schedulesDbQueries.readForLines as jest.MockedFunction<typeof schedulesDbQueries.readForLines>;
 
 jest.mock('../../../models/db/transitPaths.db.queries', () => {
     return {
@@ -254,15 +249,11 @@ const sluggedServiceId2 = 'Service2';
 const serviceToGtfsId = { [serviceId]: sluggedServiceId, [serviceId2]: sluggedServiceId2 };
 
 beforeEach(() => {
-    mockWriteTripStream.write.mockClear();
-    mockWriteTripStream.end.mockClear();
-    mockWriteStopTimeStream.write.mockClear();
-    mockWriteStopTimeStream.end.mockClear();
-    mockCreateStream.mockClear();
+    jest.clearAllMocks();
 })
 
 test('Test exporting one schedule', async () => {
-    schedulesToReturn = [scheduleAttributes1];
+    mockReadForLines.mockResolvedValueOnce([scheduleAttributes1]);
     const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
     expect(response.status).toEqual('success');
     expect((response as any).nodeIds).toEqual(pathAttributes.nodes);
@@ -308,7 +299,7 @@ test('Test exporting one schedule', async () => {
 });
 
 test('Test exporting one schedule including multiple paths', async () => {
-    schedulesToReturn = [scheduleAttributes2];
+    mockReadForLines.mockResolvedValueOnce([scheduleAttributes2]);
     const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
     expect(response.status).toEqual('success');
     expect((response as any).nodeIds).toEqual([...pathAttributes.nodes, ...pathAttributes2.nodes]);
@@ -340,7 +331,7 @@ test('Test exporting one schedule including multiple paths', async () => {
 });
 
 test('Test exporting multiple schedules', async () => {
-    schedulesToReturn = [scheduleAttributes1, scheduleAttributes2];
+    mockReadForLines.mockResolvedValueOnce([scheduleAttributes1, scheduleAttributes2]);
     const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
     expect(response.status).toEqual('success');
     expect((response as any).nodeIds).toEqual([...pathAttributes.nodes, ...pathAttributes2.nodes]);
@@ -358,11 +349,65 @@ test('Test exporting multiple schedules', async () => {
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/stop_times.txt'));
 });
 
+test('Test exporting multiple chunks of schedules', async () => {
+    // Create 1000 schedules to force 10 writes, just duplicate existing ones
+    const writeCount = 10;
+    const manySchedules = Array.from({ length: 1000 }).map((_, index) => scheduleAttributes1);
+    mockReadForLines.mockResolvedValueOnce(manySchedules);
+    const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
+    expect(response.status).toEqual('success');
+    expect((response as any).nodeIds).toEqual([...pathAttributes.nodes]);
+    expect((response as any).pathIds).toEqual([pathAttributes.id]);
+
+    expect(mockWriteTripStream.write).toHaveBeenCalledTimes(writeCount);
+    // Make sure the number of lines matches (4 trips * 100 schedules + header)
+    expect((mockWriteTripStream.write.mock.calls[0][0] as string).split('\n').length).toEqual(4 * 100 + 1);
+    // Subsequent calls do not have headers
+    for (let i = 1; i < writeCount; i++) {
+        expect((mockWriteTripStream.write.mock.calls[i][0] as string).split('\n').length).toEqual(4 * 100);
+    }
+
+    expect(mockWriteStopTimeStream.write).toHaveBeenCalledTimes(writeCount);
+    // Make sure the number of lines matches (4 trips * 4 stops for 100 schedules + header)
+    expect((mockWriteStopTimeStream.write.mock.calls[0][0] as string).split('\n').length).toEqual(4 * 4 * 100 + 1);
+    // Subsequent calls do not have headers
+    for (let i = 1; i < writeCount; i++) {
+        expect((mockWriteStopTimeStream.write.mock.calls[i][0] as string).split('\n').length).toEqual(4 * 4 * 100);
+    }
+
+    expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/trips.txt'));
+    expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/stop_times.txt'));
+});
+
+test('Test exporting multiple chunks of lines', async () => {
+    // Request writing schedules for 200 lines, to force 4 chunks of lines
+    const lineIds = Array.from({ length: 200 }).map(() => uuidV4());
+    const writeCount = 4;
+    // Actual schedules is not important, just need some to write
+    mockReadForLines.mockResolvedValueOnce([scheduleAttributes1]);
+    mockReadForLines.mockResolvedValueOnce([scheduleAttributes1]);
+    mockReadForLines.mockResolvedValueOnce([scheduleAttributes1]);
+    mockReadForLines.mockResolvedValueOnce([scheduleAttributes1]);
+    const response = await exportSchedule(lineIds, { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
+    expect(response.status).toEqual('success');
+    expect((response as any).nodeIds).toEqual([...pathAttributes.nodes]);
+    expect((response as any).pathIds).toEqual([pathAttributes.id]);
+
+    // Make sure there was 4 writes for each file, and the same for the readForLines function
+    expect(mockReadForLines).toHaveBeenCalledTimes(writeCount);
+    expect(mockReadForLines).toHaveBeenCalledWith(lineIds.slice(0, 50));
+    expect(mockReadForLines).toHaveBeenCalledWith(lineIds.slice(50, 100));
+    expect(mockReadForLines).toHaveBeenCalledWith(lineIds.slice(100, 150));
+    expect(mockReadForLines).toHaveBeenCalledWith(lineIds.slice(150, 200));
+    expect(mockWriteTripStream.write).toHaveBeenCalledTimes(writeCount);
+    expect(mockWriteStopTimeStream.write).toHaveBeenCalledTimes(writeCount);
+});
+
 test('Test exporting a schedule with an unknown path', async () => {
     const unknownPathId = uuidV4();
     const schedulesWithNoPath = Object.assign({}, scheduleAttributes2);
     schedulesWithNoPath.periods[0].trips.forEach((trip, index) => schedulesWithNoPath.periods[0].trips[index].path_id = unknownPathId);
-    schedulesToReturn = [schedulesWithNoPath];
+    mockReadForLines.mockResolvedValueOnce([schedulesWithNoPath]);
     const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
     expect(response.status).toEqual('success');
     expect((response as any).nodeIds).toEqual([]);
@@ -376,7 +421,7 @@ test('Test exporting a schedule with an unknown path', async () => {
 });
 
 test('Test exporting no schedules', async () => {
-    schedulesToReturn = [];
+    mockReadForLines.mockResolvedValueOnce([]);
     const response = await exportSchedule([uuidV4()], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
     expect(response.status).toEqual('success');
     expect((response as any).nodeIds).toEqual([]);
@@ -391,7 +436,7 @@ test('Test exporting no schedules', async () => {
 
 test('Test GTFS compliance - arrival_time and departure_time are always populated', async () => {
     // This test validates the fix for missing trip edge times that cause GTFS validation errors
-    schedulesToReturn = [scheduleAttributes1];
+    mockReadForLines.mockResolvedValueOnce([scheduleAttributes1]);
     const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
     expect(response.status).toEqual('success');
 
@@ -437,7 +482,7 @@ test('Test GTFS compliance with edge cases - missing arrival or departure times'
     const lastIndex = firstTrip.node_departure_times_seconds.length - 1;
     firstTrip.node_departure_times_seconds[lastIndex] = null;
 
-    schedulesToReturn = [scheduleWithMissingTimes];
+    mockReadForLines.mockResolvedValueOnce([scheduleWithMissingTimes]);
     const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
     expect(response.status).toEqual('success');
 
@@ -470,7 +515,7 @@ test('Test error handling - both arrival_time and departure_time missing', async
     firstTrip.node_arrival_times_seconds[1] = null;
     firstTrip.node_departure_times_seconds[1] = null;
 
-    schedulesToReturn = [scheduleWithBothTimesMissing];
+    mockReadForLines.mockResolvedValueOnce([scheduleWithBothTimesMissing]);
 
     // This should throw an error and result in a failed export
     const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
@@ -521,7 +566,7 @@ test('Test GTFS compliance - handles >24h times for midnight-crossing schedules'
         ]
     };
 
-    schedulesToReturn = [scheduleWith24hPlus];
+    mockReadForLines.mockResolvedValueOnce([scheduleWith24hPlus]);
     const response = await exportSchedule([lineId], { 
         directoryPath: 'test', 
         quotesFct: quoteFct, 
