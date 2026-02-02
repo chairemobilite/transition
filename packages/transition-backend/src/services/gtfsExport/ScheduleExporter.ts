@@ -137,6 +137,104 @@ const objectToGtfs = (
     };
 };
 
+const schedulesBatchSize = 100;
+
+// Export the schedules for a subset of lines, to avoid out of memory exception for large sets of lines
+const exportScheduleForLineSubset = async (
+    lineIds: string[],
+    options: {
+        shouldWriteTripHeader: boolean;
+        shouldWriteStopTimesHeader: boolean;
+        stopTimesStream: fs.WriteStream;
+        tripStream: fs.WriteStream;
+        pathCollection: PathCollection;
+        quotesFct: (value: unknown) => boolean;
+        serviceToGtfsId: { [key: string]: string };
+    }
+): Promise<{
+    pathIds: string[];
+    nodeIds: string[];
+    shouldWriteStopTimesHeader: boolean;
+    shouldWriteTripHeader: boolean;
+}> => {
+    // Fetch the schedules for the lines to export
+    const allSchedulesAttributes = await dbQueries.readForLines(lineIds);
+    const pathIds: { [key: string]: boolean } = {};
+    const nodeIds: { [key: string]: boolean } = {};
+
+    let shouldWriteTripHeader = options.shouldWriteTripHeader;
+    let shouldWriteStopTimesHeader = options.shouldWriteStopTimesHeader;
+    // Save schedules in batches to avoid out of memory exceptions, some schedules may have a lot of trips
+    while (allSchedulesAttributes.length > 0) {
+        const scheduleBatch = allSchedulesAttributes.splice(0, schedulesBatchSize);
+
+        const gtfsScheduleData = scheduleBatch.map((schedule) =>
+            !schedule.service_id || !options.serviceToGtfsId[schedule.service_id]
+                ? { trips: [], stopTimes: [], nodeIds: {}, pathIds: {} }
+                : objectToGtfs(
+                    schedule,
+                    schedule.line_id,
+                    options.serviceToGtfsId[schedule.service_id],
+                    options.pathCollection
+                )
+        );
+        const gtfsTrips = gtfsScheduleData.flatMap((gtfsData) => gtfsData.trips);
+        const gtfsStopTimes = gtfsScheduleData.flatMap((gtfsData) => gtfsData.stopTimes);
+        gtfsScheduleData.forEach((gtfsData) => {
+            Object.keys(gtfsData.nodeIds).forEach((nodeId) => (nodeIds[nodeId] = true));
+            Object.keys(gtfsData.pathIds).forEach((pathId) => (pathIds[pathId] = true));
+        });
+
+        // Write the trips and stop_times to the gtfs file
+        if (gtfsTrips.length > 0) {
+            const fileOk = options.tripStream.write(
+                unparse(gtfsTrips, {
+                    newline: '\n',
+                    quotes: options.quotesFct,
+                    header: shouldWriteTripHeader
+                })
+            );
+            // Wait for the stream to drain if necessary to avoid losing data when writing more later
+            if (!fileOk) {
+                await new Promise<void>((resolve) => {
+                    options.tripStream.once('drain', () => resolve());
+                });
+            }
+            shouldWriteTripHeader = false;
+        }
+        if (gtfsStopTimes.length > 0) {
+            const fileOk = options.stopTimesStream.write(
+                unparse(gtfsStopTimes, {
+                    newline: '\n',
+                    quotes: options.quotesFct,
+                    header: shouldWriteStopTimesHeader
+                })
+            );
+            // Wait for the stream to drain if necessary to avoid losing data when writing more later
+            if (!fileOk) {
+                await new Promise<void>((resolve) => {
+                    options.stopTimesStream.once('drain', () => resolve());
+                });
+            }
+            shouldWriteStopTimesHeader = false;
+        }
+    }
+
+    return {
+        pathIds: Object.keys(pathIds),
+        nodeIds: Object.keys(nodeIds),
+        shouldWriteStopTimesHeader,
+        shouldWriteTripHeader
+    };
+};
+
+const lineIdsBatchSize = 50;
+/**
+ * Export the schedules for the given lines to GTFS format
+ * @param lineIds The array of line IDs to export
+ * @param options The options for exporting schedules
+ * @returns Whether the export was successful or an error
+ */
 export const exportSchedule = async (
     lineIds: string[],
     options: {
@@ -155,47 +253,41 @@ export const exportSchedule = async (
     fileManager.truncateFileAbsolute(tripFilePath);
     const tripStream = fs.createWriteStream(tripFilePath);
 
-    // Fetch the schedules for the lines to export
-    const schedulesAttributes = await dbQueries.readForLines(lineIds);
-    const pathIds: { [key: string]: boolean } = {};
-    const nodeIds: { [key: string]: boolean } = {};
-
-    // Fetch the path collection
-    const paths = await pathDbQueries.geojsonCollection();
-    const pathCollection = new PathCollection([], {});
-    pathCollection.loadFromCollection(paths.features);
-
     try {
-        const gtfsScheduleData = schedulesAttributes.map((schedule) =>
-            !schedule.service_id || !options.serviceToGtfsId[schedule.service_id]
-                ? { trips: [], stopTimes: [], nodeIds: {}, pathIds: {} }
-                : objectToGtfs(schedule, schedule.line_id, options.serviceToGtfsId[schedule.service_id], pathCollection)
-        );
+        const pathIds: { [key: string]: boolean } = {};
+        const nodeIds: { [key: string]: boolean } = {};
 
-        const gtfsTrips = gtfsScheduleData.flatMap((gtfsData) => gtfsData.trips);
-        const gtfsStopTimes = gtfsScheduleData.flatMap((gtfsData) => gtfsData.stopTimes);
-        gtfsScheduleData.forEach((gtfsData) => {
-            Object.keys(gtfsData.nodeIds).forEach((nodeId) => (nodeIds[nodeId] = true));
-            Object.keys(gtfsData.pathIds).forEach((pathId) => (pathIds[pathId] = true));
-        });
-        // Write the trips and stop_times to the gtfs file
-        if (gtfsTrips.length > 0) {
-            tripStream.write(
-                unparse(gtfsTrips, {
-                    newline: '\n',
-                    quotes: options.quotesFct,
-                    header: true
-                })
-            );
-        }
-        if (gtfsStopTimes.length > 0) {
-            stopTimesStream.write(
-                unparse(gtfsStopTimes, {
-                    newline: '\n',
-                    quotes: options.quotesFct,
-                    header: true
-                })
-            );
+        // Fetch the path collection
+        const paths = await pathDbQueries.geojsonCollection();
+        const pathCollection = new PathCollection([], {});
+        pathCollection.loadFromCollection(paths.features);
+
+        let shouldWriteTripHeader = true;
+        let shouldWriteStopTimesHeader = true;
+
+        // Copy to avoid mutating the lineIds array
+        const lineIdsCopy = [...lineIds];
+        while (lineIdsCopy.length > 0) {
+            // To avoid out of memory exceptions, export schedules in chunks of 50 lines
+            const linesToExport = lineIdsCopy.splice(0, lineIdsBatchSize);
+            const {
+                pathIds: batchPathIds,
+                nodeIds: batchNodeIds,
+                shouldWriteStopTimesHeader: newShouldWriteStopTimesHeader,
+                shouldWriteTripHeader: newShouldWriteTripHeader
+            } = await exportScheduleForLineSubset(linesToExport, {
+                stopTimesStream,
+                tripStream,
+                shouldWriteTripHeader,
+                shouldWriteStopTimesHeader,
+                pathCollection,
+                quotesFct: options.quotesFct,
+                serviceToGtfsId: options.serviceToGtfsId
+            });
+            batchPathIds.forEach((pathId) => (pathIds[pathId] = true));
+            batchNodeIds.forEach((nodeId) => (nodeIds[nodeId] = true));
+            shouldWriteStopTimesHeader = newShouldWriteStopTimesHeader;
+            shouldWriteTripHeader = newShouldWriteTripHeader;
         }
 
         return { status: 'success', pathIds: Object.keys(pathIds), nodeIds: Object.keys(nodeIds) };
