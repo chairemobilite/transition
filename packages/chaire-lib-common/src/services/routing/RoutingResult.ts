@@ -7,7 +7,8 @@
 import Preferences from '../../config/Preferences';
 import { Route } from './RoutingService';
 import { RoutingOrTransitMode, RoutingMode } from '../../config/routingModes';
-import TrError, { ErrorMessage } from '../../utils/TrError';
+import TrError from '../../utils/TrError';
+import { TranslatableMessage } from '../../utils/TranslatableMessage';
 import { TrRoutingRoute } from '../transitRouting/types';
 
 export const pathIsRoute = (path: Route | TrRoutingRoute | undefined): path is Route => {
@@ -51,7 +52,7 @@ export interface UnimodalRoutingResultData {
     origin: GeoJSON.Feature<GeoJSON.Point>;
     destination: GeoJSON.Feature<GeoJSON.Point>;
     paths: Route[];
-    error?: { localizedMessage: ErrorMessage; error: string; errorCode: string };
+    error?: { localizedMessage: TranslatableMessage; error: string; errorCode: string };
 }
 
 /**

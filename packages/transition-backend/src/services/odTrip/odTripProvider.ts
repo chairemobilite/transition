@@ -18,7 +18,8 @@ import {
     intTimeToSecondsSinceMidnight
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import constants from 'chaire-lib-common/lib/config/constants';
 import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
 
@@ -113,7 +114,7 @@ const extractOdTrip = (
 };
 
 const MAX_ERROR = 10;
-const addError = (errors: ErrorMessage[], error: unknown, nbErrors: number, rowNumber: number) => {
+const addError = (errors: TranslatableMessage[], error: unknown, nbErrors: number, rowNumber: number) => {
     if (nbErrors < MAX_ERROR) {
         if (TrError.isTrError(error)) {
             errors.push({
@@ -146,11 +147,11 @@ const parseOdTripsFromCsvInternal = async (
     csvStream: NodeJS.ReadableStream,
     options: OdTripCsvMapping,
     progressEmitter?: EventEmitter
-): Promise<{ odTrips: BaseOdTrip[]; errors: ErrorMessage[] }> => {
+): Promise<{ odTrips: BaseOdTrip[]; errors: TranslatableMessage[] }> => {
     const odTrips: BaseOdTrip[] = [];
     const projections = Preferences.get('proj4Projections');
     let nbErrors = 0;
-    const errors: ErrorMessage[] = [];
+    const errors: TranslatableMessage[] = [];
 
     const projection =
         projections[options.projection] !== undefined
@@ -212,7 +213,7 @@ export const parseOdTripsFromCsv = async (
     csvFilePath: string,
     options: OdTripCsvMapping,
     progressEmitter?: EventEmitter
-): Promise<{ odTrips: BaseOdTrip[]; errors: ErrorMessage[] }> => {
+): Promise<{ odTrips: BaseOdTrip[]; errors: TranslatableMessage[] }> => {
     console.log(`parsing csv file ${csvFilePath}...`);
 
     // Check if file exists
@@ -245,6 +246,6 @@ export const parseOdTripsFromCsvStream = async (
     csvFileStream: NodeJS.ReadableStream,
     options: OdTripCsvMapping,
     progressEmitter?: EventEmitter
-): Promise<{ odTrips: BaseOdTrip[]; errors: ErrorMessage[] }> => {
+): Promise<{ odTrips: BaseOdTrip[]; errors: TranslatableMessage[] }> => {
     return parseOdTripsFromCsvInternal(csvFileStream, options, progressEmitter);
 };

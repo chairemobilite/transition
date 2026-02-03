@@ -27,7 +27,7 @@ import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper'
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import TransitAccessibilityMapRouting, {
     MAX_DELTA_MINUTES,
     MAX_DELTA_INTERVAL_MINUTES,
@@ -78,7 +78,7 @@ interface TransitRoutingFormState extends ChangeEventsState<TransitAccessibility
     alternateScenarioRouting: TransitAccessibilityMapRouting;
     scenarioCollection: any;
     loading: boolean;
-    routingErrors?: ErrorMessage[];
+    routingErrors?: TranslatableMessage[];
     geojsonDownloadUrl: string | null;
     jsonDownloadUrl: string | null;
     csvDownloadUrl: string | null;

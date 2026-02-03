@@ -19,7 +19,7 @@ import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import InputMultiselect from 'chaire-lib-frontend/lib/components/input/InputMultiselect';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 
@@ -64,7 +64,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
     const [currentResult, setCurrentResult] = useState<RoutingResultsByMode | undefined>(undefined);
     const [scenarioCollection, setScenarioCollection] = useState(serviceLocator.collectionManager.get('scenarios'));
     const [loading, setLoading] = useState(false);
-    const [routingErrors, setRoutingErrors] = useState<ErrorMessage[] | undefined>(undefined);
+    const [routingErrors, setRoutingErrors] = useState<TranslatableMessage[] | undefined>(undefined);
     const [selectedMode, setSelectedMode] = useState<RoutingOrTransitMode | undefined>(undefined);
 
     const { t } = useTranslation(['transit', 'main', 'form']);
@@ -156,7 +156,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
         }
         const localNonce = (calculateRoutingNonceRef.current = new Object());
         const routing = transitRouting;
-        const newRoutingErrors: ErrorMessage[] = [];
+        const newRoutingErrors: TranslatableMessage[] = [];
         const isCancelled = () => localNonce !== calculateRoutingNonceRef.current;
         resetResultsData();
         setLoading(true);

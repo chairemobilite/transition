@@ -9,7 +9,7 @@ import type * as GtfsTypes from 'gtfs-types';
 import pQueue from 'p-queue';
 import _isEqual from 'lodash/isEqual';
 
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import Line from 'transition-common/lib/services/line/Line';
 import Path from 'transition-common/lib/services/path/Path';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
@@ -41,10 +41,10 @@ const generateAndImportPaths = async (
     importData: GtfsInternalData,
     collectionManager: any
 ): Promise<
-    | { status: 'success'; pathIdsByTripId: { [key: string]: string }; warnings: ErrorMessage[] }
-    | { status: 'failed'; errors: ErrorMessage[] }
+    | { status: 'success'; pathIdsByTripId: { [key: string]: string }; warnings: TranslatableMessage[] }
+    | { status: 'failed'; errors: TranslatableMessage[] }
 > => {
-    let allWarnings: ErrorMessage[] = [];
+    let allWarnings: TranslatableMessage[] = [];
     const pathIdsByTripId = {};
 
     try {
@@ -106,8 +106,8 @@ const generatePathsForLine = (
     tripsForLine: { trip: GtfsTypes.Trip; stopTimes: StopTime[] }[],
     pathIdByTripId: { [key: string]: string },
     importData: GtfsInternalData
-): { paths: Path[]; warnings: ErrorMessage[]; pathByTripId: { [key: string]: string } } => {
-    let allWarnings: ErrorMessage[] = [];
+): { paths: Path[]; warnings: TranslatableMessage[]; pathByTripId: { [key: string]: string } } => {
+    let allWarnings: TranslatableMessage[] = [];
     const newPaths: Path[] = [];
     const pathByShapeId: { [key: string]: Path[] } = {};
     const pathsWithoutShape: Path[] = [];
@@ -176,7 +176,7 @@ const generatePathFromShape = (
     shapeGtfsId: string,
     nodeIds: string[],
     importData: GtfsInternalData
-): { newPath: Path; warnings: ErrorMessage[] } => {
+): { newPath: Path; warnings: TranslatableMessage[] } => {
     const gtfsDirectionId = trip.direction_id || 0;
     const pathName = trip.trip_headsign;
     const direction = gtfsDirectionId === 0 ? 'outbound' : 'inbound';
@@ -204,7 +204,7 @@ const generatePathWithoutShape = (
     stopTimes: StopTime[],
     nodeIds: string[],
     importData: GtfsInternalData
-): { newPath: Path; warnings: ErrorMessage[] } => {
+): { newPath: Path; warnings: TranslatableMessage[] } => {
     const gtfsDirectionId = trip.direction_id || 0;
     const pathName = trip.trip_headsign;
     const direction = gtfsDirectionId === 0 ? 'outbound' : 'inbound';

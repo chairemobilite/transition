@@ -4,24 +4,17 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-export interface ErrorMessageWithParams {
-    text: string;
-    params: {
-        [key: string]: string;
-    };
-}
-
-export type ErrorMessage = string | ErrorMessageWithParams;
+import { TranslatableMessage } from './TranslatableMessage';
 
 export default class TrError extends Error {
     private code: string;
-    private localizedMessage: ErrorMessage;
+    private localizedMessage: TranslatableMessage;
 
     static isTrError(error: any): error is TrError {
         return error.code && typeof error.getCode === 'function' && typeof error.export === 'function';
     }
 
-    constructor(message: string, code: string, localizedError: ErrorMessage = '') {
+    constructor(message: string, code: string, localizedError: TranslatableMessage = '') {
         super(message);
 
         // see https://medium.com/@xjamundx/custom-javascript-errors-in-es6-aa891b173f87

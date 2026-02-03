@@ -10,10 +10,10 @@ import { useTranslation } from 'react-i18next';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons/faExclamationTriangle';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 export type FormErrorsProps = {
-    errors: ErrorMessage[];
+    errors: TranslatableMessage[];
     errorType?: 'Warning' | 'Error';
 };
 

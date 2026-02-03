@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { validateTrQueryAttributes } from '../transitRouting/TransitRoutingQueryAttributes';
 import { TransitRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
@@ -59,6 +59,6 @@ export type BatchCalculationParameters = {
 export interface TransitBatchCalculationResult {
     detailed: boolean;
     completed: boolean;
-    warnings: ErrorMessage[];
-    errors: ErrorMessage[];
+    warnings: TranslatableMessage[];
+    errors: TranslatableMessage[];
 }
