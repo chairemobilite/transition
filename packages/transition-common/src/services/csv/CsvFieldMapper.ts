@@ -8,7 +8,7 @@ import _cloneDeep from 'lodash/cloneDeep';
 
 import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
 import { CsvFieldMappingDescriptor, CsvFileAndMapping, FileConfig } from './types';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 /**
  * A class to manage CSV field mapping from CSV fields to application fields
@@ -18,7 +18,7 @@ export class CsvFieldMapper<T extends Record<string, string> = Record<string, st
     protected _csvFields: string[] = [];
     protected _fieldMappings: Partial<T> = {};
     private _isValid: boolean | undefined = undefined;
-    private _errors: ErrorMessage[] = [];
+    private _errors: TranslatableMessage[] = [];
 
     constructor(
         protected mappingDescriptors: CsvFieldMappingDescriptor[],
@@ -39,7 +39,7 @@ export class CsvFieldMapper<T extends Record<string, string> = Record<string, st
             suffix?: string;
             isCsvField?: boolean;
         } = {}
-    ): true | ErrorMessage[] {
+    ): true | TranslatableMessage[] {
         const suffix = options.suffix ?? '';
         const fieldMappingKey = descriptor.key + suffix;
         const mappedField = this._fieldMappings[fieldMappingKey];
@@ -58,8 +58,10 @@ export class CsvFieldMapper<T extends Record<string, string> = Record<string, st
         return true;
     }
 
-    private _descriptorTypeSpecificValidation = (descriptor: CsvFieldMappingDescriptor): true | ErrorMessage[] => {
-        const errors: ErrorMessage[] = [];
+    private _descriptorTypeSpecificValidation = (
+        descriptor: CsvFieldMappingDescriptor
+    ): true | TranslatableMessage[] => {
+        const errors: TranslatableMessage[] = [];
         switch (descriptor.type) {
         case 'latLon': {
             const latOk = this._validateSingleDescriptor(descriptor, { suffix: 'Lat' });
@@ -98,9 +100,9 @@ export class CsvFieldMapper<T extends Record<string, string> = Record<string, st
         }
     };
 
-    protected _validate(): { isValid: boolean; errors: ErrorMessage[] } {
+    protected _validate(): { isValid: boolean; errors: TranslatableMessage[] } {
         let isValid = true;
-        const errors: ErrorMessage[] = [];
+        const errors: TranslatableMessage[] = [];
 
         if (this._csvFields.length === 0) {
             isValid = false;
@@ -229,10 +231,10 @@ export class CsvFieldMapper<T extends Record<string, string> = Record<string, st
 
     /**
      * Get the array of error messages if the object is not valid.
-     * @returns {ErrorMessage[]} An array of error messages. If the object is
+     * @returns {TranslatableMessage[]} An array of error messages. If the object is
      * valid, the array is empty.
      */
-    getErrors(): ErrorMessage[] {
+    getErrors(): TranslatableMessage[] {
         // Cache the validation result
         if (this._isValid === undefined) {
             const { isValid, errors } = this._validate();
@@ -272,9 +274,9 @@ export class CsvFileAndFieldMapper<
         }
     }
 
-    protected _validate(): { isValid: boolean; errors: ErrorMessage[] } {
+    protected _validate(): { isValid: boolean; errors: TranslatableMessage[] } {
         let isValid = true;
-        const errors: ErrorMessage[] = [];
+        const errors: TranslatableMessage[] = [];
 
         if (!this._csvFile) {
             isValid = false;

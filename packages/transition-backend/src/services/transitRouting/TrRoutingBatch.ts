@@ -19,7 +19,7 @@ import { CheckpointTracker } from '../executableJob/JobCheckpointTracker';
 import { resultIsUnimodal } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
 import { ExecutableJob } from '../executableJob/ExecutableJob';
 import { BatchRouteJobType, BatchRouteResultVisitor } from './BatchRoutingJob';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { BatchRouteFileResultVisitor } from './batchRouteCalculation/BatchRouteFileResultVisitor';
 
 const CHECKPOINT_INTERVAL = 250;
@@ -56,7 +56,7 @@ export const batchRoute = async (
 
 class TrRoutingBatch {
     private odTrips: BaseOdTrip[] = [];
-    private errors: ErrorMessage[] = [];
+    private errors: TranslatableMessage[] = [];
     private batchManager: TrRoutingBatchManager;
 
     constructor(
@@ -263,7 +263,7 @@ class TrRoutingBatch {
 
     private getOdTrips = async (): Promise<{
         odTrips: BaseOdTrip[];
-        errors: ErrorMessage[];
+        errors: TranslatableMessage[];
     }> => {
         console.log(`importing od trips from CSV file ${this.job.getInputFileName()}`);
         console.log('reading data from csv file...');

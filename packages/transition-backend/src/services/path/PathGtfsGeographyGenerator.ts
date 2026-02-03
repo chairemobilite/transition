@@ -9,7 +9,7 @@ import type * as GtfsTypes from 'gtfs-types';
 import { Path, TimeAndDistance } from 'transition-common/lib/services/path/Path';
 import { StopTime } from '../gtfsImport/GtfsImportTypes';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import {
     length as turfLength,
     cleanCoords as turfCleanCoords,
@@ -204,11 +204,11 @@ export const generateGeographyAndSegmentsFromGtfs = (
     stopCoordinatesByStopId: { [key: string]: [number, number] },
     defaultLayoverRatioOverTotalTravelTime = 0.1,
     defaultMinLayoverTimeSeconds = 180
-): ErrorMessage[] => {
+): TranslatableMessage[] => {
     path.attributes.nodes = nodeIds; // reset nodes, they will be regenerated from stop times
 
     // Return errors when generating the path
-    const errors: ErrorMessage[] = [];
+    const errors: TranslatableMessage[] = [];
     if (!shapeCoordinatesWithDistances || !shapeCoordinatesWithDistances[0]) {
         path.setData('gtfs', { shape_id: shapeGtfsId });
         path.set('geography', null);
@@ -501,11 +501,11 @@ export const generateGeographyAndSegmentsFromStopTimes = (
     stopCoordinatesByStopId: { [key: string]: [number, number] },
     defaultLayoverRatioOverTotalTravelTime = 0.1,
     defaultMinLayoverTimeSeconds = 180
-): ErrorMessage[] => {
+): TranslatableMessage[] => {
     path.attributes.nodes = nodeIds; // reset nodes, they will be regenerated from stop times
 
     // Return errors when generating the path
-    const errors: ErrorMessage[] = [];
+    const errors: TranslatableMessage[] = [];
 
     const coordinates = stopTimes
         .map((stopTime) => {

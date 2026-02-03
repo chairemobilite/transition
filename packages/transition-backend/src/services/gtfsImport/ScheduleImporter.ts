@@ -9,7 +9,7 @@ import type * as GtfsTypes from 'gtfs-types';
 import { v4 as uuidV4 } from 'uuid';
 import _cloneDeep from 'lodash/cloneDeep';
 import pQueue from 'p-queue';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { hoursToSeconds, secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
 import { GtfsInternalData, StopTime, Frequencies, Period } from './GtfsImportTypes';
@@ -109,8 +109,10 @@ const generateAndImportSchedules = async (
     importData: GtfsInternalData,
     collectionManager: CollectionManager,
     generateFrequencyBasedSchedules = false
-): Promise<{ status: 'success'; warnings: ErrorMessage[] } | { status: 'failed'; errors: ErrorMessage[] }> => {
-    const warnings: string[] = [];
+): Promise<
+    { status: 'success'; warnings: TranslatableMessage[] } | { status: 'failed'; errors: TranslatableMessage[] }
+> => {
+    const warnings: TranslatableMessage[] = [];
 
     const gtfsLineIds = Object.keys(tripByGtfsLineId);
     const promiseQueue = new pQueue({ concurrency: 1 });

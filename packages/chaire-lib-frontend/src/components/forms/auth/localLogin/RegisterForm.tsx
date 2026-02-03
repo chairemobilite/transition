@@ -8,7 +8,7 @@ import { Action } from 'redux';
 import { startRegisterWithPassword } from '../../../../actions/Auth';
 import Button from '../../../input/Button';
 import FormErrors from '../../../pageParts/FormErrors';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import CaptchaComponent from '../../../captcha/CaptchaComponent';
 import { _isEmail } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { RootState } from '../../../../store/configureStore';
@@ -26,7 +26,7 @@ type FormState = {
     passwordConfirmation: string;
     captchaValid: boolean;
     captchaReloadKey: number;
-    error?: ErrorMessage;
+    error?: TranslatableMessage;
 };
 
 const RegisterForm: React.FC<RegisterFormProps> = ({
@@ -60,7 +60,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
         }));
     };
 
-    const validateForm = (): ErrorMessage | undefined => {
+    const validateForm = (): TranslatableMessage | undefined => {
         if (!withEmailOnly && !formState.username) {
             return 'auth:missingUsername';
         }

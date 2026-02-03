@@ -6,7 +6,7 @@
  */
 // Unused vars, but linked to in the documentation
 import { GtfsImportData } from '../services/gtfs/GtfsImportTypes'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 export interface GtfsExportParameters {
     gtfsExporterId: string;
@@ -21,8 +21,8 @@ export interface GtfsExportParameters {
 }
 
 export type GtfsImportStatus =
-    | { status: 'success'; warnings: ErrorMessage[]; errors: ErrorMessage[] }
-    | { status: 'failed'; errors: ErrorMessage[] };
+    | { status: 'success'; warnings: TranslatableMessage[]; errors: TranslatableMessage[] }
+    | { status: 'failed'; errors: TranslatableMessage[] };
 
 /**
  * Upon success, the gtfsExporterId should match the gtfsExporterId of the export
@@ -31,7 +31,7 @@ export type GtfsImportStatus =
 
 export type GtfsExportStatus =
     | { status: 'success'; gtfsExporterId: string; zipFilePath: string }
-    | { status: 'failed'; gtfsExporterId: string; errors: ErrorMessage[] };
+    | { status: 'failed'; gtfsExporterId: string; errors: TranslatableMessage[] };
 
 export class GtfsConstants {
     /**

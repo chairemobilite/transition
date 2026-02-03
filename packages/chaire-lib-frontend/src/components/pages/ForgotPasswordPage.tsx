@@ -6,7 +6,7 @@ import { Link } from 'react-router';
 import { startForgotPasswordRequest } from '../../actions/Auth';
 import Button, { ButtonProps } from '../input/Button';
 import FormErrors from '../pageParts/FormErrors';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { RootState } from '../../store/configureStore';
 import { Action } from 'redux';
 import { ThunkDispatch } from 'redux-thunk';
@@ -32,10 +32,10 @@ const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = () => {
 
     const [formState, setFormState] = React.useState({
         email: '',
-        error: undefined as ErrorMessage | undefined
+        error: undefined as TranslatableMessage | undefined
     });
 
-    const validateEmail = (email: string): ErrorMessage | undefined => {
+    const validateEmail = (email: string): TranslatableMessage | undefined => {
         if (!email) {
             return 'auth:missingEmail';
         }

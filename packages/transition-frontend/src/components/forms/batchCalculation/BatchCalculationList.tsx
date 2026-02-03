@@ -14,7 +14,8 @@ import ExecutableJobComponent from '../../parts/executableJob/ExecutableJobCompo
 import TransitBatchRoutingCalculator from 'transition-common/lib/services/transitRouting/TransitBatchRoutingCalculator';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { BatchRoutingOdDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/types';
 
 interface BatchCalculationListProps extends WithTranslation {
@@ -26,7 +27,7 @@ interface BatchCalculationListProps extends WithTranslation {
 }
 
 const BatchCalculationList: React.FunctionComponent<BatchCalculationListProps> = (props: BatchCalculationListProps) => {
-    const [errors, setErrors] = React.useState<ErrorMessage[]>([]);
+    const [errors, setErrors] = React.useState<TranslatableMessage[]>([]);
     const replayJob = async (jobId: number) => {
         try {
             const parameters = await TransitBatchRoutingCalculator.getCalculationParametersForJob(jobId);

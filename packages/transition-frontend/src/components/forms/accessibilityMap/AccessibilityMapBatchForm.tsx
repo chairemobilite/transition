@@ -29,7 +29,8 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 import { _toInteger, _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import BatchAttributesSelection from './widgets/BatchAttributesSelection';
 import { BatchAccessibilityMapCalculator } from '../../../services/accessibilityMap/BatchAccessibilityMapCalculator';
 import ExecutableJobComponent from '../../parts/executableJob/ExecutableJobComponent';
@@ -49,8 +50,8 @@ interface BatchAccessibilityMapFormState extends ChangeEventsState<TransitBatchA
     jsonDownloadUrl: any;
     csvDownloadUrl: any;
     batchRoutingInProgress: boolean;
-    errors: ErrorMessage[];
-    warnings: ErrorMessage[];
+    errors: TranslatableMessage[];
+    warnings: TranslatableMessage[];
     csvFile?: File;
 }
 

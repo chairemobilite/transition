@@ -9,13 +9,13 @@ import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWit
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GtfsConstants } from '../../api/gtfs';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 export interface GtfsExporterAttributes extends GenericAttributes {
     selectedAgencies: string[];
     filename: string;
     isPrepared?: boolean;
-    exportErrors?: ErrorMessage[];
+    exportErrors?: TranslatableMessage[];
     data: {
         zipFilePath?: string;
     };

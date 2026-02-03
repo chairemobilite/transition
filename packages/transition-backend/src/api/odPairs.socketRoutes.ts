@@ -8,7 +8,8 @@ import { EventEmitter } from 'events';
 
 import odPairsQueries from '../models/db/odPairs.db.queries';
 import { BaseOdTripAttributes } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 /**
  * Add routes specific to od pairs
@@ -24,7 +25,7 @@ export default function (socket: EventEmitter) {
             callback: (
                 response:
                     | { collection: BaseOdTripAttributes[] }
-                    | { error: string; errorCode?: string; localizedMessage?: ErrorMessage }
+                    | { error: string; errorCode?: string; localizedMessage?: TranslatableMessage }
             ) => void
         ) => {
             try {

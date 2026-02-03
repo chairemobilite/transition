@@ -1,4 +1,4 @@
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 /*
  * Copyright 2022, Polytechnique Montreal and contributors
@@ -70,7 +70,11 @@ export interface JobAttributes<TData extends JobDataType> {
     user_id: number;
     name: TData[JobNameKey];
     status: JobStatus;
-    statusMessages?: { errors?: ErrorMessage[]; warnings?: ErrorMessage[]; infos?: ErrorMessage[] };
+    statusMessages?: {
+        errors?: TranslatableMessage[];
+        warnings?: TranslatableMessage[];
+        infos?: TranslatableMessage[];
+    };
     /**
      * Data internal to the job management, that is not relevant to the users.
      * This data is persisted and can be used for job checkpointing, resuming

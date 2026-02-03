@@ -11,7 +11,8 @@ import { TrRoutingV2 } from '../../api/TrRouting';
 import { TrRoutingRoute } from '../transitRouting/types';
 import { Route, RouteResults } from './RoutingService';
 import { getRouteByMode } from './RoutingUtils';
-import TrError, { ErrorMessage } from '../../utils/TrError';
+import TrError from '../../utils/TrError';
+import { TranslatableMessage } from '../../utils/TranslatableMessage';
 import { RoutingResult } from './RoutingResult';
 import { RoutingOrTransitMode } from '../../config/routingModes';
 
@@ -41,7 +42,7 @@ export interface TransitRoutingResultData {
     destination: GeoJSON.Feature<GeoJSON.Point>;
     paths: TrRoutingRoute[];
     walkOnlyPath?: Route;
-    error?: { localizedMessage: ErrorMessage; error: string; errorCode: string };
+    error?: { localizedMessage: TranslatableMessage; error: string; errorCode: string };
 }
 
 export type SegmentToGeoJSON = (

@@ -18,7 +18,8 @@ import {
     intTimeToSecondsSinceMidnight
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import constants from 'chaire-lib-common/lib/config/constants';
 
 export interface accessMapLocationOptions {
@@ -83,7 +84,7 @@ const extractLocation = (
 };
 
 const MAX_ERROR = 10;
-const addError = (errors: ErrorMessage[], error: unknown, nbErrors: number, rowNumber: number) => {
+const addError = (errors: TranslatableMessage[], error: unknown, nbErrors: number, rowNumber: number) => {
     if (nbErrors < MAX_ERROR) {
         if (TrError.isTrError(error)) {
             errors.push({
@@ -117,11 +118,11 @@ const parseLocationsFromCsvInternal = async (
     csvStream: NodeJS.ReadableStream,
     options: accessMapLocationOptions,
     progressEmitter?: EventEmitter
-): Promise<{ locations: AccessibilityMapLocation[]; errors: ErrorMessage[] }> => {
+): Promise<{ locations: AccessibilityMapLocation[]; errors: TranslatableMessage[] }> => {
     const locations: AccessibilityMapLocation[] = [];
     const projections = Preferences.get('proj4Projections');
     let nbErrors = 0;
-    const errors: ErrorMessage[] = [];
+    const errors: TranslatableMessage[] = [];
 
     const projection =
         projections[options.projection] !== undefined
@@ -183,7 +184,7 @@ export const parseLocationsFromCsv = async (
     csvFilePath: string,
     options: accessMapLocationOptions,
     progressEmitter?: EventEmitter
-): Promise<{ locations: AccessibilityMapLocation[]; errors: ErrorMessage[] }> => {
+): Promise<{ locations: AccessibilityMapLocation[]; errors: TranslatableMessage[] }> => {
     console.log(`parsing csv file ${csvFilePath}...`);
 
     // Check if file exists
@@ -216,6 +217,6 @@ export const parseLocationsFromCsvStream = async (
     csvFileStream: NodeJS.ReadableStream,
     options: accessMapLocationOptions,
     progressEmitter?: EventEmitter
-): Promise<{ locations: AccessibilityMapLocation[]; errors: ErrorMessage[] }> => {
+): Promise<{ locations: AccessibilityMapLocation[]; errors: TranslatableMessage[] }> => {
     return parseLocationsFromCsvInternal(csvFileStream, options, progressEmitter);
 };

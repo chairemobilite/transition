@@ -6,7 +6,7 @@ import { Link, useParams } from 'react-router';
 import Button, { ButtonProps } from '../input/Button';
 import FormErrors from '../pageParts/FormErrors';
 import { startResetPassword } from '../../actions/Auth';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { RootState } from '../../store/configureStore';
 import { ThunkDispatch } from 'redux-thunk';
 import { Action } from 'redux';
@@ -43,7 +43,7 @@ const ResetPasswordPage: React.FC = () => {
     const [formState, setFormState] = React.useState({
         password: '',
         passwordConfirmation: '',
-        error: undefined as ErrorMessage | undefined
+        error: undefined as TranslatableMessage | undefined
     });
 
     React.useEffect(() => {
@@ -63,7 +63,7 @@ const ResetPasswordPage: React.FC = () => {
         return () => document.removeEventListener('keydown', handleKeyPress);
     }, []);
 
-    const validateForm = (): ErrorMessage | undefined => {
+    const validateForm = (): TranslatableMessage | undefined => {
         if (!formState.password) {
             return t('auth:missingPassword');
         }

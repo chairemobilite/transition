@@ -12,7 +12,7 @@ import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection'
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import AgencyImporter from './AgencyImporter';
 import ServiceImporter from './ServiceImporter';
@@ -44,8 +44,8 @@ const importGtfsData = async (
     parameters: GtfsImportData,
     progressEmitter?: EventEmitter
 ): Promise<
-    | { status: 'success'; warnings: ErrorMessage[]; errors: ErrorMessage[]; nodesDirty: boolean }
-    | { status: 'failed'; errors: ErrorMessage[]; nodesDirty: boolean }
+    | { status: 'success'; warnings: TranslatableMessage[]; errors: TranslatableMessage[]; nodesDirty: boolean }
+    | { status: 'failed'; errors: TranslatableMessage[]; nodesDirty: boolean }
 > => {
     // initialize collection and add them to collection manager, they will be loaded when required
     const lineCollection = new LineCollection([], {});

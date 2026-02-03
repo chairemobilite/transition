@@ -18,7 +18,7 @@ import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 
@@ -49,7 +49,7 @@ const ScenarioComparisonPanel: React.FC = () => {
     const [currentResult, setCurrentResult] = useState<RoutingResultsByMode[] | undefined>(undefined);
     const [scenarioCollection, setScenarioCollection] = useState(serviceLocator.collectionManager.get('scenarios'));
     const [loading, setLoading] = useState(false);
-    const [routingErrors, setRoutingErrors] = useState<ErrorMessage[] | undefined>(undefined);
+    const [routingErrors, setRoutingErrors] = useState<TranslatableMessage[] | undefined>(undefined);
     // FIXME using any to avoid typing the formValues, which would be tedious
     const [formValues, setFormValues] = useState<any>(() => ({
         routingName: routingObj.attributes.routingName || '',
@@ -159,7 +159,7 @@ const ScenarioComparisonPanel: React.FC = () => {
         const localNonce = (calculateRoutingNonceRef.current = new Object());
         const routing = routingObj;
         const alternate = alternateRoutingObj;
-        const newRoutingErrors: ErrorMessage[] = [];
+        const newRoutingErrors: TranslatableMessage[] = [];
         const isCancelled = () => localNonce !== calculateRoutingNonceRef.current;
         resetResults();
         setLoading(true);
