@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Collapsible from 'react-collapsible';
 import { useTranslation } from 'react-i18next';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
@@ -36,85 +36,97 @@ import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { calculateRouting } from '../../../services/routing/RoutingUtils';
 import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import { useHistoryTracker } from 'chaire-lib-frontend/lib/components/forms/useHistoryTracker';
+import UndoRedoButtons from 'chaire-lib-frontend/lib/components/pageParts/UndoRedoButtons';
 
 export interface TransitRoutingFormProps {
     availableRoutingModes?: string[];
 }
 
-const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
+const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props: TransitRoutingFormProps) => {
     // State hooks to replace class state
-    const transitRouting = useRef<TransitRouting>(
+    const transitRoutingRef = useRef<TransitRouting>(
         new TransitRouting(_cloneDeep(Preferences.get('transit.routing.transit')))
-    ).current;
+    );
+    const transitRouting = transitRoutingRef.current;
     // State value is not used
     const [, setRoutingAttributes] = useState<TransitRoutingAttributes>(transitRouting.attributes);
-    // FIXME using any to avoid typing the formValues, which would be tedious, will be rewritten soon anyway
-    const [formValues, setFormValues] = useState<any>(() => ({
-        routingName: transitRouting.attributes.routingName || '',
-        routingModes: transitRouting.attributes.routingModes || ['transit'],
-        minWaitingTimeSeconds: transitRouting.attributes.minWaitingTimeSeconds,
-        maxAccessEgressTravelTimeSeconds: transitRouting.attributes.maxAccessEgressTravelTimeSeconds,
-        maxTransferTravelTimeSeconds: transitRouting.attributes.maxTransferTravelTimeSeconds,
-        maxFirstWaitingTimeSeconds: transitRouting.attributes.maxFirstWaitingTimeSeconds,
-        maxTotalTravelTimeSeconds: transitRouting.attributes.maxTotalTravelTimeSeconds,
-        scenarioId: transitRouting.attributes.scenarioId,
-        withAlternatives: transitRouting.attributes.withAlternatives
-    }));
-
     const [currentResult, setCurrentResult] = useState<RoutingResultsByMode | undefined>(undefined);
     const [scenarioCollection, setScenarioCollection] = useState(serviceLocator.collectionManager.get('scenarios'));
     const [loading, setLoading] = useState(false);
     const [routingErrors, setRoutingErrors] = useState<ErrorMessage[] | undefined>(undefined);
     const [selectedMode, setSelectedMode] = useState<RoutingOrTransitMode | undefined>(undefined);
+    const [changeCount, setChangeCount] = useState(0); // Used to force a rerender when the object changes
 
     const { t } = useTranslation(['transit', 'main', 'form']);
 
     // Using refs for stateful values that don't trigger renders
-    const invalidFieldsRef = useRef<{ [key: string]: boolean }>({});
     const calculateRoutingNonceRef = useRef<object>(new Object());
 
-    // Functionality from ChangeEventsForm
-    const hasInvalidFields = (): boolean => {
-        return Object.keys(invalidFieldsRef.current).filter((key) => invalidFieldsRef.current[key]).length > 0;
-    };
+    const {
+        onValueChange: onFieldValueChange,
+        hasInvalidFields,
+        formValues,
+        updateHistory,
+        canRedo,
+        canUndo,
+        undo,
+        redo
+    } = useHistoryTracker({ object: transitRouting });
 
-    const onFormFieldChange = (
-        path: string,
-        newValue: { value: any; valid?: boolean } = { value: null, valid: true }
-    ) => {
-        setFormValues((prevValues) => ({ ...prevValues, [path]: newValue.value }));
-        if (newValue.valid !== undefined && !newValue.valid) {
-            invalidFieldsRef.current[path] = true;
-        } else {
-            invalidFieldsRef.current[path] = false;
+    // Update scenario collection when it changes
+    const onScenarioCollectionUpdate = useCallback(() => {
+        setScenarioCollection(serviceLocator.collectionManager.get('scenarios'));
+    }, []);
+
+    // Setup event listeners on mount and cleanup on unmount
+    useEffect(() => {
+        serviceLocator.eventManager.on('collection.update.scenarios', onScenarioCollectionUpdate);
+
+        return () => {
+            serviceLocator.eventManager.off('collection.update.scenarios', onScenarioCollectionUpdate);
+        };
+    }, [onScenarioCollectionUpdate]);
+
+    // Setup event listeners on mount and cleanup on unmount
+    useEffect(() => {
+        if (transitRouting.hasOrigin()) {
+            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                layerName: 'routingPoints',
+                data: transitRouting.originDestinationToGeojson()
+            });
         }
-    };
+    }, [changeCount]);
 
-    const onValueChange = (
-        path: keyof TransitRoutingAttributes,
-        newValue: { value: any; valid?: boolean } = { value: null, valid: true },
-        resetResults = true
-    ) => {
-        setRoutingErrors([]); //When a value is changed, remove the current routingErrors to stop displaying them.
-        onFormFieldChange(path, newValue);
-        if (newValue.valid || newValue.valid === undefined) {
-            const updatedObject = transitRouting;
-            updatedObject.set(path, newValue.value);
-            setRoutingAttributes({ ...updatedObject.attributes });
-        }
-
-        if (resetResults) {
-            resetResultsData();
-        }
-    };
-
-    const resetResultsData = () => {
+    const resetResultsData = useCallback(() => {
         setCurrentResult(undefined);
         serviceLocator.eventManager.emit('map.updateLayers', {
             routingPaths: undefined,
             routingPathsStrokes: undefined
         });
-    };
+    }, []);
+
+    const onValueChange = useCallback(
+        (
+            path: keyof TransitRoutingAttributes,
+            newValue: { value: any; valid?: boolean } = { value: null, valid: true },
+            resetResults = true
+        ) => {
+            setRoutingErrors([]); //When a value is changed, remove the current routingErrors to stop displaying them.
+            onFieldValueChange(path, newValue);
+            if (newValue.valid || newValue.valid === undefined) {
+                const updatedObject = transitRouting;
+                updatedObject.set(path, newValue.value);
+                setRoutingAttributes({ ...updatedObject.attributes });
+            }
+
+            if (resetResults) {
+                resetResultsData();
+            }
+            updateHistory();
+        },
+        [onFieldValueChange, resetResultsData, transitRouting, updateHistory]
+    );
 
     const isValid = (): boolean => {
         // Are all form fields valid and the routing object too
@@ -129,11 +141,11 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
             originGeojson,
             destinationGeojson
         } = routing.attributes;
+
         if (!originGeojson || !destinationGeojson) {
             return;
         }
-        // Save the origin et destinations lat/lon, and time, along with whether it is arrival or departure
-        // TODO Support specifying departure/arrival as variable in batch routing
+
         routing.addElementForBatch({
             routingName,
             departureTimeSecondsSinceMidnight,
@@ -144,10 +156,6 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
 
         routing.set('routingName', ''); // empty routing name for the next route
         setRoutingAttributes({ ...routing.attributes });
-        setFormValues((prevValues) => ({
-            ...prevValues,
-            routingName: routing.attributes.routingName
-        }));
     };
 
     const calculate = async (refresh = false) => {
@@ -213,20 +221,19 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
         }
         setRoutingAttributes({ ...routing.attributes });
         setCurrentResult(undefined);
-    };
-
-    const onScenarioCollectionUpdate = () => {
-        setScenarioCollection(serviceLocator.collectionManager.get('scenarios'));
+        updateHistory();
     };
 
     const downloadCsv = () => {
         const elements = transitRouting.attributes.savedForBatch;
         const lines: string[] = [];
         lines.push('id,routingName,originLon,originLat,destinationLon,destinationLat,time');
+
         elements.forEach((element, index) => {
             const time = !_isBlank(element.arrivalTimeSecondsSinceMidnight)
                 ? element.arrivalTimeSecondsSinceMidnight
                 : element.departureTimeSecondsSinceMidnight;
+
             lines.push(
                 index +
                     ',' +
@@ -243,6 +250,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
                     (!_isBlank(time) ? secondsSinceMidnightToTimeStr(time as number) : '')
             );
         });
+
         const csvFileContent = lines.join('\n');
 
         const element = document.createElement('a');
@@ -257,32 +265,18 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
         const updatedObject = transitRouting;
         updatedObject.resetBatchSelection();
         setRoutingAttributes({ ...updatedObject.attributes });
+        updateHistory();
     };
 
-    const onTripTimeChange = (time: { value: any; valid?: boolean }, timeType: 'departure' | 'arrival') => {
-        onValueChange(
-            timeType === 'departure' ? 'departureTimeSecondsSinceMidnight' : 'arrivalTimeSecondsSinceMidnight',
-            time
-        );
-    };
-
-    // Handle componentDidMount and componentWillUnmount
-    useEffect(() => {
-        // ComponentDidMount
-        if (transitRouting.hasOrigin()) {
-            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-                layerName: 'routingPoints',
-                data: transitRouting.originDestinationToGeojson()
-            });
-        }
-
-        serviceLocator.eventManager.on('collection.update.scenarios', onScenarioCollectionUpdate);
-
-        // ComponentWillUnmount
-        return () => {
-            serviceLocator.eventManager.off('collection.update.scenarios', onScenarioCollectionUpdate);
-        };
-    }, []);
+    const onTripTimeChange = useCallback(
+        (time: { value: any; valid?: boolean }, timeType: 'departure' | 'arrival') => {
+            onValueChange(
+                timeType === 'departure' ? 'departureTimeSecondsSinceMidnight' : 'arrivalTimeSecondsSinceMidnight',
+                time
+            );
+        },
+        [onValueChange]
+    );
 
     // If the previously selected scenario was deleted, the current scenario ID will remain but the scenario itself will no longer exist, leading to an error.
     // In that case, change it to undefined.
@@ -319,6 +313,31 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
         };
     });
 
+    const updateCurrentObject = (newObject: TransitRouting) => {
+        transitRoutingRef.current = newObject;
+        resetResultsData();
+        setChangeCount(changeCount + 1);
+        // Update routing preferences if the object is valid.
+        // FIXME Should we calculate too?
+        if (isValid()) {
+            newObject.updateRoutingPrefs();
+        }
+    };
+
+    const onUndo = () => {
+        const newObject = undo();
+        if (newObject) {
+            updateCurrentObject(newObject);
+        }
+    };
+
+    const onRedo = () => {
+        const newObject = redo();
+        if (newObject) {
+            updateCurrentObject(newObject);
+        }
+    };
+
     return (
         <React.Fragment>
             <form id="tr__form-transit-routing" className="tr__form-transit-routing apptr__form">
@@ -335,6 +354,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
                                     value={selectedRoutingModes}
                                     localePrefix="transit:transitPath:routingModes"
                                     onValueChange={(e) => onValueChange('routingModes', { value: e.target.value })}
+                                    key={`formFieldTransitRoutingRoutingModes${changeCount}`}
                                 />
                             </InputWrapper>
                         )}
@@ -347,18 +367,21 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
                                     transitRouting.attributes.arrivalTimeSecondsSinceMidnight
                                 }
                                 onValueChange={onTripTimeChange}
+                                key={`formFieldTransitRoutingTimeOfTrip${changeCount}`}
                             />
                         )}
                         {hasTransitModeSelected && (
                             <TransitRoutingBaseComponent
                                 onValueChange={onValueChange}
                                 attributes={transitRouting.attributes}
+                                key={`formFieldTransitRoutingBaseComponents${changeCount}`}
                             />
                         )}
                         {hasTransitModeSelected && (
                             <InputWrapper label={t('transit:transitRouting:Scenario')}>
                                 <InputSelect
                                     id={'formFieldTransitRoutingScenario'}
+                                    key={`formFieldTransitRoutingScenario${changeCount}`}
                                     value={formValues.scenarioId}
                                     choices={scenarios}
                                     t={t}
@@ -370,6 +393,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
                             <InputWrapper label={t('transit:transitRouting:WithAlternatives')}>
                                 <InputRadio
                                     id={'formFieldTransitRoutingWithAlternatives'}
+                                    key={`formFieldTransitRoutingWithAlternatives${changeCount}`}
                                     value={formValues.withAlternatives}
                                     sameLine={true}
                                     disabled={false}
@@ -396,10 +420,12 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
                                 originGeojson={transitRouting.attributes.originGeojson}
                                 destinationGeojson={transitRouting.attributes.destinationGeojson}
                                 onUpdateOD={onUpdateOD}
+                                key={`formFieldTransitRoutingCoordinates${changeCount}`}
                             />
                             <InputWrapper label={t('transit:transitRouting:RoutingName')}>
                                 <InputString
                                     id={'formFieldTransitRoutingRoutingName'}
+                                    key={`formFieldTransitRoutingRoutingName${changeCount}`}
                                     value={formValues.routingName}
                                     onValueUpdated={(value) => onValueChange('routingName', value, false)}
                                     pattern={'[^,"\':;\r\n\t\\\\]*'}
@@ -440,6 +466,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
 
                 <div>
                     <div className="tr__form-buttons-container">
+                        <UndoRedoButtons canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
                         {loading && <Loader size={8} color={'#aaaaaa'} loading={true}></Loader>}
                         <span title={t('main:Calculate')}>
                             <Button
