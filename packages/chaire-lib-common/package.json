@@ -26,6 +26,7 @@
     "geojson": "^0.5.0",
     "geojson-validation": "^1.0.2",
     "geokdbush": "^1.1.0",
+    "i18next": "^25.7.3",
     "kdbush": "^3.0.0",
     "lodash": "^4.17.23",
     "papaparse": "^5.5.3",

@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import each from 'jest-each';
 import * as DateTimeUtils from '../DateTimeUtils';
+import type { TFunction } from 'i18next';
 
 test('should convert decimal hour to time string', function() {
   expect(DateTimeUtils.decimalHourToTimeStr(6.23)).toBe('6:13');
@@ -86,17 +86,104 @@ test('roundSecondsToNearestMinute', function() {
     expect(DateTimeUtils.roundSecondsToNearestMinute(Math.PI)).toBe(60);
 });
 
-each([
-    ['seconds only', 34, '34 s'],
-    ['minutes only', 120, '2 m'],
-    ['hours only', 7200, '2 h'],
-    ['hours/minutes', 7260, '2 h 1 m'],
-    ['hours/minutes/seconds', 7263, '2 h 1 m 3 s'],
-    ['hours/seconds', 7203, '2 h 3 s'],
-    ['zero', 0, '0 s'],
-    ['negative', -7263, '-2 h 1 m 3 s'],
-    ['null', null, null],
-    ['undefined', undefined, null]
-]).test('toXXhrYYminZZsec: %s', (_title, value, expected) => {
-    expect(DateTimeUtils.toXXhrYYminZZsec(value, 'h', 'm', 's')).toEqual(expected);
-})
+
+describe('toXXhrYYminZZsec', () => {
+    // Mock translation function to simply return the key
+    const mockT: any = jest.fn().mockImplementation((key: string, options?: any) => key);
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    })
+
+    test.each([
+        [34, '34 s'],
+        [120, '2 m'],
+        [7200, '2 h'],
+        [7260, '2 h 1 m'],
+        [7263, '2 h 1 m 3 s'],
+        [7203, '2 h 0 m 3 s'],
+        [0, '0 s'],
+        [-7263, '-2 h 1 m 3 s'],
+        [null, ''],
+        [undefined, '']
+    ])('toXXhrYYminZZsec with seconds: %s seconds => %s', (value, expected) => {
+        expect(DateTimeUtils.toXXhrYYminZZsec(value as any, mockT, { hourUnit: 'h', minuteUnit: 'm', secondsUnit: 's' })).toEqual(expected);
+    });
+
+    test.each([
+        [34, '0 m'],
+        [120, '2 m'],
+        [7200, '2 h'],
+        [7260, '2 h 1 m'],
+        [7263, '2 h 1 m'],
+        [7203, '2 h'],
+        [0, '0 m'],
+        [-7263, '-2 h 1 m'],
+        [null, ''],
+        [undefined, '']
+    ])('toXXhrYYminZZsec without seconds: %s seconds => %s', (value, expected) => {
+        expect(DateTimeUtils.toXXhrYYminZZsec(value as any, mockT, { hourUnit: 'h', minuteUnit: 'm', secondsUnit: 's', withSeconds: false })).toEqual(expected);
+    });
+
+    test.each([
+        [34, false],
+        [0, true]
+    ])('with zeroText: %s', (value, withSeconds) => {
+        expect(DateTimeUtils.toXXhrYYminZZsec(value, mockT, { withSeconds, hourUnit: 'h', minuteUnit: 'm', secondsUnit: 's', zeroText: 'zero' })).toEqual('zero');
+    });
+
+    test.each([
+        [
+            7263,
+            { hourUnit: 'h', minuteUnit: 'm', secondsUnit: 's' },
+            [
+                ['h', { count: 2 }],
+                ['m', { count: 1 }],
+                ['s', { count: 3 }]
+            ]
+        ],
+        [
+            7203,
+            { hourUnit: 'h', minuteUnit: 'm', secondsUnit: 's' },
+            [
+                ['h', { count: 2 }],
+                ['m', { count: 0 }],
+                ['s', { count: 3 }]
+            ]
+        ],
+        [
+            34,
+            { hourUnit: 'h', minuteUnit: 'm', secondsUnit: 's' },
+            [
+                ['s', { count: 34 }]
+            ]
+        ],
+        [
+            34,
+            { hourUnit: 'h', minuteUnit: 'm', secondsUnit: 's', withSeconds: false },
+            [
+                ['m', { count: 0 }]
+            ]
+        ],
+        [
+            0,
+            { hourUnit: 'h', minuteUnit: 'm', secondsUnit: 's' },
+            [
+                ['s', { count: 0 }]
+            ]
+        ],
+        [
+            0,
+            { hourUnit: 'h', minuteUnit: 'm', secondsUnit: 's', zeroText: 'zero' },
+            [
+                ['zero', undefined]
+            ]
+        ]
+    ])('should pass count to t for %s seconds', (value, options, expectedCalls) => {
+        DateTimeUtils.toXXhrYYminZZsec(value, mockT, options as any);
+
+        expect(mockT.mock.calls).toEqual(expectedCalls);
+    });
+
+    
+});

@@ -5,14 +5,14 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { useState, useEffect } from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { toXXhrYYminZZsec } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 
 const destinationUnitOptions = ['hrMinSec', 's', 'm', 'h'] as const;
 type destinationUnitOptionsType = (typeof destinationUnitOptions)[number];
 
-export type DurationUnitFormatterProps = WithTranslation & {
+export type DurationUnitFormatterProps = {
     value: number;
     sourceUnit: 's' | 'm' | 'h';
     destinationUnit?: destinationUnitOptionsType;
@@ -24,6 +24,7 @@ const DurationUnitFormatter: React.FunctionComponent<DurationUnitFormatterProps>
     const [destinationUnit, setDestinationUnit] = useState<destinationUnitOptionsType | undefined>(
         props.destinationUnit
     );
+    const { t } = useTranslation('main');
 
     const valueInSeconds =
         props.sourceUnit === 's'
@@ -43,11 +44,14 @@ const DurationUnitFormatter: React.FunctionComponent<DurationUnitFormatterProps>
 
     const unitFormatters: Record<destinationUnitOptionsType, (value: number) => string> = {
         hrMinSec: (value) =>
-            toXXhrYYminZZsec(value, props.t('main:hourAbbr'), props.t('main:minuteAbbr'), props.t('main:secondAbbr')) ||
-            `${value.toString()} ${props.t('main:secondAbbr')}`,
-        s: (value) => `${roundToDecimals(value, 2)} ${props.t('main:secondAbbr')}`,
-        m: (value) => `${roundToDecimals(value / 60, 2)} ${props.t('main:minuteAbbr')}`,
-        h: (value) => `${roundToDecimals(value / 3600, 2)} ${props.t('main:hourAbbr')}`
+            toXXhrYYminZZsec(value, t, {
+                hourUnit: 'main:hourAbbr',
+                minuteUnit: 'main:minuteAbbr',
+                secondsUnit: 'main:secondAbbr'
+            }),
+        s: (value) => `${roundToDecimals(value, 2)} ${t('main:secondAbbr')}`,
+        m: (value) => `${roundToDecimals(value / 60, 2)} ${t('main:minuteAbbr')}`,
+        h: (value) => `${roundToDecimals(value / 3600, 2)} ${t('main:hourAbbr')}`
     };
 
     const formattedValue = destinationUnit ? unitFormatters[destinationUnit](valueInSeconds) : '';
@@ -65,4 +69,4 @@ const DurationUnitFormatter: React.FunctionComponent<DurationUnitFormatterProps>
     return <span onClick={cycleThroughDestinationUnits}>{formattedValue}</span>;
 };
 
-export default withTranslation('main')(DurationUnitFormatter);
+export default DurationUnitFormatter;
