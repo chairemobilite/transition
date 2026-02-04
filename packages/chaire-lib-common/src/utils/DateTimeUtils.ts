@@ -8,6 +8,7 @@ import _isFinite from 'lodash/isFinite';
 import _isString from 'lodash/isString';
 import _padStart from 'lodash/padStart';
 import { _isBlank } from './LodashExtensions';
+import type { TFunction } from 'i18next';
 
 /**
  * Formats the number of seconds since midnight to a time string (HH:MM[:ss]).
@@ -118,32 +119,65 @@ const hoursToSeconds = function (hours) {
  * component is included with its corresponding unit.
  *
  * @param {number} seconds - The duration in seconds to be converted.
- * @param {string} hourUnit - The unit for hours (e.g., "hr").
- * @param {string} minuteUnit - The unit for minutes (e.g., "min").
- * @param {string} secondsUnit - The unit for seconds (e.g., "sec").
- * @returns {string} - The formatted time string or an empty string if the input is invalid.
+ * @param {TFunction} t - The translation function to localize unit strings.
+ * @param {Object} options - Formatting options.
+ * @param {string} options.hourUnit - The unit for hours, in a localizable form. The value of the hour will be added as the 'count' option for translation.
+ * @param {string} options.minuteUnit - The unit for minutes, in a localizable form. The value of the minute will be added as the 'count' option for translation.
+ * @param {string} options.secondsUnit - The unit for seconds, in a localizable form. The value of the second will be added as the 'count' option for translation.
+ * @param {boolean} [options.withSeconds=true] - Whether to include seconds in the output.
+ * @param {string} [options.zeroText] - Text to return when the returned output would be zero.
+ * @returns {string} - The formatted time string or empty string if the input is invalid.
  */
-const toXXhrYYminZZsec = function (seconds: number, hourUnit: string, minuteUnit: string, secondsUnit: string) {
-    if (_isBlank(seconds)) {
-        return null;
+const toXXhrYYminZZsec = (
+    seconds: number,
+    t: TFunction,
+    {
+        hourUnit,
+        minuteUnit,
+        secondsUnit,
+        withSeconds = true,
+        zeroText
+    }: { hourUnit: string; minuteUnit: string; secondsUnit: string; withSeconds?: boolean; zeroText?: string }
+): string => {
+    if (typeof seconds !== 'number' || !Number.isFinite(seconds)) {
+        return '';
     }
+    const getZeroTextValue = () =>
+        zeroText ? t(zeroText) : `0 ${withSeconds ? t(secondsUnit, { count: 0 }) : t(minuteUnit, { count: 0 })}`;
     if (seconds === 0) {
-        return `0 ${secondsUnit}`;
+        return getZeroTextValue();
     }
     const negative = seconds < 0;
     const hours = Math.floor(Math.abs(seconds / 3600));
     const minutes = Math.floor(Math.abs((seconds % 3600) / 60));
     const secs = Math.floor(Math.abs(seconds % 60));
 
+    // Add time components to the array, then remove leading and trailing zero components (ex: 0 hr, 0 min) before formatting the string.
     const timeComponents = [
         { value: hours, unit: hourUnit },
-        { value: minutes, unit: minuteUnit },
-        { value: secs, unit: secondsUnit }
+        { value: minutes, unit: minuteUnit }
     ];
+    if (withSeconds) {
+        timeComponents.push({ value: secs, unit: secondsUnit });
+    }
+
+    // Remove leading zero components, but only if they are not the only component
+    const firstComponentIndex = timeComponents.findIndex((component) => component.value > 0);
+    if (firstComponentIndex > 0) {
+        timeComponents.splice(0, firstComponentIndex);
+    } else if (firstComponentIndex === -1) {
+        // all components are zero, return the zero text
+        return getZeroTextValue();
+    }
+
+    // Remove trailing zero components, but only if they are not the only component (ex: 0 hr 0 min 3 s should not be reduced to 3 s).
+    const lastComponentIndex = timeComponents.findLastIndex((component) => component.value > 0);
+    if (lastComponentIndex !== -1 && lastComponentIndex < timeComponents.length - 1) {
+        timeComponents.splice(lastComponentIndex + 1);
+    }
 
     return `${negative ? '-' : ''}${timeComponents
-        .map((component) => (component.value > 0 ? component.value + ' ' + component.unit : ''))
-        .filter(Boolean) // Discard empty components (ex: no seconds)
+        .map((component) => component.value + ' ' + t(component.unit, { count: component.value }))
         .join(' ')}`;
 };
 
