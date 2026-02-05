@@ -122,8 +122,8 @@ const prepareServicesForLines = async (
 
         if (
             timeBetweenPassages !== lastTimeBetweenPassages &&
-            timeBetweenPassages > minTime &&
-            timeBetweenPassages < maxTime
+            timeBetweenPassages >= minTime &&
+            timeBetweenPassages <= maxTime
         ) {
             // Keep this schedule and service if the time between passages is within range
             lineServices.push({
