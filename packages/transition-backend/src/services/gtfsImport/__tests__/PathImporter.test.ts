@@ -30,13 +30,13 @@ const setPathGeography = (path: Path, nodeIds: string[], gtfsShapeId: string | u
         type: 'LineString' as const,
         coordinates: []
     };
-    path.setData('gtfs', { shape_id: gtfsShapeId })
-}
-mockedPathGenerationFromGTFS.mockImplementation((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
+    path.setData('gtfs', { shape_id: gtfsShapeId });
+};
+mockedPathGenerationFromGTFS.mockImplementation((path, _coords, nodeIds, _allStopTimes, gtfsShapeId) => {
     setPathGeography(path, nodeIds, gtfsShapeId);
     return [];
 });
-mockedPathGenerationFromStopTimes.mockImplementation((path, nodeIds, _stopTimes, _stopCoords) => {
+mockedPathGenerationFromStopTimes.mockImplementation((path, nodeIds, _allStopTimes, _stopCoords) => {
     setPathGeography(path, nodeIds, undefined);
     return [];
 });
@@ -44,13 +44,25 @@ mockedPathGenerationFromStopTimes.mockImplementation((path, nodeIds, _stopTimes,
 const importData = Object.assign({}, defaultInternalImportData);
 const routeId = uuidV4();
 importData.lineIdsByRouteGtfsId[routeId] = uuidV4();
+const nodeId1 = uuidV4();
+const nodeId2 = uuidV4();
+const nodeId3 = uuidV4();
+const nodeId4 = uuidV4();
+importData.nodeIdsByStopGtfsId = {
+    stop1: nodeId1,
+    stop2: nodeId2,
+    stop3: nodeId3,
+    stop4: nodeId4
+};
 const collectionManager = new CollectionManager(null, { });
-const line = new Line({id: importData.lineIdsByRouteGtfsId[routeId], mode: 'metro', category: 'A' }, false, collectionManager);
+const line = new Line({ id: importData.lineIdsByRouteGtfsId[routeId], mode: 'metro', category: 'A' }, false, collectionManager);
 const lineCollection = new LineCollection([line], {});
 collectionManager.add('lines', lineCollection);
 
 beforeEach(() => {
     (pathsDbQueries.createMultiple as any).mockClear();
+    mockedPathGenerationFromGTFS.mockClear();
+    mockedPathGenerationFromStopTimes.mockClear();
 });
 
 describe('One line, 2 identical simple trips', () => {
@@ -83,10 +95,10 @@ describe('One line, 2 identical simple trips', () => {
             { trip_id: tripId, stop_id: 'stop3', stop_sequence: 4, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200 },
             { trip_id: tripId, stop_id: 'stop4', stop_sequence: 5, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300 }
         ]
-    }
+    };
     tripsByRouteId[routeId] = [
         baseTripAndStopTimes,
-        { trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, 600))}
+        { trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map((stopTime) => offsetStopTimes(stopTime, 600)) }
     ];
 
     test('Generate path without warnings', async () => {
@@ -102,7 +114,7 @@ describe('One line, 2 identical simple trips', () => {
 
     test('Generate path with warnings', async () => {
         const warnings = ['warning1', 'warning2'];
-        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
+        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _allStopTimes, gtfsShapeId) => {
             setPathGeography(path, nodeIds, gtfsShapeId);
             return warnings;
         });
@@ -127,7 +139,7 @@ describe('One line, 2 identical simple trips', () => {
         expect(pathsDbQueries.createMultiple).toHaveBeenCalledTimes(1);
         const pathAttributes = (pathsDbQueries.createMultiple as any).mock.calls[0][0];
         const paths = pathAttributes.map((attribs, index) => (new Path({ ...attribs, integer_id: index }, false)).toGeojson());
-        innerLine.attributes.path_ids = pathAttributes.map(attribs => attribs.id);
+        innerLine.attributes.path_ids = pathAttributes.map((attribs) => attribs.id);
         const pathCollection = new PathCollection(paths, {});
         innerCollectionManager.add('paths', pathCollection);
         innerLine.refreshPaths();
@@ -174,12 +186,12 @@ describe('One line, 2 different trip IDs with same shape', () => {
             { trip_id: tripId, stop_id: 'stop3', stop_sequence: 4, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200 },
             { trip_id: tripId, stop_id: 'stop4', stop_sequence: 5, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300 }
         ]
-    }
+    };
     tripsByRouteId[routeId] = [
         baseTripAndStopTimes,
-        { 
+        {
             trip: { route_id: routeId, service_id: uuidV4(), trip_id: tripId2, trip_headsign: 'Test West', direction_id: 0, shape_id: shapePoints[0].shape_id },
-            stopTimes: baseTripAndStopTimes.stopTimes.map(stopTime => Object.assign(offsetStopTimes(stopTime, 600), {trip_id: tripId2}))
+            stopTimes: baseTripAndStopTimes.stopTimes.map((stopTime) => Object.assign(offsetStopTimes(stopTime, 600), { trip_id: tripId2 }))
         }
     ];
 
@@ -218,7 +230,7 @@ describe('One line, multiple trips resulting in 2 paths', () => {
         { shape_id : 'simpleReturnShape', shape_pt_lat : 45.539586510212274, shape_pt_lon : -73.61359119415283, shape_pt_sequence : 5 },
         { shape_id : 'simpleReturnShape', shape_pt_lat : 45.53936107021012, shape_pt_lon : -73.6136770248413, shape_pt_sequence : 6 },
         { shape_id : 'simpleReturnShape', shape_pt_lat : 45.53901539378457, shape_pt_lon : -73.6138916015625, shape_pt_sequence : 7 },
-        { shape_id : 'simpleReturnShape', shape_pt_lat : 45.53817373794911, shape_pt_lon : -73.61449241638184, shape_pt_sequence : 8 }, 
+        { shape_id : 'simpleReturnShape', shape_pt_lat : 45.53817373794911, shape_pt_lon : -73.61449241638184, shape_pt_sequence : 8 },
     ];
     importData.shapeById = {};
     importData.shapeById[shapePoints1[0].shape_id] = shapePoints1;
@@ -242,7 +254,7 @@ describe('One line, multiple trips resulting in 2 paths', () => {
             { trip_id: tripId, stop_id: 'stop3', stop_sequence: 4, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200 },
             { trip_id: tripId, stop_id: 'stop4', stop_sequence: 5, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300 }
         ]
-    }
+    };
     const baseReturnTripAndStopTimes = {
         trip: { route_id: routeId, service_id: uuidV4(), trip_id: returnTripId, trip_headsign: 'Test East', direction_id: 0, shape_id: shapePoints2[0].shape_id },
         stopTimes: [
@@ -251,13 +263,13 @@ describe('One line, multiple trips resulting in 2 paths', () => {
             { trip_id: returnTripId, stop_id: 'stop2', stop_sequence: 4, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200 },
             { trip_id: returnTripId, stop_id: 'stop1', stop_sequence: 5, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300 }
         ]
-    }
+    };
     tripsByRouteId[routeId] = [
         baseTripAndStopTimes,
         baseReturnTripAndStopTimes,
-        { trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, 600))},
-        { trip: baseReturnTripAndStopTimes.trip, stopTimes: baseReturnTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, 600))},
-        { trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, 1200))},
+        { trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map((stopTime) => offsetStopTimes(stopTime, 600)) },
+        { trip: baseReturnTripAndStopTimes.trip, stopTimes: baseReturnTripAndStopTimes.stopTimes.map((stopTime) => offsetStopTimes(stopTime, 600)) },
+        { trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map((stopTime) => offsetStopTimes(stopTime, 1200)) },
     ];
 
     test('Generate path without warnings', async () => {
@@ -274,7 +286,7 @@ describe('One line, multiple trips resulting in 2 paths', () => {
 
     test('Generate path with warnings', async () => {
         const warnings = ['warning1', 'warning2'];
-        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
+        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _allStopTimes, gtfsShapeId) => {
             setPathGeography(path, nodeIds, gtfsShapeId);
             return warnings;
         });
@@ -293,7 +305,7 @@ describe('One line, multiple trips resulting in 2 paths', () => {
         const tripWithNoShape = 'noshape';
         tripsByRouteId[routeId].push({
             trip: { route_id: routeId, service_id: uuidV4(), trip_id: tripWithNoShape, trip_headsign: 'Test East', direction_id: 0 },
-            stopTimes: baseTripAndStopTimes.stopTimes.map(stopTime => Object.assign(offsetStopTimes(stopTime, 600), { trip_id: tripWithNoShape }))
+            stopTimes: baseTripAndStopTimes.stopTimes.map((stopTime) => Object.assign(offsetStopTimes(stopTime, 600), { trip_id: tripWithNoShape }))
         });
         const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
         expect(result.status).toEqual('success');
@@ -324,7 +336,7 @@ describe('Multiple lines, with 2 paths each', () => {
     // Prepare the second line
     const expressRouteId = uuidV4();
     importData.lineIdsByRouteGtfsId[expressRouteId] = uuidV4();
-    const expressLine = new Line({id: importData.lineIdsByRouteGtfsId[expressRouteId], mode: 'metro', category: 'A' }, false);
+    const expressLine = new Line({ id: importData.lineIdsByRouteGtfsId[expressRouteId], mode: 'metro', category: 'A' }, false);
     lineCollection.add(expressLine);
 
     // Prepare shape data (it doesn't matter, we won't do anything with it)
@@ -346,10 +358,10 @@ describe('Multiple lines, with 2 paths each', () => {
         { shape_id : 'Line1Shape2', shape_pt_lat : 45.539586510212274, shape_pt_lon : -73.61359119415283, shape_pt_sequence : 5 },
         { shape_id : 'Line1Shape2', shape_pt_lat : 45.53936107021012, shape_pt_lon : -73.6136770248413, shape_pt_sequence : 6 },
         { shape_id : 'Line1Shape2', shape_pt_lat : 45.53901539378457, shape_pt_lon : -73.6138916015625, shape_pt_sequence : 7 },
-        { shape_id : 'Line1Shape2', shape_pt_lat : 45.53817373794911, shape_pt_lon : -73.61449241638184, shape_pt_sequence : 8 }, 
+        { shape_id : 'Line1Shape2', shape_pt_lat : 45.53817373794911, shape_pt_lon : -73.61449241638184, shape_pt_sequence : 8 },
     ];
-    const shapePoints1Line2 = shapePoints1Line1.map(shapePoint => Object.assign({}, shapePoint, {shape_id: 'Line2Shape1'}));
-    const shapePoints2Line2 = shapePoints2Line1.map(shapePoint => Object.assign({}, shapePoint, {shape_id: 'Line2Shape2'}));
+    const shapePoints1Line2 = shapePoints1Line1.map((shapePoint) => Object.assign({}, shapePoint, { shape_id: 'Line2Shape1' }));
+    const shapePoints2Line2 = shapePoints2Line1.map((shapePoint) => Object.assign({}, shapePoint, { shape_id: 'Line2Shape2' }));
     importData.shapeById = {};
     importData.shapeById[shapePoints1Line1[0].shape_id] = shapePoints1Line1;
     importData.shapeById[shapePoints2Line1[0].shape_id] = shapePoints2Line1;
@@ -376,7 +388,7 @@ describe('Multiple lines, with 2 paths each', () => {
             { trip_id: tripIdLine1, stop_id: 'stop3', stop_sequence: 4, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200 },
             { trip_id: tripIdLine1, stop_id: 'stop4', stop_sequence: 5, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300 }
         ]
-    }
+    };
     const baseReturnTripAndStopTimes = {
         trip: { route_id: routeId, service_id: uuidV4(), trip_id: returnTripIdLine1, trip_headsign: 'Test East', direction_id: 0, shape_id: shapePoints2Line1[0].shape_id },
         stopTimes: [
@@ -385,13 +397,13 @@ describe('Multiple lines, with 2 paths each', () => {
             { trip_id: returnTripIdLine1, stop_id: 'stop2', stop_sequence: 4, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200 },
             { trip_id: returnTripIdLine1, stop_id: 'stop1', stop_sequence: 5, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300 }
         ]
-    }
+    };
     tripsByRouteId[routeId] = [
         baseTripAndStopTimes,
         baseReturnTripAndStopTimes,
-        { trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, 600))},
-        { trip: baseReturnTripAndStopTimes.trip, stopTimes: baseReturnTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, 600))},
-        { trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, 1200))},
+        { trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map((stopTime) => offsetStopTimes(stopTime, 600)) },
+        { trip: baseReturnTripAndStopTimes.trip, stopTimes: baseReturnTripAndStopTimes.stopTimes.map((stopTime) => offsetStopTimes(stopTime, 600)) },
+        { trip: baseTripAndStopTimes.trip, stopTimes: baseTripAndStopTimes.stopTimes.map((stopTime) => offsetStopTimes(stopTime, 1200)) },
     ];
     const expressTripAndStopTimes = {
         trip: { route_id: expressRouteId, service_id: uuidV4(), trip_id: tripIdLine2, trip_headsign: 'Test West Express', direction_id: 0, shape_id: shapePoints1Line2[0].shape_id },
@@ -406,7 +418,7 @@ describe('Multiple lines, with 2 paths each', () => {
             { trip_id: tripIdLine2, stop_id: 'stop1', stop_sequence: 2, arrivalTimeSeconds: 36000, departureTimeSeconds: 36000 },
             { trip_id: tripIdLine2, stop_id: 'stop4', stop_sequence: 5, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300 }
         ]
-    }
+    };
     tripsByRouteId[expressRouteId] = [
         expressTripAndStopTimes,
         expressReturnTripAndStopTimes
@@ -425,11 +437,11 @@ describe('Multiple lines, with 2 paths each', () => {
     test('Generate path with warnings', async () => {
         const warningsLine1 = ['warning1', 'warning2'];
         const warningsLine2 = ['warning3'];
-        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
+        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _allStopTimes, gtfsShapeId) => {
             setPathGeography(path, nodeIds, gtfsShapeId);
             return warningsLine1;
         });
-        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _stopTimes, gtfsShapeId) => {
+        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _allStopTimes, gtfsShapeId) => {
             setPathGeography(path, nodeIds, gtfsShapeId);
             return warningsLine2;
         });
@@ -476,12 +488,12 @@ describe('One line, 3 trips with no shape', () => {
             { trip_id: tripId, stop_id: 'stop3', stop_sequence: 4, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200 },
             { trip_id: tripId, stop_id: 'stop4', stop_sequence: 5, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300 }
         ]
-    }
+    };
     tripsByRouteId[routeId] = [
         baseTripAndStopTimes,
         {
             trip: { ...baseTripAndStopTimes.trip, trip_id: 'simpleTrip2' },
-            stopTimes: baseTripAndStopTimes.stopTimes.map(stopTime => offsetStopTimes(stopTime, 600)),
+            stopTimes: baseTripAndStopTimes.stopTimes.map((stopTime) => offsetStopTimes(stopTime, 600)),
         }, {
             trip: { ...baseTripAndStopTimes.trip, trip_id: 'returnTrip', trip_headsign: 'Test east', direction_id: 1 },
             stopTimes: [
@@ -499,8 +511,9 @@ describe('One line, 3 trips with no shape', () => {
         expect(result.pathIdsByTripId).toBeDefined();
         expect(Object.keys(result.pathIdsByTripId).length).toEqual(3);
         expect(result.pathIdsByTripId[tripId]).toBeDefined();
-        expect(result.warnings.length).toEqual(1);
+        expect(result.warnings.length).toEqual(2);
         expect(result.warnings[0].text).toEqual('transit:gtfs:errors:TripHasNoShape');
+        expect(result.warnings[1].text).toEqual('transit:gtfs:errors:TripHasNoShape');
         expect(pathsDbQueries.createMultiple).toHaveBeenCalledTimes(1);
         expect(mockedPathGenerationFromStopTimes).toHaveBeenCalledTimes(2);
     });
