@@ -14,12 +14,13 @@ import Path from 'transition-common/lib/services/path/Path';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
-import Schedule from 'transition-common/lib/services/schedules/Schedule';
+import Schedule, { SchedulePeriodTrip } from 'transition-common/lib/services/schedules/Schedule';
 import SimulationRun from '../../../simulation/SimulationRun';
 import Service from 'transition-common/lib/services/service/Service';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import { LineServices } from '../../internalTypes';
 
-const mockedScheduleGeneration = jest.fn().mockResolvedValue({ trips: [] });
+const mockedScheduleGeneration = jest.fn().mockReturnValue({ trips: [] }) as jest.MockedFunction<typeof Schedule.prototype.generateForPeriod>;
 Schedule.prototype.generateForPeriod = mockedScheduleGeneration;
 
 const collectionManager = new CollectionManager(undefined, {});
@@ -221,9 +222,8 @@ describe('Test with a single line', () => {
         }
     }, true);
 
-    const defaultTripAttributes = {
-        schedule_id: uuidV4(),
-        schedule_period_id: uuidV4(),
+    const defaultTripAttributes: Partial<SchedulePeriodTrip> = {
+        schedule_period_id: 1,
         path_id: outboundPath.getId(),
         node_arrival_times_seconds: [],
         node_departure_times_seconds: [],
@@ -231,121 +231,94 @@ describe('Test with a single line', () => {
         nodes_can_unboard: []
     };
 
-    test('Generate services for one line, inbound, outbound', async() => {
-        const lineCollection = new LineCollection([line], {});
-
-        // time between trips too high, inbound/outbound trips
-        mockedScheduleGeneration.mockResolvedValueOnce({ trips: [
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60,
-                arrival_time_seconds: 6 * 60 * 60 + 1
-            }),
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60 + 10 * 60,
-                arrival_time_seconds: 6 * 60 * 60 + 10 * 60 + 1,
-                path_id: inboundPath.getId()
-            }),
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 1,
-                arrival_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 2
-            })
-        ] });
-        // This schedule is acceptable
-        mockedScheduleGeneration.mockResolvedValueOnce({ trips: [
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60,
-                arrival_time_seconds: 6 * 60 * 60 + 1
-            }),
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60 + 10 * 60,
-                arrival_time_seconds: 6 * 60 * 60 + 10 * 60 + 1,
-                path_id: inboundPath.getId()
-            }),
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 - 10,
-                arrival_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 2
-            })
-        ] });
-        // minimum time between trips too low
-        mockedScheduleGeneration.mockResolvedValueOnce({ trips: [
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60,
-                arrival_time_seconds: 6 * 60 * 60 + 1
-            }),
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60 + 5 * 60 - 10,
-                arrival_time_seconds: 6 * 60 * 60 + 5 * 60 + 2
-            }),
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60 + 10 * 60,
-                arrival_time_seconds: 6 * 60 * 60 + 10 * 60 + 1,
-                path_id: inboundPath.getId()
-            })
-        ] });
-
-        const { lineServices, services } = await prepareServices(lineCollection, serviceCollection, simulationRun);
-        expect(mockedScheduleGeneration).toHaveBeenCalledTimes(3);
-        expect(services.getFeatures().length).toEqual(1);
-
-        expect(lineServices[line.getId()]).toBeDefined();
-        expect(Object.keys(lineServices).length).toEqual(1);
-
-        expect(lineServices[line.getId()][0]).toBeDefined();
-        expect(lineServices[line.getId()].length).toEqual(1);
-        expect(lineServices[line.getId()][0].service).toEqual(existingService);
+    const buildInboundOutboundTrips = (overrides: Array<Partial<SchedulePeriodTrip>>): { trips: SchedulePeriodTrip[] } => ({
+        trips: overrides.map((override) => Object.assign({}, defaultTripAttributes, override) as SchedulePeriodTrip)
     });
 
-    test('Generate services for one line, loop', async() => {
-        const lineCollection = new LineCollection([loopLine], {});
+    const buildLoopTrips = (overrides: Array<Partial<SchedulePeriodTrip>>): { trips: SchedulePeriodTrip[] } => ({
+        trips: overrides.map((override) => Object.assign({}, defaultTripAttributes, override) as SchedulePeriodTrip)
+    });
 
-        // time between trips too high, inbound/outbound trips
-        mockedScheduleGeneration.mockResolvedValueOnce({ trips: [
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60,
-                arrival_time_seconds: 6 * 60 * 60 + 1,
-                path_id: loopPath.getId()
-            }),
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 1,
-                arrival_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 2,
-                path_id: loopPath.getId()
-            })
-        ] });
-        // This schedule is acceptable
-        mockedScheduleGeneration.mockResolvedValueOnce({ trips: [
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60,
-                arrival_time_seconds: 6 * 60 * 60 + 1,
-                path_id: loopPath.getId()
-            }),
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 - 10,
-                arrival_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 2,
-                path_id: loopPath.getId()
-            })
-        ] });
-        // minimum time between trips too low
-        mockedScheduleGeneration.mockResolvedValueOnce({ trips: [
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60,
-                arrival_time_seconds: 6 * 60 * 60 + 1,
-                path_id: loopPath.getId()
-            }),
-            Object.assign({}, defaultTripAttributes, {
-                departure_time_seconds: 6 * 60 * 60 + 5 * 60 - 10,
-                arrival_time_seconds: 6 * 60 * 60 + 5 * 60 + 2,
-                path_id: loopPath.getId()
-            })
-        ] });
+    const testCases = [
+        {
+            name: 'Generate services for one line, inbound, outbound, new service',
+            lineCollection: new LineCollection([line], {}),
+            serviceCollection,
+            generatedSchedules: [
+                // time between trips too high, inbound/outbound trips
+                buildInboundOutboundTrips([
+                    { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1 },
+                    { departure_time_seconds: 6 * 60 * 60 + 10 * 60, arrival_time_seconds: 6 * 60 * 60 + 10 * 60 + 1, path_id: inboundPath.getId() },
+                    { departure_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 1, arrival_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 2 }
+                ]),
+                // This schedule is acceptable
+                buildInboundOutboundTrips([
+                    { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1 },
+                    { departure_time_seconds: 6 * 60 * 60 + 10 * 60, arrival_time_seconds: 6 * 60 * 60 + 10 * 60 + 1, path_id: inboundPath.getId() },
+                    { departure_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 - 10, arrival_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 2 }
+                ]),
+                // minimum time between trips too low
+                buildInboundOutboundTrips([
+                    { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1 },
+                    { departure_time_seconds: 6 * 60 * 60 + 5 * 60 - 10, arrival_time_seconds: 6 * 60 * 60 + 5 * 60 + 2 },
+                    { departure_time_seconds: 6 * 60 * 60 + 10 * 60, arrival_time_seconds: 6 * 60 * 60 + 10 * 60 + 1, path_id: inboundPath.getId() }
+                ])
+            ],
+            expectations: ({ lineServices, services }: { lineServices: LineServices; services: ServiceCollection }) => {
+                // 1 new generated service
+                expect(services.getFeatures().length).toEqual(1);
+                expect(services.getFeatures()[0].attributes).toEqual(expect.objectContaining({
+                    name: `simulation_${line.toString()}_2`,
+                    simulation_id: simulationId
+                }));
+                expect(lineServices[line.getId()]).toBeDefined();
+                expect(Object.keys(lineServices).length).toEqual(1);
+                expect(lineServices[line.getId()][0]).toBeDefined();
+                expect(lineServices[line.getId()].length).toEqual(1);
+                expect(lineServices[line.getId()][0].service.attributes).toEqual(expect.objectContaining({
+                    name: `simulation_${line.toString()}_2`,
+                    simulation_id: simulationId
+                }));
+            }
+        },
+        {
+            name: 'Generate services for one line, loop',
+            lineCollection: new LineCollection([loopLine], {}),
+            serviceCollection,
+            generatedSchedules: [
+                // time between trips too high, loop trips
+                buildLoopTrips([
+                    { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1, path_id: loopPath.getId() },
+                    { departure_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 1, arrival_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 2, path_id: loopPath.getId() }
+                ]),
+                // This schedule is acceptable
+                buildLoopTrips([
+                    { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1, path_id: loopPath.getId() },
+                    { departure_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 - 10, arrival_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 2, path_id: loopPath.getId() }
+                ]),
+                // minimum time between trips too low
+                buildLoopTrips([
+                    { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1, path_id: loopPath.getId() },
+                    { departure_time_seconds: 6 * 60 * 60 + 5 * 60 - 10, arrival_time_seconds: 6 * 60 * 60 + 5 * 60 + 2, path_id: loopPath.getId() }
+                ])
+            ],
+            expectations: ({ lineServices, services }: { lineServices: LineServices; services: ServiceCollection }) => {
+                // 1 new generated feature
+                expect(services.getFeatures().length).toEqual(1);
+                expect(lineServices[loopLine.getId()]).toBeDefined();
+                expect(Object.keys(lineServices).length).toEqual(1);
+                expect(lineServices[loopLine.getId()][0]).toBeDefined();
+                expect(lineServices[loopLine.getId()].length).toEqual(1);
+            }
+        }
+    ];
 
+    test.each(testCases)('$name', async({ lineCollection, serviceCollection, generatedSchedules, expectations }) => {
+        generatedSchedules.forEach((schedule) => {
+            mockedScheduleGeneration.mockReturnValueOnce(schedule);
+        });
         const { lineServices, services } = await prepareServices(lineCollection, serviceCollection, simulationRun);
-        expect(mockedScheduleGeneration).toHaveBeenCalledTimes(3);
-        expect(services.getFeatures().length).toEqual(1);
-        
-        expect(lineServices[loopLine.getId()]).toBeDefined();
-        expect(Object.keys(lineServices).length).toEqual(1);
-
-        expect(lineServices[loopLine.getId()][0]).toBeDefined();
-        expect(lineServices[loopLine.getId()].length).toEqual(1);
+        expect(mockedScheduleGeneration).toHaveBeenCalledTimes(generatedSchedules.length);
+        expectations({ lineServices, services });
     });
 });
