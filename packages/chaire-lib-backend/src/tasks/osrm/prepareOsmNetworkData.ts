@@ -10,6 +10,7 @@ import { fileSelector } from 'inquirer-file-selector';
 import { GenericTask } from '../genericTask';
 import { RoutingMode, routingModes } from 'chaire-lib-common/lib/config/routingModes';
 import OSRMServicePreparation from '../../utils/processManagers/OSRMServicePreparation';
+import { fileManager } from '../../utils/filesystem/fileManager';
 
 /**
  * Task to download network data from OpenStreetMap for a polygon region.
@@ -28,16 +29,9 @@ import OSRMServicePreparation from '../../utils/processManagers/OSRMServicePrepa
  * @implements {GenericTask}
  */
 export class PrepareOsmNetworkData implements GenericTask {
-    private _fileManager: any;
-
-    // TODO Remove file manager from parameters
-    constructor(fileManager: any) {
-        this._fileManager = fileManager;
-    }
-
     private async getOsmFile(defaultFileName: string, importDir: string, interactive = true): Promise<string> {
         let fileName: string = defaultFileName;
-        if (!this._fileManager.fileExistsAbsolute(fileName)) {
+        if (!fileManager.fileExistsAbsolute(fileName)) {
             if (!interactive) {
                 throw new Error('File does not exist: ' + fileName);
             }
@@ -120,8 +114,8 @@ export class PrepareOsmNetworkData implements GenericTask {
         const defaultPrefix = argv['osrm-prefix'];
         const defaultModes = argv['mode'];
         const defaultInteractive = argv['interactive'] !== undefined ? (argv['interactive'] as boolean) : true;
-        const importDir = this._fileManager.directoryManager.projectDirectory + '/imports/';
-        // TODO This data should be common between the various osrm tasks
+        const importDir = fileManager.directoryManager.projectDirectory + '/imports/';
+        // TODO: This data should be common between the various osrm tasks
         const osmDefaultRawDataFile = osmRawFile ? (osmRawFile as string) : importDir + 'osm_network_data.osm';
 
         // Get answers for arguments if necessary

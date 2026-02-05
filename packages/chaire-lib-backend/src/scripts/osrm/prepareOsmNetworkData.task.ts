@@ -6,9 +6,8 @@
  */
 import { PrepareOsmNetworkData } from '../../tasks/osrm/prepareOsmNetworkData';
 import taskWrapper from '../../tasks/taskWrapper';
-import { fileManager } from '../../utils/filesystem/fileManager';
 
-taskWrapper(new PrepareOsmNetworkData(fileManager))
+taskWrapper(new PrepareOsmNetworkData())
     .then(() => {
         // eslint-disable-next-line no-process-exit
         process.exit();
