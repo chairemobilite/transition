@@ -12,19 +12,36 @@ import { fileManager } from '../filesystem/fileManager';
 import { getOsrmDirectoryPathForMode, defaultDirectoryPrefix, getDirectoryPrefix } from './OSRMServicePath';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
-//TODO set type for parameters instead of any
-//TODO set type for Promise return (in all the file)
-const extract = function (parameters: {
+type OSRMResult = {
+    status: 'extracted' | 'contracted' | 'prepared' | 'error';
+    service: 'osrm';
+    action: string;
+    mode?: RoutingMode;
+    logFile?: string;
+    error?: string | Error | unknown;
+};
+
+type OSRMPrepareResult = OSRMResult & {
+    modes?: RoutingMode[];
+};
+
+type OSRMExtractParameters = {
     osmFilePath: string;
     directoryPrefix?: string;
     mode?: RoutingMode;
-}): Promise<any> {
-    const osmFilePath = parameters.osmFilePath;
+};
+
+type OSRMContractParameters = {
+    mode?: RoutingMode;
+    directoryPrefix?: string;
+};
+
+const extract = function (params: OSRMExtractParameters): Promise<OSRMResult> {
+    const { osmFilePath, directoryPrefix, mode = 'walking' } = params;
+
     const fileExtension = path.extname(osmFilePath);
-    //console.log(osmFilePath, fileExtension);
-    const mode = parameters.mode || 'walking';
-    const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, parameters.directoryPrefix);
-    const osrmFileName = getDirectoryPrefix(parameters.directoryPrefix);
+    const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, directoryPrefix);
+    const osrmFileName = getDirectoryPrefix(directoryPrefix);
     const movedFilePath = `${osrmDirectoryPath}/${osrmFileName}${mode}${fileExtension}`;
     const profileFileName = `${mode}.lua`;
 
@@ -47,7 +64,7 @@ const extract = function (parameters: {
         }
 
         console.log(`osrm-extract --profile="${__dirname}/osrmProfiles/${profileFileName}" "${movedFilePath}"`);
-        // TODO Allow to override the osrm profiles file from the application
+        // TODO: Allow to override the osrm profiles file from the application
         const osrmProcess = spawn(
             'osrm-extract',
             [`--profile="${__dirname}/osrmProfiles/${profileFileName}" `, `"${movedFilePath}"`],
@@ -111,10 +128,9 @@ const extract = function (parameters: {
     });
 };
 
-//TODO set type for parameters instead of any
-const contract = function (parameters = {} as any): Promise<any> {
-    const mode = parameters.mode || 'walking';
-    const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, parameters.directoryPrefix);
+const contract = function (params: OSRMContractParameters): Promise<OSRMResult> {
+    const { mode = 'walking', directoryPrefix } = params;
+    const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, directoryPrefix);
 
     return new Promise((resolve, _reject) => {
         console.log(`osrm: contracting osrm data for mode ${mode} from directory ${osrmDirectoryPath}`);
@@ -186,7 +202,7 @@ const prepare = async function (
     osmFilePath: string,
     modes: RoutingMode[] | RoutingMode = ['walking', 'cycling', 'driving', 'bus_urban', 'bus_suburb'],
     directoryPrefix = defaultDirectoryPrefix
-): Promise<any> {
+): Promise<OSRMPrepareResult> {
     if (!Array.isArray(modes)) {
         modes = [modes];
     }
@@ -196,11 +212,7 @@ const prepare = async function (
         const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, directoryPrefix);
         fileManager.directoryManager.createDirectoryIfNotExistsAbsolute(osrmDirectoryPath);
 
-        const extractResult = await extract({
-            mode,
-            osmFilePath,
-            directoryPrefix
-        });
+        const extractResult = await extract({ osmFilePath, mode, directoryPrefix });
         if (extractResult.status !== 'extracted') {
             return {
                 status: 'error',
@@ -211,10 +223,7 @@ const prepare = async function (
             };
         }
 
-        const contractResult = await contract({
-            mode: mode,
-            directoryPrefix
-        });
+        const contractResult = await contract({ mode, directoryPrefix });
         if (contractResult.status !== 'contracted') {
             return {
                 status: 'error',
