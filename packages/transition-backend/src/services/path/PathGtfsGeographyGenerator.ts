@@ -57,37 +57,49 @@ const calculateLayoverTimeSeconds = (
  * @param segmentDistancesMeters - Distance in meters per segment, or null if unavailable
  * @returns Averaged per-segment travel times, dwell times, and totals
  */
-const computeSegmentTimesFromStopTimes = (
-    stopTimes: StopTime[],
+export const computeSegmentTimesFromStopTimes = (
+    allTripsStopTimes: StopTime[][],
     segmentDistancesMeters: (number | null)[]
 ): SegmentTimeResults => {
-    const segmentsData: TimeAndDistance[] = [];
-    const dwellTimeSecondsData: number[] = [];
-    let totalDwellTimeSeconds = 0;
-    let totalTravelTimeWithoutDwellTimesSeconds = 0;
-    let totalTravelTimeWithDwellTimesSeconds = 0;
+    const numTrips = allTripsStopTimes.length;
+    const numStops = allTripsStopTimes[0].length;
+    const numSegments = numStops - 1;
 
-    for (let i = 0, countI = stopTimes.length; i < countI - 1; i++) {
-        const stopTime = stopTimes[i];
-        const nextStopTime = stopTimes[i + 1];
-        const dwellTimeSeconds = stopTime.departureTimeSeconds - stopTime.arrivalTimeSeconds;
-        const travelTimeSeconds = Math.ceil(nextStopTime.arrivalTimeSeconds - stopTime.departureTimeSeconds);
-        segmentsData.push({
-            travelTimeSeconds: travelTimeSeconds, // we should make an average over each period here instead of using the first trip travel times
-            distanceMeters: segmentDistancesMeters[i]
-        });
-        dwellTimeSecondsData.push(dwellTimeSeconds);
-        totalDwellTimeSeconds += dwellTimeSeconds;
-        totalTravelTimeWithoutDwellTimesSeconds += travelTimeSeconds;
-        totalTravelTimeWithDwellTimesSeconds += dwellTimeSeconds + travelTimeSeconds;
+    // accumulate times across all trips
+    const segmentTravelTimeTotals = new Array(numSegments).fill(0);
+    const dwellTimeTotals = new Array(numSegments).fill(0);
+
+    for (const stopTimes of allTripsStopTimes) {
+        for (let i = 0; i < numSegments; i++) {
+            const stopTime = stopTimes[i];
+            const nextStopTime = stopTimes[i + 1];
+            const dwellTimeSeconds = stopTime.departureTimeSeconds - stopTime.arrivalTimeSeconds;
+            const travelTimeSeconds = nextStopTime.arrivalTimeSeconds - stopTime.departureTimeSeconds;
+
+            segmentTravelTimeTotals[i] += travelTimeSeconds;
+            dwellTimeTotals[i] += dwellTimeSeconds;
+        }
     }
+
+    // calculate trip averages
+    const segmentsData: TimeAndDistance[] = segmentTravelTimeTotals.map((total, i) => ({
+        travelTimeSeconds: Math.ceil(total / numTrips),
+        distanceMeters: segmentDistancesMeters[i]
+    }));
+
+    const dwellTimeSecondsData = dwellTimeTotals.map((total) => Math.round(total / numTrips));
+    // add last stop dwell time
+    dwellTimeSecondsData.push(0);
+
+    const totalDwellTimeSeconds = dwellTimeSecondsData.reduce((a, b) => a + b, 0);
+    const totalTravelTimeWithoutDwellTimesSeconds = segmentsData.reduce((a, b) => a + b.travelTimeSeconds, 0);
 
     return {
         segmentsData,
         dwellTimeSecondsData,
         totalDwellTimeSeconds,
         totalTravelTimeWithoutDwellTimesSeconds,
-        totalTravelTimeWithDwellTimesSeconds
+        totalTravelTimeWithDwellTimesSeconds: totalDwellTimeSeconds + totalTravelTimeWithoutDwellTimesSeconds
     };
 };
 
@@ -115,12 +127,12 @@ const cleanSegmentCoordinates = (segmentGeojson: GeoJSON.Feature<GeoJSON.LineStr
  */
 const normalizeDistancesToMeters = (stopTimeDistances: StopTimeDistances[], totalDistanceInMeters: number): void => {
     stopTimeDistances[0].distanceTraveled = 0;
-    const minDistance = stopTimeDistances[0].distanceTraveled || 0;
     const maxDistance = stopTimeDistances[stopTimeDistances.length - 1].distanceTraveled || 0;
-    const distanceInterval = maxDistance - minDistance;
     for (let i = 1, countI = stopTimeDistances.length; i < countI - 1; i++) {
         stopTimeDistances[i].distanceTraveled =
-            (stopTimeDistances[i].distanceTraveled / distanceInterval) * totalDistanceInMeters;
+            maxDistance === 0
+                ? (i / (stopTimeDistances.length - 1)) * totalDistanceInMeters
+                : (stopTimeDistances[i].distanceTraveled / maxDistance) * totalDistanceInMeters;
     }
     stopTimeDistances[stopTimeDistances.length - 1].distanceTraveled = totalDistanceInMeters;
 };
@@ -208,11 +220,19 @@ const buildPathData = (params: {
         operatingTimeWithLayoverTimeSeconds: totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds,
         totalTravelTimeWithReturnBackSeconds: null,
         averageSpeedWithoutDwellTimesMetersPerSecond:
-            Math.round((totalDistanceMeters / totalTravelTimeWithoutDwellTimesSeconds) * 100) / 100,
+            totalTravelTimeWithoutDwellTimesSeconds > 0
+                ? Math.round((totalDistanceMeters / totalTravelTimeWithoutDwellTimesSeconds) * 100) / 100
+                : 0,
         operatingSpeedMetersPerSecond:
-            Math.round((totalDistanceMeters / totalTravelTimeWithDwellTimesSeconds) * 100) / 100,
+            totalTravelTimeWithDwellTimesSeconds > 0
+                ? Math.round((totalDistanceMeters / totalTravelTimeWithDwellTimesSeconds) * 100) / 100
+                : 0,
         operatingSpeedWithLayoverMetersPerSecond:
-            Math.round((totalDistanceMeters / (totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds)) * 100) / 100,
+            totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds > 0
+                ? Math.round(
+                    (totalDistanceMeters / (totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds)) * 100
+                ) / 100
+                : 0,
         returnBackGeography: null,
         nodeTypes: [],
         waypoints: [],
@@ -395,13 +415,16 @@ export const generateGeographyAndSegmentsFromGtfs = (
     path: Path,
     shapeCoordinatesWithDistances: GtfsTypes.Shapes[],
     nodeIds: string[],
-    stopTimes: StopTime[],
+    allTripsStopTimes: StopTime[][],
     shapeGtfsId: string,
     stopCoordinatesByStopId: { [key: string]: [number, number] },
     defaultLayoverRatioOverTotalTravelTime = 0.1,
     defaultMinLayoverTimeSeconds = 180
 ): TranslatableMessage[] => {
     path.attributes.nodes = nodeIds; // reset nodes, they will be regenerated from stop times
+
+    // Use first trip's stopTimes for distance calculations (geometry is same for all trips)
+    const stopTimes = allTripsStopTimes[0];
 
     // Return errors when generating the path
     const errors: TranslatableMessage[] = [];
@@ -474,9 +497,7 @@ export const generateGeographyAndSegmentsFromGtfs = (
 
         // we create an incomplete path to allow schedule generation but without segments shapes and distances:
         const nullDistances = new Array(stopTimes.length - 1).fill(null);
-        const segmentTimes = computeSegmentTimesFromStopTimes(stopTimes, nullDistances);
-        // add last dwellTime (matches success path)
-        segmentTimes.dwellTimeSecondsData.push(0);
+        const segmentTimes = computeSegmentTimesFromStopTimes(allTripsStopTimes, nullDistances);
         const layoverTimeSeconds = calculateLayoverTimeSeconds(
             path.attributes.data.customLayoverMinutes,
             segmentTimes.totalTravelTimeWithDwellTimesSeconds,
@@ -497,10 +518,8 @@ export const generateGeographyAndSegmentsFromGtfs = (
             normalizeDistancesToMeters(stopTimeDistances, totalDistanceInMeters);
         }
 
-        const segmentedShape = sliceShapeIntoSegments(completeShape, stopTimeDistances, stopTimes.length);
-        const segmentTimes = computeSegmentTimesFromStopTimes(stopTimes, segmentedShape.segmentDistancesMeters);
-        // add last dwellTime
-        segmentTimes.dwellTimeSecondsData.push(0);
+        const sliceResult = sliceShapeIntoSegments(completeShape, stopTimeDistances, stopTimes.length);
+        const segmentTimes = computeSegmentTimesFromStopTimes(allTripsStopTimes, sliceResult.segmentDistancesMeters);
         const layoverTimeSeconds = calculateLayoverTimeSeconds(
             path.attributes.data.customLayoverMinutes,
             segmentTimes.totalTravelTimeWithDwellTimesSeconds,
@@ -513,9 +532,9 @@ export const generateGeographyAndSegmentsFromGtfs = (
             totalDistanceMeters: totalDistanceInMeters
         });
 
-        completeShape.geometry.coordinates = segmentedShape.pathCoordinates;
+        completeShape.geometry.coordinates = sliceResult.pathCoordinates;
 
-        path.attributes.segments = segmentedShape.segments;
+        path.attributes.segments = sliceResult.segments;
         path.attributes.data = Object.assign(path.attributes.data, pathData);
 
         const terminalsGeojsons = [
@@ -541,12 +560,15 @@ export const generateGeographyAndSegmentsFromGtfs = (
 export const generateGeographyAndSegmentsFromStopTimes = (
     path: Path,
     nodeIds: string[],
-    stopTimes: StopTime[],
+    allTripsStopTimes: StopTime[][],
     stopCoordinatesByStopId: { [key: string]: [number, number] },
     defaultLayoverRatioOverTotalTravelTime = 0.1,
     defaultMinLayoverTimeSeconds = 180
 ): TranslatableMessage[] => {
     path.attributes.nodes = nodeIds; // reset nodes, they will be regenerated from stop times
+
+    // Use first trip's stopTimes for distance calculations (geometry is same for all trips)
+    const stopTimes = allTripsStopTimes[0];
 
     // Return errors when generating the path
     const errors: TranslatableMessage[] = [];
@@ -590,9 +612,7 @@ export const generateGeographyAndSegmentsFromStopTimes = (
     const segments: number[] = [];
     // TODO Calculate the distances between stops, even if it is approximate. But some stop times may have a shape_dist_traveled field
     const nullDistances: (number | null)[] = new Array(stopTimes.length - 1).fill(null);
-    const segmentTimes = computeSegmentTimesFromStopTimes(stopTimes, nullDistances);
-    // add last dwellTime
-    segmentTimes.dwellTimeSecondsData.push(0);
+    const segmentTimes = computeSegmentTimesFromStopTimes(allTripsStopTimes, nullDistances);
     for (let i = 0; i < stopTimes.length - 1; i++) {
         // Since we simply have coordinates, the index of the coordinates is the stop index
         segments.push(i);
