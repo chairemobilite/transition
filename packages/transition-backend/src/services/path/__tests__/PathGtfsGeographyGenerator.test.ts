@@ -11,7 +11,8 @@ import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
 import { TranslatableMessageWithParams } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import {
     generateGeographyAndSegmentsFromGtfs,
-    generateGeographyAndSegmentsFromStopTimes
+    generateGeographyAndSegmentsFromStopTimes,
+    computeSegmentTimesFromStopTimes
 } from '../PathGtfsGeographyGenerator';
 
 jest.spyOn(console, 'log').mockImplementation(() => { /* noop */ });
@@ -148,7 +149,7 @@ const simpleNodeIds = ['node1', 'node2', 'node3', 'node4'];
 
 const runSimpleGtfs = (path: Path, nodeIds = simpleNodeIds) =>
     generateGeographyAndSegmentsFromGtfs(
-        path, simpleShapeCoordinates, nodeIds, simpleStopTimes, 'shape1', simpleStopCoordinates
+        path, simpleShapeCoordinates, nodeIds, [simpleStopTimes], 'shape1', simpleStopCoordinates
     );
 
 describe('generateGeographyAndSegmentsFromGtfs', () => {
@@ -193,7 +194,7 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
     test('should set geography to null for empty or undefined shape', () => {
         const path1 = createPath();
         const errors1 = generateGeographyAndSegmentsFromGtfs(
-            path1, [], ['node1', 'node2'], simpleStopTimes, 'emptyShape', simpleStopCoordinates
+            path1, [], ['node1', 'node2'], [simpleStopTimes], 'emptyShape', simpleStopCoordinates
         );
         expect(errors1).toHaveLength(0);
         expect(path1.attributes.geography).toBeNull();
@@ -201,7 +202,7 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
 
         const path2 = createPath();
         const errors2 = generateGeographyAndSegmentsFromGtfs(
-            path2, undefined as any, ['node1'], simpleStopTimes, 'noShape', simpleStopCoordinates
+            path2, undefined as any, ['node1'], [simpleStopTimes], 'noShape', simpleStopCoordinates
         );
         expect(errors2).toHaveLength(0);
         expect(path2.attributes.geography).toBeNull();
@@ -218,7 +219,7 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
         };
         const path = createPath(nodeCoordinatesFromStops(stopCoordinatesWithFarStop));
         const errors = generateGeographyAndSegmentsFromGtfs(
-            path, simpleShapeCoordinates, simpleNodeIds, simpleStopTimes, 'shape1', stopCoordinatesWithFarStop
+            path, simpleShapeCoordinates, simpleNodeIds, [simpleStopTimes], 'shape1', stopCoordinatesWithFarStop
         );
 
         expect(errors).toHaveLength(1);
@@ -241,7 +242,7 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
         const path = createPath(nodeCoordinatesFromStops(loopStopCoordinates));
         const nodeIds = ['node1', 'node2', 'node3', 'node4', 'node5', 'node6'];
         const errors = generateGeographyAndSegmentsFromGtfs(
-            path, loopShapeCoordinates, nodeIds, loopStopTimes, 'loopShape', loopStopCoordinates
+            path, loopShapeCoordinates, nodeIds, [loopStopTimes], 'loopShape', loopStopCoordinates
         );
 
         expect(errors).toHaveLength(0);
@@ -268,7 +269,7 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
 
         const path = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
         const errors = generateGeographyAndSegmentsFromGtfs(
-            path, shapesWithDist, simpleNodeIds, stopTimesWithDist, 'shape1', simpleStopCoordinates
+            path, shapesWithDist, simpleNodeIds, [stopTimesWithDist], 'shape1', simpleStopCoordinates
         );
 
         expect(errors).toHaveLength(0);
@@ -297,7 +298,7 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
                 [[36000, 36000], [36700, 36710], [37400, 37420], [38100, 38100]]
             );
             generateGeographyAndSegmentsFromGtfs(
-                path, simpleShapeCoordinates, simpleNodeIds, longStopTimes, 'shape1', simpleStopCoordinates
+                path, simpleShapeCoordinates, simpleNodeIds, [longStopTimes], 'shape1', simpleStopCoordinates
             );
             // totalTravelTimeWithDwellTimes = (0+700) + (10+690) + (20+680) = 2100s
             // layover = ceil(max(0.1 * 2100, 180)) = 210
@@ -308,7 +309,7 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
             const path1 = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
             generateGeographyAndSegmentsFromGtfs(
                 path1, simpleShapeCoordinates, simpleNodeIds,
-                simpleStopTimes, 'shape1', simpleStopCoordinates, 0.5, 60
+                [simpleStopTimes], 'shape1', simpleStopCoordinates, 0.5, 60
             );
             // totalTravelTimeWithDwellTimes = 300s; layover = ceil(max(0.5 * 300, 60)) = 150
             expect(getData(path1, 'layoverTimeSeconds')).toEqual(150);
@@ -316,7 +317,7 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
             const path2 = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
             generateGeographyAndSegmentsFromGtfs(
                 path2, simpleShapeCoordinates, simpleNodeIds,
-                simpleStopTimes, 'shape1', simpleStopCoordinates, 0.01, 120
+                [simpleStopTimes], 'shape1', simpleStopCoordinates, 0.01, 120
             );
             // layover = ceil(max(0.01 * 300, 120)) = 120 (minimum wins)
             expect(getData(path2, 'layoverTimeSeconds')).toEqual(120);
@@ -343,7 +344,7 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
         const path = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
         const twoStopTimes = makeStopTimes('trip1', ['stop1', 'stop4'], [[36000, 36000], [36300, 36300]]);
         const errors = generateGeographyAndSegmentsFromGtfs(
-            path, simpleShapeCoordinates, ['node1', 'node4'], twoStopTimes, 'shape1', simpleStopCoordinates
+            path, simpleShapeCoordinates, ['node1', 'node4'], [twoStopTimes], 'shape1', simpleStopCoordinates
         );
 
         expect(errors).toHaveLength(0);
@@ -360,7 +361,7 @@ describe('generateGeographyAndSegmentsFromStopTimes', () => {
         beforeEach(() => {
             path = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
             errors = generateGeographyAndSegmentsFromStopTimes(
-                path, simpleNodeIds, simpleStopTimes, simpleStopCoordinates
+                path, simpleNodeIds, [simpleStopTimes], simpleStopCoordinates
             );
         });
 
@@ -407,7 +408,7 @@ describe('generateGeographyAndSegmentsFromStopTimes', () => {
     test('should return error and null geography on missing stop coordinates', () => {
         const path = createPath();
         const errors = generateGeographyAndSegmentsFromStopTimes(
-            path, simpleNodeIds, simpleStopTimes, {
+            path, simpleNodeIds, [simpleStopTimes], {
                 stop1: simpleStopCoordinates.stop1,
                 stop2: simpleStopCoordinates.stop2,
                 // stop3 is missing
@@ -426,7 +427,7 @@ describe('generateGeographyAndSegmentsFromStopTimes', () => {
     test('should use customLayoverMinutes when set', () => {
         const path = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
         path.attributes.data.customLayoverMinutes = 3;
-        generateGeographyAndSegmentsFromStopTimes(path, simpleNodeIds, simpleStopTimes, simpleStopCoordinates);
+        generateGeographyAndSegmentsFromStopTimes(path, simpleNodeIds, [simpleStopTimes], simpleStopCoordinates);
         expect(getData(path, 'layoverTimeSeconds')).toEqual(180);
     });
 
@@ -434,7 +435,7 @@ describe('generateGeographyAndSegmentsFromStopTimes', () => {
         const path = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
         const twoStopTimes = makeStopTimes('trip1', ['stop1', 'stop4'], [[36000, 36000], [36300, 36300]]);
         const errors = generateGeographyAndSegmentsFromStopTimes(
-            path, ['node1', 'node4'], twoStopTimes, simpleStopCoordinates
+            path, ['node1', 'node4'], [twoStopTimes], simpleStopCoordinates
         );
 
         expect(errors).toHaveLength(0);
@@ -445,7 +446,7 @@ describe('generateGeographyAndSegmentsFromStopTimes', () => {
 
     test('timing consistency: layover equation and dwell time sum', () => {
         const path = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
-        generateGeographyAndSegmentsFromStopTimes(path, simpleNodeIds, simpleStopTimes, simpleStopCoordinates);
+        generateGeographyAndSegmentsFromStopTimes(path, simpleNodeIds, [simpleStopTimes], simpleStopCoordinates);
 
         expect(path.attributes.data.operatingTimeWithLayoverTimeSeconds).toEqual(
             path.attributes.data.operatingTimeWithoutLayoverTimeSeconds! +
@@ -453,5 +454,135 @@ describe('generateGeographyAndSegmentsFromStopTimes', () => {
         );
         const sumDwell = path.attributes.data.dwellTimeSeconds!.reduce((a, b) => a + b, 0);
         expect(getData(path, 'totalDwellTimeSeconds')).toEqual(sumDwell);
+    });
+});
+
+describe('computeSegmentTimesFromStopTimes', () => {
+
+    const makeSimpleStopTimes = (times: [number, number][]): StopTime[] =>
+        times.map(([arrival, departure], i) => ({
+            trip_id: 'trip1',
+            stop_id: `stop${i}`,
+            stop_sequence: i,
+            arrivalTimeSeconds: arrival,
+            departureTimeSeconds: departure
+        }));
+
+    test('should compute times with null distances', () => {
+        const stopTimes = makeSimpleStopTimes([
+            [36000, 36000],
+            [36090, 36100],
+            [36200, 36200]
+        ]);
+        const result = computeSegmentTimesFromStopTimes([stopTimes], [null, null]);
+        expect(result.segmentsData).toEqual([
+            { travelTimeSeconds: 90, distanceMeters: null },
+            { travelTimeSeconds: 100, distanceMeters: null }
+        ]);
+        expect(result.dwellTimeSecondsData).toEqual([0, 10, 0]);
+        expect(result.totalDwellTimeSeconds).toEqual(10);
+        expect(result.totalTravelTimeWithoutDwellTimesSeconds).toEqual(190);
+        expect(result.totalTravelTimeWithDwellTimesSeconds).toEqual(200);
+    });
+
+    test('should compute times with actual distances', () => {
+        const stopTimes = makeSimpleStopTimes([
+            [36000, 36000],
+            [36090, 36100],
+            [36200, 36200]
+        ]);
+        const result = computeSegmentTimesFromStopTimes([stopTimes], [500, 300]);
+        expect(result.segmentsData).toEqual([
+            { travelTimeSeconds: 90, distanceMeters: 500 },
+            { travelTimeSeconds: 100, distanceMeters: 300 }
+        ]);
+    });
+
+    test('should handle 2-stop path (single segment)', () => {
+        const stopTimes = makeSimpleStopTimes([
+            [36000, 36000],
+            [36120, 36120]
+        ]);
+        const result = computeSegmentTimesFromStopTimes([stopTimes], [null]);
+        expect(result.segmentsData).toHaveLength(1);
+        expect(result.segmentsData[0].travelTimeSeconds).toEqual(120);
+        expect(result.dwellTimeSecondsData).toEqual([0, 0]);
+        expect(result.totalDwellTimeSeconds).toEqual(0);
+    });
+
+    test('should accumulate dwell times correctly', () => {
+        const stopTimes = makeSimpleStopTimes([
+            [36000, 36010],
+            [36100, 36120],
+            [36200, 36230],
+            [36300, 36300]
+        ]);
+        const result = computeSegmentTimesFromStopTimes([stopTimes], [null, null, null]);
+        expect(result.dwellTimeSecondsData).toEqual([10, 20, 30, 0]);
+        expect(result.totalDwellTimeSeconds).toEqual(60);
+    });
+
+    test('should ceil travel times', () => {
+        const stopTimes = makeSimpleStopTimes([
+            [36000, 36000],
+            [36001.5, 36001.5]
+        ]);
+        const result = computeSegmentTimesFromStopTimes([stopTimes], [null]);
+        expect(result.segmentsData[0].travelTimeSeconds).toEqual(2);
+    });
+
+    test('should average times across multiple trips', () => {
+        const trip1StopTimes = makeSimpleStopTimes([
+            [36000, 36000],
+            [36090, 36100],
+            [36200, 36200]
+        ]);
+        const trip2StopTimes = makeSimpleStopTimes([
+            [37000, 37000],
+            [37110, 37120],
+            [37220, 37220]
+        ]);
+        const result = computeSegmentTimesFromStopTimes(
+            [trip1StopTimes, trip2StopTimes],
+            [null, null]
+        );
+        expect(result.segmentsData[0].travelTimeSeconds).toEqual(100);
+        expect(result.segmentsData[1].travelTimeSeconds).toEqual(100);
+        expect(result.dwellTimeSecondsData).toEqual([0, 10, 0]);
+        expect(result.totalDwellTimeSeconds).toEqual(10);
+        expect(result.totalTravelTimeWithoutDwellTimesSeconds).toEqual(200);
+        expect(result.totalTravelTimeWithDwellTimesSeconds).toEqual(210);
+    });
+
+    test('should ceil average travel times', () => {
+        const trip1StopTimes = makeSimpleStopTimes([
+            [36000, 36000],
+            [36089, 36089]
+        ]);
+        const trip2StopTimes = makeSimpleStopTimes([
+            [37000, 37000],
+            [37090, 37090]
+        ]);
+        const result = computeSegmentTimesFromStopTimes(
+            [trip1StopTimes, trip2StopTimes],
+            [null]
+        );
+        expect(result.segmentsData[0].travelTimeSeconds).toEqual(90);
+    });
+
+    test('should round average dwell times', () => {
+        const trip1StopTimes = makeSimpleStopTimes([
+            [36000, 36009],
+            [36100, 36100]
+        ]);
+        const trip2StopTimes = makeSimpleStopTimes([
+            [37000, 37010],
+            [37100, 37100]
+        ]);
+        const result = computeSegmentTimesFromStopTimes(
+            [trip1StopTimes, trip2StopTimes],
+            [null]
+        );
+        expect(result.dwellTimeSecondsData[0]).toEqual(10);
     });
 });
