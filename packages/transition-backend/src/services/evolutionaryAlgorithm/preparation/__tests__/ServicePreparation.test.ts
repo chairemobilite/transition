@@ -185,6 +185,7 @@ beforeEach(() => {
 describe('Test with a single line', () => {
 
     const maxTimeBetweenPassages = 15;
+    const minTimeBetweenPassages = 5;
     const simulationRun = new SimulationRun({
         seed: '235132',
         data: {
@@ -193,6 +194,7 @@ describe('Test with a single line', () => {
             },
             transitNetworkDesignParameters: {
                 maxTimeBetweenPassages,
+                minTimeBetweenPassages,
                 nbOfVehicles: 9,
                 simulatedAgencies: ['arbitrary']
             },
@@ -260,7 +262,7 @@ describe('Test with a single line', () => {
                 // minimum time between trips too low
                 buildInboundOutboundTrips([
                     { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1 },
-                    { departure_time_seconds: 6 * 60 * 60 + 5 * 60 - 10, arrival_time_seconds: 6 * 60 * 60 + 5 * 60 + 2 },
+                    { departure_time_seconds: 6 * 60 * 60 + minTimeBetweenPassages * 60 - 10, arrival_time_seconds: 6 * 60 * 60 + minTimeBetweenPassages * 60 + 2 },
                     { departure_time_seconds: 6 * 60 * 60 + 10 * 60, arrival_time_seconds: 6 * 60 * 60 + 10 * 60 + 1, path_id: inboundPath.getId() }
                 ])
             ],
@@ -299,7 +301,7 @@ describe('Test with a single line', () => {
                 // minimum time between trips too low
                 buildLoopTrips([
                     { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1, path_id: loopPath.getId() },
-                    { departure_time_seconds: 6 * 60 * 60 + 5 * 60 - 10, arrival_time_seconds: 6 * 60 * 60 + 5 * 60 + 2, path_id: loopPath.getId() }
+                    { departure_time_seconds: 6 * 60 * 60 + minTimeBetweenPassages * 60 - 10, arrival_time_seconds: 6 * 60 * 60 + minTimeBetweenPassages * 60 + 2, path_id: loopPath.getId() }
                 ])
             ],
             expectations: ({ lineServices, services }: { lineServices: LineServices; services: ServiceCollection }) => {
@@ -310,7 +312,64 @@ describe('Test with a single line', () => {
                 expect(lineServices[loopLine.getId()][0]).toBeDefined();
                 expect(lineServices[loopLine.getId()].length).toEqual(1);
             }
-        }
+        },
+        {
+            name: 'Validate bounds on time between passages',
+            lineCollection: new LineCollection([line], {}),
+            serviceCollection,
+            generatedSchedules: [
+                // time between passages is exactly the maximum time between passages, so acceptable
+                buildInboundOutboundTrips([
+                    { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1 },
+                    { departure_time_seconds: 6 * 60 * 60 + 10 * 60, arrival_time_seconds: 6 * 60 * 60 + 10 * 60 + 1, path_id: inboundPath.getId() },
+                    { departure_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60, arrival_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 }
+                ]),
+                // minimum time between passages is exactly the minimum time between passages, so acceptable
+                buildInboundOutboundTrips([
+                    { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1 },
+                    { departure_time_seconds: 6 * 60 * 60 + minTimeBetweenPassages * 60, arrival_time_seconds: 6 * 60 * 60 + minTimeBetweenPassages * 60 },
+                    { departure_time_seconds: 6 * 60 * 60 + 10 * 60, arrival_time_seconds: 6 * 60 * 60 + 10 * 60 + 1, path_id: inboundPath.getId() }
+                ])
+            ],
+            expectations: ({ lineServices, services }: { lineServices: LineServices; services: ServiceCollection }) => {
+                // One existing feature + 2 new generated
+                expect(services.getFeatures().length).toEqual(2);
+                // Find services by their names
+                const service1Vehicle = services.getFeatures().find(s => s.attributes.name === `simulation_${line.toString()}_1`);
+                const service2Vehicle = services.getFeatures().find(s => s.attributes.name === `simulation_${line.toString()}_2`);
+                expect(service1Vehicle).toBeDefined();
+                expect(service2Vehicle).toBeDefined(); 
+                expect(service1Vehicle!.attributes).toEqual(expect.objectContaining({
+                    name: `simulation_${line.toString()}_1`,
+                    simulation_id: simulationId
+                }));
+                expect(service2Vehicle!.attributes).toEqual(expect.objectContaining({
+                    name: `simulation_${line.toString()}_2`,
+                    simulation_id: simulationId
+                }));
+
+                // Validate line services
+                expect(lineServices[line.getId()]).toBeDefined();
+                const lineServicesForLine = lineServices[line.getId()];
+                expect(lineServicesForLine.length).toEqual(2);
+                expect(lineServicesForLine[0]).toEqual(expect.objectContaining({
+                    service: expect.objectContaining({
+                        _attributes: expect.objectContaining({
+                            name: `simulation_${line.toString()}_1`,
+                            simulation_id: simulationId
+                        })
+                    })
+                }));
+                expect(lineServicesForLine[1]).toEqual(expect.objectContaining({
+                    service: expect.objectContaining({
+                        _attributes: expect.objectContaining({
+                            name: `simulation_${line.toString()}_2`,
+                            simulation_id: simulationId
+                        })
+                    })
+                }));
+            }
+        },
     ];
 
     test.each(testCases)('$name', async({ lineCollection, serviceCollection, generatedSchedules, expectations }) => {
