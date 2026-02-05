@@ -141,6 +141,9 @@ export class PrepareOsmNetworkData implements GenericTask {
                 console.log(`osrm data for mode ${mode} is ready for routing.`);
             } else {
                 console.log(`osrm data for mode ${mode} failed with error:`, result.error);
+                if (result.logFile) {
+                    console.error(`See full logs at: ${result.logFile}`);
+                }
             }
         }
     }
