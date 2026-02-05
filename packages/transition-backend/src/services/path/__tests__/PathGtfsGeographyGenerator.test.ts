@@ -317,7 +317,7 @@ describe('computeSegmentTimesFromStopTimes', () => {
             [36090, 36100],
             [36200, 36200]
         ]);
-        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes(stopTimes, [null, null]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes([stopTimes], [null, null]);
         expect(result.segmentsData).toEqual([
             { travelTimeSeconds: 90, distanceMeters: null },
             { travelTimeSeconds: 100, distanceMeters: null }
@@ -334,7 +334,7 @@ describe('computeSegmentTimesFromStopTimes', () => {
             [36090, 36100],
             [36200, 36200]
         ]);
-        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes(stopTimes, [500, 300]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes([stopTimes], [500, 300]);
         expect(result.segmentsData).toEqual([
             { travelTimeSeconds: 90, distanceMeters: 500 },
             { travelTimeSeconds: 100, distanceMeters: 300 }
@@ -346,7 +346,7 @@ describe('computeSegmentTimesFromStopTimes', () => {
             [36000, 36000],
             [36120, 36120]
         ]);
-        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes(stopTimes, [null]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes([stopTimes], [null]);
         expect(result.segmentsData).toHaveLength(1);
         expect(result.segmentsData[0].travelTimeSeconds).toEqual(120);
         expect(result.dwellTimeSecondsData).toEqual([0]);
@@ -360,7 +360,7 @@ describe('computeSegmentTimesFromStopTimes', () => {
             [36200, 36230],
             [36300, 36300]
         ]);
-        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes(stopTimes, [null, null, null]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes([stopTimes], [null, null, null]);
         expect(result.dwellTimeSecondsData).toEqual([10, 20, 30]);
         expect(result.totalDwellTimeSeconds).toEqual(60);
     });
@@ -371,8 +371,69 @@ describe('computeSegmentTimesFromStopTimes', () => {
             [36001.5, 36001.5] // 1.5 second travel
         ]);
         // arrival - departure = 1.5, Math.ceil(1.5) = 2
-        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes(stopTimes, [null]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes([stopTimes], [null]);
         expect(result.segmentsData[0].travelTimeSeconds).toEqual(2);
+    });
+
+    test('should average times across multiple trips', () => {
+        // Trip 1: 90s travel (segment 1), 100s travel (segment 2), 10s dwell at stop 1
+        const trip1StopTimes = makeStopTimes([
+            [36000, 36000],
+            [36090, 36100],  // 90s travel, 10s dwell
+            [36200, 36200]   // 100s travel
+        ]);
+        // Trip 2: 110s travel (segment 1), 100s travel (segment 2), 10s dwell at stop 1
+        const trip2StopTimes = makeStopTimes([
+            [37000, 37000],
+            [37110, 37120],  // 110s travel, 10s dwell
+            [37220, 37220]   // 100s travel
+        ]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes(
+            [trip1StopTimes, trip2StopTimes],
+            [null, null]
+        );
+        // Average travel times: (90+110)/2=100, (100+100)/2=100
+        expect(result.segmentsData[0].travelTimeSeconds).toEqual(100);
+        expect(result.segmentsData[1].travelTimeSeconds).toEqual(100);
+        // Average dwell times: (0+0)/2=0, (10+10)/2=10
+        expect(result.dwellTimeSecondsData).toEqual([0, 10]);
+        expect(result.totalDwellTimeSeconds).toEqual(10);
+        expect(result.totalTravelTimeWithoutDwellTimesSeconds).toEqual(200);
+        expect(result.totalTravelTimeWithDwellTimesSeconds).toEqual(210);
+    });
+
+    test('should ceil average travel times', () => {
+        // Trip 1: 89s travel, Trip 2: 90s travel -> average 89.5, ceil to 90
+        const trip1StopTimes = makeStopTimes([
+            [36000, 36000],
+            [36089, 36089]
+        ]);
+        const trip2StopTimes = makeStopTimes([
+            [37000, 37000],
+            [37090, 37090]
+        ]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes(
+            [trip1StopTimes, trip2StopTimes],
+            [null]
+        );
+        expect(result.segmentsData[0].travelTimeSeconds).toEqual(90); // ceil(89.5)
+    });
+
+    test('should round average dwell times', () => {
+        // Trip 1: 9s dwell, Trip 2: 10s dwell -> average 9.5, round to 10
+        const trip1StopTimes = makeStopTimes([
+            [36000, 36009],  // 9s dwell
+            [36100, 36100]
+        ]);
+        const trip2StopTimes = makeStopTimes([
+            [37000, 37010],  // 10s dwell
+            [37100, 37100]
+        ]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes(
+            [trip1StopTimes, trip2StopTimes],
+            [null]
+        );
+        expect(result.dwellTimeSecondsData[0]).toEqual(10); // round(9.5)
     });
 
 });
