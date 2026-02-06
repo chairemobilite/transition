@@ -85,6 +85,10 @@ accessibilityMapRequest:
       type: boolean
       description: Whether to calculate the population of the polygon and include the count in the result. Defaults to false.
       example: true
+    populationDataSourceName: 
+      type: string
+      description: The name or shortname of the data source that contains the population data we want to use. Does nothing if calculatePopulation is set to false. Defaults to undefined. If left undefined or an empty string, the population will not be calculated.
+      example: Dissemination block boundaries 2021
 
 
 accessibilityMapResponseSuccess:
@@ -245,11 +249,22 @@ accessibilityMapResultResponsePolygons:
                   type: integer
                 description: The number of POIs within the accessibility polygon (if any), separated by detailed categories. The keys are the names of the detailed categories defined in the PlaceDetailedCategory type, and the values are integers.
                 example: {'service_bank': 8, 'service_other': 2, 'restaurant_restaurant': 5}
-              population:
-                type: number
-                nullable: true
-                description: The population inside the result polygon. Is null if calculatePopulation was set to false or the polygon does not cover any of the zones in the census db table.
-                example: 102457
+              populationData:
+                type: object
+                description: Object that contains the population in the polygon and how much of it is covered by the data source. Undefined if calculatePopulation is set to false.
+                required:
+                  - population
+                  - dataSourceAreaRatio
+                properties:
+                  population:
+                    type: number
+                    nullable: true
+                    description: The population inside the result polygon. Is null if calculatePopulation was set to false or the polygon does not cover any of the zones in the census db table (distinct from 0, which is for a population that's actually calculated to be 0 based on the data available).
+                    example: 102457
+                  dataSourceAreaRatio:
+                    type: number
+                    description: The portion, from 0 to 1, of how much of the polygon is covered by the zones included in the population data source (for example, it might be less than 1 when the source contains only data for Canada and the polygon is on the US-Canada border).
+                    example: 0.67327
 
 accessibilityMapResponseBadRequest:
   type: string

@@ -546,6 +546,9 @@
         "SeeDetailedCategories": "Voir les catégories détaillées",
         "ShowEmptyDetailedCategories": "Montrer les catégories détaillées vides",
         "AccessiblePOIsPopup": "Les données utilisées pour calculer les lieux d'activité accessibles ont été téléchargées de OpenStreetMap et importées dans la base de données. Les résultats peuvent être inexacts si le polygone d'accessibilité n'est pas contenu entièrement dans la surface importée.",
+        "DataSourceWarningPopup": "Attention: Les données de population de cette source de données ne couvrent que {{percentage}}% du polygone d'accessibilité. Cela peut être parce qu'il chevauche une étendue d'eau ou la frontière de la région importée par cette source.",
+        "DataSourceNullWarningPopup": "Attention: Les données de population de cette source de données ne couvrent aucune partie du polygone d'accessibilité. Cela peut être parce qu'il est contenu dans une étendue d'eau ou en dehors de la région importée par cette source.",
+        "DataSourceNullWarningComparisonPopup": "Attention: Les données de population de cette source de données ne couvrent aucune partie du polygone d'accessibilité pour au moins un des scénarios. Cela peut être parce qu'il est contenu dans une étendue d'eau ou en dehors de la région importée par cette source.",
         "Scenario": "Scénario",
         "DataSource": "Source de données",
         "CompareWithScenario": "Comparer avec scénario",
@@ -581,6 +584,7 @@
         "WithAlternatives": "Calcul avec alternatives",
         "CalculatePois": "Calcul avec lieux d'activité",
         "CalculatePopulation": "Calcul avec la population",
+        "PopulationDataSourceSelect": "Sélectionnez une source de données pour calculer la population",
         "Detailed": "Résultats détaillés avec étapes",
         "WithGeometries": "Inclure les géométries des parcours (geojson)",
         "ReverseOD": "Inverser",
@@ -688,7 +692,8 @@
             "InvalidOdTripsDataSource": "Source de données de calculs OD invalide.",
             "ErrorCalculatingLocation": "Erreur de calcul pour le lieu {{id}}",
             "UserDiskQuotaReached": "L'espace disque maximal permis a été atteint. Veuillez supprimer des tâches passées pour en supprimer les fichiers",
-            "RoutingParametersInvalidForBatch": "Les paramètres pour le calcul de chemin sont invalides. Assurez-vous que le scénario est bien configuré et que les temps sont valides."
+            "RoutingParametersInvalidForBatch": "Les paramètres pour le calcul de chemin sont invalides. Assurez-vous que le scénario est bien configuré et que les temps sont valides.",
+            "DataSourceIsMissing": "La source de données est requise."
         },
         "actions": {
             "walking": "Marche",

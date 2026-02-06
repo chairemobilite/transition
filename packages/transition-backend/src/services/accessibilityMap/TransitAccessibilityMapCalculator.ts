@@ -103,7 +103,8 @@ export const getAttributesOrDefault = (attributes: Partial<AccessibilityMapAttri
         color: attributes.color,
         placeName: attributes.placeName,
         calculatePois: attributes.calculatePois || false,
-        calculatePopulation: attributes.calculatePopulation || false
+        calculatePopulation: attributes.calculatePopulation || false,
+        populationDataSourceName: attributes.populationDataSourceName || undefined
     };
 };
 
@@ -401,6 +402,7 @@ export class TransitAccessibilityMapCalculator {
             color?: string;
             calculatePois?: boolean;
             calculatePopulation?: boolean;
+            populationDataSourceName?: string;
             [key: string]: any;
         },
         result: TransitAccessibilityMapResultByNode,
@@ -510,9 +512,13 @@ export class TransitAccessibilityMapCalculator {
                     await placesDbQueries.getPOIsCategoriesCountInPolygon(polygon.geometry));
             }
 
-            let population: number | null = null;
-            if (attributes.calculatePopulation) {
-                population = await censusDbQueries.getPopulationInPolygon(polygon.geometry);
+            let populationData;
+
+            if (attributes.calculatePopulation && attributes.populationDataSourceName) {
+                populationData = await censusDbQueries.getPopulationInPolygon(
+                    polygon.geometry,
+                    attributes.populationDataSourceName
+                );
             }
 
             polygon.properties = {
@@ -524,7 +530,7 @@ export class TransitAccessibilityMapCalculator {
                 color: attributes.color,
                 accessiblePlacesCountByCategory,
                 accessiblePlacesCountByDetailedCategory,
-                population,
+                populationData,
                 ...attributes,
                 ...(options.additionalProperties || {})
             };

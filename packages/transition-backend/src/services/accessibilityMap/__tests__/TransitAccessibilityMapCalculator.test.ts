@@ -215,7 +215,7 @@ describe('Test accessibility map with results using PostGIS', () => {
             accessiblePlacesCountByDetailedCategory
         });
 
-        mockedCensusPopulationCount.mockResolvedValue(500);
+        mockedCensusPopulationCount.mockResolvedValue({ population: 500, dataSourceAreaRatio: 1 });
     });
 
     test('Test one polygon, 2 nodes, with additional properties, POIs, and population', async() => {
@@ -227,7 +227,8 @@ describe('Test accessibility map with results using PostGIS', () => {
             maxTransferTravelTimeSeconds: 120,
             walkingSpeedMps: 1,
             calculatePois: true,
-            calculatePopulation: true
+            calculatePopulation: true,
+            populationDataSourceName: 'DS Name'
         }
 
         mockedAccessibilityMap.mockResolvedValueOnce({
@@ -277,14 +278,14 @@ describe('Test accessibility map with results using PostGIS', () => {
 
         // Verify the population was calculated
         expect(mockedCensusPopulationCount).toHaveBeenCalled();
-        expect(mockedCensusPopulationCount).toHaveBeenCalledWith(features[0].geometry);
+        expect(mockedCensusPopulationCount).toHaveBeenCalledWith(features[0].geometry, 'DS Name');
 
         // Verify the result structure
         expect(features).toHaveLength(1);
         expect(features[0].geometry.coordinates).toEqual(mockPolygonCoordinates);
         expect(features[0].properties?.accessiblePlacesCountByCategory).toEqual(accessiblePlacesCountByCategory);
         expect(features[0].properties?.accessiblePlacesCountByDetailedCategory).toEqual(accessiblePlacesCountByDetailedCategory);
-        expect(features[0].properties?.population).toEqual(500);
+        expect(features[0].properties?.populationData).toEqual({ population: 500, dataSourceAreaRatio: 1 });
     });
 
     test('Test multiple polygons with different durations using PostGIS', async() => {
@@ -366,7 +367,7 @@ describe('Test accessibility map with results using PostGIS', () => {
 
         // Test that we get a null population when calculatePopulation is explicitly set to false in the attributes
         expect(mockedCensusPopulationCount).toHaveBeenCalledTimes(0);
-        expect(polygonProperties.population).toBeNull();
+        expect(polygonProperties.populationData).toBeUndefined();
     });
 
     test('Test polygon generation with delta using PostGIS', async() => {

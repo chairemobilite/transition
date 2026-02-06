@@ -24,22 +24,16 @@ import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
-import TransitAccessibilityMapRouting, {
-    MAX_DELTA_MINUTES,
-    MAX_DELTA_INTERVAL_MINUTES,
-    MIN_WALKING_SPEED_KPH,
-    MAX_WALKING_SPEED_KPH
-} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import { calculateAccessibilityMap } from '../../../services/routing/RoutingUtils';
-import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
-import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
-import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
-import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import DownloadsUtils from 'chaire-lib-frontend/lib/services/DownloadsService';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
+import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import {
@@ -47,13 +41,22 @@ import {
     secondsToMinutes,
     minutesToSeconds
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+
+import TransitAccessibilityMapRouting, {
+    MAX_DELTA_MINUTES,
+    MAX_DELTA_INTERVAL_MINUTES,
+    MIN_WALKING_SPEED_KPH,
+    MAX_WALKING_SPEED_KPH
+} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
+
+import { calculateAccessibilityMap } from '../../../services/routing/RoutingUtils';
 import AccessibilityMapStatsComponent from './AccessibilityMapStatsComponent';
 import TimeOfTripComponent from '../transitRouting/widgets/TimeOfTripComponent';
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
 import AccessibilityMapBatchForm from './AccessibilityMapBatchForm';
 import AccessibilityMapCoordinatesComponent from './widgets/AccessibilityMapCoordinateComponent';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 export interface AccessibilityMapFormProps extends WithTranslation {
     addEventListeners?: () => void;
@@ -62,9 +65,10 @@ export interface AccessibilityMapFormProps extends WithTranslation {
     fileImportRef?: any;
 }
 
-interface TransitRoutingFormState extends ChangeEventsState<TransitAccessibilityMapRouting> {
+interface AccessibilityMapFormState extends ChangeEventsState<TransitAccessibilityMapRouting> {
     currentResult?: TransitAccessibilityMapWithPolygonResult;
     scenarioCollection: any;
+    dataSourceCollection: any;
     loading: boolean;
     routingErrors?: TranslatableMessage[];
     geojsonDownloadUrl: string | null;
@@ -72,7 +76,7 @@ interface TransitRoutingFormState extends ChangeEventsState<TransitAccessibility
     csvDownloadUrl: string | null;
 }
 
-class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, TransitRoutingFormState> {
+class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, AccessibilityMapFormState> {
     calculateRoutingNonce = new Object();
 
     constructor(props) {
@@ -84,6 +88,7 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
         this.state = {
             object: routingEngine,
             scenarioCollection: serviceLocator.collectionManager.get('scenarios'),
+            dataSourceCollection: serviceLocator.collectionManager.get('dataSources'),
             loading: false,
             geojsonDownloadUrl: null,
             jsonDownloadUrl: null,
@@ -94,6 +99,7 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
         this.polygonCalculated = this.polygonCalculated.bind(this);
         this.calculateRouting = this.calculateRouting.bind(this);
         this.onScenarioCollectionUpdate = this.onScenarioCollectionUpdate.bind(this);
+        this.onDataSourceCollectionUpdate = this.onDataSourceCollectionUpdate.bind(this);
 
         if (routingEngine.hasLocation()) {
             (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
@@ -105,6 +111,10 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
 
     onScenarioCollectionUpdate() {
         this.setState({ scenarioCollection: serviceLocator.collectionManager.get('scenarios') });
+    }
+
+    onDataSourceCollectionUpdate() {
+        this.setState({ dataSourceCollection: serviceLocator.collectionManager.get('dataSources') });
     }
 
     async calculateRouting(refresh = false) {
@@ -182,11 +192,22 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
             this.onValueChange('scenarioId', { value: undefined });
         }
 
+        // If we previously selected yes for calculating population and then delete all our data sources, the choice widget will disappear while the calculatePopulation value will still be at true.
+        // We use this to hard code it to false and the data source name to an empty string if we detect it to be true while there are no data sources.
+        this.setState({ dataSourceCollection: serviceLocator.collectionManager.get('dataSources') });
+        const zonesDataSources = this.getZonesDataSource(this.state.dataSourceCollection);
+        if (zonesDataSources.length === 0 && this.state.object.attributes.calculatePopulation) {
+            this.onValueChange('calculatePopulation', { value: false });
+            this.onValueChange('populationDataSourceName', { value: '' });
+        }
+
         serviceLocator.eventManager.on('collection.update.scenarios', this.onScenarioCollectionUpdate);
+        serviceLocator.eventManager.on('collection.update.dataSources', this.onDataSourceCollectionUpdate);
     }
 
     componentWillUnmount() {
         serviceLocator.eventManager.off('collection.update.scenarios', this.onScenarioCollectionUpdate);
+        serviceLocator.eventManager.off('collection.update.dataSources', this.onDataSourceCollectionUpdate);
     }
 
     onValueChange(path: string, newValue: { value: any; valid?: boolean } = { value: null, valid: true }) {
@@ -217,8 +238,21 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
         }
     };
 
+    private getZonesDataSource = (dataSourceCollection: any) => {
+        return dataSourceCollection.features
+            .filter((source) => {
+                return source._attributes.type === 'zones';
+            })
+            .map((source) => {
+                return {
+                    value: source._attributes.name,
+                    label: source._attributes.name
+                };
+            });
+    };
+
     render() {
-        if (!this.state.scenarioCollection) {
+        if (!this.state.scenarioCollection || !this.state.dataSourceCollection) {
             return <LoadingPage />;
         }
 
@@ -240,6 +274,8 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                 label: scenario.toString(false)
             };
         });
+
+        const zonesDataSources = this.getZonesDataSource(this.state.dataSourceCollection);
 
         return (
             <React.Fragment>
@@ -353,31 +389,48 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                                     max={MAX_WALKING_SPEED_KPH}
                                 />
                             </InputWrapper>
-                            <InputWrapper
-                                smallInput={true}
-                                label={this.props.t('transit:transitRouting:CalculatePopulation')}
-                            >
-                                <InputRadio
-                                    id={`formFieldTransitAccessibilityMapCalculatePopulation${routingId}`}
-                                    value={routing.attributes.calculatePopulation}
-                                    sameLine={true}
-                                    disabled={false}
-                                    choices={[
-                                        {
-                                            value: true
-                                        },
-                                        {
-                                            value: false
+                            {zonesDataSources.length >= 1 && ( // We only want this widget to appear if we have at least one appropriate data source.
+                                <InputWrapper
+                                    smallInput={true}
+                                    label={this.props.t('transit:transitRouting:CalculatePopulation')}
+                                >
+                                    <InputRadio
+                                        id={`formFieldTransitAccessibilityMapCalculatePopulation${routingId}`}
+                                        value={routing.attributes.calculatePopulation}
+                                        sameLine={true}
+                                        disabled={false}
+                                        choices={[
+                                            {
+                                                value: true
+                                            },
+                                            {
+                                                value: false
+                                            }
+                                        ]}
+                                        localePrefix="transit:transitRouting"
+                                        t={this.props.t}
+                                        isBoolean={true}
+                                        onValueChange={(e) =>
+                                            this.onValueChange('calculatePopulation', {
+                                                value: _toBool(e.target.value)
+                                            })
                                         }
-                                    ]}
-                                    localePrefix="transit:transitRouting"
-                                    t={this.props.t}
-                                    isBoolean={true}
-                                    onValueChange={(e) =>
-                                        this.onValueChange('calculatePopulation', { value: _toBool(e.target.value) })
-                                    }
-                                />
-                            </InputWrapper>
+                                    />
+                                </InputWrapper>
+                            )}
+                            {zonesDataSources.length >= 1 && routing.attributes.calculatePopulation && (
+                                <InputWrapper label={this.props.t('transit:transitRouting:PopulationDataSourceSelect')}>
+                                    <InputSelect
+                                        id={`formFieldTransitAccessibilityMapDataSourceSelect${routingId}`}
+                                        value={routing.attributes.populationDataSourceName}
+                                        choices={zonesDataSources}
+                                        t={this.props.t}
+                                        onValueChange={(e) =>
+                                            this.onValueChange('populationDataSourceName', { value: e.target.value })
+                                        }
+                                    />
+                                </InputWrapper>
+                            )}
                             <InputWrapper
                                 smallInput={true}
                                 label={this.props.t('transit:transitRouting:CalculatePois')}
@@ -511,7 +564,10 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                         )}
                     </div>
                     {this.state.currentResult && (
-                        <AccessibilityMapStatsComponent accessibilityPolygons={this.state.currentResult.polygons} />
+                        <AccessibilityMapStatsComponent
+                            accessibilityPolygons={this.state.currentResult.polygons}
+                            calculatePopulation={routing.attributes.calculatePopulation}
+                        />
                     )}
                 </form>
                 <AccessibilityMapBatchForm routingEngine={this.state.object} />
