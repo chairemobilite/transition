@@ -40,6 +40,7 @@ const createDefaultWeights = (): GeneralizedCostFunctionWeights => ({
     inVehicleTravelTimeWeightBySupport: {
         rail: 0.85,
         tires: 1.0,
+        hybridRailTires: 0.9,
         water: 1.1,
         suspended: 0.9,
         magnetic: 0.85,
