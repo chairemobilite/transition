@@ -546,6 +546,9 @@
         "SeeDetailedCategories": "See detailed categories",
         "ShowEmptyDetailedCategories": "Show empty detailed categories",
         "AccessiblePOIsPopup": "The data used to determine accessible Points of interest was downloaded from OpenStreetMap and imported into the database. The results may be inaccurate if the accessibility polygon is not contained entirely within the imported area.",
+        "DataSourceWarningPopup": "Warning: The population data from this data source covers only {{percentage}}% of the accessibility polygon. This may be due to it intersecting a body of water or the border of the region imported by this source.",
+        "DataSourceNullWarningPopup": "Warning: The population data from this data source does not cover any of the accessibility polygon. This may be due to it being contained in a body of water or outside the region imported by this source.",
+        "DataSourceNullWarningComparisonPopup": "Warning: The population data from this data source does not cover any of the accessibility polygon for at least one of the scenarios. This may be due to it being contained in a body of water or outside the region imported by this source.",
         "Scenario": "Scenario",
         "DataSource": "Data source",
         "CompareWithScenario": "Compare with scenario",
@@ -581,6 +584,7 @@
         "WithAlternatives": "Calculate with alternatives",
         "CalculatePois": "Calculate with points of interest",
         "CalculatePopulation": "Calculate with the population",
+        "PopulationDataSourceSelect": "Select a data source to use to calculate the population",
         "Detailed": "Detailed results with steps",
         "WithGeometries": "Include route geometries (geojson)",
         "ReverseOD": "Reverse",
@@ -688,7 +692,8 @@
             "InvalidOdTripsDataSource": "Invalid OD calculations data source.",
             "ErrorCalculatingLocation": "Error calculating location {{id}}",
             "UserDiskQuotaReached": "Maximum allowed disk space has been reached. Please delete old tasks to delete their files.",
-            "RoutingParametersInvalidForBatch": "Routing parameters are invalid. Make sure the scenario is set and times have a valid value."
+            "RoutingParametersInvalidForBatch": "Routing parameters are invalid. Make sure the scenario is set and times have a valid value.",
+            "DataSourceIsMissing": "The data source is required."
         },
         "actions": {
             "walking": "Walk",
