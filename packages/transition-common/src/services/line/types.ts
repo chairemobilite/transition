@@ -4,13 +4,22 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+
 /**
  * Right-of-way categories:
- * ROW A: Fully controlled separated track/lanes used exclusively by transit vehicles, priority at all time
- * ROW B: Separated track/lanes with physical barrier 100% of the distance (fence, wall, median or step), priority at every shared intersection
- * ROW B-: Separated track/lanes with physical barrier at least 50% of the distance, no non-transit turning lanes in transit ROW, some priority at shared intersections
- * ROW C+: On-street with mixed traffic, without physical barrier (or less than 50% of the distance), with reserved lanes and/or priority at intersections
- * ROW C: On-street with mixed traffic, without physical barrier (or less than 50% of the distance), without reserved lanes and with limited or no priority at intersections
+ * ROW A:  Fully controlled separated track/lanes used exclusively
+ *         by transit vehicles, priority at all time
+ * ROW B:  Separated track/lanes with physical barrier 100% of the distance
+ *         (fence, wall, median or step), priority at every shared intersection
+ * ROW B-: Separated track/lanes with physical barrier at least 50% of the
+ *         distance, no non-transit turning lanes in transit ROW, some
+ *         priority at shared intersections
+ * ROW C+: On-street with mixed traffic, without physical barrier
+ *         (or less than 50% of the distance), with reserved lanes and/or
+ *         priority at intersections
+ * ROW C:  On-street with mixed traffic, without physical barrier
+ *         (or less than 50% of the distance), without reserved lanes and
+ *         with limited or no priority at intersections
  * unknown: used if the value is not set for the line/path/segment.
  */
 export const rightOfWayCategories = ['A', 'B', 'B-', 'C+', 'C', 'unknown'] as const;
@@ -52,13 +61,15 @@ export type VerticalAlignment = (typeof verticalAlignments)[number];
  * 0.0: empty (all seats available, no users)
  * 0.5: good comfort (most users should be seated)
  * 1.0: low comfort (all seats occupied, all standees areas occupied)
- * > 1.0: very low comfort (all seats and standees areas occupied with too many people, hard to move, board or alight)
+ * > 1.0: very low comfort (all seats and standees areas occupied with
+ * too many people, hard to move, board or alight)
  * undefined: used if the value is not set/unknown for the line/path/segment.
  */
 export type LoadFactor = number | undefined;
 
 /** Reliability ratio:
- * Ratio of on-time arrivals/departures compared to planned schedules. On-time = between 0 and 3 minutes late.
+ * Ratio of on-time arrivals/departures compared to planned schedules.
+ * On-time = between 0 and 3 minutes late.
  * Value is between 0.0 and 1.0 (100%).
  * undefined: used if the value is not set/unknown for the line/path.
  */
