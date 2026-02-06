@@ -25,28 +25,49 @@
 export const rightOfWayCategories = ['A', 'B', 'B-', 'C+', 'C', 'unknown'] as const;
 export type RightOfWayCategory = (typeof rightOfWayCategories)[number];
 
+// Rail modes:
+export const railModes = ['rail', 'highSpeedRail', 'metro', 'tram', 'tramTrain'] as const;
+export type RailMode = (typeof railModes)[number];
+
 // Transit modes:
 export const transitModes = [
-    'bus',
-    'trolleybus',
-    'rail',
-    'highSpeedRail',
-    'metro',
-    'monorail',
-    'tram',
-    'tramTrain',
-    'water',
-    'gondola',
-    'funicular',
-    'taxi',
-    'cableCar',
-    'horse',
-    'other',
-    'transferable'
+    ...railModes,
+    ...[
+        'bus',
+        'trolleybus',
+        'monorail',
+        'water',
+        'gondola',
+        'funicular',
+        'taxi',
+        'cableCar',
+        'horse',
+        'other',
+        'transferable'
+    ]
 ] as const;
 
 /** An enumeration of transit modes */
 export type TransitMode = (typeof transitModes)[number];
+
+/**
+ * Rail-based transit modes sometimes need distinct analysis and calculations.
+ * These modes run on fixed tracks where curves, gradients and cant affect speed.
+ * Cant: https://en.wikipedia.org/wiki/Cant_(road_and_rail)
+ * Cant deficiency: https://en.wikipedia.org/wiki/Cant_deficiency
+ * Curves: https://en.wikipedia.org/wiki/Minimum_railway_curve_radius
+ * Curves max speed: https://www.youtube.com/watch?v=veGEOSEDSlE
+ * Curves geometry: https://www.thepwayengineer.com/blog/categories/track-geometry
+ * Track geometry: https://en.wikipedia.org/wiki/Track_geometry
+ * Gardient/Slope: https://en.wikipedia.org/wiki/Grade_(slope)#Railways
+ *
+ * @param {TransitMode | undefined | null} mode The transit mode to check
+ * @returns true if the mode is a rail-based mode
+ */
+export function isRailMode(mode: TransitMode | undefined | null): mode is RailMode {
+    if (!mode) return false;
+    return (railModes as readonly string[]).includes(mode);
+}
 
 /** Vertical alignments:
  * underground: below grade (subway, tunnel, etc.) (level -1)
