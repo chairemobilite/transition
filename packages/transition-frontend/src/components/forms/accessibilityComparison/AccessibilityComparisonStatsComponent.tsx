@@ -17,6 +17,7 @@ export interface AccessibilityComparisonStatsComponentProps {
         result2: GeoJSON.FeatureCollection;
     };
     mode: ComparisonMode;
+    calculatePopulation?: boolean;
 }
 
 const AccessibilityComparisonStatsComponent: React.FunctionComponent<AccessibilityComparisonStatsComponentProps> = (
@@ -173,13 +174,44 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
                         })}
                     </td>
                 </tr>
-                {typeof properties1.population === 'number' && typeof properties2.population === 'number' && (
+                {typeof properties1.populationData.population === 'number' &&
+                    typeof properties2.populationData.population === 'number' && (
                     <tr>
                         <th>{t('transit:transitRouting:AccessibilityMapPopulation')}</th>
-                        <td>{properties1.population.toLocaleString(language)}</td>
-                        <td>{properties2.population.toLocaleString(language)}</td>
                         <td>
-                            {(properties2.population - properties1.population).toLocaleString(language, {
+                            {properties1.populationData.population.toLocaleString(language)}
+                            {properties1.populationData.dataSourceAreaRatio < 0.99 && (
+                                <React.Fragment>
+                                        &nbsp;
+                                    <span
+                                        className="apptr__form-warning-message"
+                                        data-tooltip-id={`data-source-incomplete-area-warning-${durationMinutes}`}
+                                        data-tooltip-content="1"
+                                    >
+                                            &#9888;
+                                    </span>
+                                </React.Fragment>
+                            )}
+                        </td>
+                        <td>
+                            {properties2.populationData.population.toLocaleString(language)}
+                            {properties2.populationData.dataSourceAreaRatio < 0.99 && (
+                                <React.Fragment>
+                                        &nbsp;
+                                    <span
+                                        className="apptr__form-warning-message"
+                                        data-tooltip-id={`data-source-incomplete-area-warning-${durationMinutes}`}
+                                        data-tooltip-content="2"
+                                    >
+                                            &#9888;
+                                    </span>
+                                </React.Fragment>
+                            )}
+                        </td>
+                        <td>
+                            {(
+                                properties2.populationData.population - properties1.populationData.population
+                            ).toLocaleString(language, {
                                 signDisplay: 'exceptZero'
                             })}
                         </td>
@@ -247,7 +279,38 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
                         )}
                     </React.Fragment>
                 )}
+                {props.calculatePopulation &&
+                    (properties1.populationData.population === null ||
+                        properties2.populationData.population === null) && (
+                    <tr>
+                        <td colSpan={4} className="apptr__form-warning-message">
+                            <span className="apptr__form-warning-message">
+                                {t('transit:transitRouting:DataSourceNullWarningComparisonPopup')}
+                            </span>
+                        </td>
+                    </tr>
+                )}
                 <br />
+                <Tooltip
+                    id={`data-source-incomplete-area-warning-${durationMinutes}`}
+                    opacity={1}
+                    style={{ maxWidth: '90%', zIndex: 100 }}
+                    render={({ content }) => (
+                        <span className="apptr__form-warning-message">
+                            {t('transit:transitRouting:DataSourceWarningPopup', {
+                                percentage: (
+                                    Math.round(
+                                        (content === '1' ? properties1 : properties2).populationData
+                                            .dataSourceAreaRatio *
+                                            100 *
+                                            10
+                                    ) / 10
+                                ) // Round to the nearest percentage decimal point.
+                                    .toLocaleString(language)
+                            })}
+                        </span>
+                    )}
+                />
             </React.Fragment>
         );
     });
