@@ -67,6 +67,7 @@ export type ReliabilityRatio = number | undefined;
 /** Support
  * rail: steel on steel
  * tires: rubber tires on pavement (car, bus, etc.)
+ * hybridRailTires: like Montreal metro: both rubber tires with rail wheels and tracks
  * water: buoyancy (can induce sickness and or fear to some people)
  * suspended: suspended gondola (can induce fear to some people)
  * magnetic: magnetic levitation (maglev)
@@ -78,6 +79,7 @@ export type ReliabilityRatio = number | undefined;
 export const supports = [
     'rail',
     'tires',
+    'hybridRailTires',
     'water',
     'suspended',
     'magnetic',
