@@ -10,7 +10,7 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { SimulationAlgorithmDescriptor } from '../TransitNetworkDesignAlgorithm';
 import { CsvFieldMappingDescriptor, CsvFileAndFieldMapper, CsvFileAndMapping } from '../../../csv';
 import { demandFieldDescriptors } from '../../../transitDemand/TransitOdDemandFromCsv';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 type OdTripEvaluationOptions = {
     // The percentage of the OD trip in the demand to use for the simulation
@@ -178,7 +178,9 @@ class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTri
         }
     });
 
-    validateOptions = (_options: Partial<OdTripEvaluationOptions>): { valid: boolean; errors: ErrorMessage[] } => {
+    validateOptions = (
+        _options: Partial<OdTripEvaluationOptions>
+    ): { valid: boolean; errors: TranslatableMessage[] } => {
         return { valid: true, errors: [] };
     };
 }
@@ -239,9 +241,11 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
         }
     });
 
-    validateOptions = (options: Partial<OdTripSimulationOptions>): { valid: boolean; errors: ErrorMessage[] } => {
+    validateOptions = (
+        options: Partial<OdTripSimulationOptions>
+    ): { valid: boolean; errors: TranslatableMessage[] } => {
         let valid = true;
-        const errors: ErrorMessage[] = [];
+        const errors: TranslatableMessage[] = [];
 
         // Validate the demand attributes
         if (options.demandAttributes !== undefined) {
