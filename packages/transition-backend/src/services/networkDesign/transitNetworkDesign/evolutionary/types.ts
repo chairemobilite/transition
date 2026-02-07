@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 import { AlgorithmConfigurationByType } from 'transition-common/lib/services/networkDesign/transit/algorithm';
 import { SimulationMethodConfiguration } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
@@ -51,6 +51,6 @@ export interface EvolutionaryTransitNetworkDesignJobResult {
      * 'paused' means the job should exit, waiting for child jobs to execute and
      * terminate */
     status: 'success' | 'failed' | 'paused';
-    warnings: ErrorMessage[];
-    errors: ErrorMessage[];
+    warnings: TranslatableMessage[];
+    errors: TranslatableMessage[];
 }
