@@ -27,6 +27,8 @@ interface TransitionToolbarState {
 }
 
 class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, TransitionToolbarState> {
+    private _coordinatesRafId: number | null = null;
+
     constructor(props: LayoutSectionProps & WithTranslation) {
         super(props);
 
@@ -58,6 +60,9 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
     }
 
     componentWillUnmount() {
+        if (this._coordinatesRafId !== null) {
+            cancelAnimationFrame(this._coordinatesRafId);
+        }
         serviceLocator.eventManager.off('map.updateMouseCoordinates', this.onUpdateCoordinates);
         serviceLocator.eventManager.off('map.showLayer', this.onShowLayer);
         serviceLocator.eventManager.off('map.hideLayer', this.onHideLayer);
@@ -110,8 +115,14 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
     };
 
     onUpdateCoordinates = (coordinates: [number, number]) => {
-        this.setState({
-            coordinates
+        // Throttle to one setState per animation frame to avoid flooding
+        // React's update queue on rapid mouse movements.
+        if (this._coordinatesRafId !== null) {
+            cancelAnimationFrame(this._coordinatesRafId);
+        }
+        this._coordinatesRafId = requestAnimationFrame(() => {
+            this._coordinatesRafId = null;
+            this.setState({ coordinates });
         });
     };
 

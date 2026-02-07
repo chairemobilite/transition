@@ -17,6 +17,8 @@ export const sectionLayers = {
         'transitStations',
         'transitStationsSelected',
         'transitPaths',
+        'transitPathCurveSegments',
+        'transitPathLargeAngleVertices',
         'transitPathsSelected',
         'transitNodes',
         'transitNodesSelected',
@@ -354,6 +356,59 @@ const layersConfig = {
                     [15, 16]
                 ]
             }
+        }
+    },
+
+    // Curve segments visualization layer for rail paths — shows only speed-restricted
+    // curve sections (orange) where the curve radius limits the maximum speed.
+    transitPathCurveSegments: {
+        type: 'line',
+        layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+        },
+        paint: {
+            'line-color': {
+                property: 'color',
+                type: 'identity'
+            },
+            'line-opacity': 0.85,
+            // Width slightly larger than animated path (which is 12px max)
+            'line-width': {
+                base: 1,
+                stops: [
+                    [6, 6],
+                    [12, 14],
+                    [15, 22]
+                ]
+            }
+        }
+    },
+
+    // Large-angle vertices: highlights waypoints or stations where the deflection
+    // angle exceeds MIN_DEFLECTION_ANGLE_RAD (~2°), indicating abrupt direction changes.
+    transitPathLargeAngleVertices: {
+        type: 'circle',
+        paint: {
+            'circle-radius': {
+                base: 1,
+                stops: [
+                    [10, 8],
+                    [13, 16],
+                    [15, 24]
+                ]
+            },
+            'circle-color': 'rgba(255, 152, 0, 0.4)',
+            'circle-stroke-width': {
+                base: 1,
+                stops: [
+                    [10, 2],
+                    [13, 3],
+                    [15, 4]
+                ]
+            },
+            'circle-stroke-opacity': 0.9,
+            'circle-stroke-color': 'rgba(255, 120, 0, 1.0)'
         }
     },
 
