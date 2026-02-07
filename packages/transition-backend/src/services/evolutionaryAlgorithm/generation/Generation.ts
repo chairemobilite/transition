@@ -15,8 +15,9 @@ import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import GenerationLogger from './GenerationLogger';
 import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
-import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ResultSerialization } from '../candidate/types';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 abstract class Generation {
     protected fitnessSorter: (fitnessA: number, fitnessB: number) => number;
@@ -53,9 +54,11 @@ abstract class Generation {
         return this.generationNumber;
     }
 
-    async prepareCandidates(socket: EventEmitter): Promise<{ warnings: ErrorMessage[]; errors: ErrorMessage[] }> {
-        const errors: ErrorMessage[] = [];
-        const warnings: ErrorMessage[] = [];
+    async prepareCandidates(
+        socket: EventEmitter
+    ): Promise<{ warnings: TranslatableMessage[]; errors: TranslatableMessage[] }> {
+        const errors: TranslatableMessage[] = [];
+        const warnings: TranslatableMessage[] = [];
         console.time(` generation ${this.generationNumber}: prepared candidates`);
 
         // TODO Cleanup old data?

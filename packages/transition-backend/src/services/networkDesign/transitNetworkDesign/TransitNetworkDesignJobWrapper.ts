@@ -20,7 +20,7 @@ import { ExecutableJob } from '../../executableJob/ExecutableJob';
 import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 import { TransitNetworkDesignJobType } from './types';
 import { LineServices } from '../../evolutionaryAlgorithm/internalTypes';
-import { TranslatableMessage } from "chaire-lib-common/lib/utils/TranslatableMessage";
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 // Type to extract parameters from a job data type
 type ExtractParameters<TJobType extends JobDataType> = TJobType extends { data: { parameters: infer P } } ? P : never;
