@@ -6,8 +6,9 @@
  */
 import type * as GtfsTypes from 'gtfs-types';
 import * as PathGtfsGenerator from '../PathGtfsGeographyGenerator';
-import { length as turfLength } from '@turf/turf';
+import { length as turfLength, cleanCoords as turfCleanCoords } from '@turf/turf';
 import Path from 'transition-common/lib/services/path/Path';
+import { StopTime } from '../../gtfsImport/GtfsImportTypes';
 
 const simpleShapeWithCorrectStops = {
     shapes: [
@@ -272,6 +273,397 @@ describe('Calculate distances, call both approaches', () => {
         }
         // Check last stop
         expect(stopTimeDistances[loopShape.stopTimes.length - 1].distanceTraveled).toEqual(totalDistanceInMeters);
+    });
+
+});
+
+describe('calculateLayoverTimeSeconds', () => {
+
+    test('should use custom layover when provided', () => {
+        expect(PathGtfsGenerator.calculateLayoverTimeSeconds(5, 1000, 0.1, 180)).toEqual(300);
+    });
+
+    test('should use ratio when it exceeds default minimum', () => {
+        // ratio: 0.1 * 5000 = 500 > 180
+        expect(PathGtfsGenerator.calculateLayoverTimeSeconds(undefined, 5000, 0.1, 180)).toEqual(500);
+    });
+
+    test('should use default minimum when ratio is below it', () => {
+        // ratio: 0.1 * 1000 = 100 < 180
+        expect(PathGtfsGenerator.calculateLayoverTimeSeconds(undefined, 1000, 0.1, 180)).toEqual(180);
+    });
+
+    test('should ceil the result', () => {
+        // ratio: 0.1 * 1801 = 180.1 -> ceil = 181
+        expect(PathGtfsGenerator.calculateLayoverTimeSeconds(undefined, 1801, 0.1, 180)).toEqual(181);
+    });
+
+});
+
+describe('computeSegmentTimesFromStopTimes', () => {
+
+    const makeStopTimes = (times: [number, number][]): StopTime[] =>
+        times.map(([arrival, departure], i) => ({
+            trip_id: 'trip1',
+            stop_id: `stop${i}`,
+            stop_sequence: i,
+            arrivalTimeSeconds: arrival,
+            departureTimeSeconds: departure
+        }));
+
+    test('should compute times with null distances', () => {
+        const stopTimes = makeStopTimes([
+            [36000, 36000],
+            [36090, 36100],
+            [36200, 36200]
+        ]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes([stopTimes], [null, null]);
+        expect(result.segmentsData).toEqual([
+            { travelTimeSeconds: 90, distanceMeters: null },
+            { travelTimeSeconds: 100, distanceMeters: null }
+        ]);
+        expect(result.dwellTimeSecondsData).toEqual([0, 10]);
+        expect(result.totalDwellTimeSeconds).toEqual(10);
+        expect(result.totalTravelTimeWithoutDwellTimesSeconds).toEqual(190);
+        expect(result.totalTravelTimeWithDwellTimesSeconds).toEqual(200);
+    });
+
+    test('should compute times with actual distances', () => {
+        const stopTimes = makeStopTimes([
+            [36000, 36000],
+            [36090, 36100],
+            [36200, 36200]
+        ]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes([stopTimes], [500, 300]);
+        expect(result.segmentsData).toEqual([
+            { travelTimeSeconds: 90, distanceMeters: 500 },
+            { travelTimeSeconds: 100, distanceMeters: 300 }
+        ]);
+    });
+
+    test('should handle 2-stop path (single segment)', () => {
+        const stopTimes = makeStopTimes([
+            [36000, 36000],
+            [36120, 36120]
+        ]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes([stopTimes], [null]);
+        expect(result.segmentsData).toHaveLength(1);
+        expect(result.segmentsData[0].travelTimeSeconds).toEqual(120);
+        expect(result.dwellTimeSecondsData).toEqual([0]);
+        expect(result.totalDwellTimeSeconds).toEqual(0);
+    });
+
+    test('should accumulate dwell times correctly', () => {
+        const stopTimes = makeStopTimes([
+            [36000, 36010],
+            [36100, 36120],
+            [36200, 36230],
+            [36300, 36300]
+        ]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes([stopTimes], [null, null, null]);
+        expect(result.dwellTimeSecondsData).toEqual([10, 20, 30]);
+        expect(result.totalDwellTimeSeconds).toEqual(60);
+    });
+
+    test('should ceil travel times', () => {
+        const stopTimes = makeStopTimes([
+            [36000, 36000],
+            [36001.5, 36001.5] // 1.5 second travel
+        ]);
+        // arrival - departure = 1.5, Math.ceil(1.5) = 2
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes([stopTimes], [null]);
+        expect(result.segmentsData[0].travelTimeSeconds).toEqual(2);
+    });
+
+    test('should average times across multiple trips', () => {
+        // Trip 1: 90s travel (segment 1), 100s travel (segment 2), 10s dwell at stop 1
+        const trip1StopTimes = makeStopTimes([
+            [36000, 36000],
+            [36090, 36100],  // 90s travel, 10s dwell
+            [36200, 36200]   // 100s travel
+        ]);
+        // Trip 2: 110s travel (segment 1), 100s travel (segment 2), 10s dwell at stop 1
+        const trip2StopTimes = makeStopTimes([
+            [37000, 37000],
+            [37110, 37120],  // 110s travel, 10s dwell
+            [37220, 37220]   // 100s travel
+        ]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes(
+            [trip1StopTimes, trip2StopTimes],
+            [null, null]
+        );
+        // Average travel times: (90+110)/2=100, (100+100)/2=100
+        expect(result.segmentsData[0].travelTimeSeconds).toEqual(100);
+        expect(result.segmentsData[1].travelTimeSeconds).toEqual(100);
+        // Average dwell times: (0+0)/2=0, (10+10)/2=10
+        expect(result.dwellTimeSecondsData).toEqual([0, 10]);
+        expect(result.totalDwellTimeSeconds).toEqual(10);
+        expect(result.totalTravelTimeWithoutDwellTimesSeconds).toEqual(200);
+        expect(result.totalTravelTimeWithDwellTimesSeconds).toEqual(210);
+    });
+
+    test('should ceil average travel times', () => {
+        // Trip 1: 89s travel, Trip 2: 90s travel -> average 89.5, ceil to 90
+        const trip1StopTimes = makeStopTimes([
+            [36000, 36000],
+            [36089, 36089]
+        ]);
+        const trip2StopTimes = makeStopTimes([
+            [37000, 37000],
+            [37090, 37090]
+        ]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes(
+            [trip1StopTimes, trip2StopTimes],
+            [null]
+        );
+        expect(result.segmentsData[0].travelTimeSeconds).toEqual(90); // ceil(89.5)
+    });
+
+    test('should round average dwell times', () => {
+        // Trip 1: 9s dwell, Trip 2: 10s dwell -> average 9.5, round to 10
+        const trip1StopTimes = makeStopTimes([
+            [36000, 36009],  // 9s dwell
+            [36100, 36100]
+        ]);
+        const trip2StopTimes = makeStopTimes([
+            [37000, 37010],  // 10s dwell
+            [37100, 37100]
+        ]);
+        const result = PathGtfsGenerator.computeSegmentTimesFromStopTimes(
+            [trip1StopTimes, trip2StopTimes],
+            [null]
+        );
+        expect(result.dwellTimeSecondsData[0]).toEqual(10); // round(9.5)
+    });
+
+});
+
+describe('cleanSegmentCoordinates', () => {
+
+    const makeLineFeature = (coords: number[][]): GeoJSON.Feature<GeoJSON.LineString> => ({
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'LineString', coordinates: coords }
+    });
+
+    test('should remove duplicate first coordinates in 3-coord linestring', () => {
+        const feature = makeLineFeature([[1, 2], [1, 2], [3, 4]]);
+        const result = PathGtfsGenerator.cleanSegmentCoordinates(feature);
+        expect(result).toEqual([[1, 2], [3, 4]]);
+    });
+
+    test('should remove duplicate last coordinates in 3-coord linestring', () => {
+        const feature = makeLineFeature([[1, 2], [3, 4], [3, 4]]);
+        const result = PathGtfsGenerator.cleanSegmentCoordinates(feature);
+        expect(result).toEqual([[1, 2], [3, 4]]);
+    });
+
+    test('should use turfCleanCoords for 3-coord linestring with no duplicates', () => {
+        // Non-collinear points so turfCleanCoords keeps all 3
+        const feature = makeLineFeature([[0, 0], [1, 2], [3, 1]]);
+        const result = PathGtfsGenerator.cleanSegmentCoordinates(feature);
+        expect(result).toEqual([[0, 0], [1, 2], [3, 1]]);
+    });
+
+    test('should use turfCleanCoords for >3 coordinates', () => {
+        const feature = makeLineFeature([[0, 0], [1, 1], [2, 2], [3, 3]]);
+        const result = PathGtfsGenerator.cleanSegmentCoordinates(feature);
+        // turfCleanCoords removes collinear middle points
+        expect(result).toEqual([[0, 0], [3, 3]]);
+    });
+
+    test('should pass through 2-coordinate linestrings via turfCleanCoords', () => {
+        const feature = makeLineFeature([[1, 2], [3, 4]]);
+        const result = PathGtfsGenerator.cleanSegmentCoordinates(feature);
+        expect(result).toEqual([[1, 2], [3, 4]]);
+    });
+
+});
+
+describe('normalizeDistancesToMeters', () => {
+
+    test('should proportionally convert arbitrary units to meters', () => {
+        const distances: PathGtfsGenerator.StopTimeDistances[] = [
+            { distanceTraveled: 0, distanceFromShape: 0 },
+            { distanceTraveled: 50, distanceFromShape: 0 },
+            { distanceTraveled: 100, distanceFromShape: 0 }
+        ];
+        PathGtfsGenerator.normalizeDistancesToMeters(distances, 1000);
+        expect(distances[0].distanceTraveled).toEqual(0);
+        expect(distances[1].distanceTraveled).toEqual(500);
+        expect(distances[2].distanceTraveled).toEqual(1000);
+    });
+
+    test('should handle single interior stop', () => {
+        const distances: PathGtfsGenerator.StopTimeDistances[] = [
+            { distanceTraveled: 0, distanceFromShape: 0 },
+            { distanceTraveled: 25, distanceFromShape: 0 },
+            { distanceTraveled: 200, distanceFromShape: 0 }
+        ];
+        PathGtfsGenerator.normalizeDistancesToMeters(distances, 500);
+        expect(distances[0].distanceTraveled).toEqual(0);
+        expect(distances[1].distanceTraveled).toBeCloseTo(62.5);
+        expect(distances[2].distanceTraveled).toEqual(500);
+    });
+
+    test('should set first distance to 0 even if it had a different value', () => {
+        const distances: PathGtfsGenerator.StopTimeDistances[] = [
+            { distanceTraveled: 10, distanceFromShape: 0 },
+            { distanceTraveled: 50, distanceFromShape: 0 },
+            { distanceTraveled: 100, distanceFromShape: 0 }
+        ];
+        PathGtfsGenerator.normalizeDistancesToMeters(distances, 1000);
+        expect(distances[0].distanceTraveled).toEqual(0);
+    });
+
+});
+
+describe('sliceShapeIntoSegments', () => {
+
+    test('should produce correct segment count', () => {
+        const completeShape = shapeToLine(simpleShapeWithCorrectStops.shapes);
+        const cleanedShape = turfCleanCoords(completeShape);
+        const totalDistance = turfLength(cleanedShape, { units: 'meters' });
+        const distResult = PathGtfsGenerator.calculateDistancesFromLineShape({
+            stopTimes: simpleShapeWithCorrectStops.stopTimes,
+            stopCoordinatesByStopId: simpleShapeWithCorrectStops.coordinatesByStopId,
+            shapeCoordinatesWithDistances: simpleShapeWithCorrectStops.shapes,
+            completeShape: cleanedShape,
+            totalDistanceInMeters: totalDistance
+        });
+        expect(distResult.status).toEqual('success');
+        const stopTimeDistances = distResult.stopTimeDistances as PathGtfsGenerator.StopTimeDistances[];
+
+        const result = PathGtfsGenerator.sliceShapeIntoSegments(cleanedShape, stopTimeDistances, 4);
+        // 4 stops => 3 segments
+        expect(result.segments).toHaveLength(3);
+        expect(result.segmentDistancesMeters).toHaveLength(3);
+        expect(result.globalCoordinates.length).toBeGreaterThanOrEqual(3);
+    });
+
+    test('should have first segment index at 0', () => {
+        const completeShape = shapeToLine(simpleShapeWithCorrectStops.shapes);
+        const cleanedShape = turfCleanCoords(completeShape);
+        const totalDistance = turfLength(cleanedShape, { units: 'meters' });
+        const distResult = PathGtfsGenerator.calculateDistancesFromLineShape({
+            stopTimes: simpleShapeWithCorrectStops.stopTimes,
+            stopCoordinatesByStopId: simpleShapeWithCorrectStops.coordinatesByStopId,
+            shapeCoordinatesWithDistances: simpleShapeWithCorrectStops.shapes,
+            completeShape: cleanedShape,
+            totalDistanceInMeters: totalDistance
+        });
+        const stopTimeDistances = distResult.stopTimeDistances as PathGtfsGenerator.StopTimeDistances[];
+
+        const result = PathGtfsGenerator.sliceShapeIntoSegments(cleanedShape, stopTimeDistances, 4);
+        expect(result.segments[0]).toEqual(0);
+    });
+
+    test('should have consistent total distance across segments', () => {
+        const completeShape = shapeToLine(simpleShapeWithCorrectStops.shapes);
+        const cleanedShape = turfCleanCoords(completeShape);
+        const totalDistance = turfLength(cleanedShape, { units: 'meters' });
+        const distResult = PathGtfsGenerator.calculateDistancesFromLineShape({
+            stopTimes: simpleShapeWithCorrectStops.stopTimes,
+            stopCoordinatesByStopId: simpleShapeWithCorrectStops.coordinatesByStopId,
+            shapeCoordinatesWithDistances: simpleShapeWithCorrectStops.shapes,
+            completeShape: cleanedShape,
+            totalDistanceInMeters: totalDistance
+        });
+        const stopTimeDistances = distResult.stopTimeDistances as PathGtfsGenerator.StopTimeDistances[];
+
+        const result = PathGtfsGenerator.sliceShapeIntoSegments(cleanedShape, stopTimeDistances, 4);
+        const sumOfSegments = result.segmentDistancesMeters.reduce((a, b) => a + b, 0);
+        // Sum of ceiled segment distances should be close to total distance (within rounding)
+        expect(sumOfSegments).toBeGreaterThan(0);
+        expect(sumOfSegments).toBeLessThanOrEqual(Math.ceil(totalDistance) + result.segmentDistancesMeters.length);
+    });
+
+});
+
+describe('buildPathData', () => {
+
+    test('should compute speed metrics correctly', () => {
+        const segmentTimes: PathGtfsGenerator.SegmentTimeResults = {
+            segmentsData: [
+                { travelTimeSeconds: 100, distanceMeters: 500 },
+                { travelTimeSeconds: 200, distanceMeters: 500 }
+            ],
+            dwellTimeSecondsData: [0, 10],
+            totalDwellTimeSeconds: 10,
+            totalTravelTimeWithoutDwellTimesSeconds: 300,
+            totalTravelTimeWithDwellTimesSeconds: 310
+        };
+        const result = PathGtfsGenerator.buildPathData({
+            segmentTimes,
+            layoverTimeSeconds: 180,
+            totalDistanceMeters: 1000
+        });
+        expect(result.totalDistanceMeters).toEqual(1000);
+        expect(result.travelTimeWithoutDwellTimesSeconds).toEqual(300);
+        expect(result.operatingTimeWithoutLayoverTimeSeconds).toEqual(310);
+        expect(result.operatingTimeWithLayoverTimeSeconds).toEqual(490);
+        // averageSpeedWithoutDwellTimes: 1000 / 300 = 3.33
+        expect(result.averageSpeedWithoutDwellTimesMetersPerSecond).toBeCloseTo(3.33, 2);
+        // operatingSpeed: 1000 / 310 = 3.23
+        expect(result.operatingSpeedMetersPerSecond).toBeCloseTo(3.23, 2);
+        // operatingSpeedWithLayover: 1000 / 490 = 2.04
+        expect(result.operatingSpeedWithLayoverMetersPerSecond).toBeCloseTo(2.04, 2);
+    });
+
+    test('should pass through null and empty fields', () => {
+        const segmentTimes: PathGtfsGenerator.SegmentTimeResults = {
+            segmentsData: [{ travelTimeSeconds: 100, distanceMeters: null }],
+            dwellTimeSecondsData: [0],
+            totalDwellTimeSeconds: 0,
+            totalTravelTimeWithoutDwellTimesSeconds: 100,
+            totalTravelTimeWithDwellTimesSeconds: 100
+        };
+        const result = PathGtfsGenerator.buildPathData({
+            segmentTimes,
+            layoverTimeSeconds: 180,
+            totalDistanceMeters: 500
+        });
+        expect(result.totalTravelTimeWithReturnBackSeconds).toBeNull();
+        expect(result.returnBackGeography).toBeNull();
+        expect(result.nodeTypes).toEqual([]);
+        expect(result.waypoints).toEqual([]);
+        expect(result.waypointTypes).toEqual([]);
+    });
+
+    test('should pass through dwell time array', () => {
+        const segmentTimes: PathGtfsGenerator.SegmentTimeResults = {
+            segmentsData: [
+                { travelTimeSeconds: 90, distanceMeters: null },
+                { travelTimeSeconds: 100, distanceMeters: null }
+            ],
+            dwellTimeSecondsData: [0, 10, 0],
+            totalDwellTimeSeconds: 10,
+            totalTravelTimeWithoutDwellTimesSeconds: 190,
+            totalTravelTimeWithDwellTimesSeconds: 200
+        };
+        const result = PathGtfsGenerator.buildPathData({
+            segmentTimes,
+            layoverTimeSeconds: 180,
+            totalDistanceMeters: 1000
+        });
+        expect(result.dwellTimeSeconds).toEqual([0, 10, 0]);
+        expect(result.totalDwellTimeSeconds).toEqual(10);
+    });
+
+    test('should ceil total distance', () => {
+        const segmentTimes: PathGtfsGenerator.SegmentTimeResults = {
+            segmentsData: [{ travelTimeSeconds: 100, distanceMeters: null }],
+            dwellTimeSecondsData: [0],
+            totalDwellTimeSeconds: 0,
+            totalTravelTimeWithoutDwellTimesSeconds: 100,
+            totalTravelTimeWithDwellTimesSeconds: 100
+        };
+        const result = PathGtfsGenerator.buildPathData({
+            segmentTimes,
+            layoverTimeSeconds: 180,
+            totalDistanceMeters: 999.3
+        });
+        expect(result.totalDistanceMeters).toEqual(1000);
     });
 
 });
