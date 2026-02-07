@@ -9,6 +9,9 @@ import { generatePathGeographyFromRouting } from '../PathGeographyGenerator';
 import { pathGeographyUtils as PathGeographyUtils } from '../PathGeographyUtils';
 import { TestUtils } from 'chaire-lib-common/lib/test';
 import { roundSecondsToNearestMinute } from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import {
+    durationFromAccelerationDecelerationDistanceAndRunningSpeed
+} from 'chaire-lib-common/lib/utils/PhysicsUtils';
 
 const node1: any = TestUtils.makePoint([-73.745618, 45.368994], { routing_radius_meters: 50, id: 'node1' }, { id: 1 });
 const node2: any = TestUtils.makePoint([-73.742861, 45.361682], { routing_radius_meters: 100, id: 'node2' }, { id: 2 });
@@ -52,6 +55,11 @@ class TransitPathStub extends TransitObjectStub {
 
     getLine(): TransitObjectStub | undefined {
         return this.get('line_id') === line.get('id') ? line : undefined;
+    }
+
+    getMode(): string | undefined {
+        const lineObj = this.getLine();
+        return lineObj ? lineObj.get('mode') : this.get('mode');
     }
 
     getDwellTimeSecondsAtNode(nodeDwellTimeSeconds: number | undefined) : number {
@@ -435,6 +443,162 @@ test('Generate From Routing', async() => {
         operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil)),
         operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance,roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil) + LAYOVER_TIME)
     }));
+});
+
+describe('All modes use standard kinematic calculation (curve analysis moved to backend API)', () => {
+    const totalLegDistance = 1500;
+    const totalLegDuration = 100;
+
+    const arcCoords: [number, number][] = (() => {
+        const start = node1.geometry.coordinates as [number, number];
+        const end = node4.geometry.coordinates as [number, number];
+        const n = 20;
+        const coords: [number, number][] = [start];
+        for (let i = 1; i <= n; i++) {
+            const t = i / (n + 1);
+            const lng = start[0] + t * (end[0] - start[0]);
+            const lat = start[1] + t * (end[1] - start[1]) + 0.0005 * Math.sin(Math.PI * t);
+            coords.push([lng, lat]);
+        }
+        coords.push(end);
+        return coords;
+    })();
+
+    const makeArcRoutingResult = () => ({
+        tracepoints: [node1, node4],
+        matchings: [{
+            confidence: 99,
+            distance: totalLegDistance,
+            duration: totalLegDuration,
+            legs: [{
+                distance: totalLegDistance,
+                duration: totalLegDuration,
+                steps: [{
+                    distance: totalLegDistance,
+                    geometry: {
+                        type: 'LineString' as const,
+                        coordinates: arcCoords
+                    }
+                }]
+            }]
+        }]
+    });
+
+    const makeLineWithMode = (mode: string) =>
+        new TransitObjectStub({ id: 'line1', mode });
+
+    const makePathStub = (lineObj: TransitObjectStub, routingEngine: string) => {
+        const railCollectionManager = {
+            get: (_str: string) =>
+                _str === 'nodes'
+                    ? new GenericCollectionStub(nodeCollection)
+                    : new GenericCollectionStub([])
+        };
+        const pathStub = new TransitPathStub({
+            id: 'pathRail1',
+            line_id: lineObj.get('id'),
+            nodes: [node1.properties.id, node4.properties.id],
+            data: {
+                nodeTypes: ['manual', 'manual'],
+                routingEngine,
+                routingMode: 'driving',
+                defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
+                defaultAcceleration: DEFAULT_ACC_DEC,
+                defaultDeceleration: DEFAULT_ACC_DEC,
+                defaultRunningSpeedKmH: DEFAULT_SPEED,
+                maxRunningSpeedKmH: DEFAULT_MAX_SPEED
+            }
+        }) as any;
+        pathStub._collectionManager = railCollectionManager;
+        pathStub.getLine = () => lineObj;
+        pathStub.getMode = () => lineObj.get('mode');
+        return pathStub;
+    };
+
+    const computeStandardTravelTime = (distance: number, runningSpeedMps: number) => {
+        return Math.ceil(
+            durationFromAccelerationDecelerationDistanceAndRunningSpeed(
+                DEFAULT_ACC_DEC,
+                DEFAULT_ACC_DEC,
+                distance,
+                runningSpeedMps
+            )
+        );
+    };
+
+    const defaultRunningSpeedMps = DEFAULT_SPEED / 3.6;
+
+    test.each([
+        { desc: 'rail + manual → standard kinematic', mode: 'rail', routingEngine: 'manual' },
+        { desc: 'highSpeedRail + manual → standard kinematic', mode: 'highSpeedRail', routingEngine: 'manual' },
+        { desc: 'metro + manual → standard kinematic', mode: 'metro', routingEngine: 'manual' },
+        { desc: 'tram + manual → standard kinematic', mode: 'tram', routingEngine: 'manual' },
+        { desc: 'bus + manual → standard kinematic', mode: 'bus', routingEngine: 'manual' },
+        { desc: 'monorail + manual → standard kinematic', mode: 'monorail', routingEngine: 'manual' }
+    ])('$desc', ({ mode, routingEngine }) => {
+        const lineObj = makeLineWithMode(mode);
+        const pathStub = makePathStub(lineObj, routingEngine);
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(pathStub, defaultRunningSpeedMps);
+        generatePathGeographyFromRouting(pathStub, nodeGeojson, [makeArcRoutingResult()]);
+
+        expect(pathStub.attributes.data.routingFailed).toBeFalsy();
+        expect(pathStub.attributes.segments.length).toEqual(1);
+        expect(pathStub.attributes.geography.coordinates.length).toEqual(arcCoords.length);
+
+        const segData = pathStub.attributes.data.segments[0];
+        expect(segData.distanceMeters).toEqual(totalLegDistance);
+        const expectedTime = computeStandardTravelTime(totalLegDistance, defaultRunningSpeedMps);
+        expect(segData.travelTimeSeconds).toEqual(expectedTime);
+    });
+
+    test.each([
+        { desc: 'rail + engine → OSRM-derived speed', mode: 'rail', routingEngine: 'engine' },
+        { desc: 'tram + engine → OSRM-derived speed', mode: 'tram', routingEngine: 'engine' },
+        { desc: 'tram + engineCustom → default running speed', mode: 'tram', routingEngine: 'engineCustom' }
+    ])('$desc', ({ mode, routingEngine }) => {
+        const lineObj = makeLineWithMode(mode);
+        const pathStub = makePathStub(lineObj, routingEngine);
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(pathStub, defaultRunningSpeedMps);
+        generatePathGeographyFromRouting(pathStub, nodeGeojson, [makeArcRoutingResult()]);
+
+        expect(pathStub.attributes.data.routingFailed).toBeFalsy();
+        expect(pathStub.attributes.segments.length).toEqual(1);
+
+        const segData = pathStub.attributes.data.segments[0];
+        expect(segData.travelTimeSeconds).toBeGreaterThan(0);
+
+        const runningSpeedMps = routingEngine === 'engine'
+            ? totalLegDistance / totalLegDuration
+            : defaultRunningSpeedMps;
+        const expectedTime = computeStandardTravelTime(totalLegDistance, runningSpeedMps);
+        expect(segData.travelTimeSeconds).toEqual(expectedTime);
+    });
+
+    test('rail + manual and bus + manual produce identical travel times', () => {
+        const railLine = makeLineWithMode('rail');
+        const railPath = makePathStub(railLine, 'manual');
+        generatePathGeographyFromRouting(
+            railPath,
+            PathGeographyUtils.prepareNodesAndWaypoints(railPath, defaultRunningSpeedMps),
+            [makeArcRoutingResult()]
+        );
+
+        const busLine = makeLineWithMode('bus');
+        const busPath = makePathStub(busLine, 'manual');
+        generatePathGeographyFromRouting(
+            busPath,
+            PathGeographyUtils.prepareNodesAndWaypoints(busPath, defaultRunningSpeedMps),
+            [makeArcRoutingResult()]
+        );
+
+        expect(railPath.attributes.data.routingFailed).toBeFalsy();
+        expect(busPath.attributes.data.routingFailed).toBeFalsy();
+
+        expect(railPath.attributes.data.segments[0].distanceMeters)
+            .toEqual(busPath.attributes.data.segments[0].distanceMeters);
+        expect(railPath.attributes.data.segments[0].travelTimeSeconds)
+            .toEqual(busPath.attributes.data.segments[0].travelTimeSeconds);
+    });
 });
 
 test('Generate From Routing With Errors', async() => {

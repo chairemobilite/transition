@@ -68,9 +68,32 @@ const MapRenderer: React.FC<MapRendererProps> = ({
         zoom: defaultZoom
     });
 
-    // Update zoom state when view changes and notify parent
+    // View state is updated synchronously so the controlled MapLibreMap
+    // stays responsive during pan/zoom. Only the parent notification
+    // (handleZoomChange) is throttled via RAF to avoid cascading re-renders.
+    const zoomRafRef = useRef<number | null>(null);
+    const lastNotifiedZoomRef = useRef(defaultZoom);
+
     useEffect(() => {
-        handleZoomChange(viewState.zoom);
+        return () => {
+            if (zoomRafRef.current !== null) {
+                cancelAnimationFrame(zoomRafRef.current);
+            }
+        };
+    }, []);
+
+    // Notify parent of zoom changes, throttled to one call per animation frame
+    useEffect(() => {
+        if (viewState.zoom === lastNotifiedZoomRef.current) return;
+
+        if (zoomRafRef.current !== null) {
+            cancelAnimationFrame(zoomRafRef.current);
+        }
+        zoomRafRef.current = requestAnimationFrame(() => {
+            zoomRafRef.current = null;
+            lastNotifiedZoomRef.current = viewState.zoom;
+            handleZoomChange(viewState.zoom);
+        });
     }, [viewState.zoom, handleZoomChange]);
 
     // Track zoom level and layer updates for deck.gl layer updates

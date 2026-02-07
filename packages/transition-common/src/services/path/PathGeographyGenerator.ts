@@ -77,7 +77,7 @@ const handleLegs = (path: any, points: Geojson.Feature<Geojson.Point>[], legs: (
         segmentDuration += Math.ceil(leg.duration);
         segmentDistance += Math.ceil(leg.distance);
 
-        // Path cannot finish at a waypoint, so this last segment si not part of the total calculations.
+        // Path cannot finish at a waypoint, so this last segment is not part of the total calculations.
         if (i === legs.length - 1 && !nodeIds[nextNodeIndex]) {
             // last leg is to a waypoint (missing node at the end)
             segments.push(segmentCoordinatesStartIndex);
