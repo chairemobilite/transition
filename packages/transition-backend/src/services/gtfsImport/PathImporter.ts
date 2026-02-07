@@ -32,8 +32,8 @@ import pathsDbQueries from '../../models/db/transitPaths.db.queries';
  * imported so far
  * @param {*} collectionManager The collection manager containing all lines
  * @return {*}  {(Promise< { status: 'success'; pathIdsByTripId: { [key:
- *     string]: string }; warnings: ErrorMessage[] } | { status: 'failed';
- *     errors: ErrorMessage[] }
+ *     string]: string }; warnings: TranslatableMessage[] } | { status: 'failed';
+ *     errors: TranslatableMessage[] }
  * >)}
  */
 const generateAndImportPaths = async (

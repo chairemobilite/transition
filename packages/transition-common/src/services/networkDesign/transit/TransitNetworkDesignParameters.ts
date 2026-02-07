@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
 import { SimulationAlgorithmDescriptor } from './TransitNetworkDesignAlgorithm';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Agency from '../../agency/Agency';
 import Service from '../../service/Service';
 import Line from '../../line/Line';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 export type TransitNetworkDesignParameters = {
     /** Maximum number of minutes between passages */
@@ -197,7 +197,10 @@ export class TransitNetworkDesignDescriptor implements SimulationAlgorithmDescri
         };
     }
 
-    validateOptions(options: Partial<TransitNetworkDesignParameters>): { valid: boolean; errors: ErrorMessage[] } {
+    validateOptions(options: Partial<TransitNetworkDesignParameters>): {
+        valid: boolean;
+        errors: TranslatableMessage[];
+    } {
         return validateTransitNetworkDesignParameters(options);
     }
 }

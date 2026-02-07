@@ -31,7 +31,7 @@ import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 import GenericCsvImportAndMappingForm from '../../csv/GenericCsvImportAndMappingForm';
 import { CsvFileAndMapping, CsvFileAndFieldMapper } from 'transition-common/lib/services/csv';
 import { InputMultiselect } from 'chaire-lib-frontend/lib/components/input/InputMultiselect';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 
 type OptionsEditComponentProps<T extends Record<string, unknown>> = {
@@ -275,7 +275,7 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
     const { t } = useTranslation(['transit', 'main']);
     const options = React.useMemo(() => props.optionsDescriptor.getOptions(), [props.optionsDescriptor]);
 
-    const [errors, setErrors] = React.useState<ErrorMessage[]>([]);
+    const [errors, setErrors] = React.useState<TranslatableMessage[]>([]);
 
     React.useEffect(() => {
         // Set defaults and validate on first load
