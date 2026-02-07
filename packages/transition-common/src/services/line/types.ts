@@ -5,6 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
+import lineModes from '../../config/lineModes';
+
 /**
  * Right-of-way categories:
  * ROW A:  Fully controlled separated track/lanes used exclusively
@@ -59,7 +61,7 @@ export type TransitMode = (typeof transitModes)[number];
  * Curves max speed: https://www.youtube.com/watch?v=veGEOSEDSlE
  * Curves geometry: https://www.thepwayengineer.com/blog/categories/track-geometry
  * Track geometry: https://en.wikipedia.org/wiki/Track_geometry
- * Gardient/Slope: https://en.wikipedia.org/wiki/Grade_(slope)#Railways
+ * Gradient/Slope: https://en.wikipedia.org/wiki/Grade_(slope)#Railways
  *
  * @param {TransitMode | undefined | null} mode The transit mode to check
  * @returns true if the mode is a rail-based mode
@@ -67,6 +69,50 @@ export type TransitMode = (typeof transitModes)[number];
 export function isRailMode(mode: TransitMode | undefined | null): mode is RailMode {
     if (!mode) return false;
     return (railModes as readonly string[]).includes(mode);
+}
+
+/**
+ * Return the default running speed (km/h) for a given transit mode,
+ * looked up from the lineModes configuration (`config/lineModes.ts`).
+ *
+ * Used as a fallback when the path does not have an explicit
+ * `defaultRunningSpeedKmH` value. This single lookup keeps the map
+ * curve-segment visualisation, the speed-profile chart and the
+ * statistics panel consistent.
+ *
+ * @param mode The transit mode to look up.
+ * @param fallback Value returned when the mode is unknown or null (default 80).
+ */
+export function getDefaultRunningSpeedKmH(mode: TransitMode | undefined | null, fallback = 80): number {
+    if (!mode) return fallback;
+    const entry = lineModes.find((m) => m.value === mode);
+    return entry?.defaultValues?.data?.defaultRunningSpeedKmH ?? fallback;
+}
+
+/**
+ * Return the default acceleration (m/s²) for a given transit mode,
+ * looked up from the lineModes configuration (`config/lineModes.ts`).
+ *
+ * @param mode The transit mode to look up.
+ * @param fallback Value returned when the mode is unknown or null (default 0.8).
+ */
+export function getDefaultAcceleration(mode: TransitMode | undefined | null, fallback = 0.8): number {
+    if (!mode) return fallback;
+    const entry = lineModes.find((m) => m.value === mode);
+    return entry?.defaultValues?.data?.defaultAcceleration ?? fallback;
+}
+
+/**
+ * Return the default deceleration (m/s²) for a given transit mode,
+ * looked up from the lineModes configuration (`config/lineModes.ts`).
+ *
+ * @param mode The transit mode to look up.
+ * @param fallback Value returned when the mode is unknown or null (default 0.8).
+ */
+export function getDefaultDeceleration(mode: TransitMode | undefined | null, fallback = 0.8): number {
+    if (!mode) return fallback;
+    const entry = lineModes.find((m) => m.value === mode);
+    return entry?.defaultValues?.data?.defaultDeceleration ?? fallback;
 }
 
 /** Vertical alignments:
