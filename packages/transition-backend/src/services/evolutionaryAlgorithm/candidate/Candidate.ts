@@ -7,43 +7,19 @@
 import * as AlgoTypes from '../internalTypes';
 import { EventEmitter } from 'events';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
-
-export type Result = {
-    /**
-     * Total fitness of this candidate, considering each individual method. It
-     * may be relative to other candidates, so it can be initialized to
-     * `Number.NaN` if still unknown
-     */
-    totalFitness: number;
-    /**
-     * Key is the simulation method and the value is the detail for this method
-     */
-    results: { [method: string]: { fitness: number; results: unknown } };
-};
-
-export type ResultSerialization = {
-    lines: {
-        /** The key is the ID of the active lines, the object is the details to
-         * reproduce the services  */
-        [lineId: string]: {
-            shortname: string;
-            nbVehicles: number;
-        };
-    };
-    numberOfLines: number;
-    numberOfVehicles: number;
-    result: Result;
-};
+import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import { CandidateResult, ResultSerialization } from './types';
 
 /**
  * Represents one candidate network
  */
 abstract class Candidate {
-    protected result: Result | undefined;
+    protected result: CandidateResult | undefined;
 
     constructor(
         protected chromosome: AlgoTypes.CandidateChromosome,
-        protected options: AlgoTypes.RuntimeAlgorithmData
+        protected wrappedJob: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
     ) {
         // Nothing to do
     }
@@ -56,7 +32,7 @@ abstract class Candidate {
         return this.chromosome;
     }
 
-    getResult(): Result {
+    getResult(): CandidateResult {
         const result = this.result;
         if (result === undefined) {
             throw 'Result does not exist yet, this method should not have been called';
@@ -68,7 +44,7 @@ abstract class Candidate {
 
     abstract prepareScenario(socket: EventEmitter): Promise<Scenario>;
 
-    abstract simulate(): Promise<Result>;
+    abstract simulate(): Promise<CandidateResult>;
 
     abstract getScenario(): Scenario | undefined;
 }

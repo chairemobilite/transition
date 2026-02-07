@@ -41,7 +41,6 @@ import {
     DashboardContribution,
     PanelSectionProps
 } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
-import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
 
 interface DashboardProps extends WithTranslation {
     contributions: DashboardContribution[];
@@ -208,7 +207,6 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         }
         // TODO: Commented code will be back eventually (soon-ish), keeping it here as a reminder.
         const dataSourceCollection = new DataSourceCollection([], {}, serviceLocator.eventManager);
-        const simulationCollection = new SimulationCollection([], {}, serviceLocator.eventManager);
 
         const nodeCollection = new NodeCollection([], {}, serviceLocator.eventManager);
         //const stationCollection  = new StationCollection([], {}, serviceLocator.eventManager);
@@ -226,7 +224,6 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
 
         loadLayersAndCollections({
             dataSourceCollection,
-            simulationCollection,
             nodeCollection,
             agencyCollection,
             lineCollection,

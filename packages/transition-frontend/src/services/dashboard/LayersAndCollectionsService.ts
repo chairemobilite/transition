@@ -12,14 +12,12 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 // TODO: Bring back the missing data types
 type LoadLayersOptions = {
     dataSourceCollection: DataSourceCollection;
-    simulationCollection: SimulationCollection;
     nodeCollection: NodeCollection;
     agencyCollection: AgencyCollection;
     lineCollection: LineCollection;
@@ -36,7 +34,6 @@ type LoadLayersOptions = {
 // TODO tahini Rethink this function, was just a quick copy/paste from Dashboard so it can be called from elsewhere
 export const loadLayersAndCollections = async ({
     dataSourceCollection,
-    simulationCollection,
     nodeCollection,
     agencyCollection,
     lineCollection,
@@ -53,9 +50,6 @@ export const loadLayersAndCollections = async ({
         // Load dataSourceCollection
         await dataSourceCollection.loadFromServer(serviceLocator.socketEventManager, serviceLocator.collectionManager);
         serviceLocator.collectionManager.add('dataSources', dataSourceCollection);
-        // Load simulation collection
-        await simulationCollection.loadFromServer(serviceLocator.socketEventManager, serviceLocator.collectionManager);
-        serviceLocator.collectionManager.add('simulations', simulationCollection);
 
         await nodeCollection.loadFromServer(serviceLocator.socketEventManager);
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
