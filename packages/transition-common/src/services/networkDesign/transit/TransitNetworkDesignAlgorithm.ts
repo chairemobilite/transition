@@ -6,7 +6,7 @@
  */
 import { EventEmitter } from 'events';
 import { CsvFieldMappingDescriptor } from '../../csv';
-import { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 /**
  * Simulation algorithm class. This will actually run the algorithm
@@ -58,12 +58,12 @@ export type SimulationAlgorithmOptionByType =
     | {
           type: 'integer' | 'number';
           default?: number;
-          validate?: (value: number) => boolean | ErrorMessage;
+          validate?: (value: number) => boolean | TranslatableMessage;
       }
     | {
           type: 'seconds';
           default?: number;
-          validate?: (value: number) => boolean | ErrorMessage;
+          validate?: (value: number) => boolean | TranslatableMessage;
           askAs?: 'minutes' | 'hours';
       }
     | {
@@ -73,12 +73,12 @@ export type SimulationAlgorithmOptionByType =
            * Descriptor specific validation function. By default, percentage is
            * expected to be between 0 and 1, but options can override this.
            */
-          validate?: (value: number) => boolean | ErrorMessage;
+          validate?: (value: number) => boolean | TranslatableMessage;
       }
     | {
           type: 'string';
           default?: string;
-          validate?: (value: string) => boolean | ErrorMessage;
+          validate?: (value: string) => boolean | TranslatableMessage;
       }
     | {
           type: 'boolean';
@@ -141,7 +141,7 @@ export interface SimulationAlgorithmDescriptor<T extends Record<string, unknown>
      * options's individual validator and allows to validate the whole object,
      * not just individual values.
      * */
-    validateOptions: (options: Partial<T>) => { valid: boolean; errors: ErrorMessage[] };
+    validateOptions: (options: Partial<T>) => { valid: boolean; errors: TranslatableMessage[] };
 }
 
 /**
@@ -186,9 +186,9 @@ export function getDefaultOptionsFromDescriptor<T extends Record<string, unknown
 export function validateOptionsWithDescriptor<T extends Record<string, unknown>>(
     options: Partial<T>,
     descriptor: SimulationAlgorithmDescriptor<T>
-): { valid: boolean; errors: ErrorMessage[] } {
+): { valid: boolean; errors: TranslatableMessage[] } {
     let valid = true;
-    const errors: ErrorMessage[] = [];
+    const errors: TranslatableMessage[] = [];
     const optionDefinitions = descriptor.getOptions();
 
     for (const [key, optionDef] of Object.entries(optionDefinitions)) {
@@ -212,7 +212,7 @@ export function validateOptionsWithDescriptor<T extends Record<string, unknown>>
         } else {
             if (value !== undefined) {
                 if ('validate' in optionDef && optionDef.validate) {
-                    let isValid: ErrorMessage | boolean = true;
+                    let isValid: TranslatableMessage | boolean = true;
                     if (
                         optionDef.type === 'integer' ||
                         optionDef.type === 'number' ||

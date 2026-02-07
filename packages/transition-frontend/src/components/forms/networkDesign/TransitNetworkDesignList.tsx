@@ -12,11 +12,12 @@ import Button from 'chaire-lib-frontend/lib/components/input/Button';
 
 import ExecutableJobComponent from '../../parts/executableJob/ExecutableJobComponent';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import TrError, { ErrorMessage } from 'chaire-lib-common/lib/utils/TrError';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 import { AlgorithmConfiguration } from 'transition-common/lib/services/networkDesign/transit/algorithm';
 import { SimulationMethodConfiguration } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 import NetworkDesignFrontendExecutor from '../../../services/networkDesign/NetworkDesignFrontendExecutor';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 interface TransitNetworkDesignListProps {
     onNewJob: (parameters?: {
@@ -30,7 +31,7 @@ const TransitNetworkDesignList: React.FunctionComponent<TransitNetworkDesignList
     props: TransitNetworkDesignListProps
 ) => {
     const { t } = useTranslation('transit');
-    const [errors, setErrors] = React.useState<ErrorMessage[]>([]);
+    const [errors, setErrors] = React.useState<TranslatableMessage[]>([]);
 
     const replayJob = async (jobId: number) => {
         try {
