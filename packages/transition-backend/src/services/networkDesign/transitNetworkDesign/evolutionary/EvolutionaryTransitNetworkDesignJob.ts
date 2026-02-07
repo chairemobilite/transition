@@ -389,7 +389,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                     // Update the main cache with the saved scenarios to allow analyzing them from Transition UI
                     await loadAndSaveScenariosToCache();
                     await loadAndSaveServicesToCache();
-                    await loadAndSaveLinesByIdsToCache({ lineIds: scenarioSaveResults.flatMap((result) => result!.lineIds) });
+                    await loadAndSaveLinesByIdsToCache({
+                        lineIds: scenarioSaveResults.flatMap((result) => result!.lineIds)
+                    });
                     // FIXME Should signal the main thread to restart trRouting. Or maybe it works directly?
                 }
 
