@@ -436,6 +436,9 @@
             "horse": "Horses",
             "transit": "Transit"
         },
+        "sort": {
+            "TravelTime": "Sort by travel time"
+        },
         "Acceleration": "Acceleration [m/s²]",
         "Deceleration": "Deceleration [m/s²]",
         "DefaultAcceleration": "Default acceleration [m/s²]",
