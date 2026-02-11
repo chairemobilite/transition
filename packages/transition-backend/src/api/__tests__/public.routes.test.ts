@@ -700,7 +700,7 @@ describe('Testing API endpoints', () => {
                             otherProperty: 'foo',
                             accessiblePlacesCountByCategory: calculatePoisAndPopulation ? { 'service': 10 } : undefined,
                             accessiblePlacesCountByDetailedCategory: calculatePoisAndPopulation ? { 'service_other': 4, 'service_bank': 6 } : undefined,
-                            population: calculatePoisAndPopulation ? 500 : null
+                            populationData: calculatePoisAndPopulation ? { population: 500, dataSourceAreaRatio: 1 } : undefined
                         }
                     }]
                 },
@@ -729,11 +729,10 @@ describe('Testing API endpoints', () => {
                                 areaSqM: 1000,
                                 accessiblePlacesCountByCategory: { 'service': 10 },
                                 accessiblePlacesCountByDetailedCategory: { 'service_other': 4, 'service_bank': 6 },
-                                population: 500
+                                populationData: { population: 500, dataSourceAreaRatio: 1 }
                             } : {
                                 durationSeconds: 900,
-                                areaSqM: 1000,
-                                population: null
+                                areaSqM: 1000
                             }
                         }]
                     }

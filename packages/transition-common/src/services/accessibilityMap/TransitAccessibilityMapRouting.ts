@@ -34,6 +34,7 @@ export interface AccessibilityMapCalculationAttributes extends GenericAttributes
     placeName?: string;
     calculatePois?: boolean;
     calculatePopulation?: boolean;
+    populationDataSourceName?: string;
 }
 
 export type AccessibilityMapAttributes = AccessibilityMapCalculationAttributes & TransitQueryAttributes;
@@ -150,6 +151,11 @@ class TransitAccessibilityMapRouting extends ObjectWithHistory<AccessibilityMapA
         } else if (this._isValid && walkingSpeedMps < MIN_WALKING_SPEED_KPH / 3.6) {
             this._isValid = false;
             this.errors.push('transit:transitRouting:errors:WalkingSpeedMpsIsTooLow');
+        }
+
+        if (_isBlank(attributes.populationDataSourceName) && attributes.calculatePopulation) {
+            this._isValid = false;
+            this.errors.push('transit:transitRouting:errors:DataSourceIsMissing');
         }
 
         const { valid: queryAttrValid, errors: queryAttrErrors } = validateTrQueryAttributes(this.attributes);

@@ -77,6 +77,7 @@ interface TransitRoutingFormState extends ChangeEventsState<TransitAccessibility
     };
     alternateScenarioRouting: TransitAccessibilityMapRouting;
     scenarioCollection: any;
+    dataSourceCollection: any;
     loading: boolean;
     routingErrors?: TranslatableMessage[];
     geojsonDownloadUrl: string | null;
@@ -109,6 +110,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
             object: routingEngine,
             alternateScenarioRouting: routingEngine2,
             scenarioCollection: serviceLocator.collectionManager.get('scenarios'),
+            dataSourceCollection: serviceLocator.collectionManager.get('dataSources'),
             loading: false,
             geojsonDownloadUrl: null,
             jsonDownloadUrl: null,
@@ -129,6 +131,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
         this.displayMap = this.displayMap.bind(this);
         this.calculateRouting = this.calculateRouting.bind(this);
         this.onScenarioCollectionUpdate = this.onScenarioCollectionUpdate.bind(this);
+        this.onDataSourceCollectionUpdate = this.onDataSourceCollectionUpdate.bind(this);
 
         routingEngine.updatePointColor(AccessibilityComparisonConstants.INTERSECTION_COLOR);
         if (routingEngine.hasLocation()) {
@@ -141,6 +144,10 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
 
     onScenarioCollectionUpdate() {
         this.setState({ scenarioCollection: serviceLocator.collectionManager.get('scenarios') });
+    }
+
+    onDataSourceCollectionUpdate() {
+        this.setState({ dataSourceCollection: serviceLocator.collectionManager.get('dataSources') });
     }
 
     async calculateRouting(refresh = false) {
@@ -314,11 +321,13 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
             contextMenuRoot: contextMenu ? createRoot(contextMenu) : undefined
         });
         serviceLocator.eventManager.on('collection.update.scenarios', this.onScenarioCollectionUpdate);
+        serviceLocator.eventManager.on('collection.update.dataSources', this.onDataSourceCollectionUpdate);
         serviceLocator.eventManager.on('map.showMapComparisonContextMenu', this.showContextMenu);
     }
 
     componentWillUnmount() {
         serviceLocator.eventManager.off('collection.update.scenarios', this.onScenarioCollectionUpdate);
+        serviceLocator.eventManager.off('collection.update.dataSources', this.onDataSourceCollectionUpdate);
         serviceLocator.eventManager.off('map.showMapComparisonContextMenu', this.showContextMenu);
     }
 
@@ -503,7 +512,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
     };
 
     render() {
-        if (!this.state.scenarioCollection) {
+        if (!this.state.scenarioCollection || !this.state.dataSourceCollection) {
             return <LoadingPage />;
         }
 
@@ -526,6 +535,17 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                 label: scenario.toString(false)
             };
         });
+
+        const zonesDataSources = this.state.dataSourceCollection.features
+            .filter((source) => {
+                return source._attributes.type === 'zones';
+            })
+            .map((source) => {
+                return {
+                    value: source._attributes.name,
+                    label: source._attributes.name
+                };
+            });
 
         const returnTabContent = (mode: string) => {
             return (
@@ -785,6 +805,23 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                     }
                                 />
                             </InputWrapper>
+                            {routing.attributes.calculatePopulation && (
+                                <InputWrapper label={this.props.t('transit:transitRouting:PopulationDataSourceSelect')}>
+                                    <InputSelect
+                                        id={`formFieldTransitAccessibilityMapDataSourceSelect${routingId}`}
+                                        value={routing.attributes.populationDataSourceName}
+                                        choices={zonesDataSources}
+                                        t={this.props.t}
+                                        onValueChange={(e) =>
+                                            this.updateBothRoutingEngines(
+                                                'populationDataSourceName',
+                                                { value: e.target.value },
+                                                alternateRouting
+                                            )
+                                        }
+                                    />
+                                </InputWrapper>
+                            )}
                             <InputWrapper
                                 smallInput={true}
                                 label={this.props.t('transit:transitRouting:CalculatePois')}
@@ -951,6 +988,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                             <AccessibilityComparisonStatsComponent
                                 accessibilityPolygons={this.state.currentPolygons}
                                 mode={mode}
+                                calculatePopulation={routing.attributes.calculatePopulation}
                             />
                         </React.Fragment>
                     )}
