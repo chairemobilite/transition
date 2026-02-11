@@ -29,6 +29,8 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
         : odTrip.attributes.destination_geography;
     const uuid = odTrip.getId();
     const internalId = odTrip.attributes.internal_id || '';
+    const data = odTrip.attributes.data;
+    const timeSecondsSinceMidnight = odTrip.attributes.timeOfTrip;
 
     if (!origin || !origin.coordinates || !destination || !destination.coordinates) {
         return {
@@ -44,7 +46,7 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
         ...routingAttributes,
         originGeojson,
         destinationGeojson,
-        timeSecondsSinceMidnight: odTrip.attributes.timeOfTrip,
+        timeSecondsSinceMidnight,
         timeType: odTrip.attributes.timeType
     };
     const origDestStr = `${originGeojson.geometry.coordinates.join(',')} to ${destinationGeojson.geometry.coordinates.join(',')}`;
@@ -64,6 +66,8 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
             internalId,
             origin,
             destination,
+            timeOfTrip: timeSecondsSinceMidnight,
+            data,
             results
         };
     } catch (error) {
@@ -73,6 +77,8 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
             internalId,
             origin,
             destination,
+            timeOfTrip: timeSecondsSinceMidnight,
+            data,
             error: TrError.isTrError(error) ? error.export() : String(error)
         };
     }
