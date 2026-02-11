@@ -33,6 +33,7 @@ import {
     NonRoutableTripFitnessFunction
 } from './OdTripSimulationFitnessFunctions';
 import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 export const OdTripSimulationTitle = 'OdTripSimulation';
 const timeCsvColumnHeader = 'time';
@@ -64,17 +65,42 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
 
     constructor(
         private job: ExecutableJob<BatchRouteJobType>,
-        private odTripFitnessFunction: OdTripFitnessFunction,
-        private nonRoutableOdTripFitnessFunction: NonRoutableTripFitnessFunction
+        private options: {
+            odTripFitnessFunction: OdTripFitnessFunction;
+            nonRoutableOdTripFitnessFunction: NonRoutableTripFitnessFunction;
+            expansionFactorField?: string;
+        }
     ) {
         // Nothing to do
     }
 
+    private getExpansionFactor(odTripResult: OdTripRouteResult): number {
+        if (!this.options.expansionFactorField || _isBlank(odTripResult.data?.[this.options.expansionFactorField])) {
+            return 1.0;
+        }
+        const expansionFactorData = odTripResult.data?.[this.options.expansionFactorField];
+        const expansionFactorAsNumber =
+            typeof expansionFactorData === 'number'
+                ? expansionFactorData
+                : typeof expansionFactorData === 'string'
+                    ? parseFloat(expansionFactorData)
+                    : Number.NaN;
+        // Add a warning if the expansion factor is not a valid number, and use 1 as default in that case
+        if (isNaN(expansionFactorAsNumber) || !isFinite(expansionFactorAsNumber) || expansionFactorAsNumber <= 0) {
+            console.warn(
+                `Invalid expansion factor for OD trip result with origin ${odTripResult.origin} and destination ${odTripResult.destination}: ${expansionFactorData}. Using 1 as default.`
+            );
+        }
+        // FIXME Should we test other bounds for expansion factor? >= 1 maybe?
+        return isNaN(expansionFactorAsNumber) || !isFinite(expansionFactorAsNumber) || expansionFactorAsNumber <= 0
+            ? 1.0
+            : expansionFactorAsNumber;
+    }
+
     visitTripResult = async (odTripResult: OdTripRouteResult) => {
         const transitResult = odTripResult.results?.transit;
+        const expansionFactor = this.getExpansionFactor(odTripResult);
         if (transitResult && transitResult.error === undefined) {
-            // TODO Let's ignore handling the expansion factor for now
-            const expansionFactor = 1.0; //TODO Do something
             const route = transitResult.paths[0];
 
             if (route.totalTravelTime === 0) {
@@ -83,7 +109,7 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
                 console.warn('odTrip.travelTimeSeconds == 0');
                 return;
             }
-            const userCost = expansionFactor * this.odTripFitnessFunction(route);
+            const userCost = expansionFactor * this.options.odTripFitnessFunction(route);
             this.usersCost += userCost;
             this.transfersCount += expansionFactor * route.numberOfTransfers;
             this.noTransferCount += route.numberOfTransfers === 0 ? expansionFactor : 0;
@@ -101,8 +127,8 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
                 this.countByNumberOfTransfers[route.numberOfTransfers] += expansionFactor;
             }
         } else {
-            const expansionFactor = 1.0; //TODO Do something
-            const userCost = this.nonRoutableOdTripFitnessFunction(odTripResult.results || {}) * expansionFactor;
+            const userCost =
+                this.options.nonRoutableOdTripFitnessFunction(odTripResult.results || {}) * expansionFactor;
             this.totalCount += expansionFactor;
             this.nonRoutedCount += expansionFactor;
             this.usersCost += userCost;
@@ -277,12 +303,13 @@ export default class OdTripSimulation implements SimulationMethod {
             });
             const execResults = await batchJobExecutor.run();
             if (execResults.completed === true) {
+                const facPerField = this.options.demandAttributes.fileAndMapping.fieldMappings.expansionFactor;
                 // Handle results using the visitor pattern
-                const fitnessVisitor = new OdTripFitnessVisitor(
-                    routingJob,
-                    this.odTripFitnessFunction,
-                    this.nonRoutableOdTripFitnessFunction
-                );
+                const fitnessVisitor = new OdTripFitnessVisitor(routingJob, {
+                    odTripFitnessFunction: this.odTripFitnessFunction,
+                    nonRoutableOdTripFitnessFunction: this.nonRoutableOdTripFitnessFunction,
+                    expansionFactorField: facPerField
+                });
                 const results = await batchJobExecutor.handleResults(fitnessVisitor);
                 const fitness = this.fitnessFunction(results);
 
