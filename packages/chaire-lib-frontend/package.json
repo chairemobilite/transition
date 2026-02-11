@@ -20,7 +20,7 @@
     "format": "prettier-eslint \"./src/**/*.{ts,tsx}\" --write"
   },
   "dependencies": {
-    "@casl/ability": "^6.7.3",
+    "@casl/ability": "^6.7.5",
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
     "@fortawesome/free-solid-svg-icons": "^7.1.0",
     "@fortawesome/react-fontawesome": "^3.1.1",
