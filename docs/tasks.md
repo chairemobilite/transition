@@ -23,7 +23,7 @@ packages/transition-backend/lib/scripts/disseminationBlocks/importDisseminationB
 
 ### Description
 
-Imports data from Statistics Canada relating to dissemination blocks (the smallest division level used by the Canadian census) in the database. Though it is meant to work with two specific files (found at <https://www12.statcan.gc.ca/census-recensement/2021/geo/sip-pis/boundary-limites/index2021-eng.cfm?year=21> and <https://www150.statcan.gc.ca/n1/pub/17-26-0002/172600022023001-eng.htm>), it should in theory work with other levels of census divisions, as long as the corresponding files use the same format and structure.
+Imports data from Statistics Canada relating to dissemination blocks (the smallest division level used by the Canadian census) in the database. Though it is meant to work with two specific files (found at <https://www12.statcan.gc.ca/census-recensement/2021/geo/sip-pis/boundary-limites/index2021-eng.cfm?year=21> with the "Dissemination blocks" and "gml" option, and <https://www150.statcan.gc.ca/n1/pub/17-26-0002/172600022023001-eng.htm>), it should in theory work with other levels of census divisions, as long as the corresponding files use the same format and structure.
 
 First, the task parses a GML file containing the geographic boundaries of all the blocks, importing it and adding new entries to the `zones` table, as well as converting the boundaries from the coordinate system used in the file to WGS84, the system used by Transition.
 

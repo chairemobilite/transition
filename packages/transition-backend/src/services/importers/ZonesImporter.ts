@@ -7,6 +7,7 @@
 import { v4 as uuidV4 } from 'uuid';
 import xmlReader from 'xml-reader';
 import fs from 'fs';
+import PQueue from 'p-queue';
 
 import zonesQueries from 'chaire-lib-backend/lib/models/db/zones.db.queries';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
@@ -46,6 +47,8 @@ export default async function importBoundariesFromGml(boundariesFile: string, da
     }[] = [];
 
     console.log('Parsing through GML FILE:');
+
+    const queue = new PQueue({ concurrency: 3 });
 
     parser.on('tag:gml:featureMember', (feature: XmlNode) => {
         try {
@@ -113,29 +116,40 @@ export default async function importBoundariesFromGml(boundariesFile: string, da
             }
 
             if (batch.length >= batchSize) {
-                readStream.pause();
-                zonesQueries.addZonesAndConvertedGeography(batch);
-                readStream.resume();
+                // TODO: In case of errors related to too much memory usage, we should pause the stream to avoid backpressure.
+                const currentBatch = [...batch];
                 batch = [];
+                queue.add(async () => {
+                    try {
+                        await zonesQueries.addZonesAndConvertedGeography(currentBatch);
+                    } catch (error) {
+                        console.error(`Error adding zones batch to db: ${error}`);
+                        readStream.destroy(error as Error);
+                    }
+                });
             }
 
             i++;
             if (i % 100 === 0) {
-                console.log(`Zones parsed and added to DB: ${i}`);
+                console.log(`Zones parsed: ${i}`);
             }
         } catch (error) {
             console.log(`Error while reading the gml file: ${error}`);
-            readStream.destroy();
+            readStream.destroy(error as Error);
         }
     });
 
-    parser.on('done', async () => {
+    parser.on('done', () => {
         if (batch.length > 0) {
-            readStream.pause();
-            await zonesQueries.addZonesAndConvertedGeography(batch);
-            readStream.resume();
+            queue.add(async () => {
+                try {
+                    await zonesQueries.addZonesAndConvertedGeography(batch);
+                } catch (error) {
+                    console.error(`Error adding final batch to db: ${error}`);
+                    readStream.destroy(error as Error);
+                }
+            });
         }
-        console.log(`Finished! There are ${i} new zones.`);
     });
 
     return new Promise((resolve, reject) => {
@@ -148,7 +162,10 @@ export default async function importBoundariesFromGml(boundariesFile: string, da
             reject();
         });
 
-        readStream.on('close', () => {
+        readStream.on('close', async () => {
+            console.log('Adding zones to db.');
+            await queue.onIdle();
+            console.log(`Finished! There are ${i} new zones added to the db.`);
             resolve();
         });
     });
