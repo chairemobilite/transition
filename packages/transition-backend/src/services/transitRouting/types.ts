@@ -12,6 +12,8 @@ export type OdTripRouteResult = {
     internalId: string;
     origin?: GeoJSON.Point;
     destination?: GeoJSON.Point;
+    timeOfTrip?: number;
+    data?: Record<string, unknown>;
     results?: RoutingResultsByMode;
     error?: string | { error: string; errorCode: string };
 };
