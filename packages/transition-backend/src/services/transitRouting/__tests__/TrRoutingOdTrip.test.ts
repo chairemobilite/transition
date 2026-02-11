@@ -68,6 +68,8 @@ describe('Various scenario of trip calculation', () => {
             internalId: odTrip.attributes.internal_id,
             origin: odTrip.attributes.origin_geography,
             destination: odTrip.attributes.destination_geography,
+            timeOfTrip: odTrip.attributes.timeOfTrip,
+            data: {},
             results: resultByMode
         });
         expect(calculateMock).toHaveBeenCalledWith(expect.objectContaining({
@@ -112,6 +114,8 @@ describe('Various scenario of trip calculation', () => {
             internalId: odTrip.attributes.internal_id,
             origin: odTrip.attributes.origin_geography,
             destination: odTrip.attributes.destination_geography,
+            timeOfTrip: odTrip.attributes.timeOfTrip,
+            data: {},
             results: resultByMode
         });
     });
@@ -151,6 +155,8 @@ describe('Various scenario of trip calculation', () => {
             internalId: odTrip.attributes.internal_id,
             origin: odTrip.attributes.origin_geography,
             destination: odTrip.attributes.destination_geography,
+            timeOfTrip: odTrip.attributes.timeOfTrip,
+            data: {},
             results: resultByMode
         });
        
@@ -195,9 +201,47 @@ describe('Various scenario of trip calculation', () => {
             internalId: odTrip.attributes.internal_id,
             origin: odTrip.attributes.origin_geography,
             destination: odTrip.attributes.destination_geography,
+            timeOfTrip: odTrip.attributes.timeOfTrip,
+            data: {},
             results: resultByMode
         });
 
+    });
+
+    test('With an OD trip with extra data', async () => {
+        // Prepare test data
+        const extraData = {
+            customData: 'test',
+            otherField: 'otherValue'
+        };
+        const odTripWithData = new BaseOdTrip({
+            ...odTrip.attributes,
+            data: extraData
+        });
+        const routingAttributes = _cloneDeep(transitRoutingAttributes);
+        routingAttributes.routingModes = ['transit'];
+        const resultByMode = {
+            transit: {
+                origin: origin,
+                destination: destination,
+                paths: simplePathResult.routes
+            }
+        };
+        calculateMock.mockResolvedValue(resultByMode);
+
+        const result = await routeOdTrip(odTripWithData, {
+            routing: routingAttributes,
+            reverseOD: false,
+        });
+        expect(result).toEqual({
+            uuid: odTrip.attributes.id,
+            internalId: odTrip.attributes.internal_id,
+            origin: odTrip.attributes.origin_geography,
+            destination: odTrip.attributes.destination_geography,
+            timeOfTrip: odTrip.attributes.timeOfTrip,
+            data: extraData,
+            results: resultByMode
+        });
     });
 });
 
