@@ -35,7 +35,7 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-test('Parse a csv file, 4326 projection, departure time, HMM times', async () => {
+test('Parse a csv file, 4326 projection, departure time, HMM times, with unused fields', async () => {
     const data = [
         {
             id: 'id1',
@@ -44,7 +44,8 @@ test('Parse a csv file, 4326 projection, departure time, HMM times', async () =>
             destinationX: -34.23,
             destinationY: 45.45,
             time: '0800',
-            unused: '0500'
+            unused: '0500',
+            otherUnused: ''
         },
         // String coordinates
         {
@@ -54,7 +55,7 @@ test('Parse a csv file, 4326 projection, departure time, HMM times', async () =>
             destinationX: '-30.5',
             destinationY: '40.234',
             time: '1032',
-            unused: '0500'
+            unused: '0600'
         },
         {
             id: 'id3',
@@ -63,12 +64,13 @@ test('Parse a csv file, 4326 projection, departure time, HMM times', async () =>
             destinationX: -30.5,
             destinationY: 40.234,
             time: '000',
-            unused: '0500'
+            unused: '0700',
+            otherUnused: 'data'
         }
     ];
 
     // Mock a CSV file stream based on the above test values
-    (fs.createReadStream as jest.Mock).mockReturnValueOnce(createCsvStream(dataToCsv(data, ['id','originX','originY','destinationX','destinationY','time','unused'])));
+    (fs.createReadStream as jest.Mock).mockReturnValueOnce(createCsvStream(dataToCsv(data, ['id','originX','originY','destinationX','destinationY','time','unused','otherUnused'])));
 
     const options = {
         projection: '4326',
@@ -90,21 +92,33 @@ test('Parse a csv file, 4326 projection, departure time, HMM times', async () =>
         origin_geography: { type: 'Point' as const, coordinates: [data[0].originX, data[0].originY]},
         destination_geography: { type: 'Point' as const, coordinates: [data[0].destinationX, data[0].destinationY]},
         timeType: 'departure',
-        timeOfTrip: 8 * 60 * 60
+        timeOfTrip: 8 * 60 * 60,
+        data: {
+            unused: data[0].unused,
+            otherUnused: data[0].otherUnused
+        }
     }));
     expect(odTrips[1].attributes).toEqual(expect.objectContaining({
         internal_id: data[1].id,
         origin_geography: { type: 'Point' as const, coordinates: [parseFloat(data[1].originX as string), parseFloat(data[1].originY as string)]},
         destination_geography: { type: 'Point' as const, coordinates: [parseFloat(data[1].destinationX as string), parseFloat(data[1].destinationY as string)]},
         timeType: 'departure',
-        timeOfTrip: 10 * 60 * 60 + 32 * 60
+        timeOfTrip: 10 * 60 * 60 + 32 * 60,
+        data: {
+            unused: data[1].unused,
+            otherUnused: ''
+        }
     }));
     expect(odTrips[2].attributes).toEqual(expect.objectContaining({
         internal_id: data[2].id,
         origin_geography: { type: 'Point' as const, coordinates: [data[2].originX, data[2].originY]},
         destination_geography: { type: 'Point' as const, coordinates: [data[2].destinationX, data[2].destinationY]},
         timeType: 'departure',
-        timeOfTrip: 0
+        timeOfTrip: 0,
+        data: {
+            unused: data[2].unused,
+            otherUnused: data[2].otherUnused
+        }
     }));
 });
 
@@ -163,6 +177,9 @@ test('Parse a csv file, 2950 projection, arrival time, HH:MM times', async () =>
         destination_geography: { type: 'Point' as const, coordinates: expect.anything()},
         timeOfTrip: 8 * 60 * 60,
         timeType: 'arrival',
+        data: {
+            unused: data[0].unused
+        }
     }));
     // Validate that the coordinates are not the same as the original since the projection is different
     expect (odTrips[0].attributes.origin_geography).not.toEqual({ type: 'Point' as const, coordinates: [data[0].originX, data[0].originY]});
@@ -173,13 +190,19 @@ test('Parse a csv file, 2950 projection, arrival time, HH:MM times', async () =>
         destination_geography: { type: 'Point' as const, coordinates: expect.anything()},
         timeOfTrip: 10 * 60 * 60 + 32 * 60,
         timeType: 'arrival',
+        data: {
+            unused: data[1].unused
+        }
     }));
     expect(odTrips[2].attributes).toEqual(expect.objectContaining({
-        internal_id: data[1].id,
+        internal_id: data[2].id,
         origin_geography: { type: 'Point' as const, coordinates: expect.anything()},
         destination_geography: { type: 'Point' as const, coordinates: expect.anything()},
         timeOfTrip: 0,
         timeType: 'arrival',
+        data: {
+            unused: data[2].unused
+        }
     }));
 });
 
@@ -197,8 +220,7 @@ test('Parse a csv file, faulty lines and time in seconds', async () => {
             originY: 'def',
             destinationX: -30.5,
             destinationY: 40.234,
-            time: '1032',
-            unused: '0500'
+            time: '1032'
         },
         // Invalid time format, both time values will be undefined
         {
@@ -207,8 +229,7 @@ test('Parse a csv file, faulty lines and time in seconds', async () => {
             originY: 40,
             destinationX: -30.5,
             destinationY: 40.234,
-            time: 'abcd',
-            unused: '0500'
+            time: 'abcd'
         },
         {
             id: 'id',
@@ -216,8 +237,7 @@ test('Parse a csv file, faulty lines and time in seconds', async () => {
             originY: 40,
             destinationX: -30.5,
             destinationY: 40.234,
-            time: '28800',
-            unused: '0500'
+            time: '28800'
         },
         {
             id: 'id2',
@@ -225,13 +245,12 @@ test('Parse a csv file, faulty lines and time in seconds', async () => {
             originY: 40,
             destinationX: -30.5,
             destinationY: 40.234,
-            time: '0',
-            unused: '0500'
+            time: '0'
         }
     ];
 
     // Mock a CSV file stream based on the above test values
-    (fs.createReadStream as jest.Mock).mockReturnValueOnce(createCsvStream(dataToCsv(data, ['id','originX','originY','destinationX','destinationY','time','unused'])));
+    (fs.createReadStream as jest.Mock).mockReturnValueOnce(createCsvStream(dataToCsv(data, ['id','originX','originY','destinationX','destinationY','time'])));
 
     const options = {
         projection: '4326',
@@ -273,8 +292,7 @@ test('Parse a csv file, wrong coordinates format', async () => {
             originY: 'fortyfive',
             destinationX: -34.23,
             destinationY: 45.45,
-            time: '0800',
-            unused: '0500'
+            time: '0800'
         },
         // Invalid destination coordinates format
         {
@@ -283,8 +301,7 @@ test('Parse a csv file, wrong coordinates format', async () => {
             originY: 45.25,
             destinationX: 'thirtyfour',
             destinationY: 'fortyfive',
-            time: '0800',
-            unused: '0500'
+            time: '0800'
         },
         // Invalid origin and destination coordinates format
         {
@@ -293,13 +310,12 @@ test('Parse a csv file, wrong coordinates format', async () => {
             originY: 'fortyfour',
             destinationX: 'thirtyfour',
             destinationY: 'fortyfive',
-            time: '0800',
-            unused: '0500'
+            time: '0800'
         },
     ];
 
     // Mock a CSV file stream based on the above test values
-    (fs.createReadStream as jest.Mock).mockReturnValueOnce(createCsvStream(dataToCsv(data, ['id','originX','originY','destinationX','destinationY','time','unused'])));
+    (fs.createReadStream as jest.Mock).mockReturnValueOnce(createCsvStream(dataToCsv(data, ['id','originX','originY','destinationX','destinationY','time'])));
 
     const options = {
         projection: '4326',
