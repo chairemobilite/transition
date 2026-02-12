@@ -23,6 +23,7 @@
     "Locked": "Locked",
     "delete": "delete",
     "Delete": "Delete",
+    "Close": "Close",
     "loading": "loading",
     "Loading": "Loading",
     "Next": "Next",
@@ -307,5 +308,6 @@
         },
         "osmAttribution": "© OpenStreetMap contributors",
         "aerialAttribution": "Aerial imagery"
-    }
+    },
+    "DownloadSvg": "Download SVG"
 }

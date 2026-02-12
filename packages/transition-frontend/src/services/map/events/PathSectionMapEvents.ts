@@ -172,6 +172,21 @@ const hoverPath = (pathGeojson: MapGeoJSONFeature, map: MapWithCustomEventsState
 };
 
 /**
+ * Deduplicates an array of map features by their path ID property.
+ * queryRenderedFeatures can return the same path multiple times when
+ * its geometry spans multiple map tiles.
+ */
+const deduplicatePathFeatures = (paths: MapGeoJSONFeature[]): MapGeoJSONFeature[] => {
+    const seen = new Set<string>();
+    return paths.filter((feature) => {
+        const id = feature.properties?.id;
+        if (!id || seen.has(id)) return false;
+        seen.add(id);
+        return true;
+    });
+};
+
+/**
  * Shows a context menu for selecting one of multiple overlapping paths.
  * @param paths - Array of path GeoJSON features to show in the menu
  * @param e - The mouse event that triggered the menu
@@ -251,7 +266,7 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
         clickedSelectedNodeIndex < 0
     ) {
         // Clicked on a different path (selected path was not among the clicked features)
-        const paths = features.filter((feature) => feature.source === 'transitPaths');
+        const paths = deduplicatePathFeatures(features.filter((feature) => feature.source === 'transitPaths'));
 
         // No changes - stop editing and proceed
         path.stopEditing();
@@ -406,7 +421,7 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
             (path && !path.hasChanged() && !selectedLine.hasChanged()) ||
             (selectedLine && !path && !selectedLine.hasChanged())
         ) {
-            const paths = features.filter((feature) => feature.source === 'transitPaths');
+            const paths = deduplicatePathFeatures(features.filter((feature) => feature.source === 'transitPaths'));
             if (paths.length === 1) {
                 selectPath(paths[0]);
             } else {

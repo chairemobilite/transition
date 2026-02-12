@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { bbox as turfBbox } from '@turf/turf';
 
@@ -20,7 +20,8 @@ interface PathListProps extends WithTranslation {
 }
 
 const TransitPathNodeList: React.FunctionComponent<PathListProps> = (props: PathListProps) => {
-    React.useEffect(() => {
+    // Fit map to path bounds on mount
+    useEffect(() => {
         if (props.selectedPath) {
             const geography = props.selectedPath.attributes.geography;
             if (geography) {

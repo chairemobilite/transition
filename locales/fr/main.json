@@ -23,6 +23,7 @@
     "Locked": "Verrouillé",
     "delete": "supprimer",
     "Delete": "Supprimer",
+    "Close": "Fermer",
     "loading": "chargement",
     "Loading": "Chargement",
     "Next": "Suivant",
@@ -307,5 +308,6 @@
         },
         "osmAttribution": "© Contributeurs OpenStreetMap",
         "aerialAttribution": "Imagerie aérienne"
-    }
+    },
+    "DownloadSvg": "Télécharger SVG"
 }
