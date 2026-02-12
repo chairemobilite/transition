@@ -109,59 +109,102 @@ const generatePathsForLine = (
 ): { paths: Path[]; warnings: TranslatableMessage[]; pathByTripId: { [key: string]: string } } => {
     let allWarnings: TranslatableMessage[] = [];
     const newPaths: Path[] = [];
-    const pathByShapeId: { [key: string]: Path[] } = {};
-    const pathsWithoutShape: Path[] = [];
-    // Pre-fill paths by shape ID with the existing paths
-    line.getPaths().forEach((path) => {
-        const gtfsData = path.attributes.data.gtfs;
-        if (gtfsData) {
-            const paths = pathByShapeId[gtfsData.shape_id] || [];
-            paths.push(path);
-            pathByShapeId[gtfsData.shape_id] = paths;
-        }
-    });
-    for (let i = 0; i < tripsForLine.length; i++) {
-        const { trip, stopTimes } = tripsForLine[i];
+
+    // types for grouping trips by path signature
+    type TripData = { trip: GtfsTypes.Trip; stopTimes: StopTime[] };
+    type PathGroup = {
+        shapeId: string | undefined;
+        nodeIds: string[];
+        trips: TripData[];
+    };
+
+    const pathGroups: PathGroup[] = []; // group trips by path signature (shapeId + nodeIds)
+    const pathGroupIndex: Map<string, number> = new Map(); // signature -> index in pathGroups
+
+    for (const tripData of tripsForLine) {
+        const { trip, stopTimes } = tripData;
+
         if (pathIdByTripId[trip.trip_id]) {
             continue;
         }
 
-        // Do we already have a path for this trip?
-        const nodeIds = stopTimes.map((stopTime) => {
-            return importData.nodeIdsByStopGtfsId[stopTime.stop_id];
-        });
+        const nodeIds = stopTimes.map((stopTime) => importData.nodeIdsByStopGtfsId[stopTime.stop_id]);
         const shapeId = trip.shape_id;
+        const signature = JSON.stringify({ shapeId, nodeIds });
+
+        const existingIndex = pathGroupIndex.get(signature);
+        if (existingIndex !== undefined) {
+            pathGroups[existingIndex].trips.push(tripData);
+        } else {
+            pathGroupIndex.set(signature, pathGroups.length);
+            pathGroups.push({ shapeId, nodeIds, trips: [tripData] });
+        }
+    }
+
+    const pathByShapeId: { [key: string]: Path[] } = {};
+    const pathsWithoutShape: Path[] = [];
+
+    line.getPaths().forEach((path) => {
+        const gtfsData = path.attributes.data.gtfs;
+        if (gtfsData && gtfsData.shape_id) {
+            const paths = pathByShapeId[gtfsData.shape_id] || [];
+            paths.push(path);
+            pathByShapeId[gtfsData.shape_id] = paths;
+        } else {
+            pathsWithoutShape.push(path);
+        }
+    });
+
+    // generate or find paths for each group
+    for (const group of pathGroups) {
+        const { shapeId, nodeIds, trips } = group;
+        const firstTrip = trips[0].trip;
+
+        let existingPath: Path | undefined;
         if (shapeId) {
-            // TODO Could there really be multiple paths for a single shape with different stops?
             const pathsForShape = pathByShapeId[shapeId] || [];
-            const samePath = pathsForShape.find((path) => _isEqual(path.attributes.nodes, nodeIds));
-            if (samePath) {
-                pathIdByTripId[trip.trip_id] = samePath.getId();
-                continue;
+            existingPath = pathsForShape.find((path) => _isEqual(path.attributes.nodes, nodeIds));
+        } else {
+            existingPath = pathsWithoutShape.find((path) => _isEqual(path.attributes.nodes, nodeIds));
+        }
+
+        if (existingPath) {
+            for (const tripData of trips) {
+                pathIdByTripId[tripData.trip.trip_id] = existingPath.getId();
             }
-            // Need to generate a new path
-            const { newPath, warnings } = generatePathFromShape(line, trip, stopTimes, shapeId, nodeIds, importData);
+            continue;
+        }
+
+        const allStopTimes = trips.map((t) => t.stopTimes);
+
+        if (shapeId) {
+            const { newPath, warnings } = generatePathFromShape(
+                line,
+                firstTrip,
+                allStopTimes,
+                shapeId,
+                nodeIds,
+                importData
+            );
             newPaths.push(newPath);
+            const pathsForShape = pathByShapeId[shapeId] || [];
             pathsForShape.push(newPath);
             pathByShapeId[shapeId] = pathsForShape;
-            pathIdByTripId[trip.trip_id] = newPath.getId();
+            for (const tripData of trips) {
+                pathIdByTripId[tripData.trip.trip_id] = newPath.getId();
+            }
             allWarnings = allWarnings.concat(warnings);
         } else {
-            // Path has no shape, try to find one with the exact same stops
-            const samePath = pathsWithoutShape.find((path) => _isEqual(path.attributes.nodes, nodeIds));
-            if (samePath) {
-                pathIdByTripId[trip.trip_id] = samePath.getId();
-                continue;
-            }
             allWarnings.push({
                 text: GtfsMessages.TripWithNoShape,
-                params: { tripId: trip.trip_id, lineShortName: line.attributes.shortname || trip.route_id }
+                params: { tripId: firstTrip.trip_id, lineShortName: line.attributes.shortname || firstTrip.route_id }
             });
-            // Need to generate a new path without a shape
-            const { newPath, warnings } = generatePathWithoutShape(line, trip, stopTimes, nodeIds, importData);
+            const { newPath, warnings } = generatePathWithoutShape(line, firstTrip, allStopTimes, nodeIds, importData);
             newPaths.push(newPath);
             pathsWithoutShape.push(newPath);
-            pathIdByTripId[trip.trip_id] = newPath.getId();
+            for (const tripData of trips) {
+                pathIdByTripId[tripData.trip.trip_id] = newPath.getId();
+            }
             allWarnings = allWarnings.concat(warnings);
         }
     }
@@ -172,7 +215,7 @@ const generatePathsForLine = (
 const generatePathFromShape = (
     line: Line,
     trip: GtfsTypes.Trip,
-    stopTimes: StopTime[],
+    allTripsStopTimes: StopTime[][],
     shapeGtfsId: string,
     nodeIds: string[],
     importData: GtfsInternalData
@@ -189,7 +232,7 @@ const generatePathFromShape = (
         newPath,
         coordinatesWithDistances,
         nodeIds,
-        stopTimes,
+        allTripsStopTimes,
         shapeGtfsId,
         importData.stopCoordinatesByStopId
     );
@@ -201,7 +244,7 @@ const generatePathFromShape = (
 const generatePathWithoutShape = (
     line: Line,
     trip: GtfsTypes.Trip,
-    stopTimes: StopTime[],
+    allTripsStopTimes: StopTime[][],
     nodeIds: string[],
     importData: GtfsInternalData
 ): { newPath: Path; warnings: TranslatableMessage[] } => {
@@ -215,7 +258,7 @@ const generatePathWithoutShape = (
     const warnings = generateGeographyAndSegmentsFromStopTimes(
         newPath,
         nodeIds,
-        stopTimes,
+        allTripsStopTimes,
         importData.stopCoordinatesByStopId
     );
 
