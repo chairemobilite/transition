@@ -163,16 +163,6 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
                         )}
                     </td>
                 </tr>
-                <tr>
-                    <th>{t('transit:transitRouting:AccessibilityMapAreaSquarem')}</th>
-                    <td>{Math.round(properties1.areaSqM).toLocaleString(language)}</td>
-                    <td>{Math.round(properties2.areaSqM).toLocaleString(language)}</td>
-                    <td>
-                        {Math.round(properties2.areaSqM - properties1.areaSqM).toLocaleString(language, {
-                            signDisplay: 'exceptZero'
-                        })}
-                    </td>
-                </tr>
                 {typeof properties1.population === 'number' && typeof properties2.population === 'number' && (
                     <tr>
                         <th>{t('transit:transitRouting:AccessibilityMapPopulation')}</th>

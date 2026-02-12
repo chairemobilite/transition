@@ -126,10 +126,6 @@ const AccessibilityMapStatsComponent: React.FunctionComponent<AccessibilityMapSt
                         <th>{t('transit:transitRouting:AccessibilityMapAreaSquareKm')}</th>
                         <td>{(Math.round(properties.areaSqKm * 100) / 100).toLocaleString(language)}</td>
                     </tr>
-                    <tr>
-                        <th>{t('transit:transitRouting:AccessibilityMapAreaSquarem')}</th>
-                        <td>{Math.round(properties.areaSqM).toLocaleString(language)}</td>
-                    </tr>
                     {typeof properties.population === 'number' && (
                         <tr>
                             <th>{t('transit:transitRouting:AccessibilityMapPopulation')}</th>
