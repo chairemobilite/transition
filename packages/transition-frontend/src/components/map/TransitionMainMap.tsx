@@ -6,6 +6,7 @@
  */
 
 // External packages
+import _debounce from 'lodash/debounce';
 import React, { PropsWithChildren } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
@@ -37,6 +38,8 @@ import MapControlsMenu from './TransitionMapControlsMenu';
 import MapRenderer, { MapStyleSpec } from './MapRenderer';
 import { createDeckLayersFromMappings } from '../../config/deckLayers.config';
 import { resetClasses } from '../../services/map/MapCursorHelper';
+import type { BaseLayerType } from 'chaire-lib-common/lib/config/types';
+import baseMapLayers, { type BaseMapLayerConfig } from '../../config/baseMapLayers.config';
 
 /**
  * Optional custom raster tiles configuration that can be set in config.js.
@@ -68,7 +71,14 @@ interface MainMapState {
     contextMenuRoot: Root | undefined;
     showAerialTiles: boolean;
     currentZoom: number;
-    userPreferredLayer: 'osm' | 'aerial'; // Track user's layer choice in preferences
+    userPreferredLayer: BaseLayerType;
+    activeBaseLayer: BaseLayerType;
+    /** Last non-aerial layer selected by the user, restored when zooming out of aerial range */
+    lastNonAerialLayer: Exclude<BaseLayerType, 'aerial'>;
+    /** Overlay opacity as a percentage (0–100) */
+    overlayOpacity: number;
+    /** Overlay color: 'black' or 'white' */
+    overlayColor: 'black' | 'white';
 }
 
 /**
@@ -89,12 +99,43 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     private aerialTilesUrl: string | undefined;
     private aerialMinZoom: number = 0;
     private aerialMaxZoom: number = 22;
+    /** Debounced save for overlay opacity to avoid flooding the server on slider drag */
+    private debouncedSaveOverlayOpacity: ReturnType<typeof _debounce>;
 
     constructor(props: MainMapProps & WithTranslation) {
         super(props);
 
+        // Read aerial tiles configuration from environment variables or config file
+        // Webpack injects process.env values at build time, with fallback to config values
+        // We also check the config object at runtime as a fallback
+        // NOTE: this must run before state init so we can validate the saved base layer.
+        this.aerialTilesUrl =
+            process.env.CUSTOM_RASTER_TILES_XYZ_URL || typedConfig.customRasterTilesXyzUrl || undefined;
+        const minZoomEnv = process.env.CUSTOM_RASTER_TILES_MIN_ZOOM || typedConfig.customRasterTilesMinZoom;
+        const maxZoomEnv = process.env.CUSTOM_RASTER_TILES_MAX_ZOOM || typedConfig.customRasterTilesMaxZoom;
+        this.aerialMinZoom = minZoomEnv !== undefined ? Number(minZoomEnv) : 0;
+        this.aerialMaxZoom = maxZoomEnv !== undefined ? Number(maxZoomEnv) : 22;
+
         // Get user's preferred base layer from preferences
-        const baseLayer = (Preferences.get('map.baseLayer', 'osm') as 'osm' | 'aerial') || 'osm';
+        const savedBaseLayer = (Preferences.get('map.baseLayer', 'osm') as BaseLayerType) || 'osm';
+
+        // Validate: fall back to default if the saved layer is unavailable
+        // (e.g. 'aerial' was saved but aerial tiles are no longer configured,
+        //  or a layer shortname no longer exists in the config)
+        const validNonAerialNames: string[] = baseMapLayers.map((l) => l.shortname);
+        const isAerialAvailable = savedBaseLayer === 'aerial' && Boolean(this.aerialTilesUrl);
+        const isNonAerialAvailable = validNonAerialNames.includes(savedBaseLayer);
+        const baseLayer: BaseLayerType = isAerialAvailable || isNonAerialAvailable ? savedBaseLayer : 'osm';
+
+        // Get user's preferred overlay opacity from preferences (0–100, default 50)
+        const overlayOpacity = Preferences.get('map.overlayOpacity', 50) as number;
+
+        // Get user's preferred overlay color from preferences (default 'black')
+        const overlayColor = (Preferences.get('map.overlayColor', 'black') as 'black' | 'white') || 'black';
+
+        // Determine the initial non-aerial layer for fallback when leaving aerial range
+        const lastNonAerialLayer: Exclude<BaseLayerType, 'aerial'> =
+            baseLayer !== 'aerial' ? (baseLayer as Exclude<BaseLayerType, 'aerial'>) : baseMapLayers[0].shortname;
 
         this.state = {
             layers: sectionLayers[this.props.activeSection] || [], // Get layers for section from config
@@ -104,8 +145,17 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             contextMenuRoot: undefined,
             showAerialTiles: baseLayer === 'aerial',
             currentZoom: props.zoom,
-            userPreferredLayer: baseLayer
+            userPreferredLayer: baseLayer,
+            activeBaseLayer: baseLayer,
+            lastNonAerialLayer,
+            overlayOpacity,
+            overlayColor
         };
+
+        // Debounce the server save for overlay opacity (400ms) to avoid flooding on slider drag
+        this.debouncedSaveOverlayOpacity = _debounce((opacity: number) => {
+            Preferences.update({ 'map.overlayOpacity': opacity }, serviceLocator.socketEventManager);
+        }, 400);
 
         this.defaultZoomArray = [props.zoom];
         this.defaultCenter = props.center;
@@ -116,16 +166,6 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.mapEvents = {};
         this.map = undefined;
         this.mapRef = React.createRef<MapRef>();
-
-        // Read aerial tiles configuration from environment variables or config file
-        // Webpack injects process.env values at build time, with fallback to config values
-        // We also check the config object at runtime as a fallback
-        this.aerialTilesUrl =
-            process.env.CUSTOM_RASTER_TILES_XYZ_URL || typedConfig.customRasterTilesXyzUrl || undefined;
-        const minZoomEnv = process.env.CUSTOM_RASTER_TILES_MIN_ZOOM || typedConfig.customRasterTilesMinZoom;
-        const maxZoomEnv = process.env.CUSTOM_RASTER_TILES_MAX_ZOOM || typedConfig.customRasterTilesMaxZoom;
-        this.aerialMinZoom = minZoomEnv !== undefined ? Number(minZoomEnv) : 0;
-        this.aerialMaxZoom = maxZoomEnv !== undefined ? Number(maxZoomEnv) : 22;
 
         const newEvents = [globalMapEvents, transitionMapEvents];
         const newEventsArr = newEvents.flatMap((ev) => ev);
@@ -200,45 +240,18 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         // Add controls menu initially with aerial tiles configuration
         this.mapControlsMenu = new MapControlsMenu(this.props.t, {
             onLayerChange: this.handleLayerChange,
-            getCurrentLayer: () => (this.state.showAerialTiles ? 'aerial' : 'osm'),
+            getCurrentLayer: () => this.state.activeBaseLayer,
             isZoomInAerialRange: () => this.isZoomInAerialRange(this.state.currentZoom),
             getCurrentZoom: () => this.state.currentZoom,
             aerialTilesUrl: this.aerialTilesUrl,
             minZoom: this.aerialMinZoom,
-            maxZoom: this.aerialMaxZoom
+            maxZoom: this.aerialMaxZoom,
+            onOverlayOpacityChange: this.handleOverlayOpacityChange,
+            getOverlayOpacity: () => this.state.overlayOpacity,
+            onOverlayColorChange: this.handleOverlayColorChange,
+            getOverlayColor: () => this.state.overlayColor
         });
         map.addControl(this.mapControlsMenu, 'top-right');
-
-        if (this.aerialTilesUrl && map) {
-            const mapLayers = map.getStyle().layers || [];
-            let beforeLayerId = mapLayers.length > 0 ? mapLayers[0].id : undefined;
-
-            for (let i = 0, count = mapLayers.length; i < count; i++) {
-                const layer = mapLayers[i];
-                if (layer.type === 'background') {
-                    beforeLayerId = layer.id;
-                    break;
-                }
-            }
-
-            if (beforeLayerId) {
-                map.addSource('custom_tiles', {
-                    type: 'raster',
-                    tiles: [this.aerialTilesUrl],
-                    tileSize: 256
-                });
-                map.addLayer(
-                    {
-                        id: 'custom_tiles',
-                        type: 'raster',
-                        source: 'custom_tiles',
-                        minzoom: this.aerialMinZoom,
-                        maxzoom: this.aerialMaxZoom
-                    },
-                    beforeLayerId
-                );
-            }
-        }
 
         this.setState({ mapLoaded: true });
         serviceLocator.eventManager.emit('map.loaded');
@@ -318,6 +331,10 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     componentWillUnmount = () => {
         // Reset cursor classes hover state to prevent stale state on remount
         resetClasses();
+
+        // Cancel any pending debounced save to avoid post-unmount side-effects
+        this.debouncedSaveOverlayOpacity.cancel();
+
         serviceLocator.removeService('layerManager');
         serviceLocator.removeService('pathLayerManager');
         mapCustomEvents.removeEvents(serviceLocator.eventManager);
@@ -504,14 +521,9 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     /**
      * Generate map style with tile sources
      */
-    getMapStyle = (showAerial = false): MapStyleSpec => {
+    getMapStyle = (): MapStyleSpec => {
+        const activeLayer = this.state.activeBaseLayer;
         const sources: Record<string, SourceSpecification> = {
-            osm: {
-                type: 'raster',
-                tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                tileSize: 256,
-                attribution: this.props.t('main:map.osmAttribution')
-            },
             // Full-world polygon for the darkening overlay
             overlay: {
                 type: 'geojson',
@@ -521,40 +533,40 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
 
         const layers: LayerSpecification[] = [];
 
-        // Add aerial source if configured
-        if (this.aerialTilesUrl) {
-            sources.aerial = {
-                type: 'raster',
-                tiles: [this.aerialTilesUrl],
-                tileSize: 256,
-                attribution: this.props.t('main:map.aerialAttribution')
-            };
-        }
-
-        // Add the appropriate base layer
-        // We add both layers to the style to allow switching without reloading the style
-        // Only one layer is visible at a time to prevent loading both tile sets simultaneously
-        const showOsm = !showAerial || !this.aerialTilesUrl;
-        layers.push({
-            id: 'osm',
-            type: 'raster',
-            source: 'osm',
-            layout: {
-                visibility: showOsm ? 'visible' : 'none'
+        // Only add the source and layer for the currently active base layer.
+        // Inactive layers are not included, so MapLibre does not fetch their tiles.
+        // Switching is handled imperatively in MapRenderer (remove old / add new).
+        if (activeLayer === 'aerial') {
+            if (this.aerialTilesUrl) {
+                sources.aerial = {
+                    type: 'raster',
+                    tiles: [this.aerialTilesUrl],
+                    tileSize: 256,
+                    attribution: this.props.t('main:map.aerialAttribution')
+                };
+                layers.push({
+                    id: 'aerial',
+                    type: 'raster',
+                    source: 'aerial',
+                    minzoom: this.aerialMinZoom,
+                    maxzoom: this.aerialMaxZoom
+                });
             }
-        });
-
-        if (this.aerialTilesUrl) {
-            layers.push({
-                id: 'aerial',
-                type: 'raster',
-                source: 'aerial',
-                minzoom: this.aerialMinZoom,
-                maxzoom: this.aerialMaxZoom,
-                layout: {
-                    visibility: showAerial ? 'visible' : 'none'
-                }
-            });
+        } else {
+            const layerConfig: BaseMapLayerConfig | undefined = baseMapLayers.find((l) => l.shortname === activeLayer);
+            if (layerConfig) {
+                sources[layerConfig.shortname] = {
+                    type: 'raster',
+                    tiles: [layerConfig.url],
+                    tileSize: layerConfig.tileSize ?? 256,
+                    attribution: this.props.t(`main:map.${layerConfig.attributionKey}`)
+                };
+                layers.push({
+                    id: layerConfig.shortname,
+                    type: 'raster',
+                    source: layerConfig.shortname
+                });
+            }
         }
 
         // Semi-transparent black overlay to improve visibility of transit layers
@@ -563,8 +575,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             type: 'fill',
             source: 'overlay',
             paint: {
-                'fill-color': '#000000',
-                'fill-opacity': 0.5
+                'fill-color': this.state.overlayColor === 'white' ? '#ffffff' : '#000000',
+                'fill-opacity': this.state.overlayOpacity / 100
             }
         });
 
@@ -588,9 +600,13 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
      */
     handleZoomChange = (zoom: number) => {
         this.setState((prevState) => {
-            // If no aerial tiles configured, just update zoom (keep showAerialTiles unchanged)
+            // If no aerial tiles configured, just update zoom
             if (!this.aerialTilesUrl) {
-                return { currentZoom: zoom, showAerialTiles: prevState.showAerialTiles };
+                return {
+                    currentZoom: zoom,
+                    showAerialTiles: prevState.showAerialTiles,
+                    activeBaseLayer: prevState.activeBaseLayer
+                };
             }
 
             const inRange = this.isZoomInAerialRange(zoom);
@@ -598,32 +614,66 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
 
             // Determine new showAerialTiles value based on previous state
             let showAerialTiles = prevState.showAerialTiles;
+            let activeBaseLayer = prevState.activeBaseLayer;
 
             if (prevState.userPreferredLayer === 'aerial' && inRange && !wasInRange) {
                 // User prefers aerial and we just entered the valid range, switch to aerial
                 showAerialTiles = true;
+                activeBaseLayer = 'aerial';
             } else if (prevState.showAerialTiles && !inRange) {
-                // We're showing aerial and zoomed out of range, switch to OSM
+                // We're showing aerial and zoomed out of range, restore the last non-aerial layer
                 showAerialTiles = false;
+                activeBaseLayer = prevState.lastNonAerialLayer || baseMapLayers[0].shortname;
             }
 
             return {
                 currentZoom: zoom,
-                showAerialTiles
+                showAerialTiles,
+                activeBaseLayer
             };
         });
     };
 
-    handleLayerChange = (layerType: 'osm' | 'aerial') => {
-        this.setState({
-            showAerialTiles: layerType === 'aerial',
-            userPreferredLayer: layerType // Remember user's preference
+    handleLayerChange = (layerType: BaseLayerType) => {
+        this.setState((_prevState) => {
+            const update: Partial<MainMapState> = {
+                showAerialTiles: layerType === 'aerial',
+                userPreferredLayer: layerType,
+                activeBaseLayer: layerType
+            };
+            // Track the last non-aerial layer so we can restore it when leaving aerial range
+            if (layerType !== 'aerial') {
+                update.lastNonAerialLayer = layerType as Exclude<BaseLayerType, 'aerial'>;
+            }
+            return update as MainMapState;
         });
 
         // Save preference to database
         Preferences.update(
             {
                 'map.baseLayer': layerType
+            },
+            serviceLocator.socketEventManager
+        );
+    };
+
+    /** Handle overlay opacity change from the slider (0–100) */
+    handleOverlayOpacityChange = (opacity: number) => {
+        // Update UI immediately for responsiveness
+        this.setState({ overlayOpacity: opacity });
+
+        // Debounced save to avoid flooding the server during slider drag
+        this.debouncedSaveOverlayOpacity(opacity);
+    };
+
+    /** Handle overlay color change */
+    handleOverlayColorChange = (color: 'black' | 'white') => {
+        this.setState({ overlayColor: color });
+
+        // Save preference to database
+        Preferences.update(
+            {
+                'map.overlayColor': color
             },
             serviceLocator.socketEventManager
         );
@@ -700,23 +750,31 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
             // Control still exists, just update its callbacks
             this.mapControlsMenu.updateCallbacks({
                 onLayerChange: this.handleLayerChange,
-                getCurrentLayer: () => (this.state.showAerialTiles ? 'aerial' : 'osm'),
+                getCurrentLayer: () => this.state.activeBaseLayer,
                 isZoomInAerialRange: () => this.isZoomInAerialRange(this.state.currentZoom),
                 getCurrentZoom: () => this.state.currentZoom,
                 aerialTilesUrl: this.aerialTilesUrl,
                 minZoom: this.aerialMinZoom,
-                maxZoom: this.aerialMaxZoom
+                maxZoom: this.aerialMaxZoom,
+                onOverlayOpacityChange: this.handleOverlayOpacityChange,
+                getOverlayOpacity: () => this.state.overlayOpacity,
+                onOverlayColorChange: this.handleOverlayColorChange,
+                getOverlayColor: () => this.state.overlayColor
             });
         } else {
             // Control was removed by MapLibre, create a new one
             this.mapControlsMenu = new MapControlsMenu(this.props.t, {
                 onLayerChange: this.handleLayerChange,
-                getCurrentLayer: () => (this.state.showAerialTiles ? 'aerial' : 'osm'),
+                getCurrentLayer: () => this.state.activeBaseLayer,
                 isZoomInAerialRange: () => this.isZoomInAerialRange(this.state.currentZoom),
                 getCurrentZoom: () => this.state.currentZoom,
                 aerialTilesUrl: this.aerialTilesUrl,
                 minZoom: this.aerialMinZoom,
-                maxZoom: this.aerialMaxZoom
+                maxZoom: this.aerialMaxZoom,
+                onOverlayOpacityChange: this.handleOverlayOpacityChange,
+                getOverlayOpacity: () => this.state.overlayOpacity,
+                onOverlayColorChange: this.handleOverlayColorChange,
+                getOverlayColor: () => this.state.overlayColor
             });
             map.addControl(this.mapControlsMenu, 'top-right');
         }
@@ -755,7 +813,12 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 setMap={this.setMap}
                 confirmModalDeleteIsOpen={this.state.confirmModalDeleteIsOpen}
                 onDeleteSelectedNodes={this.onDeleteSelectedNodes}
-                showAerialTiles={this.state.showAerialTiles}
+                activeBaseLayer={this.state.activeBaseLayer}
+                overlayOpacity={this.state.overlayOpacity}
+                overlayColor={this.state.overlayColor}
+                aerialTilesUrl={this.aerialTilesUrl}
+                aerialMinZoom={this.aerialMinZoom}
+                aerialMaxZoom={this.aerialMaxZoom}
                 handleZoomChange={this.handleZoomChange}
                 closeModal={() => this.setState({ confirmModalDeleteIsOpen: false })}
             >
@@ -765,4 +828,4 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     }
 }
 
-export default withTranslation(['transit', 'main'])(MainMap);
+export default withTranslation(['main', 'transit'])(MainMap);

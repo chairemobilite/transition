@@ -4,15 +4,20 @@
 // Map cursor overrides - target the canvas elements directly
 // Classes are managed by MapCursorHelper.ts
 #tr__main-map {
+
     // Target both MapLibre canvas and any deck.gl canvas overlays
     &.hovering {
-        canvas, .maplibregl-canvas {
+
+        canvas,
+        .maplibregl-canvas {
             cursor: pointer !important;
         }
     }
 
     &.dragging {
-        canvas, .maplibregl-canvas {
+
+        canvas,
+        .maplibregl-canvas {
             cursor: grabbing !important;
         }
     }
@@ -92,4 +97,56 @@
 .tr__map-controls-dropdown-item:hover,
 .tr__map-controls-dropdown-item:focus-visible {
     background-color: rgba(0, 0, 0, 0.3);
+}
+
+// Map Controls Styles
+.tr__map-controls-slider-container {
+    padding: 4px 12px 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tr__map-controls-slider-input {
+    flex: 1;
+    margin: 0;
+    cursor: pointer;
+    height: 20px;
+    width: 100%; // fallback
+    padding: 0;
+}
+
+.tr__map-controls-slider-value {
+    min-width: 40px;
+    text-align: right;
+    font-size: 0.85em;
+    color: #333;
+}
+
+.tr__map-controls-color-container {
+    padding: 0 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tr__map-controls-color-title {
+    font-size: 0.85em;
+    color: #333;
+}
+
+.tr__map-controls-radio-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-left: 4px;
+}
+
+.tr__map-controls-radio-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    color: #333;
+    font-size: 0.9em;
 }
