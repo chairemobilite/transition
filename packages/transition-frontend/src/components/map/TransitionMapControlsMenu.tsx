@@ -15,20 +15,71 @@ import defaultPreferences from 'chaire-lib-common/lib/config/defaultPreferences.
 
 // Local workspace imports
 import maplibregl from 'maplibre-gl';
+import type { BaseLayerType } from 'chaire-lib-common/lib/config/types';
+import baseMapLayers from '../../config/baseMapLayers.config';
 
-interface MapControlsMenuProps {
+type MapControlsMenuProps = {
     isOpen: boolean;
     onToggle: () => void;
     onResetView: () => void;
-    onLayerChange: (layerType: 'osm' | 'aerial') => void;
-    getCurrentLayer: () => 'osm' | 'aerial';
+    onLayerChange: (layerType: BaseLayerType) => void;
+    getCurrentLayer: () => BaseLayerType;
     isZoomInAerialRange: () => boolean;
     getCurrentZoom: () => number;
     minZoom?: number;
     maxZoom?: number;
-    /** URL for aerial tiles. If undefined, the background/layer selector is hidden */
+    /** URL for aerial tiles. If undefined, the aerial option is hidden */
     aerialTilesUrl?: string;
-}
+    /** Callback when overlay opacity changes (0–100) */
+    onOverlayOpacityChange: (opacity: number) => void;
+    /** Get the current overlay opacity (0–100) */
+    getOverlayOpacity: () => number;
+    /** Callback when overlay color changes */
+    onOverlayColorChange: (color: 'black' | 'white') => void;
+    /** Get the current overlay color */
+    getOverlayColor: () => 'black' | 'white';
+};
+
+/** Reusable layer option item for the dropdown */
+const LayerOption: React.FC<{
+    layerType: BaseLayerType;
+    label: string;
+    isActive: boolean;
+    disabled?: boolean;
+    suffix?: React.ReactNode;
+    onSelect: (layerType: BaseLayerType) => void;
+}> = ({ layerType, label, isActive, disabled = false, suffix, onSelect }) => (
+    <p
+        onClick={(e) => {
+            e.stopPropagation();
+            if (!disabled) {
+                onSelect(layerType);
+            }
+        }}
+        className={`tr__map-controls-dropdown-item ${isActive ? '_active' : ''}`}
+        style={
+            disabled
+                ? {
+                    opacity: 0.5,
+                    cursor: 'not-allowed',
+                    pointerEvents: 'none'
+                }
+                : undefined
+        }
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
+                e.preventDefault();
+                e.stopPropagation();
+                onSelect(layerType);
+            }
+        }}
+    >
+        {label}
+        {suffix}
+    </p>
+);
 
 const MapControlsDropdown: React.FC<MapControlsMenuProps> = ({
     isOpen,
@@ -40,12 +91,37 @@ const MapControlsDropdown: React.FC<MapControlsMenuProps> = ({
     getCurrentZoom,
     minZoom,
     maxZoom,
-    aerialTilesUrl
+    aerialTilesUrl,
+    onOverlayOpacityChange,
+    getOverlayOpacity,
+    onOverlayColorChange,
+    getOverlayColor
 }) => {
     const currentLayer = getCurrentLayer();
     const inRange = isZoomInAerialRange();
     const currentZoom = getCurrentZoom();
-    const { t } = useTranslation();
+    const { t } = useTranslation(['main', 'transit']);
+
+    // Generate instance-unique ID prefix to avoid radio name collisions
+    // across multiple mounted instances of this component
+    const instanceId = React.useId();
+
+    // Local state for immediate UI feedback on slider / radio changes
+    const [localOpacity, setLocalOpacity] = React.useState(getOverlayOpacity());
+    const [localColor, setLocalColor] = React.useState(getOverlayColor());
+
+    // Sync local state when external values change (e.g. from preferences panel)
+    // We use the getter result as dependency so it updates if the parent re-renders with new values.
+    // However, we MUST ensure the getter is called in the render body to capture the value.
+    const propOpacity = getOverlayOpacity();
+    const propColor = getOverlayColor();
+
+    React.useEffect(() => {
+        setLocalOpacity(propOpacity);
+    }, [propOpacity]);
+    React.useEffect(() => {
+        setLocalColor(propColor);
+    }, [propColor]);
 
     // Determine zoom range message - show when outside valid zoom range
     let zoomMessage: string | null = null;
@@ -57,116 +133,139 @@ const MapControlsDropdown: React.FC<MapControlsMenuProps> = ({
         }
     }
 
-    const handleResetView = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onResetView();
+    const handleSelect = (layerType: BaseLayerType) => {
+        onLayerChange(layerType);
         onToggle();
-    };
-
-    const handleOsmClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onLayerChange('osm');
-        onToggle();
-    };
-
-    const handleAerialClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (inRange && aerialTilesUrl) {
-            onLayerChange('aerial');
-        }
-        onToggle();
-    };
-
-    const handleResetViewKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            e.stopPropagation();
-            onResetView();
-            onToggle();
-        }
-    };
-
-    const handleOsmKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            e.stopPropagation();
-            onLayerChange('osm');
-            onToggle();
-        }
-    };
-
-    const handleAerialKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            e.stopPropagation();
-            if (inRange && aerialTilesUrl) {
-                onLayerChange('aerial');
-            }
-            onToggle();
-        }
     };
 
     return (
         <div className="tr__map-controls-dropdown" style={{ display: isOpen ? 'flex' : 'none' }}>
             <p
                 className="tr__map-controls-dropdown-item"
-                onClick={handleResetView}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onResetView();
+                    onToggle();
+                }}
                 role="button"
                 tabIndex={0}
-                onKeyDown={handleResetViewKeyDown}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onResetView();
+                        onToggle();
+                    }
+                }}
             >
                 <span>{t('main:map.controls.resetView')}</span>
             </p>
 
-            {/* Layer selector is shown only when aerial tiles are available */}
+            <div className="tr__map-controls-dropdown-group-title">{t('main:map.controls.background')}:</div>
+
+            {baseMapLayers.map((layer) => (
+                <LayerOption
+                    key={layer.shortname}
+                    layerType={layer.shortname}
+                    label={t(`main:map.controls.${layer.nameKey}`)}
+                    isActive={currentLayer === layer.shortname}
+                    onSelect={handleSelect}
+                />
+            ))}
+
+            {/* Aerial option - conditional on availability and zoom range */}
             {aerialTilesUrl && (
-                <>
-                    <div className="tr__map-controls-dropdown-group-title">{t('main:map.controls.background')}:</div>
-                    <p
-                        onClick={handleOsmClick}
-                        className={`tr__map-controls-dropdown-item ${currentLayer === 'osm' ? '_active' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={handleOsmKeyDown}
-                    >
-                        {t('main:map.controls.osm')}
-                    </p>
-                    <p
-                        onClick={handleAerialClick}
-                        className={`tr__map-controls-dropdown-item ${currentLayer === 'aerial' && inRange && aerialTilesUrl ? '_active' : ''}`}
-                        style={{
-                            opacity: aerialTilesUrl && inRange ? 1 : 0.5,
-                            cursor: aerialTilesUrl && inRange ? 'pointer' : 'not-allowed',
-                            pointerEvents: aerialTilesUrl && inRange ? 'auto' : 'none'
-                        }}
-                        role="button"
-                        tabIndex={aerialTilesUrl && inRange ? 0 : -1}
-                        onKeyDown={handleAerialKeyDown}
-                    >
-                        {t('main:map.controls.aerial')}
-                        {zoomMessage && (
+                <LayerOption
+                    layerType="aerial"
+                    label={t('main:map.controls.aerial')}
+                    isActive={currentLayer === 'aerial'}
+                    disabled={!inRange}
+                    onSelect={handleSelect}
+                    suffix={
+                        zoomMessage ? (
                             <span style={{ fontStyle: 'oblique', fontWeight: 'normal', marginLeft: '0.5rem' }}>
                                 {zoomMessage}
                             </span>
-                        )}
-                    </p>
-                </>
+                        ) : undefined
+                    }
+                />
             )}
+
+            <div className="tr__map-controls-dropdown-group-title" style={{ marginTop: '0.5rem' }}>
+                {t('main:map.controls.overlayOpacity')}:
+            </div>
+            <div className="tr__map-controls-slider-container">
+                <input
+                    className="tr__map-controls-slider-input"
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={localOpacity}
+                    onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setLocalOpacity(val);
+                        // We update the parent imperatively (for map update) but we rely on local state for the slider UI
+                        onOverlayOpacityChange(val);
+                    }}
+                    aria-label={t('main:map.controls.overlayOpacity')}
+                />
+                <span className="tr__map-controls-slider-value">{localOpacity}%</span>
+            </div>
+            <div className="tr__map-controls-dropdown-group-title">{t('main:map.controls.overlayColor')}:</div>
+            <div className="tr__map-controls-color-container">
+                <div className="tr__map-controls-radio-group">
+                    <label className="tr__map-controls-radio-item">
+                        <input
+                            type="radio"
+                            name={`overlayColor-${instanceId}`}
+                            value="black"
+                            checked={localColor === 'black'}
+                            onChange={() => {
+                                setLocalColor('black');
+                                onOverlayColorChange('black');
+                            }}
+                        />
+                        {t('main:Black')}
+                    </label>
+                    <label className="tr__map-controls-radio-item">
+                        <input
+                            type="radio"
+                            name={`overlayColor-${instanceId}`}
+                            value="white"
+                            checked={localColor === 'white'}
+                            onChange={() => {
+                                setLocalColor('white');
+                                onOverlayColorChange('white');
+                            }}
+                        />
+                        {t('main:White')}
+                    </label>
+                </div>
+            </div>
         </div>
     );
 };
 
 /** Options for MapControlsMenu constructor */
-interface MapControlsMenuOptions {
-    onLayerChange: (layerType: 'osm' | 'aerial') => void;
-    getCurrentLayer: () => 'osm' | 'aerial';
+type MapControlsMenuOptions = {
+    onLayerChange: (layerType: BaseLayerType) => void;
+    getCurrentLayer: () => BaseLayerType;
     isZoomInAerialRange: () => boolean;
     getCurrentZoom: () => number;
-    /** URL for aerial tiles. If undefined, the background/layer selector is hidden */
+    /** URL for aerial tiles. If undefined, the aerial option is hidden */
     aerialTilesUrl?: string;
     minZoom?: number;
     maxZoom?: number;
-}
+    /** Callback when overlay opacity changes (0–100) */
+    onOverlayOpacityChange: (opacity: number) => void;
+    /** Get the current overlay opacity (0–100) */
+    getOverlayOpacity: () => number;
+    /** Callback when overlay color changes */
+    onOverlayColorChange: (color: 'black' | 'white') => void;
+    /** Get the current overlay color */
+    getOverlayColor: () => 'black' | 'white';
+};
 
 // Create a map controls dropdown menu with a gear icon
 class MapControlsMenu {
@@ -180,14 +279,18 @@ class MapControlsMenu {
     private isOpen: boolean = false;
     private t: WithTranslation['t'];
     private documentClickListener!: (e: MouseEvent) => void;
-    private onLayerChange: (layerType: 'osm' | 'aerial') => void;
-    private getCurrentLayer: () => 'osm' | 'aerial';
+    private onLayerChange: (layerType: BaseLayerType) => void;
+    private getCurrentLayer: () => BaseLayerType;
     private isZoomInAerialRange: () => boolean;
     private getCurrentZoom: () => number;
     private aerialTilesUrl?: string;
     private minZoom: number = 0;
     private maxZoom: number = 22;
     private zoomChangeListener?: () => void;
+    private onOverlayOpacityChange: (opacity: number) => void;
+    private getOverlayOpacity: () => number;
+    private onOverlayColorChange: (color: 'black' | 'white') => void;
+    private getOverlayColor: () => 'black' | 'white';
 
     constructor(t: WithTranslation['t'], options: MapControlsMenuOptions) {
         this.defaultCenter = defaultPreferences.map.center;
@@ -200,6 +303,10 @@ class MapControlsMenu {
         this.aerialTilesUrl = options.aerialTilesUrl;
         this.minZoom = options.minZoom ?? 0;
         this.maxZoom = options.maxZoom ?? 22;
+        this.onOverlayOpacityChange = options.onOverlayOpacityChange;
+        this.getOverlayOpacity = options.getOverlayOpacity;
+        this.onOverlayColorChange = options.onOverlayColorChange;
+        this.getOverlayColor = options.getOverlayColor;
     }
 
     onAdd(map: maplibregl.Map) {
@@ -257,13 +364,17 @@ class MapControlsMenu {
      * This allows updating the control without removing/re-adding it
      */
     updateCallbacks(options?: {
-        onLayerChange?: (layerType: 'osm' | 'aerial') => void;
-        getCurrentLayer?: () => 'osm' | 'aerial';
+        onLayerChange?: (layerType: BaseLayerType) => void;
+        getCurrentLayer?: () => BaseLayerType;
         isZoomInAerialRange?: () => boolean;
         getCurrentZoom?: () => number;
         aerialTilesUrl?: string;
         minZoom?: number;
         maxZoom?: number;
+        onOverlayOpacityChange?: (opacity: number) => void;
+        getOverlayOpacity?: () => number;
+        onOverlayColorChange?: (color: 'black' | 'white') => void;
+        getOverlayColor?: () => 'black' | 'white';
     }) {
         if (options?.onLayerChange !== undefined) {
             this.onLayerChange = options.onLayerChange;
@@ -285,6 +396,18 @@ class MapControlsMenu {
         }
         if (options?.maxZoom !== undefined) {
             this.maxZoom = options.maxZoom;
+        }
+        if (options?.onOverlayOpacityChange !== undefined) {
+            this.onOverlayOpacityChange = options.onOverlayOpacityChange;
+        }
+        if (options?.getOverlayOpacity !== undefined) {
+            this.getOverlayOpacity = options.getOverlayOpacity;
+        }
+        if (options?.onOverlayColorChange !== undefined) {
+            this.onOverlayColorChange = options.onOverlayColorChange;
+        }
+        if (options?.getOverlayColor !== undefined) {
+            this.getOverlayColor = options.getOverlayColor;
         }
         // Re-render dropdown with updated callbacks
         this.renderDropdown();
@@ -313,6 +436,10 @@ class MapControlsMenu {
                 minZoom={this.minZoom}
                 maxZoom={this.maxZoom}
                 aerialTilesUrl={this.aerialTilesUrl}
+                onOverlayOpacityChange={this.onOverlayOpacityChange}
+                getOverlayOpacity={this.getOverlayOpacity}
+                onOverlayColorChange={this.onOverlayColorChange}
+                getOverlayColor={this.getOverlayColor}
             />
         );
     }
