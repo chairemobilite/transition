@@ -28,7 +28,8 @@ struct DataSource {
     zones                   @11;
     osmData                 @12;
     places                  @13;
-    unknown                 @14;
+    propertyRegistry        @14;
+    unknown                 @15;
   }
 
 }

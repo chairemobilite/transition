@@ -25,6 +25,7 @@ pub fn data_source_type(input: &str) -> DataSourceType {
         "zones"                                 => DataSourceType::Zones,
         "osmData"                               => DataSourceType::OsmData,
         "places"                                => DataSourceType::Places,
+        "propertyRegistry"                      => DataSourceType::PropertyRegistry,
         "unknown"                               => DataSourceType::Unknown,
         _                                       => DataSourceType::None
     }
@@ -46,6 +47,7 @@ pub fn data_source_type_to_str(input: &DataSourceType) -> &str {
         DataSourceType::Zones                   => "zones",
         DataSourceType::OsmData                 => "osmData",
         DataSourceType::Places                  => "places",
+        DataSourceType::PropertyRegistry        => "propertyRegistry",
         DataSourceType::Unknown                 => "unknown"
     }
 }

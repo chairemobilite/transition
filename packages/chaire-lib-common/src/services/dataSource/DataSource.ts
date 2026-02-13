@@ -22,7 +22,8 @@ export const dataSourceTypesArray = [
     'streetSegmentSpeeds',
     'zones',
     'osmData',
-    'places'
+    'places',
+    'propertyRegistry'
 ] as const;
 
 export type DataSourceType = (typeof dataSourceTypesArray)[number];
