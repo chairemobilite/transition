@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons/faAngleRight';
 import { faAngleLeft } from '@fortawesome/free-solid-svg-icons/faAngleLeft';
+import { faArrowDownShortWide } from '@fortawesome/free-solid-svg-icons/faArrowDownShortWide';
 import { bbox as turfBbox } from '@turf/turf';
 
 import TransitRoutingResults from './TransitRoutingResultComponent';
@@ -18,6 +19,25 @@ import { TransitRoutingAttributes } from 'transition-common/lib/services/transit
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+import { pathIsRoute } from 'chaire-lib-common/lib/services/routing/RoutingResult';
+
+// Get the travel time in seconds for a path, regardless of type
+const getPathDuration = (result: RoutingResult, index: number): number => {
+    const path = result.getPath(index);
+    if (!path) return Infinity;
+    if (pathIsRoute(path)) {
+        return path.duration;
+    }
+    return path.totalTravelTime;
+};
+
+// Build an array of alternative indices sorted by ascending travel time
+const buildSortedIndices = (result: RoutingResult): number[] => {
+    const count = result.getAlternativesCount();
+    const indices = Array.from({ length: count }, (_, i) => i);
+    indices.sort((a, b) => getPathDuration(result, a) - getPathDuration(result, b));
+    return indices;
+};
 
 export interface RoutingResultStatus {
     routingResult: RoutingResult;
@@ -60,12 +80,23 @@ const showCurrentAlternative = async (
 };
 
 const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (props: TransitRoutingResultsProps) => {
-    const [alternativeIndex, setAlternativeIndex] = useState(0);
+    const [displayIndex, setDisplayIndex] = useState(0);
+    const [sortedByDuration, setSortedByDuration] = useState(false);
     // Track if this is the first render to fit bounds only on initial display
     const isInitialRenderRef = useRef(true);
 
     const result = props.result;
     const error = result.getError();
+    const alternativesCount = result.getAlternativesCount();
+
+    // Compute sorted indices when sorting is active
+    const sortedIndices = React.useMemo(
+        () => (sortedByDuration ? buildSortedIndices(result) : null),
+        [result, sortedByDuration]
+    );
+
+    // Map display position to the actual alternative index
+    const alternativeIndex = sortedIndices ? sortedIndices[displayIndex] : displayIndex;
 
     // Use effect to show the current alternative and fit bounds on initial render
     // Must be placed before any early returns to ensure hooks are called in the same order
@@ -82,15 +113,19 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
         return <FormErrors errors={[error.export().localizedMessage]} />;
     }
 
-    const alternativesCount = result.getAlternativesCount();
     const path = result.getPath(alternativeIndex);
 
     const onLeftButtonClick = () => {
-        setAlternativeIndex(alternativeIndex > 0 ? alternativeIndex - 1 : alternativesCount - 1);
+        setDisplayIndex(displayIndex > 0 ? displayIndex - 1 : alternativesCount - 1);
     };
 
     const onRightButtonClick = () => {
-        setAlternativeIndex(alternativesCount > alternativeIndex + 1 ? alternativeIndex + 1 : 0);
+        setDisplayIndex(alternativesCount > displayIndex + 1 ? displayIndex + 1 : 0);
+    };
+
+    const onSortButtonClick = () => {
+        setDisplayIndex(0);
+        setSortedByDuration(!sortedByDuration);
     };
 
     return (
@@ -117,7 +152,7 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
                     )}
                     {alternativesCount > 0 && (
                         <span className="_strong">
-                            {alternativeIndex + 1}/{alternativesCount}
+                            {displayIndex + 1}/{alternativesCount}
                         </span>
                     )}
                     {alternativesCount > 1 && (
@@ -127,6 +162,15 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
                             iconClass="_icon-alone"
                             label=""
                             onClick={onRightButtonClick}
+                        />
+                    )}
+                    {alternativesCount > 1 && (
+                        <Button
+                            icon={faArrowDownShortWide}
+                            color={sortedByDuration ? 'green' : 'grey'}
+                            iconClass="_icon-alone"
+                            label=""
+                            onClick={onSortButtonClick}
                         />
                     )}
                 </div>
