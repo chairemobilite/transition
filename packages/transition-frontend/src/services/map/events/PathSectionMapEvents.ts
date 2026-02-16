@@ -23,6 +23,26 @@ const isAgenciesActiveSection = (activeSection: string) => activeSection === 'ag
 // when determining waypoint insertion position
 let isPathUpdateInProgress = false;
 
+/**
+ * Deduplicates an array of map features by their path ID property.
+ * queryRenderedFeatures can return the same path multiple times when
+ * its geometry spans multiple map tiles.
+ * See official documentation for the queryRenderedFeatures method:
+ * "Because features come from tiled vector data or GeoJSON data
+ * that is converted to tiles internally, feature geometries may
+ * be split or duplicated across tile boundaries and, as a result,
+ * features may appear multiple times in query results."
+ */
+const deduplicatePathFeatures = (paths: MapGeoJSONFeature[]): MapGeoJSONFeature[] => {
+    const seen = new Set<string>();
+    return paths.filter((feature) => {
+        const id = feature.properties?.id;
+        if (!id || seen.has(id)) return false;
+        seen.add(id);
+        return true;
+    });
+};
+
 const onPathWaypointMouseDown = (e: MapLayerMouseEvent) => {
     // start drag:
     const removingWaypoint = serviceLocator.keyboardManager.keyIsPressed('alt');
@@ -251,7 +271,7 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
         clickedSelectedNodeIndex < 0
     ) {
         // Clicked on a different path (selected path was not among the clicked features)
-        const paths = features.filter((feature) => feature.source === 'transitPaths');
+        const paths = deduplicatePathFeatures(features.filter((feature) => feature.source === 'transitPaths'));
 
         // No changes - stop editing and proceed
         path.stopEditing();
@@ -406,7 +426,7 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
             (path && !path.hasChanged() && !selectedLine.hasChanged()) ||
             (selectedLine && !path && !selectedLine.hasChanged())
         ) {
-            const paths = features.filter((feature) => feature.source === 'transitPaths');
+            const paths = deduplicatePathFeatures(features.filter((feature) => feature.source === 'transitPaths'));
             if (paths.length === 1) {
                 selectPath(paths[0]);
             } else {
