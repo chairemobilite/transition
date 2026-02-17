@@ -15,6 +15,13 @@ import {
     durationFromAccelerationDecelerationDistanceAndRunningSpeed,
     kphToMps
 } from 'chaire-lib-common/lib/utils/PhysicsUtils';
+import {
+    calculateSegmentTimeWithCurves,
+    calculateNoDwellTimeWithCurves,
+    detectGeometryResolution,
+    shouldUseCurveAnalysis
+} from './railCurves/segmentTravelTime';
+import { isRailMode, type RailMode } from '../line/types';
 
 /**
  * Get the coordinates from a geometry
@@ -77,7 +84,7 @@ const handleLegs = (path: any, points: Geojson.Feature<Geojson.Point>[], legs: (
         segmentDuration += Math.ceil(leg.duration);
         segmentDistance += Math.ceil(leg.distance);
 
-        // Path cannot finish at a waypoint, so this last segment si not part of the total calculations.
+        // Path cannot finish at a waypoint, so this last segment is not part of the total calculations.
         if (i === legs.length - 1 && !nodeIds[nextNodeIndex]) {
             // last leg is to a waypoint (missing node at the end)
             segments.push(segmentCoordinatesStartIndex);
@@ -111,14 +118,58 @@ const handleLegs = (path: any, points: Geojson.Feature<Geojson.Point>[], legs: (
                     ? segmentDuration
                     : segmentDistance / runningSpeed; // no acceleration/deceleration
 
-            const calculatedSegmentDuration = Math.ceil(
-                durationFromAccelerationDecelerationDistanceAndRunningSpeed(
-                    acceleration,
-                    deceleration,
-                    segmentDistance,
-                    runningSpeed
-                )
-            );
+            // For rail modes with 'manual' (click on map) routing, use curve-aware
+            // travel time calculation. When routingEngine is 'engine' or 'engineCustom',
+            // OSRM already provides realistic travel times that account for the
+            // road/rail network, so curve analysis is not needed.
+            // For now, cant (the lateral slope between the two tracks)
+            // and other speed limits are not supported.
+            const pathMode = path.getMode();
+            let calculatedSegmentDuration: number | null;
+
+            // For rail modes with non-engine routing, check if geometry
+            // resolution is high enough to use curve-aware calculations.
+            const segmentCoords = globalCoordinates.slice(segmentCoordinatesStartIndex, globalCoordinates.length);
+            const segGeometryResolution = detectGeometryResolution(segmentCoords, 1);
+            const useSegCurves = shouldUseCurveAnalysis(segGeometryResolution);
+
+            if (routingEngine === 'manual' && isRailMode(pathMode) && useSegCurves && segmentCoords.length >= 3) {
+                const maxSpeedKmH = runningSpeed * 3.6; // Convert from m/s to km/h
+                const curveOptions = {
+                    mode: pathMode as RailMode,
+                    runningSpeedKmH: maxSpeedKmH,
+                    accelerationMps2: acceleration,
+                    decelerationMps2: deceleration,
+                    maxSpeedKmH
+                };
+
+                // Use curve-aware calculation WITH accel/decel for station stops
+                const curveResult = calculateSegmentTimeWithCurves(
+                    globalCoordinates,
+                    segmentCoordinatesStartIndex,
+                    globalCoordinates.length - 1,
+                    curveOptions
+                );
+                calculatedSegmentDuration = Math.ceil(curveResult.timeSeconds);
+
+                // "No dwell" time: curve-aware but WITHOUT accel/decel for station stops
+                noDwellTimeDuration = calculateNoDwellTimeWithCurves(
+                    globalCoordinates,
+                    segmentCoordinatesStartIndex,
+                    globalCoordinates.length - 1,
+                    curveOptions
+                );
+            } else {
+                // Standard calculation for non-rail modes
+                calculatedSegmentDuration = Math.ceil(
+                    durationFromAccelerationDecelerationDistanceAndRunningSpeed(
+                        acceleration,
+                        deceleration,
+                        segmentDistance,
+                        runningSpeed
+                    )
+                );
+            }
             segmentDuration = calculatedSegmentDuration !== null ? calculatedSegmentDuration : -1;
 
             if (segmentDuration <= 0) {

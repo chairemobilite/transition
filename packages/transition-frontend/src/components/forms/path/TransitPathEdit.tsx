@@ -15,7 +15,8 @@ import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faRoute } from '@fortawesome/free-solid-svg-icons/faRoute';
 import _toString from 'lodash/toString';
 import MathJax from 'react-mathjax';
-import { point as turfPoint, featureCollection as turfFeatureCollection } from '@turf/turf';
+import { point as turfPoint, featureCollection as turfFeatureCollection, distance as turfDistance } from '@turf/turf';
+import type { Feature, LineString, FeatureCollection } from 'geojson';
 
 //import lineRoutingEngines from '../../../../config/transition/pathRoutingEngines';
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
@@ -30,6 +31,7 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import PathStatistics from './TransitPathStatistics';
+import { CurveStatsPanel } from './CurveStatsPanel';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import lineModesConfig from 'transition-common/lib/config/lineModes';
 import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
@@ -39,6 +41,16 @@ import Line from 'transition-common/lib/services/line/Line';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import { analyzeCurveRadius } from 'transition-common/lib/services/path/railCurves/curvatureAnalysis';
+import { calculateTurningAngle } from 'transition-common/lib/services/path/railCurves/geometry';
+import {
+    MIN_DEFLECTION_ANGLE_RAD,
+    MIN_COARSE_VERTEX_SPACING_METERS
+} from 'transition-common/lib/services/path/railCurves/constants';
+import { detectGeometryResolution } from 'transition-common/lib/services/path/railCurves/segmentTravelTime';
+import { isRailMode, getDefaultRunningSpeedKmH } from 'transition-common/lib/services/line/types';
+import type { GeometryResolution } from 'transition-common/lib/services/path/railCurves/types';
+import type { RailMode, TransitMode } from 'transition-common/lib/services/line/types';
 
 const lineModesConfigByMode = {};
 for (let i = 0, countI = lineModesConfig.length; i < countI; i++) {
@@ -57,6 +69,7 @@ interface PathFormState extends SaveableObjectState<Path> {
     confirmModalSchedulesAffectedlIsOpen: boolean;
     waypointDraggingAfterNodeIndex?: number;
     waypointDraggingIndex?: number;
+    showCurveSegmentsLayer: boolean;
 }
 
 class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormState> {
@@ -74,7 +87,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             selectedObjectName: 'path',
             collectionName: 'paths',
             pathErrors: [],
-            confirmModalSchedulesAffectedlIsOpen: false
+            confirmModalSchedulesAffectedlIsOpen: false,
+            showCurveSegmentsLayer: true
         };
     }
 
@@ -87,6 +101,13 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         }
         return null;
     }
+
+    toggleCurveSegmentsLayer = () => {
+        this.setState(
+            (prevState) => ({ showCurveSegmentsLayer: !prevState.showCurveSegmentsLayer }),
+            () => this.updateLayers()
+        );
+    };
 
     toggleTemporaryManualRouting = () => {
         this.onValueChange('data.temporaryManualRouting', {
@@ -116,6 +137,115 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.keyboardManager.off('m');
     }
 
+    /**
+     * Generates GeoJSON features for curve segments.
+     * Returns empty collection for non-rail modes.
+     */
+    generateCurveSegmentsGeoJSON = (path: Path | undefined, mode: TransitMode): FeatureCollection<LineString> => {
+        if (!path || !isRailMode(mode)) {
+            return turfFeatureCollection([]);
+        }
+
+        const pathGeojson = path.toGeojson();
+        if (!pathGeojson?.geometry?.coordinates || pathGeojson.geometry.coordinates.length < 2) {
+            return turfFeatureCollection([]);
+        }
+
+        const geometry = pathGeojson.geometry as LineString;
+        const coordinates = geometry.coordinates;
+        const runningSpeedKmH = path.getData(
+            'defaultRunningSpeedKmH',
+            getDefaultRunningSpeedKmH(mode as RailMode)
+        ) as number;
+        const analysis = analyzeCurveRadius(geometry, {
+            mode: mode as RailMode,
+            runningSpeedKmH
+        });
+
+        // Only show curve segments (speed-restricted) — straight segments
+        // (where the train can reach max speed) are omitted for clarity.
+        const curveColor = '#ff8c00'; // Orange for speed-restricted curves
+        const features: Feature<LineString>[] = [];
+
+        analysis.segments.forEach((segment, index) => {
+            if (segment.type !== 'curve') return;
+
+            const segmentCoords = coordinates.slice(segment.startIndex, segment.endIndex + 1);
+            if (segmentCoords.length < 2) return;
+
+            features.push({
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: segmentCoords
+                },
+                properties: {
+                    color: curveColor,
+                    segmentIndex: index,
+                    type: segment.type,
+                    medianRadiusMeters: Math.round(segment.medianRadiusMeters),
+                    minRadiusMeters: Math.round(segment.minRadiusMeters),
+                    lengthMeters: Math.round(segment.lengthMeters)
+                }
+            });
+        });
+
+        return turfFeatureCollection(features);
+    };
+
+    /**
+     * Generates GeoJSON point features for vertices where the geometry is
+     * too coarse for reliable curve analysis: the deflection angle exceeds
+     * MIN_DEFLECTION_ANGLE_RAD (~10°) AND the local spacing (max distance
+     * to neighbors) exceeds MIN_COARSE_VERTEX_SPACING_METERS (50 m).
+     *
+     * The spacing check distinguishes between:
+     * - **Coarse geometry** (large angle + large spacing): the curve is
+     *   under-sampled — the user should add waypoints to smooth it.
+     * - **Tight but well-drawn curves** (large angle + small spacing):
+     *   the curve is genuinely sharp and already densely sampled — no
+     *   action needed.
+     *
+     * For reference, a 150 m radius curve sampled every 50 m produces
+     * ~19° deflection per vertex. Points closer than 50 m with >10°
+     * are legitimate tight curves; points farther apart need refinement.
+     */
+    generateLargeAngleVerticesGeoJSON = (path: Path | undefined): GeoJSON.FeatureCollection<GeoJSON.Point> => {
+        if (!path) {
+            return turfFeatureCollection([]);
+        }
+
+        const pathGeojson = path.toGeojson();
+        if (!pathGeojson?.geometry?.coordinates || pathGeojson.geometry.coordinates.length < 3) {
+            return turfFeatureCollection([]);
+        }
+
+        const coordinates = pathGeojson.geometry.coordinates;
+        const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
+
+        for (let i = 1; i < coordinates.length - 1; i++) {
+            const angle = calculateTurningAngle(coordinates[i - 1], coordinates[i], coordinates[i + 1]);
+            if (angle >= MIN_DEFLECTION_ANGLE_RAD) {
+                const distPrev = turfDistance(coordinates[i - 1], coordinates[i], { units: 'meters' });
+                const distNext = turfDistance(coordinates[i], coordinates[i + 1], { units: 'meters' });
+                const localSpacing = Math.max(distPrev, distNext);
+
+                if (localSpacing >= MIN_COARSE_VERTEX_SPACING_METERS) {
+                    const angleDeg = Math.round(((angle * 180) / Math.PI) * 10) / 10;
+                    features.push(
+                        turfPoint(coordinates[i], {
+                            angle: angleDeg,
+                            spacingMeters: Math.round(localSpacing),
+                            index: i
+                        }) as GeoJSON.Feature<GeoJSON.Point>
+                    );
+                }
+            }
+        }
+
+        return turfFeatureCollection(features);
+    };
+
     updateLayers = () => {
         const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
         // FIXME: here we should use props.path instead of etching the selected path,
@@ -124,8 +254,13 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         // find a way to fix this using another method.
         const pathGeojson = selectedPath ? selectedPath.toGeojson() : undefined;
         const nodesGeojsons = selectedPath ? selectedPath.nodesGeojsons() : [];
+        const mode = this.props.line.attributes.mode;
         serviceLocator.eventManager.emit('map.updateLayers', {
             transitPathsSelected: turfFeatureCollection(pathGeojson && pathGeojson.geometry ? [pathGeojson] : []),
+            transitPathCurveSegments: this.state.showCurveSegmentsLayer
+                ? this.generateCurveSegmentsGeoJSON(selectedPath, mode)
+                : turfFeatureCollection([]),
+            transitPathLargeAngleVertices: this.generateLargeAngleVerticesGeoJSON(selectedPath),
             transitNodesSelected: turfFeatureCollection(nodesGeojsons),
             transitNodesRoutingRadius: turfFeatureCollection(nodesGeojsons),
             transitPathWaypoints: turfFeatureCollection(selectedPath ? selectedPath.waypointsGeojsons() : []),
@@ -221,6 +356,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.emit('map.updateLayers', {
             transitPaths: serviceLocator.collectionManager.get('paths').toGeojson(),
             transitPathsSelected: turfFeatureCollection([]),
+            transitPathCurveSegments: turfFeatureCollection([]),
+            transitPathLargeAngleVertices: turfFeatureCollection([]),
             transitNodesSelected: turfFeatureCollection([]),
             transitNodesSelectedErrors: turfFeatureCollection([]),
             transitNodesRoutingRadius: turfFeatureCollection([]),
@@ -328,6 +465,17 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         const pathData = path.attributes.data;
         const nodes = path.attributes.nodes;
         const isFrozen = path.isFrozen();
+
+        // Compute geometry resolution once for rail modes — used for
+        // the warning message and to gate the curve segments checkbox.
+        let geometryResolution: GeometryResolution | null = null;
+        if (isRailMode(mode) && path.attributes?.geography?.coordinates) {
+            const coords = path.attributes.geography.coordinates;
+            const segCount = path.attributes?.segments?.length ?? 0;
+            if (coords.length >= 2 && segCount >= 1) {
+                geometryResolution = detectGeometryResolution(coords, segCount);
+            }
+        }
 
         const autocompleteNameChoices: { value: string; label: string }[] = [];
         ['North', 'NorthAbbr', 'South', 'SouthAbbr', 'East', 'EastAbbr', 'West', 'WestAbbr'].forEach(
@@ -582,6 +730,19 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     />
                                 </div>
                             )}
+                            {geometryResolution === 'high' && (
+                                <div className="apptr__form-input-container">
+                                    <InputCheckboxBoolean
+                                        id={`formFieldTransitPathShowCurveSegments${pathId}`}
+                                        label={this.props.t('transit:transitPath:ShowCurveSegmentsLayer')}
+                                        isChecked={this.state.showCurveSegmentsLayer}
+                                        onValueChange={this.toggleCurveSegmentsLayer}
+                                    />
+                                    <p className="_small _pale _no-margin">
+                                        {this.props.t('transit:transitPath:ShowCurveSegmentsLayerHelp')}
+                                    </p>
+                                </div>
+                            )}
                             {pathRoutingEngine === 'engine' && (
                                 <div className="apptr__form-input-container">
                                     <InputWrapper
@@ -623,6 +784,20 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                             )}
                         </div>
                     </Collapsible>
+
+                    {/* Geometry resolution warning for rail modes */}
+                    {geometryResolution !== null && geometryResolution !== 'high' && (
+                        <FormErrors
+                            errors={[
+                                geometryResolution === 'none'
+                                    ? 'transit:transitPath:GeometryResolutionWarningNone'
+                                    : geometryResolution === 'almostStraight'
+                                        ? 'transit:transitPath:GeometryResolutionWarningAlmostStraight'
+                                        : 'transit:transitPath:GeometryResolutionWarningLow'
+                            ]}
+                            errorType="Warning"
+                        />
+                    )}
 
                     <Collapsible trigger={this.props.t('form:advancedFields')} transitionTime={100}>
                         <div className="tr__form-section">
@@ -677,17 +852,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
 
                     {this.hasInvalidFields() && <FormErrors errors={['main:errors:InvalidFormFields']} />}
                     <FormErrors errors={path.errors} />
-                    {(!path.errors || path.errors.length === 0) && firstNode && lastNode && (
-                        <Collapsible
-                            trigger={this.props.t('form:statistics')}
-                            open={!!(pathData && pathData.variables?.d_p)}
-                            transitionTime={100}
-                        >
-                            <div className="tr__form-section">
-                                <PathStatistics path={path} firstNode={firstNode} lastNode={lastNode} />
-                            </div>
-                        </Collapsible>
-                    )}
+
                     <div className="tr__form-buttons-container">
                         <span title={this.props.t('main:Back')}>
                             <Button
@@ -865,6 +1030,30 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                             />
                         )}
                     </div>
+
+                    {(!path.errors || path.errors.length === 0) &&
+                        firstNode &&
+                        lastNode &&
+                        pathData?.variables?.d_p && (
+                        <Collapsible trigger={this.props.t('form:statistics')} open={true} transitionTime={100}>
+                            <div className="tr__form-section">
+                                <PathStatistics path={path} firstNode={firstNode} lastNode={lastNode} />
+                            </div>
+                            {isRailMode(mode) && (
+                                <div className="tr__form-section">
+                                    <CurveStatsPanel
+                                        path={path}
+                                        maxSpeedKmH={
+                                                path.getData(
+                                                    'defaultRunningSpeedKmH',
+                                                    getDefaultRunningSpeedKmH(mode as RailMode)
+                                                ) as number
+                                        }
+                                    />
+                                </div>
+                            )}
+                        </Collapsible>
+                    )}
                 </MathJax.Provider>
             </React.Fragment>
         );
