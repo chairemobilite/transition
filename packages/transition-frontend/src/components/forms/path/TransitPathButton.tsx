@@ -81,7 +81,6 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                 delete newData.operatingSpeedWithLayoverMetersPerSecond;
                 delete newData.operatingTimeWithLayoverTimeSeconds;
                 delete newData.operatingTimeWithoutLayoverTimeSeconds;
-                delete newData.returnBackGeography;
                 delete newData.totalDistanceMeters;
                 delete newData.totalDwellTimeSeconds;
                 delete newData.totalTravelTimeWithReturnBackSeconds;
