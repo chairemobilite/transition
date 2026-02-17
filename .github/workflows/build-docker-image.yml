@@ -4,9 +4,9 @@ on:
   push:
     branches: 
       - "main"
-      - "deck-gl-poc"
       - "validationTrajets"
       - "evolutionaryTransitNetworkDesign"
+      - "railCurveRadius"
   workflow_dispatch:
   schedule:
     # Do a daily rebuild at 2:00 AM UTC
