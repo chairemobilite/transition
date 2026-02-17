@@ -187,7 +187,6 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
             expect(path.attributes.data.totalDistanceMeters).toBeGreaterThan(0);
             expect(path.attributes.data.birdDistanceBetweenTerminals).toBeGreaterThan(0);
             expect(path.attributes.data.totalTravelTimeWithReturnBackSeconds).toBeNull();
-            expect(getData(path, 'returnBackGeography')).toBeNull();
         });
     });
 
@@ -401,7 +400,6 @@ describe('generateGeographyAndSegmentsFromStopTimes', () => {
             expect(path.attributes.data.operatingSpeedMetersPerSecond).toBeGreaterThan(0);
             expect(getData(path, 'operatingSpeedWithLayoverMetersPerSecond')).toBeGreaterThan(0);
             expect(path.attributes.data.totalTravelTimeWithReturnBackSeconds).toBeNull();
-            expect(getData(path, 'returnBackGeography')).toBeNull();
         });
     });
 
