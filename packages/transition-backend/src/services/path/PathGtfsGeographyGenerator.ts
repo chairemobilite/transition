@@ -233,7 +233,6 @@ const buildPathData = (params: {
                     (totalDistanceMeters / (totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds)) * 100
                 ) / 100
                 : 0,
-        returnBackGeography: null,
         nodeTypes: [],
         waypoints: [],
         waypointTypes: []
