@@ -65,6 +65,7 @@ export interface AccessibilityMapFormProps extends WithTranslation {
 interface TransitRoutingFormState extends ChangeEventsState<TransitAccessibilityMapRouting> {
     currentResult?: TransitAccessibilityMapWithPolygonResult;
     scenarioCollection: any;
+    dataSourceCollection: any;
     loading: boolean;
     routingErrors?: TranslatableMessage[];
     geojsonDownloadUrl: string | null;
@@ -84,6 +85,7 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
         this.state = {
             object: routingEngine,
             scenarioCollection: serviceLocator.collectionManager.get('scenarios'),
+            dataSourceCollection: serviceLocator.collectionManager.get('dataSources'),
             loading: false,
             geojsonDownloadUrl: null,
             jsonDownloadUrl: null,
@@ -94,6 +96,7 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
         this.polygonCalculated = this.polygonCalculated.bind(this);
         this.calculateRouting = this.calculateRouting.bind(this);
         this.onScenarioCollectionUpdate = this.onScenarioCollectionUpdate.bind(this);
+        this.onDataSourceCollectionUpdate = this.onDataSourceCollectionUpdate.bind(this);
 
         if (routingEngine.hasLocation()) {
             (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
@@ -105,6 +108,10 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
 
     onScenarioCollectionUpdate() {
         this.setState({ scenarioCollection: serviceLocator.collectionManager.get('scenarios') });
+    }
+
+    onDataSourceCollectionUpdate() {
+        this.setState({ dataSourceCollection: serviceLocator.collectionManager.get('dataSources') });
     }
 
     async calculateRouting(refresh = false) {
@@ -183,10 +190,12 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
         }
 
         serviceLocator.eventManager.on('collection.update.scenarios', this.onScenarioCollectionUpdate);
+        serviceLocator.eventManager.on('collection.update.dataSources', this.onDataSourceCollectionUpdate);
     }
 
     componentWillUnmount() {
         serviceLocator.eventManager.off('collection.update.scenarios', this.onScenarioCollectionUpdate);
+        serviceLocator.eventManager.off('collection.update.dataSources', this.onDataSourceCollectionUpdate);
     }
 
     onValueChange(path: string, newValue: { value: any; valid?: boolean } = { value: null, valid: true }) {
@@ -218,7 +227,7 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
     };
 
     render() {
-        if (!this.state.scenarioCollection) {
+        if (!this.state.scenarioCollection || !this.state.dataSourceCollection) {
             return <LoadingPage />;
         }
 
@@ -240,6 +249,17 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                 label: scenario.toString(false)
             };
         });
+
+        const zonesDataSources = this.state.dataSourceCollection.features
+            .filter((source) => {
+                return source._attributes.type === 'zones';
+            })
+            .map((source) => {
+                return {
+                    value: source._attributes.name,
+                    label: source._attributes.name
+                };
+            });
 
         return (
             <React.Fragment>
@@ -378,6 +398,19 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                                     }
                                 />
                             </InputWrapper>
+                            {routing.attributes.calculatePopulation && (
+                                <InputWrapper label={this.props.t('transit:transitRouting:PopulationDataSourceSelect')}>
+                                    <InputSelect
+                                        id={`formFieldTransitAccessibilityMapDataSourceSelect${routingId}`}
+                                        value={routing.attributes.populationDataSourceName}
+                                        choices={zonesDataSources}
+                                        t={this.props.t}
+                                        onValueChange={(e) =>
+                                            this.onValueChange('populationDataSourceName', { value: e.target.value })
+                                        }
+                                    />
+                                </InputWrapper>
+                            )}
                             <InputWrapper
                                 smallInput={true}
                                 label={this.props.t('transit:transitRouting:CalculatePois')}
@@ -511,7 +544,10 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, T
                         )}
                     </div>
                     {this.state.currentResult && (
-                        <AccessibilityMapStatsComponent accessibilityPolygons={this.state.currentResult.polygons} />
+                        <AccessibilityMapStatsComponent
+                            accessibilityPolygons={this.state.currentResult.polygons}
+                            calculatePopulation={routing.attributes.calculatePopulation}
+                        />
                     )}
                 </form>
                 <AccessibilityMapBatchForm routingEngine={this.state.object} />
