@@ -148,7 +148,6 @@ class TrRoutingBatch {
                         promiseQueue.clear();
                     }
                     try {
-                        console.log('tripRouting: Start handling batch routing odTrip %d', odTripIndex);
                         await this.odTripTask(odTripIndex, {
                             trRoutingPort,
                             logBefore: logOdTripBefore,
@@ -163,7 +162,6 @@ class TrRoutingBatch {
                                     progress: completedRoutingsCount / odTripsCount
                                 });
                             }
-                            console.log('tripRouting: Handled batch routing odTrip %d', odTripIndex);
                             checkpointTracker.handled(odTripIndex);
                         } catch (error) {
                             console.error(
@@ -294,8 +292,6 @@ class TrRoutingBatch {
             }
             options.logBefore(odTripIndex);
 
-            const origDestStr = `${odTrip.attributes.origin_geography.coordinates.join(',')} to ${odTrip.attributes.destination_geography.coordinates.join(',')}`;
-            console.log('tripRouting: Routing odTrip %d with coordinates %s', odTripIndex, origDestStr);
             const routingResult = await routeOdTrip(odTrip, {
                 trRoutingPort: options.trRoutingPort,
                 routing: this.job.attributes.data.parameters.transitRoutingAttributes,

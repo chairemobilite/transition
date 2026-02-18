@@ -47,17 +47,14 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
         timeSecondsSinceMidnight: odTrip.attributes.timeOfTrip,
         timeType: odTrip.attributes.timeType
     };
-    const origDestStr = `${originGeojson.geometry.coordinates.join(',')} to ${destinationGeojson.geometry.coordinates.join(',')}`;
 
     try {
-        console.log('tripRouting: Routing single trip... %s', origDestStr);
         const results: RoutingResultsByMode = await Routing.calculate(tripQueryAttributes);
 
         // We do not need the walkOnlyPath in the results, as it is already present in the other modes
         if (results.transit) {
             delete results.transit.walkOnlyPath;
         }
-        console.log('tripRouting: Done routing single trip %s', origDestStr);
 
         return {
             uuid,
@@ -67,7 +64,6 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
             results
         };
     } catch (error) {
-        console.log('tripRouting: Error routing single trip %s', origDestStr);
         return {
             uuid,
             internalId,

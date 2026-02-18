@@ -120,10 +120,6 @@ export class Routing {
         // ** backend
         const routingPromises: Promise<TransitOrRouteCalculatorResult>[] = [];
 
-        const origDestStr = `${routingAttributes.originGeojson.geometry.coordinates.join(',')} to ${routingAttributes.destinationGeojson.geometry.coordinates.join(',')}`;
-        console.log(
-            `tripRouting: Routing beginning with ${routingAttributes.routingModes.length} modes for ${origDestStr}`
-        );
         for (const routingMode of routingAttributes.routingModes) {
             if (isCancelled && isCancelled()) {
                 throw 'Cancelled';
@@ -144,7 +140,6 @@ export class Routing {
             throw 'Cancelled';
         }
 
-        console.log(`tripRouting: Routing done for ${origDestStr}`);
         const maxWalkingTime = Math.min(
             routingAttributes.maxTotalTravelTimeSeconds || 10800,
             2 * (routingAttributes.maxAccessEgressTravelTimeSeconds || 1200)
@@ -163,9 +158,7 @@ export class Routing {
         routingMode: RoutingMode | TransitMode,
         routingAttributes: TripRoutingQueryAttributes
     ): Promise<TransitOrRouteCalculatorResult> {
-        const origDestStr = `${routingAttributes.originGeojson.geometry.coordinates.join(',')} to ${routingAttributes.destinationGeojson.geometry.coordinates.join(',')}`;
         try {
-            console.log(`tripRouting: Routing single mode ${routingMode} for ${origDestStr}`);
             if (routingMode === 'transit') {
                 return {
                     routingMode,
@@ -185,7 +178,8 @@ export class Routing {
                 };
             }
         } catch (error) {
-            console.log(`tripRouting: Error routing single mode ${routingMode} for ${origDestStr}`);
+            const origDestStr = `${routingAttributes.originGeojson.geometry.coordinates.join(',')} to ${routingAttributes.destinationGeojson.geometry.coordinates.join(',')}`;
+            console.error(`tripRouting: Error routing single mode ${routingMode} for ${origDestStr}:`, error);
             return {
                 routingMode,
                 result: !TrError.isTrError(error)
@@ -195,8 +189,6 @@ export class Routing {
                     })
                     : error
             };
-        } finally {
-            console.log(`tripRouting: Done routing single mode ${routingMode} for ${origDestStr}`);
         }
     }
 }
