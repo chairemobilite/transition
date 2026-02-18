@@ -390,8 +390,14 @@ const defaultPreferences: PreferencesModel = {
                 walkingSpeedMps: 1.3888888888,
                 walkingSpeedFactor: 1.0, // walking travel times are weighted using this factor: Example: > 1.0 means faster walking, < 1.0 means slower walking
                 maxTotalTravelTimeSeconds: 1800,
-                locationColor: 'rgba(47, 138, 243, 1.0)',
+                locationColor: 'rgba(47, 138, 243, 1)',
                 polygonColor: 'rgba(47, 138, 243, 0.4)',
+                intersectionLocationColor: 'rgba(47, 138, 243, 1)',
+                intersectionPolygonColor: 'rgba(47, 138, 243, 0.6)',
+                comparisonLocation1Color: 'rgba(252, 208, 89, 1)',
+                comparisonPolygon1Color: 'rgba(252, 208, 89, 0.6)',
+                comparisonLocation2Color: 'rgba(231, 74, 184, 1)',
+                comparisonPolygon2Color: 'rgba(231, 74, 184, 0.6)',
                 calculatePois: false,
                 calculatePopulation: false
             },

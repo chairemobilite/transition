@@ -7,7 +7,6 @@
 import React, { JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Tooltip } from 'react-tooltip';
-import * as AccessibilityComparisonConstants from './accessibilityComparisonConstants';
 import { ComparisonMode } from './comparisonModes';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 
@@ -17,6 +16,8 @@ export interface AccessibilityComparisonStatsComponentProps {
         result2: GeoJSON.FeatureCollection;
     };
     mode: ComparisonMode;
+    color1: string;
+    color2: string;
 }
 
 const AccessibilityComparisonStatsComponent: React.FunctionComponent<AccessibilityComparisonStatsComponentProps> = (
@@ -248,12 +249,12 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
                 <thead>
                     <tr>
                         <th></th>
-                        <th style={{ color: AccessibilityComparisonConstants.MAP_1_COLOR }}>
+                        <th style={{ color: props.color1 }}>
                             {props.mode === 'scenarios'
                                 ? t('transit:transitComparison:ScenarioN', { scenarioNumber: '1' })
                                 : t('transit:accessibilityComparison:LocationN', { locationNumber: '1' })}
                         </th>
-                        <th style={{ color: AccessibilityComparisonConstants.MAP_2_COLOR }}>
+                        <th style={{ color: props.color2 }}>
                             {props.mode === 'scenarios'
                                 ? t('transit:transitComparison:ScenarioN', { scenarioNumber: '2' })
                                 : t('transit:accessibilityComparison:LocationN', { locationNumber: '2' })}
@@ -264,13 +265,13 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
                 <tbody>{combinedFeaturesStatsTable}</tbody>
             </table>
             <Tooltip id="difference-header" opacity={1}>
-                <span style={{ color: AccessibilityComparisonConstants.MAP_2_COLOR }}>
+                <span style={{ color: props.color2 }}>
                     {props.mode === 'scenarios'
                         ? t('transit:transitComparison:ScenarioN', { scenarioNumber: '2' })
                         : t('transit:accessibilityComparison:LocationN', { locationNumber: '2' })}
                 </span>
                 &nbsp;-&nbsp;
-                <span style={{ color: AccessibilityComparisonConstants.MAP_1_COLOR }}>
+                <span style={{ color: props.color1 }}>
                     {props.mode === 'scenarios'
                         ? t('transit:transitComparison:ScenarioN', { scenarioNumber: '1' })
                         : t('transit:accessibilityComparison:LocationN', { locationNumber: '1' })}
