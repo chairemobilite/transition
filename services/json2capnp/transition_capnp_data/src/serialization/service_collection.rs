@@ -110,14 +110,14 @@ pub fn read_collection(
 
     for capnp_object in capnp_collection.get_services()?.iter() {
         
-        let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?).unwrap();
+        let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?.to_str()?).unwrap();
         let mut object_json : serde_json::Value = json!({
-            "id": capnp_object.get_uuid()?,
-            "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?),
-            "simulation_id": empty_str_to_json_null(capnp_object.get_simulation_uuid()?),
-            "name": empty_str_to_json_null(capnp_object.get_name()?),
-            "color": empty_str_to_json_null(capnp_object.get_color()?),
-            "description": empty_str_to_json_null(capnp_object.get_description()?),
+            "id": capnp_object.get_uuid()?.to_str()?,
+            "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?.to_str()?),
+            "simulation_id": empty_str_to_json_null(capnp_object.get_simulation_uuid()?.to_str()?),
+            "name": empty_str_to_json_null(capnp_object.get_name()?.to_str()?),
+            "color": empty_str_to_json_null(capnp_object.get_color()?.to_str()?),
+            "description": empty_str_to_json_null(capnp_object.get_description()?.to_str()?),
             "is_frozen": i8_to_json_boolean(capnp_object.get_is_frozen()),
             "is_enabled": i8_to_json_boolean(capnp_object.get_is_enabled()),
             "monday": i8_to_json_boolean(capnp_object.get_monday()),
@@ -127,20 +127,20 @@ pub fn read_collection(
             "friday": i8_to_json_boolean(capnp_object.get_friday()),
             "saturday": i8_to_json_boolean(capnp_object.get_saturday()),
             "sunday": i8_to_json_boolean(capnp_object.get_sunday()),
-            "start_date": empty_str_to_json_null(capnp_object.get_start_date()?),
-            "end_date": empty_str_to_json_null(capnp_object.get_end_date()?),
+            "start_date": empty_str_to_json_null(capnp_object.get_start_date()?.to_str()?),
+            "end_date": empty_str_to_json_null(capnp_object.get_end_date()?.to_str()?),
             "data": data_attributes
         });
 
         let mut only_dates_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_only_dates()?.len() as usize);
         for only_date in capnp_object.get_only_dates()?.iter() {
-            only_dates_vec.push(json!(only_date.unwrap()));
+            only_dates_vec.push(json!(only_date.unwrap().to_str()?));
         }
         object_json["only_dates"] = json!(only_dates_vec);
 
         let mut except_dates_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_except_dates()?.len() as usize);
         for except_date in capnp_object.get_except_dates()?.iter() {
-            except_dates_vec.push(json!(except_date.unwrap()));
+            except_dates_vec.push(json!(except_date.unwrap().to_str()?));
         }
         object_json["except_dates"] = json!(except_dates_vec);
 

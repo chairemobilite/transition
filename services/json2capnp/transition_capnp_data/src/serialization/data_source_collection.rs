@@ -57,12 +57,12 @@ pub fn read_collection(
 
     for capnp_object in capnp_collection.get_data_sources()?.iter() {
         
-        let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?).unwrap();
+        let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?.to_str()?).unwrap();
         let object_json : serde_json::Value = json!({
-            "id": capnp_object.get_uuid()?,
-            "shortname": empty_str_to_json_null(capnp_object.get_shortname()?),
-            "name": empty_str_to_json_null(capnp_object.get_name()?),
-            "description": empty_str_to_json_null(capnp_object.get_description()?),
+            "id": capnp_object.get_uuid()?.to_str()?,
+            "shortname": empty_str_to_json_null(capnp_object.get_shortname()?.to_str()?),
+            "name": empty_str_to_json_null(capnp_object.get_name()?.to_str()?),
+            "description": empty_str_to_json_null(capnp_object.get_description()?.to_str()?),
             "is_frozen": i8_to_json_boolean(capnp_object.get_is_frozen()),
             "type": crate::enum_mappings::data_source_type_to_str(&capnp_object.get_type()?),
             "data": data_attributes

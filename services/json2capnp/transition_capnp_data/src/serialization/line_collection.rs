@@ -68,17 +68,17 @@ pub fn read_collection(
 
     for capnp_object in capnp_collection.get_lines()?.iter() {
         
-        let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?).unwrap();
+        let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?.to_str()?).unwrap();
         let object_json : serde_json::Value = json!({
-            "id": capnp_object.get_uuid()?,
-            "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?),
-            "agency_id": capnp_object.get_agency_uuid()?,
-            "shortname": capnp_object.get_shortname()?,
-            "longname": empty_str_to_json_null(capnp_object.get_longname()?),
-            "category": empty_str_to_json_null(capnp_object.get_category()?),
-            "mode": capnp_object.get_mode()?,
-            "color": empty_str_to_json_null(capnp_object.get_color()?),
-            "description": empty_str_to_json_null(capnp_object.get_description()?),
+            "id": capnp_object.get_uuid()?.to_str()?,
+            "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?.to_str()?),
+            "agency_id": capnp_object.get_agency_uuid()?.to_str()?,
+            "shortname": capnp_object.get_shortname()?.to_str()?,
+            "longname": empty_str_to_json_null(capnp_object.get_longname()?.to_str()?),
+            "category": empty_str_to_json_null(capnp_object.get_category()?.to_str()?),
+            "mode": capnp_object.get_mode()?.to_str()?,
+            "color": empty_str_to_json_null(capnp_object.get_color()?.to_str()?),
+            "description": empty_str_to_json_null(capnp_object.get_description()?.to_str()?),
             "is_frozen": i8_to_json_boolean(capnp_object.get_is_frozen()),
             "is_enabled": i8_to_json_boolean(capnp_object.get_is_enabled()),
             "is_autonomous": i8_to_json_boolean(capnp_object.get_is_autonomous()),

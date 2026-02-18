@@ -147,7 +147,7 @@ pub fn read_collection(
 
     for capnp_object in capnp_collection.get_od_trips()?.iter() {
         
-        let mut data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?).unwrap();
+        let mut data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?.to_str()?).unwrap();
         let origin_latitude  = (capnp_object.get_origin_latitude() as f64)/1000000.0;
         let origin_longitude = (capnp_object.get_origin_longitude() as f64)/1000000.0;
         let destination_latitude  = (capnp_object.get_destination_latitude() as f64)/1000000.0;
@@ -157,7 +157,7 @@ pub fn read_collection(
         {
             let mut origin_nodes_uuids : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_origin_nodes_uuids()?.len() as usize);
             for origin_node_uuid in capnp_object.get_origin_nodes_uuids()?.iter() {
-                origin_nodes_uuids.push(json!(origin_node_uuid.unwrap()));
+                origin_nodes_uuids.push(json!(origin_node_uuid.unwrap().to_str()?));
             }
             data_attributes["originNodes"] = json!(origin_nodes_uuids);
 
@@ -178,7 +178,7 @@ pub fn read_collection(
         {
             let mut destination_nodes_uuids : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_destination_nodes_uuids()?.len() as usize);
             for destination_node_uuid in capnp_object.get_destination_nodes_uuids()?.iter() {
-                destination_nodes_uuids.push(json!(destination_node_uuid.unwrap()));
+                destination_nodes_uuids.push(json!(destination_node_uuid.unwrap().to_str()?));
             }
             data_attributes["destinationNodes"] = json!(destination_nodes_uuids);
 
@@ -196,12 +196,12 @@ pub fn read_collection(
         }
 
         let object_json : serde_json::Value = json!({
-            "id": capnp_object.get_uuid()?,
+            "id": capnp_object.get_uuid()?.to_str()?,
             "integer_id": capnp_object.get_id(),
-            "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?),
-            "person_id": empty_str_to_json_null(capnp_object.get_person_uuid()?),
-            "household_id": empty_str_to_json_null(capnp_object.get_household_uuid()?),
-            "data_source_id": empty_str_to_json_null(capnp_object.get_data_source_uuid()?),
+            "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?.to_str()?),
+            "person_id": empty_str_to_json_null(capnp_object.get_person_uuid()?.to_str()?),
+            "household_id": empty_str_to_json_null(capnp_object.get_household_uuid()?.to_str()?),
+            "data_source_id": empty_str_to_json_null(capnp_object.get_data_source_uuid()?.to_str()?),
             "mode": crate::enum_mappings::mode_to_str(&capnp_object.get_mode()?),
             "origin_activity": crate::enum_mappings::activity_to_str(&capnp_object.get_origin_activity()?),
             "destination_activity": crate::enum_mappings::activity_to_str(&capnp_object.get_destination_activity()?),
