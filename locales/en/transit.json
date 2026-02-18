@@ -773,9 +773,14 @@
     "accessibilityComparison": {
         "Title": "Accessibility map comparison",
         "Legend": "Legend",
+        "ScenarioNPolygon": "Scenario {{scenarioNumber}} polygon",
+        "ScenarioLocation": "Scenarios location",
         "ScenarioIntersection": "Intersection of the scenarios",
+        "ScenarioIntersectionPolygon": "Scenarios intersection polygon",
         "LocationIntersection": "Intersection of the locations",
+        "LocationIntersectionPolygon": "Locations intersection polygon",
         "LocationN": "Location {{locationNumber}}",
+        "LocationNPolygon": "Location {{locationNumber}} polygon",
         "Difference": "Difference",
         "SelectMaxTime": "Select max time to display (minutes)",
         "ComparisonByScenario": "Comparison by scenario",
@@ -783,7 +788,8 @@
         "contextMenu": {
             "SetAsLocation1": "Set as Location 1",
             "SetAsLocation2": "Set as Location 2"
-        }
+        },
+        "Colors": "Colors"
     },
     "gtfs": {
         "ButtonImport": "Import",
@@ -1032,6 +1038,12 @@
         "transitAccessibilityMap": {
             "LocationColor": "Location color",
             "PolygonColor": "Accessibility polygon default color"
+        },
+        "transitAccessibilityMapComparison": {
+            "IntersectionLocationColor": "Intersection location color",
+            "IntersectionPolygonColor": "Intersection polygon default color",
+            "ComparisonLocationNColor": "Comparison location {{locationNumber}} color",
+            "ComparisonPolygonNColor": "Comparison polygon {{polygonNumber}} default color"
         }
     },
     "documentationTooltip": {

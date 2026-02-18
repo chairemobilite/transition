@@ -773,9 +773,14 @@
     "accessibilityComparison": {
         "Title": "Comparaison de cartes d'accessibilité",
         "Legend": "Légende",
+        "ScenarioNPolygon": "Polygone du scénario {{scenarioNumber}}",
+        "ScenarioLocation": "Lieu des scénarios",
         "ScenarioIntersection": "Intersection des scénarios",
+        "ScenarioIntersectionPolygon": "Polygone de l'intersection des scénarios",
         "LocationIntersection": "Intersection des lieux",
+        "LocationIntersectionPolygon": "Polygone de l'intersection des lieux",
         "LocationN": "Lieu {{locationNumber}}",
+        "LocationNPolygon": "Polygone du lieu {{locationNumber}}",
         "Difference": "Différence",
         "SelectMaxTime": "Sélectionner le temps maximal à afficher (en minutes)",
         "ComparisonByScenario": "Comparaison par scénario",
@@ -783,7 +788,8 @@
         "contextMenu": {
             "SetAsLocation1": "Définir comme le Lieu 1",
             "SetAsLocation2": "Définir comme le Lieu 2"
-        }
+        },
+        "Colors": "Couleurs"
     },
     "gtfs": {
         "ButtonImport": "Importer",
@@ -1032,6 +1038,12 @@
         "transitAccessibilityMap": {
             "LocationColor": "Couleur du lieu",
             "PolygonColor": "Couleur par défaut du polygone d'accessibilité"
+        },
+        "transitAccessibilityMapComparison": {
+            "IntersectionLocationColor": "Couleur du lieu d'intersection",
+            "IntersectionPolygonColor": "Couleur par défaut du polygone d'intersection",
+            "ComparisonLocationNColor": "Couleur du lieu de comparaison {{locationNumber}}",
+            "ComparisonPolygonNColor": "Couleur par défaut du polygone de comparaison {{polygonNumber}}"
         }
     },
     "documentationTooltip": {
