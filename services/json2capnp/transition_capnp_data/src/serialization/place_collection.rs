@@ -107,7 +107,7 @@ pub fn read_collection(
 
     for capnp_object in capnp_collection.get_places()?.iter() {
         
-        let mut data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?).unwrap();
+        let mut data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?.to_str()?).unwrap();
         
         let latitude  = (capnp_object.get_latitude() as f64)/1000000.0;
         let longitude = (capnp_object.get_longitude() as f64)/1000000.0;
@@ -116,7 +116,7 @@ pub fn read_collection(
         {
             let mut nodes_uuids : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_nodes_uuids()?.len() as usize);
             for node_uuid in capnp_object.get_nodes_uuids()?.iter() {
-                nodes_uuids.push(json!(node_uuid.unwrap()));
+                nodes_uuids.push(json!(node_uuid.unwrap().to_str()?));
             }
             data_attributes["nodes"] = json!(nodes_uuids);
 
@@ -136,13 +136,13 @@ pub fn read_collection(
         let integer_id = capnp_object.get_id() as u32;
 
         let properties_json : serde_json::Value = json!({
-            "id": capnp_object.get_uuid()?,
+            "id": capnp_object.get_uuid()?.to_str()?,
             "integer_id": integer_id,
-            "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?),
-            "shortname": empty_str_to_json_null(capnp_object.get_shortname()?),
-            "name": empty_str_to_json_null(capnp_object.get_name()?),
-            "description": empty_str_to_json_null(capnp_object.get_description()?),
-            "data_source_id": empty_str_to_json_null(capnp_object.get_data_source_uuid()?),
+            "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?.to_str()?),
+            "shortname": empty_str_to_json_null(capnp_object.get_shortname()?.to_str()?),
+            "name": empty_str_to_json_null(capnp_object.get_name()?.to_str()?),
+            "description": empty_str_to_json_null(capnp_object.get_description()?.to_str()?),
+            "data_source_id": empty_str_to_json_null(capnp_object.get_data_source_uuid()?.to_str()?),
             "is_frozen": i8_to_json_boolean(capnp_object.get_is_frozen()),
             "data": data_attributes
         });

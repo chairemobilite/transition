@@ -6,26 +6,41 @@
 pub mod od_trip_collection {
   #[derive(Copy, Clone)]
   pub struct Owned(());
-  impl <'a> ::capnp::traits::Owned<'a> for Owned { type Reader = Reader<'a>; type Builder = Builder<'a>; }
-  impl <'a> ::capnp::traits::OwnedStruct<'a> for Owned { type Reader = Reader<'a>; type Builder = Builder<'a>; }
+  impl ::capnp::introspect::Introspect for Owned { fn introspect() -> ::capnp::introspect::Type { ::capnp::introspect::TypeVariant::Struct(::capnp::introspect::RawBrandedStructSchema { generic: &_private::RAW_SCHEMA, field_types: _private::get_field_types, annotation_types: _private::get_annotation_types }).into() } }
+  impl ::capnp::traits::Owned for Owned { type Reader<'a> = Reader<'a>; type Builder<'a> = Builder<'a>; }
+  impl ::capnp::traits::OwnedStruct for Owned { type Reader<'a> = Reader<'a>; type Builder<'a> = Builder<'a>; }
   impl ::capnp::traits::Pipelined for Owned { type Pipeline = Pipeline; }
 
-  #[derive(Clone, Copy)]
   pub struct Reader<'a> { reader: ::capnp::private::layout::StructReader<'a> }
-
-  impl <'a,> ::capnp::traits::HasTypeId for Reader<'a,>  {
-    #[inline]
-    fn type_id() -> u64 { _private::TYPE_ID }
+  impl <> ::core::marker::Copy for Reader<'_,>  {}
+  impl <> ::core::clone::Clone for Reader<'_,>  {
+    fn clone(&self) -> Self { *self }
   }
-  impl <'a,> ::capnp::traits::FromStructReader<'a> for Reader<'a,>  {
-    fn new(reader: ::capnp::private::layout::StructReader<'a>) -> Reader<'a,> {
-      Reader { reader,  }
+
+  impl <> ::capnp::traits::HasTypeId for Reader<'_,>  {
+    const TYPE_ID: u64 = _private::TYPE_ID;
+  }
+  impl <'a,> ::core::convert::From<::capnp::private::layout::StructReader<'a>> for Reader<'a,>  {
+    fn from(reader: ::capnp::private::layout::StructReader<'a>) -> Self {
+      Self { reader,  }
+    }
+  }
+
+  impl <'a,> ::core::convert::From<Reader<'a,>> for ::capnp::dynamic_value::Reader<'a>  {
+    fn from(reader: Reader<'a,>) -> Self {
+      Self::Struct(::capnp::dynamic_struct::Reader::new(reader.reader, ::capnp::schema::StructSchema::new(::capnp::introspect::RawBrandedStructSchema { generic: &_private::RAW_SCHEMA, field_types: _private::get_field_types::<>, annotation_types: _private::get_annotation_types::<>})))
+    }
+  }
+
+  impl <> ::core::fmt::Debug for Reader<'_,>  {
+    fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::result::Result<(), ::core::fmt::Error> {
+      core::fmt::Debug::fmt(&::core::convert::Into::<::capnp::dynamic_value::Reader<'_>>::into(*self), f)
     }
   }
 
   impl <'a,> ::capnp::traits::FromPointerReader<'a> for Reader<'a,>  {
-    fn get_from_pointer(reader: &::capnp::private::layout::PointerReader<'a>, default: ::core::option::Option<&'a [capnp::Word]>) -> ::capnp::Result<Reader<'a,>> {
-      ::core::result::Result::Ok(::capnp::traits::FromStructReader::new(reader.get_struct(default)?))
+    fn get_from_pointer(reader: &::capnp::private::layout::PointerReader<'a>, default: ::core::option::Option<&'a [::capnp::Word]>) -> ::capnp::Result<Self> {
+      ::core::result::Result::Ok(reader.get_struct(default)?.into())
     }
   }
 
@@ -43,7 +58,7 @@ pub mod od_trip_collection {
 
   impl <'a,> Reader<'a,>  {
     pub fn reborrow(&self) -> Reader<'_,> {
-      Reader { .. *self }
+      Self { .. *self }
     }
 
     pub fn total_size(&self) -> ::capnp::Result<::capnp::MessageSize> {
@@ -53,23 +68,28 @@ pub mod od_trip_collection {
     pub fn get_od_trips(self) -> ::capnp::Result<::capnp::struct_list::Reader<'a,crate::odTrip_capnp::od_trip::Owned>> {
       ::capnp::traits::FromPointerReader::get_from_pointer(&self.reader.get_pointer_field(0), ::core::option::Option::None)
     }
+    #[inline]
     pub fn has_od_trips(&self) -> bool {
       !self.reader.get_pointer_field(0).is_null()
     }
   }
 
   pub struct Builder<'a> { builder: ::capnp::private::layout::StructBuilder<'a> }
-  impl <'a,> ::capnp::traits::HasStructSize for Builder<'a,>  {
-    #[inline]
-    fn struct_size() -> ::capnp::private::layout::StructSize { _private::STRUCT_SIZE }
+  impl <> ::capnp::traits::HasStructSize for Builder<'_,>  {
+    const STRUCT_SIZE: ::capnp::private::layout::StructSize = ::capnp::private::layout::StructSize { data: 0, pointers: 1 };
   }
-  impl <'a,> ::capnp::traits::HasTypeId for Builder<'a,>  {
-    #[inline]
-    fn type_id() -> u64 { _private::TYPE_ID }
+  impl <> ::capnp::traits::HasTypeId for Builder<'_,>  {
+    const TYPE_ID: u64 = _private::TYPE_ID;
   }
-  impl <'a,> ::capnp::traits::FromStructBuilder<'a> for Builder<'a,>  {
-    fn new(builder: ::capnp::private::layout::StructBuilder<'a>) -> Builder<'a, > {
-      Builder { builder,  }
+  impl <'a,> ::core::convert::From<::capnp::private::layout::StructBuilder<'a>> for Builder<'a,>  {
+    fn from(builder: ::capnp::private::layout::StructBuilder<'a>) -> Self {
+      Self { builder,  }
+    }
+  }
+
+  impl <'a,> ::core::convert::From<Builder<'a,>> for ::capnp::dynamic_value::Builder<'a>  {
+    fn from(builder: Builder<'a,>) -> Self {
+      Self::Struct(::capnp::dynamic_struct::Builder::new(builder.builder, ::capnp::schema::StructSchema::new(::capnp::introspect::RawBrandedStructSchema { generic: &_private::RAW_SCHEMA, field_types: _private::get_field_types::<>, annotation_types: _private::get_annotation_types::<>})))
     }
   }
 
@@ -80,60 +100,119 @@ pub mod od_trip_collection {
   }
 
   impl <'a,> ::capnp::traits::FromPointerBuilder<'a> for Builder<'a,>  {
-    fn init_pointer(builder: ::capnp::private::layout::PointerBuilder<'a>, _size: u32) -> Builder<'a,> {
-      ::capnp::traits::FromStructBuilder::new(builder.init_struct(_private::STRUCT_SIZE))
+    fn init_pointer(builder: ::capnp::private::layout::PointerBuilder<'a>, _size: u32) -> Self {
+      builder.init_struct(<Self as ::capnp::traits::HasStructSize>::STRUCT_SIZE).into()
     }
-    fn get_from_pointer(builder: ::capnp::private::layout::PointerBuilder<'a>, default: ::core::option::Option<&'a [capnp::Word]>) -> ::capnp::Result<Builder<'a,>> {
-      ::core::result::Result::Ok(::capnp::traits::FromStructBuilder::new(builder.get_struct(_private::STRUCT_SIZE, default)?))
+    fn get_from_pointer(builder: ::capnp::private::layout::PointerBuilder<'a>, default: ::core::option::Option<&'a [::capnp::Word]>) -> ::capnp::Result<Self> {
+      ::core::result::Result::Ok(builder.get_struct(<Self as ::capnp::traits::HasStructSize>::STRUCT_SIZE, default)?.into())
     }
   }
 
-  impl <'a,> ::capnp::traits::SetPointerBuilder for Reader<'a,>  {
-    fn set_pointer_builder<'b>(pointer: ::capnp::private::layout::PointerBuilder<'b>, value: Reader<'a,>, canonicalize: bool) -> ::capnp::Result<()> { pointer.set_struct(&value.reader, canonicalize) }
+  impl <> ::capnp::traits::SetterInput<Owned<>> for Reader<'_,>  {
+    fn set_pointer_builder(mut pointer: ::capnp::private::layout::PointerBuilder<'_>, value: Self, canonicalize: bool) -> ::capnp::Result<()> { pointer.set_struct(&value.reader, canonicalize) }
   }
 
   impl <'a,> Builder<'a,>  {
     pub fn into_reader(self) -> Reader<'a,> {
-      ::capnp::traits::FromStructReader::new(self.builder.into_reader())
+      self.builder.into_reader().into()
     }
     pub fn reborrow(&mut self) -> Builder<'_,> {
-      Builder { .. *self }
+      Builder { builder: self.builder.reborrow() }
     }
     pub fn reborrow_as_reader(&self) -> Reader<'_,> {
-      ::capnp::traits::FromStructReader::new(self.builder.into_reader())
+      self.builder.as_reader().into()
     }
 
     pub fn total_size(&self) -> ::capnp::Result<::capnp::MessageSize> {
-      self.builder.into_reader().total_size()
+      self.builder.as_reader().total_size()
     }
     #[inline]
     pub fn get_od_trips(self) -> ::capnp::Result<::capnp::struct_list::Builder<'a,crate::odTrip_capnp::od_trip::Owned>> {
       ::capnp::traits::FromPointerBuilder::get_from_pointer(self.builder.get_pointer_field(0), ::core::option::Option::None)
     }
     #[inline]
-    pub fn set_od_trips(&mut self, value: ::capnp::struct_list::Reader<'a,crate::odTrip_capnp::od_trip::Owned>) -> ::capnp::Result<()> {
-      ::capnp::traits::SetPointerBuilder::set_pointer_builder(self.builder.get_pointer_field(0), value, false)
+    pub fn set_od_trips(&mut self, value: ::capnp::struct_list::Reader<'_,crate::odTrip_capnp::od_trip::Owned>) -> ::capnp::Result<()> {
+      ::capnp::traits::SetterInput::set_pointer_builder(self.builder.reborrow().get_pointer_field(0), value, false)
     }
     #[inline]
     pub fn init_od_trips(self, size: u32) -> ::capnp::struct_list::Builder<'a,crate::odTrip_capnp::od_trip::Owned> {
       ::capnp::traits::FromPointerBuilder::init_pointer(self.builder.get_pointer_field(0), size)
     }
+    #[inline]
     pub fn has_od_trips(&self) -> bool {
-      !self.builder.get_pointer_field(0).is_null()
+      !self.builder.is_pointer_field_null(0)
     }
   }
 
   pub struct Pipeline { _typeless: ::capnp::any_pointer::Pipeline }
   impl ::capnp::capability::FromTypelessPipeline for Pipeline {
-    fn new(typeless: ::capnp::any_pointer::Pipeline) -> Pipeline {
-      Pipeline { _typeless: typeless,  }
+    fn new(typeless: ::capnp::any_pointer::Pipeline) -> Self {
+      Self { _typeless: typeless,  }
     }
   }
   impl Pipeline  {
   }
   mod _private {
-    use capnp::private::layout;
-    pub const STRUCT_SIZE: layout::StructSize = layout::StructSize { data: 0, pointers: 1 };
+    pub static ENCODED_NODE: [::capnp::Word; 39] = [
+      ::capnp::word(0, 0, 0, 0, 6, 0, 6, 0),
+      ::capnp::word(98, 74, 218, 38, 225, 107, 183, 225),
+      ::capnp::word(23, 0, 0, 0, 1, 0, 0, 0),
+      ::capnp::word(138, 86, 195, 74, 255, 214, 250, 143),
+      ::capnp::word(1, 0, 7, 0, 0, 0, 0, 0),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(144, 0, 0, 0, 199, 0, 0, 0),
+      ::capnp::word(21, 0, 0, 0, 66, 1, 0, 0),
+      ::capnp::word(37, 0, 0, 0, 7, 0, 0, 0),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(33, 0, 0, 0, 63, 0, 0, 0),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(111, 100, 84, 114, 105, 112, 67, 111),
+      ::capnp::word(108, 108, 101, 99, 116, 105, 111, 110),
+      ::capnp::word(46, 99, 97, 112, 110, 112, 58, 79),
+      ::capnp::word(100, 84, 114, 105, 112, 67, 111, 108),
+      ::capnp::word(108, 101, 99, 116, 105, 111, 110, 0),
+      ::capnp::word(0, 0, 0, 0, 1, 0, 1, 0),
+      ::capnp::word(4, 0, 0, 0, 3, 0, 4, 0),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(0, 0, 1, 0, 0, 0, 0, 0),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(13, 0, 0, 0, 66, 0, 0, 0),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(8, 0, 0, 0, 3, 0, 1, 0),
+      ::capnp::word(36, 0, 0, 0, 2, 0, 1, 0),
+      ::capnp::word(111, 100, 84, 114, 105, 112, 115, 0),
+      ::capnp::word(14, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(0, 0, 0, 0, 3, 0, 1, 0),
+      ::capnp::word(16, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(35, 192, 225, 54, 235, 2, 125, 249),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(14, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+      ::capnp::word(0, 0, 0, 0, 0, 0, 0, 0),
+    ];
+    pub fn get_field_types(index: u16) -> ::capnp::introspect::Type {
+      match index {
+        0 => <::capnp::struct_list::Owned<crate::odTrip_capnp::od_trip::Owned> as ::capnp::introspect::Introspect>::introspect(),
+        _ => ::capnp::introspect::panic_invalid_field_index(index),
+      }
+    }
+    pub fn get_annotation_types(child_index: Option<u16>, index: u32) -> ::capnp::introspect::Type {
+      ::capnp::introspect::panic_invalid_annotation_indices(child_index, index)
+    }
+    pub static ARENA: ::capnp::private::arena::GeneratedCodeArena = ::capnp::private::arena::GeneratedCodeArena::new(&ENCODED_NODE);
+    pub static RAW_SCHEMA: ::capnp::introspect::RawStructSchema = ::capnp::introspect::RawStructSchema::new(
+      &ARENA,
+      NONUNION_MEMBERS,
+      MEMBERS_BY_DISCRIMINANT,
+      MEMBERS_BY_NAME
+    );
+    pub static NONUNION_MEMBERS : &[u16] = &[0];
+    pub static MEMBERS_BY_DISCRIMINANT : &[u16] = &[];
+    pub static MEMBERS_BY_NAME : &[u16] = &[0];
     pub const TYPE_ID: u64 = 0xe1b7_6be1_26da_4a62;
   }
 }

@@ -61,15 +61,15 @@ pub fn read_collection(
 
     for capnp_object in capnp_collection.get_agencies()?.iter() {
         
-        let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?).unwrap();
+        let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?.to_str()?).unwrap();
         let object_json : serde_json::Value = json!({
-            "id": capnp_object.get_uuid()?,
-            "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?),
-            "simulation_id": empty_str_to_json_null(capnp_object.get_simulation_uuid()?),
-            "acronym": empty_str_to_json_null(capnp_object.get_acronym()?),
-            "name": empty_str_to_json_null(capnp_object.get_name()?),
-            "color": empty_str_to_json_null(capnp_object.get_color()?),
-            "description": empty_str_to_json_null(capnp_object.get_description()?),
+            "id": capnp_object.get_uuid()?.to_str()?,
+            "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?.to_str()?),
+            "simulation_id": empty_str_to_json_null(capnp_object.get_simulation_uuid()?.to_str()?),
+            "acronym": empty_str_to_json_null(capnp_object.get_acronym()?.to_str()?),
+            "name": empty_str_to_json_null(capnp_object.get_name()?.to_str()?),
+            "color": empty_str_to_json_null(capnp_object.get_color()?.to_str()?),
+            "description": empty_str_to_json_null(capnp_object.get_description()?.to_str()?),
             "is_frozen": i8_to_json_boolean(capnp_object.get_is_frozen()),
             "is_enabled": i8_to_json_boolean(capnp_object.get_is_enabled()),
             "data": data_attributes

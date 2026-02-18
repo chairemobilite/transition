@@ -1,4 +1,4 @@
 cargo install capnpc
 
 cd <transition_root>/packages/transition-backend/src/models/capnpDataModel/capnpFiles/
-capnp compile -orust:../../../../../../services/json2capnp/src/capnp/ *.capnp
+capnp compile -orust:../../../../../../services/json2capnp/transition_capnp_data/src/capnp/ *.capnp

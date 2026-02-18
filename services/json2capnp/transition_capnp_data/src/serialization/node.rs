@@ -139,7 +139,7 @@ pub fn read_object(
     let capnp_object = message_reader.get_root::<node::Reader>()?;
     
     let integer_id = capnp_object.get_id() as u32;
-    let mut data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?).unwrap();
+    let mut data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?.to_str()?).unwrap();
     let latitude  = (capnp_object.get_latitude() as f64)/1000000.0;
     let longitude = (capnp_object.get_longitude() as f64)/1000000.0;
 
@@ -152,7 +152,7 @@ pub fn read_object(
         });
         let mut transferable_nodes_uuids : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_transferable_nodes_uuids()?.len() as usize);
         for transferable_node_uuid in capnp_object.get_transferable_nodes_uuids()?.iter() {
-            transferable_nodes_uuids.push(json!(transferable_node_uuid.unwrap()));
+            transferable_nodes_uuids.push(json!(transferable_node_uuid.unwrap().to_str()?));
         }
         data_attributes["transferableNodes"]["nodesIds"] = json!(transferable_nodes_uuids);
 
@@ -170,14 +170,14 @@ pub fn read_object(
     }
 
     let object_json : serde_json::Value = json!({
-        "id": capnp_object.get_uuid()?,
+        "id": capnp_object.get_uuid()?.to_str()?,
         "integer_id": integer_id,
-        "station_id": empty_str_to_json_null(capnp_object.get_station_uuid()?),
-        "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?),
-        "code": empty_str_to_json_null(capnp_object.get_code()?),
-        "name": empty_str_to_json_null(capnp_object.get_name()?),
-        "color": empty_str_to_json_null(capnp_object.get_color()?),
-        "description": empty_str_to_json_null(capnp_object.get_description()?),
+        "station_id": empty_str_to_json_null(capnp_object.get_station_uuid()?.to_str()?),
+        "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?.to_str()?),
+        "code": empty_str_to_json_null(capnp_object.get_code()?.to_str()?),
+        "name": empty_str_to_json_null(capnp_object.get_name()?.to_str()?),
+        "color": empty_str_to_json_null(capnp_object.get_color()?.to_str()?),
+        "description": empty_str_to_json_null(capnp_object.get_description()?.to_str()?),
         "routing_radius_meters": minus_one_i64_to_null(capnp_object.get_routing_radius_meters() as i64),
         "default_dwell_time_seconds": minus_one_i64_to_null(capnp_object.get_default_dwell_time_seconds() as i64),
         "is_frozen": i8_to_json_boolean(capnp_object.get_is_frozen()),

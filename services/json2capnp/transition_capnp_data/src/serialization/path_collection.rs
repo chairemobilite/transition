@@ -126,15 +126,15 @@ pub fn read_collection(
     for capnp_object in capnp_collection.get_paths()?.iter() {
         
         let integer_id = capnp_object.get_id() as i32;
-        let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?).unwrap();
+        let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?.to_str()?).unwrap();
         let mut properties_json : serde_json::Value = json!({
-            "id": capnp_object.get_uuid()?,
+            "id": capnp_object.get_uuid()?.to_str()?,
             "integer_id": integer_id,
-            "line_id": capnp_object.get_line_uuid()?,
-            "internal_id": crate::utils::empty_str_to_json_null(capnp_object.get_internal_id()?),
-            "direction": crate::utils::empty_str_to_json_null(capnp_object.get_direction()?),
-            "name": crate::utils::empty_str_to_json_null(capnp_object.get_name()?),
-            "description": crate::utils::empty_str_to_json_null(capnp_object.get_description()?),
+            "line_id": capnp_object.get_line_uuid()?.to_str()?,
+            "internal_id": crate::utils::empty_str_to_json_null(capnp_object.get_internal_id()?.to_str()?),
+            "direction": crate::utils::empty_str_to_json_null(capnp_object.get_direction()?.to_str()?),
+            "name": crate::utils::empty_str_to_json_null(capnp_object.get_name()?.to_str()?),
+            "description": crate::utils::empty_str_to_json_null(capnp_object.get_description()?.to_str()?),
             "is_frozen": crate::utils::i8_to_json_boolean(capnp_object.get_is_frozen()),
             "is_enabled": crate::utils::i8_to_json_boolean(capnp_object.get_is_enabled()),
             "data": data_attributes
@@ -142,13 +142,13 @@ pub fn read_collection(
 
         let mut nodes_uuids_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_nodes_uuids()?.len() as usize);
         for node_uuid in capnp_object.get_nodes_uuids()?.iter() {
-            nodes_uuids_vec.push(json!(node_uuid.unwrap()));
+            nodes_uuids_vec.push(json!(node_uuid.unwrap().to_str()?));
         }
         properties_json["nodes"] = json!(nodes_uuids_vec);
 
         let mut stops_uuids_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_stops_uuids()?.len() as usize);
         for stop_uuid in capnp_object.get_stops_uuids()?.iter() {
-            stops_uuids_vec.push(json!(stop_uuid.unwrap()));
+            stops_uuids_vec.push(json!(stop_uuid.unwrap().to_str()?));
         }
         properties_json["stops"] = json!(stops_uuids_vec);
 

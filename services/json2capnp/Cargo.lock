@@ -159,9 +159,12 @@ checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
 name = "capnp"
-version = "0.14.11"
+version = "0.25.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2dca085c2c7d9d65ad749d450b19b551efaa8e3476a439bdca07aca8533097f3"
+checksum = "1ae0593da254d02d0e69525b5eec7a59586753aa3bd2e54842eca33c6786330c"
+dependencies = [
+ "embedded-io",
+]
 
 [[package]]
 name = "cc"
@@ -303,6 +306,12 @@ dependencies = [
  "redox_users",
  "winapi",
 ]
+
+[[package]]
+name = "embedded-io"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9eb1aa714776b75c7e67e1da744b81a129b3ff919c8712b5e1b32252c1f07cc7"
 
 [[package]]
 name = "filetime"

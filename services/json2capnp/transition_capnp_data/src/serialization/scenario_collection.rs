@@ -230,13 +230,13 @@ pub fn read_collection(
 
     for capnp_object in capnp_collection.get_scenarios()?.iter() {
         
-        let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?).unwrap();
+        let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?.to_str()?).unwrap();
         let mut object_json : serde_json::Value = json!({
-            "id": capnp_object.get_uuid()?,
-            "simulation_id": empty_str_to_json_null(capnp_object.get_simulation_uuid()?),
-            "name": empty_str_to_json_null(capnp_object.get_name()?),
-            "color": empty_str_to_json_null(capnp_object.get_color()?),
-            "description": empty_str_to_json_null(capnp_object.get_description()?),
+            "id": capnp_object.get_uuid()?.to_str()?,
+            "simulation_id": empty_str_to_json_null(capnp_object.get_simulation_uuid()?.to_str()?),
+            "name": empty_str_to_json_null(capnp_object.get_name()?.to_str()?),
+            "color": empty_str_to_json_null(capnp_object.get_color()?.to_str()?),
+            "description": empty_str_to_json_null(capnp_object.get_description()?.to_str()?),
             "is_frozen": i8_to_json_boolean(capnp_object.get_is_frozen()),
             "is_enabled": i8_to_json_boolean(capnp_object.get_is_enabled()),
             "data": data_attributes
@@ -244,55 +244,55 @@ pub fn read_collection(
 
         let mut services_uuids_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_services_uuids()?.len() as usize);
         for service_uuid in capnp_object.get_services_uuids()?.iter() {
-            services_uuids_vec.push(json!(service_uuid.unwrap()));
+            services_uuids_vec.push(json!(service_uuid.unwrap().to_str()?));
         }
         object_json["services"] = json!(services_uuids_vec);
 
         let mut only_agencies_uuids_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_only_agencies_uuids()?.len() as usize);
         for only_agency_uuid in capnp_object.get_only_agencies_uuids()?.iter() {
-            only_agencies_uuids_vec.push(json!(only_agency_uuid.unwrap()));
+            only_agencies_uuids_vec.push(json!(only_agency_uuid.unwrap().to_str()?));
         }
         object_json["only_agencies"] = json!(only_agencies_uuids_vec);
 
         let mut except_agencies_uuids_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_except_agencies_uuids()?.len() as usize);
         for except_agency_uuid in capnp_object.get_except_agencies_uuids()?.iter() {
-            except_agencies_uuids_vec.push(json!(except_agency_uuid.unwrap()));
+            except_agencies_uuids_vec.push(json!(except_agency_uuid.unwrap().to_str()?));
         }
         object_json["except_agencies"] = json!(except_agencies_uuids_vec);
 
         let mut only_lines_uuids_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_only_lines_uuids()?.len() as usize);
         for only_line_uuid in capnp_object.get_only_lines_uuids()?.iter() {
-            only_lines_uuids_vec.push(json!(only_line_uuid.unwrap()));
+            only_lines_uuids_vec.push(json!(only_line_uuid.unwrap().to_str()?));
         }
         object_json["only_lines"] = json!(only_lines_uuids_vec);
 
         let mut except_lines_uuids_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_except_lines_uuids()?.len() as usize);
         for except_line_uuid in capnp_object.get_except_lines_uuids()?.iter() {
-            except_lines_uuids_vec.push(json!(except_line_uuid.unwrap()));
+            except_lines_uuids_vec.push(json!(except_line_uuid.unwrap().to_str()?));
         }
         object_json["except_lines"] = json!(except_lines_uuids_vec);
 
         let mut only_nodes_uuids_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_only_nodes_uuids()?.len() as usize);
         for only_node_uuid in capnp_object.get_only_nodes_uuids()?.iter() {
-            only_nodes_uuids_vec.push(json!(only_node_uuid.unwrap()));
+            only_nodes_uuids_vec.push(json!(only_node_uuid.unwrap().to_str()?));
         }
         object_json["only_nodes"] = json!(only_nodes_uuids_vec);
 
         let mut except_nodes_uuids_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_except_nodes_uuids()?.len() as usize);
         for except_node_uuid in capnp_object.get_except_nodes_uuids()?.iter() {
-            except_nodes_uuids_vec.push(json!(except_node_uuid.unwrap()));
+            except_nodes_uuids_vec.push(json!(except_node_uuid.unwrap().to_str()?));
         }
         object_json["except_nodes"] = json!(except_nodes_uuids_vec);
 
         let mut only_modes_shortnames_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_only_modes_shortnames()?.len() as usize);
         for only_mode_shortname in capnp_object.get_only_modes_shortnames()?.iter() {
-            only_modes_shortnames_vec.push(json!(only_mode_shortname.unwrap()));
+            only_modes_shortnames_vec.push(json!(only_mode_shortname.unwrap().to_str()?));
         }
         object_json["only_modes"] = json!(only_modes_shortnames_vec);
 
         let mut except_modes_shortnames_vec : Vec<serde_json::Value> = Vec::with_capacity(capnp_object.get_except_modes_shortnames()?.len() as usize);
         for except_mode_shortname in capnp_object.get_except_modes_shortnames()?.iter() {
-            except_modes_shortnames_vec.push(json!(except_mode_shortname.unwrap()));
+            except_modes_shortnames_vec.push(json!(except_mode_shortname.unwrap().to_str()?));
         }
         object_json["except_modes"] = json!(except_modes_shortnames_vec);
 

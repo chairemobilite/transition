@@ -246,7 +246,7 @@ pub fn read_object(
     let message_reader   = serialize_packed::read_message(BufReader::new(file), ::capnp::message::ReaderOptions::new())?;
     let capnp_object = message_reader.get_root::<line::Reader>()?;
     
-    let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?).unwrap();
+    let data_attributes : serde_json::Value = serde_json::from_str(capnp_object.get_data()?.to_str()?).unwrap();
     let mut schedules   : serde_json::Value = json!({});
 
     if capnp_object.has_schedules()
@@ -254,12 +254,12 @@ pub fn read_object(
         for schedule in capnp_object.get_schedules()?.iter() {
             
             let mut schedule_json : serde_json::Value = json!({
-                "id": schedule.get_uuid()?,
-                "service_id": schedule.get_service_uuid()?,
-                "periods_group_shortname": empty_str_to_json_null(schedule.get_periods_group_shortname()?),
+                "id": schedule.get_uuid()?.to_str()?,
+                "service_id": schedule.get_service_uuid()?.to_str()?,
+                "periods_group_shortname": empty_str_to_json_null(schedule.get_periods_group_shortname()?.to_str()?),
                 "allow_seconds_based_schedules": i8_to_json_boolean(schedule.get_allow_seconds_based_schedules()),
                 "is_frozen": i8_to_json_boolean(schedule.get_is_frozen()),
-                "line_id": capnp_object.get_uuid()?
+                "line_id": capnp_object.get_uuid()?.to_str()?
             });
 
             if schedule.has_periods()
@@ -282,9 +282,9 @@ pub fn read_object(
                     }
 
                     let mut period_json : serde_json::Value = json!({
-                        "period_shortname": empty_str_to_json_null(period.get_period_shortname()?),
-                        "outbound_path_id": empty_str_to_json_null(period.get_outbound_path_uuid()?),
-                        "inbound_path_id": empty_str_to_json_null(period.get_inbound_path_uuid()?),
+                        "period_shortname": empty_str_to_json_null(period.get_period_shortname()?.to_str()?),
+                        "outbound_path_id": empty_str_to_json_null(period.get_outbound_path_uuid()?.to_str()?),
+                        "inbound_path_id": empty_str_to_json_null(period.get_inbound_path_uuid()?.to_str()?),
                         "custom_start_at_str": empty_str_to_json_null(custom_start_at_str.as_str()),
                         "custom_end_at_str": empty_str_to_json_null(custom_end_at_str.as_str()),
                         "start_at_hour": minus_one_f64_to_null(period.get_start_at_seconds() as f64 / 3600.0),
@@ -292,8 +292,8 @@ pub fn read_object(
                         "interval_seconds": minus_one_i64_to_null(period.get_interval_seconds() as i64),
                         "number_of_units": minus_one_i64_to_null(period.get_number_of_units() as i64),
                         "is_frozen": i8_to_json_boolean(period.get_is_frozen()),
-                        "id": empty_str_to_json_null(period.get_uuid()?),
-                        "schedule_id": schedule.get_uuid()?
+                        "id": empty_str_to_json_null(period.get_uuid()?.to_str()?),
+                        "schedule_id": schedule.get_uuid()?.to_str()?
                     });
 
                     if period.has_trips()
@@ -301,15 +301,15 @@ pub fn read_object(
                         let mut trips : Vec<serde_json::Value> = Vec::with_capacity(period.get_trips()?.len() as usize);
                         for trip in period.get_trips()?.iter() {
                             let mut trip_json : serde_json::Value = json!({
-                                "id": trip.get_uuid()?,
-                                "path_id": trip.get_path_uuid()?,
+                                "id": trip.get_uuid()?.to_str()?,
+                                "path_id": trip.get_path_uuid()?.to_str()?,
                                 "departure_time_seconds": minus_one_i64_to_null(trip.get_departure_time_seconds() as i64),
                                 "arrival_time_seconds": minus_one_i64_to_null(trip.get_arrival_time_seconds() as i64),
-                                "block_id": empty_str_to_json_null(trip.get_block_uuid()?),
+                                "block_id": empty_str_to_json_null(trip.get_block_uuid()?.to_str()?),
                                 "total_capacity": minus_one_i64_to_null(trip.get_total_capacity() as i64),
                                 "seated_capacity": minus_one_i64_to_null(trip.get_seated_capacity() as i64),
                                 "is_frozen": i8_to_json_boolean(period.get_is_frozen()),
-                                "schedule_period_id": empty_str_to_json_null(period.get_uuid()?)
+                                "schedule_period_id": empty_str_to_json_null(period.get_uuid()?.to_str()?)
                             });
 
                             if trip.has_node_arrival_times_seconds()
@@ -355,21 +355,21 @@ pub fn read_object(
                 schedule_json["periods"] = json!(periods);
             }
 
-            schedules[schedule.get_service_uuid().unwrap()] = schedule_json;
+            schedules[schedule.get_service_uuid().unwrap().to_str()?] = schedule_json;
         }
         
     }
 
     let object_json : serde_json::Value = json!({
-        "id": capnp_object.get_uuid()?,
-        "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?),
-        "agency_id": capnp_object.get_agency_uuid()?,
-        "shortname": capnp_object.get_shortname()?,
-        "longname": empty_str_to_json_null(capnp_object.get_longname()?),
-        "category": empty_str_to_json_null(capnp_object.get_category()?),
-        "mode": capnp_object.get_mode()?,
-        "color": empty_str_to_json_null(capnp_object.get_color()?),
-        "description": empty_str_to_json_null(capnp_object.get_description()?),
+        "id": capnp_object.get_uuid()?.to_str()?,
+        "internal_id": empty_str_to_json_null(capnp_object.get_internal_id()?.to_str()?),
+        "agency_id": capnp_object.get_agency_uuid()?.to_str()?,
+        "shortname": capnp_object.get_shortname()?.to_str()?,
+        "longname": empty_str_to_json_null(capnp_object.get_longname()?.to_str()?),
+        "category": empty_str_to_json_null(capnp_object.get_category()?.to_str()?),
+        "mode": capnp_object.get_mode()?.to_str()?,
+        "color": empty_str_to_json_null(capnp_object.get_color()?.to_str()?),
+        "description": empty_str_to_json_null(capnp_object.get_description()?.to_str()?),
         "is_frozen": i8_to_json_boolean(capnp_object.get_is_frozen()),
         "is_enabled": i8_to_json_boolean(capnp_object.get_is_enabled()),
         "is_autonomous": i8_to_json_boolean(capnp_object.get_is_autonomous()),
