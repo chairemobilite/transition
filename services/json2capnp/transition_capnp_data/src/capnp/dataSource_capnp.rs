@@ -266,7 +266,8 @@ pub mod data_source {
     Zones = 11,
     OsmData = 12,
     Places = 13,
-    Unknown = 14,
+    PropertyRegistry = 14,
+    Unknown = 15,
   }
   impl ::capnp::traits::FromU16 for Type {
     #[inline]
@@ -286,7 +287,8 @@ pub mod data_source {
         11 => ::core::result::Result::Ok(Type::Zones),
         12 => ::core::result::Result::Ok(Type::OsmData),
         13 => ::core::result::Result::Ok(Type::Places),
-        14 => ::core::result::Result::Ok(Type::Unknown),
+        14 => ::core::result::Result::Ok(Type::PropertyRegistry),
+        15 => ::core::result::Result::Ok(Type::Unknown),
         n => ::core::result::Result::Err(::capnp::NotInSchema(n)),
       }
     }
