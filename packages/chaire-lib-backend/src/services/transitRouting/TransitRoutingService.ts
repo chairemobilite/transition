@@ -250,10 +250,7 @@ class TransitRoutingService {
         params: TrRoutingApi.TransitRouteQueryOptions,
         hostPort?: TrRoutingApi.HostPort
     ): Promise<TrRoutingRouteResult> {
-        const origDestStr = `${params.originDestination[0].geometry.coordinates.join(',')} to ${params.originDestination[1].geometry.coordinates.join(',')}`;
-        console.log(`tripRouting: Getting route from trRouting service for ${origDestStr}`);
         const responseStatus = await this.callRoute({ parameters: params, hostPort });
-        console.log(`tripRouting: Received route response from trRouting service for ${origDestStr}`);
         if (Status.isStatusError(responseStatus)) {
             this.handleErrorStatus(responseStatus);
         }
