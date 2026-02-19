@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import { SimulationAlgorithmDescriptor } from '../TransitNetworkDesignAlgorithm';
+import { UserDefinedConfigSchema } from '../../../../utils/userDefinedConfig';
 
 // Define accessibility map simulation options
 export type AccessibilityMapSimulationOptions = {
@@ -23,15 +23,15 @@ export type AccessibilityMapSimulationOptions = {
  * in the network.
  */
 export class AccessibilityMapSimulationDescriptor
-implements SimulationAlgorithmDescriptor<AccessibilityMapSimulationOptions> {
-    getTranslatableName = (): string => 'transit:simulation:simulationMethods:AccessibilityMap';
+implements UserDefinedConfigSchema<AccessibilityMapSimulationOptions> {
+    getTranslatableName = (): string => 'transit:networkDesign.simulationMethods.accessibilityMap.Title';
 
     // TODO Add help texts
-    getOptions = () => ({
+    getFields = () => ({
         dataSourceId: {
-            i18nName: 'transit:simulation:simulationMethods:AccessMapDataSources',
+            i18nName: 'transit:networkDesign.simulationMethods.accessibilityMap.AccessMapDataSources',
             type: 'select' as const,
-            choices: async () => {
+            choices: () => {
                 // FIXME Still using data source queries. When this code was in the
                 // backend, it used the query to fetch the data source, now let's just
                 // use an empty array (this won't work, but it already doesn't work)
@@ -43,14 +43,14 @@ implements SimulationAlgorithmDescriptor<AccessibilityMapSimulationOptions> {
             }
         },
         sampleRatio: {
-            i18nName: 'transit:simulation:simulationMethods:AccessMapMaxSampleRatio',
+            i18nName: 'transit:networkDesign.simulationMethods.accessibilityMap.AccessMapMaxSampleRatio',
             type: 'number' as const,
             validate: (value: number) => value > 0 && value <= 1,
             default: 1
         }
     });
 
-    validateOptions = (_options: Partial<AccessibilityMapSimulationOptions>): { valid: boolean; errors: string[] } => {
+    validateFields = (_fields: Partial<AccessibilityMapSimulationOptions>): { valid: boolean; errors: string[] } => {
         const valid = true;
         const errors: string[] = [];
 
