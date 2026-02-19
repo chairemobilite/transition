@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import { SimulationAlgorithmDescriptor } from '../TransitNetworkDesignAlgorithm';
+import { UserDefinedConfigSchema } from '../../../../utils/userDefinedConfig';
 
 // Define OD trip simulation options
 export type OdTripSimulationOptions = {
@@ -23,15 +23,15 @@ export type OdTripSimulationOptions = {
  * The OD Trip simulation method simulates the network using origin-destination
  * trip routing results.
  */
-export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor<OdTripSimulationOptions> {
+export class OdTripSimulationDescriptor implements UserDefinedConfigSchema<OdTripSimulationOptions> {
     getTranslatableName = (): string => 'transit:simulation:simulationMethods:OdTrips';
 
     // TODO Add help texts
-    getOptions = () => ({
+    getFields = () => ({
         dataSourceId: {
             i18nName: 'transit:simulation:simulationMethods:OdTripsDataSource',
             type: 'select' as const,
-            choices: async () => {
+            choices: (object: Record<string, unknown>) => {
                 // FIXME Still using data source queries. When this code was in the
                 // backend, it used the query to fetch the data source, now let's just
                 // use an empty array (this won't work, but it already doesn't work)
@@ -51,7 +51,7 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
         odTripFitnessFunction: {
             i18nName: 'transit:simulation:fitness:odTripFitnessFunction',
             type: 'select' as const,
-            choices: async () => [
+            choices: () => [
                 {
                     label: 'transit:simulation:fitness:travelTimeCost',
                     value: 'travelTimeCost'
@@ -65,7 +65,7 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
         fitnessFunction: {
             i18nName: 'transit:simulation:fitness:fitnessFunction',
             type: 'select' as const,
-            choices: async () => [
+            choices: () => [
                 {
                     label: 'transit:simulation:fitness:hourlyUserPlusOperatingCosts',
                     value: 'hourlyUserPlusOperatingCosts'
@@ -82,7 +82,7 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
         }
     });
 
-    validateOptions = (_options: Partial<OdTripSimulationOptions>): { valid: boolean; errors: string[] } => {
+    validateFields = (_fields: Partial<OdTripSimulationOptions>): { valid: boolean; errors: string[] } => {
         const valid = true;
         const errors: string[] = [];
 
