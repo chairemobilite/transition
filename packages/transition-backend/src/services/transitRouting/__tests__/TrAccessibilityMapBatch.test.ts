@@ -162,7 +162,6 @@ test('3 locations, all successful', async() => {
     mockedParseLocations.mockResolvedValue({ locations, errors: [] });
     const result = await batchAccessibilityMap(mockedJob, progressEmitter, isCancelledMock);
     expect(result).toEqual({
-        detailed: mockJobAttributes.data.parameters.batchAccessMapAttributes.detailed,
         completed: true,
         errors: [],
         warnings: [],
@@ -186,7 +185,6 @@ test('3 locations, error on first', async() => {
     mockedCalculateWithPolygon.mockRejectedValueOnce('Some error occurred');
     const result = await batchAccessibilityMap(mockedJob, progressEmitter, isCancelledMock);
     expect(result).toEqual(expect.objectContaining({
-        detailed: mockJobAttributes.data.parameters.batchAccessMapAttributes.detailed,
         completed: true,
         errors: []
     }));
