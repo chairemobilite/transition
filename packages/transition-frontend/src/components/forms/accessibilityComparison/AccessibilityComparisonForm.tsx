@@ -18,6 +18,7 @@ import moment from 'moment';
 import Loader from 'react-spinners/BeatLoader';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 import maplibregl from 'maplibre-gl';
+import { FeatureCollection } from 'geojson';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
@@ -26,22 +27,16 @@ import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
-import TransitAccessibilityMapRouting, {
-    MAX_DELTA_MINUTES,
-    MAX_DELTA_INTERVAL_MINUTES,
-    MIN_WALKING_SPEED_KPH,
-    MAX_WALKING_SPEED_KPH
-} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import { calculateAccessibilityMap, calculateAccessibilityMapComparison } from '../../../services/routing/RoutingUtils';
-import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
-import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
-import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
-import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import DownloadsUtils from 'chaire-lib-frontend/lib/services/DownloadsService';
 import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
+import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
+import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import {
@@ -49,15 +44,24 @@ import {
     secondsToMinutes,
     minutesToSeconds
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+
+import TransitAccessibilityMapRouting, {
+    MAX_DELTA_MINUTES,
+    MAX_DELTA_INTERVAL_MINUTES,
+    MIN_WALKING_SPEED_KPH,
+    MAX_WALKING_SPEED_KPH
+} from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
+
+import { calculateAccessibilityMap, calculateAccessibilityMapComparison } from '../../../services/routing/RoutingUtils';
 import AccessibilityComparisonStatsComponent from './AccessibilityComparisonStatsComponent';
-import * as AccessibilityComparisonConstants from './accessibilityComparisonConstants';
 import { comparisonModes } from './comparisonModes';
 import AccessibilityMapCoordinatesComponent from '../accessibilityMap/widgets/AccessibilityMapCoordinateComponent';
 import TimeOfTripComponent from '../transitRouting/widgets/TimeOfTripComponent';
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
-import { FeatureCollection } from 'geojson';
+import LocationModeColorInfo from './LocationModeColorInfo';
+import ScenarioModeColorInfo from './ScenarioModeColorInfo';
 
 export interface AccessibilityComparisonFormProps extends WithTranslation {
     addEventListeners?: () => void;
@@ -90,6 +94,12 @@ interface TransitRoutingFormState extends ChangeEventsState<TransitAccessibility
     contextMenuRoot: Root | undefined;
     alternateScenario1Id?: string;
     alternateScenario2Id?: string;
+    intersectionLocationColor: string;
+    intersectionPolygonColor: string;
+    comparisonLocation1Color: string;
+    comparisonPolygon1Color: string;
+    comparisonLocation2Color: string;
+    comparisonPolygon2Color: string;
 }
 
 class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparisonFormProps, TransitRoutingFormState> {
@@ -123,14 +133,28 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
             alternateScenario1Id: '',
             alternateScenario2Id: '',
             contextMenu: null,
-            contextMenuRoot: undefined
+            contextMenuRoot: undefined,
+            intersectionLocationColor: Preferences.get(
+                'transit.routing.transitAccessibilityMap.intersectionLocationColor'
+            ),
+            intersectionPolygonColor: Preferences.get(
+                'transit.routing.transitAccessibilityMap.intersectionPolygonColor'
+            ),
+            comparisonLocation1Color: Preferences.get(
+                'transit.routing.transitAccessibilityMap.comparisonLocation1Color'
+            ),
+            comparisonPolygon1Color: Preferences.get('transit.routing.transitAccessibilityMap.comparisonPolygon1Color'),
+            comparisonLocation2Color: Preferences.get(
+                'transit.routing.transitAccessibilityMap.comparisonLocation2Color'
+            ),
+            comparisonPolygon2Color: Preferences.get('transit.routing.transitAccessibilityMap.comparisonPolygon2Color')
         };
 
         this.displayMap = this.displayMap.bind(this);
         this.calculateRouting = this.calculateRouting.bind(this);
         this.onScenarioCollectionUpdate = this.onScenarioCollectionUpdate.bind(this);
 
-        routingEngine.updatePointColor(AccessibilityComparisonConstants.INTERSECTION_COLOR);
+        routingEngine.updatePointColor(this.state.intersectionLocationColor);
         if (routingEngine.hasLocation()) {
             (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
                 layerName: 'accessibilityMapPoints',
@@ -175,17 +199,17 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
 
             const numberOfPolygons = routing.attributes.numberOfPolygons as number;
 
-            const colors = {
-                intersectionColor: this.convertToRGBA(AccessibilityComparisonConstants.INTERSECTION_COLOR, 0.6),
-                scenario1Minus2Color: this.convertToRGBA(AccessibilityComparisonConstants.MAP_1_COLOR, 0.6),
-                scenario2Minus1Color: this.convertToRGBA(AccessibilityComparisonConstants.MAP_2_COLOR, 0.6)
+            const polygonColors = {
+                intersectionColor: this.state.intersectionPolygonColor,
+                scenario1Minus2Color: this.state.comparisonPolygon1Color,
+                scenario2Minus1Color: this.state.comparisonPolygon2Color
             };
 
             const mapComparison = await calculateAccessibilityMapComparison(
                 currentResult1.polygons,
                 currentResult2.polygons,
                 numberOfPolygons,
-                colors
+                polygonColors
             );
 
             const finalMap: TransitAccessibilityMapWithPolygonAndTimeResult[] = [];
@@ -498,8 +522,16 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
         };
     }
 
-    private convertToRGBA = (rgbValue: string, alpha: number) => {
-        return rgbValue.replace(')', `, ${alpha})`).replace('rgb', 'rgba');
+    // Takes in a color string of the rgba format and returns a new one with the same rgb values but the inputed alpha value.
+    // Necessary for the stats component. We want to pass the polygons colors as props to color some text in the results table, but the colors for those are transparent, while we want to text to be opaque.
+    private changeAlphaValue = (rgbaValue: string, alpha: number) => {
+        const rgbaArray = rgbaValue.split(',');
+        if (rgbaArray.length !== 4) {
+            return rgbaValue;
+        }
+
+        rgbaArray[3] = `${alpha})`;
+        return rgbaArray.join();
     };
 
     render() {
@@ -531,31 +563,27 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
             return (
                 <React.Fragment>
                     <Collapsible
-                        trigger={this.props.t('transit:accessibilityComparison:Legend')}
+                        trigger={this.props.t('transit:accessibilityComparison:Colors')}
                         open={true}
                         transitionTime={100}
                     >
-                        <div className="tr__form-section">
-                            {mode === 'scenarios'
-                                ? this.props.t('transit:transitComparison:ScenarioN', { scenarioNumber: '1' })
-                                : this.props.t('transit:accessibilityComparison:LocationN', { locationNumber: '1' })}
-                            : &nbsp;
-                            <span style={{ color: AccessibilityComparisonConstants.MAP_1_COLOR }}>&#9673;</span>
-                        </div>
-                        <div className="tr__form-section">
-                            {mode === 'scenarios'
-                                ? this.props.t('transit:transitComparison:ScenarioN', { scenarioNumber: '2' })
-                                : this.props.t('transit:accessibilityComparison:LocationN', { locationNumber: '2' })}
-                            : &nbsp;
-                            <span style={{ color: AccessibilityComparisonConstants.MAP_2_COLOR }}>&#9673;</span>
-                        </div>
-                        <div className="tr__form-section">
-                            {this.props.t(
-                                `transit:accessibilityComparison:${mode === 'scenarios' ? 'Scenario' : 'Location'}Intersection`
-                            )}
-                            : &nbsp;
-                            <span style={{ color: AccessibilityComparisonConstants.INTERSECTION_COLOR }}>&#9673;</span>
-                        </div>
+                        {mode === 'scenarios' && (
+                            <ScenarioModeColorInfo
+                                intersectionLocationColor={this.state.intersectionLocationColor}
+                                intersectionPolygonColor={this.state.intersectionPolygonColor}
+                                comparisonPolygon1Color={this.state.comparisonPolygon1Color}
+                                comparisonPolygon2Color={this.state.comparisonPolygon2Color}
+                            />
+                        )}
+                        {mode === 'locations' && (
+                            <LocationModeColorInfo
+                                intersectionPolygonColor={this.state.intersectionPolygonColor}
+                                comparisonLocation1Color={this.state.comparisonLocation1Color}
+                                comparisonPolygon1Color={this.state.comparisonPolygon1Color}
+                                comparisonLocation2Color={this.state.comparisonLocation2Color}
+                                comparisonPolygon2Color={this.state.comparisonPolygon2Color}
+                            />
+                        )}
                     </Collapsible>
 
                     <Collapsible trigger={this.props.t('form:basicFields')} open={true} transitionTime={100}>
@@ -951,6 +979,8 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                             <AccessibilityComparisonStatsComponent
                                 accessibilityPolygons={this.state.currentPolygons}
                                 mode={mode}
+                                color1={this.changeAlphaValue(this.state.comparisonPolygon1Color, 1)}
+                                color2={this.changeAlphaValue(this.state.comparisonPolygon2Color, 1)}
                             />
                         </React.Fragment>
                     )}
@@ -968,8 +998,8 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                             const value = comparisonModes[index];
                             this.onValueChange('selectedMode', { value });
                             if (value === 'scenarios') {
-                                routing.updatePointColor(AccessibilityComparisonConstants.INTERSECTION_COLOR);
-                                alternateRouting.updatePointColor(AccessibilityComparisonConstants.INTERSECTION_COLOR);
+                                routing.updatePointColor(this.state.intersectionLocationColor);
+                                alternateRouting.updatePointColor(this.state.intersectionLocationColor);
                                 if (routing.hasLocation()) {
                                     alternateRouting.setLocation(
                                         routing.attributes.locationGeojson!.geometry.coordinates
@@ -983,8 +1013,8 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                     );
                                 }
                             } else if (value === 'locations') {
-                                routing.updatePointColor(AccessibilityComparisonConstants.MAP_1_COLOR);
-                                alternateRouting.updatePointColor(AccessibilityComparisonConstants.MAP_2_COLOR);
+                                routing.updatePointColor(this.state.comparisonLocation1Color);
+                                alternateRouting.updatePointColor(this.state.comparisonLocation2Color);
                                 alternateRouting.attributes.scenarioId = routing.attributes.scenarioId;
                                 if (routing.hasLocation()) {
                                     alternateRouting.setLocation(
