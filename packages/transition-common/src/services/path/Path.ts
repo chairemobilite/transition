@@ -823,7 +823,6 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             averageSpeedWithoutDwellTimesMetersPerSecond: null,
             operatingSpeedMetersPerSecond: null,
             operatingSpeedWithLayoverMetersPerSecond: null,
-            returnBackGeography: null,
             variables: {}
         };
         this.set('geography', null); // TODO: fix this, it should never be null when typing correctly, but setting coordinates to an empty array fails right now
