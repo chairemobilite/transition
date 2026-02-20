@@ -20,6 +20,7 @@ import routeOdTrip from '../TrRoutingOdTrip';
 import { Readable } from 'stream';
 import { ExecutableJob } from '../../executableJob/ExecutableJob';
 import { BatchRouteJobType } from '../BatchRoutingJob';
+import MemcachedProcessManager from 'chaire-lib-backend/lib/utils/processManagers/MemcachedProcessManager';
 
 const absoluteDir = `${directoryManager.userDataDirectory}/1/exports`;
 
@@ -29,6 +30,22 @@ TrRoutingProcessManager.startBatch = jest.fn().mockResolvedValue({
     port: 14000
 });
 const mockStartBatch = TrRoutingProcessManager.startBatch as jest.MockedFunction<typeof TrRoutingProcessManager.startBatch>;
+
+// Mock MemcachedProcessManager
+const mockMemcachedInstance = {
+    getServer: jest.fn().mockReturnValue('localhost:11212'),
+    status: jest.fn().mockResolvedValue('running'),
+    stop: jest.fn().mockResolvedValue({ status: 'stopped' })
+};
+
+jest.mock('chaire-lib-backend/lib/utils/processManagers/MemcachedProcessManager', () => ({
+    start: jest.fn().mockResolvedValue({
+        getServer: () => 'localhost:11212',
+        status: jest.fn().mockResolvedValue('running'),
+        stop: jest.fn().mockResolvedValue({ status: 'stopped' })
+    })
+}));
+const mockMemcachedStart = MemcachedProcessManager.start as jest.MockedFunction<typeof MemcachedProcessManager.start>;
 
 const socketMock = new EventEmitter();
 const isCancelledMock = jest.fn().mockReturnValue(false);
@@ -174,6 +191,7 @@ beforeEach(async () => {
     mockResultDeleteForJob.mockClear();
     mockStreamResults.mockClear();
     mockStartBatch.mockClear();
+    mockMemcachedStart.mockClear();
     mockedResultStream = new Readable({
         objectMode: true,
         read: function(size) {
@@ -213,7 +231,8 @@ test('Batch route to csv', async () => {
     expect(mockStartBatch).toHaveBeenCalledWith(
         expect.any(Number),
         expect.objectContaining({
-            cacheDirectoryPath: undefined
+            cacheDirectoryPath: undefined,
+            memcachedServer: 'localhost:11212'
         })
     );
 
@@ -258,7 +277,8 @@ test('Batch route with custom cachePath parameter', async () => {
     expect(mockStartBatch).toHaveBeenCalledWith(
         expect.any(Number),
         expect.objectContaining({
-            cacheDirectoryPath: customCachePath
+            cacheDirectoryPath: customCachePath,
+            memcachedServer: 'localhost:11212'
         })
     );
 
