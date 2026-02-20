@@ -179,7 +179,10 @@ export class Routing {
             }
         } catch (error) {
             const origDestStr = `${routingAttributes.originGeojson.geometry.coordinates.join(',')} to ${routingAttributes.destinationGeojson.geometry.coordinates.join(',')}`;
-            console.error(`tripRouting: Error routing single mode ${routingMode} for ${origDestStr}:`, error);
+            console.error(
+                `tripRouting: Error routing single mode ${routingMode} for ${origDestStr}:`,
+                TrError.isTrError(error) ? error.getCode() : error
+            );
             return {
                 routingMode,
                 result: !TrError.isTrError(error)
