@@ -128,7 +128,7 @@ const wrapEvolutionaryTransitNetworkDesign = async (task: EvolutionaryTransitNet
         progressEmitter: newProgressEmitter(task),
         isCancelled: getTaskCancelledFct(task)
     });
-    console.log('Evolutionary transit network design job completed with status ', status);
+    console.log(`Evolutionary transit network design job ${task.attributes.id} completed with status ${status}`);
     // TODO Handle results here
     return status === 'success';
 };
