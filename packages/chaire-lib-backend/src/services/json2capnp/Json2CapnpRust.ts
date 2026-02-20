@@ -55,7 +55,9 @@ class Json2CapnpRust implements Json2CapnpBase {
             }
             return args.collection;
         } else {
-            console.error(`error loading ${collectionName} collection cache using json2capnp`);
+            console.error(
+                `error loading ${collectionName} collection cache using json2capnp with args: ${JSON.stringify(args)}, response: ${typeof response === 'string' ? response : typeof response === 'object' && response !== null ? Object.keys(response) : typeof response}`
+            );
             throw new TrError(`Cannot load ${collectionName} collection`, 'CAQCFC0001', 'CannotLoadCacheBecauseError');
         }
     }
