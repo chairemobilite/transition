@@ -25,7 +25,9 @@ import { BatchRouteFileResultVisitor } from './batchRouteCalculation/BatchRouteF
 const CHECKPOINT_INTERVAL = 250;
 
 /**
- * Do batch calculation on a csv file input
+ * Do batch calculation on a csv file input. This function wraps the execution,
+ * as well as result files generation. For other result handling, directly use
+ * TrRoutingBatchExecutor to execute then handle the results.
  *
  * @param demandParameters The parameters for the batch calculation task
  * @param batchRoutingQueryAttributes The transit routing parameters, for
@@ -39,7 +41,6 @@ const CHECKPOINT_INTERVAL = 250;
  * completed od trips routed.
  * @returns
  */
-
 export const batchRoute = async (
     job: ExecutableJob<BatchRouteJobType>,
     options: {
@@ -51,10 +52,35 @@ export const batchRoute = async (
         files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
     }
 > => {
-    return new TrRoutingBatch(job, options).run();
+    const batchRoutingExecutor = new TrRoutingBatchExecutor(job, options);
+    const execResults = await batchRoutingExecutor.run();
+    if (execResults.completed === true) {
+        // Handle the result
+        // TODO Consider passing the progress emitter to the result visitor instead for finer grained progress reporting
+        options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
+        // FIXME We hardcode the result visitor to file output for now, but we could have other implementations (like calculating statistics, or nothing at all)
+        // FIXME2 Also, since we do not have any way of handling the results after the job is done yet, the visitor handler is now part of the job, but later, handling results could be done on completed jobs, and not as part of the job
+        const resultVisitor = new BatchRouteFileResultVisitor(job);
+        const { files } = await batchRoutingExecutor.handleResults(resultVisitor);
+        options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 1.0 });
+
+        const routingResult = {
+            ...execResults,
+            files
+        };
+        return routingResult;
+    } else {
+        return {
+            ...execResults,
+            files: { input: job.getInputFileName() }
+        };
+    }
 };
 
-class TrRoutingBatch {
+/**
+ * Class to actually execute a batch routing job.
+ */
+export class TrRoutingBatchExecutor {
     private odTrips: BaseOdTrip[] = [];
     private errors: TranslatableMessage[] = [];
     private batchManager: TrRoutingBatchManager;
@@ -69,14 +95,7 @@ class TrRoutingBatch {
         this.batchManager = new TrRoutingBatchManager(options.progressEmitter);
     }
 
-    run = async (): Promise<
-        TransitBatchCalculationResult & {
-            files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
-        }
-    > => {
-        const demandConfiguration = this.job.attributes.data.parameters.demandAttributes;
-        console.log('TrRoutingService batchRoute Parameters', demandConfiguration);
-
+    run = async (): Promise<TransitBatchCalculationResult> => {
         try {
             // Get the odTrips to calculate
             const odTripData = await this.getOdTrips();
@@ -178,28 +197,12 @@ class TrRoutingBatch {
 
             this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
 
-            // FIXME Should we return here if the job is cancelled? Or we still
-            // generate the results that have been calculated since now? Anyway,
-            // on we decouple result handling from the job execution, we could
-            // handle results on cancelled jobs also, if we want
-
-            // Handle the result
-            this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
-            // FIXME We hardcode the result visitor to file output for now, but we could have other implementations (like calculating statistics, or nothing at all)
-            // FIXME2 Also, since we do not have any way of handling the results after the job is done yet, the visitor handler is now part of the job, but later, handling results could be done on completed jobs, and not as part of the job
-            const resultVisitor = new BatchRouteFileResultVisitor(this.job);
-            const { files } = await this.handlResults(resultVisitor);
-            this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 1.0 });
-
-            const routingResult = {
-                detailed: this.job.attributes.data.parameters.transitRoutingAttributes.detailed,
+            return {
                 completed: true,
+                detailed: false,
                 errors: [],
-                warnings: this.errors,
-                files
+                warnings: this.errors
             };
-
-            return routingResult;
         } catch (error) {
             if (Array.isArray(error)) {
                 console.log('Multiple errors in batch route calculations for job %d', this.job.id);
@@ -207,8 +210,7 @@ class TrRoutingBatch {
                     detailed: false,
                     completed: false,
                     errors: error,
-                    warnings: [],
-                    files: { input: this.job.getInputFileName() }
+                    warnings: []
                 };
             } else {
                 console.error(`Error in batch routing calculation job ${this.job.id}: ${error}`);
@@ -220,9 +222,7 @@ class TrRoutingBatch {
         }
     };
 
-    private handlResults = async <TReturnType>(
-        resultVisitor: BatchRouteResultVisitor<TReturnType>
-    ): Promise<TReturnType> => {
+    handleResults = async <TReturnType>(resultVisitor: BatchRouteResultVisitor<TReturnType>): Promise<TReturnType> => {
         // Generate the output files
         this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
 

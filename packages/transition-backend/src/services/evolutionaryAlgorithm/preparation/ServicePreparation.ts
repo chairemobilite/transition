@@ -5,19 +5,21 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import { EventEmitter } from 'events';
 
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import Line from 'transition-common/lib/services/line/Line';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import Service from 'transition-common/lib/services/service/Service';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import SimulationRun from 'transition-common/lib/services/simulation/SimulationRun';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import Schedule from 'transition-common/lib/services/schedules/Schedule';
 import moment from 'moment';
 import * as AlgoTypes from '../internalTypes';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
+import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 const PERIOD_GROUP_SHORTNAME = 'complete_day';
 
@@ -34,14 +36,11 @@ const prepareServicesForLines = async (
         custom_start_at_str: string;
         custom_end_at_str: string;
     },
-    simulationRun: SimulationRun
+    jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
 ): Promise<AlgoTypes.LineLevelOfService[]> => {
-    const minTime =
-        (simulationRun.attributes.data.transitNetworkDesignParameters.minTimeBetweenPassages ||
-            DEFAULT_MIN_TIME_BETWEEN_PASSAGES) * 60;
-    const maxTime =
-        (simulationRun.attributes.data.transitNetworkDesignParameters.maxTimeBetweenPassages ||
-            DEFAULT_MAX_TIME_BETWEEN_PASSAGES) * 60;
+    const transitNetworkParameters = jobWrapper.parameters.transitNetworkDesignParameters;
+    const minTime = (transitNetworkParameters.minTimeBetweenPassages || DEFAULT_MIN_TIME_BETWEEN_PASSAGES) * 60;
+    const maxTime = (transitNetworkParameters.maxTimeBetweenPassages || DEFAULT_MAX_TIME_BETWEEN_PASSAGES) * 60;
     const lineServices: AlgoTypes.LineLevelOfService[] = [];
 
     const inboundPaths = line.getInboundPaths();
@@ -64,23 +63,19 @@ const prepareServicesForLines = async (
     let timeBetweenPassages = Number.MAX_VALUE;
     let nbVehicles = 1;
     let lastTimeBetweenPassages = timeBetweenPassages;
-    while (
-        timeBetweenPassages > minTime &&
-        nbVehicles < (simulationRun.attributes.data.transitNetworkDesignParameters.nbOfVehicles || Number.MAX_VALUE)
-    ) {
-        const existingService = services.find(
-            (service) => service.attributes.name === `simulation_${line.toString()}_${nbVehicles}`
-        );
+    while (timeBetweenPassages > minTime && nbVehicles < transitNetworkParameters.nbOfVehicles) {
+        const serviceName = `networkDesign_${line.toString()}_${nbVehicles}`;
+        const existingService = services.find((service) => service.attributes.name === serviceName);
         // Create a service to store this schedule
         const service = existingService
             ? existingService
             : new Service(
                 {
-                    name: `simulation_${line.toString()}_${nbVehicles}`,
+                    name: serviceName,
                     monday: true,
                     start_date: moment().format('YYYY-MM-DD'),
                     end_date: moment().format('YYYY-MM-DD'),
-                    simulation_id: simulationRun.attributes.simulation_id
+                    data: { forJob: jobWrapper.job.id }
                 },
                 true
             );
@@ -112,11 +107,11 @@ const prepareServicesForLines = async (
                 data: {}
             })
         );
-        const { trips } = await schedule.generateForPeriod(PERIOD_GROUP_SHORTNAME);
+        const { trips } = schedule.generateForPeriod(PERIOD_GROUP_SHORTNAME);
         const outboundTrips = trips.filter((trip) => trip.path_id === outboundPathId);
         // We expect more than one trip, otherwise, throw an error, something happened
         if (outboundTrips.length < 2) {
-            throw `Too few trips were generator for line ${line.toString()} and number of vehicles ${nbVehicles}. Simulation will not run properly`;
+            throw `Too few trips were generated for line ${line.toString()} and number of vehicles ${nbVehicles}. Simulation will not run properly`;
         }
         timeBetweenPassages = outboundTrips[1].departure_time_seconds - outboundTrips[0].departure_time_seconds;
 
@@ -128,6 +123,9 @@ const prepareServicesForLines = async (
             // Keep this schedule and service if the time between passages is within range
             lineServices.push({
                 numberOfVehicles: nbVehicles,
+                timeBetweenPassages,
+                inboundPathId,
+                outboundPathId,
                 service
             });
             line.addSchedule(schedule);
@@ -138,6 +136,11 @@ const prepareServicesForLines = async (
     return lineServices;
 };
 
+/**
+ * Get the longest path operating time in seconds from a line collection
+ * @param lineCollection
+ * @returns
+ */
 const getLongestPath = (lineCollection: LineCollection) =>
     lineCollection
         .getFeatures()
@@ -149,21 +152,38 @@ const getLongestPath = (lineCollection: LineCollection) =>
         )
         .reduce((maxPathTime, currentMax) => Math.max(maxPathTime, currentMax), 0);
 
+/**
+ * Prepares the services for all lines in the line collection, given the
+ * algorithm parameters. It creates schedules for a short period of time around
+ * 8AM and 9AM and creates different levels of services by adding a vehicle at a
+ * time for each line. Those services and schedules are not stored in the
+ * database
+ * @param simulatedLineCollection The collection containing all simulated lines
+ * @param services The current service collection, with all services already
+ * loaded
+ * @param jobWrapper The job wrapper containing the job and its parameters
+ * @returns The various levels of services for each line, the updated service
+ * collection, and any error encountered during preparation
+ */
 export const prepareServices = async (
-    lineCollection: LineCollection,
+    simulatedLineCollection: LineCollection,
     services: ServiceCollection,
-    simulationRun: SimulationRun
-): Promise<{ lineServices: AlgoTypes.LineServices; services: ServiceCollection }> => {
+    jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
+): Promise<{ lineServices: AlgoTypes.LineServices; services: ServiceCollection; errors: TranslatableMessage[] }> => {
     const lineServices: AlgoTypes.LineServices = {};
+    const errors: TranslatableMessage[] = [];
+    // FIXME Previously, when run with simulation, we could re-use services created
+    // for the simulation. Now with jobs, each is independent, but we can recover services from previous run job (if incomplete)
     const simulationServices = services
         .getFeatures()
-        .filter((service) => service.attributes.simulation_id === simulationRun.attributes.simulation_id);
+        .filter((service) => service.attributes.data.forJob === jobWrapper.job.id);
 
     const periodGroups = Preferences.current.transit.periods[PERIOD_GROUP_SHORTNAME];
     if (!periodGroups || (periodGroups.periods || []).length === 0) {
         throw `Undefined or empty period for ${PERIOD_GROUP_SHORTNAME}`;
     }
-    const longestPath = getLongestPath(lineCollection);
+    const longestPath = getLongestPath(simulatedLineCollection);
+    // We don't need to create schedules for all day, just enough to cover the longest path round trip before 8AM et after 9AM.
     const defaultPeriodAttributes = {
         period_shortname: PERIOD_GROUP_SHORTNAME,
         start_at_hour: periodGroups.periods[0].startAtHour,
@@ -173,95 +193,136 @@ export const prepareServices = async (
         trips: []
     };
 
-    const lines = lineCollection.getFeatures();
+    const lines = simulatedLineCollection.getFeatures();
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        const servicesForLine = await prepareServicesForLines(
-            line,
-            simulationServices,
-            defaultPeriodAttributes,
-            simulationRun
-        );
-        Object.values(servicesForLine).forEach((lvlOfService) =>
-            services.getById(lvlOfService.service.getId()) !== undefined
-                ? services.updateById(lvlOfService.service.getId(), lvlOfService.service)
-                : services.add(lvlOfService.service)
-        );
-        lineServices[line.getId()] = servicesForLine;
+        try {
+            const servicesForLine = await prepareServicesForLines(
+                line,
+                simulationServices,
+                defaultPeriodAttributes,
+                jobWrapper
+            );
+            // Add or update the service to the service collection
+            servicesForLine.forEach((lvlOfService) =>
+                services.getById(lvlOfService.service.getId()) !== undefined
+                    ? services.updateById(lvlOfService.service.getId(), lvlOfService.service)
+                    : services.add(lvlOfService.service)
+            );
+            lineServices[line.getId()] = servicesForLine;
+        } catch (error) {
+            // FIXME Add a handler to return localized message from TrError is available and do something else otherwise
+            errors.push(error instanceof Error ? error.message : String(error));
+        }
     }
-    return { lineServices, services };
+    return { lineServices, services, errors };
 };
 
 /**
- * Save a simulation scenario to the database
+ * Save a simulation scenario to the database. It will create a single service
+ * for the scenario that will contain the schedules for each simulated line
+ * service.
  *
- * @param socket Socket to use to save the data
  * @param scenario Scenario to copy and save to the database
  * @param options Simulation run options
- * @returns The ID of the new scenario created or undefined if no scenario could be saved
+ * @returns The ID of the new scenario created or undefined if no scenario could
+ * be saved
  */
 export const saveSimulationScenario = async (
-    socket: EventEmitter,
     scenario: Scenario,
-    options: AlgoTypes.RuntimeAlgorithmData
-): Promise<string | undefined> => {
-    // Find all simulated services to merge as one
-    const simulatedServiceIds = scenario.attributes.services.filter(
-        (serviceId) => !options.nonSimulatedServices.includes(serviceId)
-    );
-    if (simulatedServiceIds.length === 0) {
+    jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
+): Promise<{ scenarioId: string; lineIds: string[] } | undefined> => {
+    try {
+        console.log('saving simulation scenario');
+        // Find all simulated services to merge as one
+        const simulatedServiceIds = scenario.attributes.services.filter(
+            (serviceId) =>
+                !(jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || []).includes(serviceId)
+        );
+        if (simulatedServiceIds.length === 0) {
+            console.log('no simulated services to save for scenario', scenario.attributes.name);
+            return undefined;
+        }
+
+        // Create a new service for this scenario and save to DB
+        const service = new Service(
+            {
+                name: `ND_${scenario.attributes.name}`,
+                monday: true,
+                tuesday: true,
+                wednesday: true,
+                thursday: true,
+                friday: true,
+                saturday: true,
+                sunday: true,
+                start_date: moment().format('YYYY-MM-DD'),
+                end_date: moment().format('YYYY-MM-DD'),
+                data: { forJob: jobWrapper.job.id }
+            },
+            true,
+            jobWrapper.collectionManager
+        );
+        await service.save(serviceLocator.socketEventManager);
+
+        // For each service to merge and save, find the lines that has them
+        const modifiedLines = {};
+        for (let i = 0; i < simulatedServiceIds.length; i++) {
+            const servicedLines = jobWrapper.simulatedLineCollection
+                .getFeatures()
+                .filter((line) => line.attributes.scheduleByServiceId[simulatedServiceIds[i]] !== undefined);
+            // Copy the schedules for those services, extend the schedule for
+            // the entire day, add the service to the line, then save to the
+            // database
+            for (let lineIdx = 0; lineIdx < servicedLines.length; lineIdx++) {
+                const servicedLine = servicedLines[lineIdx];
+                const currentSchedule = new Schedule(
+                    servicedLine.attributes.scheduleByServiceId[simulatedServiceIds[i]],
+                    true
+                );
+                // Copy the schedule and extend to full day
+                const scheduleAttributes = currentSchedule.getClonedAttributes(true);
+                // Remove the constraints on custom start/end times to allow to extend to full day
+                (scheduleAttributes.periods || []).forEach((period) => {
+                    delete period.custom_start_at_str;
+                    delete period.custom_end_at_str;
+                    return period;
+                });
+                scheduleAttributes.service_id = service.getId();
+                const schedule = new Schedule(scheduleAttributes, true, jobWrapper.collectionManager);
+                // Recreate schedule for full day period, without time constraints
+                schedule.attributes.periods.forEach((period) => {
+                    if (period.period_shortname) {
+                        schedule.generateForPeriod(period.period_shortname);
+                    }
+                });
+                // Add the schedule to the line with the new service
+                servicedLine.addSchedule(schedule);
+                // Save the schedules to DB
+                await schedule.save(serviceLocator.socketEventManager);
+                modifiedLines[servicedLine.getId()] = servicedLine;
+            }
+        }
+
+        // Create a new scenario, using the new service, as well as non-simulated services and save to DB
+        const newScenario = new Scenario(
+            {
+                name: scenario.attributes.name,
+                services: [
+                    service.getId(),
+                    ...(jobWrapper.parameters.transitNetworkDesignParameters.nonSimulatedServices || [])
+                ],
+                data: { forJob: jobWrapper.job.id }
+            },
+            true
+        );
+        await newScenario.save(serviceLocator.socketEventManager);
+
+        return {
+            scenarioId: newScenario.getId(),
+            lineIds: Object.keys(modifiedLines)
+        };
+    } catch (error) {
+        console.error('Error saving simulation scenario:', error);
         return undefined;
     }
-
-    // Create a new service for this scenario and save to DB
-    const service = new Service(
-        {
-            name: `simulation_${scenario.attributes.name}`,
-            monday: true,
-            tuesday: true,
-            wednesday: true,
-            thursday: true,
-            friday: true,
-            saturday: true,
-            sunday: true,
-            start_date: moment().format('YYYY-MM-DD'),
-            end_date: moment().format('YYYY-MM-DD'),
-            simulation_id: options.simulationRun.attributes.simulation_id
-        },
-        true
-    );
-    await service.save(socket);
-
-    // For each service to merge and save, find the lines that has them
-    for (let i = 0; i < simulatedServiceIds.length; i++) {
-        const servicedLines = options.lineCollection
-            .getFeatures()
-            .filter((line) => line.attributes.scheduleByServiceId[simulatedServiceIds[i]] !== undefined);
-        // Copy the schedules for those services, add the service to the line, then save to the database
-        for (let lineIdx = 0; lineIdx < servicedLines.length; lineIdx++) {
-            const currentSchedule = new Schedule(
-                servicedLines[lineIdx].attributes.scheduleByServiceId[simulatedServiceIds[i]],
-                true
-            );
-            const scheduleAttributes = currentSchedule.getClonedAttributes(true);
-            scheduleAttributes.service_id = service.getId();
-            const schedule = new Schedule(scheduleAttributes, true);
-            servicedLines[lineIdx].addSchedule(schedule);
-            // Save the schedules to DB
-            await schedule.save(socket);
-        }
-    }
-
-    // Create a new scenario, using the new service, as well as non-simulated services and save to DB
-    const newScenario = new Scenario(
-        {
-            name: scenario.attributes.name,
-            services: [service.getId(), ...options.nonSimulatedServices],
-            simulation_id: options.simulationRun.attributes.simulation_id
-        },
-        true
-    );
-    await newScenario.save(socket);
-
-    return newScenario.getId();
 };

@@ -25,7 +25,7 @@ export type AlgorithmType = keyof AlgorithmRegistry;
  */
 export type AlgorithmConfigurationByType<T extends AlgorithmType> = {
     type: T;
-    config: Partial<AlgorithmRegistry[T]>;
+    config: AlgorithmRegistry[T];
 };
 
 /**
