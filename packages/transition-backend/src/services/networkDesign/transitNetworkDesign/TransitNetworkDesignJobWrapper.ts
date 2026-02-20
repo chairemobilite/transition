@@ -207,6 +207,16 @@ export class TransitNetworkDesignJobWrapper<
             `${absoluteCacheDirectory}/services.capnpbin`,
             true
         );
+
+        this.addCacheSymlink();
+
+        console.log(`Prepared cache directory files to ${absoluteCacheDirectory} from ${mainCacheDirectory}`);
+    };
+
+    addCacheSymlink = () => {
+        const absoluteCacheDirectory = this.getCacheDirectory();
+        const mainCacheDirectory = `${fileManager.directoryManager.cacheDirectory}/${config.projectShortname}`;
+
         // FIXME HACK Add a symlink from mainCacheDirectory to the job cache
         // directory because the path in the json to capnp server is relative to
         // main cache path Create symbolic link pointing to the job cache
@@ -234,8 +244,6 @@ export class TransitNetworkDesignJobWrapper<
         } catch (error) {
             console.warn(`Failed to create symbolic link: ${error}`);
         }
-
-        console.log(`Prepared cache directory files to ${absoluteCacheDirectory} from ${mainCacheDirectory}`);
     };
 
     async addMessages(messages: {

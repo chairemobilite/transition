@@ -259,6 +259,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         // FIXME We need to have the paths and lines loaded in a CollectionManager to save the scenarios and re-generate schedules at the end. But not the whole data
         await this.loadServerData(serviceLocator.socketEventManager);
 
+        // Add the symlink to the cache data, the main cache may have been reinitialized since the last execution.
+        this.addCacheSymlink();
+
         // Get the simulated lines from cache, to make sure the order is the same as before
         const simulatedLineCollection = await lineCollectionFromCache(this.getCacheDirectory() + '/simulatedLines');
         this.simulatedLineCollection = simulatedLineCollection;
