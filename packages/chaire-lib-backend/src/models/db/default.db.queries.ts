@@ -6,8 +6,7 @@
  */
 import { validate as uuidValidate } from 'uuid';
 import { Knex } from 'knex';
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-
+import type { Idable } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 // TODO Move these to a generic class, so we can use identical types for U and T in generic methods.
@@ -100,16 +99,16 @@ export const exists = async (
  * optional transaction of which this insert is part of.
  * @returns The requested `returning` field values.
  */
-export const create = async <T extends GenericAttributes, U>(
+export const create = async <T extends Idable, U>(
     knex: Knex,
     tableName: string,
-    parser: ((arg: T) => U) | undefined,
-    newObject: T,
+    parser: ((arg: Partial<T>) => U) | undefined,
+    newObject: Partial<T>,
     options: {
         returning?: string | string[];
         transaction?: Knex.Transaction;
     } = { returning: 'id' }
-): Promise<string | { [key: string]: unknown }> => {
+): Promise<string | number | { [key: string]: unknown }> => {
     try {
         const returning = options.returning || 'id';
         const _newObject = parser ? parser(newObject) : newObject;
@@ -143,11 +142,11 @@ export const create = async <T extends GenericAttributes, U>(
  * @returns An array with the requested `returning` field values for all
  * records.
  */
-export const createMultiple = async <T extends GenericAttributes, U>(
+export const createMultiple = async <T extends Idable, U>(
     knex: Knex,
     tableName: string,
-    parser: ((arg: T) => U) | undefined,
-    newObjects: T[],
+    parser: ((arg: Partial<T>) => U) | undefined,
+    newObjects: Partial<T>[],
     options: {
         returning?: string | string[];
         transaction?: Knex.Transaction;
@@ -203,7 +202,7 @@ export const createMultiple = async <T extends GenericAttributes, U>(
  * @returns The object attributes obtained after the `parser` function was run
  * on the read record.
  */
-export const read = async <T extends GenericAttributes, U>(
+export const read = async <T extends Idable, U>(
     knex: Knex,
     tableName: string,
     parser: ((arg: U) => Partial<T>) | undefined,
@@ -262,7 +261,7 @@ export const read = async <T extends GenericAttributes, U>(
  * optional transaction of which this update is part of.
  * @returns The requested `returning` field. Defaults to the ID of the object
  */
-export const update = async <T extends GenericAttributes, U>(
+export const update = async <T extends Idable, U>(
     knex: Knex,
     tableName: string,
     parser: ((arg: Partial<T>) => U) | undefined,
@@ -315,7 +314,7 @@ export const update = async <T extends GenericAttributes, U>(
  * @returns The requested `returning` fields for each object. Defaults to the
  * IDs of the object
  */
-export const updateMultiple = async <T extends GenericAttributes, U>(
+export const updateMultiple = async <T extends Idable, U>(
     knex: Knex,
     tableName: string,
     parser: ((arg: Partial<T>) => U) | undefined,
@@ -324,7 +323,7 @@ export const updateMultiple = async <T extends GenericAttributes, U>(
         returning?: string | string[];
         transaction?: Knex.Transaction;
     } = {}
-): Promise<string[][]> => {
+): Promise<(string | number)[][]> => {
     const _attributeCollection: any[] = parser
         ? attributeCollection.map((attribute) => parser(attribute))
         : attributeCollection;
@@ -449,7 +448,7 @@ export const deleteMultiple = async (
  * @param dataSourceId The ID of the datasource for which to delete records
  * @param options Additional options parameter. `transaction` is an optional
  * transaction of which this delete is part of.
- * @returns
+ * @returns The data source ID
  */
 export const deleteForDataSourceId = async (
     knex: Knex,

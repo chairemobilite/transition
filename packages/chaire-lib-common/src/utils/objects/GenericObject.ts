@@ -13,6 +13,11 @@ import _camelCase from 'lodash/camelCase';
 import _upperFirst from 'lodash/upperFirst';
 import _merge from 'lodash/merge';
 
+/**
+ * Type for objects that have an id, either a string (uuid) or a number (integer id).
+ */
+export type Idable = { id: string | number };
+
 export interface GenericAttributes {
     id: string;
     data: { [key: string]: unknown };
