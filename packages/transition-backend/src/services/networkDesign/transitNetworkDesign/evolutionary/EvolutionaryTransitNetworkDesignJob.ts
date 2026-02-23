@@ -499,7 +499,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             simulationMethod: '',
             fitnessScore: undefined,
             routedCount: undefined,
-            nonRoutedCount: undefined
+            nonRoutedCount: undefined,
+            sampleFileLinesCount: undefined,
+            sampleTotalWeight: undefined
         };
 
         // Register the output files and create streams
@@ -549,7 +551,11 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                 simulationMethod: row.simulation_method,
                 fitnessScore: parseFloat(row.fitness_score),
                 routedCount: typeof row.data?.routedCount === 'number' ? row.data.routedCount : undefined,
-                nonRoutedCount: typeof row.data?.nonRoutedCount === 'number' ? row.data.nonRoutedCount : undefined
+                nonRoutedCount: typeof row.data?.nonRoutedCount === 'number' ? row.data.nonRoutedCount : undefined,
+                sampleFileLinesCount:
+                    typeof row.data?.sampleFileLinesCount === 'number' ? row.data.sampleFileLinesCount : undefined,
+                sampleTotalWeight:
+                    typeof row.data?.sampleTotalWeight === 'number' ? row.data.sampleTotalWeight : undefined
             };
             simulationsCsvStream.write(unparse([csvAttributes], { header: false }) + '\n');
         }

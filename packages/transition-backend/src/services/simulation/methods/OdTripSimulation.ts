@@ -62,6 +62,8 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
     private totalWaitingTimeMinutes = 0;
     private totalTravelTimeMinutes = 0;
     private countByNumberOfTransfers = new Array(6).fill(0); // max 4, last is 5+
+    private sampleFileLinesCount = 0;
+    private sampleTotalWeight = 0;
 
     constructor(
         private job: ExecutableJob<BatchRouteJobType>,
@@ -100,6 +102,8 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
     visitTripResult = async (odTripResult: OdTripRouteResult) => {
         const transitResult = odTripResult.results?.transit;
         const expansionFactor = this.getExpansionFactor(odTripResult);
+        this.sampleFileLinesCount++;
+        this.sampleTotalWeight += expansionFactor;
         if (transitResult && transitResult.error === undefined) {
             const route = transitResult.paths[0];
 
@@ -171,7 +175,9 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
             routableHourlyCost: Math.round(this.totalRoutableUsersCost / durationHours),
             nonRoutableHourlyCost: Math.round(this.totalNonRoutableUsersCost / durationHours),
             totalTravelTimeSecondsFromTrRouting: 0, // TODO Is that used
-            countByNumberOfTransfers: this.countByNumberOfTransfers
+            countByNumberOfTransfers: this.countByNumberOfTransfers,
+            sampleFileLinesCount: this.sampleFileLinesCount,
+            sampleTotalWeight: this.sampleTotalWeight
         };
     }
 }

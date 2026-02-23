@@ -30,6 +30,9 @@ export type SimulationStats = {
     nonRoutableHourlyCost: number;
     totalTravelTimeSecondsFromTrRouting: number;
     countByNumberOfTransfers: { [key: number]: number };
+    sampleFileLinesCount: number;
+    // Total weight of the sample, which can be different from the total count if the sample is weighted
+    sampleTotalWeight: number;
 };
 
 /**
