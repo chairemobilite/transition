@@ -9,7 +9,7 @@ import { MapMatchingResults, MapLeg } from 'chaire-lib-common/lib/services/routi
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { roundSecondsToNearestMinute } from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import { roundSecondsToNearestMinute, roundSecondsToNearestQuarter } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import {
     durationFromAccelerationDecelerationDistanceAndRunningSpeed,
@@ -61,9 +61,7 @@ const calculateSegmentDuration = (
             : kphToMps(defaultRunningSpeed);
 
     const noDwellTimeDuration =
-        routingEngine === 'engine' || _isBlank(defaultRunningSpeed)
-            ? segmentDuration
-            : segmentDistance / runningSpeed;
+        routingEngine === 'engine' || _isBlank(defaultRunningSpeed) ? segmentDuration : segmentDistance / runningSpeed;
 
     const calculatedSegmentDuration = Math.ceil(
         durationFromAccelerationDecelerationDistanceAndRunningSpeed(
@@ -85,7 +83,6 @@ const calculateSegmentDuration = (
 
     return { calculatedDuration, noDwellTimeDuration };
 };
-
 
 const getOldSegmentIndexForInsert = (newSegmentIndex: number, insertIndex: number): number => {
     if (newSegmentIndex < insertIndex - 1) {
@@ -220,7 +217,11 @@ const buildSegmentsAndGeometry = (
             segments.push(segmentCoordinatesStartIndex);
             segmentsData.push({ travelTimeSeconds: segmentDuration, distanceMeters: segmentDistance });
         } else if (nextIsNode && (nodeIds as any[])[nextNodeIndex]) {
-            const { calculatedDuration, noDwellTimeDuration } = calculateSegmentDuration(path, segmentDistance, segmentDuration);
+            const { calculatedDuration, noDwellTimeDuration } = calculateSegmentDuration(
+                path,
+                segmentDistance,
+                segmentDuration
+            );
             const dwellTimeSeconds = getDwellTimeSecondsForNode(path, (nodeIds as any[])[nextNodeIndex]);
 
             const segmentIndex = segments.length;
@@ -245,11 +246,16 @@ const buildSegmentsAndGeometry = (
         }
     }
 
-    const ratioDifferenceTime = numberOfSegmentsCulminated > 0
-        ? ratioCulminate / numberOfSegmentsCulminated
-        : 1;
+    const ratioDifferenceTime = numberOfSegmentsCulminated > 0 ? ratioCulminate / numberOfSegmentsCulminated : 1;
 
-    return { globalCoordinates, segments, segmentsData, noDwellTimeDurations, dwellTimeSecondsData, ratioDifferenceTime };
+    return {
+        globalCoordinates,
+        segments,
+        segmentsData,
+        noDwellTimeDurations,
+        dwellTimeSecondsData,
+        ratioDifferenceTime
+    };
 };
 
 const adjustTimesAndComputeTotals = (
@@ -279,7 +285,9 @@ const adjustTimesAndComputeTotals = (
         const isChangedSegment = changedSegmentIndex !== undefined && s === changedSegmentIndex;
         if (previousTime !== undefined && !isChangedSegment) {
             const oldDwellTime = oldDwellTimesData[oldIndex + 1] || 0;
-            segmentsData[s].travelTimeSeconds = Math.ceil(oldDwellTime === 0 ? previousTime - dwellTimeSecondsData[s + 1] : previousTime);
+            segmentsData[s].travelTimeSeconds = Math.ceil(
+                oldDwellTime === 0 ? previousTime - dwellTimeSecondsData[s + 1] : previousTime
+            );
         } else {
             segmentsData[s].travelTimeSeconds = Math.ceil(segmentsData[s].travelTimeSeconds * ratioDifferenceTime);
         }
@@ -291,9 +299,21 @@ const adjustTimesAndComputeTotals = (
         totalTravelTimeWithReturnBackSeconds += segmentsData[s].travelTimeSeconds + dwellTime;
     }
 
-    totalTravelTimeWithoutDwellTimesSeconds = roundSecondsToNearestMinute(totalTravelTimeWithoutDwellTimesSeconds, Math.ceil);
-    totalTravelTimeWithDwellTimesSeconds = roundSecondsToNearestMinute(totalTravelTimeWithDwellTimesSeconds, Math.ceil);
-    totalTravelTimeWithReturnBackSeconds = roundSecondsToNearestMinute(totalTravelTimeWithReturnBackSeconds, Math.ceil);
+    totalTravelTimeWithoutDwellTimesSeconds = roundSecondsToNearestQuarter(
+        totalTravelTimeWithoutDwellTimesSeconds,
+        15,
+        Math.ceil
+    );
+    totalTravelTimeWithDwellTimesSeconds = roundSecondsToNearestQuarter(
+        totalTravelTimeWithDwellTimesSeconds,
+        15,
+        Math.ceil
+    );
+    totalTravelTimeWithReturnBackSeconds = roundSecondsToNearestQuarter(
+        totalTravelTimeWithReturnBackSeconds,
+        15,
+        Math.ceil
+    );
 
     const layoverTimeSeconds = calculateLayoverSeconds(path, totalTravelTimeWithDwellTimesSeconds);
 
@@ -317,11 +337,33 @@ const handleLegs = (path: Path, points: Geojson.Feature<Geojson.Point>[], legs: 
     const oldSegmentsData: TimeAndDistance[] = path.attributes.data.segments || [];
     const oldDwellTimesData: number[] = path.attributes.data.dwellTimeSeconds || [];
 
-    const { globalCoordinates, segments, segmentsData, noDwellTimeDurations, dwellTimeSecondsData, ratioDifferenceTime } =
-        buildSegmentsAndGeometry(path, points, legs, oldSegmentsData, oldDwellTimesData, lastNodeChange, changedSegmentIndex);
+    const {
+        globalCoordinates,
+        segments,
+        segmentsData,
+        noDwellTimeDurations,
+        dwellTimeSecondsData,
+        ratioDifferenceTime
+    } = buildSegmentsAndGeometry(
+        path,
+        points,
+        legs,
+        oldSegmentsData,
+        oldDwellTimesData,
+        lastNodeChange,
+        changedSegmentIndex
+    );
 
     const newData = adjustTimesAndComputeTotals(
-        path, segmentsData, noDwellTimeDurations, dwellTimeSecondsData, oldSegmentsData, oldDwellTimesData, ratioDifferenceTime, lastNodeChange, changedSegmentIndex
+        path,
+        segmentsData,
+        noDwellTimeDurations,
+        dwellTimeSecondsData,
+        oldSegmentsData,
+        oldDwellTimesData,
+        ratioDifferenceTime,
+        lastNodeChange,
+        changedSegmentIndex
     );
 
     path.set('geography', { type: 'LineString', coordinates: globalCoordinates });

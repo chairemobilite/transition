@@ -86,6 +86,34 @@ test('roundSecondsToNearestMinute', function() {
     expect(DateTimeUtils.roundSecondsToNearestMinute(Math.PI)).toBe(60);
 });
 
+test('roundSecondsToNearestQuarter', function() {
+    // interval = 15 (ceil)
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(0, 15)).toBe(0);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(1, 15)).toBe(15);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(14, 15)).toBe(15);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(15, 15)).toBe(15);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(16, 15)).toBe(30);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(59, 15)).toBe(60);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(60, 15)).toBe(60);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(61, 15)).toBe(75);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(725, 15)).toBe(735);
+    // interval = 15 (floor)
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(0, 15, Math.floor)).toBe(0);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(14, 15, Math.floor)).toBe(0);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(29, 15, Math.floor)).toBe(15);
+    // interval = 15 (round)
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(7, 15, Math.round)).toBe(0);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(8, 15, Math.round)).toBe(15);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(22, 15, Math.round)).toBe(15);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(23, 15, Math.round)).toBe(30);
+    // interval = 60 should behave like roundSecondsToNearestMinute
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(10, 60)).toBe(60);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(60, 60)).toBe(60);
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(256, 60)).toBe(300);
+    // edge cases
+    expect(DateTimeUtils.roundSecondsToNearestQuarter(Infinity, 15)).toBe(Infinity);
+});
+
 
 describe('toXXhrYYminZZsec', () => {
     // Mock translation function to simply return the key
