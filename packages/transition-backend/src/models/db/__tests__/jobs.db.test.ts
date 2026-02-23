@@ -199,6 +199,20 @@ describe(`${objectName}`, () => {
         expect(_collection3.length).toBe(0);
     });
 
+    test('getJobStatus should return the status of a job', async() => {
+        // Job status was updated to inProgress in a previous test, so should return that status
+        const status = await dbQueries.getJobStatus(currentIdForObject1 as number);
+        expect(status).toBe(newObjectAttributes.status);
+
+    });
+
+    test('getJobStatus should return undefined for a non-existent job', async() => {
+        // Job does not exist, so it should return undefined, not throw an error
+        const status = await dbQueries.getJobStatus(currentIdForObject1 as number + 100);
+        expect(status).toBeUndefined();
+
+    });
+
     test('Read collections for specific user', async() => {
 
         // Add a user and a job for this user

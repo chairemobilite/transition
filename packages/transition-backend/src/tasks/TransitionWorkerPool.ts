@@ -15,7 +15,7 @@ import OSRMProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSR
 import { ExecutableJob } from '../services/executableJob/ExecutableJob';
 import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
 import { BatchAccessMapJobType } from '../services/transitRouting/BatchAccessibilityMapJob';
-import { JobDataType } from 'transition-common/lib/services/jobs/Job';
+import { JobDataType, JobStatus } from 'transition-common/lib/services/jobs/Job';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
@@ -61,22 +61,33 @@ const isDiskSpaceSufficient = (task: ExecutableJob<JobDataType>) => {
 };
 
 const getTaskCancelledFct = (task: ExecutableJob<JobDataType>) => {
-    let refreshError = false;
+    let currentStatus: JobStatus | undefined = task.status;
+    let errorCount = 0;
     // Poll cancellation every 5 seconds
     const intervalObj = setInterval(() => {
-        task.refresh()
-            .then(() => {
+        ExecutableJob.getJobStatus(task.attributes.id)
+            .then((status) => {
+                currentStatus = status;
+                errorCount = 0; // reset error count on success
                 // Cancel polling whenever status is not in progress anymore
-                if (task.status !== 'inProgress') {
+                if (currentStatus !== 'inProgress') {
                     clearInterval(intervalObj);
                 }
             })
-            .catch(() => (refreshError = true)); // This will catch deleted jobs
+            .catch((error) => {
+                console.error('Error polling job status for cancellation: ', error);
+                errorCount += 1;
+                // If there's an error, set to undefined and stop after a few errors to avoid cancelling jobs by mistake because of transient errors
+                if (errorCount >= 3) {
+                    currentStatus = undefined;
+                    clearInterval(intervalObj);
+                }
+            });
     }, 5000);
     // TODO Consider different callbacks for paused and cancelled, or at least
     // some way for the job executor to know which one it is (deleted, cancelled
     // or paused)
-    return () => refreshError || task.status === 'cancelled' || task.status === 'paused';
+    return () => currentStatus === 'cancelled' || currentStatus === 'paused' || currentStatus === undefined;
 };
 
 const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>): Promise<boolean> => {
@@ -87,6 +98,12 @@ const wrapBatchRoute = async (task: ExecutableJob<BatchRouteJobType>): Promise<b
         progressEmitter: newProgressEmitter(task),
         isCancelled: getTaskCancelledFct(task)
     });
+    // FIXME Consider uniformizing the way resources and results are saved in
+    // the task, either documenting it is the task's responsibility, or doing it
+    // in a wrapper function. But it should be avoided to count on each wrapper
+    // refreshing the task. Revisit when merging the evolutionary transit
+    // network design job, which does it differently
+    await task.refresh(); // Refresh the task to make sure we have the latest version before saving results, in case it was updated while the batch was running
     task.attributes.data.results = result;
     task.attributes.resources = { files };
     // Set status messages if there are errors or warnings
@@ -108,6 +125,12 @@ const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>): P
         newProgressEmitter(task),
         getTaskCancelledFct(task)
     );
+    // FIXME Consider uniformizing the way resources and results are saved in
+    // the task, either documenting it is the task's responsibility, or doing it
+    // in a wrapper function. But it should be avoided to count on each wrapper
+    // refreshing the task. Revisit when merging the evolutionary transit
+    // network design job, which does it differently
+    await task.refresh(); // Refresh the task to make sure we have the latest version before saving results, in case it was updated while the batch was running
     task.attributes.data.results = result;
     task.attributes.resources = { files };
     // Set status messages if there are errors or warnings
