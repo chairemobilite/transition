@@ -541,3 +541,46 @@ test('Generate From Routing With Errors', async() => {
     expect(complexPath.attributes.data.geographyErrors.waypoints.length).toEqual(0);
     expect(complexPath.attributes.segments).toBeFalsy();
 });
+test('Generate From Routing with custom layover minutes', async() => {
+    const pathWithLayover = new TransitPathStub({
+        id: 'path1',
+        line_id: line.get('id'),
+        nodes: [ node1.properties.id, node4.properties.id ],
+        data: {
+            nodeTypes: ['engine', 'engine'],
+            routingEngine: 'engine',
+            routingMode: 'driving',
+            defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
+            defaultAcceleration: DEFAULT_ACC_DEC,
+            defaultDeceleration: DEFAULT_ACC_DEC,
+            defaultRunningSpeedKmH: DEFAULT_SPEED,
+            maxRunningSpeedKmH: DEFAULT_MAX_SPEED,
+            customLayoverMinutes: 5
+        }
+    }) as any;
+
+    const routingResult = {
+        tracepoints: [node1, node4],
+        matchings: [{
+            confidence: 99,
+            distance: 1000,
+            duration: 66.67,
+            legs: [{
+                distance: 1000,
+                duration: 66.67,
+                steps: [{
+                    distance: 1000,
+                    geometry: { type: 'LineString' as const,
+                        coordinates: [node1.geometry.coordinates, node4.geometry.coordinates] }
+                }]
+            }]
+        }]
+    };
+
+    const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(pathWithLayover, DEFAULT_SPEED/3.6);
+    generatePathGeographyFromRouting(pathWithLayover, nodeGeojson, [routingResult]);
+
+    expect(pathWithLayover.attributes.data.routingFailed).toBeFalsy();
+    // Custom layover = 5 minutes = 300 seconds
+    expect(pathWithLayover.attributes.data.layoverTimeSeconds).toEqual(300);
+});
