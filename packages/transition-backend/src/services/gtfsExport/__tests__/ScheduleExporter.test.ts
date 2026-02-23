@@ -266,7 +266,7 @@ test('Test exporting one schedule', async () => {
         `"${lineId}","${sluggedServiceId}","${scheduleAttributes1.periods[0].trips[1].id}","${pathAttributes.name}",,0,,"${pathAttributes.id}",,`,
         `"${lineId}","${sluggedServiceId}","${scheduleAttributes1.periods[0].trips[2].id}","${pathAttributes.name}",,0,,"${pathAttributes.id}",,`,
         `"${lineId}","${sluggedServiceId}","${scheduleAttributes1.periods[1].trips[0].id}","${pathAttributes.name}",,0,,"${pathAttributes.id}",,`,
-    ].join('\n'));
+    ].join('\n') + '\n');
     expect(mockWriteStopTimeStream.write).toHaveBeenCalledTimes(1);
     // Match strings for each trip individually, to better catch errors in one trip
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
@@ -310,7 +310,7 @@ test('Test exporting one schedule including multiple paths', async () => {
         '"route_id","service_id","trip_id","trip_headsign","trip_short_name","direction_id","block_id","shape_id","wheelchair_accessible","bikes_allowed"',
         `"${lineId}","${sluggedServiceId2}","${scheduleAttributes2.periods[0].trips[0].id}","${pathAttributes.name}",,0,"${scheduleAttributes2.periods[0].trips[0].block_id}","${scheduleAttributes2.periods[0].trips[0].path_id}",,`,
         `"${lineId}","${sluggedServiceId2}","${scheduleAttributes2.periods[0].trips[1].id}","${pathAttributes.name}",,0,"${scheduleAttributes2.periods[0].trips[1].block_id}","${scheduleAttributes2.periods[0].trips[1].path_id}",,`,
-    ].join('\n'));
+    ].join('\n') + '\n');
     expect(mockWriteStopTimeStream.write).toHaveBeenCalledTimes(1);
     // Match strings for each trip individually, to better catch errors in one trip
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
@@ -338,12 +338,12 @@ test('Test exporting multiple schedules', async () => {
     expect((response as any).pathIds).toEqual([pathAttributes.id, pathAttributes2.id]);
 
     expect(mockWriteTripStream.write).toHaveBeenCalledTimes(1);
-    // Make sure the number of lines matches (6 trips + header)
-    expect((mockWriteTripStream.write.mock.calls[0][0] as string).split('\n').length).toEqual(7);
+    // Make sure the number of lines matches (6 trips + header + last newline)
+    expect((mockWriteTripStream.write.mock.calls[0][0] as string).split('\n').length).toEqual(8);
 
     expect(mockWriteStopTimeStream.write).toHaveBeenCalledTimes(1);
-    // Make sure the number of lines matches (6 trips * 4 stops + header)
-    expect((mockWriteStopTimeStream.write.mock.calls[0][0] as string).split('\n').length).toEqual(25);
+    // Make sure the number of lines matches (6 trips * 4 stops + header + last newline)
+    expect((mockWriteStopTimeStream.write.mock.calls[0][0] as string).split('\n').length).toEqual(26);
 
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/trips.txt'));
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/stop_times.txt'));
@@ -360,20 +360,26 @@ test('Test exporting multiple chunks of schedules', async () => {
     expect((response as any).pathIds).toEqual([pathAttributes.id]);
 
     expect(mockWriteTripStream.write).toHaveBeenCalledTimes(writeCount);
-    // Make sure the number of lines matches (4 trips * 100 schedules + header)
-    expect((mockWriteTripStream.write.mock.calls[0][0] as string).split('\n').length).toEqual(4 * 100 + 1);
+    // Make sure the number of lines matches (4 trips * 100 schedules + header + last newline)
+    expect((mockWriteTripStream.write.mock.calls[0][0] as string).split('\n').length).toEqual(4 * 100 + 1 + 1);
     // Subsequent calls do not have headers
     for (let i = 1; i < writeCount; i++) {
-        expect((mockWriteTripStream.write.mock.calls[i][0] as string).split('\n').length).toEqual(4 * 100);
+        expect((mockWriteTripStream.write.mock.calls[i][0] as string).split('\n').length).toEqual(4 * 100 + 1);
     }
 
     expect(mockWriteStopTimeStream.write).toHaveBeenCalledTimes(writeCount);
-    // Make sure the number of lines matches (4 trips * 4 stops for 100 schedules + header)
-    expect((mockWriteStopTimeStream.write.mock.calls[0][0] as string).split('\n').length).toEqual(4 * 4 * 100 + 1);
+    // Make sure the number of lines matches (4 trips * 4 stops for 100 schedules + header + last newline)
+    expect((mockWriteStopTimeStream.write.mock.calls[0][0] as string).split('\n').length).toEqual(4 * 4 * 100 + 1 + 1);
     // Subsequent calls do not have headers
     for (let i = 1; i < writeCount; i++) {
-        expect((mockWriteStopTimeStream.write.mock.calls[i][0] as string).split('\n').length).toEqual(4 * 4 * 100);
+        expect((mockWriteStopTimeStream.write.mock.calls[i][0] as string).split('\n').length).toEqual(4 * 4 * 100 + 1);
     }
+
+    // Verify the concatenated output has the correct total number of lines (no missing newlines between batches)
+    const allTrips = mockWriteTripStream.write.mock.calls.map((call) => call[0] as string).join('');
+    expect(allTrips.split('\n').length).toEqual(4 * 1000 + 1 + 1); // 4 trips per schedule * 1000 schedules + header + last newline
+    const allStopTimes = mockWriteStopTimeStream.write.mock.calls.map((call) => call[0] as string).join('');
+    expect(allStopTimes.split('\n').length).toEqual(4 * 4 * 1000 + 1 + 1); // 4 trips * 4 stops per schedule * 1000 schedules + header + last newline
 
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/trips.txt'));
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/stop_times.txt'));

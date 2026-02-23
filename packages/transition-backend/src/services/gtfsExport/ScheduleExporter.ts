@@ -192,7 +192,7 @@ const exportScheduleForLineSubset = async (
                     newline: '\n',
                     quotes: options.quotesFct,
                     header: shouldWriteTripHeader
-                })
+                }) + '\n' // add trailing newline between batches which was not added by papaparse
             );
             // Wait for the stream to drain if necessary to avoid losing data when writing more later
             if (!fileOk) {
@@ -208,7 +208,7 @@ const exportScheduleForLineSubset = async (
                     newline: '\n',
                     quotes: options.quotesFct,
                     header: shouldWriteStopTimesHeader
-                })
+                }) + '\n' // add trailing newline between batches which was not added by papaparse
             );
             // Wait for the stream to drain if necessary to avoid losing data when writing more later
             if (!fileOk) {
