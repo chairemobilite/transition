@@ -8,7 +8,7 @@ import { TransitObjectStub, GenericCollectionStub } from '../../__tests__/Transi
 import { generatePathGeographyFromRouting } from '../PathGeographyGenerator';
 import { pathGeographyUtils as PathGeographyUtils } from '../PathGeographyUtils';
 import { TestUtils } from 'chaire-lib-common/lib/test';
-import { roundSecondsToNearestMinute } from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import { roundSecondsToNearestQuarterMinute } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 
 const node1: any = TestUtils.makePoint([-73.745618, 45.368994], { routing_radius_meters: 50, id: 'node1' }, { id: 1 });
 const node2: any = TestUtils.makePoint([-73.742861, 45.361682], { routing_radius_meters: 100, id: 'node2' }, { id: 2 });
@@ -116,8 +116,8 @@ test('Generate From Routing Total Calculations', async() => {
     const expectedDwellTime = 20;
     let expectedTotalTime = expectedTravelTimes.reduce(sum, 0);
     let expectedTotalDistance = expectedDistances.reduce(sum, 0);
-    let expectedNoDwellTime = roundSecondsToNearestMinute(expectedNoDwellTimes.reduce(sum, 0), Math.ceil);
-    let expectedOperatingTime = roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil);
+    let expectedNoDwellTime = roundSecondsToNearestQuarterMinute(expectedNoDwellTimes.reduce(sum, 0));
+    let expectedOperatingTime = roundSecondsToNearestQuarterMinute(expectedTotalTime + expectedDwellTime);
     expect(simplePath.attributes.data.segments).toEqual([{
         travelTimeSeconds: expectedTravelTimes[0],
         distanceMeters: expectedDistances[0]
@@ -126,7 +126,7 @@ test('Generate From Routing Total Calculations', async() => {
     expect(simplePath.attributes.data).toEqual(expect.objectContaining({
         dwellTimeSeconds: [0, 20],
         layoverTimeSeconds: LAYOVER_TIME,
-        travelTimeWithoutDwellTimesSeconds: roundSecondsToNearestMinute(expectedNoDwellTime, Math.ceil),
+        travelTimeWithoutDwellTimesSeconds: roundSecondsToNearestQuarterMinute(expectedNoDwellTime),
         totalDistanceMeters: expectedTotalDistance,
         totalDwellTimeSeconds: expectedDwellTime,
         operatingTimeWithoutLayoverTimeSeconds: expectedOperatingTime,
@@ -169,8 +169,8 @@ test('Generate From Routing Total Calculations', async() => {
     expectedDistances = [1000];
     expectedTotalTime = expectedTravelTimes.reduce(sum, 0);
     expectedTotalDistance = expectedDistances.reduce(sum, 0);
-    expectedNoDwellTime = roundSecondsToNearestMinute(expectedNoDwellTimes.reduce(sum, 0), Math.ceil);
-    expectedOperatingTime = roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil);
+    expectedNoDwellTime = roundSecondsToNearestQuarterMinute(expectedNoDwellTimes.reduce(sum, 0));
+    expectedOperatingTime = roundSecondsToNearestQuarterMinute(expectedTotalTime + expectedDwellTime);
     expect(simplePath.attributes.data.segments).toEqual([{
         travelTimeSeconds: expectedTravelTimes[0],
         distanceMeters: expectedDistances[0]
@@ -179,7 +179,7 @@ test('Generate From Routing Total Calculations', async() => {
     expect(simplePath.attributes.data).toEqual(expect.objectContaining({
         dwellTimeSeconds: [0, 20],
         layoverTimeSeconds: LAYOVER_TIME,
-        travelTimeWithoutDwellTimesSeconds: roundSecondsToNearestMinute(expectedNoDwellTime, Math.ceil),
+        travelTimeWithoutDwellTimesSeconds: roundSecondsToNearestQuarterMinute(expectedNoDwellTime),
         totalDistanceMeters: expectedTotalDistance,
         totalDwellTimeSeconds: expectedDwellTime,
         operatingTimeWithoutLayoverTimeSeconds: expectedOperatingTime,
@@ -276,15 +276,15 @@ test('Generate From Routing Simple Use Cases', async() => {
     expect(simplePath.attributes.data).toEqual(expect.objectContaining({
         dwellTimeSeconds: [0, 20, 25],
         layoverTimeSeconds: LAYOVER_TIME,
-        travelTimeWithoutDwellTimesSeconds: roundSecondsToNearestMinute(expectedNoDwellTime, Math.ceil),
+        travelTimeWithoutDwellTimesSeconds: roundSecondsToNearestQuarterMinute(expectedNoDwellTime),
         totalDistanceMeters: expectedTotalDistance,
         totalDwellTimeSeconds: expectedDwellTime,
-        operatingTimeWithoutLayoverTimeSeconds: roundSecondsToNearestMinute(expectedDwellTime + expectedTotalTime, Math.ceil),
-        operatingTimeWithLayoverTimeSeconds: roundSecondsToNearestMinute(expectedDwellTime + expectedTotalTime, Math.ceil) + LAYOVER_TIME,
-        totalTravelTimeWithReturnBackSeconds: roundSecondsToNearestMinute(expectedDwellTime + expectedTotalTime, Math.ceil) + LAYOVER_TIME,
-        averageSpeedWithoutDwellTimesMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedNoDwellTime, Math.ceil)),
-        operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil)),
-        operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil) + LAYOVER_TIME)
+        operatingTimeWithoutLayoverTimeSeconds: roundSecondsToNearestQuarterMinute(expectedDwellTime + expectedTotalTime),
+        operatingTimeWithLayoverTimeSeconds: roundSecondsToNearestQuarterMinute(expectedDwellTime + expectedTotalTime) + LAYOVER_TIME,
+        totalTravelTimeWithReturnBackSeconds: roundSecondsToNearestQuarterMinute(expectedDwellTime + expectedTotalTime) + LAYOVER_TIME,
+        averageSpeedWithoutDwellTimesMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestQuarterMinute(expectedNoDwellTime)),
+        operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestQuarterMinute(expectedTotalTime + expectedDwellTime)),
+        operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestQuarterMinute(expectedTotalTime + expectedDwellTime) + LAYOVER_TIME)
     }));
 });
 
@@ -412,7 +412,7 @@ test('Generate From Routing', async() => {
     const expectedDwellTime = 45;
     const expectedTotalTime = expectedTravelTime.reduce(sum, 0);
     const expectedTotalDistance = expectedDistances.reduce(sum, 0);
-    const expectedNoDwellTime = roundSecondsToNearestMinute(expectedNoDwellTimes.reduce(sum, 0), Math.ceil);
+    const expectedNoDwellTime = roundSecondsToNearestQuarterMinute(expectedNoDwellTimes.reduce(sum, 0));
     expect(complexPath.attributes.data.segments).toEqual([{
         travelTimeSeconds: expectedTravelTime[0],
         distanceMeters: expectedDistances[0]
@@ -427,15 +427,15 @@ test('Generate From Routing', async() => {
     expect(complexPath.attributes.data).toEqual(expect.objectContaining({
         dwellTimeSeconds: [0, 20, 25],
         layoverTimeSeconds: LAYOVER_TIME,
-        travelTimeWithoutDwellTimesSeconds:roundSecondsToNearestMinute(expectedNoDwellTime, Math.ceil),
+        travelTimeWithoutDwellTimesSeconds:roundSecondsToNearestQuarterMinute(expectedNoDwellTime),
         totalDistanceMeters: expectedTotalDistance,
         totalDwellTimeSeconds: expectedDwellTime,
-        operatingTimeWithoutLayoverTimeSeconds: roundSecondsToNearestMinute(expectedDwellTime + expectedTotalTime, Math.ceil),
-        operatingTimeWithLayoverTimeSeconds: roundSecondsToNearestMinute(expectedDwellTime + expectedTotalTime, Math.ceil) + LAYOVER_TIME,
-        totalTravelTimeWithReturnBackSeconds: roundSecondsToNearestMinute(expectedDwellTime + expectedTotalTime, Math.ceil)+ LAYOVER_TIME,
-        averageSpeedWithoutDwellTimesMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedNoDwellTime, Math.ceil)),
-        operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil)),
-        operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance,roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil) + LAYOVER_TIME)
+        operatingTimeWithoutLayoverTimeSeconds: roundSecondsToNearestQuarterMinute(expectedDwellTime + expectedTotalTime),
+        operatingTimeWithLayoverTimeSeconds: roundSecondsToNearestQuarterMinute(expectedDwellTime + expectedTotalTime) + LAYOVER_TIME,
+        totalTravelTimeWithReturnBackSeconds: roundSecondsToNearestQuarterMinute(expectedDwellTime + expectedTotalTime)+ LAYOVER_TIME,
+        averageSpeedWithoutDwellTimesMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestQuarterMinute(expectedNoDwellTime)),
+        operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestQuarterMinute(expectedTotalTime + expectedDwellTime)),
+        operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance,roundSecondsToNearestQuarterMinute(expectedTotalTime + expectedDwellTime) + LAYOVER_TIME)
     }));
 });
 
