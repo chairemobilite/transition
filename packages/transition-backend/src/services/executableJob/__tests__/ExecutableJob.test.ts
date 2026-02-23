@@ -60,7 +60,8 @@ jest.mock('../../../models/db/jobs.db.queries', () => {
         create: jest.fn(),
         update: jest.fn().mockResolvedValue(2),
         delete: jest.fn().mockResolvedValue(2),
-        collection: jest.fn()
+        collection: jest.fn(),
+        getJobStatus: jest.fn().mockResolvedValue('pending')
     }
 });
 const mockedJobRead = jobsDbQueries.read as jest.MockedFunction<typeof jobsDbQueries.read>;
@@ -69,6 +70,7 @@ const mockedJobCreate = jobsDbQueries.create as jest.MockedFunction<typeof jobsD
 const mockedJobUpdate = jobsDbQueries.update as jest.MockedFunction<typeof jobsDbQueries.update>;
 const mockedJobDelete = jobsDbQueries.delete as jest.MockedFunction<typeof jobsDbQueries.delete>;
 const mockedJobCollection = jobsDbQueries.collection as jest.MockedFunction<typeof jobsDbQueries.collection>;
+const mockJobStatus = jobsDbQueries.getJobStatus as jest.MockedFunction<typeof jobsDbQueries.getJobStatus>;
 
 jest.mock('../../../tasks/serverWorkerPool', () => (
     { execJob: jest.fn() }
@@ -85,14 +87,7 @@ const mockedFileExists = fileManager.fileExistsAbsolute as jest.MockedFunction<t
 const mockedCopyFile = fileManager.copyFileAbsolute as jest.MockedFunction<typeof fileManager.copyFileAbsolute>;
 
 beforeEach(() => {
-    mockedJobRead.mockClear();
-    mockedJobCreate.mockClear();
-    mockedJobUpdate.mockClear();
-    mockedJobDelete.mockClear();
-    mockedJobCollection.mockClear();
-    mockedPool.mockClear();
-    mockedFileExists.mockClear();
-    mockedCopyFile.mockClear();
+    jest.clearAllMocks();
 });
 
 describe('Test jobs creation', () => {
@@ -186,6 +181,18 @@ test('Test load job', async () => {
     expect(mockedJobRead).toHaveBeenCalledWith(jobAttributes.id);
     expect(jobObj.attributes).toEqual(expect.objectContaining({ id: jobAttributes.id, ...newJobAttributes }));
     expect(jobObj.status).toEqual('pending');
+});
+
+test.each([
+    { description: 'unexistingJob', mockReturnValue: undefined, expectedStatus: undefined },
+    { description: 'pending job', mockReturnValue: 'pending' as const, expectedStatus: 'pending' },
+    { description: 'inProgress job', mockReturnValue: 'inProgress' as const, expectedStatus: 'inProgress' },
+])('Test getJobStatus $description', async ({ mockReturnValue, expectedStatus }) => {
+    mockJobStatus.mockResolvedValueOnce(mockReturnValue);
+    const jobStatus = await ExecutableJob.getJobStatus(jobAttributes.id);
+    expect(mockJobStatus).toHaveBeenCalledTimes(1);
+    expect(mockJobStatus).toHaveBeenCalledWith(jobAttributes.id);
+    expect(jobStatus).toEqual(expectedStatus);
 });
 
 describe('Test resume running and pending', () => {

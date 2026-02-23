@@ -179,6 +179,20 @@ const read = async (id: number): Promise<JobAttributes<JobDataType>> => {
     }
 };
 
+const getJobStatus = async (id: number): Promise<JobStatus | undefined> => {
+    try {
+        const rows = await knex(tableName).select('status').where('id', id);
+
+        return rows.length === 1 ? rows[0].status : undefined;
+    } catch (error) {
+        throw new TrError(
+            `Cannot get job status for job with id ${id} from table ${tableName} (knex error: ${error})`,
+            'DBQRS0001',
+            'DatabaseCannotGetJobStatusBecauseDatabaseError'
+        );
+    }
+};
+
 const create = async (job: Omit<JobAttributes<JobDataType>, 'id'>): Promise<number> => {
     try {
         const returningArray = await knex(tableName).insert(attributesCleaner(job)).returning('id');
@@ -248,5 +262,6 @@ export default {
     delete: deleteRecord,
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
-    collection
+    collection,
+    getJobStatus
 };

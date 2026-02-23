@@ -8,7 +8,7 @@ import fs from 'fs';
 import { EventEmitter } from 'events';
 import path from 'path';
 
-import Job, { JobAttributes, JobDataType, fileKey } from 'transition-common/lib/services/jobs/Job';
+import Job, { JobAttributes, JobDataType, JobStatus, fileKey } from 'transition-common/lib/services/jobs/Job';
 import jobsDbQueries from '../../models/db/jobs.db.queries';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { execJob } from '../../tasks/serverWorkerPool';
@@ -51,6 +51,15 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
     static async loadTask<TData extends JobDataType>(id: number): Promise<ExecutableJob<TData>> {
         const jobAttributes = await jobsDbQueries.read(id);
         return new ExecutableJob<TData>(jobAttributes as JobAttributes<TData>);
+    }
+
+    /**
+     * Get the current status of a job by its ID, from the database.
+     * @param id The job ID
+     * @returns The job status, or `undefined` if the job does not exist
+     */
+    static async getJobStatus(id: number): Promise<JobStatus | undefined> {
+        return await jobsDbQueries.getJobStatus(id);
     }
 
     static async collection(options: {
