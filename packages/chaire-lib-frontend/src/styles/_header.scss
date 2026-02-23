@@ -2,7 +2,7 @@
 
 header {
   width: 100%;
-  background: settings.$overlay-white;
+  background: light-dark(white, black); // Test light-dark()
   border-bottom: 1px solid settings.$border-white;
 
   .header__content {

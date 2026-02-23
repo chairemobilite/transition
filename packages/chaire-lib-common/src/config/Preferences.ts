@@ -160,6 +160,21 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
     }
 
     /**
+     * Apply isDarkMode preference to the document's color-scheme (for CSS light-dark()).
+     * No-op when not in a browser. Call after load() or whenever isDarkMode is set.
+     */
+    public applyThemeToDocument(): void {
+        if (typeof document === 'undefined' || !document.documentElement) {
+            return;
+        }
+        const isDark = this.get('isDarkMode') !== false;
+        const scheme = isDark ? 'dark' : 'light';
+        const root = document.documentElement;
+        root.setAttribute('data-color-scheme', scheme);
+        root.style.colorScheme = scheme;
+    }
+
+    /**
      * FIXME: Used for preferences edit form
      * @param path Dot-separated path to the preference to reset
      * @returns The new preferences value
@@ -168,6 +183,13 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         const projectDefaultOrDefaultValue = this.getFromProjectDefaultOrDefault(path);
         this.set(path, projectDefaultOrDefaultValue);
         return projectDefaultOrDefaultValue;
+    }
+
+    public set(path: string, value: unknown): void {
+        super.set(path, value);
+        if (path === 'isDarkMode') {
+            this.applyThemeToDocument();
+        }
     }
 
     private async updateFromSocket(
@@ -330,6 +352,7 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
                 _merge({}, this._default, this._projectDefault, preferencesFromServer)
             ) as PreferencesModelWithIdAndData;
             this._eventEmitter.emit(prefChangeEvent, this._attributes);
+            this.applyThemeToDocument();
         } catch {
             console.error('Error loading preferences from server');
         }

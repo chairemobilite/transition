@@ -16,6 +16,7 @@ import { MIN_DEFAULT_WALKING_SPEED_KPH, MAX_DEFAULT_WALKING_SPEED_KPH } from 'ch
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
+import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
 import PreferencesSectionProps from '../PreferencesSectionProps';
 
@@ -77,6 +78,21 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
                     <PreferencesResetToDefaultButton
                         resetPrefToDefault={props.resetPrefToDefault}
                         path="infoPanelPosition"
+                        preferences={props.preferences}
+                    />
+                </InputWrapper>
+
+                <InputWrapper label={props.t('main:preferences:DarkMode')}>
+                    <InputCheckboxBoolean
+                        id={'formFieldPreferencesDarkMode'}
+                        isChecked={props.preferences.get('isDarkMode') !== false}
+                        defaultChecked={true}
+                        label={props.t('main:preferences:DarkModeLabel')}
+                        onValueChange={(e) => props.onValueChange('isDarkMode', { value: e.target.value })}
+                    />
+                    <PreferencesResetToDefaultButton
+                        resetPrefToDefault={props.resetPrefToDefault}
+                        path="isDarkMode"
                         preferences={props.preferences}
                     />
                 </InputWrapper>

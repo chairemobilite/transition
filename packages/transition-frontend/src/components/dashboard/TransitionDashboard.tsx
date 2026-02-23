@@ -200,6 +200,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
     onPreferencesChange = (_updates: any) => {
         const infoPanelPosition = Preferences.get('infoPanelPosition');
         this.setState({ infoPanelPosition });
+        Preferences.applyThemeToDocument();
     };
 
     loadLayersAndCollections = () => {
@@ -248,6 +249,7 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         } else {
             // firsty load the preferences, then set socket state to connected, so the main map can get preferences on first load.
             Preferences.load(serviceLocator.socketEventManager).then(() => {
+                Preferences.applyThemeToDocument();
                 this.setState({
                     preferencesLoaded: true,
                     socketConnected: true,
