@@ -15,12 +15,8 @@ import {
     durationFromAccelerationDecelerationDistanceAndRunningSpeed,
     kphToMps
 } from 'chaire-lib-common/lib/utils/PhysicsUtils';
-import Path, { TimeAndDistance } from './Path';
+import Path, { TimeAndDistance, TypeNodeChange } from './Path';
 
-/**
- * Get the coordinates from a geometry
- * @param geometry The geojson geometry
- */
 const getCoordinates = (geometry: Geojson.Geometry): Geojson.Position[] => {
     if (geometry.type === 'Point') {
         return [(geometry as Geojson.Point).coordinates];
@@ -64,11 +60,10 @@ const calculateSegmentDuration = (
             ? segmentDistance / segmentDuration
             : kphToMps(defaultRunningSpeed);
 
-    // noDwellTimeDuration is the time if the vehicle does not stop at all
     const noDwellTimeDuration =
         routingEngine === 'engine' || _isBlank(defaultRunningSpeed)
             ? segmentDuration
-            : segmentDistance / runningSpeed; // no acceleration/deceleration
+            : segmentDistance / runningSpeed;
 
     const calculatedSegmentDuration = Math.ceil(
         durationFromAccelerationDecelerationDistanceAndRunningSpeed(
@@ -89,6 +84,40 @@ const calculateSegmentDuration = (
     }
 
     return { calculatedDuration, noDwellTimeDuration };
+};
+
+
+const getOldSegmentIndexForInsert = (newSegmentIndex: number, insertIndex: number): number => {
+    if (newSegmentIndex < insertIndex - 1) {
+        return newSegmentIndex;
+    }
+    if (newSegmentIndex === insertIndex - 1 || newSegmentIndex === insertIndex) {
+        return -1;
+    }
+    return newSegmentIndex - 1;
+};
+
+const getOldSegmentIndexForRemove = (newSegmentIndex: number, removedNodeIndex: number): number => {
+    if (removedNodeIndex === 0) {
+        return newSegmentIndex + 1;
+    }
+    if (newSegmentIndex === removedNodeIndex - 1) {
+        return -1;
+    }
+    return newSegmentIndex;
+};
+
+const getOldSegmentIndex = (newSegmentIndex: number, lastNodeChange?: TypeNodeChange): number => {
+    if (!lastNodeChange) {
+        return newSegmentIndex;
+    }
+    if (lastNodeChange.type === 'insert') {
+        return getOldSegmentIndexForInsert(newSegmentIndex, lastNodeChange.index);
+    }
+    if (lastNodeChange.type === 'remove') {
+        return getOldSegmentIndexForRemove(newSegmentIndex, lastNodeChange.index);
+    }
+    return newSegmentIndex;
 };
 
 const getDwellTimeSecondsForNode = (path: Path, nodeId: unknown): number => {
@@ -112,7 +141,7 @@ const calculateLayoverSeconds = (path: Path, totalTravelTimeWithDwellTimesSecond
             Preferences.current.transit.paths.data.defaultMinLayoverTimeSeconds
         ),
         Math.ceil
-    ); // ceil to nearest minute
+    );
 };
 
 const buildPathData = (
@@ -151,7 +180,11 @@ const buildPathData = (
 const buildSegmentsAndGeometry = (
     path: Path,
     points: Geojson.Feature<Geojson.Point>[],
-    legs: (MapLeg | null)[]
+    legs: (MapLeg | null)[],
+    oldSegmentsData: TimeAndDistance[],
+    oldDwellTimesData: number[],
+    lastNodeChange?: TypeNodeChange,
+    changedSegmentIndex?: number
 ) => {
     const globalCoordinates: Geojson.Position[] = [];
     let segmentCoordinatesStartIndex = 0;
@@ -163,6 +196,8 @@ const buildSegmentsAndGeometry = (
     let nextNodeIndex = 1;
     let segmentDuration = 0;
     let segmentDistance = 0;
+    let ratioCulminate = 0;
+    let numberOfSegmentsCulminated = 0;
 
     for (let i = 0; i < legs.length; i++) {
         const leg = legs[i];
@@ -180,15 +215,24 @@ const buildSegmentsAndGeometry = (
         segmentDuration += Math.ceil(leg.duration);
         segmentDistance += Math.ceil(leg.distance);
 
-        // Path cannot finish at a waypoint, so this last segment si not part of the total calculations.
+        // Path cannot finish at a waypoint, so this last segment is not part of the total calculations.
         if (i === legs.length - 1 && !(nodeIds as any[])[nextNodeIndex]) {
-            // last leg is to a waypoint (missing node at the end)
             segments.push(segmentCoordinatesStartIndex);
             segmentsData.push({ travelTimeSeconds: segmentDuration, distanceMeters: segmentDistance });
         } else if (nextIsNode && (nodeIds as any[])[nextNodeIndex]) {
-            // we can create the segment
             const { calculatedDuration, noDwellTimeDuration } = calculateSegmentDuration(path, segmentDistance, segmentDuration);
             const dwellTimeSeconds = getDwellTimeSecondsForNode(path, (nodeIds as any[])[nextNodeIndex]);
+
+            const segmentIndex = segments.length;
+            const oldIndex = getOldSegmentIndex(segmentIndex, lastNodeChange);
+            const previousTime = oldIndex >= 0 ? oldSegmentsData[oldIndex]?.travelTimeSeconds : undefined;
+            const isChangedSegment = changedSegmentIndex !== undefined && segmentIndex === changedSegmentIndex;
+            if (previousTime && !isChangedSegment) {
+                const oldDwellTime = oldDwellTimesData[oldIndex + 1] || 0;
+                const dwellTimeAdjustment = oldDwellTime === 0 ? dwellTimeSeconds : 0;
+                numberOfSegmentsCulminated++;
+                ratioCulminate += (previousTime - dwellTimeAdjustment) / calculatedDuration;
+            }
 
             segments.push(segmentCoordinatesStartIndex);
             segmentsData.push({ travelTimeSeconds: calculatedDuration, distanceMeters: segmentDistance });
@@ -201,14 +245,23 @@ const buildSegmentsAndGeometry = (
         }
     }
 
-    return { globalCoordinates, segments, segmentsData, noDwellTimeDurations, dwellTimeSecondsData };
+    const ratioDifferenceTime = numberOfSegmentsCulminated > 0
+        ? ratioCulminate / numberOfSegmentsCulminated
+        : 1;
+
+    return { globalCoordinates, segments, segmentsData, noDwellTimeDurations, dwellTimeSecondsData, ratioDifferenceTime };
 };
 
 const adjustTimesAndComputeTotals = (
     path: Path,
     segmentsData: TimeAndDistance[],
     noDwellTimeDurations: number[],
-    dwellTimeSecondsData: number[]
+    dwellTimeSecondsData: number[],
+    oldSegmentsData: TimeAndDistance[],
+    oldDwellTimesData: number[],
+    ratioDifferenceTime: number,
+    lastNodeChange?: TypeNodeChange,
+    changedSegmentIndex?: number
 ) => {
     let totalDistance = 0;
     let totalDwellTimeSeconds = 0;
@@ -221,6 +274,15 @@ const adjustTimesAndComputeTotals = (
         if (s >= noDwellTimeDurations.length) {
             break;
         }
+        const oldIndex = getOldSegmentIndex(s, lastNodeChange);
+        const previousTime = oldIndex >= 0 ? oldSegmentsData[oldIndex]?.travelTimeSeconds : undefined;
+        const isChangedSegment = changedSegmentIndex !== undefined && s === changedSegmentIndex;
+        if (previousTime !== undefined && !isChangedSegment) {
+            const oldDwellTime = oldDwellTimesData[oldIndex + 1] || 0;
+            segmentsData[s].travelTimeSeconds = Math.ceil(oldDwellTime === 0 ? previousTime - dwellTimeSecondsData[s + 1] : previousTime);
+        } else {
+            segmentsData[s].travelTimeSeconds = Math.ceil(segmentsData[s].travelTimeSeconds * ratioDifferenceTime);
+        }
         const dwellTime = dwellTimeSecondsData[s + 1] || 0;
         totalDistance += segmentsData[s].distanceMeters || 0;
         totalTravelTimeWithDwellTimesSeconds += segmentsData[s].travelTimeSeconds + dwellTime;
@@ -229,12 +291,9 @@ const adjustTimesAndComputeTotals = (
         totalTravelTimeWithReturnBackSeconds += segmentsData[s].travelTimeSeconds + dwellTime;
     }
 
-    totalTravelTimeWithoutDwellTimesSeconds = roundSecondsToNearestMinute(
-        totalTravelTimeWithoutDwellTimesSeconds,
-        Math.ceil
-    ); // ceil to nearest minute
-    totalTravelTimeWithDwellTimesSeconds = roundSecondsToNearestMinute(totalTravelTimeWithDwellTimesSeconds, Math.ceil); // ceil to nearest minute
-    totalTravelTimeWithReturnBackSeconds = roundSecondsToNearestMinute(totalTravelTimeWithReturnBackSeconds, Math.ceil); // ceil to nearest minute
+    totalTravelTimeWithoutDwellTimesSeconds = roundSecondsToNearestMinute(totalTravelTimeWithoutDwellTimesSeconds, Math.ceil);
+    totalTravelTimeWithDwellTimesSeconds = roundSecondsToNearestMinute(totalTravelTimeWithDwellTimesSeconds, Math.ceil);
+    totalTravelTimeWithReturnBackSeconds = roundSecondsToNearestMinute(totalTravelTimeWithReturnBackSeconds, Math.ceil);
 
     const layoverTimeSeconds = calculateLayoverSeconds(path, totalTravelTimeWithDwellTimesSeconds);
 
@@ -251,12 +310,21 @@ const adjustTimesAndComputeTotals = (
 };
 
 const handleLegs = (path: Path, points: Geojson.Feature<Geojson.Point>[], legs: (MapLeg | null)[]) => {
-    const { globalCoordinates, segments, segmentsData, noDwellTimeDurations, dwellTimeSecondsData } =
-        buildSegmentsAndGeometry(path, points, legs);
+    const lastNodeChange = path.attributes.data._lastNodeChange as TypeNodeChange | undefined;
+    delete path.attributes.data._lastNodeChange;
+    const changedSegmentIndex = path.attributes.data._lastWaypointChangedSegmentIndex as number | undefined;
+    delete path.attributes.data._lastWaypointChangedSegmentIndex;
+    const oldSegmentsData: TimeAndDistance[] = path.attributes.data.segments || [];
+    const oldDwellTimesData: number[] = path.attributes.data.dwellTimeSeconds || [];
 
-    const newData = adjustTimesAndComputeTotals(path, segmentsData, noDwellTimeDurations, dwellTimeSecondsData);
+    const { globalCoordinates, segments, segmentsData, noDwellTimeDurations, dwellTimeSecondsData, ratioDifferenceTime } =
+        buildSegmentsAndGeometry(path, points, legs, oldSegmentsData, oldDwellTimesData, lastNodeChange, changedSegmentIndex);
 
-    path.set('geography', { type: 'LineString', coordinates: globalCoordinates }); // to trigger history save. We should create transactions to set one history step for the whole update here
+    const newData = adjustTimesAndComputeTotals(
+        path, segmentsData, noDwellTimeDurations, dwellTimeSecondsData, oldSegmentsData, oldDwellTimesData, ratioDifferenceTime, lastNodeChange, changedSegmentIndex
+    );
+
+    path.set('geography', { type: 'LineString', coordinates: globalCoordinates });
     path.attributes.segments = segments;
     path.attributes.data = Object.assign(path.attributes.data, newData);
 };
