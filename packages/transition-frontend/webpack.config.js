@@ -25,7 +25,9 @@ const configuration = require('chaire-lib-backend/lib/config/server.config');
 // Extract from the config all options that we should not send to the frontend.
 // The `{ ...config }` will be sent to the frontend
 // TODO This won't be necessary once we have frontend and backend configuration separated
-const { trRoutingCacheAllScenarios, routing, ...config } = configuration.default ? configuration.default : configuration;
+const { trRoutingCacheAllScenarios, routing, ...config } = configuration.default
+    ? configuration.default
+    : configuration;
 
 // Public directory from which files are served
 const publicDirectory = path.join(__dirname, '..', '..', 'public');
@@ -41,10 +43,19 @@ module.exports = (env) => {
     const isProduction = process.env.NODE_ENV === 'production';
 
     // Make sure all builds have different names if not a production bundle
-    const bundleFileName = isProduction ? `transition-${config.projectShortname}-bundle-${process.env.NODE_ENV}.[contenthash].js` : `transition-${config.projectShortname}-bundle-${process.env.NODE_ENV}.dev.js`;
-    const styleFileName = isProduction ? `transition-${config.projectShortname}-styles.[contenthash].css` : `transition-${config.projectShortname}-styles.dev.css`;
+    const bundleFileName = isProduction
+        ? `transition-${config.projectShortname}-bundle-${process.env.NODE_ENV}.[contenthash].js`
+        : `transition-${config.projectShortname}-bundle-${process.env.NODE_ENV}.dev.js`;
+    const styleFileName = isProduction
+        ? `transition-${config.projectShortname}-styles.[contenthash].css`
+        : `transition-${config.projectShortname}-styles.dev.css`;
     // HTML main file name
     const htmlFileName = path.join(`index-${config.projectShortname}.html`);
+
+    // In dev, style-loader injects CSS via <style> so SCSS changes apply after reload without a separate .css file
+    const styleLoader = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
+    const chaireLibFrontendRoot = path.dirname(require.resolve('chaire-lib-frontend/package.json'));
+    const transitionFrontendRoot = __dirname;
 
     const languages = config.languages || ['fr', 'en'];
     const languagesFilter = `/${languages.join('|')}/`;
@@ -52,7 +63,9 @@ module.exports = (env) => {
     // TODO Custom styles and locales should be set in config (#419, #420)
     const customStylesFilePath = `${config.projectDir}/styles/styles.scss`;
     const customLocalesFilePath = `${config.projectDir}/locales`;
-    const entry = fs.existsSync('./' + customStylesFilePath) ? [entryFileName, './' + customStylesFilePath] : [entryFileName];
+    const entry = fs.existsSync('./' + customStylesFilePath)
+        ? [entryFileName, './' + customStylesFilePath]
+        : [entryFileName];
     const includeDirectories = [
         path.join(__dirname, 'lib'),
 
@@ -64,7 +77,7 @@ module.exports = (env) => {
         // Controls which information to display (see https://webpack.js.org/configuration/stats/)
         stats: {
             errorDetails: true,
-            children: true,
+            children: true
         },
         node: {
             // global will be deprecated at next major release, see where it is being used
@@ -78,7 +91,26 @@ module.exports = (env) => {
             publicPath: '/dist/'
         },
         watchOptions: {
-            ignored: ['node_modules/**'],
+            // In dev, watch chaire-lib-frontend so CSS/TS changes trigger rebuild
+            // Exclude lib/styles from chaire-lib-frontend and transition-frontend since we use alias to point to src/styles
+            ignored: isProduction
+                ? // In production, ignore all node_modules to avoid rebuilding the whole project
+                new RegExp('node_modules/')
+                : /* Ignore all node_modules except chaire-lib-frontend,
+                and also specifically ignore the lib/styles directory of chaire-lib-frontend and transition-frontend
+                (which we override via an alias to src/styles).
+                Paths are normalized and escaped: .replace(/\\/g,'/') for forward slashes and
+                .replace(/[.*+?^${}()|[\]\\]/g,'\\$&') escapes regex metacharacters (. * + ? ^ $ { } ( ) | [ ] \)
+                 so the path is matched literally (e.g. paths with parentheses like "Program Files (x86)"). */
+                new RegExp(
+                    `(node_modules\\/(?!chaire-lib-frontend)|${path
+                        .join(chaireLibFrontendRoot, 'lib', 'styles')
+                        .replace(/\\/g, '/')
+                        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}|${path
+                        .join(transitionFrontendRoot, 'lib', 'styles')
+                        .replace(/\\/g, '/')
+                        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`
+                ),
             aggregateTimeout: 600
         },
         module: {
@@ -86,7 +118,7 @@ module.exports = (env) => {
                 {
                     test: /\.tsx?$/,
                     use: 'ts-loader',
-                    exclude: /node_modules/,
+                    exclude: /node_modules/
                 },
                 {
                     use: 'json-loader',
@@ -104,7 +136,7 @@ module.exports = (env) => {
                 {
                     test: /\.s?css$/,
                     use: [
-                        MiniCssExtractPlugin.loader,
+                        styleLoader, // In dev, style-loader injects CSS via <style> so SCSS changes apply after reload without a separate .css file
                         {
                             loader: 'css-loader',
                             options: {
@@ -124,7 +156,7 @@ module.exports = (env) => {
                     loader: '@alienfast/i18next-loader',
                     options: {
                         basenameAsNamespace: true,
-                        overrides: (fs.existsSync('./' + customLocalesFilePath) ? ['../' + customLocalesFilePath] : [])
+                        overrides: fs.existsSync('./' + customLocalesFilePath) ? ['../' + customLocalesFilePath] : []
                     }
                 }
             ]
@@ -133,32 +165,38 @@ module.exports = (env) => {
             new CleanWebpackPlugin({
                 dry: !isProduction,
                 verbose: true,
-                cleanAfterEveryBuildPatterns: ['**/*', '!images/**', '!*.html'],
+                cleanAfterEveryBuildPatterns: ['**/*', '!images/**', '!*.html']
             }),
             new HtmlWebpackPlugin({
                 filename: htmlFileName,
-                template: path.join(publicDirectory, 'index.html'),
+                template: path.join(publicDirectory, 'index.html')
             }),
             new MiniCssExtractPlugin({
                 filename: styleFileName
             }),
             new webpack.DefinePlugin({
                 'process.env': {
-                    'IS_BROWSER': JSON.stringify(true),
-                    'HOST': JSON.stringify(process.env.HOST),
-                    'TRROUTING_HOST': JSON.stringify(process.env.TRROUTING_HOST),
-                    'PROJECT_SOURCE': JSON.stringify(process.env.PROJECT_SOURCE),
-                    'IS_TESTING': JSON.stringify(process.env.NODE_ENV === 'test'),
-                    'GOOGLE_API_KEY': JSON.stringify(process.env.GOOGLE_API_KEY),
-                    'CUSTOM_RASTER_TILES_XYZ_URL': JSON.stringify(process.env.CUSTOM_RASTER_TILES_XYZ_URL || config.customRasterTilesXyzUrl),
-                    'CUSTOM_RASTER_TILES_MIN_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MIN_ZOOM || config.customRasterTilesMinZoom),
-                    'CUSTOM_RASTER_TILES_MAX_ZOOM': JSON.stringify(process.env.CUSTOM_RASTER_TILES_MAX_ZOOM || config.customRasterTilesMaxZoom)
+                    IS_BROWSER: JSON.stringify(true),
+                    HOST: JSON.stringify(process.env.HOST),
+                    TRROUTING_HOST: JSON.stringify(process.env.TRROUTING_HOST),
+                    PROJECT_SOURCE: JSON.stringify(process.env.PROJECT_SOURCE),
+                    IS_TESTING: JSON.stringify(process.env.NODE_ENV === 'test'),
+                    GOOGLE_API_KEY: JSON.stringify(process.env.GOOGLE_API_KEY),
+                    CUSTOM_RASTER_TILES_XYZ_URL: JSON.stringify(
+                        process.env.CUSTOM_RASTER_TILES_XYZ_URL || config.customRasterTilesXyzUrl
+                    ),
+                    CUSTOM_RASTER_TILES_MIN_ZOOM: JSON.stringify(
+                        process.env.CUSTOM_RASTER_TILES_MIN_ZOOM || config.customRasterTilesMinZoom
+                    ),
+                    CUSTOM_RASTER_TILES_MAX_ZOOM: JSON.stringify(
+                        process.env.CUSTOM_RASTER_TILES_MAX_ZOOM || config.customRasterTilesMaxZoom
+                    )
                 },
-                '__CONFIG__': JSON.stringify({
+                __CONFIG__: JSON.stringify({
                     ...config
                 })
             }),
-            new webpack.optimize.AggressiveMergingPlugin(),//Merge chunks
+            new webpack.optimize.AggressiveMergingPlugin(), //Merge chunks
             new CompressionPlugin({
                 filename: '[path][base].gz[query]',
                 algorithm: 'gzip',
@@ -168,24 +206,37 @@ module.exports = (env) => {
             }),
             new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, new RegExp(languagesFilter)),
             new webpack.ContextReplacementPlugin(/date\-fns[\/\\]/, new RegExp(languagesFilter)),
-            new CopyWebpackPlugin(
-                {
-                    patterns: [
-                        {
-                            context: path.join(__dirname, 'lib', 'assets'),
-                            from: '**/*',
-                            to: '',
-                            noErrorOnMissing: true
-                        }
-                    ]
-                }
-            )
+            new CopyWebpackPlugin({
+                patterns: [
+                    {
+                        context: path.join(__dirname, 'lib', 'assets'),
+                        from: '**/*',
+                        to: '',
+                        noErrorOnMissing: true
+                    }
+                ]
+            })
         ],
         resolve: {
             mainFields: ['browser', 'main', 'module'],
             modules: ['node_modules'],
             extensions: ['.json', '.js', '.ts', '.tsx'],
-            fallback: { path: false },
+            // In dev, read SCSS from chaire-lib-frontend and transition-frontend source so changes apply without running copy-files
+            alias: isProduction
+                ? {}
+                : {
+                    [path.join(chaireLibFrontendRoot, 'lib', 'styles')]: path.join(
+                        chaireLibFrontendRoot,
+                        'src',
+                        'styles'
+                    ),
+                    [path.join(transitionFrontendRoot, 'lib', 'styles')]: path.join(
+                        transitionFrontendRoot,
+                        'src',
+                        'styles'
+                    )
+                },
+            fallback: { path: false }
         },
         devtool: isProduction ? 'cheap-source-map' : 'eval-source-map',
         devServer: {

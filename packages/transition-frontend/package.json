@@ -95,6 +95,7 @@
     "rimraf": "^6.1.2",
     "sass": "^1.94.2",
     "sass-loader": "^16.0.6",
+    "style-loader": "^4.0.0",
     "ts-jest": "^29.4.6",
     "ts-loader": "^9.5.4",
     "ts-shader-loader": "^2.0.2",
