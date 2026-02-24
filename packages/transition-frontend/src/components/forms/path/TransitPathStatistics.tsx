@@ -83,8 +83,11 @@ const TransitPathStatistics: React.FunctionComponent<PathStatsProps> = (props: P
         const noDwellNoCurvesTimeSeconds =
             runningSpeedMps > 0 ? curveAnalysis.totalDistanceMeters / runningSpeedMps : 0;
 
+        const operatingTimeNoCurvesSeconds = noDwellNoCurvesTimeSeconds + totalDwellTimeSeconds;
+
         return {
             operatingTimeWithoutLayoverTimeSeconds: curveAnalysis.totalTimeWithCurvesSeconds + totalDwellTimeSeconds,
+            operatingTimeNoCurvesSeconds,
             travelTimeWithoutDwellTimesSeconds: curveAnalysis.totalNoDwellCurveTimeSeconds,
             travelTimeWithoutDwellTimesNoCurvesSeconds: noDwellNoCurvesTimeSeconds,
             averageSpeedWithoutDwellTimesMetersPerSecond:
@@ -97,6 +100,8 @@ const TransitPathStatistics: React.FunctionComponent<PathStatsProps> = (props: P
                     ? curveAnalysis.totalDistanceMeters /
                       (curveAnalysis.totalTimeWithCurvesSeconds + totalDwellTimeSeconds)
                     : 0,
+            operatingSpeedNoCurvesMetersPerSecond:
+                operatingTimeNoCurvesSeconds > 0 ? curveAnalysis.totalDistanceMeters / operatingTimeNoCurvesSeconds : 0,
             geometryResolution: curveAnalysis.geometryResolution
         };
     }, [curveAnalysis, pathData.totalDwellTimeSeconds]);
@@ -235,7 +240,11 @@ const TransitPathStatistics: React.FunctionComponent<PathStatsProps> = (props: P
 
                     <SimpleRow header={props.t('transit:transitPath:TravelTimes')} isHeader={true} />
                     <SimpleRow
-                        header={props.t('transit:transitPath:IncludingDwellTimes')}
+                        header={props.t(
+                            curveAwareStats && curveAwareStats.geometryResolution === 'high'
+                                ? 'transit:transitPath:IncludingDwellTimesWithCurves'
+                                : 'transit:transitPath:IncludingDwellTimes'
+                        )}
                         value={
                             <DurationUnitFormatter
                                 value={effectiveStats.operatingTimeWithoutLayoverTimeSeconds || 0}
@@ -244,6 +253,18 @@ const TransitPathStatistics: React.FunctionComponent<PathStatsProps> = (props: P
                             />
                         }
                     />
+                    {curveAwareStats && curveAwareStats.geometryResolution === 'high' && (
+                        <SimpleRow
+                            header={props.t('transit:transitPath:IncludingDwellTimesNoCurves')}
+                            value={
+                                <DurationUnitFormatter
+                                    value={curveAwareStats.operatingTimeNoCurvesSeconds || 0}
+                                    sourceUnit="s"
+                                    destinationUnit="m"
+                                />
+                            }
+                        />
+                    )}
                     <SimpleRow
                         header={props.t(
                             curveAwareStats && curveAwareStats.geometryResolution === 'high'
@@ -324,7 +345,11 @@ const TransitPathStatistics: React.FunctionComponent<PathStatsProps> = (props: P
                         />
                     )}
                     <SimpleRow
-                        header={props.t('transit:transitPath:OperatingSpeed')}
+                        header={props.t(
+                            curveAwareStats && curveAwareStats.geometryResolution === 'high'
+                                ? 'transit:transitPath:OperatingSpeedWithCurves'
+                                : 'transit:transitPath:OperatingSpeed'
+                        )}
                         value={
                             <SpeedUnitFormatter
                                 value={effectiveStats.operatingSpeedMetersPerSecond || 0}
@@ -333,6 +358,18 @@ const TransitPathStatistics: React.FunctionComponent<PathStatsProps> = (props: P
                             />
                         }
                     />
+                    {curveAwareStats && curveAwareStats.geometryResolution === 'high' && (
+                        <SimpleRow
+                            header={props.t('transit:transitPath:OperatingSpeedNoCurves')}
+                            value={
+                                <SpeedUnitFormatter
+                                    value={curveAwareStats.operatingSpeedNoCurvesMetersPerSecond || 0}
+                                    sourceUnit="m/s"
+                                    destinationUnit="km/h"
+                                />
+                            }
+                        />
+                    )}
 
                     {temporalTortuosity && (
                         <SimpleRow
