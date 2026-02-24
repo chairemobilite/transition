@@ -18,6 +18,22 @@ const PreferencesSectionFeatures: React.FunctionComponent<PreferencesSectionProp
     return (
         <Collapsible trigger={props.t('main:preferences:ExperimentalFeatures')} open={true} transitionTime={100}>
             <div className="tr__form-section">
+                {/* Dark and Light mode */}
+                <InputWrapper label={props.t('main:preferences:DarkMode')}>
+                    <InputCheckboxBoolean
+                        id={'formFieldPreferencesDarkMode'}
+                        isChecked={props.preferences.get('isDarkMode') !== false}
+                        defaultChecked={true}
+                        label={props.t('main:preferences:DarkModeLabel')}
+                        onValueChange={(e) => props.onValueChange('isDarkMode', { value: e.target.value })}
+                    />
+                    <PreferencesResetToDefaultButton
+                        resetPrefToDefault={props.resetPrefToDefault}
+                        path="isDarkMode"
+                        preferences={props.preferences}
+                    />
+                </InputWrapper>
+
                 <InputWrapper twoColumns={true} label={props.t('main:preferences:MapPrettyDisplay')}>
                     <InputCheckboxBoolean
                         id={'formFieldPreferencesFeatureMapPrettyDisplay'}
