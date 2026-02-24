@@ -13,6 +13,10 @@ import zonesQueries from 'chaire-lib-backend/lib/models/db/zones.db.queries';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import { ZoneAttributes } from 'chaire-lib-common/lib/services/zones/Zone';
 
+// Depending on the language selected when downloading the source GML file, the tag used to indicate the dissemination block ID will be different.
+// We use the includes() function on this array to ensure the import works with both english and french files.
+const DBUID_STRINGS = ['fme:DBUID', 'fme:IDIDU'];
+
 // The structure of the object given by the xml-reader package. Copied from the npm page.
 interface XmlNode {
     /** element name (empty for text nodes) */
@@ -55,7 +59,12 @@ export default async function importBoundariesFromGml(boundariesFile: string, da
             const fme = feature.children[0];
 
             // The id of the zone.
-            const dbuid = (fme.children.find((element) => element.name === 'fme:DBUID') as XmlNode).children[0].value;
+            const dbuidElement = fme.children.find((element) => DBUID_STRINGS.includes(element.name));
+            if (dbuidElement === undefined) {
+                throw new Error('No DBUID element found in zone feature.');
+            }
+
+            const dbuid = dbuidElement.children[0].value;
 
             const multiCoorList: string[] = [];
 
@@ -134,7 +143,7 @@ export default async function importBoundariesFromGml(boundariesFile: string, da
                 console.log(`Zones parsed: ${i}`);
             }
         } catch (error) {
-            console.log(`Error while reading the gml file: ${error}`);
+            console.error(`Error while reading the gml file: ${error}`);
             readStream.destroy(error as Error);
         }
     });
@@ -158,8 +167,8 @@ export default async function importBoundariesFromGml(boundariesFile: string, da
         });
 
         readStream.on('error', (err) => {
-            console.log(`Error while reading the stream: ${err}`);
-            reject();
+            console.error(`Error while reading the stream: ${err}`);
+            reject(err);
         });
 
         readStream.on('close', async () => {
