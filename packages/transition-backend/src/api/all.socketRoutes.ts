@@ -19,6 +19,7 @@ import transitSocketRoutesNew from './transit.socketRoutes';
 import transitObjectsSocketRoutes from './transitObjects.socketRoutes';
 import transitPathsSocketRoutes from './transitPaths.socketRoutes';
 import transitPathCurvesSocketRoutes from './transitPathCurves.socketRoutes';
+import transitPathSmoothingSocketRoutes from './transitPathSmoothing.socketRoutes';
 import placesSocketRoutes from './places.socketRoutes';
 import jobsSocketRoutes from './jobs.socketRoutes';
 import osmSocketRoutes from './osm.socketRoutes';
@@ -32,6 +33,7 @@ export default function (socket: EventEmitter, userId?: number) {
     transitObjectsSocketRoutes(socket);
     transitPathsSocketRoutes(socket);
     transitPathCurvesSocketRoutes(socket);
+    transitPathSmoothingSocketRoutes(socket);
     simulationsSocketRoutes(socket);
     odPairsSocketRoutes(socket);
     placesSocketRoutes(socket);
