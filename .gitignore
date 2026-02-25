@@ -75,6 +75,7 @@ services/json2capnp/testData
 # vscode
 .vscode/launch.json
 .vscode/restore-terminals.json
+.vscode/tasks.json
 
 # custom
 public/dist/

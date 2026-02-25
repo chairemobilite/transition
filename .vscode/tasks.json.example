@@ -1,0 +1,129 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Update Main",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Git Checkout Main",
+        "Git Pull Origin Main",
+        "Yarn Install Dependencies",
+        "Yarn Compile",
+        "Yarn Migrate"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Start Dev Terminals",
+      "type": "shell",
+      "command": "",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": ["Compile Dev", "Build Dev", "Start Json2Capnp", "Start"]
+    },
+    {
+      "label": "Compile Dev",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["compile:dev"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Build Dev",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["build:dev"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Start Json2Capnp",
+      "type": "shell",
+      "command": "cargo",
+      "args": [
+        "run",
+        "--release",
+        "--",
+        "2000",
+        "${workspaceFolder}/examples/runtime/cache/demo_transition"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/services/json2capnp"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Start",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["start"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Git Checkout Main",
+      "type": "shell",
+      "command": "git",
+      "args": ["checkout", "main"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Git Pull Origin Main",
+      "type": "shell",
+      "command": "git",
+      "args": ["pull", "origin", "main"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Yarn Install Dependencies",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["install"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Yarn Compile",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["compile"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    },
+    {
+      "label": "Yarn Migrate",
+      "type": "shell",
+      "command": "yarn",
+      "args": ["migrate"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      }
+    }
+  ]
+}
