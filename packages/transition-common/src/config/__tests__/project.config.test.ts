@@ -12,48 +12,69 @@ describe('Project Configuration', () => {
         const defaultSections = {
             agencies: {
                 localizedTitle: 'transit:transitAgency:AgenciesAndLines',
-                icon: '/dist/images/icons/transit/lines_white.svg'
+                iconWhite: '/dist/images/icons/transit/lines_white.svg',
+                iconBlack: '/dist/images/icons/transit/lines_black.svg'
             },
             nodes: {
                 localizedTitle: 'transit:transitNode:Nodes',
-                icon: '/dist/images/icons/transit/node_white.svg'
+                iconWhite: '/dist/images/icons/transit/node_white.svg',
+                iconBlack: '/dist/images/icons/transit/node_black.svg'
             },
             services: {
                 localizedTitle: 'transit:transitService:Services',
-                icon: '/dist/images/icons/transit/service_white.svg'
+                iconWhite: '/dist/images/icons/transit/service_white.svg',
+                iconBlack: '/dist/images/icons/transit/service_black.svg'
             },
             scenarios: {
                 localizedTitle: 'transit:transitScenario:Scenarios',
-                icon: '/dist/images/icons/transit/scenario_white.svg'
+                iconWhite: '/dist/images/icons/transit/scenario_white.svg',
+                iconBlack: '/dist/images/icons/transit/scenario_black.svg'
             },
             routing: {
                 localizedTitle: 'main:Routing',
-                icon: '/dist/images/icons/interface/routing_white.svg'
+                iconWhite: '/dist/images/icons/interface/routing_white.svg',
+                iconBlack: '/dist/images/icons/interface/routing_black.svg'
+            },
+            comparison: {
+                localizedTitle: 'transit:transitComparison:ScenarioComparison',
+                iconWhite: '/dist/images/icons/transit/comparison_white.svg',
+                iconBlack: '/dist/images/icons/transit/comparison_black.svg'
             },
             accessibilityMap: {
                 localizedTitle: 'main:AccessibilityMap',
-                icon: '/dist/images/icons/interface/accessibility_map_white.svg'
+                iconWhite: '/dist/images/icons/interface/accessibility_map_white.svg',
+                iconBlack: '/dist/images/icons/interface/accessibility_map_black.svg'
+            },
+            accessibilityComparison: {
+                localizedTitle: 'transit:accessibilityComparison:Title',
+                iconWhite: '/dist/images/icons/interface/map_comparison_white.svg',
+                iconBlack: '/dist/images/icons/interface/map_comparison_black.svg'
             },
             batchCalculation: {
                 localizedTitle: 'main:BatchCalculation',
-                icon: '/dist/images/icons/interface/od_routing_white.svg'
+                iconWhite: '/dist/images/icons/interface/od_routing_white.svg',
+                iconBlack: '/dist/images/icons/interface/od_routing_black.svg'
             },
             simulations: {
                 localizedTitle: 'transit:simulation:Simulations',
-                icon: '/dist/images/icons/interface/simulation_white.svg',
+                iconWhite: '/dist/images/icons/interface/simulation_white.svg',
+                iconBlack: '/dist/images/icons/interface/simulation_black.svg',
                 enabled: false
             },
             gtfsImport: {
                 localizedTitle: 'transit:gtfs:Import',
-                icon: '/dist/images/icons/interface/import_white.svg'
+                iconWhite: '/dist/images/icons/interface/import_white.svg',
+                iconBlack: '/dist/images/icons/interface/import_black.svg'
             },
             gtfsExport: {
                 localizedTitle: 'transit:gtfs:Export',
-                icon: '/dist/images/icons/interface/export_white.svg'
+                iconWhite: '/dist/images/icons/interface/export_white.svg',
+                iconBlack: '/dist/images/icons/interface/export_black.svg'
             },
             preferences: {
                 localizedTitle: 'main:Preferences',
-                icon: '/dist/images/icons/interface/preferences_white.svg'
+                iconWhite: '/dist/images/icons/interface/preferences_white.svg',
+                iconBlack: '/dist/images/icons/interface/preferences_black.svg'
             }
         };
 
@@ -65,7 +86,8 @@ describe('Project Configuration', () => {
             sections: {
                 customSection: {
                     localizedTitle: 'custom:CustomSection',
-                    icon: '/dist/images/icons/custom/custom_icon.svg'
+                    iconWhite: '/dist/images/icons/custom/custom_icon_white.svg',
+                    iconBlack: '/dist/images/icons/custom/custom_icon_black.svg'
                 }
             }
         };
@@ -78,48 +100,69 @@ describe('Project Configuration', () => {
                 ...previousConfig.sections,
                 agencies: {
                     localizedTitle: 'transit:transitAgency:AgenciesAndLines',
-                    icon: '/dist/images/icons/transit/lines_white.svg'
+                    iconWhite: '/dist/images/icons/transit/lines_white.svg',
+                    iconBlack: '/dist/images/icons/transit/lines_black.svg'
                 },
                 nodes: {
                     localizedTitle: 'transit:transitNode:Nodes',
-                    icon: '/dist/images/icons/transit/node_white.svg'
+                    iconWhite: '/dist/images/icons/transit/node_white.svg',
+                    iconBlack: '/dist/images/icons/transit/node_black.svg'
                 },
                 services: {
                     localizedTitle: 'transit:transitService:Services',
-                    icon: '/dist/images/icons/transit/service_white.svg'
+                    iconWhite: '/dist/images/icons/transit/service_white.svg',
+                    iconBlack: '/dist/images/icons/transit/service_black.svg'
                 },
                 scenarios: {
                     localizedTitle: 'transit:transitScenario:Scenarios',
-                    icon: '/dist/images/icons/transit/scenario_white.svg'
+                    iconWhite: '/dist/images/icons/transit/scenario_white.svg',
+                    iconBlack: '/dist/images/icons/transit/scenario_black.svg'
                 },
                 routing: {
                     localizedTitle: 'main:Routing',
-                    icon: '/dist/images/icons/interface/routing_white.svg'
+                    iconWhite: '/dist/images/icons/interface/routing_white.svg',
+                    iconBlack: '/dist/images/icons/interface/routing_black.svg'
+                },
+                comparison: {
+                    localizedTitle: 'transit:transitComparison:ScenarioComparison',
+                    iconWhite: '/dist/images/icons/transit/comparison_white.svg',
+                    iconBlack: '/dist/images/icons/transit/comparison_black.svg'
                 },
                 accessibilityMap: {
                     localizedTitle: 'main:AccessibilityMap',
-                    icon: '/dist/images/icons/interface/accessibility_map_white.svg'
+                    iconWhite: '/dist/images/icons/interface/accessibility_map_white.svg',
+                    iconBlack: '/dist/images/icons/interface/accessibility_map_black.svg'
+                },
+                accessibilityComparison: {
+                    localizedTitle: 'transit:accessibilityComparison:Title',
+                    iconWhite: '/dist/images/icons/interface/map_comparison_white.svg',
+                    iconBlack: '/dist/images/icons/interface/map_comparison_black.svg'
                 },
                 batchCalculation: {
                     localizedTitle: 'main:BatchCalculation',
-                    icon: '/dist/images/icons/interface/od_routing_white.svg'
+                    iconWhite: '/dist/images/icons/interface/od_routing_white.svg',
+                    iconBlack: '/dist/images/icons/interface/od_routing_black.svg'
                 },
                 simulations: {
                     localizedTitle: 'transit:simulation:Simulations',
-                    icon: '/dist/images/icons/interface/simulation_white.svg',
+                    iconWhite: '/dist/images/icons/interface/simulation_white.svg',
+                    iconBlack: '/dist/images/icons/interface/simulation_black.svg',
                     enabled: false
                 },
                 gtfsImport: {
                     localizedTitle: 'transit:gtfs:Import',
-                    icon: '/dist/images/icons/interface/import_white.svg'
+                    iconWhite: '/dist/images/icons/interface/import_white.svg',
+                    iconBlack: '/dist/images/icons/interface/import_black.svg'
                 },
                 gtfsExport: {
                     localizedTitle: 'transit:gtfs:Export',
-                    icon: '/dist/images/icons/interface/export_white.svg'
+                    iconWhite: '/dist/images/icons/interface/export_white.svg',
+                    iconBlack: '/dist/images/icons/interface/export_black.svg'
                 },
                 preferences: {
                     localizedTitle: 'main:Preferences',
-                    icon: '/dist/images/icons/interface/preferences_white.svg'
+                    iconWhite: '/dist/images/icons/interface/preferences_white.svg',
+                    iconBlack: '/dist/images/icons/interface/preferences_black.svg'
                 }
             }
         };

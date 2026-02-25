@@ -12,6 +12,7 @@ import 'rc-menu/assets/index.css';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import { loadLayersAndCollections } from '../../services/dashboard/LayersAndCollectionsService';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
@@ -23,6 +24,7 @@ interface TransitionToolbarState {
     trRoutingStarted: boolean;
     nodesNeedUpdate: boolean;
     dataNeedsUpdate: boolean;
+    isDarkMode: boolean;
 }
 
 class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, TransitionToolbarState> {
@@ -34,11 +36,17 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
             cacheNeedsSaving: false,
             trRoutingStarted: false,
             nodesNeedUpdate: false,
-            dataNeedsUpdate: false
+            dataNeedsUpdate: false,
+            isDarkMode: Preferences.getIsDarkMode()
         };
     }
 
+    private onPreferencesChange = (): void => {
+        this.setState({ isDarkMode: Preferences.getIsDarkMode() });
+    };
+
     componentDidMount() {
+        Preferences.addChangeListener(this.onPreferencesChange);
         // TODO Replace with proper API calls for better typing support
         serviceLocator.eventManager.on('map.updateMouseCoordinates', this.onUpdateCoordinates);
         serviceLocator.eventManager.on('map.showLayer', this.onShowLayer);
@@ -57,6 +65,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
     }
 
     componentWillUnmount() {
+        Preferences.removeChangeListener(this.onPreferencesChange);
         serviceLocator.eventManager.off('map.updateMouseCoordinates', this.onUpdateCoordinates);
         serviceLocator.eventManager.off('map.showLayer', this.onShowLayer);
         serviceLocator.eventManager.off('map.hideLayer', this.onHideLayer);
@@ -218,6 +227,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
     };
 
     render() {
+        const iconVariant = this.state.isDarkMode ? 'white' : 'black';
         return (
             <React.Fragment>
                 {this.state.coordinates && this.state.coordinates.length === 2 && (
@@ -258,7 +268,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                         >
                             <img
                                 className="_icon"
-                                src={'/dist/images/icons/transit/paths_visible_white.svg'}
+                                src={`/dist/images/icons/transit/paths_visible_${iconVariant}.svg`}
                                 alt={this.props.t('transit:transitPath:HidePaths')}
                                 title={this.props.t('transit:transitPath:HidePaths')}
                             />
@@ -275,7 +285,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                         >
                             <img
                                 className="_icon"
-                                src={'/dist/images/icons/transit/paths_hidden_white.svg'}
+                                src={`/dist/images/icons/transit/paths_hidden_${iconVariant}.svg`}
                                 alt={this.props.t('transit:transitPath:ShowPaths')}
                                 title={this.props.t('transit:transitPath:ShowPaths')}
                             />
@@ -292,7 +302,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                         >
                             <img
                                 className="_icon"
-                                src={'/dist/images/icons/transit/nodes_visible_white.svg'}
+                                src={`/dist/images/icons/transit/nodes_visible_${iconVariant}.svg`}
                                 alt={this.props.t('transit:transitNode:HideNodes')}
                                 title={this.props.t('transit:transitNode:HideNodes')}
                             />
@@ -309,7 +319,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                         >
                             <img
                                 className="_icon"
-                                src={'/dist/images/icons/transit/nodes_hidden_white.svg'}
+                                src={`/dist/images/icons/transit/nodes_hidden_${iconVariant}.svg`}
                                 alt={this.props.t('transit:transitNode:ShowNodes')}
                                 title={this.props.t('transit:transitNode:ShowNodes')}
                             />
@@ -327,7 +337,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                             src={
                                 this.state.nodesNeedUpdate
                                     ? '/dist/images/icons/transit/transfer_refresh_yellow.svg'
-                                    : '/dist/images/icons/transit/transfer_refresh_white.svg'
+                                    : `/dist/images/icons/transit/transfer_refresh_${iconVariant}.svg`
                             }
                             alt={this.props.t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
                             title={this.props.t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
@@ -344,7 +354,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                             src={
                                 this.state.cacheNeedsSaving
                                     ? '/dist/images/icons/interface/download_cloud_yellow.svg'
-                                    : '/dist/images/icons/interface/download_cloud_white.svg'
+                                    : `/dist/images/icons/interface/download_cloud_${iconVariant}.svg`
                             }
                             alt={this.props.t('main:SaveAllData')}
                             title={this.props.t('main:SaveAllData')}
@@ -361,7 +371,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
                             src={
                                 !this.state.trRoutingStarted
                                     ? '/dist/images/icons/interface/restart_routing_yellow.svg'
-                                    : '/dist/images/icons/interface/restart_routing_white.svg'
+                                    : `/dist/images/icons/interface/restart_routing_${iconVariant}.svg`
                             }
                             alt={this.props.t('main:RestartTrRouting')}
                             title={this.props.t('main:RestartTrRouting')}

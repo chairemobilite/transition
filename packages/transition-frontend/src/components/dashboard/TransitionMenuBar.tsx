@@ -4,10 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { JSX } from 'react';
+import React, { JSX, useSyncExternalStore } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
 
@@ -18,6 +19,12 @@ const MenuBar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
     props: LayoutSectionProps & WithTranslation
 ) => {
     const sectionsConfig = config.sections;
+    // Subscribe so we re-render when user toggles dark mode in preferences; a plain get() would not.
+    const isDarkMode = useSyncExternalStore(
+        Preferences.subscribe.bind(Preferences),
+        () => Preferences.getIsDarkMode(),
+        () => Preferences.getIsDarkMode()
+    );
 
     const onClickHandler = function (e) {
         e.preventDefault();
@@ -42,7 +49,11 @@ const MenuBar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
                         <span className="tr__left-menu-button-icon">
                             <img
                                 className="_icon"
-                                src={sectionsConfig[sectionShortname].icon}
+                                src={
+                                    isDarkMode
+                                        ? sectionsConfig[sectionShortname].iconWhite
+                                        : sectionsConfig[sectionShortname].iconBlack
+                                }
                                 alt={props.t(sectionsConfig[sectionShortname].localizedTitle)}
                             />
                         </span>

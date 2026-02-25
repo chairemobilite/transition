@@ -59,6 +59,15 @@ test('Test set preferences', () => {
     expect(Preferences.get('foo.bar')).toBe('foobar');
 });
 
+test('getIsDarkMode reflects isDarkMode preference', () => {
+    // Test default value
+    expect(Preferences.getIsDarkMode()).toBe(true);
+    Preferences.set('isDarkMode', false);
+    expect(Preferences.getIsDarkMode()).toBe(false);
+    Preferences.set('isDarkMode', true);
+    expect(Preferences.getIsDarkMode()).toBe(true);
+});
+
 describe('Updating preferences', () => {
     // Test adding an arbitrary object to the preferences
     const prefData = {
@@ -346,4 +355,21 @@ describe('Preferences listener', () => {
         expect(prefChangedListener).not.toHaveBeenCalled();
     });
 
+    // set() emits so UI (e.g. menu bar icons) updates immediately when editing, before save
+    test('Listen on set', () => {
+        Preferences.addChangeListener(prefChangedListener);
+        Preferences.set('foo.bar', 'baz');
+        expect(prefChangedListener).toHaveBeenCalledTimes(1);
+        expect(prefChangedListener).toHaveBeenCalledWith(expect.objectContaining({ foo: { bar: 'baz' } }));
+    });
+
+    // undo() emits so theme and subscribers reflect the restored state (redo/cancelEditing same path)
+    test('Listen on undo', () => {
+        Preferences.addChangeListener(prefChangedListener);
+        Preferences.startEditing();
+        Preferences.set('isDarkMode', false);
+        expect(prefChangedListener).toHaveBeenCalledTimes(1);
+        Preferences.undo();
+        expect(prefChangedListener).toHaveBeenCalledTimes(2);
+    });
 });
