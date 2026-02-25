@@ -7,8 +7,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons/faAngleRight';
 import { faAngleLeft } from '@fortawesome/free-solid-svg-icons/faAngleLeft';
-import { bbox as turfBbox } from '@turf/turf';
-
 import TransitRoutingResults from './TransitRoutingResultComponent';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { RoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
@@ -48,14 +46,8 @@ const showCurrentAlternative = async (
         routingPathsStrokes: pathGeojson
     });
 
-    // Fit map bounds to the routing path
     if (fitBounds && pathGeojson && pathGeojson.features && pathGeojson.features.length > 0) {
-        const bounds = turfBbox(pathGeojson);
-        // bounds is [minX, minY, maxX, maxY] = [west, south, east, north]
-        serviceLocator.eventManager.emit('map.fitBounds', [
-            [bounds[0], bounds[1]], // southwest
-            [bounds[2], bounds[3]] // northeast
-        ]);
+        serviceLocator.eventManager.emit('map.fitBounds', pathGeojson);
     }
 };
 

@@ -41,6 +41,8 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
                 serviceLocator.eventManager.emit('map.disableBoxZoom');
                 serviceLocator.selectedObjectsManager.setSelection('path', [path]); // auto deselect
                 serviceLocator.eventManager.emit('selected.updateLayers.path');
+                // the fitBounds if visible is handled in TransitPathNodeList,
+                // because it will change the map viewport size after the path is selected.
             });
         }
     };

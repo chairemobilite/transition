@@ -13,6 +13,7 @@ import { faRedoAlt } from '@fortawesome/free-solid-svg-icons/faRedoAlt';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faRoute } from '@fortawesome/free-solid-svg-icons/faRoute';
+import { faCrosshairs } from '@fortawesome/free-solid-svg-icons/faCrosshairs';
 import _toString from 'lodash/toString';
 import MathJax from 'react-mathjax';
 import { point as turfPoint, featureCollection as turfFeatureCollection } from '@turf/turf';
@@ -732,6 +733,18 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     path.validate();
                                     serviceLocator.selectedObjectsManager.setSelection('path', [path]);
                                     serviceLocator.eventManager.emit('selected.updateLayers.path');
+                                }}
+                            />
+                        </span>
+                        <span title={this.props.t('transit:transitPath:FitBoundsToPath')}>
+                            <Button
+                                color="grey"
+                                icon={faCrosshairs}
+                                iconClass="_icon-alone"
+                                label=""
+                                disabled={!path.attributes.geography}
+                                onClick={() => {
+                                    serviceLocator.eventManager.emit('map.fitBounds', path.attributes.geography);
                                 }}
                             />
                         </span>
