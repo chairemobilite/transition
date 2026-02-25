@@ -39,14 +39,23 @@
       }
 
       .tr__left-menu-button-icon {
+        align-items: center;
+        box-sizing: border-box;
         display: flex;
+        flex-shrink: 0;
         height: 4rem;
+        justify-content: center;
         padding: 0.4rem;
         width: 4rem;
       }
 
       ._icon {
-        height: 100%;
+        height: 3.2rem;
+        margin: 0;
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        width: 3.2rem;
       }
 
       &:hover {
