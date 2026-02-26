@@ -272,6 +272,9 @@ export default class OdTripSimulation implements SimulationMethod {
             scenarioId: scenarioId
         };
 
+        // Fetch memcached information from global job
+        const memcachedServer = this.jobWrapper.getMemcachedInstance()?.getServer();
+
         // Create the batch routing job as a child of the current job
         const routingJob: ExecutableJob<BatchRouteJobType> = await this.jobWrapper.job.createChildJob({
             name: 'batchRoute', //TODO Is this important, can I rename it do something else ???
@@ -279,7 +282,7 @@ export default class OdTripSimulation implements SimulationMethod {
                 parameters: {
                     demandAttributes: this.getBatchRouteDemandAttributes(),
                     transitRoutingAttributes: batchParams,
-                    trRoutingJobParameters: { cacheDirectoryPath: this.jobWrapper.getCacheDirectory() }
+                    trRoutingJobParameters: { cacheDirectoryPath: this.jobWrapper.getCacheDirectory(), memcachedServer }
                 }
             },
             resources: {
