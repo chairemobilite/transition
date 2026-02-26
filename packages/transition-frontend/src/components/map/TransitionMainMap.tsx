@@ -37,6 +37,7 @@ import MapControlsMenu from './TransitionMapControlsMenu';
 import MapRenderer, { MapStyleSpec } from './MapRenderer';
 import { createDeckLayersFromMappings } from '../../config/deckLayers.config';
 import { resetClasses } from '../../services/map/MapCursorHelper';
+import { fitBoundsIfNotVisible, safeFitBounds } from '../../services/map/MapBoundsUtils';
 
 /**
  * Optional custom raster tiles configuration that can be set in config.js.
@@ -143,13 +144,17 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         });
     }
 
-    fitBounds = (coordinates: [[number, number], [number, number]]) => {
+    fitBounds = (geojson: GeoJSON.GeoJSON) => {
         const map = this.mapRef.current?.getMap();
         if (map) {
-            map.fitBounds(coordinates, {
-                padding: 20,
-                bearing: map.getBearing()
-            });
+            safeFitBounds(map, geojson);
+        }
+    };
+
+    onFitBoundsIfNotVisible = (geojson: GeoJSON.GeoJSON) => {
+        const map = this.mapRef.current?.getMap();
+        if (map) {
+            fitBoundsIfNotVisible(map, geojson);
         }
     };
 
@@ -294,6 +299,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.on('map.paths.byAttribute.hide', this.hidePathsByAttribute);
         serviceLocator.eventManager.on('map.paths.clearFilter', this.clearPathsFilter);
         serviceLocator.eventManager.on('map.fitBounds', this.fitBounds);
+        serviceLocator.eventManager.on('map.fitBoundsIfNotVisible', this.onFitBoundsIfNotVisible);
         serviceLocator.eventManager.on('map.setCenter', this.setCenter);
         serviceLocator.eventManager.on('map.enableBoxZoom', this.onEnableBoxZoom);
         serviceLocator.eventManager.on('map.disableBoxZoom', this.onDisableBoxZoom);
@@ -335,6 +341,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.off('map.paths.byAttribute.hide', this.hidePathsByAttribute);
         serviceLocator.eventManager.off('map.paths.clearFilter', this.clearPathsFilter);
         serviceLocator.eventManager.off('map.fitBounds', this.fitBounds);
+        serviceLocator.eventManager.off('map.fitBoundsIfNotVisible', this.onFitBoundsIfNotVisible);
         serviceLocator.eventManager.off('map.setCenter', this.setCenter);
         serviceLocator.eventManager.off('map.enableBoxZoom', this.onEnableBoxZoom);
         serviceLocator.eventManager.off('map.disableBoxZoom', this.onDisableBoxZoom);
