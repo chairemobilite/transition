@@ -84,10 +84,45 @@ cp .env.example .env
 * Change `EXPRESS_SESSION_SECRET_KEY` to a random string with no space.
 * Change `PROJECT_CONFIG` to point to your project's configuration file. The default is an example configuration file that can be copied and configured for your own need.
 
-The map uses OpenStreetMap tiles by default (no API key required). If you want to add custom raster tiles (such as aerial imagery), you can optionally configure:
-* `CUSTOM_RASTER_TILES_XYZ_URL=https://your-tile-server/{z}/{x}/{y}`
+#### Base map layers
 
-Users can switch between OSM and custom tiles using the layer switcher button in the application.
+The application ships with four base map tile layers that can be selected at any time from the layer switcher control:
+
+| Layer | Description |
+|---|---|
+| **OpenStreetMap** (default) | Standard OSM raster tiles — no API key required. |
+| **Stadia Smooth** | Light, muted style from Stadia Maps. |
+| **Stadia Smooth Dark** | Dark variant of the Stadia Smooth style. |
+| **OSM Bright** | Bright, high-contrast OSM style from Stadia Maps. |
+
+The chosen base layer is persisted per user via the `map.baseLayer` preference and restored on next login.
+
+#### Stadia Maps License
+
+The **Stadia Smooth**, **Stadia Smooth Dark**, and **OSM Bright** layers are provided by [Stadia Maps](https://stadiamaps.com/).
+
+* **Development**: These layers can be used freely without an API key for local development on `localhost`.
+* **Non-Commercial**: Free for non-commercial use on public domains (requires domain registration via account creation).
+* **Commercial**: For commercial applications, you **must purchase a license** to use these layers on your domain.
+
+See the [Stadia Maps Pricing](https://stadiamaps.com/pricing/) and [FAQ](https://stadiamaps.com/faqs/) for details.
+
+#### Custom raster tiles (aerial imagery)
+
+If you want to add custom raster tiles (such as aerial imagery), you can optionally configure the following environment variables:
+
+* `CUSTOM_RASTER_TILES_XYZ_URL=https://your-tile-server/{z}/{x}/{y}` — XYZ tile URL template (**required** to enable custom tiles)
+* `CUSTOM_RASTER_TILES_MIN_ZOOM=8` — Minimum zoom level at which custom tiles are available (default: `0`)
+* `CUSTOM_RASTER_TILES_MAX_ZOOM=22` — Maximum zoom level at which custom tiles are available (default: `22`)
+
+When a custom tile URL is configured, the layer switcher control adds an **Aerial** option. This option is automatically disabled (greyed out) when the current zoom level is outside the configured min/max range.
+
+#### Map overlay controls
+
+The map controls menu (accessible via the gear icon) exposes the following settings:
+
+* **Overlay opacity** — A slider (0–100 %) that dims the base map beneath transit features for better contrast.
+* **Overlay color** — A toggle between **black** and **white** overlay tint.
 
 ### Create the client application
 

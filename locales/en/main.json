@@ -65,6 +65,8 @@
     "Min": "Min",
     "Left": "Left",
     "Right": "Right",
+    "Black": "Black",
+    "White": "White",
     "rangeTo": "-",
     "Total": "Total",
     "Calendar": "Calendar",
@@ -288,7 +290,10 @@
         },
         "DateTimeFormat": "Date/Time format",
         "DateTimeFormat24H": "24 hours ({{formatted}})",
-        "DateTimeFormat12H": "12 hours ({{formatted}})"
+        "DateTimeFormat12H": "12 hours ({{formatted}})",
+        "Map": "Map preferences",
+        "MapOverlayOpacity": "Map overlay opacity (%)",
+        "MapOverlayColor": "Map overlay color"
     },
     "ShowingNofX": "Showing {{n}} of {{x}} results",
     "PageNofX": "Page {{n}} of {{x}}",
@@ -300,12 +305,18 @@
             "resetView": "Reset map view to default center/zoom",
             "layerSelect": "Select map layer",
             "background": "Background",
-            "osm": "Base Map",
+            "osm": "OSM Base Map",
+            "stadiaSmooth": "Stadia Alidade Smooth Light",
+            "stadiaSmoothDark": "Stadia Alidade Smooth Dark",
+            "osmBright": "OSM Vector Light",
             "aerial": "Aerial Imagery",
             "minZoom": "(min zoom: {{zoom}})",
-            "maxZoom": "(max zoom: {{zoom}})"
+            "maxZoom": "(max zoom: {{zoom}})",
+            "overlayOpacity": "Overlay opacity",
+            "overlayColor": "Overlay color"
         },
         "osmAttribution": "© OpenStreetMap contributors",
+        "stadiaAttribution": "© Stadia Maps, © OpenMapTiles, © OpenStreetMap contributors",
         "aerialAttribution": "Aerial imagery"
     }
 }

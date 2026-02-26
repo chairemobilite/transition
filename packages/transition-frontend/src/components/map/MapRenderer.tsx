@@ -14,6 +14,8 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 
 import DeckGLControl from './DeckGLControl';
+import baseMapLayers, { type BaseMapLayerConfig } from '../../config/baseMapLayers.config';
+import type { BaseLayerType } from 'chaire-lib-common/lib/config/types';
 
 /** MapLibre style specification with sources and layers */
 export interface MapStyleSpec {
@@ -27,12 +29,22 @@ export interface MapRendererProps {
     defaultCenter: [number, number];
     defaultZoom: number;
     mapLoaded: boolean;
-    getMapStyle: (showAerial?: boolean) => MapStyleSpec;
+    getMapStyle: () => MapStyleSpec;
     getDeckLayers: () => LayersList;
     setupMapEvents: () => void;
     setMap: () => void;
     confirmModalDeleteIsOpen: boolean;
-    showAerialTiles: boolean;
+    activeBaseLayer: BaseLayerType;
+    /** Overlay opacity as a percentage (0–100) */
+    overlayOpacity: number;
+    /** Overlay color: 'black' or 'white' */
+    overlayColor: 'black' | 'white';
+    /** Aerial tile server URL (undefined if no aerial tiles configured) */
+    aerialTilesUrl: string | undefined;
+    /** Minimum zoom for aerial tiles */
+    aerialMinZoom: number;
+    /** Maximum zoom for aerial tiles */
+    aerialMaxZoom: number;
     handleZoomChange: (zoom: number) => void;
     children: React.ReactNode;
     onDeleteSelectedNodes: () => void;
@@ -54,13 +66,18 @@ const MapRenderer: React.FC<MapRendererProps> = ({
     setupMapEvents,
     setMap,
     confirmModalDeleteIsOpen,
-    showAerialTiles,
+    activeBaseLayer,
+    overlayOpacity,
+    overlayColor,
+    aerialTilesUrl,
+    aerialMinZoom,
+    aerialMaxZoom,
     handleZoomChange,
     onDeleteSelectedNodes,
     closeModal,
     children
 }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
 
     const [viewState, setViewState] = useState({
         longitude: defaultCenter[0],
@@ -114,29 +131,97 @@ const MapRenderer: React.FC<MapRendererProps> = ({
     // Determine if animation should run - only when there are active deck.gl layers
     const shouldAnimate = useMemo(() => deckLayers.length > 0, [deckLayers]);
 
-    // Capture the initial aerial state on first render
-    const initialShowAerialRef = useRef(showAerialTiles);
+    // Track the previous base layer so we can remove its source/layer on switch
+    const prevBaseLayerRef = useRef(activeBaseLayer);
 
-    // Compute map style exactly once on mount to prevent style reloading which wipes runtime layers.
-    // Empty dependency array is intentional:
-    // - getMapStyle is recreated on every parent render (not wrapped in useCallback)
-    // - We only want the initial style; subsequent aerial toggling is handled imperatively below
-    const mapStyle = useMemo(() => getMapStyle(initialShowAerialRef.current), []);
+    // Compute map style when language changes to update attribution strings.
+    // We intentionally omit getMapStyle from the dependency array to avoid reloading
+    // the full style on prop changes that are handled imperatively (like activeBaseLayer
+    // or overlayOpacity). Only i18n.language triggers a recompute (for attribution strings).
+    const mapStyle = useMemo(() => getMapStyle(), [i18n.language]);
 
-    // Handle layer switching imperatively to preserve runtime layers
-    // Toggle both OSM and aerial visibility to prevent loading both tile sets simultaneously
+    // Handle layer switching imperatively by removing the old source/layer and
+    // adding the new one.  This stops MapLibre from fetching tiles for inactive
+    // layers, saving bandwidth and memory.
     useEffect(() => {
         const map = mapRef.current?.getMap();
-        if (map && mapLoaded) {
-            const hasAerial = map.getLayer('aerial');
-            if (hasAerial) {
-                // When aerial is available, toggle both layers inversely
-                map.setLayoutProperty('aerial', 'visibility', showAerialTiles ? 'visible' : 'none');
-                map.setLayoutProperty('osm', 'visibility', showAerialTiles ? 'none' : 'visible');
-            }
-            // If no aerial layer, OSM stays visible (default)
+        if (!map || !mapLoaded) return;
+
+        const prevLayer = prevBaseLayerRef.current;
+        prevBaseLayerRef.current = activeBaseLayer;
+
+        // Nothing to do if the layer hasn't actually changed
+        if (prevLayer === activeBaseLayer) return;
+
+        // Insert below the overlay so transit layers render on top
+        const beforeLayerId = 'base-overlay';
+
+        // --- Remove the previous base layer and its source ---
+        if (map.getLayer(prevLayer)) {
+            map.removeLayer(prevLayer);
         }
-    }, [showAerialTiles, mapLoaded, mapRef]);
+        if (map.getSource(prevLayer)) {
+            map.removeSource(prevLayer);
+        }
+
+        // --- Add the new base layer's source and layer ---
+        if (activeBaseLayer === 'aerial') {
+            if (aerialTilesUrl && !map.getSource('aerial')) {
+                map.addSource('aerial', {
+                    type: 'raster',
+                    tiles: [aerialTilesUrl],
+                    tileSize: 256,
+                    attribution: t('main:map.aerialAttribution')
+                });
+                map.addLayer(
+                    {
+                        id: 'aerial',
+                        type: 'raster',
+                        source: 'aerial',
+                        minzoom: aerialMinZoom,
+                        maxzoom: aerialMaxZoom
+                    },
+                    map.getLayer(beforeLayerId) ? beforeLayerId : undefined
+                );
+            }
+        } else {
+            const layerConfig: BaseMapLayerConfig | undefined = baseMapLayers.find(
+                (l) => l.shortname === activeBaseLayer
+            );
+            if (layerConfig && !map.getSource(activeBaseLayer)) {
+                map.addSource(activeBaseLayer, {
+                    type: 'raster',
+                    tiles: [layerConfig.url],
+                    tileSize: layerConfig.tileSize ?? 256,
+                    attribution: t(`main:map.${layerConfig.attributionKey}`)
+                });
+                map.addLayer(
+                    {
+                        id: activeBaseLayer,
+                        type: 'raster',
+                        source: activeBaseLayer
+                    },
+                    map.getLayer(beforeLayerId) ? beforeLayerId : undefined
+                );
+            }
+        }
+    }, [activeBaseLayer, mapLoaded, mapRef, aerialTilesUrl, aerialMinZoom, aerialMaxZoom, t]);
+
+    // Update overlay opacity imperatively when the slider changes
+    useEffect(() => {
+        const map = mapRef.current?.getMap();
+        if (map && mapLoaded && map.getLayer('base-overlay')) {
+            map.setPaintProperty('base-overlay', 'fill-opacity', overlayOpacity / 100);
+        }
+    }, [overlayOpacity, mapLoaded, mapRef]);
+
+    // Update overlay color imperatively when the toggle changes
+    useEffect(() => {
+        const map = mapRef.current?.getMap();
+        if (map && mapLoaded && map.getLayer('base-overlay')) {
+            map.setPaintProperty('base-overlay', 'fill-color', overlayColor === 'white' ? '#ffffff' : '#000000');
+        }
+    }, [overlayColor, mapLoaded, mapRef]);
 
     return (
         <section id="tr__main-map">
