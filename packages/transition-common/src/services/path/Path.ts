@@ -52,6 +52,12 @@ interface PathStatistics {
 
 import type { TimeAndDistance } from './PathTypes';
 
+export type SegmentTimesByPeriod = {
+    [periodsGroupShortname: string]: {
+        [periodShortname: string]: number[]; // travelTimeSeconds per segment
+    };
+};
+
 export const pathDirectionArray = ['loop', 'outbound', 'inbound', 'other'] as const;
 export type PathDirection = (typeof pathDirectionArray)[number];
 
@@ -90,6 +96,8 @@ export interface PathAttributesData {
     waypoints: [number, number][][];
     waypointTypes: string[][];
     segments?: TimeAndDistance[];
+    segmentTimesByPeriod?: SegmentTimesByPeriod;
+    segmentTimesCheckpoints?: { fromNodeIndex: number; toNodeIndex: number }[];
     dwellTimeSeconds?: number[];
     gtfs?: {
         shape_id: string;
@@ -712,6 +720,38 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         return tripDistanceSoFar;
     }
 
+    /**
+     * Get the travel time in seconds for a specific segment at a given period.
+     * Falls back to the base segment travel time if no period-specific override exists.
+     */
+    getSegmentTravelTimeForPeriod(
+        segmentIndex: number,
+        periodsGroupShortname: string,
+        periodShortname: string
+    ): number | undefined {
+        const periodTimes = this.attributes.data.segmentTimesByPeriod?.[periodsGroupShortname]?.[periodShortname];
+        if (periodTimes && periodTimes[segmentIndex] !== undefined) {
+            return periodTimes[segmentIndex];
+        }
+        const segments = this.attributes.data.segments || [];
+        return segments[segmentIndex]?.travelTimeSeconds;
+    }
+
+    /**
+     * Get segment travel times for all segments at a given period.
+     * Falls back to the base segment travel time for any segment without a period-specific override.
+     */
+    getSegmentTravelTimesForPeriod(periodsGroupShortname: string, periodShortname: string): number[] {
+        const segments = this.attributes.data.segments || [];
+        const periodTimes = this.attributes.data.segmentTimesByPeriod?.[periodsGroupShortname]?.[periodShortname];
+        return segments.map((segment, index) => {
+            if (periodTimes && periodTimes[index] !== undefined) {
+                return periodTimes[index];
+            }
+            return segment.travelTimeSeconds;
+        });
+    }
+
     /* Get the distance between the path geography and each node and get the routing radius for each node:
        If any diff (radius - distance) is < 0, that means that the routing may fail or may change when calculating again (take a detour to reach the node with a radius too small for the actual path geography)
        This will mostly happen for paths imported from gtfs or when a node routing radius is changed between path calculations
@@ -949,6 +989,8 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     emptyGeography() {
         const newData = {
             segments: null, // the last segment is the return back to first stop
+            segmentTimesByPeriod: undefined,
+            segmentTimesCheckpoints: undefined,
             dwellTimeSeconds: null, // the last travel time is the travel time to go back to first stop
             layoverTimeSeconds: null,
             travelTimeWithoutDwellTimesSeconds: null,
