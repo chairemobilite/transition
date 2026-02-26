@@ -55,6 +55,8 @@
   "CalculateOdRouting": "Chargement OD",
   "CalculateAccessibilityMap": "Calcul du polygone d'accessibilité",
   "UpdatingPathRoute": "Mise à jour du tracé du parcours",
+  "CalculatingCurves": "Calcul de l'analyse des courbes",
+  "SmoothingPath": "Lissage du parcours",
   "UpdatingTransferableNodes": "Mise à jour des noeuds d'arrêt transférables",
   "UploadingFile": "Téléversement du fichier",
   "UploadingGtfsFile": "Téléversement du fichier GTFS",

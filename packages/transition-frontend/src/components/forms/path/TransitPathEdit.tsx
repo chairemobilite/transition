@@ -13,9 +13,12 @@ import { faRedoAlt } from '@fortawesome/free-solid-svg-icons/faRedoAlt';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faRoute } from '@fortawesome/free-solid-svg-icons/faRoute';
+import { faBezierCurve } from '@fortawesome/free-solid-svg-icons/faBezierCurve';
+
 import _toString from 'lodash/toString';
 import MathJax from 'react-mathjax';
 import { point as turfPoint, featureCollection as turfFeatureCollection } from '@turf/turf';
+import type { Feature, LineString, FeatureCollection } from 'geojson';
 
 //import lineRoutingEngines from '../../../../config/transition/pathRoutingEngines';
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
@@ -30,15 +33,31 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import PathStatistics from './TransitPathStatistics';
+import { CurveStatsPanel } from './CurveStatsPanel';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import lineModesConfig from 'transition-common/lib/config/lineModes';
 import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
-import { parseIntOrNull, parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
+import { parseIntOrNull, parseFloatOrNull, roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
+import { roundSecondsToNearestMinute } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import Path, { pathDirectionArray } from 'transition-common/lib/services/path/Path';
 import Line from 'transition-common/lib/services/line/Line';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
+import {
+    isRailMode,
+    getDefaultRunningSpeedKmH,
+    getDefaultAcceleration,
+    getDefaultDeceleration
+} from 'transition-common/lib/services/line/types';
+import type {
+    GeometryResolution,
+    CurveRadiusAnalysis,
+    PathTravelTimeAnalysis,
+    TimeSpeedProfile
+} from 'transition-common/lib/services/path/railCurves/types';
+import type { RailMode } from 'transition-common/lib/services/line/types';
 
 const lineModesConfigByMode = {};
 for (let i = 0, countI = lineModesConfig.length; i < countI; i++) {
@@ -52,11 +71,22 @@ interface PathFormProps extends WithTranslation {
     availableRoutingModes: string[];
 }
 
+interface CurveAnalysisResponse {
+    travelTimeAnalysis: PathTravelTimeAnalysis | null;
+    speedProfile: TimeSpeedProfile | null;
+    curveRadius: CurveRadiusAnalysis | null;
+    largeAngleVertices: GeoJSON.Feature<GeoJSON.Point>[] | null;
+}
+
 interface PathFormState extends SaveableObjectState<Path> {
     pathErrors: string[];
     confirmModalSchedulesAffectedlIsOpen: boolean;
     waypointDraggingAfterNodeIndex?: number;
     waypointDraggingIndex?: number;
+    showCurveSegmentsLayer: boolean;
+    pathStale: boolean;
+    curveAnalysisResponse: CurveAnalysisResponse | null;
+    curveLoading: boolean;
 }
 
 class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormState> {
@@ -74,7 +104,11 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             selectedObjectName: 'path',
             collectionName: 'paths',
             pathErrors: [],
-            confirmModalSchedulesAffectedlIsOpen: false
+            confirmModalSchedulesAffectedlIsOpen: false,
+            showCurveSegmentsLayer: true,
+            pathStale: false,
+            curveAnalysisResponse: null,
+            curveLoading: false
         };
     }
 
@@ -88,6 +122,13 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         return null;
     }
 
+    toggleCurveSegmentsLayer = () => {
+        this.setState(
+            (prevState) => ({ showCurveSegmentsLayer: !prevState.showCurveSegmentsLayer }),
+            () => this.updateLayers()
+        );
+    };
+
     toggleTemporaryManualRouting = () => {
         this.onValueChange('data.temporaryManualRouting', {
             value: !this.props.path.getData('temporaryManualRouting')
@@ -100,10 +141,13 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.on('waypoint.drag', this.onDragWaypoint);
         serviceLocator.eventManager.on('waypoint.update', this.onUpdateWaypoint);
         serviceLocator.eventManager.on('waypoint.replaceByNodeId', this.onReplaceWaypointByNodeId);
-        serviceLocator.eventManager.on('selected.updateLayers.path', this.updateLayers);
+        serviceLocator.eventManager.on('selected.updateLayers.path', this.onPathGeographyChanged);
         // Call the updateLayers method to display the path on the map, as the event may have been emitted before the listener was added
         this.updateLayers();
         serviceLocator.keyboardManager.on('m', this.toggleTemporaryManualRouting);
+        if (isRailMode(this.props.line.attributes.mode)) {
+            this.fetchCurveAnalysis();
+        }
     }
 
     componentWillUnmount() {
@@ -112,9 +156,204 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.off('waypoint.drag', this.onDragWaypoint);
         serviceLocator.eventManager.off('waypoint.update', this.onUpdateWaypoint);
         serviceLocator.eventManager.off('waypoint.replaceByNodeId', this.onReplaceWaypointByNodeId);
-        serviceLocator.eventManager.off('selected.updateLayers.path', this.updateLayers);
+        serviceLocator.eventManager.off('selected.updateLayers.path', this.onPathGeographyChanged);
         serviceLocator.keyboardManager.off('m');
     }
+
+    fetchCurveAnalysis = () => {
+        const path = this.props.path;
+        const mode = this.props.line.attributes.mode;
+
+        if (!isRailMode(mode)) return;
+
+        const geography = path.attributes?.geography;
+        const segments = path.attributes?.segments;
+        if (!geography || !segments || segments.length < 1) return;
+
+        const runningSpeedKmH = path.getData(
+            'defaultRunningSpeedKmH',
+            getDefaultRunningSpeedKmH(mode as RailMode)
+        ) as number;
+        const accelerationMps2 = path.getData('defaultAcceleration', getDefaultAcceleration(mode)) as number;
+        const decelerationMps2 = path.getData('defaultDeceleration', getDefaultDeceleration(mode)) as number;
+        const dwellTimeSeconds = path.attributes?.data?.dwellTimeSeconds || [];
+
+        this.setState({ curveLoading: true });
+        serviceLocator.eventManager.emit('progress', { name: 'CalculatingCurves', progress: 0.0 });
+
+        serviceLocator.socketEventManager.emit(
+            'transitPaths.curveAnalysis',
+            {
+                geography,
+                segments,
+                dwellTimeSeconds,
+                mode: mode as RailMode,
+                runningSpeedKmH,
+                accelerationMps2,
+                decelerationMps2
+            },
+            (status: Status.Status<CurveAnalysisResponse>) => {
+                if (Status.isStatusOk(status)) {
+                    const response = Status.unwrap(status) as CurveAnalysisResponse;
+                    this.applyCurveAnalysisToPathData(response);
+                    this.setState(
+                        {
+                            curveAnalysisResponse: response,
+                            curveLoading: false
+                        },
+                        () => this.updateLayers()
+                    );
+                } else {
+                    console.error('Error fetching curve analysis');
+                    this.setState({ curveLoading: false });
+                }
+                serviceLocator.eventManager.emit('progress', { name: 'CalculatingCurves', progress: 1.0 });
+            }
+        );
+    };
+
+    applyCurveAnalysisToPathData = (response: CurveAnalysisResponse) => {
+        const analysis = response.travelTimeAnalysis;
+        if (!analysis) return;
+
+        const path = this.props.path;
+        const pathData = path.attributes.data;
+        const totalDwellTimeSeconds = (pathData.totalDwellTimeSeconds as number) || 0;
+        const layoverTimeSeconds = (pathData.layoverTimeSeconds as number) || 0;
+
+        const curveOperatingTime = roundSecondsToNearestMinute(
+            analysis.totalTimeWithCurvesSeconds + totalDwellTimeSeconds,
+            Math.ceil
+        );
+
+        pathData.operatingTimeWithoutLayoverTimeSeconds = curveOperatingTime;
+        pathData.operatingTimeWithLayoverTimeSeconds = curveOperatingTime + layoverTimeSeconds;
+        pathData.travelTimeWithoutDwellTimesSeconds = analysis.totalNoDwellCurveTimeSeconds;
+        pathData.averageSpeedWithoutDwellTimesMetersPerSecond =
+            roundToDecimals(
+                analysis.totalNoDwellCurveTimeSeconds > 0
+                    ? analysis.totalDistanceMeters / analysis.totalNoDwellCurveTimeSeconds
+                    : 0,
+                2
+            ) ?? 0;
+        pathData.operatingSpeedMetersPerSecond =
+            roundToDecimals(curveOperatingTime > 0 ? analysis.totalDistanceMeters / curveOperatingTime : 0, 2) ?? 0;
+        pathData.operatingSpeedWithLayoverMetersPerSecond =
+            roundToDecimals(
+                curveOperatingTime + layoverTimeSeconds > 0
+                    ? analysis.totalDistanceMeters / (curveOperatingTime + layoverTimeSeconds)
+                    : 0,
+                2
+            ) ?? 0;
+
+        path.refreshStats();
+    };
+
+    smoothPath = () => {
+        const path = this.props.path;
+        const mode = this.props.line.attributes.mode;
+        const coordinates = path.attributes?.geography?.coordinates;
+        const segments = path.attributes?.segments;
+        if (!coordinates || !segments || segments.length < 1) return;
+
+        serviceLocator.eventManager.emit('progress', { name: 'SmoothingPath', progress: 0.0 });
+
+        serviceLocator.socketEventManager.emit(
+            'transitPaths.smoothPath',
+            {
+                coordinates,
+                nodeIndices: segments,
+                iterations: 2
+            },
+            (status: Status.Status<{ waypoints: [number, number][][] }>) => {
+                if (Status.isStatusOk(status)) {
+                    const { waypoints } = Status.unwrap(status) as { waypoints: [number, number][][] };
+                    const nodeCount = path.attributes.nodes.length;
+
+                    const fullWaypoints: [number, number][][] = [];
+                    const fullWaypointTypes: string[][] = [];
+                    for (let i = 0; i < nodeCount; i++) {
+                        const segWps = waypoints[i] || [];
+                        fullWaypoints.push(segWps);
+                        fullWaypointTypes.push(segWps.map(() => 'manual'));
+                    }
+
+                    path.setData('waypoints', fullWaypoints);
+                    path.setData('waypointTypes', fullWaypointTypes);
+
+                    path.updateGeography()
+                        .then(() => {
+                            serviceLocator.selectedObjectsManager.setSelection('path', [path]);
+                            this.setState({ pathStale: false });
+                            this.updateLayers();
+                            serviceLocator.eventManager.emit('progress', {
+                                name: 'SmoothingPath',
+                                progress: 1.0
+                            });
+                            if (isRailMode(mode)) {
+                                this.fetchCurveAnalysis();
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('Error updating geography after smoothing:', error);
+                            serviceLocator.eventManager.emit('progress', {
+                                name: 'SmoothingPath',
+                                progress: 1.0
+                            });
+                        });
+                } else {
+                    console.error('Error smoothing path');
+                    serviceLocator.eventManager.emit('progress', { name: 'SmoothingPath', progress: 1.0 });
+                }
+            }
+        );
+    };
+
+    generateCurveSegmentsGeoJSON = (): FeatureCollection<LineString> => {
+        const response = this.state.curveAnalysisResponse;
+        if (!response?.curveRadius) return turfFeatureCollection([]);
+
+        const path = this.props.path;
+        const pathGeojson = path.toGeojson();
+        if (!pathGeojson?.geometry?.coordinates || pathGeojson.geometry.coordinates.length < 2) {
+            return turfFeatureCollection([]);
+        }
+
+        const coordinates = pathGeojson.geometry.coordinates;
+        const curveColor = '#ff8c00';
+        const features: Feature<LineString>[] = [];
+
+        response.curveRadius.segments.forEach((segment, index) => {
+            if (segment.type !== 'curve') return;
+
+            const segmentCoords = coordinates.slice(segment.startIndex, segment.endIndex + 1);
+            if (segmentCoords.length < 2) return;
+
+            features.push({
+                type: 'Feature',
+                geometry: {
+                    type: 'LineString',
+                    coordinates: segmentCoords
+                },
+                properties: {
+                    color: curveColor,
+                    segmentIndex: index,
+                    type: segment.type,
+                    medianRadiusMeters: Math.round(segment.medianRadiusMeters),
+                    minRadiusMeters: Math.round(segment.minRadiusMeters),
+                    lengthMeters: Math.round(segment.lengthMeters)
+                }
+            });
+        });
+
+        return turfFeatureCollection(features);
+    };
+
+    generateLargeAngleVerticesGeoJSON = (): GeoJSON.FeatureCollection<GeoJSON.Point> => {
+        const response = this.state.curveAnalysisResponse;
+        if (!response?.largeAngleVertices) return turfFeatureCollection([]);
+        return turfFeatureCollection(response.largeAngleVertices);
+    };
 
     updateLayers = () => {
         const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
@@ -126,6 +365,10 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         const nodesGeojsons = selectedPath ? selectedPath.nodesGeojsons() : [];
         serviceLocator.eventManager.emit('map.updateLayers', {
             transitPathsSelected: turfFeatureCollection(pathGeojson && pathGeojson.geometry ? [pathGeojson] : []),
+            transitPathCurveSegments: this.state.showCurveSegmentsLayer
+                ? this.generateCurveSegmentsGeoJSON()
+                : turfFeatureCollection([]),
+            transitPathLargeAngleVertices: this.generateLargeAngleVerticesGeoJSON(),
             transitNodesSelected: turfFeatureCollection(nodesGeojsons),
             transitNodesRoutingRadius: turfFeatureCollection(nodesGeojsons),
             transitPathWaypoints: turfFeatureCollection(selectedPath ? selectedPath.waypointsGeojsons() : []),
@@ -142,8 +385,17 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         });
     };
 
+    onPathGeographyChanged = () => {
+        this.setState({ pathStale: true });
+        this.updateLayers();
+        if (isRailMode(this.props.line.attributes.mode)) {
+            this.fetchCurveAnalysis();
+        }
+    };
+
     onValueChange = (path: string, value?: { value: any; isValid?: boolean }) => {
         super.onValueChange(path, value);
+        this.setState({ pathStale: true });
         this.updateLayers();
     };
 
@@ -221,6 +473,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.emit('map.updateLayers', {
             transitPaths: serviceLocator.collectionManager.get('paths').toGeojson(),
             transitPathsSelected: turfFeatureCollection([]),
+            transitPathCurveSegments: turfFeatureCollection([]),
+            transitPathLargeAngleVertices: turfFeatureCollection([]),
             transitNodesSelected: turfFeatureCollection([]),
             transitNodesSelectedErrors: turfFeatureCollection([]),
             transitNodesRoutingRadius: turfFeatureCollection([]),
@@ -328,6 +582,9 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         const pathData = path.attributes.data;
         const nodes = path.attributes.nodes;
         const isFrozen = path.isFrozen();
+
+        const geometryResolution: GeometryResolution | null =
+            this.state.curveAnalysisResponse?.travelTimeAnalysis?.geometryResolution ?? null;
 
         const autocompleteNameChoices: { value: string; label: string }[] = [];
         ['North', 'NorthAbbr', 'South', 'SouthAbbr', 'East', 'EastAbbr', 'West', 'WestAbbr'].forEach(
@@ -582,6 +839,19 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     />
                                 </div>
                             )}
+                            {geometryResolution === 'high' && (
+                                <div className="apptr__form-input-container">
+                                    <InputCheckboxBoolean
+                                        id={`formFieldTransitPathShowCurveSegments${pathId}`}
+                                        label={this.props.t('transit:transitPath:ShowCurveSegmentsLayer')}
+                                        isChecked={this.state.showCurveSegmentsLayer}
+                                        onValueChange={this.toggleCurveSegmentsLayer}
+                                    />
+                                    <p className="_small _pale _no-margin">
+                                        {this.props.t('transit:transitPath:ShowCurveSegmentsLayerHelp')}
+                                    </p>
+                                </div>
+                            )}
                             {pathRoutingEngine === 'engine' && (
                                 <div className="apptr__form-input-container">
                                     <InputWrapper
@@ -623,6 +893,23 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                             )}
                         </div>
                     </Collapsible>
+
+                    {/* Geometry resolution warning for rail modes */}
+                    {geometryResolution !== null && geometryResolution !== 'high' && (
+                        <FormErrors
+                            errors={[
+                                geometryResolution === 'none'
+                                    ? 'transit:transitPath:GeometryResolutionWarningNone'
+                                    : geometryResolution === 'almostStraight'
+                                        ? 'transit:transitPath:GeometryResolutionWarningAlmostStraight'
+                                        : 'transit:transitPath:GeometryResolutionWarningLow'
+                            ]}
+                            errorType="Warning"
+                        />
+                    )}
+                    {this.state.pathStale && (
+                        <FormErrors errors={['transit:transitPath:PathStale']} errorType="Warning" />
+                    )}
 
                     <Collapsible trigger={this.props.t('form:advancedFields')} transitionTime={100}>
                         <div className="tr__form-section">
@@ -677,17 +964,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
 
                     {this.hasInvalidFields() && <FormErrors errors={['main:errors:InvalidFormFields']} />}
                     <FormErrors errors={path.errors} />
-                    {(!path.errors || path.errors.length === 0) && firstNode && lastNode && (
-                        <Collapsible
-                            trigger={this.props.t('form:statistics')}
-                            open={!!(pathData && pathData.variables?.d_p)}
-                            transitionTime={100}
-                        >
-                            <div className="tr__form-section">
-                                <PathStatistics path={path} firstNode={firstNode} lastNode={lastNode} />
-                            </div>
-                        </Collapsible>
-                    )}
+
                     <div className="tr__form-buttons-container">
                         <span title={this.props.t('main:Back')}>
                             <Button
@@ -743,7 +1020,6 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                 label=""
                                 disabled={!path.canRoute().canRoute}
                                 onClick={() => {
-                                    // recalculate routing with same nodes
                                     serviceLocator.eventManager.emit('progress', {
                                         name: 'UpdatingPathRoute',
                                         progress: 0.0
@@ -751,17 +1027,36 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     path.updateGeography()
                                         .then((_response) => {
                                             serviceLocator.selectedObjectsManager.setSelection('path', [path]);
+                                            this.setState({ pathStale: false });
                                             this.updateLayers();
                                             serviceLocator.eventManager.emit('progress', {
                                                 name: 'UpdatingPathRoute',
                                                 progress: 1.0
                                             });
+                                            if (isRailMode(mode)) {
+                                                this.fetchCurveAnalysis();
+                                            }
                                         })
                                         .catch((error) => {
                                             console.error('cannot update path geography', error);
                                         });
                                 }}
                             />
+                        )}
+                        {isFrozen !== true && pathRoutingEngine === 'manual' && (
+                            <span title={this.props.t('transit:transitPath:SmoothPath')}>
+                                <Button
+                                    color="blue"
+                                    icon={faBezierCurve}
+                                    iconClass="_icon-alone"
+                                    label=""
+                                    disabled={
+                                        !path.attributes?.geography?.coordinates ||
+                                        path.attributes.geography.coordinates.length < 3
+                                    }
+                                    onClick={this.smoothPath}
+                                />
+                            </span>
                         )}
                         <span title={this.props.t('main:Save')}>
                             <Button
@@ -865,6 +1160,42 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                             />
                         )}
                     </div>
+
+                    {(!path.errors || path.errors.length === 0) &&
+                        firstNode &&
+                        lastNode &&
+                        pathData?.variables?.d_p && (
+                        <Collapsible trigger={this.props.t('form:statistics')} open={true} transitionTime={100}>
+                            <div className="tr__form-section">
+                                <PathStatistics
+                                    path={path}
+                                    firstNode={firstNode}
+                                    lastNode={lastNode}
+                                    curveAnalysis={
+                                        isRailMode(mode)
+                                            ? (this.state.curveAnalysisResponse?.travelTimeAnalysis ?? null)
+                                            : undefined
+                                    }
+                                />
+                            </div>
+                            {isRailMode(mode) && (
+                                <div className="tr__form-section">
+                                    <CurveStatsPanel
+                                        travelTimeAnalysis={
+                                            this.state.curveAnalysisResponse?.travelTimeAnalysis ?? null
+                                        }
+                                        speedProfile={this.state.curveAnalysisResponse?.speedProfile ?? null}
+                                        maxSpeedKmH={
+                                                path.getData(
+                                                    'defaultRunningSpeedKmH',
+                                                    getDefaultRunningSpeedKmH(mode as RailMode)
+                                                ) as number
+                                        }
+                                    />
+                                </div>
+                            )}
+                        </Collapsible>
+                    )}
                 </MathJax.Provider>
             </React.Fragment>
         );

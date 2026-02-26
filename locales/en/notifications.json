@@ -55,6 +55,8 @@
   "CalculateOdRouting": "OD routing calculation",
   "CalculateAccessibilityMap": "Accessibility polygon calculation",
   "UpdatingPathRoute": "Updating path route",
+  "CalculatingCurves": "Calculating curve analysis",
+  "SmoothingPath": "Smoothing path",
   "UpdatingTransferableNodes": "Updating transferable nodes",
   "UploadingFile": "Uploading file",
   "UploadingGtfsFile": "Uploading GTFS file",
