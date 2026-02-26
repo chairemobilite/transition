@@ -18,6 +18,7 @@ export interface AccessibilityComparisonStatsComponentProps {
     mode: ComparisonMode;
     color1: string;
     color2: string;
+    calculatePopulation?: boolean;
 }
 
 const AccessibilityComparisonStatsComponent: React.FunctionComponent<AccessibilityComparisonStatsComponentProps> = (
@@ -164,13 +165,75 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
                         )}
                     </td>
                 </tr>
-                {typeof properties1.population === 'number' && typeof properties2.population === 'number' && (
+                {typeof properties1.populationData?.population === 'number' &&
+                    typeof properties2.populationData?.population === 'number' && (
                     <tr>
                         <th>{t('transit:transitRouting:AccessibilityMapPopulation')}</th>
-                        <td>{properties1.population.toLocaleString(language)}</td>
-                        <td>{properties2.population.toLocaleString(language)}</td>
                         <td>
-                            {(properties2.population - properties1.population).toLocaleString(language, {
+                            {properties1.populationData?.population.toLocaleString(language)}
+                            {properties1.populationData?.dataSourceAreaRatio < 0.99 && (
+                                <React.Fragment>
+                                        &nbsp;
+                                    <span
+                                        className="apptr__form-warning-message"
+                                        data-tooltip-id={`data-source-incomplete-area-1-warning-${durationMinutes}`}
+                                    >
+                                            &#9888;
+                                        {/* Warning sign: ⚠ */}
+                                    </span>
+                                    <Tooltip
+                                        id={`data-source-incomplete-area-1-warning-${durationMinutes}`}
+                                        opacity={1}
+                                        style={{ maxWidth: '90%', zIndex: 100 }}
+                                    >
+                                        <span className="apptr__form-warning-message">
+                                            {t('transit:transitRouting:DataSourceWarningPopup', {
+                                                percentage: (
+                                                    Math.round(
+                                                        properties1.populationData?.dataSourceAreaRatio * 100 * 10
+                                                    ) / 10
+                                                ) // Round to the nearest percentage decimal point.
+                                                    .toLocaleString(language)
+                                            })}
+                                        </span>
+                                    </Tooltip>
+                                </React.Fragment>
+                            )}
+                        </td>
+                        <td>
+                            {properties2.populationData?.population?.toLocaleString(language)}
+                            {properties2.populationData?.dataSourceAreaRatio < 0.99 && (
+                                <React.Fragment>
+                                        &nbsp;
+                                    <span
+                                        className="apptr__form-warning-message"
+                                        data-tooltip-id={`data-source-incomplete-area-2-warning-${durationMinutes}`}
+                                    >
+                                            &#9888;
+                                    </span>
+                                    <Tooltip
+                                        id={`data-source-incomplete-area-2-warning-${durationMinutes}`}
+                                        opacity={1}
+                                        style={{ maxWidth: '90%', zIndex: 100 }}
+                                    >
+                                        <span className="apptr__form-warning-message">
+                                            {t('transit:transitRouting:DataSourceWarningPopup', {
+                                                percentage: (
+                                                    Math.round(
+                                                        properties2.populationData?.dataSourceAreaRatio * 100 * 10
+                                                    ) / 10
+                                                ) // Round to the nearest percentage decimal point.
+                                                    .toLocaleString(language)
+                                            })}
+                                        </span>
+                                    </Tooltip>
+                                </React.Fragment>
+                            )}
+                        </td>
+                        <td>
+                            {(
+                                properties2.populationData?.population - properties1.populationData?.population
+                            ).toLocaleString(language, {
                                 signDisplay: 'exceptZero'
                             })}
                         </td>
@@ -238,7 +301,20 @@ const AccessibilityComparisonStatsComponent: React.FunctionComponent<Accessibili
                         )}
                     </React.Fragment>
                 )}
-                <br />
+                {props.calculatePopulation &&
+                    (properties1.populationData?.population === null ||
+                        properties2.populationData?.population === null) && (
+                    <tr>
+                        <td colSpan={4} className="apptr__form-warning-message">
+                            <span className="apptr__form-warning-message">
+                                {t('transit:transitRouting:DataSourceNullWarningComparisonPopup')}
+                            </span>
+                        </td>
+                    </tr>
+                )}
+                <tr>
+                    <td colSpan={4} />
+                </tr>
             </React.Fragment>
         );
     });
