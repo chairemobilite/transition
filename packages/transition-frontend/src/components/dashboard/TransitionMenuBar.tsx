@@ -4,11 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { JSX } from 'react';
+import React, { JSX, use } from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
+import { ThemeContext } from 'chaire-lib-frontend/lib/contexts/ThemeContext';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
 
 // TODO Menu items should not be provided directly by widgets, it should be
@@ -17,6 +18,14 @@ import config from 'chaire-lib-common/lib/config/shared/project.config';
 const MenuBar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
     props: LayoutSectionProps & WithTranslation
 ) => {
+    // Get the current theme (light or dark)
+    const theme = use(ThemeContext);
+    const sectionIcon = (sectionShortname: string) =>
+        theme === 'dark'
+            ? sectionsConfig[sectionShortname].iconWhite
+            : sectionsConfig[sectionShortname].iconBlack;
+
+    // Get the sections configuration
     const sectionsConfig = config.sections;
 
     const onClickHandler = function (e) {
@@ -42,7 +51,7 @@ const MenuBar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
                         <span className="tr__left-menu-button-icon">
                             <img
                                 className="_icon"
-                                src={sectionsConfig[sectionShortname].iconWhite} // TODO: Do the light mode also
+                                src={sectionIcon(sectionShortname)}
                                 alt={props.t(sectionsConfig[sectionShortname].localizedTitle)}
                             />
                         </span>

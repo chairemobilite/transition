@@ -24,6 +24,7 @@ import {
 import { SupplyDemandAnalysisDashboardContribution } from './components/dashboard/supplyDemandAnalysisModule/SupplyDemandAnalysisDashboardContribution';
 import { setApplicationConfiguration } from 'chaire-lib-frontend/lib/config/application.config';
 import verifyAuthentication from 'chaire-lib-frontend/lib/services/auth/verifyAuthentication';
+import { ThemeProvider } from 'chaire-lib-frontend/lib/contexts/ThemeContext';
 
 import 'chaire-lib-frontend/lib/styles/styles-transition.scss';
 import './styles/transition.scss';
@@ -51,9 +52,11 @@ const contributions = [
 const jsx = (
     <Provider store={store}>
         <I18nextProvider i18n={i18n}>
-            <BrowserRouter>
-                <TransitionRouter contributions={contributions} mainMap={MainMap as any} />
-            </BrowserRouter>
+            <ThemeProvider>
+                <BrowserRouter>
+                    <TransitionRouter contributions={contributions} mainMap={MainMap as any} />
+                </BrowserRouter>
+            </ThemeProvider>
         </I18nextProvider>
     </Provider>
 );
