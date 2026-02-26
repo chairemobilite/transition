@@ -21,6 +21,7 @@ import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 import { TransitNetworkDesignJobType } from './types';
 import { LineServices } from '../../evolutionaryAlgorithm/internalTypes';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import { MemcachedInstance } from 'chaire-lib-backend/lib/utils/processManagers/MemcachedProcessManager';
 
 // Type to extract parameters from a job data type
 type ExtractParameters<TJobType extends JobDataType> = TJobType extends { data: { parameters: infer P } } ? P : never;
@@ -44,6 +45,7 @@ export class TransitNetworkDesignJobWrapper<
     private _serviceCollection: ServiceCollection | undefined = undefined;
     private _lineServices: LineServices | undefined = undefined;
     private _collectionManager: CollectionManager | undefined = undefined;
+    protected memcachedInstance: MemcachedInstance | undefined | null = undefined;
 
     constructor(
         private wrappedJob: ExecutableJob<TJobType>,
@@ -121,6 +123,10 @@ export class TransitNetworkDesignJobWrapper<
 
     getCacheDirectory = (): string => {
         return this.wrappedJob.getJobFileDirectory() + 'cache';
+    };
+
+    getMemcachedInstance = (): MemcachedInstance | undefined | null => {
+        return this.memcachedInstance;
     };
 
     loadServerData = async (socket: EventEmitter): Promise<void> => {

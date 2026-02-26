@@ -48,6 +48,7 @@ import {
     loadAndSaveScenariosToCache,
     loadAndSaveServicesToCache
 } from '../../../capnpCache/dbToCache';
+import MemcachedProcessManager from 'chaire-lib-backend/lib/utils/processManagers/MemcachedProcessManager';
 
 const CANDIDATE_LINES_RESULTS_CSV_FILE_PREFIX = 'ndCandidateLinesResults';
 const CANDIDATE_SIMULATION_RESULTS_CSV_FILE_PREFIX = 'ndCandidateSimulationResults';
@@ -199,6 +200,24 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
     isFinished = (): boolean => {
         return this.currentIteration > (this.options.numberOfGenerations || 0);
     };
+    private _startMemcached = async (): Promise<void> => {
+        const instance = await MemcachedProcessManager.start();
+        if (instance) {
+            this.memcachedInstance = instance;
+        } else {
+            // Only print an error message on failure. Calculation will still
+            // be able to complete, but could be slower
+            console.warn('Failed to start memcached, calculation could be slower');
+        }
+    };
+
+    private _stopMemcached = async (): Promise<void> => {
+        // Stop memcached
+        if (this.memcachedInstance) {
+            await this.memcachedInstance.stop();
+            this.memcachedInstance = undefined;
+        }
+    };
 
     private _loadAndPrepareData = async (): Promise<void> => {
         // Load the necessary data from the server
@@ -340,6 +359,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
     };
 
     private _run = async (): Promise<boolean> => {
+        // Start a global memcached instance to be shared by all child jobs
+        const startMemcachedPromise = this._startMemcached();
+
         // Prepare and load data, either from cache when resuming a started job or from server at first run
         if (this.job.attributes.internal_data.dataPrepared !== true) {
             await this._loadAndPrepareData();
@@ -347,6 +369,7 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             await this._loadAndPrepareDataFromCache();
         }
 
+        await startMemcachedPromise; // Delayed await to let things start in parallel of data prep
         const algorithmResults = this.job.attributes.data.results!;
 
         let previousGeneration: LineAndNumberOfVehiclesGeneration | undefined = undefined;
@@ -423,7 +446,10 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         } catch (error) {
             console.log('error during evolutionary algorithm generations', error);
             throw error;
+        } finally {
+            await this._stopMemcached();
         }
+
         if (!previousGeneration) {
             throw new TrError('Evolutionary Algorithm: no generation was done!', 'ALGOGEN001');
         }
