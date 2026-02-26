@@ -30,13 +30,9 @@ const Toolbar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
     const [dataNeedsUpdate, setDataNeedsUpdate] = useState(false);
 
     const checkTrRoutingStatus = useCallback(() => {
-        serviceLocator.socketEventManager.emit(
-            'service.trRouting.status',
-            {},
-            (response: { status: string }) => {
-                setTrRoutingStarted(response.status === 'started');
-            }
-        );
+        serviceLocator.socketEventManager.emit('service.trRouting.status', {}, (response: { status: string }) => {
+            setTrRoutingStarted(response.status === 'started');
+        });
     }, []);
 
     useEffect(() => {
@@ -110,23 +106,26 @@ const Toolbar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
         };
     }, [checkTrRoutingStatus]);
 
-    const _restartTrRouting = useCallback((parameters: Record<string, unknown> = {}) => {
-        serviceLocator.eventManager.emit('progress', { name: 'RestartTrRouting', progress: 0.0 });
-        serviceLocator.socketEventManager.emit(
-            'service.trRouting.restart',
-            parameters,
-            (response: { status: string }) => {
-                if (response.status !== 'started' && response.status !== 'no_restart_required') {
-                    serviceLocator.eventManager.emit('error', {
-                        name: 'RestartTrRoutingError',
-                        error: response.status
-                    });
+    const _restartTrRouting = useCallback(
+        (parameters: Record<string, unknown> = {}) => {
+            serviceLocator.eventManager.emit('progress', { name: 'RestartTrRouting', progress: 0.0 });
+            serviceLocator.socketEventManager.emit(
+                'service.trRouting.restart',
+                parameters,
+                (response: { status: string }) => {
+                    if (response.status !== 'started' && response.status !== 'no_restart_required') {
+                        serviceLocator.eventManager.emit('error', {
+                            name: 'RestartTrRoutingError',
+                            error: response.status
+                        });
+                    }
+                    serviceLocator.eventManager.emit('progress', { name: 'RestartTrRouting', progress: 1.0 });
+                    checkTrRoutingStatus();
                 }
-                serviceLocator.eventManager.emit('progress', { name: 'RestartTrRouting', progress: 1.0 });
-                checkTrRoutingStatus();
-            }
-        );
-    }, [checkTrRoutingStatus]);
+            );
+        },
+        [checkTrRoutingStatus]
+    );
 
     const fetchData = useCallback(() => {
         loadLayersAndCollections({
@@ -177,12 +176,8 @@ const Toolbar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
         <React.Fragment>
             {coordinates && coordinates.length === 2 && (
                 <div className="tr__top-menu-buttons-container _small _pale">
-                    <span style={{ width: '8rem' }}>
-                        {roundToDecimals(coordinates[0], 5)!.toFixed(5)},
-                    </span>
-                    <span style={{ width: '7rem' }}>
-                        {roundToDecimals(coordinates[1], 5)!.toFixed(5)}
-                    </span>
+                    <span style={{ width: '8rem' }}>{roundToDecimals(coordinates[0], 5)!.toFixed(5)},</span>
+                    <span style={{ width: '7rem' }}>{roundToDecimals(coordinates[1], 5)!.toFixed(5)}</span>
                 </div>
             )}
 

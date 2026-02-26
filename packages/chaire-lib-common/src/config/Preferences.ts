@@ -58,6 +58,35 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         return this._attributes;
     }
 
+    /**
+     * Override set so that theme-related preference changes emit immediately,
+     * allowing the UI theme to update before the user saves preferences.
+     */
+    public set(path: string, value: unknown): void {
+        super.set(path, value);
+        if (path === 'isDarkTheme') {
+            this._eventEmitter.emit(prefChangeEvent, { [path]: value });
+        }
+    }
+
+    /**
+     * Override undo so that listeners (e.g. ThemeContext) are notified when
+     * isDarkTheme or other preferences are restored from history.
+     */
+    public undo(): void {
+        super.undo();
+        this._eventEmitter.emit(prefChangeEvent, this._attributes);
+    }
+
+    /**
+     * Override redo so that listeners (e.g. ThemeContext) are notified when
+     * isDarkTheme or other preferences are restored from history.
+     */
+    public redo(): void {
+        super.redo();
+        this._eventEmitter.emit(prefChangeEvent, this._attributes);
+    }
+
     // FIXME: Do the following functions need to be public?
     public getDefault() {
         return this._default;

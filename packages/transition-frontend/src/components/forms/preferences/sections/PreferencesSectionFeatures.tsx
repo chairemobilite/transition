@@ -4,17 +4,21 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import React, { use } from 'react';
 import Collapsible from 'react-collapsible';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
+import { ThemeContext } from 'chaire-lib-frontend/lib/contexts/ThemeContext';
 import PreferencesSectionProps from '../PreferencesSectionProps';
 
 const PreferencesSectionFeatures: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
     props: PreferencesSectionProps & WithTranslation
 ) => {
+    // Get the current theme (light or dark)
+    const theme = use(ThemeContext);
+
     return (
         <Collapsible trigger={props.t('main:preferences:ExperimentalFeatures')} open={true} transitionTime={100}>
             <div className="tr__form-section">
@@ -22,14 +26,13 @@ const PreferencesSectionFeatures: React.FunctionComponent<PreferencesSectionProp
                 <InputWrapper label={props.t('main:preferences:DarkMode')}>
                     <InputCheckboxBoolean
                         id={'formFieldPreferencesDarkMode'}
-                        isChecked={props.preferences.get('isDarkMode') !== false}
-                        defaultChecked={true}
+                        isChecked={theme === 'dark'}
                         label={props.t('main:preferences:DarkModeLabel')}
-                        onValueChange={(e) => props.onValueChange('isDarkMode', { value: e.target.value })}
+                        onValueChange={(e) => props.onValueChange('isDarkTheme', { value: e.target.value })}
                     />
                     <PreferencesResetToDefaultButton
                         resetPrefToDefault={props.resetPrefToDefault}
-                        path="isDarkMode"
+                        path="isDarkTheme"
                         preferences={props.preferences}
                     />
                 </InputWrapper>

@@ -21,9 +21,7 @@ const MenuBar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
     // Get the current theme (light or dark)
     const theme = use(ThemeContext);
     const sectionIcon = (sectionShortname: string) =>
-        theme === 'dark'
-            ? sectionsConfig[sectionShortname].iconWhite
-            : sectionsConfig[sectionShortname].iconBlack;
+        theme === 'dark' ? sectionsConfig[sectionShortname].iconWhite : sectionsConfig[sectionShortname].iconBlack;
 
     // Get the sections configuration
     const sectionsConfig = config.sections;

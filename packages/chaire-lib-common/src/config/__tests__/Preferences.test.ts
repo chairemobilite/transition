@@ -59,14 +59,12 @@ test('Test set preferences', () => {
     expect(Preferences.get('foo.bar')).toBe('foobar');
 });
 
-// test('getIsDarkMode reflects isDarkMode preference', () => {
-//     // Test default value
-//     expect(Preferences.getIsDarkMode()).toBe(true);
-//     Preferences.set('isDarkMode', false);
-//     expect(Preferences.getIsDarkMode()).toBe(false);
-//     Preferences.set('isDarkMode', true);
-//     expect(Preferences.getIsDarkMode()).toBe(true);
-// });
+test('get("isDarkTheme") reflects isDarkTheme preference', () => {
+    Preferences.set('isDarkTheme', false);
+    expect(Preferences.get('isDarkTheme')).toBe(false);
+    Preferences.set('isDarkTheme', true);
+    expect(Preferences.get('isDarkTheme')).toBe(true);
+});
 
 describe('Updating preferences', () => {
     // Test adding an arbitrary object to the preferences
@@ -355,19 +353,26 @@ describe('Preferences listener', () => {
         expect(prefChangedListener).not.toHaveBeenCalled();
     });
 
-    // set() emits so UI (e.g. menu bar icons) updates immediately when editing, before save
+    // set() emits only for isDarkTheme (not for arbitrary paths like 'foo.bar'), so theme UI
+    // can update immediately when toggling dark mode before save; other prefs only notify on save/load/undo/redo
     test('Listen on set', () => {
         Preferences.addChangeListener(prefChangedListener);
+
+        // Set an arbitrary preference, no notification should be emitted
         Preferences.set('foo.bar', 'baz');
+        expect(prefChangedListener).not.toHaveBeenCalled();
+
+        // Set isDarkTheme, notification should be emitted
+        Preferences.set('isDarkTheme', false);
         expect(prefChangedListener).toHaveBeenCalledTimes(1);
-        expect(prefChangedListener).toHaveBeenCalledWith(expect.objectContaining({ foo: { bar: 'baz' } }));
+        expect(prefChangedListener).toHaveBeenCalledWith({ isDarkTheme: false });
     });
 
     // undo() emits so theme and subscribers reflect the restored state (redo/cancelEditing same path)
     test('Listen on undo', () => {
         Preferences.addChangeListener(prefChangedListener);
         Preferences.startEditing();
-        Preferences.set('isDarkMode', false);
+        Preferences.set('isDarkTheme', false);
         expect(prefChangedListener).toHaveBeenCalledTimes(1);
         Preferences.undo();
         expect(prefChangedListener).toHaveBeenCalledTimes(2);
