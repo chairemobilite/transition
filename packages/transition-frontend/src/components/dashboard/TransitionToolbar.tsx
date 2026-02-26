@@ -127,20 +127,25 @@ const Toolbar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
         [checkTrRoutingStatus]
     );
 
-    const fetchData = useCallback(() => {
-        loadLayersAndCollections({
-            serviceLocator,
-            agencyCollection: serviceLocator.collectionManager.get('agencies'),
-            scenarioCollection: serviceLocator.collectionManager.get('scenarios'),
-            serviceCollection: serviceLocator.collectionManager.get('services'),
-            lineCollection: serviceLocator.collectionManager.get('lines'),
-            pathCollection: serviceLocator.collectionManager.get('paths'),
-            nodeCollection: serviceLocator.collectionManager.get('nodes'),
-            placeCollection: serviceLocator.collectionManager.get('places'),
-            simulationCollection: serviceLocator.collectionManager.get('simulations'),
-            dataSourceCollection: serviceLocator.collectionManager.get('dataSources')
-        });
-        setDataNeedsUpdate(false);
+    const fetchData = useCallback(async () => {
+        try {
+            await loadLayersAndCollections({
+                serviceLocator,
+                agencyCollection: serviceLocator.collectionManager.get('agencies'),
+                scenarioCollection: serviceLocator.collectionManager.get('scenarios'),
+                serviceCollection: serviceLocator.collectionManager.get('services'),
+                lineCollection: serviceLocator.collectionManager.get('lines'),
+                pathCollection: serviceLocator.collectionManager.get('paths'),
+                nodeCollection: serviceLocator.collectionManager.get('nodes'),
+                placeCollection: serviceLocator.collectionManager.get('places'),
+                simulationCollection: serviceLocator.collectionManager.get('simulations'),
+                dataSourceCollection: serviceLocator.collectionManager.get('dataSources')
+            });
+        } catch (error) {
+            console.error('Error loading layers and collections:', error);
+        } finally {
+            setDataNeedsUpdate(false);
+        }
     }, []);
 
     const saveAllCache = useCallback(() => {

@@ -58,7 +58,7 @@ export const ThemeProvider: FunctionComponent<{ children: ReactNode }> = ({ chil
 
     // React to system theme changes (getThemeFromPreferences uses system only when isDarkTheme is unset)
     useEffect(() => {
-        if (!window.matchMedia) return;
+        if (typeof window === 'undefined' || !window.matchMedia) return;
         const media = window.matchMedia('(prefers-color-scheme: dark)');
         const listener = () => setTheme(getThemeFromPreferences());
         media.addEventListener('change', listener);
