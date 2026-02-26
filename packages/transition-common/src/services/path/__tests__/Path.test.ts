@@ -782,3 +782,108 @@ describe('Segment geojson', () => {
         });
     });
 });
+
+describe('getSegmentTravelTimeForPeriod', () => {
+    const lineId = uuidV4();
+    const segmentsData = [
+        { distanceMeters: 510, travelTimeSeconds: 120 },
+        { distanceMeters: 515, travelTimeSeconds: 90 },
+        { distanceMeters: 444, travelTimeSeconds: 85 }
+    ];
+
+    test('should return base segment time when no period overrides exist', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimeForPeriod(0, 'default', 'am_peak')).toBe(120);
+        expect(path.getSegmentTravelTimeForPeriod(1, 'default', 'am_peak')).toBe(90);
+        expect(path.getSegmentTravelTimeForPeriod(2, 'default', 'am_peak')).toBe(85);
+    });
+
+    test('should return period-specific time when override exists', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        (attributes.data as any).segmentTimesByPeriod = {
+            default: {
+                am_peak: [200, 150, 130]
+            }
+        };
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimeForPeriod(0, 'default', 'am_peak')).toBe(200);
+        expect(path.getSegmentTravelTimeForPeriod(1, 'default', 'am_peak')).toBe(150);
+        expect(path.getSegmentTravelTimeForPeriod(2, 'default', 'am_peak')).toBe(130);
+    });
+
+    test('should return base time for period without override', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        (attributes.data as any).segmentTimesByPeriod = {
+            default: {
+                am_peak: [200, 150, 130]
+            }
+        };
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimeForPeriod(0, 'default', 'midday')).toBe(120);
+    });
+
+    test('should return undefined for out-of-range segment index', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimeForPeriod(999, 'default', 'am_peak')).toBeUndefined();
+    });
+
+    test('should return undefined when no segments exist', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        delete (attributes.data as any).segments;
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimeForPeriod(0, 'default', 'am_peak')).toBeUndefined();
+    });
+});
+
+describe('getSegmentTravelTimesForPeriod', () => {
+    const lineId = uuidV4();
+    const segmentsData = [
+        { distanceMeters: 510, travelTimeSeconds: 120 },
+        { distanceMeters: 515, travelTimeSeconds: 90 },
+        { distanceMeters: 444, travelTimeSeconds: 85 }
+    ];
+
+    test('should return base times when no overrides exist', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimesForPeriod('default', 'am_peak')).toEqual([120, 90, 85]);
+    });
+
+    test('should return overridden times when they exist', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        (attributes.data as any).segmentTimesByPeriod = {
+            default: {
+                am_peak: [200, 150, 130]
+            }
+        };
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimesForPeriod('default', 'am_peak')).toEqual([200, 150, 130]);
+    });
+
+    test('should fall back to base for periods without overrides', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        (attributes.data as any).segmentTimesByPeriod = {
+            default: {
+                am_peak: [200, 150, 130]
+            }
+        };
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimesForPeriod('default', 'midday')).toEqual([120, 90, 85]);
+    });
+
+    test('should return empty array when no segments exist', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        delete (attributes.data as any).segments;
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimesForPeriod('default', 'am_peak')).toEqual([]);
+    });
+});
