@@ -12,7 +12,6 @@ import 'rc-menu/assets/index.css';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import { loadLayersAndCollections } from '../../services/dashboard/LayersAndCollectionsService';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
@@ -24,7 +23,6 @@ interface TransitionToolbarState {
     trRoutingStarted: boolean;
     nodesNeedUpdate: boolean;
     dataNeedsUpdate: boolean;
-    isDarkMode: boolean;
 }
 
 class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, TransitionToolbarState> {
@@ -36,17 +34,11 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
             cacheNeedsSaving: false,
             trRoutingStarted: false,
             nodesNeedUpdate: false,
-            dataNeedsUpdate: false,
-            isDarkMode: Preferences.getIsDarkMode()
+            dataNeedsUpdate: false
         };
     }
 
-    private onPreferencesChange = (): void => {
-        this.setState({ isDarkMode: Preferences.getIsDarkMode() });
-    };
-
     componentDidMount() {
-        Preferences.addChangeListener(this.onPreferencesChange);
         // TODO Replace with proper API calls for better typing support
         serviceLocator.eventManager.on('map.updateMouseCoordinates', this.onUpdateCoordinates);
         serviceLocator.eventManager.on('map.showLayer', this.onShowLayer);
@@ -65,7 +57,6 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
     }
 
     componentWillUnmount() {
-        Preferences.removeChangeListener(this.onPreferencesChange);
         serviceLocator.eventManager.off('map.updateMouseCoordinates', this.onUpdateCoordinates);
         serviceLocator.eventManager.off('map.showLayer', this.onShowLayer);
         serviceLocator.eventManager.off('map.hideLayer', this.onHideLayer);
@@ -227,7 +218,7 @@ class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, Tran
     };
 
     render() {
-        const iconVariant = this.state.isDarkMode ? 'white' : 'black';
+        const iconVariant = 'white'; // TODO: Do the light mode also
         return (
             <React.Fragment>
                 {this.state.coordinates && this.state.coordinates.length === 2 && (

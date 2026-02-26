@@ -20,8 +20,6 @@ export interface PreferencesModel {
     defaultSection: string;
     infoPanelPosition: string;
     dateTimeFormat: string;
-    /** When true, use dark theme; when false, use light theme */
-    isDarkMode?: boolean;
     // @deprecated This type has moved to chaire-lib's project configuration.
     // Use the project configuration's `sections` instead, as it is not a
     // preference, but an instance specific configuration.
@@ -51,7 +49,6 @@ const defaultPreferences: PreferencesModel = {
     defaultSection: 'agencies',
     infoPanelPosition: 'right',
     dateTimeFormat: 'YYYY-MM-DD HH:mm',
-    isDarkMode: true,
     map: {
         center: [config.mapDefaultCenter.lon, config.mapDefaultCenter.lat],
         zoom: 10,

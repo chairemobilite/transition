@@ -160,21 +160,6 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
     }
 
     /**
-     * Apply isDarkMode preference to the document's color-scheme (for CSS light-dark()).
-     * No-op when not in a browser. Call after load() or whenever isDarkMode is set.
-     */
-    public applyThemeToDocument(): void {
-        if (typeof document === 'undefined' || !document.documentElement) {
-            return;
-        }
-        const isDark = this.get('isDarkMode') !== false;
-        const scheme = isDark ? 'dark' : 'light';
-        const root = document.documentElement;
-        root.setAttribute('data-color-scheme', scheme);
-        root.style.colorScheme = scheme;
-    }
-
-    /**
      * FIXME: Used for preferences edit form
      * @param path Dot-separated path to the preference to reset
      * @returns The new preferences value
@@ -183,48 +168,6 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         const projectDefaultOrDefaultValue = this.getFromProjectDefaultOrDefault(path);
         this.set(path, projectDefaultOrDefaultValue);
         return projectDefaultOrDefaultValue;
-    }
-
-    /** Syncs document theme and notifies subscribers (e.g. menu bar) after attributes change. */
-    private _applyThemeAndNotify(): void {
-        this.applyThemeToDocument();
-        this._eventEmitter.emit(prefChangeEvent, this._attributes);
-    }
-
-    /**
-     * Override to apply theme when isDarkMode changes and to emit change event so
-     * subscribers (e.g. menu bar icons) update immediately, including when editing before save.
-     */
-    public set(path: string, value: unknown): void {
-        super.set(path, value);
-        this._applyThemeAndNotify();
-    }
-
-    /**
-     * Override so that after undoing, document theme and subscribers (e.g. menu bar)
-     * reflect the restored preference state.
-     */
-    public override undo(): void {
-        super.undo();
-        this._applyThemeAndNotify();
-    }
-
-    /**
-     * Override so that after redoing, document theme and subscribers (e.g. menu bar)
-     * reflect the restored preference state.
-     */
-    public override redo(): void {
-        super.redo();
-        this._applyThemeAndNotify();
-    }
-
-    /**
-     * Override so that when the user discards changes (e.g. Back button), document theme
-     * and subscribers reflect the reverted preference state.
-     */
-    public override cancelEditing(): void {
-        super.cancelEditing();
-        this._applyThemeAndNotify();
     }
 
     private async updateFromSocket(
@@ -387,7 +330,6 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
                 _merge({}, this._default, this._projectDefault, preferencesFromServer)
             ) as PreferencesModelWithIdAndData;
             this._eventEmitter.emit(prefChangeEvent, this._attributes);
-            this.applyThemeToDocument();
         } catch {
             console.error('Error loading preferences from server');
         }
@@ -397,23 +339,6 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
     // TODO: type this:
     public get(path: string, defaultValue: unknown = undefined): any {
         return super.get(path, defaultValue);
-    }
-
-    /**
-     * Whether dark mode is enabled (default true). Use for theme-dependent UI (e.g. icon color).
-     */
-    public getIsDarkMode(): boolean {
-        return this.get('isDarkMode') !== false;
-    }
-
-    /**
-     * Subscribe to preference changes. For use with React's useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot).
-     * Returns an unsubscribe function.
-     */
-    public subscribe(onStoreChange: () => void): () => void {
-        const wrapper = () => onStoreChange();
-        this.addChangeListener(wrapper);
-        return () => this.removeChangeListener(wrapper);
     }
 
     /**

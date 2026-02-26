@@ -8,8 +8,8 @@ import _merge from 'lodash/merge';
 
 type SectionType = {
     localizedTitle: string;
-    iconWhite?: string; // Icon for use on dark backgrounds
-    iconBlack?: string; // Icon for use on light backgrounds
+    iconWhite: string; // Icon for use on dark backgrounds
+    iconBlack: string; // Icon for use on light backgrounds
     showMap?: boolean;
     showFullSizePanel?: boolean;
     enabled?: boolean;

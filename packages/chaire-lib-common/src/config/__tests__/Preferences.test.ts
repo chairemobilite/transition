@@ -59,14 +59,14 @@ test('Test set preferences', () => {
     expect(Preferences.get('foo.bar')).toBe('foobar');
 });
 
-test('getIsDarkMode reflects isDarkMode preference', () => {
-    // Test default value
-    expect(Preferences.getIsDarkMode()).toBe(true);
-    Preferences.set('isDarkMode', false);
-    expect(Preferences.getIsDarkMode()).toBe(false);
-    Preferences.set('isDarkMode', true);
-    expect(Preferences.getIsDarkMode()).toBe(true);
-});
+// test('getIsDarkMode reflects isDarkMode preference', () => {
+//     // Test default value
+//     expect(Preferences.getIsDarkMode()).toBe(true);
+//     Preferences.set('isDarkMode', false);
+//     expect(Preferences.getIsDarkMode()).toBe(false);
+//     Preferences.set('isDarkMode', true);
+//     expect(Preferences.getIsDarkMode()).toBe(true);
+// });
 
 describe('Updating preferences', () => {
     // Test adding an arbitrary object to the preferences

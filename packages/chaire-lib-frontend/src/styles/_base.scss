@@ -1,6 +1,6 @@
 @use "settings";
 
-/* Theme: set from JS via data-color-scheme on the root. Enables light-dark() and forces scheme. */
+/* Theme: Default theme will be from the browser's system preferences. */
 :root {
   color-scheme: light dark;
 }
@@ -10,11 +10,6 @@
 }
 
 :root[data-color-scheme="dark"] {
-  color-scheme: dark;
-}
-
-/* Default before JS runs (no attribute yet) */
-:root:not([data-color-scheme]) {
   color-scheme: dark;
 }
 
@@ -40,7 +35,6 @@ body {
   margin: 0;
   min-width: 320px;
   height: 100%;
-  color-scheme: inherit;
 }
 
 a {
