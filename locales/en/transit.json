@@ -842,6 +842,133 @@
             "ErrorExportingGtfs": "An error occurred while generating the GTFS file."
         }
     },
+    "networkDesign": {
+        "NetworkDesign": "Network design",
+        "SimulationMethod": "Simulation method",
+        "List": "Transit Network Design",
+        "New": "New Network Design",
+        "ReplayJob": "New network design from this one",
+        "ConfigureNetworkParameters": "Configure parameters for network to design",
+        "ConfigureAlgorithm": "Configure network design algorithm",
+        "ConfigureSimulationMethod": "Configure simulation method",
+        "ConfirmJob": "Execute network design",
+        "AlgorithmConfiguration": "Network design algorithm configuration",
+        "Algorithm": "Selected algorithm",
+        "NetworkDesignParameters": "Network to design parameters",
+        "TransitNetworkDesignParameters": "Transit network design parameters",
+        "parameters": {
+            "NumberOfLinesMin": "Minimum number of lines",
+            "NumberOfLinesMax": "Maximum number of lines",
+            "VehiclesCount": "Number of vehicles (fleet size)",
+            "MaxIntervalMinutes": "Maximum period (minutes)",
+            "MinIntervalMinutes": "Minimum period (minutes)",
+            "NonSimulatedServices": "Non simulated services to use",
+            "LineSetAgencies": "Line set agencies",
+            "KeepLines": "Always keep these lines",
+            "NumberOfLinesMinRequired": "Minimum number of lines is required",
+            "NumberOfLinesMaxRequired": "Maximum number of lines is required",
+            "VehiclesCountRequired": "Number of vehicles (fleet size) is required",
+            "MaxIntervalMinutesRequired": "Maximum period (minutes) is required",
+            "MinIntervalMinutesRequired": "Minimum period (minutes) is required",
+            "LineSetAgenciesRequired": "Line set agencies is required",
+            "NumberOfLinesInvalid": "Minimum number of lines must be greater than 0",
+            "NumberOfLinesMaxInvalid": "Maximum number of lines must be greater than 0",
+            "VehiclesCountInvalid": "Number of vehicles must be greater than 0",
+            "MaxIntervalMinutesInvalid": "Maximum period must be greater than 3 minutes",
+            "MinIntervalMinutesInvalid": "Minimum period must be greater than 3 minutes",
+            "help": {
+                "MaxIntervalMinutesHelp": "The maximum time between departures for a line. For optimal service, it is suggested to keep it lower than 15 minutes. But times up to 60 minutes are accepted.",
+                "MinIntervalMinutesHelp": "The minimum time between departures for a line. The minimum value should be higher than 3, less than that will have no effect on the calculations.",
+                "LineSetAgenciesHelp": "Agencies from which the lines in the network design will be selected",
+                "NonSimulatedServicesHelp": "Existing services that will be kept in the scenario for simulation, but not modified by the network design algorithm",
+                "KeepLinesHelp": "Lines from the network design agencies that will be kept in all scenarios. These lines are included in the number of lines in the network to design."
+            }
+        },
+        "errors": {
+            "MissingDemandCsvFile": "Missing demand csv file"
+        },
+        "evolutionaryAlgorithm": {
+            "LineAndNumberOfVehiclesGASimulation": "Genetic algorithm with lines and number of vehicles",
+            "PopulationSizeMin": "Minimum population size",
+            "PopulationSizeMax": "Maximum population size",
+            "NumberOfElites": "Number of elites per generation",
+            "NumberOfRandoms": "Number of random per generation",
+            "CrossoverNumberOfCuts": "Number of cuts in crossover",
+            "CrossoverProbability": "Probability of crossover",
+            "MutationProbability": "Probability of mutation",
+            "TournamentSize": "Tournament selection size",
+            "TournamentProbability": "Tournament probability",
+            "NumberOfGenerations": "Number of generations",
+            "ShuffleGenes": "Shuffle genes before reproduction",
+            "KeepGenerations": "Number of generations to keep",
+            "KeepCandidates": "Number of candidates to keep in generations",
+            "PopulationSizeMinInvalid": "Minimum population size must be greater than 0",
+            "PopulationSizeMaxInvalid": "Maximum population size must be greater than 0",
+            "NumberOfElitesInvalid": "Number of elites per generation must be greater than 0",
+            "NumberOfRandomsInvalid": "Number of random per generation must be greater or equal to 0",
+            "CrossoverNumberOfCutsInvalid": "Number of cuts in crossover must be greater than 0",
+            "CrossoverProbabilityInvalid": "Probability of crossover must be between 0 and 1",
+            "MutationProbabilityInvalid": "Probability of mutation must be between 0 and 1",
+            "TournamentSizeInvalid": "Tournament selection size must be greater than 0",
+            "TournamentProbabilityInvalid": "Tournament probability must be between 0 and 1",
+            "NumberOfGenerationsInvalid": "Number of generations must be greater than 0",
+            "KeepGenerationsInvalid": "Number of generations to keep must be greater than 0",
+            "KeepCandidatesInvalid": "Number of candidates to keep in generations must be greater than 0",
+            "help": {
+                "PopulationSizeMin": "Minimum number of candidates in each generation",
+                "PopulationSizeMax": "Maximum number of candidates in each generation",
+                "NumberOfElites": "Number of best candidates to copy directly to the next generation",
+                "NumberOfRandoms": "Number of entirely random new candidates to add in each generation",
+                "CrossoverNumberOfCuts": "Number of points where parent genes are cut to create offspring",
+                "CrossoverProbability": "Probability that a pair of parents undergoes crossover to create offspring",
+                "MutationProbability": "Probability that a gene undergoes mutation, i.e. is randomly modified. For this algorithm, a probability of 8% (0.08) is suggested.",
+                "TournamentSize": "Number of candidates among the best of the generation that will compete for reproduction after each generation.",
+                "TournamentProbability": "The initial probability that there will be a tournament for parent selection rather than selecting the best. This probability should not be too high, otherwise only the best will reproduce.",
+                "ShuffleGenes": "Shuffling genes avoids proximity effects in the chromosome, where 2 lines positioned side by side will always have the same values. This helps diversify the population.",
+                "KeepGenerations": "Number of last generations to keep for analysis after algorithm execution",
+                "KeepCandidates": "Number of best candidates to keep for each of the generations to keep"
+            },
+            "errors": {
+                "PopulationSizeMinGreaterThanMax": "Minimum population size is greater than maximum",
+                "CandidatesToKeepGreaterThanPopulation": "Number of candidates to keep is greater than population",
+                "GenerationsToKeepGreaterThanGenerations": "Number of generations to keep is greater than number of generations"
+            }
+        },
+        "simulationMethods": {
+            "SelectSimulationFunctions": "Select functions to use for simulation",
+            "odTrips": {
+                "Title": "OD trips",
+                "demandAttributes": "Demand data to use",
+                "transitRoutingAttributes": "Transit routing parameters for calculation",
+                "simulationOptions": "Simulation options",
+                "expansionFactorAttribute": "Column for expansion factor",
+                "MaxWalkingOnlyTravelTimeMinutes": "Maximum walking only travel time (minutes)",
+                "WalkingSpeedMps": "Walking speed (m/s)",
+                "WalkingSpeedFactor": "Walking speed factor",
+                "WalkingSpeedFactorHelp": "Factor to multiply the walking speed. For example, a value of 0.8 will reduce walking speed by 20%, while a value of 1.2 will increase it by 20%.",
+                "OdTripsSampleRatio": "Percentage of OD trips to include (between 0 and 100)",
+                "OdTripsSampleRatioInvalid": "Invalid percentage of OD trips to include. Must be between 0 and 100.",
+                "fitness": {
+                    "odTripFitnessFunction": "Cost function for OD trip result",
+                    "travelTimeCost": "Travel time",
+                    "travelTimeWithTransferPenalty": "Travel time + 10 min penalty for transfers",
+                    "fitnessFunction": "Cost function for the scenario",
+                    "hourlyUserPlusOperatingCosts": "User + operating costs (hourly)",
+                    "hourlyUserCosts": "User cost (hourly)",
+                    "hourlyOperatingCosts": "Operating cost (hourly)",
+                    "help": {
+                        "odTripFitnessFunction": "Select the cost function to evaluate each OD trip. The 'travel time + transfer penalty' function penalizes trips with transfers to favor direct trips.",
+                        "fitnessFunction": "Select the cost function to evaluate the scenario, from od trip fitnesses. The 'user + operating costs' function balances user experience with operational efficiency."
+                    }
+                }
+            },
+            "accessibilityMap": {
+                "Title": "Using accessibility maps",
+                "AccessMapDataSources": "Data sources for places",
+                "AccessMapMaxSampleRatio": "Maximum sample ratio to test (between 0 and 1)"
+            }
+        }
+    },
     "simulation": {
         "Simulation": "Simulation",
         "Simulations": "Simulations",
@@ -852,27 +979,6 @@
         "InternalId": "Internal ID",
         "Algorithm": "Simulation algorithm",
         "NumberOfThreads": "Number of threads",
-        "NumberOfLinesMin": "Minimum number of lines",
-        "NumberOfLinesMax": "Maximum number of lines",
-        "PopulationSizeMin": "Minimum population size",
-        "PopulationSizeMax": "Maximum population size",
-        "VehiclesCount": "Number of vehicles (fleet size)",
-        "MaxIntervalMinutes": "Maximum period (minutes)",
-        "MaxIntervalMinutesHelp": "The maximum time between departures for a line. For optimal service, it is suggested to keep it lower than 15 minutes. But times up to 60 minutes are accepted.",
-        "MinIntervalMinutes": "Minimum period (minutes)",
-        "MinIntervalMinutesHelp": "The minimum time between departures for a line. The minimum value should be higher than 3, less than that will have no effect on the calculations.",
-        "NumberOfElites": "Number of elites per generation",
-        "NumberOfRandoms": "Number of random per generation",
-        "CrossoverNumberOfCuts": "Number of cuts in crossover",
-        "CrossoverProbability": "Probability of crossover",
-        "MutationProbability": "Probability of mutation",
-        "TournamentSize": "Tournament selection size",
-        "TournamentProbability": "Tournament probability",
-        "ShuffleGenes": "Shuffle genes before reproduction",
-        "KeepGenerations": "Number of generations to keep",
-        "KeepCandidates": "Number of candidates to keep in generations",
-        "OdTripsSampleRatio": "Percentage of OD trips to include",
-        "NumberOfGenerations": "Number of generations",
         "Color": "Color",
         "Edit": "Simulation",
         "Delete": "Delete simulation",
@@ -888,8 +994,6 @@
         "SaveSimulationToCache": "Archive simulation",
         "LoadSimulationFromCache": "Load simulation archive",
         "routingParameters": "Routing parameters",
-        "transitNetworkDesignParameters": "Transit network design parameters",
-        "NonSimulatedServices": "Non simulated services to use",
         "algorithmParameters": "Algorithm configuration",
         "SimulationRuns": "Simulation runs",
         "SimulationRunDelete": "Delete simulation run",
@@ -900,37 +1004,8 @@
         "Results": "Results",
         "Parameters": "Parameters",
         "RuntimeOptions": "Runtime Configuration",
-        "simulationClasses": {
-            "LineAndNumberOfVehiclesGASimulation": "Genetic algorithm with lines and number of vehicles"
-        },
-        "simulationMethods": {
-            "SelectSimulationFunctions": "Select functions to use for simulation",
-            "OdTrips": "OD trips",
-            "OdTripsDataSource": "Data source for OD",
-            "OdTripsSampleRatio": "Sample ratio (between 0 and 1)",
-            "AccessibilityMap": "Using accessibility maps",
-            "AccessMapDataSources": "Data sources for places",
-            "AccessMapMaxSampleRatio": "Maximum sample ratio to test (between 0 and 1)",
-            "MethodWeight": "Weight of the cost for simulation function \"{{method}}\"",
-            "MethodWeightError": "Invalid weight. Must be between 0 and {{maxWeight}}.",
-            "MustSelectOneFunction": "You must select at least one simulation function"
-        },
-        "fitness": {
-            "fitnessSorter": "Sorting direction of cost results",
-            "maximize": "Maximize (higher value is better)",
-            "minimize": "Minimize (lower value is better)",
-            "odTripFitnessFunction": "Cost function for OD trip result",
-            "travelTimeCost": "Travel time",
-            "travelTimeWithTransferPenalty": "Travel time + 10 min penalty for transfers",
-            "fitnessFunction": "Cost function for the scenario",
-            "hourlyUserPlusOperatingCosts": "User + operating costs (hourly)",
-            "hourlyUserCosts": "User cost (hourly)",
-            "hourlyOperatingCosts": "Operating cost (hourly)"
-        },
         "DuplicateSimulation": "Duplicate simulation",
         "Copy": "Copy",
-        "LineSetAgencies": "Line set agencies",
-        "KeepLines": "Always keep these lines",
         "KeepLinesSchedules": "Keep existing schedules for these lines",
         "Period": "Period",
         "Periods": "Periods",
@@ -961,10 +1036,7 @@
             "MinTimeHigherThanMax": "The minimum time between passages is greater than maximum",
             "MinTimeBetweenPassagesTooHigh": "The minimum time between passages is too high",
             "UnknownAlgorithm": "The selected algorithm is unavailable",
-            "SimulatedAgenciesIsEmpty": "At least one agency to simulate must be selected",
-            "PopulationSizeMinGreaterThanMax": "Minimum population size is greater than maximum",
-            "CandidatesToKeepGreaterThanPopulation": "Number of candidates to keep is greater than population",
-            "GenerationsToKeepGreaterThanGenerations": "Number of generations to keep is greater than number of generations"
+            "SimulatedAgenciesIsEmpty": "At least one agency to simulate must be selected"
         }
     },
     "jobs": {
@@ -1004,6 +1076,13 @@
                 "input": "Input file: {{filename}}",
                 "csv": "CSV",
                 "geojson": "GeoJSON"
+            }
+        },
+        "evolutionaryTransitNetworkDesign": {
+            "files": {
+                "transitDemand": "Demand file: {{filename}}",
+                "simulationResults": "Simulation results for candidates",
+                "linesResult": "Candidate lines"
             }
         }
     },

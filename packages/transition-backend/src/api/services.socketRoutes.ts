@@ -39,6 +39,12 @@ import {
     TransitAccessibilityMapComparisonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 import { ExecutableJobUtils } from '../services/executableJob/ExecutableJobUtils';
+import { TransitNetworkJobConfigurationType } from 'transition-common/lib/services/networkDesign/transit/types';
+import { TransitApi } from 'transition-common/lib/api/transit';
+import {
+    createAndEnqueueTransitNetworkDesignJob,
+    getParametersFromTransitNetworkDesignJob
+} from '../services/networkDesign/transitNetworkDesign/TransitNetworkJobController';
 
 // TODO The socket routes should validate parameters as even typescript cannot guarantee the types over the network
 // TODO Add more unit tests as the called methods are cleaned up
@@ -207,6 +213,7 @@ export default function (socket: EventEmitter, userId?: number) {
                             | string
                             | { filepath: string; renameTo: string };
                     } = {};
+                    // TODO This is a bad security flaw, we let the front end decide whatever to do with backend files
                     inputFiles.input = await ExecutableJobUtils.prepareJobFiles(
                         parameters.fileAndMapping.csvFile,
                         userId
@@ -332,6 +339,37 @@ export default function (socket: EventEmitter, userId?: number) {
                     await job.refresh();
                     // TODO Do a quick return with task detail instead of waiting for task to finish
                     callback(Status.createOk(job.attributes.data.results));
+                } catch (error) {
+                    console.error(error);
+                    callback(Status.createError(TrError.isTrError(error) ? error.message : error));
+                }
+            }
+        );
+
+        socket.on(
+            TransitApi.TRANSIT_NETWORK_DESIGN_CREATE,
+            async (
+                jobParameters: TransitNetworkJobConfigurationType,
+                callback: (status: Status.Status<unknown>) => void
+            ) => {
+                try {
+                    socket.emit('progress', { name: 'NetworkDesign', progress: null });
+                    const result = await createAndEnqueueTransitNetworkDesignJob(jobParameters, socket, userId);
+                    // TODO Do a quick return with task detail instead of waiting for task to finish
+                    callback(Status.createOk(result));
+                } catch (error) {
+                    console.error('Error creating a new transit network design job', error);
+                    callback(Status.createError(TrError.isTrError(error) ? error.message : error));
+                }
+            }
+        );
+
+        socket.on(
+            TransitApi.TRANSIT_NETWORK_DESIGN_REPLAY,
+            async (jobId: number, callback: (status: Status.Status<TransitNetworkJobConfigurationType>) => void) => {
+                try {
+                    const attributes = await getParametersFromTransitNetworkDesignJob(jobId, userId);
+                    callback(Status.createOk(attributes));
                 } catch (error) {
                     console.error(error);
                     callback(Status.createError(TrError.isTrError(error) ? error.message : error));

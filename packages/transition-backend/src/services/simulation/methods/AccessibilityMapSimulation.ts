@@ -4,22 +4,17 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import random from 'random';
 import { EventEmitter } from 'events';
-import { point as turfPoint } from '@turf/turf';
 
-import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
-import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
 import placesDbQueries from '../../../models/db/places.db.queries';
 import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
-import { TransitAccessibilityMapCalculator } from '../../accessibilityMap/TransitAccessibilityMapCalculator';
-import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import {
     AccessibilityMapSimulationDescriptor,
     AccessibilityMapSimulationOptions
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod/AccessibilityMapSimulationMethod';
+import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 
 export const AccessibilityMapSimulationTitle = 'AccessibilityMapSimulation';
 
@@ -30,12 +25,13 @@ type AccessibilityMapSimulationResults = {
 
 export class AccessibilityMapSimulationFactory implements SimulationMethodFactory<AccessibilityMapSimulationOptions> {
     getDescriptor = () => new AccessibilityMapSimulationDescriptor();
-    create = (options: AccessibilityMapSimulationOptions, simulationDataAttributes: SimulationRunDataAttributes) =>
-        new AccessibilityMapSimulation(options, simulationDataAttributes);
+    create = (options: AccessibilityMapSimulationOptions, jobWrapper: TransitNetworkDesignJobWrapper) =>
+        new AccessibilityMapSimulation(options, jobWrapper);
 }
 
 // Simulation time range, between 8 and 9, in seconds.
-const SIMULATION_TIME_RANGE = [8 * 60 * 60, 9 * 60 * 60];
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _SIMULATION_TIME_RANGE = [8 * 60 * 60, 9 * 60 * 60];
 
 /**
  * Simulate a scenario using accessibility maps from various random places in
@@ -49,7 +45,7 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
 
     constructor(
         private options: AccessibilityMapSimulationOptions,
-        private simulationDataAttributes: SimulationRunDataAttributes
+        private jobWrapper: TransitNetworkDesignJobWrapper
     ) {
         // Nothing to do
     }
@@ -111,11 +107,9 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
         });
     }
 
-    async simulate(
-        scenarioId: string,
-        options: { trRoutingPort: number; transitRoutingParameters: TransitRoutingBaseAttributes }
-    ): Promise<{ fitness: number; results: AccessibilityMapSimulationResults }> {
-        const nodeCollection = await this.getNodeCollection();
+    async simulate(_scenarioId: string): Promise<{ fitness: number; results: AccessibilityMapSimulationResults }> {
+        // FIXME Re-implement the accessibility map simulation
+        /*const nodeCollection = await this.getNodeCollection();
 
         const countByDs = await placesDbQueries.countForDataSources([this.options.dataSourceId]);
         const placesAvgCosts: number[] = [];
@@ -200,6 +194,7 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
             lowVariabilityCount = Math.abs(currentVariability) <= lowVariabilityThreshold ? lowVariabilityCount + 1 : 0;
             currentTotalAverage = totalAverage;
         }
-        return { fitness: currentTotalAverage, results: { placesCost: placesAvgCosts } };
+        return { fitness: currentTotalAverage, results: { placesCost: placesAvgCosts } }; */
+        return { fitness: 0, results: { placesCost: [] } };
     }
 }

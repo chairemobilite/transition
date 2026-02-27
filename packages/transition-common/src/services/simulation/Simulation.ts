@@ -63,12 +63,12 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
         newAttributes.isEnabled = attributes.isEnabled !== undefined ? attributes.isEnabled : true;
         if (!newAttributes.data) {
             newAttributes.data = {
-                transitNetworkDesignParameters: {},
+                transitNetworkDesignParameters: {} as any,
                 routingAttributes: {}
             };
         } else {
             if (!newAttributes.data.transitNetworkDesignParameters) {
-                newAttributes.data.transitNetworkDesignParameters = {};
+                newAttributes.data.transitNetworkDesignParameters = {} as any;
             }
             if (!newAttributes.data.routingAttributes) {
                 newAttributes.data.routingAttributes = {};
@@ -128,7 +128,9 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
                     // TODO Add a method to set the type of the algorithm and initialize the data
                     const options = algorithmDescriptor.getOptions();
                     if (algoConfig.config === undefined) {
-                        algoConfig.config = {};
+                        // FIXME: Temporary any to avoid typing issues, but this
+                        // whole class will be replaced by an ExecutableJob
+                        algoConfig.config = {} as any;
                     }
                     const erroneousFields = Object.keys(options).filter(
                         (option) =>
@@ -144,7 +146,8 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
                         algoConfig.config
                     );
                     this._isValid = this._isValid && algoValid;
-                    this._errors.push(...algoErrors);
+                    // FIXME Will miss the parameters in the error messages, but this class is going to be replaced anyway
+                    this._errors.push(...algoErrors.filter((algoError) => typeof algoError === 'string'));
                 }
             }
         }

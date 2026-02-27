@@ -6,18 +6,21 @@
  */
 import _cloneDeep from 'lodash/cloneDeep';
 import _isEqual from 'lodash/isEqual';
-import { Random } from 'random';
+import random from 'random';
 
 import Generation from './Generation';
 import NetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
 import { randomBoolArray, shuffle } from 'chaire-lib-common/lib/utils/RandomUtils';
-import * as AlgoTypes from '../internalTypes';
 import KPointCrossover from '../reproduction/KPointCrossover';
 import Tournament from '../reproduction/Tournament';
 import Mutation from '../reproduction/Mutation';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { sequentialArray } from 'chaire-lib-common/lib/utils/MathUtils';
 import LineAndNumberOfVehiclesGenerationLogger from './LineAndNumberOfVehiclesGenerationLogger';
+import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
+import LineAndNumberOfVehiclesNetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
 
 const chromosomeExists = (chrom: boolean[], linesChromosomes: boolean[][]) =>
     linesChromosomes.findIndex((chromosome) => _isEqual(chromosome, chrom)) !== -1;
@@ -35,20 +38,18 @@ const generateRandomCandidate = (
         numberOfLinesMax: number;
         numberOfKeptLines: number;
         numberOfGenesToGenerate: number;
-        randomGenerator: Random;
     },
     currentChromosomes: boolean[][]
 ): boolean[] => {
     let linesChromosome: boolean[] = [];
-    const nbLines =
-        options.randomGenerator.integer(options.numberOfLinesMin, options.numberOfLinesMax) - options.numberOfKeptLines;
+    const nbLines = random.integer(options.numberOfLinesMin, options.numberOfLinesMax) - options.numberOfKeptLines;
 
     let tentative = 0;
     do {
         linesChromosome = Array(options.numberOfKeptLines);
         linesChromosome.fill(true);
 
-        linesChromosome.push(...randomBoolArray(options.numberOfGenesToGenerate, nbLines, options.randomGenerator));
+        linesChromosome.push(...randomBoolArray(options.numberOfGenesToGenerate, nbLines));
 
         tentative++;
     } while (chromosomeExists(linesChromosome, currentChromosomes) && tentative < 10);
@@ -60,30 +61,29 @@ const generateRandomCandidate = (
     return linesChromosome;
 };
 
-export const generateFirstCandidates = (options: AlgoTypes.RuntimeAlgorithmData): NetworkCandidate[] => {
+export const generateFirstCandidates = (
+    jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
+): NetworkCandidate[] => {
     const candidates: NetworkCandidate[] = [];
 
     const linesChromosomes: boolean[][] = [];
 
-    const linesToKeepSize = options.linesToKeep.length;
-    const randomLinesCount = options.lineCollection.getFeatures().length - linesToKeepSize;
-    for (let i = 0; i < options.populationSize; i++) {
+    const linesToKeepSize = (jobWrapper.parameters.transitNetworkDesignParameters.linesToKeep || []).length;
+    const randomLinesCount = jobWrapper.simulatedLineCollection.getFeatures().length - linesToKeepSize;
+    for (let i = 0; i < jobWrapper.job.attributes.internal_data.populationSize!; i++) {
         const linesChromosome = generateRandomCandidate(
             {
-                numberOfLinesMin:
-                    options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMin || 1,
+                numberOfLinesMin: jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMin || 1,
                 numberOfLinesMax:
-                    options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMax ||
-                    randomLinesCount,
+                    jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMax || randomLinesCount,
                 numberOfGenesToGenerate: randomLinesCount,
-                numberOfKeptLines: linesToKeepSize,
-                randomGenerator: options.randomGenerator
+                numberOfKeptLines: linesToKeepSize
             },
             linesChromosomes
         );
 
         linesChromosomes.push(linesChromosome);
-        candidates.push(new NetworkCandidate({ lines: linesChromosome, name: `GALN_GEN0_C${i}` }, options));
+        candidates.push(new NetworkCandidate({ lines: linesChromosome, name: `GEN0_C${i}` }, jobWrapper));
     }
     return candidates;
 };
@@ -91,19 +91,16 @@ export const generateFirstCandidates = (options: AlgoTypes.RuntimeAlgorithmData)
 // For more variability and avoid proximity effect of lines, shuffle the lines order in the chromosome. Returns undefined if shuffle is not requested
 const shuffleCandidatesInPlace = (
     candidates: NetworkCandidate[],
-    runtimeData: AlgoTypes.RuntimeAlgorithmData
+    job: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>
 ): number[] | undefined => {
-    if (runtimeData.options.shuffleGenes !== true) {
+    const algorithmOptions = job.parameters.algorithmConfiguration.config;
+    if (algorithmOptions.shuffleGenes !== true) {
         return undefined;
     }
+    const shuffleStartAt = (job.parameters.transitNetworkDesignParameters.linesToKeep || []).length;
     // Do not shuffle the first elements, that are the kept lines
-    const originalOrder = sequentialArray(
-        runtimeData.lineCollection.size() - runtimeData.linesToKeep.length,
-        runtimeData.linesToKeep.length
-    );
-    const shuffledOrder = sequentialArray(runtimeData.linesToKeep.length).concat(
-        shuffle(originalOrder, runtimeData.randomGenerator)
-    );
+    const originalOrder = sequentialArray(job.simulatedLineCollection.size() - shuffleStartAt, shuffleStartAt);
+    const shuffledOrder = sequentialArray(shuffleStartAt).concat(shuffle(originalOrder));
     candidates.forEach((candidate) => {
         const originalLines = _cloneDeep(candidate.getChromosome().lines);
         const lines = candidate.getChromosome().lines;
@@ -123,21 +120,20 @@ const deshuffleCandidates = (candidates: NetworkCandidate[], shuffledOrder: numb
 };
 
 export const reproduceCandidates = (
-    options: AlgoTypes.RuntimeAlgorithmData,
+    jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>,
     previousGenSorted: NetworkCandidate[],
     currentGeneration: number
 ): NetworkCandidate[] => {
-    const time = Date.now();
+    console.time(` generation ${currentGeneration}: reproduced candidates`);
+
+    const evolutionaryAlgorithmConfig = jobWrapper.parameters.algorithmConfiguration.config;
     const candidates: NetworkCandidate[] = [];
-    const minLineNb =
-        options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMin ||
-        options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMax;
-    const maxLineNb =
-        options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMax ||
-        options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMin;
+    const minLineNb = jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMin;
+    const maxLineNb = jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMax;
+    const linesToKeepSize = (jobWrapper.parameters.transitNetworkDesignParameters.linesToKeep || []).length;
 
     const linesChromosomes: boolean[][] = [];
-    const shuffledGeneOrder = shuffleCandidatesInPlace(previousGenSorted, options);
+    const shuffledGeneOrder = shuffleCandidatesInPlace(previousGenSorted, jobWrapper);
 
     const linesNumInRange =
         minLineNb === undefined || maxLineNb === undefined
@@ -150,61 +146,61 @@ export const reproduceCandidates = (
     const CrossoverClass = KPointCrossover;
     const MutationClass = Mutation;
 
-    const selection = new SelectionClass(options, previousGenSorted);
+    const selection = new SelectionClass(jobWrapper.parameters.algorithmConfiguration.config, previousGenSorted);
 
     // Create an object to mutate chromosomes
-    const lineMutation = new MutationClass(options);
+    const lineMutation = new MutationClass(jobWrapper.parameters.algorithmConfiguration.config, linesToKeepSize);
 
-    const elitesToKeep = options.options.numberOfElites;
-    const randomToCreate = options.options.numberOfRandoms;
+    const elitesToKeep = evolutionaryAlgorithmConfig.numberOfElites;
+    const randomToCreate = evolutionaryAlgorithmConfig.numberOfRandoms;
 
     for (let i = 0; i < elitesToKeep; i++) {
         const linesChromosome = _cloneDeep(previousGenSorted[i].getChromosome().lines);
         linesChromosomes.push(linesChromosome);
         candidates.push(
-            new NetworkCandidate({ lines: linesChromosome, name: `GALN_GEN${currentGeneration}_C${i}` }, options)
+            new NetworkCandidate({ lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` }, jobWrapper)
         );
     }
 
     // Create random candidates
-    const linesToKeepSize = options.linesToKeep.length;
-    const randomLinesCount = options.lineCollection.getFeatures().length - linesToKeepSize;
+    const randomLinesCount = jobWrapper.simulatedLineCollection.getFeatures().length - linesToKeepSize;
     for (let i = elitesToKeep; i < elitesToKeep + randomToCreate; i++) {
         const linesChromosome = generateRandomCandidate(
             {
-                numberOfLinesMin:
-                    options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMin || 1,
+                numberOfLinesMin: jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMin || 1,
                 numberOfLinesMax:
-                    options.simulationRun.attributes.data.transitNetworkDesignParameters.numberOfLinesMax ||
-                    randomLinesCount,
+                    jobWrapper.parameters.transitNetworkDesignParameters.numberOfLinesMax || randomLinesCount,
                 numberOfGenesToGenerate: randomLinesCount,
-                numberOfKeptLines: linesToKeepSize,
-                randomGenerator: options.randomGenerator
+                numberOfKeptLines: linesToKeepSize
             },
             linesChromosomes
         );
 
         linesChromosomes.push(linesChromosome);
         candidates.push(
-            new NetworkCandidate({ lines: linesChromosome, name: `GALN_GEN${currentGeneration}_C${i}` }, options)
+            new NetworkCandidate({ lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` }, jobWrapper)
         );
     }
 
-    for (let i = elitesToKeep + randomToCreate; i < options.populationSize; i++) {
+    for (let i = elitesToKeep + randomToCreate; i < jobWrapper.job.attributes.internal_data.populationSize!; i++) {
         let linesChromosome: boolean[] = [];
         let activeLineCount = 0;
 
         do {
             const firstParentIndex = selection.selectCandidateIdx();
             const firstParent = previousGenSorted[firstParentIndex];
-            if (options.randomGenerator.float(0.0, 1.0) > options.options.crossoverProbability) {
+            if (random.float(0.0, 1.0) > evolutionaryAlgorithmConfig.crossoverProbability) {
                 // No crossover, take the parent as is
                 linesChromosome = _cloneDeep(firstParent.getChromosome().lines);
             } else {
                 const secondParentIdx = selection.selectCandidateIdx([firstParentIndex]);
                 const secondParent = previousGenSorted[secondParentIdx];
 
-                const crossover = new CrossoverClass([firstParent, secondParent], options);
+                const crossover = new CrossoverClass(
+                    [firstParent, secondParent],
+                    evolutionaryAlgorithmConfig,
+                    linesToKeepSize
+                );
                 linesChromosome = crossover.getChildChromosomes();
             }
 
@@ -215,14 +211,32 @@ export const reproduceCandidates = (
 
         linesChromosomes.push(linesChromosome);
         candidates.push(
-            new NetworkCandidate({ lines: linesChromosome, name: `GALN_GEN${currentGeneration}_C${i}` }, options)
+            new NetworkCandidate({ lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` }, jobWrapper)
         );
     }
     if (shuffledGeneOrder !== undefined) {
         deshuffleCandidates(candidates, shuffledGeneOrder);
     }
-    console.log(`  generation ${currentGeneration}: candidates reproduced in ${(Date.now() - time) / 1000} sec.`);
+    console.timeEnd(` generation ${currentGeneration}: reproduced candidates`);
     return candidates;
+};
+
+export const resumeCandidatesFromChromosomes = (
+    jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>,
+    currentGeneration: Exclude<
+        EvolutionaryTransitNetworkDesignJobType['internal_data']['currentGeneration'],
+        undefined
+    >,
+    scenarioCollection: ScenarioCollection
+): NetworkCandidate[] => {
+    return currentGeneration.candidates.map(
+        (candidateData) =>
+            new NetworkCandidate(
+                candidateData.chromosome,
+                jobWrapper,
+                scenarioCollection.getById(candidateData.scenarioId!)
+            )
+    );
 };
 
 /**
@@ -231,13 +245,13 @@ export const reproduceCandidates = (
 class LineAndNumberOfVehiclesGeneration extends Generation {
     constructor(
         candidates: NetworkCandidate[],
-        options: AlgoTypes.RuntimeAlgorithmData,
+        jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>,
         generationNumber = 1,
         generationLogger?: LineAndNumberOfVehiclesGenerationLogger
     ) {
         super(
             candidates,
-            options,
+            jobWrapper,
             generationNumber,
             generationLogger ||
                 new LineAndNumberOfVehiclesGenerationLogger({
@@ -246,14 +260,19 @@ class LineAndNumberOfVehiclesGeneration extends Generation {
         );
     }
 
+    getCandidates(): LineAndNumberOfVehiclesNetworkCandidate[] {
+        return this.candidates as LineAndNumberOfVehiclesNetworkCandidate[];
+    }
+
     // TODO Sorting candidates and calculating totalFitness maybe should not be
     // part of the evolutionary algorithm code, but we may need to extract some
     // result types. For now, it's the only algorithm we have, so keep it here
-    async sortCandidates(): Promise<void> {
+    sortCandidates() {
         const candidates = this.getCandidates();
 
-        const simulationFunctions = this.options.simulationRun.attributes.options.functions;
-        const methodIds = Object.keys(simulationFunctions);
+        const simulationFunctions = this.jobWrapper.parameters.simulationMethod;
+        // FIXME Used to support combination of simulation method, now we have only 1
+        const methodIds = [simulationFunctions.type];
         // TODO Figure out how to get the totalFitness of a candidate given the
         // results. For now, we use an approach inspired by the climbing Olympic
         // discipline: the totalFitness is the product of the rank of each
@@ -270,7 +289,7 @@ class LineAndNumberOfVehiclesGeneration extends Generation {
                     candidateB.candidate.getResult().results[methodId].fitness
                 )
             );
-            const methodWeight = simulationFunctions[methodId].weight;
+            const methodWeight = 1;
             let prevRank = -1;
             let prevFitness = -1;
             candidateWithRanks.forEach((candidate, index) => {
