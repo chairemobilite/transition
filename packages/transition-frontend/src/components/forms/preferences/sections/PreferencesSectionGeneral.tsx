@@ -7,7 +7,7 @@
 import React from 'react';
 import Collapsible from 'react-collapsible';
 import moment from 'moment';
-import { WithTranslation, withTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
@@ -19,9 +19,8 @@ import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
 import PreferencesSectionProps from '../PreferencesSectionProps';
 
-const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
-    props: PreferencesSectionProps & WithTranslation
-) => {
+const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps> = (props) => {
+    const { t } = useTranslation(['main', 'transit']);
     const prefs = props.preferences.attributes;
 
     const sectionsChoices = React.useMemo(() => {
@@ -31,23 +30,23 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
             const section = sections[sectionShortname];
             if (section.enabled !== false) {
                 sectionsChoices.push({
-                    label: props.t(section.localizedTitle),
+                    label: t(section.localizedTitle),
                     value: sectionShortname
                 });
             }
         }
         return sectionsChoices;
-    }, []);
+    }, [t]);
 
     return (
-        <Collapsible trigger={props.t('main:preferences:General')} open={true} transitionTime={100}>
+        <Collapsible trigger={t('main:preferences:General')} open={true} transitionTime={100}>
             <div className="tr__form-section">
-                <InputWrapper label={props.t('main:preferences:DefaultSection')}>
+                <InputWrapper label={t('main:preferences:DefaultSection')}>
                     <InputSelect
                         id={'formFieldPreferencesDefaultSection'}
                         value={prefs.defaultSection}
                         choices={sectionsChoices}
-                        t={props.t}
+                        t={t}
                         onValueChange={(e) => props.onValueChange('defaultSection', { value: e.target.value })}
                     />
                     <PreferencesResetToDefaultButton
@@ -56,21 +55,21 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
                         preferences={props.preferences}
                     />
                 </InputWrapper>
-                <InputWrapper label={props.t('main:preferences:InfoPanelPosition')}>
+                <InputWrapper label={t('main:preferences:InfoPanelPosition')}>
                     <InputSelect
                         id={'formFieldPreferencesInfoPanelPosition'}
                         value={prefs.infoPanelPosition === 'left' ? 'left' : 'right'}
                         choices={[
                             {
-                                label: props.t('main:Left'),
+                                label: t('main:Left'),
                                 value: 'left'
                             },
                             {
-                                label: props.t('main:Right'),
+                                label: t('main:Right'),
                                 value: 'right'
                             }
                         ]}
-                        t={props.t}
+                        t={t}
                         onValueChange={(e) => props.onValueChange('infoPanelPosition', { value: e.target.value })}
                         noBlank={true}
                     />
@@ -82,8 +81,8 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
                 </InputWrapper>
 
                 <InputWrapper
-                    label={props.t('main:preferences:DefaultWalkingSpeedKph')}
-                    help={props.t('main:preferences:DefaultWalkingSpeedKphHelp')}
+                    label={t('main:preferences:DefaultWalkingSpeedKph')}
+                    help={t('main:preferences:DefaultWalkingSpeedKphHelp')}
                 >
                     <InputStringFormatted
                         key={`formFieldPreferencesDefaultDefaultWalkingSpeedMetersPerSeconds${props.resetChangesCount}`}
@@ -104,25 +103,25 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
                         preferences={props.preferences}
                     />
                 </InputWrapper>
-                <InputWrapper label={props.t('main:preferences:DateTimeFormat')}>
+                <InputWrapper label={t('main:preferences:DateTimeFormat')}>
                     <InputSelect
                         id={'formFieldPreferencesDateTimeFormat'}
                         value={prefs.dateTimeFormat}
                         choices={[
                             {
-                                label: props.t('main:preferences:DateTimeFormat24H', {
+                                label: t('main:preferences:DateTimeFormat24H', {
                                     formatted: moment().format('YYYY-MM-DD HH:mm')
                                 }),
                                 value: 'YYYY-MM-DD HH:mm'
                             },
                             {
-                                label: props.t('main:preferences:DateTimeFormat12H', {
+                                label: t('main:preferences:DateTimeFormat12H', {
                                     formatted: moment().format('YYYY-MM-DD hh:mm A')
                                 }),
                                 value: 'YYYY-MM-DD hh:mm A'
                             }
                         ]}
-                        t={props.t}
+                        t={t}
                         onValueChange={(e) => props.onValueChange('dateTimeFormat', { value: e.target.value })}
                     />
                     <PreferencesResetToDefaultButton
@@ -136,4 +135,4 @@ const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps
     );
 };
 
-export default withTranslation(['main', 'transit'])(PreferencesSectionGeneral);
+export default PreferencesSectionGeneral;

@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { use, useCallback, useEffect, useState } from 'react';
-import { WithTranslation, withTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import Menu, { MenuItem } from 'rc-menu';
 
 import 'rc-menu/assets/index.css';
@@ -17,7 +17,8 @@ import { loadLayersAndCollections } from '../../services/dashboard/LayersAndColl
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import { ThemeContext } from 'chaire-lib-frontend/lib/contexts/ThemeContext';
 
-const Toolbar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (props) => {
+const Toolbar: React.FunctionComponent<LayoutSectionProps> = (_props) => {
+    const { t } = useTranslation(['transit', 'main', 'od', 'notifications']);
     // Get the current theme (light or dark)
     const theme = use(ThemeContext);
     const iconVariant = theme === 'dark' ? 'white' : 'black';
@@ -190,82 +191,82 @@ const Toolbar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
                 {dataNeedsUpdate && (
                     <MenuItem
                         key="tr__top-menu-button-fetch-data"
-                        title={props.t('transit:FetchNewData')}
+                        title={t('transit:FetchNewData')}
                         className="tr__top-menu-button"
                         onClick={fetchData}
                     >
                         <img
                             className="_icon"
                             src={'/dist/images/icons/interface/download_cloud_yellow.svg'}
-                            alt={props.t('transit:FetchNewData')}
-                            title={props.t('transit:FetchNewData')}
+                            alt={t('transit:FetchNewData')}
+                            title={t('transit:FetchNewData')}
                         />
                     </MenuItem>
                 )}
                 {layersVisibility.transitPaths === true && (
                     <MenuItem
                         key="tr__top-menu-button-hide-paths"
-                        title={props.t('transit:transitPath:HidePaths')}
+                        title={t('transit:transitPath:HidePaths')}
                         className="tr__top-menu-button"
                         onClick={() => serviceLocator.eventManager.emit('map.hideLayer', 'transitPaths')}
                     >
                         <img
                             className="_icon"
                             src={`/dist/images/icons/transit/paths_visible_${iconVariant}.svg`}
-                            alt={props.t('transit:transitPath:HidePaths')}
-                            title={props.t('transit:transitPath:HidePaths')}
+                            alt={t('transit:transitPath:HidePaths')}
+                            title={t('transit:transitPath:HidePaths')}
                         />
                     </MenuItem>
                 )}
                 {layersVisibility.transitPaths === false && (
                     <MenuItem
                         key="tr__top-menu-button-show-paths"
-                        title={props.t('transit:transitPath:ShowPaths')}
+                        title={t('transit:transitPath:ShowPaths')}
                         className="tr__top-menu-button"
                         onClick={() => serviceLocator.eventManager.emit('map.showLayer', 'transitPaths')}
                     >
                         <img
                             className="_icon"
                             src={`/dist/images/icons/transit/paths_hidden_${iconVariant}.svg`}
-                            alt={props.t('transit:transitPath:ShowPaths')}
-                            title={props.t('transit:transitPath:ShowPaths')}
+                            alt={t('transit:transitPath:ShowPaths')}
+                            title={t('transit:transitPath:ShowPaths')}
                         />
                     </MenuItem>
                 )}
                 {layersVisibility.transitNodes === true && (
                     <MenuItem
                         key="tr__top-menu-button-hide-nodes"
-                        title={props.t('transit:transitNode:HideNodes')}
+                        title={t('transit:transitNode:HideNodes')}
                         className="tr__top-menu-button"
                         onClick={() => serviceLocator.eventManager.emit('map.hideLayer', 'transitNodes')}
                     >
                         <img
                             className="_icon"
                             src={`/dist/images/icons/transit/nodes_visible_${iconVariant}.svg`}
-                            alt={props.t('transit:transitNode:HideNodes')}
-                            title={props.t('transit:transitNode:HideNodes')}
+                            alt={t('transit:transitNode:HideNodes')}
+                            title={t('transit:transitNode:HideNodes')}
                         />
                     </MenuItem>
                 )}
                 {layersVisibility.transitNodes === false && (
                     <MenuItem
                         key="tr__top-menu-button-show-nodes"
-                        title={props.t('transit:transitNode:ShowNodes')}
+                        title={t('transit:transitNode:ShowNodes')}
                         className="tr__top-menu-button"
                         onClick={() => serviceLocator.eventManager.emit('map.showLayer', 'transitNodes')}
                     >
                         <img
                             className="_icon"
                             src={`/dist/images/icons/transit/nodes_hidden_${iconVariant}.svg`}
-                            alt={props.t('transit:transitNode:ShowNodes')}
-                            title={props.t('transit:transitNode:ShowNodes')}
+                            alt={t('transit:transitNode:ShowNodes')}
+                            title={t('transit:transitNode:ShowNodes')}
                         />
                     </MenuItem>
                 )}
 
                 <MenuItem
                     key="tr__top-menu-button-save-and-update-nodes"
-                    title={props.t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
+                    title={t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
                     className="tr__top-menu-button"
                     onClick={saveAndUpdateNodes}
                 >
@@ -276,13 +277,13 @@ const Toolbar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
                                 ? '/dist/images/icons/transit/transfer_refresh_yellow.svg'
                                 : `/dist/images/icons/transit/transfer_refresh_${iconVariant}.svg`
                         }
-                        alt={props.t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
-                        title={props.t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
+                        alt={t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
+                        title={t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
                     />
                 </MenuItem>
                 <MenuItem
                     key="tr__top-menu-button-save-all-cache"
-                    title={props.t('main:SaveAllData')}
+                    title={t('main:SaveAllData')}
                     className="tr__top-menu-button"
                     onClick={saveAllCache}
                 >
@@ -293,13 +294,13 @@ const Toolbar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
                                 ? '/dist/images/icons/interface/download_cloud_yellow.svg'
                                 : `/dist/images/icons/interface/download_cloud_${iconVariant}.svg`
                         }
-                        alt={props.t('main:SaveAllData')}
-                        title={props.t('main:SaveAllData')}
+                        alt={t('main:SaveAllData')}
+                        title={t('main:SaveAllData')}
                     />
                 </MenuItem>
                 <MenuItem
                     key="tr__top-menu-button-restart-tr-routing"
-                    title={props.t('main:RestartTrRouting')}
+                    title={t('main:RestartTrRouting')}
                     className="tr__top-menu-button"
                     onClick={restartTrRouting}
                 >
@@ -310,8 +311,8 @@ const Toolbar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
                                 ? '/dist/images/icons/interface/restart_routing_yellow.svg'
                                 : `/dist/images/icons/interface/restart_routing_${iconVariant}.svg`
                         }
-                        alt={props.t('main:RestartTrRouting')}
-                        title={props.t('main:RestartTrRouting')}
+                        alt={t('main:RestartTrRouting')}
+                        title={t('main:RestartTrRouting')}
                     />
                 </MenuItem>
             </Menu>
@@ -319,4 +320,4 @@ const Toolbar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
     );
 };
 
-export default withTranslation(['transit', 'main', 'od', 'notifications'])(Toolbar);
+export default Toolbar;

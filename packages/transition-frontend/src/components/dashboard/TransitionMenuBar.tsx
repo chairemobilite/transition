@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { JSX, use } from 'react';
-import { WithTranslation, withTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
@@ -15,9 +15,8 @@ import config from 'chaire-lib-common/lib/config/shared/project.config';
 // TODO Menu items should not be provided directly by widgets, it should be
 // built from descriptive elements, or contributions should register their own
 // menu. This is just a copy-paste from the legacy workspace.
-const MenuBar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
-    props: LayoutSectionProps & WithTranslation
-) => {
+const MenuBar: React.FunctionComponent<LayoutSectionProps> = (props) => {
+    const { t } = useTranslation(['transit', 'main', 'form']);
     // Get the sections configuration
     const sectionsConfig = config.sections;
 
@@ -50,11 +49,11 @@ const MenuBar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
                             <img
                                 className="_icon"
                                 src={sectionIcon(sectionShortname)}
-                                alt={props.t(sectionsConfig[sectionShortname].localizedTitle)}
+                                alt={t(sectionsConfig[sectionShortname].localizedTitle)}
                             />
                         </span>
                         <span className="tr__left-menu-button-name">
-                            {props.t(sectionsConfig[sectionShortname].localizedTitle)}
+                            {t(sectionsConfig[sectionShortname].localizedTitle)}
                         </span>
                     </button>
                 </li>
@@ -65,4 +64,4 @@ const MenuBar: React.FunctionComponent<LayoutSectionProps & WithTranslation> = (
     return <ul className="tr__left-menu-container">{sectionLists}</ul>;
 };
 
-export default withTranslation(['transit', 'main', 'form'])(MenuBar);
+export default MenuBar;
